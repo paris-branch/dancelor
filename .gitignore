@@ -1,0 +1,10 @@
+## Emacs
+*~
+*#
+
+## Dune
+/*.install
+/_build
+
+## Specific
+/bin

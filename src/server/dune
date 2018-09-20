@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (public_name imperator)
+ (libraries cohttp-lwt-unix yojson))
