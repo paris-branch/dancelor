@@ -15,7 +15,7 @@ license: "GPL3"
 depends: [
   "cohttp-lwt-unix"
   "dune"             {build}
-  "ezjsonm-lwt"
+  "ezjsonm"
   "ocaml"            {build}
 ]
 

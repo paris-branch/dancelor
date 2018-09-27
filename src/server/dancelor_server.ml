@@ -6,8 +6,9 @@ let respond_json ?(status=`OK) json =
 (* =========================== [ Main Callback ] ============================ *)
 
 let callback _ request _body =
-  respond_json (`String (request |> Request.uri |> Uri.to_string))
-
+  `O [ ("uri", `String (request |> Request.uri |> Uri.to_string)) ]
+  |> respond_json
+  
 (* ============================== [ Options ] =============================== *)
 
 let port = 8080
