@@ -1,0 +1,22 @@
+opam-version: "2.0"
+
+name: "dancelor"
+version: "0.1"
+
+synopsis: "A chancelor for RSCDS musicians"
+description: """
+A chancelor for RSCDS musicians.
+"""
+
+maintainer: "Niols <niols@niols.fr>"
+authors: "Niols <niols@niols.fr>"
+license: "GPL3"
+
+depends: [
+  "cohttp-lwt-unix"
+  "dune"             {build}
+  "ezjsonm-lwt"
+  "ocaml"            {build}
+]
+
+build: ["dune" "build" "-p" name "-j" jobs]

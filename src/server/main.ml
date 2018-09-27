@@ -1,7 +1,7 @@
 open Cohttp_lwt_unix
 
 let respond_json ?(status=`OK) json =
-  Server.respond_string ~status ~body:(Yojson.to_string json) ()
+  Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
 
 (* =========================== [ Main Callback ] ============================ *)
 

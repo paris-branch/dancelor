@@ -1,4 +1,4 @@
 (executable
  (name main)
- (public_name imperator)
- (libraries cohttp-lwt-unix yojson))
+ (public_name dancelor-server)
+ (libraries cohttp-lwt-unix ezjsonm))

@@ -5,6 +5,7 @@
 ## Dune
 /*.install
 /_build
+*.merlin
 
 ## Specific
 /bin
