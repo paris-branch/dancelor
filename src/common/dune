@@ -1,0 +1,5 @@
+(library
+ (name dancelor_common)
+ (public_name dancelor.common)
+ (preprocess (pps ppx_inline_test))
+ (inline_tests))
