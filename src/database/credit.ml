@@ -17,5 +17,7 @@ let load_credit slug =
   |> Hashtbl.add db slug
 
 let () =
-  Sys.readdir prefix
-  |> Array.iter load_credit
+  Storage.list_entries prefix
+  |> List.iter load_credit
+
+let get = Hashtbl.find db

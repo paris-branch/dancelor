@@ -15,7 +15,7 @@ let load_person slug =
   |> Hashtbl.add db slug
 
 let () =
-  Sys.readdir prefix
-  |> Array.iter load_person
+  Storage.list_entries prefix
+  |> List.iter load_person
 
 let get = Hashtbl.find db 

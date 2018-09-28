@@ -8,7 +8,6 @@ let success = function
   | _ -> assert false
 
 let error status msg =
-  (* FIXME: error code *)
   `O [
       "success", `Bool false;
       "message", `String msg
@@ -17,22 +16,8 @@ let error status msg =
 
 (* ============================= [ Callbacks ] ============================== *)
 
-let index query =
-  `O [
-      "index", `Bool true;
-      "query",
-      `O (
-          List.map
-            (fun (s, sl) ->
-              (s, `A (List.map (fun s -> `String s) sl)))
-            query
-        )
-    ]
-  |> success
-
-
 let callbacks =
-  [ ([`GET], "/", index) ]
+  [ ([`GET], "/credit", Credit.get) ]
 
 let callback _ request _body =
   let uri = Request.uri request in
