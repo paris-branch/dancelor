@@ -13,15 +13,16 @@ authors: "Niols <niols@niols.fr>"
 license: "GPL3"
 
 depends: [
-  "ocaml"  {build}
-  "dune"   {build}
-
   "cohttp-lwt-unix"
 
   "ezjsonm"
   "yojson"
   "ppx_deriving_yojson"
   "json-derivers"
+
+  "ocaml"            {build}
+  "dune"             {build}
+  "ppx_inline_test"  {build & test}
 ]
 
 build: ["dune" "build" "-p" name "-j" jobs]
