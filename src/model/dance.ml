@@ -1,7 +1,7 @@
 
 type t =
   { name : string ;
-    kind : Kind.tune ;
+    kind : Kind.dance ;
     credit : Person.t list }
 
 let create name kind credit =
