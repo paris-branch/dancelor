@@ -7,40 +7,50 @@ let success = function
   | `O l -> `O (("success", `Bool true) :: l) |> respond
   | _ -> assert false
 
-let error msg =
+let error status msg =
   (* FIXME: error code *)
   `O [
       "success", `Bool false;
       "message", `String msg
     ]
-  |> respond
+  |> respond ~status
 
-(* =========================== [ Main Callback ] ============================ *)
+(* ============================= [ Callbacks ] ============================== *)
+
+let index query =
+  `O [
+      "index", `Bool true;
+      "query",
+      `O (
+          List.map
+            (fun (s, sl) ->
+              (s, `A (List.map (fun s -> `String s) sl)))
+            query
+        )
+    ]
+  |> success
+
+
+let callbacks =
+  [ ([`GET], "/", index) ]
 
 let callback _ request _body =
+  let uri = Request.uri request in
   let path = Uri.path (Request.uri request) in
   let meth = Request.meth request in
 
-  match meth, path with
-  | `GET, "/" ->
-     let uri = Request.uri request in
-     `O [
-         "uri", `String (Uri.to_string uri);
-         "path", `String (Uri.path uri);
-         "path_and_query", `String (Uri.path_and_query uri);
-         "query",
-         `O (
-             Uri.query uri
-             |> List.map
-                  (fun (s, sl) ->
-                    (s, `A (List.map (fun s -> `String s) sl)))
-           )
-       ]
-     |> success
+  let rec find_callback = function
+    | [] ->
+       error `Not_found ("not found: " ^ path)
 
-  | _ ->
-     error ("not found: " ^ path)
+    | (methods, path', callback) :: _
+         when List.mem meth methods && path = path' ->
+       callback (Uri.query uri)
 
+    | _ :: callbacks -> find_callback callbacks
+  in
+
+  find_callback callbacks
 
 
 (* ============================== [ Options ] =============================== *)
