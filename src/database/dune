@@ -1,0 +1,4 @@
+(library
+ (name dancelor_database)
+ (public_name dancelor.database)
+ (libraries dancelor.common dancelor.model ezjsonm))

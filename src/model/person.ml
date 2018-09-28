@@ -1,8 +1,8 @@
+open Dancelor_common
 
 type t =
-  { name : string }
+  { slug : Slug.t ;
+    name : string }
 
-let create name =
-  { name }
-
-let name p = p.name
+let make_unsafe ~slug ~name =
+  { slug ; name }

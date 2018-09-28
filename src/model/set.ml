@@ -4,4 +4,4 @@ type t =
   { slug : Slug.t ;
     name : string ;
     kind : Kind.dance ;
-    credit : Credit.t }
+    tunes : Tune.t list }
