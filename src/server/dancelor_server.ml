@@ -17,7 +17,8 @@ let error status msg =
 (* ============================= [ Callbacks ] ============================== *)
 
 let callbacks =
-  [ ([`GET], "/credit", Credit.get) ]
+  [ ([`GET], "/credit", Credit.get) ;
+    ([`GET], "/tune/png", Tune.get_png) ]
 
 let callback _ request _body =
   let uri = Request.uri request in
