@@ -1,4 +1,5 @@
 open Dancelor_common
+open Protocol_conv_jsonm
 
 let spf = Printf.sprintf
 let ssf = Scanf.sscanf
@@ -10,6 +11,7 @@ type base =
   | Reel
   | Strathspey
   | Waltz
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let base_to_char = function
   | Jig -> 'J'
@@ -38,6 +40,7 @@ let base_of_string s =
 (* ============================= [ Tune Kind ] ============================== *)
 
 type tune = int * base
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let tune_to_string (repeats, base) =
     spf "%d%c" repeats (base_to_char base)
@@ -70,6 +73,7 @@ let%test _ = tune_of_string "48 sTrathPEY" = (48, Strathspey)
 
 type dance =
   int * tune list
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let dance_to_string (repeats, tunes) =
   List.map tune_to_string tunes
