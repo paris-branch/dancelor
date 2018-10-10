@@ -8,7 +8,7 @@ test:
 	dune runtest
 
 serve: build
-	bin/imperator
+	bin/dancelor-server
 
 clean:
 	dune clean

@@ -36,14 +36,26 @@ let callback _ request _body =
     | _ :: callbacks -> find_callback callbacks
   in
 
-  find_callback callbacks
+  try
+    find_callback callbacks
+  with
+  | Common.ArgumentRequired arg ->
+     error `Bad_request ("the argument '" ^arg^ "' is required")
+  | Common.ArgumentOfWrongType (typ, arg) ->
+     error `Bad_request ("the argument '" ^arg^ "' is expected to be of type " ^typ)
+  | Common.TooManyArguments arg ->
+     error `Bad_request ("only one argument '" ^arg^ "' is expected")
 
+  | exn ->
+    Format.eprintf "Unhandled exception: %s@." (Printexc.to_string exn);
+    error `Internal_server_error ("internal server error")
 
 (* ============================== [ Options ] =============================== *)
 
 let port = 8080
 
 let () =
+  Dancelor_model.Database.initialise ();
   let server =
     Server.create
       ~mode:(`TCP (`Port port))

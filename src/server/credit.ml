@@ -1,14 +1,11 @@
 open Common
 
-
 let get query =
-  match List.assoc_opt "slug" query with
-  | Some [slug] ->
-     let credit = Database.Credit.get slug in
-     `O [ ("credit", `String (Credit.credit credit)) ;
-          ("persons", `A (Credit.persons credit
-                          |> List.map (fun person -> `String (Person.name person)))) ]
-     |> respond
-
-  | _ ->
-     error `Bad_request ":-("
+  let slug = query_string query "slug" in
+  try
+    Credit.Database.get slug
+    |> Credit.view
+    |> Credit.view_to_jsonm
+    |> (fun json -> success ["credit", json])
+  with
+    Not_found -> error `Not_found "this credit does not exist"

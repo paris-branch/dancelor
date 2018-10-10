@@ -1,5 +1,7 @@
+open Protocol_conv_jsonm
 
 type t = string
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let of_string s =
   let s = String.lowercase_ascii s in
@@ -12,3 +14,6 @@ let of_string s =
     ()
   done;
   ""
+
+let%test _ = of_string "Hello you, how are you?!" = "hello-you-how-are-you"
+let%test _ = of_string "<> My friend!" = "my-friend"
