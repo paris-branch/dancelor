@@ -1,19 +1,19 @@
-include Cohttp_lwt_unix
-include Dancelor_model
+open Cohttp_lwt_unix
 
-let respond ?(status=`OK) json =
-  Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
+let respond_html html =
+  Server.respond_string ~status:`OK ~body:html ()
+
+let respond_json json =
+  Server.respond_string ~status:`OK ~body:(Ezjsonm.to_string json) ()
 
 let success l =
   `O (("success", `Bool true) :: l)
-  |> respond
 
-let error status msg =
+let error msg =
   `O [
       "success", `Bool false;
       "message", `String msg
     ]
-  |> respond ~status
 
 (* helpers with queries *)
 

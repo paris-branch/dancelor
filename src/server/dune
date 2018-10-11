@@ -1,4 +1,4 @@
 (executable
  (name dancelor_server)
  (public_name dancelor-server)
- (libraries dancelor.model cohttp-lwt-unix ezjsonm))
+ (libraries dancelor.model cohttp-lwt-unix ezjsonm mustache))

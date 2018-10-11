@@ -1,24 +1,15 @@
+open Dancelor_common
 open Cohttp_lwt_unix
-
-let respond ?(status=`OK) json =
-  Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
-
-let success = function
-  | `O l -> `O (("success", `Bool true) :: l) |> respond
-  | _ -> assert false
-
-let error status msg =
-  `O [
-      "success", `Bool false;
-      "message", `String msg
-    ]
-  |> respond ~status
+open Common
 
 (* ============================= [ Callbacks ] ============================== *)
 
 let callbacks =
-  [ ([`GET], "/credit", Credit.get) ;
-    ([`GET], "/tune/png", Tune.get_png) ]
+  [ (* API points *)
+    ([`GET], "/api/credit", (Credit.Api.get ||> respond_json)) ;
+
+    (* HTML *)
+    ([`GET], "/credit", Credit.Html.get) ]
 
 let callback _ request _body =
   let uri = Request.uri request in
@@ -27,7 +18,8 @@ let callback _ request _body =
 
   let rec find_callback = function
     | [] ->
-       error `Not_found ("not found: " ^ path)
+       error ("not found: " ^ path)
+       |> respond_json
 
     | (methods, path', callback) :: _
          when List.mem meth methods && path = path' ->
@@ -40,15 +32,19 @@ let callback _ request _body =
     find_callback callbacks
   with
   | Common.ArgumentRequired arg ->
-     error `Bad_request ("the argument '" ^arg^ "' is required")
+     error ("the argument '" ^arg^ "' is required")
+     |> respond_json
   | Common.ArgumentOfWrongType (typ, arg) ->
-     error `Bad_request ("the argument '" ^arg^ "' is expected to be of type " ^typ)
+     error ("the argument '" ^arg^ "' is expected to be of type " ^typ)
+     |> respond_json
   | Common.TooManyArguments arg ->
-     error `Bad_request ("only one argument '" ^arg^ "' is expected")
+     error ("only one argument '" ^arg^ "' is expected")
+     |> respond_json
 
   | exn ->
     Format.eprintf "Unhandled exception: %s@." (Printexc.to_string exn);
-    error `Internal_server_error ("internal server error")
+    error ("internal server error")
+    |> respond_json
 
 (* ============================== [ Options ] =============================== *)
 

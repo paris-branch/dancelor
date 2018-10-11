@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<head>
+  <title>{{credit.credit}}</title>
+</head>
+<body>
+  <h1>{{credit.credit}}</h1>
+  <ul>
+    {{#credit.persons}}
+    <li><a href="/person?slug={{slug}}">{{name}}</a></li>
+    {{/credit.persons}}
+  </ul>
+
+  <a href="/credit?slug={{credit.slug}}">Link to this credit</a>
+</body>
+</html>
