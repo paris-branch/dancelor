@@ -43,7 +43,8 @@ module Api =
       close_out ochan;
       let rc =
         Sys.command ("cd " ^ (escape_shell_argument dirname)
-                     ^ " && lilypond -dresolution=110 -dbackend=eps --png " ^ (escape_shell_argument (basename ^ ".ly")))
+                     ^ " && lilypond -dresolution=110 -dbackend=eps --png "
+                     ^ (escape_shell_argument (basename ^ ".ly")))
       in
       assert (rc = 0);
       Server.respond_file ~fname:(Filename.concat dirname (basename ^ ".png")) ()

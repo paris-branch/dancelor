@@ -11,11 +11,14 @@ let callbacks =
     ([`GET], "/api/person", (Person.Api.get ||> respond_json)) ;
     ([`GET], "/api/tune", (Tune.Api.get ||> respond_json)) ;
     ([`GET], "/api/tune.png", Tune.Api.png) ;
+    ([`GET], "/api/set", (Set.Api.get ||> respond_json)) ;
 
     (* HTML *)
     ([`GET], "/credit", Credit.Html.get) ;
     ([`GET], "/person", Person.Html.get) ;
     ([`GET], "/tune", Tune.Html.get) ;
+    ([`GET], "/tune.png", Tune.Api.png) ; (* alias for /api/tune.png *)
+    ([`GET], "/set", Set.Html.get) ;
   ]
 
 let callback _ request _body =

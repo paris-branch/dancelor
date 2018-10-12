@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<head>
+  <title>{{set.name}}</title>
+</head>
+<body>
+  <h1>{{set.name}}</h1>
+
+  <p>Kind: {{set.kind}}</p>
+
+  <ul>
+    {{#set.tunes}}
+    <li>
+      <a href="/tune?slug={{slug}}">{{name}}</a><br/>
+      <img src="/tune.png?slug={{slug}}" />
+    </li>
+    {{/set.tunes}}
+  </ul>
+
+  <a href="/set?slug={{set.slug}}">Link to this set</a>
+</body>
+</html>
