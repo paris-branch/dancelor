@@ -10,6 +10,7 @@ let callbacks =
     ([`GET], "/api/credit", (Credit.Api.get ||> respond_json)) ;
     ([`GET], "/api/person", (Person.Api.get ||> respond_json)) ;
     ([`GET], "/api/tune", (Tune.Api.get ||> respond_json)) ;
+    ([`GET], "/api/tune.png", Tune.Api.png) ;
 
     (* HTML *)
     ([`GET], "/credit", Credit.Html.get) ;

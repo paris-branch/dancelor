@@ -17,3 +17,8 @@ let in_channel_to_string ic =
   in
   aux ();
   Buffer.contents all
+
+let escape_shell_argument =
+  String.split_on_char '\''
+  ||> String.concat "'\\''"
+  ||> fun s -> "'" ^ s ^ "'"
