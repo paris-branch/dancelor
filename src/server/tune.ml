@@ -34,16 +34,19 @@ module Api =
     let png query =
       (* FIXME: dirty as fuck *)
       let slug = query_string query "slug" in
-      let view = Tune.(Database.get slug |> view |> view_to_jsonm) in
-      let lilypond = Mustache.render lilypond_png_template (`O ["tune", view]) in
-      Format.eprintf "command starts@.";
-      Sys.command
-        (Format.sprintf
-           "printf -- '%%s' %s | lilypond -dresolution=110 -dbackend=eps --png -"
-           (escape_shell_argument lilypond))
-      |> ignore;
-      Format.eprintf "command ends@.";
-      Server.respond_file ~fname:"-.png" ()
+      let view = Tune.(Database.get slug |> view) in
+      let lilypond = Mustache.render lilypond_png_template (`O ["tune", Tune.view_to_jsonm view]) in
+      let dirname = Filename.concat (Unix.getenv "DANCELOR_CACHE") "tune" in
+      let basename = view.Tune.slug in
+      let ochan = open_out (Filename.concat dirname (basename ^ ".ly")) in
+      output_string ochan lilypond;
+      close_out ochan;
+      let rc =
+        Sys.command ("cd " ^ (escape_shell_argument dirname)
+                     ^ " && lilypond -dresolution=110 -dbackend=eps --png " ^ (escape_shell_argument (basename ^ ".ly")))
+      in
+      assert (rc = 0);
+      Server.respond_file ~fname:(Filename.concat dirname (basename ^ ".png")) ()
   end
 
 module Html =
