@@ -9,5 +9,6 @@ module Database =
   struct
     let initialise () =
       Person.Database.initialise ();
-      Credit.Database.initialise ()
+      Credit.Database.initialise ();
+      Tune.Database.initialise ()
   end

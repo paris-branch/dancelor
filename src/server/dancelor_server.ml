@@ -5,11 +5,17 @@ open Common
 (* ============================= [ Callbacks ] ============================== *)
 
 let callbacks =
-  [ (* API points *)
+  [
+    (* API points *)
     ([`GET], "/api/credit", (Credit.Api.get ||> respond_json)) ;
+    ([`GET], "/api/person", (Person.Api.get ||> respond_json)) ;
+    ([`GET], "/api/tune", (Tune.Api.get ||> respond_json)) ;
 
     (* HTML *)
-    ([`GET], "/credit", Credit.Html.get) ]
+    ([`GET], "/credit", Credit.Html.get) ;
+    ([`GET], "/person", Person.Html.get) ;
+    ([`GET], "/tune", Tune.Html.get) ;
+  ]
 
 let callback _ request _body =
   let uri = Request.uri request in

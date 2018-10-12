@@ -1,5 +1,4 @@
 open Dancelor_common
-open Protocol_conv_jsonm
 
 let spf = Printf.sprintf
 let ssf = Scanf.sscanf
@@ -11,7 +10,6 @@ type base =
   | Reel
   | Strathspey
   | Waltz
-[@@deriving protocol ~driver:(module Jsonm)]
 
 let base_to_char = function
   | Jig -> 'J'
@@ -37,10 +35,15 @@ let base_of_string s =
   try base_of_char s.[0]
   with Failure _ -> failwith "Dancelor_model.Kind.base_of_string"
 
+let base_to_jsonm b = `String (base_to_string b)
+
+let base_of_jsonm = function
+  | `String s -> base_of_string s
+  | _ -> failwith "Dancelor_model.Kind.base_of_jsonm"
+
 (* ============================= [ Tune Kind ] ============================== *)
 
 type tune = int * base
-[@@deriving protocol ~driver:(module Jsonm)]
 
 let tune_to_string (repeats, base) =
     spf "%d%c" repeats (base_to_char base)
@@ -69,11 +72,16 @@ let%test _ = tune_of_string "64 Reel" = (64, Reel)
 let%test _ = tune_of_string "JIG 24" = (24, Jig)
 let%test _ = tune_of_string "48 sTrathPEY" = (48, Strathspey)
 
+let tune_to_jsonm t = `String (tune_to_string t)
+
+let tune_of_jsonm = function
+  | `String s -> tune_of_string s
+  | _ -> failwith "Dancelor_model.Kind.tune_of_jsonm"
+
 (* ============================= [ Dance Kind ] ============================= *)
 
 type dance =
   int * tune list
-[@@deriving protocol ~driver:(module Jsonm)]
 
 let dance_to_string (repeats, tunes) =
   List.map tune_to_string tunes
@@ -100,3 +108,9 @@ let%test _ = dance_to_string (2, [(32, Strathspey); (24, Reel)]) = "2x(32S + 24R
 let%test _ = dance_of_string "3 x ( 32 Strathspey )" = (3, [32, Strathspey])
 let%test _ = dance_of_string "(32W + 64R)" = (1, [(32, Waltz); (64, Reel)])
 let%test _ = dance_of_string "3x40J" = (3, [40, Jig])
+
+let dance_to_jsonm d = `String (dance_to_string d)
+
+let dance_of_jsonm = function
+  | `String s -> dance_of_string s
+  | _ -> failwith "Dancelor_model.Kind.dance_of_jsonm"
