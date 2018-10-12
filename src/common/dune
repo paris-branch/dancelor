@@ -1,6 +1,6 @@
 (library
  (name dancelor_common)
  (public_name dancelor.common)
- (libraries ezjsonm ppx_protocol_conv_jsonm)
+ (libraries ezjsonm ppx_protocol_conv_jsonm ppx_protocol_conv_yaml)
  (preprocess (pps ppx_inline_test ppx_protocol_conv))
  (inline_tests))

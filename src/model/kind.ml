@@ -41,6 +41,9 @@ let base_of_jsonm = function
   | `String s -> base_of_string s
   | _ -> failwith "Dancelor_model.Kind.base_of_jsonm"
 
+let base_to_yaml = base_to_jsonm
+let base_of_yaml = base_of_jsonm
+
 (* ============================= [ Tune Kind ] ============================== *)
 
 type tune = int * base
@@ -78,6 +81,9 @@ let tune_of_jsonm = function
   | `String s -> tune_of_string s
   | _ -> failwith "Dancelor_model.Kind.tune_of_jsonm"
 
+let tune_to_yaml = tune_to_jsonm
+let tune_of_yaml = tune_of_jsonm
+
 (* ============================= [ Dance Kind ] ============================= *)
 
 type dance =
@@ -114,3 +120,6 @@ let dance_to_jsonm d = `String (dance_to_string d)
 let dance_of_jsonm = function
   | `String s -> dance_of_string s
   | _ -> failwith "Dancelor_model.Kind.dance_of_jsonm"
+
+let dance_to_yaml = dance_to_jsonm
+let dance_of_yaml = dance_of_jsonm

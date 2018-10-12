@@ -1,12 +1,15 @@
 open Dancelor_common
 open Protocol_conv_jsonm
+open Protocol_conv_yaml
 
 type t =
   { slug : Slug.t ;
     name : string ;
     kind : Kind.tune ;
-    credit : Slug.t }
-[@@deriving protocol ~driver:(module Jsonm)]
+    credit : Slug.t ;
+    content : string }
+[@@deriving protocol ~driver:(module Jsonm),
+            protocol ~driver:(module Yaml)]
 
 module Database =
   struct
@@ -22,8 +25,8 @@ module Database =
           Storage.list_entries prefix
           |> List.iter
                (fun slug ->
-                 Storage.read_json prefix slug "meta.json"
-                 |> of_jsonm
+                 Storage.read_yaml prefix slug "meta.yaml"
+                 |> of_yaml
                  |> Hashtbl.add db slug);
           initialised := true
         )
@@ -35,9 +38,11 @@ type view =
   { slug : Slug.t ;
     name : string ;
     kind : Kind.tune ;
-    credit : Credit.view }
+    credit : Credit.view ;
+    content : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
-let view ({ slug ; name ; kind ; credit } : t) =
+let view ({ slug ; name ; kind ; credit ; content } : t) =
   { slug ; name ; kind ;
-    credit = Credit.(Database.get ||> view) credit }
+    credit = Credit.(Database.get ||> view) credit ;
+    content }

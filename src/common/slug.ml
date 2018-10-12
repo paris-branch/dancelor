@@ -1,7 +1,9 @@
 open Protocol_conv_jsonm
+open Protocol_conv_yaml
 
 type t = string
-[@@deriving protocol ~driver:(module Jsonm)]
+[@@deriving protocol ~driver:(module Jsonm),
+            protocol ~driver:(module Yaml)]
 
 let of_string s =
   let s = String.lowercase_ascii s in

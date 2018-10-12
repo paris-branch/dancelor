@@ -13,6 +13,9 @@ val base_of_string : string -> base
 val base_to_jsonm : base -> Ezjsonm.value
 val base_of_jsonm : Ezjsonm.value -> base
 
+val base_to_yaml : base -> Yaml.value
+val base_of_yaml : Yaml.value -> base
+
 (** {2 Tune Kind} *)
 
 type tune = int * base
@@ -24,6 +27,9 @@ val tune_of_string : string -> tune
 val tune_to_jsonm : tune -> Ezjsonm.value
 val tune_of_jsonm : Ezjsonm.value -> tune
 
+val tune_to_yaml : tune -> Yaml.value
+val tune_of_yaml : Yaml.value -> tune
+
 (** {2 Dance Kind} *)
 
 type dance = int * tune list
@@ -34,3 +40,6 @@ val dance_of_string : string -> dance
 
 val dance_to_jsonm : dance -> Ezjsonm.value
 val dance_of_jsonm : Ezjsonm.value -> dance
+
+val dance_to_yaml : dance -> Yaml.value
+val dance_of_yaml : Yaml.value -> dance
