@@ -52,9 +52,10 @@ let callback _ request _body =
      |> respond_json
 
   | exn ->
-    Format.eprintf "Unhandled exception: %s@." (Printexc.to_string exn);
-    error ("internal server error")
-    |> respond_json
+     Format.eprintf "Unhandled exception: %s\n%s@."
+       (Printexc.to_string exn) (Printexc.get_backtrace ());
+     error ("internal server error")
+     |> respond_json
 
 (* ============================== [ Options ] =============================== *)
 

@@ -6,7 +6,7 @@ type t =
   { slug : Slug.t ;
     name : string ;
     kind : Kind.tune ;
-    credit : Slug.t ;
+    author : Slug.t ;
     content : string }
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
@@ -17,19 +17,13 @@ module Database =
 
     let db = Hashtbl.create 8
 
-    let initialise =
-      let initialised = ref false in
-      fun () ->
-      if not !initialised then
-        (
-          Storage.list_entries prefix
-          |> List.iter
-               (fun slug ->
-                 Storage.read_yaml prefix slug "meta.yaml"
-                 |> of_yaml
-                 |> Hashtbl.add db slug);
-          initialised := true
-        )
+    let initialise () =
+      Storage.list_entries prefix
+      |> List.iter
+           (fun slug ->
+             Storage.read_yaml prefix slug "meta.yaml"
+             |> of_yaml
+             |> Hashtbl.add db slug)
 
     let get = Hashtbl.find db
   end
@@ -37,12 +31,14 @@ module Database =
 type view =
   { slug : Slug.t ;
     name : string ;
+    author : Credit.view ;
     kind : Kind.tune ;
-    credit : Credit.view ;
     content : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
-let view ({ slug ; name ; kind ; credit ; content } : t) =
-  { slug ; name ; kind ;
-    credit = Credit.(Database.get ||> view) credit ;
-    content }
+let view (tune : t) =
+  { slug = tune.slug ;
+    name = tune.name ;
+    author = Credit.(Database.get ||> view) tune.author ;
+    kind = tune.kind ;
+    content = tune.content }

@@ -1,21 +1,13 @@
 open Dancelor_common
 open Protocol_conv_jsonm
+open Protocol_conv_yaml
 
 type t =
   { slug : Slug.t ;
-    credit : string ;
+    line : string ;
     persons : Slug.t list }
-[@@deriving protocol ~driver:(module Jsonm)]
-
-type view =
-  { slug : Slug.t ;
-    credit : string ;
-    persons : Person.view list }
-[@@deriving protocol ~driver:(module Jsonm)]
-
-let view ({ slug ; credit ; persons } : t) =
-  { slug ; credit ;
-    persons = List.map (Person.(Database.get ||> view)) persons }
+[@@deriving protocol ~driver:(module Jsonm),
+            protocol ~driver:(module Yaml)]
 
 module Database =
   struct
@@ -23,19 +15,24 @@ module Database =
 
     let db = Hashtbl.create 8
 
-    let initialise =
-      let initialised = ref false in
-      fun () ->
-      if not !initialised then
-        (
-          Storage.list_entries prefix
-          |> List.iter
-               (fun slug ->
-                 Storage.read_json prefix slug "meta.json"
-                 |> of_jsonm
-                 |> Hashtbl.add db slug);
-          initialised := true
-        )
+    let initialise () =
+      Storage.list_entries prefix
+      |> List.iter
+           (fun slug ->
+             Storage.read_yaml prefix slug "meta.yaml"
+             |> of_jsonm
+             |> Hashtbl.add db slug)
 
     let get = Hashtbl.find db
   end
+
+type view =
+  { slug : Slug.t ;
+    line : string ;
+    persons : Person.view list }
+[@@deriving protocol ~driver:(module Jsonm)]
+
+let view (credit : t) =
+  { slug = credit.slug ;
+    line = credit.line ;
+    persons = List.map (Person.(Database.get ||> view)) credit.persons }

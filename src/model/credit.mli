@@ -6,7 +6,7 @@ type t
 
 type view =
   { slug : Slug.t ;
-    credit : string ;
+    line : string ;
     persons : Person.view list }
 
 val view : t -> view

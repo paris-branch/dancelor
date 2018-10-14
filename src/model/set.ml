@@ -5,6 +5,7 @@ open Protocol_conv_yaml
 type t =
   { slug : Slug.t ;
     name : string ;
+    deviser : Slug.t ;
     kind : Kind.dance ;
     tunes : Slug.t list }
 [@@deriving protocol ~driver:(module Jsonm),
@@ -16,21 +17,13 @@ module Database =
 
     let db = Hashtbl.create 8
 
-    let initialise =
-      let initialised = ref false in
-      fun () ->
-      Format.eprintf "sdojfnsdo@.";
-      if not !initialised then
-        (
-          Storage.list_entries prefix
-          |> List.iter
-               (fun slug ->
-                 Format.eprintf "- %s@." slug;
-                 Storage.read_yaml prefix slug "meta.yaml"
-                 |> of_yaml
-                 |> Hashtbl.add db slug);
-          initialised := true
-        )
+    let initialise () =
+      Storage.list_entries prefix
+      |> List.iter
+           (fun slug ->
+             Storage.read_yaml prefix slug "meta.yaml"
+             |> of_yaml
+             |> Hashtbl.add db slug)
 
     let get = Hashtbl.find db
   end
@@ -38,10 +31,14 @@ module Database =
 type view =
   { slug : Slug.t ;
     name : string ;
+    deviser : Credit.view ;
     kind : Kind.dance ;
     tunes : Tune.view list }
 [@@deriving protocol ~driver:(module Jsonm)]
 
-let view ({ slug ; name ; kind ; tunes } : t) =
-  { slug ; name ; kind ;
-    tunes = List.map Tune.(Database.get ||> view) tunes }
+let view (set : t) =
+  { slug = set.slug ;
+    name = set.name ;
+    deviser = Credit.(Database.get ||> view) set.deviser ;
+    kind = set.kind ;
+    tunes = List.map Tune.(Database.get ||> view) set.tunes }

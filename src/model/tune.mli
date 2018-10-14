@@ -7,8 +7,8 @@ type t
 type view =
   { slug : Slug.t ;
     name : string ;
+    author : Credit.view ;
     kind : Kind.tune ;
-    credit : Credit.view ;
     content : string }
 
 val view : t -> view
