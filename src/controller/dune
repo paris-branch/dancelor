@@ -1,0 +1,4 @@
+(library
+ (name dancelor_controller)
+ (public_name dancelor.controller)
+ (libraries dancelor.common dancelor.model cohttp-lwt-unix ezjsonm))

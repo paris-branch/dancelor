@@ -1,61 +1,120 @@
 open Dancelor_common
+open Dancelor_controller
 open Cohttp_lwt_unix
-open Common
+
+let check_ezjsonm_t : Ezjsonm.value -> Ezjsonm.t = function
+  | `O v -> `O v
+  | `A v -> `A v
+  | _ -> failwith "QueryHelpers.check_ezjsonm_t"
+
+let respond_html html =
+  Server.respond_string ~status:`OK ~body:html ()
+
+let respond_json ?(status=`OK) ?(success=true) json =
+  let json =
+    match json with
+    | `O l -> `O (("success", `Bool success) :: l)
+    | _ -> assert false
+  in
+  Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
+
+module String = struct
+  include String
+
+  let starts_with needle haystack =
+    try
+      String.sub haystack 0 (String.length needle) = needle
+    with
+      Invalid_argument _ -> false
+end
 
 (* ============================= [ Callbacks ] ============================== *)
 
-let callbacks =
+let controllers : ('a * string * ('c -> (Ezjsonm.value, string) result Lwt.t)) list =
   [
-    (* API points *)
-    ([`GET], "/api/credit", (Credit.Api.get ||> respond_json)) ;
-    ([`GET], "/api/person", (Person.Api.get ||> respond_json)) ;
-    ([`GET], "/api/tune", (Tune.Api.get ||> respond_json)) ;
-    ([`GET], "/api/tune.png", Tune.Api.png) ;
-    ([`GET], "/api/set", (Set.Api.get ||> respond_json)) ;
-
-    (* HTML *)
-    ([`GET], "/credit", Credit.Html.get) ;
-    ([`GET], "/person", Person.Html.get) ;
-    ([`GET], "/tune", Tune.Html.get) ;
-    ([`GET], "/tune.png", Tune.Api.png) ; (* alias for /api/tune.png *)
-    ([`GET], "/set", Set.Html.get) ;
+    ([`GET], "/credit",   Credit.get) ;
+    ([`GET], "/person",   Person.get) ;
+    ([`GET], "/tune",     Tune.get) ;
+    (* ([`GET], "/tune.png", Tune.png) ; *)
+    ([`GET], "/set",      Set.get)
   ]
 
 let callback _ request _body =
   let uri = Request.uri request in
-  let path = Uri.path (Request.uri request) in
-  let meth = Request.meth request in
 
-  let rec find_callback = function
-    | [] ->
-       error ("not found: " ^ path)
-       |> respond_json
+  (* We first determine if it is an API call (it starts with "/api")
+     and the real path of the request (removing "/api" when it's
+     there). *)
+  let api, path =
+    let path = Uri.path uri in
+    Log.(debug_async (spf "Request for path: %s" path));
+    if String.starts_with "/api" path then
+      (true, String.sub path 4 (String.length path - 4))
+    else
+      (false, path)
+  in
+  Log.(debug_async (spf "It is%s an api call of path %s" (if api then "" else " not") path));
 
-    | (methods, path', callback) :: _
-         when List.mem meth methods && path = path' ->
-       callback (Uri.query uri)
 
-    | _ :: callbacks -> find_callback callbacks
+  (* We then find the controller corresponding to the given path and
+     we execute it. *)
+  let controller =
+    let method_ = Request.meth request in
+    let open OptionMonad in
+    List.find_opt
+      (fun (methods, path', _) ->
+        List.mem method_ methods && path = path')
+      controllers
+    >>= fun (_, _, controller) -> Some controller
   in
 
-  try
-    find_callback callbacks
-  with
-  | Common.ArgumentRequired arg ->
-     error ("the argument '" ^arg^ "' is required")
-     |> respond_json
-  | Common.ArgumentOfWrongType (typ, arg) ->
-     error ("the argument '" ^arg^ "' is expected to be of type " ^typ)
-     |> respond_json
-  | Common.TooManyArguments arg ->
-     error ("only one argument '" ^arg^ "' is expected")
-     |> respond_json
+  match controller with
+  | Some controller ->
+     (
+       let%lwt json = controller (Uri.query uri) in
 
-  | exn ->
-     Format.eprintf "Unhandled exception: %s\n%s@."
-       (Printexc.to_string exn) (Printexc.get_backtrace ());
-     error ("internal server error")
-     |> respond_json
+       match json with
+       | Ok json ->
+          (
+            let json = check_ezjsonm_t json in
+            Log.(debug_async (spf "Controller output: Ok %s" (Ezjsonm.to_string json)));
+
+            (* If we are in an API call, we just answer the JSON
+               provided by the controller. But if not, we try to find
+               a view that matches the path and to return it. *)
+            if api then
+              respond_json json
+            else
+              (
+                try
+                  let view = Filename.concat (Unix.getenv "DANCELOR_VIEWS") (path ^ ".html") in
+                  let ichan = open_in view in
+                  let template = Lexing.from_channel ichan |> Mustache.parse_lx in
+                  close_in ichan;
+                  respond_html (Mustache.render template json)
+                with
+                  Sys_error _ ->
+                  Log.(debug_async "I did not find any view for this query");
+                  Server.respond_not_found ()
+              )
+          )
+       | Error message ->
+          (* FIXME: ~status *)
+          respond_json ~success:false (`O ["message", `String message])
+     )
+  | None ->
+     (
+       Log.(debug_async "I did not find any controller matching this query");
+       Server.respond_not_found ()
+     )
+
+let callback fixme request body =
+  try
+    callback fixme request body
+  with
+    exn ->
+     Log.(error_async (spf "%s\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ())));
+     raise exn
 
 (* ============================== [ Options ] =============================== *)
 

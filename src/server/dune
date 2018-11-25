@@ -1,4 +1,5 @@
 (executable
  (name dancelor_server)
  (public_name dancelor-server)
- (libraries dancelor.model cohttp-lwt-unix ezjsonm mustache))
+ (libraries dancelor.controller cohttp-lwt-unix ezjsonm mustache)
+ (preprocess (pps lwt_ppx)))
