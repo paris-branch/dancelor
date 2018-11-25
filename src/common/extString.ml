@@ -16,3 +16,13 @@ let split n s =
   (String.sub s 0 n, String.sub s n (String.length s - n))
 
 let%test _ = split 2 "hello" = ("he", "llo")
+
+let starts_with needle haystack =
+  try
+    String.sub haystack 0 (String.length needle) = needle
+  with
+    Invalid_argument _ -> false
+
+let%test _ = starts_with "he" "hello"
+let%test _ = not (starts_with "hee" "hello")
+let%test _ = not (starts_with "hello" "he")

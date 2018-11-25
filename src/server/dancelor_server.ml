@@ -2,118 +2,92 @@ open Dancelor_common
 open Dancelor_controller
 open Cohttp_lwt_unix
 
-let check_ezjsonm_t : Ezjsonm.value -> Ezjsonm.t = function
-  | `O v -> `O v
-  | `A v -> `A v
-  | _ -> failwith "QueryHelpers.check_ezjsonm_t"
+type query = (string * string list) list
+type 'a controller = query -> Cohttp_lwt.Body.t -> 'a Lwt.t (* FIXME: Server.conn? *)
+type json = [ `O of (string * Ezjsonm.value) list ]
+type generic = Response.t * Cohttp_lwt.Body.t
+
+let json_to_ezjsonm (json : json) : Ezjsonm.t =
+  let `O fields = json in `O fields
 
 let respond_html html =
   Server.respond_string ~status:`OK ~body:html ()
 
-let respond_json ?(status=`OK) ?(success=true) json =
-  let json =
-    match json with
-    | `O l -> `O (("success", `Bool success) :: l)
-    | _ -> assert false
-  in
+let respond_json ?(status=`OK) ?(success=true) (json : json) =
+  let `O fields = json in
+  let json = `O (("success", `Bool success) :: fields) in
   Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
 
-module String = struct
-  include String
+(* ======================== [ JSON controller -> * ] ======================== *)
 
-  let starts_with needle haystack =
-    try
-      String.sub haystack 0 (String.length needle) = needle
+let json_controller_to_controller ((methods, path, controller) : Cohttp.Code.meth list * string * json controller) : Cohttp.Code.meth list * string * generic controller =
+  let controller query body =
+    try%lwt
+      let%lwt json = controller query body in
+      Log.(debug_async (spf "JSON controller response: %s" (Ezjsonm.to_string (json_to_ezjsonm json))));
+      respond_json ~status:`OK json
     with
-      Invalid_argument _ -> false
-end
+      Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message])
+  in
+  (methods, "/api" ^ path, controller)
 
-(* ============================= [ Callbacks ] ============================== *)
+let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Code.meth list * string * json controller) : (Cohttp.Code.meth list * string * generic controller) option =
+  try
+    let view = Filename.concat (Unix.getenv "DANCELOR_VIEWS") (path ^ ".html") in
+    let ichan = open_in view in
+    let template = Lexing.from_channel ichan |> Mustache.parse_lx in
+    close_in ichan;
 
-let controllers : ('a * string * ('c -> (Ezjsonm.value, string) result Lwt.t)) list =
+    let controller query body =
+      try%lwt
+        let%lwt json = controller query body in
+        respond_html (Mustache.render template (json_to_ezjsonm json))
+      with
+        Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
+    in
+    Some (methods, path, controller)
+
+  with
+    Sys_error _ ->
+    Log.(debug_async "I did not find any view for this query");
+    None
+
+(* ============================ [ Controllers ] ============================= *)
+
+let json_controllers : (Cohttp.Code.meth list * string * json controller) list =
   [
     ([`GET], "/credit",   Credit.get) ;
     ([`GET], "/person",   Person.get) ;
     ([`GET], "/tune",     Tune.get) ;
-    (* ([`GET], "/tune.png", Tune.png) ; *)
     ([`GET], "/set",      Set.get)
   ]
 
-let callback _ request _body =
+let controllers : (Cohttp.Code.meth list * string * generic controller) list =
+  List.map json_controller_to_controller json_controllers
+  @ List.map_filter json_controller_to_html_controller json_controllers
+  @ [
+      ([`GET], "/tune.png", Tune.png) ;
+    ]
+
+let callback _ request body =
   let uri = Request.uri request in
-
-  (* We first determine if it is an API call (it starts with "/api")
-     and the real path of the request (removing "/api" when it's
-     there). *)
-  let api, path =
-    let path = Uri.path uri in
-    Log.(debug_async (spf "Request for path: %s" path));
-    if String.starts_with "/api" path then
-      (true, String.sub path 4 (String.length path - 4))
-    else
-      (false, path)
-  in
-  Log.(debug_async (spf "It is%s an api call of path %s" (if api then "" else " not") path));
-
-
-  (* We then find the controller corresponding to the given path and
-     we execute it. *)
-  let controller =
-    let method_ = Request.meth request in
-    let open OptionMonad in
-    List.find_opt
-      (fun (methods, path', _) ->
-        List.mem method_ methods && path = path')
-      controllers
-    >>= fun (_, _, controller) -> Some controller
-  in
-
-  match controller with
-  | Some controller ->
-     (
-       let%lwt json = controller (Uri.query uri) in
-
-       match json with
-       | Ok json ->
-          (
-            let json = check_ezjsonm_t json in
-            Log.(debug_async (spf "Controller output: Ok %s" (Ezjsonm.to_string json)));
-
-            (* If we are in an API call, we just answer the JSON
-               provided by the controller. But if not, we try to find
-               a view that matches the path and to return it. *)
-            if api then
-              respond_json json
-            else
-              (
-                try
-                  let view = Filename.concat (Unix.getenv "DANCELOR_VIEWS") (path ^ ".html") in
-                  let ichan = open_in view in
-                  let template = Lexing.from_channel ichan |> Mustache.parse_lx in
-                  close_in ichan;
-                  respond_html (Mustache.render template json)
-                with
-                  Sys_error _ ->
-                  Log.(debug_async "I did not find any view for this query");
-                  Server.respond_not_found ()
-              )
-          )
-       | Error message ->
-          (* FIXME: ~status *)
-          respond_json ~success:false (`O ["message", `String message])
-     )
-  | None ->
-     (
-       Log.(debug_async "I did not find any controller matching this query");
-       Server.respond_not_found ()
-     )
-
-let callback fixme request body =
+  let meth = Request.meth request in
+  let path = Uri.path uri in
   try
-    callback fixme request body
+    let controller =
+      List.find_opt (fun (methods, path', _) ->
+          List.mem meth methods && path' = path)
+        controllers
+    in
+    match controller with
+    | Some (_, _, controller) ->
+       controller (Uri.query uri) body
+    | None ->
+       Log.(debug_async (spf "No controller found for path %s" path));
+       Server.respond_not_found ()
   with
     exn ->
-     Log.(error_async (spf "%s\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ())));
+     Log.(error_async (spf "Uncaught exception: %s\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ())));
      raise exn
 
 (* ============================== [ Options ] =============================== *)

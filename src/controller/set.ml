@@ -1,15 +1,14 @@
 open Dancelor_common
 open Dancelor_model
-open LwtResultMonad
 open QueryHelpers
 
-let get query =
-  Lwt.return (query_string query "slug") >>= fun slug ->
+let get query _body =
+  let slug = query_string query "slug" in
   try
     Set.Database.get slug
     |> Set.view
     |> Set.view_to_jsonm
-    |> (fun json -> Lwt.return (Ok (`O ["set", json])))
+    |> (fun json -> Lwt.return (`O ["set", json]))
   with
     Not_found ->
-    Lwt.return (Error "this set does not exist")
+    raise (Error.Error (`OK, "this set does not exist"))

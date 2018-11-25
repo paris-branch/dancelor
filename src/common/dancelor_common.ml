@@ -1,6 +1,7 @@
 include ExtPervasives
 module String = ExtString
 module Filename = ExtFilename
+module List = ExtList
 
 module LwtResultMonad = LwtResultMonad
 module OptionMonad = OptionMonad
