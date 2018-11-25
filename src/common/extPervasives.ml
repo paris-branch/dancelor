@@ -22,3 +22,14 @@ let escape_shell_argument =
   String.split_on_char '\''
   ||> String.concat "'\\''"
   ||> fun s -> "'" ^ s ^ "'"
+
+let unwrap = function
+  | None -> failwith "unwrap"
+  | Some x -> x
+
+let value ~default = function
+  | None -> default
+  | Some x -> x
+
+let catch_and_wrap f =
+  try Some (f ()) with _ -> None

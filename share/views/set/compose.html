@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<head>
+  <title>Compose a Set</title>
+</head>
+<body>
+  <h1>Compose a Set</h1>
+
+  <ul>
+    {{#set.errors}}
+    <li>FIXME</li>
+    {{/set.errors}}
+  </ul>
+
+  <form action="" method="get">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" value="{{set.name}}" />
+    <br/>
+
+    <label for="kind">Kind:</label>
+    <input type="text" id="kind" name="kind" value="{{set.kind}}" />
+    <br/>
+
+    {{#set.tunes}}
+    <label>Tune:</label>
+    <input type="text" name="tunes[]" value="{{slug}}" />
+    <br/>
+    <img src="/tune.png?slug={{slug}}" />
+    <br/>
+    {{/set.tunes}}
+
+    <label>Add a tune:</label>
+    <input type="text" name="tunes[]" value="" />
+    <br/>
+
+    <input type="submit" />
+  </form>
+</body>
+</html>

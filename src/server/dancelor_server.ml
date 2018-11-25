@@ -3,7 +3,10 @@ open Dancelor_controller
 open Cohttp_lwt_unix
 
 type query = (string * string list) list
+[@@deriving show]
+
 type 'a controller = query -> Cohttp_lwt.Body.t -> 'a Lwt.t (* FIXME: Server.conn? *)
+
 type json = [ `O of (string * Ezjsonm.value) list ]
 type generic = Response.t * Cohttp_lwt.Body.t
 
@@ -59,7 +62,8 @@ let json_controllers : (Cohttp.Code.meth list * string * json controller) list =
     ([`GET], "/credit",   Credit.get) ;
     ([`GET], "/person",   Person.get) ;
     ([`GET], "/tune",     Tune.get) ;
-    ([`GET], "/set",      Set.get)
+    ([`GET], "/set",      Set.get) ;
+    ([`GET], "/set/compose", Set.compose) ; (* FIXME: this API point is pointless *)
   ]
 
 let controllers : (Cohttp.Code.meth list * string * generic controller) list =
@@ -81,7 +85,9 @@ let callback _ request body =
     in
     match controller with
     | Some (_, _, controller) ->
-       controller (Uri.query uri) body
+       let query = Uri.query uri in
+       Log.(debug_async (spf "Query: %s" (show_query query)));
+       controller query body;
     | None ->
        Log.(debug_async (spf "No controller found for path %s" path));
        Server.respond_not_found ()
