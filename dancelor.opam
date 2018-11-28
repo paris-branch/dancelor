@@ -14,15 +14,15 @@ license: "GPL3"
 
 depends: [
   "cohttp-lwt-unix"
-
+  "dune"                     {build}
   "ezjsonm"
-  "yojson"
-  "ppx_deriving_yojson"
-  "json-derivers"
-
-  "ocaml"            {build}
-  "dune"             {build}
-  "ppx_inline_test"  {build & test}
+  "lwt_ppx"                  {build}
+  "mustache"
+  "ocaml"                    {build}
+  "ppx_deriving"
+  "ppx_inline_test"          {build | with-test}
+  "ppx_protocol_conv_jsonm"
+  "ppx_protocol_conv_yaml"
 ]
 
 build: ["dune" "build" "-p" name "-j" jobs]
