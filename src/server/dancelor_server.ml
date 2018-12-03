@@ -30,13 +30,11 @@ let callback _ request body =
      Log.(error_async (spf "Uncaught exception: %s\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ())));
      raise exn
 
-let port = 8080
-
 let () =
   Dancelor_model.Database.initialise ();
   let server =
     Server.create
-      ~mode:(`TCP (`Port port))
+      ~mode:(`TCP (`Port (Config.port ())))
       (Server.make ~callback ())
   in
   ignore (Lwt_main.run server)

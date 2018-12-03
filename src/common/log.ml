@@ -6,6 +6,12 @@ let debug s =
 let debug_async s =
   Lwt.async (fun () -> debug s)
 
+let info s =
+  Logs_lwt.info (fun m -> m "%s" s)
+
+let info_async s =
+  Lwt.async (fun () -> info s)
+
 let warning s =
   Logs_lwt.warn (fun m -> m "%s" s)
 

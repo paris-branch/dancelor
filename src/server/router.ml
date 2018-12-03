@@ -36,7 +36,7 @@ let json_controller_to_controller ((methods, path, controller) : Cohttp.Code.met
 
 let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Code.meth list * string * json controller) : Cohttp.Code.meth list * string * generic controller =
   try
-    let view = Filename.concat (Unix.getenv "DANCELOR_VIEWS") (path ^ ".html") in
+    let view = Filename.concat (Config.views_prefix ()) (path ^ ".html") in
     let ichan = open_in view in
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
     close_in ichan;
