@@ -22,5 +22,5 @@ module Database : sig
   val initialise : unit -> unit
 
   val get : Slug.t -> t
-  val get_all : unit -> t list
+  val get_all : ?name:string -> ?author:string -> ?kind:Kind.base -> unit -> (float * t) list
 end

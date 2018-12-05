@@ -10,7 +10,7 @@
     <input type="text" name="author" placeholder="Author" value="{{query.author}}" />
 
     <select name="kind">
-      <option>No filter</option>
+      <option value="">No filter</option>
       <option value="jig">Jig</option>
       <option value="polka">Polka</option>
       <option value="reel">Reel</option>
@@ -38,7 +38,7 @@
     </tr>
     {{#tunes}}
     <tr>
-      <td>100</td>
+      <td>{{score}}</td>
       <td><a href="/tune?slug={{slug}}">{{name}}</a></td>
       <td>{{kind}}</td>
       <td><a href="/credit?slug={{author.slug}}">{{author.line}}</a></td>

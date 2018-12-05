@@ -24,8 +24,12 @@ let from_string str =
         incr j
       )
   done;
-  Bytes.sub_string out 0 (!last_letter+1)
+  if !last_letter < 0 then
+    ""
+  else
+    Bytes.sub_string out 0 (!last_letter+1)
 
 let%test _ = from_string "Hello you, how are you?!" = "hello-you-how-are-you"
-
 let%test _ = from_string "<> My friend!" = "my-friend"
+let%test _ = from_string "" = ""
+let%test _ = from_string "*ù" = ""

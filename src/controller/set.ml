@@ -41,6 +41,7 @@ let compose query _body =
   let set_json = `O [ "name", name ; "kind", kind ; "tunes", `A tune_jsons ; "errors", `A error_jsons ] in
   let all_tune_jsons =
     Tune.Database.get_all ()
+    |> List.map snd
     |> List.map Tune.view
     |> List.map Tune.view_to_jsonm
   in

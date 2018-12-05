@@ -15,9 +15,14 @@ let get query _body =
 
 let get_all query _body =
   let tune_jsons =
-    Tune.Database.get_all ()
-    |> List.map Tune.view
-    |> List.map Tune.view_to_jsonm
+    Tune.Database.get_all
+      ~name:(query_string_or query "name" "")
+      ~author:(query_string_or query "author" "")
+      ?kind:(try Some (Kind.base_of_string (query_string query "kind")) with _ -> None)
+      ()
+    |> List.map (fun (score, tune) ->
+           Tune.(tune |> view |> view_to_jsonm)
+           |> JsonHelpers.add_field "score" (`Float (100. *. score)))
     |> (fun jsons -> `A jsons)
   in
   Lwt.return (

@@ -4,6 +4,8 @@ open Dancelor_common
 
 type t
 
+val line : t -> string
+
 type view =
   { slug : Slug.t ;
     line : string ;

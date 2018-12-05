@@ -9,6 +9,8 @@ type t =
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
+let line c = c.line
+
 module Database =
   struct
     let prefix = "credit"
