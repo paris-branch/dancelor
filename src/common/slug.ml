@@ -5,17 +5,27 @@ type t = string
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
-let of_string s =
-  let s = String.lowercase_ascii s in
-  let l = String.length s in
-  let _b = Bytes.create l in
-  let _j = ref 0 in
-  let _p = ref true in
-  for i = 0 to l - 1 do
-    let _c = s.[i] in
-    ()
+let from_string str =
+  let str = String.lowercase_ascii str in
+  let len = String.length str in
+  let out = Bytes.create len in
+  let j = ref 0 in
+  let last_letter = ref (-10) in
+  for i = 0 to len - 1 do
+    if 'a' <= str.[i] && str.[i] <= 'z' then
+      (
+        Bytes.set out !j str.[i];
+        last_letter := !j;
+        incr j
+      )
+    else if !last_letter = !j - 1 then
+      (
+        Bytes.set out !j '-';
+        incr j
+      )
   done;
-  ""
+  Bytes.sub_string out 0 (!last_letter+1)
 
-let%test _ = of_string "Hello you, how are you?!" = "hello-you-how-are-you"
-let%test _ = of_string "<> My friend!" = "my-friend"
+let%test _ = from_string "Hello you, how are you?!" = "hello-you-how-are-you"
+
+let%test _ = from_string "<> My friend!" = "my-friend"
