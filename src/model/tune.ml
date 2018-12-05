@@ -49,11 +49,17 @@ module Database =
              (score *. match_score (Slug.from_string name) tune.name, tune))
       |> List.map (fun (score, tune) ->
              (score *. match_score (Slug.from_string author) Credit.(Database.get tune.author |> line |> Slug.from_string), tune))
-      |> (match kind with
-          | None -> fun x -> x
-          | Some kind ->
-             List.filter (fun (_, tune) -> snd tune.kind = kind))
-      |> List.sort (fun (s1, _) (s2, _) -> compare s1 s2)
+      |> List.filter
+           (match kind with
+            | None -> fun _ -> true
+            | Some kind -> (fun (_, tune) -> snd tune.kind = kind))
+      |> List.sort
+           (fun (s1, t1) (s2, t2) ->
+             let c = compare s1 s2 in
+             if c = 0 then
+               compare t1.slug t2.slug
+             else
+               c)
   end
 
 type view =

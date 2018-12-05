@@ -7,18 +7,21 @@ let ssf = Scanf.sscanf
 
 type base =
   | Jig
+  | Polka
   | Reel
   | Strathspey
   | Waltz
 
 let base_to_char = function
   | Jig -> 'J'
+  | Polka -> 'P'
   | Reel -> 'R'
   | Strathspey -> 'S'
   | Waltz -> 'W'
 
 let base_to_string = function
   | Jig -> "jig"
+  | Polka -> "polka"
   | Reel -> "reel"
   | Strathspey -> "strathspey"
   | Waltz -> "waltz"
@@ -26,6 +29,7 @@ let base_to_string = function
 let base_of_char c =
   match Char.uppercase_ascii c with
   | 'J' -> Jig
+  | 'P' -> Polka
   | 'R' -> Reel
   | 'S' -> Strathspey
   | 'W' -> Waltz
@@ -33,7 +37,7 @@ let base_of_char c =
 
 let base_of_string s =
   try base_of_char s.[0]
-  with Failure _ -> failwith "Dancelor_model.Kind.base_of_string"
+  with Invalid_argument _ | Failure _ -> failwith "Dancelor_model.Kind.base_of_string"
 
 let base_to_jsonm b = `String (base_to_string b)
 

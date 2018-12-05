@@ -18,7 +18,16 @@ let get_all query _body =
     Tune.Database.get_all
       ~name:(query_string_or query "name" "")
       ~author:(query_string_or query "author" "")
-      ?kind:(try Some (Kind.base_of_string (query_string query "kind")) with _ -> None)
+      ?kind:(
+        let kind = query_string_or query "kind" "" in
+        if kind = "" then
+          None
+        else
+          try
+            Some (Kind.base_of_string kind)
+          with
+            Failure _ -> raise (Error.Error (`OK, "kind must be 'j', 'p', 'r', 's' or 'w'"))
+      )
       ()
     |> List.map (fun (score, tune) ->
            Tune.(tune |> view |> view_to_jsonm)
