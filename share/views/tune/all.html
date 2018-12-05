@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<head>
+  <title>All tunes</title>
+</head>
+<body>
+  <h1>All tunes</h1>
+
+  <ul>
+    {{#tunes}}
+    <li>
+      <a href="/tune?slug={{slug}}">{{name}}</a>
+    </li>
+    {{/tunes}}
+  </ul>
+</body>
+</html>

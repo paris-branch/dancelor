@@ -9,7 +9,7 @@ type view =
     name : string ;
     author : Credit.view ;
     kind : Kind.tune ;
-    (* content : string *) }
+    content : string }
 
 val view : t -> view
 

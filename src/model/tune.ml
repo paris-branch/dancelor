@@ -27,8 +27,7 @@ module Database =
 
     let get = Hashtbl.find db
 
-    let get_all () =
-      Hashtbl.to_seq_values db |> List.of_seq
+    let get_all () = Hashtbl.to_seq_values db |> List.of_seq
   end
 
 type view =
@@ -36,7 +35,7 @@ type view =
     name : string ;
     author : Credit.view ;
     kind : Kind.tune ;
-    (* content : string *) }
+    content : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
 let view (tune : t) =
@@ -44,4 +43,4 @@ let view (tune : t) =
     name = tune.name ;
     author = Credit.(Database.get ||> view) tune.author ;
     kind = tune.kind ;
-    (* content = tune.content *) }
+    content = tune.content }
