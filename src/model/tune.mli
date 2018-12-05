@@ -9,7 +9,7 @@ type view =
     name : string ;
     author : Credit.view ;
     kind : Kind.tune ;
-    content : string }
+    (* content : string *) }
 
 val view : t -> view
 
@@ -22,4 +22,5 @@ module Database : sig
   val initialise : unit -> unit
 
   val get : Slug.t -> t
+  val get_all : unit -> t list
 end

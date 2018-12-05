@@ -26,6 +26,8 @@ module Database =
              |> Hashtbl.add db slug)
 
     let get = Hashtbl.find db
+
+    let get_all () = Hashtbl.to_seq_values db |> List.of_seq
   end
 
 type view =

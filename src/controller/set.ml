@@ -13,10 +13,16 @@ let get query _body =
     Not_found ->
     raise (Error.Error (`OK, "this set does not exist"))
 
+let get_all _query _body =
+  Set.Database.get_all ()
+  |> List.map Set.view
+  |> List.map Set.view_to_jsonm
+  |> (fun json -> Lwt.return (`O ["sets", `A json]))
+
 let compose query _body =
   let name = `String (value ~default:"" (query_string_opt query "name")) in
   let kind = `String (value ~default:"8x32R" (query_string_opt query "kind")) in
-  let tunes, errors =
+  let tune_jsons, error_jsons =
     match query_strings_opt query "tunes[]" with
     | Some tunes ->
        List.map_partition
@@ -27,12 +33,15 @@ let compose query _body =
              |> Tune.view_to_jsonm
              |> (fun json -> List.A json)
            with
-             Not_found -> List.B (`String ("tune \"" ^ tune ^ "\" does not exist")))
+             Not_found -> List.B (`O ["message", `String ("tune \"" ^ tune ^ "\" does not exist")]))
          tunes
     | None ->
        [], []
   in
-  let json = `O [ "set", `O [ "name", name ; "kind", kind ;
-                              "tunes", `A tunes ; "errors", `A errors ] ]
+  let set_json = `O [ "name", name ; "kind", kind ; "tunes", `A tune_jsons ; "errors", `A error_jsons ] in
+  let all_tune_jsons =
+    Tune.Database.get_all ()
+    |> List.map Tune.view
+    |> List.map Tune.view_to_jsonm
   in
-  Lwt.return json
+  Lwt.return (`O [ "set", set_json ; "all_tunes", `A all_tune_jsons ])

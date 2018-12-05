@@ -68,10 +68,11 @@ let html_controllers : (Cohttp.Code.meth list * string * json controller) list =
 
 let both_controllers : (Cohttp.Code.meth list * string * json controller) list =
   [
-    ([`GET], "/credit",   Credit.get) ;
-    ([`GET], "/person",   Person.get) ;
-    ([`GET], "/tune",     Tune.get) ;
-    ([`GET], "/set",      Set.get) ;
+    ([`GET], "/credit",  Credit.get) ;
+    ([`GET], "/person",  Person.get) ;
+    ([`GET], "/tune",    Tune.get) ;
+    ([`GET], "/set",     Set.get) ;
+    ([`GET], "/set/all", Set.get_all) ;
   ]
 
 let raw_controllers : (Cohttp.Code.meth list * string * generic controller) list =
