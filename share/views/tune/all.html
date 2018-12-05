@@ -5,12 +5,21 @@
 <body>
   <h1>All tunes</h1>
 
-  <ul>
+  <table>
+    <tr>
+      <th>Score</th>
+      <th>Name</th>
+      <th>Kind</th>
+      <th>Author</th>
+    </tr>
     {{#tunes}}
-    <li>
-      <a href="/tune?slug={{slug}}">{{name}}</a>
-    </li>
+    <tr>
+      <td>100</td>
+      <td><a href="/tune?slug={{slug}}">{{name}}</a></td>
+      <td>{{kind}}</td>
+      <td><a href="/credit?slug={{author.slug}}">{{author.line}}</a></td>
+    </tr>
     {{/tunes}}
-  </ul>
+  </table>
 </body>
 </html>
