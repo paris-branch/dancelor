@@ -13,11 +13,23 @@ let get query _body =
     Not_found ->
     raise (Error.Error (`OK, "this tune does not exist"))
 
-let get_all _query _body =
-  Tune.Database.get_all ()
-  |> List.map Tune.view
-  |> List.map Tune.view_to_jsonm
-  |> (fun json -> Lwt.return (`O ["tunes", `A json]))
+let get_all query _body =
+  let tune_jsons =
+    Tune.Database.get_all ()
+    |> List.map Tune.view
+    |> List.map Tune.view_to_jsonm
+    |> (fun jsons -> `A jsons)
+  in
+  Lwt.return (
+      `O [
+          "tunes", tune_jsons;
+          "query",
+          `O [
+              "name", `String (query_string_or query "name" "");
+              "author", `String (query_string_or query "author" "");
+            ]
+        ]
+    )
 
 let lilypond_png_template =
   Mustache.of_string

@@ -5,6 +5,30 @@
 <body>
   <h1>All tunes</h1>
 
+  <form action="" method="get">
+    <input type="text" name="name" placeholder="Name" value="{{query.name}}" />
+    <input type="text" name="author" placeholder="Author" value="{{query.author}}" />
+
+    <select name="kind">
+      <option>No filter</option>
+      <option value="jig">Jig</option>
+      <option value="polka">Polka</option>
+      <option value="reel">Reel</option>
+      <option value="strathspey">Strathspey</option>
+      <option value="waltz">Waltz</option>
+    </select>
+
+    <label for="sort">Sort by:</label>
+    <select name="sort" id="sort">
+      <option value="score">Score</option>
+      <option value="name">Name</option>
+    </select>
+
+    <input type="submit" value="Search" />
+  </form>
+
+  <hr/>
+
   <table>
     <tr>
       <th>Score</th>
