@@ -9,6 +9,18 @@ type t =
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
+let make ?slug ~line ?(persons=[]) () =
+  let slug =
+    match slug with
+    | None -> Slug.from_string line
+    | Some slug -> slug
+  in
+  let persons = List.map Person.slug persons in
+  { slug ; line ; persons }
+
+let slug c = c.slug
+let line c = c.line
+
 module Database =
   struct
     let prefix = "credit"

@@ -8,6 +8,16 @@ type t =
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
+let make ?slug ~name () =
+  let slug =
+    match slug with
+    | None -> Slug.from_string name
+    | Some slug -> slug
+  in
+  { slug ; name }
+
+let slug p = p.slug
+
 module Database =
   struct
     let prefix = "person"

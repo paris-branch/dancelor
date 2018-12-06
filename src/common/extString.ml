@@ -26,3 +26,33 @@ let starts_with needle haystack =
 let%test _ = starts_with "he" "hello"
 let%test _ = not (starts_with "hee" "hello")
 let%test _ = not (starts_with "hello" "he")
+
+let inclusion_distance needle haystack =
+  let ln = String.length needle in
+  let lh = String.length haystack in
+  let a = Array.make_matrix (ln+1) (lh+1) (-1) in
+  let min3 a b c = min (min a b) c in
+  let rec aux n h =
+    if a.(n).(h) = -1 then
+      (
+        a.(n).(h) <-
+          if n >= ln then
+            0
+          else if h >= lh then
+            ln - n
+          else
+            (
+              min3
+                (1 + aux (n+1) h)
+                ((if n = 0 then 0 else 1) + aux n (h+1))
+                ((if needle.[n] = haystack.[h] then 0 else 1) + aux (n+1) (h+1))
+            )
+      );
+    a.(n).(h)
+  in
+  aux 0 0
+
+let%test _ = inclusion_distance "chou" "achouffe" = 0
+let%test _ = inclusion_distance "chou" "acoul" = 1
+let%test _ = inclusion_distance "chou" "achhouffe" = 1
+let%test _ = inclusion_distance "chou" "achauffe" = 1

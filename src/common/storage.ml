@@ -1,13 +1,6 @@
 open ExtPervasives
 
-let prefix =
-  let env_var = "DANCELOR_DATABASE" in
-  try
-    Sys.getenv env_var
-  with
-    Not_found ->
-     Format.eprintf "The environment variable %s is required.@." env_var;
-     exit 1
+let prefix = Config.database_prefix ()
 
 let list_entries table =
   Filename.concat prefix table

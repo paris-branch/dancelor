@@ -5,11 +5,33 @@ open Protocol_conv_yaml
 type t =
   { slug : Slug.t ;
     name : string ;
+    disambiguation : string ;
     kind : Kind.tune ;
     author : Slug.t ;
     content : string }
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
+
+let make ?slug ~name ?(disambiguation="") ~kind ~author ~content () =
+  let slug =
+    match slug with
+    | None -> Slug.from_string name
+    | Some slug -> slug
+  in
+  { slug ; name ; disambiguation ; kind ; author = Credit.slug author ; content }
+
+let match_score needle haystack =
+  Format.eprintf "match_score \"%s\" \"%s\"@." needle haystack;
+  let r =
+    1. -.
+      if String.length needle = 0 then
+        0.
+      else
+        let d = String.inclusion_distance needle haystack in
+        (float_of_int d) /. (float_of_int (String.length needle))
+  in
+  Format.eprintf "--> %f@." r;
+  r
 
 module Database =
   struct
@@ -26,11 +48,33 @@ module Database =
              |> Hashtbl.add db slug)
 
     let get = Hashtbl.find db
+
+    let get_all ?(name="") ?(author="") ?kind () =
+      Format.eprintf "get_all:@\n  name = %s@\n  author = %s@." name author;
+      Hashtbl.to_seq_values db
+      |> List.of_seq
+      |> List.map (fun tune -> (1., tune))
+      |> List.map (fun (score, tune) ->
+             (score *. match_score (Slug.from_string name) tune.name, tune))
+      |> List.map (fun (score, tune) ->
+             (score *. match_score (Slug.from_string author) Credit.(Database.get tune.author |> line |> Slug.from_string), tune))
+      |> List.filter
+           (match kind with
+            | None -> fun _ -> true
+            | Some kind -> (fun (_, tune) -> snd tune.kind = kind))
+      |> List.sort
+           (fun (s1, t1) (s2, t2) ->
+             let c = compare s1 s2 in
+             if c = 0 then
+               compare t1.slug t2.slug
+             else
+               c)
   end
 
 type view =
   { slug : Slug.t ;
     name : string ;
+    disambiguation : string ;
     author : Credit.view ;
     kind : Kind.tune ;
     content : string }
@@ -39,6 +83,7 @@ type view =
 let view (tune : t) =
   { slug = tune.slug ;
     name = tune.name ;
+    disambiguation = tune.disambiguation ;
     author = Credit.(Database.get ||> view) tune.author ;
     kind = tune.kind ;
     content = tune.content }

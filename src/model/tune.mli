@@ -4,9 +4,21 @@ open Dancelor_common
 
 type t
 
+val to_yaml : t -> Yaml.value
+
+val make :
+  ?slug:Slug.t ->
+  name:string ->
+  ?disambiguation:string ->
+  kind:Kind.tune ->
+  author:Credit.t ->
+  content:string ->
+  unit -> t
+
 type view =
   { slug : Slug.t ;
     name : string ;
+    disambiguation : string ;
     author : Credit.view ;
     kind : Kind.tune ;
     content : string }
@@ -22,4 +34,5 @@ module Database : sig
   val initialise : unit -> unit
 
   val get : Slug.t -> t
+  val get_all : ?name:string -> ?author:string -> ?kind:Kind.base -> unit -> (float * t) list
 end

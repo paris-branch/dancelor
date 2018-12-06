@@ -13,6 +13,38 @@ let get query _body =
     Not_found ->
     raise (Error.Error (`OK, "this tune does not exist"))
 
+let get_all query _body =
+  let tune_jsons =
+    Tune.Database.get_all
+      ~name:(query_string_or query "name" "")
+      ~author:(query_string_or query "author" "")
+      ?kind:(
+        let kind = query_string_or query "kind" "" in
+        if kind = "" then
+          None
+        else
+          try
+            Some (Kind.base_of_string kind)
+          with
+            Failure _ -> raise (Error.Error (`OK, "kind must be 'j', 'p', 'r', 's' or 'w'"))
+      )
+      ()
+    |> List.map (fun (score, tune) ->
+           Tune.(tune |> view |> view_to_jsonm)
+           |> JsonHelpers.add_field "score" (`Float (100. *. score)))
+    |> (fun jsons -> `A jsons)
+  in
+  Lwt.return (
+      `O [
+          "tunes", tune_jsons;
+          "query",
+          `O [
+              "name", `String (query_string_or query "name" "");
+              "author", `String (query_string_or query "author" "");
+            ]
+        ]
+    )
+
 let lilypond_png_template =
   Mustache.of_string
     "\\version \"2.19.82\"
@@ -34,7 +66,7 @@ let png query _body =
   let slug = query_string query "slug" in
   let view = Tune.(Database.get slug |> view) in
   let lilypond = Mustache.render lilypond_png_template (`O ["tune", Tune.view_to_jsonm view]) in
-  let dirname = Filename.concat (Unix.getenv "DANCELOR_CACHE") "tune" in
+  let dirname = Filename.concat (Config.cache_prefix ()) "tune" in
   let basename = view.Tune.slug in
   let ochan = open_out (Filename.concat dirname (basename ^ ".ly")) in
   output_string ochan lilypond;

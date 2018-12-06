@@ -2,7 +2,7 @@
 
 (** {2 Base Kind} *)
 
-type base = Jig | Reel | Strathspey | Waltz
+type base = Jig | Polka | Reel | Strathspey | Waltz
 
 val base_to_char : base -> char
 val base_of_char : char -> base

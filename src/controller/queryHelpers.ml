@@ -12,7 +12,11 @@ let query_string query key =
 let query_string_opt query key =
   catch_and_wrap (fun () -> query_string query key)
 
-let query_strings_opt query key =
+let query_string_or query key or_ =
+  try query_string query key
+  with _ -> or_
+
+let query_strings_opt query key = (*FIXME*)
   Some (
       query
       |> List.find_all (fun (k, _) -> key = k)

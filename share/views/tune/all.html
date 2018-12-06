@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<head>
+  <title>All tunes</title>
+</head>
+<body>
+  <h1>All tunes</h1>
+
+  <form action="" method="get">
+    <input type="text" name="name" placeholder="Name" value="{{query.name}}" />
+    <input type="text" name="author" placeholder="Author" value="{{query.author}}" />
+
+    <select name="kind">
+      <option value="">No filter</option>
+      <option value="j">Jig</option>
+      <option value="p">Polka</option>
+      <option value="r">Reel</option>
+      <option value="s">Strathspey</option>
+      <option value="w">Waltz</option>
+    </select>
+
+    <input type="submit" value="Search" />
+  </form>
+
+  <hr/>
+
+  <table>
+    <tr>
+      <th>Score</th>
+      <th>Name</th>
+      <th>Kind</th>
+      <th>Author</th>
+    </tr>
+    {{#tunes}}
+    <tr>
+      <td>{{score}}</td>
+      <td><a href="/tune?slug={{slug}}">{{name}}</a></td>
+      <td>{{kind}}</td>
+      <td><a href="/credit?slug={{author.slug}}">{{author.line}}</a></td>
+    </tr>
+    {{/tunes}}
+  </table>
+</body>
+</html>

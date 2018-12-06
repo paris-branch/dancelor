@@ -4,6 +4,15 @@ open Dancelor_common
 
 type t
 
+val make :
+  ?slug:Slug.t ->
+  line:string ->
+  ?persons:Person.t list ->
+  unit -> t
+
+val slug : t -> Slug.t
+val line : t -> string
+
 type view =
   { slug : Slug.t ;
     line : string ;
