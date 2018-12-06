@@ -13,7 +13,7 @@ let from_string str =
   let j = ref 0 in
   let last_letter = ref (-10) in
   for i = 0 to len - 1 do
-    if 'a' <= str.[i] && str.[i] <= 'z' then
+    if ('a' <= str.[i] && str.[i] <= 'z') || ('0' <= str.[i] && str.[i] <= '9') then
       (
         Bytes.set out !j str.[i];
         last_letter := !j;
