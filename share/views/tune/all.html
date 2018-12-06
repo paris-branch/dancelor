@@ -11,7 +11,7 @@
     <input type="text" name="author" placeholder="Author" value="{{query.author}}" />
 
     <select name="kind">
-      <option value="">No filter</option>
+      <option value="">Any kind</option>
       <option value="j">Jig</option>
       <option value="p">Polka</option>
       <option value="r">Reel</option>
@@ -20,6 +20,7 @@
     </select>
 
     <select name="key">
+      <option value="">Any key</option>
       <option value="ces">C♭ (7 flat)</option>
       <option value="ges">G♭ (6 flat)</option>
       <option value="des">D♭ (5 flat)</option>
@@ -27,7 +28,7 @@
       <option value="ees,c:m">E♭ / Cm (3 flat)</option>
       <option value="bes,g:m">B♭ / Gm (2 flat)</option>
       <option value="f,d:m">F / Dm (1 flat)</option>
-      <option value="c,a:m" selected="selected">C / Am</option>
+      <option value="c,a:m">C / Am</option>
       <option value="g,e:m">G / Em (1 sharp)</option>
       <option value="d,b:m">D / Bm (2 sharp)</option>
       <option value="a,fis:m">A / F♯m (3 sharp)</option>
@@ -35,6 +36,12 @@
       <option value="b">B (5 sharp)</option>
       <option value="fis">F♯ (6 sharp)</option>
       <option value="cis">C♯ (7 sharp)</option>
+    </select>
+
+    <select name="mode">
+      <option value="">Any mode</option>
+      <option value="major">Major</option>
+      <option value="minor">Minor</option>
     </select>
 
     <input type="submit" value="Search" />
