@@ -6,6 +6,7 @@ type t = string
             protocol ~driver:(module Yaml)]
 
 let from_string str =
+  Format.eprintf "Computing slug for \"%s\"@." str;
   let str = String.lowercase_ascii str in
   let len = String.length str in
   let out = Bytes.create len in
@@ -25,7 +26,7 @@ let from_string str =
       )
   done;
   if !last_letter < 0 then
-    ""
+    failwith "Dancelor_common.Slug.from_string"
   else
     Bytes.sub_string out 0 (!last_letter+1)
 

@@ -13,29 +13,13 @@ type t =
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
-let make ?slug ~name ?(disambiguation="") ~kind ~key ~author ~content () =
-  let slug =
-    match slug with
-    | None -> Slug.from_string name
-    | Some slug -> slug
-  in
-  { slug ; name ; disambiguation ;
-    kind ; key ;
-    author = Credit.slug author ;
-    content }
-
 let match_score needle haystack =
-  Format.eprintf "match_score \"%s\" \"%s\"@." needle haystack;
-  let r =
-    1. -.
-      if String.length needle = 0 then
-        0.
-      else
-        let d = String.inclusion_distance needle haystack in
-        (float_of_int d) /. (float_of_int (String.length needle))
-  in
-  Format.eprintf "--> %f@." r;
-  r
+  1. -.
+    if String.length needle = 0 then
+      0.
+    else
+      let d = String.inclusion_distance needle haystack in
+      (float_of_int d) /. (float_of_int (String.length needle))
 
 module Database =
   struct
@@ -50,6 +34,17 @@ module Database =
              Storage.read_yaml prefix slug "meta.yaml"
              |> of_yaml
              |> Hashtbl.add db slug)
+
+    let find_uniq_slug string =
+      let slug = Slug.from_string string in
+      let rec aux i =
+        let slug = slug ^ "-" ^ (string_of_int i) in
+        if Hashtbl.mem db slug then
+          aux (i+1)
+        else
+          slug
+      in
+      aux 0
 
     let get = Hashtbl.find db
 
@@ -76,11 +71,23 @@ module Database =
             | Some mode -> (fun (_, tune) -> snd tune.key = mode))
       |> List.sort
            (fun (s1, t1) (s2, t2) ->
-             let c = compare s1 s2 in
+             let c = - compare s1 s2 in
              if c = 0 then
-               compare t1.slug t2.slug
+               - compare t1.slug t2.slug
              else
                c)
+
+    let create ~name ?(disambiguation="") ~kind ~key ~author ~content () =
+      let slug = find_uniq_slug name in
+      let tune =
+        { slug ; name ; disambiguation ;
+          kind ; key ;
+          author = Credit.slug author ;
+          content }
+      in
+      Hashtbl.add db slug tune;
+      Storage.write_yaml prefix slug "meta.yaml" (to_yaml tune);
+      (slug, tune)
   end
 
 type view =

@@ -4,11 +4,6 @@ open Dancelor_common
 
 type t
 
-val make :
-  ?slug:Slug.t ->
-  name:string ->
-  unit -> t
-
 val slug : t -> Slug.t
 
 type view =
@@ -26,4 +21,6 @@ module Database : sig
   val initialise : unit -> unit
 
   val get : Slug.t -> t
+
+  val create : name:string -> unit -> Slug.t * t
 end

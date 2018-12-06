@@ -9,15 +9,6 @@ type t =
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
-let make ?slug ~line ?(persons=[]) () =
-  let slug =
-    match slug with
-    | None -> Slug.from_string line
-    | Some slug -> slug
-  in
-  let persons = List.map Person.slug persons in
-  { slug ; line ; persons }
-
 let slug c = c.slug
 let line c = c.line
 
@@ -35,7 +26,26 @@ module Database =
              |> of_jsonm
              |> Hashtbl.add db slug)
 
+    let find_uniq_slug string =
+      let slug = Slug.from_string string in
+      let rec aux i =
+        let slug = slug ^ "-" ^ (string_of_int i) in
+        if Hashtbl.mem db slug then
+          aux (i+1)
+        else
+          slug
+      in
+      aux 0
+
     let get = Hashtbl.find db
+
+    let create ~line ?(persons=[]) () =
+      let slug = find_uniq_slug line in
+      let persons = List.map Person.slug persons in
+      let credit = { slug ; line ; persons } in
+      Hashtbl.add db slug credit;
+      Storage.write_yaml prefix slug "meta.yaml" (to_yaml credit);
+      (slug, credit)
   end
 
 type view =

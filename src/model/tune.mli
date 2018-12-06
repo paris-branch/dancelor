@@ -6,16 +6,6 @@ type t
 
 val to_yaml : t -> Yaml.value
 
-val make :
-  ?slug:Slug.t ->
-  name:string ->
-  ?disambiguation:string ->
-  kind:Kind.tune ->
-  key:Music.key ->
-  author:Credit.t ->
-  content:string ->
-  unit -> t
-
 type view =
   { slug : Slug.t ;
     name : string ;
@@ -40,4 +30,13 @@ module Database : sig
     ?name:string -> ?author:string ->
     ?kind:Kind.base -> ?keys:Music.key list -> ?mode:Music.mode ->
     unit -> (float * t) list
+
+  val create :
+    name:string ->
+    ?disambiguation:string ->
+    kind:Kind.tune ->
+    key:Music.key ->
+    author:Credit.t ->
+    content:string ->
+    unit -> Slug.t * t
 end

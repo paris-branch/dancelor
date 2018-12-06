@@ -59,8 +59,7 @@ let remove_score_and_headers content =
   else
     failwith "remove_score_and_headers"
 
-let do_one kind_str name index path disambiguation =
-  let slug = (Slug.from_string name) ^ "-" ^ (string_of_int index) in
+let do_one kind_str name path disambiguation =
   let disambiguation =
     if disambiguation = "default" then
       None
@@ -71,12 +70,24 @@ let do_one kind_str name index path disambiguation =
   let content = read_file path in
   if content <> "" then
     (
-      let author = Credit.make ~line:(find_opus content) () in
+      let opus = find_opus content in
+      let author =
+        if opus = "" then
+          (
+            Format.eprintf "a@.";
+            let author = Credit.Database.get "unknown" in
+            Format.eprintf "b@.";
+            author
+          )
+        else
+          let (_, author) = Credit.Database.create ~line:opus () in
+          author
+      in
       let content = remove_score_and_headers content in
       let key = find_key content in
-      let tune =
-        Tune.make
-          ~slug ~name ?disambiguation
+      let (_, tune) =
+        Tune.Database.create
+          ~name ?disambiguation
           ~kind ~key
           ~author ~content ()
       in
@@ -89,10 +100,10 @@ let do_ kind_str =
        (fun name ->
          let path = Filename.concat (tunes kind_str) name in
          Sys.readdir path
-         |> Array.iteri
-              (fun i file ->
+         |> Array.iter
+              (fun file ->
                 if Filename.check_suffix file ".ly" then
-                  do_one kind_str name i (Filename.concat path file) (Filename.chop_extension file)))
+                  do_one kind_str name (Filename.concat path file) (Filename.chop_extension file)))
 
 let main () =
   do_ "reel";
@@ -100,4 +111,6 @@ let main () =
   do_ "strathspey";
   do_ "waltz"
 
-let () = main ()
+let () =
+  Dancelor_model.Database.initialise ();
+  main ()
