@@ -4,8 +4,6 @@ open Dancelor_model
 let db = "/home/niols/git/perso/rscds/db"
 let tunes k = Filename.(concat db (concat "tune" k))
 
-(* FIXME: reel, jig, strathspey, waltz *)
-
 let read_file path =
   let ic = open_in path in
   let bufsize = 1024 in
