@@ -28,6 +28,18 @@ let get_all query _body =
           with
             Failure _ -> raise (Error.Error (`OK, "kind must be 'j', 'p', 'r', 's' or 'w'"))
       )
+      ?keys:(
+        let open OptionMonad in
+        query_strings_opt query "keys" >>= fun keys ->
+        Some (List.map Music.key_of_string keys)
+      )
+      ?mode:(
+        let open OptionMonad in
+        query_string_opt query "mode" >>= function
+        | "major" -> Some Music.Major
+        | "minor" -> Some Music.Minor
+        | _ -> error ("mode must be major or minor")
+      )
       ()
     |> List.map (fun (score, tune) ->
            Tune.(tune |> view |> view_to_jsonm)

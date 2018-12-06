@@ -7,6 +7,11 @@ let controllers : (Cohttp.Code.meth list * string * Router.generic Router.contro
   @ List.map json_controller_to_html_controller (html_controllers @ both_controllers)
   @ raw_controllers
 
+let rec cleanup_query = function
+  | [] -> []
+  | (_, [""]) :: t -> cleanup_query t
+  | x :: t -> x :: cleanup_query t
+
 let callback _ request body =
   let uri = Request.uri request in
   let meth = Request.meth request in
@@ -19,7 +24,7 @@ let callback _ request body =
     in
     match controller with
     | Some (_, _, controller) ->
-       let query = Uri.query uri in
+       let query = Uri.query uri |> cleanup_query in
        Log.(debug_async (spf "Query: %s" (Router.show_query query)));
        controller query body;
     | None ->

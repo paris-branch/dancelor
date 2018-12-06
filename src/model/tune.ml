@@ -53,7 +53,7 @@ module Database =
 
     let get = Hashtbl.find db
 
-    let get_all ?(name="") ?(author="") ?kind () =
+    let get_all ?(name="") ?(author="") ?kind ?keys ?mode () =
       Format.eprintf "get_all:@\n  name = %s@\n  author = %s@." name author;
       Hashtbl.to_seq_values db
       |> List.of_seq
@@ -66,6 +66,14 @@ module Database =
            (match kind with
             | None -> fun _ -> true
             | Some kind -> (fun (_, tune) -> snd tune.kind = kind))
+      |> List.filter
+           (match keys with
+            | None -> fun _ -> true
+            | Some keys -> (fun (_, tune) -> List.mem tune.key keys))
+      |> List.filter
+           (match mode with
+            | None -> fun _ -> true
+            | Some mode -> (fun (_, tune) -> snd tune.key = mode))
       |> List.sort
            (fun (s1, t1) (s2, t2) ->
              let c = compare s1 s2 in
