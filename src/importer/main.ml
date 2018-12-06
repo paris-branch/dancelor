@@ -32,9 +32,20 @@ let find_opus content =
 
 let remove_score_and_headers content =
   Format.eprintf "remove_score_and_headers working on:@.%s@." content;
-  let regexp = Str.regexp "\\\\score {.*\\\\header {[^}]*}\\(.*\\)}[^}]*" in
-  if Str.string_match regexp content 0 then
-      Str.matched_group 1 content
+  let regexp = Str.regexp "\\\\score[ \t\r\n]*{[ \t\r\n]*\\\\header[ \t\r\n]*{[^}]*}" in
+  let content' = Str.replace_first regexp "" content in
+  if content' <> content then
+    (
+      let content' = String.trim content' in
+      if content'.[String.length content' - 1] = '}' then
+        (
+          let content' = String.sub content' 0 (String.length content' - 1) in
+          Format.eprintf "got:@.%s@." content';
+          content'
+        )
+      else
+        failwith "remove_score_and_headers"
+    )
   else
     failwith "remove_score_and_headers"
 
@@ -48,10 +59,13 @@ let do_one kind_str name index path disambiguation =
   in
   let kind = (32, Kind.base_of_string kind_str) in
   let content = read_file path in
-  let author = Credit.make ~line:(find_opus content) () in
-  let content = remove_score_and_headers content in
-  let tune = Tune.make ~slug ~name ?disambiguation ~kind ~author ~content () in
-  Format.printf "%s@." (Yaml.to_string_exn (`O ["tune", Tune.to_yaml tune]))
+  if content <> "" then
+    (
+      let author = Credit.make ~line:(find_opus content) () in
+      let content = remove_score_and_headers content in
+      let tune = Tune.make ~slug ~name ?disambiguation ~kind ~author ~content () in
+      Format.printf "%s@." (Yaml.to_string_exn (`O ["tune", Tune.to_yaml tune]))
+    )
 
 let do_ kind_str =
   Sys.readdir (tunes kind_str)
