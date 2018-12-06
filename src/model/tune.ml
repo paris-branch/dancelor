@@ -7,18 +7,22 @@ type t =
     name : string ;
     disambiguation : string ;
     kind : Kind.tune ;
+    key : Music.key ;
     author : Slug.t ;
     content : string }
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
 
-let make ?slug ~name ?(disambiguation="") ~kind ~author ~content () =
+let make ?slug ~name ?(disambiguation="") ~kind ~key ~author ~content () =
   let slug =
     match slug with
     | None -> Slug.from_string name
     | Some slug -> slug
   in
-  { slug ; name ; disambiguation ; kind ; author = Credit.slug author ; content }
+  { slug ; name ; disambiguation ;
+    kind ; key ;
+    author = Credit.slug author ;
+    content }
 
 let match_score needle haystack =
   Format.eprintf "match_score \"%s\" \"%s\"@." needle haystack;
@@ -77,6 +81,7 @@ type view =
     disambiguation : string ;
     author : Credit.view ;
     kind : Kind.tune ;
+    key : Music.key ;
     content : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
@@ -86,4 +91,5 @@ let view (tune : t) =
     disambiguation = tune.disambiguation ;
     author = Credit.(Database.get ||> view) tune.author ;
     kind = tune.kind ;
+    key = tune.key ;
     content = tune.content }

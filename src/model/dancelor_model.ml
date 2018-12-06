@@ -4,6 +4,7 @@ module Kind = Kind
 module Person = Person
 module Set = Set
 module Tune = Tune
+module Music = Music
 
 module Database =
   struct

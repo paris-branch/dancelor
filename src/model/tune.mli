@@ -11,6 +11,7 @@ val make :
   name:string ->
   ?disambiguation:string ->
   kind:Kind.tune ->
+  key:Music.key ->
   author:Credit.t ->
   content:string ->
   unit -> t
@@ -21,6 +22,7 @@ type view =
     disambiguation : string ;
     author : Credit.view ;
     kind : Kind.tune ;
+    key : Music.key ;
     content : string }
 
 val view : t -> view

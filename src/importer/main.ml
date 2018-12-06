@@ -30,6 +30,18 @@ let find_opus content =
   with
     Not_found -> ""
 
+let find_key content =
+  let regexp = Str.regexp "\\\\key \\(.*\\) \\\\\\([a-z]*\\)[ \n\t\r]" in
+  try
+    ignore (Str.search_forward regexp content 0);
+    (Music.pitch_of_string (Str.matched_group 1 content),
+     match Str.matched_group 2 content with
+     | "major" -> Music.Major
+     | "minor" -> Music.Minor
+     | _ -> failwith "find_key")
+  with
+    Not_found -> Music.((C, Natural), Major)
+
 let remove_score_and_headers content =
   Format.eprintf "remove_score_and_headers working on:@.%s@." content;
   let regexp = Str.regexp "\\\\score[ \t\r\n]*{[ \t\r\n]*\\\\header[ \t\r\n]*{[^}]*}" in
@@ -63,7 +75,13 @@ let do_one kind_str name index path disambiguation =
     (
       let author = Credit.make ~line:(find_opus content) () in
       let content = remove_score_and_headers content in
-      let tune = Tune.make ~slug ~name ?disambiguation ~kind ~author ~content () in
+      let key = find_key content in
+      let tune =
+        Tune.make
+          ~slug ~name ?disambiguation
+          ~kind ~key
+          ~author ~content ()
+      in
       Format.printf "%s@." (Yaml.to_string_exn (`O ["tune", Tune.to_yaml tune]))
     )
 
