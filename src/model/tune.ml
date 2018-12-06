@@ -5,11 +5,20 @@ open Protocol_conv_yaml
 type t =
   { slug : Slug.t ;
     name : string ;
+    disambiguation : string ;
     kind : Kind.tune ;
     author : Slug.t ;
     content : string }
 [@@deriving protocol ~driver:(module Jsonm),
             protocol ~driver:(module Yaml)]
+
+let make ?slug ~name ?(disambiguation="") ~kind ~author ~content () =
+  let slug =
+    match slug with
+    | None -> Slug.from_string name
+    | Some slug -> slug
+  in
+  { slug ; name ; disambiguation ; kind ; author = Credit.slug author ; content }
 
 let match_score needle haystack =
   Format.eprintf "match_score \"%s\" \"%s\"@." needle haystack;
@@ -65,6 +74,7 @@ module Database =
 type view =
   { slug : Slug.t ;
     name : string ;
+    disambiguation : string ;
     author : Credit.view ;
     kind : Kind.tune ;
     content : string }
@@ -73,6 +83,7 @@ type view =
 let view (tune : t) =
   { slug = tune.slug ;
     name = tune.name ;
+    disambiguation = tune.disambiguation ;
     author = Credit.(Database.get ||> view) tune.author ;
     kind = tune.kind ;
     content = tune.content }
