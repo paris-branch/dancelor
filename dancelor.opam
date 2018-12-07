@@ -11,6 +11,8 @@ A chancelor for RSCDS musicians.
 maintainer: "Niols <niols@niols.fr>"
 authors: "Niols <niols@niols.fr>"
 license: "GPL3"
+homepage: "https://gitlab.vlanvin.fr/paris-band/dancelor"
+bug-reports: "https://gitlab.vlanvin.fr/paris-band/dancelor/issues"
 
 depends: [
   "cohttp-lwt-unix"
@@ -22,7 +24,6 @@ depends: [
   "ppx_deriving"
   "ppx_inline_test"          {build | with-test}
   "ppx_protocol_conv_jsonm"
-  "ppx_protocol_conv_yaml"
 ]
 
 build: ["dune" "build" "-p" name "-j" jobs]
