@@ -1,63 +1,28 @@
-type behaviour_when_set =
-  Fail | Override | DoNothing
+open ExtPervasives
 
-let generic_setter full_name ref =
-  fun ?(when_set=Fail) x ->
-  match !ref with
-  | None -> ref := Some x
-  | Some _ ->
-     match when_set with
-     | Fail -> failwith full_name
-     | Override -> ref := Some x
-     | DoNothing -> ()
+let config =
+  try
+    let ichan = open_in Sys.argv.(1) in
+    let config =
+      in_channel_to_string ichan
+      |> Ezjsonm.from_string
+    in
+    close_in ichan;
+    Format.eprintf "Configuration: %s@." (Ezjsonm.to_string config);
+    config
+  with
+    exn ->
+    Format.eprintf "No configuration found.\n%s@." (Printexc.to_string exn);
+    `Null (* FIXME *)
 
-let generic_getter full_name ref =
-  fun () ->
-  match !ref with
-  | None -> failwith full_name
-  | Some x -> x
+let read_config ~type_ ~default path =
+  try type_ (Ezjsonm.find config path)
+  with Not_found -> default
 
-(* =============================== [ Cache ] ================================ *)
+let int = Ezjsonm.get_int
+let string = Ezjsonm.get_string
 
-let cache_prefix = ref None
-let set_cache_prefix = generic_setter "Config.set_cache_prefix" cache_prefix
-let cache_prefix = generic_getter "Config.cache_prefix" cache_prefix
-
-(* =============================== [ Views ] ================================ *)
-
-let views_prefix = ref None
-let set_views_prefix = generic_setter "Config.set_views_prefix" views_prefix
-let views_prefix = generic_getter "Config.views_prefix" views_prefix
-
-(* ============================== [ Database ] ============================== *)
-
-let database_prefix = ref None
-let set_database_prefix = generic_setter "Config.set_database_prefix" database_prefix
-let database_prefix = generic_getter "Config.database_prefix" database_prefix
-
-(* Port *)
-
-let port () = 8080
-
-(* Main *)
-
-let load_env_var setter var =
-  try setter (Sys.getenv var)
-  with Not_found -> Log.(debug_async (spf "Env var not found: %s" var))
-
-let load_from_env ?when_set () =
-  load_env_var (set_cache_prefix ?when_set) "DANCELOR_CACHE";
-  load_env_var (set_views_prefix ?when_set) "DANCELOR_VIEWS";
-  load_env_var (set_database_prefix ?when_set) "DANCELOR_DATABASE"
-
-let load_from_cli ?when_set () =
-  ignore when_set (* FIXME *)
-
-let load () =
-  Log.(info_async "Loading configuration");
-  load_from_env ~when_set:Fail ();
-  load_from_cli ~when_set:Override ()
-  (* FIXME: check that all set *)
-(* FIXME: Print config in logs *)
-
-let () = load ()
+let port = read_config ~type_:int ~default:8080 ["port"]
+let cache = read_config ~type_:string ~default:"cache" ["cache"]
+let database = read_config ~type_:string ~default:"database" ["database"]
+let views = read_config ~type_:string ~default:"views" ["views"]

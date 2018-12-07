@@ -1,6 +1,6 @@
 open ExtPervasives
 
-let prefix = Config.database_prefix ()
+let prefix = Config.database
 
 let list_entries table =
   Filename.concat prefix table

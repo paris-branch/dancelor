@@ -8,7 +8,7 @@ test:
 	dune runtest
 
 serve: build
-	bin/dancelor-server
+	bin/dancelor-server share/config.json
 
 clean:
 	dune clean

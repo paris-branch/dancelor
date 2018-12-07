@@ -39,7 +39,7 @@ let () =
   Dancelor_model.Database.initialise ();
   let server =
     Server.create
-      ~mode:(`TCP (`Port (Config.port ())))
+      ~mode:(`TCP (`Port Config.port))
       (Server.make ~callback ())
   in
   ignore (Lwt_main.run server)

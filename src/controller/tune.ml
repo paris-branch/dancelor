@@ -78,7 +78,7 @@ let png query _body =
   let slug = query_string query "slug" in
   let view = Tune.(Database.get slug |> view) in
   let lilypond = Mustache.render lilypond_png_template (`O ["tune", Tune.view_to_jsonm view]) in
-  let dirname = Filename.concat (Config.cache_prefix ()) "tune" in
+  let dirname = Filename.concat Config.cache "tune" in
   let basename = view.Tune.slug in
   let ochan = open_out (Filename.concat dirname (basename ^ ".ly")) in
   output_string ochan lilypond;
