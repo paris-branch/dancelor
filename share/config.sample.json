@@ -2,5 +2,6 @@
     "port": 8080,
     "lilypond": "lilypond",
     "cache": "cache",
-    "database": "database"
+    "database": "database",
+    "views": "views"
 }
