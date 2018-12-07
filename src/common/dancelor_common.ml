@@ -11,3 +11,5 @@ module Slug = Slug
 module Storage = Storage
 module Log = Log
 module Config = Config
+module YamlHelpers = YamlHelpers
+module JsonHelpers = YamlHelpers

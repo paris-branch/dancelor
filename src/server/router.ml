@@ -38,7 +38,9 @@ let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Cod
   try
     let view = Filename.concat (Config.views_prefix ()) (path ^ ".html") in
     let ichan = open_in view in
+    Format.eprintf "about to parse %s@." view;
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
+    Format.eprintf "parsed@.";
     close_in ichan;
 
     let controller query body =

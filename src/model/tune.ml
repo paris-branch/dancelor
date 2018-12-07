@@ -32,6 +32,7 @@ module Database =
       |> List.iter
            (fun slug ->
              Storage.read_yaml prefix slug "meta.yaml"
+             |> YamlHelpers.add_field "content" (`String (Storage.read prefix slug "content.ly"))
              |> of_yaml
              |> Hashtbl.add db slug)
 
@@ -96,7 +97,10 @@ module Database =
           content }
       in
       Hashtbl.add db slug tune;
-      Storage.write_yaml prefix slug "meta.yaml" (to_yaml tune);
+      Storage.write prefix slug "content.ly" tune.content;
+      to_yaml tune
+      |> YamlHelpers.remove_field "content"
+      |> Storage.write_yaml prefix slug "meta.yaml";
       (slug, tune)
   end
 
