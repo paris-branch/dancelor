@@ -1,9 +1,7 @@
 open Protocol_conv_jsonm
-open Protocol_conv_yaml
 
 type t = string
-[@@deriving protocol ~driver:(module Jsonm),
-            protocol ~driver:(module Yaml)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let from_string str =
   if str = "" then

@@ -4,8 +4,6 @@ open Dancelor_common
 
 type t
 
-val to_yaml : t -> Yaml.value
-
 type view =
   { slug : Slug.t ;
     name : string ;

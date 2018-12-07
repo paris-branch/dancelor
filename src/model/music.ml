@@ -80,6 +80,3 @@ let key_to_jsonm k = `String (key_to_string k)
 let key_of_jsonm = function
   | `String s -> key_of_string s
   | _ -> failwith "Dancelor_model.Music.key_of_jsonm"
-
-let key_to_yaml = key_to_jsonm
-let key_of_yaml = key_of_jsonm

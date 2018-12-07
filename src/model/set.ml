@@ -1,6 +1,5 @@
 open Dancelor_common
 open Protocol_conv_jsonm
-open Protocol_conv_yaml
 
 type t =
   { slug : Slug.t ;
@@ -8,8 +7,7 @@ type t =
     deviser : Slug.t ;
     kind : Kind.dance ;
     tunes : Slug.t list }
-[@@deriving protocol ~driver:(module Jsonm),
-            protocol ~driver:(module Yaml)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 module Database =
   struct
@@ -21,8 +19,8 @@ module Database =
       Storage.list_entries prefix
       |> List.iter
            (fun slug ->
-             Storage.read_yaml prefix slug "meta.yaml"
-             |> of_yaml
+             Storage.read_json prefix slug "meta.json"
+             |> of_jsonm
              |> Hashtbl.add db slug)
 
     let get = Hashtbl.find db

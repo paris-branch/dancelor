@@ -15,13 +15,9 @@ let read table entry file =
   close_in ichan;
   content
 
-let read_json table entry file =
-  read table entry file
-  |> Ezjsonm.from_string
-
-let read_yaml table entry file =
-  read table entry file
-  |> Yaml.of_string_exn
+let read_json table entry  =
+  read table entry
+  ||> Ezjsonm.from_string
 
 let write table entry file content =
   let path = ExtFilename.concat_l [prefix; table; entry] in
@@ -32,10 +28,7 @@ let write table entry file content =
   output_string ochan content;
   close_out ochan
 
-let write_json table entry file json =
-  Ezjsonm.to_string json
-  |> write table entry file
-
-let write_yaml table entry file yaml =
-  Yaml.to_string_exn yaml
-  |> write table entry file
+let write_json table entry file =
+  JsonHelpers.check_object
+  ||> Ezjsonm.to_string
+  ||> write table entry file

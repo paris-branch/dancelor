@@ -1,6 +1,5 @@
 open Dancelor_common
 open Protocol_conv_jsonm
-open Protocol_conv_yaml
 
 type t =
   { slug : Slug.t ;
@@ -10,8 +9,7 @@ type t =
     key : Music.key ;
     author : Slug.t ;
     content : string }
-[@@deriving protocol ~driver:(module Jsonm),
-            protocol ~driver:(module Yaml)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let match_score needle haystack =
   1. -.
@@ -31,9 +29,9 @@ module Database =
       Storage.list_entries prefix
       |> List.iter
            (fun slug ->
-             Storage.read_yaml prefix slug "meta.yaml"
-             |> YamlHelpers.add_field "content" (`String (Storage.read prefix slug "content.ly"))
-             |> of_yaml
+             Storage.read_json prefix slug "meta.json"
+             |> JsonHelpers.add_field "content" (`String (Storage.read prefix slug "content.ly"))
+             |> of_jsonm
              |> Hashtbl.add db slug)
 
     let find_uniq_slug string =
@@ -98,9 +96,9 @@ module Database =
       in
       Hashtbl.add db slug tune;
       Storage.write prefix slug "content.ly" tune.content;
-      to_yaml tune
-      |> YamlHelpers.remove_field "content"
-      |> Storage.write_yaml prefix slug "meta.yaml";
+      to_jsonm tune
+      |> JsonHelpers.remove_field "content"
+      |> Storage.write_json prefix slug "meta.json";
       (slug, tune)
   end
 

@@ -1,12 +1,10 @@
 open Dancelor_common
 open Protocol_conv_jsonm
-open Protocol_conv_yaml
 
 type t =
   { slug : Slug.t ;
     name : string }
-[@@deriving protocol ~driver:(module Jsonm),
-            protocol ~driver:(module Yaml)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let slug p = p.slug
 
@@ -20,8 +18,8 @@ module Database =
       Storage.list_entries prefix
       |> List.iter
            (fun slug ->
-             Storage.read_yaml prefix slug "meta.yaml"
-             |> of_yaml
+             Storage.read_json prefix slug "meta.json"
+             |> of_jsonm
              |> Hashtbl.add db slug)
 
     let find_uniq_slug string =
@@ -44,7 +42,8 @@ module Database =
       let slug = find_uniq_slug name in
       let person = { slug ; name } in
       Hashtbl.add db slug person;
-      Storage.write_yaml prefix slug "meta.yaml" (to_yaml person);
+      to_jsonm person
+      |> Storage.write_json prefix slug "meta.json";
       (slug, person)
   end
 

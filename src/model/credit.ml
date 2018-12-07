@@ -1,13 +1,11 @@
 open Dancelor_common
 open Protocol_conv_jsonm
-open Protocol_conv_yaml
 
 type t =
   { slug : Slug.t ;
     line : string ;
     persons : Slug.t list }
-[@@deriving protocol ~driver:(module Jsonm),
-            protocol ~driver:(module Yaml)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let slug c = c.slug
 let line c = c.line
@@ -22,7 +20,7 @@ module Database =
       Storage.list_entries prefix
       |> List.iter
            (fun slug ->
-             Storage.read_yaml prefix slug "meta.yaml"
+             Storage.read_json prefix slug "meta.json"
              |> of_jsonm
              |> Hashtbl.add db slug)
 
@@ -47,7 +45,8 @@ module Database =
       let persons = List.map Person.slug persons in
       let credit = { slug ; line ; persons } in
       Hashtbl.add db slug credit;
-      Storage.write_yaml prefix slug "meta.yaml" (to_yaml credit);
+      to_jsonm credit
+      |> Storage.write_json prefix slug "meta.json";
       (slug, credit)
   end
 
