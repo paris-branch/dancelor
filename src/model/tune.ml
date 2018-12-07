@@ -44,19 +44,29 @@ module Database =
         else
           slug
       in
-      aux 0
+      if Hashtbl.mem db slug then
+        aux 2
+      else
+        slug
 
     let get = Hashtbl.find db
 
-    let get_all ?(name="") ?(author="") ?kind ?keys ?mode () =
-      Format.eprintf "get_all:@\n  name = %s@\n  author = %s@." name author;
+    let get_all ?name ?author ?kind ?keys ?mode () =
       Hashtbl.to_seq_values db
       |> List.of_seq
       |> List.map (fun tune -> (1., tune))
-      |> List.map (fun (score, tune) ->
-             (score *. match_score (Slug.from_string name) tune.name, tune))
-      |> List.map (fun (score, tune) ->
-             (score *. match_score (Slug.from_string author) Credit.(Database.get tune.author |> line |> Slug.from_string), tune))
+      |> List.map
+           (match name with
+            | None -> fun x -> x
+            | Some name ->
+               (fun (score, tune) ->
+                 (score *. match_score (Slug.from_string name) tune.name, tune)))
+      |> List.map
+           (match author with
+            | None -> fun x -> x
+            | Some author ->
+               (fun (score, tune) ->
+                 (score *. match_score (Slug.from_string author) Credit.(Database.get tune.author |> line |> Slug.from_string), tune)))
       |> List.filter
            (match kind with
             | None -> fun _ -> true
@@ -71,9 +81,9 @@ module Database =
             | Some mode -> (fun (_, tune) -> snd tune.key = mode))
       |> List.sort
            (fun (s1, t1) (s2, t2) ->
-             let c = - compare s1 s2 in
+             let c = - compare s1 s2 in (* Scores in decreasing order *)
              if c = 0 then
-               - compare t1.slug t2.slug
+               compare t1.slug t2.slug
              else
                c)
 

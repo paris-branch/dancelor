@@ -35,7 +35,10 @@ module Database =
         else
           slug
       in
-      aux 0
+      if Hashtbl.mem db slug then
+        aux 2
+      else
+        slug
 
     let get = Hashtbl.find db
 

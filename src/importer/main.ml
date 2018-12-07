@@ -59,6 +59,8 @@ let remove_score_and_headers content =
   else
     failwith "remove_score_and_headers"
 
+let authors = Hashtbl.create 8
+
 let do_one kind_str name path disambiguation =
   let disambiguation =
     if disambiguation = "default" then
@@ -80,8 +82,12 @@ let do_one kind_str name path disambiguation =
             author
           )
         else
-          let (_, author) = Credit.Database.create ~line:opus () in
-          author
+          match Hashtbl.find_opt authors opus with
+          | Some author -> author
+          | None ->
+             let (_, author) = Credit.Database.create ~line:opus () in
+             Hashtbl.add authors opus author;
+             author
       in
       let content = remove_score_and_headers content in
       let key = find_key content in

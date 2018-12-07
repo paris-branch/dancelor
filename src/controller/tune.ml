@@ -16,8 +16,8 @@ let get query _body =
 let get_all query _body =
   let tune_jsons =
     Tune.Database.get_all
-      ~name:(query_string_or query "name" "")
-      ~author:(query_string_or query "author" "")
+      ?name:(query_string_opt query "name")
+      ?author:(query_string_opt query "author")
       ?kind:(
         let kind = query_string_or query "kind" "" in
         if kind = "" then
