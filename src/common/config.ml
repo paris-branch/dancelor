@@ -1,7 +1,5 @@
 open ExtPervasives
-
-let src = Logs.Src.create "dancelor.common.config"
-module Log = (val Logs.src_log src : Logs.LOG)
+module Log = (val Log.create "dancelor.common.config" : Logs.LOG)
 
 let config =
   Log.debug (fun m -> m "Loading configuration");

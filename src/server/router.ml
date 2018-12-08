@@ -1,9 +1,7 @@
 open Dancelor_common
 open Dancelor_controller
 open Cohttp_lwt_unix
-
-let src = Logs.Src.create "dancelor.server.router"
-module Log = (val Logs.src_log src : Logs.LOG)
+module Log = (val Log.create "dancelor.server.router")
 
 type query = (string * string list) list
 [@@deriving show]
@@ -40,11 +38,11 @@ let json_controller_to_controller ((methods, path, controller) : Cohttp.Code.met
 let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Code.meth list * string * json controller) : Cohttp.Code.meth list * string * generic controller =
   try
     let view = Filename.concat_l [Config.share; "views"; path^".html"] in
+    Log.debug (fun m -> m "Loading template %s" view);
     let ichan = open_in view in
-    Format.eprintf "about to parse %s@." view;
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
-    Format.eprintf "parsed@.";
     close_in ichan;
+    Log.debug (fun m -> m "Loaded successfully");
 
     let controller query body =
       try%lwt

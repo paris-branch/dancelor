@@ -1,8 +1,6 @@
 open Dancelor_common
 open Cohttp_lwt_unix
-
-let src = Logs.Src.create "dancelor.server"
-module Log = (val Logs.src_log src : Logs.LOG)
+module Log = (val Log.create "dancelor.server" : Logs.LOG)
 
 let controllers : (Cohttp.Code.meth list * string * Router.generic Router.controller) list =
   let open Router in

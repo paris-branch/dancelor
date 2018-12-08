@@ -2,8 +2,7 @@ open Dancelor_common
 open Dancelor_model
 open QueryHelpers
 
-let src = Logs.Src.create "dancelor.controller.tune"
-module Log = (val Logs.src_log src : Logs.LOG)
+module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
 let get query _body =
   let slug = query_string query "slug" in

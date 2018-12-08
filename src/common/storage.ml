@@ -1,4 +1,5 @@
 open ExtPervasives
+module Log = (val Log.create "dancelor.common.storage" : Logs.LOG)
 
 let prefix = Config.database
 
@@ -8,7 +9,7 @@ let list_entries table =
   |> Array.to_list
 
 let read table entry file =
-  Logs.debug (fun m -> m "Reading %s/%s/%s" table entry file);
+  Log.debug (fun m -> m "Reading %s/%s/%s" table entry file);
   let path = ExtFilename.concat_l [prefix; table; entry; file] in
   let ichan = open_in path in
   let content = in_channel_to_string ichan in
