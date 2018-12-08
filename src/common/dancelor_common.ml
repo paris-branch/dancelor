@@ -9,6 +9,5 @@ module ResultMonad = ResultMonad
 
 module Slug = Slug
 module Storage = Storage
-module Log = Log
 module Config = Config
 module JsonHelpers = JsonHelpers

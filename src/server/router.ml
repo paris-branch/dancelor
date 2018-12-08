@@ -2,6 +2,9 @@ open Dancelor_common
 open Dancelor_controller
 open Cohttp_lwt_unix
 
+let src = Logs.Src.create "dancelor.server.router"
+module Log = (val Logs.src_log src : Logs.LOG)
+
 type query = (string * string list) list
 [@@deriving show]
 
@@ -27,7 +30,7 @@ let json_controller_to_controller ((methods, path, controller) : Cohttp.Code.met
   let controller query body =
     try%lwt
       let%lwt json = controller query body in
-      Log.(debug_async (spf "JSON controller response: %s" (Ezjsonm.to_string (json_to_ezjsonm json))));
+      Log.debug (fun m -> m "JSON controller response: %s" (Ezjsonm.to_string (json_to_ezjsonm json)));
       respond_json ~status:`OK json
     with
       Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message])
@@ -54,7 +57,7 @@ let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Cod
 
   with
     Sys_error _ ->
-    Log.(error_async (Format.sprintf "No view found for %s" path));
+    Log.err (fun m -> m "No view found for %s" path);
     failwith "json_controller_to_html_controller"
 
 (* ============================ [ Controllers ] ============================= *)

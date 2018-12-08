@@ -1,6 +1,9 @@
 open Dancelor_common
 open Cohttp_lwt_unix
 
+let src = Logs.Src.create "dancelor.server"
+module Log = (val Logs.src_log src : Logs.LOG)
+
 let controllers : (Cohttp.Code.meth list * string * Router.generic Router.controller) list =
   let open Router in
   List.map json_controller_to_controller (json_controllers @ both_controllers)
@@ -25,14 +28,14 @@ let callback _ request body =
     match controller with
     | Some (_, _, controller) ->
        let query = Uri.query uri |> cleanup_query in
-       Log.(debug_async (spf "Query: %s" (Router.show_query query)));
+       Log.debug (fun m -> m "Query: %s" (Router.show_query query));
        controller query body;
     | None ->
-       Log.(debug_async (spf "No controller found for path %s" path));
+       Log.debug (fun m -> m "No controller found for path %s" path);
        Server.respond_not_found ()
   with
     exn ->
-     Log.(error_async (spf "Uncaught exception: %s\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ())));
+     Log.err (fun m -> m "Uncaught exception: %s\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ()));
      raise exn
 
 let () =
