@@ -1,6 +1,10 @@
 open ExtPervasives
 
+let src = Logs.Src.create "dancelor.common.config"
+module Log = (val Logs.src_log src : Logs.LOG)
+
 let config =
+  Log.debug (fun m -> m "Loading configuration");
   try
     let ichan = open_in Sys.argv.(1) in
     let config =
@@ -8,11 +12,11 @@ let config =
       |> Ezjsonm.from_string
     in
     close_in ichan;
-    Format.eprintf "Configuration: %s@." (Ezjsonm.to_string config);
+    Log.debug (fun m -> m "Loaded successfully:@\n%s" (Ezjsonm.to_string config));
     config
   with
     exn ->
-    Format.eprintf "No configuration found.\n%s@." (Printexc.to_string exn);
+    Log.debug (fun m -> m "No configuration found:@\n%s" (Printexc.to_string exn));
     `Null (* FIXME *)
 
 let read_config ~type_ ~default path =
@@ -25,5 +29,5 @@ let string = Ezjsonm.get_string
 let port = read_config ~type_:int ~default:8080 ["port"]
 let cache = read_config ~type_:string ~default:"cache" ["cache"]
 let database = read_config ~type_:string ~default:"database" ["database"]
-let views = read_config ~type_:string ~default:"views" ["views"]
+let share = read_config ~type_:string ~default:"share" ["share"]
 let lilypond = read_config ~type_:string ~default:"lilypond" ["lilypond"]

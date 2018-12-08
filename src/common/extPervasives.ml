@@ -33,3 +33,5 @@ let value ~default = function
 
 let catch_and_wrap f =
   try Some (f ()) with _ -> None
+
+let spf = Format.sprintf

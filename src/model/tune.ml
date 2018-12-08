@@ -11,6 +11,8 @@ type t =
     content : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
+let slug t = t.slug
+
 let match_score needle haystack =
   1. -.
     if String.length needle = 0 then
