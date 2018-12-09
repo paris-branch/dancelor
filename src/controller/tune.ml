@@ -15,6 +15,15 @@ let get query _body =
     Not_found ->
     raise (Error.Error (`OK, "this tune does not exist"))
 
+let get_ly query _body =
+  let slug = query_string query "slug" in
+  try
+    let tune = Tune.Database.get slug in
+    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.content tune) ()
+  with
+    Not_found ->
+    raise (Error.Error (`OK, "this tune does not exist"))
+
 let get_all query _body =
   let tune_jsons =
     Tune.Database.get_all

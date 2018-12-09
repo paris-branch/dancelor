@@ -12,6 +12,7 @@ type t =
 [@@deriving protocol ~driver:(module Jsonm)]
 
 let slug t = t.slug
+let content t = t.content
 
 let match_score needle haystack =
   1. -.

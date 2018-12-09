@@ -5,6 +5,7 @@ open Dancelor_common
 type t
 
 val slug : t -> Slug.t
+val content : t -> string
 
 type view =
   { slug : Slug.t ;

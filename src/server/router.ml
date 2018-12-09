@@ -82,4 +82,5 @@ let both_controllers : (Cohttp.Code.meth list * string * json controller) list =
 let raw_controllers : (Cohttp.Code.meth list * string * generic controller) list =
   [
     ([`GET], "/tune.png", Tune.Png.get) ;
+    ([`GET], "/tune.ly", Tune.get_ly) ;
   ]
