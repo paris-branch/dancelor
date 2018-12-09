@@ -36,27 +36,12 @@ let json_controller_to_controller ~controller =
   controller
 
 let json_controller_to_html_controller ~view ~controller =
-  try
-    let view = Filename.concat_l [Config.share; "views"; view] in
-    Log.debug (fun m -> m "Loading template %s" view);
-    let ichan = open_in view in
-    let template = Lexing.from_channel ichan |> Mustache.parse_lx in
-    close_in ichan;
-    Log.debug (fun m -> m "Loaded successfully");
-
-    let controller query body =
-      try%lwt
-        let%lwt json = controller query body in
-        respond_html (Mustache.render template (json_to_ezjsonm json))
-      with
-        Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
-    in
-    controller
-
+  fun query body ->
+  try%lwt
+    let%lwt json = controller query body in
+    respond_html (View.render view (json_to_ezjsonm json))
   with
-    Sys_error _ ->
-    Log.err (fun m -> m "No view found for %s" view);
-    failwith "json_controller_to_html_controller"
+    Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
 
 let make_raw ?(methods=[`GET]) ~path ~controller () =
   (methods, path, controller)
@@ -73,7 +58,7 @@ let make_html ?methods ~path ?view ?controller () =
     | Some controller -> controller
   in
   [make_raw ?methods ~path
-     ~controller:(json_controller_to_html_controller ~view:(view^".html") ~controller) ()]
+     ~controller:(json_controller_to_html_controller ~view ~controller) ()]
 
 let make_both ?methods ~path ?view ?(controller : json controller option) () =
   let view =
@@ -89,7 +74,7 @@ let make_both ?methods ~path ?view ?(controller : json controller option) () =
   [make_raw ?methods ~path:(Config.api_prefix ^ path)
      ~controller:(json_controller_to_controller ~controller) () ;
    make_raw ?methods ~path
-     ~controller:(json_controller_to_html_controller ~view:(view^".html") ~controller) ()]
+     ~controller:(json_controller_to_html_controller ~view ~controller) ()]
 
 (* ============================ [ Controllers ] ============================= *)
 
