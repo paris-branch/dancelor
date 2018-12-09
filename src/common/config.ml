@@ -24,8 +24,14 @@ let read_config ~type_ ~default path =
 let int = Ezjsonm.get_int
 let string = Ezjsonm.get_string
 
+(* =========================== [ Dynamic Stuff ] ============================ *)
+
 let port = read_config ~type_:int ~default:8080 ["port"]
 let cache = read_config ~type_:string ~default:"cache" ["cache"]
 let database = read_config ~type_:string ~default:"database" ["database"]
 let share = read_config ~type_:string ~default:"share" ["share"]
 let lilypond = read_config ~type_:string ~default:"lilypond" ["lilypond"]
+
+(* ============================ [ Static Shit ] ============================= *)
+
+let api_prefix = "/api"

@@ -24,7 +24,7 @@ let respond_json ?(status=`OK) ?(success=true) (json : json) =
 
 (* ======================== [ JSON controller -> * ] ======================== *)
 
-let json_controller_to_controller ((methods, path, controller) : Cohttp.Code.meth list * string * json controller) : Cohttp.Code.meth list * string * generic controller =
+let json_controller_to_controller ~controller =
   let controller query body =
     try%lwt
       let%lwt json = controller query body in
@@ -33,11 +33,11 @@ let json_controller_to_controller ((methods, path, controller) : Cohttp.Code.met
     with
       Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message])
   in
-  (methods, "/api" ^ path, controller)
+  controller
 
-let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Code.meth list * string * json controller) : Cohttp.Code.meth list * string * generic controller =
+let json_controller_to_html_controller ~view ~controller =
   try
-    let view = Filename.concat_l [Config.share; "views"; path^".html"] in
+    let view = Filename.concat_l [Config.share; "views"; view] in
     Log.debug (fun m -> m "Loading template %s" view);
     let ichan = open_in view in
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
@@ -51,36 +51,59 @@ let json_controller_to_html_controller ((methods, path, controller) : Cohttp.Cod
       with
         Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
     in
-    (methods, path, controller)
+    controller
 
   with
     Sys_error _ ->
-    Log.err (fun m -> m "No view found for %s" path);
+    Log.err (fun m -> m "No view found for %s" view);
     failwith "json_controller_to_html_controller"
+
+let make_raw ?(methods=[`GET]) ~path ~controller () =
+  (methods, path, controller)
+
+let make_html ?methods ~path ?view ?controller () =
+  let view =
+    match view with
+    | None -> path
+    | Some view -> view
+  in
+  let controller =
+    match controller with
+    | None -> (fun _ _ -> Lwt.return (`O []))
+    | Some controller -> controller
+  in
+  [make_raw ?methods ~path
+     ~controller:(json_controller_to_html_controller ~view:(view^".html") ~controller) ()]
+
+let make_both ?methods ~path ?view ?(controller : json controller option) () =
+  let view =
+    match view with
+    | None -> path
+    | Some view -> view
+  in
+  let controller =
+    match controller with
+    | None -> (fun _ _ -> Lwt.return (`O []))
+    | Some controller -> controller
+  in
+  [make_raw ?methods ~path:(Config.api_prefix ^ path)
+     ~controller:(json_controller_to_controller ~controller) () ;
+   make_raw ?methods ~path
+     ~controller:(json_controller_to_html_controller ~view:(view^".html") ~controller) ()]
 
 (* ============================ [ Controllers ] ============================= *)
 
-let json_controllers : (Cohttp.Code.meth list * string * json controller) list =
+let controllers =
   [
+    make_html ~path:"/" ~view:"/index" () ;
+    make_html ~path:"/set/compose" ~controller:Set.compose () ;
+    make_both ~path:"/credit" ~controller:Credit.get () ;
+    make_both ~path:"/person" ~controller:Person.get () ;
+    make_both ~path:"/tune" ~controller:Tune.get () ;
+    make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
+    make_both ~path:"/set" ~controller:Set.get () ;
+    make_both ~path:"/set/all" ~controller:Set.get_all () ;
+    [make_raw ~path:"/tune.png" ~controller:Tune.Png.get ()] ;
+    [make_raw ~path:"/tune.ly" ~controller:Tune.get_ly ()] ;
   ]
-
-let html_controllers : (Cohttp.Code.meth list * string * json controller) list =
-  [
-    ([`GET], "/set/compose", Set.compose) ;
-  ]
-
-let both_controllers : (Cohttp.Code.meth list * string * json controller) list =
-  [
-    ([`GET], "/credit",   Credit.get) ;
-    ([`GET], "/person",   Person.get) ;
-    ([`GET], "/tune",     Tune.get) ;
-    ([`GET], "/tune/all", Tune.get_all) ;
-    ([`GET], "/set",      Set.get) ;
-    ([`GET], "/set/all",  Set.get_all) ;
-  ]
-
-let raw_controllers : (Cohttp.Code.meth list * string * generic controller) list =
-  [
-    ([`GET], "/tune.png", Tune.Png.get) ;
-    ([`GET], "/tune.ly", Tune.get_ly) ;
-  ]
+  |> List.flatten
