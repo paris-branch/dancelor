@@ -1,23 +1,16 @@
-<!DOCTYPE html>
-<head>
-  <title>{{set.name}}</title>
-</head>
-<body>
-  <h1>{{set.name}}</h1>
+<h1>{{set.name}}</h1>
 
-  <p>Deviser: {{set.deviser.line}}</p>
+<p>Deviser: {{set.deviser.line}}</p>
 
-  <p>Kind: {{set.kind}}</p>
+<p>Kind: {{set.kind}}</p>
 
-  <ul>
-    {{#set.tunes}}
-    <li>
-      <a href="/tune?slug={{slug}}">{{name}}</a><br/>
-      <img src="/tune.png?slug={{slug}}" />
-    </li>
-    {{/set.tunes}}
-  </ul>
+<ul>
+  {{#set.tunes}}
+  <li>
+    <a href="/tune?slug={{slug}}">{{name}}</a><br/>
+    <img src="/tune.png?slug={{slug}}" />
+  </li>
+  {{/set.tunes}}
+</ul>
 
-  <a href="/set?slug={{set.slug}}">Link to this set</a>
-</body>
-</html>
+<a href="/set?slug={{set.slug}}">Link to this set</a>

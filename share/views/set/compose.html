@@ -1,78 +1,34 @@
-<!DOCTYPE html>
-<head>
-  <title>Compose a Set</title>
+<ul>
+  {{#set.errors}}
+  <li>{{message}}</li>
+  {{/set.errors}}
+</ul>
 
-  <meta charset="utf-8" />
+<form action="" method="get">
+  <input type="text" name="name" value="{{set.name}}" placeholder="Nom du set (p.e.: Deil Amang the Tailors)"
+	 style="font-size: 32px" />
 
-  <style type="text/css">
-    * { margin: 0; padding: 0 }
+  <input type="text" name="kind" value="{{set.kind}}" placeholder="Type de set (p.e: 8x32R)"
+	 style="font-size: 28px" />
 
-    body {
-	width: 800px;
-	margin: auto;
-	margin-top: 50px;
-    }
+  {{#set.tunes}}
+  <input type="hidden" name="tunes[]" value="{{slug}}" />
+  <img src="/tune.png?slug={{slug}}" />
+  <div class="options">
+    <a>down</a>
+    <a>remove</a>
+    <a>up</a>
+  </div>
+  <br/>
+  {{/set.tunes}}
 
-    header {
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 0;
-	height: 50px;
+  <label>Add a tune:</label>
+  <select name="tunes[]">
+    {{#all_tunes}}
+    <option value="{{slug}}">{{name}} ({{kind}}</option>
+    {{/all_tunes}}
+  </select>
+  <br/>
 
-	text-align: center;
-	border-bottom: 1px dashed black;
-	background: lightgray;
-    }
-
-    input {
-	width: 100%;
-	border: none;
-	margin: 5px;
-	padding: 5px;
-	text-align: center;
-	display: block;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Compose a Set</h1>
-  </header>
-
-  <ul>
-    {{#set.errors}}
-    <li>{{message}}</li>
-    {{/set.errors}}
-  </ul>
-
-  <form action="" method="get">
-    <input type="text" name="name" value="{{set.name}}" placeholder="Nom du set (p.e.: Deil Amang the Tailors)"
-	   style="font-size: 32px" />
-
-    <input type="text" name="kind" value="{{set.kind}}" placeholder="Type de set (p.e: 8x32R)"
-	   style="font-size: 28px" />
-
-    {{#set.tunes}}
-    <input type="hidden" name="tunes[]" value="{{slug}}" />
-    <img src="/tune.png?slug={{slug}}" />
-    <div class="options">
-      <a>down</a>
-      <a>remove</a>
-      <a>up</a>
-    </div>
-    <br/>
-    {{/set.tunes}}
-
-    <label>Add a tune:</label>
-    <select name="tunes[]">
-      {{#all_tunes}}
-      <option value="{{slug}}">{{name}} ({{kind}}</option>
-      {{/all_tunes}}
-    </select>
-    <br/>
-
-    <input type="submit" value="Mettre à jour" />
-  </form>
-</body>
-</html>
+  <input type="submit" value="Mettre à jour" />
+</form>

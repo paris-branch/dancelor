@@ -1,20 +1,13 @@
-<!DOCTYPE html>
-<head>
-  <title>{{tune.name}}</title>
-</head>
-<body>
-  <h1>{{tune.name}}</h1>
+<h1>{{tune.name}}</h1>
 
-  <p>Kind: {{tune.kind}}</p>
-  <p>Key: {{tune.key}}</p>
+<p>Kind: {{tune.kind}}</p>
+<p>Key: {{tune.key}}</p>
 
-  <p>Author: <a href="/author?slug={{tune.author.slug}}">{{tune.author.line}}</a></p>
+<p>Author: <a href="/author?slug={{tune.author.slug}}">{{tune.author.line}}</a></p>
 
-  <img src="/tune.png?slug={{tune.slug}}" />
-  <br/>
+<img src="/tune.png?slug={{tune.slug}}" />
+<br/>
 
-  <a href="/tune.ly?slug={{tune.slug}}">Get the Lilypond</a>
-  <a href="/tune?slug={{tune.slug}}">Link to this tune</a>
-  <a href="/tune/all">Back to all tunes</a>
-</body>
-</html>
+<a href="/tune.ly?slug={{tune.slug}}">Get the Lilypond</a>
+<a href="/tune?slug={{tune.slug}}">Link to this tune</a>
+<a href="/tune/all">Back to all tunes</a>
