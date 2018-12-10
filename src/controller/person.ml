@@ -2,7 +2,7 @@ open Dancelor_common
 open Dancelor_model
 open QueryHelpers
 
-let get query _body =
+let get query =
   let slug = query_string query "slug" in
   try
     Person.Database.get slug

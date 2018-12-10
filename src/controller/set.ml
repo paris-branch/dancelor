@@ -2,7 +2,7 @@ open Dancelor_common
 open Dancelor_model
 open QueryHelpers
 
-let get query _body =
+let get query =
   let slug = query_string query "slug" in
   try
     Set.Database.get slug
@@ -13,13 +13,13 @@ let get query _body =
     Not_found ->
     raise (Error.Error (`OK, "this set does not exist"))
 
-let get_all _query _body =
+let get_all _query =
   Set.Database.get_all ()
   |> List.map Set.view
   |> List.map Set.view_to_jsonm
   |> (fun json -> Lwt.return (`O ["sets", `A json]))
 
-let compose query _body =
+let compose query =
   let name = `String (value ~default:"" (query_string_opt query "name")) in
   let kind = `String (value ~default:"8x32R" (query_string_opt query "kind")) in
   let tune_jsons, error_jsons =

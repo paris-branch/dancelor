@@ -6,7 +6,7 @@ module Log = (val Log.create "dancelor.server.router")
 type query = (string * string list) list
 [@@deriving show]
 
-type 'a controller = query -> Cohttp_lwt.Body.t -> 'a Lwt.t (* FIXME: Server.conn? *)
+type 'a controller = query -> 'a Lwt.t (* FIXME: body, conn? *)
 
 type json = [ `O of (string * Ezjsonm.value) list ]
 type generic = Response.t * Cohttp_lwt.Body.t
@@ -25,9 +25,9 @@ let respond_json ?(status=`OK) ?(success=true) (json : json) =
 (* ======================== [ JSON controller -> * ] ======================== *)
 
 let json_controller_to_controller ~controller =
-  let controller query body =
+  let controller query =
     try%lwt
-      let%lwt json = controller query body in
+      let%lwt json = controller query in
       Log.debug (fun m -> m "JSON controller response: %s" (Ezjsonm.to_string (json_to_ezjsonm json)));
       respond_json ~status:`OK json
     with
@@ -36,9 +36,9 @@ let json_controller_to_controller ~controller =
   controller
 
 let json_controller_to_html_controller ~view ~controller =
-  fun query body ->
+  fun query ->
   try%lwt
-    let%lwt json = controller query body in
+    let%lwt json = controller query in
     respond_html (View.render view (json_to_ezjsonm json))
   with
     Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
@@ -54,13 +54,13 @@ let make_html ?methods ~path ?view ?controller () =
   in
   let controller =
     match controller with
-    | None -> (fun _ _ -> Lwt.return (`O []))
+    | None -> (fun _ -> Lwt.return (`O []))
     | Some controller -> controller
   in
   [make_raw ?methods ~path
      ~controller:(json_controller_to_html_controller ~view ~controller) ()]
 
-let make_both ?methods ~path ?view ?(controller : json controller option) () =
+let make_both ?methods ~path ?view ?controller () =
   let view =
     match view with
     | None -> path
@@ -68,7 +68,7 @@ let make_both ?methods ~path ?view ?(controller : json controller option) () =
   in
   let controller =
     match controller with
-    | None -> (fun _ _ -> Lwt.return (`O []))
+    | None -> (fun _ -> Lwt.return (`O []))
     | Some controller -> controller
   in
   [make_raw ?methods ~path:(Config.api_prefix ^ path)

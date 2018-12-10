@@ -4,7 +4,7 @@ open QueryHelpers
 
 module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
-let get query _body =
+let get query =
   let slug = query_string query "slug" in
   try
     Tune.Database.get slug
@@ -15,7 +15,7 @@ let get query _body =
     Not_found ->
     raise (Error.Error (`OK, "this tune does not exist"))
 
-let get_ly query _body =
+let get_ly query =
   let slug = query_string query "slug" in
   try
     let tune = Tune.Database.get slug in
@@ -24,7 +24,7 @@ let get_ly query _body =
     Not_found ->
     raise (Error.Error (`OK, "this tune does not exist"))
 
-let get_all query _body =
+let get_all query =
   let tune_jsons =
     Tune.Database.get_all
       ?name:(query_string_opt query "name")
@@ -82,7 +82,7 @@ module Png = struct
 
   let (>>=) = Lwt.bind
 
-  let get query _body =
+  let get query =
     let slug = query_string query "slug" in
     Log.debug (fun m -> m "Finding PNG for %s" slug);
     let tune = Tune.Database.get slug in
