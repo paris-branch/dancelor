@@ -5,30 +5,58 @@
 </ul>
 
 <form action="" method="get">
-  <input type="text" name="name" value="{{set.name}}" placeholder="Nom du set (p.e.: Deil Amang the Tailors)"
-	 style="font-size: 32px" />
+  <table>
+    <tr>
+      <td></td>
+      <td>
+	<input type="text" name="name" value="{{set.name}}" placeholder="Name of the Set" />
+      </td>
+    </tr>
 
-  <input type="text" name="kind" value="{{set.kind}}" placeholder="Type de set (p.e: 8x32R)"
-	 style="font-size: 28px" />
+    <tr>
+      <td></td>
+      <td>
+	<input type="text" name="kind" value="{{set.kind}}" placeholder="Type of the Set (eg. 8x32R)" />
+      </td>
+    </tr>
 
-  {{#set.tunes}}
-  <input type="hidden" name="tunes[]" value="{{slug}}" />
-  <img src="/tune.png?slug={{slug}}" />
-  <div class="options">
-    <a>down</a>
-    <a>remove</a>
-    <a>up</a>
-  </div>
-  <br/>
-  {{/set.tunes}}
+    {{#set.tunes}}
+    <tr>
+      <td></td>
+      <td>{{name}}</td>
+    </tr>
+    <tr>
+      <td>
+	<input type="hidden" name="tunes[]" value="{{slug}}" />
+	<ul>
+	  <li>↑</li>
+	  <li>x</li>
+	  <li>↓</li>
+	</ul>
+      </td>
+      <td>
+	<img src="/tune.png?slug={{slug}}" />
+      </td>
+    </tr>
+    {{/set.tunes}}
 
-  <label>Add a tune:</label>
-  <select name="tunes[]">
-    {{#all_tunes}}
-    <option value="{{slug}}">{{name}} ({{kind}}</option>
-    {{/all_tunes}}
-  </select>
-  <br/>
+    <tr>
+      <td><label>Add:</label></td>
+      <td>
+	<select name="tunes[]">
+	  <option value="">-</option>
+	  {{#all_tunes}}
+	  <option value="{{slug}}">{{name}} ({{kind}}, {{disambiguation}})</option>
+	  {{/all_tunes}}
+	</select>
+      </td>
+    </tr>
 
-  <input type="submit" value="Mettre à jour" />
+    <tr>
+      <td></td>
+      <td>
+	<input type="submit" value="Update" />
+      </td>
+    </tr>
+  </table>
 </form>
