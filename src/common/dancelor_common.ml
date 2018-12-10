@@ -4,9 +4,9 @@ module Filename = ExtFilename
 module List = ExtList
 
 module LwtResultMonad = LwtResultMonad
-module OptionMonad = OptionMonad
 module ResultMonad = ResultMonad
 
+module Option = Option
 module Slug = Slug
 module Storage = Storage
 module Config = Config

@@ -5,24 +5,43 @@ open QueryHelpers
 module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
 let get query =
-  let slug = query_string query "slug" in
   try
-    Tune.Database.get slug
-    |> Tune.view
-    |> Tune.view_to_jsonm
-    |> (fun json -> Lwt.return (`O ["tune", json]))
+    let slug = query_string query "slug" in
+    let tune = Tune.Database.get slug in
+    let version =
+      try
+        Tune.version tune (query_string query "subslug")
+      with
+      | Error.Error _ ->
+         Tune.default_version tune
+      | Not_found ->
+         error "this version does not exist"
+    in
+    Lwt.return (`O [
+      "tune", Tune.to_jsonm tune;
+      "version", Tune.Version.to_jsonm version
+    ])
   with
     Not_found ->
-    raise (Error.Error (`OK, "this tune does not exist"))
+    error "this tune does not exist"
 
 let get_ly query =
-  let slug = query_string query "slug" in
   try
+    let slug = query_string query "slug" in
     let tune = Tune.Database.get slug in
-    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.content tune) ()
+    let version =
+      try
+        Tune.version tune (query_string query "subslug")
+      with
+      | Error.Error _ ->
+         Tune.default_version tune
+      | Not_found ->
+         error "this version does not exist"
+    in
+    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.Version.content version) ()
   with
     Not_found ->
-    raise (Error.Error (`OK, "this tune does not exist"))
+    error "this tune does not exist"
 
 let get_all query =
   let tune_jsons =
@@ -40,21 +59,24 @@ let get_all query =
             Failure _ -> raise (Error.Error (`OK, "kind must be 'j', 'p', 'r', 's' or 'w'"))
       )
       ?keys:(
-        let open OptionMonad in
+        let open Option in
         query_strings_opt query "keys" >>= fun keys ->
         Some (List.map Music.key_of_string keys)
       )
       ?mode:(
-        let open OptionMonad in
+        let open Option in
         query_string_opt query "mode" >>= function
         | "major" -> Some Music.Major
         | "minor" -> Some Music.Minor
         | _ -> error ("mode must be major or minor")
       )
       ()
-    |> List.map (fun (score, tune) ->
-           Tune.(tune |> view |> view_to_jsonm)
-           |> JsonHelpers.add_field "score" (`Float (100. *. score)))
+    |> List.map (fun (score, tune, version) ->
+           `O [
+               "score", `Float (100. *. score);
+               "tune", Tune.to_jsonm tune;
+               "version", Tune.Version.to_jsonm version
+         ])
     |> (fun jsons -> `A jsons)
   in
   Lwt.return (
@@ -95,7 +117,7 @@ module Png = struct
         Not_found ->
         let processor =
           Log.debug (fun m -> m "Not in the cache. Rendering the Lilypond version");
-          let view = Tune.(view_to_jsonm (view tune)) in
+          let view = Tune.to_jsonm tune in
           let lilypond = Mustache.render template (`O ["tune", view]) in
           let path = Filename.concat Config.cache "tune" in
           let fname_ly, fname_png =

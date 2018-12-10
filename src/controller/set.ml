@@ -6,8 +6,7 @@ let get query =
   let slug = query_string query "slug" in
   try
     Set.Database.get slug
-    |> Set.view
-    |> Set.view_to_jsonm
+    |> Set.to_jsonm
     |> (fun json -> Lwt.return (`O ["set", json]))
   with
     Not_found ->
@@ -15,11 +14,11 @@ let get query =
 
 let get_all _query =
   Set.Database.get_all ()
-  |> List.map Set.view
-  |> List.map Set.view_to_jsonm
+  |> List.map Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["sets", `A json]))
 
 let compose query =
+  let open Option in
   let name = `String (value ~default:"" (query_string_opt query "name")) in
   let kind = `String (value ~default:"8x32R" (query_string_opt query "kind")) in
   let tune_jsons, error_jsons =
@@ -29,8 +28,7 @@ let compose query =
          (fun tune ->
            try
              Tune.Database.get tune
-             |> Tune.view
-             |> Tune.view_to_jsonm
+             |> Tune.to_jsonm
              |> (fun json -> List.A json)
            with
              Not_found -> List.B (`O ["message", `String ("tune \"" ^ tune ^ "\" does not exist")]))
@@ -41,8 +39,10 @@ let compose query =
   let set_json = `O [ "name", name ; "kind", kind ; "tunes", `A tune_jsons ; "errors", `A error_jsons ] in
   let all_tune_jsons =
     Tune.Database.get_all ()
-    |> List.map snd
-    |> List.map Tune.view
-    |> List.map Tune.view_to_jsonm
+    |> List.map (fun (_, tune, version) ->
+           `O [
+               "tune", Tune.to_jsonm tune;
+               "versions", Tune.Version.to_jsonm version
+         ])
   in
   Lwt.return (`O [ "set", set_json ; "all_tunes", `A all_tune_jsons ])

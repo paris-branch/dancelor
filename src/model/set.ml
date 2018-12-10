@@ -4,10 +4,28 @@ open Protocol_conv_jsonm
 type t =
   { slug : Slug.t ;
     name : string ;
-    deviser : Slug.t ;
+    deviser : Credit.t ;
     kind : Kind.dance ;
-    tunes : Slug.t list }
-[@@deriving protocol ~driver:(module Jsonm)]
+    tunes : Tune.Version.t list }
+[@@deriving to_protocol ~driver:(module Jsonm)]
+
+let unserialize json =
+  let open Ezjsonm in
+  { slug = Slug.from_string (get_string (find json ["slug"])) ;
+    name = get_string (find json ["name"]) ;
+    deviser = Credit.Database.get (Slug.from_string (get_string (find json ["deviser"]))) ;
+    kind = Kind.dance_of_string (get_string (find json ["kind"])) ;
+    tunes =
+      get_list (
+          function
+          | `String slug ->
+             Tune.Database.get slug
+             |> Tune.default_version
+          | `A [`String slug; `String subslug] ->
+             Tune.Database.get slug
+             |> (fun tune -> Tune.version tune subslug)
+          | _ -> failwith "Dancelor_model.Set.unserialize"
+        ) (find json ["tunes"]) }
 
 module Database =
   struct
@@ -16,29 +34,15 @@ module Database =
     let db = Hashtbl.create 8
 
     let initialise () =
+      let load entry =
+        let json = Storage.read_entry_json prefix entry "meta.json" in
+        let set = unserialize json in
+        Hashtbl.add db set.slug set
+      in
       Storage.list_entries prefix
-      |> List.iter
-           (fun slug ->
-             Storage.read_json prefix slug "meta.json"
-             |> of_jsonm
-             |> Hashtbl.add db slug)
+      |> List.iter load
 
     let get = Hashtbl.find db
 
     let get_all () = Hashtbl.to_seq_values db |> List.of_seq
   end
-
-type view =
-  { slug : Slug.t ;
-    name : string ;
-    deviser : Credit.view ;
-    kind : Kind.dance ;
-    tunes : Tune.view list }
-[@@deriving protocol ~driver:(module Jsonm)]
-
-let view (set : t) =
-  { slug = set.slug ;
-    name = set.name ;
-    deviser = Credit.(Database.get ||> view) set.deviser ;
-    kind = set.kind ;
-    tunes = List.map Tune.(Database.get ||> view) set.tunes }

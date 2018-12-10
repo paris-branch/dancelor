@@ -4,9 +4,20 @@ open Protocol_conv_jsonm
 type t =
   { slug : Slug.t ;
     name : string }
-[@@deriving protocol ~driver:(module Jsonm)]
+[@@deriving to_protocol ~driver:(module Jsonm)]
+
+let serialize person =
+  `O [
+      "slug", `String person.slug ;
+      "name", `String person.name
+    ]
+
+let unserialize json =
+  { slug = Slug.from_string Ezjsonm.(get_string (find json ["slug"])) ;
+    name = Ezjsonm.(get_string (find json ["name"])) }
 
 let slug p = p.slug
+let name p = p.name
 
 module Database =
   struct
@@ -15,12 +26,13 @@ module Database =
     let db = Hashtbl.create 8
 
     let initialise () =
+      let load entry =
+        let json = Storage.read_entry_json prefix entry "meta.json" in
+        let person = unserialize json in
+        Hashtbl.add db person.slug person
+      in
       Storage.list_entries prefix
-      |> List.iter
-           (fun slug ->
-             Storage.read_json prefix slug "meta.json"
-             |> of_jsonm
-             |> Hashtbl.add db slug)
+      |> List.iter load
 
     let find_uniq_slug string =
       let slug = Slug.from_string string in
@@ -42,14 +54,7 @@ module Database =
       let slug = find_uniq_slug name in
       let person = { slug ; name } in
       Hashtbl.add db slug person;
-      to_jsonm person
-      |> Storage.write_json prefix slug "meta.json";
+      serialize person
+      |> Storage.write_entry_json prefix slug "meta.json";
       (slug, person)
   end
-
-type view = t =
-  { slug : Slug.t ;
-    name : string }
-[@@deriving protocol ~driver:(module Jsonm)]
-
-let view person = person

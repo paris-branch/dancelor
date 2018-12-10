@@ -7,15 +7,7 @@ type t
 val slug : t -> Slug.t
 val line : t -> string
 
-type view =
-  { slug : Slug.t ;
-    line : string ;
-    persons : Person.view list }
-
-val view : t -> view
-
-val view_of_jsonm : Ezjsonm.value -> view
-val view_to_jsonm : view -> Ezjsonm.value
+val to_jsonm : t -> Ezjsonm.value
 
 (** {2 Database} *)
 

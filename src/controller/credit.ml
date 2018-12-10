@@ -6,8 +6,7 @@ let get query =
   let slug = query_string query "slug" in
   try
     Credit.Database.get slug
-    |> Credit.view
-    |> Credit.view_to_jsonm
+    |> Credit.to_jsonm
     |> (fun json -> Lwt.return (`O ["credit", json]))
   with
     Not_found ->

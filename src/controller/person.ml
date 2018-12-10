@@ -6,8 +6,7 @@ let get query =
   let slug = query_string query "slug" in
   try
     Person.Database.get slug
-    |> Person.view
-    |> Person.view_to_jsonm
+    |> Person.to_jsonm
     |> (fun json -> Lwt.return (`O ["person", json]))
   with
     Not_found ->

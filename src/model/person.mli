@@ -4,16 +4,10 @@ open Dancelor_common
 
 type t
 
+val to_jsonm : t -> Ezjsonm.value
+
 val slug : t -> Slug.t
-
-type view =
-  { slug : Slug.t ;
-    name : string }
-
-val view : t -> view
-
-val view_of_jsonm : Ezjsonm.value -> view
-val view_to_jsonm : view -> Ezjsonm.value
+val name : t -> string
 
 (** {2 Database} *)
 

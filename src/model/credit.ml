@@ -4,8 +4,37 @@ open Protocol_conv_jsonm
 type t =
   { slug : Slug.t ;
     line : string ;
-    persons : Slug.t list }
-[@@deriving protocol ~driver:(module Jsonm)]
+    persons : Person.t list }
+[@@deriving to_protocol ~driver:(module Jsonm)]
+
+let serialize credit =
+  `O [
+      "slug", `String credit.slug;
+      "line", `String credit.line;
+      "persons", `A (List.map (fun person -> `String (Person.slug person)) credit.persons)
+    ]
+
+let unserialize json =
+  let open Ezjsonm in
+  let slug = Slug.from_string (get_string (find json ["slug"])) in
+  let persons =
+    try
+      get_strings (find json ["persons"])
+      |> List.map Slug.from_string
+      |> List.map Person.Database.get
+    with
+      Parse_error _ -> []
+  in
+  let line =
+    try
+      get_string (find json ["line"])
+    with
+      Parse_error _ as exn ->
+       match persons with
+       | [person] -> Person.name person
+       | _ -> raise exn
+  in
+  { slug ; line ; persons }
 
 let slug c = c.slug
 let line c = c.line
@@ -17,12 +46,13 @@ module Database =
     let db = Hashtbl.create 8
 
     let initialise () =
+      let load entry =
+        let json = Storage.read_entry_json prefix entry "meta.json" in
+        let credit = unserialize json in
+        Hashtbl.add db credit.slug credit
+      in
       Storage.list_entries prefix
-      |> List.iter
-           (fun slug ->
-             Storage.read_json prefix slug "meta.json"
-             |> of_jsonm
-             |> Hashtbl.add db slug)
+      |> List.iter load
 
     let find_uniq_slug string =
       let slug = Slug.from_string string in
@@ -42,21 +72,9 @@ module Database =
 
     let create ~line ?(persons=[]) () =
       let slug = find_uniq_slug line in
-      let persons = List.map Person.slug persons in
       let credit = { slug ; line ; persons } in
       Hashtbl.add db slug credit;
-      to_jsonm credit
-      |> Storage.write_json prefix slug "meta.json";
+      serialize credit
+      |> Storage.write_entry_json prefix slug "meta.json";
       (slug, credit)
   end
-
-type view =
-  { slug : Slug.t ;
-    line : string ;
-    persons : Person.view list }
-[@@deriving protocol ~driver:(module Jsonm)]
-
-let view (credit : t) =
-  { slug = credit.slug ;
-    line = credit.line ;
-    persons = List.map (Person.(Database.get ||> view)) credit.persons }
