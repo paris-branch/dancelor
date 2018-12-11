@@ -15,32 +15,35 @@ let serialize credit =
     ]
 
 let unserialize json =
+  let open Option in
   let open Ezjsonm in
+  let open JsonHelpers in
   let slug = Slug.from_string (get_string (find json ["slug"])) in
   let persons =
-    try
-      get_strings (find json ["persons"])
-      |> List.map Slug.from_string
-      |> List.map Person.Database.get
-    with
-      Parse_error _ -> []
+    (find_opt json ["persons"] >>= fun value ->
+     Some
+       (get_strings value
+        |> List.map Slug.from_string
+        |> List.map Person.Database.get))
+    |> Option.value ~default:[]
   in
   let line =
     try
       get_string (find json ["line"])
     with
-      Parse_error _ as exn ->
+      Not_found ->
        match persons with
        | [person] -> Person.name person
-       | _ -> raise exn
+       | _ -> raise Not_found
   in
   { slug ; line ; persons }
 
 let slug c = c.slug
 let line c = c.line
 
-module Database =
-  struct
+module Database = struct
+  module Log = (val Log.create "dancelor.model.credit.database" : Logs.LOG)
+
     let prefix = "credit"
 
     let db = Hashtbl.create 8
@@ -68,7 +71,9 @@ module Database =
       else
         slug
 
-    let get = Hashtbl.find db
+    let get slug =
+      Log.debug (fun m -> m "Looking for %s" slug);
+      Hashtbl.find db slug
 
     let create ~line ?(persons=[]) () =
       let slug = find_uniq_slug line in

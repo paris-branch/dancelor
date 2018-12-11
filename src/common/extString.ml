@@ -56,3 +56,5 @@ let%test _ = inclusion_distance "chou" "achouffe" = 0
 let%test _ = inclusion_distance "chou" "acoul" = 1
 let%test _ = inclusion_distance "chou" "achhouffe" = 1
 let%test _ = inclusion_distance "chou" "achauffe" = 1
+
+let pp = Format.pp_print_string

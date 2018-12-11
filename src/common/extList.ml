@@ -18,3 +18,9 @@ let map_partition f l =
        | B b -> map_partition as_ (b :: bs) t
   in
   map_partition [] [] l
+
+let pp ?(sep="; ") pp_x fmt = function
+  | [] -> ()
+  | x :: xs ->
+     pp_x fmt x;
+     List.iter (Format.fprintf fmt "%s%a" sep pp_x) xs
