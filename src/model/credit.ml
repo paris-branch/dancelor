@@ -15,21 +15,17 @@ let serialize credit =
     ]
 
 let unserialize json =
-  let open Option in
-  let open Ezjsonm in
-  let open JsonHelpers in
-  let slug = Slug.from_string (get_string (find json ["slug"])) in
+  let slug = Serializer.(get ~type_:slug ["slug"] json) in
   let persons =
-    (find_opt json ["persons"] >>= fun value ->
-     Some
-       (get_strings value
-        |> List.map Slug.from_string
-        |> List.map Person.Database.get))
-    |> Option.value ~default:[]
+    Serializer.get_or
+      ~type_:(Ezjsonm.get_strings ||> List.map (Slug.from_string ||> Person.Database.get))
+      ~default:[]
+      ["persons"]
+      json
   in
   let line =
     try
-      get_string (find json ["line"])
+      Serializer.(get ~type_:string ["line"] json)
     with
       Not_found ->
        match persons with

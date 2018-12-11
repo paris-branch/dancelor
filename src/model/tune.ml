@@ -2,8 +2,6 @@ open Dancelor_common
 open Protocol_conv_jsonm
 
 module Version = struct
-  module Log = (val Log.create "dancelor.mode.tune.version" : Logs.LOG)
-
   type t =
     { subslug : Slug.t option ;
       name : string option ;
@@ -36,19 +34,14 @@ module Version = struct
    *    version.content) *)
 
   let unserialize (json, content) =
-    Log.debug (fun m -> m "Unserializing");
-    let open Option in
-    let open Ezjsonm in
-    let open JsonHelpers in
     let tune =
-      { subslug = (find_opt json ["subslug"] >>= fun v -> Some (get_slug v)) ;
-        name = (find_opt json ["subslug"] >>= fun v -> Some (get_string v)) ;
-        bars = get_int (find json ["bars"]) ;
-        key = Music.key_of_string (get_string (find json ["key"])) ;
-        arranger = (find_opt json ["arranger"] >>= fun v -> Some (Credit.Database.get (get_slug v))) ;
+      { subslug = Serializer.(get_opt ~type_:slug ["subslug"] json) ;
+        name = Serializer.(get_opt ~type_:string ["name"] json) ;
+        bars = Serializer.(get ~type_:int ["bars"] json) ;
+        key = Serializer.(get ~type_:(string ||> Music.key_of_string) ["key"] json) ;
+        arranger = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["arranger"] json) ;
         content }
     in
-    Log.debug (fun m -> m "Unserialization successful");
     tune
 
   let subslug v = v.subslug
@@ -89,16 +82,10 @@ type t =
  *   ) *)
 
 let unserialize (json, versions) =
-  let open Option in
-  let open Ezjsonm in
-  let open JsonHelpers in
-  let author =
-    find_opt json ["author"] >>= fun value ->
-    Some (Credit.Database.get (get_slug value))
-  in
+  let author = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["author"] json) in
   let default_version, other_versions =
     try
-      let subslug = get_slug (find json ["default"]) in
+      let subslug = Serializer.(get ~type_:slug ["default"] json) in
       (match List.partition (fun version -> Version.subslug version = Some subslug) versions with
        | [default_version], other_versions -> default_version, other_versions
        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions with the same subslug")
@@ -108,10 +95,10 @@ let unserialize (json, versions) =
        | [default_version] -> default_version, []
        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions but no default field")
   in
-  { slug = get_slug (find json ["slug"]) ;
-    name = get_string (find json ["name"]) ;
-    kind = Kind.base_of_string (get_string (find json ["kind"])) ;
-    remark = ((find_opt json ["remark"] >>= fun v -> Some (get_string v)) |> Option.value ~default:"") ;
+  { slug = Serializer.(get ~type_:slug ["slug"] json) ;
+    name = Serializer.(get ~type_:string ["name"] json) ;
+    kind = Serializer.(get ~type_:(string ||> Kind.base_of_string) ["kind"] json) ;
+    remark = Serializer.(get_or ~type_:string ~default:"" ["remark"] json) ;
     author ; default_version ; other_versions }
 
 let slug t = t.slug

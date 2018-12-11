@@ -55,4 +55,5 @@ let () =
       ~mode:(`TCP (`Port Config.port))
       (Server.make ~callback ())
   in
+  Log.info (fun m -> m "Up and running");
   ignore (Lwt_main.run server)

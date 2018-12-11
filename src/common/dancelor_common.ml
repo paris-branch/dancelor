@@ -12,3 +12,4 @@ module Storage = Storage
 module Config = Config
 module JsonHelpers = JsonHelpers
 module Log = Log
+module Serializer = Serializer
