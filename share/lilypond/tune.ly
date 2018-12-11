@@ -9,5 +9,5 @@
 }
 
 \score {
-  {{{tune.content}}}
+  {{{version.content}}}
 }

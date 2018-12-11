@@ -30,6 +30,7 @@ let rec load_dir dir =
 let () = load_dir "/"
 
 let render view json =
+  Log.debug (fun m -> m "Rendering %s" view);
   try
     Mustache.render
       (Mustache.concat [

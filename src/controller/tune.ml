@@ -4,44 +4,33 @@ open QueryHelpers
 
 module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
-let get query =
+let get_tune_version_from_query query =
   try
     let slug = query_string query "slug" in
     let tune = Tune.Database.get slug in
-    let version =
-      try
-        Tune.version tune (query_string query "subslug")
-      with
-      | Error.Error _ ->
-         Tune.default_version tune
-      | Not_found ->
-         error "this version does not exist"
-    in
-    Lwt.return (`O [
-      "tune", Tune.to_jsonm tune;
-      "version", Tune.Version.to_jsonm version
-    ])
+    try
+      let subslug = query_string query "subslug" in
+      let version = Tune.version tune subslug in
+      (tune, version)
+    with
+    | Error.Error _ ->
+       (tune, Tune.default_version tune)
+    | Not_found ->
+       error "this version does not exist"
   with
     Not_found ->
     error "this tune does not exist"
 
+let get query =
+  let (tune, version) = get_tune_version_from_query query in
+  Lwt.return (`O [
+    "tune", Tune.to_jsonm tune;
+    "version", Tune.Version.to_jsonm version
+  ])
+
 let get_ly query =
-  try
-    let slug = query_string query "slug" in
-    let tune = Tune.Database.get slug in
-    let version =
-      try
-        Tune.version tune (query_string query "subslug")
-      with
-      | Error.Error _ ->
-         Tune.default_version tune
-      | Not_found ->
-         error "this version does not exist"
-    in
-    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.Version.content version) ()
-  with
-    Not_found ->
-    error "this tune does not exist"
+  let (_, version) = get_tune_version_from_query query in
+  Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.Version.content version) ()
 
 let get_all query =
   let tune_jsons =
@@ -56,7 +45,7 @@ let get_all query =
           try
             Some (Kind.base_of_string kind)
           with
-            Failure _ -> raise (Error.Error (`OK, "kind must be 'j', 'p', 'r', 's' or 'w'"))
+            Failure _ -> error "kind must be 'j', 'p', 'r', 's' or 'w'"
       )
       ?keys:(
         let open Option in
@@ -91,7 +80,7 @@ let get_all query =
     )
 
 module Png = struct
-  let cache : (Tune.t, string Lwt.t) Hashtbl.t = Hashtbl.create 8
+  let cache : (Tune.t * Tune.Version.t, string Lwt.t) Hashtbl.t = Hashtbl.create 8
 
   let template =
     let path = Filename.concat_l [Config.share; "lilypond"; "tune.ly"] in
@@ -105,20 +94,17 @@ module Png = struct
   let (>>=) = Lwt.bind
 
   let get query =
-    let slug = query_string query "slug" in
-    Log.debug (fun m -> m "Finding PNG for %s" slug);
-    let tune = Tune.Database.get slug in
+    let (tune, version) = get_tune_version_from_query query in
     let processor =
       try
-        let processor = Hashtbl.find cache tune in
+        let processor = Hashtbl.find cache (tune, version) in
         Log.debug (fun m -> m "Found in cache");
         processor
       with
         Not_found ->
         let processor =
           Log.debug (fun m -> m "Not in the cache. Rendering the Lilypond version");
-          let view = Tune.to_jsonm tune in
-          let lilypond = Mustache.render template (`O ["tune", view]) in
+          let lilypond = Mustache.render template (`O ["tune", Tune.to_jsonm tune; "version", Tune.Version.to_jsonm version]) in
           let path = Filename.concat Config.cache "tune" in
           let fname_ly, fname_png =
             let fname = spf "%s-%x" (Tune.slug tune) (Random.int (1 lsl 29)) in
@@ -135,7 +121,7 @@ module Png = struct
           assert (status = Unix.WEXITED 0);
           Lwt.return (Filename.concat path fname_png)
         in
-        Hashtbl.add cache tune processor;
+        Hashtbl.add cache (tune, version) processor;
         processor
     in
     processor >>= fun path_png ->

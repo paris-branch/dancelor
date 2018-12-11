@@ -47,7 +47,6 @@
   <tr>
     <th>Score</th>
     <th>Name</th>
-    <th>Disambiguation</th>
     <th>Kind</th>
     <th>Key</th>
     <th>Author</th>
@@ -55,11 +54,12 @@
   {{#tunes}}
   <tr>
     <td>{{score}}</td>
-    <td><a href="/tune?slug={{slug}}">{{name}}</a></td>
-    <td>{{disambiguation}}</td>
-    <td>{{kind}}</td>
-    <td>{{key}}</td>
-    <td><a href="/credit?slug={{author.slug}}">{{author.line}}</a></td>
+    <td><a href="/tune?slug={{tune.slug}}{{! FIXME: {{#version.subslug} }&subslug={{version.subslug} }{{/version.subslug} } }}">
+	{{#version.name}}{{version.name}}{{/version.name}}{{^version.name}}{{tune.name}}{{/version.name}}
+    </a></td>
+    <td>{{version.bars}} {{tune.kind}}</td>
+    <td>{{version.key}}</td>
+    <td>{{#tune.author}}<a href="/credit?slug={{slug}}">{{line}}</a>{{/tune.author}}</td>
   </tr>
   {{/tunes}}
 </table>
