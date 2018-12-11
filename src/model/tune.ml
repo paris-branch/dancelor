@@ -7,6 +7,7 @@ module Version = struct
       name : string option ;
       bars : int ;
       key : Music.key ;
+      structure : string ;
       arranger : Credit.t option ;
       content : string }
   [@@deriving to_protocol ~driver:(module Jsonm)]
@@ -39,6 +40,7 @@ module Version = struct
         name = Serializer.(get_opt ~type_:string ["name"] json) ;
         bars = Serializer.(get ~type_:int ["bars"] json) ;
         key = Serializer.(get ~type_:(string ||> Music.key_of_string) ["key"] json) ;
+        structure = Serializer.(get ~type_:string ["structure"] json) ;
         arranger = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["arranger"] json) ;
         content }
     in

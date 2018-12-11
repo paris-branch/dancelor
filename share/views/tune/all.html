@@ -49,6 +49,7 @@
     <th>Name</th>
     <th>Kind</th>
     <th>Key</th>
+    <th>Structure</th>
     <th>Author</th>
   </tr>
   {{#tunes}}
@@ -59,6 +60,7 @@
     </a></td>
     <td>{{version.bars}} {{tune.kind}}</td>
     <td>{{version.key}}</td>
+    <td>{{version.structure}}</td>
     <td>{{#tune.author}}<a href="/credit?slug={{slug}}">{{line}}</a>{{/tune.author}}</td>
   </tr>
   {{/tunes}}

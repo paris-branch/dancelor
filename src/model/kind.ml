@@ -39,7 +39,7 @@ let base_of_string s =
   try base_of_char s.[0]
   with Invalid_argument _ | Failure _ -> failwith "Dancelor_model.Kind.base_of_string"
 
-let base_to_jsonm b = `String (base_to_string b)
+let base_to_jsonm b = `String (String.make 1 (base_to_char b))
 
 let base_of_jsonm = function
   | `String s -> base_of_string s
