@@ -121,11 +121,12 @@ module Png = struct
             (fun process ->
               process#status >>= fun status ->
               (match status with
-               | WEXITED 0 -> ()
-               | _ -> Log.err (fun m -> m "Error while running Lilypond"));
-              Lwt_io.read process#stderr >>= fun output ->
-              Log.info (fun m -> m "Lilypond errout:@\n%s" output);
-              Lwt.return ()
+               | WEXITED 0 ->
+                  Lwt.return ()
+               | _ ->
+                  Lwt_io.read process#stderr >>= fun output ->
+                  Log.err (fun m -> m "Error while running Lilypond:@\n%a" pp_string_multiline output);
+                  Lwt.return ())
             )
           >>= fun () ->
           Lwt.return (Filename.concat path fname_png)

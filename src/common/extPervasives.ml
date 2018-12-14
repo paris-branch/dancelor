@@ -27,3 +27,11 @@ let catch_and_wrap f =
   try Some (f ()) with _ -> None
 
 let spf = Format.sprintf
+
+let pp_string_multiline fmt s =
+  match String.split_on_char '\n' s with
+  | [] -> ()
+  | l :: ls ->
+     Format.fprintf fmt "%s" l;
+     List.iter (Format.fprintf fmt "@\n%s") ls
+(** Pretty-printer that replaces straight '\n' by format cuts '@\n'. *)
