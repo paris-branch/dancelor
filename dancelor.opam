@@ -14,12 +14,16 @@ license: "GPL3"
 homepage: "https://gitlab.vlanvin.fr/paris-band/dancelor"
 bug-reports: "https://gitlab.vlanvin.fr/paris-band/dancelor/issues"
 
+pin-depends: [
+  [ "mustache.dev"  "git+https://github.com/Niols/ocaml-mustache" ]
+]
+
 depends: [
   "cohttp-lwt-unix"
   "dune"                     {build}
   "ezjsonm"
   "lwt_ppx"                  {build}
-  "mustache"
+  "mustache"                 {= "dev"}
   "ocaml"                    {build}
   "ppx_deriving"
   "ppx_inline_test"          {build | with-test}
