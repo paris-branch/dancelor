@@ -113,12 +113,21 @@ module Png = struct
           Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
             (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
           Log.debug (fun m -> m "Processing with Lilypond");
-          Lwt_process.exec
+          Lwt_process.with_process_full
             ~env:[|"PATH="^(Unix.getenv "PATH");
                    "LANG=en"|]
             (Lwt_process.shell
-               ("cd " ^ path ^ " && " ^ Config.lilypond ^ " -dresolution=110 -dbackend=eps --png " ^ fname_ly)) >>= fun status ->
-          assert (status = Unix.WEXITED 0);
+               ("cd " ^ path ^ " && " ^ Config.lilypond ^ " -dresolution=110 -dbackend=eps --loglevel=WARNING --png " ^ fname_ly))
+            (fun process ->
+              process#status >>= fun status ->
+              (match status with
+               | WEXITED 0 -> ()
+               | _ -> Log.err (fun m -> m "Error while running Lilypond"));
+              Lwt_io.read process#stderr >>= fun output ->
+              Log.info (fun m -> m "Lilypond errout:@\n%s" output);
+              Lwt.return ()
+            )
+          >>= fun () ->
           Lwt.return (Filename.concat path fname_png)
         in
         Hashtbl.add cache (tune, version) processor;
