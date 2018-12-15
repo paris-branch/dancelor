@@ -7,6 +7,7 @@ type t
 val slug : t -> Slug.t
 val line : t -> string
 
+val to_json : t -> Json.t
 val to_jsonm : t -> Json.value
 
 (** {2 Database} *)

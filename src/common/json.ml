@@ -10,6 +10,11 @@ let of_value = function
 let to_value = function
   | `O fields -> `O fields
 
+let to_ezjsonm = to_value
+
+let on_value fun_ json =
+  to_value (fun_ (of_value json))
+
 let add_field key value = function
   | `O fields ->
      if  not (List.mem_assoc key fields) then
@@ -52,6 +57,14 @@ let rec find_opt path json =
      find_opt path (List.assoc key fields)
   | _, _ -> None
 
+let find_opt path json =
+  find_opt path (to_value json)
+
+let find path json =
+  match find_opt path json with
+  | None -> failwith "Dancelor_common.Json.find"
+  | Some json -> json
+
 let get_opt ~k path json =
   let open Option in
   find_opt path json >>= fun value ->
@@ -75,3 +88,7 @@ let slug = string ||> Slug.from_string
 let strings = function
   | `A values -> List.map string values
   | _ -> failwith "Dancelor_common.Json.strings"
+
+let list cast = function
+  | `A values -> List.map cast values
+  | _ -> failwith "Dancelor_common.Json.list"

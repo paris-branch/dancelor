@@ -21,8 +21,8 @@ let tune_version_from_query query =
 
 let get query =
   tune_version_from_query query
-  |> Tune.tune_version_to_jsonm
-  |> Json.of_value
+  |> Tune.tune_version_to_json
+  |> Json.to_value
   |> Lwt.return
 
 let get_ly query =
@@ -54,8 +54,8 @@ module Png = struct
         Not_found ->
         let processor =
           Log.debug (fun m -> m "Not in the cache. Rendering the Lilypond version");
-          let json = Json.of_value (Tune.tune_version_to_jsonm (tune, version)) in
-          let lilypond = Mustache.render template json in
+          let json = Tune.tune_version_to_json (tune, version) in
+          let lilypond = Mustache.render template (Json.to_ezjsonm json) in
           let path = Filename.concat Config.cache "tune" in
           let fname_ly, fname_png =
             let fname = spf "%s-%x" (Tune.slug tune) (Random.int (1 lsl 29)) in

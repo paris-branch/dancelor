@@ -7,9 +7,8 @@ type t =
     persons : Person.t list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
-let to_jsonm =
-  to_jsonm
-  ||> Json.add_field "type" (`String "credit")
+let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "credit"))
+let to_json = to_jsonm ||> Json.of_value
 
 let serialize credit =
   `O [

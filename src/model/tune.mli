@@ -12,6 +12,8 @@ val version : t -> Slug.t -> version
 
 val version_content : version -> string
 
+val to_json : t -> Json.t
+val tune_version_to_json : tune_version -> Json.t
 val to_jsonm : t -> Json.value
 val tune_version_to_jsonm : tune_version -> Json.value
 

@@ -9,9 +9,8 @@ type t =
     tunes : Tune.tune_version list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
-let to_jsonm =
-  to_jsonm
-  ||> Json.add_field "type" (`String "set")
+let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "set"))
+let to_json = to_jsonm ||> Json.of_value
 
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;
@@ -19,7 +18,7 @@ let unserialize json =
     deviser = Credit.Database.get (Json.(get ~k:slug ["deviser"] json)) ;
     kind = Kind.dance_of_string (Json.(get ~k:string ["kind"] json)) ;
     tunes =
-      get_list (
+      Json.list (
           function
           | `String slug ->
              let tune = Tune.Database.get slug in
@@ -28,10 +27,9 @@ let unserialize json =
              let tune = Tune.Database.get slug in
              (tune, Tune.version tune subslug)
           | _ -> failwith "Dancelor_model.Set.unserialize"
-        ) (find json ["tunes"]) }
+        ) (Json.find ["tunes"] json) }
 
-module Database =
-  struct
+module Database = struct
     let prefix = "set"
 
     let db = Hashtbl.create 8

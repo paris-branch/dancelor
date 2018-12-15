@@ -33,8 +33,8 @@ let link_adders =
     "person", out_of_slug "/person";
     "tune", out_of_slug "/tune";
     "tune-version", (fun version ->
-      let tune_slug = Slug.from_string Json.(get ~k:string ["tune-slug"] version) in
-      let subslug = Slug.from_string Json.(get ~k:string ["subslug"] version) in
+      let tune_slug = Json.(get ~k:slug ["tune-slug"] version) in
+      let subslug = Json.(get ~k:slug ["subslug"] version) in
       let link ext = "/tune/version" ^ ext ^ "?slug=" ^ tune_slug ^ "&subslug=" ^ subslug in
       version
       |> Json.add_fields
@@ -49,7 +49,7 @@ let rec json_add_links json =
        let json = `O (List.map (fun (field, value) -> (field, json_add_links value)) fields) in
        try
          let type_ = Json.(get ~k:string ["type"] json) in
-         List.assoc type_ link_adders json
+         Json.to_value (List.assoc type_ link_adders json)
        with
          Not_found -> json
      )
@@ -80,7 +80,7 @@ let json_controller_to_html_controller ~view ~controller =
   try%lwt
     let%lwt json = controller query in
     let json = json_add_links json in
-    respond_html (View.render view json)
+    respond_html (View.render view (Json.to_ezjsonm json))
   with
     Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
 
@@ -130,7 +130,7 @@ let controllers =
     make_both ~path:"/tune" ~controller:Tune.get () ;
     make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
     make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
-    [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
     [make_raw ~path:"/tune/version.ly" ~controller:TuneVersion.get_ly ()] ;
+    [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
   ]
   |> List.flatten

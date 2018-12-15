@@ -18,7 +18,7 @@ let config =
     raise exn
 
 let read_config ~type_ ~default path =
-  try Json.(get ~k:type_ path (to_value config))
+  try Json.(get ~k:type_ path config)
   with Not_found -> default
 
 let int = Json.int
