@@ -7,6 +7,11 @@ let bind x f =
 
 let (>>=) = bind
 
+let compose f1 f2 x =
+  f1 x >>= fun x1 -> f2 x1
+
+let (>=>) = compose
+
 let map f = function
   | None -> None
   | Some x -> Some (f x)
@@ -14,6 +19,8 @@ let map f = function
 let unwrap = function
   | None -> failwith "unwrap"
   | Some x -> x
+
+let wrap x = Some x
 
 let value ~default = function
   | None -> default

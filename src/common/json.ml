@@ -1,4 +1,5 @@
 open ExtPervasives
+module Log = (val Log.create "dancelor.common.json" : Logs.LOG)
 
 type value = Ezjsonm.value
 type t = [ `O of (string * value) list ]
@@ -50,6 +51,9 @@ let from_string = Ezjsonm.from_string ||> of_value
 let to_string = function
   | `O fields -> Ezjsonm.to_string ~minify:false (`O fields)
 
+let path_to_string =
+  to_string_of_pp (ExtList.pp ~sep: " > " ExtString.pp)
+
 let rec find_opt path json =
   match path, json with
   | [], _ -> Some json
@@ -62,33 +66,50 @@ let find_opt path json =
 
 let find path json =
   match find_opt path json with
-  | None -> failwith "Dancelor_common.Json.find"
+  | None -> failwith ("Dancelor_common.Json.find: couldn't find: " ^ path_to_string path)
   | Some json -> json
 
 let get_opt ~k path json =
   let open Option in
   find_opt path json >>= fun value ->
-  Some (k value)
+  k value
 
 let get ~k path json =
-  match find_opt path json with
-  | None -> failwith "Dancelor_common.Json.get"
-  | Some value -> k value
+  match get_opt ~k path json with
+  | None -> failwith ("Dancelor_common.Json.get: couldn't find: " ^ path_to_string path)
+  | Some value -> value
+
+let get_or ~k ~default path json =
+  match get_opt ~k path json with
+  | None -> default
+  | Some value -> value
 
 let string = function
-  | `String s -> s
-  | _ -> failwith "Dancelor_common.Json.string"
+  | `String s -> Some s
+  | _ -> None
 
 let int = function
-  | `Float f -> int_of_float f
-  | _ -> failwith "Dancelor_common.Json.int"
+  | `Float f -> Some (int_of_float f)
+  | _ -> None
 
-let slug = string ||> Slug.from_string
+let slug json =
+  let open Option in
+  string json >>= fun value ->
+  Some (Slug.from_string value)
+
+let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option =
+  let open Option in
+  function
+  | [] -> Some []
+  | x :: l ->
+     f x >>= fun x' ->
+     list_map_opt f l >>= fun l' ->
+     Some (x' :: l')
 
 let strings = function
-  | `A values -> List.map string values
-  | _ -> failwith "Dancelor_common.Json.strings"
+  | `A values -> list_map_opt string values
+  | _ -> None
 
 let list cast = function
-  | `A values -> List.map cast values
-  | _ -> failwith "Dancelor_common.Json.list"
+  | `A values -> list_map_opt cast values
+  | _ -> None

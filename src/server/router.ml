@@ -34,8 +34,13 @@ let link_adders =
     "tune", out_of_slug "/tune";
     "tune-version", (fun version ->
       let tune_slug = Json.(get ~k:slug ["tune-slug"] version) in
-      let subslug = Json.(get ~k:slug ["subslug"] version) in
-      let link ext = "/tune/version" ^ ext ^ "?slug=" ^ tune_slug ^ "&subslug=" ^ subslug in
+      let link ext =
+        "/tune/version" ^ ext
+        ^ "?slug=" ^ tune_slug
+        ^ match Json.(get_opt ~k:slug ["subslug"] version) with
+          | Some subslug -> "&subslug=" ^ subslug
+          | None -> "&default"
+      in
       version
       |> Json.add_fields
            ["link", `String (link "");

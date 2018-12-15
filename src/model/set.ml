@@ -1,4 +1,4 @@
-open Dancelor_common
+open Dancelor_common open Option
 open Protocol_conv_jsonm
 
 type t =
@@ -18,16 +18,18 @@ let unserialize json =
     deviser = Credit.Database.get (Json.(get ~k:slug ["deviser"] json)) ;
     kind = Kind.dance_of_string (Json.(get ~k:string ["kind"] json)) ;
     tunes =
-      Json.list (
-          function
-          | `String slug ->
-             let tune = Tune.Database.get slug in
-             (tune, Tune.default_version tune)
-          | `A [`String slug; `String subslug] ->
-             let tune = Tune.Database.get slug in
-             (tune, Tune.version tune subslug)
-          | _ -> failwith "Dancelor_model.Set.unserialize"
-        ) (Json.find ["tunes"] json) }
+      unwrap (
+          Json.list (
+              function
+              | `String slug ->
+                 let tune = Tune.Database.get slug in
+                 Some (tune, Tune.default_version tune)
+              | `A [`String slug; `String subslug] ->
+                 let tune = Tune.Database.get slug in
+                 Some (tune, Tune.version tune subslug)
+              | _ -> failwith "Dancelor_model.Set.unserialize"
+            ) (Json.find ["tunes"] json)
+  ) }
 
 module Database = struct
     let prefix = "set"

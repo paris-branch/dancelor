@@ -16,11 +16,13 @@ val to_string : t -> string
 
 val find_opt : string list -> t -> value option
 val find : string list -> t -> value
-val get_opt : k:(value -> 'a) -> string list -> t -> 'a option
-val get : k:(value -> 'a) -> string list -> t -> 'a
 
-val string : value -> string
-val int : value -> int
-val slug : value -> Slug.t
-val strings : value -> string list
-val list : (value -> 'a) -> value -> 'a list
+val get : k:(value -> 'a option) -> string list -> t -> 'a
+val get_or : k:(value -> 'a option) -> default:'a -> string list -> t -> 'a
+val get_opt : k:(value -> 'a option) -> string list -> t -> 'a option
+
+val string : value -> string option
+val int : value -> int option
+val slug : value -> Slug.t option
+val strings : value -> string list option
+val list : (value -> 'a option) -> value -> 'a list option

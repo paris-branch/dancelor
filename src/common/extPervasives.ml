@@ -35,3 +35,9 @@ let pp_string_multiline fmt s =
      Format.fprintf fmt "%s" l;
      List.iter (Format.fprintf fmt "@\n%s") ls
 (** Pretty-printer that replaces straight '\n' by format cuts '@\n'. *)
+
+let to_string_of_pp pp x =
+  let buf = Buffer.create 8 in
+  let fmt = Format.formatter_of_buffer buf in
+  Format.fprintf fmt "%a@?" pp x;
+  Buffer.contents buf

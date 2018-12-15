@@ -1,4 +1,4 @@
-open Dancelor_common
+open Dancelor_common open Option
 open Protocol_conv_jsonm
 
 type version =
@@ -56,34 +56,33 @@ let tune_version_to_json = tune_version_to_jsonm
 
 let version_unserialize (json, content) =
   let tune =
-    { subslug = Serializer.(get_opt ~type_:slug ["subslug"] json) ;
-      name = Serializer.(get_opt ~type_:string ["name"] json) ;
-      bars = Serializer.(get ~type_:int ["bars"] json) ;
-      key = Serializer.(get ~type_:(string ||> Music.key_of_string) ["key"] json) ;
-      structure = Serializer.(get ~type_:string ["structure"] json) ;
-      arranger = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["arranger"] json) ;
+    { subslug = Json.(get_opt ~k:slug ["subslug"] json) ;
+      name = Json.(get_opt ~k:string ["name"] json) ;
+      bars = Json.(get ~k:int ["bars"] json) ;
+      key = Json.(get ~k:(string >=> (Music.key_of_string ||> wrap)) ["key"] json) ;
+      structure = Json.(get ~k:string ["structure"] json) ;
+      arranger = Json.(get_opt ~k:(slug >=> (Credit.Database.get ||> wrap)) ["arranger"] json) ;
       content }
   in
   tune
 
 let unserialize (json, versions) =
-  let author = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["author"] json) in
+  let author = Json.(get_opt ~k:(slug >=> (Credit.Database.get ||> wrap)) ["author"] json) in
   let default_version, other_versions =
-    try
-      let subslug = Serializer.(get ~type_:slug ["default"] json) in
-      (match List.partition (fun version -> version.subslug = Some subslug) versions with
-       | [default_version], other_versions -> default_version, other_versions
-       | _ -> failwith "Dancelor_model.Tune.unserialize: several versions with the same subslug")
-    with
-      Not_found ->
-      (match versions with
-       | [default_version] -> default_version, []
-       | _ -> failwith "Dancelor_model.Tune.unserialize: several versions but no default field")
+    match Json.(get_opt ~k:slug ["default"] json) with
+    | Some subslug ->
+       (match List.partition (fun version -> version.subslug = Some subslug) versions with
+        | [default_version], other_versions -> default_version, other_versions
+        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions with the same subslug")
+    | None ->
+       (match versions with
+        | [default_version] -> default_version, []
+        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions but no default field")
   in
-  { slug = Serializer.(get ~type_:slug ["slug"] json) ;
-    name = Serializer.(get ~type_:string ["name"] json) ;
-    kind = Serializer.(get ~type_:(string ||> Kind.base_of_string) ["kind"] json) ;
-    remark = Serializer.(get_or ~type_:string ~default:"" ["remark"] json) ;
+  { slug = Json.(get ~k:slug ["slug"] json) ;
+    name = Json.(get ~k:string ["name"] json) ;
+    kind = Json.(get ~k:(string >=> (Kind.base_of_string ||> wrap)) ["kind"] json) ;
+    remark = Json.(get_or ~k:string ~default:"" ["remark"] json) ;
     author ; default_version ; other_versions }
 
 let version_subslug v = v.subslug

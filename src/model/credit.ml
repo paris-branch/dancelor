@@ -1,4 +1,4 @@
-open Dancelor_common
+open Dancelor_common open Option
 open Protocol_conv_jsonm
 
 type t =
@@ -18,17 +18,17 @@ let serialize credit =
     ]
 
 let unserialize json =
-  let slug = Serializer.(get ~type_:slug ["slug"] json) in
+  let slug = Json.(get ~k:slug ["slug"] json) in
   let persons =
-    Serializer.get_or
-      ~type_:(Json.strings ||> List.map (Slug.from_string ||> Person.Database.get))
+    Json.get_or
+      ~k:(Json.strings >=> (List.map (Slug.from_string ||> Person.Database.get) ||> wrap))
       ~default:[]
       ["persons"]
       json
   in
   let line =
     try
-      Serializer.(get ~type_:string ["line"] json)
+      Json.(get ~k:string ["line"] json)
     with
       Not_found ->
        match persons with
