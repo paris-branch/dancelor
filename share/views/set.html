@@ -1,16 +1,13 @@
 <h1>{{set.name}}</h1>
 
 <p>Deviser: {{set.deviser.line}}</p>
-
 <p>Kind: {{set.kind}}</p>
+<a href="{{set.link_pdf}}">Link to the PDF</a>
 
-<ul>
-  {{#set.tunes}}
-  <li>
-    <a href="/tune?slug={{slug}}">{{name}}</a><br/>
-    <img src="/tune.png?slug={{slug}}" />
-  </li>
-  {{/set.tunes}}
-</ul>
+<hr/>
+<h2>Previsualisation</h2>
 
-<a href="/set?slug={{set.slug}}">Link to this set</a>
+{{#set.tunes}}
+<a href="{{version.link}}">{{tune.name}}</a><br/>
+<img src="{{version.link_png}}" /><br/>
+{{/set.tunes}}

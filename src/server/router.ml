@@ -28,10 +28,20 @@ let out_of_slug prefix json =
     json
 
 let link_adders =
-  [ "set", out_of_slug "/set";
+  [ "set", (fun set ->
+      let slug = Json.(get ~k:slug ["slug"] set) in
+      let link ext = "/set" ^ ext ^ "?slug=" ^ slug in
+      Json.add_fields
+        ["link", `String (link "");
+         "link_pdf", `String (link ".pdf")]
+        set) ;
+
     "credit", out_of_slug "/credit";
+
     "person", out_of_slug "/person";
+
     "tune", out_of_slug "/tune";
+
     "tune-version", (fun version ->
       let tune_slug = Json.(get ~k:slug ["tune-slug"] version) in
       let link ext =
@@ -128,6 +138,7 @@ let controllers =
     make_both ~path:"/credit" ~controller:Credit.get () ;
     make_both ~path:"/person" ~controller:Person.get () ;
     make_both ~path:"/set" ~controller:Set.get () ;
+    [make_raw ~path:"/set.pdf" ~controller:Set.get_pdf ()] ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
     make_html ~path:"/set/compose" ~controller:Set.compose () ;
     make_both ~path:"/tune" ~controller:Tune.get () ;

@@ -31,6 +31,8 @@ let unserialize json =
             ) (Json.find ["tunes"] json)
   ) }
 
+let slug s = s.slug
+
 module Database = struct
     let prefix = "set"
 
