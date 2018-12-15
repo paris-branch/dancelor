@@ -7,6 +7,10 @@ type t =
     persons : Person.t list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
+let to_jsonm =
+  to_jsonm
+  ||> JsonHelpers.add_field "type" (`String "credit")
+
 let serialize credit =
   `O [
       "slug", `String credit.slug;

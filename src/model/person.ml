@@ -6,6 +6,10 @@ type t =
     name : string }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
+let to_jsonm =
+  to_jsonm
+  ||> JsonHelpers.add_field "type" (`String "person")
+
 let serialize person =
   `O [
       "slug", `String person.slug ;

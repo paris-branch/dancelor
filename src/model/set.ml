@@ -9,6 +9,10 @@ type t =
     tunes : Tune.tune_version list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
+let to_jsonm =
+  to_jsonm
+  ||> JsonHelpers.add_field "type" (`String "set")
+
 let unserialize json =
   let open Ezjsonm in
   { slug = Slug.from_string (get_string (find json ["slug"])) ;

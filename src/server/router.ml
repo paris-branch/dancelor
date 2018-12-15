@@ -22,12 +22,54 @@ let respond_json ?(status=`OK) ?(success=true) (json : json) =
   let json = `O (("success", `Bool success) :: fields) in
   Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
 
+(* =========================== [ json_add_links ] =========================== *)
+
+let out_of_slug prefix json =
+  let slug = Slug.from_string Ezjsonm.(get_string (find json ["slug"])) in
+  JsonHelpers.add_field
+    "link" (`String (prefix ^ "?slug=" ^ slug))
+    json
+
+let link_adders =
+  [ "set", out_of_slug "/set";
+    "credit", out_of_slug "/credit";
+    "person", out_of_slug "/person";
+    "tune", out_of_slug "/tune";
+    "tune-version", (fun version ->
+      let tune_slug = Slug.from_string Ezjsonm.(get_string (find version ["tune-slug"])) in
+      let subslug = Slug.from_string Ezjsonm.(get_string (find version ["subslug"])) in
+      let link ext = "/tune/version" ^ ext ^ "?slug=" ^ tune_slug ^ "&subslug=" ^ subslug in
+      version
+      |> JsonHelpers.add_field "link" (`String (link ""))
+      |> JsonHelpers.add_field "link_ly" (`String (link ".ly"))
+      |> JsonHelpers.add_field "link_png" (`String (link ".png"))) ]
+
+let rec json_add_links json =
+  match json with
+  | `O fields ->
+     (
+       let json = `O (List.map (fun (field, value) -> (field, json_add_links value)) fields) in
+       try
+         let type_ = Ezjsonm.(get_string (find json ["type"])) in
+         List.assoc type_ link_adders json
+       with
+         Not_found -> json
+     )
+  | `A jsons ->
+     `A (List.map json_add_links jsons)
+  | _ ->
+     json
+
+let json_add_links json =
+  JsonHelpers.check_object (json_add_links json)
+
 (* ======================== [ JSON controller -> * ] ======================== *)
 
 let json_controller_to_controller ~controller =
   let controller query =
     try%lwt
       let%lwt json = controller query in
+      let json = json_add_links json in
       Log.debug (fun m -> m "JSON controller response: %s" (Ezjsonm.to_string (json_to_ezjsonm json)));
       respond_json ~status:`OK json
     with
@@ -39,6 +81,7 @@ let json_controller_to_html_controller ~view ~controller =
   fun query ->
   try%lwt
     let%lwt json = controller query in
+    let json = json_add_links json in
     respond_html (View.render view (json_to_ezjsonm json))
   with
     Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)

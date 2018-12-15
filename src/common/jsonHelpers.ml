@@ -18,3 +18,15 @@ let remove_field field = function
   | `O fields when List.mem_assoc field fields ->
      `O (List.remove_assoc field fields)
   | _ -> failwith "Dancelor_common.JsonHelpers.remove_field"
+
+let map_field field_ fun_ = function
+  | `O fields ->
+     `O
+       (List.map
+          (fun (field, value) ->
+            if field = field_ then
+              (field, fun_ value)
+            else
+              (field, value))
+          fields)
+  | _ -> failwith "Dancelor_common.JsonHelpers.map_field"
