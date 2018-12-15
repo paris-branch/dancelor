@@ -81,14 +81,15 @@ let make_both ?methods ~path ?view ?controller () =
 let controllers =
   [
     make_html ~path:"/" ~view:"/index" () ;
-    make_html ~path:"/set/compose" ~controller:Set.compose () ;
     make_both ~path:"/credit" ~controller:Credit.get () ;
     make_both ~path:"/person" ~controller:Person.get () ;
-    make_both ~path:"/tune" ~controller:Tune.get () ;
-    make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
     make_both ~path:"/set" ~controller:Set.get () ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
-    [make_raw ~path:"/tune.png" ~controller:Tune.Png.get ()] ;
-    [make_raw ~path:"/tune.ly" ~controller:Tune.get_ly ()] ;
+    make_html ~path:"/set/compose" ~controller:Set.compose () ;
+    make_both ~path:"/tune" ~controller:Tune.get () ;
+    make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
+    make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
+    [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
+    [make_raw ~path:"/tune/version.ly" ~controller:TuneVersion.get_ly ()] ;
   ]
   |> List.flatten
