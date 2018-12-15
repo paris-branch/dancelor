@@ -20,13 +20,10 @@ let tune_version_from_query query =
     error "this tune does not exist"
 
 let get query =
-  let (tune, version) = tune_version_from_query query in
-  Lwt.return (
-      `O [
-          "tune", Tune.to_jsonm tune;
-          "version", Tune.version_to_jsonm version
-        ]
-    )
+  tune_version_from_query query
+  |> Tune.tune_version_to_jsonm
+  |> JsonHelpers.check_object
+  |> Lwt.return
 
 let get_ly query =
   let (_, version) = tune_version_from_query query in
@@ -57,7 +54,7 @@ module Png = struct
         Not_found ->
         let processor =
           Log.debug (fun m -> m "Not in the cache. Rendering the Lilypond version");
-          let lilypond = Mustache.render template (`O ["tune", Tune.to_jsonm tune; "version", Tune.version_to_jsonm version]) in
+          let lilypond = Mustache.render template (Ezjsonm.wrap (Tune.tune_version_to_jsonm (tune, version))) in
           let path = Filename.concat Config.cache "tune" in
           let fname_ly, fname_png =
             let fname = spf "%s-%x" (Tune.slug tune) (Random.int (1 lsl 29)) in

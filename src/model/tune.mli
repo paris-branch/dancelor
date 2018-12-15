@@ -2,19 +2,19 @@ open Dancelor_common
 
 (** {1 Tune} *)
 
-type version
-
-val version_content : version -> string
-
-val version_to_jsonm : version -> Ezjsonm.value
-
 type t
+type version
+type tune_version = t * version
 
 val slug : t -> Slug.t
 val default_version : t -> version
 val version : t -> Slug.t -> version
 
+val version_content : version -> string
+
 val to_jsonm : t -> Ezjsonm.value
+val tune_version_to_jsonms : tune_version -> Ezjsonm.value * Ezjsonm.value
+val tune_version_to_jsonm : tune_version -> Ezjsonm.value
 
 (** {2 Database} *)
 

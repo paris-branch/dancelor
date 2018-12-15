@@ -6,7 +6,7 @@ type t =
     name : string ;
     deviser : Credit.t ;
     kind : Kind.dance ;
-    tunes : Tune.version list }
+    tunes : Tune.tune_version list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
 let unserialize json =
@@ -19,11 +19,11 @@ let unserialize json =
       get_list (
           function
           | `String slug ->
-             Tune.Database.get slug
-             |> Tune.default_version
+             let tune = Tune.Database.get slug in
+             (tune, Tune.default_version tune)
           | `A [`String slug; `String subslug] ->
-             Tune.Database.get slug
-             |> (fun tune -> Tune.version tune subslug)
+             let tune = Tune.Database.get slug in
+             (tune, Tune.version tune subslug)
           | _ -> failwith "Dancelor_model.Set.unserialize"
         ) (find json ["tunes"]) }
 

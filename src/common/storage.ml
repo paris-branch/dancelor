@@ -40,6 +40,5 @@ let write_entry_file table entry file content =
   Filesystem.write_file path content
 
 let write_entry_json table entry file =
-  JsonHelpers.check_object
-  ||> Ezjsonm.to_string
+  Ezjsonm.to_string
   ||> write_entry_file table entry file

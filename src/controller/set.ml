@@ -39,10 +39,7 @@ let compose query =
   let set_json = `O [ "name", name ; "kind", kind ; "tunes", `A tune_jsons ; "errors", `A error_jsons ] in
   let all_tune_jsons =
     Tune.Database.get_all ()
-    |> List.map (fun (_, tune, version) ->
-           `O [
-               "tune", Tune.to_jsonm tune;
-               "versions", Tune.version_to_jsonm version
-         ])
+    |> List.map (fun (_, tune, version) -> (* FIXME: (tune, version) *)
+           Tune.tune_version_to_jsonm (tune, version))
   in
   Lwt.return (`O [ "set", set_json ; "all_tunes", `A all_tune_jsons ])

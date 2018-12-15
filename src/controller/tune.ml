@@ -42,11 +42,8 @@ let get_all query =
       )
       ()
     |> List.map (fun (score, tune, version) ->
-           `O [
-               "score", `Float (100. *. score);
-               "tune", Tune.to_jsonm tune;
-               "version", Tune.version_to_jsonm version
-         ])
+           Tune.tune_version_to_jsonm (tune, version)
+           |> JsonHelpers.add_field "score" (`Float (100. *. score)))
     |> (fun jsons -> `A jsons)
   in
   Lwt.return (

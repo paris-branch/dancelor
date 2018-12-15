@@ -9,7 +9,38 @@ type version =
     structure : string ;
     arranger : Credit.t option ;
     content : string }
-    [@@deriving to_protocol ~driver:(module Jsonm)]
+[@@deriving to_protocol ~driver:(module Jsonm)]
+
+type t =
+  { slug : Slug.t ;
+    name : string ;
+    kind : Kind.base ;
+    author : Credit.t option ;
+    remark : string ;
+    default_version : version ;
+    other_versions : version list }
+[@@deriving to_protocol ~driver:(module Jsonm)]
+
+let to_jsonm =
+  to_jsonm
+  ||> JsonHelpers.add_field "type" (`String "tune")
+
+let version_to_jsonm ~tune_slug =
+  version_to_jsonm
+  ||> JsonHelpers.add_fields
+        [ "type", `String "tune-version" ;
+          "tune-slug", `String tune_slug ]
+
+type tune_version = t * version
+
+let tune_version_to_jsonms (tune, version) =
+  (to_jsonm tune, version_to_jsonm ~tune_slug:tune.slug version)
+
+let tune_version_to_jsonm (tune, version) =
+  `O [
+      "tune", to_jsonm tune;
+      "version", version_to_jsonm ~tune_slug:tune.slug version
+    ]
 
 let version_unserialize (json, content) =
   let tune =
@@ -23,27 +54,12 @@ let version_unserialize (json, content) =
   in
   tune
 
-let version_subslug v = v.subslug
-let version_name v = v.name
-let version_key v = v.key
-let version_content v = v.content
-
-type t =
-  { slug : Slug.t ;
-    name : string ;
-    kind : Kind.base ;
-    author : Credit.t option ;
-    remark : string ;
-    default_version : version ;
-    other_versions : version list }
-[@@deriving to_protocol ~driver:(module Jsonm)]
-
 let unserialize (json, versions) =
   let author = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["author"] json) in
   let default_version, other_versions =
     try
       let subslug = Serializer.(get ~type_:slug ["default"] json) in
-      (match List.partition (fun version -> version_subslug version = Some subslug) versions with
+      (match List.partition (fun version -> version.subslug = Some subslug) versions with
        | [default_version], other_versions -> default_version, other_versions
        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions with the same subslug")
     with
@@ -57,6 +73,11 @@ let unserialize (json, versions) =
     kind = Serializer.(get ~type_:(string ||> Kind.base_of_string) ["kind"] json) ;
     remark = Serializer.(get_or ~type_:string ~default:"" ["remark"] json) ;
     author ; default_version ; other_versions }
+
+let version_subslug v = v.subslug
+let version_name v = (v : version).name
+let version_key v = v.key
+let version_content v = v.content
 
 let slug t = t.slug
 let name t = t.name
