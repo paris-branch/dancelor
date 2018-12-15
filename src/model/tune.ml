@@ -22,15 +22,15 @@ type t =
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
 let version_add_tune_slug_and_type ~tune_slug =
-  JsonHelpers.add_fields
+  Json.add_fields
     [ "type", `String "tune-version" ;
       "tune-slug", `String tune_slug ]
 
 let to_jsonm tune =
   to_jsonm tune
-  |> JsonHelpers.add_field "type" (`String "tune")
-  |> JsonHelpers.map_field "default_version" (version_add_tune_slug_and_type ~tune_slug:tune.slug)
-  |> JsonHelpers.map_field "other_versions" (function
+  |> Json.add_field "type" (`String "tune")
+  |> Json.map_field "default_version" (version_add_tune_slug_and_type ~tune_slug:tune.slug)
+  |> Json.map_field "other_versions" (function
          | `A versions -> `A (List.map (version_add_tune_slug_and_type ~tune_slug:tune.slug) versions)
          | _ -> assert false)
 

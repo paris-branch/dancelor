@@ -10,6 +10,6 @@ module Option = Option
 module Slug = Slug
 module Storage = Storage
 module Config = Config
-module JsonHelpers = JsonHelpers
+module Json = Json
 module Log = Log
 module Serializer = Serializer

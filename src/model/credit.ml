@@ -9,7 +9,7 @@ type t =
 
 let to_jsonm =
   to_jsonm
-  ||> JsonHelpers.add_field "type" (`String "credit")
+  ||> Json.add_field "type" (`String "credit")
 
 let serialize credit =
   `O [

@@ -8,7 +8,7 @@ type t =
 
 let to_jsonm =
   to_jsonm
-  ||> JsonHelpers.add_field "type" (`String "person")
+  ||> Json.add_field "type" (`String "person")
 
 let serialize person =
   `O [

@@ -26,7 +26,7 @@ let respond_json ?(status=`OK) ?(success=true) (json : json) =
 
 let out_of_slug prefix json =
   let slug = Slug.from_string Ezjsonm.(get_string (find json ["slug"])) in
-  JsonHelpers.add_field
+  Json.add_field
     "link" (`String (prefix ^ "?slug=" ^ slug))
     json
 
@@ -40,9 +40,10 @@ let link_adders =
       let subslug = Slug.from_string Ezjsonm.(get_string (find version ["subslug"])) in
       let link ext = "/tune/version" ^ ext ^ "?slug=" ^ tune_slug ^ "&subslug=" ^ subslug in
       version
-      |> JsonHelpers.add_field "link" (`String (link ""))
-      |> JsonHelpers.add_field "link_ly" (`String (link ".ly"))
-      |> JsonHelpers.add_field "link_png" (`String (link ".png"))) ]
+      |> Json.add_fields
+           ["link", `String (link "");
+            "link_ly", `String (link ".ly");
+            "link_png", `String (link ".png")]) ]
 
 let rec json_add_links json =
   match json with
@@ -61,7 +62,7 @@ let rec json_add_links json =
      json
 
 let json_add_links json =
-  JsonHelpers.check_object (json_add_links json)
+  Json.of_value (json_add_links json)
 
 (* ======================== [ JSON controller -> * ] ======================== *)
 

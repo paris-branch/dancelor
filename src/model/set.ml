@@ -11,7 +11,7 @@ type t =
 
 let to_jsonm =
   to_jsonm
-  ||> JsonHelpers.add_field "type" (`String "set")
+  ||> Json.add_field "type" (`String "set")
 
 let unserialize json =
   let open Ezjsonm in
