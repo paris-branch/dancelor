@@ -55,13 +55,11 @@
   {{#tunes}}
   <tr>
     <td>{{score}}</td>
-    <td><a href="/tune?slug={{tune.slug}}{{! FIXME: {{#version.subslug} }&subslug={{version.subslug} }{{/version.subslug} } }}">
-	{{#version.name}}{{version.name}}{{/version.name}}{{^version.name}}{{tune.name}}{{/version.name}}
-    </a></td>
+    <td><a href="{{version.link}}">{{tune.name}}</a></td>
     <td>{{version.bars}} {{tune.kind}}</td>
     <td>{{version.key}}</td>
     <td>{{version.structure}}</td>
-    <td>{{#tune.author}}<a href="/credit?slug={{slug}}">{{line}}</a>{{/tune.author}}</td>
+    <td>{{#tune.author}}<a href="{{link}}">{{line}}</a>{{/tune.author}}</td>
   </tr>
   {{/tunes}}
 </table>
