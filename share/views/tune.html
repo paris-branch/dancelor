@@ -1,16 +1,16 @@
-<h1>{{!FIXME: version.name}}{{tune.name}}</h1>
+<h1>{{tune.name}}</h1>
 
 <p>Kind: {{tune.kind}}</p>
-{{#tune.author}}<p>Author: <a href="/credit?slug={{tune.author.slug}}">{{tune.author.line}}</a></p>{{/tune.author}}
+{{#tune.author}}<p>Author: <a href="{{tune.author.link}}">{{tune.author.line}}</a></p>{{/tune.author}}
 
 <h3>Default version</h3>
 {{#tune.default_version}}
 <p>Kind: {{bars}} {{tune.kind}}</p>
 <p>Structure: {{structure}}</p>
 <p>Key: {{key}}</p>
-<img src="/tune.png?slug={{tune.slug}}" /> {{! FIXME: subslug }}
+<img src="{{link_png}}" />
 <br/>
-<a href="/tune.ly?slug={{tune.slug}}">Get the Lilypond</a>
+<a href="{{link}}">Link to this version</a> - <a href="{{link_ly}}">Get the Lilypond</a>
 {{/tune.default_version}}
 
 <hr/>
@@ -19,9 +19,8 @@
 <p>Kind: {{bars}} {{tune.kind}}</p>
 <p>Structure: {{structure}}</p>
 <p>Key: {{key}}</p>
-<img src="/tune.png?slug={{tune.slug}}" />
+<img src="{{link_png}}" />
 <br/>
-<a href="/tune.ly?slug={{tune.slug}}">Get the Lilypond</a>
-<a href="/tune.ly?slug={{tune.slug}}{{! FIXME: subslug }}">Link to this version</a>
+<a href="{{link}}">Link to this version</a> - <a href="{{link_ly}}">Get the Lilypond</a>
 <br/>
 {{/tune.other_versions}}

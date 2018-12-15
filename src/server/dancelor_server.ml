@@ -45,7 +45,7 @@ let callback _ request _body =
        Server.respond_not_found ()
   with
     exn ->
-    Log.err (fun m -> m "Uncaught exception: %s@\n%s" (Printexc.to_string exn) (Printexc.get_backtrace ()));
+    Log.err (fun m -> m "Uncaught exception: %s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
     raise exn
 
 let () =
