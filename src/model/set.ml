@@ -14,11 +14,10 @@ let to_jsonm =
   ||> Json.add_field "type" (`String "set")
 
 let unserialize json =
-  let open Ezjsonm in
-  { slug = Slug.from_string (get_string (find json ["slug"])) ;
-    name = get_string (find json ["name"]) ;
-    deviser = Credit.Database.get (Slug.from_string (get_string (find json ["deviser"]))) ;
-    kind = Kind.dance_of_string (get_string (find json ["kind"])) ;
+  { slug = Json.(get ~k:slug ["slug"] json) ;
+    name = Json.(get ~k:string ["name"] json) ;
+    deviser = Credit.Database.get (Json.(get ~k:slug ["deviser"] json)) ;
+    kind = Kind.dance_of_string (Json.(get ~k:string ["kind"] json)) ;
     tunes =
       get_list (
           function

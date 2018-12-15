@@ -17,8 +17,8 @@ let serialize person =
     ]
 
 let unserialize json =
-  { slug = Slug.from_string Ezjsonm.(get_string (find json ["slug"])) ;
-    name = Ezjsonm.(get_string (find json ["name"])) }
+  { slug = Slug.from_string Json.(get ~k:string ["slug"] json) ;
+    name = Json.(get ~k:string ["name"] json) }
 
 let slug p = p.slug
 let name p = p.name

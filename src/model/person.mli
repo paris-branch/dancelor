@@ -4,7 +4,7 @@ open Dancelor_common
 
 type t
 
-val to_jsonm : t -> Ezjsonm.value
+val to_jsonm : t -> Json.value
 
 val slug : t -> Slug.t
 val name : t -> string

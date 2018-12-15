@@ -7,22 +7,22 @@ let config =
     let ichan = open_in Sys.argv.(1) in
     let config =
       in_channel_to_string ichan
-      |> Ezjsonm.from_string
+      |> Json.from_string
     in
     close_in ichan;
-    Log.debug (fun m -> m "Loaded successfully:@\n%s" (Ezjsonm.to_string config));
+    Log.debug (fun m -> m "Loaded successfully:@\n%s" (Json.to_string config));
     config
   with
     exn ->
     Log.debug (fun m -> m "No configuration found:@\n%s" (Printexc.to_string exn));
-    `Null (* FIXME *)
+    raise exn
 
 let read_config ~type_ ~default path =
-  try type_ (Ezjsonm.find config path)
+  try Json.(get ~k:type_ path (to_value config))
   with Not_found -> default
 
-let int = Ezjsonm.get_int
-let string = Ezjsonm.get_string
+let int = Json.int
+let string = Json.string
 
 (* =========================== [ Dynamic Stuff ] ============================ *)
 

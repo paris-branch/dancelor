@@ -8,11 +8,8 @@ type query = (string * string list) list
 
 type 'a controller = query -> 'a Lwt.t (* FIXME: body, conn? *)
 
-type json = [ `O of (string * Ezjsonm.value) list ]
+type json = [ `O of (string * Json.value) list ]
 type generic = Response.t * Cohttp_lwt.Body.t
-
-let json_to_ezjsonm (json : json) : Ezjsonm.t =
-  let `O fields = json in `O fields
 
 let respond_html html =
   Server.respond_string ~status:`OK ~body:html ()
@@ -20,12 +17,12 @@ let respond_html html =
 let respond_json ?(status=`OK) ?(success=true) (json : json) =
   let `O fields = json in
   let json = `O (("success", `Bool success) :: fields) in
-  Server.respond_string ~status ~body:(Ezjsonm.to_string json) ()
+  Server.respond_string ~status ~body:(Json.to_string json) ()
 
 (* =========================== [ json_add_links ] =========================== *)
 
 let out_of_slug prefix json =
-  let slug = Slug.from_string Ezjsonm.(get_string (find json ["slug"])) in
+  let slug = Slug.from_string Json.(get ~k:string ["slug"] json) in
   Json.add_field
     "link" (`String (prefix ^ "?slug=" ^ slug))
     json
@@ -36,8 +33,8 @@ let link_adders =
     "person", out_of_slug "/person";
     "tune", out_of_slug "/tune";
     "tune-version", (fun version ->
-      let tune_slug = Slug.from_string Ezjsonm.(get_string (find version ["tune-slug"])) in
-      let subslug = Slug.from_string Ezjsonm.(get_string (find version ["subslug"])) in
+      let tune_slug = Slug.from_string Json.(get ~k:string ["tune-slug"] version) in
+      let subslug = Slug.from_string Json.(get ~k:string ["subslug"] version) in
       let link ext = "/tune/version" ^ ext ^ "?slug=" ^ tune_slug ^ "&subslug=" ^ subslug in
       version
       |> Json.add_fields
@@ -51,7 +48,7 @@ let rec json_add_links json =
      (
        let json = `O (List.map (fun (field, value) -> (field, json_add_links value)) fields) in
        try
-         let type_ = Ezjsonm.(get_string (find json ["type"])) in
+         let type_ = Json.(get ~k:string ["type"] json) in
          List.assoc type_ link_adders json
        with
          Not_found -> json
@@ -71,7 +68,7 @@ let json_controller_to_controller ~controller =
     try%lwt
       let%lwt json = controller query in
       let json = json_add_links json in
-      Log.debug (fun m -> m "JSON controller response: %s" (Ezjsonm.to_string (json_to_ezjsonm json)));
+      Log.debug (fun m -> m "JSON controller response: %s" (Json.to_string json));
       respond_json ~status:`OK json
     with
       Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message])
@@ -83,7 +80,7 @@ let json_controller_to_html_controller ~view ~controller =
   try%lwt
     let%lwt json = controller query in
     let json = json_add_links json in
-    respond_html (View.render view (json_to_ezjsonm json))
+    respond_html (View.render view json)
   with
     Error.Error (status, message) -> respond_json ~status ~success:false (`O ["message", `String message]) (* FIXME: error page! *)
 

@@ -23,7 +23,7 @@ let read_entry_file table entry file =
   |> Filesystem.read_file
 
 let read_entry_json table entry =
-  read_entry_file table entry ||> Ezjsonm.from_string
+  read_entry_file table entry ||> Json.from_string
 
 let read_subentry_file table entry subentry file =
   Log.debug (fun m -> m "Reading %s / %s / %s / %s" table entry subentry file);
@@ -31,7 +31,7 @@ let read_subentry_file table entry subentry file =
   |> Filesystem.read_file
 
 let read_subentry_json table entry subentry =
-  read_subentry_file table entry subentry ||> Ezjsonm.from_string
+  read_subentry_file table entry subentry ||> Json.from_string
 
 let write_entry_file table entry file content =
   let path = ExtFilename.concat3 prefix table entry in
@@ -40,5 +40,5 @@ let write_entry_file table entry file content =
   Filesystem.write_file path content
 
 let write_entry_json table entry file =
-  Ezjsonm.to_string
+  Json.to_string
   ||> write_entry_file table entry file

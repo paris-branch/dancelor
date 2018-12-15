@@ -12,8 +12,8 @@ val version : t -> Slug.t -> version
 
 val version_content : version -> string
 
-val to_jsonm : t -> Ezjsonm.value
-val tune_version_to_jsonm : tune_version -> Ezjsonm.value
+val to_jsonm : t -> Json.value
+val tune_version_to_jsonm : tune_version -> Json.value
 
 (** {2 Database} *)
 

@@ -22,7 +22,7 @@ let unserialize json =
   let slug = Serializer.(get ~type_:slug ["slug"] json) in
   let persons =
     Serializer.get_or
-      ~type_:(Ezjsonm.get_strings ||> List.map (Slug.from_string ||> Person.Database.get))
+      ~type_:(Json.strings ||> List.map (Slug.from_string ||> Person.Database.get))
       ~default:[]
       ["persons"]
       json
