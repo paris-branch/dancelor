@@ -3,7 +3,6 @@ open Dancelor_common
 let error ?(status=`OK) message =
   raise (Error.Error (status, message))
 
-
 let query_string query key =
   match List.assoc_opt key query with
   | Some [value] -> value
@@ -17,7 +16,6 @@ let query_string_or query key or_ =
   try query_string query key
   with _ -> or_
 
-
 let query_strings_opt query key =
   List.assoc_opt key query
 
@@ -29,7 +27,6 @@ let query_strings query key =
 let query_strings_or query key or_ =
   try query_strings query key
   with _ -> or_
-
 
 let query_int query key =
   match int_of_string_opt (query_string query key) with

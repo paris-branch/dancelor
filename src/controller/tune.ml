@@ -30,7 +30,8 @@ let get_all query =
       )
       ?keys:(
         let open Option in
-        query_strings_opt query "keys" >>= fun keys ->
+        query_string_opt query "keys" >>= fun keys ->
+        let keys = String.split_on_char ',' keys in
         Some (List.map Music.key_of_string keys)
       )
       ?mode:(
@@ -43,7 +44,7 @@ let get_all query =
       ()
     |> List.map (fun (score, tune, version) ->
            Tune.tune_version_to_json (tune, version)
-           |> Json.add_field "score" (`Float (100. *. score))
+           |> Json.add_field "score" (`Float (floor (100. *. score)))
            |> Json.to_value)
     |> (fun jsons -> `A jsons)
   in
