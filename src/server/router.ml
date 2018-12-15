@@ -52,11 +52,9 @@ let rec json_add_links json =
   | `O fields ->
      (
        let json = `O (List.map (fun (field, value) -> (field, json_add_links value)) fields) in
-       try
-         let type_ = Json.(get ~k:string ["type"] json) in
-         Json.to_value (List.assoc type_ link_adders json)
-       with
-         Not_found -> json
+       match Json.(get_opt ~k:string ["type"] json) with
+       | Some type_ -> Json.to_value (List.assoc type_ link_adders json)
+       | None -> json
      )
   | `A jsons ->
      `A (List.map json_add_links jsons)
