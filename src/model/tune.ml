@@ -104,6 +104,8 @@ let version_name t v =
   | Some name -> name
 
 let match_score needle haystack =
+  let needle = Slug.from_string needle in
+  let haystack = Slug.from_string haystack in
   1. -.
     if String.length needle = 0 then
       0.
