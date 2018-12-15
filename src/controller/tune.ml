@@ -45,7 +45,7 @@ let get_all query =
            `O [
                "score", `Float (100. *. score);
                "tune", Tune.to_jsonm tune;
-               "version", Tune.Version.to_jsonm version
+               "version", Tune.version_to_jsonm version
          ])
     |> (fun jsons -> `A jsons)
   in

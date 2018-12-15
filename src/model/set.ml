@@ -6,7 +6,7 @@ type t =
     name : string ;
     deviser : Credit.t ;
     kind : Kind.dance ;
-    tunes : Tune.Version.t list }
+    tunes : Tune.version list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
 let unserialize json =

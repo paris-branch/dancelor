@@ -1,56 +1,32 @@
 open Dancelor_common
 open Protocol_conv_jsonm
 
-module Version = struct
-  type t =
-    { subslug : Slug.t option ;
-      name : string option ;
-      bars : int ;
-      key : Music.key ;
-      structure : string ;
-      arranger : Credit.t option ;
-      content : string }
-  [@@deriving to_protocol ~driver:(module Jsonm)]
+type version =
+  { subslug : Slug.t option ;
+    name : string option ;
+    bars : int ;
+    key : Music.key ;
+    structure : string ;
+    arranger : Credit.t option ;
+    content : string }
+    [@@deriving to_protocol ~driver:(module Jsonm)]
 
-  (* let serialize version =
-   *   let subslug =
-   *     match version.subslug with
-   *     | None -> []
-   *     | Some subslug -> ["subslug", `String subslug]
-   *   in
-   *   let name =
-   *     match version.name with
-   *     | None -> []
-   *     | Some name -> ["name", `String name]
-   *   in
-   *   let arranger =
-   *     match version.arranger with
-   *     | None -> []
-   *     | Some arranger -> ["arranger", `String (Credit.slug arranger)]
-   *   in
-   *   (`O ([
-   *          "bars", `Float (float_of_int version.bars) ;
-   *          "key", `String (Music.key_to_string version.key)
-   *        ] @ subslug @ name @ arranger),
-   *    version.content) *)
+let version_unserialize (json, content) =
+  let tune =
+    { subslug = Serializer.(get_opt ~type_:slug ["subslug"] json) ;
+      name = Serializer.(get_opt ~type_:string ["name"] json) ;
+      bars = Serializer.(get ~type_:int ["bars"] json) ;
+      key = Serializer.(get ~type_:(string ||> Music.key_of_string) ["key"] json) ;
+      structure = Serializer.(get ~type_:string ["structure"] json) ;
+      arranger = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["arranger"] json) ;
+      content }
+  in
+  tune
 
-  let unserialize (json, content) =
-    let tune =
-      { subslug = Serializer.(get_opt ~type_:slug ["subslug"] json) ;
-        name = Serializer.(get_opt ~type_:string ["name"] json) ;
-        bars = Serializer.(get ~type_:int ["bars"] json) ;
-        key = Serializer.(get ~type_:(string ||> Music.key_of_string) ["key"] json) ;
-        structure = Serializer.(get ~type_:string ["structure"] json) ;
-        arranger = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["arranger"] json) ;
-        content }
-    in
-    tune
-
-  let subslug v = v.subslug
-  let name v = v.name
-  let key v = v.key
-  let content v = v.content
-end
+let version_subslug v = v.subslug
+let version_name v = v.name
+let version_key v = v.key
+let version_content v = v.content
 
 type t =
   { slug : Slug.t ;
@@ -58,37 +34,16 @@ type t =
     kind : Kind.base ;
     author : Credit.t option ;
     remark : string ;
-    default_version : Version.t ;
-    other_versions : Version.t list }
+    default_version : version ;
+    other_versions : version list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
-
-(* let serialize tune =
- *   let author =
- *     match tune.author with
- *     | None -> []
- *     | Some author -> ["author", `String (Credit.slug author)]
- *   in
- *   let default =
- *     match Version.subslug tune.default_version with
- *     | None -> assert (tune.other_versions = []); []
- *     | Some subslug -> ["default", `String subslug]
- *   in
- *   (
- *     `O ([
- *           "tune", `String tune.slug ;
- *           "name", `String tune.name ;
- *           "kind", `String (Kind.base_to_string tune.kind) ;
- *           "remark", `String tune.remark ;
- *         ] @ author @ default),
- *     tune.default_version :: tune.other_versions
- *   ) *)
 
 let unserialize (json, versions) =
   let author = Serializer.(get_opt ~type_:(slug ||> Credit.Database.get) ["author"] json) in
   let default_version, other_versions =
     try
       let subslug = Serializer.(get ~type_:slug ["default"] json) in
-      (match List.partition (fun version -> Version.subslug version = Some subslug) versions with
+      (match List.partition (fun version -> version_subslug version = Some subslug) versions with
        | [default_version], other_versions -> default_version, other_versions
        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions with the same subslug")
     with
@@ -109,10 +64,10 @@ let name t = t.name
 let default_version t = t.default_version
 let versions t = t.default_version :: t.other_versions
 let version t subslug =
-  List.find (fun version -> Version.subslug version = Some subslug) (versions t)
+  List.find (fun version -> version_subslug version = Some subslug) (versions t)
 
 let version_name t v =
-  match Version.name v with
+  match version_name v with
   | None -> name t
   | Some name -> name
 
@@ -134,7 +89,7 @@ module Database =
       let read_version entry subentry =
         let json = Storage.read_subentry_json prefix entry subentry "meta.json" in
         let content = Storage.read_subentry_file prefix entry subentry "content.ly" in
-        Version.unserialize (json, content)
+        version_unserialize (json, content)
       in
       let load entry =
         let json = Storage.read_entry_json prefix entry "meta.json" in
@@ -194,11 +149,11 @@ module Database =
       |> Seq.filter
            (match keys with
             | None -> fun _ -> true
-            | Some keys -> (fun (_, _, version) -> List.mem (Version.key version) keys))
+            | Some keys -> (fun (_, _, version) -> List.mem (version_key version) keys))
       |> Seq.filter
            (match mode with
             | None -> fun _ -> true
-            | Some mode -> (fun (_, _, version) -> snd (Version.key version) = mode))
+            | Some mode -> (fun (_, _, version) -> snd (version_key version) = mode))
       |> List.of_seq
       |> List.sort
            (fun (s1, t1, v1) (s2, t2, v2) ->
@@ -206,7 +161,7 @@ module Database =
              if c = 0 then
                let c' = compare (slug t1) (slug t2) in
                if c' = 0 then
-                 compare (Version.subslug v1) (Version.subslug v2)
+                 compare (version_subslug v1) (version_subslug v2)
                else
                  c'
              else

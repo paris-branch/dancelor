@@ -42,7 +42,7 @@ let compose query =
     |> List.map (fun (_, tune, version) ->
            `O [
                "tune", Tune.to_jsonm tune;
-               "versions", Tune.Version.to_jsonm version
+               "versions", Tune.version_to_jsonm version
          ])
   in
   Lwt.return (`O [ "set", set_json ; "all_tunes", `A all_tune_jsons ])
