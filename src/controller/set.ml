@@ -64,24 +64,22 @@ let get_pdf query =
     Not_found ->
     error "this set does not exist"
 
-
-
 let compose query =
   let open Option in
   let name = `String (value ~default:"" (query_string_opt query "name")) in
-  let kind = `String (value ~default:"8x32R" (query_string_opt query "kind")) in
+  let kind = `String (value ~default:"" (query_string_opt query "kind")) in
   let tune_jsons, error_jsons =
-    match query_strings_opt query "tunes[]" with
-    | Some tunes ->
+    match query_strings_opt query "tunes" with
+    | Some tune_version_slugs ->
        List.map_partition
-         (fun tune ->
+         (fun tune_version_slug ->
            try
-             Tune.Database.get tune
-             |> Tune.to_jsonm
+             Tune.Database.get_tune_version tune_version_slug
+             |> Tune.tune_version_to_jsonm
              |> (fun json -> List.A json)
            with
-             Not_found -> List.B (`O ["message", `String ("tune \"" ^ tune ^ "\" does not exist")]))
-         tunes
+             Not_found -> List.B (`O ["message", `String ("tune \"" ^ tune_version_slug ^ "\" does not exist")]))
+         tune_version_slugs
     | None ->
        [], []
   in

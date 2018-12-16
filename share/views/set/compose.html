@@ -1,62 +1,84 @@
-<ul>
-  {{#set.errors}}
-  <li>{{message}}</li>
-  {{/set.errors}}
-</ul>
-
 <form action="" method="get">
-  <table>
-    <tr>
-      <td></td>
-      <td>
-	<input type="text" name="name" value="{{set.name}}" placeholder="Name of the Set" />
-      </td>
-    </tr>
+  <input type="text" class="form-control" name="name" placeholder="Name of the Set" />
+  <br/>
 
-    <tr>
-      <td></td>
-      <td>
-	<input type="text" name="kind" value="{{set.kind}}" placeholder="Type of the Set (eg. 8x32R)" />
-      </td>
-    </tr>
+  <input type="text" class="form-control" name="kind" placeholder="Kind of the Set (eg. 8x32R)" />
 
-    {{#set.tunes}}
-    <tr>
-      <td></td>
-      <td>{{name}}</td>
-    </tr>
-    <tr>
-      <td>
-	<input type="hidden" name="tunes[]" value="{{slug}}" />
-	<ul>
-	  <li>↑</li>
-	  <li>x</li>
-	  <li>↓</li>
-	</ul>
-      </td>
-      <td>
-	<img src="/tune.png?slug={{slug}}" />
-      </td>
-    </tr>
-    {{/set.tunes}}
+  <hr/>
 
-    <tr>
-      <td><label>Add:</label></td>
-      <td>
-	<select name="tunes[]">
-	  <option value="">-</option>
-	  {{#all_tunes}}
-	  <option value="{{slug}}">{{name}} ({{kind}}, {{disambiguation}})</option>
-	  {{/all_tunes}}
-	</select>
-      </td>
-    </tr>
+  <div id="tunesArea"></div>
 
-    <tr>
-      <td></td>
-      <td>
-	<input type="submit" value="Update" />
-      </td>
-    </tr>
-  </table>
+  <input type="text" class="form-control" id="add-tune" placeholder="Add a tune" />
+
+  <hr/>
+
+  <button type="button" class="btn" onClick="save();">Save</button>
+
+  <script type="text/javascript">
+    var tunes = [];
+    var allTunes = [];
+    var tunesArea = document.getElementById('tunesArea');
+
+    fetch('/api/tune/all')
+    .then(function(response) {
+	return response.json();
+    })
+    .then(function(myJson) {
+	allTunes = myJson['tunes'];
+    });
+
+    function refreshTunes () {
+	tunesArea.innerHTML = '';
+
+	tunes.forEach(function (slug, index) {
+	    var [slug, subslug] = slug.split(':', 2); // subslug can be undefined
+	    tunesArea.innerHTML +=
+		'<img src="/tune/version.png?slug=' + slug
+		+ ((typeof subslug === "undefined") ? "&default" : ("&subslug=" + subslug))
+		+ '" />';
+	    tunesArea.innerHTML += '<button type="button" class="btn" onClick="moveUpTune(' + index + ');">Monter</button>';
+	    tunesArea.innerHTML += '<button type="button" class="btn" onClick="moveDownTune(' + index + ');">Descendre</button>';
+	    tunesArea.innerHTML += '<button type="button" class="btn" onClick="removeTune(' + index + ');">Supprimer</button>';
+	    tunesArea.innerHTML += '<hr/>'
+	});
+    }
+
+    function addTune () {
+	var input = document.getElementById('add-tune');
+	var slug = input.value;
+	tunes.push(slug);
+	refreshTunes();
+    }
+
+    function removeTune (i) {
+	tunes.splice(i, 1);
+	refreshTunes();
+    }
+
+    function moveUpTune (i) {
+	if (i >= 1) {
+	    var tmp = tunes[i-1];
+	    tunes[i-1] = tunes[i];
+	    tunes[i] = tmp;
+	    refreshTunes();
+	}
+    }
+
+    function moveDownTune (i) {
+	if (i + 1 < tunes.length) {
+	    var tmp = tunes[i+1];
+	    tunes[i+1] = tunes[i];
+	    tunes[i] = tmp;
+	    refreshTunes();
+	}
+    }
+
+    // ======================== Register events ======================== //
+
+    document.getElementById('add-tune').addEventListener("keyup", function (event) {
+	if (event.key === "Enter") {
+	    addTune ();
+	}
+    });
+  </script>
 </form>

@@ -23,8 +23,11 @@ module Database : sig
   val initialise : unit -> unit
 
   val get : Slug.t -> t
+
   val get_all :
     ?name:string -> ?author:string ->
     ?kind:Kind.base -> ?keys:Music.key list -> ?mode:Music.mode ->
     unit -> (float * t * version) list
+
+  val get_tune_version : string -> tune_version
 end

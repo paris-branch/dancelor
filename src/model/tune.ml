@@ -153,6 +153,18 @@ module Database =
 
     let get = Hashtbl.find db
 
+    let get_tune_version slug =
+      let slug, subslug =
+        match String.split_on_char ':' slug with
+        | [slug] -> slug, None
+        | [slug; subslug] -> slug, Some subslug
+        | _ -> failwith "Dancelor_model.Tune.Database.get_tune_version"
+      in
+      let tune = get slug in
+      match subslug with
+      | None -> (tune, default_version tune)
+      | Some subslug -> (tune, version tune subslug)
+
     let get_all ?name ?author ?kind ?keys ?mode () =
       ignore keys; ignore mode;
       Hashtbl.to_seq_values db

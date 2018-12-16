@@ -140,7 +140,7 @@ let controllers =
     make_both ~path:"/set" ~controller:Set.get () ;
     [make_raw ~path:"/set.pdf" ~controller:Set.get_pdf ()] ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
-    make_html ~path:"/set/compose" ~controller:Set.compose () ;
+    make_html ~path:"/set/compose" () ;
     make_both ~path:"/tune" ~controller:Tune.get () ;
     make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
     make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
