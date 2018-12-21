@@ -1,8 +1,8 @@
-<form action="" method="get">
-  <input type="text" class="form-control" name="name" placeholder="Set Name" />
+<form>
+  <input type="text" class="form-control" id="name" placeholder="Set Name" />
   <br/>
 
-  <input type="text" class="form-control" name="kind" placeholder="Set Kind (eg. 8x32R)" />
+  <input type="text" class="form-control" id="kind" placeholder="Set Kind (eg. 8x32R)" />
 
   <hr/>
 
@@ -73,7 +73,7 @@
 	var scoreThreshold = 80
 	var input = document.getElementById('search').value;
 
-	fetch('/api/tune/all?name=' + encodeURI(input))
+	fetch('/api/tune/all?name=' + encodeURIComponent(input))
 	    .then(function (response) {
 		return response.json();
 	    })
@@ -94,6 +94,26 @@
 		    });
 		searchResultsHTML += '</table>';
 		document.getElementById('searchResults').innerHTML = searchResultsHTML;
+	    });
+    }
+
+    function save () {
+	var name = document.getElementById('name').value;
+	var kind = document.getElementById('kind').value;
+
+	var uri = '/api/set/save'
+	    + '?name=' + encodeURIComponent(name)
+	    + '&kind=' + encodeURIComponent(kind);
+	tunes.forEach(function (tune) {
+	    uri += '&tunes=' + tune['slug'];
+	});
+
+	fetch(uri)
+	    .then(function (response) {
+		return response.json();
+	    })
+	    .then(function (json) {
+		window.location.href = json['set']['link'];
 	    });
     }
 

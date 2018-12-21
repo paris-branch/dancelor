@@ -1,6 +1,6 @@
 <h1>{{set.name}}</h1>
 
-<p>Deviser: {{set.deviser.line}}</p>
+{{#set.deviser}}<p>Deviser: {{line}}</p>{{/set.deviser}}
 <p>Kind: {{set.kind}}</p>
 <a href="{{set.link_pdf}}">Link to the PDF</a>
 

@@ -91,5 +91,6 @@ module Database = struct
       let set = { slug; name; deviser; kind; tunes } in
       let json = serialize set in
       Storage.write_entry_json prefix slug "meta.json" json;
+      Hashtbl.add db slug set;
       set
 end
