@@ -95,7 +95,7 @@
 		    +    '<td>' + tune['tune']['name'] + '</td>'
 		    +    '<td>' + tune['version']['bars'] + ' ' + tune['tune']['kind'] + '</td>'
 		    +    '<td>' + tune['version']['structure'] + '</td>'
-		    +    '<td><a href="#" onClick="addTune(\'' + tune['tune']['slug'] + '\', \'' + tune['version']['subslug'] + '\', \'' + encodeURI(tune['tune']['name']) + '\');">Add</a></td>'
+		    +    '<td><a href="#" onClick="addTune(\'' + tune['tune']['slug'] + '\', \'' + tune['version']['subslug'] + '\', \'' + tune['tune']['name'].replace(/'/g, '\\x27').replace(/"/, '\\x22') + '\');">Add</a></td>'
 		    +  '</tr>';
 	    }
 	});
