@@ -14,6 +14,20 @@
   <div id="searchResults"></div>
 
   <script type="text/javascript">
+    /* List of all the tunes in the database */
+
+    var allTunes = [];
+
+    fetch('/api/tune/all')
+    .then(function (response) {
+	return response.json();
+    })
+    .then(function (json) {
+	allTunes = json['tunes'];
+    });
+
+    /* List of the tunes in the set */
+
     var tunes = [];
 
     function refreshTunes () {
@@ -70,31 +84,23 @@
     }
 
     function searchTune () {
-	var scoreThreshold = 80
 	var input = document.getElementById('search').value;
 
-	fetch('/api/tune/all?name=' + encodeURIComponent(input))
-	    .then(function (response) {
-		return response.json();
-	    })
-	    .then(function (json) {
-		var searchResultsHTML = '<table>';
-		json['tunes']
-		    .forEach(function (tune) {
-			if (tune['score'] >= scoreThreshold) {
-			    searchResultsHTML
-				+= '<tr>'
-				+    '<td>' + tune['score'] + '</td>'
-				+    '<td>' + tune['tune']['name'] + '</td>'
-				+    '<td>' + tune['version']['bars'] + ' ' + tune['tune']['kind'] + '</td>'
-				+    '<td>' + tune['version']['structure'] + '</td>'
-				+    '<td><a href="#" onClick="addTune(\'' + tune['tune']['slug'] + '\', \'' + tune['version']['subslug'] + '\', \'' + encodeURI(tune['tune']['name']) + '\');">Add</a></td>'
-				+  '</tr>';
-			}
-		    });
-		searchResultsHTML += '</table>';
-		document.getElementById('searchResults').innerHTML = searchResultsHTML;
-	    });
+	var searchResultsHTML = '<table>';
+	allTunes.forEach(function (tune) {
+	    if (~ tune['tune']['name'].toLowerCase().indexOf(input.toLowerCase())) {
+		searchResultsHTML
+		    += '<tr>'
+		    +    '<td>' + tune['score'] + '</td>'
+		    +    '<td>' + tune['tune']['name'] + '</td>'
+		    +    '<td>' + tune['version']['bars'] + ' ' + tune['tune']['kind'] + '</td>'
+		    +    '<td>' + tune['version']['structure'] + '</td>'
+		    +    '<td><a href="#" onClick="addTune(\'' + tune['tune']['slug'] + '\', \'' + tune['version']['subslug'] + '\', \'' + encodeURI(tune['tune']['name']) + '\');">Add</a></td>'
+		    +  '</tr>';
+	    }
+	});
+	searchResultsHTML += '</table>';
+	document.getElementById('searchResults').innerHTML = searchResultsHTML;
     }
 
     function save () {
@@ -120,9 +126,9 @@
     // ======================== Register events ======================== //
 
     document.getElementById('search').addEventListener("keyup", function (event) {
-	if (event.key === 'Enter') {
+	//if (event.key === 'Enter') {
 	    searchTune();
-	}
+	//}
     });
     searchTune();
   </script>
