@@ -10,6 +10,7 @@ val slug : t -> Slug.t
 val default_version : t -> version
 val version : t -> Slug.t -> version
 
+val version_subslug : version -> Slug.t option
 val version_content : version -> string
 
 val to_json : t -> Json.t

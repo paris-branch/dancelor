@@ -12,4 +12,6 @@ module Database : sig
 
   val get : Slug.t -> t
   val get_all : unit -> t list
+
+  val create : name:string -> ?deviser:Credit.t -> kind:Kind.dance -> tunes:Tune.tune_version list -> unit -> t
 end

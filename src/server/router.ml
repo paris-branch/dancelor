@@ -100,6 +100,15 @@ let json_controller_to_html_controller ~view ~controller =
 let make_raw ?(methods=[`GET]) ~path ~controller () =
   (methods, path, controller)
 
+let make_json ?methods ~path ?controller () =
+  let controller =
+    match controller with
+    | None -> (fun _ -> Lwt.return (`O []))
+    | Some controller -> controller
+  in
+  [make_raw ?methods ~path:(Config.api_prefix ^ path)
+     ~controller:(json_controller_to_controller ~controller) ()]
+
 let make_html ?methods ~path ?view ?controller () =
   let view =
     match view with
@@ -141,6 +150,7 @@ let controllers =
     [make_raw ~path:"/set.pdf" ~controller:Set.get_pdf ()] ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
     make_html ~path:"/set/compose" () ;
+    make_json ~path:"/set/save" ~controller:Set.save () ;
     make_both ~path:"/tune" ~controller:Tune.get () ;
     make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
     make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;

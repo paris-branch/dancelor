@@ -64,29 +64,13 @@ let get_pdf query =
     Not_found ->
     error "this set does not exist"
 
-let compose query =
-  let open Option in
-  let name = `String (value ~default:"" (query_string_opt query "name")) in
-  let kind = `String (value ~default:"" (query_string_opt query "kind")) in
-  let tune_jsons, error_jsons =
-    match query_strings_opt query "tunes" with
-    | Some tune_version_slugs ->
-       List.map_partition
-         (fun tune_version_slug ->
-           try
-             Tune.Database.get_tune_version tune_version_slug
-             |> Tune.tune_version_to_jsonm
-             |> (fun json -> List.A json)
-           with
-             Not_found -> List.B (`O ["message", `String ("tune \"" ^ tune_version_slug ^ "\" does not exist")]))
-         tune_version_slugs
-    | None ->
-       [], []
+let save query =
+  let name = query_string query "name" in
+  let kind = Kind.dance_of_string (query_string query "kind") in
+  let tunes =
+    query_strings query "tunes"
+    |> List.map Tune.Database.get_tune_version
   in
-  let set_json = `O [ "name", name ; "kind", kind ; "tunes", `A tune_jsons ; "errors", `A error_jsons ] in
-  let all_tune_jsons =
-    Tune.Database.get_all ()
-    |> List.map (fun (_, tune, version) -> (* FIXME: (tune, version) *)
-           Tune.tune_version_to_jsonm (tune, version))
-  in
-  Lwt.return (`O [ "set", set_json ; "all_tunes", `A all_tune_jsons ])
+  Set.Database.create ~name ~kind ~tunes ()
+  |> Set.to_jsonm
+  |> (fun json -> Lwt.return (`O ["set", json]))
