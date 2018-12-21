@@ -8,8 +8,6 @@
 
   <div id="tunesArea"></div>
 
-  <hr/>
-
   <button type="button" class="btn" onClick="save();">Save</button>
 
   <input type="text" class="form-control" id="search" placeholder="Search for a tune" />
@@ -23,14 +21,16 @@
 
 	tunes.forEach(function (tune, index) {
 	    var [slug, subslug] = tune['slug'].split(':', 2); // subslug can be undefined
-	    tunesAreaHTML += tune['name']
+	    tunesAreaHTML +=
+		tune['name'] + '<br/>'
 		+ '<img src="/tune/version.png?slug=' + slug
 		+ ((typeof subslug === "undefined") ? "&default" : ("&subslug=" + subslug))
-		+ '" />';
-	    tunesAreaHTML += '<button type="button" class="btn" onClick="moveUpTune(' + index + ');">Monter</button>';
-	    tunesAreaHTML += '<button type="button" class="btn" onClick="moveDownTune(' + index + ');">Descendre</button>';
-	    tunesAreaHTML += '<button type="button" class="btn" onClick="removeTune(' + index + ');">Supprimer</button>';
-	    tunesAreaHTML += '<hr/>'
+		+ '" />'
+		+ '<br/>'
+		+ '<button type="button" class="btn" onClick="moveUpTune(' + index + ');">Monter</button>'
+		+ '<button type="button" class="btn" onClick="moveDownTune(' + index + ');">Descendre</button>'
+		+ '<button type="button" class="btn" onClick="removeTune(' + index + ');">Supprimer</button>'
+		+ '<hr/>';
 	});
 
 	document.getElementById('tunesArea').innerHTML = tunesAreaHTML;
