@@ -1,53 +1,39 @@
 <form action="" method="get">
-  <input type="text" class="form-control" name="name" placeholder="Name of the Set" />
+  <input type="text" class="form-control" name="name" placeholder="Set Name" />
   <br/>
 
-  <input type="text" class="form-control" name="kind" placeholder="Kind of the Set (eg. 8x32R)" />
+  <input type="text" class="form-control" name="kind" placeholder="Set Kind (eg. 8x32R)" />
 
   <hr/>
 
   <div id="tunesArea"></div>
 
-  <input type="text" class="form-control" id="add-tune" placeholder="Add a tune" />
-
   <hr/>
 
   <button type="button" class="btn" onClick="save();">Save</button>
 
+  <input type="text" class="form-control" id="search" placeholder="Search for a tune" />
+  <div id="searchResults"></div>
+
   <script type="text/javascript">
     var tunes = [];
-    var allTunes = [];
-    var tunesArea = document.getElementById('tunesArea');
-
-    fetch('/api/tune/all')
-    .then(function(response) {
-	return response.json();
-    })
-    .then(function(myJson) {
-	allTunes = myJson['tunes'];
-    });
 
     function refreshTunes () {
-	tunesArea.innerHTML = '';
+	var tunesAreaHTML = '';
 
-	tunes.forEach(function (slug, index) {
-	    var [slug, subslug] = slug.split(':', 2); // subslug can be undefined
-	    tunesArea.innerHTML +=
-		'<img src="/tune/version.png?slug=' + slug
+	tunes.forEach(function (tune, index) {
+	    var [slug, subslug] = tune['slug'].split(':', 2); // subslug can be undefined
+	    tunesAreaHTML += tune['name']
+		+ '<img src="/tune/version.png?slug=' + slug
 		+ ((typeof subslug === "undefined") ? "&default" : ("&subslug=" + subslug))
 		+ '" />';
-	    tunesArea.innerHTML += '<button type="button" class="btn" onClick="moveUpTune(' + index + ');">Monter</button>';
-	    tunesArea.innerHTML += '<button type="button" class="btn" onClick="moveDownTune(' + index + ');">Descendre</button>';
-	    tunesArea.innerHTML += '<button type="button" class="btn" onClick="removeTune(' + index + ');">Supprimer</button>';
-	    tunesArea.innerHTML += '<hr/>'
+	    tunesAreaHTML += '<button type="button" class="btn" onClick="moveUpTune(' + index + ');">Monter</button>';
+	    tunesAreaHTML += '<button type="button" class="btn" onClick="moveDownTune(' + index + ');">Descendre</button>';
+	    tunesAreaHTML += '<button type="button" class="btn" onClick="removeTune(' + index + ');">Supprimer</button>';
+	    tunesAreaHTML += '<hr/>'
 	});
-    }
 
-    function addTune () {
-	var input = document.getElementById('add-tune');
-	var slug = input.value;
-	tunes.push(slug);
-	refreshTunes();
+	document.getElementById('tunesArea').innerHTML = tunesAreaHTML;
     }
 
     function removeTune (i) {
@@ -73,12 +59,49 @@
 	}
     }
 
+    function addTune (slug, subslug, name) {
+	var slug = slug + ((subslug == 'null') ? '' : ':' + subslug);
+	var name = decodeURI(name);
+     	tunes.push({
+	    slug: slug,
+	    name: name
+	});
+     	refreshTunes();
+    }
+
+    function searchTune () {
+	var scoreThreshold = 80
+	var input = document.getElementById('search').value;
+
+	fetch('/api/tune/all?name=' + encodeURI(input))
+	    .then(function (response) {
+		return response.json();
+	    })
+	    .then(function (json) {
+		var searchResultsHTML = '<table>';
+		json['tunes']
+		    .forEach(function (tune) {
+			if (tune['score'] >= scoreThreshold) {
+			    searchResultsHTML
+				+= '<tr>'
+				+    '<td>' + tune['score'] + '</td>'
+				+    '<td>' + tune['tune']['name'] + '</td>'
+				+    '<td>' + tune['version']['bars'] + ' ' + tune['tune']['kind'] + '</td>'
+				+    '<td>' + tune['version']['structure'] + '</td>'
+				+    '<td><a href="#" onClick="addTune(\'' + tune['tune']['slug'] + '\', \'' + tune['version']['subslug'] + '\', \'' + encodeURI(tune['tune']['name']) + '\');">Add</a></td>'
+				+  '</tr>';
+			}
+		    });
+		searchResultsHTML += '</table>';
+		document.getElementById('searchResults').innerHTML = searchResultsHTML;
+	    });
+    }
+
     // ======================== Register events ======================== //
 
-    document.getElementById('add-tune').addEventListener("keyup", function (event) {
-	if (event.key === "Enter") {
-	    addTune ();
-	}
+    document.getElementById('search').addEventListener("keyup", function (event) {
+	searchTune();
     });
+    searchTune();
   </script>
 </form>
