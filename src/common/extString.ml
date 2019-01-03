@@ -1,5 +1,7 @@
 include String
 
+let pp = Format.pp_print_string
+
 let remove_char c s =
   let b = Bytes.create (length s) in
   let j = ref 0 in
@@ -57,4 +59,29 @@ let%test _ = inclusion_distance "chou" "acoul" = 1
 let%test _ = inclusion_distance "chou" "achhouffe" = 1
 let%test _ = inclusion_distance "chou" "achauffe" = 1
 
-let pp = Format.pp_print_string
+let escape ?(esc='\\') ~chars s =
+  let l = String.length s in
+  let t = Bytes.create (2 * l) in
+  let rec aux i j =
+    if i >= l then
+      (
+        Bytes.sub_string t 0 j
+      )
+    else
+      (
+        if s.[i] = esc || String.contains chars s.[i] then
+          (
+            Bytes.set t j esc;
+            Bytes.set t (j+1) s.[i];
+            aux (i+1) (j+2)
+          )
+        else
+          (
+            Bytes.set t j s.[i];
+            aux (i+1) (j+1)
+          )
+      )
+  in
+  aux 0 0
+
+let%test _ = escape ~chars:"\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\\'lui ai dit \\\\: \\\"Yo, ç\\'va ?\\\""
