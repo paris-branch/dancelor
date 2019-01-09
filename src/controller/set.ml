@@ -32,8 +32,25 @@ let get_pdf query =
   try
     let slug = query_string query "slug" in
     let set = Set.Database.get slug in
-    let json = Set.to_json set in
-    let lilypond = Mustache.render template (Json.to_ezjsonm json) in
+
+    let lilypond =
+      Set.to_json set
+      |> Json.add_field "transpose"
+           (match query_string_opt query "transpose-target"  with
+            | None -> `Bool false
+            | Some target ->
+               let instrument =
+                 match target with
+                 | "bes," -> "B flat"
+                 | "ees" -> "E flat"
+                 | _ -> target
+               in
+               `O [ "target", `String target ;
+                    "instrument", `String instrument ])
+      |> Json.to_ezjsonm
+      |> Mustache.render template
+    in
+
     let path = Filename.concat Config.cache "set" in
     let fname_ly, fname_pdf =
       let fname = spf "%s-%x" (Set.slug set) (Random.int (1 lsl 29)) in

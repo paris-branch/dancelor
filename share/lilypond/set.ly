@@ -3,6 +3,9 @@
 \header {
   title = "{{{name}}}"
   subtitle = "{{{kind}}}"
+  {{#transpose}}
+    instrument = "{{instrument}} Instruments"
+  {{/transpose}}
   tagline = ""
 }
 
@@ -29,6 +32,8 @@
     opus = "{{#tune.author}}{{{line}}}{{/tune.author}}"
   }
 
-  {{{version.content}}}
+  {{#transpose}}\transpose {{{target}}} c { {{/transpose}}
+    {{{version.content}}}
+  {{#transpose}} } {{/transpose}}
 }
 {{/tunes}}
