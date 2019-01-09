@@ -39,9 +39,11 @@
   evenHeaderMarkup = \oddHeaderMarkup
 
   oddFooterMarkup = \markup {
-    \fill-line {
-      " "
-      \concat { "Page " \fromproperty #'page:page-number-string }
+    \on-the-fly \not-first-page {
+      \fill-line {
+	" "
+	\concat { "Page " \fromproperty #'page:page-number-string }
+      }
     }
   }
   evenFooterMarkup = \oddFooterMarkup
