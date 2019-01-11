@@ -30,7 +30,7 @@ let get_ly query =
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.version_content version) ()
 
 module Png = struct
-  let cache : (Tune.t * Tune.version, string Lwt.t) Hashtbl.t = Hashtbl.create 8
+  let cache : (Tune.t * Tune.version, string Lwt.t) Cache.t = Cache.create ()
 
   let template =
     let path = Filename.concat_l [Config.share; "lilypond"; "tune.ly"] in
@@ -46,14 +46,10 @@ module Png = struct
   let get query =
     let (tune, version) = tune_version_from_query query in
     let processor =
-      try
-        let processor = Hashtbl.find cache (tune, version) in
-        Log.debug (fun m -> m "Found in cache");
-        processor
-      with
-        Not_found ->
-        let processor =
-          Log.debug (fun m -> m "Not in the cache. Rendering the Lilypond version");
+      Cache.use
+        cache (tune, version)
+        (fun () ->
+          Log.debug (fun m -> m "Rendering the Lilypond version");
           let json = Tune.tune_version_to_json (tune, version) in
           let lilypond = Mustache.render template (Json.to_ezjsonm json) in
           let path = Filename.concat Config.cache "tune" in
@@ -80,10 +76,7 @@ module Png = struct
                   Lwt.return ())
             )
           >>= fun () ->
-          Lwt.return (Filename.concat path fname_png)
-        in
-        Hashtbl.add cache (tune, version) processor;
-        processor
+          Lwt.return (Filename.concat path fname_png))
     in
     processor >>= fun path_png ->
     Cohttp_lwt_unix.Server.respond_file ~fname:path_png ()
