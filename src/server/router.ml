@@ -145,6 +145,7 @@ let controllers =
   [
     make_html ~path:"/" ~view:"/index" () ;
     make_both ~path:"/credit" ~controller:Credit.get () ;
+    make_json ~path:"/kill" ~controller:(fun _ -> exit 0) () ;
     make_both ~path:"/person" ~controller:Person.get () ;
     make_both ~path:"/set" ~controller:Set.get () ;
     [make_raw ~path:"/set.pdf" ~controller:Set.get_pdf ()] ;
