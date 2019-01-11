@@ -68,12 +68,21 @@ let version_unserialize (json, content) =
 
 let unserialize (json, versions) =
   let author = Json.(get_opt ~k:(slug >=> (Credit.Database.get ||> wrap)) ["author"] json) in
+  if versions = [] then
+    failwith "Dancelor_model.Tune.unserialize: no versions";
   let default_version, other_versions =
     match Json.(get_opt ~k:slug ["default"] json) with
     | Some subslug ->
        (match List.partition (fun version -> version.subslug = Some subslug) versions with
-        | [default_version], other_versions -> default_version, other_versions
-        | _ -> failwith "Dancelor_model.Tune.unserialize: several versions with the same subslug")
+        | [default_version], other_versions ->
+           if List.for_all (fun version -> version.subslug <> None) other_versions then
+             default_version, other_versions
+           else
+             failwith "Dancelor_model.Tune.unserialize: versions without subslug"
+        | [], _ ->
+           failwith "Dancelor_model.Tune.unserialize: non-existing default subslug"
+        | _, _ ->
+           failwith "Dancelor_model.Tune.unserialize: versions with the same subslug")
     | None ->
        (match versions with
         | [default_version] -> default_version, []
