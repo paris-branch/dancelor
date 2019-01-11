@@ -59,22 +59,7 @@ let get_pdf query =
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
       (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
     Log.debug (fun m -> m "Processing with Lilypond");
-    Lwt_process.with_process_full
-      ~env:[|"PATH="^(Unix.getenv "PATH");
-             "LANG=en"|]
-      (Lwt_process.shell
-         ("cd " ^ path ^ " && " ^ Config.lilypond ^ " --loglevel=WARNING " ^ fname_ly))
-      (fun process ->
-        process#status >>= fun status ->
-        (match status with
-         | WEXITED 0 ->
-            Lwt.return ()
-         | _ ->
-            Lwt_io.read process#stderr >>= fun output ->
-            Log.err (fun m -> m "Error while running Lilypond:@\n%a" pp_string_multiline output);
-            Lwt.return ())
-      )
-    >>= fun () ->
+    Lilypond.run ~exec_path:path fname_ly >>= fun () ->
     let path_pdf = Filename.concat path fname_pdf in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
   with

@@ -10,7 +10,7 @@ let shell_cmdline s =
   List.map escape_shell_argument s
   |> String.concat " "
 
-let run ?(exec_path=".") filename =
+let run ?(exec_path=".") ?(options=[]) filename =
   let (>>=) = Lwt.bind in
   let open Lwt_process in
 
@@ -21,9 +21,7 @@ let run ?(exec_path=".") filename =
     (shell
        ("cd " ^ (escape_shell_argument exec_path) ^ " && "
         ^ (shell_cmdline
-             [Config.lilypond;
-              "-dresolution=110"; "-dbackend=eps"; "--loglevel=WARNING"; "--png";
-              filename])))
+             ([Config.lilypond; "--loglevel=WARNING"] @ options @ [filename]))))
 
     (fun process ->
       process#status >>= fun status ->

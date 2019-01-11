@@ -60,7 +60,7 @@ module Png = struct
           Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
             (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
           Log.debug (fun m -> m "Processing with Lilypond");
-          Lilypond.run ~exec_path:path fname_ly
+          Lilypond.run ~exec_path:path ~options:["-dresolution=110"; "-dbackend=eps"; "--png"] fname_ly
           >>= fun () ->
           Lwt.return (Filename.concat path fname_png))
     in
