@@ -33,6 +33,7 @@ let link_adders =
       let link ext = "/set" ^ ext ^ "?slug=" ^ slug in
       Json.add_fields
         ["link", `String (link "");
+         "link_ly", `String (link ".ly");
          "link_pdf", `String (link ".pdf")]
         set) ;
 
@@ -148,6 +149,7 @@ let controllers =
     make_json ~path:"/kill" ~controller:(fun _ -> exit 0) () ;
     make_both ~path:"/person" ~controller:Person.get () ;
     make_both ~path:"/set" ~controller:Set.get () ;
+    [make_raw ~path:"/set.ly" ~controller:Set.get_ly ()] ;
     [make_raw ~path:"/set.pdf" ~controller:Set.get_pdf ()] ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
     make_html ~path:"/set/compose" () ;
