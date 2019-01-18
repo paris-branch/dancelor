@@ -1,5 +1,4 @@
 open ExtPervasives
-module Log = (val Log.create "dancelor.common.json" : Logs.LOG)
 
 type value = Ezjsonm.value
 type t = [ `O of (string * value) list ]

@@ -3,5 +3,6 @@
     "lilypond": "lilypond",
     "cache": "cache",
     "database": "database",
-    "views": "views"
+    "views": "views",
+    "loglevel": "debug"
 }
