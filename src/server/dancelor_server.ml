@@ -22,6 +22,9 @@ let cleanup_query query =
   |> List.sort (fun (k1, _) (k2, _) -> compare k1 k2)
   |> merge_duplicates
 
+let log_exn ~msg exn =
+  Log.err (fun m -> m "%s@\n%s@\n%a" msg (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
+
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
      exceptions. *)
@@ -48,12 +51,17 @@ let callback _ request _body =
          Server.respond_not_found ()
     with
       exn ->
-      Log.err (fun m -> m "Uncaught exception in the callback:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+      log_exn ~msg:"Uncaught exception in the callback" exn;
       Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
   with
     exn ->
-    Log.err (fun m -> m "Uncaught Lwt exception in the callback:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+    log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
     Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
+
+let () =
+  Lwt.async_exception_hook :=
+    (fun exn ->
+      log_exn ~msg:"Uncaught asynchronous exception" exn)
 
 let () =
   Dancelor_model.Database.initialise ();
@@ -64,7 +72,7 @@ let () =
           ~mode:(`TCP (`Port Config.port))
           (Server.make ~callback ()))
       (fun exn ->
-        Log.err (fun m -> m "Uncaught Lwt exception in the server:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+        log_exn ~msg:"Uncaught Lwt exception in the server" exn;
         Lwt.return ())
   in
   Log.info (fun m -> m "Up and running");
@@ -72,4 +80,4 @@ let () =
     Lwt_main.run server
   with
     exn ->
-    Log.err (fun m -> m "Uncaught exception in the server:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
+    log_exn ~msg:"Uncaught exception in the server" exn
