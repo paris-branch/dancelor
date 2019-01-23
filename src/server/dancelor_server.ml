@@ -60,8 +60,11 @@ let callback _ request _body =
 
 let () =
   Lwt.async_exception_hook :=
-    (fun exn ->
-      log_exn ~msg:"Uncaught asynchronous exception" exn)
+    (function
+     | Unix.Unix_error(Unix.EPIPE, _, _) ->
+        Log.warn (fun m -> m "Connection closed by the client")
+     | exn ->
+        log_exn ~msg:"Uncaught asynchronous exception" exn)
 
 let () =
   Dancelor_model.Database.initialise ();
