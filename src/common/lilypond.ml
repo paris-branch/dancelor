@@ -14,6 +14,8 @@ let run ?(exec_path=".") ?(options=[]) filename =
   let (>>=) = Lwt.bind in
   let open Lwt_process in
 
+  Log.debug (fun m -> m "Running Lilypond[%s]..." filename);
+
   with_process_full
     ~env:[|"PATH="^(Unix.getenv "PATH");
            "LANG=en"|]
@@ -27,9 +29,10 @@ let run ?(exec_path=".") ?(options=[]) filename =
       process#status >>= fun status ->
       (match status with
        | WEXITED 0 ->
+          Log.debug (fun m -> m "Lilypond[%s] exited with success." filename);
           Lwt.return ()
        | _ ->
           Lwt_io.read process#stderr >>= fun output ->
-          Log.err (fun m -> m "Error while running Lilypond:@\n%a" pp_string_multiline output);
+          Log.err (fun m -> m "Error while running Lilypond[%s]:@\n%a" filename pp_string_multiline output);
           Lwt.return ())
     )
