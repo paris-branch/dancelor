@@ -41,6 +41,6 @@ let run ?(exec_path=".") ?(options=[]) filename =
 
     (function
      | Unix.Unix_error(Unix.EPIPE, _, _) ->
-        Log.debug (fun m -> m "Lilypond[%s] triggered an EPIPE error" filename);
+        Log.warn (fun m -> m "Lilypond[%s] triggered an EPIPE error" filename);
         Lwt.return ()
      | exn -> Lwt.fail exn)
