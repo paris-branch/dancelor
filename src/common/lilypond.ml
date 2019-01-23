@@ -35,6 +35,7 @@ let run ?(exec_path=".") ?(options=[]) filename =
               Log.debug (fun m -> m "Lilypond[%s] exited with success." filename);
               Lwt.return ()
            | _ ->
+              Log.debug (fun m -> m "About to read Lilypond[%s]'s stderr" filename);
               Lwt_io.read process#stderr >>= fun output ->
               Log.err (fun m -> m "Error while running Lilypond[%s]:@\n%a" filename pp_string_multiline output);
               Lwt.return ())))
