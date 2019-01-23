@@ -159,5 +159,6 @@ let controllers =
     make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
     [make_raw ~path:"/tune/version.ly" ~controller:TuneVersion.get_ly ()] ;
     [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
+    [make_raw ~path:"/pascaline" ~controller:(fun _ -> Server.respond_error ~status:`Bad_gateway ~body:"502 Bad Gateway (pour Pascaline Latour)" ()) ()]
   ]
   |> List.flatten
