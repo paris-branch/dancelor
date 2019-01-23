@@ -48,7 +48,7 @@ let callback _ request _body =
          Server.respond_not_found ()
     with
       exn ->
-      Log.err (fun m -> m "Uncaught regular exception in the callback:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+      Log.err (fun m -> m "Uncaught exception in the callback:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
       Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
   with
     exn ->
@@ -68,5 +68,8 @@ let () =
         Lwt.return ())
   in
   Log.info (fun m -> m "Up and running");
-  Lwt_main.run server;
-  assert false
+  try
+    Lwt_main.run server
+  with
+    exn ->
+    Log.err (fun m -> m "Uncaught exception in the server:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
