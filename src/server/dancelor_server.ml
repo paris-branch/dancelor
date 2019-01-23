@@ -48,19 +48,25 @@ let callback _ request _body =
          Server.respond_not_found ()
     with
       exn ->
-      Log.err (fun m -> m "Uncaught exception: %s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+      Log.err (fun m -> m "Uncaught regular exception in the callback:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
       Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
   with
     exn ->
-    Log.err (fun m -> m "Uncaught exception: %s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+    Log.err (fun m -> m "Uncaught Lwt exception in the callback:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
     Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
 
 let () =
   Dancelor_model.Database.initialise ();
   let server =
-    Server.create
-      ~mode:(`TCP (`Port Config.port))
-      (Server.make ~callback ())
+    Lwt.catch
+      (fun () ->
+        Server.create
+          ~mode:(`TCP (`Port Config.port))
+          (Server.make ~callback ()))
+      (fun exn ->
+        Log.err (fun m -> m "Uncaught Lwt exception in the server:@\n%s@\n%a" (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()));
+        Lwt.return ())
   in
   Log.info (fun m -> m "Up and running");
-  ignore (Lwt_main.run server)
+  Lwt_main.run server;
+  assert false
