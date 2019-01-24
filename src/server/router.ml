@@ -146,7 +146,7 @@ let controllers =
   [
     make_html ~path:"/" ~view:"/index" () ;
     make_both ~path:"/credit" ~controller:Credit.get () ;
-    make_json ~path:"/kill" ~controller:(fun _ -> exit 0) () ;
+    [make_raw ~path:"/pascaline" ~controller:(fun _ -> Server.respond_error ~status:`Bad_gateway ~body:"502 Bad Gateway (pour Pascaline Latour)" ()) ()] ;
     make_both ~path:"/person" ~controller:Person.get () ;
     make_both ~path:"/set" ~controller:Set.get () ;
     [make_raw ~path:"/set.ly" ~controller:Set.get_ly ()] ;
@@ -159,6 +159,6 @@ let controllers =
     make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
     [make_raw ~path:"/tune/version.ly" ~controller:TuneVersion.get_ly ()] ;
     [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
-    [make_raw ~path:"/pascaline" ~controller:(fun _ -> Server.respond_error ~status:`Bad_gateway ~body:"502 Bad Gateway (pour Pascaline Latour)" ()) ()]
+    [make_raw ~path:"/victor" ~controller:(fun _ -> exit 0) ()] ;
   ]
   |> List.flatten
