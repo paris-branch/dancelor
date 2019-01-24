@@ -67,7 +67,13 @@ let () =
         log_exn ~msg:"Uncaught asynchronous exception" exn)
 
 let () =
+  Log.info (fun m -> m "Initialising database");
   Dancelor_model.Database.initialise ();
+
+  Log.info (fun m -> m "Starting routines");
+  Routine.initialise ();
+
+  Log.info (fun m -> m "Starting server");
   let server =
     Lwt.catch
       (fun () ->
@@ -78,7 +84,7 @@ let () =
         log_exn ~msg:"Uncaught Lwt exception in the server" exn;
         Lwt.return ())
   in
-  Log.info (fun m -> m "Up and running");
+  Log.info (fun m -> m "Server is up and running");
   try
     Lwt_main.run server
   with
