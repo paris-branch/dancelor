@@ -146,7 +146,7 @@ let controllers =
   [
     make_html ~path:"/" ~view:"/index" () ;
     make_both ~path:"/credit" ~controller:Credit.get () ;
-    [make_raw ~path:"/pascaline" ~controller:(fun _ -> Server.respond_error ~status:`Bad_gateway ~body:"502 Bad Gateway (pour Pascaline Latour)" ()) ()] ;
+    make_html ~path:"/pascaline" ~view:"/bad-gateway" () ;
     make_both ~path:"/person" ~controller:Person.get () ;
     make_both ~path:"/set" ~controller:Set.get () ;
     [make_raw ~path:"/set.ly" ~controller:Set.get_ly ()] ;
