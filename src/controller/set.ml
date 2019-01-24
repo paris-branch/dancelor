@@ -15,6 +15,7 @@ let get query =
 
 let get_all _query =
   Set.Database.get_all ()
+  |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
   |> List.map Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["sets", `A json]))
 
