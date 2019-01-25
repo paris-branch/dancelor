@@ -26,7 +26,7 @@ let run ?(exec_path=".") ?(options=[]) filename =
         (shell
            ("cd " ^ (escape_shell_argument exec_path) ^ " && "
             ^ (shell_cmdline
-                 ([Config.lilypond; "--loglevel=WARNING"] @ options @ [filename]))))
+                 ([Config.lilypond; "--loglevel=WARNING"; "-dno-point-and-click"] @ options @ [filename]))))
 
         (fun process ->
           process#status >>= fun status ->

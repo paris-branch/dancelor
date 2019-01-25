@@ -41,7 +41,14 @@ let link_adders =
 
     "person", out_of_slug "/person";
 
-    "program", out_of_slug "/program";
+    "program", (fun program ->
+      let slug = Json.(get ~k:slug ["slug"] program) in
+      let link ext = "/program" ^ ext ^ "?slug=" ^ slug in
+      Json.add_fields
+        ["link", `String (link "");
+         "link_ly", `String (link ".ly");
+         "link_pdf", `String (link ".pdf")]
+        program) ;
 
     "tune", out_of_slug "/tune";
 
@@ -147,22 +154,30 @@ let make_both ?methods ~path ?view ?controller () =
 let controllers =
   [
     make_html ~path:"/" ~view:"/index" () ;
+
     make_both ~path:"/credit" ~controller:Credit.get () ;
+
     make_html ~path:"/pascaline" ~view:"/bad-gateway" () ;
+
     make_both ~path:"/person" ~controller:Person.get () ;
+
     make_both ~path:"/program" ~controller:Program.get () ;
+    [make_raw ~path:"/program.pdf" ~controller:Program.Pdf.get ()] ;
     make_both ~path:"/program/all" ~controller:Program.get_all () ;
+
     make_both ~path:"/set" ~controller:Set.get () ;
     [make_raw ~path:"/set.ly" ~controller:Set.Ly.get ()] ;
     [make_raw ~path:"/set.pdf" ~controller:Set.Pdf.get ()] ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
     make_html ~path:"/set/compose" () ;
     make_json ~path:"/set/save" ~controller:Set.save () ;
+
     make_both ~path:"/tune" ~controller:Tune.get () ;
     make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
     make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
     [make_raw ~path:"/tune/version.ly" ~controller:TuneVersion.get_ly ()] ;
     [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
+
     [make_raw ~path:"/victor" ~controller:(fun _ -> exit 0) ()] ;
   ]
   |> List.flatten
