@@ -4,6 +4,7 @@ module Kind = Kind
 module Person = Person
 module Set = Set
 module Tune = Tune
+module Program = Program
 module Music = Music
 
 module Database =
@@ -12,5 +13,6 @@ module Database =
       Person.Database.initialise ();
       Credit.Database.initialise ();
       Tune.Database.initialise ();
-      Set.Database.initialise ()
+      Set.Database.initialise ();
+      Program.Database.initialise ();
   end

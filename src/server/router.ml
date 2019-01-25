@@ -41,6 +41,8 @@ let link_adders =
 
     "person", out_of_slug "/person";
 
+    "program", out_of_slug "/program";
+
     "tune", out_of_slug "/tune";
 
     "tune-version", (fun version ->
@@ -64,7 +66,7 @@ let rec json_add_links json =
      (
        let json = `O (List.map (fun (field, value) -> (field, json_add_links value)) fields) in
        match Json.(get_opt ~k:string ["type"] json) with
-       | Some type_ -> Json.to_value (List.assoc type_ link_adders json)
+| Some type_ -> Json.to_value (List.assoc type_ link_adders json)
        | None -> json
      )
   | `A jsons ->
@@ -148,9 +150,11 @@ let controllers =
     make_both ~path:"/credit" ~controller:Credit.get () ;
     make_html ~path:"/pascaline" ~view:"/bad-gateway" () ;
     make_both ~path:"/person" ~controller:Person.get () ;
+    make_both ~path:"/program" ~controller:Program.get () ;
+    make_both ~path:"/program/all" ~controller:Program.get_all () ;
     make_both ~path:"/set" ~controller:Set.get () ;
-    [make_raw ~path:"/set.ly" ~controller:Set.get_ly ()] ;
-    [make_raw ~path:"/set.pdf" ~controller:Set.get_pdf ()] ;
+    [make_raw ~path:"/set.ly" ~controller:Set.Ly.get ()] ;
+    [make_raw ~path:"/set.pdf" ~controller:Set.Pdf.get ()] ;
     make_both ~path:"/set/all" ~controller:Set.get_all () ;
     make_html ~path:"/set/compose" () ;
     make_json ~path:"/set/save" ~controller:Set.save () ;

@@ -19,23 +19,20 @@ let get_all _query =
   |> List.map Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["sets", `A json]))
 
-let template =
-  let path = Filename.concat_l [Config.share; "lilypond"; "set.ly"] in
-  Log.debug (fun m -> m "Loading template file %s" path);
-  let ichan = open_in path in
-  let template = Lexing.from_channel ichan |> Mustache.parse_lx in
-  close_in ichan;
-  Log.debug (fun m -> m "Loaded successfully");
-  template
+module Ly = struct
+  let template =
+    let path = Filename.concat_l [Config.share; "lilypond"; "set.ly"] in
+    Log.debug (fun m -> m "Loading template file %s" path);
+    let ichan = open_in path in
+    let template = Lexing.from_channel ichan |> Mustache.parse_lx in
+    close_in ichan;
+    Log.debug (fun m -> m "Loaded successfully");
+    template
 
-let lilypond_from_query query =
-  try
-    let slug = query_string query "slug" in
-    let set = Set.Database.get slug in
-
+  let render ?transpose_target set =
     Set.to_json set
     |> Json.add_field "transpose"
-         (match query_string_opt query "transpose-target"  with
+         (match transpose_target with
           | None -> `Bool false
           | Some target ->
              let instrument =
@@ -48,31 +45,50 @@ let lilypond_from_query query =
                   "instrument", `String instrument ])
     |> Json.to_ezjsonm
     |> Mustache.render template
-  with
-    Not_found ->
-    error "this set does not exist"
 
-let get_ly query =
-  let lilypond = lilypond_from_query query in
-  Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
+  let get query =
+    try
+      let slug = query_string query "slug" in
+      let set = Set.Database.get slug in
+      let lilypond = render ?transpose_target:(query_string_opt query "transpose-target") set in
+      Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
+    with
+      Not_found ->
+      error "this set does not exist"
+end
 
-let get_pdf query =
-  let (>>=) = Lwt.bind in
-  let slug = query_string query "slug" in
+module Pdf = struct
+  let cache : (Set.t, string Lwt.t) Cache.t = Cache.create ()
 
-  let lilypond = lilypond_from_query query in
+  let (>>=) = Lwt.bind
 
-  let path = Filename.concat Config.cache "set" in
-  let fname_ly, fname_pdf =
-    let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
-    (fname^".ly", fname^".pdf")
-  in
-  Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
-    (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
-  Log.debug (fun m -> m "Processing with Lilypond");
-  Lilypond.run ~exec_path:path fname_ly >>= fun () ->
-  let path_pdf = Filename.concat path fname_pdf in
-  Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
+  let render ?transpose_target set =
+    Cache.use
+      cache set
+      (fun () ->
+        let lilypond = Ly.render ?transpose_target set in
+        let path = Filename.concat Config.cache "set" in
+        let fname_ly, fname_pdf =
+          let fname = spf "%s-%x" (Set.slug set) (Random.int (1 lsl 29)) in
+          (fname^".ly", fname^".pdf")
+        in
+        Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
+          (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
+        Log.debug (fun m -> m "Processing with Lilypond");
+        Lilypond.run ~exec_path:path fname_ly >>= fun () ->
+        let path_pdf = Filename.concat path fname_pdf in
+        Lwt.return path_pdf)
+
+  let get query =
+    try
+      let slug = query_string query "slug" in
+      let set = Set.Database.get slug in
+      render ?transpose_target:(query_string_opt query "transpose-target") set >>= fun path_pdf ->
+      Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
+    with
+      Not_found ->
+      error "this set does not exist"
+end
 
 let save query =
   let name = query_string query "name" in
