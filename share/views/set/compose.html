@@ -8,7 +8,7 @@
 
   <div id="tunesArea"></div>
 
-  <button type="button" class="btn" onClick="save();">Save</button>
+  <button type="button" class="btn btn-success" onClick="save();">Save</button>
 
   <input type="text" class="form-control" id="search" placeholder="Search for a tune (press enter to apply search)" />
   <div id="searchResults"></div>
@@ -41,9 +41,9 @@
 		+ ((typeof subslug === "undefined") ? "&default" : ("&subslug=" + subslug))
 		+ '" />'
 		+ '<br/>'
-		+ '<button type="button" class="btn" onClick="moveUpTune(' + index + ');">Monter</button>'
-		+ '<button type="button" class="btn" onClick="moveDownTune(' + index + ');">Descendre</button>'
-		+ '<button type="button" class="btn" onClick="removeTune(' + index + ');">Supprimer</button>'
+		+ '<button type="button" class="btn btn-default" onClick="moveUpTune(' + index + ');">Monter</button>'
+		+ '<button type="button" class="btn btn-default" onClick="moveDownTune(' + index + ');">Descendre</button>'
+		+ '<button type="button" class="btn btn-danger" onClick="removeTune(' + index + ');">Supprimer</button>'
 		+ '<hr/>';
 	});
 
