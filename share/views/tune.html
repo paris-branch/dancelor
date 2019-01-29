@@ -1,33 +1,10 @@
-<h1>{{tune.name}}</h1>
+{{#tune}}
+<h1>{{group.name}}</h1>
 
-{{#tune.author}}<p>Author: <a href="{{tune.author.link}}">{{tune.author.line}}</a></p>{{/tune.author}}
-
-<table>
-  <tr>
-    <th>Default</th>
-    <th>Kind</th>
-    <th>Structure</th>
-    <th>Key</th>
-    <th>Link</th>
-  </tr>
-
-  {{#tune.default_version}}
-  <tr>
-    <td>Default</td>
-    <td>{{bars}} {{tune.kind}}</td>
-    <td>{{structure}}</td>
-    <td>{{key}}</td>
-    <td><a href="{{link}}">See</a></td>
-  </tr>
-  {{/tune.default_version}}
-
-  {{#tune.other_versions}}
-  <tr>
-    <td>Default</td>
-    <td>{{bars}} {{tune.kind}}</td>
-    <td>{{structure}}</td>
-    <td>{{key}}</td>
-    <td><a href="{{link}}">See</a></td>
-  </tr>
-  {{/tune.other_versions}}
-</table>
+<p>Kind: {{bars}} {{group.kind}}</p>
+<p>Structure: {{structure}}</p>
+<p>Key: {{key}}</p>
+<img src="{{link_png}}" />
+<br/>
+<a href="{{link_ly}}">Get the Lilypond</a> - <a href="{{group.link}}">See other versions</a>
+{{/tune}}

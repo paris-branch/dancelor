@@ -3,7 +3,7 @@ open Protocol_conv_jsonm
 
 type t =
   { slug : Slug.t ;
-    tune_group : TuneGroup.t ;
+    group : TuneGroup.t ;
     bars : int ;
     key : Music.key ;
     structure : string ;
@@ -21,7 +21,7 @@ let to_json = to_jsonm ||> Json.of_value
 
 let unserialize (json, content) =
   { slug = Json.(get ~k:slug ["slug"] json) ;
-    tune_group = Json.(get ~k:(slug >=> (TuneGroup.Database.get ||> wrap)) ["tune-group"] json) ;
+    group = Json.(get ~k:(slug >=> (TuneGroup.Database.get ||> wrap)) ["tune-group"] json) ;
     bars = Json.(get ~k:int ["bars"] json) ;
     key = Json.(get ~k:(string >=> (Music.key_of_string ||> wrap)) ["key"] json) ;
     structure = Json.(get ~k:string ["structure"] json) ;
@@ -29,7 +29,7 @@ let unserialize (json, content) =
     content }
 
 let slug tune = tune.slug
-let tune_group tune = tune.tune_group
+let group tune = tune.group
 let key tune = tune.key
 let content tune = tune.content
 
@@ -70,20 +70,20 @@ module Database =
             | None -> fun x -> x
             | Some name ->
                (fun (score, tune) ->
-                 (score *. match_score name (TuneGroup.name (tune_group tune)), tune)))
+                 (score *. match_score name (TuneGroup.name (group tune)), tune)))
       |> Seq.map
            (match author with
             | None -> fun x -> x
             | Some author ->
                (fun (score, tune) ->
-                 match TuneGroup.author (tune_group tune) with
+                 match TuneGroup.author (group tune) with
                  | None -> (0., tune)
                  | Some author' ->
                     (score *. match_score author (Credit.line author'), tune)))
       |> Seq.filter
            (match kind with
             | None -> fun _ -> true
-            | Some kind -> (fun (_, tune) -> TuneGroup.kind (tune_group tune) = kind))
+            | Some kind -> (fun (_, tune) -> TuneGroup.kind (group tune) = kind))
       |> Seq.filter
            (match keys with
             | None -> fun _ -> true

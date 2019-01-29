@@ -34,12 +34,9 @@
 	var tunesAreaHTML = '';
 
 	tunes.forEach(function (tune, index) {
-	    var [slug, subslug] = tune['slug'].split(':', 2); // subslug can be undefined
 	    tunesAreaHTML +=
-		tune['name'] + '<br/>'
-		+ '<img src="/tune/version.png?slug=' + slug
-		+ ((typeof subslug === "undefined") ? "&default" : ("&subslug=" + subslug))
-		+ '" />'
+		tune['group']['name'] + '<br/>'
+		+ '<img src="/tune.png?slug=' + tune['slug'] + '" />'
 		+ '<br/>'
 		+ '<button type="button" class="btn btn-default" onClick="moveUpTune(' + index + ');">Monter</button>'
 		+ '<button type="button" class="btn btn-default" onClick="moveDownTune(' + index + ');">Descendre</button>'
@@ -73,13 +70,14 @@
 	}
     }
 
-    function addTune (slug, subslug, name) {
-	var slug = slug + ((subslug == 'null') ? '' : ':' + subslug);
-	var name = decodeURI(name);
-     	tunes.push({
-	    slug: slug,
-	    name: name
+    function tuneFromSlug (slug) {
+	return allTunes.find(function (tune) {
+	    return (tune['slug'] == slug);
 	});
+    }
+
+    function addTune (slug) {
+     	tunes.push(tuneFromSlug(slug));
      	refreshTunes();
     }
 
@@ -88,14 +86,14 @@
 
 	var searchResultsHTML = '<table>';
 	allTunes.forEach(function (tune) {
-	    if (~ tune['tune']['name'].toLowerCase().indexOf(input.toLowerCase())) {
+	    if (~ tune['group']['name'].toLowerCase().indexOf(input.toLowerCase())) {
 		searchResultsHTML
 		    += '<tr>'
 		    +    '<td>' + tune['score'] + '</td>'
-		    +    '<td>' + tune['tune']['name'] + '</td>'
-		    +    '<td>' + tune['version']['bars'] + ' ' + tune['tune']['kind'] + '</td>'
-		    +    '<td>' + tune['version']['structure'] + '</td>'
-		    +    '<td><a href="#" onClick="addTune(\'' + tune['tune']['slug'] + '\', \'' + tune['version']['subslug'] + '\', \'' + tune['tune']['name'].replace(/'/g, '\\x27').replace(/"/, '\\x22') + '\');">Add</a></td>'
+		    +    '<td>' + tune['group']['name'] + '</td>'
+		    +    '<td>' + tune['bars'] + ' ' + tune['group']['kind'] + '</td>'
+		    +    '<td>' + tune['structure'] + '</td>'
+		    +    '<td><a href="#" onClick="addTune(\'' + tune['slug'] + '\');">Add</a></td>'
 		    +  '</tr>';
 	    }
 	});

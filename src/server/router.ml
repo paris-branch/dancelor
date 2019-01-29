@@ -50,18 +50,14 @@ let link_adders =
          "link_pdf", `String (link ".pdf")]
         program) ;
 
-    "tune", out_of_slug "/tune";
+    "tune-group", out_of_slug "/tune-group";
 
-    "tune-version", (fun version ->
-      let tune_slug = Json.(get ~k:slug ["tune-slug"] version) in
+    "tune", (fun tune ->
+      let slug = Json.(get ~k:slug ["slug"] tune) in
       let link ext =
-        "/tune/version" ^ ext
-        ^ "?slug=" ^ tune_slug
-        ^ match Json.(get_opt ~k:slug ["subslug"] version) with
-          | Some subslug -> "&subslug=" ^ subslug
-          | None -> "&default"
+        "/tune" ^ ext ^ "?slug=" ^ slug
       in
-      version
+      tune
       |> Json.add_fields
            ["link", `String (link "");
             "link_ly", `String (link ".ly");
@@ -73,7 +69,7 @@ let rec json_add_links json =
      (
        let json = `O (List.map (fun (field, value) -> (field, json_add_links value)) fields) in
        match Json.(get_opt ~k:string ["type"] json) with
-| Some type_ -> Json.to_value (List.assoc type_ link_adders json)
+       | Some type_ -> Json.to_value (List.assoc type_ link_adders json)
        | None -> json
      )
   | `A jsons ->

@@ -55,11 +55,11 @@
   {{#tunes}}
   <tr>
     <td>{{score}}</td>
-    <td><a href="{{version.link}}">{{tune.name}}</a></td>
-    <td>{{version.bars}} {{tune.kind}}</td>
-    <td>{{version.key}}</td>
-    <td>{{version.structure}}</td>
-    <td>{{#tune.author}}<a href="{{link}}">{{line}}</a>{{/tune.author}}</td>
+    <td><a href="{{link}}">{{group.name}}</a></td>
+    <td>{{bars}} {{group.kind}}</td>
+    <td>{{key}}</td>
+    <td>{{structure}}</td>
+    <td>{{#group.author}}<a href="{{link}}">{{line}}</a>{{/group.author}}</td>
   </tr>
   {{/tunes}}
 </table>

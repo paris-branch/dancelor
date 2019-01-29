@@ -1,16 +1,18 @@
-<h1>{{set.name}}</h1>
+{{#set}}
+<h1>{{name}}</h1>
 
-{{#set.deviser}}<p>Deviser: {{line}}</p>{{/set.deviser}}
-<p>Kind: {{set.kind}}</p>
-<a href="{{set.link_pdf}}">Link to the PDF</a>
-(<a href="{{set.link_pdf}}&transpose-target=bes%2c">B flat version</a>)
-(<a href="{{set.link_pdf}}&transpose-target=ees">E flat version</a>)
-<a href="{{set.link_ly}}">Link to the Lilypond</a>
+{{#deviser}}<p>Deviser: {{line}}</p>{{/deviser}}
+<p>Kind: {{kind}}</p>
+<a href="{{link_pdf}}">Link to the PDF</a>
+(<a href="{{link_pdf}}&transpose-target=bes%2c">B flat version</a>)
+(<a href="{{link_pdf}}&transpose-target=ees">E flat version</a>)
+<a href="{{link_ly}}">Link to the Lilypond</a>
 
 <hr/>
 <h2>Previsualisation</h2>
 
-{{#set.tunes}}
-<a href="{{version.link}}">{{tune.name}}</a><br/>
-<img src="{{version.link_png}}" /><br/>
-{{/set.tunes}}
+{{#tunes}}
+<a href="{{link}}">{{group.name}}</a><br/>
+<img src="{{link_png}}" /><br/>
+{{/tunes}}
+{{/set}}
