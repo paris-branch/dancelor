@@ -6,7 +6,7 @@ type t =
     name : string ;
     deviser : Credit.t option ;
     kind : Kind.dance ;
-    tunes : Tune.tune_version list }
+    tunes : Tune.t list }
 [@@deriving to_protocol ~driver:(module Jsonm)]
 
 let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "set"))
@@ -21,14 +21,10 @@ let unserialize json =
       unwrap (
           Json.list (
               function
-              | `String slug ->
-                 let tune = Tune.Database.get slug in
-                 Some (tune, Tune.default_version tune)
-              | `A [`String slug; `String subslug] ->
-                 let tune = Tune.Database.get slug in
-                 Some (tune, Tune.version tune subslug)
+              | `String slug -> Some (Tune.Database.get slug)
               | _ -> failwith "Dancelor_model.Set.unserialize"
-            ) (Json.find ["tunes"] json)
+            )
+            (Json.find ["tunes"] json)
   ) }
 
 let serialize set =
@@ -37,15 +33,7 @@ let serialize set =
         "slug", `String set.slug ;
         "name", `String set.name ;
         "kind", Kind.dance_to_jsonm set.kind ;
-        "tunes",
-        `A (
-            List.map
-              (fun (tune, version) ->
-                match Tune.version_subslug version with
-                | None -> `String (Tune.slug tune)
-                | Some subslug -> `A [`String (Tune.slug tune); `String subslug])
-              set.tunes
-          )
+        "tunes", `A (List.map (fun tune -> `String (Tune.slug tune)) set.tunes)
       ]
       @ match set.deviser with
         | None -> []

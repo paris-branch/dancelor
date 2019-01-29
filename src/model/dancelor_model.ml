@@ -12,6 +12,7 @@ module Database =
     let initialise () =
       Person.Database.initialise ();
       Credit.Database.initialise ();
+      TuneGroup.Database.initialise ();
       Tune.Database.initialise ();
       Set.Database.initialise ();
       Program.Database.initialise ();

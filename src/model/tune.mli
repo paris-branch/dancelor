@@ -3,20 +3,12 @@ open Dancelor_common
 (** {1 Tune} *)
 
 type t
-type version
-type tune_version = t * version
 
 val slug : t -> Slug.t
-val default_version : t -> version
-val version : t -> Slug.t -> version
-
-val version_subslug : version -> Slug.t option
-val version_content : version -> string
+val content : t -> string
 
 val to_json : t -> Json.t
-val tune_version_to_json : tune_version -> Json.t
 val to_jsonm : t -> Json.value
-val tune_version_to_jsonm : tune_version -> Json.value
 
 (** {2 Database} *)
 
@@ -28,7 +20,5 @@ module Database : sig
   val get_all :
     ?name:string -> ?author:string ->
     ?kind:Kind.base -> ?keys:Music.key list -> ?mode:Music.mode ->
-    unit -> (float * t * version) list
-
-  val get_tune_version : string -> tune_version
+    unit -> (float * t) list
 end

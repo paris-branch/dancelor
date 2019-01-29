@@ -1,17 +1,26 @@
 open Dancelor_common
 open Dancelor_model
 open QueryHelpers
-module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
+module Log = (val Log.create "dancelor.controller.tuneversion" : Logs.LOG)
 
 let get query =
+  let slug = query_string query "slug" in
   try
-    let slug = query_string query "slug" in
-    let tune = Tune.Database.get slug in
-    Lwt.return (`O [
-      "tune", Tune.to_jsonm tune;
-    ])
+    Tune.Database.get slug
+    |> Tune.to_jsonm
+    |> (fun json -> Lwt.return (`O ["tune", json]))
   with
-    Not_found -> error "this tune does not exist"
+    Not_found ->
+    error "this tune does not exist"
+
+let get_ly query =
+  let slug = query_string query "slug" in
+  try
+    let tune = Tune.Database.get slug in
+    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.content tune) ()
+  with
+    Not_found ->
+    error "this tune does not exist"
 
 let get_all query =
   let tune_jsons =
@@ -42,8 +51,8 @@ let get_all query =
         | _ -> error ("mode must be major or minor")
       )
       ()
-    |> List.map (fun (score, tune, version) ->
-           Tune.tune_version_to_json (tune, version)
+    |> List.map (fun (score, tune) ->
+           Tune.to_json tune
            |> Json.add_field "score" (`Float (floor (100. *. score)))
            |> Json.to_value)
     |> (fun jsons -> `A jsons)
@@ -58,3 +67,47 @@ let get_all query =
             ]
         ]
     )
+
+module Png = struct
+  let cache : (Tune.t, string Lwt.t) Cache.t = Cache.create ()
+
+  let template =
+    let path = Filename.concat_l [Config.share; "lilypond"; "tune.ly"] in
+    Log.debug (fun m -> m "Loading template file %s" path);
+    let ichan =  open_in path in
+    let template = Lexing.from_channel ichan |> Mustache.parse_lx in
+    close_in ichan;
+    Log.debug (fun m -> m "Loaded successfully");
+    template
+
+  let (>>=) = Lwt.bind
+
+  let render tune =
+    Cache.use
+      cache tune
+      (fun () ->
+        Log.debug (fun m -> m "Rendering the Lilypond version");
+        let json = Tune.to_json tune in
+        let lilypond = Mustache.render template (Json.to_ezjsonm json) in
+        let path = Filename.concat Config.cache "tune" in
+        let fname_ly, fname_png =
+          let fname = spf "%s-%x" (Tune.slug tune) (Random.int (1 lsl 29)) in
+          (fname^".ly", fname^".png")
+        in
+        Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
+          (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
+        Log.debug (fun m -> m "Processing with Lilypond");
+        Lilypond.run ~exec_path:path ~options:["-dresolution=110"; "-dbackend=eps"; "--png"] fname_ly
+        >>= fun () ->
+        Lwt.return (Filename.concat path fname_png))
+
+  let get query =
+    let slug = query_string query "slug" in
+    try
+      let tune = Tune.Database.get slug in
+      render tune >>= fun path_png ->
+      Cohttp_lwt_unix.Server.respond_file ~fname:path_png ()
+    with
+      Not_found ->
+      error "this tune does not exist"
+end

@@ -172,11 +172,11 @@ let controllers =
     make_html ~path:"/set/compose" () ;
     make_json ~path:"/set/save" ~controller:Set.save () ;
 
+    make_both ~path:"/tune-group" ~controller:TuneGroup.get () ;
     make_both ~path:"/tune" ~controller:Tune.get () ;
+    [make_raw ~path:"/tune.ly" ~controller:Tune.get_ly ()] ;
+    [make_raw ~path:"/tune.png" ~controller:Tune.Png.get ()] ;
     make_both ~path:"/tune/all" ~controller:Tune.get_all () ;
-    make_both ~path:"/tune/version" ~controller:TuneVersion.get () ;
-    [make_raw ~path:"/tune/version.ly" ~controller:TuneVersion.get_ly ()] ;
-    [make_raw ~path:"/tune/version.png" ~controller:TuneVersion.Png.get ()] ;
 
     [make_raw ~path:"/victor" ~controller:(fun _ -> exit 0) ()] ;
   ]
