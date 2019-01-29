@@ -149,14 +149,14 @@ booktitle = "{{{name}}}"
     {{#tunes}}
     \score {
       \header {
-	piece = "{{{tune.name}}}"
+	piece = "{{{group.name}}}"
       }
 
       {
-	\tocTune \markup { {{{tune.name}}} }
+	\tocTune \markup { {{{group.name}}} }
 
         {{#transpose}}\transpose {{{target}}} c { {{/transpose}}
-          {{{version.content}}}
+          {{{content}}}
         {{#transpose}} } {{/transpose}}
       }
     }
