@@ -1,28 +1,31 @@
 open Dancelor_common
 open Dancelor_model
 open QueryHelpers
-module Log = (val Log.create "dancelor.controller.tuneversion" : Logs.LOG)
+module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
-let get query =
-  let slug = query_string query "slug" in
+let get uri _ =
+  Log.debug (fun m -> m "controller get");
+  let slug = List.assoc "slug" uri in
   try
     Tune.Database.get slug
     |> Tune.to_jsonm
     |> (fun json -> Lwt.return (`O ["tune", json]))
   with
     Not_found ->
-    error "this tune does not exist"
+    error ("this tune does not exist: " ^ slug)
 
-let get_ly query =
-  let slug = query_string query "slug" in
+let get_ly uri _ =
+  Log.debug (fun m -> m "controller get_ly");
+  let slug = List.assoc "slug" uri in
   try
     let tune = Tune.Database.get slug in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.content tune) ()
   with
     Not_found ->
-    error "this tune does not exist"
+    error ("this tune does not exist: " ^ slug)
 
-let get_all query =
+let get_all _ query =
+  Log.debug (fun m -> m "controller get_all");
   let tune_jsons =
     Tune.Database.get_all
       ?name:(query_string_opt query "name")
@@ -101,8 +104,9 @@ module Png = struct
         >>= fun () ->
         Lwt.return (Filename.concat path fname_png))
 
-  let get query =
-    let slug = query_string query "slug" in
+  let get uri _ =
+    Log.debug (fun m -> m "controller Png.get");
+    let slug = List.assoc "slug" uri in
     try
       let tune = Tune.Database.get slug in
       render tune >>= fun path_png ->

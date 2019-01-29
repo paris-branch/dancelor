@@ -1,11 +1,10 @@
 open Dancelor_common
 open Dancelor_model
 open QueryHelpers
-module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
-let get query =
+let get uri _ =
+  let slug = List.assoc "slug" uri in
   try
-    let slug = query_string query "slug" in
     let tune = TuneGroup.Database.get slug in
     Lwt.return (`O [
       "tune-group", TuneGroup.to_jsonm tune;

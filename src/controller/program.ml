@@ -3,8 +3,8 @@ open Dancelor_model
 open QueryHelpers
 module Log = (val Log.create "dancelor.controller.program" : Logs.LOG)
 
-let get query =
-  let slug = query_string query "slug" in
+let get uri _ =
+  let slug = List.assoc "slug" uri in
   try
     Program.Database.get slug
     |> Program.to_jsonm
@@ -13,7 +13,7 @@ let get query =
     Not_found ->
     error "this program does not exist"
 
-let get_all _query =
+let get_all _ _ =
   Program.Database.get_all ()
   |> List.map Program.to_jsonm
   |> (fun json -> Lwt.return (`O ["programs", `A json]))
@@ -44,16 +44,6 @@ module Ly = struct
                   "instrument", `String instrument ])
     |> Json.to_ezjsonm
     |> Mustache.render template
-
-  (* let get query =
-   *   try
-   *     let slug = query_string query "slug" in
-   *     let program = Program.Database.get slug in
-   *     let lilypond = render ?transpose_target:(query_string_opt query "transpose-target") program in
-   *     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
-   *   with
-   *     Not_found ->
-   *     error "this program does not exist" *)
 end
 
 module Pdf = struct
@@ -78,9 +68,9 @@ module Pdf = struct
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 
-  let get query =
+  let get uri query =
+    let slug = List.assoc "slug" uri in
     try
-      let slug = query_string query "slug" in
       let program = Program.Database.get slug in
       render ?transpose_target:(query_string_opt query "transpose-target") program >>= fun path_pdf ->
       Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()

@@ -1,9 +1,8 @@
 open Dancelor_common
 open Dancelor_model
-open QueryHelpers
 
-let get query =
-  let slug = query_string query "slug" in
+let get uri _ =
+  let slug = List.assoc "slug" uri in
   try
     Person.Database.get slug
     |> Person.to_jsonm

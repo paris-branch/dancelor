@@ -52,12 +52,12 @@
 {{#tunes}}
 \score {
   \header {
-    piece = "{{{tune.name}}}"
-    opus = "{{#tune.author}}{{{line}}}{{/tune.author}}"
+    piece = "{{{group.name}}}"
+    opus = "{{#group.author}}{{{line}}}{{/group.author}}"
   }
 
   {{#transpose}}\transpose {{{target}}} c { {{/transpose}}
-    {{{version.content}}}
+    {{{content}}}
   {{#transpose}} } {{/transpose}}
 }
 {{/tunes}}

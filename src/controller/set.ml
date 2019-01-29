@@ -3,17 +3,19 @@ open Dancelor_model
 open QueryHelpers
 module Log = (val Log.create "dancelor.controller.set" : Logs.LOG)
 
-let get query =
-  let slug = query_string query "slug" in
+let get uri _ =
+  Log.debug (fun m -> m "controller get");
+  let slug = List.assoc "slug" uri in
   try
     Set.Database.get slug
     |> Set.to_jsonm
     |> (fun json -> Lwt.return (`O ["set", json]))
   with
     Not_found ->
-    error "this set does not exist"
+    error ("this set does not exist: " ^ slug)
 
-let get_all _query =
+let get_all _ _ =
+  Log.debug (fun m -> m "controller get_all");
   Set.Database.get_all ()
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
   |> List.map Set.to_jsonm
@@ -46,15 +48,16 @@ module Ly = struct
     |> Json.to_ezjsonm
     |> Mustache.render template
 
-  let get query =
+  let get uri query =
+    Log.debug (fun m -> m "controller Ly.get");
+    let slug = List.assoc "slug" uri in
     try
-      let slug = query_string query "slug" in
       let set = Set.Database.get slug in
       let lilypond = render ?transpose_target:(query_string_opt query "transpose-target") set in
       Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
     with
       Not_found ->
-      error "this set does not exist"
+      error ("this set does not exist: " ^ slug)
 end
 
 module Pdf = struct
@@ -79,18 +82,20 @@ module Pdf = struct
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 
-  let get query =
+  let get uri query =
+    Log.debug (fun m -> m "controller Pdf.get");
+    let slug = List.assoc "slug" uri in
     try
-      let slug = query_string query "slug" in
       let set = Set.Database.get slug in
       render ?transpose_target:(query_string_opt query "transpose-target") set >>= fun path_pdf ->
       Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
     with
       Not_found ->
-      error "this set does not exist"
+      error ("this set does not exist: " ^ slug)
 end
 
-let save query =
+let save _ query =
+  Log.debug (fun m -> m "controller save");
   let name = query_string query "name" in
   let kind = Kind.dance_of_string (query_string query "kind") in
   let tunes =

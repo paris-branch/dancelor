@@ -34,21 +34,26 @@ let callback _ request _body =
       let meth = Request.meth request in
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
-      let controller =
-        List.find_opt (fun (methods, path', _) ->
-            List.mem meth methods && path' = path)
-          Router.controllers
+      let rec find_controller = function
+        | [] ->
+           Log.debug (fun m -> m "No controller found for path %s" path);
+           Server.respond_not_found ()
+        | (methods, route, controller) :: controllers when List.mem meth methods ->
+           (
+             match Router.Route.match_ path route with
+             | None ->
+                find_controller controllers
+             | Some uri_match ->
+                let query = Uri.query uri in
+                Log.debug (fun m -> m "Query before cleanup: %s" (Router.show_query query));
+                let query = cleanup_query query in
+                Log.debug (fun m -> m "Query: %s" (Router.show_query query));
+                controller uri_match query
+           )
+        | _ :: controllers ->
+           find_controller controllers
       in
-      match controller with
-      | Some (_, _, controller) ->
-         let query = Uri.query uri in
-         Log.debug (fun m -> m "Query before cleanup: %s" (Router.show_query query));
-         let query = cleanup_query query in
-         Log.debug (fun m -> m "Query: %s" (Router.show_query query));
-         controller query;
-      | None ->
-         Log.debug (fun m -> m "No controller found for path %s" path);
-         Server.respond_not_found ()
+      find_controller Router.controllers
     with
       exn ->
       log_exn ~msg:"Uncaught exception in the callback" exn;
