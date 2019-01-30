@@ -40,4 +40,4 @@ let loglevel = read_config ~type_:loglevel ~default:Logs.Debug ["loglevel"]
 
 (* ============================ [ Static Shit ] ============================= *)
 
-let api_prefix = "/api"
+let api_prefix = "api"
