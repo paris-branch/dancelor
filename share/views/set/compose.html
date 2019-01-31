@@ -36,7 +36,7 @@
 	tunes.forEach(function (tune, index) {
 	    tunesAreaHTML +=
 		tune['group']['name'] + '<br/>'
-		+ '<img src="/tune.png?slug=' + tune['slug'] + '" />'
+		+ '<img src="/tune/' + tune['slug'] + '.png" />'
 		+ '<br/>'
 		+ '<button type="button" class="btn btn-default" onClick="moveUpTune(' + index + ');">Monter</button>'
 		+ '<button type="button" class="btn btn-default" onClick="moveDownTune(' + index + ');">Descendre</button>'
