@@ -25,6 +25,28 @@ let cleanup_query query =
 let log_exn ~msg exn =
   Log.err (fun m -> m "%s@\n%s@\n%a" msg (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
 
+let find_controller meth uri path =
+  let rec find_controller = function
+  | [] ->
+     Log.debug (fun m -> m "No controller found for path %s" path);
+     Server.respond_not_found ()
+  | (methods, route, controller) :: controllers when List.mem meth methods ->
+     (
+       match Router.Route.match_ path route with
+       | None ->
+          find_controller controllers
+       | Some uri_match ->
+          let query = Uri.query uri in
+          Log.debug (fun m -> m "Query before cleanup: %s" (Router.show_query query));
+          let query = cleanup_query query in
+          Log.debug (fun m -> m "Query: %s" (Router.show_query query));
+          controller uri_match query
+     )
+  | _ :: controllers ->
+     find_controller controllers
+  in
+  find_controller Router.controllers
+
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
      exceptions. *)
@@ -34,26 +56,18 @@ let callback _ request _body =
       let meth = Request.meth request in
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
-      let rec find_controller = function
-        | [] ->
-           Log.debug (fun m -> m "No controller found for path %s" path);
-           Server.respond_not_found ()
-        | (methods, route, controller) :: controllers when List.mem meth methods ->
-           (
-             match Router.Route.match_ path route with
-             | None ->
-                find_controller controllers
-             | Some uri_match ->
-                let query = Uri.query uri in
-                Log.debug (fun m -> m "Query before cleanup: %s" (Router.show_query query));
-                let query = cleanup_query query in
-                Log.debug (fun m -> m "Query: %s" (Router.show_query query));
-                controller uri_match query
-           )
-        | _ :: controllers ->
-           find_controller controllers
-      in
-      find_controller Router.controllers
+      let full_path = Filename.(concat (concat Config.share "static") path) in
+      Log.debug (fun m -> m "Looking for %s" full_path);
+      if Sys.file_exists full_path && not (Sys.is_directory full_path) then
+        (
+          Log.debug (fun m -> m "Serving static file.");
+          Server.respond_file ~fname:full_path ()
+        )
+      else
+        (
+          Log.debug (fun m -> m "Looking for a controller.");
+          find_controller meth uri path
+        )
     with
       exn ->
       log_exn ~msg:"Uncaught exception in the callback" exn;
