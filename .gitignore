@@ -13,3 +13,6 @@
 /db
 /cache
 /share/config.json
+
+## DB
+/database
