@@ -85,7 +85,7 @@ let routes : route list =
   [
     direct
       ~meth:`GET
-      ~path:"/index"
+      ~path:"/"
       Index ;
 
     with_slug
@@ -171,6 +171,39 @@ let routes : route list =
       (TuneGroup.Database.get_opt >=> fun tune_group -> Some (TuneGroup tune_group))
       (function TuneGroup tune_group -> Some (TuneGroup.slug tune_group)
               | _ -> None) ;
+
+    direct
+      ~meth:`GET
+      ~path:"/tune/all"
+      TuneAll ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/tune"
+      ~ext:"ly"
+      (Tune.Database.get_opt >=> fun tune -> Some (TuneLy tune))
+      (function TuneLy tune -> Some (Tune.slug tune)
+              | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/tune"
+      ~ext:"png"
+      (Tune.Database.get_opt >=> fun tune -> Some (TunePng tune))
+      (function TunePng tune -> Some (Tune.slug tune)
+              | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/tune"
+      (Tune.Database.get_opt >=> fun tune -> Some (Tune tune))
+      (function Tune tune -> Some (Tune.slug tune)
+              | _ -> None) ;
+
+    direct
+      ~meth:`GET
+      ~path:"/victor"
+      Victor ;
   ]
 
 let path_to_controller ~meth ~path =

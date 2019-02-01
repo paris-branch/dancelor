@@ -32,30 +32,46 @@ let bad_gateway _ =
     ~body:"<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>nginx/1.10.3</center></body></html>"
     ()
 
-let apply_json_controller json_controller query =
-  Lwt.bind
-    (json_controller query)
-    (fun json -> Server.respond_string ~status:`OK ~body:(Json.to_string json) ())
+let (>>=) = Lwt.bind
 
-let apply_controller = let open Router in function
-  | Index -> assert false
-  | Credit credit -> apply_json_controller (Credit.get credit)
+let apply_json_controller json_controller query =
+  json_controller query >>= fun json ->
+  Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
+
+let respond_view ?(status=`OK) view json =
+  Server.respond_string ~status ~body:(View.render view json) ()
+
+(* FIXME: once the client is fully converted to OCaml, everything here
+   will be using the API. We will be able to remove all the notions of
+   ~api and ~view in the next functions. *)
+
+let apply_html_controller ~api ~view json_controller query =
+  json_controller query >>= fun json ->
+  let json = LinksAdder.json_add_links json in
+  if api then
+    Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
+  else
+    respond_view view (Json.to_ezjsonm json)
+
+let apply_controller ~api = let open Router in function
+  | Index -> (fun _ -> respond_view "/index" (`O []))
+  | Credit credit -> apply_html_controller ~api ~view:"/credit" (Credit.get credit)
   | Pascaline -> bad_gateway
-  | Person person -> apply_json_controller (Person.get person)
-  | ProgramAll -> apply_json_controller Program.get_all
+  | Person person -> apply_html_controller ~api ~view:"/person" (Person.get person)
+  | ProgramAll -> apply_html_controller ~api ~view:"/program/all" Program.get_all
   | ProgramPdf program -> Program.Pdf.get program
-  | Program program -> apply_json_controller (Program.get program)
-  | SetAll -> apply_json_controller Set.get_all
-  | SetCompose -> assert false
-  | SetSave -> apply_json_controller Set.save
+  | Program program -> apply_html_controller ~api ~view:"/program" (Program.get program)
+  | SetAll -> apply_html_controller ~api ~view:"/set/all" Set.get_all
+  | SetCompose -> (fun _ -> respond_view "/set/compose" (`O []))
+  | SetSave -> if api then apply_json_controller Set.save else (fun _ -> Server.respond_not_found ())
   | SetLy set -> Set.Ly.get set
   | SetPdf set -> Set.Pdf.get set
-  | Set set -> apply_json_controller (Set.get set)
-  | TuneGroup tune_group -> apply_json_controller (TuneGroup.get tune_group)
-  | TuneAll -> apply_json_controller Tune.get_all
+  | Set set -> apply_html_controller ~api ~view:"/set" (Set.get set)
+  | TuneGroup tune_group -> apply_html_controller ~api ~view:"/tune-group" (TuneGroup.get tune_group)
+  | TuneAll -> apply_html_controller ~api ~view:"/tune/all" Tune.get_all
   | TuneLy tune -> Tune.get_ly tune
   | TunePng tune -> Tune.Png.get tune
-  | Tune tune -> apply_json_controller (Tune.get tune)
+  | Tune tune -> apply_html_controller ~api ~view:"/tune" (Tune.get tune)
   | Victor -> exit 0
 
 let callback _ request _body =
@@ -76,10 +92,19 @@ let callback _ request _body =
         )
       else
         (
+          let (api, path) =
+            try
+              if String.sub path 0 4 = "/api" then
+                (true, String.sub path 4 (String.length path - 4)) (*FIXME: 4 or 5?*)
+              else
+                (false, path)
+            with
+              Invalid_argument _ -> (false, path)
+          in
           Log.debug (fun m -> m "Looking for a controller.");
           match Router.path_to_controller ~meth ~path with
           | None -> Server.respond_not_found ~uri ()
-          | Some controller -> apply_controller controller (Uri.query uri)
+          | Some controller -> apply_controller ~api controller (Uri.query uri)
         )
     with
       exn ->
@@ -105,8 +130,8 @@ let () =
   Log.info (fun m -> m "Initialising database");
   Dancelor_model.Database.initialise ();
 
-  Log.info (fun m -> m "Starting routines");
-  Routine.initialise ();
+  (* Log.info (fun m -> m "Starting routines");
+   * Routine.initialise (); *)
 
   Log.info (fun m -> m "Starting server");
   let server =

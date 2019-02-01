@@ -50,6 +50,7 @@ module Database =
       |> List.iter load
 
     let get = Hashtbl.find db
+    let get_opt = Hashtbl.find_opt db
 
     let match_score needle haystack =
       let needle = Slug.from_string needle in
