@@ -56,7 +56,7 @@ let callback _ request _body =
       let meth = Request.meth request in
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
-      let full_path = Filename.(concat (concat Config.share "static") path) in
+      let full_path = Filename.(concat (concat !Config.share "static") path) in
       Log.debug (fun m -> m "Looking for %s" full_path);
       if Sys.file_exists full_path && not (Sys.is_directory full_path) then
         (
@@ -86,6 +86,9 @@ let () =
         log_exn ~msg:"Uncaught asynchronous exception" exn)
 
 let () =
+  Log.info (fun m -> m "Reading configuration");
+  Config.load_from_file Sys.argv.(1);
+
   Log.info (fun m -> m "Initialising database");
   Dancelor_model.Database.initialise ();
 
@@ -97,7 +100,7 @@ let () =
     Lwt.catch
       (fun () ->
         Server.create
-          ~mode:(`TCP (`Port Config.port))
+          ~mode:(`TCP (`Port !Config.port))
           (Server.make ~callback ()))
       (fun exn ->
         log_exn ~msg:"Uncaught Lwt exception in the server" exn;

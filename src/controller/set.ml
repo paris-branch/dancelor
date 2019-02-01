@@ -23,7 +23,7 @@ let get_all _ _ =
 
 module Ly = struct
   let template =
-    let path = Filename.concat_l [Config.share; "lilypond"; "set.ly"] in
+    let path = Filename.concat_l [!Config.share; "lilypond"; "set.ly"] in
     Log.debug (fun m -> m "Loading template file %s" path);
     let ichan = open_in path in
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
@@ -70,7 +70,7 @@ module Pdf = struct
       cache set
       (fun () ->
         let lilypond = Ly.render ?transpose_target set in
-        let path = Filename.concat Config.cache "set" in
+        let path = Filename.concat !Config.cache "set" in
         let fname_ly, fname_pdf =
           let fname = spf "%s-%x" (Set.slug set) (Random.int (1 lsl 29)) in
           (fname^".ly", fname^".pdf")
