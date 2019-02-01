@@ -53,7 +53,7 @@ let apply_html_controller ~api ~view json_controller query =
   else
     respond_view view (Json.to_ezjsonm json)
 
-let apply_controller ~api = let open Router in function
+let apply_controller ~api = let open Dancelor_router in function
   | Index -> (fun _ -> respond_view "/index" (`O []))
   | Credit credit -> apply_html_controller ~api ~view:"/credit" (Credit.get credit)
   | Pascaline -> bad_gateway
@@ -102,7 +102,7 @@ let callback _ request _body =
               Invalid_argument _ -> (false, path)
           in
           Log.debug (fun m -> m "Looking for a controller.");
-          match Router.path_to_controller ~meth ~path with
+          match Dancelor_router.path_to_controller ~meth ~path with
           | None -> Server.respond_not_found ~uri ()
           | Some controller -> apply_controller ~api controller (Uri.query uri)
         )
