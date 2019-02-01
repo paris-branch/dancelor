@@ -26,10 +26,10 @@ let cleanup_query query =
 let log_exn ~msg exn =
   Log.err (fun m -> m "%s@\n%s@\n%a" msg (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
 
-let bad_gateway _ =
-  Server.respond_error
+let bad_gateway ?(msg="") _ =
+  Server.respond_string
     ~status:`Bad_gateway
-    ~body:"<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>nginx/1.10.3</center></body></html>"
+    ~body:("<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>" ^ msg ^ "</center></body></html>")
     ()
 
 let (>>=) = Lwt.bind
@@ -56,7 +56,7 @@ let apply_html_controller ~api ~view json_controller query =
 let apply_controller ~api = let open Dancelor_router in function
   | Index -> (fun _ -> respond_view "/index" (`O []))
   | Credit credit -> apply_html_controller ~api ~view:"/credit" (Credit.get credit)
-  | Pascaline -> bad_gateway
+  | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
   | Person person -> apply_html_controller ~api ~view:"/person" (Person.get person)
   | ProgramAll -> apply_html_controller ~api ~view:"/program/all" Program.get_all
   | ProgramPdf program -> Program.Pdf.get program
