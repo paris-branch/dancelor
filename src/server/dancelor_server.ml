@@ -1,4 +1,5 @@
 open Dancelor_common
+open Dancelor_controller
 open Cohttp_lwt_unix
 module Log = (val Log.create "dancelor.server" : Logs.LOG)
 
@@ -25,27 +26,37 @@ let cleanup_query query =
 let log_exn ~msg exn =
   Log.err (fun m -> m "%s@\n%s@\n%a" msg (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
 
-let find_controller meth uri path =
-  let rec find_controller = function
-  | [] ->
-     Log.debug (fun m -> m "No controller found for path %s" path);
-     Server.respond_not_found ()
-  | (methods, route, controller) :: controllers when List.mem meth methods ->
-     (
-       match Router.Route.match_ path route with
-       | None ->
-          find_controller controllers
-       | Some uri_match ->
-          let query = Uri.query uri in
-          Log.debug (fun m -> m "Query before cleanup: %s" (Router.show_query query));
-          let query = cleanup_query query in
-          Log.debug (fun m -> m "Query: %s" (Router.show_query query));
-          controller uri_match query
-     )
-  | _ :: controllers ->
-     find_controller controllers
-  in
-  find_controller Router.controllers
+let bad_gateway _ =
+  Server.respond_error
+    ~status:`Bad_gateway
+    ~body:"<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>nginx/1.10.3</center></body></html>"
+    ()
+
+let apply_json_controller json_controller query =
+  Lwt.bind
+    (json_controller query)
+    (fun json -> Server.respond_string ~status:`OK ~body:(Json.to_string json) ())
+
+let apply_controller = let open Router in function
+  | Index -> assert false
+  | Credit credit -> apply_json_controller (Credit.get credit)
+  | Pascaline -> bad_gateway
+  | Person person -> apply_json_controller (Person.get person)
+  | ProgramAll -> apply_json_controller Program.get_all
+  | ProgramPdf program -> Program.Pdf.get program
+  | Program program -> apply_json_controller (Program.get program)
+  | SetAll -> apply_json_controller Set.get_all
+  | SetCompose -> assert false
+  | SetSave -> apply_json_controller Set.save
+  | SetLy set -> Set.Ly.get set
+  | SetPdf set -> Set.Pdf.get set
+  | Set set -> apply_json_controller (Set.get set)
+  | TuneGroup tune_group -> apply_json_controller (TuneGroup.get tune_group)
+  | TuneAll -> apply_json_controller Tune.get_all
+  | TuneLy tune -> Tune.get_ly tune
+  | TunePng tune -> Tune.Png.get tune
+  | Tune tune -> apply_json_controller (Tune.get tune)
+  | Victor -> exit 0
 
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
@@ -66,7 +77,9 @@ let callback _ request _body =
       else
         (
           Log.debug (fun m -> m "Looking for a controller.");
-          find_controller meth uri path
+          match Router.path_to_controller ~meth ~path with
+          | None -> Server.respond_not_found ~uri ()
+          | Some controller -> apply_controller controller (Uri.query uri)
         )
     with
       exn ->

@@ -3,17 +3,12 @@ open Dancelor_model
 open QueryHelpers
 module Log = (val Log.create "dancelor.controller.program" : Logs.LOG)
 
-let get uri _ =
-  let slug = List.assoc "slug" uri in
-  try
-    Program.Database.get slug
-    |> Program.to_jsonm
-    |> (fun json -> Lwt.return (`O ["program", json]))
-  with
-    Not_found ->
-    error "this program does not exist"
+let get program _ =
+  program
+  |> Program.to_jsonm
+  |> (fun json -> Lwt.return (`O ["program", json]))
 
-let get_all _ _ =
+let get_all _ =
   Program.Database.get_all ()
   |> List.map Program.to_jsonm
   |> (fun json -> Lwt.return (`O ["programs", `A json]))
@@ -68,13 +63,7 @@ module Pdf = struct
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 
-  let get uri query =
-    let slug = List.assoc "slug" uri in
-    try
-      let program = Program.Database.get slug in
-      render ?transpose_target:(query_string_opt query "transpose-target") program >>= fun path_pdf ->
-      Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
-    with
-      Not_found ->
-      error "this program does not exist"
+  let get program query =
+    render ?transpose_target:(query_string_opt query "transpose-target") program >>= fun path_pdf ->
+    Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

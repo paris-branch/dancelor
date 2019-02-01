@@ -1,4 +1,4 @@
-open Dancelor_common
+open Dancelor_common open Option
 open Dancelor_model
 module Log = (val Log.create "dancelor.server.router")
 
@@ -22,8 +22,6 @@ type controller =
   | TunePng of Tune.t
   | Tune of Tune.t
   | Victor
-
-let (>=>) = Option.(>=>)
 
 type route =
   (meth:Cohttp.Code.meth -> path:string -> controller option)
@@ -174,3 +172,15 @@ let routes : route list =
       (function TuneGroup tune_group -> Some (TuneGroup.slug tune_group)
               | _ -> None) ;
   ]
+
+let path_to_controller ~meth ~path =
+  routes
+  |> List.map (fun (path_to_controller, _) -> path_to_controller ~meth ~path)
+  |> List.find_opt ((<>) None)
+  >>= fun x -> x
+
+let path_of_controller controller =
+  routes
+  |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
+  |> List.find_opt ((<>) None)
+  >>= fun x -> x
