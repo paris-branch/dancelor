@@ -130,8 +130,13 @@ let () =
   Log.info (fun m -> m "Initialising database");
   Dancelor_model.Database.initialise ();
 
-  (* Log.info (fun m -> m "Starting routines");
-   * Routine.initialise (); *)
+  if !Config.routines then
+    (
+      Log.info (fun m -> m "Starting routines");
+      Routine.initialise ()
+    )
+  else
+    Log.info (fun m -> m "Not starting routines");
 
   Log.info (fun m -> m "Starting server");
   let server =
