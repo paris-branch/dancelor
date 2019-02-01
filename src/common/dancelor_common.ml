@@ -13,4 +13,3 @@ module Config = Config
 module Json = Json
 module Log = Log
 module Cache = Cache
-module Lilypond = Lilypond

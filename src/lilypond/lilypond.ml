@@ -1,4 +1,4 @@
-open ExtPervasives
+open Dancelor_common
 module Log = (val Log.create "dancelor.common.lilypond" : Logs.LOG)
 
 let escape_shell_argument =
