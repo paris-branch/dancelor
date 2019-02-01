@@ -6,13 +6,23 @@ let js = Js.string
 
 let document = Html.window##.document
 
-let foo = Html.createH4 document
+let () = 
+  print_endline "OK"
+
+let content = 
+  Js.Opt.get (document##getElementById (js "content"))
+    (fun () -> assert false)
+
+let foo = Html.createP document
 
 let () = 
   foo##.textContent := Js.some (Js.string "C'est spartiate parce que c'est en cours de composition ;-)");
-  Dom.appendChild document foo
+  Dom.appendChild content foo
 
 let form = Html.createForm document
+
+let () = 
+  Dom.appendChild content form
 
 let set_name = Html.createInput ~_type:(js "text") document
 
@@ -45,8 +55,9 @@ let save_button = Html.createButton ~_type:(js "button") document
 
 let () = 
   save_button##.className := js "btn btn-success"; 
-  save_button##.onclick := Html.handler (fun _ -> save (); Js._false);
-  save_button##.value := js "Save";
+  save_button##.textContent := Js.some (js "Save");
+  Lwt.async (fun () ->
+    Lwt_js_events.clicks save_button (fun _ev _ -> save (); Lwt.return ()));
   Dom.appendChild form save_button;
   Dom.appendChild form (Html.createHr document)
 

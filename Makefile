@@ -3,7 +3,7 @@
 build:
 	dune build @install
 	ln -sf _build/install/default/bin .
-	ln -sf ../_build/install/default/share/dancelor share/static/
+	ln -sf ../../_build/install/default/share/dancelor share/static/
 
 test:
 	dune runtest
@@ -14,4 +14,4 @@ serve: build
 clean:
 	dune clean
 	rm -f bin
-	rm -f share/dancelor
+	rm -f share/static/dancelor
