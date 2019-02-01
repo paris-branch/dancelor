@@ -48,6 +48,7 @@ module Database = struct
       |> List.iter load
 
     let get = Hashtbl.find db
+    let get_opt = Hashtbl.find_opt db
 
     let get_all () = Hashtbl.to_seq_values db |> List.of_seq
 end

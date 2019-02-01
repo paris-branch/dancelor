@@ -18,4 +18,5 @@ module Database : sig
   val initialise : unit -> unit
 
   val get : Slug.t -> t
+  val get_opt : Slug.t -> t option
 end
