@@ -9,7 +9,7 @@ type t =
     structure : string ;
     arranger : Credit.t option ;
     content : string }
-[@@deriving to_protocol ~driver:(module Jsonm)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let to_jsonm tune =
   to_jsonm tune
@@ -18,6 +18,8 @@ let to_jsonm tune =
   |> Json.to_value
 
 let to_json = to_jsonm ||> Json.of_value
+
+let of_json = Json.to_value ||> of_jsonm
 
 let unserialize (json, content) =
   { slug = Json.(get ~k:slug ["slug"] json) ;
@@ -51,6 +53,20 @@ module Database =
       Storage.list_entries prefix
       |> List.iter load
 
+    (* FIXME: Temporary way of creating a non-static DB *)
+    type db = (string, t) Hashtbl.t
+
+    let create () = 
+      Hashtbl.create 8
+
+    let fill db entries =
+      let load json =
+        let tune = of_json json in
+        Hashtbl.add db tune.slug tune
+      in
+      List.iter load entries
+    (* End of FIXME *)
+
     let get = Hashtbl.find db
     let get_opt = Hashtbl.find_opt db
 
@@ -64,7 +80,8 @@ module Database =
           let d = String.inclusion_distance needle haystack in
           (float_of_int d) /. (float_of_int (String.length needle))
 
-    let get_all ?name ?author ?kind ?keys ?mode () =
+    (* FIXME: Added an additional parameter for non-static databases *)
+    let get_all ?(db=db) ?name ?author ?kind ?keys ?mode () =
       ignore keys; ignore mode;
       Hashtbl.to_seq_values db
       |> Seq.map (fun tune -> (1., tune))

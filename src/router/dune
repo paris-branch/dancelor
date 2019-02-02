@@ -1,5 +1,5 @@
 (library
  (name dancelor_router)
  (public_name dancelor.router)
- (libraries dancelor.controller ezjsonm)
+ (libraries dancelor.model ezjsonm cohttp)
  (preprocess (pps lwt_ppx ppx_deriving.std)))

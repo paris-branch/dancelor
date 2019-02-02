@@ -4,10 +4,12 @@ open Protocol_conv_jsonm
 type t =
   { slug : Slug.t ;
     name : string }
-[@@deriving to_protocol ~driver:(module Jsonm)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "person"))
 let to_json = to_jsonm ||> Json.of_value
+
+let of_json = Json.to_value ||> of_jsonm
 
 let serialize person =
   `O [

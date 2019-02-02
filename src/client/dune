@@ -1,6 +1,6 @@
 (executables
  (names compose)
- (libraries js_of_ocaml-lwt dancelor.common dancelor.model)
+ (libraries js_of_ocaml-lwt dancelor.common dancelor.model dancelor.router)
  (preprocess (pps js_of_ocaml-ppx)))
 
 (install

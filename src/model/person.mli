@@ -7,6 +7,9 @@ type t
 val to_json : t -> Json.t
 val to_jsonm : t -> Json.value
 
+val of_json : Json.t -> t
+val of_jsonm : Json.value -> t
+
 val slug : t -> Slug.t
 val name : t -> string
 

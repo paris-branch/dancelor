@@ -7,7 +7,7 @@ type t =
     kind : Kind.base ;
     author : Credit.t option ;
     remark : string }
-[@@deriving to_protocol ~driver:(module Jsonm)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let to_jsonm tune_group =
   to_jsonm tune_group
@@ -16,6 +16,8 @@ let to_jsonm tune_group =
   |> Json.to_value
 
 let to_json = to_jsonm ||> Json.of_value
+
+let of_json = Json.to_value ||> of_jsonm
 
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;

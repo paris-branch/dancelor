@@ -5,10 +5,12 @@ type t =
   { slug : Slug.t ;
     line : string ;
     persons : Person.t list }
-[@@deriving to_protocol ~driver:(module Jsonm)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "credit"))
 let to_json = to_jsonm ||> Json.of_value
+
+let of_json = Json.to_value ||> of_jsonm
 
 let serialize credit =
   `O [
