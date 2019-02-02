@@ -4,5 +4,6 @@
     "cache": "cache",
     "database": "database",
     "views": "views",
-    "loglevel": "debug"
+    "loglevel": "debug",
+    "routines": "true"
 }

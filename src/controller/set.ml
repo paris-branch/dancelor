@@ -3,18 +3,12 @@ open Dancelor_model
 open QueryHelpers
 module Log = (val Log.create "dancelor.controller.set" : Logs.LOG)
 
-let get uri _ =
-  Log.debug (fun m -> m "controller get");
-  let slug = List.assoc "slug" uri in
-  try
-    Set.Database.get slug
-    |> Set.to_jsonm
-    |> (fun json -> Lwt.return (`O ["set", json]))
-  with
-    Not_found ->
-    error ("this set does not exist: " ^ slug)
+let get set _ =
+  set
+  |> Set.to_jsonm
+  |> (fun json -> Lwt.return (`O ["set", json]))
 
-let get_all _ _ =
+let get_all _ =
   Log.debug (fun m -> m "controller get_all");
   Set.Database.get_all ()
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
@@ -48,16 +42,9 @@ module Ly = struct
     |> Json.to_ezjsonm
     |> Mustache.render template
 
-  let get uri query =
-    Log.debug (fun m -> m "controller Ly.get");
-    let slug = List.assoc "slug" uri in
-    try
-      let set = Set.Database.get slug in
-      let lilypond = render ?transpose_target:(query_string_opt query "transpose-target") set in
-      Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
-    with
-      Not_found ->
-      error ("this set does not exist: " ^ slug)
+  let get set query =
+    let lilypond = render ?transpose_target:(query_string_opt query "transpose-target") set in
+    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
 
 module Pdf = struct
@@ -82,19 +69,12 @@ module Pdf = struct
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 
-  let get uri query =
-    Log.debug (fun m -> m "controller Pdf.get");
-    let slug = List.assoc "slug" uri in
-    try
-      let set = Set.Database.get slug in
-      render ?transpose_target:(query_string_opt query "transpose-target") set >>= fun path_pdf ->
-      Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
-    with
-      Not_found ->
-      error ("this set does not exist: " ^ slug)
+  let get set query =
+    render ?transpose_target:(query_string_opt query "transpose-target") set >>= fun path_pdf ->
+    Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
 
-let save _ query =
+let save query =
   Log.debug (fun m -> m "controller save");
   let name = query_string query "name" in
   let kind = Kind.dance_of_string (query_string query "kind") in

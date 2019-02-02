@@ -74,6 +74,10 @@ module Database = struct
       Log.debug (fun m -> m "Looking for %s" slug);
       Hashtbl.find db slug
 
+    let get_opt slug =
+      Log.debug (fun m -> m "Looking for %s" slug);
+      Hashtbl.find_opt db slug
+
     let create ~line ?(persons=[]) () =
       let slug = find_uniq_slug line in
       let credit = { slug ; line ; persons } in

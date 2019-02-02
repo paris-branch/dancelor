@@ -52,6 +52,7 @@ module Database =
         slug
 
     let get = Hashtbl.find db
+    let get_opt = Hashtbl.find_opt db
 
     let create ~name () =
       let slug = find_uniq_slug name in
