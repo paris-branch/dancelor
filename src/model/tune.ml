@@ -32,6 +32,8 @@ let slug tune = tune.slug
 let group tune = tune.group
 let key tune = tune.key
 let content tune = tune.content
+let bars tune = tune.bars
+let structure tune = tune.structure
 
 module Database =
   struct

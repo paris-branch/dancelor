@@ -1,21 +1,6 @@
 <script type="text/javascript" src="/dancelor/compose.js"></script>
 
 <!-- <form>
-  <input type="text" class="form-control" id="name" placeholder="Set Name" />
-  <br/>
-
-  <input type="text" class="form-control" id="kind" placeholder="Set Kind (eg. 8x32R)" />
-
-  <hr/>
-
-  <div id="tunesArea"></div>
-
-  <button type="button" class="btn btn-success" onClick="save();">Save</button>
-
-  <input type="text" class="form-control" id="search" placeholder="Search for a tune (press enter to apply search)" />
-  <div id="searchResults"></div>
-
-
   <script type="text/javascript">
     /* List of all the tunes in the database */
 
@@ -31,57 +16,10 @@
 
     /* List of the tunes in the set */
 
-    var tunes = [];
-
-    function refreshTunes () {
-	var tunesAreaHTML = '';
-
-	tunes.forEach(function (tune, index) {
-	    tunesAreaHTML +=
-		tune['group']['name'] + '<br/>'
-		+ '<img src="/tune/' + tune['slug'] + '.png" />'
-		+ '<br/>'
-		+ '<button type="button" class="btn btn-default" onClick="moveUpTune(' + index + ');">Monter</button>'
-		+ '<button type="button" class="btn btn-default" onClick="moveDownTune(' + index + ');">Descendre</button>'
-		+ '<button type="button" class="btn btn-danger" onClick="removeTune(' + index + ');">Supprimer</button>'
-		+ '<hr/>';
-	});
-
-	document.getElementById('tunesArea').innerHTML = tunesAreaHTML;
-    }
-
-    function removeTune (i) {
-	tunes.splice(i, 1);
-	refreshTunes();
-    }
-
-    function moveUpTune (i) {
-	if (i >= 1) {
-	    var tmp = tunes[i-1];
-	    tunes[i-1] = tunes[i];
-	    tunes[i] = tmp;
-	    refreshTunes();
-	}
-    }
-
-    function moveDownTune (i) {
-	if (i + 1 < tunes.length) {
-	    var tmp = tunes[i+1];
-	    tunes[i+1] = tunes[i];
-	    tunes[i] = tmp;
-	    refreshTunes();
-	}
-    }
-
     function tuneFromSlug (slug) {
 	return allTunes.find(function (tune) {
 	    return (tune['slug'] == slug);
 	});
-    }
-
-    function addTune (slug) {
-     	tunes.push(tuneFromSlug(slug));
-     	refreshTunes();
     }
 
     function searchTune () {

@@ -6,6 +6,9 @@ type t
 
 val slug : t -> Slug.t
 val content : t -> string
+val group : t -> TuneGroup.t
+val bars : t -> int
+val structure : t -> string
 
 val to_json : t -> Json.t
 val to_jsonm : t -> Json.value
