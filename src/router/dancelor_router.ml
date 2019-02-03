@@ -93,7 +93,7 @@ let routes : route list =
       ~prefix:"/credit"
       (Credit.Database.get_opt >=> fun credit -> Some (Credit credit))
       (function Credit credit -> Some (Credit.slug credit)
-              | _ -> None) ;
+              | _ -> assert false) ;
 
     direct
       ~meth:`GET
@@ -213,7 +213,10 @@ let path_to_controller ~meth ~path =
   >>= fun x -> x
 
 let path_of_controller controller =
-  routes
-  |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
-  |> List.find_opt ((<>) None)
-  >>= fun x -> x
+  (
+    routes
+    |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
+    |> List.find_opt ((<>) None)
+    >>= fun x -> x
+  )
+  |> unwrap
