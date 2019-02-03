@@ -38,7 +38,7 @@ let get_all query =
         query_string_opt query "mode" >>= function
         | "major" -> Some Music.Major
         | "minor" -> Some Music.Minor
-        | _ -> error ("mode must be major or minor")
+        | other -> error ("mode must be major or minor, got " ^ other)
       )
       ()
     |> List.map (fun (score, tune) ->
