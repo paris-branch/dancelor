@@ -8,14 +8,25 @@ let js = Js.string
 module Composer = struct
 
   type t = {
+    mutable name : string;
+    mutable kind : string;
     mutable tunes : Dancelor_model.Tune.t option array;
     mutable count : int;
     database : Dancelor_model.Tune.Database.db;
   }
 
   let create () =
-    let _, tune_path = Dancelor_router.path_of_controller TuneAll in
     let database = Dancelor_model.Tune.Database.create () in
+    {
+      name = "";
+      kind = "";
+      database;
+      tunes = Array.make 2 None;
+      count = 0;
+    }
+
+  let load_database composer callback =
+    let _, tune_path = Dancelor_router.path_of_controller TuneAll in
     let api = "/" ^ Config.api_prefix ^ tune_path in
     let request = XmlHttpRequest.create () in
     request##.onreadystatechange := Js.wrap_callback (fun () ->
@@ -28,15 +39,79 @@ module Composer = struct
         |> Json.find ["tunes"]
         |> Json.list (Option.wrap_fun Json.of_value)
         |> Option.unwrap
-        |> Dancelor_model.Tune.Database.fill database
+        |> Dancelor_model.Tune.Database.fill composer.database;
+        callback ()
       end);
     request##_open (js "GET") (js api) (Js._true);
-    request##send Js.null;
-    {
-      database;
-      tunes = Array.make 2 None;
-      count = 0;
-    }
+    request##send Js.null
+
+  let name t = 
+    t.name
+
+  let kind t = 
+    t.kind
+
+  let iter t f =
+    for i = 0 to t.count - 1 do
+      f i (Option.unwrap t.tunes.(i))
+    done
+
+  let fold t f acc = 
+    let acc = ref acc in
+    for i = t.count - 1 downto 0 do
+      acc := f i (Option.unwrap t.tunes.(i)) !acc
+    done;
+    !acc
+
+  let list_tunes t = 
+    fold t (fun _ tune acc -> tune::acc) []
+
+  let save t = 
+    Js.Optdef.case Dom_html.window##.localStorage 
+      (fun () -> ()) 
+      (fun local_storage ->
+        let tunes = 
+          list_tunes t
+          |> List.map Dancelor_model.Tune.slug
+          |> String.concat ";"
+        in
+        local_storage##setItem (js "composer.name") (js t.name);
+        local_storage##setItem (js "composer.kind") (js t.kind);
+        local_storage##setItem (js "composer.tunes") (js tunes))
+
+  let load t = 
+    Js.Optdef.case Dom_html.window##.localStorage 
+      (fun () -> ()) 
+      (fun local_storage ->
+        let name, kind, tunes = 
+          local_storage##getItem (js "composer.name"),
+          local_storage##getItem (js "composer.kind"),
+          local_storage##getItem (js "composer.tunes")
+        in
+        Js.Opt.case name (fun () -> ())
+          (fun name -> t.name <- Js.to_string name);
+        Js.Opt.case kind (fun () -> ())
+          (fun kind -> t.kind <- Js.to_string kind);
+        Js.Opt.case tunes (fun () -> ())
+          (fun tunes -> 
+            let tune_list = 
+              String.split_on_char ';' (Js.to_string tunes)
+              |> List.filter (Dancelor_model.Tune.Database.mem ~db:t.database)
+              |> List.map (Dancelor_model.Tune.Database.get ~db:t.database)
+            in
+            let count = List.length tune_list in
+            let tunes = Array.make (max 2 count) None in
+            List.iteri (fun i tune -> tunes.(i) <- Some tune) tune_list;
+            t.count <- count;
+            t.tunes <- tunes))
+
+  let erase_storage _ = 
+    Js.Optdef.case Dom_html.window##.localStorage 
+      (fun () -> ()) 
+      (fun local_storage ->
+        local_storage##removeItem (js "composer.name");
+        local_storage##removeItem (js "composer.kind");
+        local_storage##removeItem (js "composer.tunes"))
 
   let add t tune =
     if Array.length t.tunes = t.count then begin
@@ -45,7 +120,8 @@ module Composer = struct
       t.tunes <- new_tunes;
     end;
     t.tunes.(t.count) <- Some tune;
-    t.count <- t.count + 1
+    t.count <- t.count + 1;
+    save t
 
   let get t i =
     if i < 0 || i >= t.count then
@@ -60,32 +136,30 @@ module Composer = struct
         t.tunes.(j-1) <- t.tunes.(j);
         t.tunes.(j) <- None;
       done;
-      t.count <- t.count - 1
+      t.count <- t.count - 1;
+      save t
     end
 
   let move_up t i =
     if i > 0 && i < t.count then begin
       let tmp = t.tunes.(i-1) in
       t.tunes.(i-1) <- t.tunes.(i);
-      t.tunes.(i) <- tmp
+      t.tunes.(i) <- tmp;
+      save t
     end
 
   let move_down t i =
     move_up t (i+1)
 
-  let iter t f =
-    for i = 0 to t.count - 1 do
-      f i (Option.unwrap t.tunes.(i))
-    done
+  let set_name t name = 
+    t.name <- name;
+    save t
 
-  let fold t f acc = 
-    let acc = ref acc in
-    for i = t.count - 1 downto 0 do
-      acc := f i (Option.unwrap t.tunes.(i)) !acc
-    done;
-    !acc
+  let set_kind t kind = 
+    t.kind <- kind;
+    save t
 
-  let submit t name kind callback = 
+  let submit t callback = 
     let save_path = Dancelor_router.(path_of_controller SetSave) |> snd in
     let tunes = 
       fold t (fun _ tune acc -> 
@@ -94,7 +168,7 @@ module Composer = struct
     let uri = 
       Printf.sprintf "/%s%s?name=%s&kind=%s%s" 
         Config.api_prefix save_path 
-        name kind tunes
+        t.name t.kind tunes
     in
     let request = XmlHttpRequest.create () in
     request##.onreadystatechange := Js.wrap_callback (fun () -> 
@@ -106,7 +180,8 @@ module Composer = struct
         |> Dancelor_common.Json.find ["set"]
         |> Dancelor_common.Json.of_value
         |> Dancelor_model.Set.of_json
-        |> callback
+        |> callback;
+        erase_storage t
       end);
     request##_open (js "GET") (js uri) (Js._true);
     request##send Js.null
@@ -176,11 +251,7 @@ module Interface = struct
     }
 
   let save interface = 
-    let name, kind = 
-      interface.set_name##.value |> Js.to_string,
-      interface.set_kind##.value |> Js.to_string
-    in
-    Composer.submit interface.composer name kind 
+    Composer.submit interface.composer
       (fun set -> 
         let path_to_pdf = 
           Dancelor_router.SetPdf set
@@ -200,9 +271,9 @@ module Interface = struct
     Composer.iter interface.composer (fun index tune ->
       let tune_group = Dancelor_model.Tune.group tune in
       let tune_name = Dancelor_model.TuneGroup.name tune_group in
-      let tune_slug = Dancelor_model.Tune.slug tune in
       let html_image = Html.createImg interface.document in
-      html_image##.src := js (Printf.sprintf "/tune/%s.png" tune_slug);
+      let src = Dancelor_router.(path_of_controller (TunePng tune)) |> snd in
+      html_image##.src := js src;
       let up_button =
         Html.createButton ~_type:(js "button") interface.document
       in
@@ -245,7 +316,9 @@ module Interface = struct
       Dom.appendChild interface.tunes_area down_button;
       Dom.appendChild interface.tunes_area del_button;
       Dom.appendChild interface.tunes_area (Html.createHr interface.document);
-    )
+    );
+    interface.set_name##.value := js (Composer.name interface.composer);
+    interface.set_kind##.value := js (Composer.kind interface.composer)
 
   let make_search_result interface tune score =
     let tr = Html.createTr interface.document in
@@ -320,8 +393,19 @@ module Interface = struct
       Lwt_js_events.keyups interface.search_bar
         (fun _ev _ ->
           let input = Js.to_string interface.search_bar##.value in
-          print_endline "Searching";
           search_tunes interface input;
+          Lwt.return ()));
+    Lwt.async (fun () ->
+      Lwt_js_events.keyups interface.set_name
+        (fun _ev _ ->
+          let input = Js.to_string interface.set_name##.value in
+          Composer.set_name interface.composer input;
+          Lwt.return ()));
+    Lwt.async (fun () ->
+      Lwt_js_events.keyups interface.set_kind
+        (fun _ev _ ->
+          let input = Js.to_string interface.set_kind##.value in
+          Composer.set_kind interface.composer input;
           Lwt.return ()))
 
 end
@@ -329,8 +413,11 @@ end
 let on_load _ev =
   let composer = Composer.create () in
   let interface = Interface.create composer in
-  Interface.connect interface;
+  Composer.load_database composer (fun () ->
+      Composer.load composer;
+      Interface.refresh interface);
   Interface.refresh interface;
+  Interface.connect interface;
   Js._false
 
 let _ =

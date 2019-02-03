@@ -27,8 +27,10 @@ module Database : sig
 
   val initialise : unit -> unit
 
-  val get : Slug.t -> t
+  val get : ?db:db -> Slug.t -> t
   val get_opt : Slug.t -> t option
+
+  val mem : ?db:db -> Slug.t -> bool
 
   val get_all :
     ?db:db ->

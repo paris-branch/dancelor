@@ -67,8 +67,10 @@ module Database =
       List.iter load entries
     (* End of FIXME *)
 
-    let get = Hashtbl.find db
+    let get ?(db=db) slug = Hashtbl.find db slug
     let get_opt = Hashtbl.find_opt db
+
+    let mem ?(db=db) slug = Hashtbl.mem db slug
 
     let match_score needle haystack =
       let needle = Slug.from_string needle in
