@@ -3,6 +3,9 @@ open Dancelor_controller
 open Cohttp_lwt_unix
 module Log = (val Log.create "dancelor.server" : Logs.LOG)
 
+type query = (string * string list) list
+[@@deriving show]
+
 let cleanup_query query =
   let rec remove_empties = function
     | [] -> []
@@ -36,6 +39,7 @@ let (>>=) = Lwt.bind
 
 let apply_json_controller json_controller query =
   json_controller query >>= fun json ->
+  let json = LinksAdder.json_add_links json in
   Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
 
 let respond_view ?(status=`OK) view json =
@@ -103,8 +107,14 @@ let callback _ request _body =
           in
           Log.debug (fun m -> m "Looking for a controller.");
           match Dancelor_router.path_to_controller ~meth ~path with
-          | None -> Server.respond_not_found ~uri ()
-          | Some controller -> apply_controller ~api controller (Uri.query uri)
+          | None ->
+             Log.debug (fun m -> m "Could not find a controller.");
+             Server.respond_not_found ~uri ()
+          | Some controller ->
+             Log.debug (fun m -> m "Controller found.");
+             let query = cleanup_query (Uri.query uri) in
+             Log.debug (fun m -> m "Query: %a" pp_query query);
+             apply_controller ~api controller query
         )
     with
       exn ->

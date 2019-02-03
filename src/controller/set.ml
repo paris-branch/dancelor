@@ -75,7 +75,7 @@ module Pdf = struct
 end
 
 let save query =
-  Log.debug (fun m -> m "controller save");
+  Log.debug (fun m -> m "Controller save");
   let name = query_string query "name" in
   let kind = Kind.dance_of_string (query_string query "kind") in
   let tunes =
