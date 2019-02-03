@@ -93,7 +93,7 @@ let routes : route list =
       ~prefix:"/credit"
       (Credit.Database.get_opt >=> fun credit -> Some (Credit credit))
       (function Credit credit -> Some (Credit.slug credit)
-              | _ -> assert false) ;
+              | _ -> None) ;
 
     direct
       ~meth:`GET
