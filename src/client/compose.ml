@@ -39,10 +39,7 @@ module Composer = struct
   }
 
   let create () =
-    let _, tune_path = 
-      Dancelor_router.path_of_controller TuneAll
-      |> Option.unwrap
-    in
+    let _, tune_path = Dancelor_router.path_of_controller TuneAll in
     let database = Dancelor_model.Tune.Database.create () in
     let api = "/" ^ Config.api_prefix ^ tune_path in
     let request = XmlHttpRequest.create () in
@@ -115,11 +112,7 @@ module Composer = struct
     !acc
 
   let submit t name kind callback = 
-    let save_path = 
-      Dancelor_router.(path_of_controller SetSave)
-      |> Option.unwrap
-      |> snd
-    in
+    let save_path = Dancelor_router.(path_of_controller SetSave) |> snd in
     let tunes = 
       fold t (fun _ tune acc -> 
         "&tunes=" ^ (Dancelor_model.Tune.slug tune) ^ acc) ""
@@ -218,7 +211,6 @@ module Interface = struct
         let path_to_pdf = 
           Dancelor_router.SetPdf set
           |> Dancelor_router.path_of_controller
-          |> Option.unwrap
           |> snd
         in
         Html.window##.location##.href := js path_to_pdf)
