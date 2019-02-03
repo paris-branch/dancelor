@@ -117,6 +117,7 @@
 		return response.json();
 	    })
 	    .then(function (json) {
+		alert(JSON.stringify(json));
 		window.location.href = json['set']['link'];
 	    });
     }

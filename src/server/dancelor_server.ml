@@ -39,6 +39,7 @@ let (>>=) = Lwt.bind
 
 let apply_json_controller json_controller query =
   json_controller query >>= fun json ->
+  let json = LinksAdder.json_add_links json in
   Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
 
 let respond_view ?(status=`OK) view json =
