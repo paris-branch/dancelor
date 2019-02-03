@@ -7,10 +7,12 @@ type t =
     deviser : Credit.t option ;
     kind : Kind.dance ;
     tunes : Tune.t list }
-[@@deriving to_protocol ~driver:(module Jsonm)]
+[@@deriving protocol ~driver:(module Jsonm)]
 
 let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "set"))
 let to_json = to_jsonm ||> Json.of_value
+
+let of_json = Json.to_value ||> of_jsonm
 
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;

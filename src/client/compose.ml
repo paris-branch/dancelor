@@ -39,7 +39,10 @@ module Composer = struct
   }
 
   let create () =
-    let _, tune_path = Dancelor_router.path_of_controller TuneAll in
+    let _, tune_path = 
+      Dancelor_router.path_of_controller TuneAll
+      |> Option.unwrap
+    in
     let database = Dancelor_model.Tune.Database.create () in
     let api = "/" ^ Config.api_prefix ^ tune_path in
     let request = XmlHttpRequest.create () in
@@ -101,10 +104,45 @@ module Composer = struct
 
   let iter t f =
     for i = 0 to t.count - 1 do
-      match t.tunes.(i) with
-      | None -> assert false
-      | Some tune -> f i tune
+      f i (Option.unwrap t.tunes.(i))
     done
+
+  let fold t f acc = 
+    let acc = ref acc in
+    for i = t.count - 1 downto 0 do
+      acc := f i (Option.unwrap t.tunes.(i)) !acc
+    done;
+    !acc
+
+  let submit t name kind callback = 
+    let save_path = 
+      Dancelor_router.(path_of_controller SetSave)
+      |> Option.unwrap
+      |> snd
+    in
+    let tunes = 
+      fold t (fun _ tune acc -> 
+        "&tunes=" ^ (Dancelor_model.Tune.slug tune) ^ acc) ""
+    in
+    let uri = 
+      Printf.sprintf "/%s%s?name=%s&kind=%s%s" 
+        Config.api_prefix save_path 
+        name kind tunes
+    in
+    let request = XmlHttpRequest.create () in
+    request##.onreadystatechange := Js.wrap_callback (fun () -> 
+      if request##.readyState = XmlHttpRequest.DONE 
+      && request##.status = 200 then begin
+        request##.responseText 
+        |> Js.to_string 
+        |> Dancelor_common.Json.from_string
+        |> Dancelor_common.Json.find ["set"]
+        |> Dancelor_common.Json.of_value
+        |> Dancelor_model.Set.of_json
+        |> callback
+      end);
+    request##_open (js "GET") (js uri) (Js._true);
+    request##send Js.null
 
 end
 
@@ -114,6 +152,8 @@ module Interface = struct
     composer : Composer.t;
     document : Html.document Js.t;
     form : Html.formElement Js.t;
+    set_name : Html.inputElement Js.t;
+    set_kind : Html.inputElement Js.t;
     tunes_area : Html.divElement Js.t;
     search_results : Html.divElement Js.t;
     search_bar : Html.inputElement Js.t;
@@ -160,14 +200,28 @@ module Interface = struct
       composer;
       document;
       form;
+      set_name;
+      set_kind;
       tunes_area;
       search_bar;
       search_results;
       save_button
     }
 
-  let save _interface =
-    Html.window##alert (js "Saved (actually it's not)")
+  let save interface = 
+    let name, kind = 
+      interface.set_name##.value |> Js.to_string,
+      interface.set_kind##.value |> Js.to_string
+    in
+    Composer.submit interface.composer name kind 
+      (fun set -> 
+        let path_to_pdf = 
+          Dancelor_router.SetPdf set
+          |> Dancelor_router.path_of_controller
+          |> Option.unwrap
+          |> snd
+        in
+        Html.window##.location##.href := js path_to_pdf)
 
   let rec refresh interface =
     while Js.to_bool interface.tunes_area##hasChildNodes do
