@@ -5,31 +5,6 @@ module Html = Dom_html
 
 let js = Js.string
 
-(* Unsafe module for JSON manipulation *)
-module JSON = struct
-
-  type t
-
-  let json = (Js.Unsafe.variable "JSON")
-
-  let parse j : t =
-    let jss = Js.string j in
-    Js.Unsafe.meth_call json "parse" [| Js.Unsafe.inject jss |]
-
-  let stringify (obj : t) =
-    Js.to_string @@ Js.Unsafe.meth_call json "stringify" [| Js.Unsafe.inject obj |]
-
-  let assoc (obj : t) (field : string) : t =
-    Js.Unsafe.get obj (js field)
-
-  let index (obj : t) (field : int) : t =
-    Js.Unsafe.get obj (js (string_of_int field))
-
-  let to_array (obj : t) : t Js.js_array Js.t =
-    Js.Unsafe.coerce (Js.Unsafe.inject obj)
-
-end
-
 module Composer = struct
 
   type t = {
@@ -47,14 +22,13 @@ module Composer = struct
       if request##.readyState = XmlHttpRequest.DONE
       && request##.status = 200 then begin
         let open Dancelor_common in
-        let str = request##.responseText |> Js.to_string in
-        let json = JSON.parse str in
-        let entries = JSON.assoc json "tunes" |> JSON.to_array in
-        let db_entries = ref [] in
-        entries##forEach (Js.wrap_callback (fun elt _ _ ->
-          let json = JSON.stringify elt in
-          db_entries := Json.from_string json :: !db_entries));
-        Dancelor_model.Tune.Database.fill database !db_entries;
+        request##.responseText 
+        |> Js.to_string
+        |> Json.from_string 
+        |> Json.find ["tunes"]
+        |> Json.list (Option.wrap_fun Json.of_value)
+        |> Option.unwrap
+        |> Dancelor_model.Tune.Database.fill database
       end);
     request##_open (js "GET") (js api) (Js._true);
     request##send Js.null;

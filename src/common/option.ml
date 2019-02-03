@@ -25,3 +25,6 @@ let wrap x = Some x
 let value ~default = function
   | None -> default
   | Some x -> x
+
+let wrap_fun f = 
+  fun x -> Some (f x)
