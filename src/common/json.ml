@@ -46,7 +46,28 @@ let map_field key fun_ = function
           fields)
   | _ -> failwith "Dancelor_common.Json.map_field"
 
-let from_string = Ezjsonm.from_string ||> of_value
+let rec yojson_to_jsonm = function
+  | `Null -> `Null
+  | `Bool b -> `Bool b
+  | `Int i -> `Float (float_of_int i)
+  | `Float f -> `Float f
+  | `String s -> `String s
+  | `Assoc kjl ->
+     `O (List.map (fun (k, j) -> (k, yojson_to_jsonm j)) kjl)
+  | `List jl ->
+     `A (List.map yojson_to_jsonm jl)
+
+(* let rec jsonm_to_yojson = function
+ *   | `Null -> `Null
+ *   | `Bool b -> `Bool b
+ *   | `Float f -> `Float f
+ *   | `String s -> `String s
+ *   | `A jl ->
+ *      `List (List.map jsonm_to_yojson jl)
+ *   | `O kjl ->
+ *      `Assoc (List.map (fun (k, j) -> (k, jsonm_to_yojson j))) *)
+
+let from_string = Yojson.Basic.from_string ||> yojson_to_jsonm ||> of_value
 let to_string = function
   | `O fields -> Ezjsonm.to_string ~minify:false (`O fields)
 

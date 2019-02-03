@@ -13,6 +13,7 @@
 /db
 /cache
 /share/config.json
+/share/static/dancelor
 
 ## DB
 /database
