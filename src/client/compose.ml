@@ -208,36 +208,30 @@ module Interface = struct
       Js.Opt.get (document##getElementById (js "content"))
         (fun () -> assert false)
     in
-    let form = Html.createForm document in
-    Dom.appendChild content form;
-    let set_name = Html.createInput ~_type:(js "text") document in
-    set_name##.className := js "form-control";
-		set_name##.id := js "name";
-    set_name##.placeholder := js "Set Name";
-    Dom.appendChild form set_name;
-    Dom.appendChild form (Html.createBr document);
-    let set_kind = Html.createInput ~_type:(js "text") document in
-    set_kind##.className := js "form-control";
-    set_kind##.id := js "kind";
-    set_kind##.placeholder := js "Set Kind (eg. 8x32R)";
-    Dom.appendChild form set_kind;
-    Dom.appendChild form (Html.createHr document);
-    let tunes_area = Html.createDiv document in
-    tunes_area##.id := js "tunesArea";
-    Dom.appendChild form tunes_area;
-    let save_button = Html.createButton ~_type:(js "button") document in
-    save_button##.className := js "btn btn-success";
-    save_button##.textContent := Js.some (js "Save");
-    Dom.appendChild form save_button;
-    Dom.appendChild form (Html.createHr document);
-    let search_bar = Html.createInput ~_type:(js "text") document in
-    search_bar##.className := js "form-control";
-    search_bar##.id := js "search";
-    search_bar##.placeholder := js "Search for a tune";
-    Dom.appendChild form search_bar;
-		let search_results = Html.createDiv document in
-    search_results##.id := js "searchResults";
-    Dom.appendChild form search_results;
+    let form = Widgets.form ~document ~parent:content () in
+    let set_name = 
+      Widgets.text_input ~classes:["form-control"] ~id:"name" 
+        ~placeholder:"Set Name" ~document ~parent:form () 
+    in
+    Widgets.br ~document ~parent:form ();
+    let set_kind = 
+      Widgets.text_input ~classes:["form-control"] ~id:"kind" 
+        ~placeholder:"Set Kind (eg. 8x32R)" ~document ~parent:form () 
+    in
+    Widgets.hr ~document ~parent:form ();
+    let tunes_area = Widgets.div ~id:"tunesArea" ~document ~parent:form () in
+    let save_button = 
+      Widgets.button ~classes:["btn"; "btn-success"] ~text:"Save" 
+        ~document ~parent:form () 
+    in
+    Widgets.hr ~document ~parent:form ();
+    let search_bar = 
+      Widgets.text_input ~classes:["form-control"] ~id:"search"
+        ~placeholder:"Search for a tune" ~document ~parent:form ()
+    in
+    let search_results = 
+      Widgets.div ~id:"searchResults" ~document ~parent:form () 
+    in
     {
       composer;
       document;
@@ -271,51 +265,29 @@ module Interface = struct
     Composer.iter interface.composer (fun index tune ->
       let tune_group = Dancelor_model.Tune.group tune in
       let tune_name = Dancelor_model.TuneGroup.name tune_group in
-      let html_image = Html.createImg interface.document in
+      Widgets.textnode ~text:tune_name ~document:interface.document 
+        ~parent:interface.tunes_area ();
+      Widgets.br ~document:interface.document ~parent:interface.tunes_area ();
       let src = Dancelor_router.(path_of_controller (TunePng tune)) |> snd in
-      html_image##.src := js src;
-      let up_button =
-        Html.createButton ~_type:(js "button") interface.document
-      in
-      up_button##.className := js "btn btn-default";
-      up_button##.textContent := Js.some (js "Monter");
-      Lwt.async (fun () ->
-        Lwt_js_events.clicks up_button
-          (fun _ev _ ->
-            Composer.move_up interface.composer index;
-            refresh interface;
-            Lwt.return ()));
-      let down_button =
-        Html.createButton ~_type:(js "button") interface.document
-      in
-      down_button##.className := js "btn btn-default";
-      down_button##.textContent := Js.some (js "Descendre");
-      Lwt.async (fun () ->
-        Lwt_js_events.clicks down_button
-          (fun _ev _ ->
-            Composer.move_down interface.composer index;
-            refresh interface;
-            Lwt.return ()));
-      let del_button =
-        Html.createButton ~_type:(js "button") interface.document
-      in
-      del_button##.className := js "btn btn-danger";
-      del_button##.textContent := Js.some (js "Supprimer");
-      Lwt.async (fun () ->
-        Lwt_js_events.clicks del_button
-          (fun _ev _ ->
-            Composer.remove interface.composer index;
-            refresh interface;
-            Lwt.return ()));
-      let text_node = interface.document##createTextNode (js tune_name) in
-      Dom.appendChild interface.tunes_area text_node;
-      Dom.appendChild interface.tunes_area (Html.createBr interface.document);
-      Dom.appendChild interface.tunes_area html_image;
-      Dom.appendChild interface.tunes_area (Html.createBr interface.document);
-      Dom.appendChild interface.tunes_area up_button;
-      Dom.appendChild interface.tunes_area down_button;
-      Dom.appendChild interface.tunes_area del_button;
-      Dom.appendChild interface.tunes_area (Html.createHr interface.document);
+      Widgets.image ~document:interface.document ~parent:interface.tunes_area
+        ~src () |> ignore;
+      Widgets.br ~document:interface.document ~parent:interface.tunes_area ();
+      Widgets.button ~classes:["btn"; "btn-default"] ~text:"Monter"
+        ~document:interface.document ~parent:interface.tunes_area
+        ~callback:(fun () ->
+          Composer.move_up interface.composer index;
+          refresh interface) () |> ignore;
+      Widgets.button ~classes:["btn"; "btn-default"] ~text:"Descendre"
+        ~document:interface.document ~parent:interface.tunes_area
+        ~callback:(fun () ->
+          Composer.move_down interface.composer index;
+          refresh interface) () |> ignore;
+      Widgets.button ~classes:["btn"; "btn-danger"] ~text:"Supprimer"
+        ~document:interface.document ~parent:interface.tunes_area
+        ~callback:(fun () ->
+          Composer.remove interface.composer index;
+          refresh interface) () |> ignore;
+      Widgets.hr ~document:interface.document ~parent:interface.tunes_area ();
     );
     interface.set_name##.value := js (Composer.name interface.composer);
     interface.set_kind##.value := js (Composer.kind interface.composer)
