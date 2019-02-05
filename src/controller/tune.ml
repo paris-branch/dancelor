@@ -41,7 +41,7 @@ let get_all query =
         | other -> error ("mode must be major or minor, got " ^ other)
       )
       ?hard_limit:(query_int_opt query "hard-limit")
-      ?threshold:Option.(query_float_opt query "threshold" >>= (fun threshold -> Some (100. *. threshold)))
+      ?threshold:Option.(query_float_opt query "threshold" >>= (fun threshold -> Some (threshold /. 100.)))
       ()
     |> List.map (fun (score, tune) ->
            Tune.to_json tune
