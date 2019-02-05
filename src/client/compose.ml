@@ -105,21 +105,13 @@ module Composer = struct
 
   let request_tune_slug slug callback = 
     let path = Dancelor_router.(path_of_controller (TuneSlug slug)) |> snd in
-    let uri = Printf.sprintf "/%s%s" Config.api_prefix path in
-    let request = XmlHttpRequest.create () in
-    request##.onreadystatechange := Js.wrap_callback (fun () -> 
-      if request##.readyState = XmlHttpRequest.DONE 
-      && request##.status = 200 then begin
-        request##.responseText 
-        |> Js.to_string 
-        |> Dancelor_common.Json.from_string
+    Helpers.send_request ~path 
+      ~callback:(fun str ->
+        Dancelor_common.Json.from_string str
         |> Dancelor_common.Json.find ["tune"]
         |> Dancelor_common.Json.of_value
         |> Dancelor_model.Tune.of_json
-        |> callback
-      end);
-    request##_open (js "GET") (js uri) (Js._true);
-    request##send Js.null
+        |> callback) ()
 
   let load t cb = 
     Js.Optdef.case Dom_html.window##.localStorage 
@@ -153,29 +145,18 @@ module Composer = struct
   let submit t callback = 
     let save_path = Dancelor_router.(path_of_controller SetSave) |> snd in
     let tunes = 
-      fold t (fun _ tune acc -> 
-        "&tunes=" ^ (Dancelor_model.Tune.slug tune) ^ acc) ""
+      fold t (fun _ tune acc ->
+        ("tunes", Dancelor_model.Tune.slug tune) :: acc) []
     in
-    let uri = 
-      Printf.sprintf "/%s%s?name=%s&kind=%s%s" 
-        Config.api_prefix save_path 
-        t.name t.kind tunes
-    in
-    let request = XmlHttpRequest.create () in
-    request##.onreadystatechange := Js.wrap_callback (fun () -> 
-      if request##.readyState = XmlHttpRequest.DONE 
-      && request##.status = 200 then begin
-        request##.responseText 
-        |> Js.to_string 
-        |> Dancelor_common.Json.from_string
+    Helpers.send_request ~path:save_path 
+      ~args:(("name", t.name) :: ("kind", t.kind) :: tunes)
+      ~callback:(fun str ->
+        Dancelor_common.Json.from_string str
         |> Dancelor_common.Json.find ["set"]
         |> Dancelor_common.Json.of_value
         |> Dancelor_model.Set.of_json
         |> callback;
-        erase_storage t
-      end);
-    request##_open (js "GET") (js uri) (Js._true);
-    request##send Js.null
+        erase_storage t) ()
 
 end
 
@@ -318,19 +299,13 @@ module Interface = struct
 
   let search_tunes interface input =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in
-    let path = 
-      Printf.sprintf "/%s%s?name=%s" Config.api_prefix tune_path input 
-    in
-    let request = XmlHttpRequest.create () in
-    request##.onreadystatechange := Js.wrap_callback (fun () ->
-      if request##.readyState = XmlHttpRequest.DONE
-      && request##.status = 200 then begin
+    Helpers.send_request ~path:tune_path
+      ~args:["name", input]
+      ~callback:(fun str ->
         let open Dancelor_common in
         Widgets.remove_children interface.search_results;
         let table = Html.createTable interface.document in
-        request##.responseText 
-        |> Js.to_string
-        |> Json.from_string 
+        Json.from_string str
         |> Json.find ["tunes"]
         |> Json.list (Option.wrap_fun Json.of_value)
         |> Option.unwrap
@@ -341,10 +316,7 @@ module Interface = struct
         |> List.iter (fun (score, tune) ->
              let result_tr = make_search_result interface tune score in
              Dom.appendChild table result_tr);
-        Dom.appendChild interface.search_results table
-      end);
-    request##_open (js "GET") (js path) (Js._true);
-    request##send Js.null
+        Dom.appendChild interface.search_results table) ()
 
   let connect interface =
     Lwt.async (fun () ->
