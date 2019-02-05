@@ -14,8 +14,9 @@ let remove_children elt =
 let set_classes elt classes =
   Option.ifsome (List.iter (fun c -> elt##.classList##add (js c))) classes
 
-let form ~parent ~document () =
+let form ?id ~parent ~document () =
   let form = Html.createForm document in
+  Option.ifsome (fun i -> form##.id := js i) id;
   Dom.appendChild parent form;
   form
 
@@ -25,9 +26,10 @@ let hr ~parent ~document () =
 let br ~parent ~document () =
   Dom.appendChild parent (Html.createBr document)
 
-let div ?id ~parent ~document () = 
+let div ?id ?classes ~parent ~document () = 
   let div = Html.createDiv document in
   Option.ifsome (fun i -> div##.id := js i) id;
+  set_classes div classes;
   Dom.appendChild parent div;
   div
 
@@ -50,9 +52,10 @@ let button ?classes ?text ?callback ~parent ~document () =
   Dom.appendChild parent button;
   button
 
-let image ?src ~parent ~document () =
+let image ?classes ?src ~parent ~document () =
   let html_image = Html.createImg document in
   Option.ifsome (fun src -> html_image##.src := js src) src;
+  set_classes html_image classes;
   Dom.appendChild parent html_image;
   html_image
 
