@@ -300,7 +300,7 @@ module Interface = struct
   let search_tunes interface input =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in
     Helpers.send_request ~path:tune_path
-      ~args:["name", input]
+      ~args:["name", input; "hard-limit", "10"; "threshold", "50"]
       ~callback:(fun str ->
         let open Dancelor_common in
         Widgets.remove_children interface.search_results;
