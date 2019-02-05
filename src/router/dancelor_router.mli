@@ -26,6 +26,7 @@ type controller =
   | TuneLy of Tune.t
   | TunePng of Tune.t
   | Tune of Tune.t
+  | TuneSlug of Dancelor_common.Slug.t
   | Victor
 
 val path_to_controller : meth:Cohttp.Code.meth -> path:string -> controller option

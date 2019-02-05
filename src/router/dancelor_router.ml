@@ -21,6 +21,7 @@ type controller =
   | TuneLy of Tune.t
   | TunePng of Tune.t
   | Tune of Tune.t
+  | TuneSlug of Slug.t
   | Victor
 
 type route =
@@ -198,6 +199,7 @@ let routes : route list =
       ~prefix:"/tune"
       (Tune.Database.get_opt >=> fun tune -> Some (Tune tune))
       (function Tune tune -> Some (Tune.slug tune)
+              | TuneSlug slug -> Some slug
               | _ -> None) ;
 
     direct

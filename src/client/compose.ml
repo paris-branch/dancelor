@@ -22,31 +22,58 @@ module Composer = struct
       count = 0;
     }
 
-  (*let load_database composer callback =
-    let _, tune_path = Dancelor_router.path_of_controller TuneAll in
-    let api = "/" ^ Config.api_prefix ^ tune_path in
-    let request = XmlHttpRequest.create () in
-    request##.onreadystatechange := Js.wrap_callback (fun () ->
-      if request##.readyState = XmlHttpRequest.DONE
-      && request##.status = 200 then begin
-        let open Dancelor_common in
-        request##.responseText 
-        |> Js.to_string
-        |> Json.from_string 
-        |> Json.find ["tunes"]
-        |> Json.list (Option.wrap_fun Json.of_value)
-        |> Option.unwrap
-        |> Dancelor_model.Tune.Database.fill composer.database;
-        callback ()
-      end);
-    request##_open (js "GET") (js api) (Js._true);
-    request##send Js.null*)
-
   let name t = 
     t.name
 
+  let set_name t name = 
+    t.name <- name
+
   let kind t = 
     t.kind
+
+  let set_kind t kind = 
+    t.kind <- kind
+
+  let insert t tune i = 
+    if Array.length t.tunes = t.count then begin
+      let new_tunes = Array.make (t.count * 2) None in
+      Array.blit t.tunes 0 new_tunes 0 t.count;
+      t.tunes <- new_tunes;
+    end;
+    for idx = t.count-1 downto i do
+      t.tunes.(idx+1) <- t.tunes.(idx)
+    done;
+    t.tunes.(i) <- Some tune;
+    t.count <- t.count + 1
+
+  let add t tune =
+    insert t tune t.count
+
+  let get t i =
+    if i < 0 || i >= t.count then
+      None
+    else
+      t.tunes.(i)
+
+  let remove t i =
+    if i >= 0 && i < t.count then begin
+      t.tunes.(i) <- None;
+      for j = i + 1 to t.count - 1 do
+        t.tunes.(j-1) <- t.tunes.(j);
+        t.tunes.(j) <- None;
+      done;
+      t.count <- t.count - 1
+    end
+
+  let move_up t i =
+    if i > 0 && i < t.count then begin
+      let tmp = t.tunes.(i-1) in
+      t.tunes.(i-1) <- t.tunes.(i);
+      t.tunes.(i) <- tmp
+    end
+
+  let move_down t i =
+    move_up t (i+1)
 
   let iter t f =
     for i = 0 to t.count - 1 do
@@ -76,11 +103,29 @@ module Composer = struct
         local_storage##setItem (js "composer.kind") (js t.kind);
         local_storage##setItem (js "composer.tunes") (js tunes))
 
-  let load t = 
+  let request_tune_slug slug callback = 
+    let path = Dancelor_router.(path_of_controller (TuneSlug slug)) |> snd in
+    let uri = Printf.sprintf "/%s%s" Config.api_prefix path in
+    let request = XmlHttpRequest.create () in
+    request##.onreadystatechange := Js.wrap_callback (fun () -> 
+      if request##.readyState = XmlHttpRequest.DONE 
+      && request##.status = 200 then begin
+        request##.responseText 
+        |> Js.to_string 
+        |> Dancelor_common.Json.from_string
+        |> Dancelor_common.Json.find ["tune"]
+        |> Dancelor_common.Json.of_value
+        |> Dancelor_model.Tune.of_json
+        |> callback
+      end);
+    request##_open (js "GET") (js uri) (Js._true);
+    request##send Js.null
+
+  let load t cb = 
     Js.Optdef.case Dom_html.window##.localStorage 
       (fun () -> ()) 
       (fun local_storage ->
-        let name, kind, _tunes = 
+        let name, kind, tunes = 
           local_storage##getItem (js "composer.name"),
           local_storage##getItem (js "composer.kind"),
           local_storage##getItem (js "composer.tunes")
@@ -88,19 +133,14 @@ module Composer = struct
         Js.Opt.case name (fun () -> ())
           (fun name -> t.name <- Js.to_string name);
         Js.Opt.case kind (fun () -> ())
-          (fun kind -> t.kind <- Js.to_string kind)(*;
+          (fun kind -> t.kind <- Js.to_string kind);
         Js.Opt.case tunes (fun () -> ())
           (fun tunes -> 
-            let tune_list = 
-              String.split_on_char ';' (Js.to_string tunes)
-              |> List.filter (Dancelor_model.Tune.Database.mem ~db:t.database)
-              |> List.map (Dancelor_model.Tune.Database.get ~db:t.database)
-            in
-            let count = List.length tune_list in
-            let tunes = Array.make (max 2 count) None in
-            List.iteri (fun i tune -> tunes.(i) <- Some tune) tune_list;
-            t.count <- count;
-            t.tunes <- tunes)*))
+            String.split_on_char ';' (Js.to_string tunes)
+            |> List.filter (fun s -> s <> " " && s <> "")
+            |> List.iteri (fun idx slug ->
+              request_tune_slug slug (fun tune ->
+                insert t tune idx; cb ()))))
 
   let erase_storage _ = 
     Js.Optdef.case Dom_html.window##.localStorage 
@@ -109,52 +149,6 @@ module Composer = struct
         local_storage##removeItem (js "composer.name");
         local_storage##removeItem (js "composer.kind");
         local_storage##removeItem (js "composer.tunes"))
-
-  let add t tune =
-    if Array.length t.tunes = t.count then begin
-      let new_tunes = Array.make (t.count * 2) None in
-      Array.blit t.tunes 0 new_tunes 0 t.count;
-      t.tunes <- new_tunes;
-    end;
-    t.tunes.(t.count) <- Some tune;
-    t.count <- t.count + 1;
-    save t
-
-  let get t i =
-    if i < 0 || i >= t.count then
-      None
-    else
-      t.tunes.(i)
-
-  let remove t i =
-    if i >= 0 && i < t.count then begin
-      t.tunes.(i) <- None;
-      for j = i + 1 to t.count - 1 do
-        t.tunes.(j-1) <- t.tunes.(j);
-        t.tunes.(j) <- None;
-      done;
-      t.count <- t.count - 1;
-      save t
-    end
-
-  let move_up t i =
-    if i > 0 && i < t.count then begin
-      let tmp = t.tunes.(i-1) in
-      t.tunes.(i-1) <- t.tunes.(i);
-      t.tunes.(i) <- tmp;
-      save t
-    end
-
-  let move_down t i =
-    move_up t (i+1)
-
-  let set_name t name = 
-    t.name <- name;
-    save t
-
-  let set_kind t kind = 
-    t.kind <- kind;
-    save t
 
   let submit t callback = 
     let save_path = Dancelor_router.(path_of_controller SetSave) |> snd in
@@ -267,16 +261,19 @@ module Interface = struct
         ~document:interface.document ~parent:interface.tunes_area
         ~callback:(fun () ->
           Composer.move_up interface.composer index;
+          Composer.save interface.composer;
           refresh interface) () |> ignore;
       Widgets.button ~classes:["btn"; "btn-default"] ~text:"Descendre"
         ~document:interface.document ~parent:interface.tunes_area
         ~callback:(fun () ->
           Composer.move_down interface.composer index;
+          Composer.save interface.composer;
           refresh interface) () |> ignore;
       Widgets.button ~classes:["btn"; "btn-danger"] ~text:"Supprimer"
         ~document:interface.document ~parent:interface.tunes_area
         ~callback:(fun () ->
           Composer.remove interface.composer index;
+          Composer.save interface.composer;
           refresh interface) () |> ignore;
       Widgets.hr ~document:interface.document ~parent:interface.tunes_area ();
     );
@@ -307,6 +304,7 @@ module Interface = struct
       Lwt_js_events.clicks add_link
         (fun _ev _ ->
           Composer.add interface.composer tune;
+          Composer.save interface.composer;
           refresh interface;
           Lwt.return ()));
     let link_entry = Html.createTd interface.document in
@@ -363,12 +361,14 @@ module Interface = struct
         (fun _ev _ ->
           let input = Js.to_string interface.set_name##.value in
           Composer.set_name interface.composer input;
+          Composer.save interface.composer;
           Lwt.return ()));
     Lwt.async (fun () ->
       Lwt_js_events.keyups interface.set_kind
         (fun _ev _ ->
           let input = Js.to_string interface.set_kind##.value in
           Composer.set_kind interface.composer input;
+          Composer.save interface.composer;
           Lwt.return ()))
 
 end
@@ -376,7 +376,7 @@ end
 let on_load _ev =
   let composer = Composer.create () in
   let interface = Interface.create composer in
-  Composer.load composer;
+  Composer.load composer (fun () -> Interface.refresh interface);
   Interface.refresh interface;
   Interface.connect interface;
   Js._false
