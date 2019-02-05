@@ -25,10 +25,9 @@ module Database : sig
   val get : Slug.t -> t
   val get_opt : Slug.t -> t option
 
-  val mem : Slug.t -> bool
-
   val get_all :
     ?name:string -> ?author:string ->
     ?kind:Kind.base -> ?keys:Music.key list -> ?mode:Music.mode ->
+    ?hard_limit:int -> ?threshold:float ->
     unit -> (float * t) list
 end

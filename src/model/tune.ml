@@ -53,10 +53,8 @@ module Database =
       Storage.list_entries prefix
       |> List.iter load
 
-    let get slug = Hashtbl.find db slug
+    let get = Hashtbl.find db
     let get_opt = Hashtbl.find_opt db
-
-    let mem slug = Hashtbl.mem db slug
 
     let match_score needle haystack =
       let needle = Slug.from_string needle in
@@ -68,7 +66,7 @@ module Database =
           let d = String.inclusion_distance needle haystack in
           (float_of_int d) /. (float_of_int (String.length needle))
 
-    let get_all ?name ?author ?kind ?keys ?mode () =
+    let get_all ?name ?author ?kind ?keys ?mode ?(hard_limit=max_int) ?(threshold=0.5) () =
       ignore keys; ignore mode;
       Hashtbl.to_seq_values db
       |> Seq.map (fun tune -> (1., tune))
@@ -99,6 +97,9 @@ module Database =
            (match mode with
             | None -> fun _ -> true
             | Some mode -> (fun (_, tune) -> snd (key tune) = mode))
+      |> Seq.filter
+           (fun (score, _) -> score >= threshold)
+      |> Seq.sub hard_limit
       |> List.of_seq
       |> List.sort
            (fun (score1, tune1) (score2, tune2) ->

@@ -1,4 +1,5 @@
 open Dancelor_common
+open Option
 
 let error ?(status=`OK) message =
   raise (Error.Error (status, message))
@@ -32,3 +33,11 @@ let query_int query key =
   match int_of_string_opt (query_string query key) with
   | Some int -> int
   | None -> error ("wrong type for " ^ key ^ " (int expected)")
+
+let query_int_opt query key =
+  query_string_opt query key >>=
+    int_of_string_opt
+
+let query_float_opt query key =
+  query_string_opt query key >>=
+    float_of_string_opt

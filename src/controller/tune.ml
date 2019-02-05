@@ -40,6 +40,8 @@ let get_all query =
         | "minor" -> Some Music.Minor
         | other -> error ("mode must be major or minor, got " ^ other)
       )
+      ?hard_limit:(query_int_opt query "hard-limit")
+      ?threshold:(query_float_opt query "threshold")
       ()
     |> List.map (fun (score, tune) ->
            Tune.to_json tune
