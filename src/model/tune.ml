@@ -53,24 +53,10 @@ module Database =
       Storage.list_entries prefix
       |> List.iter load
 
-    (* FIXME: Temporary way of creating a non-static DB *)
-    type db = (string, t) Hashtbl.t
-
-    let create () = 
-      Hashtbl.create 8
-
-    let fill db entries =
-      let load json =
-        let tune = of_json json in
-        Hashtbl.add db tune.slug tune
-      in
-      List.iter load entries
-    (* End of FIXME *)
-
-    let get ?(db=db) slug = Hashtbl.find db slug
+    let get slug = Hashtbl.find db slug
     let get_opt = Hashtbl.find_opt db
 
-    let mem ?(db=db) slug = Hashtbl.mem db slug
+    let mem slug = Hashtbl.mem db slug
 
     let match_score needle haystack =
       let needle = Slug.from_string needle in
@@ -82,8 +68,7 @@ module Database =
           let d = String.inclusion_distance needle haystack in
           (float_of_int d) /. (float_of_int (String.length needle))
 
-    (* FIXME: Added an additional parameter for non-static databases *)
-    let get_all ?(db=db) ?name ?author ?kind ?keys ?mode () =
+    let get_all ?name ?author ?kind ?keys ?mode () =
       ignore keys; ignore mode;
       Hashtbl.to_seq_values db
       |> Seq.map (fun tune -> (1., tune))
