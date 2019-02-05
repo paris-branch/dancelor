@@ -24,3 +24,11 @@ let pp ?(sep="; ") pp_x fmt = function
   | x :: xs ->
      pp_x fmt x;
      List.iter (Format.fprintf fmt "%s%a" sep pp_x) xs
+
+let rec sub n l =
+  if n <= 0 then []
+  else begin
+    match l with
+    | [] -> []
+    | h::t -> h::(sub (n-1) t)
+  end

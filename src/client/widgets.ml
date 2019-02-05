@@ -5,6 +5,12 @@ module Html = Dom_html
 
 let js = Js.string
 
+let remove_children elt = 
+  while Js.to_bool elt##hasChildNodes do
+    let child = Js.Opt.get elt##.firstChild (fun () -> assert false) in
+    elt##removeChild child |> ignore
+  done
+
 let set_classes elt classes =
   Option.ifsome (List.iter (fun c -> elt##.classList##add (js c))) classes
 

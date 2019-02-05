@@ -12,20 +12,17 @@ module Composer = struct
     mutable kind : string;
     mutable tunes : Dancelor_model.Tune.t option array;
     mutable count : int;
-    database : Dancelor_model.Tune.Database.db;
   }
 
   let create () =
-    let database = Dancelor_model.Tune.Database.create () in
     {
       name = "";
       kind = "";
-      database;
       tunes = Array.make 2 None;
       count = 0;
     }
 
-  let load_database composer callback =
+  (*let load_database composer callback =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in
     let api = "/" ^ Config.api_prefix ^ tune_path in
     let request = XmlHttpRequest.create () in
@@ -43,7 +40,7 @@ module Composer = struct
         callback ()
       end);
     request##_open (js "GET") (js api) (Js._true);
-    request##send Js.null
+    request##send Js.null*)
 
   let name t = 
     t.name
@@ -83,7 +80,7 @@ module Composer = struct
     Js.Optdef.case Dom_html.window##.localStorage 
       (fun () -> ()) 
       (fun local_storage ->
-        let name, kind, tunes = 
+        let name, kind, _tunes = 
           local_storage##getItem (js "composer.name"),
           local_storage##getItem (js "composer.kind"),
           local_storage##getItem (js "composer.tunes")
@@ -91,7 +88,7 @@ module Composer = struct
         Js.Opt.case name (fun () -> ())
           (fun name -> t.name <- Js.to_string name);
         Js.Opt.case kind (fun () -> ())
-          (fun kind -> t.kind <- Js.to_string kind);
+          (fun kind -> t.kind <- Js.to_string kind)(*;
         Js.Opt.case tunes (fun () -> ())
           (fun tunes -> 
             let tune_list = 
@@ -103,7 +100,7 @@ module Composer = struct
             let tunes = Array.make (max 2 count) None in
             List.iteri (fun i tune -> tunes.(i) <- Some tune) tune_list;
             t.count <- count;
-            t.tunes <- tunes))
+            t.tunes <- tunes)*))
 
   let erase_storage _ = 
     Js.Optdef.case Dom_html.window##.localStorage 
@@ -255,13 +252,7 @@ module Interface = struct
         Html.window##.location##.href := js path_to_pdf)
 
   let rec refresh interface =
-    while Js.to_bool interface.tunes_area##hasChildNodes do
-      let child =
-        Js.Opt.get interface.tunes_area##.firstChild (fun () -> assert false)
-      in
-      interface.tunes_area##removeChild child
-      |> ignore
-    done;
+    Widgets.remove_children interface.tunes_area;
     Composer.iter interface.composer (fun index tune ->
       let tune_group = Dancelor_model.Tune.group tune in
       let tune_name = Dancelor_model.TuneGroup.name tune_group in
@@ -304,7 +295,7 @@ module Interface = struct
       td##.textContent := Js.some (js s);
       td
     in
-    let score_str = string_of_int (int_of_float (score *. 100.)) in
+    let score_str = string_of_int score in
     let bars_kind_str =
       Printf.sprintf "%i %s"
         tune_bars (Dancelor_model.Kind.base_to_string tune_kind)
@@ -328,34 +319,34 @@ module Interface = struct
     tr
 
   let search_tunes interface input =
-    while Js.to_bool interface.search_results##hasChildNodes do
-      let child =
-        Js.Opt.get interface.search_results##.firstChild
-          (fun () -> assert false)
-      in
-      interface.search_results##removeChild child
-      |> ignore
-    done;
-    let rec list_sub n l =
-      if n <= 0 then []
-      else begin
-        match l with
-        | [] -> []
-        | h::t -> h::(list_sub (n-1) t)
-      end
+    let _, tune_path = Dancelor_router.path_of_controller TuneAll in
+    let path = 
+      Printf.sprintf "/%s%s?name=%s" Config.api_prefix tune_path input 
     in
-    let results =
-      Dancelor_model.Tune.Database.get_all
-        ~db:interface.composer.Composer.database
-        ~name:input ()
-      |> list_sub 10
-    in
-    let table = Html.createTable interface.document in
-    List.iter (fun (score, tune) ->
-      let result_tr = make_search_result interface tune score in
-      Dom.appendChild table result_tr
-    ) results;
-    Dom.appendChild interface.search_results table
+    let request = XmlHttpRequest.create () in
+    request##.onreadystatechange := Js.wrap_callback (fun () ->
+      if request##.readyState = XmlHttpRequest.DONE
+      && request##.status = 200 then begin
+        let open Dancelor_common in
+        Widgets.remove_children interface.search_results;
+        let table = Html.createTable interface.document in
+        request##.responseText 
+        |> Js.to_string
+        |> Json.from_string 
+        |> Json.find ["tunes"]
+        |> Json.list (Option.wrap_fun Json.of_value)
+        |> Option.unwrap
+        |> List.sub 10
+        |> List.map (fun json ->
+             (Json.find ["score"] json |> Json.int |> Option.unwrap,
+              Dancelor_model.Tune.of_json json))
+        |> List.iter (fun (score, tune) ->
+             let result_tr = make_search_result interface tune score in
+             Dom.appendChild table result_tr);
+        Dom.appendChild interface.search_results table
+      end);
+    request##_open (js "GET") (js path) (Js._true);
+    request##send Js.null
 
   let connect interface =
     Lwt.async (fun () ->
@@ -385,9 +376,7 @@ end
 let on_load _ev =
   let composer = Composer.create () in
   let interface = Interface.create composer in
-  Composer.load_database composer (fun () ->
-      Composer.load composer;
-      Interface.refresh interface);
+  Composer.load composer;
   Interface.refresh interface;
   Interface.connect interface;
   Js._false
