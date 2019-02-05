@@ -66,7 +66,7 @@ module Database =
           let d = String.inclusion_distance needle haystack in
           (float_of_int d) /. (float_of_int (String.length needle))
 
-    let get_all ?name ?author ?kind ?keys ?mode ?(hard_limit=max_int) ?(threshold=0.5) () =
+    let get_all ?name ?author ?kind ?keys ?mode ?(hard_limit=max_int) ?(threshold=0.) () =
       ignore keys; ignore mode;
       Hashtbl.to_seq_values db
       |> Seq.map (fun tune -> (1., tune))
