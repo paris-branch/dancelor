@@ -11,8 +11,14 @@ let remove_children elt =
     elt##removeChild child |> ignore
   done
 
+let add_classes elt classes =
+  List.iter (fun c -> elt##.classList##add (js c)) classes
+
+let rem_classes elt classes = 
+  List.iter (fun c -> elt##.classList##remove (js c)) classes
+
 let set_classes elt classes =
-  Option.ifsome (List.iter (fun c -> elt##.classList##add (js c))) classes
+  Option.ifsome (add_classes elt) classes
 
 let form ?id ~parent ~document () =
   let form = Html.createForm document in

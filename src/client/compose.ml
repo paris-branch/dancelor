@@ -222,14 +222,23 @@ module Interface = struct
     }
 
   let save interface = 
-    Composer.submit interface.composer
-      (fun set -> 
-        let path_to_pdf = 
-          Dancelor_router.SetPdf set
-          |> Dancelor_router.path_of_controller
-          |> snd
-        in
-        Html.window##.location##.href := js path_to_pdf)
+    Html.window##scroll 0 0;
+    if Composer.name interface.composer <> ""
+    && Composer.kind interface.composer <> "" then begin
+      Composer.submit interface.composer
+        (fun set -> 
+          let path_to_pdf = 
+            Dancelor_router.SetPdf set
+            |> Dancelor_router.path_of_controller
+            |> snd
+          in
+          Html.window##.location##.href := js path_to_pdf)
+    end else begin
+      if Composer.name interface.composer = "" then 
+        Widgets.add_classes interface.set_name ["has-error"];
+      if Composer.kind interface.composer = "" then 
+        Widgets.add_classes interface.set_kind ["has-error"];
+    end
 
   let tune_actions interface tune_header index refresh = 
     let actions = 
@@ -400,6 +409,8 @@ module Interface = struct
       Lwt_js_events.keyups interface.set_name
         (fun _ev _ ->
           let input = Js.to_string interface.set_name##.value in
+          if input <> "" then
+            Widgets.rem_classes interface.set_name ["has-error"];
           Composer.set_name interface.composer input;
           Composer.save interface.composer;
           Lwt.return ()));
@@ -407,6 +418,8 @@ module Interface = struct
       Lwt_js_events.keyups interface.set_kind
         (fun _ev _ ->
           let input = Js.to_string interface.set_kind##.value in
+          if input <> "" then
+            Widgets.rem_classes interface.set_kind ["has-error"];
           Composer.set_kind interface.composer input;
           Composer.save interface.composer;
           Lwt.return ()))
