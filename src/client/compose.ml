@@ -46,7 +46,7 @@ module Composer = struct
     for idx = t.count-1 downto i do
       t.tunes.(idx+1) <- t.tunes.(idx)
     done;
-    t.tunes.(i) <- Some tune;
+    t.tunes.(min t.count i) <- Some tune;
     t.count <- t.count + 1
 
   let add t tune =
