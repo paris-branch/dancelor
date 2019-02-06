@@ -80,13 +80,17 @@ module Composer = struct
 
   let iter t f =
     for i = 0 to t.count - 1 do
-      f i (Option.unwrap t.tunes.(i))
+      match t.tunes.(i) with
+      | None -> ()
+      | Some tune -> f i tune
     done
 
   let fold t f acc = 
     let acc = ref acc in
     for i = t.count - 1 downto 0 do
-      acc := f i (Option.unwrap t.tunes.(i)) !acc
+      match t.tunes.(i) with
+      | None -> ()
+      | Some tune -> acc := f i tune !acc
     done;
     !acc
 
