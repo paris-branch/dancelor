@@ -49,6 +49,12 @@ let respond_view ?(status=`OK) view json =
    will be using the API. We will be able to remove all the notions of
    ~api and ~view in the next functions. *)
 
+let apply_json_controller_if_api ~api json_controller =
+  if api then
+    apply_json_controller json_controller
+  else
+    fun _ -> Server.respond_not_found ()
+
 let apply_html_controller ~api ~view json_controller query =
   json_controller query >>= fun json ->
   let json = LinksAdder.json_add_links json in
@@ -59,24 +65,33 @@ let apply_html_controller ~api ~view json_controller query =
 
 let apply_controller ~api = let open Dancelor_router in function
   | Index -> (fun _ -> respond_view "/index" (`O []))
+
   | Credit credit -> apply_html_controller ~api ~view:"/credit" (Credit.get credit)
+
   | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
+
   | Person person -> apply_html_controller ~api ~view:"/person" (Person.get person)
+
   | ProgramAll -> apply_html_controller ~api ~view:"/program/all" Program.get_all
   | ProgramPdf program -> Program.Pdf.get program
   | Program program -> apply_html_controller ~api ~view:"/program" (Program.get program)
+
   | SetAll -> apply_html_controller ~api ~view:"/set/all" Set.get_all
   | SetCompose -> (fun _ -> respond_view "/set/compose" (`O []))
-  | SetSave -> if api then apply_json_controller Set.save else (fun _ -> Server.respond_not_found ())
+  | SetSave -> apply_json_controller_if_api ~api Set.save
   | SetLy set -> Set.Ly.get set
   | SetPdf set -> Set.Pdf.get set
   | Set set -> apply_html_controller ~api ~view:"/set" (Set.get set)
+  | SetDelete set -> apply_json_controller_if_api ~api (Set.delete set)
+
   | TuneGroup tune_group -> apply_html_controller ~api ~view:"/tune-group" (TuneGroup.get tune_group)
+
   | TuneAll -> apply_html_controller ~api ~view:"/tune/all" Tune.get_all
   | TuneLy tune -> Tune.get_ly tune
   | TunePng tune -> Tune.Png.get tune
   | Tune tune -> apply_html_controller ~api ~view:"/tune" (Tune.get tune)
   | TuneSlug _ -> assert false
+
   | Victor -> exit 0
 
 let callback _ request _body =

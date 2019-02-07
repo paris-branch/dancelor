@@ -8,6 +8,23 @@ let get set _ =
   |> Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["set", json]))
 
+let delete set _ =
+  Set.Database.delete set;
+  Lwt.return (`O [])
+
+let save query =
+  Log.debug (fun m -> m "Controller save");
+  let slug = query_string_opt query "slug" in
+  let name = query_string query "name" in
+  let kind = Kind.dance_of_string (query_string query "kind") in
+  let tunes =
+    query_strings query "tunes"
+    |> List.map Tune.Database.get
+  in
+  Set.Database.save ?slug ~name ~kind ~tunes ()
+  |> Set.to_jsonm
+  |> (fun json -> Lwt.return (`O ["set", json]))
+
 let get_all _ =
   Log.debug (fun m -> m "controller get_all");
   Set.Database.get_all ()
@@ -73,15 +90,3 @@ module Pdf = struct
     render ?transpose_target:(query_string_opt query "transpose-target") set >>= fun path_pdf ->
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
-
-let save query =
-  Log.debug (fun m -> m "Controller save");
-  let name = query_string query "name" in
-  let kind = Kind.dance_of_string (query_string query "kind") in
-  let tunes =
-    query_strings query "tunes"
-    |> List.map Tune.Database.get
-  in
-  Set.Database.create ~name ~kind ~tunes ()
-  |> Set.to_jsonm
-  |> (fun json -> Lwt.return (`O ["set", json]))

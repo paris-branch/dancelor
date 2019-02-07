@@ -4,24 +4,33 @@ module Log = (val Log.create "dancelor.server.router")
 
 type controller =
   | Index
+
   | Credit of Credit.t
+
   | Pascaline
+
   | Person of Person.t
+
   | ProgramAll
   | ProgramPdf of Program.t
   | Program of Program.t
+
   | SetAll
   | SetCompose
   | SetSave
   | SetLy of Set.t
   | SetPdf of Set.t
   | Set of Set.t
+  | SetDelete of Set.t
+
   | TuneGroup of TuneGroup.t
+
   | TuneAll
   | TuneLy of Tune.t
   | TunePng of Tune.t
   | Tune of Tune.t
   | TuneSlug of Slug.t
+
   | Victor
 
 type route =
@@ -164,6 +173,13 @@ let routes : route list =
       ~prefix:"/set"
       (Set.Database.get_opt >=> fun set -> Some (Set set))
       (function Set set -> Some (Set.slug set)
+              | _ -> None) ;
+
+    with_slug
+      ~meth:`DELETE
+      ~prefix:"/set"
+      (Set.Database.get_opt >=> fun set -> Some (SetDelete set))
+      (function SetDelete set -> Some (Set.slug set)
               | _ -> None) ;
 
     with_slug

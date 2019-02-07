@@ -77,11 +77,18 @@ module Database = struct
 
     let get_all () = Hashtbl.to_seq_values db |> List.of_seq
 
-    let create ~name ?deviser ~kind ~tunes () =
-      let slug = find_uniq_slug name in
+    let save ?slug ~name ?deviser ~kind ~tunes () =
+      let slug =
+        match slug with
+        | None -> find_uniq_slug name
+        | Some slug -> slug
+      in
       let set = { slug; name; deviser; kind; tunes } in
       let json = serialize set in
       Storage.write_entry_json prefix slug "meta.json" json;
       Hashtbl.add db slug set;
       set
+
+    let delete set =
+      Storage.delete_entry prefix (slug set)
 end

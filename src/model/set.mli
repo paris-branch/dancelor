@@ -18,5 +18,7 @@ module Database : sig
 
   val get_all : unit -> t list
 
-  val create : name:string -> ?deviser:Credit.t -> kind:Kind.dance -> tunes:Tune.t list -> unit -> t
+  val save : ?slug:Slug.t -> name:string -> ?deviser:Credit.t -> kind:Kind.dance -> tunes:Tune.t list -> unit -> t
+
+  val delete : t -> unit
 end
