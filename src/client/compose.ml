@@ -174,6 +174,56 @@ end
 
 module Interface = struct
 
+  module Controls = struct
+
+    type t = {
+      main : Html.divElement Js.t;
+      save : Html.buttonElement Js.t;
+      clear : Html.buttonElement Js.t;
+      mutable shown : bool;
+    }
+
+    let create ~document ~parent =
+      let main = 
+        Widgets.Elements.div ~classes:["controls"] ~document ~parent () 
+      in
+      let save = 
+        Widgets.Elements.button ~classes:["btn"; "btn-success"] ~text:"Save" 
+          ~document ()
+      in
+      let clear = 
+        Widgets.Elements.button ~classes:["btn"; "btn-danger"] ~text:"Clear" 
+          ~document ()
+      in
+      {main; save; clear; shown = false}
+
+    let main t = t.main
+
+    let bind_save t cb = 
+      Lwt.async (fun () ->
+        Lwt_js_events.clicks t.save
+          (fun _ev _ -> cb (); Lwt.return ()))
+
+    let bind_clear t cb = 
+      Lwt.async (fun () ->
+        Lwt_js_events.clicks t.clear
+          (fun _ev _ -> cb (); Lwt.return ()))
+
+    let show t = 
+      if not t.shown then begin
+        Widgets.Utils.set_parent t.save t.main;
+        Widgets.Utils.set_parent t.clear t.main;
+        t.shown <- true
+      end
+
+    let hide t = 
+      if t.shown then begin
+        Widgets.Utils.remove_children t.main;
+        t.shown <- false
+      end
+    
+  end
+
   type t = {
     composer : Composer.t;
     document : Html.document Js.t;
@@ -181,8 +231,8 @@ module Interface = struct
     set_name : Html.inputElement Js.t;
     set_kind : Html.inputElement Js.t;
     tunes_area : Html.divElement Js.t;
-    search_results : Html.divElement Js.t;
-    search_bar : Html.inputElement Js.t;
+    search_bar : Widgets.SearchBar.t;
+    controls : Controls.t;
   }
 
   let create composer =
@@ -191,25 +241,24 @@ module Interface = struct
       Js.Opt.get (document##getElementById (js "content"))
         (fun () -> assert false)
     in
-    let form = Widgets.form ~document ~parent:content ~id:"composer" () in
+    let form = Widgets.Elements.form ~document ~parent:content ~id:"composer" () in
     let set_name = 
-      Widgets.text_input ~classes:["form-control"] ~id:"name" 
+      Widgets.Elements.text_input ~classes:["form-control"] ~id:"name" 
         ~placeholder:"Set Name" ~document ~parent:form () 
     in
-    Widgets.br ~document ~parent:form ();
+    Widgets.Elements.br ~document ~parent:form ();
     let set_kind = 
-      Widgets.text_input ~classes:["form-control"] ~id:"kind" 
+      Widgets.Elements.text_input ~classes:["form-control"] ~id:"kind" 
         ~placeholder:"Set Kind (eg. 8x32R)" ~document ~parent:form () 
     in
-    Widgets.br ~document ~parent:form ();
-    let tunes_area = Widgets.div ~id:"tunesArea" ~document ~parent:form () in
+    Widgets.Elements.br ~document ~parent:form ();
+    let tunes_area = Widgets.Elements.div ~id:"tunesArea" ~document ~parent:form () in
     let search_bar = 
-      Widgets.text_input ~classes:["form-control"] ~id:"search"
-        ~placeholder:"Search for a tune" ~document ~parent:form ()
+      Widgets.SearchBar.create ~placeholder:"Search for a tune"
+        ~document ~parent:form ()
     in
-    let search_results = 
-      Widgets.div ~id:"searchResults" ~document ~parent:form () 
-    in
+    Widgets.Elements.br ~document ~parent:form ();
+    let controls = Controls.create ~document ~parent:form in
     {
       composer;
       document;
@@ -218,7 +267,7 @@ module Interface = struct
       set_kind;
       tunes_area;
       search_bar;
-      search_results;
+      controls
     }
 
   let save interface = 
@@ -235,18 +284,18 @@ module Interface = struct
           Html.window##.location##.href := js path_to_pdf)
     end else begin
       if Composer.name interface.composer = "" then 
-        Widgets.add_classes interface.set_name ["has-error"];
+        Widgets.Utils.add_classes interface.set_name ["has-error"];
       if Composer.kind interface.composer = "" then 
-        Widgets.add_classes interface.set_kind ["has-error"];
+        Widgets.Utils.add_classes interface.set_kind ["has-error"];
     end
 
   let tune_actions interface tune_header index refresh = 
     let actions = 
-      Widgets.div ~classes:["tune-actions"; "widget-bar"] 
+      Widgets.Elements.div ~classes:["tune-actions"; "widget-bar"] 
         ~document:interface.document ~parent:tune_header ()
     in
     let button1 = 
-      Widgets.button 
+      Widgets.Elements.button 
         ~classes:["my-btn"; "my-btn-def"; "rotate-down"; "left-widget"] 
         ~document:interface.document ~parent:actions
         ~callback:(fun () ->
@@ -255,7 +304,7 @@ module Interface = struct
           refresh interface) ()
     in
     let button2 = 
-      Widgets.button ~classes:["my-btn"; "my-btn-def"; "center-widget"]
+      Widgets.Elements.button ~classes:["my-btn"; "my-btn-def"; "center-widget"]
         ~document:interface.document ~parent:actions
         ~callback:(fun () ->
           Composer.move_up interface.composer index;
@@ -263,93 +312,79 @@ module Interface = struct
           refresh interface) ()
     in
     let button3 = 
-      Widgets.button ~classes:["my-btn"; "my-btn-danger"; "right-widget"] 
+      Widgets.Elements.button ~classes:["my-btn"; "my-btn-danger"; "right-widget"] 
         ~document:interface.document ~parent:actions
         ~callback:(fun () ->
           Composer.remove interface.composer index;
           Composer.save interface.composer;
           refresh interface) ()
     in
-    Widgets.image ~classes:["btn-icon"]
+    Widgets.Elements.image ~classes:["btn-icon"]
       ~src:"/arrow.svg" ~parent:button1 ~document:interface.document ()
     |> ignore;
-    Widgets.image ~classes:["btn-icon"]
+    Widgets.Elements.image ~classes:["btn-icon"]
       ~src:"/arrow.svg" ~parent:button2 ~document:interface.document ()
     |> ignore;
-    Widgets.image ~classes:["btn-icon"]
+    Widgets.Elements.image ~classes:["btn-icon"]
       ~src:"/cross.svg" ~parent:button3 ~document:interface.document ()
     |> ignore;
     actions
 
   let tune_data interface tune_header tune = 
     let data = 
-      Widgets.div ~classes:["tune-data"] ~document:interface.document
+      Widgets.Elements.div ~classes:["tune-data"] ~document:interface.document
         ~parent:tune_header ()
     in
     let tune_group = Dancelor_model.Tune.group tune in
     let name = Dancelor_model.TuneGroup.name tune_group in
-    Widgets.textnode ~text:name ~document:interface.document ~parent:data ()
+    Widgets.Elements.textnode ~text:name ~document:interface.document ~parent:data ()
     |> ignore;
     data
 
   let tune_area interface tune index refresh = 
     let area = 
-      Widgets.div ~classes:["tune-area"] ~document:interface.document 
+      Widgets.Elements.div ~classes:["tune-area"] ~document:interface.document 
         ~parent:interface.tunes_area ()
     in
     let header = 
-      Widgets.div ~classes:["tune-header"] ~document:interface.document ~parent:area ()
+      Widgets.Elements.div ~classes:["tune-header"] ~document:interface.document ~parent:area ()
     in
     tune_data interface header tune |> ignore;
     tune_actions interface header index refresh |> ignore;
     let src = Dancelor_router.(path_of_controller (TunePng tune)) |> snd in
-    Widgets.image ~document:interface.document ~parent:area
+    Widgets.Elements.image ~document:interface.document ~parent:area
       ~classes:["tune-png"] ~src () |> ignore;
     area
 
-  let clear interface refresh =
+  let clear interface =
     Composer.clear interface.composer;
-    Composer.erase_storage interface.composer;
-    refresh interface
-
-  let controls interface refresh =
-    let area = 
-      Widgets.div ~classes:["controls"] ~document:interface.document
-        ~parent:interface.tunes_area ()
-    in
-    Widgets.button ~classes:["btn"; "btn-success"] ~text:"Save" 
-      ~document:interface.document ~parent:area
-      ~callback:(fun () -> save interface) ()
-    |> ignore;
-    Widgets.button ~classes:["btn"; "btn-danger"] ~text:"Clear" 
-      ~document:interface.document ~parent:area
-      ~callback:(fun () -> clear interface refresh) ()
-    |> ignore
+    Composer.erase_storage interface.composer
 
   let rec refresh interface =
-    Widgets.remove_children interface.tunes_area;
+    Widgets.Utils.remove_children interface.tunes_area;
     Composer.iter interface.composer (fun index tune ->
       tune_area interface tune index refresh
       |> ignore;
     );
-    Dom.appendChild interface.tunes_area interface.search_bar;
-    Dom.appendChild interface.tunes_area interface.search_results;
-    if Composer.count interface.composer > 0 then begin
-      Widgets.br ~document:interface.document ~parent:interface.tunes_area ();
-      controls interface refresh
-    end;
+    if Composer.count interface.composer >= 1 then
+      Controls.show interface.controls
+    else
+      Controls.hide interface.controls;
     interface.set_name##.value := js (Composer.name interface.composer);
     interface.set_kind##.value := js (Composer.kind interface.composer)
 
   let make_search_result interface tune score =
-    let tr = Html.createTr interface.document in
+    let result = Widgets.Elements.tr ~document:interface.document () in
     let tune_group = Dancelor_model.Tune.group tune in
     let tune_name = Dancelor_model.TuneGroup.name tune_group in
     let tune_bars = Dancelor_model.Tune.bars tune in
     let tune_kind = Dancelor_model.TuneGroup.kind tune_group in
     let tune_structure = Dancelor_model.Tune.structure tune in
     let make_entry s =
-      let td = Html.createTd interface.document in
+      let td = 
+        Widgets.Elements.td ~classes:["tune-info"] 
+          ~document:interface.document ()
+      in
       td##.textContent := Js.some (js s);
       td
     in
@@ -358,24 +393,11 @@ module Interface = struct
       Printf.sprintf "%i %s"
         tune_bars (Dancelor_model.Kind.base_to_string tune_kind)
     in
-    let add_link = Html.createA interface.document in
-    add_link##.href := js "#";
-    add_link##.textContent := Js.some (js "Add");
-    Lwt.async (fun () ->
-      Lwt_js_events.clicks add_link
-        (fun _ev _ ->
-          Composer.add interface.composer tune;
-          Composer.save interface.composer;
-          refresh interface;
-          Lwt.return ()));
-    let link_entry = Html.createTd interface.document in
-    Dom.appendChild link_entry add_link;
-    Dom.appendChild tr (make_entry score_str);
-    Dom.appendChild tr (make_entry tune_name);
-    Dom.appendChild tr (make_entry bars_kind_str);
-    Dom.appendChild tr (make_entry tune_structure);
-    Dom.appendChild tr link_entry;
-    tr
+    Dom.appendChild result (make_entry score_str);
+    Dom.appendChild result (make_entry tune_name);
+    Dom.appendChild result (make_entry bars_kind_str);
+    Dom.appendChild result (make_entry tune_structure);
+    result
 
   let search_tunes interface input =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in
@@ -383,34 +405,38 @@ module Interface = struct
       ~args:["name", input; "hard-limit", "10"; "threshold", "50"]
       ~callback:(fun str ->
         let open Dancelor_common in
-        Widgets.remove_children interface.search_results;
-        let table = Html.createTable interface.document in
+        Widgets.SearchBar.rem_results interface.search_bar;
         Json.from_string str
         |> Json.find ["tunes"]
         |> Json.list (Option.wrap_fun Json.of_value)
         |> Option.unwrap
         |> List.sub 10
         |> List.map (fun json ->
-             (Json.find ["score"] json |> Json.int |> Option.unwrap,
-              Dancelor_model.Tune.of_json json))
+            (Json.find ["score"] json |> Json.int |> Option.unwrap),
+            (Dancelor_model.Tune.of_json json))
         |> List.iter (fun (score, tune) ->
-             let result_tr = make_search_result interface tune score in
-             Dom.appendChild table result_tr);
-        Dom.appendChild interface.search_results table) ()
+            let result_div = make_search_result interface tune score in
+            let callback = (fun () -> 
+              Composer.add interface.composer tune;
+              Composer.save interface.composer;
+              refresh interface) in
+            Widgets.SearchBar.add_result 
+             ~callback interface.search_bar result_div)) ()
 
   let connect interface =
-    Lwt.async (fun () ->
-      Lwt_js_events.keyups interface.search_bar
-        (fun _ev _ ->
-          let input = Js.to_string interface.search_bar##.value in
-          search_tunes interface input;
-          Lwt.return ()));
+    Widgets.SearchBar.on_update interface.search_bar (fun () ->
+      let contents = Widgets.SearchBar.contents interface.search_bar in
+      if contents <> "" then
+        search_tunes interface contents);
+    Controls.bind_clear interface.controls (fun () ->
+      clear interface; refresh interface);
+    Controls.bind_save interface.controls (fun () -> save interface);
     Lwt.async (fun () ->
       Lwt_js_events.keyups interface.set_name
         (fun _ev _ ->
           let input = Js.to_string interface.set_name##.value in
           if input <> "" then
-            Widgets.rem_classes interface.set_name ["has-error"];
+            Widgets.Utils.rem_classes interface.set_name ["has-error"];
           Composer.set_name interface.composer input;
           Composer.save interface.composer;
           Lwt.return ()));
@@ -419,7 +445,7 @@ module Interface = struct
         (fun _ev _ ->
           let input = Js.to_string interface.set_kind##.value in
           if input <> "" then
-            Widgets.rem_classes interface.set_kind ["has-error"];
+            Widgets.Utils.rem_classes interface.set_kind ["has-error"];
           Composer.set_kind interface.composer input;
           Composer.save interface.composer;
           Lwt.return ()))
