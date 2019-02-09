@@ -3,6 +3,9 @@ open Dancelor_common
 type t
 
 val slug : t -> Slug.t
+val name : t -> string
+val kind : t -> Kind.dance
+val tunes : t -> Tune.t list
 
 val to_json : t -> Json.t
 val to_jsonm : t -> Json.value
