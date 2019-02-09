@@ -64,11 +64,12 @@ module Elements = struct
     Option.ifsome (Utils.set_parent tr) parent;
     tr
 
-  let td ?id ?classes ?parent ~document () = 
+  let td ?id ?classes ?parent ?text ~document () = 
     let td = Html.createTd document in
     Option.ifsome (fun i -> td##.id := js i) id;
     Option.ifsome (Utils.add_classes td) classes;
     Option.ifsome (Utils.set_parent td) parent;
+    Option.ifsome (fun s -> td##.textContent := Js.some (js s)) text;
     td
 
   let text_input ?placeholder ?classes ?id ?parent ~document () =

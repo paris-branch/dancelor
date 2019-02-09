@@ -385,30 +385,27 @@ module Interface = struct
     interface.set_kind##.value := js (Composer.kind interface.composer)
 
   let make_search_result interface tune score =
-    let result = Widgets.Elements.tr ~document:interface.document () in
+    let document = interface.document in
+    let parent = Widgets.Elements.tr ~document () in
     let tune_group = Dancelor_model.Tune.group tune in
     let tune_name = Dancelor_model.TuneGroup.name tune_group in
     let tune_bars = Dancelor_model.Tune.bars tune in
     let tune_kind = Dancelor_model.TuneGroup.kind tune_group in
     let tune_structure = Dancelor_model.Tune.structure tune in
-    let make_entry s =
-      let td = 
-        Widgets.Elements.td ~classes:["tune-info"] 
-          ~document:interface.document ()
-      in
-      td##.textContent := Js.some (js s);
-      td
-    in
     let score_str = string_of_int score in
     let bars_kind_str =
       Printf.sprintf "%i %s"
         tune_bars (Dancelor_model.Kind.base_to_string tune_kind)
     in
-    Dom.appendChild result (make_entry score_str);
-    Dom.appendChild result (make_entry tune_name);
-    Dom.appendChild result (make_entry bars_kind_str);
-    Dom.appendChild result (make_entry tune_structure);
-    result
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:score_str () |> ignore;
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:tune_name () |> ignore;
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:bars_kind_str () |> ignore;
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:tune_structure () |> ignore;
+    parent
 
   let search_tunes interface input =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in

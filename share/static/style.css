@@ -96,6 +96,7 @@ input {
 .search-result td {
   padding-top: 5px;
   padding-left: 12px;
+  padding-bottom: 5px;
 }
 
 .controls {
@@ -154,4 +155,26 @@ input.has-error:focus {
 input.has-error {
   box-shadow: 0 0 4px #ee0000;
   border-color: #ee0000;
+}
+
+.separated-table tr {
+  border-width: 1px 0 1px 0;
+  border-style: solid;
+  border-color: #ced4da;
+}
+
+tr.table-header {
+  font-weight: bold;
+  background-color: #eeeeee;
+  border-width: 2px 0 2px 0;
+  border-style: solid;
+  border-color: #ced4da;
+}
+
+tr {
+  height: 35px;
+}
+
+.set-info td {
+  cursor: pointer;
 }
