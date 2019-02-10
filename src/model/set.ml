@@ -43,6 +43,10 @@ let serialize set =
     )
 
 let slug s = s.slug
+let name s = s.name
+let kind s = s.kind
+let tunes s = s.tunes
+let deviser s = s.deviser
 
 module Database = struct
     let prefix = "set"

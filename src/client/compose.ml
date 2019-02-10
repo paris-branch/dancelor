@@ -8,6 +8,7 @@ let js = Js.string
 module Composer = struct
 
   type t = {
+    state : [`Edit of Slug.t | `Create];
     mutable name : string;
     mutable kind : string;
     mutable tunes : Dancelor_model.Tune.t option array;
@@ -16,10 +17,24 @@ module Composer = struct
 
   let create () =
     {
+      state = `Create;
       name = "";
       kind = "";
       tunes = Array.make 2 None;
       count = 0;
+    }
+
+  let edit set = 
+    let tunes_list = Dancelor_model.Set.tunes set in
+    let count = List.length tunes_list in
+    let tunes = Array.make (max 2 count) None in
+    List.iteri (fun i t -> tunes.(i) <- Some t) tunes_list;
+    {
+      state = `Edit (Dancelor_model.Set.slug set);
+      name = Dancelor_model.Set.name set;
+      kind = Dancelor_model.Set.kind set |> Dancelor_model.Kind.dance_to_string;
+      tunes;
+      count
     }
 
   let name t = 
@@ -235,13 +250,9 @@ module Interface = struct
     controls : Controls.t;
   }
 
-  let create composer =
+  let create composer parent =
     let document = Html.window##.document in
-    let content =
-      Js.Opt.get (document##getElementById (js "content"))
-        (fun () -> assert false)
-    in
-    let form = Widgets.Elements.form ~document ~parent:content ~id:"composer" () in
+    let form = Widgets.Elements.form ~document ~parent ~id:"composer" () in
     let set_name = 
       Widgets.Elements.text_input ~classes:["form-control"] ~id:"name" 
         ~placeholder:"Set Name" ~document ~parent:form () 
@@ -374,30 +385,27 @@ module Interface = struct
     interface.set_kind##.value := js (Composer.kind interface.composer)
 
   let make_search_result interface tune score =
-    let result = Widgets.Elements.tr ~document:interface.document () in
+    let document = interface.document in
+    let parent = Widgets.Elements.tr ~document () in
     let tune_group = Dancelor_model.Tune.group tune in
     let tune_name = Dancelor_model.TuneGroup.name tune_group in
     let tune_bars = Dancelor_model.Tune.bars tune in
     let tune_kind = Dancelor_model.TuneGroup.kind tune_group in
     let tune_structure = Dancelor_model.Tune.structure tune in
-    let make_entry s =
-      let td = 
-        Widgets.Elements.td ~classes:["tune-info"] 
-          ~document:interface.document ()
-      in
-      td##.textContent := Js.some (js s);
-      td
-    in
     let score_str = string_of_int score in
     let bars_kind_str =
       Printf.sprintf "%i %s"
         tune_bars (Dancelor_model.Kind.base_to_string tune_kind)
     in
-    Dom.appendChild result (make_entry score_str);
-    Dom.appendChild result (make_entry tune_name);
-    Dom.appendChild result (make_entry bars_kind_str);
-    Dom.appendChild result (make_entry tune_structure);
-    result
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:score_str () |> ignore;
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:tune_name () |> ignore;
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:bars_kind_str () |> ignore;
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+      ~text:tune_structure () |> ignore;
+    parent
 
   let search_tunes interface input =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in
@@ -454,7 +462,12 @@ end
 
 let on_load _ev =
   let composer = Composer.create () in
-  let interface = Interface.create composer in
+  let document = Html.window##.document in
+  let content =
+    Js.Opt.get (document##getElementById (js "content"))
+      (fun () -> assert false)
+  in
+  let interface = Interface.create composer content in
   Composer.load composer (fun () -> Interface.refresh interface);
   Interface.refresh interface;
   Interface.connect interface;

@@ -25,6 +25,11 @@ module Utils = struct
   let is_focused document elt = 
     document##.activeElement = Js.Opt.return (elt :> Html.element Js.t)
 
+  let destroy (elt : Html.element Js.t) = 
+    Js.Opt.case elt##.parentNode 
+      (fun () -> ())
+      (fun parent -> Dom.removeChild parent elt)
+
 end
 
 module Elements = struct
@@ -64,11 +69,12 @@ module Elements = struct
     Option.ifsome (Utils.set_parent tr) parent;
     tr
 
-  let td ?id ?classes ?parent ~document () = 
+  let td ?id ?classes ?parent ?text ~document () = 
     let td = Html.createTd document in
     Option.ifsome (fun i -> td##.id := js i) id;
     Option.ifsome (Utils.add_classes td) classes;
     Option.ifsome (Utils.set_parent td) parent;
+    Option.ifsome (fun s -> td##.textContent := Js.some (js s)) text;
     td
 
   let text_input ?placeholder ?classes ?id ?parent ~document () =
@@ -100,6 +106,27 @@ module Elements = struct
   let textnode ~text ?parent ~document () =
     let text_node = document##createTextNode (js text) in
     Option.ifsome (Utils.set_parent text_node) parent
+
+  let li ?text ?parent ~document () =
+    let li = Html.createLi document in
+    Option.ifsome (fun t -> li##.textContent := Js.some (js t)) text;
+    Option.ifsome (Utils.set_parent li) parent;
+    li
+
+  let dropdown ?classes ?id ~entries ~parent ~document () =
+    let ul = Html.createUl document in
+    Option.ifsome (Utils.add_classes ul) classes;
+    Option.ifsome (fun i -> ul##.id := js i) id;
+    Utils.add_classes ul ["my-dropdown-menu"];
+    Utils.set_parent ul parent;
+    List.iter (fun (entry, callback) ->
+      Utils.add_classes entry ["my-dropdown-entry"];
+      Utils.set_parent entry ul;
+      Lwt.async (fun () ->
+        Lwt_js_events.clicks entry
+          (fun _ev _ -> callback (); Lwt.return ())))
+      entries;
+    ul
 
 end
 
