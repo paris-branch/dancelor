@@ -10,6 +10,7 @@ module Interface = struct
   type t = {
     document : Html.document Js.t;
     table : Html.tableElement Js.t;
+    mutable current_dropdown : Html.uListElement Js.t option;
   }
   
   let create parent = 
@@ -20,7 +21,7 @@ module Interface = struct
     let table = Widgets.Elements.table ~document ~parent 
       ~classes:["separated-table"] () 
     in
-    {document; table}
+    {document; table; current_dropdown = None}
 
   let add_table_header interface = 
     let document = interface.document in
@@ -52,12 +53,53 @@ module Interface = struct
     Widgets.Elements.td ~parent ~document ~text:name () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:deviser () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:kind () |> ignore;
-    Widgets.Elements.td ~parent ~document () |> ignore;
+    let options = Widgets.Elements.td ~parent ~document () in
+    let download = 
+      Widgets.Elements.image ~classes:["icon"] ~parent:options
+        ~src:"/download.svg" ~document ()
+    in
+    Lwt.async (fun () ->
+      Lwt_js_events.clicks download
+        (fun ev _ ->
+          Dom_html.stopPropagation ev;
+          let dwn_c = Widgets.Elements.li ~document ~text:"Download C" () in
+          let dwn_b = Widgets.Elements.li ~document ~text:"Download B flat" () in
+          let dwn_e = Widgets.Elements.li ~document ~text:"Download E flat" () in
+          let dwn_ly = Widgets.Elements.li ~document ~text:"Download .ly" () in
+          let dropdown =
+            Widgets.Elements.dropdown 
+               ~entries:[
+                 dwn_c, (fun () -> 
+                  let _, path = Dancelor_router.path_of_controller (SetPdf set) in 
+                  Html.window##.location##.href := js path);
+                 dwn_b, (fun () -> 
+                  let _, path = Dancelor_router.path_of_controller (SetPdf set) in 
+                  let path = Printf.sprintf "%s?transpose-target=bes%%2c" path in
+                  Html.window##.location##.href := js path);
+                 dwn_e, (fun () -> 
+                  let _, path = Dancelor_router.path_of_controller (SetPdf set) in 
+                  let path = Printf.sprintf "%s?transpose-target=ees" path in
+                  Html.window##.location##.href := js path);
+                 dwn_ly, (fun () -> 
+                  let _, path = Dancelor_router.path_of_controller (SetLy set) in 
+                  Html.window##.location##.href := js path)]
+               ~parent:options
+               ~document ()
+          in
+          begin match interface.current_dropdown with
+          | None -> ()
+          | Some menu -> Widgets.Utils.destroy menu
+          end;
+          interface.current_dropdown <- Some dropdown;
+          Lwt.return ()
+        ));
     Lwt.async (fun () ->
       Lwt_js_events.clicks parent
         (fun _ev _ -> 
-          let _, path = Dancelor_router.path_of_controller (Set set) in
-          Html.window##.location##.href := js path; Lwt.return ()))
+          if interface.current_dropdown = None then begin
+            let _, path = Dancelor_router.path_of_controller (Set set) in
+            Html.window##.location##.href := js path; 
+          end; Lwt.return ()))
 
   let fill_table interface sets = 
     add_table_header interface;
@@ -74,7 +116,15 @@ module Interface = struct
         |> Option.unwrap
         |> List.map Dancelor_model.Set.of_json
         |> fill_table interface
-      ) ()
+      ) ();
+    Lwt.async (fun () ->
+      Lwt_js_events.clicks interface.document
+        (fun _ _ -> 
+          begin match interface.current_dropdown with
+          | None -> ()
+          | Some menu -> Widgets.Utils.destroy menu
+          end;
+          Lwt.return ()))
 
 end
 

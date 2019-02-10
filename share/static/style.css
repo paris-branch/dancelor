@@ -178,3 +178,31 @@ tr {
 .set-info td {
   cursor: pointer;
 }
+
+.icon {
+  display: block;
+  max-height: 30px;
+  max-width: 30px;
+  padding: 5px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.my-dropdown-menu {
+  list-style-type: none;
+  position: absolute;
+  z-index: 10;
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+.my-dropdown-entry {
+  cursor: pointer;
+  padding: 5px 10px 5px 5px;
+}
+
+.my-dropdown-entry:hover {
+  background-color: #ced4da;
+}
