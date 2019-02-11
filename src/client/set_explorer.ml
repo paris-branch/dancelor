@@ -124,6 +124,7 @@ module Interface = struct
           | None -> ()
           | Some menu -> Widgets.Utils.destroy menu
           end;
+          interface.current_dropdown <- None;
           Lwt.return ()))
 
 end
