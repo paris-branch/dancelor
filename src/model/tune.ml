@@ -99,7 +99,6 @@ module Database =
             | Some mode -> (fun (_, tune) -> snd (key tune) = mode))
       |> Seq.filter
            (fun (score, _) -> score >= threshold)
-      |> Seq.sub hard_limit
       |> List.of_seq
       |> List.sort
            (fun (score1, tune1) (score2, tune2) ->
@@ -108,4 +107,5 @@ module Database =
                compare (slug tune1) (slug tune2)
              else
                c)
+      |> List.sub hard_limit
   end
