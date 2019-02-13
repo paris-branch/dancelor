@@ -61,6 +61,10 @@ module Interface = struct
       Widgets.Elements.image ~classes:["icon"] ~parent:options
         ~src:"/download.svg" ~document ()
     in
+    let edit = 
+      Widgets.Elements.image ~classes:["icon"] ~parent:options
+        ~src:"/edit.svg" ~document ()
+    in
     let delete = 
       Widgets.Elements.image ~classes:["icon"] ~parent:options
         ~src:"/cross_red_circle.svg" ~document ()
@@ -100,6 +104,13 @@ module Interface = struct
           interface.current_dropdown <- Some dropdown;
           Lwt.return ()
         ));
+    Lwt.async (fun () ->
+      Lwt_js_events.clicks edit
+        (fun ev _ ->
+          if interface.current_dropdown = None then begin
+            Dom_html.stopPropagation ev;
+            Html.window##alert (js "You cannot edit sets yet, but the button is beautiful right? Right?!?");
+          end; Lwt.return ()));
     Lwt.async (fun () ->
       Lwt_js_events.clicks delete
         (fun ev _ ->
