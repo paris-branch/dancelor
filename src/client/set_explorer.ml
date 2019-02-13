@@ -32,7 +32,7 @@ module Interface = struct
     Widgets.Elements.td ~parent ~document ~text:"Name" () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:"Deviser" () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:"Kind" () |> ignore;
-    Widgets.Elements.td ~parent ~document ~text:"Links" () |> ignore
+    Widgets.Elements.td ~parent ~document ~text:"Actions" () |> ignore
 
   let add_entry interface set = 
     let document = interface.document in
@@ -60,6 +60,10 @@ module Interface = struct
     let download = 
       Widgets.Elements.image ~classes:["icon"] ~parent:options
         ~src:"/download.svg" ~document ()
+    in
+    let delete = 
+      Widgets.Elements.image ~classes:["icon"] ~parent:options
+        ~src:"/cross_red_circle.svg" ~document ()
     in
     Lwt.async (fun () ->
       Lwt_js_events.clicks download
@@ -96,6 +100,22 @@ module Interface = struct
           interface.current_dropdown <- Some dropdown;
           Lwt.return ()
         ));
+    Lwt.async (fun () ->
+      Lwt_js_events.clicks delete
+        (fun ev _ ->
+          if interface.current_dropdown = None then begin
+            Dom_html.stopPropagation ev;
+            let msg = Printf.sprintf "Do you really want to delete %s?" name in
+            let answer = Html.window##confirm (js msg) in
+            if Js.to_bool answer then begin
+              let _, path = Dancelor_router.path_of_controller (SetDelete set) in
+              Helpers.send_request 
+                ~meth:"DELETE"
+                ~callback:(fun _ -> 
+                  Dom.removeChild interface.table parent |> ignore)
+                ~path ()
+            end
+          end; Lwt.return ()));
     Lwt.async (fun () ->
       Lwt_js_events.clicks parent
         (fun _ev _ -> 

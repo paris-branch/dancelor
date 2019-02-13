@@ -180,7 +180,7 @@ tr {
 }
 
 .icon {
-  display: block;
+  display: inline-block;
   max-height: 30px;
   max-width: 30px;
   padding: 5px;
