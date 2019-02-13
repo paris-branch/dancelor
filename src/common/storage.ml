@@ -30,5 +30,5 @@ let write_entry_json table entry file =
 let delete_entry table entry =
   let path = ExtFilename.concat_l [!prefix; table; entry] in
   Filesystem.read_directory path
-  |> List.iter Filesystem.remove_file;
+  |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
   Filesystem.remove_directory path
