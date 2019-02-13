@@ -50,7 +50,10 @@ module Interface = struct
       Widgets.Elements.tr ~parent:interface.table ~classes:["set-info"]
         ~document:interface.document () 
     in
-    Widgets.Elements.td ~parent ~document ~text:name () |> ignore;
+    let td_name = Widgets.Elements.td ~parent ~document () in
+    let _, set_path = Dancelor_router.path_of_controller (Set set) in
+    Widgets.Elements.a ~classes:["my-link"] ~parent:td_name ~document 
+      ~text:name ~href:set_path () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:deviser () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:kind () |> ignore;
     let options = Widgets.Elements.td ~parent ~document () in

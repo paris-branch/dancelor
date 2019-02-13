@@ -206,3 +206,13 @@ tr {
 .my-dropdown-entry:hover {
   background-color: #ced4da;
 }
+
+.my-link {
+  color: #000000;
+}
+
+.my-link:hover {
+  text-decoration: none;
+  color: #000000;
+  border-bottom: 1px solid #000000;
+}

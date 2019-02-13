@@ -77,6 +77,15 @@ module Elements = struct
     Option.ifsome (fun s -> td##.textContent := Js.some (js s)) text;
     td
 
+  let a ?id ?classes ?parent ?text ~href ~document () = 
+    let a = Html.createA document in
+    Option.ifsome (fun i -> a##.id := js i) id;
+    Option.ifsome (Utils.add_classes a) classes;
+    Option.ifsome (Utils.set_parent a) parent;
+    Option.ifsome (fun s -> a##.textContent := Js.some (js s)) text;
+    a##.href := js href;
+    a
+
   let text_input ?placeholder ?classes ?id ?parent ~document () =
     let input = Html.createInput ~_type:(js "text") document in
     Option.ifsome (fun p -> input##.placeholder := js p) placeholder;
@@ -208,7 +217,9 @@ module SearchBar = struct
     | Some cb ->
       Lwt.async (fun () ->
         Lwt_js_events.clicks elt
-          (fun _ev _ -> cb (); t.hovered <- false; hide t; Lwt.return ()))
+          (fun _ev _ -> cb (); 
+            t.hovered <- false; hide t; t.search_bar##.value := js "";
+            Lwt.return ()))
 
   let rem_results t = 
     t.has_results <- false;
