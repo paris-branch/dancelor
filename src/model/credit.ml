@@ -43,48 +43,18 @@ let slug c = c.slug
 let line c = c.line
 
 module Database = struct
-  module Log = (val Log.create "dancelor.model.credit.database" : Logs.LOG)
+  include GenericDatabase.Make (
+    struct
+      type nonrec t = t
+      let slug = slug
 
-    let prefix = "credit"
+      let serialize = serialize
+      let unserialize = unserialize
 
-    let db = Hashtbl.create 8
+      let prefix = "credit"
+    end)
 
-    let initialise () =
-      let load entry =
-        let json = Storage.read_entry_json prefix entry "meta.json" in
-        let credit = unserialize json in
-        Hashtbl.add db credit.slug credit
-      in
-      Storage.list_entries prefix
-      |> List.iter load
-
-    let find_uniq_slug string =
-      let slug = Slug.from_string string in
-      let rec aux i =
-        let slug = slug ^ "-" ^ (string_of_int i) in
-        if Hashtbl.mem db slug then
-          aux (i+1)
-        else
-          slug
-      in
-      if Hashtbl.mem db slug then
-        aux 2
-      else
-        slug
-
-    let get slug =
-      Log.debug (fun m -> m "Looking for %s" slug);
-      Hashtbl.find db slug
-
-    let get_opt slug =
-      Log.debug (fun m -> m "Looking for %s" slug);
-      Hashtbl.find_opt db slug
-
-    let create ~line ?(persons=[]) () =
-      let slug = find_uniq_slug line in
-      let credit = { slug ; line ; persons } in
-      Hashtbl.add db slug credit;
-      serialize credit
-      |> Storage.write_entry_json prefix slug "meta.json";
-      (slug, credit)
-  end
+  let save ?slug ~line ?(persons=[]) () =
+    save ?slug ~name:line @@ fun slug ->
+    { slug ; line ; persons }
+end

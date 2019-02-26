@@ -21,5 +21,5 @@ module Database : sig
   val get : Slug.t -> t
   val get_opt : Slug.t -> t option
 
-  val create : name:string -> unit -> Slug.t * t
+  val save : ?slug:string -> name:string -> unit -> t
 end

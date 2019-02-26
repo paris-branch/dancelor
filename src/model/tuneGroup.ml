@@ -19,6 +19,18 @@ let to_json = to_jsonm ||> Json.of_value
 
 let of_json = Json.to_value ||> of_jsonm
 
+let serialize tune_group =
+  `O (
+    [
+      "slug", `String tune_group.slug ;
+      "name", `String tune_group.name ;
+      "kind", `String (Kind.base_to_string tune_group.kind) ;
+      "remark", `String tune_group.remark ;
+    ] @ match tune_group.author with
+    | None -> []
+    | Some author -> ["author", `String (Credit.slug author)]
+  )
+
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;
     name = Json.(get ~k:string ["name"] json) ;
@@ -31,21 +43,15 @@ let name tune_group = tune_group.name
 let kind tune_group = tune_group.kind
 let author tune_group = tune_group.author
 
-module Database =
-  struct
-    let prefix = "tune-group"
+module Database = struct
+  include GenericDatabase.Make (
+    struct
+      type nonrec t = t
+      let slug = slug
 
-    let db = Hashtbl.create 8
+      let serialize = serialize
+      let unserialize = unserialize
 
-    let initialise () =
-      let load entry =
-        let json = Storage.read_entry_json prefix entry "meta.json" in
-        let tune_group = unserialize json in
-        Hashtbl.add db tune_group.slug tune_group
-      in
-      Storage.list_entries prefix
-      |> List.iter load
-
-    let get = Hashtbl.find db
-    let get_opt = Hashtbl.find_opt db
-  end
+      let prefix = "tune-group"
+    end)
+end

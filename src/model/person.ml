@@ -24,43 +24,19 @@ let unserialize json =
 let slug p = p.slug
 let name p = p.name
 
-module Database =
-  struct
-    let prefix = "person"
+module Database = struct
+  include GenericDatabase.Make (
+    struct
+      type nonrec t = t
+      let slug = slug
 
-    let db = Hashtbl.create 8
+      let serialize = serialize
+      let unserialize = unserialize
 
-    let initialise () =
-      let load entry =
-        let json = Storage.read_entry_json prefix entry "meta.json" in
-        let person = unserialize json in
-        Hashtbl.add db person.slug person
-      in
-      Storage.list_entries prefix
-      |> List.iter load
+      let prefix = "person"
+    end)
 
-    let find_uniq_slug string =
-      let slug = Slug.from_string string in
-      let rec aux i =
-        let slug = slug ^ "-" ^ (string_of_int i) in
-        if Hashtbl.mem db slug then
-          aux (i+1)
-        else
-          slug
-      in
-      if Hashtbl.mem db slug then
-        aux 2
-      else
-        slug
-
-    let get = Hashtbl.find db
-    let get_opt = Hashtbl.find_opt db
-
-    let create ~name () =
-      let slug = find_uniq_slug name in
-      let person = { slug ; name } in
-      Hashtbl.add db slug person;
-      serialize person
-      |> Storage.write_entry_json prefix slug "meta.json";
-      (slug, person)
-  end
+  let save ?slug ~name () =
+    save ?slug ~name @@ fun slug ->
+    { slug ; name }
+end

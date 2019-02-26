@@ -34,21 +34,14 @@ let serialize p =
 let slug p = p.slug
 
 module Database = struct
-    let prefix = "program"
+  include GenericDatabase.Make (
+    struct
+      type nonrec t = t
+      let slug = slug
 
-    let db = Hashtbl.create 8
+      let serialize = serialize
+      let unserialize = unserialize
 
-    let initialise () =
-      let load entry =
-        let json = Storage.read_entry_json prefix entry "meta.json" in
-        let set = unserialize json in
-        Hashtbl.add db set.slug set
-      in
-      Storage.list_entries prefix
-      |> List.iter load
-
-    let get = Hashtbl.find db
-    let get_opt = Hashtbl.find_opt db
-
-    let get_all () = Hashtbl.to_seq_values db |> List.of_seq
+      let prefix = "program"
+    end)
 end
