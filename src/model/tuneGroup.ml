@@ -53,5 +53,6 @@ module Database = struct
       let unserialize = unserialize
 
       let prefix = "tune-group"
+      let separated_files = []
     end)
 end

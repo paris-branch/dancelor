@@ -7,6 +7,7 @@ module type Model = sig
   val unserialize : Json.t -> t
 
   val prefix : string
+  val separated_files : string list
 end
 
 module Make (Model : Model) = struct
@@ -15,6 +16,17 @@ module Make (Model : Model) = struct
   let initialise () =
     let load entry =
       let json = Storage.read_entry_json Model.prefix entry "meta.json" in
+      let json = Json.add_field "slug" (`String entry) json in
+      let json =
+        List.fold_left
+          (fun json file ->
+             Json.add_field
+               (Filename.chop_extension file)
+               (`String (Storage.read_entry_file Model.prefix entry file))
+               json)
+          json
+          Model.separated_files
+      in
       let model = Model.unserialize json in
       Hashtbl.add db (Model.slug model) model
     in
@@ -46,7 +58,18 @@ module Make (Model : Model) = struct
       | Some slug -> slug
     in
     let model = create slug in
-    let json = Model.serialize model in
+    let json = Model.serialize (create slug) in
+    let json = Json.remove_field "slug" json in
+    let json =
+      Model.separated_files
+      |> List.fold_left
+        (fun json file ->
+           let field = Filename.chop_extension file in
+           let content = Json.(get ~k:string [field] json) in
+           Storage.write_entry_file Model.prefix slug file content;
+           Json.remove_field field json)
+        json
+    in
     Storage.write_entry_json Model.prefix slug "meta.json" json;
     Hashtbl.add db slug model;
     model

@@ -9,6 +9,8 @@ val to_ezjsonm : t -> Ezjsonm.t
 val add_field : string -> value -> t -> t
 val add_fields : (string * value) list -> t -> t
 
+val remove_field : string -> t -> t
+
 val map_field : string -> (value -> value) -> t -> t
 
 val from_string : string -> t

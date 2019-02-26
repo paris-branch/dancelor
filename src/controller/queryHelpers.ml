@@ -38,6 +38,15 @@ let query_int_opt query key =
   query_string_opt query key >>=
     int_of_string_opt
 
+let query_int_or query key or_ =
+  try query_int query key
+  with _ -> or_
+
 let query_float_opt query key =
   query_string_opt query key >>=
     float_of_string_opt
+
+let query_float_or query key or_ =
+  match query_float_opt query key with
+  | None -> or_
+  | Some float -> float

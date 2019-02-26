@@ -3,7 +3,7 @@ let (>>=) = Lwt.bind
 
 let rec preload_tunes () =
   Lwt_list.iter_s
-    (fun (_, tune) ->
+    (fun tune ->
       Dancelor_controller.Tune.Png.render tune >>= fun _ ->
       Lwt.return ())
     (Tune.Database.get_all ())

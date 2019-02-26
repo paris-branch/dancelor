@@ -9,6 +9,11 @@ let list_entries table =
   |> Filesystem.read_directory
   |> List.filter (ExtFilename.concat3 !prefix table ||> Sys.is_directory)
 
+let list_entry_files table entry =
+  Log.debug (fun m -> m "Listing entries in %s / %s" table entry);
+  ExtFilename.concat_l [!prefix; table; entry]
+  |> Filesystem.read_directory
+
 let read_entry_file table entry file =
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
   ExtFilename.concat_l [!prefix; table; entry; file]

@@ -52,6 +52,7 @@ module Database = struct
       let unserialize = unserialize
 
       let prefix = "credit"
+      let separated_files = []  
     end)
 
   let save ?slug ~line ?(persons=[]) () =

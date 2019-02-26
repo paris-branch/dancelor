@@ -34,6 +34,7 @@ module Database = struct
       let unserialize = unserialize
 
       let prefix = "person"
+      let separated_files = []
     end)
 
   let save ?slug ~name () =

@@ -43,5 +43,6 @@ module Database = struct
       let unserialize = unserialize
 
       let prefix = "program"
+      let separated_files = []
     end)
 end

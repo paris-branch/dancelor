@@ -16,11 +16,10 @@ let on_value fun_ json =
   to_value (fun_ (of_value json))
 
 let add_field key value = function
-  | `O fields ->
-     if  not (List.mem_assoc key fields) then
-       `O ((key, value) :: fields)
-     else
-       failwith "Dancelor_common.Json.add_field"
+  | `O fields when not (List.mem_assoc key fields) ->
+    `O ((key, value) :: fields)
+  | _ ->
+    failwith "Dancelor_common.Json.add_field"
 
 let add_field key value =
   of_value
@@ -30,21 +29,27 @@ let add_field key value =
 let add_fields fields json =
   List.fold_left
     (fun json (field, value) ->
-      add_field field value json)
+       add_field field value json)
     json
     fields
 
 let map_field key fun_ = function
   | `O fields when List.mem_assoc key fields ->
-     `O
-       (List.map
-          (fun (key', value) ->
+    `O
+      (List.map
+         (fun (key', value) ->
             (key',
              if key = key'
              then fun_ value
              else value))
-          fields)
+         fields)
   | _ -> failwith "Dancelor_common.Json.map_field"
+
+let remove_field key = function
+  | `O fields when List.mem_assoc key fields ->
+    `O (List.remove_assoc key fields)
+  | _ ->
+    failwith "Dancelor_common.Json.remove_field"
 
 let rec yojson_to_jsonm = function
   | `Null -> `Null
@@ -53,9 +58,9 @@ let rec yojson_to_jsonm = function
   | `Float f -> `Float f
   | `String s -> `String s
   | `Assoc kjl ->
-     `O (List.map (fun (k, j) -> (k, yojson_to_jsonm j)) kjl)
+    `O (List.map (fun (k, j) -> (k, yojson_to_jsonm j)) kjl)
   | `List jl ->
-     `A (List.map yojson_to_jsonm jl)
+    `A (List.map yojson_to_jsonm jl)
 
 (* let rec jsonm_to_yojson = function
  *   | `Null -> `Null
@@ -78,7 +83,7 @@ let rec find_opt path json =
   match path, json with
   | [], _ -> Some json
   | key :: path, `O fields when List.mem_assoc key fields ->
-     find_opt path (List.assoc key fields)
+    find_opt path (List.assoc key fields)
   | _, _ -> None
 
 let find_opt path json =
@@ -122,9 +127,9 @@ let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option =
   function
   | [] -> Some []
   | x :: l ->
-     f x >>= fun x' ->
-     list_map_opt f l >>= fun l' ->
-     Some (x' :: l')
+    f x >>= fun x' ->
+    list_map_opt f l >>= fun l' ->
+    Some (x' :: l')
 
 let strings = function
   | `A values -> list_map_opt string values
