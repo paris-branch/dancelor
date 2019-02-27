@@ -13,7 +13,7 @@ serve () {
 	git push
     )
 
-    make serve
+    make serve || true
 }
 
 while true; do
