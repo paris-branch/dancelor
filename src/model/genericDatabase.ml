@@ -102,10 +102,17 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
         json
     in
     Storage.write_entry_json Model.prefix slug "meta.json" json;
+    Storage.save_changes_on_entry
+      ~msg:(spf "[auto] save %s / %s" Model.prefix slug)
+      Model.prefix slug;
     Hashtbl.add db slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     model
 
   let delete set =
-    Storage.delete_entry Model.prefix (Model.slug set);
-    Hashtbl.remove db (Model.slug set)
+    let slug = Model.slug set in
+    Storage.delete_entry Model.prefix slug;
+    Storage.save_changes_on_entry
+      ~msg:(spf "[auto] delete %s / %s" Model.prefix slug)
+      Model.prefix slug;
+    Hashtbl.remove db slug
 end

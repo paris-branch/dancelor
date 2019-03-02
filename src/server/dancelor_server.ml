@@ -154,6 +154,7 @@ let () =
   Config.load_from_file Sys.argv.(1);
 
   Log.info (fun m -> m "Initialising database");
+  Dancelor_common.Storage.sync_changes ();
   Dancelor_model.Database.initialise ();
   Dancelor_model.Database.report_without_accesses ();
 
