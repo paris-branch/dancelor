@@ -36,7 +36,7 @@ let unserialize json =
     name = Json.(get ~k:string ["name"] json) ;
     kind = Json.(get ~k:(string >=> (Kind.base_of_string ||> wrap)) ["kind"] json) ;
     remark = Json.(get_or ~k:string ~default:"" ["remark"] json) ;
-    author = Json.(get_opt ~k:(slug >=> (Credit.Database.get ||> wrap)) ["author"] json) }
+    author = Json.(get_opt ~k:(slug >=> (Credit.Database.get_opt ||> assert_some)) ["author"] json) }
 
 let slug tune_group = tune_group.slug
 let name tune_group = tune_group.name
@@ -44,15 +44,16 @@ let kind tune_group = tune_group.kind
 let author tune_group = tune_group.author
 
 module Database = struct
-  include GenericDatabase.Make (
-    struct
-      type nonrec t = t
-      let slug = slug
+  include GenericDatabase.Make
+      (val Log.create "dancelor.model.tune-group.database" : Logs.LOG)
+      (struct
+        type nonrec t = t
+        let slug = slug
 
-      let serialize = serialize
-      let unserialize = unserialize
+        let serialize = serialize
+        let unserialize = unserialize
 
-      let prefix = "tune-group"
-      let separated_files = []
-    end)
+        let prefix = "tune-group"
+        let separated_files = []
+      end)
 end

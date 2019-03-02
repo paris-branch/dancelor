@@ -26,9 +26,13 @@ let value ~default = function
   | None -> default
   | Some x -> x
 
-let wrap_fun f = 
+let wrap_fun f =
   fun x -> Some (f x)
 
 let ifsome f = function
   | None -> ()
   | Some x -> f x
+
+let assert_some = function
+  | None -> failwith "assert_some"
+  | Some v -> Some v

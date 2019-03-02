@@ -37,11 +37,11 @@ let serialize tune =
 
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;
-    group = Json.(get ~k:(slug >=> (TuneGroup.Database.get ||> wrap)) ["tune-group"] json) ;
+    group = Json.(get ~k:(slug >=> (TuneGroup.Database.get_opt ||> assert_some)) ["tune-group"] json) ;
     bars = Json.(get ~k:int ["bars"] json) ;
     key = Json.(get ~k:(string >=> (Music.key_of_string ||> wrap)) ["key"] json) ;
     structure = Json.(get ~k:string ["structure"] json) ;
-    arranger = Json.(get_opt ~k:(slug >=> (Credit.Database.get ||> wrap)) ["arranger"] json) ;
+    arranger = Json.(get_opt ~k:(slug >=> (Credit.Database.get_opt ||> assert_some)) ["arranger"] json) ;
     content = Json.(get ~k:string ["content"] json) }
 
 let slug tune = tune.slug
@@ -52,15 +52,16 @@ let bars tune = tune.bars
 let structure tune = tune.structure
 
 module Database = struct
-  include GenericDatabase.Make (
-    struct
-      type nonrec t = t
-      let slug = slug
+  include GenericDatabase.Make
+      (val Log.create "dancelor.model.tune.database" : Logs.LOG)
+      (struct
+        type nonrec t = t
+        let slug = slug
 
-      let serialize = serialize
-      let unserialize = unserialize
+        let serialize = serialize
+        let unserialize = unserialize
 
-      let prefix = "tune"
-      let separated_files = ["content.ly"]
-    end)
+        let prefix = "tune"
+        let separated_files = ["content.ly"]
+      end)
 end

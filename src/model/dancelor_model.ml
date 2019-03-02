@@ -16,5 +16,11 @@ module Database =
       TuneGroup.Database.initialise ();
       Tune.Database.initialise ();
       Set.Database.initialise ();
-      Program.Database.initialise ();
+      Program.Database.initialise ()
+
+    let report_without_accesses () =
+      Person.Database.report_without_accesses ();
+      Credit.Database.report_without_accesses ();
+      TuneGroup.Database.report_without_accesses ()
+      (* only those who cannot live alone. *)
   end

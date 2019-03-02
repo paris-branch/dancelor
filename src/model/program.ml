@@ -17,7 +17,7 @@ let unserialize json =
       unwrap (
           Json.list (
               function
-              | `String slug -> Some (Set.Database.get slug)
+              | `String slug -> assert_some (Set.Database.get_opt slug)
               | _ -> failwith "Dancelor_model.Program.unserialize"
             ) (Json.find ["sets"] json)
   ) }
@@ -34,15 +34,16 @@ let serialize p =
 let slug p = p.slug
 
 module Database = struct
-  include GenericDatabase.Make (
-    struct
-      type nonrec t = t
-      let slug = slug
+  include GenericDatabase.Make
+      (val Log.create "dancelor.model.program.database" : Logs.LOG)
+      (struct
+        type nonrec t = t
+        let slug = slug
 
-      let serialize = serialize
-      let unserialize = unserialize
+        let serialize = serialize
+        let unserialize = unserialize
 
-      let prefix = "program"
-      let separated_files = []
-    end)
+        let prefix = "program"
+        let separated_files = []
+      end)
 end

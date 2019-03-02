@@ -23,7 +23,7 @@ let unserialize json =
   let slug = Json.(get ~k:slug ["slug"] json) in
   let persons =
     Json.get_or
-      ~k:(Json.strings >=> (List.map (Slug.from_string ||> Person.Database.get) ||> wrap))
+      ~k:(Json.strings >=> (List.map (Slug.from_string ||> Person.Database.get_opt ||> unwrap) ||> wrap))
       ~default:[]
       ["persons"]
       json
@@ -43,17 +43,18 @@ let slug c = c.slug
 let line c = c.line
 
 module Database = struct
-  include GenericDatabase.Make (
-    struct
-      type nonrec t = t
-      let slug = slug
+  include GenericDatabase.Make
+      (val Log.create "dancelor.model.credit.database" : Logs.LOG)
+      (struct
+        type nonrec t = t
+        let slug = slug
 
-      let serialize = serialize
-      let unserialize = unserialize
+        let serialize = serialize
+        let unserialize = unserialize
 
-      let prefix = "credit"
-      let separated_files = []  
-    end)
+        let prefix = "credit"
+        let separated_files = []
+      end)
 
   let save ?slug ~line ?(persons=[]) () =
     save ?slug ~name:line @@ fun slug ->

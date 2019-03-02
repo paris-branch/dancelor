@@ -1,4 +1,4 @@
-open Dancelor_common
+open Dancelor_common open Option
 
 module type Model = sig
   type t
@@ -10,8 +10,22 @@ module type Model = sig
   val separated_files : string list
 end
 
-module Make (Model : Model) = struct
-  let db = Hashtbl.create 8
+module Stats = struct
+  type t =
+    { mutable accesses : int }
+
+  let empty () =
+    { accesses = 0 }
+
+  let add_access stats =
+    stats.accesses <- stats.accesses + 1
+
+  let get_accesses stats =
+    stats.accesses
+end
+
+module Make (Log : Logs.LOG) (Model : Model) = struct
+  let db : (Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
   let initialise () =
     let load entry =
@@ -28,10 +42,18 @@ module Make (Model : Model) = struct
           Model.separated_files
       in
       let model = Model.unserialize json in
-      Hashtbl.add db (Model.slug model) model
+      Hashtbl.add db (Model.slug model) (Stats.empty (), model)
     in
     Storage.list_entries Model.prefix
     |> List.iter load
+
+  let report_without_accesses () =
+    Hashtbl.to_seq_values db
+    |> Seq.iter
+      (fun (stats, model) ->
+         if Stats.get_accesses stats = 0 then
+           Log.warn (fun m -> m "Without access: %s / %s"
+                        Model.prefix (Model.slug model)))
 
   let find_uniq_slug string =
     let slug = Slug.from_string string in
@@ -47,9 +69,18 @@ module Make (Model : Model) = struct
     else
       slug
 
-  let get = Hashtbl.find db
-  let get_opt = Hashtbl.find_opt db
-  let get_all () = Hashtbl.to_seq_values db |> List.of_seq
+  let get_opt slug =
+    Hashtbl.find_opt db slug >>= fun (stats, model) ->
+    Stats.add_access stats;
+    Some model
+
+  let get_all () =
+    Hashtbl.to_seq_values db
+    |> Seq.map
+      (fun (stats, model) ->
+         Stats.add_access stats;
+         model)
+    |> List.of_seq
 
   let save ?slug ~name create =
     let slug =
@@ -71,7 +102,7 @@ module Make (Model : Model) = struct
         json
     in
     Storage.write_entry_json Model.prefix slug "meta.json" json;
-    Hashtbl.add db slug model;
+    Hashtbl.add db slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     model
 
   let delete set =

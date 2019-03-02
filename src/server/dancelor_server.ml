@@ -155,6 +155,7 @@ let () =
 
   Log.info (fun m -> m "Initialising database");
   Dancelor_model.Database.initialise ();
+  Dancelor_model.Database.report_without_accesses ();
 
   if !Config.routines then
     (

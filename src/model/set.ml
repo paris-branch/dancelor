@@ -17,13 +17,13 @@ let of_json = Json.to_value ||> of_jsonm
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;
     name = Json.(get ~k:string ["name"] json) ;
-    deviser = (Json.(get_opt ~k:slug ["deviser"] json) >>= fun slug -> Some (Credit.Database.get slug)) ;
+    deviser = (Json.(get_opt ~k:slug ["deviser"] json) >>= fun slug -> assert_some (Credit.Database.get_opt slug)) ;
     kind = Kind.dance_of_string (Json.(get ~k:string ["kind"] json)) ;
     tunes =
       unwrap (
         Json.list (
           function
-          | `String slug -> Some (Tune.Database.get slug)
+          | `String slug -> assert_some (Tune.Database.get_opt slug)
           | _ -> failwith "Dancelor_model.Set.unserialize"
         )
           (Json.find ["tunes"] json)
@@ -49,17 +49,18 @@ let tunes s = s.tunes
 let deviser s = s.deviser
 
 module Database = struct
-  include GenericDatabase.Make (
-    struct
-      type nonrec t = t
-      let slug = slug
+  include GenericDatabase.Make
+      (val Log.create "dancelor.model.set.database" : Logs.LOG)
+      (struct
+        type nonrec t = t
+        let slug = slug
 
-      let serialize = serialize
-      let unserialize = unserialize
+        let serialize = serialize
+        let unserialize = unserialize
 
-      let prefix = "set"
-      let separated_files = []
-    end)
+        let prefix = "set"
+        let separated_files = []
+      end)
 
   let save ?slug ~name ?deviser ~kind ~tunes () =
     save ?slug ~name @@ fun slug ->

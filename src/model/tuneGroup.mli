@@ -19,7 +19,7 @@ val of_jsonm : Json.value -> t
 
 module Database : sig
   val initialise : unit -> unit
+  val report_without_accesses : unit -> unit
 
-  val get : Slug.t -> t
   val get_opt : Slug.t -> t option
 end

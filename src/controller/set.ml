@@ -19,7 +19,7 @@ let save query =
   let kind = Kind.dance_of_string (query_string query "kind") in
   let tunes =
     query_strings query "tunes"
-    |> List.map Tune.Database.get
+    |> List.map (Tune.Database.get_opt ||> Option.unwrap)
   in
   Set.Database.save ?slug ~name ~kind ~tunes ()
   |> Set.to_jsonm
