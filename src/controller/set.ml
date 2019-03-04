@@ -26,9 +26,18 @@ let save query =
   |> Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["set", json]))
 
-let get_all _ =
+let get_all query =
   Log.debug (fun m -> m "controller get_all");
+  let contains_tune =
+    match query_string_opt query "contains" with
+    | None -> (fun _ -> true)
+    | Some tune ->
+      match Tune.Database.get_opt tune with
+      | None -> failwith "get_all" (*FIXME*)
+      | Some tune -> Set.contains tune
+  in
   Set.Database.get_all ()
+  |> List.filter contains_tune
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
   |> List.map Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["sets", `A json]))

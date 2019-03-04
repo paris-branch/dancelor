@@ -50,6 +50,7 @@ let name s = s.name
 let kind s = s.kind
 let tunes s = s.tunes
 let deviser s = s.deviser
+let contains t s = List.mem t s.tunes
 
 module Database = struct
   include GenericDatabase.Make

@@ -8,8 +8,17 @@ let get program _ =
   |> Program.to_jsonm
   |> (fun json -> Lwt.return (`O ["program", json]))
 
-let get_all _ =
+let get_all query =
+  let contains_set =
+    match query_string_opt query "contains" with
+    | None -> (fun _ -> true)
+    | Some set ->
+      match Set.Database.get_opt set with
+      | None -> failwith "get_all" (*FIXME*)
+      | Some set -> Program.contains set
+  in
   Program.Database.get_all ()
+  |> List.filter contains_set
   |> List.map Program.to_jsonm
   |> (fun json -> Lwt.return (`O ["programs", `A json]))
 

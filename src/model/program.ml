@@ -40,6 +40,9 @@ let serialize p =
 let slug p = p.slug
 let date p = p.date
 
+let contains s p =
+  List.mem s p.sets
+
 let compare p1 p2 =
   (* Compare first by date *)
   let c = compare p1.date p2.date in
