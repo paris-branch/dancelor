@@ -1,4 +1,4 @@
-open Dancelor_common
+open Dancelor_common open Option
 open Dancelor_model
 open QueryHelpers
 module Log = (val Log.create "dancelor.controller.set" : Logs.LOG)
@@ -17,11 +17,12 @@ let save query =
   let slug = query_string_opt query "slug" in
   let name = query_string query "name" in
   let kind = Kind.dance_of_string (query_string query "kind") in
+  let status = query_string_opt query "status" >>= fun status -> Some (Status.from_string status) in
   let tunes =
     query_strings query "tunes"
     |> List.map (Tune.Database.get_opt ||> Option.unwrap)
   in
-  Set.Database.save ?slug ~name ~kind ~tunes ()
+  Set.Database.save ?slug ~name ~kind ?status ~tunes ()
   |> Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["set", json]))
 

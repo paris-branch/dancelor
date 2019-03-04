@@ -20,7 +20,8 @@ module Database : sig
   val get_opt : Slug.t -> t option
   val get_all : unit -> t list
 
-  val save : ?slug:Slug.t -> name:string -> ?deviser:Credit.t -> kind:Kind.dance -> tunes:Tune.t list -> unit -> t
+  val save : ?slug:Slug.t -> name:string -> ?deviser:Credit.t ->
+    kind:Kind.dance -> ?status:Status.t -> tunes:Tune.t list -> unit -> t
 
   val delete : t -> unit
 end
