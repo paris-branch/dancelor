@@ -1,32 +1,32 @@
 \version "2.19.82"
 
 tocSet = #(define-music-function (parser location text) (markup?)
-	   (add-toc-item! 'tocSetMarkup text))
+(add-toc-item! 'tocSetMarkup text))
 tocTune = #(define-music-function (parser location text) (markup?)
-	    (add-toc-item! 'tocTuneMarkup text))
+(add-toc-item! 'tocTuneMarkup text))
 
 #(define-markup-command (my-wordwrap-string layout props align strg)
-  (number? string?)
-  #:properties ((baseline-skip))
-  #:category align
-  "Same as @code{wordwrap-field}, but internally a stencil-list is produced
+(number? string?)
+#:properties ((baseline-skip))
+#:category align
+"Same as @code{wordwrap-field}, but internally a stencil-list is produced
 first, which will aligned according to @var{align}, putting out a single
 stencil."
 
-  ;; c/p from define-markup-commands.scm, because it's not public
-  (define (general-column align-dir baseline mols)
-   "Stack @var{mols} vertically, aligned to  @var{align-dir} horizontally."
-   (let* ((aligned-mols
-	   (map (lambda (x) (ly:stencil-aligned-to x X align-dir)) mols))
-	  (stacked-stencil (stack-lines -1 0.0 baseline aligned-mols))
-	  (stacked-extent (ly:stencil-extent stacked-stencil X)))
-    (ly:stencil-translate-axis stacked-stencil (- (car stacked-extent)) X)))
+;; c/p from define-markup-commands.scm, because it's not public
+(define (general-column align-dir baseline mols)
+"Stack @var{mols} vertically, aligned to  @var{align-dir} horizontally."
+(let* ((aligned-mols
+  (map (lambda (x) (ly:stencil-aligned-to x X align-dir)) mols))
+  (stacked-stencil (stack-lines -1 0.0 baseline aligned-mols))
+  (stacked-extent (ly:stencil-extent stacked-stencil X)))
+  (ly:stencil-translate-axis stacked-stencil (- (car stacked-extent)) X)))
 
 
-  (general-column
-   align
-   baseline-skip
-   (wordwrap-string-internal-markup-list layout props #f strg)))
+(general-column
+  align
+  baseline-skip
+  (wordwrap-string-internal-markup-list layout props #f strg)))
 
 \layout {
   indent = 0
@@ -37,6 +37,7 @@ stencil."
 }
 
 booktitle = "{{{name}}}"
+
 {{#transpose}}
   instrument = "{{instrument}}"
 {{/transpose}}{{^transpose}}
@@ -70,18 +71,18 @@ booktitle = "{{{name}}}"
   markup-markup-spacing = #'((basic-distance . 15) (padding . 0.5))
   score-markup-spacing = #'((basic-distance . 15) (padding . 0.5) (stretchability . 60))
 
-	%two-sided = ##t
-	%inner-margin = 20\mm
-	%outer-margin = 10\mm
+  %two-sided = ##t
+  %inner-margin = 20\mm
+  %outer-margin = 10\mm
 
   bookTitleMarkup = \markup {
     \fill-line {
       \dir-column {
-	\center-align \bold \abs-fontsize #26 \fromproperty #'header:title
-	\center-align \large \concat {
-	  \fromproperty #'header:kind
-	}
-	" "
+        \center-align \bold \abs-fontsize #26 \fromproperty #'header:title
+        \center-align \large \concat {
+          \fromproperty #'header:kind
+        }
+        " "
       }
     }
   }
@@ -90,12 +91,12 @@ booktitle = "{{{name}}}"
     \fill-line {
       \fromproperty #'header:piece
       \dir-column {
-	\right-align \fromproperty #'header:composer
-	\right-align {
-	  \concat {
-	    \fromproperty #'header:arranger
-	  }
-	}
+        \right-align \fromproperty #'header:composer
+        \right-align {
+          \concat {
+            \fromproperty #'header:arranger
+          }
+        }
       }
     }
   }
@@ -126,12 +127,12 @@ booktitle = "{{{name}}}"
   \markuplist {
     \fill-line {
       \column {
-	\center-align {
-	  \vspace #12
-	  \bold \abs-fontsize #48 \my-wordwrap-string #CENTER \booktitle
-	  \vspace #10
-	  \abs-fontsize #16 \concat { \instrument " instruments" }
-	}
+        \center-align {
+          \vspace #12
+          \bold \abs-fontsize #48 \my-wordwrap-string #CENTER \booktitle
+          \vspace #10
+          \abs-fontsize #16 \concat { \instrument " instruments" }
+        }
       }
     }
   }
@@ -153,14 +154,15 @@ booktitle = "{{{name}}}"
     {{#tunes}}
     \score {
       \header {
-	piece = "{{{group.name}}}"
+        piece = "{{{group.name}}}"
+        composer = "{{#group.author}}{{{line}}}{{/group.author}}"
       }
 
       {
-	\tocTune \markup { {{{group.name}}} }
+        \tocTune \markup { {{{group.name}}} }
 
         {{#transpose}}\transpose {{{target}}} c { {{/transpose}}
-          {{{content}}}
+        {{{content}}}
         {{#transpose}} } {{/transpose}}
       }
     }
