@@ -5,10 +5,12 @@ module Log = (val Log.create "dancelor.controller.tune" : Logs.LOG)
 
 let get tune _ =
   tune
+  |> Dancelor_database.Tune.get
   |> Tune.to_jsonm
   |> (fun json -> Lwt.return (`O ["tune", json]))
 
 let get_ly tune _ =
+  let tune = Dancelor_database.Tune.get tune in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:(Tune.content tune) ()
 
 let match_score needle haystack =
@@ -52,27 +54,38 @@ let get_all query =
     let hard_limit = query_int_or query "hard-limit" max_int in
     let threshold = (query_float_or query "threshold" 0.) /. 100. in
 
-    Tune.Database.get_all ()
+    Dancelor_database.Tune.get_all ()
     |> List.map (fun tune -> (1., tune))
     |> List.map
       (match name with
        | None -> fun x -> x
        | Some name ->
          (fun (score, tune) ->
-            (score *. match_score name (TuneGroup.name (Tune.group tune)), tune)))
+            let tune_name =
+              let group = Dancelor_database.TuneGroup.get (Tune.group tune) in
+              TuneGroup.name group
+            in
+            (score *. match_score name tune_name, tune)))
     |> List.map
       (match author with
        | None -> fun x -> x
        | Some author ->
          (fun (score, tune) ->
-            match TuneGroup.author (Tune.group tune) with
-            | None -> (0., tune)
-            | Some author' ->
-              (score *. match_score author (Credit.line author'), tune)))
+            try
+              let tune_group = Dancelor_database.TuneGroup.get (Tune.group tune) in
+              match TuneGroup.author tune_group with
+              | None -> (0., tune)
+              | Some tune_author ->
+                (score *. match_score author tune_author, tune)
+            with
+              Not_found -> (0., tune)))
     |> List.filter
       (match kind with
        | None -> fun _ -> true
-       | Some kind -> (fun (_, tune) -> TuneGroup.kind (Tune.group tune) = kind))
+       | Some kind ->
+         (fun (_, tune) ->
+            let tune_group = Dancelor_database.TuneGroup.get (Tune.group tune) in
+            TuneGroup.kind tune_group = kind))
     |> List.filter
       (match keys with
        | None -> fun _ -> true
@@ -142,6 +155,7 @@ module Png = struct
          Lwt.return (Filename.concat path fname_png))
 
   let get tune _ =
+    let tune = Dancelor_database.Tune.get tune in
     render tune >>= fun path_png ->
     Cohttp_lwt_unix.Server.respond_file ~fname:path_png ()
 end

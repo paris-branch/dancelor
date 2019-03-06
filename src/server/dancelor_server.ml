@@ -90,7 +90,6 @@ let apply_controller ~api = let open Dancelor_router in function
   | TuneLy tune -> Tune.get_ly tune
   | TunePng tune -> Tune.Png.get tune
   | Tune tune -> apply_html_controller ~api ~view:"/tune" (Tune.get tune)
-  | TuneSlug _ -> assert false
 
   | Victor -> exit 0
 
@@ -155,8 +154,8 @@ let () =
 
   Log.info (fun m -> m "Initialising database");
   Dancelor_common.Storage.sync_changes ();
-  Dancelor_model.Database.initialise ();
-  Dancelor_model.Database.report_without_accesses ();
+  Dancelor_database.initialise ();
+  Dancelor_database.report_without_accesses ();
 
   if !Config.routines then
     (

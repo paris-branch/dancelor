@@ -1,4 +1,5 @@
 (library
  (name dancelor_controller)
  (public_name dancelor.controller)
- (libraries dancelor.common dancelor.model dancelor.lilypond cohttp-lwt-unix ezjsonm mustache))
+ (libraries dancelor.common dancelor.model dancelor.database dancelor.lilypond
+            cohttp-lwt-unix ezjsonm mustache))

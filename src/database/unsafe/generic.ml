@@ -69,6 +69,11 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
     else
       slug
 
+  let get slug =
+    let (stats, model) = Hashtbl.find db slug in
+    Stats.add_access stats;
+    model
+
   let get_opt slug =
     Hashtbl.find_opt db slug >>= fun (stats, model) ->
     Stats.add_access stats;
@@ -108,8 +113,7 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
     Hashtbl.add db slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     model
 
-  let delete set =
-    let slug = Model.slug set in
+  let delete slug =
     Storage.delete_entry Model.prefix slug;
     Storage.save_changes_on_entry
       ~msg:(spf "[auto] delete %s / %s" Model.prefix slug)

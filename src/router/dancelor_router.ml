@@ -5,31 +5,30 @@ module Log = (val Log.create "dancelor.server.router")
 type controller =
   | Index
 
-  | Credit of Credit.t
+  | Credit of Credit.t Slug.t
 
   | Pascaline
 
-  | Person of Person.t
+  | Person of Person.t Slug.t
 
   | ProgramAll
-  | ProgramPdf of Program.t
-  | Program of Program.t
+  | ProgramPdf of Program.t Slug.t
+  | Program of Program.t Slug.t
 
   | SetAll
   | SetCompose
   | SetSave
-  | SetLy of Set.t
-  | SetPdf of Set.t
-  | Set of Set.t
-  | SetDelete of Set.t
+  | SetLy of Set.t Slug.t
+  | SetPdf of Set.t Slug.t
+  | Set of Set.t Slug.t
+  | SetDelete of Set.t Slug.t
 
-  | TuneGroup of TuneGroup.t
+  | TuneGroup of TuneGroup.t Slug.t
 
   | TuneAll
-  | TuneLy of Tune.t
-  | TunePng of Tune.t
-  | Tune of Tune.t
-  | TuneSlug of Slug.t
+  | TuneLy of Tune.t Slug.t
+  | TunePng of Tune.t Slug.t
+  | Tune of Tune.t Slug.t
 
   | Victor
 
@@ -101,9 +100,8 @@ let routes : route list =
     with_slug
       ~meth:`GET
       ~prefix:"/credit"
-      (Credit.Database.get_opt >=> fun credit -> Some (Credit credit))
-      (function Credit credit -> Some (Credit.slug credit)
-              | _ -> None) ;
+      (fun credit -> Some (Credit credit))
+      (function Credit credit -> Some credit | _ -> None) ;
 
     direct
       ~meth:`GET
@@ -113,9 +111,8 @@ let routes : route list =
     with_slug
       ~meth:`GET
       ~prefix:"/person"
-      (Person.Database.get_opt >=> fun person -> Some (Person person))
-      (function Person person -> Some (Person.slug person)
-              | _ -> None) ;
+      (fun person -> Some (Person person))
+      (function Person person -> Some person | _ -> None) ;
 
     direct
       ~meth:`GET
@@ -126,16 +123,14 @@ let routes : route list =
       ~meth:`GET
       ~prefix:"/program"
       ~ext:"pdf"
-      (Program.Database.get_opt >=> fun program -> Some (ProgramPdf program))
-      (function ProgramPdf program -> Some (Program.slug program)
-              | _ -> None) ;
+      (fun program -> Some (ProgramPdf program))
+      (function ProgramPdf program -> Some program | _ -> None) ;
 
     with_slug
       ~meth:`GET
       ~prefix:"/program"
-      (Program.Database.get_opt >=> fun program -> Some (Program program))
-      (function Program program -> Some (Program.slug program)
-              | _ -> None) ;
+      (fun program -> Some (Program program))
+      (function Program program -> Some program | _ -> None) ;
 
     direct
       ~meth:`GET
@@ -156,38 +151,33 @@ let routes : route list =
       ~meth:`GET
       ~prefix:"/set"
       ~ext:"ly"
-      (Set.Database.get_opt >=> fun set -> Some (SetLy set))
-      (function SetLy set -> Some (Set.slug set)
-              | _ -> None) ;
+      (fun set -> Some (SetLy set))
+      (function SetLy set -> Some set | _ -> None) ;
 
     with_slug
       ~meth:`GET
       ~prefix:"/set"
       ~ext:"pdf"
-      (Set.Database.get_opt >=> fun set -> Some (SetPdf set))
-      (function SetPdf set -> Some (Set.slug set)
-              | _ -> None) ;
+      (fun set -> Some (SetPdf set))
+      (function SetPdf set -> Some set | _ -> None) ;
 
     with_slug
       ~meth:`GET
       ~prefix:"/set"
-      (Set.Database.get_opt >=> fun set -> Some (Set set))
-      (function Set set -> Some (Set.slug set)
-              | _ -> None) ;
+      (fun set -> Some (Set set))
+      (function Set set -> Some set | _ -> None) ;
 
     with_slug
       ~meth:`DELETE
       ~prefix:"/set"
-      (Set.Database.get_opt >=> fun set -> Some (SetDelete set))
-      (function SetDelete set -> Some (Set.slug set)
-              | _ -> None) ;
+      (fun set -> Some (SetDelete set))
+      (function SetDelete set -> Some set | _ -> None) ;
 
     with_slug
       ~meth:`GET
       ~prefix:"/tune-group"
-      (TuneGroup.Database.get_opt >=> fun tune_group -> Some (TuneGroup tune_group))
-      (function TuneGroup tune_group -> Some (TuneGroup.slug tune_group)
-              | _ -> None) ;
+      (fun tune_group -> Some (TuneGroup tune_group))
+      (function TuneGroup tune_group -> Some tune_group | _ -> None) ;
 
     direct
       ~meth:`GET
@@ -198,25 +188,21 @@ let routes : route list =
       ~meth:`GET
       ~prefix:"/tune"
       ~ext:"ly"
-      (Tune.Database.get_opt >=> fun tune -> Some (TuneLy tune))
-      (function TuneLy tune -> Some (Tune.slug tune)
-              | _ -> None) ;
+      (fun tune -> Some (TuneLy tune))
+      (function TuneLy tune -> Some tune | _ -> None) ;
 
     with_slug
       ~meth:`GET
       ~prefix:"/tune"
       ~ext:"png"
-      (Tune.Database.get_opt >=> fun tune -> Some (TunePng tune))
-      (function TunePng tune -> Some (Tune.slug tune)
-              | _ -> None) ;
+      (fun tune -> Some (TunePng tune))
+      (function TunePng tune -> Some tune | _ -> None) ;
 
     with_slug
       ~meth:`GET
       ~prefix:"/tune"
-      (Tune.Database.get_opt >=> fun tune -> Some (Tune tune))
-      (function Tune tune -> Some (Tune.slug tune)
-              | TuneSlug slug -> Some slug
-              | _ -> None) ;
+      (fun tune -> Some (Tune tune))
+      (function Tune tune -> Some tune | _ -> None) ;
 
     direct
       ~meth:`GET

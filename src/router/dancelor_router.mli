@@ -1,3 +1,4 @@
+open Dancelor_common
 open Dancelor_model
 
 (** This module is the link between requests (method + path) and
@@ -10,31 +11,30 @@ open Dancelor_model
 type controller =
   | Index
 
-  | Credit of Credit.t
+  | Credit of Credit.t Slug.t
 
   | Pascaline
 
-  | Person of Person.t
+  | Person of Person.t Slug.t
 
   | ProgramAll
-  | ProgramPdf of Program.t
-  | Program of Program.t
+  | ProgramPdf of Program.t Slug.t
+  | Program of Program.t Slug.t
 
   | SetAll
   | SetCompose
   | SetSave
-  | SetLy of Set.t
-  | SetPdf of Set.t
-  | Set of Set.t
-  | SetDelete of Set.t
+  | SetLy of Set.t Slug.t
+  | SetPdf of Set.t Slug.t
+  | Set of Set.t Slug.t
+  | SetDelete of Set.t Slug.t
 
-  | TuneGroup of TuneGroup.t
+  | TuneGroup of TuneGroup.t Slug.t
 
   | TuneAll
-  | TuneLy of Tune.t
-  | TunePng of Tune.t
-  | Tune of Tune.t
-  | TuneSlug of Dancelor_common.Slug.t
+  | TuneLy of Tune.t Slug.t
+  | TunePng of Tune.t Slug.t
+  | Tune of Tune.t Slug.t
 
   | Victor
 

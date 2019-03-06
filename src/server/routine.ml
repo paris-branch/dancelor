@@ -1,12 +1,11 @@
-open Dancelor_model
 let (>>=) = Lwt.bind
 
 let preload_tunes () =
-  Lwt_list.iter_s
+  Dancelor_database.Tune.get_all ()
+  |> Lwt_list.iter_s
     (fun tune ->
-      Dancelor_controller.Tune.Png.render tune >>= fun _ ->
-      Lwt.return ())
-    (Tune.Database.get_all ())
-  
+       Dancelor_controller.Tune.Png.render tune >>= fun _ ->
+       Lwt.return ())
+
 let initialise () =
   Lwt.async preload_tunes

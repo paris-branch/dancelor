@@ -5,6 +5,7 @@ module Log = (val Log.create "dancelor.controller.program" : Logs.LOG)
 
 let get program _ =
   program
+  |> Dancelor_database.Program.get
   |> Program.to_jsonm
   |> (fun json -> Lwt.return (`O ["program", json]))
 
@@ -12,12 +13,9 @@ let get_all query =
   let contains_set =
     match query_string_opt query "contains" with
     | None -> (fun _ -> true)
-    | Some set ->
-      match Set.Database.get_opt set with
-      | None -> failwith "get_all" (*FIXME*)
-      | Some set -> Program.contains set
+    | Some set -> Program.contains set
   in
-  Program.Database.get_all ()
+  Dancelor_database.Program.get_all ()
   |> List.filter contains_set
   |> List.map Program.to_jsonm
   |> (fun json -> Lwt.return (`O ["programs", `A json]))
@@ -73,6 +71,7 @@ module Pdf = struct
         Lwt.return path_pdf)
 
   let get program query =
+    let program = Dancelor_database.Program.get program in
     render ?transpose_target:(query_string_opt query "transpose-target") program >>= fun path_pdf ->
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

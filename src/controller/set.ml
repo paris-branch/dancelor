@@ -5,11 +5,12 @@ module Log = (val Log.create "dancelor.controller.set" : Logs.LOG)
 
 let get set _ =
   set
+  |> Dancelor_database.Set.get
   |> Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["set", json]))
 
 let delete set _ =
-  Set.Database.delete set;
+  Dancelor_database.Set.delete set;
   Lwt.return (`O [])
 
 let save query =
@@ -18,25 +19,18 @@ let save query =
   let name = query_string query "name" in
   let kind = Kind.dance_of_string (query_string query "kind") in
   let status = query_string_opt query "status" >>= fun status -> Some (Status.from_string status) in
-  let tunes =
-    query_strings query "tunes"
-    |> List.map (Tune.Database.get_opt ||> Option.unwrap)
-  in
-  Set.Database.save ?slug ~name ~kind ?status ~tunes ()
+  let tunes = query_strings query "tunes" in
+  Dancelor_database.Set.save ?slug ~name ~kind ?status ~tunes ()
   |> Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["set", json]))
 
 let get_all query =
-  Log.debug (fun m -> m "controller get_all");
   let contains_tune =
     match query_string_opt query "contains" with
     | None -> (fun _ -> true)
-    | Some tune ->
-      match Tune.Database.get_opt tune with
-      | None -> failwith "get_all" (*FIXME*)
-      | Some tune -> Set.contains tune
+    | Some tune -> Set.contains tune
   in
-  Set.Database.get_all ()
+  Dancelor_database.Set.get_all ()
   |> List.filter contains_tune
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
   |> List.map Set.to_jsonm
@@ -70,6 +64,7 @@ module Ly = struct
     |> Mustache.render template
 
   let get set query =
+    let set = Dancelor_database.Set.get set in
     let lilypond = render ?transpose_target:(query_string_opt query "transpose-target") set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
@@ -97,6 +92,7 @@ module Pdf = struct
         Lwt.return path_pdf)
 
   let get set query =
+    let set = Dancelor_database.Set.get set in
     render ?transpose_target:(query_string_opt query "transpose-target") set >>= fun path_pdf ->
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
