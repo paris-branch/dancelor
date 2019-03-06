@@ -8,10 +8,10 @@ let js = Js.string
 module Composer = struct
 
   type t = {
-    state : [`Edit of Slug.t | `Create];
+    state : [`Edit of Dancelor_model.Set.t Slug.t | `Create];
     mutable name : string;
     mutable kind : string;
-    mutable tunes : Dancelor_model.Tune.t option array;
+    mutable tunes : Dancelor_model.Tune.t Slug.t option array;
     mutable count : int;
   }
 
@@ -24,7 +24,7 @@ module Composer = struct
       count = 0;
     }
 
-  let edit set = 
+  let edit set =
     let tunes_list = Dancelor_model.Set.tunes set in
     let count = List.length tunes_list in
     let tunes = Array.make (max 2 count) None in
@@ -37,22 +37,22 @@ module Composer = struct
       count
     }
 
-  let name t = 
+  let name t =
     t.name
 
-  let set_name t name = 
+  let set_name t name =
     t.name <- name
 
-  let kind t = 
+  let kind t =
     t.kind
 
-  let set_kind t kind = 
+  let set_kind t kind =
     t.kind <- kind
 
-  let count t = 
+  let count t =
     t.count
 
-  let insert t tune i = 
+  let insert t tune i =
     if Array.length t.tunes = t.count then begin
       let new_tunes = Array.make (t.count * 2) None in
       Array.blit t.tunes 0 new_tunes 0 t.count;
@@ -100,7 +100,7 @@ module Composer = struct
       | Some tune -> f i tune
     done
 
-  let fold t f acc = 
+  let fold t f acc =
     let acc = ref acc in
     for i = t.count - 1 downto 0 do
       match t.tunes.(i) with
@@ -109,30 +109,29 @@ module Composer = struct
     done;
     !acc
 
-  let list_tunes t = 
+  let list_tunes t =
     fold t (fun _ tune acc -> tune::acc) []
 
-  let clear t = 
+  let clear t =
     t.name <- "";
     t.kind <- "";
     t.count <- 0
 
-  let save t = 
-    Js.Optdef.case Dom_html.window##.localStorage 
-      (fun () -> ()) 
+  let save t =
+    Js.Optdef.case Dom_html.window##.localStorage
+      (fun () -> ())
       (fun local_storage ->
-        let tunes = 
+        let tunes =
           list_tunes t
-          |> List.map Dancelor_model.Tune.slug
           |> String.concat ";"
         in
         local_storage##setItem (js "composer.name") (js t.name);
         local_storage##setItem (js "composer.kind") (js t.kind);
         local_storage##setItem (js "composer.tunes") (js tunes))
 
-  let request_tune_slug slug callback = 
-    let path = Dancelor_router.(path_of_controller (TuneSlug slug)) |> snd in
-    Helpers.send_request ~path 
+  let request_tune_slug slug callback =
+    let path = Dancelor_router.(path_of_controller (Tune slug)) |> snd in
+    Helpers.send_request ~path
       ~callback:(fun str ->
         Dancelor_common.Json.from_string str
         |> Dancelor_common.Json.find ["tune"]
@@ -140,11 +139,11 @@ module Composer = struct
         |> Dancelor_model.Tune.of_json
         |> callback) ()
 
-  let load t cb = 
-    Js.Optdef.case Dom_html.window##.localStorage 
-      (fun () -> ()) 
+  let load t cb =
+    Js.Optdef.case Dom_html.window##.localStorage
+      (fun () -> ())
       (fun local_storage ->
-        let name, kind, tunes = 
+        let name, kind, tunes =
           local_storage##getItem (js "composer.name"),
           local_storage##getItem (js "composer.kind"),
           local_storage##getItem (js "composer.tunes")
@@ -154,28 +153,27 @@ module Composer = struct
         Js.Opt.case kind (fun () -> ())
           (fun kind -> t.kind <- Js.to_string kind);
         Js.Opt.case tunes (fun () -> ())
-          (fun tunes -> 
+          (fun tunes ->
             String.split_on_char ';' (Js.to_string tunes)
             |> List.filter (fun s -> s <> " " && s <> "")
             |> List.iteri (fun idx slug ->
               request_tune_slug slug (fun tune ->
-                insert t tune idx; cb ()))))
+                    insert t (Dancelor_model.Tune.slug tune) idx; cb ()))))
 
-  let erase_storage _ = 
-    Js.Optdef.case Dom_html.window##.localStorage 
-      (fun () -> ()) 
+  let erase_storage _ =
+    Js.Optdef.case Dom_html.window##.localStorage
+      (fun () -> ())
       (fun local_storage ->
         local_storage##removeItem (js "composer.name");
         local_storage##removeItem (js "composer.kind");
         local_storage##removeItem (js "composer.tunes"))
 
-  let submit t callback = 
+  let submit t callback =
     let save_path = Dancelor_router.(path_of_controller SetSave) |> snd in
-    let tunes = 
-      fold t (fun _ tune acc ->
-        ("tunes", Dancelor_model.Tune.slug tune) :: acc) []
+    let tunes =
+      fold t (fun _ tune acc -> ("tunes", tune) :: acc) []
     in
-    Helpers.send_request ~path:save_path 
+    Helpers.send_request ~path:save_path
       ~args:(("name", t.name) :: ("kind", t.kind) :: tunes)
       ~callback:(fun str ->
         Dancelor_common.Json.from_string str
@@ -199,44 +197,44 @@ module Interface = struct
     }
 
     let create ~document ~parent =
-      let main = 
-        Widgets.Elements.div ~classes:["controls"] ~document ~parent () 
+      let main =
+        Widgets.Elements.div ~classes:["controls"] ~document ~parent ()
       in
-      let save = 
-        Widgets.Elements.button ~classes:["btn"; "btn-success"] ~text:"Save" 
+      let save =
+        Widgets.Elements.button ~classes:["btn"; "btn-success"] ~text:"Save"
           ~document ()
       in
-      let clear = 
-        Widgets.Elements.button ~classes:["btn"; "btn-danger"] ~text:"Clear" 
+      let clear =
+        Widgets.Elements.button ~classes:["btn"; "btn-danger"] ~text:"Clear"
           ~document ()
       in
       {main; save; clear; shown = false}
 
     let main t = t.main
 
-    let bind_save t cb = 
+    let bind_save t cb =
       Lwt.async (fun () ->
         Lwt_js_events.clicks t.save
           (fun _ev _ -> cb (); Lwt.return ()))
 
-    let bind_clear t cb = 
+    let bind_clear t cb =
       Lwt.async (fun () ->
         Lwt_js_events.clicks t.clear
           (fun _ev _ -> cb (); Lwt.return ()))
 
-    let show t = 
+    let show t =
       if not t.shown then begin
         Widgets.Utils.set_parent t.save t.main;
         Widgets.Utils.set_parent t.clear t.main;
         t.shown <- true
       end
 
-    let hide t = 
+    let hide t =
       if t.shown then begin
         Widgets.Utils.remove_children t.main;
         t.shown <- false
       end
-    
+
   end
 
   type t = {
@@ -253,18 +251,18 @@ module Interface = struct
   let create composer parent =
     let document = Html.window##.document in
     let form = Widgets.Elements.form ~document ~parent ~id:"composer" () in
-    let set_name = 
-      Widgets.Elements.text_input ~classes:["form-control"] ~id:"name" 
-        ~placeholder:"Set Name" ~document ~parent:form () 
+    let set_name =
+      Widgets.Elements.text_input ~classes:["form-control"] ~id:"name"
+        ~placeholder:"Set Name" ~document ~parent:form ()
     in
     Widgets.Elements.br ~document ~parent:form ();
-    let set_kind = 
-      Widgets.Elements.text_input ~classes:["form-control"] ~id:"kind" 
-        ~placeholder:"Set Kind (eg. 8x32R)" ~document ~parent:form () 
+    let set_kind =
+      Widgets.Elements.text_input ~classes:["form-control"] ~id:"kind"
+        ~placeholder:"Set Kind (eg. 8x32R)" ~document ~parent:form ()
     in
     Widgets.Elements.br ~document ~parent:form ();
     let tunes_area = Widgets.Elements.div ~id:"tunesArea" ~document ~parent:form () in
-    let search_bar = 
+    let search_bar =
       Widgets.SearchBar.create ~placeholder:"Search for a tune"
         ~document ~parent:form ()
     in
@@ -281,40 +279,40 @@ module Interface = struct
       controls
     }
 
-  let save interface = 
+  let save interface =
     Html.window##scroll 0 0;
     if Composer.name interface.composer <> ""
     && Composer.kind interface.composer <> "" then begin
       Composer.submit interface.composer
-        (fun set -> 
-          let path_to_pdf = 
-            Dancelor_router.SetPdf set
+        (fun set ->
+          let path_to_pdf =
+            Dancelor_router.SetPdf (Dancelor_model.Set.slug set)
             |> Dancelor_router.path_of_controller
             |> snd
           in
           Html.window##.location##.href := js path_to_pdf)
     end else begin
-      if Composer.name interface.composer = "" then 
+      if Composer.name interface.composer = "" then
         Widgets.Utils.add_classes interface.set_name ["has-error"];
-      if Composer.kind interface.composer = "" then 
+      if Composer.kind interface.composer = "" then
         Widgets.Utils.add_classes interface.set_kind ["has-error"];
     end
 
-  let tune_actions interface tune_header index refresh = 
-    let actions = 
-      Widgets.Elements.div ~classes:["tune-actions"; "widget-bar"] 
+  let tune_actions interface tune_header index refresh =
+    let actions =
+      Widgets.Elements.div ~classes:["tune-actions"; "widget-bar"]
         ~document:interface.document ~parent:tune_header ()
     in
-    let button1 = 
-      Widgets.Elements.button 
-        ~classes:["my-btn"; "my-btn-def"; "rotate-down"; "left-widget"] 
+    let button1 =
+      Widgets.Elements.button
+        ~classes:["my-btn"; "my-btn-def"; "rotate-down"; "left-widget"]
         ~document:interface.document ~parent:actions
         ~callback:(fun () ->
           Composer.move_down interface.composer index;
           Composer.save interface.composer;
           refresh interface) ()
     in
-    let button2 = 
+    let button2 =
       Widgets.Elements.button ~classes:["my-btn"; "my-btn-def"; "center-widget"]
         ~document:interface.document ~parent:actions
         ~callback:(fun () ->
@@ -322,8 +320,8 @@ module Interface = struct
           Composer.save interface.composer;
           refresh interface) ()
     in
-    let button3 = 
-      Widgets.Elements.button ~classes:["my-btn"; "my-btn-danger"; "right-widget"] 
+    let button3 =
+      Widgets.Elements.button ~classes:["my-btn"; "my-btn-danger"; "right-widget"]
         ~document:interface.document ~parent:actions
         ~callback:(fun () ->
           Composer.remove interface.composer index;
@@ -341,28 +339,29 @@ module Interface = struct
     |> ignore;
     actions
 
-  let tune_data interface tune_header tune = 
-    let data = 
+  let tune_data interface tune_header tune =
+    let data =
       Widgets.Elements.div ~classes:["tune-data"] ~document:interface.document
         ~parent:tune_header ()
     in
     let tune_group = Dancelor_model.Tune.group tune in
+    (* FIXME: this requires an API call. *)
     let name = Dancelor_model.TuneGroup.name tune_group in
     Widgets.Elements.textnode ~text:name ~document:interface.document ~parent:data ()
     |> ignore;
     data
 
-  let tune_area interface tune index refresh = 
-    let area = 
-      Widgets.Elements.div ~classes:["tune-area"] ~document:interface.document 
+  let tune_area interface tune index refresh =
+    let area =
+      Widgets.Elements.div ~classes:["tune-area"] ~document:interface.document
         ~parent:interface.tunes_area ()
     in
-    let header = 
+    let header =
       Widgets.Elements.div ~classes:["tune-header"] ~document:interface.document ~parent:area ()
     in
     tune_data interface header tune |> ignore;
     tune_actions interface header index refresh |> ignore;
-    let src = Dancelor_router.(path_of_controller (TunePng tune)) |> snd in
+    let src = Dancelor_router.(path_of_controller (TunePng (Dancelor_model.Tune.slug tune))) |> snd in
     Widgets.Elements.image ~document:interface.document ~parent:area
       ~classes:["tune-png"] ~src () |> ignore;
     area
@@ -374,6 +373,7 @@ module Interface = struct
   let rec refresh interface =
     Widgets.Utils.remove_children interface.tunes_area;
     Composer.iter interface.composer (fun index tune ->
+        (* FIXME: this requires an API call. *)
       tune_area interface tune index refresh
       |> ignore;
     );
@@ -388,6 +388,7 @@ module Interface = struct
     let document = interface.document in
     let parent = Widgets.Elements.tr ~document () in
     let tune_group = Dancelor_model.Tune.group tune in
+    (* FIXME: these require API calls. *)
     let tune_name = Dancelor_model.TuneGroup.name tune_group in
     let tune_bars = Dancelor_model.Tune.bars tune in
     let tune_kind = Dancelor_model.TuneGroup.kind tune_group in
@@ -397,13 +398,13 @@ module Interface = struct
       Printf.sprintf "%i %s"
         tune_bars (Dancelor_model.Kind.base_to_string tune_kind)
     in
-    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
       ~text:score_str () |> ignore;
-    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
       ~text:tune_name () |> ignore;
-    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
       ~text:bars_kind_str () |> ignore;
-    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document 
+    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
       ~text:tune_structure () |> ignore;
     parent
 
@@ -416,7 +417,7 @@ module Interface = struct
         Widgets.SearchBar.rem_results interface.search_bar;
         Json.from_string str
         |> Json.find ["tunes"]
-        |> Json.list (Option.wrap_fun Json.of_value)
+        |> Json.list Json.of_value
         |> Option.unwrap
         |> List.sub 10
         |> List.map (fun json ->
@@ -424,11 +425,11 @@ module Interface = struct
             (Dancelor_model.Tune.of_json json))
         |> List.iter (fun (score, tune) ->
             let result_div = make_search_result interface tune score in
-            let callback = (fun () -> 
-              Composer.add interface.composer tune;
+            let callback = (fun () ->
+              Composer.add interface.composer (Dancelor_model.Tune.slug tune);
               Composer.save interface.composer;
               refresh interface) in
-            Widgets.SearchBar.add_result 
+            Widgets.SearchBar.add_result
              ~callback interface.search_bar result_div)) ()
 
   let connect interface =
