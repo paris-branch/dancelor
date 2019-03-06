@@ -25,6 +25,6 @@ val get_opt : k:(value -> 'a option) -> string list -> t -> 'a option
 
 val string : value -> string option
 val int : value -> int option
-val slug : value -> Slug.t option
+val slug : value -> 'a Slug.t option
 val strings : value -> string list option
-val list : (value -> 'a option) -> value -> 'a list option
+val list : (value -> 'a) -> value -> 'a list option

@@ -2,7 +2,7 @@ open Dancelor_common open Option
 
 module type Model = sig
   type t
-  val slug : t -> Slug.t
+  val slug : t -> t Slug.t
   val serialize : t -> Json.t
   val unserialize : Json.t -> t
 
@@ -25,7 +25,7 @@ module Stats = struct
 end
 
 module Make (Log : Logs.LOG) (Model : Model) = struct
-  let db : (Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
+  let db : (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
   let initialise () =
     let load entry =

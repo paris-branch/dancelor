@@ -2,7 +2,7 @@ open Dancelor_common
 open Protocol_conv_jsonm
 
 type t =
-  { slug : Slug.t ;
+  { slug : t Slug.t ;
     name : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
@@ -23,22 +23,3 @@ let unserialize json =
 
 let slug p = p.slug
 let name p = p.name
-
-module Database = struct
-  include GenericDatabase.Make
-      (val Log.create "dancelor.model.person.database" : Logs.LOG)
-      (struct
-        type nonrec t = t
-        let slug = slug
-
-        let serialize = serialize
-        let unserialize = unserialize
-
-        let prefix = "person"
-        let separated_files = []
-      end)
-
-  let save ?slug ~name () =
-    save ?slug ~name @@ fun slug ->
-    { slug ; name }
-end

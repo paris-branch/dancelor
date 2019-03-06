@@ -2,12 +2,12 @@ open Dancelor_common open Option
 open Protocol_conv_jsonm
 
 type t =
-  { slug : Slug.t ;
+  { slug : t Slug.t ;
     name : string ;
-    deviser : Credit.t option ;
+    deviser : Credit.t Slug.t option ;
     kind : Kind.dance ;
     status : Status.t ;
-    tunes : Tune.t list }
+    tunes : Tune.t Slug.t list }
 [@@deriving protocol ~driver:(module Jsonm)]
 
 let to_jsonm = to_jsonm ||> Json.on_value (Json.add_field "type" (`String "set"))
@@ -18,14 +18,14 @@ let of_json = Json.to_value ||> of_jsonm
 let unserialize json =
   { slug = Json.(get ~k:slug ["slug"] json) ;
     name = Json.(get ~k:string ["name"] json) ;
-    deviser = (Json.(get_opt ~k:slug ["deviser"] json) >>= fun slug -> assert_some (Credit.Database.get_opt slug)) ;
+    deviser = Json.(get_opt ~k:slug ["deviser"] json) ;
     kind = Kind.dance_of_string (Json.(get ~k:string ["kind"] json)) ;
     status = Json.(get ~k:string ["status"] json |> Status.from_string) ;
     tunes =
       unwrap (
         Json.list (
           function
-          | `String slug -> assert_some (Tune.Database.get_opt slug)
+          | `String slug -> slug
           | _ -> failwith "Dancelor_model.Set.unserialize"
         )
           (Json.find ["tunes"] json)
@@ -38,11 +38,11 @@ let serialize set =
       "name", `String set.name ;
       "kind", Kind.dance_to_jsonm set.kind ;
       "status", `String (Status.to_string set.status) ;
-      "tunes", `A (List.map (fun tune -> `String (Tune.slug tune)) set.tunes)
+      "tunes", `A (List.map (fun tune -> `String tune) set.tunes)
     ]
     @ match set.deviser with
     | None -> []
-    | Some deviser -> ["deviser", `String (Credit.slug deviser)]
+    | Some deviser -> ["deviser", `String deviser]
   )
 
 let slug s = s.slug
@@ -51,22 +51,3 @@ let kind s = s.kind
 let tunes s = s.tunes
 let deviser s = s.deviser
 let contains t s = List.mem t s.tunes
-
-module Database = struct
-  include GenericDatabase.Make
-      (val Log.create "dancelor.model.set.database" : Logs.LOG)
-      (struct
-        type nonrec t = t
-        let slug = slug
-
-        let serialize = serialize
-        let unserialize = unserialize
-
-        let prefix = "set"
-        let separated_files = []
-      end)
-
-  let save ?slug ~name ?deviser ~kind ?(status=Status.WorkInProgress) ~tunes () =
-    save ?slug ~name @@ fun slug ->
-    { slug; name; deviser; kind; status; tunes }
-end

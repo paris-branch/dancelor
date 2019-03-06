@@ -2,10 +2,10 @@ open Dancelor_common open Option
 open Protocol_conv_jsonm
 
 type t =
-  { slug : Slug.t ;
+  { slug : t Slug.t ;
     name : string ;
     kind : Kind.base ;
-    author : Credit.t option ;
+    author : Credit.t Slug.t option ;
     remark : string }
 [@@deriving protocol ~driver:(module Jsonm)]
 
@@ -28,7 +28,7 @@ let serialize tune_group =
       "remark", `String tune_group.remark ;
     ] @ match tune_group.author with
     | None -> []
-    | Some author -> ["author", `String (Credit.slug author)]
+    | Some author -> ["author", `String author]
   )
 
 let unserialize json =
@@ -36,24 +36,9 @@ let unserialize json =
     name = Json.(get ~k:string ["name"] json) ;
     kind = Json.(get ~k:(string >=> (Kind.base_of_string ||> wrap)) ["kind"] json) ;
     remark = Json.(get_or ~k:string ~default:"" ["remark"] json) ;
-    author = Json.(get_opt ~k:(slug >=> (Credit.Database.get_opt ||> assert_some)) ["author"] json) }
+    author = Json.(get_opt ~k:slug ["author"] json) }
 
 let slug tune_group = tune_group.slug
 let name tune_group = tune_group.name
 let kind tune_group = tune_group.kind
 let author tune_group = tune_group.author
-
-module Database = struct
-  include GenericDatabase.Make
-      (val Log.create "dancelor.model.tune-group.database" : Logs.LOG)
-      (struct
-        type nonrec t = t
-        let slug = slug
-
-        let serialize = serialize
-        let unserialize = unserialize
-
-        let prefix = "tune-group"
-        let separated_files = []
-      end)
-end

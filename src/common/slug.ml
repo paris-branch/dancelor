@@ -1,6 +1,6 @@
 open Protocol_conv_jsonm
 
-type t = string
+type 'a t = string
 [@@deriving protocol ~driver:(module Jsonm)]
 
 let from_string str =

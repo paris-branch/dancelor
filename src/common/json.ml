@@ -136,5 +136,5 @@ let strings = function
   | _ -> None
 
 let list cast = function
-  | `A values -> list_map_opt cast values
+  | `A values -> Some (List.map cast values)
   | _ -> None
