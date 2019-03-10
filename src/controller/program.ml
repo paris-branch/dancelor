@@ -16,8 +16,9 @@ let get_all query =
     | Some set -> Program.contains set
   in
   Dancelor_database.Program.get_all ()
-  |> List.filter contains_set
-  |> List.map Program.to_jsonm
+  |> Seq.filter contains_set
+  |> Seq.map Program.to_jsonm
+  |> List.of_seq
   |> (fun json -> Lwt.return (`O ["programs", `A json]))
 
 module Ly = struct

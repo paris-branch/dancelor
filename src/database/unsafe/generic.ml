@@ -85,7 +85,6 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       (fun (stats, model) ->
          Stats.add_access stats;
          model)
-    |> List.of_seq
 
   let save ?slug ~name create =
     let slug =

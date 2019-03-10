@@ -31,7 +31,8 @@ let get_all query =
     | Some tune -> Set.contains tune
   in
   Dancelor_database.Set.get_all ()
-  |> List.filter contains_tune
+  |> Seq.filter contains_tune
+  |> List.of_seq
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
   |> List.map Set.to_jsonm
   |> (fun json -> Lwt.return (`O ["sets", `A json]))

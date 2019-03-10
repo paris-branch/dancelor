@@ -55,8 +55,23 @@ let get_all query =
     let threshold = (query_float_or query "threshold" 0.) /. 100. in
 
     Dancelor_database.Tune.get_all ()
-    |> List.map (fun tune -> (1., tune))
-    |> List.map
+    |> Seq.map (fun tune -> (1., tune))
+    |> Seq.filter
+      (match kind with
+       | None -> fun _ -> true
+       | Some kind ->
+         (fun (_, tune) ->
+            let tune_group = Dancelor_database.TuneGroup.get (Tune.group tune) in
+            TuneGroup.kind tune_group = kind))
+    |> Seq.filter
+      (match keys with
+       | None -> fun _ -> true
+       | Some keys -> (fun (_, tune) -> List.mem (Tune.key tune) keys))
+    |> Seq.filter
+      (match mode with
+       | None -> fun _ -> true
+       | Some mode -> (fun (_, tune) -> snd (Tune.key tune) = mode))
+    |> Seq.map
       (match name with
        | None -> fun x -> x
        | Some name ->
@@ -66,7 +81,7 @@ let get_all query =
               TuneGroup.name group
             in
             (score *. match_score name tune_name, tune)))
-    |> List.map
+    |> Seq.map
       (match author with
        | None -> fun x -> x
        | Some author ->
@@ -79,23 +94,9 @@ let get_all query =
                 (score *. match_score author tune_author, tune)
             with
               Not_found -> (0., tune)))
-    |> List.filter
-      (match kind with
-       | None -> fun _ -> true
-       | Some kind ->
-         (fun (_, tune) ->
-            let tune_group = Dancelor_database.TuneGroup.get (Tune.group tune) in
-            TuneGroup.kind tune_group = kind))
-    |> List.filter
-      (match keys with
-       | None -> fun _ -> true
-       | Some keys -> (fun (_, tune) -> List.mem (Tune.key tune) keys))
-    |> List.filter
-      (match mode with
-       | None -> fun _ -> true
-       | Some mode -> (fun (_, tune) -> snd (Tune.key tune) = mode))
-    |> List.filter
+    |> Seq.filter
       (fun (score, _) -> score >= threshold)
+    |> List.of_seq
     |> List.sort
       (fun (score1, tune1) (score2, tune2) ->
          let c = - compare score1 score2 in (* Scores in decreasing order *)
