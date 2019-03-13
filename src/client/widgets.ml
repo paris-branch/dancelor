@@ -114,7 +114,8 @@ module Elements = struct
   
   let textnode ~text ?parent ~document () =
     let text_node = document##createTextNode (js text) in
-    Option.ifsome (Utils.set_parent text_node) parent
+    Option.ifsome (Utils.set_parent text_node) parent;
+    text_node
 
   let li ?text ?parent ~document () =
     let li = Html.createLi document in

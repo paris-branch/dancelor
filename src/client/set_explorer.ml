@@ -34,19 +34,13 @@ module Interface = struct
     Widgets.Elements.td ~parent ~document ~text:"Kind" () |> ignore;
     Widgets.Elements.td ~parent ~document ~text:"Actions" () |> ignore
 
-  let add_entry interface set =
+  let add_entry interface deviser set =
+    let open Helpers in
     let document = interface.document in
     let name = Dancelor_model.Set.name set in
     let kind =
       Dancelor_model.Set.kind set
       |> Dancelor_model.Kind.dance_to_string
-    in
-    let deviser =
-      match Dancelor_model.Set.deviser set with
-      | None -> ""
-      | Some cr ->
-        (* FIXME: this requires an API call. *)
-        Dancelor_model.Credit.line cr
     in
     let parent =
       Widgets.Elements.tr ~parent:interface.table ~classes:["set-info"]
@@ -122,11 +116,8 @@ module Interface = struct
             let answer = Html.window##confirm (js msg) in
             if Js.to_bool answer then begin
               let _, path = Dancelor_router.path_of_controller (SetDelete (Dancelor_model.Set.slug set)) in
-              Helpers.send_request
-                ~meth:"DELETE"
-                ~callback:(fun _ ->
-                  Dom.removeChild interface.table parent |> ignore)
-                ~path ()
+              Helpers.send_request ~meth:"DELETE" ~path (fun _ ->
+              Dom.removeChild interface.table parent |> ignore)
             end
           end; Lwt.return ()));
     Lwt.async (fun () ->
@@ -139,20 +130,32 @@ module Interface = struct
 
   let fill_table interface sets =
     add_table_header interface;
-    List.iter (add_entry interface) sets
+    List.iter (fun set -> 
+      match Dancelor_model.Set.deviser set with
+      | None -> add_entry interface "" set
+      | Some cr ->
+        let _, path = Dancelor_router.path_of_controller (Credit cr) in
+        Helpers.send_request ~path (fun str ->
+        Dancelor_common.Json.from_string str
+        |> Dancelor_common.Json.find ["credit"; "line"]
+        |> Dancelor_common.Json.string
+        |> function
+          | None -> 
+            add_entry interface "" set
+          | Some name -> 
+            add_entry interface name set)) 
+      sets
 
   let connect interface =
     let _, path = Dancelor_router.path_of_controller SetAll in
-    Helpers.send_request ~path
-      ~callback:(fun str ->
-        let open Dancelor_common in
-        Json.from_string str
-        |> Json.find ["sets"]
-        |> Json.list Json.of_value
-        |> Option.unwrap
-        |> List.map Dancelor_model.Set.of_json
-        |> fill_table interface
-      ) ();
+    Helpers.send_request ~path (fun str ->
+    let open Dancelor_common in
+    Json.from_string str
+    |> Json.find ["sets"]
+    |> Json.list Json.of_value
+    |> Option.unwrap
+    |> List.map Dancelor_model.Set.of_json
+    |> fill_table interface);
     Lwt.async (fun () ->
       Lwt_js_events.clicks interface.document
         (fun _ _ ->

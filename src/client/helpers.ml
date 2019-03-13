@@ -14,7 +14,7 @@ let format_args l =
   end
 
 let send_request ?(prefix=Config.api_prefix) ?(meth="GET") ?(args=[]) 
-  ~callback ~path () =
+  ~path callback =
   let uri = 
     Printf.sprintf "/%s%s%s" prefix path (format_args args) 
   in

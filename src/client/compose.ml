@@ -11,7 +11,7 @@ module Composer = struct
     state : [`Edit of Dancelor_model.Set.t Slug.t | `Create];
     mutable name : string;
     mutable kind : string;
-    mutable tunes : Dancelor_model.Tune.t Slug.t option array;
+    mutable tunes : Dancelor_model.Tune.t option array;
     mutable count : int;
   }
 
@@ -28,7 +28,14 @@ module Composer = struct
     let tunes_list = Dancelor_model.Set.tunes set in
     let count = List.length tunes_list in
     let tunes = Array.make (max 2 count) None in
-    List.iteri (fun i t -> tunes.(i) <- Some t) tunes_list;
+    List.iteri (fun i slug -> 
+      let path = Dancelor_router.(path_of_controller (Tune slug)) |> snd in
+      Helpers.send_request ~path (fun str ->
+        Dancelor_common.Json.from_string str
+        |> Dancelor_common.Json.find ["tune"]
+        |> Dancelor_common.Json.of_value
+        |> Dancelor_model.Tune.unserialize
+        |> fun t -> tunes.(i) <- Some t)) tunes_list;
     {
       state = `Edit (Dancelor_model.Set.slug set);
       name = Dancelor_model.Set.name set;
@@ -123,6 +130,7 @@ module Composer = struct
       (fun local_storage ->
         let tunes =
           list_tunes t
+          |> List.map Dancelor_model.Tune.slug 
           |> String.concat ";"
         in
         local_storage##setItem (js "composer.name") (js t.name);
@@ -131,13 +139,12 @@ module Composer = struct
 
   let request_tune_slug slug callback =
     let path = Dancelor_router.(path_of_controller (Tune slug)) |> snd in
-    Helpers.send_request ~path
-      ~callback:(fun str ->
-        Dancelor_common.Json.from_string str
-        |> Dancelor_common.Json.find ["tune"]
-        |> Dancelor_common.Json.of_value
-        |> Dancelor_model.Tune.of_json
-        |> callback) ()
+    Helpers.send_request ~path (fun str ->
+    Dancelor_common.Json.from_string str
+    |> Dancelor_common.Json.find ["tune"]
+    |> Dancelor_common.Json.of_value
+    |> Dancelor_model.Tune.of_json
+    |> callback)
 
   let load t cb =
     Js.Optdef.case Dom_html.window##.localStorage
@@ -157,8 +164,7 @@ module Composer = struct
             String.split_on_char ';' (Js.to_string tunes)
             |> List.filter (fun s -> s <> " " && s <> "")
             |> List.iteri (fun idx slug ->
-              request_tune_slug slug (fun tune ->
-                    insert t (Dancelor_model.Tune.slug tune) idx; cb ()))))
+              request_tune_slug slug (fun tune -> insert t tune idx; cb ()))))
 
   let erase_storage _ =
     Js.Optdef.case Dom_html.window##.localStorage
@@ -171,17 +177,16 @@ module Composer = struct
   let submit t callback =
     let save_path = Dancelor_router.(path_of_controller SetSave) |> snd in
     let tunes =
-      fold t (fun _ tune acc -> ("tunes", tune) :: acc) []
+      fold t (fun _ tune acc -> ("tunes", Dancelor_model.Tune.slug tune) :: acc) []
     in
     Helpers.send_request ~path:save_path
-      ~args:(("name", t.name) :: ("kind", t.kind) :: tunes)
-      ~callback:(fun str ->
-        Dancelor_common.Json.from_string str
-        |> Dancelor_common.Json.find ["set"]
-        |> Dancelor_common.Json.of_value
-        |> Dancelor_model.Set.of_json
-        |> callback;
-        erase_storage t) ()
+      ~args:(("name", t.name) :: ("kind", t.kind) :: tunes) (fun str ->
+    Dancelor_common.Json.from_string str
+    |> Dancelor_common.Json.find ["set"]
+    |> Dancelor_common.Json.of_value
+    |> Dancelor_model.Set.of_json
+    |> callback;
+    erase_storage t)
 
 end
 
@@ -345,10 +350,20 @@ module Interface = struct
         ~parent:tune_header ()
     in
     let tune_group = Dancelor_model.Tune.group tune in
-    (* FIXME: this requires an API call. *)
-    let name = Dancelor_model.TuneGroup.name tune_group in
-    Widgets.Elements.textnode ~text:name ~document:interface.document ~parent:data ()
-    |> ignore;
+    let node = 
+      Widgets.Elements.textnode ~text:tune_group ~document:interface.document ~parent:data ()
+    in
+    let _, path = Dancelor_router.path_of_controller (TuneGroup tune_group) in
+    Helpers.send_request ~path (fun str ->
+      Dancelor_common.Json.from_string str
+      |> Dancelor_common.Json.find ["tune-group"; "name"]
+      |> Dancelor_common.Json.string
+      |> function
+        | None -> ()
+        | Some name -> 
+          let length = node##.length in
+          node##replaceData 0 length (js name)
+      );
     data
 
   let tune_area interface tune index refresh =
@@ -373,7 +388,6 @@ module Interface = struct
   let rec refresh interface =
     Widgets.Utils.remove_children interface.tunes_area;
     Composer.iter interface.composer (fun index tune ->
-        (* FIXME: this requires an API call. *)
       tune_area interface tune index refresh
       |> ignore;
     );
@@ -389,48 +403,69 @@ module Interface = struct
     let parent = Widgets.Elements.tr ~document () in
     let tune_group = Dancelor_model.Tune.group tune in
     (* FIXME: these require API calls. *)
-    let tune_name = Dancelor_model.TuneGroup.name tune_group in
     let tune_bars = Dancelor_model.Tune.bars tune in
-    let tune_kind = Dancelor_model.TuneGroup.kind tune_group in
     let tune_structure = Dancelor_model.Tune.structure tune in
     let score_str = string_of_int score in
-    let bars_kind_str =
-      Printf.sprintf "%i %s"
-        tune_bars (Dancelor_model.Kind.base_to_string tune_kind)
-    in
     Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
       ~text:score_str () |> ignore;
-    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
-      ~text:tune_name () |> ignore;
-    Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
-      ~text:bars_kind_str () |> ignore;
+    let widget_name = 
+      Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
+        ~text:tune_group ()
+    in
+    let widget_kind = 
+      Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
+        ~text:"42J" ()
+    in
     Widgets.Elements.td ~parent ~classes:["tune-info"] ~document
       ~text:tune_structure () |> ignore;
+    let _, path = Dancelor_router.path_of_controller (TuneGroup tune_group) in
+    Helpers.send_request ~path (fun str ->
+      let json = Dancelor_common.Json.from_string str in
+      begin 
+        Dancelor_common.Json.find ["tune-group"; "name"] json
+        |> Dancelor_common.Json.string
+        |> function
+          | None -> ()
+          | Some name -> widget_name##.textContent := Js.some (js name)
+      end;
+      begin 
+        Dancelor_common.Json.find ["tune-group"; "kind"] json
+        |> Dancelor_common.Json.string
+        |> function
+          | None -> ()
+          | Some tune_kind -> 
+            let bars_kind_str =
+              Printf.sprintf "%i %s"
+                tune_bars tune_kind
+            in
+            widget_kind##.textContent := Js.some (js bars_kind_str)
+      end;
+
+      );
     parent
 
   let search_tunes interface input =
     let _, tune_path = Dancelor_router.path_of_controller TuneAll in
     Helpers.send_request ~path:tune_path
-      ~args:["name", input; "hard-limit", "10"; "threshold", "50"]
-      ~callback:(fun str ->
-        let open Dancelor_common in
-        Widgets.SearchBar.rem_results interface.search_bar;
-        Json.from_string str
-        |> Json.find ["tunes"]
-        |> Json.list Json.of_value
-        |> Option.unwrap
-        |> List.sub 10
-        |> List.map (fun json ->
-            (Json.find ["score"] json |> Json.int |> Option.unwrap),
-            (Dancelor_model.Tune.of_json json))
-        |> List.iter (fun (score, tune) ->
-            let result_div = make_search_result interface tune score in
-            let callback = (fun () ->
-              Composer.add interface.composer (Dancelor_model.Tune.slug tune);
-              Composer.save interface.composer;
-              refresh interface) in
-            Widgets.SearchBar.add_result
-             ~callback interface.search_bar result_div)) ()
+      ~args:["name", input; "hard-limit", "10"; "threshold", "50"] (fun str ->
+    let open Dancelor_common in
+    Widgets.SearchBar.rem_results interface.search_bar;
+    Json.from_string str
+    |> Json.find ["tunes"]
+    |> Json.list Json.of_value
+    |> Option.unwrap
+    |> List.sub 10
+    |> List.map (fun json ->
+        (Json.find ["score"] json |> Json.int |> Option.unwrap),
+        (Dancelor_model.Tune.of_json json))
+    |> List.iter (fun (score, tune) ->
+        let result_div = make_search_result interface tune score in
+        let callback = (fun () ->
+          Composer.add interface.composer tune;
+          Composer.save interface.composer;
+          refresh interface) in
+        Widgets.SearchBar.add_result
+         ~callback interface.search_bar result_div))
 
   let connect interface =
     Widgets.SearchBar.on_update interface.search_bar (fun () ->
