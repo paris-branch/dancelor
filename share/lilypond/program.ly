@@ -1,32 +1,31 @@
 \version "2.19.82"
 
 tocSet = #(define-music-function (parser location text) (markup?)
-(add-toc-item! 'tocSetMarkup text))
+           (add-toc-item! 'tocSetMarkup text))
 tocTune = #(define-music-function (parser location text) (markup?)
-(add-toc-item! 'tocTuneMarkup text))
+            (add-toc-item! 'tocTuneMarkup text))
 
 #(define-markup-command (my-wordwrap-string layout props align strg)
-(number? string?)
-#:properties ((baseline-skip))
-#:category align
-"Same as @code{wordwrap-field}, but internally a stencil-list is produced
-first, which will aligned according to @var{align}, putting out a single
-stencil."
+  (number? string?)
+  #:properties ((baseline-skip))
+  #:category align
+  "Same as @code{wordwrap-field}, but internally a stencil-list is produced
+  first, which will aligned according to @var{align}, putting out a single
+  stencil."
 
-;; c/p from define-markup-commands.scm, because it's not public
-(define (general-column align-dir baseline mols)
-"Stack @var{mols} vertically, aligned to  @var{align-dir} horizontally."
-(let* ((aligned-mols
-  (map (lambda (x) (ly:stencil-aligned-to x X align-dir)) mols))
-  (stacked-stencil (stack-lines -1 0.0 baseline aligned-mols))
-  (stacked-extent (ly:stencil-extent stacked-stencil X)))
-  (ly:stencil-translate-axis stacked-stencil (- (car stacked-extent)) X)))
+  ;; c/p from define-markup-commands.scm, because it's not public
+  (define (general-column align-dir baseline mols)
+   "Stack @var{mols} vertically, aligned to  @var{align-dir} horizontally."
+   (let* ((aligned-mols
+    (map (lambda (x) (ly:stencil-aligned-to x X align-dir)) mols))
+    (stacked-stencil (stack-lines -1 0.0 baseline aligned-mols))
+    (stacked-extent (ly:stencil-extent stacked-stencil X)))
+    (ly:stencil-translate-axis stacked-stencil (- (car stacked-extent)) X)))
 
-
-(general-column
-  align
-  baseline-skip
-  (wordwrap-string-internal-markup-list layout props #f strg)))
+  (general-column
+    align
+    baseline-skip
+    (wordwrap-string-internal-markup-list layout props #f strg)))
 
 \layout {
   indent = 0
@@ -39,9 +38,9 @@ stencil."
 booktitle = "{{{name}}}"
 
 {{#transpose}}
-  instrument = "{{instrument}}"
+instrument = "{{instrument}}"
 {{/transpose}}{{^transpose}}
-  instrument = "C"
+instrument = "C"
 {{/transpose}}
 
 \paper {
@@ -102,9 +101,14 @@ booktitle = "{{{name}}}"
   }
 
   oddHeaderMarkup = \markup {
-    \on-the-fly \not-first-page \fill-line {
-      \bold \fromproperty #'header:booktitle
-      \fromproperty #'header:title
+    \on-the-fly \not-first-page {
+      \column {
+        \fill-line {
+          \bold \fromproperty #'header:booktitle
+          \fromproperty #'header:title
+        }
+        " "
+      }
     }
   }
   evenHeaderMarkup = \oddHeaderMarkup
