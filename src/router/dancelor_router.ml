@@ -220,6 +220,11 @@ let routes : route list =
 
     direct
       ~meth:`GET
+      ~path:"/blaireau"
+      Victor ;
+    
+    direct
+      ~meth:`GET
       ~path:"/victor"
       Victor ;
   ]
