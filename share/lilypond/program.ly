@@ -46,23 +46,27 @@ instrument = "C"
 \paper {
   %% There is already a bookpart for the table of contents, no need to
   %% have a title.
-  tocTitleMarkup = \markup\null
+  tocTitleMarkup = \markup \null
 
-  tocSetMarkup = \markup \huge {
-    \vspace #2
-    \fill-with-pattern #1.5 #CENTER .
-    \fromproperty #'toc:text
-    \fromproperty #'toc:page
-  }
-  tocTuneMarkup = \markup
-  \fill-line {
-    \concat {
-      \hspace #5
-      \italic
+  tocSetMarkup =
+    \markup \huge {
+      \vspace #2
+      \fill-with-pattern #1.5 #CENTER .
       \fromproperty #'toc:text
+      \fromproperty #'toc:page
     }
-    \null
-  }
+
+  tocTuneMarkup =
+    \markup {
+      \fill-line {
+        \concat {
+          \hspace #5
+          \italic
+          \fromproperty #'toc:text
+        }
+        \null
+      }
+    }
 
   ragged-right = ##f
   ragged-bottom = ##t
