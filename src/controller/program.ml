@@ -51,13 +51,13 @@ module Ly = struct
 end
 
 module Pdf = struct
-  let cache : (Program.t, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (('a * Program.t), string Lwt.t) Cache.t = Cache.create ()
 
   let (>>=) = Lwt.bind
 
   let render ?transpose_target program =
     Cache.use
-      cache program
+      cache (transpose_target, program)
       (fun () ->
         let lilypond = Ly.render ?transpose_target program in
         let path = Filename.concat !Config.cache "program" in
