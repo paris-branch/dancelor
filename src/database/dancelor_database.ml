@@ -17,4 +17,4 @@ let initialise () =
   Unsafe.Program.initialise ()
 
 let report_without_accesses () =
-  Log.err (fun m -> m "Not implemented yet.") (* FIXME *)
+  Log.err (fun m -> m "report_without_accesses not implemented yet.") (* FIXME *)
