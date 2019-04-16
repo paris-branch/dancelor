@@ -90,7 +90,7 @@ let callback _ request _body =
           Log.debug (fun m -> m "Serving static file.");
           Server.respond_file ~fname:full_path ()
         )
-      else if String.length path >= 5 && String.sub path 0 5 = "/api/" then
+      else if String.length path >= 5 && String.sub path 0 5 = "/"^Config.api_prefix^"/" then
         (
           let path = String.sub path 4 (String.length path - 4) in
           Log.debug (fun m -> m "Looking for an API controller for %s." path);
