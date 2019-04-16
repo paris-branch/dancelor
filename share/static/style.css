@@ -1,3 +1,51 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: lightgray;
+  border-bottom: 1px dashed black;
+  margin-bottom: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+header ul#menu {
+  list-style: none;
+}
+
+header ul#menu li {
+  display: inline-block;
+  margin: 0 5px;
+}
+
+div#content {
+  margin: auto;
+  width: 80%;
+}
+
+footer {
+  background: lightgray;
+  border-top: 1px dashed black;
+  border-bottom: 1px solid black;
+  margin-top: 20px;
+  width: 100%;
+  text-align:center;
+}
+
+table {
+  width: 100%;
+}
+
+td, th {
+  padding: 2px;
+}
+
+tr:hover {
+  background: #eee;
+}
+
 #composer {
   max-width: 220mm;
   margin: auto;

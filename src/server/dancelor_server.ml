@@ -37,61 +37,41 @@ let bad_gateway ?(msg="") _ =
 
 let (>>=) = Lwt.bind
 
-let apply_json_controller json_controller query =
+let apply_controller json_controller query =
   json_controller query >>= fun json ->
   let json = LinksAdder.json_add_links json in
   Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
 
-let respond_view ?(status=`OK) view json =
-  Server.respond_string ~status ~body:(View.render view json) ()
+let apply_controller = let open Dancelor_router in function
+    | Credit credit -> apply_controller (Credit.get credit)
 
-(* FIXME: once the client is fully converted to OCaml, everything here
-   will be using the API. We will be able to remove all the notions of
-   ~api and ~view in the next functions. *)
+    | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
 
-let apply_json_controller_if_api ~api json_controller =
-  if api then
-    apply_json_controller json_controller
-  else
-    fun _ -> Server.respond_not_found ()
+    | Person person -> apply_controller (Person.get person)
 
-let apply_html_controller ~api ~view json_controller query =
-  json_controller query >>= fun json ->
-  let json = LinksAdder.json_add_links json in
-  if api then
-    Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
-  else
-    respond_view view (Json.to_ezjsonm json)
+    | ProgramAll -> apply_controller Program.get_all
+    | ProgramPdf program -> Program.Pdf.get program
+    | Program program -> apply_controller (Program.get program)
 
-let apply_controller ~api = let open Dancelor_router in function
-  | Index -> (fun _ -> respond_view "/index" (`O []))
+    | SetAll -> apply_controller Set.get_all
+    | SetSave -> apply_controller Set.save
+    | SetLy set -> Set.Ly.get set
+    | SetPdf set -> Set.Pdf.get set
+    | Set set -> apply_controller (Set.get set)
+    | SetDelete set -> apply_controller (Set.delete set)
 
-  | Credit credit -> apply_html_controller ~api ~view:"/credit" (Credit.get credit)
+    | TuneGroup tune_group -> apply_controller (TuneGroup.get tune_group)
 
-  | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
+    | TuneAll -> apply_controller Tune.get_all
+    | TuneLy tune -> Tune.get_ly tune
+    | TunePng tune -> Tune.Png.get tune
+    | Tune tune -> apply_controller (Tune.get tune)
 
-  | Person person -> apply_html_controller ~api ~view:"/person" (Person.get person)
+    | Victor -> exit 0
 
-  | ProgramAll -> apply_html_controller ~api ~view:"/program/all" Program.get_all
-  | ProgramPdf program -> Program.Pdf.get program
-  | Program program -> apply_html_controller ~api ~view:"/program" (Program.get program)
+    (* Routes that are not API points. *)
+    | Index | SetCompose -> (fun _ -> Server.respond_not_found ())
 
-  | SetAll -> apply_html_controller ~api ~view:"/set/all" Set.get_all
-  | SetCompose -> (fun _ -> respond_view "/set/compose" (`O []))
-  | SetSave -> apply_json_controller_if_api ~api Set.save
-  | SetLy set -> Set.Ly.get set
-  | SetPdf set -> Set.Pdf.get set
-  | Set set -> apply_html_controller ~api ~view:"/set" (Set.get set)
-  | SetDelete set -> apply_json_controller_if_api ~api (Set.delete set)
-
-  | TuneGroup tune_group -> apply_html_controller ~api ~view:"/tune-group" (TuneGroup.get tune_group)
-
-  | TuneAll -> apply_html_controller ~api ~view:"/tune/all" Tune.get_all
-  | TuneLy tune -> Tune.get_ly tune
-  | TunePng tune -> Tune.Png.get tune
-  | Tune tune -> apply_html_controller ~api ~view:"/tune" (Tune.get tune)
-
-  | Victor -> exit 0
 
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
@@ -102,6 +82,7 @@ let callback _ request _body =
       let meth = Request.meth request in
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
+
       let full_path = Filename.(concat (concat !Config.share "static") path) in
       Log.debug (fun m -> m "Looking for %s" full_path);
       if Sys.file_exists full_path && not (Sys.is_directory full_path) then
@@ -109,27 +90,24 @@ let callback _ request _body =
           Log.debug (fun m -> m "Serving static file.");
           Server.respond_file ~fname:full_path ()
         )
-      else
+      else if String.length path >= 5 && String.sub path 0 5 = "/api/" then
         (
-          let (api, path) =
-            try
-              if String.sub path 0 4 = "/api" then
-                (true, String.sub path 4 (String.length path - 4)) (*FIXME: 4 or 5?*)
-              else
-                (false, path)
-            with
-              Invalid_argument _ -> (false, path)
-          in
-          Log.debug (fun m -> m "Looking for a controller.");
+          let path = String.sub path 4 (String.length path - 4) in
+          Log.debug (fun m -> m "Looking for an API controller for %s." path);
           match Dancelor_router.path_to_controller ~meth ~path with
           | None ->
-             Log.debug (fun m -> m "Could not find a controller.");
-             Server.respond_not_found ~uri ()
+            Log.debug (fun m -> m "Could not find a controller.");
+            Server.respond_not_found ~uri ()
           | Some controller ->
-             Log.debug (fun m -> m "Controller found.");
-             let query = cleanup_query (Uri.query uri) in
-             Log.debug (fun m -> m "Query: %a" pp_query query);
-             apply_controller ~api controller query
+            Log.debug (fun m -> m "Controller found");
+            let query = cleanup_query (Uri.query uri) in
+            Log.debug (fun m -> m "Query: %a" pp_query query);
+            apply_controller controller query
+        )
+      else
+        (
+          Log.debug (fun m -> m "Serving main file.");
+          Server.respond_file ~fname:Filename.(concat (concat !Config.share "static") "index.html") ()
         )
     with
       exn ->
