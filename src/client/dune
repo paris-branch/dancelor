@@ -1,11 +1,8 @@
 (executables
- (names compose set_explorer person)
+ (names main)
  (libraries js_of_ocaml-lwt dancelor.common dancelor.model dancelor.router)
  (preprocess (pps js_of_ocaml-ppx)))
 
 (install
  (section share)
- (files
-  (compose.bc.js      as compose.js)
-  (set_explorer.bc.js as set_explorer.js)
-  (person.bc.js       as person.js)))
+ (files (main.bc.js as main.js)))

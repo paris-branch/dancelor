@@ -28,3 +28,9 @@ let send_request ?(prefix=Config.api_prefix) ?(meth="GET") ?(args=[])
     end);
   request##_open (js meth) (js uri) (Js._true);
   request##send Js.null
+
+let remove_all_children elt = 
+  while Js.to_bool elt##hasChildNodes do
+    let child = Js.Opt.get elt##.firstChild (fun () -> assert false) in
+    elt##removeChild child |> ignore
+  done

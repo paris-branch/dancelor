@@ -1,8 +1,3 @@
-* {
-  margin: 0;
-  padding: 0;
-}
-
 header {
   background: lightgray;
   border-bottom: 1px dashed black;
@@ -17,7 +12,7 @@ header ul#menu {
 
 header ul#menu li {
   display: inline-block;
-  margin: 0 5px;
+  margin: 0 8px;
 }
 
 div#content {
