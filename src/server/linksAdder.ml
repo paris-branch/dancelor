@@ -1,4 +1,4 @@
-open Dancelor_common
+open Nes
 
 (* FIXME: remove that as soon as we don't need Mustache anymore. *)
 

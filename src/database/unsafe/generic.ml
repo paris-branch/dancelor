@@ -1,4 +1,5 @@
-open Dancelor_common open Option
+open Nes open Option
+module Storage = Dancelor_database_storage
 
 module type Model = sig
   type t

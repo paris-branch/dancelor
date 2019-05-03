@@ -6,6 +6,8 @@ module Tune = Tune
 module TuneGroup = TuneGroup
 
 module Unsafe = Dancelor_database_unsafe
+module Storage = Dancelor_database_storage
+
 module Log = (val Dancelor_common.Log.create "dancelor.database" : Logs.LOG)
 
 let initialise () =

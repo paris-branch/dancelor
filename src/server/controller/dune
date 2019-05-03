@@ -1,0 +1,8 @@
+(library
+ (name dancelor_server_controller)
+ (public_name dancelor.server.controller)
+ (libraries
+  nes lilypond
+  dancelor.database
+  dancelor.server.model
+  cohttp-lwt-unix ezjsonm mustache))

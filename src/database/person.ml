@@ -1,5 +1,5 @@
-open Dancelor_common
-open Dancelor_model
+open Nes
+open Dancelor_common_model
 module Unsafe = Dancelor_database_unsafe.Person
 
 let get (slug : Person.t Slug.t) = Unsafe.get slug

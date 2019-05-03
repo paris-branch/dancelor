@@ -1,5 +1,6 @@
+open Nes
 open Dancelor_common
-open Dancelor_controller
+open Dancelor_server_controller
 open Cohttp_lwt_unix
 module Log = (val Log.create "dancelor.server" : Logs.LOG)
 
@@ -42,7 +43,7 @@ let apply_controller json_controller query =
   let json = LinksAdder.json_add_links json in
   Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
 
-let apply_controller = let open Dancelor_router in function
+let apply_controller = let open Dancelor_common.Router in function
     | Credit credit -> apply_controller (Credit.get credit)
 
     | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
@@ -94,7 +95,7 @@ let callback _ request _body =
         (
           let path = String.sub path 4 (String.length path - 4) in
           Log.debug (fun m -> m "Looking for an API controller for %s." path);
-          match Dancelor_router.path_to_controller ~meth ~path with
+          match Dancelor_common.Router.path_to_controller ~meth ~path with
           | None ->
             Log.debug (fun m -> m "Could not find a controller.");
             Server.respond_not_found ~uri ()
@@ -131,7 +132,7 @@ let () =
   Config.load_from_file Sys.argv.(1);
 
   Log.info (fun m -> m "Initialising database");
-  Dancelor_common.Storage.sync_changes ();
+  Dancelor_database.Storage.sync_changes ();
   Dancelor_database.initialise ();
   Dancelor_database.report_without_accesses ();
 

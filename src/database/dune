@@ -1,4 +1,16 @@
 (library
  (name dancelor_database)
  (public_name dancelor.database)
- (libraries dancelor.common dancelor.model dancelor.database.unsafe ezjsonm))
+ (libraries
+  dancelor.common.model
+  dancelor.database.unsafe
+  ezjsonm)
+ (modules :standard \ dancelor_database_storage))
+
+(library
+ (name dancelor_database_storage)
+ (public_name dancelor.database.storage)
+ (libraries
+  dancelor.nes
+  dancelor.common)
+ (modules dancelor_database_storage))

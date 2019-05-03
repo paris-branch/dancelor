@@ -3,7 +3,7 @@ module Log = Dancelor_common.Log
 module Person = Generic.Make
     (val Log.create "dancelor.database.unsafe.person" : Logs.LOG)
     (struct
-      include Dancelor_model.Person
+      include Dancelor_common_model.Person
 
       let prefix = "person"
       let separated_files = []
@@ -12,7 +12,7 @@ module Person = Generic.Make
 module Credit = Generic.Make
     (val Log.create "dancelor.database.unsafe.credit" : Logs.LOG)
     (struct
-      include Dancelor_model.Credit
+      include Dancelor_common_model.Credit
 
       let prefix = "credit"
       let separated_files = []
@@ -21,7 +21,7 @@ module Credit = Generic.Make
 module Tune = Generic.Make
     (val Log.create "dancelor.database.unsafe.tune" : Logs.LOG)
     (struct
-      include Dancelor_model.Tune
+      include Dancelor_common_model.Tune
 
       let prefix = "tune"
       let separated_files = ["content.ly"]
@@ -30,7 +30,7 @@ module Tune = Generic.Make
 module TuneGroup = Generic.Make
     (val Log.create "dancelor.database.unsafe.tune-group" : Logs.LOG)
     (struct
-      include Dancelor_model.TuneGroup
+      include Dancelor_common_model.TuneGroup
 
       let prefix = "tune-group"
       let separated_files = []
@@ -39,7 +39,7 @@ module TuneGroup = Generic.Make
 module Set = Generic.Make
     (val Log.create "dancelor.database.unsafe.set" : Logs.LOG)
     (struct
-      include Dancelor_model.Set
+      include Dancelor_common_model.Set
 
       let prefix = "set"
       let separated_files = []
@@ -48,7 +48,7 @@ module Set = Generic.Make
 module Program = Generic.Make
     (val Log.create "dancelor.database.unsafe.program" : Logs.LOG)
     (struct
-      include Dancelor_model.Program
+      include Dancelor_common_model.Program
 
       let prefix = "program"
       let separated_files = []

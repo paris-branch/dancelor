@@ -1,5 +1,4 @@
-open ExtPervasives
-open Option
+open Nes open NesOption
 
 let int = Json.int
 let string = Json.string
