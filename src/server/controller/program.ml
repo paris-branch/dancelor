@@ -1,8 +1,7 @@
 open Nes
-open Dancelor_common
 open Dancelor_server_model
 open QueryHelpers
-module Log = (val Log.create "dancelor.server.controller.program" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "controller.program" : Logs.LOG)
 
 let get program _ =
   program
@@ -24,7 +23,7 @@ let get_all query =
 
 module Ly = struct
   let template =
-    let path = Filename.concat_l [!Config.share; "lilypond"; "program.ly"] in
+    let path = Filename.concat_l [!Dancelor_server_config.share; "lilypond"; "program.ly"] in
     Log.debug (fun m -> m "Loading template file %s" path);
     let ichan = open_in path in
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
@@ -60,7 +59,7 @@ module Pdf = struct
       cache program
       (fun () ->
         let lilypond = Ly.render ?transpose_target program in
-        let path = Filename.concat !Config.cache "program" in
+        let path = Filename.concat !Dancelor_server_config.cache "program" in
         let fname_ly, fname_pdf =
           let fname = spf "%s-%x" (Program.slug program) (Random.int (1 lsl 29)) in
           (fname^".ly", fname^".pdf")

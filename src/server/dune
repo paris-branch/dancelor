@@ -8,4 +8,21 @@
  (preprocess
   (pps
    lwt_ppx
-   ppx_deriving.std)))
+   ppx_deriving.std))
+ (modules :standard \ dancelor_server_logs dancelor_server_config))
+
+(library
+ (name dancelor_server_config)
+ (modules dancelor_server_config)
+ (public_name dancelor.server.config)
+ (libraries
+  dancelor.nes
+  logs))
+
+ (library
+  (name dancelor_server_logs)
+  (modules dancelor_server_logs)
+  (public_name dancelor.server.logs)
+  (libraries
+   dancelor.server.config
+   logs))

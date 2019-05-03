@@ -53,7 +53,3 @@ let load_from_file filename =
   lilypond := field config ~type_:string ~default:"lilypond" ["lilypond"];
   loglevel := field config ~type_:loglevel_of_string ~default:Logs.Debug ["loglevel"];
   routines := field config ~type_:bool ~default:true ["routines"]
-
-(* ============================ [ Static Shit ] ============================= *)
-
-let api_prefix = "api"

@@ -1,8 +1,7 @@
 open Nes
-open Dancelor_common
-module Log = (val Log.create "dancelor.database.storage" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "database.storage" : Logs.LOG)
 
-let prefix = Config.database
+let prefix = Dancelor_server_config.database
 
 module Shell = struct
   let command =

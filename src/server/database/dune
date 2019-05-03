@@ -12,5 +12,6 @@
  (public_name dancelor.database.storage)
  (libraries
   dancelor.nes
-  dancelor.common)
+  dancelor.common
+  dancelor.server.logs)
  (modules dancelor_database_storage))

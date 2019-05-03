@@ -1,6 +1,6 @@
 let create unit =
-  let src = Logs.Src.create unit in
-  Logs.Src.set_level src (Some !Config.loglevel);
+  let src = Logs.Src.create ("dancelor.server." ^ unit) in
+  Logs.Src.set_level src (Some !Dancelor_server_config.loglevel);
   Logs.src_log src
 
 let level_to_color = function

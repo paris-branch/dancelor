@@ -13,23 +13,23 @@ let format_args l =
     |> (fun s -> "?" ^ s)
   end
 
-let send_request ?(prefix=Config.api_prefix) ?(meth="GET") ?(args=[]) 
+let send_request ?(prefix=Constant.api_prefix) ?(meth="GET") ?(args=[])
   ~path callback =
-  let uri = 
-    Printf.sprintf "/%s%s%s" prefix path (format_args args) 
+  let uri =
+    Printf.sprintf "/%s%s%s" prefix path (format_args args)
   in
   let request = XmlHttpRequest.create () in
-  request##.onreadystatechange := Js.wrap_callback (fun () -> 
-    if request##.readyState = XmlHttpRequest.DONE 
+  request##.onreadystatechange := Js.wrap_callback (fun () ->
+    if request##.readyState = XmlHttpRequest.DONE
     && request##.status = 200 then begin
-      request##.responseText 
-      |> Js.to_string 
+      request##.responseText
+      |> Js.to_string
       |> callback
     end);
   request##_open (js meth) (js uri) (Js._true);
   request##send Js.null
 
-let remove_all_children elt = 
+let remove_all_children elt =
   while Js.to_bool elt##hasChildNodes do
     let child = Js.Opt.get elt##.firstChild (fun () -> assert false) in
     elt##removeChild child |> ignore

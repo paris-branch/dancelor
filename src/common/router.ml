@@ -1,6 +1,5 @@
 open Nes open Option
 open Dancelor_common_model
-module Log = (val Log.create "dancelor.common.router")
 
 type controller =
   | Index

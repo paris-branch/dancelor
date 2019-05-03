@@ -1,7 +1,7 @@
-module Log = Dancelor_common.Log
+module Log = Dancelor_server_logs
 
 module Person = Generic.Make
-    (val Log.create "dancelor.database.unsafe.person" : Logs.LOG)
+    (val Log.create "database.unsafe.person" : Logs.LOG)
     (struct
       include Dancelor_common_model.Person
 
@@ -10,7 +10,7 @@ module Person = Generic.Make
     end)
 
 module Credit = Generic.Make
-    (val Log.create "dancelor.database.unsafe.credit" : Logs.LOG)
+    (val Log.create "database.unsafe.credit" : Logs.LOG)
     (struct
       include Dancelor_common_model.Credit
 
@@ -19,7 +19,7 @@ module Credit = Generic.Make
     end)
 
 module Tune = Generic.Make
-    (val Log.create "dancelor.database.unsafe.tune" : Logs.LOG)
+    (val Log.create "database.unsafe.tune" : Logs.LOG)
     (struct
       include Dancelor_common_model.Tune
 
@@ -28,7 +28,7 @@ module Tune = Generic.Make
     end)
 
 module TuneGroup = Generic.Make
-    (val Log.create "dancelor.database.unsafe.tune-group" : Logs.LOG)
+    (val Log.create "database.unsafe.tune-group" : Logs.LOG)
     (struct
       include Dancelor_common_model.TuneGroup
 
@@ -37,7 +37,7 @@ module TuneGroup = Generic.Make
     end)
 
 module Set = Generic.Make
-    (val Log.create "dancelor.database.unsafe.set" : Logs.LOG)
+    (val Log.create "database.unsafe.set" : Logs.LOG)
     (struct
       include Dancelor_common_model.Set
 
@@ -46,7 +46,7 @@ module Set = Generic.Make
     end)
 
 module Program = Generic.Make
-    (val Log.create "dancelor.database.unsafe.program" : Logs.LOG)
+    (val Log.create "database.unsafe.program" : Logs.LOG)
     (struct
       include Dancelor_common_model.Program
 

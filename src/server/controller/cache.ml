@@ -1,5 +1,4 @@
-open Dancelor_common
-module Log = (val Log.create "dancelor.server.controller.cache" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "controller.cache" : Logs.LOG)
 
 type ('a, 'b) t = ('a, 'b) Hashtbl.t
 

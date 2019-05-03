@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 open Dancelor_server_controller
 open Cohttp_lwt_unix
-module Log = (val Log.create "dancelor.server" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
 
 type query = (string * string list) list
 [@@deriving show]
@@ -84,14 +84,14 @@ let callback _ request _body =
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
 
-      let full_path = Filename.(concat (concat !Config.share "static") path) in
+      let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
       Log.debug (fun m -> m "Looking for %s" full_path);
       if Sys.file_exists full_path && not (Sys.is_directory full_path) then
         (
           Log.debug (fun m -> m "Serving static file.");
           Server.respond_file ~fname:full_path ()
         )
-      else if String.length path >= 5 && String.sub path 0 5 = "/"^Config.api_prefix^"/" then
+      else if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
         (
           let path = String.sub path 4 (String.length path - 4) in
           Log.debug (fun m -> m "Looking for an API controller for %s." path);
@@ -108,7 +108,7 @@ let callback _ request _body =
       else
         (
           Log.debug (fun m -> m "Serving main file.");
-          Server.respond_file ~fname:Filename.(concat (concat !Config.share "static") "index.html") ()
+          Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
         )
     with
       exn ->
@@ -129,14 +129,14 @@ let () =
 
 let () =
   Log.info (fun m -> m "Reading configuration");
-  Config.load_from_file Sys.argv.(1);
+  Dancelor_server_config.load_from_file Sys.argv.(1);
 
   Log.info (fun m -> m "Initialising database");
   Dancelor_database.Storage.sync_changes ();
   Dancelor_database.initialise ();
   Dancelor_database.report_without_accesses ();
 
-  if !Config.routines then
+  if !Dancelor_server_config.routines then
     (
       Log.info (fun m -> m "Starting routines");
       Routine.initialise ()
@@ -149,7 +149,7 @@ let () =
     Lwt.catch
       (fun () ->
         Server.create
-          ~mode:(`TCP (`Port !Config.port))
+          ~mode:(`TCP (`Port !Dancelor_server_config.port))
           (Server.make ~callback ()))
       (fun exn ->
         log_exn ~msg:"Uncaught Lwt exception in the server" exn;
