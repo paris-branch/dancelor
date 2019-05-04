@@ -4,7 +4,7 @@
  (libraries
   dancelor.server.controller
   dancelor.common
-  cohttp-lwt-unix ezjsonm mustache)
+  cohttp-lwt-unix)
  (preprocess
   (pps
    lwt_ppx

@@ -1,8 +1,6 @@
-open Protocol_conv_jsonm
-
 type t =
   | EntityDoesNotExist of string * string
-[@@deriving protocol ~driver:(module Jsonm)]
+[@@deriving yojson]
 
 exception Exn of t
 

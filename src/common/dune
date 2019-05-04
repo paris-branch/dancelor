@@ -5,10 +5,10 @@
   dancelor.nes
   dancelor.common.model
   cohttp logs
-  yojson ezjsonm ppx_protocol_conv_jsonm)
+  yojson ppx_deriving_yojson.runtime)
  (preprocess
   (pps
+   ppx_deriving_yojson
    ppx_deriving.std
-   ppx_protocol_conv
    ppx_inline_test))
  (inline_tests))

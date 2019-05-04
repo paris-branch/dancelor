@@ -6,12 +6,12 @@ module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 let get set _ =
   set
   |> Dancelor_database.Set.get
-  |> Set.to_jsonm
+  |> Set.to_yojson
   |> Lwt.return
 
 let delete set _ =
   Dancelor_database.Set.delete set;
-  Lwt.return (`O [])
+  Lwt.return (`List [])
 
 let save query =
   Log.debug (fun m -> m "Controller save");
@@ -21,7 +21,7 @@ let save query =
   let status = query_string_opt query "status" >>= fun status -> Some (Dancelor_common_model.Status.from_string status) in
   let tunes = query_strings query "tunes" in
   Dancelor_database.Set.save ?slug ~name ~kind ?status ~tunes ()
-  |> Set.to_jsonm
+  |> Set.to_yojson
   |> Lwt.return
 
 let get_all query =
@@ -34,22 +34,22 @@ let get_all query =
   |> Seq.filter contains_tune
   |> List.of_seq
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
-  |> List.map Set.to_jsonm
-  |> (fun json -> `A json)
+  |> List.map Set.to_yojson
+  |> (fun json -> `List json)
   |> Lwt.return
 
 module Ly = struct
-  let template =
+  (* let template =
     let path = Filename.concat_l [!Dancelor_server_config.share; "lilypond"; "set.ly"] in
     Log.debug (fun m -> m "Loading template file %s" path);
     let ichan = open_in path in
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
     close_in ichan;
     Log.debug (fun m -> m "Loaded successfully");
-    template
+    template *)
 
   let render ?transpose_target set =
-    Set.to_json set
+    Set.to_yojson set
     |> Json.add_field "transpose"
          (match transpose_target with
           | None -> `Bool false
@@ -60,10 +60,9 @@ module Ly = struct
                | "ees" -> "E flat"
                | _ -> target
              in
-             `O [ "target", `String target ;
-                  "instrument", `String instrument ])
-    |> Json.to_ezjsonm
-    |> Mustache.render template (* FIXME: remove Mustache *)
+             `Assoc [ "target", `String target ;
+                      "instrument", `String instrument ])
+    |> (fun _ -> assert false) (* FIXME *)
 
   let get set query =
     let set = Dancelor_database.Set.get set in

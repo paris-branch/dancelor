@@ -3,5 +3,4 @@
  (public_name dancelor.database.unsafe)
  (libraries
   dancelor.common
-  dancelor.database.storage
-  ezjsonm))
+  dancelor.database.storage))

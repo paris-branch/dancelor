@@ -21,17 +21,15 @@ pin-depends: [
 depends: [
   "cohttp-lwt-unix"
   "dune"                     {build}
-  "ezjsonm"
-  "lwt_ppx"                  {build}
-  "mustache"                 {= "dev"}
-  "ocaml"                    {build}
-  "ppx_deriving"
-  "ppx_inline_test"          {build | with-test}
-  "ppx_protocol_conv_jsonm"
-  "yojson"
   "js_of_ocaml"
   "js_of_ocaml-lwt"
   "js_of_ocaml-ppx"          {build}
+  "mustache"                 {= "dev"}
+  "ocaml"                    {build}
+  "ppx_deriving"
+  "ppx_deriving_yojson"
+  "ppx_inline_test"          {build | with-test}
+  "yojson"
 ]
 
 build: ["dune" "build" "-p" name "-j" jobs]

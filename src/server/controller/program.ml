@@ -6,7 +6,7 @@ module Log = (val Dancelor_server_logs.create "controller.program" : Logs.LOG)
 let get program _ =
   program
   |> Dancelor_database.Program.get
-  |> Program.to_jsonm
+  |> Program.to_yojson
   |> Lwt.return
 
 let get_all query =
@@ -17,23 +17,23 @@ let get_all query =
   in
   Dancelor_database.Program.get_all ()
   |> Seq.filter contains_set
-  |> Seq.map Program.to_jsonm
+  |> Seq.map Program.to_yojson
   |> List.of_seq
-  |> (fun json -> `A json)
+  |> (fun json -> `List json)
   |> Lwt.return
 
 module Ly = struct
-  let template =
+  (* let template =
     let path = Filename.concat_l [!Dancelor_server_config.share; "lilypond"; "program.ly"] in
     Log.debug (fun m -> m "Loading template file %s" path);
     let ichan = open_in path in
     let template = Lexing.from_channel ichan |> Mustache.parse_lx in
     close_in ichan;
     Log.debug (fun m -> m "Loaded successfully");
-    template
+    template *)
 
   let render ?transpose_target program =
-    Program.to_json program
+    Program.to_yojson program
     |> Json.add_field "transpose"
          (match transpose_target with
           | None -> `Bool false
@@ -44,10 +44,9 @@ module Ly = struct
                | "ees" -> "E flat"
                | _ -> target
              in
-             `O [ "target", `String target ;
+             `Assoc [ "target", `String target ;
                   "instrument", `String instrument ])
-    |> Json.to_ezjsonm
-    |> Mustache.render template (* FIXME: remove Mustache *)
+    |> (fun _ -> assert false)
 end
 
 module Pdf = struct

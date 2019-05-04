@@ -5,4 +5,4 @@
   nes lilypond
   dancelor.database
   dancelor.server.model
-  cohttp-lwt-unix ezjsonm mustache))
+  cohttp-lwt-unix))

@@ -42,7 +42,7 @@ let list_entries table =
   Log.debug (fun m -> m "Listing entries in %s" table);
   Filename.concat !prefix table
   |> Filesystem.read_directory
-  |> List.filter (Filename.concat3 !prefix table ||> Sys.is_directory)
+  |> List.filter (fun dir -> Filename.concat_l [!prefix; table; dir] |> Sys.is_directory)
 
 let list_entry_files table entry =
   Log.debug (fun m -> m "Listing entries in %s / %s" table entry);
@@ -58,7 +58,7 @@ let read_entry_json table entry =
   read_entry_file table entry ||> Json.from_string
 
 let write_entry_file table entry file content =
-  let path = Filename.concat3 !prefix table entry in
+  let path = Filename.concat_l [!prefix; table; entry] in
   Filesystem.create_directory ~fail_if_exists:false path;
   let path = Filename.concat path file in
   Filesystem.write_file path content

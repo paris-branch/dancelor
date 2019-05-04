@@ -39,7 +39,6 @@ let bad_gateway ?(msg="") _ =
 let (>>=) = Lwt.bind
 
 let respond_json ?(status=`OK) json =
-  let json = Json.of_value json in
   Server.respond_string ~status ~body:(Json.to_string json) ()
 
 let apply_controller json_controller query =
@@ -114,13 +113,13 @@ let callback _ request _body =
         )
     with
     | Dancelor_common.Error.Exn err ->
-      Dancelor_common.Error.(respond_json ~status:(status err) (to_jsonm err))
+      Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err))
     | exn ->
       log_exn ~msg:"Uncaught exception in the callback" exn;
       Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
   with
   | Dancelor_common.Error.Exn err ->
-    Dancelor_common.Error.(respond_json ~status:(status err) (to_jsonm err))
+    Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err))
   | exn ->
     log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
     Server.respond_error ~status:`Internal_server_error ~body:"{}" ()

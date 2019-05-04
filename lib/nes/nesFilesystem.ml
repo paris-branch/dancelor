@@ -18,7 +18,7 @@ let create_directory ?(fail_if_exists=true) path =
   if not (Sys.file_exists path) then
     Unix.mkdir path 0o777
   else if fail_if_exists then
-    failwith "Dancelor_common.Filesystem.create_directory"
+    failwith "NesFilesystem.create_directory"
 
 let read_directory path =
   Sys.readdir path |> Array.to_list

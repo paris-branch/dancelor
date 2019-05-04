@@ -3,8 +3,7 @@
  (public_name dancelor.database)
  (libraries
   dancelor.common.model
-  dancelor.database.unsafe
-  ezjsonm)
+  dancelor.database.unsafe)
  (modules :standard \ dancelor_database_storage))
 
 (library

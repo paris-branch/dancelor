@@ -1,11 +1,13 @@
-open Protocol_conv_jsonm
-
 type 'a t = string
-[@@deriving protocol ~driver:(module Jsonm)]
+
+let to_yojson _ s = `String s
+let of_yojson _ = function
+  | `String s -> Ok s
+  | _ -> Error "NesSlug.of_yojson"
 
 let from_string str =
   if str = "" then
-    raise (Invalid_argument "Dancelor_common.Slug.from_string");
+    raise (Invalid_argument "NesSlug.from_string");
   let str = String.lowercase_ascii str in
   let len = String.length str in
   let out = Bytes.create len in

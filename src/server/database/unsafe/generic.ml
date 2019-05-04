@@ -4,8 +4,8 @@ module Storage = Dancelor_database_storage
 module type Model = sig
   type t
   val slug : t -> t Slug.t
-  val serialize : t -> Json.t
-  val unserialize : Json.t -> t
+  val to_yojson : t -> Json.t
+  val of_yojson : Json.t -> (t, string) result
 
   val prefix : string
   val separated_files : string list
@@ -42,8 +42,12 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
           json
           Model.separated_files
       in
-      let model = Model.unserialize json in
-      Hashtbl.add db (Model.slug model) (Stats.empty (), model)
+      match Model.of_yojson json with
+      | Ok model ->
+        Hashtbl.add db (Model.slug model) (Stats.empty (), model)
+      | Error msg ->
+        Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model.prefix entry "meta.json" msg);
+        exit 1
     in
     Storage.list_entries Model.prefix
     |> List.iter load
@@ -94,7 +98,7 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       | Some slug -> slug
     in
     let model = create slug in
-    let json = Model.serialize (create slug) in
+    let json = Model.to_yojson (create slug) in
     let json = Json.remove_field "slug" json in
     let json =
       Model.separated_files

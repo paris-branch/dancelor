@@ -10,10 +10,16 @@ let from_string s =
     ->
     (year, month, day)
   | _ ->
-    failwith "Dancelor_common.Date.from_string"
+    failwith "NesDate.from_string"
 
 let to_string (year, month, day) =
   spf "%04d-%02d-%02d" year month day
 
-let to_jsonm date =
+let to_yojson date =
   `String (to_string date)
+
+let of_yojson = function
+  | `String s ->
+    (try Ok (from_string s)
+     with _ -> Error "NesDate.of_yojson: not a valid date")
+  | _ -> Error "NesDate.of_yojson: not a JSON string"

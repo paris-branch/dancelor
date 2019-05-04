@@ -18,7 +18,7 @@ let note_of_char c =
   | 'e' -> E
   | 'f' -> F
   | 'g' -> G
-  | _ -> failwith "Dancelor_model.Music.note_of_char"
+  | _ -> failwith "Dancelor_common_model.Music.note_of_char"
 
 type alteration = Flat | Sharp | Natural
 
@@ -31,7 +31,7 @@ let alteration_of_string = function
   | "es" -> Flat
   | "is" -> Sharp
   | "" -> Natural
-  | _ -> failwith "Dancelor_model.Music.alteration_of_string"
+  | _ -> failwith "Dancelor_common_model.Music.alteration_of_string"
 
 type pitch = note * alteration
 
@@ -45,7 +45,7 @@ let pitch_of_string s =
       alteration_of_string (String.sub s 1 (String.length s - 1))
     )
   else
-    failwith "Dancelor_model.Music.pitch_of_string"
+    failwith "Dancelor_common_model.Music.pitch_of_string"
 
 type mode = Major | Minor
 
@@ -56,7 +56,7 @@ let mode_to_string = function
 let mode_of_string = function
   | "" -> Major
   | ":m" -> Minor
-  | _ -> failwith "Dancelor_model.Music.mode_of_string"
+  | _ -> failwith "Dancelor_common_model.Music.mode_of_string"
 
 type key = pitch * mode
 
@@ -76,7 +76,11 @@ let%test _ = let k = ((G, Natural), Major) in
 let%test _ = let k = ((F, Sharp), Major) in
              key_of_string (key_to_string k) = k
 
-let key_to_jsonm k = `String (key_to_string k)
-let key_of_jsonm = function
-  | `String s -> key_of_string s
-  | _ -> failwith "Dancelor_model.Music.key_of_jsonm"
+let key_to_yojson k =
+  `String (key_to_string k)
+
+let key_of_yojson = function
+  | `String s ->
+    (try Ok (key_of_string s)
+     with _ -> Error "Dancelor_common_model.Music.key_of_yojson")
+  | _ -> Error "Dancelor_common_model.Music.key_of_yojson"

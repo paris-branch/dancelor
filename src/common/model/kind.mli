@@ -12,8 +12,8 @@ val base_of_char : char -> base
 val base_to_string : base -> string
 val base_of_string : string -> base
 
-val base_to_jsonm : base -> Json.value
-val base_of_jsonm : Json.value -> base
+val base_to_yojson : base -> Json.t
+val base_of_yojson : Json.t -> (base, string) result
 
 (** {2 Tune Kind} *)
 
@@ -23,8 +23,8 @@ type tune = int * base
 val tune_to_string : tune -> string
 val tune_of_string : string -> tune
 
-val tune_to_jsonm : tune -> Json.value
-val tune_of_jsonm : Json.value -> tune
+val tune_to_yojson : tune -> Json.t
+val tune_of_yojson : Json.t -> (tune, string) result
 
 (** {2 Dance Kind} *)
 
@@ -34,5 +34,5 @@ type dance = int * tune list
 val dance_to_string : dance -> string
 val dance_of_string : string -> dance
 
-val dance_to_jsonm : dance -> Json.value
-val dance_of_jsonm : Json.value -> dance
+val dance_to_yojson : dance -> Json.t
+val dance_of_yojson : Json.t -> (dance, string) result

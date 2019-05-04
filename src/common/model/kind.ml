@@ -30,17 +30,20 @@ let base_of_char c =
   | 'R' -> Reel
   | 'S' -> Strathspey
   | 'W' -> Waltz
-  | _ -> failwith "Dancelor_model.Kind.base_of_char"
+  | _ -> failwith "Dancelor_common_model.Kind.base_of_char"
 
 let base_of_string s =
   try base_of_char s.[0]
-  with Invalid_argument _ | Failure _ -> failwith "Dancelor_model.Kind.base_of_string"
+  with Invalid_argument _ | Failure _ -> failwith "Dancelor_common_model.Kind.base_of_string"
 
-let base_to_jsonm b = `String (String.make 1 (base_to_char b))
+let base_to_yojson b =
+  `String (String.make 1 (base_to_char b))
 
-let base_of_jsonm = function
-  | `String s -> base_of_string s
-  | _ -> failwith "Dancelor_model.Kind.base_of_jsonm"
+let base_of_yojson = function
+  | `String s ->
+    (try Ok (base_of_string s)
+     with _ -> Error "Dancelor_commn_model.Kind.base_of_yojson: not a valid base kind")
+  | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
 
 (* ============================= [ Tune Kind ] ============================== *)
 
@@ -73,11 +76,14 @@ let%test _ = tune_of_string "64 Reel" = (64, Reel)
 let%test _ = tune_of_string "JIG 24" = (24, Jig)
 let%test _ = tune_of_string "48 sTrathPEY" = (48, Strathspey)
 
-let tune_to_jsonm t = `String (tune_to_string t)
+let tune_to_yojson t =
+  `String (tune_to_string t)
 
-let tune_of_jsonm = function
-  | `String s -> tune_of_string s
-  | _ -> failwith "Dancelor_model.Kind.tune_of_jsonm"
+let tune_of_yojson = function
+  | `String s ->
+    (try Ok (tune_of_string s)
+     with _ -> Error "Dancelor_commn_model.Kind.tune_of_yojson: not a valid tune kind")
+  | _ -> Error "Dancelor_common_model.Kind.tune_of_yojson: not a JSON string"
 
 (* ============================= [ Dance Kind ] ============================= *)
 
@@ -110,8 +116,11 @@ let%test _ = dance_of_string "3 x ( 32 Strathspey )" = (3, [32, Strathspey])
 let%test _ = dance_of_string "(32W + 64R)" = (1, [(32, Waltz); (64, Reel)])
 let%test _ = dance_of_string "3x40J" = (3, [40, Jig])
 
-let dance_to_jsonm d = `String (dance_to_string d)
+let dance_to_yojson d =
+  `String (dance_to_string d)
 
-let dance_of_jsonm = function
-  | `String s -> dance_of_string s
-  | _ -> failwith "Dancelor_model.Kind.dance_of_jsonm"
+let dance_of_yojson = function
+  | `String s ->
+    (try Ok (dance_of_string s)
+     with _ -> Error "Dancelor_commn_model.Kind.dance_of_yojson: not a valid dance kind")
+  | _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a JSON string"

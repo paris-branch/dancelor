@@ -1,30 +1,24 @@
-type value = Ezjsonm.value
-type t = [ `O of (string * value) list ]
+type t = Yojson.Safe.json
 
-val of_value : value -> t
-val to_value : t -> value
-val on_value : (t -> t) -> value -> value
-val to_ezjsonm : t -> Ezjsonm.t
-
-val add_field : string -> value -> t -> t
-val add_fields : (string * value) list -> t -> t
+val add_field : string -> t -> t -> t
+val add_fields : (string * t) list -> t -> t
 
 val remove_field : string -> t -> t
 
-val map_field : string -> (value -> value) -> t -> t
+val map_field : string -> (t -> t) -> t -> t
 
 val from_string : string -> t
 val to_string : t -> string
 
-val find_opt : string list -> t -> value option
-val find : string list -> t -> value
+val find_opt : string list -> t -> t option
+val find : string list -> t -> t
 
-val get : k:(value -> 'a option) -> string list -> t -> 'a
-val get_or : k:(value -> 'a option) -> default:'a -> string list -> t -> 'a
-val get_opt : k:(value -> 'a option) -> string list -> t -> 'a option
+val get : k:(t -> 'a option) -> string list -> t -> 'a
+val get_or : k:(t -> 'a option) -> default:'a -> string list -> t -> 'a
+val get_opt : k:(t -> 'a option) -> string list -> t -> 'a option
 
-val string : value -> string option
-val int : value -> int option
-val slug : value -> 'a NesSlug.t option
-val strings : value -> string list option
-val list : (value -> 'a) -> value -> 'a list option
+val string : t -> string option
+val int : t -> int option
+val slug : t -> 'a NesSlug.t option
+val strings : t -> string list option
+val list : (t -> 'a) -> t -> 'a list option

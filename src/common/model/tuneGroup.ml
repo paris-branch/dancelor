@@ -1,5 +1,4 @@
-open Nes open Option
-open Protocol_conv_jsonm
+open Nes
 
 type t =
   { slug : t Slug.t ;
@@ -7,36 +6,7 @@ type t =
     kind : Kind.base ;
     author : Credit.t Slug.t option ;
     remark : string }
-[@@deriving protocol ~driver:(module Jsonm)]
-
-let to_jsonm tune_group =
-  to_jsonm tune_group
-  |> Json.of_value
-  |> Json.add_field "type" (`String "tune-group")
-  |> Json.to_value
-
-let to_json = to_jsonm ||> Json.of_value
-
-let of_json = Json.to_value ||> of_jsonm
-
-let serialize tune_group =
-  `O (
-    [
-      "slug", `String tune_group.slug ;
-      "name", `String tune_group.name ;
-      "kind", `String (Kind.base_to_string tune_group.kind) ;
-      "remark", `String tune_group.remark ;
-    ] @ match tune_group.author with
-    | None -> []
-    | Some author -> ["author", `String author]
-  )
-
-let unserialize json =
-  { slug = Json.(get ~k:slug ["slug"] json) ;
-    name = Json.(get ~k:string ["name"] json) ;
-    kind = Json.(get ~k:(string >=> (Kind.base_of_string ||> wrap)) ["kind"] json) ;
-    remark = Json.(get_or ~k:string ~default:"" ["remark"] json) ;
-    author = Json.(get_opt ~k:slug ["author"] json) }
+[@@deriving yojson]
 
 let slug tune_group = tune_group.slug
 let name tune_group = tune_group.name
