@@ -14,7 +14,10 @@ test:
 	dune runtest
 
 serve: release
-	bin/dancelor-server share/config.json
+	bin/dancelor-server --config share/config.json
+
+init-only: release
+	bin/dancelor-server --config share/config.json --init-only
 
 clean:
 	dune clean

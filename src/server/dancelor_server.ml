@@ -133,33 +133,43 @@ let () =
      | exn ->
         log_exn ~msg:"Uncaught asynchronous exception" exn)
 
-let () =
+let read_configuration () =
   Log.info (fun m -> m "Reading configuration");
-  Dancelor_server_config.load_from_file Sys.argv.(1);
+  Dancelor_server_config.parse_cmd_line ()
 
+let initialise_database () =
   Log.info (fun m -> m "Initialising database");
   Dancelor_database.Storage.sync_changes ();
   Dancelor_database.initialise ();
-  Dancelor_database.report_without_accesses ();
+  Dancelor_database.report_without_accesses ()
 
+let check_init_only () =
+  if !Dancelor_server_config.init_only then
+    (
+      Log.info (fun m -> m "Init only mode. Stopping now.");
+      exit 0
+    )
+
+let start_routines () =
   if !Dancelor_server_config.routines then
     (
       Log.info (fun m -> m "Starting routines");
       Routine.initialise ()
     )
   else
-    Log.info (fun m -> m "Not starting routines");
+    Log.info (fun m -> m "Not starting routines")
 
+let start_server () =
   Log.info (fun m -> m "Starting server");
   let server =
     Lwt.catch
       (fun () ->
-        Server.create
-          ~mode:(`TCP (`Port !Dancelor_server_config.port))
-          (Server.make ~callback ()))
+         Server.create
+           ~mode:(`TCP (`Port !Dancelor_server_config.port))
+           (Server.make ~callback ()))
       (fun exn ->
-        log_exn ~msg:"Uncaught Lwt exception in the server" exn;
-        Lwt.return ())
+         log_exn ~msg:"Uncaught Lwt exception in the server" exn;
+         Lwt.return ())
   in
   Log.info (fun m -> m "Server is up and running");
   try
@@ -167,3 +177,10 @@ let () =
   with
     exn ->
     log_exn ~msg:"Uncaught exception in the server" exn
+
+let () =
+  read_configuration ();
+  initialise_database ();
+  check_init_only ();
+  start_routines ();
+  start_server ()
