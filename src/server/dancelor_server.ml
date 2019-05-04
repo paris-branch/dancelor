@@ -39,7 +39,7 @@ let bad_gateway ?(msg="") _ =
 let (>>=) = Lwt.bind
 
 let respond_json ?(status=`OK) json =
-  let json = LinksAdder.json_add_links json in (* FIXME: useless, isn't it? *)
+  let json = Json.of_value json in
   Server.respond_string ~status ~body:(Json.to_string json) ()
 
 let apply_controller json_controller query =
