@@ -139,7 +139,8 @@ let read_configuration () =
 
 let initialise_database () =
   Log.info (fun m -> m "Initialising database");
-  Dancelor_database.Storage.sync_changes ();
+  if not !Dancelor_server_config.init_only then
+    Dancelor_database.Storage.sync_changes ();
   Dancelor_database.initialise ();
   Dancelor_database.report_without_accesses ()
 
