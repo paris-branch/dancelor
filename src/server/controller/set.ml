@@ -7,7 +7,7 @@ let get set _ =
   set
   |> Dancelor_database.Set.get
   |> Set.to_jsonm
-  |> (fun json -> Lwt.return (`O ["set", json]))
+  |> Lwt.return
 
 let delete set _ =
   Dancelor_database.Set.delete set;
@@ -22,7 +22,7 @@ let save query =
   let tunes = query_strings query "tunes" in
   Dancelor_database.Set.save ?slug ~name ~kind ?status ~tunes ()
   |> Set.to_jsonm
-  |> (fun json -> Lwt.return (`O ["set", json]))
+  |> Lwt.return
 
 let get_all query =
   let contains_tune =
@@ -35,7 +35,8 @@ let get_all query =
   |> List.of_seq
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
   |> List.map Set.to_jsonm
-  |> (fun json -> Lwt.return (`O ["sets", `A json]))
+  |> (fun json -> `A json)
+  |> Lwt.return
 
 module Ly = struct
   let template =
@@ -62,7 +63,7 @@ module Ly = struct
              `O [ "target", `String target ;
                   "instrument", `String instrument ])
     |> Json.to_ezjsonm
-    |> Mustache.render template
+    |> Mustache.render template (* FIXME: remove Mustache *)
 
   let get set query =
     let set = Dancelor_database.Set.get set in

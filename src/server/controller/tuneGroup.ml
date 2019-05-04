@@ -4,4 +4,4 @@ let get tune_group _ =
   tune_group
   |> Dancelor_database.TuneGroup.get
   |> TuneGroup.to_jsonm
-  |> (fun json -> Lwt.return (`O ["tune-group", json]))
+  |> Lwt.return

@@ -7,7 +7,7 @@ let get tune _ =
   tune
   |> Dancelor_database.Tune.get
   |> Tune.to_jsonm
-  |> (fun json -> Lwt.return (`O ["tune", json]))
+  |> Lwt.return
 
 let get_ly tune _ =
   let tune = Dancelor_database.Tune.get tune in
@@ -111,16 +111,7 @@ let get_all query =
         |> Json.to_value)
     |> (fun jsons -> `A jsons)
   in
-  Lwt.return (
-    `O [
-      "tunes", tune_jsons;
-      "query",
-      `O [
-        "name", `String (query_string_or query "name" "");
-        "author", `String (query_string_or query "author" "");
-      ]
-    ]
-  )
+  Lwt.return tune_jsons
 
 module Png = struct
   let cache : (Tune.t, string Lwt.t) Cache.t = Cache.create ()

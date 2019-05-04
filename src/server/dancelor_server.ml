@@ -38,10 +38,12 @@ let bad_gateway ?(msg="") _ =
 
 let (>>=) = Lwt.bind
 
+let respond_json ?(status=`OK) json =
+  let json = LinksAdder.json_add_links json in (* FIXME: useless, isn't it? *)
+  Server.respond_string ~status ~body:(Json.to_string json) ()
+
 let apply_controller json_controller query =
-  json_controller query >>= fun json ->
-  let json = LinksAdder.json_add_links json in
-  Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
+  json_controller query >>= respond_json
 
 let apply_controller = let open Dancelor_common.Router in function
     | Credit credit -> apply_controller (Credit.get credit)
@@ -111,13 +113,17 @@ let callback _ request _body =
           Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
         )
     with
-      exn ->
+    | Dancelor_common.Error.Exn err ->
+      Dancelor_common.Error.(respond_json ~status:(status err) (to_jsonm err))
+    | exn ->
       log_exn ~msg:"Uncaught exception in the callback" exn;
-      Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
+      Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
   with
-    exn ->
+  | Dancelor_common.Error.Exn err ->
+    Dancelor_common.Error.(respond_json ~status:(status err) (to_jsonm err))
+  | exn ->
     log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
-    Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
+    Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
 
 let () =
   Lwt.async_exception_hook :=

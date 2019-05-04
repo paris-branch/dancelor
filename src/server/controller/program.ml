@@ -7,7 +7,7 @@ let get program _ =
   program
   |> Dancelor_database.Program.get
   |> Program.to_jsonm
-  |> (fun json -> Lwt.return (`O ["program", json]))
+  |> Lwt.return
 
 let get_all query =
   let contains_set =
@@ -19,7 +19,8 @@ let get_all query =
   |> Seq.filter contains_set
   |> Seq.map Program.to_jsonm
   |> List.of_seq
-  |> (fun json -> Lwt.return (`O ["programs", `A json]))
+  |> (fun json -> `A json)
+  |> Lwt.return
 
 module Ly = struct
   let template =
@@ -46,7 +47,7 @@ module Ly = struct
              `O [ "target", `String target ;
                   "instrument", `String instrument ])
     |> Json.to_ezjsonm
-    |> Mustache.render template
+    |> Mustache.render template (* FIXME: remove Mustache *)
 end
 
 module Pdf = struct
