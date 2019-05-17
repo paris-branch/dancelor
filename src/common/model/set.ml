@@ -11,8 +11,9 @@ type t =
 
 let slug s = Lwt.return s.slug
 let name s = Lwt.return s.name
-let kind s = Lwt.return s.kind
-let tunes s = Lwt.return s.tunes
 let deviser s = Lwt.return s.deviser
+let kind s = Lwt.return s.kind
+let status s = Lwt.return s.status
+let tunes s = Lwt.return s.tunes
 
 let contains t s = List.mem t s.tunes
