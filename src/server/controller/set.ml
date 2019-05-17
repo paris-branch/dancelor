@@ -83,8 +83,6 @@ end
 module Pdf = struct
   let cache : (Set.t, string Lwt.t) Cache.t = Cache.create ()
 
-  let (>>=) = Lwt.bind
-
   let render ?transpose_target set =
     Cache.use
       cache set
@@ -96,10 +94,12 @@ module Pdf = struct
           let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
           Lwt.return (fname^".ly", fname^".pdf")
         in
-        Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
-          (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
+        let%lwt () =
+          Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
+            (fun ochan -> Lwt_io.write ochan lilypond)
+        in
         Log.debug (fun m -> m "Processing with Lilypond");
-        Lilypond.run ~exec_path:path fname_ly >>= fun () ->
+        let%lwt () = Lilypond.run ~exec_path:path fname_ly in
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 

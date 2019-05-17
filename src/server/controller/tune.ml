@@ -142,8 +142,6 @@ module Png = struct
     Log.debug (fun m -> m "Loaded successfully");
     template *)
 
-  let (>>=) = Lwt.bind
-
   let render tune =
     Cache.use
       cache tune
