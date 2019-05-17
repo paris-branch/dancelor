@@ -36,38 +36,48 @@ let bad_gateway ?(msg="") _ =
     ~body:("<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>" ^ msg ^ "</center></body></html>")
     ()
 
-let (>>=) = Lwt.bind
-
 let respond_json ?(status=`OK) json =
   Server.respond_string ~status ~body:(Json.to_string json) ()
 
-let apply_controller json_controller query =
-  json_controller query >>= respond_json
+let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.t) query =
+  let open Dancelor_common.Error in
+  try%lwt
+    let%lwt val_ = controller query in
+    respond_json (serializer val_)
+  with
+  | Exn error -> (* Expected failure. *)
+    respond_json ~status:(status error) (to_yojson error)
+  | exn -> (* Unexpected failure. *)
+    log_exn ~msg:"Uncaught exception in controller" exn;
+    respond_json ~status:(status Unexpected) (to_yojson Unexpected)
+
+let list_serializer serializer l =
+  `List (List.map serializer l)
 
 let apply_controller = let open Dancelor_common.Router in function
-    | Credit credit -> apply_controller (Credit.get credit)
+    | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson
 
     | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
 
-    | Person person -> apply_controller (Person.get person)
+    | Person person -> apply_controller (Person.get person) Dancelor_server_model.Person.to_yojson
 
-    | ProgramAll -> apply_controller Program.get_all
+    | ProgramAll -> apply_controller Program.get_all (list_serializer Dancelor_server_model.Program.to_yojson)
     | ProgramPdf program -> Program.Pdf.get program
-    | Program program -> apply_controller (Program.get program)
+    | Program program -> apply_controller (Program.get program) Dancelor_server_model.Program.to_yojson
 
-    | SetAll -> apply_controller Set.get_all
-    | SetSave -> apply_controller Set.save
+    | SetAll -> apply_controller Set.get_all (list_serializer Dancelor_server_model.Set.to_yojson) (* FIXME: list of *)
+    | SetSave -> apply_controller Set.save Dancelor_server_model.Set.to_yojson
     | SetLy set -> Set.Ly.get set
     | SetPdf set -> Set.Pdf.get set
-    | Set set -> apply_controller (Set.get set)
-    | SetDelete set -> apply_controller (Set.delete set)
+    | Set set -> apply_controller (Set.get set) Dancelor_server_model.Set.to_yojson
+    | SetDelete set -> apply_controller (Set.delete set) (fun () -> `Assoc []) (* FIXME: unit json *)
 
-    | TuneGroup tune_group -> apply_controller (TuneGroup.get tune_group)
+    | TuneGroup tune_group -> apply_controller (TuneGroup.get tune_group) Dancelor_server_model.TuneGroup.to_yojson
 
-    | TuneAll -> apply_controller Tune.get_all
+    | TuneAll -> apply_controller Tune.get_all (list_serializer Dancelor_server_model.(Score.to_yojson Tune.to_yojson)) (* FIXME: list of *)
     | TuneLy tune -> Tune.get_ly tune
     | TunePng tune -> Tune.Png.get tune
-    | Tune tune -> apply_controller (Tune.get tune)
+    | Tune tune -> apply_controller (Tune.get tune) Dancelor_server_model.Tune.to_yojson
 
     | Victor -> exit 0
 
@@ -140,8 +150,9 @@ let initialise_database () =
   Log.info (fun m -> m "Initialising database");
   if not !Dancelor_server_config.init_only then
     Dancelor_database.Storage.sync_changes ();
-  Dancelor_database.initialise ();
-  Dancelor_database.report_without_accesses ()
+  let%lwt () = Dancelor_database.initialise () in
+  Dancelor_database.report_without_accesses ();
+  Lwt.return ()
 
 let check_init_only () =
   if !Dancelor_server_config.init_only then
@@ -173,14 +184,17 @@ let start_server () =
   in
   Log.info (fun m -> m "Server is up and running");
   try
-    Lwt_main.run server
+    server
   with
     exn ->
-    log_exn ~msg:"Uncaught exception in the server" exn
+    log_exn ~msg:"Uncaught exception in the server" exn;
+    Lwt.return ()
 
-let () =
+let main =
   read_configuration ();
-  initialise_database ();
+  let%lwt () = initialise_database () in
   check_init_only ();
   start_routines ();
   start_server ()
+
+let () = Lwt_main.run main

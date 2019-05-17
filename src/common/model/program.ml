@@ -8,11 +8,13 @@ type t =
     sets : Set.t Slug.t list }
 [@@deriving yojson]
 
-let slug p = p.slug
-let date p = p.date
+let slug p = Lwt.return p.slug
+let name p = Lwt.return p.name
+let date p = Lwt.return p.date
+let status p = Lwt.return p.status
+let sets p = Lwt.return p.sets
 
-let contains s p =
-  List.mem s p.sets
+let contains s p = List.mem s p.sets
 
 let compare p1 p2 =
   (* Compare first by date *)

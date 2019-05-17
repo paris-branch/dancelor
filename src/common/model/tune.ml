@@ -10,9 +10,10 @@ type t =
     content : string }
 [@@deriving yojson]
 
-let slug tune = tune.slug
-let group tune = tune.group
-let key tune = tune.key
-let content tune = tune.content
-let bars tune = tune.bars
-let structure tune = tune.structure
+let slug t = Lwt.return t.slug
+let group t = Lwt.return t.group
+let bars t = Lwt.return t.bars
+let key t = Lwt.return t.key
+let structure t = Lwt.return t.structure
+let arranger t = Lwt.return t.arranger
+let content t = Lwt.return t.content

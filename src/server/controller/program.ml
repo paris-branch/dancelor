@@ -3,23 +3,20 @@ open Dancelor_server_model
 open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.program" : Logs.LOG)
 
-let get program _ =
-  program
-  |> Dancelor_database.Program.get
-  |> Program.to_yojson
-  |> Lwt.return
+let get program : Program.t Controller.t = fun _ ->
+  Dancelor_database.Program.get program
 
-let get_all query =
-  let contains_set =
-    match query_string_opt query "contains" with
-    | None -> (fun _ -> true)
-    | Some set -> Program.contains set
+let get_all : Program.t list Controller.t = fun query ->
+  let%lwt contains_set =
+    try%lwt
+      let%lwt set = query_string query "contains" in
+      Lwt.return (Program.contains set)
+    with Dancelor_common.Error.(Exn (BadQuery _)) ->
+      Lwt.return (fun _ -> true)
   in
-  Dancelor_database.Program.get_all ()
-  |> Seq.filter contains_set
-  |> Seq.map Program.to_yojson
-  |> List.of_seq
-  |> (fun json -> `List json)
+  let%lwt all = Dancelor_database.Program.get_all () in
+  all
+  |> List.filter contains_set
   |> Lwt.return
 
 module Ly = struct
@@ -60,9 +57,10 @@ module Pdf = struct
       (fun () ->
         let lilypond = Ly.render ?transpose_target program in
         let path = Filename.concat !Dancelor_server_config.cache "program" in
-        let fname_ly, fname_pdf =
-          let fname = spf "%s-%x" (Program.slug program) (Random.int (1 lsl 29)) in
-          (fname^".ly", fname^".pdf")
+        let%lwt (fname_ly, fname_pdf) =
+          let%lwt slug = Program.slug program in
+          let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
+          Lwt.return (fname^".ly", fname^".pdf")
         in
         Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
           (fun ochan -> Lwt_io.write ochan lilypond) >>= fun () ->
@@ -72,7 +70,15 @@ module Pdf = struct
         Lwt.return path_pdf)
 
   let get program query =
-    let program = Dancelor_database.Program.get program in
-    render ?transpose_target:(query_string_opt query "transpose-target") program >>= fun path_pdf ->
+    let%lwt program = Dancelor_database.Program.get program in
+    let%lwt transpose_target =
+      try%lwt
+        let%lwt transpose_target = query_string query "transpose-target" in
+        Lwt.return_some transpose_target
+      with
+        Dancelor_common.Error.(Exn (BadQuery _)) ->
+        Lwt.return_none
+    in
+    let%lwt path_pdf = render ?transpose_target program in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

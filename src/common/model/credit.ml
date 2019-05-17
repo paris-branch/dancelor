@@ -6,5 +6,6 @@ type t =
     persons : Person.t Slug.t list }
 [@@deriving yojson]
 
-let slug c = c.slug
-let line c = c.line
+let slug c = Lwt.return c.slug
+let line c = Lwt.return c.line
+let persons c = Lwt.return c.persons

@@ -8,7 +8,8 @@ type t =
     remark : string }
 [@@deriving yojson]
 
-let slug tune_group = tune_group.slug
-let name tune_group = tune_group.name
-let kind tune_group = tune_group.kind
-let author tune_group = tune_group.author
+let slug g = Lwt.return g.slug
+let name g = Lwt.return g.name
+let kind g = Lwt.return g.kind
+let author g = Lwt.return g.author
+let remark g = Lwt.return g.remark

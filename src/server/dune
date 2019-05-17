@@ -25,4 +25,4 @@
   (public_name dancelor.server.logs)
   (libraries
    dancelor.server.config
-   logs))
+   logs.lwt))

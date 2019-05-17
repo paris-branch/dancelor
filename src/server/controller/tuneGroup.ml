@@ -1,7 +1,2 @@
-open Dancelor_server_model
-
-let get tune_group _ =
-  tune_group
-  |> Dancelor_database.TuneGroup.get
-  |> TuneGroup.to_yojson
-  |> Lwt.return
+let get tune_group : Dancelor_server_model.TuneGroup.t Controller.t = fun _ ->
+  Dancelor_database.TuneGroup.get tune_group

@@ -3,4 +3,5 @@
  (public_name dancelor.database.unsafe)
  (libraries
   dancelor.common
-  dancelor.database.storage))
+  dancelor.database.storage)
+ (preprocess (pps lwt_ppx)))

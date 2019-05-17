@@ -5,5 +5,5 @@ type t =
     name : string }
 [@@deriving yojson]
 
-let slug p = p.slug
-let name p = p.name
+let slug p = Lwt.return p.slug
+let name p = Lwt.return p.name

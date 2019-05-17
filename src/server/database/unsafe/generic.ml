@@ -1,9 +1,10 @@
-open Nes open Option
+open Nes
 module Storage = Dancelor_database_storage
 
 module type Model = sig
   type t
-  val slug : t -> t Slug.t
+  val slug : t -> t Slug.t Lwt.t
+
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
 
@@ -44,21 +45,25 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       in
       match Model.of_yojson json with
       | Ok model ->
-        Hashtbl.add db (Model.slug model) (Stats.empty (), model)
+        let%lwt slug = Model.slug model in
+        Hashtbl.add db slug (Stats.empty (), model);
+        Lwt.return ()
       | Error msg ->
         Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model.prefix entry "meta.json" msg);
         exit 1
     in
     Storage.list_entries Model.prefix
-    |> List.iter load
+    |> Lwt_list.iter_s load
 
   let report_without_accesses () =
     Hashtbl.to_seq_values db
     |> Seq.iter
       (fun (stats, model) ->
          if Stats.get_accesses stats = 0 then
-           Log.warn (fun m -> m "Without access: %s / %s"
-                        Model.prefix (Model.slug model)))
+           Log.warn (fun m -> Lwt.async (fun () ->
+               let%lwt slug = Model.slug model in
+               m "Without access: %s / %s" Model.prefix slug;
+               Lwt.return ()))) (* FIXME *)
 
   let find_uniq_slug string =
     let slug = Slug.from_string string in
@@ -75,14 +80,12 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       slug
 
   let get slug =
-    let (stats, model) = Hashtbl.find db slug in
-    Stats.add_access stats;
-    model
-
-  let get_opt slug =
-    Hashtbl.find_opt db slug >>= fun (stats, model) ->
-    Stats.add_access stats;
-    Some model
+    match Hashtbl.find_opt db slug with
+    | Some (stats, model) ->
+      Stats.add_access stats;
+      Lwt.return model
+    | None ->
+      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model.prefix, slug)))
 
   let get_all () =
     Hashtbl.to_seq_values db
@@ -90,6 +93,8 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       (fun (stats, model) ->
          Stats.add_access stats;
          model)
+    |> List.of_seq
+    |> Lwt.return
 
   let save ?slug ~name create =
     let slug =
@@ -115,12 +120,13 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       ~msg:(spf "[auto] save %s / %s" Model.prefix slug)
       Model.prefix slug;
     Hashtbl.add db slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
-    model
+    Lwt.return model
 
   let delete slug =
     Storage.delete_entry Model.prefix slug;
     Storage.save_changes_on_entry
       ~msg:(spf "[auto] delete %s / %s" Model.prefix slug)
       Model.prefix slug;
-    Hashtbl.remove db slug
+    Hashtbl.remove db slug;
+    Lwt.return ()
 end
