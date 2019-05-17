@@ -2,8 +2,10 @@
  (names main)
  (libraries
   js_of_ocaml-lwt
-  dancelor.common)
- (preprocess (pps js_of_ocaml-ppx)))
+  cohttp-lwt-unix
+  dancelor.common
+  dancelor.nes)
+ (preprocess (pps lwt_ppx js_of_ocaml-ppx)))
 
 (install
  (section share)
