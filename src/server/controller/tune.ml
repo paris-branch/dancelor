@@ -30,7 +30,7 @@ let get_all : Tune.t Score.t list Controller.t = fun query ->
     | None -> Lwt.return_none
     | Some kind ->
       try
-        Lwt.return_some (Dancelor_common_model.Kind.base_of_string kind)
+        Lwt.return_some (Kind.base_of_string kind)
       with
         Failure _ ->
         Lwt.fail Dancelor_common.Error.(Exn (BadQuery "kind must be 'j', 'p', 'r', 's' or 'w'"))
@@ -40,13 +40,13 @@ let get_all : Tune.t Score.t list Controller.t = fun query ->
     | None -> Lwt.return_none
     | Some keys ->
       let keys = String.split_on_char ',' keys in
-      Lwt.return_some (List.map Dancelor_common_model.Music.key_of_string keys)
+      Lwt.return_some (List.map Music.key_of_string keys)
   in
   let%lwt mode =
     match%lwt query_string_opt query "mode" with
     | None -> Lwt.return_none
-    | Some "major" -> Lwt.return_some Dancelor_common_model.Music.Major
-    | Some "minor" -> Lwt.return_some Dancelor_common_model.Music.Minor
+    | Some "major" -> Lwt.return_some Music.Major
+    | Some "minor" -> Lwt.return_some Music.Minor
     | Some other -> Lwt.fail Dancelor_common.Error.(Exn (BadQuery ("mode must be 'major' or 'minor', got " ^ other)))
   in
   let%lwt hard_limit = query_int ~or_:max_int query "hard-limit"  in

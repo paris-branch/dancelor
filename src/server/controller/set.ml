@@ -22,11 +22,11 @@ let save : Set.t Controller.t = fun query ->
   in
   let%lwt name = query_string query "name" in
   let%lwt kind = query_string query "kind" in
-  let kind = Dancelor_common_model.Kind.dance_of_string kind in
+  let kind = Kind.dance_of_string kind in
   let%lwt status =
     try%lwt
       let%lwt status = query_string query "status" in
-      Lwt.return_some (Dancelor_common_model.Status.from_string status)
+      Lwt.return_some (Status.from_string status)
     with
       Dancelor_common.Error.(Exn (BadQuery _)) ->
       Lwt.return_none
