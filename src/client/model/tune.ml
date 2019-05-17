@@ -1,9 +1,9 @@
 include Dancelor_common_model.Tune
 
-let tune_group t =
-  let%lwt slug = tune_group t in
+let group t =
+  let%lwt slug = group t in
   Dancelor_client_api.request
-    ~route:(Dancelor_common.Route.TuneGroup slug)
+    ~route:(Dancelor_common.Router.TuneGroup slug)
     ~reader:of_yojson
     ()
 
@@ -13,7 +13,7 @@ let arranger t =
   | Some slug ->
     let%lwt c =
       Dancelor_client_api.request
-        ~route:(Dancelor_common.Route.Credit slug)
+        ~route:(Dancelor_common.Router.Credit slug)
         ~reader:of_yojson
         ()
     in

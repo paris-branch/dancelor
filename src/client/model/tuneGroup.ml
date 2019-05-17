@@ -1,8 +1,13 @@
 include Dancelor_common_model.TuneGroup
 
 let author t =
-  let%lwt slug = author t in
-  Dancelor_client_api.request
-    ~route:(Dancelor_common.Route.Credit slug)
-    ~reader:of_yojson
-    ()
+  match%lwt author t with
+  | None -> Lwt.return_none
+  | Some slug ->
+    let%lwt credit =
+      Dancelor_client_api.request
+        ~route:(Dancelor_common.Router.Credit slug)
+        ~reader:of_yojson
+        ()
+    in
+    Lwt.return_some credit

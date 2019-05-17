@@ -5,7 +5,7 @@ let persons c =
   Lwt_list.map_p
     (fun slug ->
        Dancelor_client_api.request
-         ~route:(Dancelor_common.Route.Person slug)
+         ~route:(Dancelor_common.Router.Person slug)
          ~reader:of_yojson
          ())
     persons

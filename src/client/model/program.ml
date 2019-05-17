@@ -5,7 +5,7 @@ let sets p =
   Lwt_list.map_p
     (fun slug ->
        Dancelor_client_api.request
-         ~route:(Dancelor_common.Route.Set slug)
+         ~route:(Dancelor_common.Router.Set slug)
          ~reader:of_yojson
          ())
     sets
