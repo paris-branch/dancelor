@@ -1,6 +1,6 @@
 open NesPervasives
 
-type t = Yojson.Safe.json (* FIXME: in time, Yojson.Safe.t *)
+type t = Yojson.Safe.t
 
 let add_field key value = function
   | `Assoc fields when not (List.mem_assoc key fields) ->
