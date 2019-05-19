@@ -4,8 +4,8 @@ type t =
   { slug : t Slug.t ;
     name : string ;
     kind : Kind.base ;
-    author : Credit.t Slug.t option ;
-    remark : string }
+    author : Credit.t Slug.t option [@default None] ;
+    remark : string                 [@default ""] }
 [@@deriving yojson]
 
 let slug g = Lwt.return g.slug

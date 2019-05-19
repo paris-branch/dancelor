@@ -3,7 +3,7 @@ open Nes
 type t =
   { slug : t Slug.t ;
     name : string ;
-    deviser : Credit.t Slug.t option ;
+    deviser : Credit.t Slug.t option [@default None] ;
     kind : Kind.dance ;
     status : Status.t ;
     tunes : Tune.t Slug.t list }
