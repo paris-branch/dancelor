@@ -1,9 +1,9 @@
 module Common = Dancelor_common_model
 
-module Kind   = Common.Kind
-module Music  = Common.Music
-module Status = Common.Status
-module Score  = Common.Score
+module Kind   = Kind
+module Music  = Music
+module Status = Status
+module Score  = Score
 
 module Person    : Common.PERSON    = Person
 module Credit    : Common.CREDIT    = Credit

@@ -1,5 +1,7 @@
 include Dancelor_common_model.TuneGroup
 
+let get = Dancelor_server_database.TuneGroup.get
+
 let author g =
   match%lwt author g with
   | None -> Lwt.return_none

@@ -2,6 +2,7 @@
  (name dancelor_common_model)
  (public_name dancelor.common.model)
  (modules_without_implementation
+  personExtended
   creditExtended
   tuneGroupExtended
   tuneExtended

@@ -51,8 +51,7 @@ let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.
     log_exn ~msg:"Uncaught exception in controller" exn;
     respond_json ~status:(status Unexpected) (to_yojson Unexpected)
 
-let list_serializer serializer l =
-  `List (List.map serializer l)
+let list_serializer = Dancelor_common.Serializer.list
 
 let apply_controller = let open Dancelor_common.Router in function
     | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson

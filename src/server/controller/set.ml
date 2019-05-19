@@ -4,11 +4,11 @@ open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
 let get set _ =
-  Dancelor_server_database.Set.get set
+  Set.get set
 
 let delete set : unit Controller.t = fun _ ->
-  let%lwt () = Dancelor_server_database.Set.delete set in
-  Lwt.return ()
+  let%lwt set = Set.get set in
+  Set.delete set
 
 let save : Set.t Controller.t = fun query ->
   Log.debug (fun m -> m "Controller save");
@@ -31,9 +31,9 @@ let save : Set.t Controller.t = fun query ->
       Dancelor_common.Error.(Exn (BadQuery _)) ->
       Lwt.return_none
   in
-  let tunes = query_strings query "tunes" in
-  Dancelor_server_database.Set.save ?slug ~name ~kind ?status ~tunes ()
-  |> Lwt.return
+  let%lwt tunes = query_strings query "tunes" in
+  let%lwt tunes = Lwt_list.map_s Tune.get tunes in
+  Set.save ?slug ~name ~kind ?status ~tunes ()
 
 let get_all : Set.t list Controller.t = fun query ->
   let%lwt contains_tune =
@@ -41,7 +41,7 @@ let get_all : Set.t list Controller.t = fun query ->
     | None -> Lwt.return (fun _ -> true)
     | Some tune -> Lwt.return (Set.contains tune)
   in
-  let%lwt all = Dancelor_server_database.Set.get_all () in
+  let%lwt all = Set.get_all () in
   all
   |> List.filter contains_tune
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
@@ -74,7 +74,7 @@ module Ly = struct
     |> (fun _ -> assert false) (* FIXME *)
 
   let get set query =
-    let%lwt set = Dancelor_server_database.Set.get set in
+    let%lwt set = Set.get set in
     let%lwt transpose_target = query_string_opt query "transpose-target" in
     let lilypond = render ?transpose_target set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
@@ -104,7 +104,7 @@ module Pdf = struct
         Lwt.return path_pdf)
 
   let get set query =
-    let%lwt set = Dancelor_server_database.Set.get set in
+    let%lwt set = Set.get set in
     let%lwt transpose_target = query_string_opt query "transpose-target" in
     let%lwt path_pdf = render ?transpose_target set in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()

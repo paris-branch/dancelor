@@ -3,7 +3,7 @@ module Music  = Music
 module Status = Status
 module Score = Score
 
-module type PERSON    = module type of Person
+module type PERSON    = module type of PersonExtended
 module type CREDIT    = module type of CreditExtended
 module type TUNEGROUP = module type of TuneGroupExtended
 module type TUNE      = module type of TuneExtended
