@@ -1,7 +1,7 @@
 (library
- (name dancelor_database_unsafe)
- (public_name dancelor.database.unsafe)
+ (name dancelor_server_database_unsafe)
+ (public_name dancelor.server.database.unsafe)
  (libraries
   dancelor.common
-  dancelor.database.storage)
+  dancelor.server.database.storage)
  (preprocess (pps lwt_ppx)))

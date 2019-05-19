@@ -3,7 +3,6 @@
  (public_name dancelor.server.controller)
  (libraries
   nes lilypond
-  dancelor.database
   dancelor.server.model
   cohttp-lwt-unix)
  (preprocess (pps lwt_ppx)))

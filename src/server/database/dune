@@ -1,17 +1,17 @@
 (library
- (name dancelor_database)
- (public_name dancelor.database)
+ (name dancelor_server_database)
+ (public_name dancelor.server.database)
  (libraries
   dancelor.common.model
-  dancelor.database.unsafe)
- (modules :standard \ dancelor_database_storage)
+  dancelor.server.database.unsafe)
+ (modules :standard \ dancelor_server_database_storage)
  (preprocess (pps lwt_ppx)))
 
 (library
- (name dancelor_database_storage)
- (public_name dancelor.database.storage)
+ (name dancelor_server_database_storage)
+ (public_name dancelor.server.database.storage)
  (libraries
   dancelor.nes
   dancelor.common
   dancelor.server.logs)
- (modules dancelor_database_storage))
+ (modules dancelor_server_database_storage))

@@ -4,10 +4,10 @@ open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.tune" : Logs.LOG)
 
 let get tune _ =
-  Dancelor_database.Tune.get tune
+  Dancelor_server_database.Tune.get tune
 
 let get_ly tune _ =
-  let%lwt tune = Dancelor_database.Tune.get tune in
+  let%lwt tune = Dancelor_server_database.Tune.get tune in
   let%lwt body = Tune.content tune in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
@@ -52,7 +52,7 @@ let get_all : Tune.t Score.t list Controller.t = fun query ->
   let%lwt hard_limit = query_int ~or_:max_int query "hard-limit"  in
   let%lwt threshold = query_float ~or_:0. query "threshold" in
   let threshold = threshold /. 100. in
-  let%lwt all = Dancelor_database.Tune.get_all () in
+  let%lwt all = Dancelor_server_database.Tune.get_all () in
   let all = Score.list_from_values all in
   let%lwt all =
     Score.list_filter
@@ -161,7 +161,7 @@ module Png = struct
             Lwt.return (Filename.concat path fname_png)) *))
 
   let get tune _ =
-    let%lwt tune = Dancelor_database.Tune.get tune in
+    let%lwt tune = Dancelor_server_database.Tune.get tune in
     let%lwt path_png = render tune in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_png ()
 end

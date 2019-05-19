@@ -1,6 +1,6 @@
 open Nes
 open Dancelor_common_model
-module Unsafe = Dancelor_database_unsafe.Set
+module Unsafe = Dancelor_server_database_unsafe.Set
 
 let get (slug : Set.t Slug.t) = Unsafe.get slug
 let get_all () = Unsafe.get_all ()
@@ -10,7 +10,7 @@ let save ?slug ~name ~kind ?status ~tunes () =
   assert false
 
 let get_programs_that_contain (slug : Set.t Slug.t) : Program.t list Lwt.t =
-  let%lwt all = Dancelor_database_unsafe.Program.get_all () in
+  let%lwt all = Dancelor_server_database_unsafe.Program.get_all () in
   Lwt.return (List.filter (Program.contains slug) all)
 
 exception UsedInProgram of Program.t Slug.t

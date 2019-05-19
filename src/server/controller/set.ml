@@ -4,10 +4,10 @@ open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
 let get set _ =
-  Dancelor_database.Set.get set
+  Dancelor_server_database.Set.get set
 
 let delete set : unit Controller.t = fun _ ->
-  let%lwt () = Dancelor_database.Set.delete set in
+  let%lwt () = Dancelor_server_database.Set.delete set in
   Lwt.return ()
 
 let save : Set.t Controller.t = fun query ->
@@ -32,7 +32,7 @@ let save : Set.t Controller.t = fun query ->
       Lwt.return_none
   in
   let tunes = query_strings query "tunes" in
-  Dancelor_database.Set.save ?slug ~name ~kind ?status ~tunes ()
+  Dancelor_server_database.Set.save ?slug ~name ~kind ?status ~tunes ()
   |> Lwt.return
 
 let get_all : Set.t list Controller.t = fun query ->
@@ -41,7 +41,7 @@ let get_all : Set.t list Controller.t = fun query ->
     | None -> Lwt.return (fun _ -> true)
     | Some tune -> Lwt.return (Set.contains tune)
   in
-  let%lwt all = Dancelor_database.Set.get_all () in
+  let%lwt all = Dancelor_server_database.Set.get_all () in
   all
   |> List.filter contains_tune
   |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
@@ -74,7 +74,7 @@ module Ly = struct
     |> (fun _ -> assert false) (* FIXME *)
 
   let get set query =
-    let%lwt set = Dancelor_database.Set.get set in
+    let%lwt set = Dancelor_server_database.Set.get set in
     let%lwt transpose_target = query_string_opt query "transpose-target" in
     let lilypond = render ?transpose_target set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
@@ -104,7 +104,7 @@ module Pdf = struct
         Lwt.return path_pdf)
 
   let get set query =
-    let%lwt set = Dancelor_database.Set.get set in
+    let%lwt set = Dancelor_server_database.Set.get set in
     let%lwt transpose_target = query_string_opt query "transpose-target" in
     let%lwt path_pdf = render ?transpose_target set in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()

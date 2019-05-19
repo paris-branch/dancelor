@@ -5,10 +5,10 @@ module Set = Set
 module Tune = Tune
 module TuneGroup = TuneGroup
 
-module Unsafe = Dancelor_database_unsafe
-module Storage = Dancelor_database_storage
+module Unsafe = Dancelor_server_database_unsafe
+module Storage = Dancelor_server_database_storage
 
-module Log = (val Dancelor_server_logs.create "database" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "server.database" : Logs.LOG)
 
 let initialise () =
   let%lwt () = Unsafe.Person.initialise () in

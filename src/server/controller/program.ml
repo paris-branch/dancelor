@@ -4,7 +4,7 @@ open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.program" : Logs.LOG)
 
 let get program : Program.t Controller.t = fun _ ->
-  Dancelor_database.Program.get program
+  Dancelor_server_database.Program.get program
 
 let get_all : Program.t list Controller.t = fun query ->
   let%lwt contains_set =
@@ -14,7 +14,7 @@ let get_all : Program.t list Controller.t = fun query ->
     with Dancelor_common.Error.(Exn (BadQuery _)) ->
       Lwt.return (fun _ -> true)
   in
-  let%lwt all = Dancelor_database.Program.get_all () in
+  let%lwt all = Dancelor_server_database.Program.get_all () in
   all
   |> List.filter contains_set
   |> Lwt.return
@@ -70,7 +70,7 @@ module Pdf = struct
         Lwt.return path_pdf)
 
   let get program query =
-    let%lwt program = Dancelor_database.Program.get program in
+    let%lwt program = Dancelor_server_database.Program.get program in
     let%lwt transpose_target =
       try%lwt
         let%lwt transpose_target = query_string query "transpose-target" in
