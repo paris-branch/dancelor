@@ -62,7 +62,6 @@ let get_all : Tune.t Score.t list Controller.t = fun query ->
        | Some kind ->
          (fun tune ->
             let%lwt tune_group = Tune.group tune in
-            let%lwt tune_group = Dancelor_database.TuneGroup.get tune_group in (* FIXME: should be easy with the serve models. *)
             let%lwt kind' = TuneGroup.kind tune_group in
             Lwt.return (kind' = kind)))
       all
@@ -98,8 +97,7 @@ let get_all : Tune.t Score.t list Controller.t = fun query ->
          (fun tune ->
             let%lwt tune_name =
               let%lwt tune_group = Tune.group tune in
-              let%lwt group = Dancelor_database.TuneGroup.get tune_group in
-              TuneGroup.name group
+              TuneGroup.name tune_group
             in
             Lwt.return (match_score name tune_name)))
       all
@@ -112,10 +110,10 @@ let get_all : Tune.t Score.t list Controller.t = fun query ->
        | Some author ->
          (fun tune ->
             let%lwt tune_group = Tune.group tune in
-            let%lwt tune_group = Dancelor_database.TuneGroup.get tune_group in
             match%lwt TuneGroup.author tune_group with
             | None -> Lwt.return 0.
             | Some tune_author ->
+              let%lwt tune_author = Credit.line tune_author in
               Lwt.return (match_score author tune_author)))
       all
   in

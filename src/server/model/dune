@@ -1,4 +1,7 @@
 (library
  (name dancelor_server_model)
  (public_name dancelor.server.model)
- (libraries dancelor.common.model))
+ (libraries
+  dancelor.common.model
+  dancelor.database)
+ (preprocess (pps lwt_ppx)))

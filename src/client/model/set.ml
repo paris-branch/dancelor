@@ -7,7 +7,7 @@ let deviser p =
     let%lwt c =
       Dancelor_client_api.request
         ~route:(Dancelor_common.Router.Credit slug)
-        ~reader:of_yojson
+        ~reader:Credit.of_yojson
         ()
     in
     Lwt.return_some c
@@ -18,6 +18,6 @@ let tunes p =
     (fun slug ->
        Dancelor_client_api.request
          ~route:(Dancelor_common.Router.Tune slug)
-         ~reader:of_yojson
+         ~reader:Tune.of_yojson
          ())
     tunes

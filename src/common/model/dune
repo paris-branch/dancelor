@@ -1,6 +1,12 @@
 (library
  (name dancelor_common_model)
  (public_name dancelor.common.model)
+ (modules_without_implementation
+  creditExtended
+  tuneGroupExtended
+  tuneExtended
+  setExtended
+  programExtended)
  (libraries
   lwt
   dancelor.nes

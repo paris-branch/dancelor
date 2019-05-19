@@ -7,7 +7,7 @@ let author t =
     let%lwt credit =
       Dancelor_client_api.request
         ~route:(Dancelor_common.Router.Credit slug)
-        ~reader:of_yojson
+        ~reader:Credit.of_yojson
         ()
     in
     Lwt.return_some credit

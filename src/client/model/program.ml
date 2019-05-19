@@ -6,6 +6,6 @@ let sets p =
     (fun slug ->
        Dancelor_client_api.request
          ~route:(Dancelor_common.Router.Set slug)
-         ~reader:of_yojson
+         ~reader:Set.of_yojson
          ())
     sets

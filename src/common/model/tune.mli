@@ -1,7 +1,5 @@
 open Nes
 
-(** {1 Tune} *)
-
 type t
 
 val slug : t -> t Slug.t Lwt.t
