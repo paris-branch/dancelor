@@ -48,35 +48,57 @@ let get_all : Set.t list Controller.t = fun query ->
   |> Lwt.return
 
 module Ly = struct
-  (* let template =
-    let path = Filename.concat_l [!Dancelor_server_config.share; "lilypond"; "set.ly"] in
-    Log.debug (fun m -> m "Loading template file %s" path);
-    let ichan = open_in path in
-    let template = Lexing.from_channel ichan |> Mustache.parse_lx in
-    close_in ichan;
-    Log.debug (fun m -> m "Loaded successfully");
-    template *)
 
   let render ?transpose_target set =
-    Set.to_yojson set
-    |> Json.add_field "transpose"
-         (match transpose_target with
-          | None -> `Bool false
-          | Some target ->
-             let instrument =
-               match target with
-               | "bes," -> "B flat"
-               | "ees" -> "E flat"
-               | _ -> target
-             in
-             `Assoc [ "target", `String target ;
-                      "instrument", `String instrument ])
-    |> (fun _ -> assert false) (* FIXME *)
+    let (transpose, target, instrument) =
+      (* transpose introduces a comment when we don't want to transpose *)
+      match transpose_target with
+      | None -> ("%", "c", "C")
+      | Some target ->
+        let instrument =
+          match target with
+          | "bes," -> "B flat"
+          | "ees" -> "E flat"
+          | _ -> target
+        in
+        ("", target, instrument)
+    in
+    let (res, prom) =
+      Format.with_formatter_to_string_gen @@ fun fmt ->
+      let%lwt title = Set.name set in
+      let%lwt kind = Set.kind set in
+      let%lwt tunes = Set.tunes set in
+      fpf fmt [%blob "template/version.ly"];
+      fpf fmt [%blob "template/set/header.ly"]
+        title (Kind.dance_to_string kind)
+        transpose instrument;
+      fpf fmt [%blob "template/layout.ly"];
+      fpf fmt [%blob "template/set/paper.ly"];
+      Lwt_list.iter_s
+        (fun tune ->
+           let%lwt content = Tune.content tune in
+           let%lwt group = Tune.group tune in
+           let%lwt name = TuneGroup.name group in
+           let%lwt author =
+             match%lwt TuneGroup.author group with
+             | None -> Lwt.return ""
+             | Some author -> Credit.line author
+           in
+           fpf fmt [%blob "template/set/tune.ly"]
+             name author
+             transpose target
+             content
+             transpose;
+           Lwt.return ())
+        tunes
+    in
+    let%lwt () = prom in
+    Lwt.return res
 
   let get set query =
     let%lwt set = Set.get set in
     let%lwt transpose_target = query_string_opt query "transpose-target" in
-    let lilypond = render ?transpose_target set in
+    let%lwt lilypond = render ?transpose_target set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
 
@@ -87,7 +109,7 @@ module Pdf = struct
     Cache.use
       cache set
       (fun () ->
-        let lilypond = Ly.render ?transpose_target set in
+        let%lwt lilypond = Ly.render ?transpose_target set in
         let path = Filename.concat !Dancelor_server_config.cache "set" in
         let%lwt (fname_ly, fname_pdf) =
           let%lwt slug = Set.slug set in

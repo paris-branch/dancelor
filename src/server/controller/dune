@@ -5,4 +5,5 @@
   nes lilypond
   dancelor.server.model
   cohttp-lwt-unix)
- (preprocess (pps lwt_ppx)))
+ (preprocess (pps lwt_ppx ppx_blob))
+ (preprocessor_deps (source_tree template)))

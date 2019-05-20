@@ -20,30 +20,64 @@ let get_all : Program.t list Controller.t = fun query ->
   |> Lwt.return
 
 module Ly = struct
-  (* let template =
-    let path = Filename.concat_l [!Dancelor_server_config.share; "lilypond"; "program.ly"] in
-    Log.debug (fun m -> m "Loading template file %s" path);
-    let ichan = open_in path in
-    let template = Lexing.from_channel ichan |> Mustache.parse_lx in
-    close_in ichan;
-    Log.debug (fun m -> m "Loaded successfully");
-    template *)
-
   let render ?transpose_target program =
-    Program.to_yojson program
-    |> Json.add_field "transpose"
-         (match transpose_target with
-          | None -> `Bool false
-          | Some target ->
-             let instrument =
-               match target with
-               | "bes," -> "B flat"
-               | "ees" -> "E flat"
-               | _ -> target
+    let (target, instrument) =
+      match transpose_target with
+      | None -> ("c", "C")
+      | Some target ->
+        let instrument =
+          match target with
+          | "bes," -> "B flat"
+          | "ees" -> "E flat"
+          | _ -> target
+        in
+        (target, instrument)
+    in
+    let (res, prom) =
+      Format.with_formatter_to_string_gen @@ fun fmt ->
+      let%lwt name = Program.name program in
+      fpf fmt [%blob "template/version.ly"];
+      fpf fmt [%blob "template/program/macros.ly"];
+      fpf fmt [%blob "template/layout.ly"];
+      fpf fmt [%blob "template/program/globals.ly"]
+        name instrument;
+      fpf fmt [%blob "template/program/paper.ly"];
+      fpf fmt [%blob "template/program/book_beginning.ly"];
+      let%lwt () =
+        let%lwt sets = Program.sets program in
+        Lwt_list.iter_s
+          (fun set ->
+             let%lwt name = Set.name set in
+             let%lwt kind = Set.kind set in
+             let kind = Kind.dance_to_string kind in
+             fpf fmt [%blob "template/program/set_beginning.ly"]
+               name kind name kind;
+             let%lwt () =
+               let%lwt tunes = Set.tunes set in
+               Lwt_list.iter_s
+                 (fun tune ->
+                    let%lwt content = Tune.content tune in
+                    let%lwt group = Tune.group tune in
+                    let%lwt name = TuneGroup.name group in
+                    let%lwt author =
+                      match%lwt TuneGroup.author group with
+                      | None -> Lwt.return ""
+                      | Some author -> Credit.line author
+                    in
+                    fpf fmt [%blob "template/program/tune.ly"]
+                      name author name target content;
+                    Lwt.return ())
+                 tunes
              in
-             `Assoc [ "target", `String target ;
-                  "instrument", `String instrument ])
-    |> (fun _ -> assert false)
+             fpf fmt [%blob "template/program/set_end.ly"];
+             Lwt.return ())
+          sets
+      in
+      fpf fmt [%blob "template/program/book_end.ly"];
+      Lwt.return ()
+    in
+    let%lwt () = prom in
+    Lwt.return res
 end
 
 module Pdf = struct
@@ -53,7 +87,7 @@ module Pdf = struct
     Cache.use
       cache program
       (fun () ->
-        let lilypond = Ly.render ?transpose_target program in
+        let%lwt lilypond = Ly.render ?transpose_target program in
         let path = Filename.concat !Dancelor_server_config.cache "program" in
         let%lwt (fname_ly, fname_pdf) =
           let%lwt slug = Program.slug program in

@@ -22,6 +22,7 @@ depends: [
   "js_of_ocaml-ppx"          {build}
   "lwt_ppx"                  {build}
   "ocaml"                    {build}
+  "ppx_blob"                 {build}
   "ppx_deriving"
   "ppx_deriving_yojson"
   "ppx_inline_test"          {build | with-test}

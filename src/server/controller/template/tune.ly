@@ -17,5 +17,5 @@
 }
 
 \score {
-  {{{content}}}
+  %s
 }

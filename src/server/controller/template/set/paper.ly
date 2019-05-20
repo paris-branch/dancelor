@@ -1,22 +1,3 @@
-\version "2.19.82"
-
-\header {
-  title = "{{{name}}}"
-  subtitle = "{{{kind}}}"
-  {{#transpose}}
-    instrument = "{{instrument}} Instruments"
-  {{/transpose}}
-  tagline = ""
-}
-
-\layout {
-  indent = 0
-  \context {
-    \Score
-    \override NonMusicalPaperColumn.page-break-permission = ##f
-  }
-}
-
 \paper {
   ragged-right = ##f
   ragged-bottom = ##t
@@ -48,16 +29,3 @@
   }
   evenFooterMarkup = \oddFooterMarkup
 }
-
-{{#tunes}}
-\score {
-  \header {
-    piece = "{{{group.name}}}"
-    opus = "{{#group.author}}{{{line}}}{{/group.author}}"
-  }
-
-  {{#transpose}}\transpose {{{target}}} c { {{/transpose}}
-    {{{content}}}
-  {{#transpose}} } {{/transpose}}
-}
-{{/tunes}}

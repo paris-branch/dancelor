@@ -2,6 +2,7 @@ include NesPervasives
 module Date = NesDate
 module Filename = NesFilename
 module Filesystem = NesFilesystem
+module Format = NesFormat
 module Json = NesJson
 module List = NesList
 module Seq = NesSeq
