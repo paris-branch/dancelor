@@ -25,14 +25,26 @@ let create () =
   Dom.appendChild body footer;
   {document; body; header; footer; content}
 
+let document t = 
+  t.document
+
 let set_header t contents = 
-  Helpers.remove_all_children t.header;
+  while Js.to_bool t.header##hasChildNodes do
+    let child = Js.Opt.get t.header##.firstChild (fun () -> assert false) in
+    t.header##removeChild child |> ignore
+  done;
   Dom.appendChild t.header contents
 
 let set_contents t contents = 
-  Helpers.remove_all_children t.content;
+  while Js.to_bool t.content##hasChildNodes do
+    let child = Js.Opt.get t.content##.firstChild (fun () -> assert false) in
+    t.content##removeChild child |> ignore
+  done;
   Dom.appendChild t.content contents
 
 let set_footer t contents = 
-  Helpers.remove_all_children t.footer;
+  while Js.to_bool t.footer##hasChildNodes do
+    let child = Js.Opt.get t.footer##.firstChild (fun () -> assert false) in
+    t.footer##removeChild child |> ignore
+  done;
   Dom.appendChild t.footer contents

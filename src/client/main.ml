@@ -1,4 +1,5 @@
 open Js_of_ocaml
+open Dancelor_client_elements
 
 module Html = Dom_html
 

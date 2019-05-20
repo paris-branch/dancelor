@@ -3,12 +3,13 @@
  (libraries
   js_of_ocaml-lwt
   cohttp-lwt-unix
+  dancelor.client.elements
   dancelor.common
   dancelor.nes)
  (modules :standard \ dancelor_client_api)
  (preprocess (pps lwt_ppx js_of_ocaml-ppx)))
 
- (library
+(library
   (name dancelor_client_api)
   (modules dancelor_client_api)
   (public_name dancelor.client.api)

@@ -1,0 +1,9 @@
+(library
+  (name dancelor_client_elements)
+  (public_name dancelor.client.elements)
+  (preprocess (pps lwt_ppx js_of_ocaml-ppx))
+  (libraries
+    js_of_ocaml-lwt
+    cohttp-lwt-unix
+    dancelor.common
+    dancelor.nes))
