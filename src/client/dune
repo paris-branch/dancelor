@@ -2,10 +2,9 @@
  (names main)
  (libraries
   js_of_ocaml-lwt
-  cohttp-lwt-unix
+  cohttp-lwt-jsoo
   dancelor.client.elements
-  dancelor.common
-  dancelor.nes)
+  dancelor.common)
  (modules :standard \ dancelor_client_api)
  (preprocess (pps lwt_ppx js_of_ocaml-ppx)))
 
@@ -16,9 +15,8 @@
   (preprocess (pps lwt_ppx js_of_ocaml-ppx))
   (libraries
     js_of_ocaml-lwt
-    cohttp-lwt-unix
-    dancelor.common
-    dancelor.nes))
+    cohttp-lwt-jsoo
+    dancelor.common))
 
 (install
  (section share)

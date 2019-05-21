@@ -4,6 +4,6 @@
   (preprocess (pps lwt_ppx js_of_ocaml-ppx))
   (libraries
     js_of_ocaml-lwt
-    cohttp-lwt-unix
+    cohttp-lwt-jsoo
     dancelor.common
     dancelor.nes))
