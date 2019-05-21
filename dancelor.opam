@@ -15,6 +15,7 @@ homepage: "https://gitlab.vlanvin.fr/paris-band/dancelor"
 bug-reports: "https://gitlab.vlanvin.fr/paris-band/dancelor/issues"
 
 depends: [
+  "cohttp-lwt-jsoo"
   "cohttp-lwt-unix"
   "dune"                     {build}
   "js_of_ocaml"
