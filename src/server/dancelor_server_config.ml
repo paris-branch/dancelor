@@ -37,6 +37,7 @@ let loglevel = ref Logs.Debug
 let port = ref 8080
 let routines = ref true
 let share = ref "share"
+let sync_storage = ref true
 
 let load_from_file filename =
   let config =
@@ -56,29 +57,33 @@ let load_from_file filename =
     | None -> default
     | Some value -> value
   in
-  cache     := field config ~type_:string ~default:!cache     ["cache"];
-  database  := field config ~type_:string ~default:!database  ["database"];
-  init_only := field config ~type_:bool   ~default:!init_only ["init_only"];
-  lilypond  := field config ~type_:string ~default:!lilypond  ["lilypond"];
-  loglevel  := field config ~type_:loglevel_of_json_string ~default:!loglevel ["loglevel"];
-  port      := field config ~type_:int    ~default:!port      ["port"];
-  routines  := field config ~type_:bool   ~default:!routines  ["routines"];
-  share     := field config ~type_:string ~default:!share     ["share"]
+  cache        := field config ~type_:string ~default:!cache        ["cache"];
+  database     := field config ~type_:string ~default:!database     ["database"];
+  init_only    := field config ~type_:bool   ~default:!init_only    ["init_only"];
+  lilypond     := field config ~type_:string ~default:!lilypond     ["lilypond"];
+  loglevel     := field config ~type_:loglevel_of_json_string ~default:!loglevel ["loglevel"];
+  port         := field config ~type_:int    ~default:!port         ["port"];
+  routines     := field config ~type_:bool   ~default:!routines     ["routines"];
+  share        := field config ~type_:string ~default:!share        ["share"];
+  sync_storage := field config ~type_:bool   ~default:!sync_storage ["sync_storage"];
+  ()
 
 let parse_cmd_line () =
   let open Arg in
   let specs = [
-    "--cache",        Set_string cache,     spf "DIR Set cache directory (default: %s)"    !cache;
-    "--config",       String load_from_file, spf "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
-    "--database",     Set_string database,  spf "DIR Set database directory (default: %s)" !database;
-    "--init-only",    Set        init_only, spf " Stop after initialisation%s" (if !init_only then " (default)" else "");
-    "--no-init-only", Clear      init_only, spf " Do not stop after initialisation%s" (if not !init_only then " (default)" else "");
-    "--lilypond",     Set_string lilypond,  spf "PATH Set path to the Lilypond binary (default: %s)" !lilypond;
-    "--loglevel",     String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
-    "--port",         Set_int    port,      spf "NB Set the port (default: %d)" !port;
-    "--routines",     Set        routines,  spf " Start routines%s" (if !routines then " (default)" else "");
-    "--no-routines",  Clear      routines,  spf " Do not start routines%s" (if not !routines then " (default)" else "");
-    "--share",        Set_string share,     spf "DIR Set share directory (default: %s)" !share;
+    "--cache",           Set_string cache,     spf "DIR Set cache directory (default: %s)"    !cache;
+    "--config",          String load_from_file, spf "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
+    "--database",        Set_string database,  spf "DIR Set database directory (default: %s)" !database;
+    "--init-only",       Set        init_only, spf " Stop after initialisation%s" (if !init_only then " (default)" else "");
+    "--no-init-only",    Clear      init_only, spf " Do not stop after initialisation%s" (if not !init_only then " (default)" else "");
+    "--lilypond",        Set_string lilypond,  spf "PATH Set path to the Lilypond binary (default: %s)" !lilypond;
+    "--loglevel",        String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
+    "--port",            Set_int    port,      spf "NB Set the port (default: %d)" !port;
+    "--routines",        Set        routines,  spf " Start routines%s" (if !routines then " (default)" else "");
+    "--no-routines",     Clear      routines,  spf " Do not start routines%s" (if not !routines then " (default)" else "");
+    "--share",           Set_string share,     spf "DIR Set share directory (default: %s)" !share;
+    "--sync-storage",    Set        sync_storage, spf " Sync storage using git%s" (if !sync_storage then " (default)" else "");
+    "--no-sync-storage", Clear      sync_storage, spf " Do not sync storage using git%s" (if not !sync_storage then " (default)" else "");
   ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in
