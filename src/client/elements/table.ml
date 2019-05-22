@@ -66,18 +66,28 @@ type root = Html.tableElement
 type t = {
   page : Page.t;
   root : root Js.t;
-  header : Html.tableRowElement Js.t;
+  header : Row.t;
 }
 
 let root t = 
   t.root
 
 let add t tr = 
-  Dom.appendChild t.root tr
+  Dom.appendChild t.root (Row.root tr)
 
 let clear t = 
   while Js.to_bool t.root##hasChildNodes do
     let child = Js.Opt.get t.root##.firstChild (fun () -> assert false) in
     t.root##removeChild child |> ignore
   done;
-  Dom.appendChild t.root t.header
+  Dom.appendChild t.root (Row.root t.header)
+
+let create ~header ~contents page =
+  let root = Html.createTable (Page.document page) in
+  let table = {page; root; header} in
+  let loading = Row.create ~cells:[Cell.text ~text:"Loading..." page] page in
+  add table loading;
+  Lwt.on_success contents (fun contents ->
+    clear table;
+    List.iter (add table) contents);
+  table
