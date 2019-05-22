@@ -1,5 +1,4 @@
 open Js_of_ocaml
-open Dancelor_client_elements
 
 module Html = Dom_html
 
@@ -22,6 +21,8 @@ let get_contents page =
   begin match trim path with
   | ["tune";"all"] -> 
     TuneExplorer.contents (TuneExplorer.create page)
+  | ["tune";slug] -> 
+    TuneViewer.contents (TuneViewer.create page slug)
   | [] ->
     Index.contents (Index.create ())
   | _ -> 

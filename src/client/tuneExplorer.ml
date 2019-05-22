@@ -1,6 +1,7 @@
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
+open Dancelor_common
 
 module Html = Dom_html
 
@@ -11,28 +12,6 @@ type t =
   page : Page.t;
   content : Html.divElement Js.t;
 }
-
-module Kind = struct
-
-  open Kind
-
-  let full_string tune group = 
-    let open Lwt in
-    let%lwt base = TuneGroup.kind group >|= Kind.base_to_char in
-    let%lwt bars = Tune.bars tune in
-    Lwt.return (Printf.sprintf "%i%c" bars base)
-
-end
-
-module Credit = struct
-  
-  open Credit
-
-  let line = function
-    | None -> Lwt.return ""
-    | Some c -> line c
-
-end
 
 let create page = 
   let document = Page.document page in
@@ -54,16 +33,20 @@ let create page =
     let%lwt tunes = Tune.get_all () in
     Lwt.return (List.map (fun score -> 
       let tune = Score.value score in
+      let href = 
+        let%lwt slug = Tune.slug tune in
+        Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd) 
+      in
       let cells = 
         let group = Tune.group tune in 
         let open Lwt in [
-        Table.Cell.text ~text:(group >>= TuneGroup.name) page;
-        Table.Cell.text ~text:(group >>= Kind.full_string tune) page;
+        Table.Cell.link ~href ~text:(group >>= TuneGroup.name) page;
+        Table.Cell.text ~text:(group >>= Formatters.Kind.full_string tune) page;
         Table.Cell.text ~text:(Tune.key tune >|= Music.key_to_string) page;
         Table.Cell.text ~text:(Tune.structure tune) page;
-        Table.Cell.text ~text:(group >>= TuneGroup.author >>= Credit.line) page]
+        Table.Cell.text ~text:(group >>= TuneGroup.author >>= Formatters.Credit.line) page]
       in
-      Table.Row.create ~cells page) tunes)
+      Table.Row.create ~href ~cells page) tunes)
   in
   let table = Table.create
     ~header

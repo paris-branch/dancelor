@@ -21,7 +21,7 @@ module Cell = struct
     NesOption.ifsome (fun i -> cell##.colSpan := i) span;
     Style.set ?width cell;
     Lwt.on_success text (fun text -> link##.textContent := Js.some (js text));
-    link##.href := js href;
+    Lwt.on_success href (fun href -> link##.href := js href);
     {page; root = cell}
 
   let text ?width ?span ~text page = 
@@ -60,11 +60,11 @@ module Row = struct
     begin match href with
     | None -> ()
     | Some href -> 
+      row##.classList##add (js "clickable");
       Lwt.async (fun () ->
         Lwt_js_events.clicks row
           (fun _ev _ ->
-            Html.window##.location##.href := js href;
-            Lwt.return ()))
+            Lwt.map (fun href -> Html.window##.location##.href := js href) href))
     end;
     {page; size = List.length cells; root = row}
 
