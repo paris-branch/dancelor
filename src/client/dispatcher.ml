@@ -5,7 +5,7 @@ module Html = Dom_html
 
 let js = Js.string
 
-let get_contents (type s) () = 
+let get_contents page =
   let url = 
     Html.window##.location##.href
     |> Js.to_string
@@ -21,7 +21,7 @@ let get_contents (type s) () =
   in
   begin match trim path with
   | ["tune";"all"] -> 
-    TuneExplorer.contents (TuneExplorer.create ())
+    TuneExplorer.contents (TuneExplorer.create page)
   | [] ->
     Index.contents (Index.create ())
   | _ -> 

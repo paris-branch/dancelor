@@ -5,6 +5,8 @@ type 'a t =
 
 let from_value value = { score = 1. ; value }
 
+let value s = s.value
+
 let list_from_values s = List.map from_value s
 let list_filter p =
   Lwt_list.filter_s (fun score -> p score.value)

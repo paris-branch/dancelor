@@ -14,17 +14,28 @@ module Cell = struct
     root : root Js.t;
   }
 
-  let link ~href ~text page = 
+  let link ?width ?span ~href ~text page = 
     let cell = Html.createTd (Page.document page) in
     let link = Html.createA (Page.document page) in
     Dom.appendChild cell link;
-    link##.textContent := Js.some (js text);
+    NesOption.ifsome (fun i -> cell##.colSpan := i) span;
+    Style.set ?width cell;
+    Lwt.on_success text (fun text -> link##.textContent := Js.some (js text));
     link##.href := js href;
     {page; root = cell}
 
-  let text ~text page = 
+  let text ?width ?span ~text page = 
     let cell = Html.createTd (Page.document page) in
-    cell##.textContent := Js.some (js text);
+    NesOption.ifsome (fun i -> cell##.colSpan := i) span;
+    Style.set ?width cell;
+    Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text));
+    {page; root = cell}
+
+  let header_text ?width ?span ~text page = 
+    let cell = Html.createTh (Page.document page) in
+    NesOption.ifsome (fun i -> cell##.colSpan := i) span;
+    Style.set ?width cell;
+    Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text));
     {page; root = cell}
 
   let root t = 
@@ -38,6 +49,7 @@ module Row = struct
 
   type t = {
     page : Page.t;
+    size : int;
     root : root Js.t;
   }
 
@@ -54,10 +66,13 @@ module Row = struct
             Html.window##.location##.href := js href;
             Lwt.return ()))
     end;
-    {page; root = row}
+    {page; size = List.length cells; root = row}
 
   let root t = 
     t.root
+
+  let size t = 
+    t.size
 
 end
 
@@ -80,13 +95,21 @@ let clear t =
     let child = Js.Opt.get t.root##.firstChild (fun () -> assert false) in
     t.root##removeChild child |> ignore
   done;
-  Dom.appendChild t.root (Row.root t.header)
+  add t t.header
 
 let create ~header ~contents page =
   let root = Html.createTable (Page.document page) in
   let table = {page; root; header} in
-  let loading = Row.create ~cells:[Cell.text ~text:"Loading..." page] page in
+  let loading = 
+    Row.create 
+      ~cells:[
+        Cell.text ~span:(Row.size header) ~text:(Lwt.return "Loading...") page] 
+      page 
+  in
+  add table header;
   add table loading;
+  root##.classList##add (js "separated-table");
+  (Row.root header)##.classList##add (js "table-header");
   Lwt.on_success contents (fun contents ->
     clear table;
     List.iter (add table) contents);

@@ -94,3 +94,7 @@ a:hover, a:active {
 ul {
   margin-bottom: 1rem;
 }
+
+table {
+  border-collapse: collapse;
+}
