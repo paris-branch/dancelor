@@ -1,6 +1,8 @@
 type key = string
 type query = (key * string list) list
 
+val query_strings_opt : query -> key -> string list option Lwt.t
+
 val query_strings : ?or_:string list -> query -> key -> string list Lwt.t
 (** Looks for a string associated to the given key in the query. If the key is
     absent, returns [or_] if provided or fails with [EntityDoesNotExist]. *)

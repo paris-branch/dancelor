@@ -5,7 +5,7 @@ let (||>) f g x = f x |> g
 let pf = Format.printf
 let epf = Format.eprintf
 let fpf = Format.fprintf
-(* let spf = Format.sprintf *)
+let spf = Format.sprintf
 
 let ssf = Scanf.sscanf
 
@@ -33,8 +33,6 @@ let escape_shell_argument =
 let catch_and_wrap f =
   try Some (f ()) with _ -> None
 
-let spf = Format.sprintf
-
 let pp_string_multiline fmt s =
   match String.split_on_char '\n' s with
   | [] -> ()
@@ -48,3 +46,7 @@ let to_string_of_pp pp x =
   let fmt = Format.formatter_of_buffer buf in
   Format.fprintf fmt "%a@?" pp x;
   Buffer.contents buf
+
+let max_l = function
+  | [] -> failwith "NesPervasives.max_l"
+  | h :: q -> List.fold_left max h q

@@ -8,11 +8,7 @@ val arranger : t -> Credit.t option Lwt.t
 val get : t NesSlug.t -> t Lwt.t
 
 val get_all :
-  ?kind:Kind.base ->
-  ?keys:Music.key list ->
-  ?mode:Music.mode ->
-  ?name:string ->
-  ?author:string ->
+  ?search:string list ->
   ?threshold:float ->
   ?hard_limit:int ->
   unit -> t Score.t list Lwt.t

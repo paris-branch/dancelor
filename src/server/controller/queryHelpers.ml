@@ -7,6 +7,11 @@ type query = (key * string list) list
 let bad_query message =
   Lwt.fail (Exn (BadQuery message))
 
+let query_strings_opt query key =
+  match List.assoc_opt key query with
+  | Some strings -> Lwt.return_some strings
+  | None -> Lwt.return_none
+
 let query_strings ?or_ query key =
   match List.assoc_opt key query with
   | Some strings -> Lwt.return strings
