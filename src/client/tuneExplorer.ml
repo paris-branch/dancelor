@@ -19,6 +19,8 @@ let create page =
   let title = Html.createH1 document in
   title##.textContent := Js.some (js "All Tunes");
   Dom.appendChild content title;
+  Dom.appendChild content (Html.createHr document);
+  Dom.appendChild content (Html.createBr document);
   let search_div = Html.createDiv document in
   let key_section_header = Html.createB document in
   key_section_header##.textContent := Js.some (js "Filter by key:");
@@ -51,6 +53,7 @@ let create page =
     Dom.appendChild kinds (Buttons.Toggle.root b))
     ["Reel"; "Strathspey"; "Jig"; "Waltz"];
   Dom.appendChild search_div kinds;
+  Dom.appendChild search_div (Html.createBr document);
   let bars_section_header = Html.createB document in
   bars_section_header##.textContent := Js.some (js "Filter by length:");
   Dom.appendChild search_div bars_section_header;
