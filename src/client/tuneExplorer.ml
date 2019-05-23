@@ -19,6 +19,51 @@ let create page =
   let title = Html.createH1 document in
   title##.textContent := Js.some (js "All Tunes");
   Dom.appendChild content title;
+  let search_div = Html.createDiv document in
+  let key_section_header = Html.createB document in
+  key_section_header##.textContent := Js.some (js "Filter by key:");
+  Dom.appendChild search_div key_section_header;
+  let line1 = Html.createDiv document in
+  List.iter (fun text ->
+    let id = Printf.sprintf "button_%s" text in
+    let b = Buttons.Toggle.create ~id ~text ~on_change:(fun _ -> ()) page in
+    Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
+    Dom.appendChild line1 (Buttons.Toggle.root b))
+    ["C"; "G"; "D"; "A"; "E"; "B"; "F#"; "C#"; "F"; "Bb"; "Eb"; "Ab"; "Db"];
+  Dom.appendChild search_div line1;
+  let line2 = Html.createDiv document in
+  List.iter (fun text ->
+    let id = Printf.sprintf "button_%s" text in
+    let b = Buttons.Toggle.create ~id ~text ~on_change:(fun _ -> ()) page in
+    Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
+    Dom.appendChild line2 (Buttons.Toggle.root b))
+    ["Am"; "Em"; "Bm"; "F#m"; "C#m"; "G#m"; "D#m"; "A#m"; "Dm"; "Gm"; "Cm"; "Fm"; "Bbm"];
+  Dom.appendChild search_div line2;
+  Dom.appendChild search_div (Html.createBr document);
+  let kind_section_header = Html.createB document in
+  kind_section_header##.textContent := Js.some (js "Filter by kind:");
+  Dom.appendChild search_div kind_section_header;
+  let kinds = Html.createDiv document in
+  List.iter (fun text ->
+    let id = Printf.sprintf "button_%s" text in
+    let b = Buttons.Toggle.create ~id ~text ~on_change:(fun _ -> ()) page in
+    Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
+    Dom.appendChild kinds (Buttons.Toggle.root b))
+    ["Reel"; "Strathspey"; "Jig"; "Waltz"];
+  Dom.appendChild search_div kinds;
+  let bars_section_header = Html.createB document in
+  bars_section_header##.textContent := Js.some (js "Filter by length:");
+  Dom.appendChild search_div bars_section_header;
+  let bars = Html.createDiv document in
+  List.iter (fun text ->
+    let id = Printf.sprintf "button_%s" text in
+    let b = Buttons.Toggle.create ~id ~text ~on_change:(fun _ -> ()) page in
+    Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
+    Dom.appendChild bars (Buttons.Toggle.root b))
+    ["32 Bars"; "40 Bars"; "48 Bars"; "64 Bars"];
+  Dom.appendChild search_div bars;
+  Dom.appendChild content search_div;
+  Dom.appendChild content (Html.createBr document);
   let header = 
     Table.Row.create 
       ~cells:[

@@ -102,8 +102,52 @@ ul {
 
 table {
   border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  padding: 2px;
+}
+
+tr:hover {
+  background: #eee;
+}
+
+.separated-table tr {
+  border-width: 1px 0 1px 0;
+  border-style: solid;
+  border-color: #ced4da;
+}
+
+tr.table-header {
+  font-weight: bold;
+  background-color: #eeeeee;
+  border-width: 2px 0 2px 0;
+  border-style: solid;
+  border-color: #ced4da;
+}
+
+tr {
+  height: 35px;
+}
+
+.no-selection {
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
 }
 
 .clickable {
   cursor: pointer;
+}
+
+.toggle-button {
+  display: inline-block;
+  text-align: center;
+  background-color: #eeeeee;
+}
+
+.toggle-button input {
+  display: none;
 }

@@ -4,8 +4,10 @@ module Html = Dom_html
 
 let js = Js.string
 
-let set_style ?width decl = 
-  NesOption.ifsome (fun w -> decl##.width := js w) width
+let set_style ?width ?color ?margin (decl : Html.cssStyleDeclaration Js.t) = 
+  NesOption.ifsome (fun w -> decl##.width := js w) width;
+  NesOption.ifsome (fun c -> decl##.backgroundColor := js c) color;
+  NesOption.ifsome (fun m -> decl##.margin := js m) margin
 
-let set ?width elt = 
-  set_style ?width elt##.style
+let set ?width ?color ?margin elt = 
+  set_style ?width ?color ?margin elt##.style
