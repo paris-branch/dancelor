@@ -12,6 +12,10 @@ let arranger t =
     let%lwt arranger = Dancelor_server_database.Credit.get arranger in
     Lwt.return_some arranger
 
+let dances t =
+  let%lwt dances = dances t in
+  Lwt_list.map_s Dancelor_server_database.Dance.get dances
+
 (* * *)
 
 let get = Dancelor_server_database.Tune.get

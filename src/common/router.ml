@@ -6,6 +6,8 @@ type controller =
 
   | Credit of Credit.t Slug.t
 
+  | Dance of Dance.t Slug.t
+
   | Pascaline
 
   | Person of Person.t Slug.t
@@ -101,6 +103,12 @@ let routes : route list =
       ~prefix:"/credit"
       (fun credit -> Some (Credit credit))
       (function Credit credit -> Some credit | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/dance"
+      (fun dance -> Some (Dance dance))
+      (function Dance dance -> Some dance | _ -> None) ;
 
     direct
       ~meth:`GET

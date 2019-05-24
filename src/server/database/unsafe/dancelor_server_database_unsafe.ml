@@ -18,6 +18,15 @@ module Credit = Generic.Make
       let separated_files = []
     end)
 
+module Dance = Generic.Make
+    (val Log.create "server.database.unsafe.dance" : Logs.LOG)
+    (struct
+      include Dancelor_common_model.Dance
+
+      let prefix = "dance"
+      let separated_files = []
+    end)
+
 module Tune = Generic.Make
     (val Log.create "server.database.unsafe.tune" : Logs.LOG)
     (struct

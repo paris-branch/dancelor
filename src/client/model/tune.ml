@@ -19,6 +19,16 @@ let arranger t =
     in
     Lwt.return_some c
 
+let dances t =
+  let%lwt dances = dances t in
+  Lwt_list.map_p
+    (fun slug ->
+       Dancelor_client_api.request
+         ~route:(Dancelor_common.Router.Dance slug)
+         ~reader:Dance.of_yojson
+         ())
+    dances
+
 (* * *)
 
 let get slug =

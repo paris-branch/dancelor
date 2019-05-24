@@ -2,4 +2,10 @@ type t =
   { slug : t NesSlug.t ;
     name : string ;
     kind : Kind.dance ;
-    credit : Credit.t NesSlug.t }
+    deviser : Credit.t NesSlug.t option }
+[@@deriving yojson]
+
+let slug d = Lwt.return d.slug
+let name d = Lwt.return d.name
+let kind d = Lwt.return d.kind
+let deviser d = Lwt.return d.deviser

@@ -2,6 +2,7 @@ include (module type of Tune)
 
 val group : t -> TuneGroup.t Lwt.t
 val arranger : t -> Credit.t option Lwt.t
+val dances : t -> Dance.t list Lwt.t
 
 (** {2 Getters and setters} *)
 

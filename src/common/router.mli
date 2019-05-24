@@ -13,6 +13,8 @@ type controller =
 
   | Credit of Credit.t Slug.t
 
+  | Dance of Dance.t Slug.t
+
   | Pascaline
 
   | Person of Person.t Slug.t

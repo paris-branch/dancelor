@@ -4,6 +4,7 @@
  (modules_without_implementation
   personExtended
   creditExtended
+  danceExtended
   tuneGroupExtended
   tuneExtended
   setExtended
