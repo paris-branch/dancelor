@@ -1,4 +1,5 @@
 open Js_of_ocaml
+open Js_of_ocaml_lwt
 
 module Html = Dom_html
 
@@ -26,7 +27,7 @@ module Toggle = struct
     root##.classList##add (js "no-selection");
     Lwt.async (fun () ->
       Lwt_js_events.changes box
-        (fun _ev _ -> 
+        (fun _ev _ ->
           if Js.to_bool box##.checked then begin
             Style.set ~color:"#ced4da" root;
             on_change true
@@ -37,16 +38,16 @@ module Toggle = struct
           Lwt.return ()));
     {page; root; box}
 
-  let disable t = 
+  let disable t =
     t.box##.disabled := Js._true
 
-  let enable t = 
+  let enable t =
     t.box##.disabled := Js._false
 
-  let checked t = 
+  let checked t =
     t.box##.checked
 
-  let root t = 
+  let root t =
     t.root
 
 
