@@ -27,7 +27,7 @@ depends: [
   "ocaml"                    {build}
   "ppx_deriving"
   "ppx_inline_test"          {build | with-test}
-  "ppx_protocol_conv_jsonm"
+  "ppx_protocol_conv_jsonm"  {< "5.0.0"}
   "yojson"
   "js_of_ocaml"
   "js_of_ocaml-lwt"
