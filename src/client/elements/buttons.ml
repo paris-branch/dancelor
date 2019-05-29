@@ -25,14 +25,17 @@ module Toggle = struct
     root##.classList##add (js "toggle-button");
     root##.classList##add (js "clickable");
     root##.classList##add (js "no-selection");
+    root##.classList##add (js "unchecked");
     Lwt.async (fun () ->
       Lwt_js_events.changes box
         (fun _ev _ ->
           if Js.to_bool box##.checked then begin
-            Style.set ~color:"#ced4da" root;
+            root##.classList##add (js "checked");
+            root##.classList##remove (js "unchecked");
             on_change true
           end else begin
-            Style.set ~color:"#eeeeee" root;
+            root##.classList##add (js "unchecked");
+            root##.classList##remove (js "checked");
             on_change false
           end;
           Lwt.return ()));

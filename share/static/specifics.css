@@ -42,6 +42,14 @@ tbody tr:hover, tbody tr:focus {
   display: none;
 }
 
+.toggle-button.checked {
+  background-color: #ced4da;
+}
+
+.toggle-button.unchecked {
+  background-color: #eeeeee;
+}
+
 @media only screen and (max-width: 767px) {
   thead tr th:not(:first-child) {
     display: none;
