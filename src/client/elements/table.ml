@@ -81,35 +81,38 @@ type root = Html.tableElement
 type t = {
   page : Page.t;
   root : root Js.t;
-  header : Row.t;
+  head : Html.tableSectionElement Js.t;
+  body : Html.tableSectionElement Js.t;
 }
 
 let root t = 
   t.root
 
 let add t tr = 
-  Dom.appendChild t.root (Row.root tr)
+  Dom.appendChild t.body (Row.root tr)
 
 let clear t = 
-  while Js.to_bool t.root##hasChildNodes do
-    let child = Js.Opt.get t.root##.firstChild (fun () -> assert false) in
-    t.root##removeChild child |> ignore
-  done;
-  add t t.header
+  while Js.to_bool t.body##hasChildNodes do
+    let child = Js.Opt.get t.body##.firstChild (fun () -> assert false) in
+    t.body##removeChild child |> ignore
+  done
 
 let create ~header ~contents page =
   let root = Html.createTable (Page.document page) in
-  let table = {page; root; header} in
+  let head = Html.createThead (Page.document page) in
+  let body = Html.createTbody (Page.document page) in
+  let table = {page; root; head; body} in
+  Dom.appendChild root head;
+  Dom.appendChild root body;
+  Dom.appendChild head (Row.root header);
   let loading = 
     Row.create 
       ~cells:[
         Cell.text ~span:(Row.size header) ~text:(Lwt.return "Loading...") page] 
       page 
   in
-  add table header;
   add table loading;
   root##.classList##add (js "separated-table");
-  (Row.root header)##.classList##add (js "table-header");
   Lwt.on_success contents (fun contents ->
     clear table;
     List.iter (add table) contents);

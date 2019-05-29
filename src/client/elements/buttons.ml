@@ -23,7 +23,7 @@ module Toggle = struct
     Dom.appendChild root box;
     root##.htmlFor := js id;
     root##.classList##add (js "toggle-button");
-    root##.classList##add (js ".clickable");
+    root##.classList##add (js "clickable");
     root##.classList##add (js "no-selection");
     Lwt.async (fun () ->
       Lwt_js_events.changes box
