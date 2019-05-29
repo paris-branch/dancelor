@@ -70,7 +70,7 @@ let create page =
   let header = 
     Table.Row.create 
       ~cells:[
-        Table.Cell.header_text ~width:"45%" ~text:(Lwt.return "Name") page;
+        Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Tunes") ~text:(Lwt.return "Name") page;
         Table.Cell.header_text ~text:(Lwt.return "Kind") page;
         Table.Cell.header_text ~text:(Lwt.return "Key") page;
         Table.Cell.header_text ~text:(Lwt.return "Structure") page;

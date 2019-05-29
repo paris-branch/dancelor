@@ -31,11 +31,23 @@ module Cell = struct
     Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text));
     {page; root = cell}
 
-  let header_text ?width ?span ~text page = 
+  let header_text ?width ?span ?alt ~text page = 
     let cell = Html.createTh (Page.document page) in
     NesOption.ifsome (fun i -> cell##.colSpan := i) span;
     Style.set ?width cell;
-    Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text));
+    begin match alt with
+    | None -> 
+      Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text))
+    | Some alt -> 
+      let span_main = Html.createSpan (Page.document page) in
+      let span_alt = Html.createSpan (Page.document page) in
+      Lwt.on_success text (fun text -> span_main##.textContent := Js.some (js text));
+      Lwt.on_success alt (fun text -> span_alt##.textContent := Js.some (js text));
+      span_main##.classList##add (js "full-content");
+      span_alt##.classList##add (js "collapse-content");
+      Dom.appendChild cell span_main;
+      Dom.appendChild cell span_alt;
+    end;
     {page; root = cell}
 
   let root t = 

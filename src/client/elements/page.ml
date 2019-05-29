@@ -35,4 +35,5 @@ let set_contents t contents =
   | Some c -> Dom.replaceChild t.body c contents
   end;
   contents##.classList##add (js "content");
+  contents##.classList##add (js "page-body");
   t.content <- Some contents
