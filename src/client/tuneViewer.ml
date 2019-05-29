@@ -35,14 +35,14 @@ let create page slug =
   Dom.appendChild content (Text.Paragraph.root kind);
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
-  let png = 
+  let source = 
     Printf.sprintf "/%s%s" 
       Constant.api_prefix 
       (Router.path_of_controller (Router.TunePng slug) |> snd) 
+    |> Lwt.return
   in
-  let img = Html.createImg document in
-  img##.src := js png;
-  Dom.appendChild content img;
+  let img = Image.create ~source page in
+  Dom.appendChild content (Image.root img);
   {page; content}
 
 let contents t =

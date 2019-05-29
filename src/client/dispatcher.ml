@@ -23,6 +23,14 @@ let get_contents page =
     TuneExplorer.contents (TuneExplorer.create page)
   | ["tune";slug] -> 
     TuneViewer.contents (TuneViewer.create page slug)
+  | ["set";"all"] -> 
+    SetExplorer.contents (SetExplorer.create page)
+  | ["set";slug] -> 
+    SetViewer.contents (SetViewer.create page slug)
+  | ["program";"all"] -> 
+    ProgramExplorer.contents (ProgramExplorer.create page)
+  | ["program";slug] -> 
+    ProgramViewer.contents (ProgramViewer.create page slug)
   | [] ->
     Index.contents (Index.create ())
   | _ -> 

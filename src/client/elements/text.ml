@@ -49,3 +49,23 @@ module Paragraph = struct
     t.root
 
 end
+
+module Link = struct
+
+  type root = Html.anchorElement
+
+  type t = {
+    page : Page.t;
+    root : root Js.t;
+  }
+
+  let create ~href ~text page = 
+    let link = Html.createA (Page.document page) in
+    Lwt.on_success text (fun text -> link##.textContent := Js.some (js text));
+    Lwt.on_success href (fun href -> link##.href := js href);
+    {page; root = link}
+
+  let root t = 
+    t.root
+
+end
