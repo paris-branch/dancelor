@@ -16,8 +16,6 @@ let on_load _ev =
   Page.set_header page (Header.contents header);
   let contents = Dispatcher.get_contents page in
   Page.set_contents page contents;
-  let footer = Footer.create () in
-  Page.set_footer page (Footer.contents footer);
   Js._false
 
 let _ =
