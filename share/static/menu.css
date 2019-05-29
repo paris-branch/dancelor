@@ -1,6 +1,6 @@
 header {
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
-  background: #640000;
+  background: #960010;
   border-bottom: 1px solid black;
   margin-bottom: 20px;
 }
@@ -25,7 +25,7 @@ header a {
 }
 
 header a:hover, header a:focus {
-  background: #960000;
+  background: #b60008;
   text-shadow: 0 0 .1rem #ffffff;
 }
 

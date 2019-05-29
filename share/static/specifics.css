@@ -19,15 +19,16 @@ thead, tbody {
 
 thead tr {
   font-weight: bold;
-  background: #eeeeee;
+  background: #960010;
+  color: white;
 }
 
 tbody tr:nth-child(even) {
-  background: #f8f8f8;
+  background: #fff8f8;
 }
 
 tbody tr:hover, tbody tr:focus {
-  background: #eeeeee;
+  background: #ddc8c8;
 }
 
 .toggle-button {
@@ -42,7 +43,7 @@ tbody tr:hover, tbody tr:focus {
 }
 
 @media only screen and (max-width: 767px) {
-  thead {
+  thead tr th:not(:first-child) {
     display: none;
   }
   tbody tr td:first-child {
