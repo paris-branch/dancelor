@@ -9,19 +9,15 @@ type t =
   document : Html.document Js.t;
   body : Html.bodyElement Js.t;
   header : Html.element Js.t;
-  content : Html.divElement Js.t;
+  mutable content : (Html.divElement Js.t) option;
 }
 
 let create () =
   let document = Html.window##.document in
   let body = document##.body in
   let header = document##createElement (js "header") in
-  let content = Html.createDiv document in
-  content##.id := js "content";
-  content##.classList##add (js "content");
   Dom.appendChild body header;
-  Dom.appendChild body content;
-  {document; body; header; content}
+  {document; body; header; content = None}
 
 let document t =
   t.document
@@ -34,8 +30,9 @@ let set_header t contents =
   Dom.appendChild t.header contents
 
 let set_contents t contents =
-  while Js.to_bool t.content##hasChildNodes do
-    let child = Js.Opt.get t.content##.firstChild (fun () -> assert false) in
-    t.content##removeChild child |> ignore
-  done;
-  Dom.appendChild t.content contents
+  begin match t.content with
+  | None -> Dom.appendChild t.body contents
+  | Some c -> Dom.replaceChild t.body c contents
+  end;
+  contents##.classList##add (js "content");
+  t.content <- Some contents
