@@ -43,7 +43,7 @@ header a#to_nav:hover, header a#to_nav:focus {
 
 header ul#nav {
   clear: both;
-  display: block;
+  display: none;
 }
 
 @media only screen and (max-width: 767px) {
