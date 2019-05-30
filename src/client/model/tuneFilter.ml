@@ -9,3 +9,7 @@ let make ?group_author ?group_kind ?key ?bars () =
       Lwt.return_some group_author
   in
   make ?group_author ?group_kind ?key ?bars ()
+
+let group_author f =
+  let%lwt author = group_author f in
+  Lwt_list.map_s Credit.get author

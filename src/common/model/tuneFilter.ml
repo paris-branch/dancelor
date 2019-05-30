@@ -9,3 +9,8 @@ type t =
 
 let make ?group_author ?group_kind ?key ?bars () =
   Lwt.return (make ?group_author ?group_kind ?key ?bars ())
+
+let group_author f = Lwt.return f.group_author
+let group_kind f = Lwt.return f.group_kind
+let key f = Lwt.return f.key
+let bars f = Lwt.return f.bars

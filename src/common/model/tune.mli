@@ -14,6 +14,5 @@ val dances : t -> Dance.t Slug.t list Lwt.t
 val remark : t -> string Lwt.t
 val disambiguation : t -> string Lwt.t
 
-
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
