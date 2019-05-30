@@ -25,8 +25,10 @@ let create page =
     Dom.appendChild toggle icon;
     toggle
   in
-  let title = Html.createH1 document in
-  title##.textContent := Js.some (js "Dancelor");
+  let title = 
+    Text.Heading.h1 ~text:(Lwt.return "Dancelor") page
+    |> Text.Link.h1 ~href:(Lwt.return "/")
+  in
   let menu = Html.createUl document in
   menu##.id := js "nav";
   Lwt.async (fun () ->
@@ -39,7 +41,7 @@ let create page =
           Style.set ~display:"none" menu;
         Lwt.return ()));
   Dom.appendChild content menu_toggle;
-  Dom.appendChild content title;
+  Dom.appendChild content (Text.Link.root title);
   Dom.appendChild content menu;
   {page; content; menu}
 

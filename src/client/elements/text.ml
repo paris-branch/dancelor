@@ -65,6 +65,13 @@ module Link = struct
     Lwt.on_success href (fun href -> link##.href := js href);
     {page; root = link}
 
+  let h1 ~href h1 = 
+    let page = h1.Heading.page in
+    let link = Html.createA (Page.document page) in
+    Lwt.on_success href (fun href -> link##.href := js href);
+    Dom.appendChild link (Heading.root h1);
+    {page; root = link}
+
   let root t = 
     t.root
 
