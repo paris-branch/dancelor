@@ -27,6 +27,7 @@ type controller =
   | TuneGroup of TuneGroup.t Slug.t
 
   | TuneAll
+  | TuneSearch
   | TuneLy of Tune.t Slug.t
   | TunePng of Tune.t Slug.t
   | Tune of Tune.t Slug.t
@@ -190,6 +191,11 @@ let routes : route list =
       ~meth:`GET
       ~path:"/tune/all"
       TuneAll ;
+
+    direct
+      ~meth:`GET
+      ~path:"/tune/search"
+      TuneSearch ;
 
     with_slug
       ~meth:`GET

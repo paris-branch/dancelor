@@ -18,3 +18,6 @@ module TuneGroup = TuneGroup
 module Tune      = Tune
 module Set       = Set
 module Program   = Program
+
+module TuneFilter = TuneFilter
+module Pagination = Pagination

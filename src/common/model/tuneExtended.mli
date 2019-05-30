@@ -8,8 +8,5 @@ val dances : t -> Dance.t list Lwt.t
 
 val get : t NesSlug.t -> t Lwt.t
 
-val get_all :
-  ?search:string list ->
-  ?threshold:float ->
-  ?hard_limit:int ->
-  unit -> t Score.t list Lwt.t
+val all : ?filter:TuneFilter.t -> ?pagination:Pagination.t -> unit -> t list Lwt.t
+(* FIXME: search *)

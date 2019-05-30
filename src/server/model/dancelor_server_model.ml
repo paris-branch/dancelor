@@ -12,3 +12,6 @@ module TuneGroup : Common.TUNEGROUP = TuneGroup
 module Tune      : Common.TUNE      = Tune
 module Set       : Common.SET       = Set
 module Program   : Common.PROGRAM   = Program
+
+module TuneFilter = TuneFilter
+module Pagination = Pagination

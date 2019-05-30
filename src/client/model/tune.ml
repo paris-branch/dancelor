@@ -37,13 +37,12 @@ let get slug =
     ~reader:of_yojson
     ()
 
-let get_all ?search ?threshold ?hard_limit () =
+let all ?filter ?pagination () =
   Dancelor_client_api.request
     ~route:Dancelor_common.Router.TuneAll
-    ~reader:Dancelor_common.(Unserializer.list (Dancelor_common_model.Score.of_yojson of_yojson))
+    ~reader:Dancelor_common.(Unserializer.list of_yojson)
     ~query:(
-      (match search with None -> [] | Some search -> ["search", search])
-      @ (match threshold with None -> [] | Some threshold -> ["threshold", [string_of_float threshold]])
-      @ (match hard_limit with None -> [] | Some hard_limit -> ["hard_limit", [string_of_int hard_limit]])
+      (match filter with Some filter -> ["filter", [NesJson.to_string (TuneFilter.to_yojson filter)]] | _ -> [])
+      @ (match pagination with Some pagination -> ["pagination", [NesJson.to_string (Pagination.to_yojson pagination)]] | _ -> [])
     )
     ()

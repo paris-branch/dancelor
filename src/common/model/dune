@@ -17,5 +17,6 @@
   (pps
    lwt_ppx
    ppx_inline_test
-   ppx_deriving_yojson))
+   ppx_deriving_yojson
+   ppx_deriving.std))
  (inline_tests))

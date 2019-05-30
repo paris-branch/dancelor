@@ -11,12 +11,25 @@ let get_ly tune _ =
   let%lwt body = Tune.content tune in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
-let get_all : Tune.t Score.t list Controller.t = fun query ->
-  Log.debug (fun m -> m "controller get_all");
-  let%lwt search = query_strings_opt query "search" in
-  let%lwt hard_limit = query_int_opt query "hard-limit"  in
-  let%lwt threshold = query_float_opt query "threshold" in
-  Tune.get_all ?search ?hard_limit ?threshold ()
+let all query =
+  let%lwt filter = query_string query "filter" in
+  let filter = TuneFilter.of_yojson (Yojson.Safe.from_string filter) in
+  let%lwt filter =
+    match filter with
+    | Ok filter -> Lwt.return filter
+    | Error msg -> Lwt.fail Dancelor_common.Error.(Exn (BadQuery msg))
+  in
+  let%lwt pagination = query_string query "pagination" in
+  let pagination = Pagination.of_yojson (Yojson.Safe.from_string pagination) in
+  let%lwt pagination =
+    match pagination with
+    | Ok pagination -> Lwt.return pagination
+    | Error msg -> Lwt.fail Dancelor_common.Error.(Exn (BadQuery msg))
+  in
+  Tune.all ~filter ~pagination ()
+
+let search _query =
+  assert false (* FIXME *)
 
 module Png = struct
   let cache : (Tune.t, string Lwt.t) Cache.t = Cache.create ()

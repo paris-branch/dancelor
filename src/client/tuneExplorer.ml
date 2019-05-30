@@ -7,13 +7,13 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
 }
 
-let create page = 
+let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let title = Html.createH1 document in
@@ -67,26 +67,29 @@ let create page =
   Dom.appendChild search_div bars;
   Dom.appendChild content search_div;
   Dom.appendChild content (Html.createBr document);
-  let header = 
-    Table.Row.create 
+  let header =
+    Table.Row.create
       ~cells:[
         Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Tunes") ~text:(Lwt.return "Name") page;
         Table.Cell.header_text ~text:(Lwt.return "Kind") page;
         Table.Cell.header_text ~text:(Lwt.return "Key") page;
         Table.Cell.header_text ~text:(Lwt.return "Structure") page;
-        Table.Cell.header_text ~width:"30%" ~text:(Lwt.return "Author") page] 
+        Table.Cell.header_text ~width:"30%" ~text:(Lwt.return "Author") page]
       page
   in
-  let rows = 
-    let%lwt tunes = Tune.get_all () in
-    Lwt.return (List.map (fun score -> 
-      let tune = Score.value score in
-      let href = 
+  let rows =
+    let%lwt tunes =
+      let%lwt filter = TuneFilter.make () in
+      let pagination = Pagination.make () in
+      Tune.all ~filter ~pagination ()
+    in
+    Lwt.return (List.map (fun tune ->
+      let href =
         let%lwt slug = Tune.slug tune in
-        Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd) 
+        Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
       in
-      let cells = 
-        let group = Tune.group tune in 
+      let cells =
+        let group = Tune.group tune in
         let open Lwt in [
         Table.Cell.link ~href ~text:(group >>= TuneGroup.name) page;
         Table.Cell.text ~text:(group >>= Formatters.Kind.full_string tune) page;

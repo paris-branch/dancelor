@@ -66,7 +66,7 @@ let apply_controller = let open Dancelor_common.Router in function
     | ProgramPdf program -> Program.Pdf.get program
     | Program program -> apply_controller (Program.get program) Dancelor_server_model.Program.to_yojson
 
-    | SetAll -> apply_controller Set.get_all (list_serializer Dancelor_server_model.Set.to_yojson) (* FIXME: list of *)
+    | SetAll -> apply_controller Set.get_all (list_serializer Dancelor_server_model.Set.to_yojson)
     | SetSave -> apply_controller Set.save Dancelor_server_model.Set.to_yojson
     | SetLy set -> Set.Ly.get set
     | SetPdf set -> Set.Pdf.get set
@@ -75,7 +75,8 @@ let apply_controller = let open Dancelor_common.Router in function
 
     | TuneGroup tune_group -> apply_controller (TuneGroup.get tune_group) Dancelor_server_model.TuneGroup.to_yojson
 
-    | TuneAll -> apply_controller Tune.get_all (list_serializer Dancelor_server_model.(Score.to_yojson Tune.to_yojson)) (* FIXME: list of *)
+    | TuneAll -> apply_controller Tune.all (list_serializer Dancelor_server_model.Tune.to_yojson)
+    | TuneSearch -> apply_controller Tune.search (list_serializer Dancelor_server_model.Tune.to_yojson) (* FIXME: score *)
     | TuneLy tune -> Tune.get_ly tune
     | TunePng tune -> Tune.Png.get tune
     | Tune tune -> apply_controller (Tune.get tune) Dancelor_server_model.Tune.to_yojson

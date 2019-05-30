@@ -34,6 +34,7 @@ type controller =
   | TuneGroup of TuneGroup.t Slug.t
 
   | TuneAll
+  | TuneSearch
   | TuneLy of Tune.t Slug.t
   | TunePng of Tune.t Slug.t
   | Tune of Tune.t Slug.t
