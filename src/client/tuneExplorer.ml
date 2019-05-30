@@ -96,28 +96,28 @@ let fill_search t =
   List.iter (fun key ->
     let key = (key, Music.Major) in
     let text = Music.pprint_key key in
-    let id = Printf.sprintf "button_%s" text in
+    let id = Printf.sprintf "button_%s" (Music.key_to_slug key) in
     let on_change active =
       if active then update_filter t (TuneFilter.add_key key)
       else update_filter t (TuneFilter.remove_key key)
     in
-    let b = Buttons.Toggle.create ~id ~text ~on_change t.page in
-    Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
-    Dom.appendChild line1 (Buttons.Toggle.root b))
+    let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+    Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+    Dom.appendChild line1 (Inputs.Toggle.root b))
     major_keys;
   Dom.appendChild t.search_div line1;
   let line2 = Html.createDiv document in
   List.iter (fun key ->
     let key = (key, Music.Minor) in
     let text = Music.pprint_key key in
-    let id = Printf.sprintf "button_%s" text in
+    let id = Printf.sprintf "button_%s" (Music.key_to_slug key) in
     let on_change active =
       if active then update_filter t (TuneFilter.add_key key)
       else update_filter t (TuneFilter.remove_key key)
     in
-    let b = Buttons.Toggle.create ~id ~text ~on_change t.page in
-    Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
-    Dom.appendChild line2 (Buttons.Toggle.root b))
+    let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+    Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+    Dom.appendChild line2 (Inputs.Toggle.root b))
     minor_keys;
   Dom.appendChild t.search_div line2;
   Dom.appendChild t.search_div (Html.createBr document);
@@ -132,9 +132,9 @@ let fill_search t =
       if active then update_filter t (TuneFilter.add_kind kind)
       else update_filter t (TuneFilter.remove_kind kind)
     in
-    let b = Buttons.Toggle.create ~id ~text ~on_change t.page in
-    Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
-    Dom.appendChild kinds_div (Buttons.Toggle.root b))
+    let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+    Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+    Dom.appendChild kinds_div (Inputs.Toggle.root b))
     kinds;
   Dom.appendChild t.search_div kinds_div;
   Dom.appendChild t.search_div (Html.createBr document);
@@ -144,14 +144,14 @@ let fill_search t =
   let bars = Html.createDiv document in
   List.iter (fun n_bars ->
     let text = Printf.sprintf "%d Bars" n_bars in
-    let id = Printf.sprintf "button_%s" text in
+    let id = Printf.sprintf "button_%dbars" n_bars in
     let on_change active =
       if active then update_filter t (TuneFilter.add_bars n_bars)
       else update_filter t (TuneFilter.remove_bars n_bars)
     in
-    let b = Buttons.Toggle.create ~id ~text ~on_change t.page in
-    Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Buttons.Toggle.root b);
-    Dom.appendChild bars (Buttons.Toggle.root b))
+    let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+    Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+    Dom.appendChild bars (Inputs.Toggle.root b))
     lengths;
   Dom.appendChild t.search_div bars
 
@@ -176,7 +176,7 @@ let create page =
         Table.Cell.header_text ~width:"30%" ~text:(Lwt.return "Author") page]
       page
   in
-  let table = Table.create ~header page in
+  let table = Table.create ~kind:Table.Kind.Separated ~header page in
   Dom.appendChild content (Table.root table);
   let t = {page; content; search_div; search; table} in
   fill_search t;

@@ -25,6 +25,8 @@ let get_contents page =
     TuneViewer.contents (TuneViewer.create page slug)
   | ["set";"all"] ->
     SetExplorer.contents (SetExplorer.create page)
+  | ["set";"compose"] ->
+    ComposerInterface.contents (ComposerInterface.create page)
   | ["set";slug] ->
     SetViewer.contents (SetViewer.create page slug)
   | ["program";"all"] ->

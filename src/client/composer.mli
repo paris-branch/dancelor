@@ -32,6 +32,8 @@ val move_up : t -> int -> unit
 
 val move_down : t -> int -> unit
 
+val iter : t -> (int -> cached_tune -> unit) -> unit
+
 val clear : t -> unit
 
 val save : t -> unit

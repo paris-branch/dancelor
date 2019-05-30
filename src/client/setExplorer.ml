@@ -48,6 +48,7 @@ let create page =
   in
   let table = Table.create
     ~header
+    ~kind:Table.Kind.Separated
     ~contents:rows
     page
   in

@@ -88,6 +88,18 @@ module Row = struct
 
 end
 
+module Kind = struct
+
+  type t = 
+    | Separated
+    | Dropdown
+
+  let to_class = function
+    | Separated -> "separated-table"
+    | Dropdown -> "dropdown-table"
+
+end
+
 type root = Html.tableElement
 
 type t = {
@@ -114,21 +126,39 @@ let replace_rows t rows =
     clear t;
     List.iter (add t) rows)
 
-let create ~header ?contents page =
+let hide t = 
+  t.root##.classList##remove (js "visible")
+
+let show t = 
+  t.root##.classList##add (js "visible")
+
+let set_visible t b = 
+  if b then show t
+  else hide t
+
+let create ?(visible=true) ?header ?contents ?kind page =
   let root = Html.createTable (Page.document page) in
   let head = Html.createThead (Page.document page) in
   let body = Html.createTbody (Page.document page) in
   let table = {page; root; head; body} in
   Dom.appendChild root head;
   Dom.appendChild root body;
-  Dom.appendChild head (Row.root header);
-  let loading = 
-    Row.create 
-      ~cells:[
-        Cell.text ~span:(Row.size header) ~text:(Lwt.return "Loading...") page] 
-      page 
-  in
-  add table loading;
-  root##.classList##add (js "separated-table");
-  NesOption.ifsome (replace_rows table) contents;
+  NesOption.ifsome (fun h -> Dom.appendChild head (Row.root h)) header;
+  NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
+  NesOption.ifsome (fun contents ->
+    let span = 
+      match header with
+      | Some h -> Row.size h
+      | None -> 1
+    in
+    let loading = 
+      Row.create ~cells:[Cell.text ~span ~text:(Lwt.return "Loading...") page] page 
+    in
+    add table loading;
+    replace_rows table contents) contents;
+  set_visible table visible;
   table
+
+let visible t = 
+  t.root##.classList##contains (js "visible")
+  |> Js.to_bool

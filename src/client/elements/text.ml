@@ -25,6 +25,12 @@ module Heading = struct
     Lwt.on_success text (fun text -> h2##.textContent := Js.some (js text));
     {page; root = h2}
 
+  let h3 ~text page = 
+    let h3 = Html.createH1 (Page.document page) in
+    h3##.textContent := Js.some (js "Loading...");
+    Lwt.on_success text (fun text -> h3##.textContent := Js.some (js text));
+    {page; root = h3}
+
   let root t = 
     t.root
 

@@ -85,6 +85,9 @@ let key_of_string str =
 let pprint_key ((n, alt), mode) = 
   Printf.sprintf "%c%s%s" (pprint_note n) (pprint_alteration alt) (pprint_mode mode)
 
+let key_to_slug ((n, alt), mode) = 
+  Printf.sprintf "%c%s%s" (pprint_note n) (alteration_to_string alt) (pprint_mode mode)
+
 let%test _ = let k = ((C, Flat), Minor) in
              key_of_string (key_to_string k) = k
 let%test _ = let k = ((G, Natural), Major) in

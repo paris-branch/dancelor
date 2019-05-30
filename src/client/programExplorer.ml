@@ -43,6 +43,7 @@ let create page =
       Table.Row.create ~href ~cells page) programs)
   in
   let table = Table.create
+    ~kind:Table.Kind.Separated
     ~header
     ~contents:rows
     page
