@@ -13,6 +13,7 @@ type t =
   composer : Composer.t;
   content : Html.divElement Js.t;
   tunes_area : Html.divElement Js.t;
+  search_results : Table.t;
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
 }
@@ -81,6 +82,29 @@ and refresh t =
     Dom.appendChild t.tunes_area (Html.createBr (Page.document t.page));
     Dom.appendChild t.tunes_area subwin)
 
+let make_search_result t score = 
+  let tune = Score.value score in
+  let score = score.Score.score in
+  let%lwt slug = Tune.slug tune in
+  let%lwt bars = Tune.bars tune in
+  let%lwt structure = Tune.structure tune in
+  let%lwt group = Tune.group tune in
+  let%lwt name = TuneGroup.name group in
+  let%lwt kind = TuneGroup.kind group in
+  let row = Table.Row.create 
+    ~on_click:(fun () -> 
+      Table.set_visible t.search_results false;
+      Lwt.on_success (Composer.add t.composer slug) (fun () -> refresh t))
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) t.page;
+      Table.Cell.text ~text:(Lwt.return name) t.page;
+      Table.Cell.text ~text:(Lwt.return (string_of_int bars)) t.page;
+      Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) t.page;
+      Table.Cell.text ~text:(Lwt.return structure) t.page]
+    t.page
+  in
+  Lwt.return row
+
 let create page = 
   let composer = Composer.create () in
   let content = Html.createDiv (Page.document page) in
@@ -106,22 +130,35 @@ let create page =
     ~visible:false
     page
   in
+  let t = {page; composer; content; tunes_area; search_results; input_name; input_kind} in
+  let rec is_child_of c p = 
+    ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) || 
+    (Js.Opt.case c##.parentNode 
+      (fun () -> false)
+      (fun p' -> is_child_of p' p))
+  in
   let search_bar = Inputs.Text.create
     ~default:"Search for a tune"
-    ~on_change:(fun _ -> ())
-    ~on_focus:(fun b -> Table.set_visible search_results b)
+    ~on_change:(fun txt -> 
+      if String.length txt > 2 then begin
+        let tunes = Tune.search ~threshold:0.6 [txt] in
+        Lwt.on_success tunes (fun scores ->
+          NesList.sub 10 scores
+          |> Lwt_list.map_p (make_search_result t)
+          |> Table.replace_rows search_results)
+      end)
+    ~on_focus:(fun b -> if b then Table.set_visible search_results true)
     page
   in
-  let t = {page; composer; content; tunes_area; input_name; input_kind} in
-  let test_button = Inputs.Button.create
-    ~on_click:(fun () -> 
-      let tune_slug = Inputs.Text.contents search_bar in
-      Lwt.on_success 
-        (Composer.add composer tune_slug)
-        (fun () -> refresh t))
-    ~text:"Test"
-    page
-  in
+  Lwt.async (fun () -> Lwt_js_events.clicks (Page.document page)
+    (fun ev _ -> 
+      Js.Opt.case ev##.target 
+        (fun () -> ())
+        (fun trg -> 
+          if not (is_child_of (trg :> Dom.node Js.t) (Table.root search_results :> Dom.node Js.t))
+          && not (is_child_of (trg :> Dom.node Js.t) (Inputs.Text.root search_bar :> Dom.node Js.t)) then 
+            Table.set_visible search_results false); 
+      Lwt.return ()));
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr (Page.document page));
   Dom.appendChild content (Html.createBr (Page.document page));
@@ -132,7 +169,6 @@ let create page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root search_bar);
   Dom.appendChild form (Table.root search_results);
-  Dom.appendChild form (Inputs.Button.root test_button);
   Dom.appendChild content form;
   Lwt.on_success (Composer.load composer) (fun () -> refresh t);
   t

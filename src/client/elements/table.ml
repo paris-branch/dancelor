@@ -65,7 +65,7 @@ module Row = struct
     root : root Js.t;
   }
 
-  let create ?href ~cells page = 
+  let create ?on_click ?href ~cells page = 
     ignore href;
     let row = Html.createTr (Page.document page) in
     List.iter (fun cell -> Cell.root cell |> Dom.appendChild row) cells;
@@ -77,6 +77,14 @@ module Row = struct
         Lwt_js_events.clicks row
           (fun _ev _ ->
             Lwt.map (fun href -> Html.window##.location##.href := js href) href))
+    end;
+    begin match on_click with
+    | None -> ()
+    | Some on_click -> 
+      row##.classList##add (js "clickable");
+      Lwt.async (fun () ->
+        Lwt_js_events.clicks row
+          (fun _ev _ -> on_click (); Lwt.return ()))
     end;
     {page; size = List.length cells; root = row}
 

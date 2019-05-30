@@ -69,7 +69,7 @@ module Text = struct
     NesOption.ifsome (fun t -> root##.placeholder := js t) default;
     NesOption.ifsome (fun cb ->
       Lwt.async (fun () ->
-        Lwt_js_events.changes root
+        Lwt_js_events.inputs root
           (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
       on_change;
     NesOption.ifsome (fun cb ->
