@@ -50,6 +50,10 @@ tbody tr:hover, tbody tr:focus {
   background-color: #eeeeee;
 }
 
+.collapse-content {
+  display: none;
+}
+
 @media only screen and (max-width: 767px) {
   thead tr th:not(:first-child) {
     display: none;
@@ -61,5 +65,11 @@ tbody tr:hover, tbody tr:focus {
     display: inline-block;
     margin-left: 2rem;
     padding: 0;
+  }
+  .collapse-content {
+    display: inline;
+  }
+  .full-content {
+    display: none;
   }
 }
