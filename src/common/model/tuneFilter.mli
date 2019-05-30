@@ -14,3 +14,10 @@ val group_author : t -> Credit.t Slug.t list Lwt.t
 val group_kind : t -> Kind.base list Lwt.t
 val key : t -> Music.key list Lwt.t
 val bars : t -> int list Lwt.t
+
+val add_key : Music.key -> t -> t Lwt.t
+val remove_key : Music.key -> t -> t Lwt.t
+val add_bars : int -> t -> t Lwt.t
+val remove_bars : int -> t -> t Lwt.t
+val add_kind : Kind.base -> t -> t Lwt.t
+val remove_kind : Kind.base -> t -> t Lwt.t

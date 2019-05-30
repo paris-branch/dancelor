@@ -12,6 +12,8 @@ val base_of_char : char -> base
 val base_to_string : base -> string
 val base_of_string : string -> base
 
+val pprint_base : base -> string
+
 val base_to_yojson : base -> Json.t
 val base_of_yojson : Json.t -> (base, string) result
 

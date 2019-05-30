@@ -23,6 +23,10 @@ let base_to_string = function
   | Strathspey -> "strathspey"
   | Waltz -> "waltz"
 
+let pprint_base b = 
+  base_to_string b
+  |> String.capitalize_ascii
+
 let base_of_char c =
   match Char.uppercase_ascii c with
   | 'J' -> Jig

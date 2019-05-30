@@ -109,7 +109,12 @@ let clear t =
     t.body##removeChild child |> ignore
   done
 
-let create ~header ~contents page =
+let replace_rows t rows = 
+  Lwt.on_success rows (fun rows ->
+    clear t;
+    List.iter (add t) rows)
+
+let create ~header ?contents page =
   let root = Html.createTable (Page.document page) in
   let head = Html.createThead (Page.document page) in
   let body = Html.createTbody (Page.document page) in
@@ -125,7 +130,5 @@ let create ~header ~contents page =
   in
   add table loading;
   root##.classList##add (js "separated-table");
-  Lwt.on_success contents (fun contents ->
-    clear table;
-    List.iter (add table) contents);
+  NesOption.ifsome (replace_rows table) contents;
   table
