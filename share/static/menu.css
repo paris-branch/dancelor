@@ -69,7 +69,6 @@ header ul#nav {
 @media only screen and (min-width: 768px) {
 
   header div.content * {
-    display: inline-block;
     line-height: 4.5rem;
   }
 
@@ -89,6 +88,7 @@ header ul#nav {
   header ul#nav li a {
     padding-left: .5rem;
     padding-right: .5rem;
+    display: inline-block;
   }
 
   .content {
