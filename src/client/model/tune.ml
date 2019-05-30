@@ -46,3 +46,15 @@ let all ?filter ?pagination () =
       @ (match pagination with Some pagination -> ["pagination", [NesJson.to_string (Pagination.to_yojson pagination)]] | _ -> [])
     )
     ()
+
+let search ?filter ?pagination ?threshold query =
+  Dancelor_client_api.request
+    ~route:Dancelor_common.Router.TuneSearch
+    ~reader:Dancelor_common.(Unserializer.list (Score.of_yojson of_yojson))
+    ~query:(
+      ["query", query]
+      @ (match threshold with Some threshold -> ["threshold", [string_of_float threshold]] | _ -> [])
+      @ (match filter with Some filter -> ["filter", [NesJson.to_string (TuneFilter.to_yojson filter)]] | _ -> [])
+      @ (match pagination with Some pagination -> ["pagination", [NesJson.to_string (Pagination.to_yojson pagination)]] | _ -> [])
+    )
+    ()
