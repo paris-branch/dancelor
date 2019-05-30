@@ -78,6 +78,7 @@ and refresh t =
   done;
   Composer.iter t.composer (fun i tune -> 
     let subwin = make_tune_subwindow t i tune in
+    Dom.appendChild t.tunes_area (Html.createBr (Page.document t.page));
     Dom.appendChild t.tunes_area subwin)
 
 let create page = 
@@ -125,8 +126,10 @@ let create page =
   Dom.appendChild content (Html.createHr (Page.document page));
   Dom.appendChild content (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_name);
+  Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form tunes_area;
+  Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root search_bar);
   Dom.appendChild form (Table.root search_results);
   Dom.appendChild form (Inputs.Button.root test_button);

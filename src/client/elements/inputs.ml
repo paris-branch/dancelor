@@ -126,6 +126,7 @@ module Button = struct
         (fun _ev _ -> on_click (); Lwt.return ()));
     NesOption.ifsome (fun t -> root##.value := (js t)) text;
     NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
+    root##.classList##add (js "no-selection");
     {page; root}
 
   let set_enabled t b =

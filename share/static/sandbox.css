@@ -1,0 +1,70 @@
+input[type=text] {
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  box-sizing: border-box;
+  display: block;
+  font-size: 1rem;
+  padding: .375rem .75rem;
+  line-height: 1.5;
+}
+
+input[type=button] {
+  box-sizing: border-box;
+  padding: .375rem .75rem;
+  background-color: #dcdcdc;
+  border: 1px solid #c0c0c9;
+}
+
+input[type=button].btn-danger {
+  background-color: #ff5555;
+  color: #ffffff;
+  border: 1px solid #ff5555;
+}
+
+.subwindow .toolbar {
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #ced4da;
+  background-color: #960010;
+  display: flex;
+  vertical-align: middle;
+}
+
+.subwindow .image-container {
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #ced4da;
+  border-top: 0;
+  padding: 10pt;
+}
+
+.toolbar h3 {
+  color: #ffffff;
+  display: block;
+  width: 100%;
+  margin: auto;
+  padding: 5pt 0 5pt 5pt;
+}
+
+.toolbar ul {
+  display: flex;
+  padding-right: 5pt;
+}
+
+.toolbar li {
+  display: inline-block;
+  margin: auto;
+}
+
+.toolbar li:first-child input[type=button] {
+  border-radius: 4px 0 0 4px;
+  border-right: 0;
+}
+
+.toolbar li:last-child input[type=button] {
+  border-radius: 0 4px 4px 0;
+  border-left: 0;
+}
+
+.toolbar li:not(:first-child):not(:last-child) input[type=button] {
+  border-radius: 0;
+}
