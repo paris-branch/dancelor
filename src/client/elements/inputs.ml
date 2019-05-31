@@ -87,21 +87,21 @@ module Text = struct
       on_focus;
     {page; root}
 
-  let on_change t cb = 
+  let on_change t cb =
     Lwt.async (fun () ->
       Lwt_js_events.inputs t.root
         (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
 
-  let set_contents t c = 
+  let set_contents t c =
     t.root##.value := js c
 
-  let erase t = 
+  let erase t =
     set_contents t ""
 
   let contents t =
     Js.to_string t.root##.value
 
-  let check t checker = 
+  let check t checker =
     let v = checker (contents t) in
     set_valid t v;
     v
@@ -115,8 +115,8 @@ module Button = struct
 
   module Kind = struct
 
-    type t = 
-      | Danger 
+    type t =
+      | Danger
       | Success
 
     let to_class = function
@@ -132,13 +132,21 @@ module Button = struct
     root : root Js.t;
   }
 
-  let create ~on_click ?kind ?text page =
+  let create ~on_click ?kind ?text ?icon page =
     let root = Html.createButton (Page.document page) in
     Lwt.async (fun () ->
       Lwt_js_events.clicks root
         (fun _ev _ -> on_click (); Lwt.return ()));
-    NesOption.ifsome (fun t -> root##.value := (js t)) text;
     NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
+    NesOption.ifsome
+      (fun icon ->
+         root##.classList##add (js "fas");
+         root##.classList##add (js ("fa-" ^ icon)))
+      icon;
+    NesOption.ifsome
+      (fun text ->
+         Dom.appendChild root ((Page.document page)##createTextNode (js text)))
+      text;
     root##.classList##add (js "no-selection");
     {page; root}
 

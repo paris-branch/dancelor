@@ -34,20 +34,23 @@ let rec make_tune_subwindow t index tune =
         Composer.move_down t.composer index;
         Composer.save t.composer;
         refresh t)
-      ~text:"v" t.page,
+      ~icon:"chevron-down"
+      t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
         Composer.move_up t.composer index;
         Composer.save t.composer;
         refresh t)
-      ~text:"^" t.page,
+      ~icon:"chevron-up"
+      t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
         Composer.remove t.composer index;
         Composer.save t.composer;
         refresh t)
       ~kind:Inputs.Button.Kind.Danger
-      ~text:"x" t.page
+      ~icon:"times"
+      t.page
   in
   let downli, upli, delli =
     Html.createLi (Page.document t.page),
@@ -164,16 +167,16 @@ let create page =
       Lwt.return ()));
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
-  let save = 
+  let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~text:"Save"
-      ~on_click:(fun () -> 
-        let b1, b2, b3 = 
+      ~on_click:(fun () ->
+        let b1, b2, b3 =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
           Inputs.Text.check t.search_bar (fun _ -> Composer.count t.composer > 0)
         in
         if b1 && b2 && b3 then (
-          Lwt.on_success (Composer.submit composer) (fun set -> 
+          Lwt.on_success (Composer.submit composer) (fun set ->
           Lwt.on_success (Set.slug set) (fun slug ->
           let href = Router.path_of_controller (Router.Set slug) |> snd in
           Html.window##.location##.href := js href))))
@@ -181,7 +184,7 @@ let create page =
   in
   let hfill = Html.createSpan (Page.document page) in
   hfill##.classList##add (js "hfill");
-  let clear = 
+  let clear =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~text:"Clear"
       ~on_click:(fun () ->
         if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
