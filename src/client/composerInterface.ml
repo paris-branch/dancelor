@@ -185,7 +185,7 @@ let create page =
   let hfill = Html.createSpan (Page.document page) in
   hfill##.classList##add (js "hfill");
   let clear =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~text:"Clear"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
       ~on_click:(fun () ->
         if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
           Composer.clear composer;
