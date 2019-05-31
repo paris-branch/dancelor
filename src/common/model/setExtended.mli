@@ -9,12 +9,12 @@ val get : t NesSlug.t -> t Lwt.t
 
 val get_all : unit -> t list Lwt.t
 
-val save :
-  ?slug:t NesSlug.t ->
+val make_and_save :
   name:string ->
+  ?deviser:Credit.t ->
   kind:Kind.dance ->
   ?status:Status.t ->
-  tunes:Tune.t list ->
+  ?tunes:Tune.t list ->
   unit -> t Lwt.t
 
 val delete : t -> unit Lwt.t

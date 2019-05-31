@@ -13,3 +13,12 @@ val contains : Tune.t Slug.t -> t -> bool
 
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
+
+val unsafe_make :
+  slug:t Slug.t ->
+  name:string ->
+  ?deviser:Credit.t ->
+  kind:Kind.dance ->
+  ?status:Status.t ->
+  ?tunes:Tune.t list ->
+  unit -> t Lwt.t

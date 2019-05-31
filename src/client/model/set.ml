@@ -36,17 +36,30 @@ let get_all () =
     ~reader:(Dancelor_common.Unserializer.list of_yojson)
     ()
 
-let save ?slug ~name ~kind ?status ~tunes () =
-  let%lwt tunes = Lwt_list.map_s Tune.slug tunes in
+let make_and_save ~name ?deviser ~kind ?status ?tunes () =
+  let%lwt tunes =
+    match tunes with
+    | None -> Lwt.return_none
+    | Some tunes ->
+      let%lwt tunes = Lwt_list.map_s Tune.slug tunes in
+      Lwt.return_some tunes
+  in
+  let%lwt deviser =
+    match deviser with
+    | None -> Lwt.return []
+    | Some deviser ->
+      let%lwt deviser = Credit.slug deviser in
+      Lwt.return [deviser]
+  in
   Dancelor_client_api.request
     ~route:Dancelor_common.Router.SetSave
     ~reader:of_yojson
     ~query:(
-      (match slug with None -> [] | Some slug -> ["slug", [slug]])
-      @ ["name", [name]]
+      ["name", [name]]
+      @ ["deviser", deviser]
       @ ["kind", [Kind.dance_to_string kind]]
       @ (match status with None -> [] | Some status -> ["status", [Status.to_string status]])
-      @ ["tunes", tunes]
+      @ (match tunes with None -> [] | Some tunes -> ["tunes", tunes])
     )
     ()
 

@@ -12,15 +12,14 @@ let delete set : unit Controller.t = fun _ ->
 
 let save : Set.t Controller.t = fun query ->
   Log.debug (fun m -> m "Controller save");
-  let%lwt slug =
-    try%lwt
-      let%lwt slug = query_string query "slug" in
-      Lwt.return_some slug
-    with
-      Dancelor_common.Error.(Exn (BadQuery _)) ->
-      Lwt.return_none
-  in
   let%lwt name = query_string query "name" in
+  let%lwt deviser =
+    match%lwt query_string_opt query "deviser" with
+    | None -> Lwt.return_none
+    | Some deviser ->
+      let%lwt deviser = Credit.get deviser in
+      Lwt.return_some deviser
+  in
   let%lwt kind = query_string query "kind" in
   let kind = Kind.dance_of_string kind in
   let%lwt status =
@@ -33,7 +32,7 @@ let save : Set.t Controller.t = fun query ->
   in
   let%lwt tunes = query_strings query "tunes" in
   let%lwt tunes = Lwt_list.map_s Tune.get tunes in
-  Set.save ?slug ~name ~kind ?status ~tunes ()
+  Set.make_and_save ~name ?deviser ~kind ?status ~tunes ()
 
 let get_all : Set.t list Controller.t = fun query ->
   let%lwt contains_tune =

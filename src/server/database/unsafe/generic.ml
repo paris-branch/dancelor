@@ -65,8 +65,8 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
                m "Without access: %s / %s" Model.prefix slug;
                Lwt.return ()))) (* FIXME *)
 
-  let find_uniq_slug string =
-    let slug = Slug.from_string string in
+  let uniq_slug ~hint =
+    let slug = Slug.from_string hint in
     let rec aux i =
       let slug = slug ^ "-" ^ (string_of_int i) in
       if Hashtbl.mem db slug then
@@ -96,14 +96,10 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
     |> List.of_seq
     |> Lwt.return
 
-  let save ?slug ~name create =
-    let slug =
-      match slug with
-      | None -> find_uniq_slug name
-      | Some slug -> slug
-    in
-    let model = create slug in
-    let json = Model.to_yojson (create slug) in
+  let save ~slug_hint with_slug =
+    let slug = uniq_slug ~hint:slug_hint in
+    let%lwt model = with_slug slug in
+    let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
     let json =
       Model.separated_files

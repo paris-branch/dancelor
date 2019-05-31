@@ -17,7 +17,9 @@ let get = Dancelor_server_database.Set.get
 
 let get_all = Dancelor_server_database.Set.get_all
 
-let save = Dancelor_server_database.Set.save
+let make_and_save ~name ?deviser ~kind ?status ?tunes () =
+  Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
+  unsafe_make ~slug ~name ?deviser ~kind ?status ?tunes ()
 
 let delete s =
   let%lwt slug = slug s in

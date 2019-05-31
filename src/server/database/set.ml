@@ -4,10 +4,7 @@ module Unsafe = Dancelor_server_database_unsafe.Set
 
 let get (slug : Set.t Slug.t) = Unsafe.get slug
 let get_all () = Unsafe.get_all ()
-
-let save ?slug ~name ~kind ?status ~tunes () =
-  ignore slug; ignore name; ignore kind; ignore status; ignore tunes;
-  assert false
+let save = Unsafe.save
 
 let get_programs_that_contain (slug : Set.t Slug.t) : Program.t list Lwt.t =
   let%lwt all = Dancelor_server_database_unsafe.Program.get_all () in
