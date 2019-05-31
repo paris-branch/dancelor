@@ -138,15 +138,8 @@ module Button = struct
       Lwt_js_events.clicks root
         (fun _ev _ -> on_click (); Lwt.return ()));
     NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
-    NesOption.ifsome
-      (fun icon ->
-         root##.classList##add (js "fas");
-         root##.classList##add (js ("fa-" ^ icon)))
-      icon;
-    NesOption.ifsome
-      (fun text ->
-         Dom.appendChild root ((Page.document page)##createTextNode (js text)))
-      text;
+    NesOption.ifsome (fun icon -> Dom.appendChild root (Fa.i icon page)) icon;
+    NesOption.ifsome (fun text -> Dom.appendChild root ((Page.document page)##createTextNode (js text))) text;
     root##.classList##add (js "no-selection");
     {page; root}
 

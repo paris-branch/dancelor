@@ -168,7 +168,7 @@ let create page =
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
   let save =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~text:"Save"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
         let b1, b2, b3 =
           Inputs.Text.check t.input_kind Kind.check_dance,
