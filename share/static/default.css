@@ -48,3 +48,11 @@ b {
     margin-right: .5rem;
   }
 }
+
+tr {
+  text-align: left;
+}
+
+th {
+  text-align: inherit;
+}

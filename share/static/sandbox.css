@@ -15,17 +15,30 @@ input[type=text] {
   line-height: 1.5;
 }
 
+input[type=text].invalid {
+  box-shadow: 0px 0px 4px 2px #e03333;
+}
+
 input[type=button] {
   box-sizing: border-box;
   padding: .375rem .75rem;
   background-color: #dcdcdc;
   border: 1px solid #c0c0c9;
+  line-height: 1.5;
+  font-size: 1rem;
+  border-radius: 4px;
 }
 
 input[type=button].btn-danger {
   background-color: #e03333;
   color: #ffffff;
   border: 1px solid #f03030;
+}
+
+input[type=button].btn-success {
+  background-color: #22b033;
+  color: #ffffff;
+  border: 1px solid #20c030;
 }
 
 .subwindow .toolbar {
@@ -68,6 +81,11 @@ input[type=button].btn-danger {
   margin: auto;
 }
 
+.toolbar input[type=button] {
+  line-height: normal;
+  font-size: 80%;
+}
+
 .toolbar li:first-child input[type=button] {
   border-radius: 4px 0 0 4px;
   border-right: 0;
@@ -97,4 +115,8 @@ input[type=button].btn-danger {
 
 .dropdown-table.visible {
   display: table;
+}
+
+.hfill {
+  width: 100%;
 }

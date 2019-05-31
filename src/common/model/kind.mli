@@ -36,5 +36,7 @@ type dance = int * tune list
 val dance_to_string : dance -> string
 val dance_of_string : string -> dance
 
+val check_dance : string -> bool
+
 val dance_to_yojson : dance -> Json.t
 val dance_of_yojson : Json.t -> (dance, string) result

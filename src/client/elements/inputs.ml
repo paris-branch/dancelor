@@ -64,6 +64,10 @@ module Text = struct
     root : root Js.t;
   }
 
+  let set_valid t b =
+    if b then t.root##.classList##remove (js "invalid")
+    else t.root##.classList##add (js "invalid")
+
   let create ?default ?on_change ?on_focus page =
     let root = Html.createInput ~_type:(js "text") (Page.document page) in
     NesOption.ifsome (fun t -> root##.placeholder := js t) default;
@@ -72,6 +76,9 @@ module Text = struct
         Lwt_js_events.inputs root
           (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
       on_change;
+    Lwt.async (fun () ->
+      Lwt_js_events.inputs root
+        (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ()));
     NesOption.ifsome (fun cb ->
       Lwt.async (fun () ->
         Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ()));
@@ -80,18 +87,24 @@ module Text = struct
       on_focus;
     {page; root}
 
-  let set_valid t b =
-    if b then t.root##.classList##remove (js "invalid")
-    else t.root##.classList##add (js "invalid")
+  let on_change t cb = 
+    Lwt.async (fun () ->
+      Lwt_js_events.inputs t.root
+        (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
 
   let set_contents t c = 
     t.root##.value := js c
+
+  let erase t = 
+    set_contents t ""
 
   let contents t =
     Js.to_string t.root##.value
 
   let check t checker = 
-    set_valid t (checker (contents t))
+    let v = checker (contents t) in
+    set_valid t v;
+    v
 
   let root t =
     t.root

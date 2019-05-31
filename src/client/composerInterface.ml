@@ -14,6 +14,7 @@ type t =
   composer : Composer.t;
   content : Html.divElement Js.t;
   tunes_area : Html.divElement Js.t;
+  search_bar : Inputs.Text.t;
   search_results : Table.t;
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
@@ -95,7 +96,8 @@ let make_search_result t score =
   let row = Table.Row.create
     ~on_click:(fun () ->
       Table.set_visible t.search_results false;
-      Lwt.on_success (Composer.add t.composer slug) (fun () -> refresh t))
+      Inputs.Text.erase t.search_bar;
+      Lwt.on_success (Composer.add t.composer slug) (fun () -> refresh t; Composer.save t.composer))
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) t.page;
       Table.Cell.text ~text:(Lwt.return name) t.page;
@@ -131,26 +133,26 @@ let create page =
     ~visible:false
     page
   in
-  let t = {page; composer; content; tunes_area; search_results; input_name; input_kind} in
+  let search_bar = Inputs.Text.create
+    ~default:"Search for a tune"
+    ~on_focus:(fun b -> if b then Table.set_visible search_results true)
+    page
+  in
+  let t = {page; composer; content; tunes_area; search_bar; search_results; input_name; input_kind} in
   let rec is_child_of c p =
     ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) ||
     (Js.Opt.case c##.parentNode
       (fun () -> false)
       (fun p' -> is_child_of p' p))
   in
-  let search_bar = Inputs.Text.create
-    ~default:"Search for a tune"
-    ~on_change:(fun txt ->
-      if String.length txt > 2 then begin
-        let tunes = Tune.search ~threshold:0.6 [txt] in
-        Lwt.on_success tunes (fun scores ->
-          NesList.sub 10 scores
-          |> Lwt_list.map_p (make_search_result t)
-          |> Table.replace_rows search_results)
-      end)
-    ~on_focus:(fun b -> if b then Table.set_visible search_results true)
-    page
-  in
+  Inputs.Text.on_change search_bar (fun txt ->
+    if String.length txt > 2 then begin
+      let tunes = Tune.search ~threshold:0.6 [txt] in
+      Lwt.on_success tunes (fun scores ->
+        NesList.sub 10 scores
+        |> Lwt_list.map_p (make_search_result t)
+        |> Table.replace_rows search_results)
+    end);
   Lwt.async (fun () -> Lwt_js_events.clicks (Page.document page)
     (fun ev _ ->
       Js.Opt.case ev##.target
@@ -160,6 +162,38 @@ let create page =
           && not (is_child_of (trg :> Dom.node Js.t) (Inputs.Text.root search_bar :> Dom.node Js.t)) then
             Table.set_visible search_results false);
       Lwt.return ()));
+  let submit = Html.createDiv (Page.document page) in
+  Style.set ~display:"flex" submit;
+  let save = 
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~text:"Save"
+      ~on_click:(fun () -> 
+        let b1, b2, b3 = 
+          Inputs.Text.check t.input_kind Kind.check_dance,
+          Inputs.Text.check t.input_name (fun str -> str <> ""),
+          Inputs.Text.check t.search_bar (fun _ -> Composer.count t.composer > 0)
+        in
+        if b1 && b2 && b3 then (
+          Lwt.on_success (Composer.submit composer) (fun set -> 
+          Lwt.on_success (Set.slug set) (fun slug ->
+          let href = Router.path_of_controller (Router.Set slug) |> snd in
+          Html.window##.location##.href := js href))))
+      page
+  in
+  let hfill = Html.createSpan (Page.document page) in
+  hfill##.classList##add (js "hfill");
+  let clear = 
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~text:"Clear"
+      ~on_click:(fun () ->
+        if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
+          Composer.clear composer;
+          Composer.save composer;
+          refresh t
+        end)
+      page
+  in
+  Dom.appendChild submit (Inputs.Button.root save);
+  Dom.appendChild submit hfill;
+  Dom.appendChild submit (Inputs.Button.root clear);
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr (Page.document page));
   Dom.appendChild content (Html.createBr (Page.document page));
@@ -170,6 +204,8 @@ let create page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root search_bar);
   Dom.appendChild form (Table.root search_results);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form submit;
   Dom.appendChild content form;
   Lwt.on_success (Composer.load composer) (fun () -> refresh t);
   t
