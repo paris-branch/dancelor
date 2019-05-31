@@ -1,0 +1,7 @@
+(library
+ (name nes)
+ (public_name dancelor.nes)
+ (wrapped false)
+ (libraries yojson ppx_deriving_yojson.runtime unix)
+ (preprocess (pps ppx_inline_test ppx_deriving_yojson))
+ (inline_tests))

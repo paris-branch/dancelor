@@ -13,8 +13,14 @@ release:
 test:
 	dune runtest
 
+local: build
+	bin/dancelor-server --config share/config.json --no-routines --no-sync-storage
+
 serve: release
-	bin/dancelor-server share/config.json
+	bin/dancelor-server --config share/config.json
+
+init-only: release
+	bin/dancelor-server --config share/config.json --init-only
 
 clean:
 	dune clean

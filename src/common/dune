@@ -1,6 +1,14 @@
 (library
  (name dancelor_common)
  (public_name dancelor.common)
- (libraries ezjsonm ppx_protocol_conv_jsonm logs.lwt yojson)
- (preprocess (pps ppx_inline_test ppx_protocol_conv))
+ (libraries
+  dancelor.nes
+  dancelor.common.model
+  cohttp logs
+  yojson ppx_deriving_yojson.runtime)
+ (preprocess
+  (pps
+   ppx_deriving_yojson
+   ppx_deriving.std
+   ppx_inline_test))
  (inline_tests))

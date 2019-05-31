@@ -1,0 +1,58 @@
+html {
+  overflow-x: hidden;
+}
+
+body {
+  font-family: "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  padding-bottom: 2rem;
+}
+
+* {
+  max-width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 { margin-bottom: 1rem; font-weight: bolder; letter-spacing: -0.02em; }
+h1 { font-size: 2.0rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+
+a, .clickable {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+a:hover, a:focus, .clickable:hover, .clickable:focus {
+}
+
+.no-selection {
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+}
+
+img {
+  max-width: 100%;
+}
+
+b {
+  display: inline-block;
+  font-weight: bold;
+  margin-bottom: .3rem; /* Probably not the right place. */
+}
+
+@media only screen and (max-width: 767px) {
+  .content > h1, .content > hr, .content > div {
+    margin-left: .5rem;
+    margin-right: .5rem;
+  }
+}
+
+tr {
+  text-align: left;
+}
+
+th {
+  text-align: inherit;
+}

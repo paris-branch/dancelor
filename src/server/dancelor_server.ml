@@ -1,7 +1,8 @@
+open Nes
 open Dancelor_common
-open Dancelor_controller
+open Dancelor_server_controller
 open Cohttp_lwt_unix
-module Log = (val Log.create "dancelor.server" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
 
 type query = (string * string list) list
 [@@deriving show]
@@ -35,64 +36,56 @@ let bad_gateway ?(msg="") _ =
     ~body:("<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>" ^ msg ^ "</center></body></html>")
     ()
 
-let (>>=) = Lwt.bind
+let respond_json ?(status=`OK) json =
+  Server.respond_string ~status ~body:(Json.to_string json) ()
 
-let apply_json_controller json_controller query =
-  json_controller query >>= fun json ->
-  let json = LinksAdder.json_add_links json in
-  Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
+let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.t) query =
+  let open Dancelor_common.Error in
+  try%lwt
+    let%lwt val_ = controller query in
+    respond_json (serializer val_)
+  with
+  | Exn error -> (* Expected failure. *)
+    respond_json ~status:(status error) (to_yojson error)
+  | exn -> (* Unexpected failure. *)
+    log_exn ~msg:"Uncaught exception in controller" exn;
+    respond_json ~status:(status Unexpected) (to_yojson Unexpected)
 
-let respond_view ?(status=`OK) view json =
-  Server.respond_string ~status ~body:(View.render view json) ()
+let list_serializer = Dancelor_common.Serializer.list
 
-(* FIXME: once the client is fully converted to OCaml, everything here
-   will be using the API. We will be able to remove all the notions of
-   ~api and ~view in the next functions. *)
+let apply_controller = let open Dancelor_common.Router in function
+    | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson
 
-let apply_json_controller_if_api ~api json_controller =
-  if api then
-    apply_json_controller json_controller
-  else
-    fun _ -> Server.respond_not_found ()
+    | Dance dance -> apply_controller (Dance.get dance) Dancelor_server_model.Dance.to_yojson
 
-let apply_html_controller ~api ~view json_controller query =
-  json_controller query >>= fun json ->
-  let json = LinksAdder.json_add_links json in
-  if api then
-    Server.respond_string ~status:`OK ~body:(Json.to_string json) ()
-  else
-    respond_view view (Json.to_ezjsonm json)
+    | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
 
-let apply_controller ~api = let open Dancelor_router in function
-  | Index -> (fun _ -> respond_view "/index" (`O []))
+    | Person person -> apply_controller (Person.get person) Dancelor_server_model.Person.to_yojson
 
-  | Credit credit -> apply_html_controller ~api ~view:"/credit" (Credit.get credit)
+    | ProgramAll -> apply_controller Program.get_all (list_serializer Dancelor_server_model.Program.to_yojson)
+    | ProgramPdf program -> Program.Pdf.get program
+    | Program program -> apply_controller (Program.get program) Dancelor_server_model.Program.to_yojson
 
-  | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
+    | SetAll -> apply_controller Set.get_all (list_serializer Dancelor_server_model.Set.to_yojson)
+    | SetSave -> apply_controller Set.save Dancelor_server_model.Set.to_yojson
+    | SetLy set -> Set.Ly.get set
+    | SetPdf set -> Set.Pdf.get set
+    | Set set -> apply_controller (Set.get set) Dancelor_server_model.Set.to_yojson
+    | SetDelete set -> apply_controller (Set.delete set) (fun () -> `Assoc []) (* FIXME: unit json *)
 
-  | Person person -> apply_html_controller ~api ~view:"/person" (Person.get person)
+    | TuneGroup tune_group -> apply_controller (TuneGroup.get tune_group) Dancelor_server_model.TuneGroup.to_yojson
 
-  | ProgramAll -> apply_html_controller ~api ~view:"/program/all" Program.get_all
-  | ProgramPdf program -> Program.Pdf.get program
-  | Program program -> apply_html_controller ~api ~view:"/program" (Program.get program)
+    | TuneAll -> apply_controller Tune.all (list_serializer Dancelor_server_model.Tune.to_yojson)
+    | TuneSearch -> apply_controller Tune.search (list_serializer Dancelor_server_model.(Score.to_yojson Tune.to_yojson))
+    | TuneLy tune -> Tune.get_ly tune
+    | TunePng tune -> Tune.Png.get tune
+    | Tune tune -> apply_controller (Tune.get tune) Dancelor_server_model.Tune.to_yojson
 
-  | SetAll -> apply_html_controller ~api ~view:"/set/all" Set.get_all
-  | SetCompose -> (fun _ -> respond_view "/set/compose" (`O []))
-  | SetSave -> apply_json_controller_if_api ~api Set.save
-  | SetLy set -> Set.Ly.get set
-  | SetPdf set -> Set.Pdf.get set
-  | Set set -> apply_html_controller ~api ~view:"/set" (Set.get set)
-  | SetDelete set -> apply_json_controller_if_api ~api (Set.delete set)
+    | Victor -> exit 0
 
-  | TuneGroup tune_group -> apply_html_controller ~api ~view:"/tune-group" (TuneGroup.get tune_group)
+    (* Routes that are not API points. *)
+    | Index | SetCompose -> (fun _ -> Server.respond_not_found ())
 
-  | TuneAll -> apply_html_controller ~api ~view:"/tune/all" Tune.get_all
-  | TuneLy tune -> Tune.get_ly tune
-  | TunePng tune -> Tune.Png.get tune
-  | Tune tune -> apply_html_controller ~api ~view:"/tune" (Tune.get tune)
-  | TuneSlug _ -> assert false
-
-  | Victor -> exit 0
 
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
@@ -103,43 +96,45 @@ let callback _ request _body =
       let meth = Request.meth request in
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
-      let full_path = Filename.(concat (concat !Config.share "static") path) in
+
+      let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
       Log.debug (fun m -> m "Looking for %s" full_path);
       if Sys.file_exists full_path && not (Sys.is_directory full_path) then
         (
           Log.debug (fun m -> m "Serving static file.");
           Server.respond_file ~fname:full_path ()
         )
+      else if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
+        (
+          let path = String.sub path 4 (String.length path - 4) in
+          Log.debug (fun m -> m "Looking for an API controller for %s." path);
+          match Dancelor_common.Router.path_to_controller ~meth ~path with
+          | None ->
+            Log.debug (fun m -> m "Could not find a controller.");
+            Server.respond_not_found ~uri ()
+          | Some controller ->
+            Log.debug (fun m -> m "Controller found");
+            let query = cleanup_query (Uri.query uri) in
+            Log.debug (fun m -> m "Query: %a" pp_query query);
+            apply_controller controller query
+        )
       else
         (
-          let (api, path) =
-            try
-              if String.sub path 0 4 = "/api" then
-                (true, String.sub path 4 (String.length path - 4)) (*FIXME: 4 or 5?*)
-              else
-                (false, path)
-            with
-              Invalid_argument _ -> (false, path)
-          in
-          Log.debug (fun m -> m "Looking for a controller.");
-          match Dancelor_router.path_to_controller ~meth ~path with
-          | None ->
-             Log.debug (fun m -> m "Could not find a controller.");
-             Server.respond_not_found ~uri ()
-          | Some controller ->
-             Log.debug (fun m -> m "Controller found.");
-             let query = cleanup_query (Uri.query uri) in
-             Log.debug (fun m -> m "Query: %a" pp_query query);
-             apply_controller ~api controller query
+          Log.debug (fun m -> m "Serving main file.");
+          Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
         )
     with
-      exn ->
+    | Dancelor_common.Error.Exn err ->
+      Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err))
+    | exn ->
       log_exn ~msg:"Uncaught exception in the callback" exn;
-      Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
+      Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
   with
-    exn ->
+  | Dancelor_common.Error.Exn err ->
+    Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err))
+  | exn ->
     log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
-    Server.respond_error ~status:`Internal_server_error ~body:"internal server error" ()
+    Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
 
 let () =
   Lwt.async_exception_hook :=
@@ -149,37 +144,59 @@ let () =
      | exn ->
         log_exn ~msg:"Uncaught asynchronous exception" exn)
 
-let () =
+let read_configuration () =
   Log.info (fun m -> m "Reading configuration");
-  Config.load_from_file Sys.argv.(1);
+  Dancelor_server_config.parse_cmd_line ()
 
+let initialise_database () =
   Log.info (fun m -> m "Initialising database");
-  Dancelor_common.Storage.sync_changes ();
-  Dancelor_model.Database.initialise ();
-  Dancelor_model.Database.report_without_accesses ();
+  if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
+    Dancelor_server_database.Storage.sync_changes ();
+  let%lwt () = Dancelor_server_database.initialise () in
+  Dancelor_server_database.report_without_accesses ();
+  Lwt.return ()
 
-  if !Config.routines then
+let check_init_only () =
+  if !Dancelor_server_config.init_only then
+    (
+      Log.info (fun m -> m "Init only mode. Stopping now.");
+      exit 0
+    )
+
+let start_routines () =
+  if !Dancelor_server_config.routines then
     (
       Log.info (fun m -> m "Starting routines");
       Routine.initialise ()
     )
   else
-    Log.info (fun m -> m "Not starting routines");
+    Log.info (fun m -> m "Not starting routines")
 
+let start_server () =
   Log.info (fun m -> m "Starting server");
   let server =
     Lwt.catch
       (fun () ->
-        Server.create
-          ~mode:(`TCP (`Port !Config.port))
-          (Server.make ~callback ()))
+         Server.create
+           ~mode:(`TCP (`Port !Dancelor_server_config.port))
+           (Server.make ~callback ()))
       (fun exn ->
-        log_exn ~msg:"Uncaught Lwt exception in the server" exn;
-        Lwt.return ())
+         log_exn ~msg:"Uncaught Lwt exception in the server" exn;
+         Lwt.return ())
   in
   Log.info (fun m -> m "Server is up and running");
   try
-    Lwt_main.run server
+    server
   with
     exn ->
-    log_exn ~msg:"Uncaught exception in the server" exn
+    log_exn ~msg:"Uncaught exception in the server" exn;
+    Lwt.return ()
+
+let main =
+  read_configuration ();
+  let%lwt () = initialise_database () in
+  check_init_only ();
+  start_routines ();
+  start_server ()
+
+let () = Lwt_main.run main

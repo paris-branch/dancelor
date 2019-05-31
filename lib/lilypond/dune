@@ -1,0 +1,7 @@
+(library
+ (name lilypond)
+ (public_name dancelor.lilypond)
+ (libraries
+  dancelor.nes
+  logs
+  lwt.unix))
