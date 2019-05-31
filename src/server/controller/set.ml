@@ -103,11 +103,11 @@ module Ly = struct
 end
 
 module Pdf = struct
-  let cache : (Set.t, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (('a * Set.t), string Lwt.t) Cache.t = Cache.create ()
 
   let render ?transpose_target set =
     Cache.use
-      cache set
+      cache (transpose_target, set)
       (fun () ->
         let%lwt lilypond = Ly.render ?transpose_target set in
         let path = Filename.concat !Dancelor_server_config.cache "set" in
