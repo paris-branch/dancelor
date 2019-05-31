@@ -33,7 +33,7 @@ module Tune = Generic.Make
       include Dancelor_common_model.Tune
 
       let prefix = "tune"
-      let separated_files = ["content.ly"]
+      let separated_files = []
     end)
 
 module TuneGroup = Generic.Make

@@ -7,7 +7,6 @@ type t =
     key : Music.key ;
     structure : string ;
     arranger : Credit.t Slug.t option [@default None] ;
-    content : string ;
     sources : string list             [@default []] ; (* FIXME: not string *)
     dances : Dance.t Slug.t list      [@default []] ;
     remark : string                   [@default ""] ;
@@ -20,7 +19,6 @@ let bars t = Lwt.return t.bars
 let key t = Lwt.return t.key
 let structure t = Lwt.return t.structure
 let arranger t = Lwt.return t.arranger
-let content t = Lwt.return t.content
 let sources t = Lwt.return t.sources
 let dances t = Lwt.return t.dances
 let remark t = Lwt.return t.remark

@@ -8,7 +8,6 @@ val bars : t -> int Lwt.t
 val key : t -> Music.key Lwt.t
 val structure : t -> string Lwt.t
 val arranger : t -> Credit.t Slug.t option Lwt.t
-val content : t -> string Lwt.t
 val sources : t -> string list Lwt.t
 val dances : t -> Dance.t Slug.t list Lwt.t
 val remark : t -> string Lwt.t

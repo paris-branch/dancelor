@@ -29,6 +29,9 @@ let dances t =
          ())
     dances
 
+let content _t =
+  assert false (* FIXME *)
+
 (* * *)
 
 let get slug =

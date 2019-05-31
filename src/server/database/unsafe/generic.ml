@@ -29,6 +29,9 @@ end
 module Make (Log : Logs.LOG) (Model : Model) = struct
   let db : (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
+  let read_separated_file slug file =
+    Storage.read_entry_file Model.prefix slug file
+
   let initialise () =
     let load entry =
       let json = Storage.read_entry_json Model.prefix entry "meta.json" in
