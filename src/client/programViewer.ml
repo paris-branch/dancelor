@@ -41,6 +41,24 @@ let create page slug =
   in
   let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);
+  let c_pdf_href, b_pdf_href, e_pdf_href = 
+    Dancelor_client_api.build_path ~api:true ~route:(Router.ProgramPdf slug) (),
+    Dancelor_client_api.build_path ~api:true ~route:(Router.ProgramPdf slug) 
+      ~query:["transpose-target", ["bes"]] (),
+    Dancelor_client_api.build_path ~api:true ~route:(Router.ProgramPdf slug) 
+      ~query:["transpose-target", ["ees"]] ()
+  in
+  let c_pdf, b_pdf, e_pdf = 
+    Text.Link.create ~href:(Lwt.return c_pdf_href) ~text:(Lwt.return "Link to the PDF") page,
+    Text.Link.create ~href:(Lwt.return b_pdf_href) ~text:(Lwt.return "B flat version") page,
+    Text.Link.create ~href:(Lwt.return e_pdf_href) ~text:(Lwt.return "E flat version") page
+  in
+  Dom.appendChild content (Text.Link.root c_pdf);
+  (Page.document page)##createTextNode (js " (") |> Dom.appendChild content;
+  Dom.appendChild content (Text.Link.root b_pdf);
+  (Page.document page)##createTextNode (js ") (") |> Dom.appendChild content;
+  Dom.appendChild content (Text.Link.root e_pdf);
+  (Page.document page)##createTextNode (js ")") |> Dom.appendChild content;
   Dom.appendChild content (Html.createHr document);
   let prev_title = Text.Heading.h2 ~text:(Lwt.return "Sets") page in
   Dom.appendChild content (Text.Heading.root prev_title);

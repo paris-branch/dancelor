@@ -19,6 +19,15 @@ let meth_to_string = function
   | `CONNECT -> "CONNECT"
   | `Other s -> s
 
+let build_path ?(api=false) ?query ~route () = 
+  let _, path = Router.path_of_controller route in
+  let full_path = 
+    if api then Printf.sprintf "/%s%s" Constant.api_prefix path
+    else path
+  in
+  let uri = Uri.make ~path:full_path ?query () in
+  Uri.to_string uri
+
 let request ?query ~reader ~route () = 
   let meth, path = Router.path_of_controller route in
   let full_path = Printf.sprintf "/%s%s" Constant.api_prefix path in
