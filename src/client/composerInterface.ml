@@ -167,6 +167,7 @@ let create page =
       Lwt.return ()));
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
+  submit##.classList##add (js "justify-content-space-between");
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
@@ -182,8 +183,6 @@ let create page =
           Html.window##.location##.href := js href))))
       page
   in
-  let hfill = Html.createSpan (Page.document page) in
-  hfill##.classList##add (js "hfill");
   let clear =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
       ~on_click:(fun () ->
@@ -195,7 +194,6 @@ let create page =
       page
   in
   Dom.appendChild submit (Inputs.Button.root save);
-  Dom.appendChild submit hfill;
   Dom.appendChild submit (Inputs.Button.root clear);
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr (Page.document page));
