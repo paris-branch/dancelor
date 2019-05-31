@@ -1,4 +1,5 @@
 open Js_of_ocaml
+open Js_of_ocaml_lwt
 open Dancelor_client_model
 open Dancelor_client_elements
 open Dancelor_common
@@ -7,7 +8,7 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   page : Page.t;
   composer : Composer.t;
@@ -26,28 +27,28 @@ let rec make_tune_subwindow t index tune =
   let title = Text.Heading.h3 ~text:(TuneGroup.name tune.Composer.group) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
-  let down, up, del = 
-    Inputs.Button.create 
-      ~on_click:(fun () -> 
-        Composer.move_down t.composer index; 
+  let down, up, del =
+    Inputs.Button.create
+      ~on_click:(fun () ->
+        Composer.move_down t.composer index;
         Composer.save t.composer;
         refresh t)
-      ~text:"v" t.page, 
-    Inputs.Button.create 
-      ~on_click:(fun () -> 
-        Composer.move_up t.composer index; 
+      ~text:"v" t.page,
+    Inputs.Button.create
+      ~on_click:(fun () ->
+        Composer.move_up t.composer index;
         Composer.save t.composer;
         refresh t)
-      ~text:"^" t.page, 
-    Inputs.Button.create 
-      ~on_click:(fun () -> 
-        Composer.remove t.composer index; 
+      ~text:"^" t.page,
+    Inputs.Button.create
+      ~on_click:(fun () ->
+        Composer.remove t.composer index;
         Composer.save t.composer;
         refresh t)
       ~kind:Inputs.Button.Kind.Danger
       ~text:"x" t.page
   in
-  let downli, upli, delli = 
+  let downli, upli, delli =
     Html.createLi (Page.document t.page),
     Html.createLi (Page.document t.page),
     Html.createLi (Page.document t.page)
@@ -60,29 +61,29 @@ let rec make_tune_subwindow t index tune =
   Dom.appendChild buttons delli;
   Dom.appendChild toolbar buttons;
   Dom.appendChild subwin toolbar;
-  let source = 
-    Printf.sprintf "/%s%s" 
-      Constant.api_prefix 
-      (Router.path_of_controller (Router.TunePng tune.Composer.slug) |> snd) 
+  let source =
+    Printf.sprintf "/%s%s"
+      Constant.api_prefix
+      (Router.path_of_controller (Router.TunePng tune.Composer.slug) |> snd)
     |> Lwt.return
   in
   let img = Image.create ~source t.page in
   Dom.appendChild subwin (Image.root img);
   subwin
 
-and refresh t = 
+and refresh t =
   Inputs.Text.set_contents t.input_name (Composer.name t.composer);
   Inputs.Text.set_contents t.input_kind (Composer.kind t.composer);
   while Js.to_bool t.tunes_area##hasChildNodes do
     let child = Js.Opt.get t.tunes_area##.firstChild (fun () -> assert false) in
     t.tunes_area##removeChild child |> ignore
   done;
-  Composer.iter t.composer (fun i tune -> 
+  Composer.iter t.composer (fun i tune ->
     let subwin = make_tune_subwindow t i tune in
     Dom.appendChild t.tunes_area (Html.createBr (Page.document t.page));
     Dom.appendChild t.tunes_area subwin)
 
-let make_search_result t score = 
+let make_search_result t score =
   let tune = Score.value score in
   let score = score.Score.score in
   let%lwt slug = Tune.slug tune in
@@ -91,8 +92,8 @@ let make_search_result t score =
   let%lwt group = Tune.group tune in
   let%lwt name = TuneGroup.name group in
   let%lwt kind = TuneGroup.kind group in
-  let row = Table.Row.create 
-    ~on_click:(fun () -> 
+  let row = Table.Row.create
+    ~on_click:(fun () ->
       Table.set_visible t.search_results false;
       Lwt.on_success (Composer.add t.composer slug) (fun () -> refresh t))
     ~cells:[
@@ -105,24 +106,24 @@ let make_search_result t score =
   in
   Lwt.return row
 
-let create page = 
+let create page =
   let composer = Composer.create () in
   let content = Html.createDiv (Page.document page) in
   let title = Text.Heading.h1 ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
-  let input_name = Inputs.Text.create 
-    ~default:"Set Name" 
-    ~on_change:(fun name -> 
-      Composer.set_name composer name; 
+  let input_name = Inputs.Text.create
+    ~default:"Set Name"
+    ~on_change:(fun name ->
+      Composer.set_name composer name;
       Composer.save composer)
     page
   in
-  let input_kind = Inputs.Text.create 
-    ~default:"Set Kind (e.g. 8x32R)" 
+  let input_kind = Inputs.Text.create
+    ~default:"Set Kind (e.g. 8x32R)"
     ~on_change:(fun kind ->
-      Composer.set_kind composer kind; 
+      Composer.set_kind composer kind;
       Composer.save composer)
-    page 
+    page
   in
   let tunes_area = Html.createDiv (Page.document page) in
   let search_results = Table.create
@@ -131,15 +132,15 @@ let create page =
     page
   in
   let t = {page; composer; content; tunes_area; search_results; input_name; input_kind} in
-  let rec is_child_of c p = 
-    ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) || 
-    (Js.Opt.case c##.parentNode 
+  let rec is_child_of c p =
+    ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) ||
+    (Js.Opt.case c##.parentNode
       (fun () -> false)
       (fun p' -> is_child_of p' p))
   in
   let search_bar = Inputs.Text.create
     ~default:"Search for a tune"
-    ~on_change:(fun txt -> 
+    ~on_change:(fun txt ->
       if String.length txt > 2 then begin
         let tunes = Tune.search ~threshold:0.6 [txt] in
         Lwt.on_success tunes (fun scores ->
@@ -151,13 +152,13 @@ let create page =
     page
   in
   Lwt.async (fun () -> Lwt_js_events.clicks (Page.document page)
-    (fun ev _ -> 
-      Js.Opt.case ev##.target 
+    (fun ev _ ->
+      Js.Opt.case ev##.target
         (fun () -> ())
-        (fun trg -> 
+        (fun trg ->
           if not (is_child_of (trg :> Dom.node Js.t) (Table.root search_results :> Dom.node Js.t))
-          && not (is_child_of (trg :> Dom.node Js.t) (Inputs.Text.root search_bar :> Dom.node Js.t)) then 
-            Table.set_visible search_results false); 
+          && not (is_child_of (trg :> Dom.node Js.t) (Inputs.Text.root search_bar :> Dom.node Js.t)) then
+            Table.set_visible search_results false);
       Lwt.return ()));
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr (Page.document page));
@@ -173,5 +174,5 @@ let create page =
   Lwt.on_success (Composer.load composer) (fun () -> refresh t);
   t
 
-let contents t = 
+let contents t =
   t.content
