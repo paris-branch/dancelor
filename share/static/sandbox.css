@@ -19,7 +19,7 @@ input[type=text].invalid {
   box-shadow: 0px 0px 4px 2px #e03333;
 }
 
-input[type=button] {
+button {
   box-sizing: border-box;
   padding: .375rem .75rem;
   background-color: #dcdcdc;
@@ -29,13 +29,13 @@ input[type=button] {
   border-radius: 4px;
 }
 
-input[type=button].btn-danger {
+button.btn-danger {
   background-color: #e03333;
   color: #ffffff;
   border: 1px solid #f03030;
 }
 
-input[type=button].btn-success {
+button.btn-success {
   background-color: #22b033;
   color: #ffffff;
   border: 1px solid #20c030;
@@ -81,22 +81,22 @@ input[type=button].btn-success {
   margin: auto;
 }
 
-.toolbar input[type=button] {
+.toolbar button {
   line-height: normal;
   font-size: 80%;
 }
 
-.toolbar li:first-child input[type=button] {
+.toolbar li:first-child button {
   border-radius: 4px 0 0 4px;
   border-right: 0;
 }
 
-.toolbar li:last-child input[type=button] {
+.toolbar li:last-child button {
   border-radius: 0 4px 4px 0;
   border-left: 0;
 }
 
-.toolbar li:not(:first-child):not(:last-child) input[type=button] {
+.toolbar li:not(:first-child):not(:last-child) button {
   border-radius: 0;
 }
 

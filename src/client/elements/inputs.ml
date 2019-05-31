@@ -125,7 +125,7 @@ module Button = struct
 
   end
 
-  type root = Html.inputElement
+  type root = Html.buttonElement
 
   type t = {
     page : Page.t;
@@ -133,7 +133,7 @@ module Button = struct
   }
 
   let create ~on_click ?kind ?text page =
-    let root = Html.createInput ~_type:(js "button") (Page.document page) in
+    let root = Html.createButton (Page.document page) in
     Lwt.async (fun () ->
       Lwt_js_events.clicks root
         (fun _ev _ -> on_click (); Lwt.return ()));
