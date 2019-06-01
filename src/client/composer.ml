@@ -151,10 +151,8 @@ let erase_storage _ =
       local_storage##removeItem (js "composer.tunes"))
 
 let submit t =
-  let tunes = fold t (fun _ tune acc -> ("tunes", [tune.slug]) :: acc) [] in
-  let query = (("name", [t.name]) :: ("kind", [t.kind]) :: tunes) in
-  let answer = Dancelor_client_api.request 
-    ~query ~reader:Set.of_yojson ~route:Router.SetSave ()
-  in
+  let tunes = fold t (fun _ tune acc -> tune.tune :: acc) [] in
+  let kind = Kind.dance_of_string t.kind in
+  let answer = Set.make_and_save ~kind ~name:t.name ~tunes () in
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer
