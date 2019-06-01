@@ -11,6 +11,8 @@ let tunes s =
   let%lwt tunes = tunes s in
   Lwt_list.map_s Dancelor_server_database.Tune.get tunes
 
+let warnings _s = assert false (* FIXME *)
+
 (* * *)
 
 let get = Dancelor_server_database.Set.get

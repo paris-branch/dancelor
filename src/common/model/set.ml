@@ -7,16 +7,7 @@ type t =
     kind : Kind.dance ;
     status : Status.t                [@default Status.WorkInProgress] ;
     tunes : Tune.t Slug.t list       [@default []] }
-[@@deriving make,yojson]
-
-let slug s = Lwt.return s.slug
-let name s = Lwt.return s.name
-let deviser s = Lwt.return s.deviser
-let kind s = Lwt.return s.kind
-let status s = Lwt.return s.status
-let tunes s = Lwt.return s.tunes
-
-let contains t s = List.mem t s.tunes
+[@@deriving make, yojson]
 
 let unsafe_make ~slug ~name ?deviser ~kind ?status ?tunes () =
   let%lwt deviser =
@@ -34,3 +25,23 @@ let unsafe_make ~slug ~name ?deviser ~kind ?status ?tunes () =
       Lwt.return_some tunes
   in
   Lwt.return (make ~slug ~name ~deviser ~kind ?status ?tunes ())
+
+let slug s = Lwt.return s.slug
+let name s = Lwt.return s.name
+let deviser s = Lwt.return s.deviser
+let kind s = Lwt.return s.kind
+let status s = Lwt.return s.status
+let tunes s = Lwt.return s.tunes
+
+let contains t s = List.mem t s.tunes
+
+type warning =
+  | WrongKind
+  | Empty
+  | WrongTuneBars of Tune.t
+  | WrongTuneKind of TuneGroup.t
+  | DuplicateTune of TuneGroup.t
+[@@deriving yojson]
+
+type warnings = warning list
+[@@deriving yojson]

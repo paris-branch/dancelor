@@ -11,6 +11,19 @@ val tunes : t -> Tune.t Slug.t list Lwt.t
 
 val contains : Tune.t Slug.t -> t -> bool
 
+(* {2 Warnings} *)
+
+type warning =
+  | WrongKind
+  | Empty
+  | WrongTuneBars of Tune.t
+  | WrongTuneKind of TuneGroup.t
+  | DuplicateTune of TuneGroup.t
+
+type warnings = warning list
+
+(* {2 Unsafe} *)
+
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
 
@@ -22,3 +35,6 @@ val unsafe_make :
   ?status:Status.t ->
   ?tunes:Tune.t list ->
   unit -> t Lwt.t
+
+val warnings_to_yojson : warnings -> Json.t
+val warnings_of_yojson : Json.t -> (warnings, string) result
