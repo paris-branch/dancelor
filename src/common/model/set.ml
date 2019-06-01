@@ -36,8 +36,8 @@ let tunes s = Lwt.return s.tunes
 let contains t s = List.mem t s.tunes
 
 type warning =
-  | WrongKind
   | Empty
+  | WrongKind
   | WrongTuneBars of Tune.t
   | WrongTuneKind of TuneGroup.t
   | DuplicateTune of TuneGroup.t

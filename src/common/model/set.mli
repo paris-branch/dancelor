@@ -14,8 +14,8 @@ val contains : Tune.t Slug.t -> t -> bool
 (* {2 Warnings} *)
 
 type warning =
-  | WrongKind
   | Empty
+  | WrongKind
   | WrongTuneBars of Tune.t
   | WrongTuneKind of TuneGroup.t
   | DuplicateTune of TuneGroup.t

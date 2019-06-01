@@ -3,7 +3,7 @@ include (module type of Set)
 val deviser : t -> Credit.t option Lwt.t
 val tunes : t -> Tune.t list Lwt.t
 
-val warnings : t -> warning list Lwt.t
+val warnings : t -> warnings Lwt.t
 
 (** {2 Getters and setters} *)
 

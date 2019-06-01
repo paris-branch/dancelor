@@ -23,3 +23,12 @@ let compare p1 p2 =
     compare p1 p2
   else
     c
+
+type warning =
+  | Empty
+  | DuplicateSet of Set.t (* FIXME: duplicate dance? *)
+  | DuplicateTune of TuneGroup.t
+[@@deriving yojson]
+
+type warnings = warning list
+[@@deriving yojson]
