@@ -133,7 +133,7 @@ module Button = struct
   }
 
   let create ~on_click ?kind ?text ?icon page =
-    let root = Html.createButton (Page.document page) in
+    let root = Html.createButton ~_type:(js "button") (Page.document page) in
     Lwt.async (fun () ->
       Lwt_js_events.clicks root
         (fun _ev _ -> on_click (); Lwt.return ()));
