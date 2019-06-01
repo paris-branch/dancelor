@@ -17,8 +17,8 @@ val of_yojson : Json.t -> (t, string) result
 val unsafe_make :
   slug:t Slug.t ->
   name:string ->
-  ?deviser:Credit.t ->
+  ?deviser:Credit.t Slug.t ->
   kind:Kind.dance ->
   ?status:Status.t ->
-  ?tunes:Tune.t list ->
+  ?tunes:Tune.t Slug.t list ->
   unit -> t Lwt.t

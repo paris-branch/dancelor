@@ -54,12 +54,14 @@ let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.
 let list_serializer = Dancelor_common.Serializer.list
 
 let apply_controller = let open Dancelor_common.Router in function
+    | CreditSave -> apply_controller Credit.save Dancelor_server_model.Credit.to_yojson
     | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson
 
     | Dance dance -> apply_controller (Dance.get dance) Dancelor_server_model.Dance.to_yojson
 
     | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
 
+    | PersonSave -> apply_controller Person.save Dancelor_server_model.Person.to_yojson
     | Person person -> apply_controller (Person.get person) Dancelor_server_model.Person.to_yojson
 
     | ProgramAll -> apply_controller Program.get_all (list_serializer Dancelor_server_model.Program.to_yojson)
