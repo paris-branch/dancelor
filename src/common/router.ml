@@ -1,4 +1,4 @@
-open Nes open Option
+open Nes open Option.Syntax
 open Dancelor_common_model
 
 type controller =
@@ -90,7 +90,7 @@ let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
       None
   ),
   (
-    controller_to_slug >=> fun slug ->
+    controller_to_slug >=>? fun slug ->
     Some (meth_to_match, prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext))
   )
 
@@ -244,13 +244,13 @@ let path_to_controller ~meth ~path =
   routes
   |> List.map (fun (path_to_controller, _) -> path_to_controller ~meth ~path)
   |> List.find_opt ((<>) None)
-  >>= fun x -> x
+  >>=? fun x -> x
 
 let path_of_controller controller =
   (
     routes
     |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
     |> List.find_opt ((<>) None)
-    >>= fun x -> x
+    >>=? fun x -> x
   )
-  |> unwrap
+  |> Option.unwrap

@@ -1,4 +1,5 @@
 open NesPervasives
+open NesOption.Syntax
 
 type t = Yojson.Safe.t
 
@@ -49,8 +50,7 @@ let find path json =
   | Some json -> json
 
 let get_opt ~k path json =
-  let open NesOption in
-  find_opt path json >>= fun value ->
+  find_opt path json >>=? fun value ->
   k value
 
 let get ~k path json =
@@ -72,17 +72,15 @@ let int = function
   | _ -> None
 
 let slug json =
-  let open NesOption in
-  string json >>= fun value ->
+  string json >>=? fun value ->
   Some (NesSlug.from_string value)
 
 let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option =
-  let open NesOption in
   function
   | [] -> Some []
   | x :: l ->
-    f x >>= fun x' ->
-    list_map_opt f l >>= fun l' ->
+    f x >>=? fun x' ->
+    list_map_opt f l >>=? fun l' ->
     Some (x' :: l')
 
 let strings = function

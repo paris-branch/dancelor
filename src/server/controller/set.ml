@@ -1,4 +1,6 @@
 open Nes
+open Lwt.Syntax
+open LwtOption.Syntax
 open Dancelor_server_model
 open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
@@ -14,21 +16,14 @@ let save : Set.t Controller.t = fun query ->
   Log.debug (fun m -> m "Controller save");
   let%lwt name = query_string query "name" in
   let%lwt deviser =
-    match%lwt query_string_opt query "deviser" with
-    | None -> Lwt.return_none
-    | Some deviser ->
-      let%lwt deviser = Credit.get deviser in
-      Lwt.return_some deviser
+    query_string_opt query "deviser"
+    >>=|? (Credit.get >=>|| Lwt.return_some)
   in
   let%lwt kind = query_string query "kind" in
   let kind = Kind.dance_of_string kind in
   let%lwt status =
-    try%lwt
-      let%lwt status = query_string query "status" in
-      Lwt.return_some (Status.from_string status)
-    with
-      Dancelor_common.Error.(Exn (BadQuery _)) ->
-      Lwt.return_none
+    query_string_opt query "status"
+    <&>|? Status.from_string
   in
   let%lwt tunes = query_strings query "tunes" in
   let%lwt tunes = Lwt_list.map_s Tune.get tunes in

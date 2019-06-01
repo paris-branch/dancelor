@@ -3,12 +3,8 @@ let bind x f =
   | Some x -> f x
   | None -> None
 
-let (>>=) = bind
-
 let compose f1 f2 x =
-  f1 x >>= fun x1 -> f2 x1
-
-let (>=>) = compose
+  bind (f1 x) f2
 
 let map f = function
   | None -> None
@@ -34,3 +30,8 @@ let ifsome f = function
 let assert_some = function
   | None -> failwith "assert_some"
   | Some v -> Some v
+
+module Syntax = struct
+  let (>>=?) = bind
+  let (>=>?) = compose
+end

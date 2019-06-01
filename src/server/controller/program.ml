@@ -105,14 +105,7 @@ module Pdf = struct
 
   let get program query =
     let%lwt program = Program.get program in
-    let%lwt transpose_target =
-      try%lwt
-        let%lwt transpose_target = query_string query "transpose-target" in
-        Lwt.return_some transpose_target
-      with
-        Dancelor_common.Error.(Exn (BadQuery _)) ->
-        Lwt.return_none
-    in
+    let%lwt transpose_target = query_string_opt query "transpose-target" in
     let%lwt path_pdf = render ?transpose_target program in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
