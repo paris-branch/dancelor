@@ -1,6 +1,5 @@
 open Js_of_ocaml
 open Dancelor_client_model
-open Dancelor_common
 
 module Html = Dom_html
 
@@ -32,6 +31,11 @@ let set_name t name =
 
 let count t =
   t.count
+
+let set_field t i v = 
+  match t.persons.(i) with
+  | Some (`Edit _) -> t.persons.(i) <- Some (`Edit v)
+  | _ -> assert false
 
 let insert t data i =
   if Array.length t.persons = t.count then begin
@@ -93,6 +97,9 @@ let fold t f acc =
   in
   aux acc (t.count - 1)
 
+let iter t f = 
+  fold t (fun i person _ -> f i person) ()
+
 let list_persons t =
   fold t (fun _ person acc -> Lwt.return (person::acc)) []
 
@@ -103,20 +110,13 @@ let clear t =
 let submit t =
   let save_and_get_person = function
     | `Edit name -> 
-      let query = ["name", [name]] in
-      Lwt.bind 
-        (Dancelor_client_api.request ~query ~reader:Person.of_yojson ~route:Router.PersonSave ())
-        Person.slug
+      Person.make_and_save ~name () 
     | `Person p -> 
-      Lwt.return p.slug
+      Lwt.return p.person
   in
   let%lwt persons = 
     fold t (fun _ person acc -> 
       Lwt.map (fun p -> p :: acc) (save_and_get_person person))
       []
   in
-  let query = [("name", [t.name]); ("persons", persons)] in
-  let answer = Dancelor_client_api.request 
-    ~query ~reader:Credit.of_yojson ~route:Router.CreditSave ()
-  in
-  answer
+  Credit.make_and_save ~line:t.name ~persons ()

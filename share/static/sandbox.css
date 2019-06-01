@@ -86,17 +86,17 @@ button.btn-success {
   font-size: 80%;
 }
 
-.toolbar li:first-child button {
+li:first-child button {
   border-radius: 4px 0 0 4px;
   border-right: 0;
 }
 
-.toolbar li:last-child button {
+li:last-child button {
   border-radius: 0 4px 4px 0;
   border-left: 0;
 }
 
-.toolbar li:not(:first-child):not(:last-child) button {
+li:not(:first-child):not(:last-child) button {
   border-radius: 0;
 }
 
