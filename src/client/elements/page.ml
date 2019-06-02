@@ -23,10 +23,7 @@ let document t =
   t.document
 
 let set_header t contents =
-  while Js.to_bool t.header##hasChildNodes do
-    let child = Js.Opt.get t.header##.firstChild (fun () -> assert false) in
-    t.header##removeChild child |> ignore
-  done;
+  JsHelpers.clear_children t.header;
   Dom.appendChild t.header contents
 
 let set_contents t contents =

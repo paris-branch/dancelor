@@ -124,10 +124,7 @@ let add t tr =
   Dom.appendChild t.body (Row.root tr)
 
 let clear t = 
-  while Js.to_bool t.body##hasChildNodes do
-    let child = Js.Opt.get t.body##.firstChild (fun () -> assert false) in
-    t.body##removeChild child |> ignore
-  done
+  JsHelpers.clear_children t.body
 
 let replace_rows t rows = 
   Lwt.on_success rows (fun rows ->

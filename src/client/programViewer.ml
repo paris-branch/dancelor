@@ -42,10 +42,10 @@ let create page slug =
   let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);
   let c_pdf_href, b_pdf_href, e_pdf_href = 
-    Dancelor_client_api.build_path ~api:true ~route:(Router.ProgramPdf slug) (),
-    Dancelor_client_api.build_path ~api:true ~route:(Router.ProgramPdf slug) 
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) 
       ~query:["transpose-target", ["bes"]] (),
-    Dancelor_client_api.build_path ~api:true ~route:(Router.ProgramPdf slug) 
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) 
       ~query:["transpose-target", ["ees"]] ()
   in
   let c_pdf, b_pdf, e_pdf = 

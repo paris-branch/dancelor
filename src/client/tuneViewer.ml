@@ -35,7 +35,7 @@ let create page slug =
   Dom.appendChild content (Text.Paragraph.root kind);
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
-  let ly_href = Dancelor_client_api.build_path ~api:true ~route:(Router.TuneLy slug) () in
+  let ly_href = Helpers.build_path ~api:true ~route:(Router.TuneLy slug) () in
   let ly = 
     Text.Link.create ~href:(Lwt.return ly_href) ~text:(Lwt.return "Link to the Lilypond") page
   in

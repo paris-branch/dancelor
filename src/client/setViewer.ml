@@ -57,12 +57,12 @@ let create page slug =
   Dom.appendChild content (Text.Paragraph.root deviser);
   Dom.appendChild content (Text.Paragraph.root kind);
   let c_pdf_href, b_pdf_href, e_pdf_href, ly_href = 
-    Dancelor_client_api.build_path ~api:true ~route:(Router.SetPdf slug) (),
-    Dancelor_client_api.build_path ~api:true ~route:(Router.SetPdf slug) 
+    Helpers.build_path ~api:true ~route:(Router.SetPdf slug) (),
+    Helpers.build_path ~api:true ~route:(Router.SetPdf slug) 
       ~query:["transpose-target", ["bes"]] (),
-    Dancelor_client_api.build_path ~api:true ~route:(Router.SetPdf slug) 
+    Helpers.build_path ~api:true ~route:(Router.SetPdf slug) 
       ~query:["transpose-target", ["ees"]] (),
-    Dancelor_client_api.build_path ~api:true ~route:(Router.SetLy slug) ()
+    Helpers.build_path ~api:true ~route:(Router.SetLy slug) ()
   in
   let c_pdf, b_pdf, e_pdf, ly = 
     Text.Link.create ~href:(Lwt.return c_pdf_href) ~text:(Lwt.return "Link to the PDF") page,

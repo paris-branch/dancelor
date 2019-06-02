@@ -78,10 +78,7 @@ let rec make_tune_subwindow t index tune =
 and refresh t =
   Inputs.Text.set_contents t.input_name (Composer.name t.composer);
   Inputs.Text.set_contents t.input_kind (Composer.kind t.composer);
-  while Js.to_bool t.tunes_area##hasChildNodes do
-    let child = Js.Opt.get t.tunes_area##.firstChild (fun () -> assert false) in
-    t.tunes_area##removeChild child |> ignore
-  done;
+  Helpers.clear_children t.tunes_area;
   Composer.iter t.composer (fun i tune ->
     let subwin = make_tune_subwindow t i tune in
     Dom.appendChild t.tunes_area (Html.createBr (Page.document t.page));
@@ -142,12 +139,6 @@ let create page =
     page
   in
   let t = {page; composer; content; tunes_area; search_bar; search_results; input_name; input_kind} in
-  let rec is_child_of c p =
-    ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) ||
-    (Js.Opt.case c##.parentNode
-      (fun () -> false)
-      (fun p' -> is_child_of p' p))
-  in
   Inputs.Text.on_change search_bar (fun txt ->
     if String.length txt > 2 then begin
       let tunes = Tune.search ~threshold:0.6 [txt] in
@@ -161,8 +152,8 @@ let create page =
       Js.Opt.case ev##.target
         (fun () -> ())
         (fun trg ->
-          if not (is_child_of (trg :> Dom.node Js.t) (Table.root search_results :> Dom.node Js.t))
-          && not (is_child_of (trg :> Dom.node Js.t) (Inputs.Text.root search_bar :> Dom.node Js.t)) then
+          if not (Helpers.is_child_of trg (Table.root search_results :> Dom.node Js.t))
+          && not (Helpers.is_child_of trg (Inputs.Text.root search_bar :> Dom.node Js.t)) then
             Table.set_visible search_results false);
       Lwt.return ()));
   let submit = Html.createDiv (Page.document page) in

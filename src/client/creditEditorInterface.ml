@@ -73,7 +73,7 @@ let rec make_person_subdiv t index person =
     Dom.appendChild root (Inputs.Text.root input_name)
   | `Person person ->
     let href = 
-      Dancelor_client_api.build_path ~route:(Router.Person person.CreditEditor.slug) ()
+      Helpers.build_path ~route:(Router.Person person.CreditEditor.slug) ()
       |> Lwt.return
     in
     let link = 
@@ -88,10 +88,7 @@ let rec make_person_subdiv t index person =
 
 and refresh t =
   Inputs.Text.set_contents t.input_name (CreditEditor.name t.editor);
-  while Js.to_bool t.persons_area##hasChildNodes do
-    let child = Js.Opt.get t.persons_area##.firstChild (fun () -> assert false) in
-    t.persons_area##removeChild child |> ignore
-  done;
+  Helpers.clear_children t.persons_area;
   t.persons_inputs <- [];
   CreditEditor.iter t.editor (fun i person ->
     let subwin = make_person_subdiv t i person in
@@ -158,12 +155,6 @@ let create page =
     page; editor; content; persons_area; search_bar; search_results; input_name;
     persons_inputs = []} 
   in
-  let rec is_child_of c p =
-    ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) ||
-    (Js.Opt.case c##.parentNode
-      (fun () -> false)
-      (fun p' -> is_child_of p' p))
-  in
   Inputs.Text.on_change search_bar (fun txt ->
     if String.length txt > 2 then begin
       let open Lwt in
@@ -181,8 +172,8 @@ let create page =
       Js.Opt.case ev##.target
         (fun () -> ())
         (fun trg ->
-          if not (is_child_of (trg :> Dom.node Js.t) (Table.root search_results :> Dom.node Js.t))
-          && not (is_child_of (trg :> Dom.node Js.t) (Inputs.Text.root search_bar :> Dom.node Js.t)) then
+          if not (Helpers.is_child_of trg (Table.root search_results :> Dom.node Js.t))
+          && not (Helpers.is_child_of trg (Inputs.Text.root search_bar :> Dom.node Js.t)) then
             Table.set_visible search_results false);
       Lwt.return ()));
   let submit = Html.createDiv (Page.document page) in

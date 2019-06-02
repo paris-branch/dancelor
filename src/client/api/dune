@@ -1,8 +1,0 @@
-(library
-  (name dancelor_client_api)
-  (public_name dancelor.client.api)
-  (preprocess (pps lwt_ppx js_of_ocaml-ppx))
-  (libraries
-    js_of_ocaml-lwt
-    cohttp-lwt-jsoo
-    dancelor.common))
