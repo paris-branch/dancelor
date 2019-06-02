@@ -32,3 +32,57 @@ type warning =
 
 type warnings = warning list
 [@@deriving yojson]
+
+module type S = sig
+  type nonrec t = t
+
+  val slug : t -> t Slug.t Lwt.t
+  val name : t -> string Lwt.t
+  val date : t -> Date.t Lwt.t
+  val status : t -> Status.t Lwt.t
+  val sets : t -> Set.t list Lwt.t
+
+  val contains : Set.t Slug.t -> t -> bool
+  val compare : t -> t -> int
+
+  (* {2 Warnings} *)
+
+  type warning =
+    | Empty
+    | DuplicateSet of Set.t (* FIXME: duplicate dance? *)
+    | DuplicateTune of TuneGroup.t
+
+  type warnings = warning list
+
+  val warnings : t -> warnings Lwt.t
+
+  (** {2 Getters and setters} *)
+
+  val get : t Slug.t -> t Lwt.t
+
+  val get_all : unit -> t list Lwt.t
+end
+
+module Arg = struct
+  let slug =
+    Madge.arg
+      ~key:"slug"
+      ~serialiser:(Slug.to_yojson ())
+      ~unserialiser:(Slug.of_yojson ())
+end
+
+module Endpoint = struct
+  let get =
+    Madge.endpoint
+      ~meth:`GET
+      ~path:"/program"
+      ~serialiser:to_yojson
+      ~unserialiser:of_yojson
+
+  let get_all =
+    Madge.endpoint
+      ~meth:`GET
+      ~path:"/program/all"
+      ~serialiser:(Madge.list_to_yojson to_yojson)
+      ~unserialiser:(Madge.list_of_yojson of_yojson)
+end
