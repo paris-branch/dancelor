@@ -9,4 +9,10 @@ let deviser d =
 
 (* * *)
 
-let get = Dancelor_server_database.Dance.get  
+let get = Dancelor_server_database.Dance.get
+
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.get @@ fun query ->
+    get (get_arg query Arg.slug)
+  )

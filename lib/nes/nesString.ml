@@ -19,15 +19,41 @@ let split n s =
 
 let%test _ = split 2 "hello" = ("he", "llo")
 
-let starts_with needle haystack =
-  try
-    String.sub haystack 0 (String.length needle) = needle
-  with
-    Invalid_argument _ -> false
+let starts_with ~needle haystack =
+  try sub haystack 0 (length needle) = needle
+  with Invalid_argument _ -> false
 
-let%test _ = starts_with "he" "hello"
-let%test _ = not (starts_with "hee" "hello")
-let%test _ = not (starts_with "hello" "he")
+let%test _ = starts_with ~needle:"he" "hello"
+let%test _ = not (starts_with ~needle:"hee" "hello")
+let%test _ = not (starts_with ~needle:"hello" "he")
+
+let ends_with ~needle haystack =
+  let l = length needle in
+  try sub haystack (length haystack - l) l = needle
+  with Invalid_argument _ -> false
+
+let%test _ = ends_with ~needle:"lo" "hello"
+let%test _ = not (ends_with ~needle:"elo" "hello")
+let%test _ = not (ends_with ~needle:"hello" "lo")
+
+let remove_prefix ~needle haystack =
+  let l = length needle in
+  try Some (sub haystack l (length haystack - l))
+  with Invalid_argument _ -> None
+
+let%test _ = remove_prefix ~needle:"" "hello" = Some "hello"
+let%test _ = remove_prefix ~needle:"he" "hello" = Some "llo"
+let%test _ = remove_prefix ~needle:"hello" "hello" = Some ""
+let%test _  =remove_prefix ~needle:"helloo" "hello" = None
+
+let remove_suffix ~needle haystack =
+  try Some (sub haystack 0 (length haystack - length needle))
+  with Invalid_argument _ -> None
+
+let%test _ = remove_suffix ~needle:"" "hello" = Some "hello"
+let%test _ = remove_suffix ~needle:"lo" "hello" = Some "hel"
+let%test _ = remove_suffix ~needle:"hello" "hello" = Some ""
+let%test _  =remove_suffix ~needle:"hhello" "hello" = None
 
 let inclusion_distance needle haystack =
   let ln = String.length needle in

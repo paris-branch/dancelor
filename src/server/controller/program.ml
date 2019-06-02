@@ -3,22 +3,6 @@ open Dancelor_server_model
 open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.program" : Logs.LOG)
 
-let get program : Program.t Controller.t = fun _ ->
-  Program.get program
-
-let get_all : Program.t list Controller.t = fun query ->
-  let%lwt contains_set =
-    try%lwt
-      let%lwt set = query_string query "contains" in
-      Lwt.return (Program.contains set)
-    with Dancelor_common.Error.(Exn (BadQuery _)) ->
-      Lwt.return (fun _ -> true)
-  in
-  let%lwt all = Program.get_all () in
-  all
-  |> List.filter contains_set
-  |> Lwt.return
-
 module Ly = struct
   let render ?transpose_target program =
     let (target, instrument) =

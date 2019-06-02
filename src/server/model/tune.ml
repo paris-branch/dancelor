@@ -21,6 +21,12 @@ let content = Dancelor_server_database.Tune.read_content
 
 let get = Dancelor_server_database.Tune.get
 
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.get @@ fun query ->
+    get (get_arg query Arg.slug)
+  )
+
 let apply_filter filter all =
   let%lwt f_group_author = TuneFilter.group_author filter in
   let%lwt f_group_kind = TuneFilter.group_kind filter in
@@ -77,6 +83,13 @@ let all ?filter ?pagination () =
     | None -> Lwt.return all
   in
   Lwt.return all
+
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.all @@ fun query ->
+    all ?filter:(get_opt_arg query Arg.filter)
+      ?pagination:(get_opt_arg query Arg.pagination) ()
+  )
 
 (* FIXME: ça pue *)
 
@@ -177,3 +190,12 @@ let search ?filter ?pagination ?(threshold=0.) query =
     | None -> Lwt.return all
   in
   Lwt.return all
+
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.search @@ fun query ->
+    search ?filter:(get_opt_arg query Arg.filter)
+      ?pagination: (get_opt_arg query Arg.pagination)
+      ?threshold:  (get_opt_arg query Arg.threshold)
+      (get_arg query Arg.terms)
+  )

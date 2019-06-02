@@ -1,4 +1,5 @@
 open Nes
+module Madge = Madge_common
 
 type t =
   { slug : t Slug.t ;

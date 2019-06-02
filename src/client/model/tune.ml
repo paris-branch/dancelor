@@ -21,17 +21,23 @@ let content _t =
 (* * *)
 
 let get slug =
-  Madge.(call ~endpoint:Endpoint.get @@ fun query ->
-         add_arg query Arg.slug slug)
+  Madge_client.(
+    call ~endpoint:Endpoint.get @@ fun query ->
+    add_arg query Arg.slug slug
+  )
 
 let all ?filter ?pagination () =
-  Madge.(call ~endpoint:Endpoint.all @@ fun query ->
-         add_opt_arg query Arg.filter filter;
-         add_opt_arg query Arg.pagination pagination)
+  Madge_client.(
+    call ~endpoint:Endpoint.all @@ fun query ->
+    add_opt_arg query Arg.filter filter;
+    add_opt_arg query Arg.pagination pagination
+  )
 
 let search ?filter ?pagination ?threshold terms =
-  Madge.(call ~endpoint:Endpoint.search @@ fun query ->
-         add_opt_arg query Arg.filter filter;
-         add_opt_arg query Arg.pagination pagination;
-         add_opt_arg query Arg.threshold threshold;
-         add_arg query     Arg.terms terms)
+  Madge_client.(
+    call ~endpoint:Endpoint.search @@ fun query ->
+    add_opt_arg query Arg.filter filter;
+    add_opt_arg query Arg.pagination pagination;
+    add_opt_arg query Arg.threshold threshold;
+    add_arg query     Arg.terms terms
+  )

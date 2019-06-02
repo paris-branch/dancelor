@@ -1,6 +1,6 @@
-open Nes
+open Nes open Option.Syntax
 open Dancelor_common
-(* open Dancelor_server_controller *)
+open Dancelor_server_controller
 open Cohttp_lwt_unix
 module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
 
@@ -30,62 +30,25 @@ let cleanup_query query =
 let log_exn ~msg exn =
   Log.err (fun m -> m "%s@\n%s@\n%a" msg (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
 
-let bad_gateway ?(msg="") _ =
-  Server.respond_string
-    ~status:`Bad_gateway
-    ~body:("<html><head><title>502 Bad Gateway</title></head><body bgcolor=\"white\"><center><h1>502 Bad Gateway</h1></center><hr><center>" ^ msg ^ "</center></body></html>")
-    ()
+let remove_prefix_suffix prefix suffix string =
+  Option.assert_ (String.starts_with ~needle:prefix string) >>=? fun () ->
+  String.remove_prefix ~needle:prefix string >>=? fun string ->
+  Option.assert_ (String.ends_with ~needle:suffix string) >>=? fun () ->
+  String.remove_suffix ~needle:suffix string
 
-let respond_json ?(status=`OK) json =
-  Server.respond_string ~status ~body:(Json.to_string json) ()
-
-(* let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.t) query =
-  let open Dancelor_common.Error in
-  try%lwt
-    let%lwt val_ = controller query in
-    respond_json (serializer val_)
-  with
-  | Exn error -> (* Expected failure. *)
-    respond_json ~status:(status error) (to_yojson error)
-  | exn -> (* Unexpected failure. *)
-    log_exn ~msg:"Uncaught exception in controller" exn;
-    respond_json ~status:(status Unexpected) (to_yojson Unexpected)
-
-let list_serializer = Dancelor_common.Serializer.list *)
-
-let apply_controller _ _ = assert false (* FIXME, obviously *)
-    (* | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson
-
-    | Dance dance -> apply_controller (Dance.get dance) Dancelor_server_model.Dance.to_yojson
-
-    | Pascaline -> bad_gateway ~msg:"Pour Pascaline Latour"
-
-    | Person person -> apply_controller (Person.get person) Dancelor_server_model.Person.to_yojson
-
-    | ProgramAll -> apply_controller Program.get_all (list_serializer Dancelor_server_model.Program.to_yojson)
-    | ProgramPdf program -> Program.Pdf.get program
-    | Program program -> apply_controller (Program.get program) Dancelor_server_model.Program.to_yojson
-
-    | SetAll -> apply_controller Set.get_all (list_serializer Dancelor_server_model.Set.to_yojson)
-    | SetSave -> apply_controller Set.save Dancelor_server_model.Set.to_yojson
-    | SetLy set -> Set.Ly.get set
-    | SetPdf set -> Set.Pdf.get set
-    | Set set -> apply_controller (Set.get set) Dancelor_server_model.Set.to_yojson
-    | SetDelete set -> apply_controller (Set.delete set) (fun () -> `Assoc []) (* FIXME: unit json *)
-
-    | TuneGroup tune_group -> apply_controller (TuneGroup.get tune_group) Dancelor_server_model.TuneGroup.to_yojson
-
-    | TuneAll -> apply_controller Tune.all (list_serializer Dancelor_server_model.Tune.to_yojson)
-    | TuneSearch -> apply_controller Tune.search (list_serializer Dancelor_server_model.(Score.to_yojson Tune.to_yojson))
-    | TuneLy tune -> Tune.get_ly tune
-    | TunePng tune -> Tune.Png.get tune
-    | Tune tune -> apply_controller (Tune.get tune) Dancelor_server_model.Tune.to_yojson
-
-    | Victor -> exit 0
-
-    (* Routes that are not API points. *)
-    | Index | SetCompose -> (fun _ -> Server.respond_not_found ()) *)
-
+let apply_controller path =
+  [ "/program/", ".pdf", Program.Pdf.get ;
+    "/set/",     ".ly",  Set.Ly.get ;
+    "/set/",     ".pdf", Set.Pdf.get ;
+    "/tune/",    ".ly",  Tune.get_ly ;
+    "/tune/",    ".png", Tune.Png.get ]
+  |> List.map
+    (fun (prefix, suffix, controller) ->
+       remove_prefix_suffix prefix suffix path, controller)
+  |> List.find
+    (fun (slug, _) -> slug <> None)
+  |> (fun (slug, controller) ->
+      controller (Option.unwrap slug))
 
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
@@ -95,6 +58,7 @@ let callback _ request _body =
       let uri = Request.uri request in
       let meth = Request.meth request in
       let path = Uri.path uri in
+      let query = Uri.query uri in
       Log.info (fun m -> m "Request for %s" path);
 
       let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
@@ -104,34 +68,35 @@ let callback _ request _body =
           Log.debug (fun m -> m "Serving static file.");
           Server.respond_file ~fname:full_path ()
         )
-      else if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
-        (
-          let path = String.sub path 4 (String.length path - 4) in
-          Log.debug (fun m -> m "Looking for an API controller for %s." path);
-          match Dancelor_common.Router.path_to_controller ~meth ~path with
-          | None ->
-            Log.debug (fun m -> m "Could not find a controller.");
-            Server.respond_not_found ~uri ()
-          | Some controller ->
-            Log.debug (fun m -> m "Controller found");
-            let query = cleanup_query (Uri.query uri) in
-            Log.debug (fun m -> m "Query: %a" pp_query query);
-            apply_controller controller query
-        )
       else
         (
-          Log.debug (fun m -> m "Serving main file.");
-          Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
+          Log.debug (fun m -> m "Asking Madge for %s." path);
+          match%lwt Madge_server.handle meth path query with
+          | Some response -> Lwt.return response
+          | None ->
+            if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
+              (
+                let path = String.sub path 4 (String.length path - 4) in
+                Log.debug (fun m -> m "Looking for an API controller for %s." path);
+                let query = cleanup_query query in
+                Log.debug (fun m -> m "Query: %a" pp_query query);
+                apply_controller path query
+              )
+            else
+              (
+                Log.debug (fun m -> m "Serving main file.");
+                Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
+              )
         )
     with
-    | Dancelor_common.Error.Exn err ->
-      Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err))
+    (* | Dancelor_common.Error.Exn err ->
+      Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err)) *)
     | exn ->
       log_exn ~msg:"Uncaught exception in the callback" exn;
       Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
   with
-  | Dancelor_common.Error.Exn err ->
-    Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err))
+  (* | Dancelor_common.Error.Exn err ->
+    Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err)) *)
   | exn ->
     log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
     Server.respond_error ~status:`Internal_server_error ~body:"{}" ()

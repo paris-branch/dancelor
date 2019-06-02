@@ -4,7 +4,7 @@
  (libraries
   lwt
   dancelor.nes
-  dancelor.madge
+  dancelor.madge.common
   yojson ppx_deriving_yojson.runtime)
  (preprocess
   (pps

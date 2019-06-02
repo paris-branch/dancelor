@@ -1,5 +1,5 @@
 (library
  (name dancelor_client_model)
  (public_name dancelor.client.model)
- (libraries dancelor.common.model)
+ (libraries dancelor.common.model dancelor.madge.client)
  (preprocess (pps lwt_ppx)))

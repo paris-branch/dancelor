@@ -10,5 +10,7 @@ let author t =
 (* * *)
 
 let get slug =
-  Madge.(call ~endpoint:Endpoint.get @@ fun query ->
-         add_arg query Arg.slug slug)
+  Madge_client.(
+    call ~endpoint:Endpoint.get @@ fun query ->
+    add_arg query Arg.slug slug
+  )

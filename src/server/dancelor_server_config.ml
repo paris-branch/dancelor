@@ -1,10 +1,10 @@
-open Nes open NesOption
+open Nes open Option.Syntax
 
 let int = Json.int
 let string = Json.string
 
 let bool =
-  Json.string >=> function
+  Json.string >=>? function
   | "true" | "yes" | "on" -> Some true
   | "false" | "no" | "off" -> Some false
   | _ -> None
@@ -17,7 +17,7 @@ let loglevel_of_string = function
   | _ -> assert false
 
 let loglevel_of_json_string json =
-  Json.string json >>= fun s ->
+  Json.string json >>=? fun s ->
   Some (loglevel_of_string s)
 
 let loglevel_to_string = function

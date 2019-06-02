@@ -7,3 +7,9 @@ let persons c =
 (* * *)
 
 let get = Dancelor_server_database.Credit.get
+
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.get @@ fun query ->
+    get (get_arg query Arg.slug)
+  )

@@ -3,5 +3,6 @@
  (public_name dancelor.server.model)
  (libraries
   dancelor.common.model
-  dancelor.server.database)
+  dancelor.server.database
+  dancelor.madge.server)
  (preprocess (pps lwt_ppx)))

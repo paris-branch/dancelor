@@ -3,49 +3,6 @@ open Dancelor_server_model
 open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
-let get set _ =
-  Set.get set
-
-let delete set : unit Controller.t = fun _ ->
-  let%lwt set = Set.get set in
-  Set.delete set
-
-let save : Set.t Controller.t = fun query ->
-  Log.debug (fun m -> m "Controller save");
-  let%lwt name = query_string query "name" in
-  let%lwt deviser =
-    match%lwt query_string_opt query "deviser" with
-    | None -> Lwt.return_none
-    | Some deviser ->
-      let%lwt deviser = Credit.get deviser in
-      Lwt.return_some deviser
-  in
-  let%lwt kind = query_string query "kind" in
-  let kind = Kind.dance_of_string kind in
-  let%lwt status =
-    try%lwt
-      let%lwt status = query_string query "status" in
-      Lwt.return_some (Status.from_string status)
-    with
-      Dancelor_common.Error.(Exn (BadQuery _)) ->
-      Lwt.return_none
-  in
-  let%lwt tunes = query_strings query "tunes" in
-  let%lwt tunes = Lwt_list.map_s Tune.get tunes in
-  Set.make_and_save ~name ?deviser ~kind ?status ~tunes ()
-
-let get_all : Set.t list Controller.t = fun query ->
-  let%lwt contains_tune =
-    match%lwt query_string_opt query "contains" with
-    | None -> Lwt.return (fun _ -> true)
-    | Some tune -> Lwt.return (Set.contains tune)
-  in
-  let%lwt all = Set.get_all () in
-  all
-  |> List.filter contains_tune
-  |> List.sort (fun s1 s2 -> compare (Set.slug s1) (Set.slug s2))
-  |> Lwt.return
-
 module Ly = struct
 
   let render ?transpose_target set =

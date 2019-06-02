@@ -61,21 +61,27 @@ let warnings s =
 (* * *)
 
 let get slug =
-  Madge.(call ~endpoint:Endpoint.get @@ fun query ->
-         add_arg query Arg.slug slug)
+  Madge_client.(
+    call ~endpoint:Endpoint.get @@ fun query ->
+    add_arg query Arg.slug slug
+  )
 
 let get_all () =
-  Madge.call ~endpoint:Endpoint.get_all @@ fun _ -> ()
+  Madge_client.call ~endpoint:Endpoint.get_all @@ fun _ -> ()
 
 let make_and_save ~name ?deviser ~kind ?status ?tunes () =
-  Madge.(call ~endpoint:Endpoint.make_and_save @@ fun query ->
-         add_arg     query Arg.name name;
-         add_opt_arg query Arg.deviser deviser;
-         add_arg     query Arg.kind kind;
-         add_opt_arg query Arg.status status;
-         add_opt_arg query Arg.tunes tunes)
+  Madge_client.(
+    call ~endpoint:Endpoint.make_and_save @@ fun query ->
+    add_arg     query Arg.name name;
+    add_opt_arg query Arg.deviser deviser;
+    add_arg     query Arg.kind kind;
+    add_opt_arg query Arg.status status;
+    add_opt_arg query Arg.tunes tunes
+  )
 
 let delete s =
   let%lwt slug = slug s in (* FIXME: SetDelete could maybe take a set directly? *)
-  Madge.(call ~endpoint:Endpoint.delete @@ fun query ->
-         add_arg query Arg.slug slug)
+  Madge_client.(
+    call ~endpoint:Endpoint.delete @@ fun query ->
+    add_arg query Arg.slug slug
+  )

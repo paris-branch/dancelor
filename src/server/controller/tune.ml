@@ -41,6 +41,7 @@ module Png = struct
          Lwt.return (Filename.concat path fname_png))
 
   let get tune _ =
+    Log.debug (fun m -> m "Tune.Png.get %s" tune);
     let%lwt tune = Tune.get tune in
     let%lwt path_png = render tune in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_png ()
