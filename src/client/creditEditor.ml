@@ -98,7 +98,11 @@ let fold t f acc =
   aux acc (t.count - 1)
 
 let iter t f = 
-  fold t (fun i person _ -> f i person) ()
+  for i = 0 to t.count - 1 do
+    match t.persons.(i) with
+    | None -> ()
+    | Some p -> f i p
+  done
 
 let list_persons t =
   fold t (fun _ person acc -> Lwt.return (person::acc)) []

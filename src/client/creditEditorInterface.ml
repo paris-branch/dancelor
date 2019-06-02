@@ -93,9 +93,42 @@ and refresh t =
   CreditEditor.iter t.editor (fun i person ->
     let subwin = make_person_subdiv t i person in
     Dom.appendChild t.persons_area (Html.createBr (Page.document t.page));
-    Dom.appendChild t.persons_area subwin;
-    Lwt.return ())
+    Dom.appendChild t.persons_area subwin)
   |> ignore
+
+
+let make_no_result t =
+  Table.Row.create
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return " ") t.page;
+      Table.Cell.text ~text:(Lwt.return "No results") t.page]
+    t.page
+
+let make_3chars_result t =
+  Table.Row.create
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return " ") t.page;
+      Table.Cell.text ~text:(Lwt.return "Enter at least 3 characters") t.page]
+    t.page
+
+let rec reset_search_bar t =
+  Table.set_visible t.search_results false;
+  let def_result = make_default_result t in
+  let partial_result = make_3chars_result t in
+  Table.replace_rows t.search_results (Lwt.return [partial_result; def_result]);
+  Inputs.Text.erase t.search_bar
+
+and make_default_result t = 
+  Table.Row.create
+    ~on_click:(fun () ->
+      reset_search_bar t;
+      Lwt.on_success 
+        (CreditEditor.add t.editor (`New "")) 
+        (fun () -> refresh t))
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return "  +") t.page;
+      Table.Cell.text ~text:(Lwt.return "Create a new person") t.page]
+    t.page
 
 let make_search_result t score =
   let person = Score.value score in
@@ -104,8 +137,7 @@ let make_search_result t score =
   let%lwt name = Person.name person in
   let row = Table.Row.create
     ~on_click:(fun () ->
-      Table.set_visible t.search_results false;
-      Inputs.Text.erase t.search_bar;
+      reset_search_bar t;
       Lwt.on_success 
         (CreditEditor.add t.editor (`Slug slug)) 
         (fun () -> refresh t))
@@ -115,20 +147,26 @@ let make_search_result t score =
     t.page
   in
   Lwt.return row
-
-let make_default_result t = 
-  Table.Row.create
-    ~on_click:(fun () ->
-      Table.set_visible t.search_results false;
-      Inputs.Text.erase t.search_bar;
-      Lwt.on_success 
-        (CreditEditor.add t.editor (`New "")) 
-        (fun () -> refresh t))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return "+") t.page;
-      Table.Cell.text ~text:(Lwt.return "Create a new person") t.page]
-    t.page
-  |> Lwt.return
+   
+let make_search_results t input =
+  let def_result = make_default_result t in
+  if String.length input > 2 then begin
+    let open Lwt in
+(*     let persons = Person.search ~threshold:0.6 [input] in *)
+    let persons = Lwt.return [] in
+    Lwt.bind persons (fun scores ->
+      if List.length scores > 0 then begin
+        NesList.sub 10 scores
+        |> Lwt_list.map_p (make_search_result t)
+        >>= (fun l -> Lwt.return (l@[def_result]))
+      end else begin
+        let no_result = make_no_result t in
+        Lwt.return [no_result; def_result]
+      end)
+  end else begin
+    let tmp_result = make_3chars_result t in
+    Lwt.return [tmp_result; def_result]
+  end
 
 let create page =
   let editor = CreditEditor.create () in
@@ -155,18 +193,10 @@ let create page =
     page; editor; content; persons_area; search_bar; search_results; input_name;
     persons_inputs = []} 
   in
+  reset_search_bar t;
   Inputs.Text.on_change search_bar (fun txt ->
-    if String.length txt > 2 then begin
-      let open Lwt in
-(*       let persons = Person.search ~threshold:0.6 [txt] in *)
-      let persons = Lwt.return [] in
-      Lwt.on_success persons (fun scores ->
-        let def_result = make_default_result t in
-        NesList.sub 10 scores
-        |> Lwt_list.map_p (make_search_result t)
-        >>= (fun l -> let%lwt r = def_result in Lwt.return (l@[r]))
-        |> Table.replace_rows search_results)
-    end);
+    make_search_results t txt
+    |> Table.replace_rows search_results);
   Lwt.async (fun () -> Lwt_js_events.clicks (Page.document page)
     (fun ev _ ->
       Js.Opt.case ev##.target
