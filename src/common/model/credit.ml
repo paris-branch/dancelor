@@ -5,7 +5,7 @@ type t =
   { slug : t Slug.t ;
     line : string ;
     persons : Person.t Slug.t list [@default []] }
-[@@deriving yojson]
+[@@deriving make, yojson]
 
 let slug c = Lwt.return c.slug
 let line c = Lwt.return c.line
@@ -21,6 +21,11 @@ module type S = sig
   (** {2 Getters and setters} *)
 
   val get : t Slug.t -> t Lwt.t
+
+  val make_and_save :
+    line:string ->
+    ?persons:Person.t list ->
+    unit -> t Lwt.t
 end
 
 module Arg = struct
@@ -29,6 +34,18 @@ module Arg = struct
       ~key:"slug"
       ~serialiser:(Slug.to_yojson ())
       ~unserialiser:(Slug.of_yojson ())
+
+  let line =
+    Madge.arg
+      ~key:"line"
+      ~serialiser:Madge.string_to_yojson
+      ~unserialiser:Madge.string_of_yojson
+
+  let persons =
+    Madge.arg
+      ~key:"persons"
+      ~serialiser:(Madge.list_to_yojson Person.to_yojson)
+      ~unserialiser:(Madge.list_of_yojson Person.of_yojson)
 end
 
 module Endpoint = struct
@@ -36,6 +53,13 @@ module Endpoint = struct
     Madge.endpoint
       ~meth:`GET
       ~path:"/credit"
+      ~serialiser:to_yojson
+      ~unserialiser:of_yojson
+
+  let make_and_save =
+    Madge.endpoint
+      ~meth:`GET
+      ~path:"/credit/save"
       ~serialiser:to_yojson
       ~unserialiser:of_yojson
 end

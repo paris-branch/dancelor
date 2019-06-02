@@ -4,12 +4,14 @@ open Dancelor_common_model
 type controller =
   | Index
 
+  | CreditSave
   | Credit of Credit.t Slug.t
 
   | Dance of Dance.t Slug.t
 
   | Pascaline
 
+  | PersonSave
   | Person of Person.t Slug.t
 
   | ProgramAll
@@ -99,6 +101,11 @@ let routes : route list =
       ~path:"/"
       Index ;
 
+    direct
+      ~meth:`GET
+      ~path:"/credit/save"
+      CreditSave ;
+
     with_slug
       ~meth:`GET
       ~prefix:"/credit"
@@ -115,6 +122,11 @@ let routes : route list =
       ~meth:`GET
       ~path:"/pascaline"
       Pascaline ;
+
+    direct
+      ~meth:`GET
+      ~path:"/person/save"
+      PersonSave ;
 
     with_slug
       ~meth:`GET

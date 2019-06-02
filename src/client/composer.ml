@@ -1,6 +1,5 @@
 open Js_of_ocaml
 open Dancelor_client_model
-(* open Dancelor_common *)
 
 module Html = Dom_html
 
@@ -151,11 +150,8 @@ let erase_storage _ =
       local_storage##removeItem (js "composer.tunes"))
 
 let submit t =
-  let tunes = fold t (fun _ tune acc -> ("tunes", [tune.slug]) :: acc) [] in
-  let _query = (("name", [t.name]) :: ("kind", [t.kind]) :: tunes) in
-  let answer = assert false in
-  (* Dancelor_client_api.request
-      ~query ~reader:(assert false (* FIXME *))  ~route:Router.SetSave ()
-  in *)
+  let tunes = fold t (fun _ tune acc -> tune.tune :: acc) [] in
+  let kind = Kind.dance_of_string t.kind in
+  let answer = Set.make_and_save ~kind ~name:t.name ~tunes () in
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer

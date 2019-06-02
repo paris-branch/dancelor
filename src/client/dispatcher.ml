@@ -33,6 +33,8 @@ let get_contents page =
     ProgramExplorer.contents (ProgramExplorer.create page)
   | ["program";slug] ->
     ProgramViewer.contents (ProgramViewer.create page slug)
+  | ["credit";"add"] ->
+    CreditEditorInterface.contents (CreditEditorInterface.create page)
   | [] ->
     Index.contents (Index.create ())
   | _ ->
