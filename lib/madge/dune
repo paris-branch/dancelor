@@ -1,0 +1,5 @@
+(library
+ (name madge)
+ (public_name dancelor.madge)
+ (libraries cohttp-lwt-jsoo yojson)
+ (preprocess (pps ppx_deriving_yojson lwt_ppx)))
