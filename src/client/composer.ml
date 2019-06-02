@@ -1,6 +1,6 @@
 open Js_of_ocaml
 open Dancelor_client_model
-open Dancelor_common
+(* open Dancelor_common *)
 
 module Html = Dom_html
 
@@ -152,9 +152,10 @@ let erase_storage _ =
 
 let submit t =
   let tunes = fold t (fun _ tune acc -> ("tunes", [tune.slug]) :: acc) [] in
-  let query = (("name", [t.name]) :: ("kind", [t.kind]) :: tunes) in
-  let answer = Dancelor_client_api.request 
-    ~query ~reader:Set.of_yojson ~route:Router.SetSave ()
-  in
+  let _query = (("name", [t.name]) :: ("kind", [t.kind]) :: tunes) in
+  let answer = assert false in
+  (* Dancelor_client_api.request
+      ~query ~reader:(assert false (* FIXME *))  ~route:Router.SetSave ()
+  in *)
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer

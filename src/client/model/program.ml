@@ -2,13 +2,7 @@ include Dancelor_common_model.Program
 
 let sets p =
   let%lwt sets = sets p in
-  Lwt_list.map_p
-    (fun slug ->
-       Dancelor_client_api.request
-         ~route:(Dancelor_common.Router.Set slug)
-         ~reader:Set.of_yojson
-         ())
-    sets
+  Lwt_list.map_p Set.get sets
 
 let warnings p =
   let warnings = ref [] in
@@ -51,13 +45,8 @@ let warnings p =
 (* * *)
 
 let get slug =
-  Dancelor_client_api.request
-    ~route:(Dancelor_common.Router.Program slug)
-    ~reader:of_yojson
-    ()
+  Madge.(call ~endpoint:Endpoint.get @@ fun query ->
+         add_arg query Arg.slug slug)
 
 let get_all () =
-  Dancelor_client_api.request
-    ~route:Dancelor_common.Router.ProgramAll
-    ~reader:(Dancelor_common.Unserializer.list of_yojson)
-    ()
+  Madge.call ~endpoint:Endpoint.get_all @@ fun _ -> ()

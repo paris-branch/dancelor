@@ -1,6 +1,6 @@
 open Nes
 open Dancelor_common
-open Dancelor_server_controller
+(* open Dancelor_server_controller *)
 open Cohttp_lwt_unix
 module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
 
@@ -39,7 +39,7 @@ let bad_gateway ?(msg="") _ =
 let respond_json ?(status=`OK) json =
   Server.respond_string ~status ~body:(Json.to_string json) ()
 
-let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.t) query =
+(* let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.t) query =
   let open Dancelor_common.Error in
   try%lwt
     let%lwt val_ = controller query in
@@ -51,10 +51,10 @@ let apply_controller (controller : 'a Controller.t) (serializer : 'a -> NesJson.
     log_exn ~msg:"Uncaught exception in controller" exn;
     respond_json ~status:(status Unexpected) (to_yojson Unexpected)
 
-let list_serializer = Dancelor_common.Serializer.list
+let list_serializer = Dancelor_common.Serializer.list *)
 
-let apply_controller = let open Dancelor_common.Router in function
-    | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson
+let apply_controller _ _ = assert false (* FIXME, obviously *)
+    (* | Credit credit -> apply_controller (Credit.get credit) Dancelor_server_model.Credit.to_yojson
 
     | Dance dance -> apply_controller (Dance.get dance) Dancelor_server_model.Dance.to_yojson
 
@@ -84,7 +84,7 @@ let apply_controller = let open Dancelor_common.Router in function
     | Victor -> exit 0
 
     (* Routes that are not API points. *)
-    | Index | SetCompose -> (fun _ -> Server.respond_not_found ())
+    | Index | SetCompose -> (fun _ -> Server.respond_not_found ()) *)
 
 
 let callback _ request _body =

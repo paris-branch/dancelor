@@ -5,6 +5,7 @@
   cohttp-lwt-jsoo
   dancelor.client.elements
   dancelor.client.model
+  dancelor.client.api
   dancelor.nes
   dancelor.common)
  (preprocess (pps lwt_ppx js_of_ocaml-ppx)))
