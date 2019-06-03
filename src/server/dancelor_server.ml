@@ -37,6 +37,8 @@ let remove_prefix_suffix prefix suffix string =
   String.remove_suffix ~needle:suffix string
 
 let apply_controller path =
+  if path = "/victor" then
+    exit 0;
   [ "/program/", ".pdf", Program.Pdf.get ;
     "/set/",     ".ly",  Set.Ly.get ;
     "/set/",     ".pdf", Set.Pdf.get ;
