@@ -18,6 +18,12 @@ val kind : t -> string
 
 val set_kind : t -> string -> unit
 
+val deviser : t -> Credit.t option
+
+val set_deviser : t -> string -> unit Lwt.t
+
+val remove_deviser : t -> unit
+
 val count : t -> int
 
 val insert : t -> string -> int -> unit Lwt.t

@@ -92,6 +92,12 @@ module Text = struct
       Lwt_js_events.inputs t.root
         (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
 
+  let on_focus t cb =
+    Lwt.async (fun () ->
+      Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ()));
+    Lwt.async (fun () ->
+      Lwt_js_events.blurs t.root (fun _ev _ -> cb false; Lwt.return ()))
+
   let set_contents t c =
     t.root##.value := js c
 

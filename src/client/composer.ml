@@ -14,6 +14,7 @@ type cached_tune = {
 type t = {
   mutable name : string;
   mutable kind : string;
+  mutable deviser : Credit.t option;
   mutable tunes : cached_tune option array;
   mutable count : int;
 }
@@ -22,6 +23,7 @@ let create () =
 {
   name = "";
   kind = "";
+  deviser = None;
   tunes = Array.make 2 None;
   count = 0;
 }
@@ -37,6 +39,17 @@ let kind t =
 
 let set_kind t kind =
   t.kind <- kind
+
+let deviser t = 
+  t.deviser
+
+let set_deviser t slug = 
+  let%lwt deviser = Credit.get slug in
+  t.deviser <- Some deviser;
+  Lwt.return ()
+
+let remove_deviser t = 
+  t.deviser <- None
 
 let count t =
   t.count

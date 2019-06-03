@@ -1,5 +1,4 @@
 open Js_of_ocaml
-open Js_of_ocaml_lwt
 open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -168,7 +167,7 @@ let make_search_results t input =
     Lwt.return [tmp_result; def_result]
   end
 
-let create page =
+let create ?on_save page =
   let editor = CreditEditor.create () in
   let content = Html.createDiv (Page.document page) in
   let title = Text.Heading.h1 ~text:(Lwt.return "Create a Credit") page in
@@ -197,15 +196,11 @@ let create page =
   Inputs.Text.on_change search_bar (fun txt ->
     make_search_results t txt
     |> Table.replace_rows search_results);
-  Lwt.async (fun () -> Lwt_js_events.clicks (Page.document page)
-    (fun ev _ ->
-      Js.Opt.case ev##.target
-        (fun () -> ())
-        (fun trg ->
-          if not (Helpers.is_child_of trg (Table.root search_results :> Dom.node Js.t))
-          && not (Helpers.is_child_of trg (Inputs.Text.root search_bar :> Dom.node Js.t)) then
-            Table.set_visible search_results false);
-      Lwt.return ()));
+  Page.register_modal page 
+    ~element:(Table.root search_results :> Html.element Js.t)
+    ~on_unfocus:(fun () -> Table.set_visible search_results false)
+    ~targets:[(Table.root search_results :> Html.element Js.t); 
+              (Inputs.Text.root search_bar :> Html.element Js.t)];
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
@@ -221,8 +216,12 @@ let create page =
         if b1 && b2 && b3 then (
           Lwt.on_success (CreditEditor.submit editor) (fun credit ->
           Lwt.on_success (Credit.slug credit) (fun slug ->
-          let href = Router.path_of_controller (Router.Credit slug) |> snd in
-          Html.window##.location##.href := js href))))
+          begin match on_save with
+          | None ->
+            let href = Router.path_of_controller (Router.Credit slug) |> snd in
+            Html.window##.location##.href := js href
+          | Some cb -> cb slug
+          end))))
       page
   in
   let clear =
