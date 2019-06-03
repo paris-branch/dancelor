@@ -8,13 +8,13 @@ let persons c =
 
 let get slug =
   Madge_client.(
-    call ~endpoint:Endpoint.get @@ fun query ->
-    add_arg query Arg.slug slug
+    call ~endpoint:Endpoint.get @@ fun {a} _ ->
+    a Arg.slug slug
   )
 
 let make_and_save ~line ?persons () =
   Madge_client.(
-    call ~endpoint:Endpoint.make_and_save @@ fun query ->
-    add_arg     query Arg.line line;
-    add_opt_arg query Arg.persons persons
+    call ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
+    a Arg.line line;
+    o Arg.persons persons
   )

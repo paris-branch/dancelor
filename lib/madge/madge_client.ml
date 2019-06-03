@@ -1,16 +1,27 @@
 open Madge_common
 
-let add_arg query arg val_ =
-  query := (arg_key arg, [Yojson.Safe.to_string (arg_serialiser arg val_)]) :: !query
+type add_arg     = { a : 'a. 'a arg -> 'a -> unit }
+type add_opt_arg = { o : 'a. 'a arg -> 'a option -> unit }
 
-let add_opt_arg query arg val_ =
-  match val_ with
-  | None -> ()
-  | Some val_ -> query := (arg_key arg, [Yojson.Safe.to_string (arg_serialiser arg val_)]) :: !query
+let add_arg query : add_arg =
+  let a arg val_ =
+    query := (arg_key arg, [Yojson.Safe.to_string (arg_serialiser arg val_)]) :: !query
+  in
+  { a }
+
+let add_opt_arg query : add_opt_arg =
+  let o arg val_ =
+    match val_ with
+    | None -> ()
+    | Some val_ -> query := (arg_key arg, [Yojson.Safe.to_string (arg_serialiser arg val_)]) :: !query
+  in
+  { o }
 
 let call ~endpoint query_builder =
   let query = ref [] in
-  query_builder query;
+  let add_arg = add_arg query in
+  let add_opt_arg = add_opt_arg query in
+  query_builder add_arg add_opt_arg;
   let%lwt (response, body) =
     Cohttp_lwt_xhr.Client.call
       (endpoint_meth endpoint)
