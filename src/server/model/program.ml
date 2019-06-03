@@ -12,14 +12,14 @@ let get = Dancelor_server_database.Program.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun query ->
-    get (get_arg query Arg.slug)
+    register ~endpoint:Endpoint.get @@ fun {a} _ ->
+    get (a Arg.slug)
   )
 
 let get_all = Dancelor_server_database.Program.get_all
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get_all @@ fun _ ->
+    register ~endpoint:Endpoint.get_all @@ fun _ _ ->
     get_all ()
   )

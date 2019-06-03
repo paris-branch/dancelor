@@ -23,8 +23,8 @@ let get = Dancelor_server_database.Tune.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun query ->
-    get (get_arg query Arg.slug)
+    register ~endpoint:Endpoint.get @@ fun {a} _ ->
+    get (a Arg.slug)
   )
 
 let apply_filter filter all =
@@ -86,9 +86,8 @@ let all ?filter ?pagination () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.all @@ fun query ->
-    all ?filter:(get_opt_arg query Arg.filter)
-      ?pagination:(get_opt_arg query Arg.pagination) ()
+    register ~endpoint:Endpoint.all @@ fun _ {o} ->
+    all ?filter:(o Arg.filter) ?pagination:(o Arg.pagination) ()
   )
 
 (* FIXME: ça pue *)
@@ -193,9 +192,9 @@ let search ?filter ?pagination ?(threshold=0.) query =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun query ->
-    search ?filter:(get_opt_arg query Arg.filter)
-      ?pagination: (get_opt_arg query Arg.pagination)
-      ?threshold:  (get_opt_arg query Arg.threshold)
-      (get_arg query Arg.terms)
+    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    search ?filter:(o Arg.filter)
+      ?pagination: (o Arg.pagination)
+      ?threshold:  (o Arg.threshold)
+      (a Arg.terms)
   )

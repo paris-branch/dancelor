@@ -10,8 +10,8 @@ let get = Dancelor_server_database.Credit.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun query ->
-    get (get_arg query Arg.slug)
+    register ~endpoint:Endpoint.get @@ fun {a} _ ->
+    get (a Arg.slug)
   )
 
 let make_and_save ~line ?persons () =
@@ -27,9 +27,9 @@ let make_and_save ~line ?persons () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.make_and_save @@ fun query ->
+    register ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
     make_and_save
-      ~line:   (get_arg     query Arg.line)
-      ?persons:(get_opt_arg query Arg.persons)
+      ~line:   (a Arg.line)
+      ?persons:(o Arg.persons)
       ()
   )

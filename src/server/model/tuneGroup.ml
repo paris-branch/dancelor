@@ -13,6 +13,6 @@ let get = Dancelor_server_database.TuneGroup.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun query ->
-    get (get_arg query Arg.slug)
+    register ~endpoint:Endpoint.get @@ fun {a} _ ->
+    get (a Arg.slug)
   )

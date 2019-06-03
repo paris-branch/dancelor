@@ -6,8 +6,8 @@ let get = Dancelor_server_database.Person.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun query ->
-    get (get_arg query Arg.slug)
+    register ~endpoint:Endpoint.get @@ fun {a} _ ->
+    get (a Arg.slug)
   )
 
 let make_and_save ~name () =
@@ -16,8 +16,8 @@ let make_and_save ~name () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.make_and_save @@ fun query ->
+    register ~endpoint:Endpoint.make_and_save @@ fun {a} _ ->
     make_and_save
-      ~name:   (get_arg     query Arg.name)
+      ~name:(a Arg.name)
       ()
   )

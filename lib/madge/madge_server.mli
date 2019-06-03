@@ -1,9 +1,12 @@
 open Madge_common
 
-val get_arg : query -> 'a arg -> 'a
-val get_opt_arg : query -> 'a arg -> 'a option
+type get_arg     = { a : 'a. 'a arg -> 'a }
+type get_opt_arg = { o : 'a. 'a arg -> 'a option }
 
-val register : endpoint:'a endpoint -> (query -> 'a Lwt.t) -> unit
+val register :
+  endpoint:'a endpoint ->
+  (get_arg -> get_opt_arg -> 'a Lwt.t) ->
+  unit
 
 val handle :
   Cohttp.Code.meth -> string ->

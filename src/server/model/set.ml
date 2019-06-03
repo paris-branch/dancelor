@@ -19,15 +19,15 @@ let get = Dancelor_server_database.Set.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun query ->
-    get (get_arg query Arg.slug)
+    register ~endpoint:Endpoint.get @@ fun {a} _ ->
+    get (a Arg.slug)
   )
 
 let get_all = Dancelor_server_database.Set.get_all
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get_all @@ fun _ ->
+    register ~endpoint:Endpoint.get_all @@ fun _ _ ->
     get_all ()
   )
 
@@ -51,13 +51,13 @@ let make_and_save ~name ?deviser ~kind ?status ?tunes () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.make_and_save @@ fun query ->
+    register ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
     make_and_save
-      ~name:   (get_arg     query Arg.name)
-      ?deviser:(get_opt_arg query Arg.deviser)
-      ~kind:   (get_arg     query Arg.kind)
-      ?status: (get_opt_arg query Arg.status)
-      ?tunes:  (get_opt_arg query Arg.tunes)
+      ~name:   (a Arg.name)
+      ?deviser:(o Arg.deviser)
+      ~kind:   (a Arg.kind)
+      ?status: (o Arg.status)
+      ?tunes:  (o Arg.tunes)
       ()
   )
 
@@ -67,7 +67,7 @@ let delete s =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.delete @@ fun query ->
-    let%lwt set = get (get_arg query Arg.slug) in
+    register ~endpoint:Endpoint.delete @@ fun {a} _ ->
+    let%lwt set = get (a Arg.slug) in
     delete set
   )
