@@ -1,18 +1,22 @@
 open Nes
-module Madge = Madge_common
 
-type t =
-  { slug : t Slug.t ;
-    group : TuneGroup.t Slug.t        [@key "tune-group"];
-    bars : int ;
-    key : Music.key ;
-    structure : string ;
-    arranger : Credit.t Slug.t option [@default None] ;
-    sources : string list             [@default []] ; (* FIXME: not string *)
-    dances : Dance.t Slug.t list      [@default []] ;
-    remark : string                   [@default ""] ;
-    disambiguation : string           [@default ""] }
-[@@deriving yojson]
+module Self = struct
+  type t =
+    { slug : t Slug.t ;
+      group : TuneGroup.t Slug.t        [@key "tune-group"];
+      bars : int ;
+      key : Music.key ;
+      structure : string ;
+      arranger : Credit.t Slug.t option [@default None] ;
+      sources : string list             [@default []] ; (* FIXME: not string *)
+      dances : Dance.t Slug.t list      [@default []] ;
+      remark : string                   [@default ""] ;
+      disambiguation : string           [@default ""] }
+  [@@deriving yojson]
+
+  let _key = "tune"
+end
+include Self
 
 let slug t = Lwt.return t.slug
 let group t = Lwt.return t.group
@@ -56,56 +60,15 @@ module type S = sig
 end
 
 module Arg = struct
-  let slug =
-    Madge.arg
-      ~key:"slug"
-      ~serialiser:(Slug.to_yojson ())
-      ~unserialiser:(Slug.of_yojson ())
-
-  let filter =
-    Madge.arg
-      ~key:"filter"
-      ~serialiser:TuneFilter.to_yojson
-      ~unserialiser:TuneFilter.of_yojson
-
-  let pagination =
-    Madge.arg
-      ~key:"pagination"
-      ~serialiser:Pagination.to_yojson
-      ~unserialiser:Pagination.of_yojson
-
-  let threshold =
-    Madge.arg
-      ~key:"threshold"
-      ~serialiser:Madge.float_to_yojson
-      ~unserialiser:Madge.float_of_yojson
-
-  let terms =
-    Madge.arg
-      ~key:"terms"
-      ~serialiser:Madge.(list_to_yojson string_to_yojson)
-      ~unserialiser:Madge.(list_of_yojson string_of_yojson )
+  let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let filter = Madge_common.optarg (module TuneFilter)
+  let pagination = Madge_common.optarg (module Pagination)
+  let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
+  let terms = Madge_common.(arg ~key:"terms" (module MList(MString)))
 end
 
 module Endpoint = struct
-  let get =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/tune"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
-
-  let all =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/tune/all"
-      ~serialiser:(Madge.list_to_yojson to_yojson)
-      ~unserialiser:(Madge.list_of_yojson of_yojson)
-
-  let search =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/tune/search"
-      ~serialiser:(Madge.list_to_yojson (Score.to_yojson to_yojson))
-      ~unserialiser:(Madge.list_of_yojson (Score.of_yojson of_yojson))
+  let get = Madge_common.(endpoint ~path:"/tune" (module Self))
+  let all = Madge_common.(endpoint ~path:"/tune/all" (module MList (Self)))
+  let search = Madge_common.(endpoint ~path:"/tune/search" (module MList (Score.Make_Serialisable (Self))))
 end

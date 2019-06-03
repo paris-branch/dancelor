@@ -3,6 +3,8 @@ type t =
   | ToBeConfirmed
   | Locked
 
+let _key = "status"
+
 let to_string = function
   | WorkInProgress -> "work-in-progress"
   | ToBeConfirmed -> "to-be-confirmed"

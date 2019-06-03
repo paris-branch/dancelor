@@ -1,10 +1,14 @@
 open Nes
-module Madge = Madge_common
 
-type t =
-  { slug : t Slug.t ;
-    name : string }
-[@@deriving make, yojson]
+module Self = struct
+  type t =
+    { slug : t Slug.t ;
+      name : string }
+  [@@deriving make, yojson]
+
+  let _key = "person"
+end
+include Self
 
 let slug p = Lwt.return p.slug
 let name p = Lwt.return p.name
@@ -25,31 +29,11 @@ module type S = sig
 end
 
 module Arg = struct
-  let slug =
-    Madge.arg
-      ~key:"slug"
-      ~serialiser:(Slug.to_yojson ())
-      ~unserialiser:(Slug.of_yojson ())
-
-  let name =
-    Madge.arg
-      ~key:"name"
-      ~serialiser:Madge.string_to_yojson
-      ~unserialiser:Madge.string_of_yojson
+  let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let name = Madge_common.(arg ~key:"name" (module MString))
 end
 
 module Endpoint = struct
-  let get =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/person"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
-
-  let make_and_save =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/person/save"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
+  let get = Madge_common.endpoint ~path:"/person" (module Self)
+  let make_and_save = Madge_common.endpoint ~path:"/person/save" (module Self)
 end

@@ -1,7 +1,7 @@
 open Madge_common
 
-type get_arg     = { a : 'a. 'a arg -> 'a }
-type get_opt_arg = { o : 'a. 'a arg -> 'a option }
+type get_arg     = { a : 'a. ('a, mandatory) arg -> 'a }
+type get_opt_arg = { o : 'a. ('a, optional) arg -> 'a option }
 
 val register :
   endpoint:'a endpoint ->

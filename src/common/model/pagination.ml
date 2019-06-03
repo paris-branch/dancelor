@@ -3,6 +3,8 @@ type t =
     end_ : int }
 [@@deriving yojson]
 
+let _key = "pagination"
+
 let start p = p.start
 let end_ p = p.end_
 

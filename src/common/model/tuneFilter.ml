@@ -7,6 +7,8 @@ type t =
     bars : int list                     [@default []] }
 [@@deriving yojson, make]
 
+let _key = "tune-filter"
+
 let make ?group_author ?group_kind ?key ?bars () =
   Lwt.return (make ?group_author ?group_kind ?key ?bars ())
 

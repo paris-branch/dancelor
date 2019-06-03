@@ -2,28 +2,33 @@ type serialised = Yojson.Safe.t
 type 'a serialiser = 'a -> serialised
 type 'a unserialiser = serialised -> ('a, string) result
 
-type 'a arg
+module type SERIALISABLE = sig
+  type t
 
-val arg :
-  key:string ->
-  serialiser:'a serialiser -> unserialiser:'a unserialiser ->
-  'a arg
+  val _key : string
 
-val optarg :
-  key:string ->
-  serialiser:'a serialiser -> unserialiser:'a unserialiser ->
-  'a arg
+  val to_yojson : t serialiser
+  val of_yojson : t unserialiser
+end
 
-val arg_key : 'a arg -> string
-val arg_serialiser : 'a arg -> 'a serialiser
-val arg_unserialiser : 'a arg -> 'a unserialiser
+type ('a, 'optional) arg
+
+type mandatory
+type optional
+
+val arg : ?key:string -> (module SERIALISABLE with type t = 'a) -> ('a, mandatory) arg
+val optarg : ?key:string -> (module SERIALISABLE with type t = 'a) -> ('a, optional) arg
+
+val arg_key : ('a, 'optional) arg -> string
+val arg_serialiser : ('a, 'optional) arg -> 'a serialiser
+val arg_unserialiser : ('a, 'optional) arg -> 'a unserialiser
 
 type 'a endpoint
 
 val endpoint :
-  meth:Cohttp.Code.meth ->
+  ?meth:Cohttp.Code.meth ->
   path:string ->
-  serialiser:'a serialiser -> unserialiser:'a unserialiser ->
+  (module SERIALISABLE with type t = 'a) ->
   'a endpoint
 
 val endpoint_meth : 'a endpoint -> Cohttp.Code.meth
@@ -36,19 +41,10 @@ type query = (string * string list) list ref
 exception BadQuery of string
 val bad_query : string -> 'a
 
-val unit_to_yojson : unit serialiser
-val unit_of_yojson : unit unserialiser
-
-val float_to_yojson : float serialiser
-val float_of_yojson : float unserialiser
-
-val string_to_yojson : string serialiser
-val string_of_yojson : string unserialiser
-
-val option_to_yojson : 'a serialiser -> 'a option serialiser
-val option_of_yojson : 'a unserialiser -> 'a option unserialiser
-
-val list_to_yojson : 'a serialiser -> 'a list serialiser
-val list_of_yojson : 'a unserialiser -> 'a list unserialiser
-
 val prefix : string ref
+
+module MUnit : SERIALISABLE with type t = unit
+module MFloat : SERIALISABLE with type t = float
+module MString : SERIALISABLE with type t = string
+module MOption : functor (A : SERIALISABLE) -> SERIALISABLE with type t = A.t option
+module MList : functor (A : SERIALISABLE) -> SERIALISABLE with type t = A.t list

@@ -40,3 +40,5 @@ val check_dance : string -> bool
 
 val dance_to_yojson : dance -> Json.t
 val dance_of_yojson : Json.t -> (dance, string) result
+
+module Dance : Madge_common.SERIALISABLE with type t = dance

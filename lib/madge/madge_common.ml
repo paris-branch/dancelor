@@ -2,67 +2,95 @@ type serialised = Yojson.Safe.t
 type 'a serialiser = 'a -> serialised
 type 'a unserialiser = serialised -> ('a, string) result
 
-type 'a arg =
-  { opt: bool ;
-    key : string ;
-    serialiser : 'a serialiser ;
-    unserialiser : 'a unserialiser }
+module type SERIALISABLE = sig
+  type t
+
+  val _key : string
+
+  val to_yojson : t serialiser
+  val of_yojson : t unserialiser
+end
+
+type ('a, 'optional) arg = (module SERIALISABLE with type t = 'a)
+
+type mandatory
+type optional
 
 (* FIXME: check either through typing or dynamically that optional arguments
    are indeed used optionally. *)
 
-let arg ~key ~serialiser ~unserialiser =
-  { opt = false; key; serialiser; unserialiser }
+let arg (type s) ?key (module M : SERIALISABLE with type t = s) : (s, mandatory) arg =
+  (module struct
+    type t = M.t
+    let _key = match key with Some key -> key | None -> M._key
+    let to_yojson = M.to_yojson
+    let of_yojson = M.of_yojson
+  end)
 
-let optarg ~key ~serialiser ~unserialiser =
-  { opt = true; key; serialiser; unserialiser }
+let optarg (type s) ?key (module M : SERIALISABLE with type t = s) : (s, optional) arg =
+  (module struct
+    type t = M.t
+    let _key = match key with Some key -> key | None -> M._key
+    let to_yojson = M.to_yojson
+    let of_yojson = M.of_yojson
+  end)
 
-let arg_key arg = arg.key
-let arg_serialiser arg = arg.serialiser
-let arg_unserialiser arg = arg.unserialiser
+let arg_key (type s) (module M : SERIALISABLE with type t = s) = M._key
+let arg_serialiser (type s) (module M : SERIALISABLE with type t = s) : s serialiser = M.to_yojson
+let arg_unserialiser (type s) (module M : SERIALISABLE with type t = s) : s unserialiser = M.of_yojson
 
 type 'a endpoint =
   { meth : Cohttp.Code.meth ;
     path : string ;
-    serialiser : 'a serialiser ;
-    unserialiser : 'a unserialiser }
+    returns : (module SERIALISABLE with type t = 'a) }
 
-let endpoint ~meth ~path ~serialiser ~unserialiser =
-  { meth; path; serialiser; unserialiser }
+let endpoint ?(meth=`GET) ~path returns =
+  { meth; path; returns }
 
 let endpoint_meth endpoint = endpoint.meth
 let endpoint_path endpoint = endpoint.path
-let endpoint_serialiser endpoint = endpoint.serialiser
-let endpoint_unserialiser endpoint = endpoint.unserialiser
+
+let endpoint_serialiser (type s) endpoint =
+  let (module M : SERIALISABLE with type t = s) = endpoint.returns in
+  M.to_yojson
+
+let endpoint_unserialiser (type s) endpoint =
+  let (module M : SERIALISABLE with type t = s) = endpoint.returns in
+  M.of_yojson
 
 type query = (string * string list) list ref
 
 exception BadQuery of string
 let bad_query string = raise (BadQuery string)
 
-type my_unit = unit
-[@@deriving yojson]
-let unit_to_yojson = my_unit_to_yojson
-let unit_of_yojson = my_unit_of_yojson
-
-type my_float = float
-[@@deriving yojson]
-let float_to_yojson = my_float_to_yojson
-let float_of_yojson = my_float_of_yojson
-
-type my_string = string
-[@@deriving yojson]
-let string_to_yojson = my_string_to_yojson
-let string_of_yojson = my_string_of_yojson
-
-type 'a my_option = 'a option
-[@@deriving yojson]
-let option_to_yojson = my_option_to_yojson
-let option_of_yojson = my_option_of_yojson
-
-type 'a my_list = 'a list
-[@@deriving yojson]
-let list_to_yojson = my_list_to_yojson
-let list_of_yojson = my_list_of_yojson
-
 let prefix = ref "/madge"
+
+module MUnit : SERIALISABLE with type t = unit = struct
+  type t = unit
+  [@@deriving yojson]
+  let _key = "unit"
+end
+
+module MFloat : SERIALISABLE with type t = float = struct
+  type t = float
+  [@@deriving yojson]
+  let _key = "float"
+end
+
+module MString : SERIALISABLE with type t = string = struct
+  type t = string
+  [@@deriving yojson]
+  let _key = "string"
+end
+
+module MOption(A : SERIALISABLE) : SERIALISABLE with type t = A.t option = struct
+  type t = A.t option
+  [@@deriving yojson]
+  let _key = A._key ^ "-option"
+end
+
+module MList(A : SERIALISABLE) : SERIALISABLE with type t = A.t list = struct
+  type t = A.t list
+  [@@deriving yojson]
+  let _key = A._key ^ "-list"
+end

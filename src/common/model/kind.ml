@@ -23,7 +23,7 @@ let base_to_string = function
   | Strathspey -> "strathspey"
   | Waltz -> "waltz"
 
-let pprint_base b = 
+let pprint_base b =
   base_to_string b
   |> String.capitalize_ascii
 
@@ -135,3 +135,10 @@ let dance_of_yojson = function
     (try Ok (dance_of_string s)
      with _ -> Error "Dancelor_commn_model.Kind.dance_of_yojson: not a valid dance kind")
   | _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a JSON string"
+
+module Dance = struct
+  type t = dance
+  let _key = "kind-dance"
+  let to_yojson = dance_to_yojson
+  let of_yojson = dance_of_yojson
+end

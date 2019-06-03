@@ -1,11 +1,15 @@
 open Nes
-module Madge = Madge_common
 
-type t =
-  { slug : t Slug.t ;
-    line : string ;
-    persons : Person.t Slug.t list [@default []] }
-[@@deriving make, yojson]
+module Self = struct
+  type t =
+    { slug : t Slug.t ;
+      line : string ;
+      persons : Person.t Slug.t list [@default []] }
+  [@@deriving make, yojson]
+
+  let _key = "credit"
+end
+include Self
 
 let slug c = Lwt.return c.slug
 let line c = Lwt.return c.line
@@ -29,37 +33,12 @@ module type S = sig
 end
 
 module Arg = struct
-  let slug =
-    Madge.arg
-      ~key:"slug"
-      ~serialiser:(Slug.to_yojson ())
-      ~unserialiser:(Slug.of_yojson ())
-
-  let line =
-    Madge.arg
-      ~key:"line"
-      ~serialiser:Madge.string_to_yojson
-      ~unserialiser:Madge.string_of_yojson
-
-  let persons =
-    Madge.arg
-      ~key:"persons"
-      ~serialiser:(Madge.list_to_yojson Person.to_yojson)
-      ~unserialiser:(Madge.list_of_yojson Person.of_yojson)
+  let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let line = Madge_common.(arg ~key:"line" (module MString))
+  let persons = Madge_common.(optarg ~key:"persons" (module MList(Person)))
 end
 
 module Endpoint = struct
-  let get =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/credit"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
-
-  let make_and_save =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/credit/save"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
+  let get = Madge_common.endpoint ~path:"/credit" (module Self)
+  let make_and_save = Madge_common.endpoint ~path:"/credit/save" (module Self)
 end

@@ -1,14 +1,19 @@
 open Nes
 module Madge = Madge_common
 
-type t =
-  { slug : t Slug.t ;
-    name : string ;
-    deviser : Credit.t Slug.t option [@default None] ;
-    kind : Kind.dance ;
-    status : Status.t                [@default Status.WorkInProgress] ;
-    tunes : Tune.t Slug.t list       [@default []] }
-[@@deriving make, yojson]
+module Self = struct
+  type t =
+    { slug : t Slug.t ;
+      name : string ;
+      deviser : Credit.t Slug.t option [@default None] ;
+      kind : Kind.dance ;
+      status : Status.t                [@default Status.WorkInProgress] ;
+      tunes : Tune.t Slug.t list       [@default []] }
+  [@@deriving make, yojson]
+
+  let _key = "set"
+end
+include Self
 
 let unsafe_make ~slug ~name ?deviser ~kind ?status ?tunes () =
   Lwt.return (make ~slug ~name ~deviser ~kind ?status ?tunes ())
@@ -76,69 +81,17 @@ module type S = sig
 end
 
 module Arg = struct
-  let slug =
-    Madge.arg
-      ~key:"slug"
-      ~serialiser:(Slug.to_yojson ())
-      ~unserialiser:(Slug.of_yojson ())
-
-  let name =
-    Madge.arg
-      ~key:"name"
-      ~serialiser:Madge.string_to_yojson
-      ~unserialiser:Madge.string_of_yojson
-
-  let deviser =
-    Madge.arg
-      ~key:"deviser"
-      ~serialiser:Credit.to_yojson
-      ~unserialiser:Credit.of_yojson
-
-  let kind =
-    Madge.arg
-      ~key:"kind"
-      ~serialiser:Kind.dance_to_yojson
-      ~unserialiser:Kind.dance_of_yojson
-
-  let status =
-    Madge.arg
-      ~key:"status"
-      ~serialiser:Status.to_yojson
-      ~unserialiser:Status.of_yojson
-
-  let tunes =
-    Madge.arg
-      ~key:"tunes"
-      ~serialiser:(Madge.list_to_yojson Tune.to_yojson)
-      ~unserialiser:(Madge.list_of_yojson Tune.of_yojson)
+  let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let name = Madge_common.(arg ~key:"name" (module MString))
+  let deviser = Madge_common.optarg ~key:"deviser" (module Credit)
+  let kind = Madge_common.arg ~key:"kind" (module Kind.Dance)
+  let status = Madge_common.optarg (module Status)
+  let tunes = Madge_common.(optarg ~key:"tunes" (module MList (Tune)))
 end
 
 module Endpoint = struct
-  let get =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/set"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
-
-  let get_all =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/set/all"
-      ~serialiser:(Madge.list_to_yojson to_yojson)
-      ~unserialiser:(Madge.list_of_yojson of_yojson)
-
-  let make_and_save =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/set/save"
-      ~serialiser:to_yojson
-      ~unserialiser:of_yojson
-
-  let delete =
-    Madge.endpoint
-      ~meth:`GET
-      ~path:"/set/delete"
-      ~serialiser:Madge.unit_to_yojson
-      ~unserialiser:Madge.unit_of_yojson
+  let get = Madge_common.endpoint ~path:"/set" (module Self)
+  let get_all = Madge_common.(endpoint ~path:"/set/all" (module MList (Self)))
+  let make_and_save = Madge_common.endpoint ~path:"/set/save" (module (Self))
+  let delete = Madge.(endpoint ~path:"/set/delete" (module MUnit))
 end
