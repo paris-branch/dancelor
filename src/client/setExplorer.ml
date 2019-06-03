@@ -32,7 +32,14 @@ let create page =
   in
   let rows = 
     let%lwt sets = Set.get_all () in
-    Lwt.return (List.map (fun set -> 
+    let%lwt sets_w_slug = 
+      Lwt_list.map_s 
+        (fun set -> Lwt.bind (Set.slug set) (fun slug -> Lwt.return (set, slug)))
+        sets
+    in
+    List.sort (fun (_, s1) (_, s2) -> String.compare s1 s2) sets_w_slug
+    |> List.map fst
+    |> List.map (fun set -> 
       let href = 
         let%lwt slug = Set.slug set in
         Lwt.return (Router.path_of_controller (Router.Set slug) |> snd) 
@@ -44,7 +51,8 @@ let create page =
         Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page;
         Table.Cell.text ~text:(Lwt.return "") page]
       in
-      Table.Row.create ~href ~cells page) sets)
+      Table.Row.create ~href ~cells page)
+    |> Lwt.return
   in
   let table = Table.create
     ~header
