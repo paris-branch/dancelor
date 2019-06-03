@@ -14,7 +14,7 @@ type cached_tune = {
 type t = {
   mutable name : string;
   mutable kind : string;
-  mutable deviser : Credit.t option;
+  mutable deviser : (string * Credit.t) option;
   mutable tunes : cached_tune option array;
   mutable count : int;
 }
@@ -41,11 +41,13 @@ let set_kind t kind =
   t.kind <- kind
 
 let deviser t = 
-  t.deviser
+  match t.deviser with
+  | None -> None
+  | Some (_, cr) -> Some cr
 
 let set_deviser t slug = 
   let%lwt deviser = Credit.get slug in
-  t.deviser <- Some deviser;
+  t.deviser <- Some (slug, deviser);
   Lwt.return ()
 
 let remove_deviser t = 
@@ -131,19 +133,25 @@ let save t =
         |> List.map (fun t -> t.slug)
         |> String.concat ";"
       in
+      begin match t.deviser with
+      | None -> ()
+      | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js slug)
+      end;
       local_storage##setItem (js "composer.name") (js t.name);
       local_storage##setItem (js "composer.kind") (js t.kind);
-      local_storage##setItem (js "composer.tunes") (js tunes))
+      local_storage##setItem (js "composer.tunes") (js tunes);)
 
 let load t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> Lwt.return ())
     (fun local_storage ->
-      let name, kind, tunes =
+      let name, kind, tunes, deviser =
         local_storage##getItem (js "composer.name"),
         local_storage##getItem (js "composer.kind"),
-        local_storage##getItem (js "composer.tunes")
+        local_storage##getItem (js "composer.tunes"),
+        local_storage##getItem (js "composer.deviser")
       in
+      let open Lwt in
       Js.Opt.case name (fun () -> ())
         (fun name -> t.name <- Js.to_string name);
       Js.Opt.case kind (fun () -> ())
@@ -152,7 +160,10 @@ let load t =
         (fun tunes ->
           String.split_on_char ';' (Js.to_string tunes)
           |> List.filter (fun s -> s <> " " && s <> "")
-          |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx)))
+          |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
+      >>= (fun () -> 
+      Js.Opt.case deviser (fun () -> Lwt.return ())
+        (fun deviser -> set_deviser t (Js.to_string deviser))))
 
 let erase_storage _ =
   Js.Optdef.case Html.window##.localStorage
@@ -160,11 +171,12 @@ let erase_storage _ =
     (fun local_storage ->
       local_storage##removeItem (js "composer.name");
       local_storage##removeItem (js "composer.kind");
+      local_storage##removeItem (js "composer.deviser");
       local_storage##removeItem (js "composer.tunes"))
 
 let submit t =
   let tunes = fold t (fun _ tune acc -> tune.tune :: acc) [] in
   let kind = Kind.dance_of_string t.kind in
-  let answer = Set.make_and_save ~kind ~name:t.name ~tunes () in
+  let answer = Set.make_and_save ~kind ~name:t.name ~tunes ?deviser:(deviser t) () in
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer

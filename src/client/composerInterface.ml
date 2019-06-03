@@ -250,12 +250,13 @@ let create page =
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-        let b1, b2, b3 =
+        let b1, b2, b3, b4 =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
-          Inputs.Text.check t.search_bar (fun _ -> Composer.count t.composer > 0)
+          Inputs.Text.check t.search_bar (fun _ -> Composer.count t.composer > 0),
+          Inputs.Text.check t.input_deviser (fun _ -> Composer.deviser t.composer <> None)
         in
-        if b1 && b2 && b3 then (
+        if b1 && b2 && b3 && b4 then (
           Lwt.on_success (Composer.submit composer) (fun set ->
           Lwt.on_success (Set.slug set) (fun slug ->
           let href = Router.path_of_controller (Router.Set slug) |> snd in
