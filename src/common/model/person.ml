@@ -26,14 +26,22 @@ module type S = sig
   val make_and_save :
     name:string ->
     unit -> t Lwt.t
+
+  val search :
+    ?threshold:float ->
+    string list -> 
+    t Score.t list Lwt.t
 end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
   let name = Madge_common.(arg ~key:"name" (module MString))
+  let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
+  let terms = Madge_common.(arg ~key:"terms" (module MList(MString)))
 end
 
 module Endpoint = struct
   let get = Madge_common.endpoint ~path:"/person" (module Self)
   let make_and_save = Madge_common.endpoint ~path:"/person/save" (module Self)
+  let search = Madge_common.(endpoint ~path:"/person/search" (module MList (Score.Make_Serialisable (Self))))
 end

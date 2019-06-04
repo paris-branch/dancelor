@@ -151,8 +151,7 @@ let make_search_results t input =
   let def_result = make_default_result t in
   if String.length input > 2 then begin
     let open Lwt in
-(*     let persons = Person.search ~threshold:0.6 [input] in *)
-    let persons = Lwt.return [] in
+    let persons = Person.search ~threshold:0.6 [input] in
     Lwt.bind persons (fun scores ->
       if List.length scores > 0 then begin
         NesList.sub 10 scores

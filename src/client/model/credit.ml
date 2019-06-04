@@ -18,3 +18,10 @@ let make_and_save ~line ?persons () =
     a Arg.line line;
     o Arg.persons persons
   )
+
+let search ?threshold terms =
+  Madge_client.(
+    call ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    o Arg.threshold threshold;
+    a Arg.terms terms
+  )

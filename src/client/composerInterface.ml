@@ -122,6 +122,7 @@ let make_credit_modal t =
     CreditEditorInterface.create t.page 
       ~on_save:(fun slug -> 
         Page.remove_modal t.page modal_bg;
+        Dom.removeChild t.content modal_bg;
         Lwt.on_success (Composer.set_deviser t.composer slug) (fun () -> refresh t))
     |> CreditEditorInterface.contents);
   credits_modal##.classList##add (js "modal-window");
@@ -229,8 +230,7 @@ let create page =
     end);
   Inputs.Text.on_change input_deviser (fun txt ->
     if String.length txt > 2 then begin
-(*       let devisers = Deviser.search ~threshold:0.6 [txt] in *)
-      let devisers = Lwt.return [] in
+      let devisers = Credit.search ~threshold:0.6 [txt] in
       Lwt.on_success devisers (fun scores ->
         NesList.sub 10 scores
         |> Lwt_list.map_p (make_deviser_search_result t)
