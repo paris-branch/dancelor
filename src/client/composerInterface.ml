@@ -224,7 +224,7 @@ let create page =
       ~on_click:(fun () ->
         if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
           Composer.clear composer;
-          Composer.save composer;
+          Composer.erase_storage composer;
           refresh t
         end)
       page
