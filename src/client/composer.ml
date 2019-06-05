@@ -122,7 +122,8 @@ let list_tunes t =
 let clear t =
   t.name <- "";
   t.kind <- "";
-  t.count <- 0
+  t.count <- 0;
+  t.deviser <- None
 
 let save t =
   Js.Optdef.case Html.window##.localStorage
