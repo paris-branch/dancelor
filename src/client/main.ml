@@ -14,8 +14,8 @@ let on_load _ev =
   Header.add_menu_entry header "Programs" (Router.path_of_controller Router.ProgramAll |> snd);
   Header.add_menu_entry header "Compose a Set" (Router.path_of_controller Router.SetCompose |> snd);
   Page.set_header page (Header.contents header);
-  let contents = Dispatcher.get_contents page in
-  Page.set_contents page contents;
+  let updater, contents = Dispatcher.get_contents page in
+  Page.set_contents page ~on_refresh:updater contents;
   Js._false
 
 let _ =

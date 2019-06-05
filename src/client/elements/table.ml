@@ -88,6 +88,12 @@ module Row = struct
     end;
     {page; size = List.length cells; root = row}
 
+  let on_click row on_click = 
+    row.root##.classList##add (js "clickable");
+    Lwt.async (fun () ->
+      Lwt_js_events.clicks row.root
+        (fun _ev _ -> on_click (); Lwt.return ()))
+
   let root t = 
     t.root
 

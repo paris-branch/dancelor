@@ -6,4 +6,5 @@
     js_of_ocaml-lwt
     cohttp-lwt-jsoo
     dancelor.common
+    dancelor.client.model
     dancelor.nes))

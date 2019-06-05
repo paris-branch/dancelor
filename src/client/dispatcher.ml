@@ -20,23 +20,34 @@ let get_contents page =
   in
   begin match trim path with
   | ["tune";"all"] ->
+    (fun () -> ()),
     TuneExplorer.contents (TuneExplorer.create page)
   | ["tune";slug] ->
+    (fun () -> ()),
     TuneViewer.contents (TuneViewer.create page slug)
   | ["set";"all"] ->
+    (fun () -> ()),
     SetExplorer.contents (SetExplorer.create page)
   | ["set";"compose"] ->
+    (fun () -> ()),
     ComposerInterface.contents (ComposerInterface.create page)
   | ["set";slug] ->
+    (fun () -> ()),
     SetViewer.contents (SetViewer.create page slug)
   | ["program";"all"] ->
+    (fun () -> ()),
     ProgramExplorer.contents (ProgramExplorer.create page)
   | ["program";slug] ->
+    (fun () -> ()),
     ProgramViewer.contents (ProgramViewer.create page slug)
   | ["credit";"add"] ->
-    CreditEditorInterface.contents (CreditEditorInterface.create page)
+    let interface = CreditEditorInterface.create page in
+    (fun () -> CreditEditorInterface.refresh interface),
+    CreditEditorInterface.contents interface
   | [] ->
+    (fun () -> ()),
     Index.contents (Index.create ())
   | _ ->
+    (fun () -> ()),
     UnknownPage.contents (UnknownPage.create ())
   end

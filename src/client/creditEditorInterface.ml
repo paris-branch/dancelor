@@ -13,14 +13,12 @@ type t =
   editor : CreditEditor.t;
   content : Html.divElement Js.t;
   persons_area : Html.divElement Js.t;
-  search_bar : Inputs.Text.t;
-  search_results : Table.t;
   input_name : Inputs.Text.t;
+  search_bar : Person.t SearchResults.t;
   mutable persons_inputs : Inputs.Text.t list;
 }
 
-
-let rec make_person_subdiv t index person = 
+let make_person_subdiv t index person = 
   let root = Html.createDiv (Page.document t.page) in
   Style.set ~display:"flex" root;
   let buttons = Html.createUl (Page.document t.page) in
@@ -29,19 +27,19 @@ let rec make_person_subdiv t index person =
     Inputs.Button.create
       ~on_click:(fun () ->
         CreditEditor.move_down t.editor index;
-        refresh t)
+        Page.refresh t.page)
       ~icon:"chevron-down"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
         CreditEditor.move_up t.editor index;
-        refresh t)
+        Page.refresh t.page)
       ~icon:"chevron-up"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
         CreditEditor.remove t.editor index;
-        refresh t)
+        Page.refresh t.page)
       ~kind:Inputs.Button.Kind.Danger
       ~icon:"times"
       t.page
@@ -85,7 +83,7 @@ let rec make_person_subdiv t index person =
   end;
   root
 
-and refresh t =
+let refresh t =
   Inputs.Text.set_contents t.input_name (CreditEditor.name t.editor);
   Helpers.clear_children t.persons_area;
   t.persons_inputs <- [];
@@ -94,77 +92,6 @@ and refresh t =
     Dom.appendChild t.persons_area (Html.createBr (Page.document t.page));
     Dom.appendChild t.persons_area subwin)
   |> ignore
-
-
-let make_no_result t =
-  Table.Row.create
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return " ") t.page;
-      Table.Cell.text ~text:(Lwt.return "No results") t.page]
-    t.page
-
-let make_3chars_result t =
-  Table.Row.create
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return " ") t.page;
-      Table.Cell.text ~text:(Lwt.return "Enter at least 3 characters") t.page]
-    t.page
-
-let rec reset_search_bar t =
-  Table.set_visible t.search_results false;
-  let def_result = make_default_result t in
-  let partial_result = make_3chars_result t in
-  Table.replace_rows t.search_results (Lwt.return [partial_result; def_result]);
-  Inputs.Text.erase t.search_bar
-
-and make_default_result t = 
-  Table.Row.create
-    ~on_click:(fun () ->
-      reset_search_bar t;
-      Lwt.on_success 
-        (CreditEditor.add t.editor (`New "")) 
-        (fun () -> refresh t))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return "  +") t.page;
-      Table.Cell.text ~text:(Lwt.return "Create a new person") t.page]
-    t.page
-
-let make_search_result t score =
-  let person = Score.value score in
-  let score = score.Score.score in
-  let%lwt slug = Person.slug person in
-  let%lwt name = Person.name person in
-  let row = Table.Row.create
-    ~on_click:(fun () ->
-      reset_search_bar t;
-      Lwt.on_success 
-        (CreditEditor.add t.editor (`Slug slug)) 
-        (fun () -> refresh t))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) t.page;
-      Table.Cell.text ~text:(Lwt.return name) t.page]
-    t.page
-  in
-  Lwt.return row
-   
-let make_search_results t input =
-  let def_result = make_default_result t in
-  if String.length input > 2 then begin
-    let open Lwt in
-    let persons = Person.search ~threshold:0.6 [input] in
-    Lwt.bind persons (fun scores ->
-      if List.length scores > 0 then begin
-        NesList.sub 10 scores
-        |> Lwt_list.map_p (make_search_result t)
-        >>= (fun l -> Lwt.return (l@[def_result]))
-      end else begin
-        let no_result = make_no_result t in
-        Lwt.return [no_result; def_result]
-      end)
-  end else begin
-    let tmp_result = make_3chars_result t in
-    Lwt.return [tmp_result; def_result]
-  end
 
 let create ?on_save page =
   let editor = CreditEditor.create () in
@@ -177,38 +104,47 @@ let create ?on_save page =
     page
   in
   let persons_area = Html.createDiv (Page.document page) in
-  let search_results = Table.create
-    ~kind:Table.Kind.Dropdown
-    ~visible:false
-    page
+  let search_bar = 
+    SearchResults.create 
+      ~placeholder:"Search for a person"
+      ~default:(Table.Row.create
+        ~cells:[
+          Table.Cell.text ~text:(Lwt.return "  +") page;
+          Table.Cell.text ~text:(Lwt.return "Create a new person") page]
+        ~on_click:(fun () ->
+          Lwt.on_success 
+            (CreditEditor.add editor (`New "")) 
+            (fun () -> Page.refresh page)) 
+        page)
+      ~search:(fun input -> Person.search ~threshold:0.6 [input])
+      ~make_result:(fun score -> 
+        let person = Score.value score in
+        let score = score.Score.score in
+        let%lwt slug = Person.slug person in
+        let%lwt name = Person.name person in
+        let row = Table.Row.create
+          ~on_click:(fun () ->
+            Lwt.on_success 
+              (CreditEditor.add editor (`Slug slug)) 
+              (fun () -> Page.refresh page))
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+            Table.Cell.text ~text:(Lwt.return name) page]
+          page
+        in
+        Lwt.return row)
+      page
   in
-  let search_bar = Inputs.Text.create
-    ~default:"Search for a person"
-    ~on_focus:(fun b -> if b then Table.set_visible search_results true)
-    page
-  in
-  let t = {
-    page; editor; content; persons_area; search_bar; search_results; input_name;
-    persons_inputs = []} 
-  in
-  reset_search_bar t;
-  Inputs.Text.on_change search_bar (fun txt ->
-    make_search_results t txt
-    |> Table.replace_rows search_results);
-  Page.register_modal page 
-    ~element:(Table.root search_results :> Html.element Js.t)
-    ~on_unfocus:(fun () -> Table.set_visible search_results false)
-    ~targets:[(Table.root search_results :> Html.element Js.t); 
-              (Inputs.Text.root search_bar :> Html.element Js.t)];
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
+  let t = {page; editor; content; persons_area; input_name; search_bar; persons_inputs = []} in
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
         let b1, b2, b3 =
-          Inputs.Text.check t.input_name (fun str -> str <> ""),
-          Inputs.Text.check t.search_bar (fun _ -> CreditEditor.count t.editor > 0),
+          Inputs.Text.check input_name (fun str -> str <> ""),
+          Inputs.Text.check (SearchResults.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
           List.for_all (fun input -> Inputs.Text.check input (fun str -> str <> ""))
             t.persons_inputs
         in
@@ -228,7 +164,7 @@ let create ?on_save page =
       ~on_click:(fun () ->
         if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
           CreditEditor.clear editor;
-          refresh t
+          Page.refresh page
         end)
       page
   in
@@ -240,8 +176,7 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_name);
   Dom.appendChild form persons_area;
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (Inputs.Text.root search_bar);
-  Dom.appendChild form (Table.root search_results);
+  Dom.appendChild form (SearchResults.root search_bar);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;
