@@ -2,10 +2,11 @@ include Pervasives
 
 let (||>) f g x = f x |> g
 
-let pf = Format.printf
-let epf = Format.eprintf
-let fpf = Format.fprintf
-let spf = Format.sprintf
+let   pf = Format.printf
+let  epf = Format.eprintf
+let  fpf = Format.fprintf
+let  spf = Format.sprintf
+let aspf = Format.asprintf
 
 let ssf = Scanf.sscanf
 

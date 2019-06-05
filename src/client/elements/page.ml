@@ -1,10 +1,11 @@
 open Js_of_ocaml
+open Js_of_ocaml_lwt
 
 module Html = Dom_html
 
 let js = Js.string
 
-type modal = 
+type modal =
 {
   element : Html.element Js.t;
   on_unfocus : (unit -> unit);
@@ -33,8 +34,8 @@ let create () =
         (fun () -> ())
         (fun trg ->
           List.map (fun modal ->
-            (modal, 
-              List.for_all 
+            (modal,
+              List.for_all
                 (fun modal_trg -> not (JsHelpers.is_child_of trg modal_trg))
                 modal.targets)) t.modals
           |> List.iter (fun (modal, unfocus) -> if unfocus then modal.on_unfocus ()));
@@ -57,8 +58,8 @@ let set_contents t contents =
   contents##.classList##add (js "page-body");
   t.content <- Some contents
 
-let register_modal t ~element ~on_unfocus ~targets = 
+let register_modal t ~element ~on_unfocus ~targets =
   t.modals <- {element; on_unfocus; targets} :: t.modals
 
-let remove_modal t element = 
+let remove_modal t element =
   t.modals <- List.filter (fun modal -> modal.element <> element) t.modals

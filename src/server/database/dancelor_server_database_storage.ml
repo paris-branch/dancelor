@@ -58,27 +58,39 @@ let read_entry_json table entry =
   read_entry_file table entry ||> Json.from_string
 
 let write_entry_file table entry file content =
-  let path = Filename.concat_l [!prefix; table; entry] in
-  Filesystem.create_directory ~fail_if_exists:false path;
-  let path = Filename.concat path file in
-  Filesystem.write_file path content
+  if !Dancelor_server_config.write_storage then
+    (
+      let path = Filename.concat_l [!prefix; table; entry] in
+      Filesystem.create_directory ~fail_if_exists:false path;
+      let path = Filename.concat path file in
+      Filesystem.write_file path content
+    )
 
 let write_entry_json table entry file =
   Json.to_string
   ||> write_entry_file table entry file
 
 let delete_entry table entry =
-  let path = Filename.concat_l [!prefix; table; entry] in
-  Filesystem.read_directory path
-  |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
-  Filesystem.remove_directory path
+  if !Dancelor_server_config.write_storage then
+    (
+      let path = Filename.concat_l [!prefix; table; entry] in
+      Filesystem.read_directory path
+      |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
+      Filesystem.remove_directory path
+    )
 
 let save_changes_on_entry ~msg table entry =
-  (* no prefix for git! *)
-  let path = Filename.concat_l [(*!prefix;*) table; entry] in
-  Git.add path;
-  Git.commit ~msg
+  if !Dancelor_server_config.write_storage then
+    (
+      (* no prefix for git! *)
+      let path = Filename.concat_l [(*!prefix;*) table; entry] in
+      Git.add path;
+      Git.commit ~msg
+    )
 
 let sync_changes () =
-  Git.pull_rebase ();
-  Git.push ()
+  if !Dancelor_server_config.sync_storage then
+    (
+      Git.pull_rebase ();
+      Git.push ()
+    )
