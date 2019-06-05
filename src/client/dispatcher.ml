@@ -29,8 +29,9 @@ let get_contents page =
     (fun () -> ()),
     SetExplorer.contents (SetExplorer.create page)
   | ["set";"compose"] ->
-    (fun () -> ()),
-    ComposerInterface.contents (ComposerInterface.create page)
+    let interface = ComposerInterface.create page in
+    (fun () -> ComposerInterface.refresh interface),
+    ComposerInterface.contents interface
   | ["set";slug] ->
     (fun () -> ()),
     SetViewer.contents (SetViewer.create page slug)

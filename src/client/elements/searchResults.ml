@@ -12,7 +12,7 @@ type 'a t = {
   root : root Js.t;
   bar : Inputs.Text.t;
   table : Table.t;
-  default : Table.Row.t;
+  default : Table.Row.t option;
   empty : Table.Row.t;
   progress : Table.Row.t;
   search : string -> ('a Score.t) list Lwt.t;
@@ -30,7 +30,10 @@ let bar t =
 
 let reset t = 
   Table.set_visible t.table false;
-  Table.replace_rows t.table (Lwt.return [t.progress; t.default]);
+  begin match t.default with
+  | None -> Table.replace_rows t.table (Lwt.return [t.progress])
+  | Some d -> Table.replace_rows t.table (Lwt.return [t.progress; d])
+  end;
   Inputs.Text.erase t.bar
 
 let make_result_rows t =
@@ -47,15 +50,22 @@ let make_result_rows t =
       if List.length scores > 0 then begin
         NesList.sub 10 scores
         |> Lwt_list.map_p make_row
-        >>= (fun l -> Lwt.return (l@[t.default]))
+        >>= (fun l -> 
+          match t.default with
+          | None -> Lwt.return (l)
+          | Some d -> Lwt.return (l@[d]))
       end else begin
-        Lwt.return [t.empty; t.default]
+        match t.default with
+        | None -> Lwt.return [t.empty]
+        | Some d -> Lwt.return [t.empty; d]
       end)
   end else begin
-    Lwt.return [t.progress; t.default]
+    match t.default with
+    | None -> Lwt.return [t.progress]
+    | Some d -> Lwt.return [t.progress; d]
   end
    
-let create ~default ~search ~placeholder ~make_result page =
+let create ?default ~search ~placeholder ~make_result page =
   let root = Html.createDiv (Page.document page) in
   let table = Table.create ~visible:false ~kind:Table.Kind.Dropdown page in
   let bar = 
@@ -81,7 +91,9 @@ let create ~default ~search ~placeholder ~make_result page =
       page
   in
   let t = {page; root; bar; table; default; empty; progress; search; make_result} in
-  Table.Row.on_click default (fun () -> reset t);
+  NesOption.ifsome 
+    (fun default -> Table.Row.on_click default (fun () -> reset t))
+    default;
   Inputs.Text.on_change bar (fun _ ->
     make_result_rows t
     |> Table.replace_rows table);
