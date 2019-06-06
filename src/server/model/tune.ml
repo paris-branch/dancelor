@@ -193,8 +193,9 @@ let search ?filter ?pagination ?(threshold=0.) query =
 let () =
   Madge_server.(
     register ~endpoint:Endpoint.search @@ fun {a} {o} ->
-    search ?filter:(o Arg.filter)
-      ?pagination: (o Arg.pagination)
-      ?threshold:  (o Arg.threshold)
+    search
+      ?filter:    (o Arg.filter)
+      ?pagination:(o Arg.pagination)
+      ?threshold: (o Arg.threshold)
       (a Arg.terms)
   )
