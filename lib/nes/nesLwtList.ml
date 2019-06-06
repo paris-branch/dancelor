@@ -37,3 +37,16 @@ let sort_param uniq compare l =
 let sort compare l = sort_param false compare l
 
 let sort_uniq compare l = sort_param true compare l
+
+let proj_sort proj compare l = 
+  let%lwt l = l in
+  let%lwt l_w_proj = 
+    Lwt_list.map_s 
+      (fun elt -> Lwt.bind (proj elt) (fun p -> Lwt.return (elt, p))) l
+  in
+  List.sort (fun (_, p1) (_, p2) -> compare p1 p2) l_w_proj
+  |> List.map fst
+  |> Lwt.return
+
+let map f l = 
+  Lwt.map (List.map f) l
