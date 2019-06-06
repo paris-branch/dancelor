@@ -1,4 +1,5 @@
 include NesPervasives
+
 module Date = NesDate
 module Filename = NesFilename
 module Filesystem = NesFilesystem
@@ -11,3 +12,7 @@ module Seq = NesSeq
 module Slug = NesSlug
 module String = NesString
 module Option = NesOption
+
+include Option.Syntax
+include Lwt.Syntax
+include LwtOption.Syntax

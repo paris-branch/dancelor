@@ -1,15 +1,8 @@
+open Nes
 include Dancelor_common_model.Set
 
-let deviser s =
-  match%lwt deviser s with
-  | None -> Lwt.return_none
-  | Some slug ->
-    let%lwt c = Credit.get slug in
-    Lwt.return_some c
-
-let tunes s =
-  let%lwt tunes = tunes s in
-  Lwt_list.map_p Tune.get tunes
+let deviser = deviser >=>|?(Credit.get >=>|| Lwt.return_some)
+let tunes = tunes >=>|| Lwt_list.map_p Tune.get
 
 let warnings s =
   let warnings = ref [] in

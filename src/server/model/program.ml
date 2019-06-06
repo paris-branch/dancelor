@@ -1,8 +1,7 @@
+open Nes
 include Dancelor_common_model.Program
 
-let sets p =
-  let%lwt sets = sets p in
-  Lwt_list.map_s Dancelor_server_database.Set.get sets
+let sets = sets >=>|| Lwt_list.map_s Set.get
 
 let warnings _p = assert false (* FIXME *)
 

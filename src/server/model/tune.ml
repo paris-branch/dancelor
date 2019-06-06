@@ -1,22 +1,10 @@
-open NesLwt.Syntax
+open Nes
 include Dancelor_common_model.Tune
 
-let group t =
-  let%lwt group = group t in
-  Dancelor_server_database.TuneGroup.get group
-
-let arranger t =
-  match%lwt arranger t with
-  | None -> Lwt.return_none
-  | Some arranger ->
-    let%lwt arranger = Dancelor_server_database.Credit.get arranger in
-    Lwt.return_some arranger
-
+let group = group >=>|| TuneGroup.get
+let arranger = arranger >=>|? (Credit.get >=>|| Lwt.return_some)
 let sources = sources >=>|| Lwt_list.map_s Source.get
-
-let dances t =
-  let%lwt dances = dances t in
-  Lwt_list.map_s Dancelor_server_database.Dance.get dances
+let dances = dances >=>|| Lwt_list.map_s Dance.get
 
 let content = Dancelor_server_database.Tune.read_content
 

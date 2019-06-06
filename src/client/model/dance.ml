@@ -1,11 +1,7 @@
+open Nes
 include Dancelor_common_model.Dance
 
-let deviser c =
-  match%lwt deviser c with
-  | None -> Lwt.return_none
-  | Some deviser ->
-    let%lwt deviser = Credit.get deviser in
-    Lwt.return_some deviser
+let deviser = deviser >=>|? (Credit.get >=>|| Lwt.return_some)
 
 (* * *)
 

@@ -1,8 +1,7 @@
+open Nes
 include Dancelor_common_model.Program
 
-let sets p =
-  let%lwt sets = sets p in
-  Lwt_list.map_p Set.get sets
+let sets = sets >=>|| Lwt_list.map_p Set.get
 
 let warnings p =
   let warnings = ref [] in

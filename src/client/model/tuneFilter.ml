@@ -1,3 +1,4 @@
+open Nes
 include Dancelor_common_model.TuneFilter
 
 let make ?group_author ?group_kind ?key ?bars () =
@@ -10,6 +11,4 @@ let make ?group_author ?group_kind ?key ?bars () =
   in
   make ?group_author ?group_kind ?key ?bars ()
 
-let group_author f =
-  let%lwt author = group_author f in
-  Lwt_list.map_s Credit.get author
+let group_author = group_author >=>|| Lwt_list.map_s Credit.get
