@@ -1,3 +1,4 @@
+open NesPervasives
 include String
 
 let pp = Format.pp_print_string
@@ -55,9 +56,9 @@ let%test _ = remove_suffix ~needle:"lo" "hello" = Some "hel"
 let%test _ = remove_suffix ~needle:"hello" "hello" = Some ""
 let%test _  =remove_suffix ~needle:"hhello" "hello" = None
 
-let inclusion_distance needle haystack =
-  let ln = String.length needle in
-  let lh = String.length haystack in
+let inclusion_distance ~needle haystack =
+  let ln = length needle in
+  let lh = length haystack in
   let a = Array.make_matrix (ln+1) (lh+1) (-1) in
   let min3 a b c = min (min a b) c in
   let rec aux n h =
@@ -80,10 +81,23 @@ let inclusion_distance needle haystack =
   in
   aux 0 0
 
-let%test _ = inclusion_distance "chou" "achouffe" = 0
-let%test _ = inclusion_distance "chou" "acoul" = 1
-let%test _ = inclusion_distance "chou" "achhouffe" = 1
-let%test _ = inclusion_distance "chou" "achauffe" = 1
+let%test _ = inclusion_distance ~needle:"chou" "achouffe" = 0
+let%test _ = inclusion_distance ~needle:"chou" "acoul" = 1
+let%test _ = inclusion_distance ~needle:"chou" "achhouffe" = 1
+let%test _ = inclusion_distance ~needle:"chou" "achauffe" = 1
+
+let inclusion_proximity ~needle haystack =
+  let l = length needle in
+  let n =
+    1.
+    -.
+    if l = 0 then
+      0.
+    else
+      let d = inclusion_distance ~needle haystack in
+      (foi d) /. (foi l)
+  in
+  n *. n
 
 let escape ?(esc='\\') ~chars s =
   let l = String.length s in

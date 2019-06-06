@@ -35,18 +35,9 @@ let () =
   )
 
 let match_score needle haystack =
-  let open Nes in
-  let needle = Slug.from_string needle in
-  let haystack = Slug.from_string haystack in
-  let n =
-    1. -.
-    if String.length needle = 0 then
-      0.
-    else
-      let d = String.inclusion_distance needle haystack in
-      (float_of_int d) /. (float_of_int (String.length needle))
-  in
-  n *. n
+  let needle = NesSlug.from_string needle in
+  let haystack = NesSlug.from_string haystack in
+  NesString.inclusion_proximity ~needle haystack
 
 let search_string_against_credit term credit =
   if String.length term < 3 then

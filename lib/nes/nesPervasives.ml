@@ -2,6 +2,8 @@ include Pervasives
 
 let (||>) f g x = f x |> g
 
+let foi = float_of_int
+
 let   pf = Format.printf
 let  epf = Format.eprintf
 let  fpf = Format.fprintf
