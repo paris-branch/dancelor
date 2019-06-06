@@ -8,7 +8,7 @@ module Self = struct
       key : Music.key ;
       structure : string ;
       arranger : Credit.t Slug.t option [@default None] ;
-      sources : string list             [@default []] ; (* FIXME: not string *)
+      sources : Source.t Slug.t list    [@default []] ;
       dances : Dance.t Slug.t list      [@default []] ;
       remark : string                   [@default ""] ;
       disambiguation : string           [@default ""] }
@@ -38,7 +38,7 @@ module type S = sig
   val key : t -> Music.key Lwt.t
   val structure : t -> string Lwt.t
   val arranger : t -> Credit.t option Lwt.t
-  val sources : t -> string list Lwt.t
+  val sources : t -> Source.t list Lwt.t
   val dances : t -> Dance.t list Lwt.t
   val remark : t -> string Lwt.t
   val disambiguation : t -> string Lwt.t

@@ -1,3 +1,4 @@
+open NesLwt.Syntax
 include Dancelor_common_model.Tune
 
 let group t =
@@ -10,6 +11,8 @@ let arranger t =
   | Some arranger ->
     let%lwt arranger = Dancelor_server_database.Credit.get arranger in
     Lwt.return_some arranger
+
+let sources = sources >=>|| Lwt_list.map_s Source.get
 
 let dances t =
   let%lwt dances = dances t in

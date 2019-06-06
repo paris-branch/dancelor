@@ -8,6 +8,7 @@ module Score  = Score
 
 module Person     : Common.Person.S     = Person
 module Credit     : Common.Credit.S     = Credit
+module Source     : Common.Source.S     = Source
 module Dance      : Common.Dance.S      = Dance
 module TuneGroup  : Common.TuneGroup.S  = TuneGroup
 module Tune       : Common.Tune.S       = Tune
