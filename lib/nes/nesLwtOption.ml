@@ -15,7 +15,7 @@ let map : 'a t -> ('a -> 'b) -> 'b t =
   | Some x -> Lwt.return_some (f x)
 
 module Syntax = struct
-  let (>>=|?) = bind
-  let (>=>|?) = compose
-  let (<&>|?) = map
+  let (>>=?|) = bind
+  let (>=>?|) = compose
+  let (<&>?|) = map
 end

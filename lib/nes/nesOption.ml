@@ -23,8 +23,8 @@ let value ~default = function
 let wrap_fun f =
   fun x -> Some (f x)
 
-let ifsome f = function
-  | None -> ()
+let ifsome ?(or_=()) f = function
+  | None -> or_
   | Some x -> f x
 
 let assert_some = function

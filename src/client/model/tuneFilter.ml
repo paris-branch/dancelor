@@ -11,4 +11,4 @@ let make ?group_author ?group_kind ?key ?bars () =
   in
   make ?group_author ?group_kind ?key ?bars ()
 
-let group_author = group_author >=>|| Lwt_list.map_s Credit.get
+let group_author = group_author >=>| Lwt_list.map_s Credit.get

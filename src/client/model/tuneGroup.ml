@@ -1,7 +1,7 @@
 open Nes
 include Dancelor_common_model.TuneGroup
 
-let author = author >=>|? (Credit.get >=>|| Lwt.return_some)
+let author = author >=>?| (Credit.get >=>| Lwt.return_some)
 
 (* * *)
 

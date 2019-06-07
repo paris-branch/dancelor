@@ -1,10 +1,10 @@
 open Nes
 include Dancelor_common_model.Tune
 
-let group = group >=>|| TuneGroup.get
-let arranger = arranger >=>|? (Credit.get >=>|| Lwt.return_some)
-let sources = sources >=>|| Lwt_list.map_s Source.get
-let dances = dances >=>|| Lwt_list.map_s Dance.get
+let group = group >=>| TuneGroup.get
+let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
+let sources = sources >=>| Lwt_list.map_s Source.get
+let dances = dances >=>| Lwt_list.map_s Dance.get
 
 let content = Dancelor_server_database.Tune.read_content
 
@@ -62,13 +62,13 @@ let apply_filter_on_scores filter all =
 
 let all ?filter ?pagination () =
   Dancelor_server_database.Tune.get_all ()
-  >>=||
+  >>=|
   (match filter with
    | Some filter -> apply_filter filter
    | None -> Lwt.return)
-  >>=||
+  >>=|
   Lwt_list.proj_sort_s ~proj:slug compare
-  >>=||
+  >>=|
   (match pagination with
    | Some pagination -> Pagination.apply pagination
    | None -> Lwt.return)
@@ -149,15 +149,15 @@ let search_against_tune search tune =
 
 let search ?filter ?pagination ?(threshold=0.) query =
   Dancelor_server_database.Tune.get_all ()
-  >>=||
+  >>=|
   (Score.list_from_values
    ||>
    Score.list_map_score (search_against_tune query))
-  >>=||
+  >>=|
   (match filter with
    | Some filter -> apply_filter_on_scores filter
    | None -> Lwt.return)
-  >>=||
+  >>=|
   (Score.list_filter_threshold threshold
    ||>
    Score.list_sort_decreasing (fun tune1 tune2 -> compare (slug tune1) (slug tune2)) (* FIXME: proj sort *)

@@ -1,7 +1,7 @@
 open Nes
 include Dancelor_common_model.Dance
 
-let deviser = deviser >=>|? (Credit.get >=>|| Lwt.return_some)
+let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
 
 (* * *)
 

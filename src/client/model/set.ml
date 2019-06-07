@@ -1,8 +1,8 @@
 open Nes
 include Dancelor_common_model.Set
 
-let deviser = deviser >=>|?(Credit.get >=>|| Lwt.return_some)
-let tunes = tunes >=>|| Lwt_list.map_p Tune.get
+let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
+let tunes = tunes >=>| Lwt_list.map_p Tune.get
 
 let warnings s =
   let warnings = ref [] in

@@ -1,7 +1,7 @@
 open Nes
 include Dancelor_common_model.Credit
 
-let persons = persons >=>|| Lwt_list.map_p Person.get
+let persons = persons >=>| Lwt_list.map_p Person.get
 
 (* * *)
 
