@@ -25,7 +25,9 @@ module Stats = struct
     stats.accesses
 end
 
-module Make (Log : Logs.LOG) (Model : Model) = struct
+module Make (Model : Model) = struct
+  module Log = (val Dancelor_server_logs.create ("server.database.unsafe." ^ Model._key) : Logs.LOG)
+
   let db : (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
   let read_separated_file model file =
