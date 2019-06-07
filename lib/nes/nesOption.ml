@@ -20,6 +20,10 @@ let unwrap_or or_ = function
   | None -> or_
   | Some x -> x
 
+let unwrap_map_or or_ f = function
+  | None -> or_
+  | Some x -> f x
+
 let wrap x = Some x
 
 let wrap_fun f =

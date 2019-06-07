@@ -81,7 +81,7 @@ let refresh t =
   | None -> Inputs.Text.set_contents (SearchResults.bar t.deviser_search) ""
   | Some cr ->
     let name = Credit.line cr in
-    Lwt.on_success name (fun name -> 
+    Lwt.on_success name (fun name ->
       Inputs.Text.set_contents (SearchResults.bar t.deviser_search) name)
   end;
   Helpers.clear_children t.tunes_area;
@@ -112,12 +112,12 @@ let make_tune_search_result composer page score =
   in
   Lwt.return row
 
-let make_credit_modal composer content page = 
+let make_credit_modal composer content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let credits_modal = Html.createDiv (Page.document page) in
-  let interface = 
-    CreditEditorInterface.create page 
-      ~on_save:(fun slug -> 
+  let interface =
+    CreditEditorInterface.create page
+      ~on_save:(fun slug ->
         Page.remove_modal page modal_bg;
         Dom.removeChild content modal_bg;
         Lwt.on_success (Composer.set_deviser composer slug) (fun () -> Page.refresh page))
@@ -127,7 +127,7 @@ let make_credit_modal composer content page =
   modal_bg##.classList##add (js "modal-background");
   Dom.appendChild modal_bg credits_modal;
   Dom.appendChild content modal_bg;
-  Page.register_modal page 
+  Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
     ~on_refresh:(fun () -> CreditEditorInterface.refresh interface)
@@ -140,8 +140,8 @@ let make_deviser_search_result composer page score =
   let%lwt slug = Credit.slug deviser in
   let row = Table.Row.create
     ~on_click:(fun () ->
-      Lwt.on_success 
-        (Composer.set_deviser composer slug) 
+      Lwt.on_success
+        (Composer.set_deviser composer slug)
         (fun () -> Page.refresh page; Composer.save composer))
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
@@ -184,7 +184,7 @@ let create page =
   let tunes_area = Html.createDiv (Page.document page) in
   let tune_search = SearchResults.create
     ~placeholder:"Search for a tune"
-    ~search:(fun input -> Tune.search ~threshold:0.6 [input])
+    ~search:(fun input -> Tune.search ~threshold:0.6 input)
     ~make_result:(fun score -> make_tune_search_result composer page score)
     page
   in
@@ -194,9 +194,9 @@ let create page =
       Composer.remove_deviser composer;
       Page.refresh page
     end);
-  let t = 
+  let t =
     {page; composer; content; tunes_area; deviser_search;
-    tune_search; input_name; input_kind} 
+    tune_search; input_name; input_kind}
   in
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -207,9 +207,9 @@ let create page =
         let b1, b2, b3, b4 =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
-          Inputs.Text.check (SearchResults.bar t.tune_search) 
+          Inputs.Text.check (SearchResults.bar t.tune_search)
             (fun _ -> Composer.count t.composer > 0),
-          Inputs.Text.check (SearchResults.bar t.deviser_search) 
+          Inputs.Text.check (SearchResults.bar t.deviser_search)
             (fun _ -> Composer.deviser t.composer <> None)
         in
         if b1 && b2 && b3 && b4 then (

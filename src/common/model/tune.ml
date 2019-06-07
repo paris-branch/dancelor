@@ -55,7 +55,7 @@ module type S = sig
 
   val search :
     ?filter:TuneFilter.t -> ?pagination:Pagination.t ->
-    ?threshold:float -> string list ->
+    ?threshold:float -> string ->
     t Score.t list Lwt.t
 end
 
@@ -64,7 +64,7 @@ module Arg = struct
   let filter = Madge_common.optarg (module TuneFilter)
   let pagination = Madge_common.optarg (module Pagination)
   let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
-  let terms = Madge_common.(arg ~key:"terms" (module MList(MString)))
+  let string = Madge_common.(arg ~key:"query" (module MString))
 end
 
 module Endpoint = struct

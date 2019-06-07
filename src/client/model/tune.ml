@@ -24,11 +24,11 @@ let all ?filter ?pagination () =
     o Arg.pagination pagination
   )
 
-let search ?filter ?pagination ?threshold terms =
+let search ?filter ?pagination ?threshold string =
   Madge_client.(
     call ~endpoint:Endpoint.search @@ fun {a} {o} ->
     o Arg.filter filter;
     o Arg.pagination pagination;
     o Arg.threshold threshold;
-    a Arg.terms terms
+    a Arg.string string
   )
