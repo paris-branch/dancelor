@@ -1,3 +1,5 @@
+type 'a t = 'a option
+
 let bind x f =
   match x with
   | Some x -> f x
@@ -11,20 +13,20 @@ let map f = function
   | Some x -> Some (f x)
 
 let unwrap = function
-  | None -> failwith "unwrap"
+  | Some x -> x
+  | None -> failwith "NesOption.unwrap"
+
+let unwrap_or or_ = function
+  | None -> or_
   | Some x -> x
 
 let wrap x = Some x
 
-let value ~default = function
-  | None -> default
-  | Some x -> x
-
 let wrap_fun f =
   fun x -> Some (f x)
 
-let ifsome ?(or_=()) f = function
-  | None -> or_
+let ifsome f = function
+  | None -> ()
   | Some x -> f x
 
 let assert_some = function
