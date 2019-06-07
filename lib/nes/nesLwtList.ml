@@ -1,3 +1,5 @@
+open NesLwt.Syntax
+
 type 'a t = 'a list Lwt.t
 
 let cons h l =
@@ -38,9 +40,8 @@ let sort compare l = sort_param false compare l
 
 let sort_uniq compare l = sort_param true compare l
 
-let proj_sort proj compare l =
-  let%lwt l = l in
-  NesLwt_list.proj_sort proj compare l
+let proj_sort proj compare =
+  Lwt.return >=>|| NesLwt_list.proj_sort_s ~proj compare
 
 let map f l =
   Lwt.map (List.map f) l

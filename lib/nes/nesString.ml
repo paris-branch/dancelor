@@ -1,4 +1,4 @@
-open NesPervasives
+open NesPervasives.Syntax
 include String
 
 let pp = Format.pp_print_string

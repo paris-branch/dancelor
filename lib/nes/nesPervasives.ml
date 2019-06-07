@@ -1,16 +1,19 @@
 include Pervasives
 
-let (||>) f g x = f x |> g
+module Syntax = struct
+  let (||>) f g x = f x |> g
 
-let foi = float_of_int
+  let foi = float_of_int
 
-let   pf = Format.printf
-let  epf = Format.eprintf
-let  fpf = Format.fprintf
-let  spf = Format.sprintf
-let aspf = Format.asprintf
+  let   pf = Format.printf
+  let  epf = Format.eprintf
+  let  fpf = Format.fprintf
+  let  spf = Format.sprintf
+  let aspf = Format.asprintf
 
-let ssf = Scanf.sscanf
+  let ssf = Scanf.sscanf
+end
+open Syntax
 
 let id = fun x -> x
 
