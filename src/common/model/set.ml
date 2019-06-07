@@ -78,6 +78,12 @@ module type S = sig
     unit -> t Lwt.t
 
   val delete : t -> unit Lwt.t
+
+  val search :
+    ?pagination:Pagination.t ->
+    ?threshold:float ->
+    string ->
+    t Score.t list Lwt.t
 end
 
 module Arg = struct
@@ -87,6 +93,9 @@ module Arg = struct
   let kind = Madge_common.arg ~key:"kind" (module Kind.Dance)
   let status = Madge_common.optarg (module Status)
   let tunes = Madge_common.(optarg ~key:"tunes" (module MList (Tune)))
+  let pagination = Madge_common.optarg (module Pagination)
+  let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
+  let string = Madge_common.(arg (module MString))
 end
 
 module Endpoint = struct
@@ -94,4 +103,5 @@ module Endpoint = struct
   let get_all = Madge_common.(endpoint ~path:"/set/all" (module MList (Self)))
   let make_and_save = Madge_common.endpoint ~path:"/set/save" (module (Self))
   let delete = Madge.(endpoint ~path:"/set/delete" (module MUnit))
+  let search = Madge_common.(endpoint ~path:"/set/search" (module MList (Score.Make_Serialisable (Self))))
 end

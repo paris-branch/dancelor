@@ -67,13 +67,23 @@ module type S = sig
   val get : t Slug.t -> t Lwt.t
 
   val get_all : unit -> t list Lwt.t
+
+  val search :
+    ?pagination:Pagination.t ->
+    ?threshold:float ->
+    string ->
+    t Score.t list Lwt.t
 end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let pagination = Madge_common.optarg (module Pagination)
+  let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
+  let string = Madge_common.(arg (module MString))
 end
 
 module Endpoint = struct
   let get = Madge_common.endpoint ~path:"/program" (module Self)
   let get_all = Madge_common.(endpoint ~path:"/program/all" (module MList (Self)))
+  let search = Madge_common.(endpoint ~path:"/program/search" (module MList (Score.Make_Serialisable (Self))))
 end

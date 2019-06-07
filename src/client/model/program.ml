@@ -51,3 +51,11 @@ let get slug =
 
 let get_all () =
   Madge_client.call ~endpoint:Endpoint.get_all @@ fun _ _ -> ()
+
+let search ?pagination ?threshold string =
+  Madge_client.(
+    call ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    o Arg.pagination pagination;
+    o Arg.threshold threshold;
+    a Arg.string string
+  )
