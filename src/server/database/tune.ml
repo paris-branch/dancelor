@@ -6,5 +6,7 @@ let get (slug : Tune.t Slug.t) = Unsafe.get slug
 let get_all () = Unsafe.get_all ()
 
 let read_content tune =
-  let%lwt slug = Tune.slug tune in
-  Lwt.return (Unsafe.read_separated_file slug "content.ly")
+  Unsafe.read_separated_file tune "content.ly"
+
+let write_content tune content =
+  Unsafe.write_separated_file tune "content.ly" content

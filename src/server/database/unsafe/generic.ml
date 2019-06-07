@@ -28,8 +28,14 @@ end
 module Make (Log : Logs.LOG) (Model : Model) = struct
   let db : (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
-  let read_separated_file slug file =
-    Storage.read_entry_file Model._key slug file
+  let read_separated_file model file =
+    let%lwt slug = Model.slug model in
+    Lwt.return (Storage.read_entry_file Model._key slug file)
+
+  let write_separated_file model file content =
+    let%lwt slug = Model.slug model in
+    Storage.write_entry_file Model._key slug file content;
+    Lwt.return ()
 
   let initialise () =
     let load entry =
