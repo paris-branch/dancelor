@@ -32,7 +32,7 @@ let search ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Program.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:name Pervasives.compare
+  >>=| Score.list_proj_sort_decreasing ~proj:name String.sensible_compare
   >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
 
 let () =

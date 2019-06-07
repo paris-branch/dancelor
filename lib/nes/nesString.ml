@@ -125,3 +125,5 @@ let escape ?(esc='\\') ~chars s =
   aux 0 0
 
 let%test _ = escape ~chars:"\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\\'lui ai dit \\\\: \\\"Yo, ç\\'va ?\\\""
+
+let sensible_compare = Pervasives.compare (* FIXME *)

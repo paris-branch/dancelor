@@ -87,7 +87,7 @@ let search ?filter ?pagination ?(threshold=0.) string =
   >>=| Score.lwt_map_from_list (search string)
   >>=| Option.unwrap_map_or Lwt.return apply_filter_on_scores filter
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
+  >>=| Score.list_proj_sort_decreasing ~proj:(group >=>| TuneGroup.name) String.sensible_compare
   >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
 
 let () =
