@@ -88,16 +88,12 @@ let%test _ = inclusion_distance ~needle:"chou" "achauffe" = 1
 
 let inclusion_proximity ~needle haystack =
   let l = length needle in
-  let n =
-    1.
-    -.
-    if l = 0 then
-      0.
+  1. -. (
+    if l = 0 then 0.
     else
       let d = inclusion_distance ~needle haystack in
       (foi d) /. (foi l)
-  in
-  n *. n
+  )
 
 let escape ?(esc='\\') ~chars s =
   let l = String.length s in
@@ -126,4 +122,12 @@ let escape ?(esc='\\') ~chars s =
 
 let%test _ = escape ~chars:"\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\\'lui ai dit \\\\: \\\"Yo, ç\\'va ?\\\""
 
-let sensible_compare = Pervasives.compare (* FIXME *)
+let sensibilise s =
+  (* FIXME: "a", "the" at the end of the string. *)
+  String.lowercase_ascii s
+
+let sensible_inclusion_proximity ~needle haystack =
+  inclusion_proximity ~needle:(sensibilise needle) (sensibilise haystack)
+
+let sensible_compare s1 s2 =
+  Pervasives.compare (sensibilise s1) (sensibilise s2)

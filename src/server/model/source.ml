@@ -25,7 +25,7 @@ let () =
 
 let search string source =
   let%lwt name = name source in
-  String.inclusion_proximity ~needle:string name
+  String.sensible_inclusion_proximity ~needle:string name
   |> Lwt.return
 
 let search ?pagination ?(threshold=0.) string =

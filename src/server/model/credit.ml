@@ -35,7 +35,7 @@ let () =
 
 let search string credit =
   let%lwt line = line credit in
-  String.inclusion_proximity ~needle:string line
+  String.sensible_inclusion_proximity ~needle:string line
   |> Lwt.return
 
 let search ?pagination ?(threshold=0.) string =

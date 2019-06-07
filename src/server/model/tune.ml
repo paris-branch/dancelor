@@ -78,7 +78,7 @@ let search string tune =
   let%lwt group = group tune in
   let%lwt name = TuneGroup.name group in
   let%lwt alt_names = TuneGroup.alt_names group in
-  List.map (String.inclusion_proximity ~needle:string) (name :: alt_names)
+  List.map (String.sensible_inclusion_proximity ~needle:string) (name :: alt_names)
   |> List.fold_left max 0.
   |> Lwt.return
 
