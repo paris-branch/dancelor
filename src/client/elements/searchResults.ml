@@ -30,10 +30,14 @@ let bar t =
 
 let reset t = 
   Table.set_visible t.table false;
-  begin match t.default with
-  | None -> Table.replace_rows t.table (Lwt.return [t.progress])
-  | Some d -> Table.replace_rows t.table (Lwt.return [t.progress; d])
-  end;
+  let section = 
+    match t.default with
+    | None -> 
+      Table.Section.create ~rows:(Lwt.return [t.progress]) t.page
+    | Some d -> 
+      Table.Section.create ~rows:(Lwt.return [t.progress; d]) t.page
+  in
+  Table.replace_bodies t.table (Lwt.return [section]);
   Inputs.Text.erase t.bar
 
 let make_result_rows t =
@@ -96,7 +100,8 @@ let create ?default ~search ~placeholder ~make_result page =
     default;
   Inputs.Text.on_change bar (fun _ ->
     make_result_rows t
-    |> Table.replace_rows table);
+    |> (fun r -> Lwt.return [Table.Section.create ~rows:r t.page])
+    |> Table.replace_bodies table);
   Page.register_modal page 
     ~element:(Table.root table :> Html.element Js.t)
     ~on_unfocus:(fun () -> Table.set_visible table false)

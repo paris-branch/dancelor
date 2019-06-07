@@ -49,10 +49,11 @@ let create page =
       in
       Table.Row.create ~href ~cells page)
   in
+  let section = Table.Section.create ~rows page in
   let table = Table.create
     ~header
     ~kind:Table.Kind.Separated
-    ~contents:rows
+    ~contents:(Lwt.return [section])
     page
   in
   Dom.appendChild content (Table.root table);

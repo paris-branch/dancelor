@@ -102,6 +102,39 @@ module Row = struct
 
 end
 
+module Section = struct
+
+  type root = Html.tableSectionElement
+
+  type t = {
+    page : Page.t;
+    root : root Js.t;
+    header : Row.t option;
+  }
+
+  let root t = 
+    t.root
+  
+  let add t tr = 
+    Dom.appendChild t.root (Row.root tr)
+  
+  let clear t = 
+    JsHelpers.clear_children t.root;
+    NesOption.ifsome (fun h -> add t h) t.header
+
+  let replace_rows t rows = 
+    Lwt.on_success rows (fun rows ->
+      clear t;
+      List.iter (add t) rows)
+
+  let create ?header ~rows page = 
+    let root = Html.createTbody (Page.document page) in
+    let t = {root; page; header} in
+    replace_rows t rows;
+    t
+
+end
+
 module Kind = struct
 
   type t = 
@@ -120,22 +153,22 @@ type t = {
   page : Page.t;
   root : root Js.t;
   head : Html.tableSectionElement Js.t;
-  body : Html.tableSectionElement Js.t;
 }
 
 let root t = 
   t.root
 
-let add t tr = 
-  Dom.appendChild t.body (Row.root tr)
+let add t sec = 
+  Dom.appendChild t.root (Section.root sec)
 
 let clear t = 
-  JsHelpers.clear_children t.body
+  JsHelpers.clear_children t.root;
+  Dom.appendChild t.root t.head
 
-let replace_rows t rows = 
-  Lwt.on_success rows (fun rows ->
+let replace_bodies t bodies = 
+  Lwt.on_success bodies (fun bodies ->
     clear t;
-    List.iter (add t) rows)
+    List.iter (add t) bodies)
 
 let hide t = 
   t.root##.classList##remove (js "visible")
@@ -150,10 +183,8 @@ let set_visible t b =
 let create ?(visible=true) ?header ?contents ?kind page =
   let root = Html.createTable (Page.document page) in
   let head = Html.createThead (Page.document page) in
-  let body = Html.createTbody (Page.document page) in
-  let table = {page; root; head; body} in
+  let table = {page; root; head} in
   Dom.appendChild root head;
-  Dom.appendChild root body;
   NesOption.ifsome (fun h -> Dom.appendChild head (Row.root h)) header;
   NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
   NesOption.ifsome (fun contents ->
@@ -162,11 +193,12 @@ let create ?(visible=true) ?header ?contents ?kind page =
       | Some h -> Row.size h
       | None -> 1
     in
-    let loading = 
+    let loading_row = 
       Row.create ~cells:[Cell.text ~span ~text:(Lwt.return "Loading...") page] page 
     in
+    let loading = Section.create ~rows:(Lwt.return [loading_row]) page in
     add table loading;
-    replace_rows table contents) contents;
+    replace_bodies table contents) contents;
   set_visible table visible;
   table
 

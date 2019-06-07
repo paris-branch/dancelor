@@ -81,7 +81,8 @@ let update_table t =
       in
       Table.Row.create ~href ~cells t.page) tunes)
   in
-  Table.replace_rows t.table rows
+  let section = Table.Section.create ~rows t.page in
+  Table.replace_bodies t.table (Lwt.return [section])
 
 let update_filter t upd = 
   t.search <- Lwt.bind t.search upd;
