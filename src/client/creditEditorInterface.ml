@@ -14,7 +14,7 @@ type t =
   content : Html.divElement Js.t;
   persons_area : Html.divElement Js.t;
   input_name : Inputs.Text.t;
-  search_bar : Person.t SearchResults.t;
+  search_bar : Person.t SearchBar.t;
   mutable persons_inputs : Inputs.Text.t list;
 }
 
@@ -105,7 +105,7 @@ let create ?on_save page =
   in
   let persons_area = Html.createDiv (Page.document page) in
   let search_bar =
-    SearchResults.create
+    SearchBar.create
       ~placeholder:"Search for a person"
       ~default:(Table.Row.create
         ~cells:[
@@ -144,7 +144,7 @@ let create ?on_save page =
       ~on_click:(fun () ->
         let b1, b2, b3 =
           Inputs.Text.check input_name (fun str -> str <> ""),
-          Inputs.Text.check (SearchResults.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
+          Inputs.Text.check (SearchBar.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
           List.for_all (fun input -> Inputs.Text.check input (fun str -> str <> ""))
             t.persons_inputs
         in
@@ -176,7 +176,7 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_name);
   Dom.appendChild form persons_area;
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchResults.root search_bar);
+  Dom.appendChild form (SearchBar.root search_bar);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;

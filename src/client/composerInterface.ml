@@ -14,9 +14,9 @@ type t =
   content : Html.divElement Js.t;
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
-  deviser_search : Credit.t SearchResults.t;
+  deviser_search : Credit.t SearchBar.t;
   tunes_area : Html.divElement Js.t;
-  tune_search : Tune.t SearchResults.t;
+  tune_search : Tune.t SearchBar.t;
 }
 
 let make_tune_subwindow t index tune =
@@ -78,11 +78,11 @@ let refresh t =
   Inputs.Text.set_contents t.input_name (Composer.name t.composer);
   Inputs.Text.set_contents t.input_kind (Composer.kind t.composer);
   begin match Composer.deviser t.composer with
-  | None -> Inputs.Text.set_contents (SearchResults.bar t.deviser_search) ""
+  | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
   | Some cr ->
     let name = Credit.line cr in
     Lwt.on_success name (fun name ->
-      Inputs.Text.set_contents (SearchResults.bar t.deviser_search) name)
+      Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
   Helpers.clear_children t.tunes_area;
   Composer.iter t.composer (fun i tune ->
@@ -169,7 +169,7 @@ let create page =
       Composer.save composer)
     page
   in
-  let deviser_search = SearchResults.create
+  let deviser_search = SearchBar.create
     ~default:(Table.Row.create
       ~on_click:(fun () -> make_credit_modal composer content page)
       ~cells:[
@@ -182,15 +182,15 @@ let create page =
     page
   in
   let tunes_area = Html.createDiv (Page.document page) in
-  let tune_search = SearchResults.create
+  let tune_search = SearchBar.create
     ~placeholder:"Search for a tune"
     ~search:(fun input -> Tune.search ~threshold:0.6 input)
     ~make_result:(fun score -> make_tune_search_result composer page score)
     page
   in
-  Inputs.Text.on_focus (SearchResults.bar deviser_search) (fun b ->
+  Inputs.Text.on_focus (SearchBar.bar deviser_search) (fun b ->
     if b then begin
-      Inputs.Text.erase (SearchResults.bar deviser_search);
+      Inputs.Text.erase (SearchBar.bar deviser_search);
       Composer.remove_deviser composer;
       Page.refresh page
     end);
@@ -207,9 +207,9 @@ let create page =
         let b1, b2, b3, b4 =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
-          Inputs.Text.check (SearchResults.bar t.tune_search)
+          Inputs.Text.check (SearchBar.bar t.tune_search)
             (fun _ -> Composer.count t.composer > 0),
-          Inputs.Text.check (SearchResults.bar t.deviser_search)
+          Inputs.Text.check (SearchBar.bar t.deviser_search)
             (fun _ -> Composer.deviser t.composer <> None)
         in
         if b1 && b2 && b3 && b4 then (
@@ -238,10 +238,10 @@ let create page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchResults.root deviser_search);
+  Dom.appendChild form (SearchBar.root deviser_search);
   Dom.appendChild form tunes_area;
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchResults.root tune_search);
+  Dom.appendChild form (SearchBar.root tune_search);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;
