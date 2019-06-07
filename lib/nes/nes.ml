@@ -1,17 +1,25 @@
-include NesPervasives
+(* Extensions to existing modules. *)
 
-module Date = NesDate
+include NesPervasives
 module Filename = NesFilename
-module Filesystem = NesFilesystem
 module Format = NesFormat
-module Json = NesJson
 module List = NesList
 module Lwt = NesLwt
-module LwtOption = NesLwtOption
+module Lwt_list = NesLwt_list
 module Seq = NesSeq
-module Slug = NesSlug
 module String = NesString
 module Option = NesOption
+
+(* New modules *)
+
+module Date = NesDate
+module Filesystem = NesFilesystem
+module Json = NesJson
+module LwtOption = NesLwtOption
+module LwtList = NesLwtList
+module Slug = NesSlug
+
+(* Syntax *)
 
 include Option.Syntax
 include Lwt.Syntax
