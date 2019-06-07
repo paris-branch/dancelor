@@ -7,20 +7,20 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
   sets : Html.uListElement Js.t;
 }
 
-let display_sets t sets = 
+let display_sets t sets =
   t.sets##.textContent := Js.null;
   List.iter (fun set ->
     let slug = Set.slug set in
-    let href = 
+    let href =
       let%lwt slug = slug in
-      Lwt.return (Router.path_of_controller (Router.Set slug) |> snd) 
+      Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
     in
     let name = Set.name set in
     let link = Text.Link.create ~href ~text:name t.page in
@@ -29,36 +29,33 @@ let display_sets t sets =
     Dom.appendChild t.sets li)
     sets
 
-let create page slug = 
+let create page slug =
   let document = Page.document page in
   let content = Html.createDiv document in
   let program = Program.get slug in
   let title = Text.Heading.h1 ~text:(Lwt.bind program Program.name) page in
   Dom.appendChild content (Text.Heading.root title);
-  let date_text = 
+  let date_text =
     let open Lwt in
     (program >>= Program.date >|= NesDate.to_string >|= Printf.sprintf "Date: %s")
   in
   let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);
-  let c_pdf_href, b_pdf_href, e_pdf_href = 
+  let c_pdf_href, b_pdf_href, e_pdf_href =
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) 
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["transpose-target", ["bes"]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) 
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["transpose-target", ["ees"]] ()
   in
-  let c_pdf, b_pdf, e_pdf = 
-    Text.Link.create ~href:(Lwt.return c_pdf_href) ~text:(Lwt.return "Link to the PDF") page,
-    Text.Link.create ~href:(Lwt.return b_pdf_href) ~text:(Lwt.return "B flat version") page,
-    Text.Link.create ~href:(Lwt.return e_pdf_href) ~text:(Lwt.return "E flat version") page
+  let c_pdf, b_pdf, e_pdf =
+    Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
+    Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (Bb)" page,
+    Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (Eb)" page
   in
-  Dom.appendChild content (Text.Link.root c_pdf);
-  (Page.document page)##createTextNode (js " (") |> Dom.appendChild content;
-  Dom.appendChild content (Text.Link.root b_pdf);
-  (Page.document page)##createTextNode (js ") (") |> Dom.appendChild content;
-  Dom.appendChild content (Text.Link.root e_pdf);
-  (Page.document page)##createTextNode (js ")") |> Dom.appendChild content;
+  Dom.appendChild content (Inputs.Button.root c_pdf);
+  Dom.appendChild content (Inputs.Button.root b_pdf);
+  Dom.appendChild content (Inputs.Button.root e_pdf);
   Dom.appendChild content (Html.createHr document);
   let prev_title = Text.Heading.h2 ~text:(Lwt.return "Sets") page in
   Dom.appendChild content (Text.Heading.root prev_title);

@@ -138,11 +138,15 @@ module Button = struct
     root : root Js.t;
   }
 
-  let create ~on_click ?kind ?text ?icon page =
+  let create ?(on_click=fun () -> ()) ?href ?kind ?text ?icon page =
     let root = Html.createButton ~_type:(js "button") (Page.document page) in
     Lwt.async (fun () ->
       Lwt_js_events.clicks root
-        (fun _ev _ -> on_click (); Lwt.return ()));
+        (fun _ev _ ->
+           on_click ();
+           match href with
+           | None -> Lwt.return ()
+           | Some href -> Lwt.map (fun href -> Html.window##.location##.href := js href) href));
     NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
     NesOption.ifsome (fun icon -> Dom.appendChild root (Fa.i icon page)) icon;
     NesOption.ifsome (fun text -> Dom.appendChild root ((Page.document page)##createTextNode (js (" " ^ text)))) text;
