@@ -8,7 +8,7 @@ module Set = Set
 module Program = Program
 
 module Unsafe = Dancelor_server_database_unsafe
-module Storage = Dancelor_server_database_storage
+module Storage = Unsafe.Storage
 
 module Log = (val Dancelor_server_logs.create "server.database" : Logs.LOG)
 

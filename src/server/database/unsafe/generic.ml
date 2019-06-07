@@ -1,5 +1,4 @@
 open Nes
-module Storage = Dancelor_server_database_storage
 
 module type Model = sig
   type t

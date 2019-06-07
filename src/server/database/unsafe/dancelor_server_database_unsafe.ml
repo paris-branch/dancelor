@@ -6,3 +6,5 @@ module Tune = Generic.Make (Dancelor_common_model.Tune)
 module TuneGroup = Generic.Make (Dancelor_common_model.TuneGroup)
 module Set = Generic.Make (Dancelor_common_model.Set)
 module Program = Generic.Make (Dancelor_common_model.Program)
+
+module Storage = Storage
