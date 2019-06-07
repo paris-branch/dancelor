@@ -1,3 +1,5 @@
+open Nes
+
 type 'a t =
   { score : float ;
     value : 'a }
@@ -21,14 +23,12 @@ let list_filter p =
 let list_filter_threshold threshold =
   List.filter (fun score -> score.score >= threshold)
 
-let list_sort_decreasing cmp =
-  List.sort
-    (fun score1 score2 ->
-       let c = - compare score1.score score2.score in
-       if c = 0 then
-         cmp score1.value score2.value
-       else
-         c)
+let list_proj_sort_decreasing ~proj cmp =
+  Lwt_list.proj_sort_s
+    ~proj:(fun s -> let%lwt value = proj s.value in Lwt.return { s with value })
+    (fun s1 s2 ->
+       let c = - compare s1.score s2.score in
+       if c = 0 then cmp s1.value s2.value else c)
 
 let list_map_score f (l : 'a t list) : 'a t list Lwt.t =
   Lwt_list.map_s

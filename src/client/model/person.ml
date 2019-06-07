@@ -14,9 +14,10 @@ let make_and_save ~name () =
     a Arg.name name
   )
 
-let search ?threshold terms =
+let search ?pagination ?threshold string =
   Madge_client.(
     call ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    o Arg.pagination pagination;
     o Arg.threshold threshold;
-    a Arg.terms terms
+    a Arg.string string
   )

@@ -177,7 +177,7 @@ let create page =
         Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
       page)
     ~placeholder:"Select a Deviser"
-    ~search:(fun input -> Credit.search ~threshold:0.6 [input])
+    ~search:(fun input -> Credit.search ~threshold:0.6 input)
     ~make_result:(fun score -> make_deviser_search_result composer page score)
     page
   in

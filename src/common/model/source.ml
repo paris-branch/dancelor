@@ -28,16 +28,18 @@ module type S = sig
     unit -> t Lwt.t
 
   val search :
+    ?pagination:Pagination.t ->
     ?threshold:float ->
-    string list ->
+    string ->
     t Score.t list Lwt.t
 end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
   let name = Madge_common.(arg ~key:"name" (module MString))
+  let pagination = Madge_common.(optarg (module Pagination))
   let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
-  let terms = Madge_common.(arg ~key:"terms" (module MList(MString)))
+  let string = Madge_common.(arg (module MString))
 end
 
 module Endpoint = struct

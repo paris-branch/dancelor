@@ -65,7 +65,7 @@ let apply_filter_on_scores filter all =
 let all ?filter ?pagination () =
   Dancelor_server_database.Tune.get_all ()
   >>=| Option.unwrap_map_or Lwt.return apply_filter filter
-  >>=| Lwt_list.proj_sort_s ~proj:slug compare
+  >>=| Lwt_list.proj_sort_s ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
   >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
 
 let () =
@@ -86,9 +86,9 @@ let search ?filter ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Tune.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| Option.unwrap_map_or Lwt.return apply_filter_on_scores filter
-  >>=| (Score.list_filter_threshold threshold
-        ||> Score.list_sort_decreasing (fun tune1 tune2 -> compare (slug tune1) (slug tune2)) (* FIXME: proj sort *)
-        ||> Option.unwrap_map_or Lwt.return Pagination.apply pagination)
+  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+  >>=| Score.list_proj_sort_decreasing ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
+  >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
 
 let () =
   Madge_server.(

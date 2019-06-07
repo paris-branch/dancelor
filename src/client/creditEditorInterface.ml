@@ -18,12 +18,12 @@ type t =
   mutable persons_inputs : Inputs.Text.t list;
 }
 
-let make_person_subdiv t index person = 
+let make_person_subdiv t index person =
   let root = Html.createDiv (Page.document t.page) in
   Style.set ~display:"flex" root;
   let buttons = Html.createUl (Page.document t.page) in
   Style.set ~display:"flex" buttons;
-  let down, up, del = 
+  let down, up, del =
     Inputs.Button.create
       ~on_click:(fun () ->
         CreditEditor.move_down t.editor index;
@@ -58,25 +58,25 @@ let make_person_subdiv t index person =
   Dom.appendChild root buttons;
   begin match person with
   | `Edit name ->
-    let input_name = 
-      Inputs.Text.create 
-        ~default:"Enter name" 
+    let input_name =
+      Inputs.Text.create
+        ~default:"Enter name"
         ~on_change:(CreditEditor.set_field t.editor index)
-        t.page 
+        t.page
     in
     t.persons_inputs <- input_name :: t.persons_inputs;
     Inputs.Text.set_contents input_name name;
     Style.set ~margin:"0 0 0 5pt" (Inputs.Text.root input_name);
     Dom.appendChild root (Inputs.Text.root input_name)
   | `Person person ->
-    let href = 
+    let href =
       Helpers.build_path ~route:(Router.Person person.CreditEditor.slug) ()
       |> Lwt.return
     in
-    let link = 
-      Text.Link.create 
-        ~href 
-        ~text:(Person.name person.CreditEditor.person) t.page 
+    let link =
+      Text.Link.create
+        ~href
+        ~text:(Person.name person.CreditEditor.person) t.page
     in
     Style.set ~margin:"0 0 0 5pt" (Text.Link.root link);
     Dom.appendChild root (Text.Link.root link)
@@ -104,28 +104,28 @@ let create ?on_save page =
     page
   in
   let persons_area = Html.createDiv (Page.document page) in
-  let search_bar = 
-    SearchResults.create 
+  let search_bar =
+    SearchResults.create
       ~placeholder:"Search for a person"
       ~default:(Table.Row.create
         ~cells:[
           Table.Cell.text ~text:(Lwt.return "  +") page;
           Table.Cell.text ~text:(Lwt.return "Create a new person") page]
         ~on_click:(fun () ->
-          Lwt.on_success 
-            (CreditEditor.add editor (`New "")) 
-            (fun () -> Page.refresh page)) 
+          Lwt.on_success
+            (CreditEditor.add editor (`New ""))
+            (fun () -> Page.refresh page))
         page)
-      ~search:(fun input -> Person.search ~threshold:0.6 [input])
-      ~make_result:(fun score -> 
+      ~search:(fun input -> Person.search ~threshold:0.6 input)
+      ~make_result:(fun score ->
         let person = Score.value score in
         let score = score.Score.score in
         let%lwt slug = Person.slug person in
         let%lwt name = Person.name person in
         let row = Table.Row.create
           ~on_click:(fun () ->
-            Lwt.on_success 
-              (CreditEditor.add editor (`Slug slug)) 
+            Lwt.on_success
+              (CreditEditor.add editor (`Slug slug))
               (fun () -> Page.refresh page))
           ~cells:[
             Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
