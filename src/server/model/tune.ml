@@ -61,19 +61,17 @@ let apply_filter_on_scores filter all =
     all
 
 let all ?filter ?pagination () =
-  let%lwt all = Dancelor_server_database.Tune.get_all () in
-  let%lwt all =
-    match filter with
-    | Some filter -> apply_filter filter all
-    | None -> Lwt.return all
-  in
-  let all = List.sort (fun t1 t2 -> compare (slug t1) (slug t2)) all in (* FIXME: it just works, but we're comparing promises here *)
-  let%lwt all =
-    match pagination with
-    | Some pagination -> Pagination.apply pagination all
-    | None -> Lwt.return all
-  in
-  Lwt.return all
+  Dancelor_server_database.Tune.get_all ()
+  >>=||
+  (match filter with
+   | Some filter -> apply_filter filter
+   | None -> Lwt.return)
+  >>=||
+  Lwt_list.proj_sort_s ~proj:slug compare
+  >>=||
+  (match pagination with
+   | Some pagination -> Pagination.apply pagination
+   | None -> Lwt.return)
 
 let () =
   Madge_server.(
@@ -82,8 +80,6 @@ let () =
   )
 
 (* FIXME: ça pue *)
-
-open Nes
 
 let match_score needle haystack =
   let needle = Slug.from_string needle in
@@ -152,26 +148,23 @@ let search_against_tune search tune =
     Lwt.return ((List.fold_left (+.) 0. scores) /. l)
 
 let search ?filter ?pagination ?(threshold=0.) query =
-  let%lwt all = Dancelor_server_database.Tune.get_all () in
-  let all = Score.list_from_values all in
-  let%lwt all = Score.list_map_score (search_against_tune query) all in
-  let%lwt all =
-    match filter with
-    | Some filter -> apply_filter_on_scores filter all
-    | None -> Lwt.return all
-  in
-  let all = Score.list_filter_threshold threshold all in
-  let all =
-    Score.list_sort_decreasing
-      (fun tune1 tune2 -> compare (slug tune1) (slug tune2))
-      all
-  in
-  let%lwt all =
-    match pagination with
-    | Some pagination -> Pagination.apply pagination all
-    | None -> Lwt.return all
-  in
-  Lwt.return all
+  Dancelor_server_database.Tune.get_all ()
+  >>=||
+  (Score.list_from_values
+   ||>
+   Score.list_map_score (search_against_tune query))
+  >>=||
+  (match filter with
+   | Some filter -> apply_filter_on_scores filter
+   | None -> Lwt.return)
+  >>=||
+  (Score.list_filter_threshold threshold
+   ||>
+   Score.list_sort_decreasing (fun tune1 tune2 -> compare (slug tune1) (slug tune2)) (* FIXME: proj sort *)
+   ||>
+   (match pagination with
+    | Some pagination -> Pagination.apply pagination
+    | None -> Lwt.return))
 
 let () =
   Madge_server.(

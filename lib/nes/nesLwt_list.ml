@@ -2,7 +2,7 @@ open NesPervasives.Syntax
 open NesLwt.Syntax
 include Lwt_list
 
-let proj_sort_s ?(proj=Lwt.return) compare =
+let proj_sort_s ~proj compare =
   Lwt_list.map_s
     (fun elt -> Lwt.bind (proj elt)
         (fun p -> Lwt.return (elt, p)))
