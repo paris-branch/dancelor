@@ -133,6 +133,15 @@ module Section = struct
     replace_rows t rows;
     t
 
+  let create_p ?header ~rows page =
+    let root = Html.createTbody (Page.document page) in
+    let t = {root; page; header} in
+    replace_rows t rows;
+    Lwt.bind rows (fun rows ->
+      clear t;
+      List.iter (add t) rows;
+      Lwt.return t)
+
 end
 
 module Kind = struct

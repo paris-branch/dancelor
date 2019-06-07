@@ -45,3 +45,6 @@ let proj_sort proj compare =
 
 let map f l =
   Lwt.map (List.map f) l
+
+let resolve (l : 'a Lwt.t t) : 'a t =
+  Lwt.bind l (Lwt_list.map_p (fun p -> p))

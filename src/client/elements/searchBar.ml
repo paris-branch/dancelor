@@ -33,11 +33,11 @@ let reset t =
   let section = 
     match t.default with
     | None -> 
-      Table.Section.create ~rows:(Lwt.return [t.progress]) t.page
+      Table.Section.create_p ~rows:(Lwt.return [t.progress]) t.page
     | Some d -> 
-      Table.Section.create ~rows:(Lwt.return [t.progress; d]) t.page
+      Table.Section.create_p ~rows:(Lwt.return [t.progress; d]) t.page
   in
-  Table.replace_bodies t.table (Lwt.return [section]);
+  Table.replace_bodies t.table (NesLwtList.resolve (Lwt.return [section]));
   Inputs.Text.erase t.bar
 
 let make_result_rows t =
@@ -100,7 +100,8 @@ let create ?default ~search ~placeholder ~make_result page =
     default;
   Inputs.Text.on_change bar (fun _ ->
     make_result_rows t
-    |> (fun r -> Lwt.return [Table.Section.create ~rows:r t.page])
+    |> (fun r -> Lwt.return [Table.Section.create_p ~rows:r t.page])
+    |> NesLwtList.resolve
     |> Table.replace_bodies table);
   Page.register_modal page 
     ~element:(Table.root table :> Html.element Js.t)
