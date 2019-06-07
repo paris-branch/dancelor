@@ -2,72 +2,32 @@ module Log = Dancelor_server_logs
 
 module Person = Generic.Make
     (val Log.create "server.database.unsafe.person" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Person
-
-      let prefix = "person"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Person)
 
 module Credit = Generic.Make
     (val Log.create "server.database.unsafe.credit" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Credit
-
-      let prefix = "credit"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Credit)
 
 module Source = Generic.Make
     (val Log.create "server.database.unsafe.source" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Source
-
-      let prefix = "source"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Source)
 
 module Dance = Generic.Make
     (val Log.create "server.database.unsafe.dance" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Dance
-
-      let prefix = "dance"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Dance)
 
 module Tune = Generic.Make
     (val Log.create "server.database.unsafe.tune" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Tune
-
-      let prefix = "tune"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Tune)
 
 module TuneGroup = Generic.Make
     (val Log.create "server.database.unsafe.tune-group" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.TuneGroup
-
-      let prefix = "tune-group"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.TuneGroup)
 
 module Set = Generic.Make
     (val Log.create "server.database.unsafe.set" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Set
-
-      let prefix = "set"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Set)
 
 module Program = Generic.Make
     (val Log.create "server.database.unsafe.program" : Logs.LOG)
-    (struct
-      include Dancelor_common_model.Program
-
-      let prefix = "program"
-      let separated_files = []
-    end)
+    (Dancelor_common_model.Program)

@@ -8,8 +8,7 @@ module type Model = sig
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
 
-  val prefix : string
-  val separated_files : string list
+  val _key : string
 end
 
 module Stats = struct
@@ -30,32 +29,22 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
   let db : (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
   let read_separated_file slug file =
-    Storage.read_entry_file Model.prefix slug file
+    Storage.read_entry_file Model._key slug file
 
   let initialise () =
     let load entry =
-      let json = Storage.read_entry_json Model.prefix entry "meta.json" in
+      let json = Storage.read_entry_json Model._key entry "meta.json" in
       let json = Json.add_field "slug" (`String entry) json in
-      let json =
-        List.fold_left
-          (fun json file ->
-             Json.add_field
-               (Filename.chop_extension file)
-               (`String (Storage.read_entry_file Model.prefix entry file))
-               json)
-          json
-          Model.separated_files
-      in
       match Model.of_yojson json with
       | Ok model ->
         let%lwt slug = Model.slug model in
         Hashtbl.add db slug (Stats.empty (), model);
         Lwt.return ()
       | Error msg ->
-        Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model.prefix entry "meta.json" msg);
+        Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.json" msg);
         exit 1
     in
-    Storage.list_entries Model.prefix
+    Storage.list_entries Model._key
     |> Lwt_list.iter_s load
 
   let report_without_accesses () =
@@ -65,7 +54,7 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
          if Stats.get_accesses stats = 0 then
            Log.warn (fun m -> Lwt.async (fun () ->
                let%lwt slug = Model.slug model in
-               m "Without access: %s / %s" Model.prefix slug;
+               m "Without access: %s / %s" Model._key slug;
                Lwt.return ()))) (* FIXME *)
 
   let uniq_slug ~hint =
@@ -88,7 +77,7 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
       Stats.add_access stats;
       Lwt.return model
     | None ->
-      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model.prefix, slug)))
+      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, slug)))
 
   let get_all () =
     Hashtbl.to_seq_values db
@@ -104,28 +93,18 @@ module Make (Log : Logs.LOG) (Model : Model) = struct
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    let json =
-      Model.separated_files
-      |> List.fold_left
-        (fun json file ->
-           let field = Filename.chop_extension file in
-           let content = Json.(get ~k:string [field] json) in
-           Storage.write_entry_file Model.prefix slug file content;
-           Json.remove_field field json)
-        json
-    in
-    Storage.write_entry_json Model.prefix slug "meta.json" json;
+    Storage.write_entry_json Model._key slug "meta.json" json;
     Storage.save_changes_on_entry
-      ~msg:(spf "[auto] save %s / %s" Model.prefix slug)
-      Model.prefix slug;
+      ~msg:(spf "[auto] save %s / %s" Model._key slug)
+      Model._key slug;
     Hashtbl.add db slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
   let delete slug =
-    Storage.delete_entry Model.prefix slug;
+    Storage.delete_entry Model._key slug;
     Storage.save_changes_on_entry
-      ~msg:(spf "[auto] delete %s / %s" Model.prefix slug)
-      Model.prefix slug;
+      ~msg:(spf "[auto] delete %s / %s" Model._key slug)
+      Model._key slug;
     Hashtbl.remove db slug;
     Lwt.return ()
 end
