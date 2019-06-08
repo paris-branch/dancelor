@@ -1,22 +1,43 @@
 type t =
-  | WorkInProgress
-  | ToBeConfirmed
   | Locked
+  | ToBeConfirmed
+  | Unlocked
+
+(*     Locked
+         |
+    ToBeConfirmed
+         |
+      Unlocked     *)
+
+let bot = Unlocked
+let top = Locked
+
+let eq = (=)
+
+let gt a b =
+  match a, b with
+  | _, Locked -> false
+  | Locked, _ -> true
+  | _, ToBeConfirmed -> false
+  | ToBeConfirmed, _ -> true
+  | _, Unlocked -> false
+
+let ge a b = eq a b || gt a b
 
 let _key = "status"
 
 let to_string = function
-  | WorkInProgress -> "work-in-progress"
-  | ToBeConfirmed -> "to-be-confirmed"
   | Locked -> "locked"
+  | ToBeConfirmed -> "to-be-confirmed"
+  | Unlocked -> "unlocked"
 
 let to_yojson status =
   `String (to_string status)
 
 let from_string = function
-  | "work-in-progress" -> WorkInProgress
-  | "to-be-confirmed" -> ToBeConfirmed
   | "locked" -> Locked
+  | "to-be-confirmed" -> ToBeConfirmed
+  | "unlocked" -> Unlocked
   | _ -> failwith "Dancelor_common_model.Status.from_string"
 
 let of_yojson = function
