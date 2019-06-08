@@ -13,15 +13,20 @@ module Storage = Dancelor_server_database_unsafe.Storage
 
 module Log = (val Dancelor_server_logs.create "server.database" : Logs.LOG)
 
-let initialise =
-  Person.initialise
-  >=>| Credit.initialise
-  >=>| Source.initialise
-  >=>| Dance.initialise
-  >=>| TuneGroup.initialise
-  >=>| Tune.initialise
-  >=>| Set.initialise
-  >=>| Program.initialise
+let initialise () =
+  try%lwt
+    Person.initialise ()
+    >>=| Credit.initialise
+    >>=| Source.initialise
+    >>=| Dance.initialise
+    >>=| TuneGroup.initialise
+    >>=| Tune.initialise
+    >>=| Set.initialise
+    >>=| Program.initialise
+  with
+    Dancelor_common.Error.Exn _ ->
+    Log.info (fun m -> m "Initialisation failed; exiting.");
+    exit 1
 
 let report_without_accesses () =
   Log.err (fun m -> m "report_without_accesses not implemented yet.") (* FIXME *)
