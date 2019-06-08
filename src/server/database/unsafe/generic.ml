@@ -117,9 +117,19 @@ module Make (Model : Model) = struct
     Lwt.return ()
 
   let check_status_ge ~status slug =
-    let%lwt model_status = get slug >>=| Model.status in
+    let%lwt model_status =
+      try%lwt
+        get slug >>=| Model.status
+      with
+        Dancelor_common.Error.Exn _ as exn ->
+        Log.err (fun m -> m "Not found: %s" slug);
+        Lwt.fail exn
+    in
     if not (Dancelor_common_model.Status.ge model_status status) then
-      Lwt.fail Dancelor_common.Error.(Exn (StatusViolation (Model._key, slug)))
+      (
+        Log.err (fun m -> m "Unconsistent status: not >= %a" Dancelor_common_model.Status.pp status);
+        Lwt.fail Dancelor_common.Error.(Exn (StatusViolation (Model._key, slug)))
+      )
     else
       Lwt.return ()
 end

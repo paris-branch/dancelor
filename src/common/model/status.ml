@@ -34,6 +34,9 @@ let to_string = function
 let to_yojson status =
   `String (to_string status)
 
+let pp fmt s =
+  Format.pp_print_string fmt (to_string s)
+
 let from_string = function
   | "locked" -> Locked
   | "to-be-confirmed" -> ToBeConfirmed
