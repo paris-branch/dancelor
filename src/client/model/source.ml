@@ -8,9 +8,10 @@ let get slug =
     a Arg.slug slug
   )
 
-let make_and_save ~name () =
+let make_and_save ?status ~name () =
   Madge_client.(
-    call ~endpoint:Endpoint.make_and_save @@ fun {a} _ ->
+    call ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
+    o Arg.status status;
     a Arg.name name
   )
 

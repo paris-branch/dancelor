@@ -4,10 +4,10 @@ module Madge = Madge_common
 module Self = struct
   type t =
     { slug : t Slug.t ;
+      status : Status.t                [@default Status.bot] ;
       name : string ;
       deviser : Credit.t Slug.t option [@default None] ;
       kind : Kind.dance ;
-      status : Status.t                [@default Status.WorkInProgress] ;
       tunes : Tune.t Slug.t list       [@default []] }
   [@@deriving make, yojson]
 
@@ -15,14 +15,14 @@ module Self = struct
 end
 include Self
 
-let unsafe_make ~slug ~name ?deviser ~kind ?status ?tunes () =
-  Lwt.return (make ~slug ~name ~deviser ~kind ?status ?tunes ())
+let make ?status ~slug ~name ?deviser ~kind ?tunes () =
+  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?tunes ())
 
 let slug s = Lwt.return s.slug
+let status s = Lwt.return s.status
 let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser
 let kind s = Lwt.return s.kind
-let status s = Lwt.return s.status
 let tunes s = Lwt.return s.tunes
 
 let contains t s = List.mem t s.tunes
@@ -42,10 +42,10 @@ module type S = sig
   type nonrec t = t
 
   val slug : t -> t Slug.t Lwt.t
+  val status : t -> Status.t Lwt.t
   val name : t -> string Lwt.t
   val deviser : t -> Credit.t option Lwt.t
   val kind : t -> Kind.dance Lwt.t
-  val status : t -> Status.t Lwt.t
   val tunes : t -> Tune.t list Lwt.t
 
   val contains : Tune.t Slug.t -> t -> bool
@@ -70,10 +70,10 @@ module type S = sig
   val get_all : unit -> t list Lwt.t
 
   val make_and_save :
+    ?status:Status.t ->
     name:string ->
     ?deviser:Credit.t ->
     kind:Kind.dance ->
-    ?status:Status.t ->
     ?tunes:Tune.t list ->
     unit -> t Lwt.t
 
@@ -88,10 +88,10 @@ end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let status = Madge_common.optarg (module Status)
   let name = Madge_common.(arg ~key:"name" (module MString))
   let deviser = Madge_common.optarg ~key:"deviser" (module Credit)
   let kind = Madge_common.arg ~key:"kind" (module Kind.Dance)
-  let status = Madge_common.optarg (module Status)
   let tunes = Madge_common.(optarg ~key:"tunes" (module MList (Tune)))
   let pagination = Madge_common.optarg (module Pagination)
   let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))

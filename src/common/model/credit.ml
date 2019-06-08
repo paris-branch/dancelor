@@ -3,6 +3,7 @@ open Nes
 module Self = struct
   type t =
     { slug : t Slug.t ;
+      status : Status.t [@default Status.bot] ;
       line : string ;
       persons : Person.t Slug.t list [@default []] }
   [@@deriving make, yojson]
@@ -12,6 +13,7 @@ end
 include Self
 
 let slug c = Lwt.return c.slug
+let status c = Lwt.return c.status
 let line c = Lwt.return c.line
 let persons c = Lwt.return c.persons
 
@@ -19,6 +21,7 @@ module type S = sig
   type nonrec t = t
 
   val slug : t -> t Slug.t Lwt.t
+  val status : t -> Status.t Lwt.t
   val line : t -> string Lwt.t
   val persons : t -> Person.t list Lwt.t
 
@@ -27,6 +30,7 @@ module type S = sig
   val get : t Slug.t -> t Lwt.t
 
   val make_and_save :
+    ?status:Status.t ->
     line:string ->
     ?persons:Person.t list ->
     unit -> t Lwt.t
@@ -40,6 +44,7 @@ end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let status = Madge_common.optarg (module Status)
   let line = Madge_common.(arg ~key:"line" (module MString))
   let persons = Madge_common.(optarg ~key:"persons" (module MList(Person)))
   let pagination = Madge_common.(optarg (module Pagination))

@@ -3,6 +3,7 @@ open Nes
 module type Model = sig
   type t
   val slug : t -> t Slug.t Lwt.t
+  val status : t -> Dancelor_common_model.Status.t Lwt.t
 
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
@@ -114,4 +115,11 @@ module Make (Model : Model) = struct
       Model._key slug;
     Hashtbl.remove db slug;
     Lwt.return ()
+
+  let check_status_ge ~status slug =
+    let%lwt model_status = get slug >>=| Model.status in
+    if not (Dancelor_common_model.Status.ge model_status status) then
+      Lwt.fail Dancelor_common.Error.(Exn (StatusViolation (Model._key, slug)))
+    else
+      Lwt.return ()
 end

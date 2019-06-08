@@ -13,7 +13,7 @@ let () =
     get (a Arg.slug)
   )
 
-let make_and_save ~line ?persons () =
+let make_and_save ?status ~line ?persons () =
   let%lwt persons =
     match persons with
     | None -> Lwt.return_none
@@ -22,7 +22,7 @@ let make_and_save ~line ?persons () =
       Lwt.return_some persons
   in
   Dancelor_server_database.Credit.save ~slug_hint:line @@ fun slug ->
-  Lwt.return (make ~slug ~line ?persons ())
+  Lwt.return (make ?status ~slug ~line ?persons ()) (* FIXME: status should probably go in save *)
 
 let () =
   Madge_server.(

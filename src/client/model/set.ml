@@ -62,13 +62,13 @@ let get slug =
 let get_all () =
   Madge_client.call ~endpoint:Endpoint.get_all @@ fun _ _ -> ()
 
-let make_and_save ~name ?deviser ~kind ?status ?tunes () =
+let make_and_save ?status ~name ?deviser ~kind ?tunes () =
   Madge_client.(
     call ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
+    o Arg.status status;
     a Arg.name name;
     o Arg.deviser deviser;
     a Arg.kind kind;
-    o Arg.status status;
     o Arg.tunes tunes
   )
 

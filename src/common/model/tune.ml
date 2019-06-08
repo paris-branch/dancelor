@@ -3,6 +3,7 @@ open Nes
 module Self = struct
   type t =
     { slug : t Slug.t ;
+      status : Status.t                 [@default Status.bot] ;
       group : TuneGroup.t Slug.t        [@key "tune-group"];
       bars : int ;
       key : Music.key ;
@@ -19,6 +20,7 @@ end
 include Self
 
 let slug t = Lwt.return t.slug
+let status t = Lwt.return t.status
 let group t = Lwt.return t.group
 let bars t = Lwt.return t.bars
 let key t = Lwt.return t.key
@@ -33,6 +35,7 @@ module type S = sig
   type nonrec t = t
 
   val slug : t -> t Slug.t Lwt.t
+  val status : t -> Status.t Lwt.t
   val group : t -> TuneGroup.t Lwt.t
   val bars : t -> int Lwt.t
   val key : t -> Music.key Lwt.t
@@ -62,6 +65,7 @@ end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let status = Madge_common.optarg (module Status)
   let filter = Madge_common.optarg (module TuneFilter)
   let pagination = Madge_common.optarg (module Pagination)
   let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))

@@ -14,6 +14,8 @@ val unwrap_map_or : 'b -> ('a -> 'b) -> 'a t -> 'b
 val wrap_fun : ('a -> 'b) -> ('a -> 'b t)
 
 val ifsome : ('a -> unit) -> ('a t -> unit)
+val ifsome_lwt : ('a -> unit Lwt.t) -> ('a t -> unit Lwt.t)
+
 
 val assert_some : 'a t -> 'a t
 (** Fails when = None *)

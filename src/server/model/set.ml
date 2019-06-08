@@ -24,7 +24,7 @@ let () =
     get_all ()
   )
 
-let make_and_save ~name ?deviser ~kind ?status ?tunes () =
+let make_and_save ?status ~name ?deviser ~kind ?tunes () =
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
@@ -40,7 +40,7 @@ let make_and_save ~name ?deviser ~kind ?status ?tunes () =
       Lwt.return_some tunes
   in
   Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
-  unsafe_make ~slug ~name ?deviser ~kind ?status ?tunes ()
+  make ?status ~slug ~name ?deviser ~kind ?tunes ()
 
 let () =
   Madge_server.(

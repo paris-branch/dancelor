@@ -1,22 +1,33 @@
 open Nes
-open Dancelor_common_model
-module Unsafe = Dancelor_server_database_unsafe.Set
+module Model = Dancelor_common_model
+module Unsafe = Dancelor_server_database_unsafe
 
-let get (slug : Set.t Slug.t) = Unsafe.get slug
-let get_all () = Unsafe.get_all ()
-let save = Unsafe.save
+let get (slug : Model.Set.t Slug.t) = Unsafe.Set.get slug
+let get_all = Unsafe.Set.get_all
+let save = Unsafe.Set.save
 
-let get_programs_that_contain (slug : Set.t Slug.t) : Program.t list Lwt.t =
+let get_programs_that_contain (slug : Model.Set.t Slug.t) : Model.Program.t list Lwt.t =
   let%lwt all = Dancelor_server_database_unsafe.Program.get_all () in
-  Lwt.return (List.filter (Program.contains slug) all)
+  Lwt.return (List.filter (Model.Program.contains slug) all)
 
-exception UsedInProgram of Program.t Slug.t
+exception UsedInProgram of Model.Program.t Slug.t
 
-let delete (set : Set.t Slug.t) =
+let delete (set : Model.Set.t Slug.t) =
   let%lwt all = get_programs_that_contain set in
   match all with
   | [] ->
-    Unsafe.delete set
+    Unsafe.Set.delete set
   | program :: _ ->
-    let%lwt slug = Program.slug program in
+    let%lwt slug = Model.Program.slug program in
     Lwt.fail (UsedInProgram slug)
+
+let initialise =
+  Unsafe.Set.initialise
+  >=>| Unsafe.Set.get_all
+  >=>| Lwt_list.iter_s
+    (fun set ->
+       let%lwt status = Model.Set.status set in
+       Model.Set.deviser set
+       >>=| Option.ifsome_lwt (Unsafe.Credit.check_status_ge ~status) >>=| fun () ->
+       Model.Set.tunes set
+       >>=| Lwt_list.iter_s (Unsafe.Tune.check_status_ge ~status))

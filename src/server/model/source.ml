@@ -11,9 +11,9 @@ let () =
     get (a Arg.slug)
   )
 
-let make_and_save ~name () =
+let make_and_save ?status ~name () =
   Dancelor_server_database.Source.save ~slug_hint:name @@ fun slug ->
-  Lwt.return (make ~slug ~name)
+  Lwt.return (make ?status ~slug ~name ()) (* status should probably go in save *)
 
 let () =
   Madge_server.(

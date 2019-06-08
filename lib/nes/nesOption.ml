@@ -33,6 +33,10 @@ let ifsome f = function
   | None -> ()
   | Some x -> f x
 
+let ifsome_lwt f = function
+  | None -> Lwt.return ()
+  | Some x -> f x
+
 let assert_some = function
   | None -> failwith "assert_some"
   | Some v -> Some v

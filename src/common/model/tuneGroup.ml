@@ -3,6 +3,7 @@ open Nes
 module Self = struct
   type t =
     { slug : t Slug.t ;
+      status : Status.t [@default Status.bot] ;
       name : string ;
       alt_names : string list [@key "alt-names"] [@default []] ;
       kind : Kind.base ;
@@ -15,6 +16,7 @@ end
 include Self
 
 let slug g = Lwt.return g.slug
+let status g = Lwt.return g.status
 let name g = Lwt.return g.name
 let alt_names g = Lwt.return g.alt_names
 let kind g = Lwt.return g.kind
@@ -25,6 +27,7 @@ module type S = sig
   type nonrec t = t
 
   val slug : t -> t Slug.t Lwt.t
+  val status : t -> Status.t Lwt.t
   val name : t -> string Lwt.t
   val alt_names : t -> string list Lwt.t
   val kind : t -> Kind.base Lwt.t
@@ -44,6 +47,7 @@ end
 
 module Arg = struct
   let slug = Madge_common.(arg ~key:"slug" (module MString))
+  let status = Madge_common.optarg (module Status)
   let pagination = Madge_common.(optarg (module Pagination))
   let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
   let string = Madge_common.(arg (module MString))
