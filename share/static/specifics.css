@@ -17,7 +17,7 @@ thead, tbody {
   border-color: #ced4da;
 }
 
-thead tr {
+thead tr, tr th {
   font-weight: bold;
   background: #960010;
   color: white;
@@ -72,4 +72,8 @@ tbody tr:hover, tbody tr:focus {
   .full-content {
     display: none;
   }
+}
+
+.page-body {
+  position: relative;
 }

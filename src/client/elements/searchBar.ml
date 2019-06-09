@@ -82,6 +82,7 @@ type 'a t = {
   table : Table.t;
   progress : Table.Section.t;
   sections : Section.wrapped list;
+  hide_sections : bool;
 }
 
 let root t = 
@@ -93,14 +94,19 @@ let table t =
 let bar t = 
   t.bar
 
-let reset t = 
+let rec reset t = 
   Table.set_visible t.table false;
-  let bodies = List.map Section.body t.sections in
-  Table.replace_bodies t.table (Lwt.return (t.progress :: bodies));
+  if t.hide_sections then 
+    Table.replace_bodies t.table (Lwt.return [t.progress])
+  else begin
+    let bodies = List.map Section.body t.sections in
+    Table.replace_bodies t.table (Lwt.return (t.progress :: bodies));
+  end;
   List.iter Section.reset t.sections;
-  Inputs.Text.erase t.bar
+  Inputs.Text.erase t.bar;
+  update t
 
-let update t =
+and update t =
   let input = Inputs.Text.contents t.bar in
   List.iter (fun s -> Section.update s input (fun () -> reset t)) t.sections;
   if String.length input < 3 then begin
@@ -111,11 +117,16 @@ let update t =
           Table.Cell.text ~text:(Lwt.return "Start typing to search") t.page]
         t.page
     in
-    Table.Section.replace_rows t.progress (Lwt.return [progress])
-  end else
-    Table.Section.clear t.progress
+    Table.Section.replace_rows t.progress (Lwt.return [progress]);
+    if t.hide_sections then 
+      Table.replace_bodies t.table (Lwt.return [t.progress])
+  end else begin
+    let bodies = List.map Section.body t.sections in
+    Table.Section.clear t.progress;
+    Table.replace_bodies t.table (Lwt.return (t.progress :: bodies))
+  end
    
-let create ~placeholder ~sections page =
+let create ~placeholder ~sections ?(hide_sections = false) page =
   let root = Html.createDiv (Page.document page) in
   let table = Table.create ~visible:false ~kind:Table.Kind.Dropdown page in
   let bar = 
@@ -127,7 +138,7 @@ let create ~placeholder ~sections page =
   let progress = Table.Section.create ~rows:(Lwt.return []) page in
   Dom.appendChild root (Inputs.Text.root bar);
   Dom.appendChild root (Table.root table);
-  let t = {page; root; bar; table; progress; sections} in
+  let t = {page; root; bar; table; progress; sections; hide_sections} in
   List.iter (fun (Section.Wrapped section) ->
     NesOption.ifsome 
       (fun default -> Table.Row.on_click default (fun () -> reset t))

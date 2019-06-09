@@ -47,7 +47,7 @@ let get_contents page =
     CreditEditorInterface.contents interface
   | [] ->
     (fun () -> ()),
-    Index.contents (Index.create ())
+    Index.contents (Index.create page)
   | _ ->
     (fun () -> ()),
     UnknownPage.contents (UnknownPage.create ())
