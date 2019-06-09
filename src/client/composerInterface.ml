@@ -169,24 +169,36 @@ let create page =
       Composer.save composer)
     page
   in
-  let deviser_search = SearchBar.create
-    ~default:(Table.Row.create
-      ~on_click:(fun () -> make_credit_modal composer content page)
-      ~cells:[
-        Table.Cell.text ~text:(Lwt.return "  +") page;
-        Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
-      page)
-    ~placeholder:"Select a Deviser"
-    ~search:(fun input -> Credit.search ~threshold:0.6 input)
-    ~make_result:(fun score -> make_deviser_search_result composer page score)
-    page
+  let deviser_search = 
+    let main_section = 
+      SearchBar.Section.create
+        ~default:(Table.Row.create
+          ~on_click:(fun () -> make_credit_modal composer content page)
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "  +") page;
+            Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
+          page)
+        ~search:(fun input -> Credit.search ~threshold:0.6 input)
+        ~make_result:(fun score -> make_deviser_search_result composer page score)
+        page
+    in
+    SearchBar.create
+      ~placeholder:"Select a Deviser"
+      ~sections:[main_section]
+      page
   in
   let tunes_area = Html.createDiv (Page.document page) in
-  let tune_search = SearchBar.create
-    ~placeholder:"Search for a tune"
-    ~search:(fun input -> Tune.search ~threshold:0.6 input)
-    ~make_result:(fun score -> make_tune_search_result composer page score)
-    page
+  let tune_search = 
+    let main_section = 
+      SearchBar.Section.create
+        ~search:(fun input -> Tune.search ~threshold:0.6 input)
+        ~make_result:(fun score -> make_tune_search_result composer page score)
+        page
+    in 
+    SearchBar.create
+      ~placeholder:"Search for a tune"
+      ~sections:[main_section]
+      page
   in
   Inputs.Text.on_focus (SearchBar.bar deviser_search) (fun b ->
     if b then begin

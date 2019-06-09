@@ -105,34 +105,39 @@ let create ?on_save page =
   in
   let persons_area = Html.createDiv (Page.document page) in
   let search_bar =
-    SearchBar.create
-      ~placeholder:"Search for a person"
-      ~default:(Table.Row.create
-        ~cells:[
-          Table.Cell.text ~text:(Lwt.return "  +") page;
-          Table.Cell.text ~text:(Lwt.return "Create a new person") page]
-        ~on_click:(fun () ->
-          Lwt.on_success
-            (CreditEditor.add editor (`New ""))
-            (fun () -> Page.refresh page))
-        page)
-      ~search:(fun input -> Person.search ~threshold:0.6 input)
-      ~make_result:(fun score ->
-        let person = Score.value score in
-        let score = score.Score.score in
-        let%lwt slug = Person.slug person in
-        let%lwt name = Person.name person in
-        let row = Table.Row.create
+    let main_section = 
+      SearchBar.Section.create
+        ~search:(fun input -> Person.search ~threshold:0.6 input)
+        ~default:(Table.Row.create
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "  +") page;
+            Table.Cell.text ~text:(Lwt.return "Create a new person") page]
           ~on_click:(fun () ->
             Lwt.on_success
-              (CreditEditor.add editor (`Slug slug))
+              (CreditEditor.add editor (`New ""))
               (fun () -> Page.refresh page))
-          ~cells:[
-            Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-            Table.Cell.text ~text:(Lwt.return name) page]
-          page
-        in
-        Lwt.return row)
+          page)
+        ~make_result:(fun score ->
+          let person = Score.value score in
+          let score = score.Score.score in
+          let%lwt slug = Person.slug person in
+          let%lwt name = Person.name person in
+          let row = Table.Row.create
+            ~on_click:(fun () ->
+              Lwt.on_success
+                (CreditEditor.add editor (`Slug slug))
+                (fun () -> Page.refresh page))
+            ~cells:[
+              Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+              Table.Cell.text ~text:(Lwt.return name) page]
+            page
+          in
+          Lwt.return row)
+        page
+    in
+    SearchBar.create
+      ~placeholder:"Search for a person"
+      ~sections:[main_section]
       page
   in
   let submit = Html.createDiv (Page.document page) in
