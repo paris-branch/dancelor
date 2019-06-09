@@ -1,6 +1,6 @@
 open Nes
 
-module Results = struct
+module CommonResults = struct
   type t =
     { persons :     float * Person.t    Slug.t Score.t list ;
       credits :     float * Credit.t    Slug.t Score.t list ;
@@ -12,10 +12,32 @@ module Results = struct
       sources :     float * Source.t    Slug.t Score.t list }
   [@@deriving yojson]
 
+  let persons r = Lwt.return r.persons
+  let credits r = Lwt.return r.credits
+  let tunes r = Lwt.return r.tunes
+  let tune_groups r = Lwt.return r.tune_groups
+  let programs r = Lwt.return r.programs
+  let sets r = Lwt.return r.sets
+  let dances r = Lwt.return r.dances
+  let sources r = Lwt.return r.sources
+
   let _key = "results"
 end
 
 module type S = sig
+  module Results : sig
+    type t
+
+    val persons : t -> (float * Person.t Score.t list) Lwt.t
+    val credits : t -> (float * Credit.t Score.t list) Lwt.t
+    val tunes : t -> (float * Tune.t Score.t list) Lwt.t
+    val tune_groups : t -> (float * TuneGroup.t Score.t list) Lwt.t
+    val programs : t -> (float * Program.t Score.t list) Lwt.t
+    val sets : t -> (float * Set.t Score.t list) Lwt.t
+    val dances : t -> (float * Dance.t Score.t list) Lwt.t
+    val sources : t -> (float * Source.t Score.t list) Lwt.t
+  end
+
   val search :
     ?pagination:Pagination.t ->
     ?threshold:float ->
@@ -32,5 +54,5 @@ end
 
 module Endpoint = struct
   open Madge_common
-  let search = endpoint ~path:"/search" (module Results)
+  let search = endpoint ~path:"/search" (module CommonResults)
 end

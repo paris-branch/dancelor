@@ -44,6 +44,12 @@ let list_map_lwt_s f =
        let%lwt value = f score.value in
        Lwt.return { score with value })
 
+let list_map_lwt_p f =
+  Lwt_list.map_p
+    (fun score ->
+       let%lwt value = f score.value in
+       Lwt.return { score with value })
+
 let list_map_filter f =
   List.map_filter
     (fun score ->
