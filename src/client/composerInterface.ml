@@ -178,7 +178,7 @@ let create page =
             Table.Cell.text ~text:(Lwt.return "  +") page;
             Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
           page)
-        ~search:(fun input -> Credit.search ~threshold:0.6 input)
+        ~search:(fun input -> Credit.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} input)
         ~make_result:(fun score -> make_deviser_search_result composer page score)
         page
     in
@@ -191,7 +191,7 @@ let create page =
   let tune_search = 
     let main_section = 
       SearchBar.Section.create
-        ~search:(fun input -> Tune.search ~threshold:0.6 input)
+        ~search:(fun input -> Tune.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} input)
         ~make_result:(fun score -> make_tune_search_result composer page score)
         page
     in 

@@ -94,8 +94,7 @@ let create page =
   let search_tunes = 
     SearchBar.Section.create
       ~search:(fun input -> 
-        Tune.search ~threshold:0.2 input
-        |> NesLwtList.sub 4)
+        Tune.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 4} input)
       ~make_result:(fun score -> make_tune_search_result page score)
       ~header:(Table.Row.create
         ~cells:[Table.Cell.header_text ~text:(Lwt.return "Tunes") ~span:5 page]
@@ -105,8 +104,7 @@ let create page =
   let search_sets = 
     SearchBar.Section.create
       ~search:(fun input -> 
-        Set.search ~threshold:0.2 input
-        |> NesLwtList.sub 3)
+        Set.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
       ~make_result:(fun score -> make_set_search_result page score)
       ~header:(Table.Row.create
         ~cells:[Table.Cell.header_text ~text:(Lwt.return "Sets") ~span:5 page]
@@ -116,8 +114,7 @@ let create page =
   let search_credits = 
     SearchBar.Section.create
       ~search:(fun input -> 
-        Credit.search ~threshold:0.2 input
-        |> NesLwtList.sub 3)
+        Credit.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
       ~make_result:(fun score -> make_credit_search_result page score)
       ~header:(Table.Row.create
         ~cells:[Table.Cell.header_text ~text:(Lwt.return "Credits") ~span:5 page]
@@ -127,8 +124,7 @@ let create page =
   let search_persons = 
     SearchBar.Section.create
       ~search:(fun input -> 
-        Person.search ~threshold:0.2 input
-        |> NesLwtList.sub 3)
+        Person.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
       ~make_result:(fun score -> make_person_search_result page score)
       ~header:(Table.Row.create
         ~cells:[Table.Cell.header_text ~text:(Lwt.return "Persons") ~span:5 page]
