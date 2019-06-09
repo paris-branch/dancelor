@@ -64,16 +64,18 @@ module type S = sig
 end
 
 module Arg = struct
-  let slug = Madge_common.(arg ~key:"slug" (module MString))
-  let status = Madge_common.optarg (module Status)
-  let filter = Madge_common.optarg (module TuneFilter)
-  let pagination = Madge_common.optarg (module Pagination)
-  let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
-  let string = Madge_common.(arg (module MString))
+  open Madge_common
+  let slug = arg ~key:"slug" (module MString)
+  let status = optarg (module Status)
+  let filter = optarg (module TuneFilter)
+  let pagination = optarg (module Pagination)
+  let threshold = optarg ~key:"threshold" (module MFloat)
+  let string = arg (module MString)
 end
 
 module Endpoint = struct
-  let get = Madge_common.(endpoint ~path:"/tune" (module Self))
-  let all = Madge_common.(endpoint ~path:"/tune/all" (module MList (Self)))
-  let search = Madge_common.(endpoint ~path:"/tune/search" (module MList (Score.Make_Serialisable (Self))))
+  open Madge_common
+  let get = endpoint ~path:"/tune" (module Self)
+  let all = endpoint ~path:"/tune/all" (module MList (Self))
+  let search = endpoint ~path:"/tune/search" (module MList (Score.Make_Serialisable (Self)))
 end

@@ -15,3 +15,5 @@ module Tune       : Common.Tune.S       = Tune
 module TuneFilter : Common.TuneFilter.S = TuneFilter
 module Set        : Common.Set.S        = Set
 module Program    : Common.Program.S    = Program
+
+module Search     : Common.Search.S     = Search

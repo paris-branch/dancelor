@@ -1,5 +1,4 @@
 open Nes
-module Madge = Madge_common
 
 module Self = struct
   type t =
@@ -87,21 +86,23 @@ module type S = sig
 end
 
 module Arg = struct
-  let slug = Madge_common.(arg ~key:"slug" (module MString))
-  let status = Madge_common.optarg (module Status)
-  let name = Madge_common.(arg ~key:"name" (module MString))
-  let deviser = Madge_common.optarg ~key:"deviser" (module Credit)
-  let kind = Madge_common.arg ~key:"kind" (module Kind.Dance)
-  let tunes = Madge_common.(optarg ~key:"tunes" (module MList (Tune)))
-  let pagination = Madge_common.optarg (module Pagination)
-  let threshold = Madge_common.(optarg ~key:"threshold" (module MFloat))
-  let string = Madge_common.(arg (module MString))
+  open Madge_common
+  let slug = arg ~key:"slug" (module MString)
+  let status = optarg (module Status)
+  let name = arg ~key:"name" (module MString)
+  let deviser = optarg ~key:"deviser" (module Credit)
+  let kind = arg ~key:"kind" (module Kind.Dance)
+  let tunes = optarg ~key:"tunes" (module MList (Tune))
+  let pagination = optarg (module Pagination)
+  let threshold = optarg ~key:"threshold" (module MFloat)
+  let string = arg (module MString)
 end
 
 module Endpoint = struct
-  let get = Madge_common.endpoint ~path:"/set" (module Self)
-  let get_all = Madge_common.(endpoint ~path:"/set/all" (module MList (Self)))
-  let make_and_save = Madge_common.endpoint ~path:"/set/save" (module (Self))
-  let delete = Madge.(endpoint ~path:"/set/delete" (module MUnit))
-  let search = Madge_common.(endpoint ~path:"/set/search" (module MList (Score.Make_Serialisable (Self))))
+  open Madge_common
+  let get = endpoint ~path:"/set" (module Self)
+  let get_all = endpoint ~path:"/set/all" (module MList (Self))
+  let make_and_save = endpoint ~path:"/set/save" (module (Self))
+  let delete = endpoint ~path:"/set/delete" (module MUnit)
+  let search = endpoint ~path:"/set/search" (module MList (Score.Make_Serialisable (Self)))
 end

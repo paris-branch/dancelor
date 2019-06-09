@@ -5,6 +5,8 @@ type 'a t =
     value : 'a }
 [@@deriving yojson]
 
+let score s = s.score
+
 let from_value value = { score = 1. ; value }
 
 let value s = s.value
@@ -29,6 +31,24 @@ let list_proj_sort_decreasing ~proj cmp =
     (fun s1 s2 ->
        let c = - compare s1.score s2.score in
        if c = 0 then cmp s1.value s2.value else c)
+
+let list_sort_decreasing l =
+  List.sort (fun s1 s2 -> - compare s1.score s2.score) l
+
+let list_map f =
+  List.map (fun score -> { score with value = f score.value })
+
+let list_map_lwt_s f =
+  Lwt_list.map_s
+    (fun score ->
+       let%lwt value = f score.value in
+       Lwt.return { score with value })
+
+let list_map_filter f =
+  List.map_filter
+    (fun score ->
+       f score.value >>=? fun value ->
+       Some { score with value })
 
 let list_map_score f (l : 'a t list) : 'a t list Lwt.t =
   Lwt_list.map_s
