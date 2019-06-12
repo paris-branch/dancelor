@@ -25,6 +25,4 @@ let initialise =
        Model.Tune.arranger tune
        >>=| Option.ifsome_lwt (Unsafe.Credit.check_status_ge ~status) >>=| fun () ->
        Model.Tune.sources tune
-       >>=| Lwt_list.iter_s (Unsafe.Source.check_status_ge ~status) >>=| fun () ->
-       Model.Tune.dances tune
-       >>=| Lwt_list.iter_s (Unsafe.Dance.check_status_ge ~status))
+       >>=| Lwt_list.iter_s (Unsafe.Source.check_status_ge ~status))

@@ -4,7 +4,6 @@ include Dancelor_common_model.Tune
 let group = group >=>| TuneGroup.get
 let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
 let sources = sources >=>| Lwt_list.map_p Source.get
-let dances = dances >=>| Lwt_list.map_p Dance.get
 
 let content _t =
   assert false (* FIXME *)

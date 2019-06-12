@@ -4,7 +4,6 @@ include Dancelor_common_model.Tune
 let group = group >=>| TuneGroup.get
 let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
 let sources = sources >=>| Lwt_list.map_s Source.get
-let dances = dances >=>| Lwt_list.map_s Dance.get
 
 let content = Dancelor_server_database.Tune.read_content
 

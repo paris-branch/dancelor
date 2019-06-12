@@ -2,6 +2,7 @@ open Nes
 include Dancelor_common_model.TuneGroup
 
 let author = author >=>?| (Credit.get >=>| Lwt.return_some)
+let dances = dances >=>| Lwt_list.map_s Dance.get
 
 (* * *)
 

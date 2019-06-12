@@ -10,7 +10,6 @@ module Self = struct
       structure : string ;
       arranger : Credit.t Slug.t option [@default None] ;
       sources : Source.t Slug.t list    [@default []] ;
-      dances : Dance.t Slug.t list      [@default []] ;
       remark : string                   [@default ""] ;
       disambiguation : string           [@default ""] }
   [@@deriving yojson]
@@ -27,7 +26,6 @@ let key t = Lwt.return t.key
 let structure t = Lwt.return t.structure
 let arranger t = Lwt.return t.arranger
 let sources t = Lwt.return t.sources
-let dances t = Lwt.return t.dances
 let remark t = Lwt.return t.remark
 let disambiguation t = Lwt.return t.disambiguation
 
@@ -42,7 +40,6 @@ module type S = sig
   val structure : t -> string Lwt.t
   val arranger : t -> Credit.t option Lwt.t
   val sources : t -> Source.t list Lwt.t
-  val dances : t -> Dance.t list Lwt.t
   val remark : t -> string Lwt.t
   val disambiguation : t -> string Lwt.t
 

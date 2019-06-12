@@ -15,4 +15,6 @@ let initialise =
        Log.debug (fun m -> m "Checking consistency for %s" slug);
        let%lwt status = Model.TuneGroup.status tune_group in
        Model.TuneGroup.author tune_group
-       >>=| Option.ifsome_lwt (Unsafe.Credit.check_status_ge ~status))
+       >>=| Option.ifsome_lwt (Unsafe.Credit.check_status_ge ~status) >>=| fun () ->
+       Model.TuneGroup.dances tune_group
+       >>=| Lwt_list.iter_s (Unsafe.Dance.check_status_ge ~status))
