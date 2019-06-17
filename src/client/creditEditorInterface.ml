@@ -14,7 +14,7 @@ type t =
   content : Html.divElement Js.t;
   persons_area : Html.divElement Js.t;
   input_name : Inputs.Text.t;
-  search_bar : Person.t SearchBar.t;
+  search_bar : SearchBar.t;
   mutable persons_inputs : Inputs.Text.t list;
 }
 
@@ -189,3 +189,6 @@ let create ?on_save page =
 
 let contents t =
   t.content
+
+let init t = 
+  refresh t

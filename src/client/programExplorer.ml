@@ -55,3 +55,9 @@ let create page =
 
 let contents t =
   t.content
+
+let init t = 
+  ignore t
+
+let refresh t =
+  ignore t

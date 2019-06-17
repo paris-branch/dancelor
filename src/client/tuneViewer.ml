@@ -13,7 +13,7 @@ type t =
   content : Html.divElement Js.t;
 }
 
-let create page slug = 
+let create slug page = 
   let document = Page.document page in
   let content = Html.createDiv document in
   let tune = Tune.get slug in
@@ -53,3 +53,9 @@ let create page slug =
 
 let contents t =
   t.content
+
+let refresh t = 
+  ignore t
+
+let init t = 
+  ignore t

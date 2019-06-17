@@ -75,7 +75,7 @@ end
 
 type root = Html.divElement
 
-type 'a t = {
+type t = {
   page : Page.t;
   root : root Js.t;
   bar : Inputs.Text.t;
@@ -151,3 +151,6 @@ let create ~placeholder ~sections ?(hide_sections = false) page =
               (Inputs.Text.root bar :> Html.element Js.t)];
   reset t;
   t
+
+let focus t = 
+  (Inputs.Text.root t.bar)##focus

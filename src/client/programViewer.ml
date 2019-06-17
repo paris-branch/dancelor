@@ -29,7 +29,7 @@ let display_sets t sets =
     Dom.appendChild t.sets li)
     sets
 
-let create page slug =
+let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let program = Program.get slug in
@@ -68,3 +68,9 @@ let create page slug =
 
 let contents t =
   t.content
+
+let init t = 
+  ignore t
+
+let refresh t = 
+  ignore t

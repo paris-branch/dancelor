@@ -14,9 +14,9 @@ type t =
   content : Html.divElement Js.t;
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
-  deviser_search : Credit.t SearchBar.t;
+  deviser_search : SearchBar.t;
   tunes_area : Html.divElement Js.t;
-  tune_search : Tune.t SearchBar.t;
+  tune_search : SearchBar.t;
 }
 
 let make_tune_subwindow t index tune =
@@ -262,3 +262,6 @@ let create page =
 
 let contents t =
   t.content
+
+let init t = 
+  refresh t

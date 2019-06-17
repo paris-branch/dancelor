@@ -23,6 +23,16 @@ type t =
   mutable on_refresh : (unit -> unit);
 }
 
+type page = t
+
+module type CONTENTS = sig
+  type t
+  val create : page -> t
+  val contents : t -> Html.divElement Js.t
+  val init : t -> unit
+  val refresh : t -> unit
+end
+
 let create () =
   let document = Html.window##.document in
   let body = document##.body in
@@ -51,15 +61,15 @@ let set_header t contents =
   JsHelpers.clear_children t.header;
   Dom.appendChild t.header contents
 
-let set_contents t ?(on_refresh = (fun () -> ())) contents =
+let set_contents (type s) (module M : CONTENTS with type t = s) t contents =
   begin match t.content with
-  | None -> Dom.appendChild t.body contents
-  | Some c -> Dom.replaceChild t.body c contents
+  | None -> Dom.appendChild t.body (M.contents contents)
+  | Some c -> Dom.replaceChild t.body c (M.contents contents)
   end;
-  contents##.classList##add (js "content");
-  contents##.classList##add (js "page-body");
-  t.content <- Some contents;
-  t.on_refresh <- on_refresh
+  (M.contents contents)##.classList##add (js "content");
+  (M.contents contents)##.classList##add (js "page-body");
+  t.content <- Some (M.contents contents);
+  t.on_refresh <- (fun () -> M.refresh contents)
 
 let register_modal ?(on_refresh = (fun () -> ())) t ~element ~on_unfocus ~targets = 
   t.modals <- {element; on_unfocus; targets; on_refresh} :: t.modals

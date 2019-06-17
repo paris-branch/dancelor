@@ -1,15 +1,27 @@
 open Js_of_ocaml
+open Dancelor_client_elements
 
 module Html = Dom_html
 
 let js = Js.string
 
-let get_contents page =
-  let url =
-    Html.window##.location##.href
-    |> Js.to_string
-    |> Uri.of_string
-  in
+module type PAGE = sig
+  type t
+  val contents : t -> Html.divElement Js.t
+  val init : t -> unit
+  val refresh : t -> unit
+end
+
+let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) = 
+  (module struct
+    type t = M.t
+    let create = create
+    let contents t = M.contents t
+    let init t = M.init t
+    let refresh t = M.refresh t
+  end : Page.CONTENTS)
+
+let dispatch url =
   let path =
     Uri.path url
     |> String.split_on_char '/'
@@ -20,35 +32,23 @@ let get_contents page =
   in
   begin match trim path with
   | ["tune";"all"] ->
-    (fun () -> ()),
-    TuneExplorer.contents (TuneExplorer.create page)
+    pack (module TuneExplorer) TuneExplorer.create
   | ["tune";slug] ->
-    (fun () -> ()),
-    TuneViewer.contents (TuneViewer.create page slug)
+    pack (module TuneViewer) (TuneViewer.create slug)
   | ["set";"all"] ->
-    (fun () -> ()),
-    SetExplorer.contents (SetExplorer.create page)
+    pack (module SetExplorer) SetExplorer.create
   | ["set";"compose"] ->
-    let interface = ComposerInterface.create page in
-    (fun () -> ComposerInterface.refresh interface),
-    ComposerInterface.contents interface
+    pack (module ComposerInterface) ComposerInterface.create
   | ["set";slug] ->
-    (fun () -> ()),
-    SetViewer.contents (SetViewer.create page slug)
+    pack (module SetViewer) (SetViewer.create slug)
   | ["program";"all"] ->
-    (fun () -> ()),
-    ProgramExplorer.contents (ProgramExplorer.create page)
+    pack (module ProgramExplorer) ProgramExplorer.create
   | ["program";slug] ->
-    (fun () -> ()),
-    ProgramViewer.contents (ProgramViewer.create page slug)
+    pack (module ProgramViewer) (ProgramViewer.create slug)
   | ["credit";"add"] ->
-    let interface = CreditEditorInterface.create page in
-    (fun () -> CreditEditorInterface.refresh interface),
-    CreditEditorInterface.contents interface
+    pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
   | [] ->
-    (fun () -> ()),
-    Index.contents (Index.create page)
+    pack (module Index) Index.create
   | _ ->
-    (fun () -> ()),
-    UnknownPage.contents (UnknownPage.create ())
+    pack (module UnknownPage) UnknownPage.create
   end

@@ -39,7 +39,7 @@ let display_tunes t tunes =
     Dom.appendChild t.tunes li)
     tunes
 
-let create page slug =
+let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let set = Set.get slug in
@@ -86,3 +86,9 @@ let create page slug =
 
 let contents t =
   t.content
+
+let refresh t = 
+  ignore t
+
+let init t = 
+  ignore t

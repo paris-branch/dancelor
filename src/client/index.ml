@@ -12,6 +12,7 @@ type t =
   page : Page.t;
   document : Html.document Js.t;
   content : Html.divElement Js.t;
+  search : SearchBar.t;
 }
 
 let make_tune_search_result page score =
@@ -139,7 +140,13 @@ let create page =
       page 
   in
   Dom.appendChild content (SearchBar.root search);
-  {page; document; content}
+  {page; document; content; search}
 
 let contents t =
   t.content
+
+let refresh t = 
+  ignore t
+
+let init t =
+  SearchBar.focus t.search

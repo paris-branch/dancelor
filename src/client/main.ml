@@ -14,8 +14,15 @@ let on_load _ev =
   Header.add_menu_entry header "Programs" (Router.path_of_controller Router.ProgramAll |> snd);
   Header.add_menu_entry header "Compose a Set" (Router.path_of_controller Router.SetCompose |> snd);
   Page.set_header page (Header.contents header);
-  let updater, contents = Dispatcher.get_contents page in
-  Page.set_contents page ~on_refresh:updater contents;
+  let url = 
+    Html.window##.location##.href
+    |> Js.to_string
+    |> Uri.of_string
+  in
+  let module M = (val (Dispatcher.dispatch url) : Page.CONTENTS) in
+  let contents = M.create page in
+  Page.set_contents (module M) page contents;
+  M.init contents;
   Js._false
 
 let _ =
