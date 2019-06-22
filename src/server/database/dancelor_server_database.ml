@@ -18,9 +18,9 @@ let initialise () =
     Person.initialise ()
     >>=| Credit.initialise
     >>=| Source.initialise
-    >>=| Dance.initialise
     >>=| TuneGroup.initialise
     >>=| Tune.initialise
+    >>=| Dance.initialise
     >>=| Set.initialise
     >>=| Program.initialise
   with

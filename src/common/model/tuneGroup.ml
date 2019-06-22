@@ -8,7 +8,6 @@ module Self = struct
       alt_names : string list [@key "alt-names"] [@default []] ;
       kind : Kind.base ;
       author : Credit.t Slug.t option [@default None] ;
-      dances : Dance.t Slug.t list    [@default []] ;
       remark : string                 [@default ""] }
   [@@deriving yojson]
 
@@ -22,7 +21,6 @@ let name g = Lwt.return g.name
 let alt_names g = Lwt.return g.alt_names
 let kind g = Lwt.return g.kind
 let author g = Lwt.return g.author
-let dances g = Lwt.return g.dances
 let remark g = Lwt.return g.remark
 
 module type S = sig
@@ -34,7 +32,6 @@ module type S = sig
   val alt_names : t -> string list Lwt.t
   val kind : t -> Kind.base Lwt.t
   val author : t -> Credit.t option Lwt.t
-  val dances : t -> Dance.t list Lwt.t
   val remark : t -> string Lwt.t
 
   (** {2 Getters and setters} *)

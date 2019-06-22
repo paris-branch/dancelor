@@ -6,7 +6,8 @@ module Self = struct
       status : Status.t [@default Status.bot] ;
       name : string ;
       kind : Kind.dance ;
-      deviser : Credit.t Slug.t option [@default None] }
+      deviser : Credit.t Slug.t option [@default None] ;
+      originals : Tune.t Slug.t list [@default []] }
   [@@deriving yojson]
 
   let _key = "dance"
@@ -18,6 +19,7 @@ let status d = Lwt.return d.status
 let name d = Lwt.return d.name
 let kind d = Lwt.return d.kind
 let deviser d = Lwt.return d.deviser
+let originals d = Lwt.return d.originals
 
 module type S = sig
   type nonrec t = t
@@ -27,6 +29,7 @@ module type S = sig
   val name : t -> string Lwt.t
   val kind : t -> Kind.dance Lwt.t
   val deviser : t -> Credit.t option Lwt.t
+  val originals : t -> TuneGroup.t list Lwt.t
 
   (** {2 Getters and setters} *)
 
