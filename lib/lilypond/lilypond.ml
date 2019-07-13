@@ -45,3 +45,28 @@ let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) filename =
         Log.warn (fun m -> m "Lilypond[%s] triggered an EPIPE error" filename);
         Lwt.return ()
      | exn -> Lwt.fail exn)
+
+let cropped_svg ?lilypond_bin ?(inkscape_bin="inkscape") ?(exec_path=".") filename =
+  let%lwt () = run ?lilypond_bin ~exec_path ~options:["-dbackend=svg"] filename in
+  let%lwt status =
+    let cmd =
+      shell_cmdline
+        [inkscape_bin;
+         "-z"; "-D";
+         "-l"; (Filename.chop_extension filename) ^ ".cropped.svg";
+         (Filename.chop_extension filename) ^ ".svg"]
+    in
+    Log.debug (fun m -> m "Shell: %s" cmd);
+    Lwt_process.(
+      exec
+        ~stdout:`Dev_null
+        ~stderr:`Dev_null
+        (shell ("cd " ^ (escape_shell_argument exec_path) ^ " && " ^ cmd))
+    )
+  in
+  match status with
+  | Unix.WEXITED 0 ->
+    Lwt.return ()
+  | _ ->
+    Log.warn (fun m -> m "Inkscape failed!");
+    Lwt.fail (Failure "inkscape")

@@ -29,7 +29,7 @@ let display_tunes t tunes =
       Lwt.map (fun slug ->
         Printf.sprintf "/%s%s"
           Constant.api_prefix
-          (Router.path_of_controller (Router.TunePng slug) |> snd))
+          (Router.path_of_controller (Router.TuneSvg slug) |> snd))
         slug
     in
     let img = Image.create ~source t.page in
@@ -87,8 +87,8 @@ let create slug page =
 let contents t =
   t.content
 
-let refresh t = 
+let refresh t =
   ignore t
 
-let init t = 
+let init t =
   ignore t

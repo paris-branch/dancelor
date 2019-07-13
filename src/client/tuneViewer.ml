@@ -7,27 +7,27 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
 }
 
-let create slug page = 
+let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let tune = Tune.get slug in
   let group = Lwt.bind tune Tune.group in
   let title = Text.Heading.h1 ~text:(Lwt.bind group TuneGroup.name) page in
   Dom.appendChild content (Text.Heading.root title);
-  let kind_text, structure_text, key_text = 
+  let kind_text, structure_text, key_text =
     let open Lwt in
-    (tune >>= fun tune -> 
+    (tune >>= fun tune ->
      group >>= Formatters.Kind.full_string tune >|= Printf.sprintf "Kind: %s"),
     (tune >>= Tune.structure >|= Printf.sprintf "Structure: %s"),
     (tune >>= Tune.key >|= Music.key_to_string >|= Printf.sprintf "Key: %s")
   in
-  let kind, structure, key = 
+  let kind, structure, key =
     Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page,
     Text.Paragraph.create ~placeholder:"Structure:" ~text:structure_text page,
     Text.Paragraph.create ~placeholder:"Key:" ~text:key_text page
@@ -36,15 +36,15 @@ let create slug page =
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
   let ly_href = Helpers.build_path ~api:true ~route:(Router.TuneLy slug) () in
-  let ly = 
+  let ly =
     Text.Link.create ~href:(Lwt.return ly_href) ~text:(Lwt.return "Link to the Lilypond") page
   in
   Dom.appendChild content (Text.Link.root ly);
   Dom.appendChild content (Html.createHr document);
-  let source = 
-    Printf.sprintf "/%s%s" 
-      Constant.api_prefix 
-      (Router.path_of_controller (Router.TunePng slug) |> snd) 
+  let source =
+    Printf.sprintf "/%s%s"
+      Constant.api_prefix
+      (Router.path_of_controller (Router.TuneSvg slug) |> snd) 
     |> Lwt.return
   in
   let img = Image.create ~source page in
@@ -54,8 +54,8 @@ let create slug page =
 let contents t =
   t.content
 
-let refresh t = 
+let refresh t =
   ignore t
 
-let init t = 
+let init t =
   ignore t

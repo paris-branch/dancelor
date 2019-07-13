@@ -7,7 +7,7 @@ let preload_tunes () =
        let%lwt group = Dancelor_server_model.Tune.group tune in
        let%lwt name = Dancelor_server_model.TuneGroup.name group in
        Log.debug (fun m -> m "Prerendering %s" name);
-       let%lwt _ = Dancelor_server_controller.Tune.Png.render tune in
+       let%lwt _ = Dancelor_server_controller.Tune.Svg.render tune in
        Lwt.return ())
     all
 

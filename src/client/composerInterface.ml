@@ -67,7 +67,7 @@ let make_tune_subwindow t index tune =
   let source =
     Printf.sprintf "/%s%s"
       Constant.api_prefix
-      (Router.path_of_controller (Router.TunePng tune.Composer.slug) |> snd)
+      (Router.path_of_controller (Router.TuneSvg tune.Composer.slug) |> snd)
     |> Lwt.return
   in
   let img = Image.create ~source t.page in
@@ -169,8 +169,8 @@ let create page =
       Composer.save composer)
     page
   in
-  let deviser_search = 
-    let main_section = 
+  let deviser_search =
+    let main_section =
       SearchBar.Section.create
         ~default:(Table.Row.create
           ~on_click:(fun () -> make_credit_modal composer content page)
@@ -188,13 +188,13 @@ let create page =
       page
   in
   let tunes_area = Html.createDiv (Page.document page) in
-  let tune_search = 
-    let main_section = 
+  let tune_search =
+    let main_section =
       SearchBar.Section.create
         ~search:(fun input -> Tune.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} input)
         ~make_result:(fun score -> make_tune_search_result composer page score)
         page
-    in 
+    in
     SearchBar.create
       ~placeholder:"Search for a tune"
       ~sections:[main_section]
@@ -263,5 +263,5 @@ let create page =
 let contents t =
   t.content
 
-let init t = 
+let init t =
   refresh t

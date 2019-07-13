@@ -7,7 +7,7 @@ let get_ly tune _ =
   let%lwt body = Tune.content tune in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
-module Png = struct
+module Svg = struct
   let cache : (Tune.t, string Lwt.t) Cache.t = Cache.create ()
 
   let render tune =
@@ -22,27 +22,22 @@ module Png = struct
              content
          in
          let path = Filename.concat !Dancelor_server_config.cache "tune" in
-         let%lwt (fname_ly, fname_png) =
+         let%lwt (fname_ly, fname_svg) =
            let%lwt slug = Tune.slug tune in
            let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
-           Lwt.return (fname^".ly", fname^".png")
+           Lwt.return (fname^".ly", fname^".cropped.svg")
          in
          let%lwt () =
            Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
              (fun ochan -> Lwt_io.write ochan lilypond)
          in
          Log.debug (fun m -> m "Processing with Lilypond");
-         let%lwt () =
-           Lilypond.run
-             ~exec_path:path
-             ~options:["-dresolution=110"; "-dbackend=eps"; "--png"]
-             fname_ly
-         in
-         Lwt.return (Filename.concat path fname_png))
+         let%lwt () = Lilypond.cropped_svg ~exec_path:path fname_ly in
+         Lwt.return (Filename.concat path fname_svg))
 
   let get tune _ =
-    Log.debug (fun m -> m "Tune.Png.get %s" tune);
+    Log.debug (fun m -> m "Tune.Svg.get %s" tune);
     let%lwt tune = Tune.get tune in
-    let%lwt path_png = render tune in
-    Cohttp_lwt_unix.Server.respond_file ~fname:path_png ()
+    let%lwt path_svg = render tune in
+    Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
 end
