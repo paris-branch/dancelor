@@ -14,10 +14,6 @@ license: "GPL3"
 homepage: "https://gitlab.vlanvin.fr/paris-band/dancelor"
 bug-reports: "https://gitlab.vlanvin.fr/paris-band/dancelor/issues"
 
-pin-depends: [
-  [ "ppx_deriving_yojson.dev" "git+https://github.com/ocaml-ppx/ppx_deriving_yojson.git" ]
-]
-
 depends: [
   "cohttp-lwt-jsoo"
   "cohttp-lwt-unix"
@@ -26,7 +22,7 @@ depends: [
   "js_of_ocaml-lwt"
   "js_of_ocaml-ppx"          {build}
   "lwt_ppx"                  {build}
-  "ocaml"                    {build}
+  "ocaml"                    {build & >= "4.08.0"}
   "ppx_blob"                 {build}
   "ppx_deriving"
   "ppx_deriving_yojson"

@@ -1,4 +1,3 @@
-open NesPervasives
 open NesOption.Syntax
 
 type t = Yojson.Safe.t

@@ -130,4 +130,4 @@ let sensible_inclusion_proximity ~needle haystack =
   inclusion_proximity ~needle:(sensibilise needle) (sensibilise haystack)
 
 let sensible_compare s1 s2 =
-  Pervasives.compare (sensibilise s1) (sensibilise s2)
+  Stdlib.compare (sensibilise s1) (sensibilise s2)

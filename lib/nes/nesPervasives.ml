@@ -1,5 +1,3 @@
-include Pervasives
-
 module Syntax = struct
   let (||>) f g x = f x |> g
 
