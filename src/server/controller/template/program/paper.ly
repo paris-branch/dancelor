@@ -25,9 +25,9 @@
   markup-markup-spacing = #'((basic-distance . 15) (padding . 0.5))
   score-markup-spacing = #'((basic-distance . 15) (padding . 0.5) (stretchability . 60))
 
-  %%two-sided = ##t
-  %%inner-margin = 20\mm
-  %%outer-margin = 10\mm
+  two-sided = ##t
+  inner-margin = 20\mm
+  outer-margin = 10\mm
 
   bookTitleMarkup = \markup {
     \fill-line {

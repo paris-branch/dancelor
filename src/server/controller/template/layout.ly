@@ -21,3 +21,5 @@
     alternativeNumberingStyle = #'numbers
   }
 }
+
+#(set-global-staff-size 18)
