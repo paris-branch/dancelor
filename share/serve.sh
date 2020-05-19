@@ -1,12 +1,30 @@
 #!/bin/sh
-set -euC
+set -uC ## no -e for this script
 
-serve () {
+build () {
     make clean
     git pull
-    make serve || true
+    make release
 }
 
-while true; do
+serve () {
+    bin/dancelor-server --config share/config.json
+}
+
+rc=102
+
+while :; do
+    case $rc in
+        101) : ;;
+
+        102) build ;;
+
+        *)
+            printf 'Unexpected return code `%d`. Exiting.\n' "$rc"
+            exit 1
+            ;;
+    esac
+
     serve
+    rc=$?
 done
