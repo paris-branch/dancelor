@@ -10,8 +10,8 @@ let shell_cmdline s =
   List.map escape_shell_argument s
   |> String.concat " "
 
-let lwt_process_pread2 ?timeout ?env ?cwd command =
-  Lwt_process.with_process_full ?timeout ?env ?cwd command @@ fun process ->
+let lwt_process_pread2 command =
+  Lwt_process.with_process_full command @@ fun process ->
   let%lwt status = process#status in
   let%lwt stdout = Lwt_io.read process#stdout in
   let%lwt stderr = Lwt_io.read process#stderr in
