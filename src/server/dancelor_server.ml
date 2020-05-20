@@ -39,6 +39,7 @@ let remove_prefix_suffix prefix suffix string =
 let apply_controller path =
   if path = "/victor" then exit 101;
   if path = "/victor2" then exit 102;
+  if path = "/victor3" then exit 103;
   [ "/program/", ".pdf", Program.Pdf.get ;
     "/set/",     ".ly",  Set.Ly.get ;
     "/set/",     ".pdf", Set.Pdf.get ;
