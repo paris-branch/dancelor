@@ -115,6 +115,9 @@ let read_configuration () =
   Log.info (fun m -> m "Reading configuration");
   Dancelor_server_config.parse_cmd_line ()
 
+let initialise_logs () =
+  Dancelor_server_logs.initialise ()
+
 let initialise_database () =
   Log.info (fun m -> m "Initialising database");
   if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
@@ -161,6 +164,7 @@ let start_server () =
 
 let main =
   read_configuration ();
+  initialise_logs ();
   let%lwt () = initialise_database () in
   check_init_only ();
   start_routines ();

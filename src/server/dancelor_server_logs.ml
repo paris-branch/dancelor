@@ -1,6 +1,11 @@
+open Nes
+
+let log_src = Logs.Src.create "dancelor.server.logs"
+module Log = (val Logs.src_log log_src : Logs.LOG)
+
 let create unit =
+  Log.debug (fun m -> m "Creating log unit dancelor.server.%s" unit);
   let src = Logs.Src.create ("dancelor.server." ^ unit) in
-  Logs.Src.set_level src (Some !Dancelor_server_config.loglevel);
   Logs.src_log src
 
 let level_to_color = function
@@ -25,6 +30,31 @@ let my_reporter () =
   in
   { Logs.report }
 
-let () = Logs.(set_reporter (my_reporter ()))
+let initialise_reporter () =
+  Logs.(set_reporter (my_reporter ()))
 
-let () = Logs.set_level ~all:false None
+let update_past_loglevel () =
+  (* Crawl through all defined sources, handle the one for this module before
+     all others. *)
+  (log_src :: Logs.Src.list ()) |> List.iter @@ fun src ->
+  let name = Logs.Src.name src in
+  let level =
+    (* If the source comes from us, set loglevel to the given one. Otherwise,
+       set to None. *)
+    if    name = "dancelor" || String.starts_with ~needle:"dancelor." name
+          || name = "lilypond" || String.starts_with ~needle:"lilypond." name
+    then
+      Some !Dancelor_server_config.loglevel
+    else
+      None
+  in
+  Logs.Src.set_level src level;
+  Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
+
+let initialise_future_loglevel () =
+  Logs.set_level ~all:false (Some !Dancelor_server_config.loglevel)
+
+let initialise () =
+  initialise_reporter ();
+  update_past_loglevel ();
+  initialise_future_loglevel ()
