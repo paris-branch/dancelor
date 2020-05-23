@@ -1,5 +1,28 @@
 open Nes
 
+module type S = sig
+  type value
+  type t
+
+  val create : unit -> t
+
+  module State : sig
+    val initialise : unit -> t Lwt.t
+    val report_without_accesses : t -> unit
+  end
+
+  val establish : t -> unit
+
+  val get : value Slug.t -> value Lwt.t
+  val get_all : unit -> value list Lwt.t
+
+  val save : slug_hint:string -> (value Slug.t -> value Lwt.t) -> value Lwt.t
+  val delete : value Slug.t -> unit Lwt.t
+
+  val read_separated_file : value -> string -> string Lwt.t
+  val write_separated_file : value -> string -> string -> unit Lwt.t
+end
+
 module type Model = sig
   type t
   val slug : t -> t Slug.t Lwt.t
@@ -25,10 +48,12 @@ module Stats = struct
     stats.accesses
 end
 
-module Make (Model : Model) = struct
+module Make (Model : Model) : S with type value = Model.t = struct
   module Log = (val Dancelor_server_logs.create ("database.unsafe." ^ Model._key) : Logs.LOG)
 
-  type t = (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t
+  type value = Model.t
+
+  type t = (value Slug.t, Stats.t * value) Hashtbl.t
   let create () : t = Hashtbl.create 8
 
   let read_separated_file model file =
@@ -59,7 +84,7 @@ module Make (Model : Model) = struct
       let%lwt () = Lwt_list.iter_s load (Storage.list_entries Model._key) in
       Lwt.return database
 
-    let report_without_accesses ~database =
+    let report_without_accesses database =
       Hashtbl.to_seq_values database
       |> Seq.iter
         (fun (stats, model) ->
@@ -69,7 +94,7 @@ module Make (Model : Model) = struct
                  m "Without access: %s / %s" Model._key slug;
                  Lwt.return ()))) (* FIXME *)
 
-    let uniq_slug ~database ~hint =
+    let uniq_slug database ~hint =
       let slug = Slug.from_string hint in
       let rec aux i =
         let slug = slug ^ "-" ^ (string_of_int i) in
@@ -83,7 +108,7 @@ module Make (Model : Model) = struct
       else
         slug
 
-    let get ~database slug =
+    let get database slug =
       match Hashtbl.find_opt database slug with
       | Some (stats, model) ->
         Stats.add_access stats;
@@ -91,7 +116,7 @@ module Make (Model : Model) = struct
       | None ->
         Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, slug)))
 
-    let get_all ~database =
+    let get_all database =
       Hashtbl.to_seq_values database
       |> Seq.map
         (fun (stats, model) ->
@@ -100,16 +125,16 @@ module Make (Model : Model) = struct
       |> List.of_seq
       |> Lwt.return
 
-    let is_status_ge ~database ~status slug =
-      let%lwt model_status =
-        try%lwt
-          get ~database slug >>=| Model.status
-        with
-          Dancelor_common.Error.Exn _ as exn ->
-          Log.err (fun m -> m "Not found: %s" slug);
-          Lwt.fail exn
-      in
-      Lwt.return (Dancelor_common_model.Status.ge model_status status)
+    (* let is_status_ge database ~status slug =
+     *   let%lwt model_status =
+     *     try%lwt
+     *       get database slug >>=| Model.status
+     *     with
+     *       Dancelor_common.Error.Exn _ as exn ->
+     *       Log.err (fun m -> m "Not found: %s" slug);
+     *       Lwt.fail exn
+     *   in
+     *   Lwt.return (Dancelor_common_model.Status.ge model_status status) *)
   end
 
   (* Here comes the static world. If we are happy with a database, we apply it
@@ -118,13 +143,13 @@ module Make (Model : Model) = struct
   let database = ref (create ())
   let establish = (:=) database
 
-  let get slug = State.get ~database:!database slug
-  let get_all () = State.get_all ~database:!database
+  let get slug = State.get !database slug
+  let get_all () = State.get_all !database
 
   (* Save and delete have side effects; they belong always to the static world. *)
 
   let save ~slug_hint with_slug =
-    let slug = State.uniq_slug ~database:!database ~hint:slug_hint in
+    let slug = State.uniq_slug !database ~hint:slug_hint in
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
