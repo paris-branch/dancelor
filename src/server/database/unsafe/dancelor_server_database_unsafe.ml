@@ -20,23 +20,23 @@ type t =
     program : Program. t }
 
 let initialise () =
-  let%lwt person = Person.initialise () in
-  let%lwt credit = Credit.initialise () in
-  let%lwt source = Source.initialise () in
-  let%lwt dance = Dance.initialise () in
-  let%lwt tune = Tune.initialise () in
-  let%lwt tune_group = TuneGroup.initialise () in
-  let%lwt set = Set.initialise () in
-  let%lwt program = Program.initialise () in
+  let%lwt person = Person.State.initialise () in
+  let%lwt credit = Credit.State.initialise () in
+  let%lwt source = Source.State.initialise () in
+  let%lwt dance = Dance.State.initialise () in
+  let%lwt tune = Tune.State.initialise () in
+  let%lwt tune_group = TuneGroup.State.initialise () in
+  let%lwt set = Set.State.initialise () in
+  let%lwt program = Program.State.initialise () in
   Lwt.return { person; credit; source; dance; tune; tune_group; set; program }
 
 let establish database =
-  Person.Static.establish database.person;
-  Credit.Static.establish database.credit;
-  Source.Static.establish database.source;
-  Dance.Static.establish database.dance;
-  Tune.Static.establish database.tune;
-  TuneGroup.Static.establish database.tune_group;
-  Set.Static.establish database.set;
-  Program.Static.establish database.program;
+  Person.establish database.person;
+  Credit.establish database.credit;
+  Source.establish database.source;
+  Dance.establish database.dance;
+  Tune.establish database.tune;
+  TuneGroup.establish database.tune_group;
+  Set.establish database.set;
+  Program.establish database.program;
   Lwt.return ()
