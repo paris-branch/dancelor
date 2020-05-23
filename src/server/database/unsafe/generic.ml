@@ -1,17 +1,20 @@
 open Nes
 
+(** {2 Type of a database} *)
+
 module type S = sig
   type value
-  type t
-
-  val create : unit -> t
 
   module State : sig
+    type t
+
+    val create : unit -> t
+
     val initialise : unit -> t Lwt.t
     val report_without_accesses : t -> unit
   end
 
-  val establish : t -> unit
+  val establish : State.t -> unit
 
   val get : value Slug.t -> value Lwt.t
   val get_all : unit -> value list Lwt.t
@@ -23,16 +26,33 @@ module type S = sig
   val write_separated_file : value -> string -> string -> unit Lwt.t
 end
 
+(** {2 Value with database} *)
+
+type 'value unboxed_value_in_database =
+  { value : 'value ;
+    database : (module S with type value = 'value) }
+
+type value_in_database = Boxed : _ unboxed_value_in_database -> value_in_database
+
+let make_value_in_database (type a) (value : a) (module Database : S with type value = a) =
+  Boxed { value ; database = (module Database) }
+
+(** {2 Type of a model} *)
+
 module type Model = sig
   type t
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Dancelor_common_model.Status.t Lwt.t
+
+  val dependencies : t -> value_in_database list Lwt.t
 
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
 
   val _key : string
 end
+
+(** {2 Type of database statistics} *)
 
 module Stats = struct
   type t =
@@ -48,13 +68,12 @@ module Stats = struct
     stats.accesses
 end
 
+(** {2 Database Functor} *)
+
 module Make (Model : Model) : S with type value = Model.t = struct
   module Log = (val Dancelor_server_logs.create ("database.unsafe." ^ Model._key) : Logs.LOG)
 
   type value = Model.t
-
-  type t = (value Slug.t, Stats.t * value) Hashtbl.t
-  let create () : t = Hashtbl.create 8
 
   let read_separated_file model file =
     let%lwt slug = Model.slug model in
@@ -66,6 +85,9 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Lwt.return ()
 
   module State = struct
+    type t = (value Slug.t, Stats.t * value) Hashtbl.t
+
+    let create () : t = Hashtbl.create 8
 
     let initialise () =
       let database = create () in
@@ -140,7 +162,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   (* Here comes the static world. If we are happy with a database, we apply it
      and it becomes static. The other functions can then use it. *)
 
-  let database = ref (create ())
+  let database = ref (State.create ())
   let establish = (:=) database
 
   let get slug = State.get !database slug
