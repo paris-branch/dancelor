@@ -1,7 +1,7 @@
 open Nes
 module Model = Dancelor_common_model
 module Unsafe = Dancelor_server_database_unsafe
-module Log = (val Dancelor_server_logs.create "server.database.set" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "database.set" : Logs.LOG)
 
 let get (slug : Model.Set.t Slug.t) = Unsafe.Set.get slug
 let get_all = Unsafe.Set.get_all

@@ -11,7 +11,7 @@ module Program = Program
 
 module Storage = Dancelor_server_database_unsafe.Storage
 
-module Log = (val Dancelor_server_logs.create "server.database" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "database" : Logs.LOG)
 
 let initialise () =
   try%lwt

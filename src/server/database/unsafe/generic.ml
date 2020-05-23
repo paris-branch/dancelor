@@ -26,7 +26,7 @@ module Stats = struct
 end
 
 module Make (Model : Model) = struct
-  module Log = (val Dancelor_server_logs.create ("server.database.unsafe." ^ Model._key) : Logs.LOG)
+  module Log = (val Dancelor_server_logs.create ("database.unsafe." ^ Model._key) : Logs.LOG)
 
   let db : (Model.t Slug.t, Stats.t * Model.t) Hashtbl.t = Hashtbl.create 8
 
