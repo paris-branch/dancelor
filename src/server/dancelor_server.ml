@@ -123,8 +123,10 @@ let initialise_database () =
   Log.info (fun m -> m "Initialising database");
   if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
     Dancelor_server_database.Storage.sync_changes ();
-  let%lwt () = Dancelor_server_database.initialise () in
-  Dancelor_server_database.report_without_accesses ();
+  let%lwt database = Dancelor_server_database.initialise () in
+  let%lwt () = Dancelor_server_database.check_consistency database in
+  let%lwt () = Dancelor_server_database.report_without_accesses database in
+  let%lwt () = Dancelor_server_database.establish database in
   Lwt.return ()
 
 let check_init_only () =
