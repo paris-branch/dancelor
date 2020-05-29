@@ -1,8 +1,0 @@
-(library
- (name dancelor_server_database_unsafe)
- (public_name dancelor.server.database.unsafe)
- (libraries
-  dancelor.nes
-  dancelor.common
-  dancelor.server.logs)
- (preprocess (pps lwt_ppx)))

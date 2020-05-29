@@ -1,7 +1,5 @@
-open Nes
-module Model = Dancelor_common_model
-module Unsafe = Dancelor_server_database_unsafe
-module Log = (val Dancelor_server_logs.create "database.dance" : Logs.LOG)
+include Tables.Dance
 
-let get (slug : Model.Dance.t Slug.t) = Unsafe.Dance.get slug
-let get_all = Unsafe.Dance.get_all
+let get slug = get slug
+let get_all () = get_all ()
+

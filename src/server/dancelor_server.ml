@@ -120,13 +120,17 @@ let initialise_logs () =
   Dancelor_server_logs.initialise ()
 
 let initialise_database () =
-  Log.info (fun m -> m "Initialising database");
+  Log.info (fun m -> m "Syncing database changes");
   if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
     Dancelor_server_database.Storage.sync_changes ();
-  let%lwt database = Dancelor_server_database.initialise () in
-  let%lwt () = Dancelor_server_database.check_consistency database in
-  let%lwt () = Dancelor_server_database.report_without_accesses database in
-  let%lwt () = Dancelor_server_database.establish database in
+  Log.info (fun m -> m "Initialising database");
+  let%lwt () = Dancelor_server_database.Tables.initialise () in
+  (* Log.info (fun m -> m "Checking consistency in database");
+   * let%lwt () = Dancelor_server_database.check_consistency database in
+   * Log.info (fun m -> m "Reporting dangling nodes in database");
+   * let%lwt () = Dancelor_server_database.report_without_accesses database in
+   * Log.info (fun m -> m "Establishing database");
+   * let%lwt () = Dancelor_server_database.establish database in *)
   Lwt.return ()
 
 let check_init_only () =

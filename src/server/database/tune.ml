@@ -1,13 +1,10 @@
-open Nes
-module Model = Dancelor_common_model
-module Unsafe = Dancelor_server_database_unsafe
-module Log = (val Dancelor_server_logs.create "database.tune" : Logs.LOG)
+include Tables.Tune
 
-let get (slug : Model.Tune.t Slug.t) = Unsafe.Tune.get slug
-let get_all = Unsafe.Tune.get_all
+let get slug = get slug
+let get_all () = get_all ()
 
 let read_content tune =
-  Unsafe.Tune.read_separated_file tune "content.ly"
+  read_separated_file tune "content.ly"
 
 let write_content tune content =
-  Unsafe.Tune.write_separated_file tune "content.ly" content
+  write_separated_file tune "content.ly" content
