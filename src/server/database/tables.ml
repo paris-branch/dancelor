@@ -69,18 +69,51 @@ let tables : (module Table.S) list = [
   (module Program)
 ]
 
+module Log = (val Dancelor_server_logs.create "database" : Logs.LOG)
+
 let initialise () =
+  Log.info (fun m -> m "Creating new database version");
   let version = Table.Version.create () in
+  Log.info (fun m -> m "Creating tables for this version");
   let () =
     tables |> List.iter @@ fun (module Table : Table.S) ->
     Table.create_version ~version
   in
+  Log.info (fun m -> m "Loading tables for this version");
   let%lwt () =
     tables |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
     Table.load_version ~version
   in
+  Log.info (fun m -> m "Checking for dependency problems");
+  let%lwt () =
+    let%lwt found_problem =
+      Lwt_list.fold_left_s
+        (fun found_problem (module Table : Table.S) ->
+           let%lwt problems = Table.list_dependency_problems ~version in
+           (
+             problems |> List.iter @@ function
+             | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
+               Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
+             | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
+               Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
+             | _ -> ()
+           );
+           match found_problem, problems with
+           | Some found_problem, _ -> Lwt.return_some found_problem
+           | _, problem::_ -> Lwt.return_some problem
+           | _ -> Lwt.return_none
+        )
+        None
+        tables
+    in
+    match found_problem with
+    | None -> Lwt.return ()
+    | Some problem -> Dancelor_common.Error.fail problem
+  in
+  Log.info (fun m -> m "Establishing new version");
   let () =
     tables |> List.iter @@ fun (module Table : Table.S) ->
     Table.establish_version ~version
   in
+  Log.info (fun m -> m "New version is in place");
   Lwt.return ()

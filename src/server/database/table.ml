@@ -32,6 +32,8 @@ end
 type 'value database_state = ('value Slug.t, Stats.t * 'value) Hashtbl.t
 
 module type S = sig
+  val _key : string
+
   type value
 
   type t = value database_state
@@ -40,6 +42,7 @@ module type S = sig
   val delete_version : version:Version.t -> unit
 
   val load_version : version:Version.t -> unit Lwt.t
+  val list_dependency_problems : version:Version.t -> Dancelor_common.Error.t list Lwt.t
   val report_without_accesses : version:Version.t -> unit (* FIXME *)
 
   val establish_version : version:Version.t -> unit
@@ -51,6 +54,8 @@ module type S = sig
   val get : ?version:Version.t -> value Slug.t -> value Lwt.t
   val get_opt : ?version:Version.t -> value Slug.t -> value option Lwt.t
   val get_all : ?version:Version.t -> unit -> value list Lwt.t
+
+  val get_status : ?version:Version.t -> value Slug.t -> Dancelor_common_model.Status.t option Lwt.t
 
   (* The next functions only work for the default version as they include
      writing on the disk. *)
@@ -94,6 +99,8 @@ end
 
 module Make (Model : Model) : S with type value = Model.t = struct
   module Log = (val Dancelor_server_logs.create ("database." ^ Model._key) : Logs.LOG)
+
+  let _key = Model._key
 
   type value = Model.t
 
@@ -150,6 +157,55 @@ module Make (Model : Model) : S with type value = Model.t = struct
     in
     Lwt_list.iter_s load (Storage.list_entries Model._key)
 
+  let get_opt ?version slug =
+    let table = get_table ?version () in
+    match Hashtbl.find_opt table slug with
+    | Some (stats, model) ->
+      Stats.add_access stats;
+      Lwt.return_some model
+    | None ->
+      Lwt.return_none
+
+  let get_status ?version slug =
+    match%lwt get_opt ?version slug with
+    | None ->
+      Lwt.return_none
+    | Some model ->
+      let%lwt status = Model.status model in
+      Lwt.return_some status
+
+  let list_dependency_problems_for slug status ~version = function
+    | Boxed (dep_slug, (module Dep_table)) ->
+      match%lwt Dep_table.get_status ~version dep_slug with
+      | None ->
+        [Dancelor_common.Error.DependencyDoesNotExist((_key, slug), (Dep_table._key, dep_slug))]
+        |> Lwt.return
+      | Some dep_status ->
+        if Dancelor_common_model.Status.ge dep_status status then
+          Lwt.return_nil
+        else
+          [Dancelor_common.Error.DependencyViolatesStatus((_key, slug), (Dep_table._key, dep_slug))]
+          |> Lwt.return
+
+  let list_dependency_problems ~version =
+    get_table ~version ()
+    |> Hashtbl.to_seq_values
+    |> List.of_seq
+    |> Lwt_list.fold_left_s
+      (fun problems (_, model) ->
+         let%lwt slug = Model.slug model in
+         let%lwt status = Model.status model in
+         let%lwt deps = Model.dependencies model in
+         let%lwt new_problems =
+           deps
+           |> Lwt_list.map_s (list_dependency_problems_for slug status ~version)
+         in
+         new_problems
+         |> List.flatten
+         |> (fun new_problems -> new_problems @ problems)
+         |> Lwt.return)
+      []
+
   let report_without_accesses ~version =
     get_table ~version ()
     |> Hashtbl.to_seq_values
@@ -160,15 +216,6 @@ module Make (Model : Model) : S with type value = Model.t = struct
                let%lwt slug = Model.slug model in
                m "Without access: %s / %s" Model._key slug;
                Lwt.return ()))) (* FIXME *)
-
-  let get_opt ?version slug =
-    let table = get_table ?version () in
-    match Hashtbl.find_opt table slug with
-    | Some (stats, model) ->
-      Stats.add_access stats;
-      Lwt.return_some model
-    | None ->
-      Lwt.return_none
 
   let get ?version slug =
     match%lwt get_opt ?version slug with
