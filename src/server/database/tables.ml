@@ -11,7 +11,10 @@ module Credit = Table.Make (
   struct
     include Model.Credit
 
-    let dependencies _ = Lwt.return []
+  let dependencies credit =
+    let%lwt persons = persons credit in
+    List.map (Table.make_slug_and_table (module Person)) persons
+    |> Lwt.return
   end)
 
 module Source = Table.Make (
@@ -21,39 +24,69 @@ module Source = Table.Make (
     let dependencies _ = Lwt.return []
   end)
 
-module Dance = Table.Make (
+module TuneGroup = Table.Make (
   struct
-    include Model.Dance
+    include Model.TuneGroup
 
-    let dependencies _ = Lwt.return []
+    let dependencies tune_group =
+      match%lwt author tune_group with
+      | None -> Lwt.return_nil
+      | Some author ->
+        Lwt.return [Table.make_slug_and_table (module Credit) author]
   end)
 
 module Tune = Table.Make (
   struct
     include Model.Tune
 
-    let dependencies _ = Lwt.return []
+    let dependencies tune =
+      let%lwt tune_group = group tune in
+      let%lwt arranger = arranger tune in
+      let%lwt sources = sources tune in
+      List.map (Table.make_slug_and_table (module Source)) sources
+      |> (match arranger with
+          | None -> Fun.id
+          | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
+      |> List.cons (Table.make_slug_and_table (module TuneGroup) tune_group)
+      |> Lwt.return
   end)
 
-module TuneGroup = Table.Make (
+module Dance = Table.Make (
   struct
-    include Model.TuneGroup
+    include Model.Dance
 
-    let dependencies _ = Lwt.return []
+    let dependencies dance =
+      let%lwt deviser = deviser dance in
+      let%lwt originals = originals dance in
+      List.map (Table.make_slug_and_table (module Tune)) originals
+      |> (match deviser with
+          | None -> Fun.id
+          | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
+      |> Lwt.return
   end)
 
 module Set = Table.Make (
   struct
     include Model.Set
 
-    let dependencies _ = Lwt.return []
+    let dependencies set =
+      let%lwt deviser = deviser set in
+      let%lwt tunes = tunes set in
+      List.map (Table.make_slug_and_table (module Tune)) tunes
+      |> (match deviser with
+          | None -> Fun.id
+          | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
+      |> Lwt.return
   end)
 
 module Program = Table.Make (
   struct
     include Model.Program
 
-    let dependencies _ = Lwt.return []
+    let dependencies program =
+      let%lwt sets = sets program in
+      List.map (Table.make_slug_and_table (module Set)) sets
+      |> Lwt.return
   end)
 
 module Storage = Storage
