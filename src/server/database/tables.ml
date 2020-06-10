@@ -104,21 +104,23 @@ let tables : (module Table.S) list = [
 
 module Log = (val Dancelor_server_logs.create "database" : Logs.LOG)
 
-let initialise () =
-  Log.info (fun m -> m "Creating new database version");
-  let version = Table.Version.create () in
-  Log.info (fun m -> m "Creating tables for this version");
-  let () =
+module Initialise = struct
+  let create_new_db_version () =
+    Log.info (fun m -> m "Creating new database version");
+    Table.Version.create ()
+
+  let create_tables version =
+    Log.info (fun m -> m "Creating tables for this version");
     tables |> List.iter @@ fun (module Table : Table.S) ->
     Table.create_version ~version
-  in
-  Log.info (fun m -> m "Loading tables for this version");
-  let%lwt () =
+
+  let load_tables version =
+    Log.info (fun m -> m "Loading tables for this version");
     tables |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
     Table.load_version ~version
-  in
-  Log.info (fun m -> m "Checking for dependency problems");
-  let%lwt () =
+
+  let check_dependency_problems version =
+    Log.info (fun m -> m "Checking for dependency problems");
     let%lwt found_problem =
       Lwt_list.fold_left_s
         (fun found_problem (module Table : Table.S) ->
@@ -142,11 +144,22 @@ let initialise () =
     match found_problem with
     | None -> Lwt.return ()
     | Some problem -> Dancelor_common.Error.fail problem
-  in
-  Log.info (fun m -> m "Establishing new version");
-  let () =
-    tables |> List.iter @@ fun (module Table : Table.S) ->
-    Table.establish_version ~version
-  in
-  Log.info (fun m -> m "New version is in place");
-  Lwt.return ()
+
+  let establish_version version =
+    Log.info (fun m -> m "Establishing new version");
+    let () =
+      tables |> List.iter @@ fun (module Table : Table.S) ->
+      Table.establish_version ~version
+    in
+    Log.info (fun m -> m "New version is in place")
+
+  let initialise () =
+    let version = create_new_db_version () in
+    create_tables version;
+    let%lwt () = load_tables version in
+    let%lwt () = check_dependency_problems version in
+    establish_version version;
+    Lwt.return_unit
+end
+
+let initialise = Initialise.initialise
