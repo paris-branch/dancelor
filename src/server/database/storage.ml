@@ -1,41 +1,20 @@
-open Nes
+open NesUnix
 module Log = (val Dancelor_server_logs.create "server.database.unsafe.storage" : Logs.LOG)
 
 let prefix = Dancelor_server_config.database
 
-module Shell = struct
-  let command =
-    List.map escape_shell_argument
-    ||> String.concat " "
-
-  let chdir path cmd =
-    (command ["cd"; path]) ^ " && " ^ cmd
-
-  let ignore command =
-    command ^ " >/dev/null 2>&1"
-
-  let c cmd =
-    let cmd =
-      command cmd |> chdir !prefix |> ignore (*FIXME: no ignore*)
-    in
-    Log.debug (fun m -> m "shell: %s" cmd);
-    match Sys.command cmd with
-    | 0 -> ()
-    | rc -> Log.warn (fun m -> m "`%s` failed with return code: %d" cmd rc)
-end
-
 module Git = struct
   let add path =
-    Shell.c ["git"; "add"; path]
+    Process.run_silent ["git"; "add"; path]
 
   let commit ~msg =
-    Shell.c ["git"; "commit"; "-m"; msg]
+    Process.run_silent ["git"; "commit"; "-m"; msg]
 
   let push () =
-    Shell.c ["git"; "push"]
+    Process.run_silent ["git"; "push"]
 
   let pull_rebase () =
-    Shell.c ["git"; "pull"; "--rebase"]
+    Process.run_silent ["git"; "pull"; "--rebase"]
 end
 
 let list_entries table =
@@ -84,13 +63,19 @@ let save_changes_on_entry ~msg table entry =
     (
       (* no prefix for git! *)
       let path = Filename.concat_l [(*!prefix;*) table; entry] in
-      Git.add path;
-      Git.commit ~msg
+      let%lwt () = Git.add path in
+      let%lwt () = Git.commit ~msg in
+      Lwt.return_unit
     )
+  else
+    Lwt.return_unit
 
 let sync_changes () =
   if !Dancelor_server_config.sync_storage then
     (
-      Git.pull_rebase ();
-      Git.push ()
+      let%lwt () = Git.pull_rebase () in
+      let%lwt () = Git.push () in
+      Lwt.return_unit
     )
+  else
+    Lwt.return_unit

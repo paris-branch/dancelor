@@ -1,0 +1,6 @@
+(library
+ (name nesUnix)
+ (public_name dancelor.nes.unix)
+ (wrapped false)
+ (libraries dancelor.nes lwt.unix)
+ (preprocess (pps lwt_ppx)))

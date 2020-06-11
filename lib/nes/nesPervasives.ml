@@ -11,7 +11,6 @@ module Syntax = struct
 
   let ssf = Scanf.sscanf
 end
-open Syntax
 
 let id = fun x -> x
 
@@ -28,11 +27,6 @@ let in_channel_to_string ic =
   in
   aux ();
   Buffer.contents all
-
-let escape_shell_argument =
-  String.split_on_char '\''
-  ||> String.concat "'\\''"
-  ||> fun s -> "'" ^ s ^ "'"
 
 let catch_and_wrap f =
   try Some (f ()) with _ -> None

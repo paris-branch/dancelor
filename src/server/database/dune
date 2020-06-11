@@ -2,7 +2,7 @@
  (name dancelor_server_database)
  (public_name dancelor.server.database)
  (libraries
-  dancelor.nes
+  dancelor.nes.unix
   dancelor.common
   dancelor.server.logs)
  (preprocess (pps lwt_ppx)))

@@ -258,18 +258,22 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
     Storage.write_entry_json Model._key slug "meta.json" json;
-    Storage.save_changes_on_entry
-      ~msg:(spf "[auto] save %s / %s" Model._key slug)
-      Model._key slug;
+    let%lwt () =
+      Storage.save_changes_on_entry
+        ~msg:(spf "[auto] save %s / %s" Model._key slug)
+        Model._key slug
+    in
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
   let delete slug =
     let table = get_table () in
     Storage.delete_entry Model._key slug;
-    Storage.save_changes_on_entry
-      ~msg:(spf "[auto] delete %s / %s" Model._key slug)
-      Model._key slug;
+    let%lwt () =
+      Storage.save_changes_on_entry
+        ~msg:(spf "[auto] delete %s / %s" Model._key slug)
+        Model._key slug
+    in
     Hashtbl.remove table slug;
     Lwt.return ()
 
