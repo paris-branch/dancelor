@@ -105,6 +105,11 @@ let tables : (module Table.S) list = [
 module Log = (val Dancelor_server_logs.create "database" : Logs.LOG)
 
 module Initialise = struct
+  let sync_db () =
+    Log.info (fun m -> m "Syncing database changes");
+    if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
+      Dancelor_server_database.Storage.sync_changes ()
+
   let create_new_db_version () =
     Log.info (fun m -> m "Creating new database version");
     Table.Version.create ()
@@ -154,6 +159,7 @@ module Initialise = struct
     Log.info (fun m -> m "New version is in place")
 
   let initialise () =
+    sync_db ();
     let version = create_new_db_version () in
     create_tables version;
     let%lwt () = load_tables version in
