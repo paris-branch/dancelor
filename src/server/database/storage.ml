@@ -15,9 +15,23 @@ module Git = struct
 
   let pull_rebase () =
     Process.run_silent ["git"; "pull"; "--rebase"]
+
+  let status_clean () =
+    let%lwt res =
+      Process.run
+        ~check_status_ok:true ~check_no_stderr:true
+        ["git"; "status"]
+    in
+    Lwt.return (res.Process.stdout = "")
 end
 
+(* Two locks. One is local to storage functions and is simply here to ensure
+   that the storage is being written or read by only one function at a time. For
+   that lock, functions *)
+
 let lock = Lwt_mutex.create ()
+let ro_lock = Lwt_mutex.create ()
+
 let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
   let id = Random.int (1 lsl 28) in
   Log.debug (fun m -> m "Waiting for lock[%x] on storage" id);
@@ -30,10 +44,32 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
   Log.debug (fun m -> m "Released lock[%x] on storage" id);
   Lwt.return a
 
+let check_ro_lock () =
+  if Lwt_mutex.is_locked ro_lock then
+    Dancelor_common.Error.(lwt_fail StorageReadOnly)
+  else
+    Lwt.return_unit
+
+let with_read_only f =
+  let%lwt () =
+    with_lock @@ fun () ->
+    Log.debug (fun m -> m "Setting storage as read-only");
+    Lwt_mutex.lock ro_lock
+  in
+  let%lwt y = f () in
+  Log.debug (fun m -> m "Freeing the read-only lock");
+  Lwt_mutex.unlock ro_lock;
+  Lwt.return y
+
+let with_locks (type a) (f : unit -> a Lwt.t) : a Lwt.t =
+  with_lock @@ fun () ->
+  let%lwt () = check_ro_lock () in
+  f ()
+
 (* Lock is required for all functions that manipulate the filesystem directly. *)
 
 let list_entries table =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Listing entries in %s" table);
   Filename.concat !prefix table
   |> Filesystem.read_directory
@@ -41,14 +77,14 @@ let list_entries table =
   |> Lwt.return
 
 let list_entry_files table entry =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Listing entries in %s / %s" table entry);
   Filename.concat_l [!prefix; table; entry]
   |> Filesystem.read_directory
   |> Lwt.return
 
 let read_entry_file table entry file =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
   Filename.concat_l [!prefix; table; entry; file]
   |> Filesystem.read_file
@@ -61,7 +97,7 @@ let read_entry_json table entry file =
   |> Lwt.return
 
 let write_entry_file table entry file content =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Writing %s / %s / %s" table entry file);
   if !Dancelor_server_config.write_storage then
     (
@@ -78,7 +114,7 @@ let write_entry_json table entry file content =
   |> write_entry_file table entry file
 
 let delete_entry table entry =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Deleting %s / %s" table entry);
   if !Dancelor_server_config.write_storage then
     (
@@ -90,7 +126,7 @@ let delete_entry table entry =
   Lwt.return_unit
 
 let save_changes_on_entry ~msg table entry =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Saving %s / %s" table entry);
   if !Dancelor_server_config.write_storage then
     (
@@ -104,7 +140,7 @@ let save_changes_on_entry ~msg table entry =
     Lwt.return_unit
 
 let sync_changes () =
-  with_lock @@ fun () ->
+  with_locks @@ fun () ->
   Log.debug (fun m -> m "Syncing");
   if !Dancelor_server_config.sync_storage then
     (
