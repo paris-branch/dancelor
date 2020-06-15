@@ -59,8 +59,11 @@ let get slug =
     a Arg.slug slug
   )
 
-let get_all () =
-  Madge_client.call ~endpoint:Endpoint.get_all @@ fun _ _ -> ()
+let all ?pagination () =
+  Madge_client.(
+    call ~endpoint:Endpoint.all @@ fun _ {o} ->
+    o Arg.pagination pagination
+  )
 
 let make_and_save ?status ~name ?deviser ~kind ?tunes () =
   Madge_client.(
@@ -86,3 +89,6 @@ let search ?pagination ?threshold string =
     o Arg.threshold threshold;
     a Arg.string string
   )
+
+let count () =
+  Madge_client.call ~endpoint:Endpoint.count @@ fun _ _ -> ()

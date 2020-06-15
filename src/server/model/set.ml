@@ -16,12 +16,15 @@ let () =
     get (a Arg.slug)
   )
 
-let get_all = Dancelor_server_database.Set.get_all
+let all ?pagination () = 
+  Dancelor_server_database.Set.get_all ()
+  >>=| Lwt_list.proj_sort_s ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
+  >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get_all @@ fun _ _ ->
-    get_all ()
+    register ~endpoint:Endpoint.all @@ fun _ {o} ->
+    all ?pagination:(o Arg.pagination) ()
   )
 
 let make_and_save ?status ~name ?deviser ~kind ?tunes () =
@@ -85,3 +88,10 @@ let () =
       ?threshold: (o Arg.threshold)
       (a Arg.string)
   )
+
+let count () =
+  let%lwt l = all () in
+  Lwt.return (List.length l)
+
+let () =
+  Madge_server.register ~endpoint:Endpoint.count @@ fun _ _ -> count ()

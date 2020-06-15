@@ -66,7 +66,7 @@ module type S = sig
 
   val get : t Slug.t -> t Lwt.t
 
-  val get_all : unit -> t list Lwt.t
+  val all : ?pagination:Pagination.t -> unit -> t list Lwt.t
 
   val make_and_save :
     ?status:Status.t ->
@@ -83,6 +83,9 @@ module type S = sig
     ?threshold:float ->
     string ->
     t Score.t list Lwt.t
+
+  val count:
+    unit -> int Lwt.t
 end
 
 module Arg = struct
@@ -101,8 +104,9 @@ end
 module Endpoint = struct
   open Madge_common
   let get = endpoint ~path:"/set" (module Self)
-  let get_all = endpoint ~path:"/set/all" (module MList (Self))
+  let all = endpoint ~path:"/set/all" (module MList (Self))
   let make_and_save = endpoint ~path:"/set/save" (module (Self))
   let delete = endpoint ~path:"/set/delete" (module MUnit)
   let search = endpoint ~path:"/set/search" (module MList (Score.Make_Serialisable (Self)))
+  let count = endpoint ~path:"/set/count" (module MInteger)
 end
