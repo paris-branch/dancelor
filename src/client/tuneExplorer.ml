@@ -179,6 +179,8 @@ let create page =
   in
   let table = Table.create ~kind:Table.Kind.Separated ~header page in
   Dom.appendChild content (Table.root table);
+  let nav = PageNav.create ~max_pages:10 ~on_page_change:(fun _ -> ()) page in
+  Dom.appendChild content (PageNav.root nav);
   let t = {page; content; search_div; search; table} in
   fill_search t;
   update_table t;
