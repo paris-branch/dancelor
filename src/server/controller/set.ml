@@ -48,7 +48,7 @@ module Ly = struct
            Lwt.return ())
         tunes
     in
-    let%lwt () = prom in
+    prom; %lwt
     Lwt.return res
 
   let get set query =
@@ -72,12 +72,10 @@ module Pdf = struct
           let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
           Lwt.return (fname^".ly", fname^".pdf")
         in
-        let%lwt () =
-          Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
-            (fun ochan -> Lwt_io.write ochan lilypond)
-        in
+        Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
+          (fun ochan -> Lwt_io.write ochan lilypond); %lwt
         Log.debug (fun m -> m "Processing with Lilypond");
-        let%lwt () = Lilypond.run ~exec_path:path fname_ly in
+        Lilypond.run ~exec_path:path fname_ly; %lwt
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 

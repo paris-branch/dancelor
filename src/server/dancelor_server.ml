@@ -162,7 +162,7 @@ let start_server () =
 let main =
   read_configuration ();
   initialise_logs ();
-  let%lwt () = initialise_database () in
+  initialise_database (); %lwt
   check_init_only ();
   start_routines ();
   start_server ()

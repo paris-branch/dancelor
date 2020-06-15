@@ -51,11 +51,11 @@ let check_ro_lock () =
     Lwt.return_unit
 
 let with_read_only f =
-  let%lwt () =
+  (
     with_lock @@ fun () ->
     Log.debug (fun m -> m "Setting storage as read-only");
     Lwt_mutex.lock ro_lock
-  in
+  ); %lwt
   let%lwt y = f () in
   Log.debug (fun m -> m "Freeing the read-only lock");
   Lwt_mutex.unlock ro_lock;
@@ -63,7 +63,7 @@ let with_read_only f =
 
 let with_locks (type a) (f : unit -> a Lwt.t) : a Lwt.t =
   with_lock @@ fun () ->
-  let%lwt () = check_ro_lock () in
+  check_ro_lock (); %lwt
   f ()
 
 (* Lock is required for all functions that manipulate the filesystem directly. *)
@@ -132,8 +132,8 @@ let save_changes_on_entry ~msg table entry =
     (
       (* no prefix for git! *)
       let path = Filename.concat_l [(*!prefix;*) table; entry] in
-      let%lwt () = Git.add path in
-      let%lwt () = Git.commit ~msg in
+      Git.add path; %lwt
+      Git.commit ~msg; %lwt
       Lwt.return_unit
     )
   else
@@ -144,8 +144,8 @@ let sync_changes () =
   Log.debug (fun m -> m "Syncing");
   if !Dancelor_server_config.sync_storage then
     (
-      let%lwt () = Git.pull_rebase () in
-      let%lwt () = Git.push () in
+      Git.pull_rebase (); %lwt
+      Git.push (); %lwt
       Lwt.return_unit
     )
   else
