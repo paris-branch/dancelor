@@ -1,9 +1,15 @@
 open Nes
 
+type process_status = Unix.process_status =
+  | WEXITED of int
+  | WSIGNALED of int
+  | WSTOPPED of int
+[@@deriving show]
+
 type output =
   { stdout : string ;
     stderr : string ;
-    status : Unix.process_status }
+    status : process_status }
 
 let escape_shell_argument =
   String.split_on_char '\''
