@@ -58,6 +58,10 @@ module type S = sig
     ?pagination:Pagination.t ->
     ?threshold:float -> string ->
     t Score.t list Lwt.t
+
+  val count :
+    ?filter:TuneFilter.t -> 
+    unit -> int Lwt.t
 end
 
 module Arg = struct
@@ -75,4 +79,5 @@ module Endpoint = struct
   let get = endpoint ~path:"/tune" (module Self)
   let all = endpoint ~path:"/tune/all" (module MList (Self))
   let search = endpoint ~path:"/tune/search" (module MList (Score.Make_Serialisable (Self)))
+  let count = endpoint ~path:"/tune/count" (module MInteger)
 end

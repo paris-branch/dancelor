@@ -45,6 +45,7 @@ val prefix : string ref
 
 module MUnit : SERIALISABLE with type t = unit
 module MFloat : SERIALISABLE with type t = float
+module MInteger : SERIALISABLE with type t = int
 module MString : SERIALISABLE with type t = string
 module MOption : functor (A : SERIALISABLE) -> SERIALISABLE with type t = A.t option
 module MList : functor (A : SERIALISABLE) -> SERIALISABLE with type t = A.t list

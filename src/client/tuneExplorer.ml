@@ -1,7 +1,7 @@
 open Js_of_ocaml
 open Dancelor_client_elements
-open Dancelor_client_model
 open Dancelor_common
+open Dancelor_client_model
 
 module Html = Dom_html
 
@@ -11,6 +11,7 @@ type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
+  page_nav : PageNav.t;
   search_div : Html.divElement Js.t;
   mutable search : TuneFilter.t Lwt.t;
   table : Table.t;
@@ -62,7 +63,7 @@ let update_table t =
   let rows = 
     let%lwt tunes =
       let%lwt filter = t.search in
-      let pagination = Pagination.make () in
+      let pagination = PageNav.pagination t.page_nav in
       Tune.all ~filter ~pagination ()
     in
     Lwt.return (List.map (fun tune ->
@@ -86,7 +87,8 @@ let update_table t =
 
 let update_filter t upd = 
   t.search <- Lwt.bind t.search upd;
-  Lwt.on_success t.search (fun _ -> update_table t)
+  Lwt.on_success t.search (fun filter ->
+    Lwt.on_success (Tune.count ~filter ()) (PageNav.set_entries t.page_nav))
 
 let fill_search t = 
   let document = Page.document t.page in
@@ -179,9 +181,14 @@ let create page =
   in
   let table = Table.create ~kind:Table.Kind.Separated ~header page in
   Dom.appendChild content (Table.root table);
-  let nav = PageNav.create ~max_pages:10 ~on_page_change:(fun _ -> ()) page in
-  Dom.appendChild content (PageNav.root nav);
-  let t = {page; content; search_div; search; table} in
+  let page_nav = PageNav.create ~entries:0 ~entries_per_page:25 page in
+  Dom.appendChild content (PageNav.root page_nav);
+  let t = {page; content; search_div; search; table; page_nav} in
+  PageNav.connect_on_page_change page_nav (fun _ ->
+    PageNav.rebuild page_nav;
+    update_table t);
+  Lwt.on_success (Tune.count ()) (fun entries ->
+    PageNav.set_entries page_nav entries);
   fill_search t;
   update_table t;
   t

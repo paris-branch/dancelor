@@ -31,3 +31,8 @@ let search ?filter ?pagination ?threshold string =
     o Arg.threshold threshold;
     a Arg.string string
   )
+
+let count ?filter () =
+  Madge_client.(
+    call ~endpoint:Endpoint.count @@ fun _ {o} -> o Arg.filter filter
+  )

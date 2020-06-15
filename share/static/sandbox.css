@@ -26,7 +26,8 @@ input[type=text].invalid {
 button {
   box-sizing: border-box;
   padding: .375rem .75rem;
-  background-color: #dcdcdc;
+  background-color: #ffffff;
+  color: #960010;
   border: 1px solid #c0c0c9;
   line-height: 1.5;
   font-size: 1rem;
@@ -43,6 +44,10 @@ button.btn-success {
   background-color: #22b033;
   color: #ffffff;
   border: 1px solid #20c030;
+}
+
+button.disabled {
+  color: #7c7c7c;
 }
 
 .subwindow .toolbar {
@@ -92,7 +97,6 @@ button.btn-success {
 
 li:first-child button {
   border-radius: 4px 0 0 4px;
-  border-right: 0;
 }
 
 li:last-child button {
@@ -102,6 +106,7 @@ li:last-child button {
 
 li:not(:first-child):not(:last-child) button {
   border-radius: 0;
+  border-left: 0;
 }
 
 .dropdown-table {
@@ -145,4 +150,34 @@ li:not(:first-child):not(:last-child) button {
   width: 50%;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   border: 1px solid #ced4da;
+}
+
+div#page_nav {
+  margin-top: 8pt;
+  width: 100%;
+  display: inline-block;
+}
+
+div#page_nav div {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+div#page_nav ul {
+  float: right;
+}
+
+div#page_nav li {
+  float: left;
+  display: inline;
+}
+
+div#page_nav .active button {
+  background-color: #910010;
+  border-color: #910010;
+  color: #ffffff;
+}
+
+div#page_nav li.active {
+  background-color: #910010;
 }

@@ -77,3 +77,7 @@ tbody tr:hover, tbody tr:focus {
 .page-body {
   position: relative;
 }
+
+a {
+  color: #960010;
+}

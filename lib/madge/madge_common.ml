@@ -71,6 +71,12 @@ module MUnit : SERIALISABLE with type t = unit = struct
   let _key = "unit"
 end
 
+module MInteger : SERIALISABLE with type t = int = struct
+  type t = int
+  [@@deriving yojson]
+  let _key = "int"
+end
+
 module MFloat : SERIALISABLE with type t = float = struct
   type t = float
   [@@deriving yojson]

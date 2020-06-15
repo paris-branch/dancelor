@@ -98,3 +98,14 @@ let () =
       ?threshold: (o Arg.threshold)
       (a Arg.string)
   )
+
+let count ?filter () =
+  let%lwt l = all ?filter () in
+  Lwt.return (List.length l)
+
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.count @@ fun _ {o} ->
+    count
+      ?filter:(o Arg.filter) ()
+  )

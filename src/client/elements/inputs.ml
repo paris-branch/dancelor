@@ -151,11 +151,17 @@ module Button = struct
     NesOption.ifsome (fun icon -> Dom.appendChild root (Fa.i icon page)) icon;
     NesOption.ifsome (fun text -> Dom.appendChild root ((Page.document page)##createTextNode (js (" " ^ text)))) text;
     root##.classList##add (js "no-selection");
+    root##.classList##add (js "clickable");
     {page; root}
 
   let set_enabled t b =
-    if b then t.root##.classList##remove (js "disabled")
-    else t.root##.classList##add (js "disabled")
+    if b then begin
+      t.root##.classList##remove (js "disabled");
+      t.root##.classList##add (js "clickable")
+    end else begin
+      t.root##.classList##add (js "disabled");
+      t.root##.classList##remove (js "clickable")
+    end
 
   let root t =
     t.root
