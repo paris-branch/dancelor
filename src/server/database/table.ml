@@ -144,7 +144,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let load_version ~version =
     let table = get_table ~version () in
     let load entry =
-      let json = Storage.read_entry_json Model._key entry "meta.json" in
+      let%lwt json = Storage.read_entry_json Model._key entry "meta.json" in
       let json = Json.add_field "slug" (`String entry) json in
       match Model.of_yojson json with
       | Ok model ->
@@ -155,7 +155,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
         Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.json" msg);
         exit 1
     in
-    Lwt_list.iter_s load (Storage.list_entries Model._key)
+    let%lwt entries = Storage.list_entries Model._key in
+    Lwt_list.iter_s load entries
 
   let get_opt ?version slug =
     let table = get_table ?version () in
@@ -257,32 +258,27 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_json Model._key slug "meta.json" json;
-    let%lwt () =
-      Storage.save_changes_on_entry
-        ~msg:(spf "[auto] save %s / %s" Model._key slug)
-        Model._key slug
-    in
+    Storage.write_entry_json Model._key slug "meta.json" json; %lwt
+    Storage.save_changes_on_entry
+      ~msg:(spf "[auto] save %s / %s" Model._key slug)
+      Model._key slug; %lwt
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
   let delete slug =
     let table = get_table () in
-    Storage.delete_entry Model._key slug;
-    let%lwt () =
-      Storage.save_changes_on_entry
-        ~msg:(spf "[auto] delete %s / %s" Model._key slug)
-        Model._key slug
-    in
+    Storage.delete_entry Model._key slug; %lwt
+    Storage.save_changes_on_entry
+      ~msg:(spf "[auto] delete %s / %s" Model._key slug)
+      Model._key slug; %lwt
     Hashtbl.remove table slug;
     Lwt.return ()
 
   let read_separated_file model file =
     let%lwt slug = Model.slug model in
-    Lwt.return (Storage.read_entry_file Model._key slug file)
+    Storage.read_entry_file Model._key slug file
 
   let write_separated_file model file content =
     let%lwt slug = Model.slug model in
-    Storage.write_entry_file Model._key slug file content;
-    Lwt.return ()
+    Storage.write_entry_file Model._key slug file content
 end

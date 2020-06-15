@@ -161,11 +161,11 @@ module Initialise = struct
     Log.info (fun m -> m "New version is in place")
 
   let initialise () =
-    let%lwt () = sync_db () in
+    sync_db (); %lwt
     let version = create_new_db_version () in
     create_tables version;
-    let%lwt () = load_tables version in
-    let%lwt () = check_dependency_problems version in
+    load_tables version; %lwt
+    check_dependency_problems version; %lwt
     establish_version version;
     Lwt.return_unit
 end

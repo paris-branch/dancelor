@@ -129,7 +129,7 @@ let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) filename =
      | exn -> Lwt.fail exn)
 
 let cropped_svg ?lilypond_bin ?(exec_path=".") filename =
-  let%lwt () = run ?lilypond_bin ~exec_path ~options:["-dbackend=svg"] filename in
+  run ?lilypond_bin ~exec_path ~options:["-dbackend=svg"] filename; %lwt
   Inkscape.crop
     ~exec_path
     ((Filename.chop_extension filename) ^ ".svg")

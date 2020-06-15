@@ -1,9 +1,15 @@
 open Nes
 
+type process_status = Unix.process_status =
+  | WEXITED of int
+  | WSIGNALED of int
+  | WSTOPPED of int
+[@@deriving show]
+
 type output =
   { stdout : string ;
     stderr : string ;
-    status : Unix.process_status }
+    status : process_status }
 
 let escape_shell_argument =
   String.split_on_char '\''
@@ -43,7 +49,7 @@ let run
   in
   let cmd = Lwt_process.shell cmd in
   Lwt_process.with_process_full ?timeout ?env cmd @@ fun process ->
-  let%lwt () = Lwt_io.write process#stdin stdin in
+  Lwt_io.write process#stdin stdin; %lwt
   let%lwt status = process#status in
   let%lwt stdout = Lwt_io.read process#stdout in
   let%lwt stderr = Lwt_io.read process#stderr in
@@ -51,7 +57,15 @@ let run
   check_output ?check_status_ok ?check_no_stderr ?check_no_stdout output;
   Lwt.return output
 
-let run_silent ?timeout ?env ?cwd ?stdin cmd =
-  let%lwt output = run ?timeout ?env ?cwd ?stdin cmd in
-  check_output ~check_status_ok:true ~check_no_stdout:true ~check_no_stderr:true output;
+let run_ignore
+    ?timeout ?env ?cwd ?stdin
+    ?check_status_ok ?check_no_stdout ?check_no_stderr
+    cmd
+  =
+  let%lwt _ =
+    run
+      ?timeout ?env ?cwd ?stdin
+      ?check_status_ok ?check_no_stdout ?check_no_stderr
+      cmd
+  in
   Lwt.return_unit

@@ -3,4 +3,4 @@
  (public_name dancelor.nes.unix)
  (wrapped false)
  (libraries dancelor.nes lwt.unix)
- (preprocess (pps lwt_ppx)))
+ (preprocess (pps ppx_deriving.std lwt_ppx)))

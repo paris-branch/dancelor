@@ -27,12 +27,10 @@ module Svg = struct
            let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
            Lwt.return (fname^".ly", fname^".cropped.svg")
          in
-         let%lwt () =
-           Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
-             (fun ochan -> Lwt_io.write ochan lilypond)
-         in
+         Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
+           (fun ochan -> Lwt_io.write ochan lilypond); %lwt
          Log.debug (fun m -> m "Processing with Lilypond");
-         let%lwt () = Lilypond.cropped_svg ~exec_path:path fname_ly in
+         Lilypond.cropped_svg ~exec_path:path fname_ly; %lwt
          Lwt.return (Filename.concat path fname_svg))
 
   let get tune _ =
