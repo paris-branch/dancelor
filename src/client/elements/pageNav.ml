@@ -19,8 +19,8 @@ type t = {
   mutable on_page_change : int -> unit;
 }
 
-let set_current t p = 
-  if p <> t.cur_page && p <= t.max_pages && p >= 1 then begin
+let set_current ?(force=false) t p = 
+  if (p <> t.cur_page || force) && p <= t.max_pages && p >= 1 then begin
     t.cur_page <- p;
     t.on_page_change p
   end
@@ -112,7 +112,7 @@ let set_entries t entries =
   t.entries <- entries;
   let max_pages = (entries + (t.entries_per_page - 1)) / t.entries_per_page in
   t.max_pages <- max_pages;
-  set_current t 1
+  set_current ~force:true t 1
 
 let connect_on_page_change t f =
   t.on_page_change <- f
