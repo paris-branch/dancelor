@@ -80,6 +80,8 @@ let pagination t =
 let make_info t =
   if t.cur_page = 0 then
     Printf.sprintf "Loading entries..."
+  else if t.entries = 0 then
+    Printf.sprintf "No entries"
   else begin
     let pag = pagination t in
     Printf.sprintf "Showing %i to %i of %i entries" (Pagination.start pag + 1) (Pagination.end_ pag) t.entries
@@ -111,7 +113,7 @@ let create ~entries ~entries_per_page page =
 let set_entries t entries =
   t.entries <- entries;
   let max_pages = (entries + (t.entries_per_page - 1)) / t.entries_per_page in
-  t.max_pages <- max_pages;
+  t.max_pages <- max max_pages 1;
   set_current ~force:true t 1
 
 let connect_on_page_change t f =
