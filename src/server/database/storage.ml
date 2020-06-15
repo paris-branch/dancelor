@@ -5,16 +5,16 @@ let prefix = Dancelor_server_config.database
 
 module Git = struct
   let add path =
-    Process.run_silent ["git"; "add"; path]
+    Process.run ["git"; "add"; path]
 
   let commit ~msg =
-    Process.run_silent ["git"; "commit"; "-m"; msg]
+    Process.run ["git"; "commit"; "-m"; msg]
 
   let push () =
-    Process.run_silent ["git"; "push"]
+    Process.run ["git"; "push"]
 
   let pull_rebase () =
-    Process.run_silent ["git"; "pull"; "--rebase"]
+    Process.run ["git"; "pull"; "--rebase"]
 
   let status_clean () =
     let%lwt res =
