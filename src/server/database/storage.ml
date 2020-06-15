@@ -5,24 +5,24 @@ let prefix = Dancelor_server_config.database
 
 module Git = struct
   let add path =
-    Process.run ["git"; "add"; path]
+    Process.run_ignore ~check_status_ok:true ["git"; "add"; path]
 
   let commit ~msg =
-    Process.run ["git"; "commit"; "-m"; msg]
+    Process.run_ignore ~check_status_ok:true ["git"; "commit"; "-m"; msg]
 
   let push () =
-    Process.run ["git"; "push"]
+    Process.run_ignore ["git"; "push"]
 
   let pull_rebase () =
-    Process.run ["git"; "pull"; "--rebase"]
+    Process.run_ignore ["git"; "pull"; "--rebase"]
 
   let status_clean () =
-    let%lwt res =
+    let%lwt out =
       Process.run
         ~check_status_ok:true ~check_no_stderr:true
         ["git"; "status"]
     in
-    Lwt.return (res.Process.stdout = "")
+    Lwt.return (out.Process.stdout = "")
 end
 
 (* Two locks. One is local to storage functions and is simply here to ensure

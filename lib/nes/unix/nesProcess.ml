@@ -51,7 +51,15 @@ let run
   check_output ?check_status_ok ?check_no_stderr ?check_no_stdout output;
   Lwt.return output
 
-let run_silent ?timeout ?env ?cwd ?stdin cmd =
-  let%lwt output = run ?timeout ?env ?cwd ?stdin cmd in
-  check_output ~check_status_ok:true ~check_no_stdout:true ~check_no_stderr:true output;
+let run_ignore
+    ?timeout ?env ?cwd ?stdin
+    ?check_status_ok ?check_no_stdout ?check_no_stderr
+    cmd
+  =
+  let%lwt _ =
+    run
+      ?timeout ?env ?cwd ?stdin
+      ?check_status_ok ?check_no_stdout ?check_no_stderr
+      cmd
+  in
   Lwt.return_unit
