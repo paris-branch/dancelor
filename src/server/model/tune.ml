@@ -73,13 +73,62 @@ let () =
     all ?filter:(o Arg.filter) ?pagination:(o Arg.pagination) ()
   )
 
+let rec extract_words = function
+  | [] -> [], []
+  | h::t ->
+    let kinds, words = extract_words t in
+    let add_kind k =
+      if not (List.mem k kinds) then
+        (k::kinds, words)
+      else
+        (kinds, words)
+    in
+    if h = "J" || h = "Jig" then
+      add_kind Kind.Jig
+    else if h = "R" || h = "Reel" then
+      add_kind Kind.Reel
+    else if h = "S" || h = "Strathspey" then
+      add_kind Kind.Strathspey
+    else if h = "W" || h = "Waltz" then
+      add_kind Kind.Waltz
+    else if h = "P" || h = "Polka" then
+      add_kind Kind.Polka
+    else if h = "" then
+      (kinds, words)
+    else
+      (kinds, h::words)
+
+let score_list words list =
+  List.map (fun needle ->
+    List.map (String.sensible_inclusion_proximity ~needle) list
+    |> List.fold_left max 0.) words
+  |> List.fold_left (fun (acc, n) v -> (acc +. v, n +. 1.)) (0., 0.)
+  |> fun (sum, n) -> if n = 0. then 0. else (sum /. n)
+
 let search string tune =
+  let kinds, words = extract_words (String.split_on_char ' ' string) in
   let%lwt group = group tune in
   let%lwt name = TuneGroup.name group in
   let%lwt alt_names = TuneGroup.alt_names group in
-  List.map (String.sensible_inclusion_proximity ~needle:string) (name :: alt_names)
-  |> List.fold_left max 0.
-  |> Lwt.return
+  let%lwt credit = TuneGroup.author group in
+  let%lwt tune_words =
+    match credit with
+    | None ->
+      Lwt.return (name :: alt_names)
+    | Some credit ->
+      let%lwt author = Credit.line credit in
+      let%lwt persons = Credit.persons credit in
+      let%lwt names = Lwt_list.map_s Person.name persons in
+      Lwt.return ((name :: alt_names) @ (author :: names))
+  in
+  let words_score = score_list words tune_words in
+  let%lwt kind = TuneGroup.kind group in
+  let kind_multiplier =
+    if kinds = [] then 1.
+    else if List.mem kind kinds then 1.
+    else 0.5
+  in
+  Lwt.return (kind_multiplier *. words_score)
 
 let search ?filter ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Tune.get_all ()
