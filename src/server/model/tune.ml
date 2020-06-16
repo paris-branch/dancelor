@@ -83,15 +83,16 @@ let rec extract_words = function
       else
         (kinds, words)
     in
-    if h = "J" || h = "Jig" then
+    let h = String.uncapitalize h in
+    if h = "j" || h = "jig" then
       add_kind Kind.Jig
-    else if h = "R" || h = "Reel" then
+    else if h = "r" || h = "reel" then
       add_kind Kind.Reel
-    else if h = "S" || h = "Strathspey" then
+    else if h = "s" || h = "strathspey" then
       add_kind Kind.Strathspey
-    else if h = "W" || h = "Waltz" then
+    else if h = "w" || h = "waltz" then
       add_kind Kind.Waltz
-    else if h = "P" || h = "Polka" then
+    else if h = "p" || h = "polka" then
       add_kind Kind.Polka
     else if h = "" then
       (kinds, words)
@@ -105,8 +106,7 @@ let score_list words list =
   |> List.fold_left (fun (acc, n) v -> (acc +. v, n +. 1.)) (0., 0.)
   |> fun (sum, n) -> if n = 0. then 0. else (sum /. n)
 
-let search string tune =
-  let kinds, words = extract_words (String.split_on_char ' ' string) in
+let search kinds words tune =
   let%lwt group = group tune in
   let%lwt name = TuneGroup.name group in
   let%lwt alt_names = TuneGroup.alt_names group in
@@ -131,8 +131,9 @@ let search string tune =
   Lwt.return (kind_multiplier *. words_score)
 
 let search ?filter ?pagination ?(threshold=0.) string =
+  let kinds, words = extract_words (String.split_on_char ' ' string) in
   Dancelor_server_database.Tune.get_all ()
-  >>=| Score.lwt_map_from_list (search string)
+  >>=| Score.lwt_map_from_list (search kinds words)
   >>=| Option.unwrap_map_or Lwt.return apply_filter_on_scores filter
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.list_proj_sort_decreasing ~proj:(group >=>| TuneGroup.name) String.sensible_compare
