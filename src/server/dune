@@ -4,7 +4,8 @@
  (libraries
   dancelor.server.controller
   dancelor.common
-  cohttp-lwt-unix)
+  cohttp-lwt-unix
+  str)
  (preprocess
   (pps
    lwt_ppx
@@ -17,7 +18,8 @@
  (public_name dancelor.server.config)
  (libraries
   dancelor.nes
-  logs))
+  logs
+  str))
 
  (library
   (name dancelor_server_logs)

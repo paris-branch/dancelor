@@ -73,67 +73,97 @@ let () =
     all ?filter:(o Arg.filter) ?pagination:(o Arg.pagination) ()
   )
 
-let rec extract_words = function
-  | [] -> [], []
-  | h::t ->
-    let kinds, words = extract_words t in
-    let add_kind k =
-      if not (List.mem k kinds) then
-        (k::kinds, words)
-      else
-        (kinds, words)
+let rec search_and_extract acc s regexp =
+  let rem = Str.replace_first regexp "" s in
+  try
+    let gp = Str.matched_group 1 s in
+    let gp_words = 
+      String.split_on_char ',' gp
+      |> List.map (String.remove_char '"')
+      |> List.map (String.remove_char '\'')
+      |> List.filter (fun s -> s <> "")
     in
-    let h = String.uncapitalize h in
-    if h = "j" || h = "jig" then
-      add_kind Kind.Jig
-    else if h = "r" || h = "reel" then
-      add_kind Kind.Reel
-    else if h = "s" || h = "strathspey" then
-      add_kind Kind.Strathspey
-    else if h = "w" || h = "waltz" then
-      add_kind Kind.Waltz
-    else if h = "p" || h = "polka" then
-      add_kind Kind.Polka
-    else if h = "" then
-      (kinds, words)
-    else
-      (kinds, h::words)
+    let rem, l = search_and_extract acc rem regexp in
+    rem, gp_words @ l
+  with
+    Not_found | Invalid_argument _ -> rem, acc
 
-let score_list words list =
-  List.map (fun needle ->
-    List.map (String.sensible_inclusion_proximity ~needle) list
-    |> List.fold_left max 0.) words
-  |> List.fold_left (fun (acc, n) v -> (acc +. v, n +. 1.)) (0., 0.)
-  |> fun (sum, n) -> if n = 0. then 0. else (sum /. n)
+let extract_search_option s opt =
+  let dquote_regex = Printf.sprintf "%s:\"\\([^\"]*\\)\"" opt |> Str.regexp in
+  let squote_regex = Printf.sprintf "%s:'\\([^']*\\)'" opt |> Str.regexp in
+  let simple_regex = Printf.sprintf "%s:\\([^ ]*\\)" opt |> Str.regexp in
+  let rem, l = search_and_extract [] s dquote_regex in
+  let rem, l = search_and_extract l rem squote_regex in
+  search_and_extract l rem simple_regex
 
-let search kinds words tune =
+let parse_filter_kind k =
+  try
+    Some (Kind.base_of_string k)
+  with
+    Failure _ -> None
+
+let parse_filter_key k =
+  try
+    Some (Music.key_of_string k)
+  with
+    Failure _ -> None
+
+let extract_search s =
+  let rem, kinds = extract_search_option s "kind" in
+  let rem, keys = extract_search_option rem "key" in
+  let rem, authors = extract_search_option rem "author" in
+  let words = 
+    String.split_on_char ' ' rem
+    |> List.map (String.remove_char '"')
+    |> List.map (String.remove_char '\'')
+    |> List.filter (fun s -> s <> "")
+  in
+  (
+    List.filter_map parse_filter_kind kinds, 
+    authors, 
+    List.filter_map parse_filter_key keys, 
+    words
+  )
+
+let score_list words needles =
+  if needles = [] then 1.
+  else begin
+    List.map (fun needle ->
+      List.map (String.sensible_inclusion_proximity ~needle) words
+      |> List.fold_left max 0.) needles
+    |> List.fold_left max 0.
+  end
+
+let score ~kinds ~authors ~keys words tune =
   let%lwt group = group tune in
+  let%lwt key = key tune in
+  let%lwt kind = TuneGroup.kind group in
   let%lwt name = TuneGroup.name group in
   let%lwt alt_names = TuneGroup.alt_names group in
   let%lwt credit = TuneGroup.author group in
-  let%lwt tune_words =
+  let%lwt credit_words =
     match credit with
-    | None ->
-      Lwt.return (name :: alt_names)
+    | None -> Lwt.return []
     | Some credit ->
       let%lwt author = Credit.line credit in
       let%lwt persons = Credit.persons credit in
       let%lwt names = Lwt_list.map_s Person.name persons in
-      Lwt.return ((name :: alt_names) @ (author :: names))
+      Lwt.return (author :: names)
   in
-  let words_score = score_list words tune_words in
-  let%lwt kind = TuneGroup.kind group in
-  let kind_multiplier =
-    if kinds = [] then 1.
-    else if List.mem kind kinds then 1.
-    else 0.5
-  in
-  Lwt.return (kind_multiplier *. words_score)
+  let tune_words = name::alt_names in
+  if (keys <> [] && not (List.mem key keys))
+  || (kinds <> [] && not (List.mem kind kinds)) then
+    Lwt.return 0.
+  else begin
+    let authors_score = score_list credit_words authors in
+    let words_score = score_list tune_words words in
+    Lwt.return (authors_score *. words_score)
+  end
 
 let search ?filter ?pagination ?(threshold=0.) string =
-  let kinds, words = extract_words (String.split_on_char ' ' string) in
+  let kinds, authors, keys, words = extract_search string in
   Dancelor_server_database.Tune.get_all ()
-  >>=| Score.lwt_map_from_list (search kinds words)
+  >>=| Score.lwt_map_from_list (score ~kinds ~authors ~keys words)
   >>=| Option.unwrap_map_or Lwt.return apply_filter_on_scores filter
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.list_proj_sort_decreasing ~proj:(group >=>| TuneGroup.name) String.sensible_compare
