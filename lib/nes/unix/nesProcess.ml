@@ -54,8 +54,11 @@ let run
   Lwt_process.with_process_full ?timeout ?env cmd @@ fun process ->
   Lwt_io.write process#stdin stdin; %lwt
   let%lwt status = process#status in
+  Log.debug (fun m -> m "Status: %a" pp_process_status status);
   let%lwt stdout = Lwt_io.read process#stdout in
+  Log.debug (fun m -> m "Stdout:@\n%s" stdout);
   let%lwt stderr = Lwt_io.read process#stderr in
+  Log.debug (fun m -> m "Stderr:@\n%s" stderr);
   let output = { status ; stdout ; stderr } in
   check_output ?check_status_ok ?check_no_stderr ?check_no_stdout output;
   Lwt.return output
