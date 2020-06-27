@@ -6,24 +6,25 @@ let prefix = Dancelor_server_config.database
 module Git = struct
   let add path =
     Log.debug (fun m -> m "Running git add");
-    Process.run_ignore ~check_status_ok:true ["git"; "add"; path]
+    Process.run_ignore ~cwd:!prefix ~check_status_ok:true ["git"; "add"; path]
 
   let commit ~msg =
     Log.debug (fun m -> m "Running git commit");
-    Process.run_ignore ~check_status_ok:true ["git"; "commit"; "-m"; msg]
+    Process.run_ignore ~cwd:!prefix ~check_status_ok:true ["git"; "commit"; "-m"; msg]
 
   let push () =
     Log.debug (fun m -> m "Running git push");
-    Process.run_ignore ~check_status_ok:true ["git"; "push"]
+    Process.run_ignore ~cwd:!prefix ~check_status_ok:true ["git"; "push"]
 
   let pull_rebase () =
     Log.debug (fun m -> m "Running git pull rebase");
-    Process.run_ignore ~check_status_ok:true ["git"; "pull"; "--rebase"]
+    Process.run_ignore ~cwd:!prefix ~check_status_ok:true ["git"; "pull"; "--rebase"]
 
   let status_clean () =
     Log.debug (fun m -> m "Checking for clean git status");
     let%lwt out =
       Process.run
+        ~cwd:!prefix
         ~check_status_ok:true ~check_no_stderr:true
         ["git"; "status"]
     in
