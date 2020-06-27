@@ -17,7 +17,7 @@ EOF
 
 rc=103
 
-while [ $# -gt 1 ]; do
+while [ $# -gt 0 ]; do
     case $1 in
         --no-pull) rc=101 ;;
         --no-opam) rc=102 ;;
