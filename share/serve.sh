@@ -27,6 +27,11 @@ while [ $# -gt 1 ]; do
             usage
             exit 0
             ;;
+
+        *)
+            printf 'Unknown argument: %s\n\n' "$1"
+            usage
+            exit 2
     esac
     shift
 done
@@ -36,8 +41,6 @@ pull () { git pull; }
 update_opam () { opam update; opam upgrade -y; }
 build () { make release; }
 serve () { bin/dancelor-server --config share/config.json; }
-
-rc=103
 
 while :; do
     case $rc in
