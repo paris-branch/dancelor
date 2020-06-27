@@ -1,5 +1,7 @@
 open Nes
 
+module Log = (val Logs.src_log (Logs.Src.create "nes.unix.process") : Logs.LOG)
+
 type process_status = Unix.process_status =
   | WEXITED of int
   | WSIGNALED of int
@@ -36,7 +38,7 @@ let check_output
 
 let run
     ?timeout ?env ?cwd ?(stdin="")
-    ?check_status_ok ?check_no_stderr ?check_no_stdout
+    ?check_status_ok ?check_no_stdout ?check_no_stderr
     cmd
   =
   let cmd =
@@ -47,6 +49,7 @@ let run
     in
     pre ^ String.concat " " (List.map escape_shell_argument cmd) ^ post
   in
+  Log.debug (fun m -> m "Command: %s" cmd);
   let cmd = Lwt_process.shell cmd in
   Lwt_process.with_process_full ?timeout ?env cmd @@ fun process ->
   Lwt_io.write process#stdin stdin; %lwt

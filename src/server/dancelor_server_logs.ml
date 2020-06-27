@@ -42,7 +42,8 @@ let update_past_loglevel () =
     (* If the source comes from us, set loglevel to the given one. Otherwise,
        set to None. *)
     if    name = "dancelor" || String.starts_with ~needle:"dancelor." name
-          || name = "lilypond" || String.starts_with ~needle:"lilypond." name
+       || name = "lilypond" || String.starts_with ~needle:"lilypond." name
+       || name = "nes"      || String.starts_with ~needle:"nes." name
     then
       Some !Dancelor_server_config.loglevel
     else

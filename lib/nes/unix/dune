@@ -2,5 +2,5 @@
  (name nesUnix)
  (public_name dancelor.nes.unix)
  (wrapped false)
- (libraries dancelor.nes lwt.unix)
+ (libraries dancelor.nes lwt.unix logs)
  (preprocess (pps ppx_deriving.std lwt_ppx)))
