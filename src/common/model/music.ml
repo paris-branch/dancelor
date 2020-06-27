@@ -20,7 +20,7 @@ let note_of_char c =
   | 'g' -> G
   | _ -> failwith "Dancelor_common_model.Music.note_of_char"
 
-let pprint_note n = 
+let pprint_note n =
   note_to_char n
   |> Char.uppercase_ascii
 
@@ -38,8 +38,8 @@ let alteration_of_string = function
   | _ -> failwith "Dancelor_common_model.Music.alteration_of_string"
 
 let pprint_alteration = function
-  | Flat -> "b"
-  | Sharp -> "#"
+  | Flat -> "♭"
+  | Sharp -> "♯"
   | Natural -> ""
 
 type pitch = note * alteration
@@ -82,10 +82,10 @@ let key_of_string str =
   | Some i -> (pitch_of_string (String.sub str 0 i),
                mode_of_string (String.sub str i (String.length str - i)))
 
-let pprint_key ((n, alt), mode) = 
+let pprint_key ((n, alt), mode) =
   Printf.sprintf "%c%s%s" (pprint_note n) (pprint_alteration alt) (pprint_mode mode)
 
-let key_to_slug ((n, alt), mode) = 
+let key_to_slug ((n, alt), mode) =
   Printf.sprintf "%c%s%s" (pprint_note n) (alteration_to_string alt) (pprint_mode mode)
 
 let%test _ = let k = ((C, Flat), Minor) in
