@@ -36,6 +36,30 @@ let check_output
   (if check_no_stderr && out.stderr <> "" then
      failwith "NesProcess.run: stderr non empty")
 
+let pp_stdout_errout name fmt s =
+  let rec remove_empty_last_lines = function
+    | [] -> []
+    | "" :: lines ->
+      (
+        match remove_empty_last_lines lines with
+        | [] -> []
+        | lines -> "" :: lines
+      )
+    | line :: lines ->
+      line :: remove_empty_last_lines lines
+  in
+  s
+  |> String.split_on_char '\n'
+  |> remove_empty_last_lines
+  |> (function [] -> ["(empty)"] | s -> s)
+  |> (function
+      | [] -> assert false
+      | [line] -> fpf fmt "%s: %s" name line
+      | lines ->
+        fpf fmt "%s:" name;
+        List.iter (fpf fmt "@\n%s") lines
+    )
+
 let run
     ?timeout ?env ?cwd ?(stdin="")
     ?check_status_ok ?check_no_stdout ?check_no_stderr
@@ -56,9 +80,9 @@ let run
   let%lwt status = process#status in
   Log.debug (fun m -> m "Status: %a" pp_process_status status);
   let%lwt stdout = Lwt_io.read process#stdout in
-  Log.debug (fun m -> m "Stdout:@\n%s" stdout);
+  Log.debug (fun m -> m "%a" (pp_stdout_errout "Stdout") stdout);
   let%lwt stderr = Lwt_io.read process#stderr in
-  Log.debug (fun m -> m "Stderr:@\n%s" stderr);
+  Log.debug (fun m -> m "%a" (pp_stdout_errout "Stderr") stderr);
   let output = { status ; stdout ; stderr } in
   check_output ?check_status_ok ?check_no_stderr ?check_no_stdout output;
   Lwt.return output
