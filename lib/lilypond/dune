@@ -2,7 +2,7 @@
  (name lilypond)
  (public_name dancelor.lilypond)
  (libraries
-  dancelor.nes
+  dancelor.nes.unix
   logs
   lwt.unix)
  (preprocess (pps lwt_ppx)))

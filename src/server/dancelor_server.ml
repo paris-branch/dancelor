@@ -28,7 +28,9 @@ let cleanup_query query =
   |> merge_duplicates
 
 let log_exn ~msg exn =
-  Log.err (fun m -> m "%s@\n%s@\n%a" msg (Printexc.to_string exn) pp_string_multiline (Printexc.get_backtrace ()))
+  Log.err @@ fun m ->
+  m "%a" (Format.pp_multiline_sensible msg)
+    ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
 
 let remove_prefix_suffix prefix suffix string =
   Option.assert_ (String.starts_with ~needle:prefix string) >>=? fun () ->

@@ -26,46 +26,47 @@ let chdir path cmd =
   (command ["cd"; path]) ^ " && " ^ cmd
 
 let check_output
-    ?(check_status_ok=false) ?(check_no_stderr=false)
-    ?(check_no_stdout=false) out
+    ?(check_status_ok=false) ?(check_no_stderr=false) ?(check_no_stdout=false)
+    ?(loglevel_on_ok=Logs.Debug) ?(loglevel_on_error=Logs.Debug)
+    ?command
+    out
   =
-  (if check_status_ok && out.status <> Unix.WEXITED 0 then
-     failwith "NesProcess.run: did not exit successfully");
-  (if check_no_stdout && out.stdout <> "" then
-     failwith "NesProcess.run: stdout non empty");
-  (if check_no_stderr && out.stderr <> "" then
-     failwith "NesProcess.run: stderr non empty")
-
-let pp_stdout_errout name fmt s =
-  let rec remove_empty_last_lines = function
-    | [] -> []
-    | "" :: lines ->
-      (
-        match remove_empty_last_lines lines with
-        | [] -> []
-        | lines -> "" :: lines
-      )
-    | line :: lines ->
-      line :: remove_empty_last_lines lines
+  let error =
+    if check_status_ok && out.status <> Unix.WEXITED 0 then
+      Some "did not exit successfully"
+    else if check_no_stdout && out.stdout <> "" then
+      Some "does not have an empty stdout"
+    else if check_no_stderr && out.stderr <> "" then
+      Some "does not have an empty stderr"
+    else
+      None
   in
-  s
-  |> String.split_on_char '\n'
-  |> remove_empty_last_lines
-  |> (function [] -> ["(empty)"] | s -> s)
-  |> (function
-      | [] -> assert false
-      | [line] -> fpf fmt "%s: %s" name line
-      | lines ->
-        fpf fmt "%s:" name;
-        List.iter (fpf fmt "@\n%s") lines
-    )
+  let loglevel =
+    match error with
+    | Some error ->
+      Log.msg loglevel_on_error (fun m -> m "The command %s" error);
+      (match command with
+       | Some command -> Log.msg loglevel_on_error (fun m -> m "Command: %s" command);
+       | None -> ());
+      loglevel_on_error
+    | _ -> loglevel_on_ok
+  in
+  Log.msg loglevel (fun m -> m "Status: %a" pp_process_status out.status);
+  Log.msg loglevel (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") out.stdout);
+  Log.msg loglevel (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") out.stderr);
+  (
+    match error with
+    | Some error -> failwith ("NesProcess.run: " ^ error)
+    | None -> ()
+  )
 
 let run
     ?timeout ?env ?cwd ?(stdin="")
     ?check_status_ok ?check_no_stdout ?check_no_stderr
+    ?loglevel_on_ok ?loglevel_on_error
     cmd
   =
-  let cmd =
+  let strcmd =
     let pre,post =
       match cwd with
         None -> "",""
@@ -73,29 +74,31 @@ let run
     in
     pre ^ String.concat " " (List.map escape_shell_argument cmd) ^ post
   in
-  Log.debug (fun m -> m "Command: %s" cmd);
-  let cmd = Lwt_process.shell cmd in
+  Log.debug (fun m -> m "Command: %s" strcmd);
+  let cmd = Lwt_process.shell strcmd in
   Lwt_process.with_process_full ?timeout ?env cmd @@ fun process ->
   Lwt_io.write process#stdin stdin; %lwt
   let%lwt status = process#status in
-  Log.debug (fun m -> m "Status: %a" pp_process_status status);
   let%lwt stdout = Lwt_io.read process#stdout in
-  Log.debug (fun m -> m "%a" (pp_stdout_errout "Stdout") stdout);
   let%lwt stderr = Lwt_io.read process#stderr in
-  Log.debug (fun m -> m "%a" (pp_stdout_errout "Stderr") stderr);
   let output = { status ; stdout ; stderr } in
-  check_output ?check_status_ok ?check_no_stderr ?check_no_stdout output;
+  check_output
+    ?check_status_ok ?check_no_stderr ?check_no_stdout
+    ?loglevel_on_ok ?loglevel_on_error ~command:strcmd
+    output;
   Lwt.return output
 
 let run_ignore
     ?timeout ?env ?cwd ?stdin
     ?check_status_ok ?check_no_stdout ?check_no_stderr
+    ?loglevel_on_ok ?loglevel_on_error
     cmd
   =
   let%lwt _ =
     run
       ?timeout ?env ?cwd ?stdin
       ?check_status_ok ?check_no_stdout ?check_no_stderr
+      ?loglevel_on_ok ?loglevel_on_error
       cmd
   in
   Lwt.return_unit
