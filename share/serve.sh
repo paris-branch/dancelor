@@ -1,5 +1,5 @@
 #!/bin/sh
-set -uC ## no -e for this script
+set -euC
 
 usage () {
     cat <<EOF
@@ -53,6 +53,6 @@ while :; do
         *) printf 'Unexpected return code `%d`. Restarting anyway.\n' "$rc"
     esac
 
-    serve
+    serve && :
     rc=$?
 done
