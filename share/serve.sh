@@ -6,22 +6,23 @@ usage () {
 Usage: $0 [OPTIONS]
 
 OPTIONS:
-
-  --no-clean   only build and start
-  --no-opam    pull but do not update OPAM
-  --full       pull and update OPAM (default)
+  --no-pull    build
+  --no-clean   pull and build
+  --no-opam    clean, pull, and build
+  --full       clean, pull, update OPAM, and build (default)
 
   --help  print this help and exit
 EOF
 }
 
-rc=103
+rc=104
 
 while [ $# -gt 0 ]; do
     case $1 in
-        --no-clean) rc=101 ;;
-        --no-opam)  rc=102 ;;
-        --full)     rc=103 ;;
+        --no-pull)  rc=101 ;;
+        --no-clean) rc=102 ;;
+        --no-opam)  rc=103 ;;
+        --full)     rc=104 ;;
 
         --help)
             usage
@@ -46,9 +47,11 @@ while :; do
     case $rc in
         101) build ;;
 
-        102) clean; pull; build ;;
+        102) pull; build ;;
 
-        103) clean; pull; update_opam; build ;;
+        103) clean; pull; build ;;
+
+        104) clean; pull; update_opam; build ;;
 
         *) printf 'Unexpected return code `%d`. Restarting anyway.\n' "$rc"
     esac
