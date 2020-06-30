@@ -50,10 +50,7 @@ while :; do
 
         103) clean; pull; update_opam; build ;;
 
-        *)
-            printf 'Unexpected return code `%d`. Exiting.\n' "$rc"
-            exit 1
-            ;;
+        *) printf 'Unexpected return code `%d`. Restarting anyway.\n' "$rc"
     esac
 
     serve
