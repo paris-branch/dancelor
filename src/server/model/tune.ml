@@ -122,15 +122,17 @@ let extract_search s =
     List.filter_map parse_filter_kind kinds, 
     authors, 
     List.filter_map parse_filter_key keys, 
-    words
+    String.concat " " words
   )
 
-let score_list words needles =
+let score_list_vs_word words needle =
+  List.map (String.sensible_inclusion_proximity ~needle) words
+  |> List.fold_left max 0.
+
+let score_list_vs_list words needles =
   if needles = [] then 1.
   else begin
-    List.map (fun needle ->
-      List.map (String.sensible_inclusion_proximity ~needle) words
-      |> List.fold_left max 0.) needles
+    List.map (score_list_vs_word words) needles
     |> List.fold_left max 0.
   end
 
@@ -155,8 +157,8 @@ let score ~kinds ~authors ~keys words tune =
   || (kinds <> [] && not (List.mem kind kinds)) then
     Lwt.return 0.
   else begin
-    let authors_score = score_list credit_words authors in
-    let words_score = score_list tune_words words in
+    let authors_score = score_list_vs_list credit_words authors in
+    let words_score = score_list_vs_word tune_words words in
     Lwt.return (authors_score *. words_score)
   end
 
