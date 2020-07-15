@@ -1,3 +1,5 @@
+\defineBarLine "[|:-||" #'("||" "[|:" "")
+
 \layout {
   indent = 0
 
@@ -7,18 +9,49 @@
     %% Prevent Lilypond from breaking inside a score without explicit notice.
     \override NonMusicalPaperColumn.page-break-permission = ##f
 
-    %% Show bar numbers at the beginning and middle of lines; but not the end.
-    \override BarNumber.break-visibility = ##(#f #t #t)
+    %% Show all bar numbers, including the first one and including broken bars.
+    %% This is all then subject to `BarNumber.break-visibility`.
+    barNumberVisibility = #all-bar-numbers-visible
+
+    %% Show bar numbers at the beginning of lines only
+    \override BarNumber.break-visibility = ##(#f #f #t)
+
+    %% Define an other barNumberFormatter. This one prints broken bars as if
+    %% they were already in the next bar. It only makes sense at the beginning
+    %% of a line, for scottish dancing, for instance. (FIXME: find a better
+    %% name)
+    #(define-public (partial-aware-bar-number-formatter barnum measure-pos alt-number context)
+      (let* ((begin-measure (= 0 (ly:moment-main-numerator measure-pos)))
+             (broken-bar (and (not begin-measure) (!= barnum 1)))
+             (barnum (+ barnum (if broken-bar 1 0))))
+       (markup (number->string barnum))))
+    barNumberFormatter = #partial-aware-bar-number-formatter
 
     %% Write the number at the beginning of the bar it's denoting (and not the
     %% end of the previous one).
     \override BarNumber.self-alignment-X = #LEFT
 
-    %% Show number of bars equal to 1 modulo 8 (1, 9, 17, etc.)
-    barNumberVisibility = #(modulo-bar-number-visible 8 1)
-
     %% Count alternatives in numbering.
     alternativeNumberingStyle = #'numbers
+
+    %% Bigger repeat signs
+    startRepeatType = #"[|:-||"
+    endRepeatType = #":|]"
+    doubleRepeatType = #":|][|:"
+  }
+
+  \context {
+    \Staff
+
+    %% Note head size relatively to the global staff size
+    fontSize = #-0.4
+  }
+
+  \context {
+    \ChordNames
+
+    %% Chord name size relatively to the global staff size (?)
+    \override ChordName #'font-size = #0.3
   }
 }
 

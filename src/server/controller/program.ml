@@ -25,6 +25,7 @@ module Ly = struct
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/program/globals.ly"]
         name instrument;
+      fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/program/paper.ly"];
       fpf fmt [%blob "template/program/book_beginning.ly"];
       let%lwt () =

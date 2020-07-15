@@ -17,9 +17,12 @@ module Svg = struct
          Log.debug (fun m -> m "Rendering the Lilypond version");
          let%lwt content = Tune.content tune in
          let lilypond =
-           Format.sprintf
-             [%blob "template/tune.ly"]
-             content
+           Format.with_formatter_to_string @@ fun fmt ->
+           fpf fmt [%blob "template/version.ly"];
+           fpf fmt [%blob "template/paper.ly"];
+           fpf fmt [%blob "template/layout.ly"];
+           fpf fmt [%blob "template/tune/header.ly"];
+           fpf fmt [%blob "template/tune.ly"] content
          in
          let path = Filename.concat !Dancelor_server_config.cache "tune" in
          let%lwt (fname_ly, fname_svg) =
