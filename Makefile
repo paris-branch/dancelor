@@ -22,6 +22,9 @@ serve: release
 init-only: release
 	bin/dancelor-server --config share/config.json --init-only
 
+check-tunes: build
+	bin/dancelor-server --config share/config.json --heavy-routines --no-sync-storage --no-write-storage --loglevel info
+
 clean:
 	dune clean
 	rm -f bin

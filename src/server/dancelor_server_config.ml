@@ -36,6 +36,7 @@ let lilypond = ref "lilypond"
 let loglevel = ref Logs.Debug
 let port = ref 8080
 let routines = ref true
+let heavy_routines = ref false
 let share = ref "share"
 let sync_storage = ref true
 let write_storage = ref true
@@ -65,6 +66,7 @@ let load_from_file filename =
   loglevel      := field config ~type_:loglevel_of_json_string ~default:!loglevel  ["loglevel"];
   port          := field config ~type_:int    ~default:!port          ["port"];
   routines      := field config ~type_:bool   ~default:!routines      ["routines"];
+  heavy_routines:= field config ~type_:bool   ~default:!heavy_routines["heavy_routines"];
   share         := field config ~type_:string ~default:!share         ["share"];
   sync_storage  := field config ~type_:bool   ~default:!sync_storage  ["sync_storage"];
   write_storage := field config ~type_:bool   ~default:!write_storage ["write_storage"];
@@ -87,6 +89,8 @@ let parse_cmd_line () =
     "--port",             Set_int    port,           spf "NB Set the port (default: %d)" !port;
     "--routines",         Set        routines,      aspf " Start routines%a" pp_default !routines;
     "--no-routines",      Clear      routines,      aspf " Do not start routines%a" pp_default (not !routines);
+    "--heavy-routines",   Set        heavy_routines,aspf " Allow heavy load for routines%a" pp_default !heavy_routines;
+    "--no-heavy-routines",Clear      heavy_routines,aspf " Disallow heavy load for routines%a" pp_default (not !heavy_routines);
     "--share",            Set_string share,          spf "DIR Set share directory (default: %s)" !share;
     "--sync-storage",     Set        sync_storage,  aspf " Sync storage using git%a" pp_default !sync_storage;
     "--no-sync-storage",  Clear      sync_storage,  aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
