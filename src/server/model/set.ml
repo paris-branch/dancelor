@@ -16,7 +16,7 @@ let () =
     get (a Arg.slug)
   )
 
-let all ?pagination () = 
+let all ?pagination () =
   Dancelor_server_database.Set.get_all ()
   >>=| Lwt_list.proj_sort_s ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
   >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
@@ -28,20 +28,6 @@ let () =
   )
 
 let make_and_save ?status ~name ?deviser ~kind ?tunes () =
-  let%lwt deviser =
-    match deviser with
-    | None -> Lwt.return_none
-    | Some deviser ->
-      let%lwt deviser = Credit.slug deviser in
-      Lwt.return_some deviser
-  in
-  let%lwt tunes =
-    match tunes with
-    | None -> Lwt.return_none
-    | Some tunes ->
-      let%lwt tunes = Lwt_list.map_s Tune.slug tunes in
-      Lwt.return_some tunes
-  in
   Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
   make ?status ~slug ~name ?deviser ~kind ?tunes ()
 

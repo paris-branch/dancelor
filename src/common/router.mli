@@ -39,6 +39,7 @@ type controller =
   | TuneSearch
   | TuneLy of Tune.t Slug.t
   | TuneSvg of Tune.t Slug.t
+  | TunePdf of Tune.t Slug.t
   | Tune of Tune.t Slug.t
 
   | Victor

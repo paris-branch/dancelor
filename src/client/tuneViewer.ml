@@ -40,6 +40,11 @@ let create slug page =
     Text.Link.create ~href:(Lwt.return ly_href) ~text:(Lwt.return "Link to the Lilypond") page
   in
   Dom.appendChild content (Text.Link.root ly);
+  let pdf_href = Helpers.build_path ~api:true ~route:(Router.TunePdf slug) () in
+  let pdf =
+    Text.Link.create ~href:(Lwt.return pdf_href) ~text:(Lwt.return "Link to the PDF") page
+  in
+  Dom.appendChild content (Text.Link.root pdf);
   Dom.appendChild content (Html.createHr document);
   let source =
     Printf.sprintf "/%s%s"

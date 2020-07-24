@@ -1,5 +1,7 @@
 type 'a t = string
 
+let none = ""
+
 let to_yojson _ s = `String s
 let of_yojson _ = function
   | `String s -> Ok s

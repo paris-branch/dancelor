@@ -32,6 +32,7 @@ type controller =
   | TuneSearch
   | TuneLy of Tune.t Slug.t
   | TuneSvg of Tune.t Slug.t
+  | TunePdf of Tune.t Slug.t
   | Tune of Tune.t Slug.t
 
   | Victor
@@ -222,6 +223,13 @@ let routes : route list =
       ~ext:"svg"
       (fun tune -> Some (TuneSvg tune))
       (function TuneSvg tune -> Some tune | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/tune"
+      ~ext:"pdf"
+      (fun tune -> Some (TunePdf tune))
+      (function TunePdf tune -> Some tune | _ -> None) ;
 
     with_slug
       ~meth:`GET

@@ -15,7 +15,24 @@ end
 include Self
 
 let make ?status ~slug ~name ?deviser ~kind ?tunes () =
+  let%lwt deviser =
+    match deviser with
+    | None -> Lwt.return_none
+    | Some deviser ->
+      let%lwt deviser = Credit.slug deviser in
+      Lwt.return_some deviser
+  in
+  let%lwt tunes =
+    match tunes with
+    | None -> Lwt.return_none
+    | Some tunes ->
+      let%lwt tunes = Lwt_list.map_s Tune.slug tunes in
+      Lwt.return_some tunes
+  in
   Lwt.return (make ?status ~slug ~name ~deviser ~kind ?tunes ())
+
+let make_temp ~name ?deviser ~kind ?tunes () =
+  make ~slug:Slug.none ~name ?deviser ~kind ?tunes ()
 
 let slug s = Lwt.return s.slug
 let status s = Lwt.return s.status
@@ -67,6 +84,13 @@ module type S = sig
   val get : t Slug.t -> t Lwt.t
 
   val all : ?pagination:Pagination.t -> unit -> t list Lwt.t
+
+  val make_temp :
+    name:string ->
+    ?deviser:Credit.t ->
+    kind:Kind.dance ->
+    ?tunes:Tune.t list ->
+    unit -> t Lwt.t
 
   val make_and_save :
     ?status:Status.t ->
