@@ -1,5 +1,5 @@
 (library
- (name lilypond)
+ (name lilyPond)
  (public_name dancelor.lilypond)
  (libraries
   dancelor.nes.unix

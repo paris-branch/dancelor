@@ -84,7 +84,7 @@ let parse_cmd_line () =
     "--database",         Set_string database,       spf "DIR Set database directory (default: %s)" !database;
     "--init-only",        Set        init_only,     aspf " Stop after initialisation%a" pp_default !init_only;
     "--no-init-only",     Clear      init_only,     aspf " Do not stop after initialisation%a" pp_default (not !init_only);
-    "--lilypond",         Set_string lilypond,       spf "PATH Set path to the Lilypond binary (default: %s)" !lilypond;
+    "--lilypond",         Set_string lilypond,       spf "PATH Set path to the LilyPond binary (default: %s)" !lilypond;
     "--loglevel",         String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
     "--port",             Set_int    port,           spf "NB Set the port (default: %d)" !port;
     "--routines",         Set        routines,      aspf " Start routines%a" pp_default !routines;

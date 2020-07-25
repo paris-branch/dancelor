@@ -2,7 +2,8 @@
  (name dancelor_server_controller)
  (public_name dancelor.server.controller)
  (libraries
-  nes lilypond
+  nes
+  dancelor.lilypond
   dancelor.server.model
   cohttp-lwt-unix)
  (preprocess (pps lwt_ppx ppx_blob))

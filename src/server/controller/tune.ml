@@ -47,7 +47,7 @@ module Svg = struct
     Cache.use
       cache tune
       (fun () ->
-         Log.debug (fun m -> m "Rendering the Lilypond version");
+         Log.debug (fun m -> m "Rendering the LilyPond version");
          let%lwt (fname_ly, fname_svg) =
            let%lwt slug = Tune.slug tune in
            let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
@@ -55,8 +55,8 @@ module Svg = struct
          in
          let path = Filename.concat !Dancelor_server_config.cache "tune" in
          prepare_ly_file ~show_meta:false ~fname:(Filename.concat path fname_ly) tune; %lwt
-         Log.debug (fun m -> m "Processing with Lilypond");
-         Lilypond.cropped_svg ~exec_path:path fname_ly; %lwt
+         Log.debug (fun m -> m "Processing with LilyPond");
+         LilyPond.cropped_svg ~exec_path:path fname_ly; %lwt
          Lwt.return (Filename.concat path fname_svg))
 
   let get tune _ =
@@ -76,8 +76,8 @@ module Pdf = struct
     let path = Filename.concat !Dancelor_server_config.cache "tune" in
     prepare_ly_file ~show_meta:true ~meta_in_title:true
       ~fname:(Filename.concat path fname_ly) tune; %lwt
-      Log.debug (fun m -> m "Processing with Lilypond");
-    Lilypond.run ~exec_path:path fname_ly; %lwt
+      Log.debug (fun m -> m "Processing with LilyPond");
+    LilyPond.run ~exec_path:path fname_ly; %lwt
     Lwt.return (Filename.concat path fname_pdf)
 
   let get tune _ =

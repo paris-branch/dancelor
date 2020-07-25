@@ -75,8 +75,8 @@ module Pdf = struct
         in
         Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
           (fun ochan -> Lwt_io.write ochan lilypond); %lwt
-        Log.debug (fun m -> m "Processing with Lilypond");
-        Lilypond.run ~exec_path:path fname_ly; %lwt
+        Log.debug (fun m -> m "Processing with LilyPond");
+        LilyPond.run ~exec_path:path fname_ly; %lwt
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 

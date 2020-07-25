@@ -68,7 +68,7 @@ let create slug page =
     Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
     Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (Bb)" page,
     Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (Eb)" page,
-    Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"Lilypond" page
+    Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
   in
   Dom.appendChild content (Inputs.Button.root c_pdf);
   Dom.appendChild content (Inputs.Button.root b_pdf);

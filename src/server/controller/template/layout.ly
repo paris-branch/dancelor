@@ -14,7 +14,7 @@
   \context {
     \Score
 
-    %% Prevent Lilypond from breaking inside a score without explicit notice.
+    %% Prevent LilyPond from breaking inside a score without explicit notice.
     \override NonMusicalPaperColumn.page-break-permission = ##f
 
     %% Show all bar numbers, including the first one and including broken bars.
