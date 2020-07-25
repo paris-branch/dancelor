@@ -7,19 +7,25 @@ let get_ly tune _ =
   let%lwt body = Tune.content tune in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
-let prepare_ly_file ?(show_meta=true) ~fname tune =
+let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname tune =
   let%lwt group = Tune.group tune in
-  let%lwt name =
-    if show_meta
-    then TuneGroup.name group
-    else Lwt.return "" in
+  let%lwt name = TuneGroup.name group in
   let%lwt author =
-    if show_meta then
-      match%lwt TuneGroup.author group with
+    match%lwt TuneGroup.author group with
       | None -> Lwt.return ""
       | Some author -> Credit.line author
+  in
+  let title, piece =
+    if show_meta then
+      if meta_in_title then name, " " else "", name
     else
-      Lwt.return ""
+      "", ""
+  in
+  let subtitle, opus =
+    if show_meta then
+      if meta_in_title then author, " " else "", author
+    else
+      "", ""
   in
   let%lwt content = Tune.content tune in
   let lilypond =
@@ -27,8 +33,9 @@ let prepare_ly_file ?(show_meta=true) ~fname tune =
     fpf fmt [%blob "template/version.ly"];
     fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/layout.ly"];
+    fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/tune/header.ly"];
-    fpf fmt [%blob "template/tune.ly"] name author content
+    fpf fmt [%blob "template/tune.ly"] piece opus content
   in
   Lwt_io.with_file ~mode:Output fname
     (fun ochan -> Lwt_io.write ochan lilypond)
@@ -67,7 +74,8 @@ module Pdf = struct
       Lwt.return (fname^".ly", fname^".pdf")
     in
     let path = Filename.concat !Dancelor_server_config.cache "tune" in
-    prepare_ly_file ~show_meta:true ~fname:(Filename.concat path fname_ly) tune; %lwt
+    prepare_ly_file ~show_meta:true ~meta_in_title:true
+      ~fname:(Filename.concat path fname_ly) tune; %lwt
       Log.debug (fun m -> m "Processing with Lilypond");
     Lilypond.run ~exec_path:path fname_ly; %lwt
     Lwt.return (Filename.concat path fname_pdf)
