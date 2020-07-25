@@ -35,16 +35,16 @@ let create slug page =
   Dom.appendChild content (Text.Paragraph.root kind);
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
-  let ly_href = Helpers.build_path ~api:true ~route:(Router.TuneLy slug) () in
-  let ly =
-    Text.Link.create ~href:(Lwt.return ly_href) ~text:(Lwt.return "Link to the Lilypond") page
+  let pdf_href, ly_href =
+    Helpers.build_path ~api:true ~route:(Router.TunePdf slug) (),
+    Helpers.build_path ~api:true ~route:(Router.TuneLy slug) ()
   in
-  Dom.appendChild content (Text.Link.root ly);
-  let pdf_href = Helpers.build_path ~api:true ~route:(Router.TunePdf slug) () in
-  let pdf =
-    Text.Link.create ~href:(Lwt.return pdf_href) ~text:(Lwt.return "Link to the PDF") page
+  let pdf, ly =
+    Inputs.Button.create ~href:(Lwt.return pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
+    Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"Lilypond" page
   in
-  Dom.appendChild content (Text.Link.root pdf);
+  Dom.appendChild content (Inputs.Button.root pdf);
+  Dom.appendChild content (Inputs.Button.root ly);
   Dom.appendChild content (Html.createHr document);
   let source =
     Printf.sprintf "/%s%s"
