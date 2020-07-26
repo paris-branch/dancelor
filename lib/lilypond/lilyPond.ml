@@ -63,6 +63,7 @@ let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) filename =
   try%lwt
     NesProcess.run_ignore
       ~env:[|"PATH="^(Unix.getenv "PATH");
+             "HOME="^(Unix.getenv "HOME");
              "LANG=en"|]
       ~cwd:exec_path
       ~check_status_ok:true ~check_no_stdout:true ~check_no_stderr:true

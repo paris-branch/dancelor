@@ -2,9 +2,8 @@
 
 A chancelor for RSCDS musicians.
 
-* TODO-list
-- Use =ezjsonm-lwt= instead of =ezjsonm= (when it stops having a
-  dependency in =ocaml < 4.06.0=)
-- Support for lilybind as a source for lilypond tunes
-- Support for raw images
-- Support for tunefind as a source for images
+* FAQ
+** The fonts in the PDF seem weird
+Dancelor uses the /Trebuchet MS/ font in PDF files. Make sure it is installed on
+the machine on which Dancelor runs. This usually goes by copying the fonts from
+the =assets= directory to =~/.local/share/fonts=.
