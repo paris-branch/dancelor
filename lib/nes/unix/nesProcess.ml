@@ -25,45 +25,76 @@ let command =
 let chdir path cmd =
   (command ["cd"; path]) ^ " && " ^ cmd
 
+type loglevel = Logs.level =
+  | App
+  | Error
+  | Warning
+  | Info
+  | Debug
+
+let compare_loglevel l1 l2 =
+  if l1 = l2 then
+    0
+  else
+    match l1, l2 with
+    | Debug  , _ -> 1 | _, Debug   -> -1
+    | Info   , _ -> 1 | _, Info    -> -1
+    | Warning, _ -> 1 | _, Warning -> -1
+    | Error  , _ -> 1 | _, Error   -> -1
+    (* | App    , _ -> 1 | _, App     -> -1 *)
+    | _ -> assert false
+
 let check_output
-    ?(check_status_ok=false) ?(check_no_stderr=false) ?(check_no_stdout=false)
-    ?(loglevel_on_ok=Logs.Debug) ?(loglevel_on_error=Logs.Debug)
-    ?command
-    out
+    ?on_wrong_status ?on_nonempty_stdout ?on_nonempty_stderr ?(on_ok=Logs.Debug)
+    ?command out
   =
-  let error =
-    if check_status_ok && out.status <> Unix.WEXITED 0 then
-      Some "did not exit successfully"
-    else if check_no_stdout && out.stdout <> "" then
-      Some "does not have an empty stdout"
-    else if check_no_stderr && out.stderr <> "" then
-      Some "does not have an empty stderr"
-    else
-      None
+  let checks =
+    [ out.status = Unix.WEXITED 0, on_wrong_status, "did not exit successfully" ;
+      out.stdout = "", on_nonempty_stdout, "does not have an empty stdout" ;
+      out.stderr = "", on_nonempty_stderr, "does not have an empty stderr" ]
   in
+  (* Keep only the checks that went wrong. *)
+  let checks =
+    List.map_filter
+      (fun (ok, on_error, msg) ->
+         match on_error with
+         | Some loglevel when not ok -> Some (loglevel, msg)
+         | _ -> None)
+      checks
+  in
+  (* Log all things that went wrong *)
+  List.iter
+    (fun (loglevel, msg) ->
+       Log.msg loglevel (fun m -> m "The command %s" msg))
+    checks;
+  (* Find the highest loglevel among the things that went wrong. *)
   let loglevel =
-    match error with
-    | Some error ->
-      Log.msg loglevel_on_error (fun m -> m "The command %s" error);
-      (match command with
-       | Some command -> Log.msg loglevel_on_error (fun m -> m "Command: %s" command);
-       | None -> ());
-      loglevel_on_error
-    | _ -> loglevel_on_ok
+    checks
+    |> List.map fst
+    |> List.cons on_ok
+    |> List.sort compare_loglevel
+    |> List.rev
+    |> List.ft
   in
+  (* Log everything with this loglevel now. *)
+  (
+    match command with
+    | Some command -> Log.msg loglevel (fun m -> m "Command: %s" command)
+    | None -> ()
+  );
   Log.msg loglevel (fun m -> m "Status: %a" pp_process_status out.status);
   Log.msg loglevel (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") out.stdout);
   Log.msg loglevel (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") out.stderr);
+  (* If at least one check failed, fail. *)
   (
-    match error with
-    | Some error -> failwith ("NesProcess.run: " ^ error)
-    | None -> ()
+    match checks with
+    | [] -> ()
+    | _ -> failwith "NesProcess.run"
   )
 
 let run
     ?timeout ?env ?cwd ?(stdin="")
-    ?check_status_ok ?check_no_stdout ?check_no_stderr
-    ?loglevel_on_ok ?loglevel_on_error
+    ?on_wrong_status ?on_nonempty_stdout ?on_nonempty_stderr ?on_ok
     cmd
   =
   let strcmd =
@@ -83,22 +114,19 @@ let run
   let%lwt stderr = Lwt_io.read process#stderr in
   let output = { status ; stdout ; stderr } in
   check_output
-    ?check_status_ok ?check_no_stderr ?check_no_stdout
-    ?loglevel_on_ok ?loglevel_on_error ~command:strcmd
-    output;
+    ?on_wrong_status ?on_nonempty_stdout ?on_nonempty_stderr ?on_ok
+    ~command:strcmd output;
   Lwt.return output
 
 let run_ignore
     ?timeout ?env ?cwd ?stdin
-    ?check_status_ok ?check_no_stdout ?check_no_stderr
-    ?loglevel_on_ok ?loglevel_on_error
+    ?on_wrong_status ?on_nonempty_stdout ?on_nonempty_stderr ?on_ok
     cmd
   =
   let%lwt _ =
     run
       ?timeout ?env ?cwd ?stdin
-      ?check_status_ok ?check_no_stdout ?check_no_stderr
-      ?loglevel_on_ok ?loglevel_on_error
+      ?on_wrong_status ?on_nonempty_stdout ?on_nonempty_stderr ?on_ok
       cmd
   in
   Lwt.return_unit

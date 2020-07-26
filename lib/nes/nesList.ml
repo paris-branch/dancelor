@@ -18,3 +18,16 @@ let rec sub n l =
 let hd_opt = function
   | [] -> None
   | h :: _ -> Some h
+
+let bd l =
+  let rec bd acc = function
+    | [] -> failwith "bd"
+    | [_] -> List.rev acc
+    | h::q -> bd (h::acc) q
+  in
+  bd [] l
+
+let rec ft = function
+  | [] -> failwith "ft"
+  | [e] -> e
+  | _::q -> ft q

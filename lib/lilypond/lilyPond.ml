@@ -52,8 +52,8 @@ module Inkscape = struct
     try%lwt
       NesProcess.run_ignore
         ~cwd:exec_path
-        ~check_status_ok:true ~check_no_stdout:true ~check_no_stderr:true
-        ~loglevel_on_error:Logs.Error
+        ~on_wrong_status:Logs.Error
+        ~on_nonempty_stdout:Logs.Warning ~on_nonempty_stderr:Logs.Warning
         cmd
     with
       Failure _ -> Lwt.return_unit
@@ -66,8 +66,8 @@ let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) filename =
              "HOME="^(Unix.getenv "HOME");
              "LANG=en"|]
       ~cwd:exec_path
-      ~check_status_ok:true ~check_no_stdout:true ~check_no_stderr:true
-      ~loglevel_on_error:Logs.Error
+      ~on_wrong_status:Logs.Error
+      ~on_nonempty_stdout:Logs.Warning ~on_nonempty_stderr:Logs.Warning
       ([lilypond_bin; "--loglevel=WARNING"; "-dno-point-and-click"] @ options @ [filename])
   with
     Failure _ -> Lwt.return_unit
