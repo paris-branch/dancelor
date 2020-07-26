@@ -25,9 +25,9 @@ module Ly = struct
       let%lwt kind = Set.kind set in
       let%lwt tunes = Set.tunes set in
       fpf fmt [%blob "template/version.ly"];
+      fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/set/paper.ly"];
-      fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/set/header.ly"]
         title (Kind.dance_to_string kind)
         transpose instrument;

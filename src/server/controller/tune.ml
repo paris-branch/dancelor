@@ -31,8 +31,8 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname tune =
   let lilypond =
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/version.ly"];
-    fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/layout.ly"];
+    fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/tune/header.ly"];
     fpf fmt [%blob "template/tune.ly"] piece opus content
