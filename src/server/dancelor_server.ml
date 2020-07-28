@@ -32,6 +32,11 @@ let log_exn ~msg exn =
   m "%a" (Format.pp_multiline_sensible msg)
     ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
 
+let log_exit n =
+  Log.info (fun m -> m "Exiting with return code %d" n);
+  (* FIXME: flush? *)
+  exit n
+
 let remove_prefix_suffix prefix suffix string =
   Option.assert_ (String.starts_with ~needle:prefix string) >>=? fun () ->
   String.remove_prefix ~needle:prefix string >>=? fun string ->
@@ -39,10 +44,10 @@ let remove_prefix_suffix prefix suffix string =
   String.remove_suffix ~needle:suffix string
 
 let apply_controller path =
-  if path = "/victor"  then exit 101;
-  if path = "/victor2" then exit 102;
-  if path = "/victor3" then exit 103;
-  if path = "/victor4" then exit 104;
+  if path = "/victor"  then log_exit 101;
+  if path = "/victor2" then log_exit 102;
+  if path = "/victor3" then log_exit 103;
+  if path = "/victor4" then log_exit 104;
   [ "/program/", ".pdf", Program.Pdf.get ;
     "/set/",     ".ly",  Set.Ly.get ;
     "/set/",     ".pdf", Set.Pdf.get ;
@@ -127,7 +132,7 @@ let check_init_only () =
   if !Dancelor_server_config.init_only then
     (
       Log.info (fun m -> m "Init only mode. Stopping now.");
-      exit 0
+      log_exit 0
     )
 
 let start_routines () =
@@ -171,10 +176,10 @@ let main =
     with
       exn ->
       log_exn ~msg:"Uncaught Lwt exception in main" exn;
-      exit 1
+      log_exit 1
   with
     exn ->
     log_exn ~msg:"Uncaught exception in main" exn;
-    exit 1
+    log_exit 1
 
 let () = Lwt_main.run main
