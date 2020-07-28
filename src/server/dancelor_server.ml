@@ -96,16 +96,12 @@ let callback _ request _body =
               )
         )
     with
-    (* | Dancelor_common.Error.Exn err ->
-      Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err)) *)
-    | exn ->
-      log_exn ~msg:"Uncaught exception in the callback" exn;
+      exn ->
+      log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
       Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
   with
-  (* | Dancelor_common.Error.Exn err ->
-    Dancelor_common.Error.(respond_json ~status:(status err) (to_yojson err)) *)
-  | exn ->
-    log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
+    exn ->
+    log_exn ~msg:"Uncaught exception in the callback" exn;
     Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
 
 let () =
@@ -164,11 +160,21 @@ let start_server () =
     Lwt.return ()
 
 let main =
-  read_configuration ();
-  initialise_logs ();
-  initialise_database (); %lwt
-  check_init_only ();
-  start_routines ();
-  start_server ()
+  try
+    try%lwt
+      read_configuration ();
+      initialise_logs ();
+      initialise_database (); %lwt
+        check_init_only ();
+      start_routines ();
+      start_server ()
+    with
+      exn ->
+      log_exn ~msg:"Uncaught Lwt exception in main" exn;
+      exit 1
+  with
+    exn ->
+    log_exn ~msg:"Uncaught exception in main" exn;
+    exit 1
 
 let () = Lwt_main.run main
