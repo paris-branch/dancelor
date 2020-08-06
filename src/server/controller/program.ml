@@ -27,6 +27,10 @@ module Ly = struct
         name instrument;
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/program/paper.ly"];
+      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
+      fpf fmt [%blob "template/bar-numbering/partial-aware.ly"];
+      fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
+      fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/program/book_beginning.ly"];
       let%lwt () =
         let%lwt sets = Program.sets program in
