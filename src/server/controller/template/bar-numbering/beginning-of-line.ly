@@ -9,8 +9,11 @@
     %% This is all then subject to `BarNumber.break-visibility`.
     barNumberVisibility = #all-bar-numbers-visible
 
-    %% Write the number at the beginning of the bar it's denoting (and not the
-    %% end of the previous one).
-    \override BarNumber.self-alignment-X = #LEFT
+    %% Hack the position so that it is at the beginning of the staff, centered.
+    %% This only works nicely if the bar number markup is Y centered. It also
+    %% relies on the size of the staff and is thus not so reliable.
+    \override BarNumber.break-align-symbols = #'(left-edge)
+    \override BarNumber.X-offset = #-1.3
+    \override BarNumber.Y-offset = #-3.7
   }
 }
