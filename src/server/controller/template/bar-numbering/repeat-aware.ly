@@ -127,6 +127,14 @@
         (set! start-barnum (partial-aware-bar-number context))
         (add-repeat-offsets-layer! context offsets)))
 
+      ;; If this is the first bar, then force the apparition of a repeat bar.
+      (context-spec-music-applied-to-score
+       (lambda (context)
+        (let ((barnum (partial-aware-bar-number context))
+              (start-repeat-type (ly:context-property context 'startRepeatType)))
+         (if (= barnum 1)
+          (ly:context-set-property! context 'whichBar start-repeat-type)))))
+
       elt
 
       ;; After the body, and if there are no alternatives, we compute the duration of
