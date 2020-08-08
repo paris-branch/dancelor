@@ -92,7 +92,7 @@
 #(define (partial-aware-bar-number context)
   (let* ((cbn (ly:context-property context 'currentBarNumber))
          (mp  (ly:context-property context 'measurePosition))
-         (mp  (ly:moment-main-numerator mp)))
+         (mp  (if (null? mp) 0 (ly:moment-main-numerator mp))))
    (if (> mp 0)
     (set! cbn (+ cbn 1)))
    cbn))
@@ -224,38 +224,3 @@
    music))
 
 #(set! make-music make-music-wrapped)
-
-
-
-
-
-
-
-
-
-
-#(define-markup-command (barnum-with-offsets layout props barnum offsets) (number? list?)
-  (interpret-markup layout props
-   (markup (number->string (fold (lambda (offset barnum) (+ barnum (unbox offset))) barnum offsets)))))
-
-#(define (partial-and-repeat-aware-bar-number-formatter barnum measure-pos alt-number context)
-  (let* ((barnum (partial-aware-bar-number context))
-         (offsets-lists (list-repeat-offsets-lists context))
-         (markups (map (lambda (offsets) #{ \markup \barnum-with-offsets #barnum #offsets #}) offsets-lists)))
-
-   #{
-   \markup
-   \override #'(baseline-skip . 2)
-   \right-align
-   \vcenter
-     \right-column #markups
-   #}
-   ))
-
-\layout {
-  \context {
-    \Score
-
-    barNumberFormatter = #partial-and-repeat-aware-bar-number-formatter
-  }
-}
