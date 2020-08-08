@@ -57,5 +57,6 @@
     \Staff
     \consists "Bar_numbers_in_instrument_name_engraver"
     \override InstrumentName.font-size = #-2
+    \override InstrumentName.padding = #1
   }
 }
