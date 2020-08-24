@@ -27,8 +27,9 @@ module Ly = struct
         name instrument;
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/program/paper.ly"];
-      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
+      fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
+      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/program/book_beginning.ly"];
       let%lwt () =

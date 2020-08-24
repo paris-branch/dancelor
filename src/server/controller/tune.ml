@@ -33,8 +33,9 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname tune =
     fpf fmt [%blob "template/version.ly"];
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
-    fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
     fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
+    fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
+    fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
     fpf fmt [%blob "template/repeat-volta-fancy.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/tune/header.ly"];

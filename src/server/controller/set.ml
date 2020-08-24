@@ -28,8 +28,9 @@ module Ly = struct
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/set/paper.ly"];
-      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
+      fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
+      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/set/header.ly"]
         title (Kind.dance_to_string kind)
