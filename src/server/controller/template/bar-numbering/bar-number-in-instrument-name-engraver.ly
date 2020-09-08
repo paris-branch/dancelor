@@ -18,6 +18,10 @@
       (rest-event engraver event)
       (put-bar-number-in-instrument-name! context)
     )
+    (
+      (skip-event engraver event)
+      (put-bar-number-in-instrument-name! context)
+    )
   )))
 
 #(ly:register-translator
