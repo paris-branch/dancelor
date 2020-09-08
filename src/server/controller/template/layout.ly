@@ -22,5 +22,3 @@
     \override ChordName #'font-size = #0.3
   }
 }
-
-#(set-global-staff-size 18)
