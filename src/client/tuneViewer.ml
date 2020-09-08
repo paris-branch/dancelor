@@ -20,18 +20,23 @@ let create slug page =
   let group = Lwt.bind tune Tune.group in
   let title = Text.Heading.h1 ~text:(Lwt.bind group TuneGroup.name) page in
   Dom.appendChild content (Text.Heading.root title);
-  let kind_text, structure_text, key_text =
+  let aka_text, kind_text, structure_text, key_text =
     let open Lwt in
+    (match%lwt group >>= TuneGroup.alt_names with
+     | [] -> Lwt.return ""
+     | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return),
     (tune >>= fun tune ->
      group >>= Formatters.Kind.full_string tune >|= Printf.sprintf "Kind: %s"),
     (tune >>= Tune.structure >|= Printf.sprintf "Structure: %s"),
     (tune >>= Tune.key >|= Music.key_to_string >|= Printf.sprintf "Key: %s")
   in
-  let kind, structure, key =
+  let aka, kind, structure, key =
+    Text.Paragraph.create ~placeholder:"Also known as:" ~text:aka_text page,
     Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page,
     Text.Paragraph.create ~placeholder:"Structure:" ~text:structure_text page,
     Text.Paragraph.create ~placeholder:"Key:" ~text:key_text page
   in
+  Dom.appendChild content (Text.Paragraph.root aka);
   Dom.appendChild content (Text.Paragraph.root kind);
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
