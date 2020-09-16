@@ -20,7 +20,7 @@ let note_of_char c =
   | 'g' -> G
   | _ -> failwith "Dancelor_common_model.Music.note_of_char"
 
-let pprint_note n =
+let note_to_pretty_char n =
   note_to_char n
   |> Char.uppercase_ascii
 
@@ -37,7 +37,7 @@ let alteration_of_string = function
   | "" -> Natural
   | _ -> failwith "Dancelor_common_model.Music.alteration_of_string"
 
-let pprint_alteration = function
+let alteration_to_pretty_string = function
   | Flat -> "♭"
   | Sharp -> "♯"
   | Natural -> ""
@@ -67,7 +67,11 @@ let mode_of_string = function
   | ":m" -> Minor
   | _ -> failwith "Dancelor_common_model.Music.mode_of_string"
 
-let pprint_mode = function
+let mode_to_safe_string = function
+  | Major -> ""
+  | Minor -> "m"
+
+let mode_to_pretty_string = function
   | Major -> ""
   | Minor -> "m"
 
@@ -82,11 +86,17 @@ let key_of_string str =
   | Some i -> (pitch_of_string (String.sub str 0 i),
                mode_of_string (String.sub str i (String.length str - i)))
 
-let pprint_key ((n, alt), mode) =
-  Printf.sprintf "%c%s%s" (pprint_note n) (pprint_alteration alt) (pprint_mode mode)
+let key_to_safe_string ((n, alt), mode) =
+  Printf.sprintf "%c%s%s"
+    (note_to_char n)
+    (alteration_to_string alt)
+    (mode_to_safe_string mode)
 
-let key_to_slug ((n, alt), mode) =
-  Printf.sprintf "%c%s%s" (pprint_note n) (alteration_to_string alt) (pprint_mode mode)
+let key_to_pretty_string ((n, alt), mode) =
+  Printf.sprintf "%c%s%s"
+    (note_to_pretty_char n)
+    (alteration_to_pretty_string alt)
+    (mode_to_pretty_string mode)
 
 let%test _ = let k = ((C, Flat), Minor) in
              key_of_string (key_to_string k) = k

@@ -28,7 +28,7 @@ let create slug page =
     (tune >>= fun tune ->
      group >>= Formatters.Kind.full_string tune >|= Printf.sprintf "Kind: %s"),
     (tune >>= Tune.structure >|= Printf.sprintf "Structure: %s"),
-    (tune >>= Tune.key >|= Music.key_to_string >|= Printf.sprintf "Key: %s")
+    (tune >>= Tune.key >|= Music.key_to_pretty_string >|= Printf.sprintf "Key: %s")
   in
   let aka, kind, structure, key =
     Text.Paragraph.create ~placeholder:"Also known as:" ~text:aka_text page,

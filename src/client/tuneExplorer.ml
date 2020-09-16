@@ -76,7 +76,7 @@ let update_table t =
         let open Lwt in [
         Table.Cell.link ~href ~text:(group >>= TuneGroup.name) t.page;
         Table.Cell.text ~text:(group >>= Formatters.Kind.full_string tune) t.page;
-        Table.Cell.text ~text:(Tune.key tune >|= Music.key_to_string) t.page;
+        Table.Cell.text ~text:(Tune.key tune >|= Music.key_to_pretty_string) t.page;
         Table.Cell.text ~text:(Tune.structure tune) t.page;
         Table.Cell.text ~text:(group >>= TuneGroup.author >>= Formatters.Credit.line) t.page]
       in
@@ -98,8 +98,8 @@ let fill_search t =
   let line1 = Html.createDiv document in
   List.iter (fun key ->
     let key = (key, Music.Major) in
-    let text = Music.pprint_key key in
-    let id = Printf.sprintf "button_%s" (Music.key_to_slug key) in
+    let text = Music.key_to_pretty_string key in
+    let id = Printf.sprintf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
       if active then update_filter t (TuneFilter.add_key key)
       else update_filter t (TuneFilter.remove_key key)
@@ -112,8 +112,8 @@ let fill_search t =
   let line2 = Html.createDiv document in
   List.iter (fun key ->
     let key = (key, Music.Minor) in
-    let text = Music.pprint_key key in
-    let id = Printf.sprintf "button_%s" (Music.key_to_slug key) in
+    let text = Music.key_to_pretty_string key in
+    let id = Printf.sprintf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
       if active then update_filter t (TuneFilter.add_key key)
       else update_filter t (TuneFilter.remove_key key)
