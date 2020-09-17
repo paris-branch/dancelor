@@ -108,8 +108,8 @@ module type S = sig
     string ->
     t Score.t list Lwt.t
 
-  val count:
-    unit -> int Lwt.t
+  val count: unit -> int Lwt.t
+  (** Number of sets in the database. *)
 end
 
 module Arg = struct

@@ -20,24 +20,27 @@ let create slug page =
   let group = Lwt.bind tune Tune.group in
   let title = Text.Heading.h1 ~text:(Lwt.bind group TuneGroup.name) page in
   Dom.appendChild content (Text.Heading.root title);
-  let aka_text, kind_text, structure_text, key_text =
+  let aka_text, kind_text, author_text, structure_text, key_text =
     let open Lwt in
     (match%lwt group >>= TuneGroup.alt_names with
      | [] -> Lwt.return ""
      | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return),
     (tune >>= fun tune ->
      group >>= Formatters.Kind.full_string tune >|= Printf.sprintf "Kind: %s"),
+    (group >>= TuneGroup.author >>= Formatters.Credit.line >|= Printf.sprintf "Author: %s"),
     (tune >>= Tune.structure >|= Printf.sprintf "Structure: %s"),
     (tune >>= Tune.key >|= Music.key_to_pretty_string >|= Printf.sprintf "Key: %s")
   in
-  let aka, kind, structure, key =
+  let aka, kind, author, structure, key =
     Text.Paragraph.create ~placeholder:"Also known as:" ~text:aka_text page,
     Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page,
+    Text.Paragraph.create ~placeholder:"Author: " ~text:author_text page,
     Text.Paragraph.create ~placeholder:"Structure:" ~text:structure_text page,
     Text.Paragraph.create ~placeholder:"Key:" ~text:key_text page
   in
   Dom.appendChild content (Text.Paragraph.root aka);
   Dom.appendChild content (Text.Paragraph.root kind);
+  Dom.appendChild content (Text.Paragraph.root author);
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
   let pdf_href, ly_href =
@@ -51,10 +54,18 @@ let create slug page =
   Dom.appendChild content (Inputs.Button.root pdf);
   Dom.appendChild content (Inputs.Button.root ly);
   Dom.appendChild content (Html.createHr document);
+
+  let href =
+    let%lwt slug = Lwt.bind group TuneGroup.slug in
+    Lwt.return (Router.path_of_controller (Router.TuneGroup slug) |> snd)
+  in
+  let title = Text.Link.create ~href ~text:(Lwt.return "See all versions") page in
+  Dom.appendChild content (Text.Link.root title);
+
   let source =
     Printf.sprintf "/%s%s"
       Constant.api_prefix
-      (Router.path_of_controller (Router.TuneSvg slug) |> snd) 
+      (Router.path_of_controller (Router.TuneSvg slug) |> snd)
     |> Lwt.return
   in
   let img = Image.create ~source page in

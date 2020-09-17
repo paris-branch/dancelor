@@ -35,6 +35,8 @@ let dispatch url =
     pack (module TuneExplorer) TuneExplorer.create
   | ["tune";slug] ->
     pack (module TuneViewer) (TuneViewer.create slug)
+  | ["tune-group";slug] ->
+    pack (module TuneGroupViewer) (TuneGroupViewer.create slug)
   | ["set";"all"] ->
     pack (module SetExplorer) SetExplorer.create
   | ["set";"compose"] ->

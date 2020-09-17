@@ -20,6 +20,7 @@ let () =
 (* FIXME: merge apply_filter and apply_filter_on_scores *)
 
 let apply_filter filter all =
+  let%lwt f_group = TuneFilter.group filter in
   let%lwt f_group_author = TuneFilter.group_author filter in
   let%lwt f_group_kind = TuneFilter.group_kind filter in
   let%lwt f_key = TuneFilter.key filter in
@@ -27,13 +28,15 @@ let apply_filter filter all =
   Lwt_list.filter_s
     (fun tune ->
        let%lwt group = group tune in
+       let%lwt group_slug = TuneGroup.slug group in
        let%lwt group_author = TuneGroup.author group in
        let%lwt group_kind = TuneGroup.kind group in
        let%lwt key = key tune in
        let%lwt bars = bars tune in
        Lwt.return
          (
-           (f_group_author = [] || (match group_author with None -> true | Some group_author -> List.mem group_author f_group_author))
+           (f_group = [] || List.mem group_slug f_group)
+           && (f_group_author = [] || (match group_author with None -> true | Some group_author -> List.mem group_author f_group_author))
            && (f_group_kind = [] || List.mem group_kind f_group_kind)
            && (f_key = [] || List.mem key f_key)
            && (f_bars = [] || List.mem bars f_bars)
@@ -41,20 +44,23 @@ let apply_filter filter all =
     all
 
 let apply_filter_on_scores filter all =
+  let%lwt f_group = TuneFilter.group filter in
   let%lwt f_group_author = TuneFilter.group_author filter in
   let%lwt f_group_kind = TuneFilter.group_kind filter in
   let%lwt f_key = TuneFilter.key filter in
   let%lwt f_bars = TuneFilter.bars filter in
-  Score.list_filter
+  Score.list_filter (* FIXME: this is literally the only difference between this function and the previous one *)
     (fun tune ->
        let%lwt group = group tune in
+       let%lwt group_slug = TuneGroup.slug group in
        let%lwt group_author = TuneGroup.author group in
        let%lwt group_kind = TuneGroup.kind group in
        let%lwt key = key tune in
        let%lwt bars = bars tune in
        Lwt.return
          (
-           (f_group_author = [] || (match group_author with None -> true | Some group_author -> List.mem group_author f_group_author))
+           (f_group = [] || List.mem group_slug f_group)
+           && (f_group_author = [] || (match group_author with None -> true | Some group_author -> List.mem group_author f_group_author))
            && (f_group_kind = [] || List.mem group_kind f_group_kind)
            && (f_key = [] || List.mem key f_key)
            && (f_bars = [] || List.mem bars f_bars)
@@ -77,7 +83,7 @@ let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
   try
     let gp = Str.matched_group 1 s in
-    let gp_words = 
+    let gp_words =
       String.split_on_char ',' gp
       |> List.map (String.remove_char '"')
       |> List.map (String.remove_char '\'')
@@ -112,16 +118,16 @@ let extract_search s =
   let rem, kinds = extract_search_option s "kind" in
   let rem, keys = extract_search_option rem "key" in
   let rem, authors = extract_search_option rem "author" in
-  let words = 
+  let words =
     String.split_on_char ' ' rem
     |> List.map (String.remove_char '"')
     |> List.map (String.remove_char '\'')
     |> List.filter (fun s -> s <> "")
   in
   (
-    List.filter_map parse_filter_kind kinds, 
-    authors, 
-    List.filter_map parse_filter_key keys, 
+    List.filter_map parse_filter_kind kinds,
+    authors,
+    List.filter_map parse_filter_key keys,
     String.concat " " words
   )
 
