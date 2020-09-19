@@ -59,7 +59,7 @@ let create slug page =
     let%lwt slug = Lwt.bind group Tune.slug in
     Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
   in
-  let title = Text.Link.create ~href ~text:(Lwt.return "See all lyversions") page in
+  let title = Text.Link.create ~href ~text:(Lwt.return "See all versions") page in
   Dom.appendChild content (Text.Link.root title);
 
   let source =
