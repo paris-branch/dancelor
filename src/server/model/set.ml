@@ -2,7 +2,7 @@ open Nes
 include Dancelor_common_model.Set
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
-let tunes = tunes >=>| Lwt_list.map_s Tune.get
+let versions = versions >=>| Lwt_list.map_s Version.get
 
 let warnings _s = assert false (* FIXME *)
 
@@ -27,9 +27,9 @@ let () =
     all ?pagination:(o Arg.pagination) ()
   )
 
-let make_and_save ?status ~name ?deviser ~kind ?tunes () =
+let make_and_save ?status ~name ?deviser ~kind ?versions () =
   Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?deviser ~kind ?tunes ()
+  make ?status ~slug ~name ?deviser ~kind ?versions ()
 
 let () =
   Madge_server.(
@@ -39,7 +39,7 @@ let () =
       ?deviser:(o Arg.deviser)
       ~kind:   (a Arg.kind)
       ?status: (o Arg.status)
-      ?tunes:  (o Arg.tunes)
+      ?versions:  (o Arg.versions)
       ()
   )
 

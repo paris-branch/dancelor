@@ -7,14 +7,14 @@ module Self = struct
       name : string ;
       deviser : Credit.t Slug.t option [@default None] ;
       kind : Kind.dance ;
-      tunes : Tune.t Slug.t list       [@default []] }
+      versions : Version.t Slug.t list       [@default []] }
   [@@deriving make, yojson]
 
   let _key = "set"
 end
 include Self
 
-let make ?status ~slug ~name ?deviser ~kind ?tunes () =
+let make ?status ~slug ~name ?deviser ~kind ?versions () =
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
@@ -22,33 +22,33 @@ let make ?status ~slug ~name ?deviser ~kind ?tunes () =
       let%lwt deviser = Credit.slug deviser in
       Lwt.return_some deviser
   in
-  let%lwt tunes =
-    match tunes with
+  let%lwt versions =
+    match versions with
     | None -> Lwt.return_none
-    | Some tunes ->
-      let%lwt tunes = Lwt_list.map_s Tune.slug tunes in
-      Lwt.return_some tunes
+    | Some versions ->
+      let%lwt versions = Lwt_list.map_s Version.slug versions in
+      Lwt.return_some versions
   in
-  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?tunes ())
+  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions ())
 
-let make_temp ~name ?deviser ~kind ?tunes () =
-  make ~slug:Slug.none ~name ?deviser ~kind ?tunes ()
+let make_temp ~name ?deviser ~kind ?versions () =
+  make ~slug:Slug.none ~name ?deviser ~kind ?versions ()
 
 let slug s = Lwt.return s.slug
 let status s = Lwt.return s.status
 let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser
 let kind s = Lwt.return s.kind
-let tunes s = Lwt.return s.tunes
+let versions s = Lwt.return s.versions
 
-let contains t s = List.mem t s.tunes
+let contains t s = List.mem t s.versions
 
 type warning =
   | Empty
   | WrongKind
-  | WrongTuneBars of Tune.t
-  | WrongTuneKind of TuneGroup.t
-  | DuplicateTune of TuneGroup.t
+  | WrongVersionBars of Version.t
+  | WrongVersionKind of Tune.t
+  | DuplicateVersion of Tune.t
 [@@deriving yojson]
 
 type warnings = warning list
@@ -62,18 +62,18 @@ module type S = sig
   val name : t -> string Lwt.t
   val deviser : t -> Credit.t option Lwt.t
   val kind : t -> Kind.dance Lwt.t
-  val tunes : t -> Tune.t list Lwt.t
+  val versions : t -> Version.t list Lwt.t
 
-  val contains : Tune.t Slug.t -> t -> bool
+  val contains : Version.t Slug.t -> t -> bool
 
   (* {2 Warnings} *)
 
   type warning =
     | Empty
     | WrongKind
-    | WrongTuneBars of Tune.t
-    | WrongTuneKind of TuneGroup.t
-    | DuplicateTune of TuneGroup.t
+    | WrongVersionBars of Version.t
+    | WrongVersionKind of Tune.t
+    | DuplicateVersion of Tune.t
 
   type warnings = warning list
 
@@ -89,7 +89,7 @@ module type S = sig
     name:string ->
     ?deviser:Credit.t ->
     kind:Kind.dance ->
-    ?tunes:Tune.t list ->
+    ?versions:Version.t list ->
     unit -> t Lwt.t
 
   val make_and_save :
@@ -97,7 +97,7 @@ module type S = sig
     name:string ->
     ?deviser:Credit.t ->
     kind:Kind.dance ->
-    ?tunes:Tune.t list ->
+    ?versions:Version.t list ->
     unit -> t Lwt.t
 
   val delete : t -> unit Lwt.t
@@ -119,7 +119,7 @@ module Arg = struct
   let name = arg ~key:"name" (module MString)
   let deviser = optarg ~key:"deviser" (module Credit)
   let kind = arg ~key:"kind" (module Kind.Dance)
-  let tunes = optarg ~key:"tunes" (module MList (Tune))
+  let versions = optarg ~key:"versions" (module MList (Version))
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let string = arg (module MString)

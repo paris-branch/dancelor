@@ -5,7 +5,7 @@
   }
 
   {
-    \tocTune \markup { %s }
+    \tocVersion \markup { %s }
 
     \transpose %s c {
       %s

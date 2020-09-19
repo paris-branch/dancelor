@@ -33,14 +33,14 @@ type controller =
   | Set of Set.t Slug.t
   | SetDelete of Set.t Slug.t
 
-  | TuneGroup of TuneGroup.t Slug.t
-
-  | TuneAll
-  | TuneSearch
-  | TuneLy of Tune.t Slug.t
-  | TuneSvg of Tune.t Slug.t
-  | TunePdf of Tune.t Slug.t
   | Tune of Tune.t Slug.t
+
+  | VersionAll
+  | VersionSearch
+  | VersionLy of Version.t Slug.t
+  | VersionSvg of Version.t Slug.t
+  | VersionPdf of Version.t Slug.t
+  | Version of Version.t Slug.t
 
   | Victor
 

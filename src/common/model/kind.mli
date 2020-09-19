@@ -17,20 +17,20 @@ val pprint_base : base -> string
 val base_to_yojson : base -> Json.t
 val base_of_yojson : Json.t -> (base, string) result
 
-(** {2 Tune Kind} *)
+(** {2 Version Kind} *)
 
-type tune = int * base
-(** The kind of a tune. For instance, [32R]. *)
+type version = int * base
+(** The kind of a version. For instance, [32R]. *)
 
-val tune_to_string : tune -> string
-val tune_of_string : string -> tune
+val version_to_string : version -> string
+val version_of_string : string -> version
 
-val tune_to_yojson : tune -> Json.t
-val tune_of_yojson : Json.t -> (tune, string) result
+val version_to_yojson : version -> Json.t
+val version_of_yojson : Json.t -> (version, string) result
 
 (** {2 Dance Kind} *)
 
-type dance = int * tune list
+type dance = int * version list
 (** The kind of a dance. For instance, [7x(32R + 64S + 128J)]. *)
 
 val dance_to_string : dance -> string

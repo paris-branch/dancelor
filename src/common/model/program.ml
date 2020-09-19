@@ -32,7 +32,7 @@ let compare p1 p2 =
 type warning =
   | Empty
   | DuplicateSet of Set.t (* FIXME: duplicate dance? *)
-  | DuplicateTune of TuneGroup.t
+  | DuplicateVersion of Tune.t
 [@@deriving yojson]
 
 type warnings = warning list
@@ -55,7 +55,7 @@ module type S = sig
   type warning =
     | Empty
     | DuplicateSet of Set.t (* FIXME: duplicate dance? *)
-    | DuplicateTune of TuneGroup.t
+    | DuplicateVersion of Tune.t
 
   type warnings = warning list
 

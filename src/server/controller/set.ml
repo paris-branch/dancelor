@@ -23,8 +23,8 @@ module Ly = struct
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Set.name set in
       let%lwt kind = Set.kind set in
-      let%lwt tunes = Set.tunes set in
-      fpf fmt [%blob "template/version.ly"];
+      let%lwt versions = Set.versions set in
+      fpf fmt [%blob "template/lyversion.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/set/paper.ly"];
@@ -36,22 +36,22 @@ module Ly = struct
         title (Kind.dance_to_string kind)
         transpose instrument;
       Lwt_list.iter_s
-        (fun tune ->
-           let%lwt content = Tune.content tune in
-           let%lwt group = Tune.group tune in
-           let%lwt name = TuneGroup.name group in
+        (fun version ->
+           let%lwt content = Version.content version in
+           let%lwt group = Version.group version in
+           let%lwt name = Tune.name group in
            let%lwt author =
-             match%lwt TuneGroup.author group with
+             match%lwt Tune.author group with
              | None -> Lwt.return ""
              | Some author -> Credit.line author
            in
-           fpf fmt [%blob "template/set/tune.ly"]
+           fpf fmt [%blob "template/set/version.ly"]
              name author
              transpose target
              content
              transpose;
            Lwt.return ())
-        tunes
+        versions
     in
     prom; %lwt
     Lwt.return res

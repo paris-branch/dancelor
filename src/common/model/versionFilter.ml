@@ -1,14 +1,14 @@
 open Nes
 
 type t =
-  { group : TuneGroup.t Slug.t list     [@default []] ;
+  { group : Tune.t Slug.t list     [@default []] ;
     group_author : Credit.t Slug.t list [@default []] ;
     group_kind : Kind.base list         [@default []] ;
     key : Music.key list                [@default []] ;
     bars : int list                     [@default []] }
 [@@deriving yojson, make]
 
-let _key = "tune-filter"
+let _key = "version-filter"
 
 let make ?group ?group_author ?group_kind ?key ?bars () =
   Lwt.return (make ?group ?group_author ?group_kind ?key ?bars ())
@@ -53,7 +53,7 @@ module type S = sig
   val remove_kind : Kind.base -> t -> t Lwt.t
 
   val make :
-    ?group:TuneGroup.t list ->
+    ?group:Tune.t list ->
     ?group_author:Credit.t list -> ?group_kind:Kind.base list ->
     ?key:Music.key list -> ?bars: int list ->
     unit -> t Lwt.t
@@ -64,7 +64,7 @@ let make ?group ?group_author ?group_kind ?key ?bars () =
     match group with
     | None -> Lwt.return_none
     | Some group ->
-      let%lwt group = Lwt_list.map_s TuneGroup.slug group in
+      let%lwt group = Lwt_list.map_s Tune.slug group in
       Lwt.return_some group
   in
   let%lwt group_author =

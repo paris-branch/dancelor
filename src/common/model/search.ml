@@ -4,8 +4,8 @@ module CommonResults = struct
   type t =
     { persons :     float * Person.t    Slug.t Score.t list ;
       credits :     float * Credit.t    Slug.t Score.t list ;
-      tunes :       float * Tune.t      Slug.t Score.t list ;
-      tune_groups : float * TuneGroup.t Slug.t Score.t list ;
+      versions :       float * Version.t      Slug.t Score.t list ;
+      tunes : float * Tune.t Slug.t Score.t list ;
       programs :    float * Program.t   Slug.t Score.t list ;
       sets :        float * Set.t       Slug.t Score.t list ;
       dances :      float * Dance.t     Slug.t Score.t list ;
@@ -14,8 +14,8 @@ module CommonResults = struct
 
   let persons r = Lwt.return r.persons
   let credits r = Lwt.return r.credits
+  let versions r = Lwt.return r.versions
   let tunes r = Lwt.return r.tunes
-  let tune_groups r = Lwt.return r.tune_groups
   let programs r = Lwt.return r.programs
   let sets r = Lwt.return r.sets
   let dances r = Lwt.return r.dances
@@ -30,8 +30,8 @@ module type S = sig
 
     val persons : t -> (float * Person.t Score.t list) Lwt.t
     val credits : t -> (float * Credit.t Score.t list) Lwt.t
+    val versions : t -> (float * Version.t Score.t list) Lwt.t
     val tunes : t -> (float * Tune.t Score.t list) Lwt.t
-    val tune_groups : t -> (float * TuneGroup.t Score.t list) Lwt.t
     val programs : t -> (float * Program.t Score.t list) Lwt.t
     val sets : t -> (float * Set.t Score.t list) Lwt.t
     val dances : t -> (float * Dance.t Score.t list) Lwt.t

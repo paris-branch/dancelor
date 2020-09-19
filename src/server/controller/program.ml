@@ -20,7 +20,7 @@ module Ly = struct
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt name = Program.name program in
-      fpf fmt [%blob "template/version.ly"];
+      fpf fmt [%blob "template/lyversion.ly"];
       fpf fmt [%blob "template/program/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/program/globals.ly"]
@@ -42,21 +42,21 @@ module Ly = struct
              fpf fmt [%blob "template/program/set_beginning.ly"]
                name kind name kind;
              let%lwt () =
-               let%lwt tunes = Set.tunes set in
+               let%lwt versions = Set.versions set in
                Lwt_list.iter_s
-                 (fun tune ->
-                    let%lwt content = Tune.content tune in
-                    let%lwt group = Tune.group tune in
-                    let%lwt name = TuneGroup.name group in
+                 (fun version ->
+                    let%lwt content = Version.content version in
+                    let%lwt group = Version.group version in
+                    let%lwt name = Tune.name group in
                     let%lwt author =
-                      match%lwt TuneGroup.author group with
+                      match%lwt Tune.author group with
                       | None -> Lwt.return ""
                       | Some author -> Credit.line author
                     in
-                    fpf fmt [%blob "template/program/tune.ly"]
+                    fpf fmt [%blob "template/program/version.ly"]
                       name author name target content;
                     Lwt.return ())
-                 tunes
+                 versions
              in
              fpf fmt [%blob "template/program/set_end.ly"];
              Lwt.return ())

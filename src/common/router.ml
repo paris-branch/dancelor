@@ -26,14 +26,14 @@ type controller =
   | Set of Set.t Slug.t
   | SetDelete of Set.t Slug.t
 
-  | TuneGroup of TuneGroup.t Slug.t
-
-  | TuneAll
-  | TuneSearch
-  | TuneLy of Tune.t Slug.t
-  | TuneSvg of Tune.t Slug.t
-  | TunePdf of Tune.t Slug.t
   | Tune of Tune.t Slug.t
+
+  | VersionAll
+  | VersionSearch
+  | VersionLy of Version.t Slug.t
+  | VersionSvg of Version.t Slug.t
+  | VersionPdf of Version.t Slug.t
+  | Version of Version.t Slug.t
 
   | Victor
 
@@ -196,46 +196,46 @@ let routes : route list =
 
     with_slug
       ~meth:`GET
-      ~prefix:"/tune-group"
-      (fun tune_group -> Some (TuneGroup tune_group))
-      (function TuneGroup tune_group -> Some tune_group | _ -> None) ;
-
-    direct
-      ~meth:`GET
-      ~path:"/tune/all"
-      TuneAll ;
-
-    direct
-      ~meth:`GET
-      ~path:"/tune/search"
-      TuneSearch ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/tune"
-      ~ext:"ly"
-      (fun tune -> Some (TuneLy tune))
-      (function TuneLy tune -> Some tune | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/tune"
-      ~ext:"svg"
-      (fun tune -> Some (TuneSvg tune))
-      (function TuneSvg tune -> Some tune | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/tune"
-      ~ext:"pdf"
-      (fun tune -> Some (TunePdf tune))
-      (function TunePdf tune -> Some tune | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
       ~prefix:"/tune"
       (fun tune -> Some (Tune tune))
       (function Tune tune -> Some tune | _ -> None) ;
+
+    direct
+      ~meth:`GET
+      ~path:"/version/all"
+      VersionAll ;
+
+    direct
+      ~meth:`GET
+      ~path:"/version/search"
+      VersionSearch ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/version"
+      ~ext:"ly"
+      (fun version -> Some (VersionLy version))
+      (function VersionLy version -> Some version | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/version"
+      ~ext:"svg"
+      (fun version -> Some (VersionSvg version))
+      (function VersionSvg version -> Some version | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/version"
+      ~ext:"pdf"
+      (fun version -> Some (VersionPdf version))
+      (function VersionPdf version -> Some version | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/version"
+      (fun version -> Some (Version version))
+      (function Version version -> Some version | _ -> None) ;
 
     direct
       ~meth:`GET

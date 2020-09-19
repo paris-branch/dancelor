@@ -24,30 +24,30 @@ module Source = Table.Make (
     let dependencies _ = Lwt.return []
   end)
 
-module TuneGroup = Table.Make (
-  struct
-    include Model.TuneGroup
-
-    let dependencies tune_group =
-      match%lwt author tune_group with
-      | None -> Lwt.return_nil
-      | Some author ->
-        Lwt.return [Table.make_slug_and_table (module Credit) author]
-  end)
-
 module Tune = Table.Make (
   struct
     include Model.Tune
 
     let dependencies tune =
-      let%lwt tune_group = group tune in
-      let%lwt arranger = arranger tune in
-      let%lwt sources = sources tune in
+      match%lwt author tune with
+      | None -> Lwt.return_nil
+      | Some author ->
+        Lwt.return [Table.make_slug_and_table (module Credit) author]
+  end)
+
+module Version = Table.Make (
+  struct
+    include Model.Version
+
+    let dependencies version =
+      let%lwt tune = group version in
+      let%lwt arranger = arranger version in
+      let%lwt sources = sources version in
       List.map (Table.make_slug_and_table (module Source)) sources
       |> (match arranger with
           | None -> Fun.id
           | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
-      |> List.cons (Table.make_slug_and_table (module TuneGroup) tune_group)
+      |> List.cons (Table.make_slug_and_table (module Tune) tune)
       |> Lwt.return
   end)
 
@@ -58,7 +58,7 @@ module Dance = Table.Make (
     let dependencies dance =
       let%lwt deviser = deviser dance in
       let%lwt originals = originals dance in
-      List.map (Table.make_slug_and_table (module Tune)) originals
+      List.map (Table.make_slug_and_table (module Version)) originals
       |> (match deviser with
           | None -> Fun.id
           | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
@@ -71,8 +71,8 @@ module Set = Table.Make (
 
     let dependencies set =
       let%lwt deviser = deviser set in
-      let%lwt tunes = tunes set in
-      List.map (Table.make_slug_and_table (module Tune)) tunes
+      let%lwt versions = versions set in
+      List.map (Table.make_slug_and_table (module Version)) versions
       |> (match deviser with
           | None -> Fun.id
           | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
@@ -96,8 +96,8 @@ let tables : (module Table.S) list = [
   (module Credit) ;
   (module Source) ;
   (module Dance) ;
+  (module Version) ;
   (module Tune) ;
-  (module TuneGroup) ;
   (module Set) ;
   (module Program)
 ]
@@ -112,26 +112,26 @@ module Initialise = struct
     else
       Lwt.return_unit
 
-  let create_new_db_version () =
-    Log.info (fun m -> m "Creating new database version");
+  let create_new_db_lyversion () =
+    Log.info (fun m -> m "Creating new database lyversion");
     Table.Version.create ()
 
-  let create_tables version =
-    Log.info (fun m -> m "Creating tables for this version");
+  let create_tables lyversion =
+    Log.info (fun m -> m "Creating tables for this lyversion");
     tables |> List.iter @@ fun (module Table : Table.S) ->
-    Table.create_version ~version
+    Table.create_lyversion ~lyversion
 
-  let load_tables version =
-    Log.info (fun m -> m "Loading tables for this version");
+  let load_tables lyversion =
+    Log.info (fun m -> m "Loading tables for this lyversion");
     tables |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
-    Table.load_version ~version
+    Table.load_lyversion ~lyversion
 
-  let check_dependency_problems version =
+  let check_dependency_problems lyversion =
     Log.info (fun m -> m "Checking for dependency problems");
     let%lwt found_problem =
       Lwt_list.fold_left_s
         (fun found_problem (module Table : Table.S) ->
-           let%lwt problems = Table.list_dependency_problems ~version in
+           let%lwt problems = Table.list_dependency_problems ~lyversion in
            (
              problems |> List.iter @@ function
              | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
@@ -152,21 +152,21 @@ module Initialise = struct
     | None -> Lwt.return ()
     | Some problem -> Dancelor_common.Error.fail problem
 
-  let establish_version version =
-    Log.info (fun m -> m "Establishing new version");
+  let establish_lyversion lyversion =
+    Log.info (fun m -> m "Establishing new lyversion");
     let () =
       tables |> List.iter @@ fun (module Table : Table.S) ->
-      Table.establish_version ~version
+      Table.establish_lyversion ~lyversion
     in
-    Log.info (fun m -> m "New version is in place")
+    Log.info (fun m -> m "New lyversion is in place")
 
   let initialise () =
     sync_db (); %lwt
-    let version = create_new_db_version () in
-    create_tables version;
-    load_tables version; %lwt
-    check_dependency_problems version; %lwt
-    establish_version version;
+    let lyversion = create_new_db_lyversion () in
+    create_tables lyversion;
+    load_tables lyversion; %lwt
+    check_dependency_problems lyversion; %lwt
+    establish_lyversion lyversion;
     Lwt.return_unit
 end
 

@@ -7,7 +7,7 @@ module Self = struct
       name : string ;
       kind : Kind.dance ;
       deviser : Credit.t Slug.t option [@default None] ;
-      originals : Tune.t Slug.t list [@default []] }
+      originals : Version.t Slug.t list [@default []] }
   [@@deriving yojson]
 
   let _key = "dance"
@@ -29,7 +29,7 @@ module type S = sig
   val name : t -> string Lwt.t
   val kind : t -> Kind.dance Lwt.t
   val deviser : t -> Credit.t option Lwt.t
-  val originals : t -> TuneGroup.t list Lwt.t
+  val originals : t -> Tune.t list Lwt.t
 
   (** {2 Getters and setters} *)
 

@@ -10,9 +10,9 @@ module Person     : Common.Person.S     = Person
 module Credit     : Common.Credit.S     = Credit
 module Source     : Common.Source.S     = Source
 module Dance      : Common.Dance.S      = Dance
-module TuneGroup  : Common.TuneGroup.S  = TuneGroup
-module Tune       : Common.Tune.S       = Tune
-module TuneFilter : Common.TuneFilter.S = TuneFilter
+module Tune  : Common.Tune.S  = Tune
+module Version       : Common.Version.S       = Version
+module VersionFilter : Common.VersionFilter.S = VersionFilter
 module Set        : Common.Set.S        = Set
 module Program    : Common.Program.S    = Program
 

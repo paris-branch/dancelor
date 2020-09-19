@@ -1,17 +1,17 @@
 open Nes
 open Dancelor_server_model
-module Log = (val Dancelor_server_logs.create "controller.tune" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "controller.version" : Logs.LOG)
 
-let get_ly tune _ =
-  let%lwt tune = Tune.get tune in
-  let%lwt body = Tune.content tune in
+let get_ly version _ =
+  let%lwt version = Version.get version in
+  let%lwt body = Version.content version in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
-let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname tune =
-  let%lwt group = Tune.group tune in
-  let%lwt name = TuneGroup.name group in
+let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
+  let%lwt group = Version.group version in
+  let%lwt name = Tune.name group in
   let%lwt author =
-    match%lwt TuneGroup.author group with
+    match%lwt Tune.author group with
       | None -> Lwt.return ""
       | Some author -> Credit.line author
   in
@@ -27,10 +27,10 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname tune =
     else
       "", ""
   in
-  let%lwt content = Tune.content tune in
+  let%lwt content = Version.content version in
   let lilypond =
     Format.with_formatter_to_string @@ fun fmt ->
-    fpf fmt [%blob "template/version.ly"];
+    fpf fmt [%blob "template/lyversion.ly"];
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
@@ -38,55 +38,55 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname tune =
     fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
     fpf fmt [%blob "template/repeat-volta-fancy.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
-    fpf fmt [%blob "template/tune/header.ly"];
-    fpf fmt [%blob "template/tune.ly"] piece opus content
+    fpf fmt [%blob "template/version/header.ly"];
+    fpf fmt [%blob "template/version.ly"] piece opus content
   in
   Lwt_io.with_file ~mode:Output fname
     (fun ochan -> Lwt_io.write ochan lilypond)
 
 module Svg = struct
-  let cache : (Tune.t, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
 
-  let render tune =
+  let render version =
     Cache.use
-      cache tune
+      cache version
       (fun () ->
-         Log.debug (fun m -> m "Rendering the LilyPond version");
+         Log.debug (fun m -> m "Rendering the LilyPond lyversion");
          let%lwt (fname_ly, fname_svg) =
-           let%lwt slug = Tune.slug tune in
+           let%lwt slug = Version.slug version in
            let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
            Lwt.return (fname^".ly", fname^".cropped.svg")
          in
-         let path = Filename.concat !Dancelor_server_config.cache "tune" in
-         prepare_ly_file ~show_meta:false ~fname:(Filename.concat path fname_ly) tune; %lwt
+         let path = Filename.concat !Dancelor_server_config.cache "version" in
+         prepare_ly_file ~show_meta:false ~fname:(Filename.concat path fname_ly) version; %lwt
          Log.debug (fun m -> m "Processing with LilyPond");
          LilyPond.cropped_svg ~exec_path:path fname_ly; %lwt
          Lwt.return (Filename.concat path fname_svg))
 
-  let get tune _ =
-    Log.debug (fun m -> m "Tune.Svg.get %s" tune);
-    let%lwt tune = Tune.get tune in
-    let%lwt path_svg = render tune in
+  let get version _ =
+    Log.debug (fun m -> m "Version.Svg.get %s" version);
+    let%lwt version = Version.get version in
+    let%lwt path_svg = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
 end
 
 module Pdf = struct
-  let render tune =
+  let render version =
     let%lwt (fname_ly, fname_pdf) =
-      let%lwt slug = Tune.slug tune in
+      let%lwt slug = Version.slug version in
       let fname = spf "%s-%x-with-meta" slug (Random.int (1 lsl 29)) in
       Lwt.return (fname^".ly", fname^".pdf")
     in
-    let path = Filename.concat !Dancelor_server_config.cache "tune" in
+    let path = Filename.concat !Dancelor_server_config.cache "version" in
     prepare_ly_file ~show_meta:true ~meta_in_title:true
-      ~fname:(Filename.concat path fname_ly) tune; %lwt
+      ~fname:(Filename.concat path fname_ly) version; %lwt
       Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.run ~exec_path:path fname_ly; %lwt
     Lwt.return (Filename.concat path fname_pdf)
 
-  let get tune _ =
-    Log.debug (fun m -> m "Tune.pdf.get %s" tune);
-    let%lwt tune = Tune.get tune in
-    let%lwt path_pdf = render tune in
+  let get version _ =
+    Log.debug (fun m -> m "Version.pdf.get %s" version);
+    let%lwt version = Version.get version in
+    let%lwt path_pdf = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

@@ -9,7 +9,7 @@ let js = Js.string
 let on_load _ev =
   let page = Page.create () in
   let header = Header.create page in
-  Header.add_menu_entry header "Tunes" (Router.path_of_controller Router.TuneAll |> snd);
+  Header.add_menu_entry header "Versions" (Router.path_of_controller Router.VersionAll |> snd);
   Header.add_menu_entry header "Sets" (Router.path_of_controller Router.SetAll |> snd);
   Header.add_menu_entry header "Programs" (Router.path_of_controller Router.ProgramAll |> snd);
   Header.add_menu_entry header "Compose a Set" (Router.path_of_controller Router.SetCompose |> snd);

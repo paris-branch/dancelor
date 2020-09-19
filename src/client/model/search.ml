@@ -13,15 +13,15 @@ module Results = struct
     let%lwt credits = Score.list_map_lwt_p Credit.get credits in
     Lwt.return (n, credits)
 
+  let versions r =
+    let%lwt (n, versions) = versions r in
+    let%lwt versions = Score.list_map_lwt_p Version.get versions in
+    Lwt.return (n, versions)
+
   let tunes r =
     let%lwt (n, tunes) = tunes r in
     let%lwt tunes = Score.list_map_lwt_p Tune.get tunes in
     Lwt.return (n, tunes)
-
-  let tune_groups r =
-    let%lwt (n, tune_groups) = tune_groups r in
-    let%lwt tune_groups = Score.list_map_lwt_p TuneGroup.get tune_groups in
-    Lwt.return (n, tune_groups)
 
   let programs r =
     let%lwt (n, programs) = programs r in

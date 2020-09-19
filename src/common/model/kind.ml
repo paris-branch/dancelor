@@ -49,14 +49,14 @@ let base_of_yojson = function
      with _ -> Error "Dancelor_commn_model.Kind.base_of_yojson: not a valid base kind")
   | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
 
-(* ============================= [ Tune Kind ] ============================== *)
+(* ============================= [ Version Kind ] ============================== *)
 
-type tune = int * base
+type version = int * base
 
-let tune_to_string (repeats, base) =
+let version_to_string (repeats, base) =
     spf "%d%c" repeats (base_to_char base)
 
-let tune_of_string s =
+let version_of_string s =
   let s = NesString.remove_char ' ' s in
   try
     ssf s "%d%[a-zA-Z]"
@@ -68,36 +68,36 @@ let tune_of_string s =
         (fun base repeats -> (repeats, base_of_string base))
     with
       Scanf.Scan_failure _ ->
-      raise (Invalid_argument "Dancelor_model.Kind.tune_of_string")
+      raise (Invalid_argument "Dancelor_model.Kind.version_of_string")
 
-let%test _ = tune_to_string (32, Waltz) = "32W"
-let%test _ = tune_to_string (64, Reel) = "64R"
-let%test _ = tune_to_string (24, Jig) = "24J"
-let%test _ = tune_to_string (48, Strathspey) = "48S"
+let%test _ = version_to_string (32, Waltz) = "32W"
+let%test _ = version_to_string (64, Reel) = "64R"
+let%test _ = version_to_string (24, Jig) = "24J"
+let%test _ = version_to_string (48, Strathspey) = "48S"
 
-let%test _ = tune_of_string "W 32" = (32, Waltz)
-let%test _ = tune_of_string "64 Reel" = (64, Reel)
-let%test _ = tune_of_string "JIG 24" = (24, Jig)
-let%test _ = tune_of_string "48 sTrathPEY" = (48, Strathspey)
+let%test _ = version_of_string "W 32" = (32, Waltz)
+let%test _ = version_of_string "64 Reel" = (64, Reel)
+let%test _ = version_of_string "JIG 24" = (24, Jig)
+let%test _ = version_of_string "48 sTrathPEY" = (48, Strathspey)
 
-let tune_to_yojson t =
-  `String (tune_to_string t)
+let version_to_yojson t =
+  `String (version_to_string t)
 
-let tune_of_yojson = function
+let version_of_yojson = function
   | `String s ->
-    (try Ok (tune_of_string s)
-     with _ -> Error "Dancelor_commn_model.Kind.tune_of_yojson: not a valid tune kind")
-  | _ -> Error "Dancelor_common_model.Kind.tune_of_yojson: not a JSON string"
+    (try Ok (version_of_string s)
+     with _ -> Error "Dancelor_commn_model.Kind.version_of_yojson: not a valid version kind")
+  | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
 (* ============================= [ Dance Kind ] ============================= *)
 
 type dance =
-  int * tune list
+  int * version list
 
-let dance_to_string (repeats, tunes) =
-  List.map tune_to_string tunes
+let dance_to_string (repeats, versions) =
+  List.map version_to_string versions
   |> String.concat " + "
-  |> (if List.length tunes = 1 then id else spf "(%s)")
+  |> (if List.length versions = 1 then id else spf "(%s)")
   |> (if repeats = 1 then id else spf "%dx%s" repeats)
 
 let dance_of_string s =
@@ -110,7 +110,7 @@ let dance_of_string s =
     try ssf s "(%[^)])%!" id
     with Scanf.Scan_failure _ -> s
   in
-  (repeats, List.map tune_of_string (String.split_on_char '+' s))
+  (repeats, List.map version_of_string (String.split_on_char '+' s))
 
 let check_dance s =
   match dance_of_string s with

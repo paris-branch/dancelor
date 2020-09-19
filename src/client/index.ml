@@ -15,22 +15,22 @@ type t =
   search : SearchBar.t;
 }
 
-let make_tune_search_result page score =
-  let tune = Score.value score in
+let make_version_search_result page score =
+  let version = Score.value score in
   let score = score.Score.score in
-  let%lwt slug = Tune.slug tune in
-  let%lwt bars = Tune.bars tune in
-  let%lwt group = Tune.group tune in
-  let%lwt kind = TuneGroup.kind group in
-  let href = Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd) in
+  let%lwt slug = Version.slug version in
+  let%lwt bars = Version.bars version in
+  let%lwt group = Version.group version in
+  let%lwt kind = Tune.kind group in
+  let href = Lwt.return (Router.path_of_controller (Router.Version slug) |> snd) in
   let row = Table.Row.create
     ~href
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~text:(TuneGroup.name group) page;
+      Table.Cell.text ~text:(Tune.name group) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
       Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) page;
-      Table.Cell.text ~text:(Tune.structure tune) page]
+      Table.Cell.text ~text:(Version.structure version) page]
     page
   in
   Lwt.return row
@@ -92,13 +92,13 @@ let make_person_search_result page score =
 let create page = 
   let document = Html.window##.document in
   let content = Html.createDiv document in
-  let search_tunes = 
+  let search_versions = 
     SearchBar.Section.create
       ~search:(fun input -> 
-        Tune.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 4} input)
-      ~make_result:(fun score -> make_tune_search_result page score)
+        Version.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 4} input)
+      ~make_result:(fun score -> make_version_search_result page score)
       ~header:(Table.Row.create
-        ~cells:[Table.Cell.header_text ~text:(Lwt.return "Tunes") ~span:5 page]
+        ~cells:[Table.Cell.header_text ~text:(Lwt.return "Versions") ~span:5 page]
         page)
       page
   in
@@ -135,7 +135,7 @@ let create page =
   let search = 
     SearchBar.create 
       ~placeholder:"Search for anything (it's magic!)" 
-      ~sections:[search_tunes; search_sets; search_credits; search_persons]
+      ~sections:[search_versions; search_sets; search_credits; search_persons]
       ~hide_sections:true
       page 
   in

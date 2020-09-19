@@ -1,9 +1,9 @@
 open Dancelor_client_model
 
-type cached_tune = {
+type cached_version = {
   slug : string;
-  tune : Tune.t;
-  group : TuneGroup.t
+  version : Version.t;
+  group : Tune.t
 }
 
 type t
@@ -30,7 +30,7 @@ val insert : t -> string -> int -> unit Lwt.t
 
 val add : t -> string -> unit Lwt.t
 
-val get : t -> int -> cached_tune option
+val get : t -> int -> cached_version option
 
 val remove : t -> int -> unit
 
@@ -38,7 +38,7 @@ val move_up : t -> int -> unit
 
 val move_down : t -> int -> unit
 
-val iter : t -> (int -> cached_tune -> unit) -> unit
+val iter : t -> (int -> cached_version -> unit) -> unit
 
 val clear : t -> unit
 

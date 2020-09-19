@@ -15,16 +15,16 @@ type t =
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
   deviser_search : SearchBar.t;
-  tunes_area : Html.divElement Js.t;
-  tune_search : SearchBar.t;
+  versions_area : Html.divElement Js.t;
+  version_search : SearchBar.t;
 }
 
-let make_tune_subwindow t index tune =
+let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3 ~text:(TuneGroup.name tune.Composer.group) t.page in
+  let title = Text.Heading.h3 ~text:(Tune.name version.Composer.group) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
@@ -67,7 +67,7 @@ let make_tune_subwindow t index tune =
   let source =
     Printf.sprintf "/%s%s"
       Constant.api_prefix
-      (Router.path_of_controller (Router.TuneSvg tune.Composer.slug) |> snd)
+      (Router.path_of_controller (Router.VersionSvg version.Composer.slug) |> snd)
     |> Lwt.return
   in
   let img = Image.create ~source t.page in
@@ -84,21 +84,21 @@ let refresh t =
     Lwt.on_success name (fun name ->
       Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
-  Helpers.clear_children t.tunes_area;
-  Composer.iter t.composer (fun i tune ->
-    let subwin = make_tune_subwindow t i tune in
-    Dom.appendChild t.tunes_area (Html.createBr (Page.document t.page));
-    Dom.appendChild t.tunes_area subwin)
+  Helpers.clear_children t.versions_area;
+  Composer.iter t.composer (fun i version ->
+    let subwin = make_version_subwindow t i version in
+    Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
+    Dom.appendChild t.versions_area subwin)
 
-let make_tune_search_result composer page score =
-  let tune = Score.value score in
+let make_version_search_result composer page score =
+  let version = Score.value score in
   let score = score.Score.score in
-  let%lwt slug = Tune.slug tune in
-  let%lwt bars = Tune.bars tune in
-  let%lwt structure = Tune.structure tune in
-  let%lwt group = Tune.group tune in
-  let%lwt name = TuneGroup.name group in
-  let%lwt kind = TuneGroup.kind group in
+  let%lwt slug = Version.slug version in
+  let%lwt bars = Version.bars version in
+  let%lwt structure = Version.structure version in
+  let%lwt group = Version.group version in
+  let%lwt name = Tune.name group in
+  let%lwt kind = Tune.kind group in
   let row = Table.Row.create
     ~on_click:(fun () ->
       Lwt.on_success (Composer.add composer slug) (fun () -> Page.refresh page; Composer.save composer))
@@ -187,16 +187,16 @@ let create page =
       ~sections:[main_section]
       page
   in
-  let tunes_area = Html.createDiv (Page.document page) in
-  let tune_search =
+  let versions_area = Html.createDiv (Page.document page) in
+  let version_search =
     let main_section =
       SearchBar.Section.create
-        ~search:(fun input -> Tune.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} input)
-        ~make_result:(fun score -> make_tune_search_result composer page score)
+        ~search:(fun input -> Version.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} input)
+        ~make_result:(fun score -> make_version_search_result composer page score)
         page
     in
     SearchBar.create
-      ~placeholder:"Search for a tune"
+      ~placeholder:"Search for a version"
       ~sections:[main_section]
       page
   in
@@ -207,8 +207,8 @@ let create page =
       Page.refresh page
     end);
   let t =
-    {page; composer; content; tunes_area; deviser_search;
-    tune_search; input_name; input_kind}
+    {page; composer; content; versions_area; deviser_search;
+    version_search; input_name; input_kind}
   in
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -219,7 +219,7 @@ let create page =
         let b1, b2, b3, b4 =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
-          Inputs.Text.check (SearchBar.bar t.tune_search)
+          Inputs.Text.check (SearchBar.bar t.version_search)
             (fun _ -> Composer.count t.composer > 0),
           Inputs.Text.check (SearchBar.bar t.deviser_search)
             (fun _ -> Composer.deviser t.composer <> None)
@@ -251,9 +251,9 @@ let create page =
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root deviser_search);
-  Dom.appendChild form tunes_area;
+  Dom.appendChild form versions_area;
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchBar.root tune_search);
+  Dom.appendChild form (SearchBar.root version_search);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;

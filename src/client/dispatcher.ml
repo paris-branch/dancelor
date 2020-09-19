@@ -31,12 +31,12 @@ let dispatch url =
     | l -> l
   in
   begin match trim path with
-  | ["tune";"all"] ->
-    pack (module TuneExplorer) TuneExplorer.create
+  | ["version";"all"] ->
+    pack (module VersionExplorer) VersionExplorer.create
+  | ["version";slug] ->
+    pack (module VersionViewer) (VersionViewer.create slug)
   | ["tune";slug] ->
     pack (module TuneViewer) (TuneViewer.create slug)
-  | ["tune-group";slug] ->
-    pack (module TuneGroupViewer) (TuneGroupViewer.create slug)
   | ["set";"all"] ->
     pack (module SetExplorer) SetExplorer.create
   | ["set";"compose"] ->

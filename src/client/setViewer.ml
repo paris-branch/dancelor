@@ -11,33 +11,33 @@ type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
-  tunes : Html.uListElement Js.t;
+  versions : Html.uListElement Js.t;
 }
 
-let display_tunes t tunes =
-  t.tunes##.textContent := Js.null;
-  List.iter (fun tune ->
-    let group = Tune.group tune in
-    let slug = Tune.slug tune in
+let display_versions t versions =
+  t.versions##.textContent := Js.null;
+  List.iter (fun version ->
+    let group = Version.group version in
+    let slug = Version.slug version in
     let href =
       let%lwt slug = slug in
-      Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+      Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
     in
-    let name = Lwt.bind group TuneGroup.name in
+    let name = Lwt.bind group Tune.name in
     let title = Text.Link.create ~href ~text:name t.page in
     let source =
       Lwt.map (fun slug ->
         Printf.sprintf "/%s%s"
           Constant.api_prefix
-          (Router.path_of_controller (Router.TuneSvg slug) |> snd))
+          (Router.path_of_controller (Router.VersionSvg slug) |> snd))
         slug
     in
     let img = Image.create ~source t.page in
     let li = Html.createLi (Page.document t.page) in
     Dom.appendChild li (Text.Link.root title);
     Dom.appendChild li (Image.root img);
-    Dom.appendChild t.tunes li)
-    tunes
+    Dom.appendChild t.versions li)
+    versions
 
 let create slug page =
   let document = Page.document page in
@@ -77,11 +77,11 @@ let create slug page =
   Dom.appendChild content (Html.createHr document);
   let prev_title = Text.Heading.h2 ~text:(Lwt.return "Previsualisation") page in
   Dom.appendChild content (Text.Heading.root prev_title);
-  let tunes = Html.createUl (Page.document page) in
-  tunes##.textContent := Js.some (js "Loading tunes...");
-  Dom.appendChild content tunes;
-  let t = {page; content; tunes} in
-  Lwt.on_success set (fun set -> Lwt.on_success (Set.tunes set) (display_tunes t));
+  let versions = Html.createUl (Page.document page) in
+  versions##.textContent := Js.some (js "Loading versions...");
+  Dom.appendChild content versions;
+  let t = {page; content; versions} in
+  Lwt.on_success set (fun set -> Lwt.on_success (Set.versions set) (display_versions t));
   t
 
 let contents t =

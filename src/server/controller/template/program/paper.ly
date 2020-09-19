@@ -9,7 +9,7 @@
     \fromproperty #'toc:text
     \fromproperty #'toc:page
   }
-  tocTuneMarkup = \markup
+  tocVersionMarkup = \markup
   \fill-line {
     \concat {
       \hspace #5

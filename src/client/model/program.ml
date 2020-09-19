@@ -21,22 +21,22 @@ let warnings p =
          set sets
      in
      ());
-  (* Check that there are no duplicate tunes. *)
-  let%lwt tunes = Lwt_list.map_s Set.tunes sets in
-  let tunes = List.flatten tunes in
-  let%lwt tune_groups = Lwt_list.map_s Tune.group tunes in
-  let tune_groups = List.sort Stdlib.compare tune_groups in
-  (match tune_groups with
+  (* Check that there are no duplicate versions. *)
+  let%lwt versions = Lwt_list.map_s Set.versions sets in
+  let versions = List.flatten versions in
+  let%lwt tunes = Lwt_list.map_s Version.group versions in
+  let tunes = List.sort Stdlib.compare tunes in
+  (match tunes with
    | [] -> ()
-   | tune_group :: tune_groups ->
+   | tune :: tunes ->
      let _ =
        List.fold_left
          (fun prev curr ->
             if prev = curr then
-              add_warning (DuplicateTune curr);
+              add_warning (DuplicateVersion curr);
             curr)
-         tune_group
-         tune_groups
+         tune
+         tunes
      in
      ());
   Lwt.return !warnings

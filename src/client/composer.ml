@@ -5,17 +5,17 @@ module Html = Dom_html
 
 let js = Js.string
 
-type cached_tune = {
+type cached_version = {
   slug : string;
-  tune : Tune.t;
-  group : TuneGroup.t
+  version : Version.t;
+  group : Tune.t
 }
 
 type t = {
   mutable name : string;
   mutable kind : string;
   mutable deviser : (string * Credit.t) option;
-  mutable tunes : cached_tune option array;
+  mutable versions : cached_version option array;
   mutable count : int;
 }
 
@@ -24,7 +24,7 @@ let create () =
   name = "";
   kind = "";
   deviser = None;
-  tunes = Array.make 2 None;
+  versions = Array.make 2 None;
   count = 0;
 }
 
@@ -57,18 +57,18 @@ let count t =
   t.count
 
 let insert t slug i =
-  if Array.length t.tunes = t.count then begin
-    let new_tunes = Array.make (t.count * 2) None in
-    Array.blit t.tunes 0 new_tunes 0 t.count;
-    t.tunes <- new_tunes;
+  if Array.length t.versions = t.count then begin
+    let new_versions = Array.make (t.count * 2) None in
+    Array.blit t.versions 0 new_versions 0 t.count;
+    t.versions <- new_versions;
   end;
   for idx = t.count-1 downto i do
-    t.tunes.(idx+1) <- t.tunes.(idx)
+    t.versions.(idx+1) <- t.versions.(idx)
   done;
   t.count <- t.count + 1;
-  let%lwt tune = Tune.get slug in
-  let%lwt group = Tune.group tune in
-  t.tunes.(min t.count i) <- Some {tune; group; slug};
+  let%lwt version = Version.get slug in
+  let%lwt group = Version.group version in
+  t.versions.(min t.count i) <- Some {version; group; slug};
   Lwt.return ()
 
 let add t slug =
@@ -78,23 +78,23 @@ let get t i =
   if i < 0 || i >= t.count then
     None
   else
-    t.tunes.(i)
+    t.versions.(i)
 
 let remove t i =
   if i >= 0 && i < t.count then begin
-    t.tunes.(i) <- None;
+    t.versions.(i) <- None;
     for j = i + 1 to t.count - 1 do
-      t.tunes.(j-1) <- t.tunes.(j);
-      t.tunes.(j) <- None;
+      t.versions.(j-1) <- t.versions.(j);
+      t.versions.(j) <- None;
     done;
     t.count <- t.count - 1
   end
 
 let move_up t i =
   if i > 0 && i < t.count then begin
-    let tmp = t.tunes.(i-1) in
-    t.tunes.(i-1) <- t.tunes.(i);
-    t.tunes.(i) <- tmp
+    let tmp = t.versions.(i-1) in
+    t.versions.(i-1) <- t.versions.(i);
+    t.versions.(i) <- tmp
   end
 
 let move_down t i =
@@ -102,22 +102,22 @@ let move_down t i =
 
 let iter t f =
   for i = 0 to t.count - 1 do
-    match t.tunes.(i) with
+    match t.versions.(i) with
     | None -> ()
-    | Some tune -> f i tune
+    | Some version -> f i version
   done
 
 let fold t f acc =
   let acc = ref acc in
   for i = t.count - 1 downto 0 do
-    match t.tunes.(i) with
+    match t.versions.(i) with
     | None -> ()
-    | Some tune -> acc := f i tune !acc
+    | Some version -> acc := f i version !acc
   done;
   !acc
 
-let list_tunes t =
-  fold t (fun _ tune acc -> tune::acc) []
+let list_versions t =
+  fold t (fun _ version acc -> version::acc) []
 
 let clear t =
   t.name <- "";
@@ -129,8 +129,8 @@ let save t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> ())
     (fun local_storage ->
-      let tunes =
-        list_tunes t
+      let versions =
+        list_versions t
         |> List.map (fun t -> t.slug)
         |> String.concat ";"
       in
@@ -140,16 +140,16 @@ let save t =
       end;
       local_storage##setItem (js "composer.name") (js t.name);
       local_storage##setItem (js "composer.kind") (js t.kind);
-      local_storage##setItem (js "composer.tunes") (js tunes);)
+      local_storage##setItem (js "composer.versions") (js versions);)
 
 let load t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> Lwt.return ())
     (fun local_storage ->
-      let name, kind, tunes, deviser =
+      let name, kind, versions, deviser =
         local_storage##getItem (js "composer.name"),
         local_storage##getItem (js "composer.kind"),
-        local_storage##getItem (js "composer.tunes"),
+        local_storage##getItem (js "composer.versions"),
         local_storage##getItem (js "composer.deviser")
       in
       let open Lwt in
@@ -157,9 +157,9 @@ let load t =
         (fun name -> t.name <- Js.to_string name);
       Js.Opt.case kind (fun () -> ())
         (fun kind -> t.kind <- Js.to_string kind);
-      Js.Opt.case tunes (fun () -> Lwt.return ())
-        (fun tunes ->
-          String.split_on_char ';' (Js.to_string tunes)
+      Js.Opt.case versions (fun () -> Lwt.return ())
+        (fun versions ->
+          String.split_on_char ';' (Js.to_string versions)
           |> List.filter (fun s -> s <> " " && s <> "")
           |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
       >>= (fun () -> 
@@ -173,11 +173,11 @@ let erase_storage _ =
       local_storage##removeItem (js "composer.name");
       local_storage##removeItem (js "composer.kind");
       local_storage##removeItem (js "composer.deviser");
-      local_storage##removeItem (js "composer.tunes"))
+      local_storage##removeItem (js "composer.versions"))
 
 let submit t =
-  let tunes = fold t (fun _ tune acc -> tune.tune :: acc) [] in
+  let versions = fold t (fun _ version acc -> version.version :: acc) [] in
   let kind = Kind.dance_of_string t.kind in
-  let answer = Set.make_and_save ~kind ~name:t.name ~tunes ?deviser:(deviser t) () in
+  let answer = Set.make_and_save ~kind ~name:t.name ~versions ?deviser:(deviser t) () in
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer

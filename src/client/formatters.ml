@@ -8,10 +8,10 @@ let js = Js.string
 
 module Kind = struct
 
-  let full_string tune group =
+  let full_string version group =
     let open Lwt in
-    let%lwt base = TuneGroup.kind group >|= Kind.base_to_char in
-    let%lwt bars = Tune.bars tune in
+    let%lwt base = Tune.kind group >|= Kind.base_to_char in
+    let%lwt bars = Version.bars version in
     Lwt.return (Printf.sprintf "%i %c" bars base)
 
 end

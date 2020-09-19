@@ -51,9 +51,9 @@ let apply_controller path =
   [ "/program/", ".pdf", Program.Pdf.get ;
     "/set/",     ".ly",  Set.Ly.get ;
     "/set/",     ".pdf", Set.Pdf.get ;
-    "/tune/",    ".ly",  Tune.get_ly ;
-    "/tune/",    ".svg", Tune.Svg.get ;
-    "/tune/",    ".pdf", Tune.Pdf.get ]
+    "/version/",    ".ly",  Version.get_ly ;
+    "/version/",    ".svg", Version.Svg.get ;
+    "/version/",    ".pdf", Version.Pdf.get ]
   |> List.map
     (fun (prefix, suffix, controller) ->
        remove_prefix_suffix prefix suffix path, controller)
