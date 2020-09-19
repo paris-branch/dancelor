@@ -8,6 +8,7 @@ let get_ly version _ =
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
 let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
+  Log.debug (fun m -> m "Preparing Lilypond file");
   let%lwt group = Version.group version in
   let%lwt name = Tune.name group in
   let%lwt author =
@@ -27,7 +28,9 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     else
       "", ""
   in
+  Log.debug (fun m -> m "Getting content");
   let%lwt content = Version.content version in
+  Log.debug (fun m -> m "Generating lilypond string");
   let lilypond =
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/lyversion.ly"];
@@ -41,6 +44,7 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     fpf fmt [%blob "template/version/header.ly"];
     fpf fmt [%blob "template/version.ly"] piece opus content
   in
+  Log.debug (fun m -> m "Writing it to filesystem");
   Lwt_io.with_file ~mode:Output fname
     (fun ochan -> Lwt_io.write ochan lilypond)
 
@@ -51,16 +55,20 @@ module Svg = struct
     Cache.use
       cache version
       (fun () ->
-         Log.debug (fun m -> m "Rendering the LilyPond lyversion");
+         Log.debug (fun m -> m "Rendering the LilyPond version");
          let%lwt (fname_ly, fname_svg) =
            let%lwt slug = Version.slug version in
            let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
            Lwt.return (fname^".ly", fname^".cropped.svg")
          in
+         Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
+         Log.debug (fun m -> m "SVG file name: %s" fname_svg);
          let path = Filename.concat !Dancelor_server_config.cache "version" in
+         Log.debug (fun m -> m "Preparing lilypond file");
          prepare_ly_file ~show_meta:false ~fname:(Filename.concat path fname_ly) version; %lwt
-         Log.debug (fun m -> m "Processing with LilyPond");
+         Log.debug (fun m -> m "Generate score and crop");
          LilyPond.cropped_svg ~exec_path:path fname_ly; %lwt
+         Log.debug (fun m -> m "done!");
          Lwt.return (Filename.concat path fname_svg))
 
   let get version _ =
