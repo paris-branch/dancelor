@@ -8,7 +8,7 @@ let js = Js.string
 type cached_version = {
   slug : string;
   version : Version.t;
-  group : Tune.t
+  tune : Tune.t
 }
 
 type t = {
@@ -40,17 +40,17 @@ let kind t =
 let set_kind t kind =
   t.kind <- kind
 
-let deviser t = 
+let deviser t =
   match t.deviser with
   | None -> None
   | Some (_, cr) -> Some cr
 
-let set_deviser t slug = 
+let set_deviser t slug =
   let%lwt deviser = Credit.get slug in
   t.deviser <- Some (slug, deviser);
   Lwt.return ()
 
-let remove_deviser t = 
+let remove_deviser t =
   t.deviser <- None
 
 let count t =
@@ -67,8 +67,8 @@ let insert t slug i =
   done;
   t.count <- t.count + 1;
   let%lwt version = Version.get slug in
-  let%lwt group = Version.group version in
-  t.versions.(min t.count i) <- Some {version; group; slug};
+  let%lwt tune = Version.tune version in
+  t.versions.(min t.count i) <- Some {version; tune; slug};
   Lwt.return ()
 
 let add t slug =
@@ -162,7 +162,7 @@ let load t =
           String.split_on_char ';' (Js.to_string versions)
           |> List.filter (fun s -> s <> " " && s <> "")
           |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
-      >>= (fun () -> 
+      >>= (fun () ->
       Js.Opt.case deviser (fun () -> Lwt.return ())
         (fun deviser -> set_deviser t (Js.to_string deviser))))
 

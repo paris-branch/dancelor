@@ -26,7 +26,7 @@ let warnings s =
          let%lwt version_bars = Version.bars version in
          if version_bars <> bars then
            add_warning (WrongVersionBars version);
-         let%lwt tune = Version.group version in
+         let%lwt tune = Version.tune version in
          let%lwt version_kind = Tune.kind tune in
          if version_kind <> kind then
            add_warning (WrongVersionKind tune);
@@ -34,7 +34,7 @@ let warnings s =
       versions
   in
   (* Check that there are no duplicates. *)
-  let%lwt tunes = Lwt_list.map_s Version.group versions in
+  let%lwt tunes = Lwt_list.map_s Version.tune versions in
   let tunes = List.sort compare tunes in
   (match tunes with
    | [] -> add_warning Empty

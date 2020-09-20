@@ -9,10 +9,10 @@ let get_ly version _ =
 
 let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
-  let%lwt group = Version.group version in
-  let%lwt name = Tune.name group in
+  let%lwt tune = Version.tune version in
+  let%lwt name = Tune.name tune in
   let%lwt author =
-    match%lwt Tune.author group with
+    match%lwt Tune.author tune with
       | None -> Lwt.return ""
       | Some author -> Credit.line author
   in

@@ -3,7 +3,7 @@ open Dancelor_client_model
 type cached_version = {
   slug : string;
   version : Version.t;
-  group : Tune.t
+  tune : Tune.t
 }
 
 type t

@@ -72,13 +72,13 @@ let update_table t =
         Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
       in
       let cells =
-        let group = Version.group version in
+        let tune = Version.tune version in
         let open Lwt in [
-        Table.Cell.link ~href ~text:(group >>= Tune.name) t.page;
-        Table.Cell.text ~text:(group >>= Formatters.Kind.full_string version) t.page;
+        Table.Cell.link ~href ~text:(tune >>= Tune.name) t.page;
+        Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) t.page;
         Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;
         Table.Cell.text ~text:(Version.structure version) t.page;
-        Table.Cell.text ~text:(group >>= Tune.author >>= Formatters.Credit.line) t.page]
+        Table.Cell.text ~text:(tune >>= Tune.author >>= Formatters.Credit.line) t.page]
       in
       Table.Row.create ~href ~cells t.page) versions)
   in

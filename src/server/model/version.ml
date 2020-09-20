@@ -1,7 +1,7 @@
 open Nes
 include Dancelor_common_model.Version
 
-let group = group >=>| Tune.get
+let tune = tune >=>| Tune.get
 let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
 let sources = sources >=>| Lwt_list.map_s Source.get
 
@@ -20,48 +20,48 @@ let () =
 (* FIXME: merge apply_filter and apply_filter_on_scores *)
 
 let apply_filter filter all =
-  let%lwt f_group = VersionFilter.group filter in
-  let%lwt f_group_author = VersionFilter.group_author filter in
-  let%lwt f_group_kind = VersionFilter.group_kind filter in
+  let%lwt f_tune = VersionFilter.tune filter in
+  let%lwt f_tune_author = VersionFilter.tune_author filter in
+  let%lwt f_tune_kind = VersionFilter.tune_kind filter in
   let%lwt f_key = VersionFilter.key filter in
   let%lwt f_bars = VersionFilter.bars filter in
   Lwt_list.filter_s
     (fun version ->
-       let%lwt group = group version in
-       let%lwt group_slug = Tune.slug group in
-       let%lwt group_author = Tune.author group in
-       let%lwt group_kind = Tune.kind group in
+       let%lwt tune = tune version in
+       let%lwt tune_slug = Tune.slug tune in
+       let%lwt tune_author = Tune.author tune in
+       let%lwt tune_kind = Tune.kind tune in
        let%lwt key = key version in
        let%lwt bars = bars version in
        Lwt.return
          (
-           (f_group = [] || List.mem group_slug f_group)
-           && (f_group_author = [] || (match group_author with None -> true | Some group_author -> List.mem group_author f_group_author))
-           && (f_group_kind = [] || List.mem group_kind f_group_kind)
+           (f_tune = [] || List.mem tune_slug f_tune)
+           && (f_tune_author = [] || (match tune_author with None -> true | Some tune_author -> List.mem tune_author f_tune_author))
+           && (f_tune_kind = [] || List.mem tune_kind f_tune_kind)
            && (f_key = [] || List.mem key f_key)
            && (f_bars = [] || List.mem bars f_bars)
          ))
     all
 
 let apply_filter_on_scores filter all =
-  let%lwt f_group = VersionFilter.group filter in
-  let%lwt f_group_author = VersionFilter.group_author filter in
-  let%lwt f_group_kind = VersionFilter.group_kind filter in
+  let%lwt f_tune = VersionFilter.tune filter in
+  let%lwt f_tune_author = VersionFilter.tune_author filter in
+  let%lwt f_tune_kind = VersionFilter.tune_kind filter in
   let%lwt f_key = VersionFilter.key filter in
   let%lwt f_bars = VersionFilter.bars filter in
   Score.list_filter (* FIXME: this is literally the only difference between this function and the previous one *)
     (fun version ->
-       let%lwt group = group version in
-       let%lwt group_slug = Tune.slug group in
-       let%lwt group_author = Tune.author group in
-       let%lwt group_kind = Tune.kind group in
+       let%lwt tune = tune version in
+       let%lwt tune_slug = Tune.slug tune in
+       let%lwt tune_author = Tune.author tune in
+       let%lwt tune_kind = Tune.kind tune in
        let%lwt key = key version in
        let%lwt bars = bars version in
        Lwt.return
          (
-           (f_group = [] || List.mem group_slug f_group)
-           && (f_group_author = [] || (match group_author with None -> true | Some group_author -> List.mem group_author f_group_author))
-           && (f_group_kind = [] || List.mem group_kind f_group_kind)
+           (f_tune = [] || List.mem tune_slug f_tune)
+           && (f_tune_author = [] || (match tune_author with None -> true | Some tune_author -> List.mem tune_author f_tune_author))
+           && (f_tune_kind = [] || List.mem tune_kind f_tune_kind)
            && (f_key = [] || List.mem key f_key)
            && (f_bars = [] || List.mem bars f_bars)
          ))
@@ -143,12 +143,12 @@ let score_list_vs_list words needles =
   end
 
 let score ~kinds ~authors ~keys words version =
-  let%lwt group = group version in
+  let%lwt tune = tune version in
   let%lwt key = key version in
-  let%lwt kind = Tune.kind group in
-  let%lwt name = Tune.name group in
-  let%lwt alt_names = Tune.alt_names group in
-  let%lwt credit = Tune.author group in
+  let%lwt kind = Tune.kind tune in
+  let%lwt name = Tune.name tune in
+  let%lwt alt_names = Tune.alt_names tune in
+  let%lwt credit = Tune.author tune in
   let%lwt credit_words =
     match credit with
     | None -> Lwt.return []
@@ -174,7 +174,7 @@ let search ?filter ?pagination ?(threshold=0.) string =
   >>=| Score.lwt_map_from_list (score ~kinds ~authors ~keys words)
   >>=| Option.unwrap_map_or Lwt.return apply_filter_on_scores filter
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:(group >=>| Tune.name) String.sensible_compare
+  >>=| Score.list_proj_sort_decreasing ~proj:(tune >=>| Tune.name) String.sensible_compare
   >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
 
 let () =

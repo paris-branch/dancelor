@@ -7,7 +7,7 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   page : Page.t;
   document : Html.document Js.t;
@@ -20,14 +20,14 @@ let make_version_search_result page score =
   let score = score.Score.score in
   let%lwt slug = Version.slug version in
   let%lwt bars = Version.bars version in
-  let%lwt group = Version.group version in
-  let%lwt kind = Tune.kind group in
+  let%lwt tune = Version.tune version in
+  let%lwt kind = Tune.kind tune in
   let href = Lwt.return (Router.path_of_controller (Router.Version slug) |> snd) in
   let row = Table.Row.create
     ~href
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~text:(Tune.name group) page;
+      Table.Cell.text ~text:(Tune.name tune) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
       Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) page;
       Table.Cell.text ~text:(Version.structure version) page]
@@ -44,7 +44,7 @@ let make_set_search_result page score =
     |> Lwt.return
   in
   let score = string_of_int (int_of_float (score *. 100.)) in
-  let cells = 
+  let cells =
     let open Lwt in [
     Table.Cell.text ~text:(Lwt.return score) page;
     Table.Cell.text ~text:(Set.name set) page;
@@ -89,12 +89,12 @@ let make_person_search_result page score =
   in
   Lwt.return row
 
-let create page = 
+let create page =
   let document = Html.window##.document in
   let content = Html.createDiv document in
-  let search_versions = 
+  let search_versions =
     SearchBar.Section.create
-      ~search:(fun input -> 
+      ~search:(fun input ->
         Version.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 4} input)
       ~make_result:(fun score -> make_version_search_result page score)
       ~header:(Table.Row.create
@@ -102,9 +102,9 @@ let create page =
         page)
       page
   in
-  let search_sets = 
+  let search_sets =
     SearchBar.Section.create
-      ~search:(fun input -> 
+      ~search:(fun input ->
         Set.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
       ~make_result:(fun score -> make_set_search_result page score)
       ~header:(Table.Row.create
@@ -112,9 +112,9 @@ let create page =
         page)
       page
   in
-  let search_credits = 
+  let search_credits =
     SearchBar.Section.create
-      ~search:(fun input -> 
+      ~search:(fun input ->
         Credit.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
       ~make_result:(fun score -> make_credit_search_result page score)
       ~header:(Table.Row.create
@@ -122,9 +122,9 @@ let create page =
         page)
       page
   in
-  let search_persons = 
+  let search_persons =
     SearchBar.Section.create
-      ~search:(fun input -> 
+      ~search:(fun input ->
         Person.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
       ~make_result:(fun score -> make_person_search_result page score)
       ~header:(Table.Row.create
@@ -132,12 +132,12 @@ let create page =
         page)
       page
   in
-  let search = 
-    SearchBar.create 
-      ~placeholder:"Search for anything (it's magic!)" 
+  let search =
+    SearchBar.create
+      ~placeholder:"Search for anything (it's magic!)"
       ~sections:[search_versions; search_sets; search_credits; search_persons]
       ~hide_sections:true
-      page 
+      page
   in
   Dom.appendChild content (SearchBar.root search);
   {page; document; content; search}
@@ -145,7 +145,7 @@ let create page =
 let contents t =
   t.content
 
-let refresh t = 
+let refresh t =
   ignore t
 
 let init t =

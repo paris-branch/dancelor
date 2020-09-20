@@ -72,8 +72,8 @@ let create slug page =
   (* Copied from VersionExplorer. Should be factorised. *)
   let rows =
     let%lwt filter =
-      let%lwt group = tune in
-      VersionFilter.make ~group:[group] ()
+      let%lwt tune = tune in
+      VersionFilter.make ~tune:[tune] ()
     in
     let%lwt versions = Version.all ~filter () in
     Lwt.return (List.map (fun version ->
@@ -82,9 +82,9 @@ let create slug page =
           Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
         in
         let cells =
-          let group = Version.group version in
+          let tune = Version.tune version in
           let open Lwt in [
-            Table.Cell.text ~text:(group >>= Formatters.Kind.full_string version) page;
+            Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
             Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
             Table.Cell.text ~text:(Version.structure version) page;
           ]

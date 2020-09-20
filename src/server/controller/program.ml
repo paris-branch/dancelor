@@ -46,10 +46,10 @@ module Ly = struct
                Lwt_list.iter_s
                  (fun version ->
                     let%lwt content = Version.content version in
-                    let%lwt group = Version.group version in
-                    let%lwt name = Tune.name group in
+                    let%lwt tune = Version.tune version in
+                    let%lwt name = Tune.name tune in
                     let%lwt author =
-                      match%lwt Tune.author group with
+                      match%lwt Tune.author tune with
                       | None -> Lwt.return ""
                       | Some author -> Credit.line author
                     in

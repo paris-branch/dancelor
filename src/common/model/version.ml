@@ -4,7 +4,7 @@ module Self = struct
   type t =
     { slug : t Slug.t ;
       status : Status.t                 [@default Status.bot] ;
-      group : Tune.t Slug.t        [@key "tune"];
+      tune : Tune.t Slug.t              [@key "tune"];
       bars : int ;
       key : Music.key ;
       structure : string ;
@@ -20,7 +20,7 @@ include Self
 
 let slug t = Lwt.return t.slug
 let status t = Lwt.return t.status
-let group t = Lwt.return t.group
+let tune t = Lwt.return t.tune
 let bars t = Lwt.return t.bars
 let key t = Lwt.return t.key
 let structure t = Lwt.return t.structure
@@ -34,7 +34,7 @@ module type S = sig
 
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Status.t Lwt.t
-  val group : t -> Tune.t Lwt.t
+  val tune : t -> Tune.t Lwt.t
   val bars : t -> int Lwt.t
   val key : t -> Music.key Lwt.t
   val structure : t -> string Lwt.t

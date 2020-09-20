@@ -40,7 +40,7 @@ module Version = Table.Make (
     include Model.Version
 
     let dependencies version =
-      let%lwt tune = group version in
+      let%lwt tune = tune version in
       let%lwt arranger = arranger version in
       let%lwt sources = sources version in
       List.map (Table.make_slug_and_table (module Source)) sources

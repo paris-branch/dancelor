@@ -17,13 +17,13 @@ type t =
 let display_versions t versions =
   t.versions##.textContent := Js.null;
   List.iter (fun version ->
-    let group = Version.group version in
+    let tune = Version.tune version in
     let slug = Version.slug version in
     let href =
       let%lwt slug = slug in
       Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
     in
-    let name = Lwt.bind group Tune.name in
+    let name = Lwt.bind tune Tune.name in
     let title = Text.Link.create ~href ~text:name t.page in
     let source =
       Lwt.map (fun slug ->

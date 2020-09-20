@@ -1,7 +1,7 @@
 open Nes
 include Dancelor_common_model.Version
 
-let group = group >=>| Tune.get
+let tune = tune >=>| Tune.get
 let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
 let sources = sources >=>| Lwt_list.map_p Source.get
 

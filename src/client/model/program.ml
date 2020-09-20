@@ -24,7 +24,7 @@ let warnings p =
   (* Check that there are no duplicate versions. *)
   let%lwt versions = Lwt_list.map_s Set.versions sets in
   let versions = List.flatten versions in
-  let%lwt tunes = Lwt_list.map_s Version.group versions in
+  let%lwt tunes = Lwt_list.map_s Version.tune versions in
   let tunes = List.sort Stdlib.compare tunes in
   (match tunes with
    | [] -> ()

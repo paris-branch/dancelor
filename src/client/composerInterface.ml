@@ -24,7 +24,7 @@ let make_version_subwindow t index version =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3 ~text:(Tune.name version.Composer.group) t.page in
+  let title = Text.Heading.h3 ~text:(Tune.name version.Composer.tune) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
@@ -96,9 +96,9 @@ let make_version_search_result composer page score =
   let%lwt slug = Version.slug version in
   let%lwt bars = Version.bars version in
   let%lwt structure = Version.structure version in
-  let%lwt group = Version.group version in
-  let%lwt name = Tune.name group in
-  let%lwt kind = Tune.kind group in
+  let%lwt tune = Version.tune version in
+  let%lwt name = Tune.name tune in
+  let%lwt kind = Tune.kind tune in
   let row = Table.Row.create
     ~on_click:(fun () ->
       Lwt.on_success (Composer.add composer slug) (fun () -> Page.refresh page; Composer.save composer))

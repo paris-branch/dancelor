@@ -17,7 +17,7 @@ let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let version = Version.get slug in
-  let tune = Lwt.bind version Version.group in
+  let tune = Lwt.bind version Version.tune in
 
   (* title *)
   let () =
