@@ -98,6 +98,7 @@ let make_version_search_result composer page score =
   let%lwt structure = Version.structure version in
   let%lwt tune = Version.tune version in
   let%lwt name = Tune.name tune in
+  let%lwt disambiguation = Version.disambiguation version in
   let%lwt kind = Tune.kind tune in
   let row = Table.Row.create
     ~on_click:(fun () ->
@@ -105,6 +106,7 @@ let make_version_search_result composer page score =
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
       Table.Cell.text ~text:(Lwt.return name) page;
+      Table.Cell.text ~text:(Lwt.return disambiguation) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
       Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) page;
       Table.Cell.text ~text:(Lwt.return structure) page]
@@ -153,7 +155,7 @@ let make_deviser_search_result composer page score =
 let create page =
   let composer = Composer.create () in
   let content = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h1 ~text:(Lwt.return "Compose a Set") page in
+  let title = Text.Heading.h2 ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
     ~default:"Set Name"

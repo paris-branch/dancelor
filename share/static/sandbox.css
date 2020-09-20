@@ -78,6 +78,7 @@ button.disabled {
   margin: auto;
   font-size: 1.2rem;
   padding: 7pt 0 7pt 10pt;
+  text-align: left;
 }
 
 .toolbar ul {

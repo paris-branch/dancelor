@@ -60,6 +60,8 @@ let create slug page =
   let header =
     Table.Row.create
       ~cells:[
+        Table.Cell.header_text ~text:(Lwt.return "Disambiguation") page;
+        Table.Cell.header_text ~text:(Lwt.return "Arranger") page;
         Table.Cell.header_text ~text:(Lwt.return "Kind") page;
         Table.Cell.header_text ~text:(Lwt.return "Key") page;
         Table.Cell.header_text ~text:(Lwt.return "Structure") page
@@ -84,6 +86,8 @@ let create slug page =
         let cells =
           let tune = Version.tune version in
           let open Lwt in [
+            Table.Cell.text ~text:(Version.disambiguation version) page;
+            Table.Cell.text ~text:(Version.arranger version >>= Formatters.Credit.line) page;
             Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
             Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
             Table.Cell.text ~text:(Version.structure version) page;

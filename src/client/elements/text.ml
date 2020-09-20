@@ -13,23 +13,18 @@ module Heading = struct
     root : root Js.t;
   }
 
-  let h1 ~text page =
-    let h1 = Html.createH1 (Page.document page) in
-    h1##.textContent := Js.some (js "Loading...");
-    Lwt.on_success text (fun text -> h1##.textContent := Js.some (js text));
-    {page; root = h1}
+  let h create ~text page =
+    let h = create (Page.document page) in
+    h##.textContent := Js.some (js "Loading...");
+    Lwt.on_success text (fun text -> h##.textContent := Js.some (js text));
+    {page; root = h}
 
-  let h2 ~text page =
-    let h2 = Html.createH2 (Page.document page) in
-    h2##.textContent := Js.some (js "Loading...");
-    Lwt.on_success text (fun text -> h2##.textContent := Js.some (js text));
-    {page; root = h2}
-
-  let h3 ~text page =
-    let h3 = Html.createH3 (Page.document page) in
-    h3##.textContent := Js.some (js "Loading...");
-    Lwt.on_success text (fun text -> h3##.textContent := Js.some (js text));
-    {page; root = h3}
+  let h1 = h Html.createH1
+  let h2 = h Html.createH2
+  let h3 = h Html.createH3
+  let h4 = h Html.createH4
+  let h5 = h Html.createH5
+  let h6 = h Html.createH6
 
   let root t =
     t.root
