@@ -17,6 +17,8 @@ let status c = Lwt.return c.status
 let line c = Lwt.return c.line
 let persons c = Lwt.return c.persons
 
+let is_trad c = c.slug = "trad"
+
 module type S = sig
   type nonrec t = t
 
@@ -24,6 +26,8 @@ module type S = sig
   val status : t -> Status.t Lwt.t
   val line : t -> string Lwt.t
   val persons : t -> Person.t list Lwt.t
+
+  val is_trad : t -> bool
 
   (** {2 Getters and setters} *)
 

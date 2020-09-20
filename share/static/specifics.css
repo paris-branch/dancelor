@@ -81,3 +81,8 @@ tbody tr:hover, tbody tr:focus {
 a {
   color: #960010;
 }
+
+h2, h3 { text-align: center; margin-bottom: 0.5rem; }
+h2 { font-size: 2.0rem; font-weight: bold; }
+h3 { font-size: 1.2rem; }
+

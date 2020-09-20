@@ -17,40 +17,74 @@ let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let version = Version.get slug in
-  let group = Lwt.bind version Version.group in
-  let title = Text.Heading.h1 ~text:(Lwt.bind group Tune.name) page in
-  Dom.appendChild content (Text.Heading.root title);
-  let aka_text, kind_text, author_text, arranger_text, structure_text, key_text, disambiguation_text =
+  let tune = Lwt.bind version Version.group in
+
+  (* title *)
+  let () =
+    let title = Text.Heading.h2 ~text:(Lwt.bind tune Tune.name) page in
+    Dom.appendChild content (Text.Heading.root title)
+  in
+
+  (* aka *)
+  let () =
+    let aka_text =
+      match%lwt Lwt.bind tune Tune.alt_names with
+      | [] -> Lwt.return ""
+      | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return
+    in
+    let aka = Text.Heading.h3 ~text:aka_text page in
+    Dom.appendChild content (Text.Heading.root aka)
+  in
+
+  (* kind and author *)
+  let () =
     let open Lwt in
-    (match%lwt group >>= Tune.alt_names with
-     | [] -> Lwt.return ""
-     | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return),
-    (version >>= fun version ->
-     group >>= Formatters.Kind.full_string version >|= Printf.sprintf "Kind: %s"),
-    (group >>= Tune.author >>= Formatters.Credit.line >|= Printf.sprintf "Author: %s"),
-    (match%lwt version >>= Version.arranger with
-     | None -> Lwt.return ""
-     | Some arranger -> Formatters.Credit.line (Some arranger) >|= Printf.sprintf "Arranger: %s"),
-    (version >>= Version.structure >|= Printf.sprintf "Structure: %s"),
-    (version >>= Version.key >|= Music.key_to_pretty_string >|= Printf.sprintf "Key: %s"),
-    (version >>= Version.disambiguation >|= Printf.sprintf "Disambiguation: %s")
+    let kind_by_author_text =
+      let%lwt kind = tune >>= Tune.kind in
+      let kind = Kind.base_to_string kind in
+      let%lwt author = tune >>= Tune.author in
+      match author with
+      | None ->
+        Lwt.return (String.capitalize_ascii kind)
+      | Some author when Credit.is_trad author ->
+        Lwt.return ("Traditional " ^ kind)
+      | Some author ->
+        let%lwt line = Credit.line author in
+        Lwt.return (String.capitalize_ascii kind ^ " by " ^ line)
+    in
+    let kind_by_author = Text.Heading.h3 ~text:kind_by_author_text page in
+    Dom.appendChild content (Text.Heading.root kind_by_author)
   in
-  let aka, kind, author, arranger, structure, key, disambiguation =
-    Text.Paragraph.create ~placeholder:"Also known as:" ~text:aka_text page,
-    Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page,
-    Text.Paragraph.create ~placeholder:"Author: " ~text:author_text page,
-    Text.Paragraph.create ~placeholder:"Arranger: " ~text:arranger_text page,
-    Text.Paragraph.create ~placeholder:"Structure:" ~text:structure_text page,
-    Text.Paragraph.create ~placeholder:"Key:" ~text:key_text page,
-    Text.Paragraph.create ~placeholder:"Disambiguation:" ~text:disambiguation_text page
+
+  (* version details *)
+  let () =
+    let open Lwt in
+    let version_details_text =
+      let%lwt bars = version >>= Version.bars in
+      let%lwt structure = version >>= Version.structure in
+      let%lwt key = version >>= Version.key in
+      let%lwt arranger =
+        match%lwt version >>= Version.arranger with
+        | None -> Lwt.return ""
+        | Some arranger ->
+          Formatters.Credit.line (Some arranger)
+          >|= Format.sprintf " arranged by %s"
+      in
+      let%lwt disambiguation =
+        match%lwt version >>= Version.disambiguation with
+        | "" -> Lwt.return ""
+        | disambiguation ->
+          Format.sprintf " (%s)" disambiguation
+          |> Lwt.return
+      in
+      Format.sprintf "%d-bar %s version in %s%s%s"
+        bars structure (Music.key_to_pretty_string key) arranger disambiguation
+    |> Lwt.return
+    in
+    let version_details = Text.Heading.h3 ~text:version_details_text page in
+    Dom.appendChild content (Text.Heading.root version_details)
   in
-  Dom.appendChild content (Text.Paragraph.root aka);
-  Dom.appendChild content (Text.Paragraph.root kind);
-  Dom.appendChild content (Text.Paragraph.root author);
-  Dom.appendChild content (Text.Paragraph.root arranger);
-  Dom.appendChild content (Text.Paragraph.root structure);
-  Dom.appendChild content (Text.Paragraph.root key);
-  Dom.appendChild content (Text.Paragraph.root disambiguation);
+
   let pdf_href, ly_href =
     Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
     Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
@@ -64,7 +98,7 @@ let create slug page =
   Dom.appendChild content (Html.createHr document);
 
   let href =
-    let%lwt slug = Lwt.bind group Tune.slug in
+    let%lwt slug = Lwt.bind tune Tune.slug in
     Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
   in
   let title = Text.Link.create ~href ~text:(Lwt.return "See all versions") page in
