@@ -20,7 +20,7 @@ let create slug page =
   let group = Lwt.bind version Version.group in
   let title = Text.Heading.h1 ~text:(Lwt.bind group Tune.name) page in
   Dom.appendChild content (Text.Heading.root title);
-  let aka_text, kind_text, author_text, structure_text, key_text =
+  let aka_text, kind_text, author_text, arranger_text, structure_text, key_text, disambiguation_text =
     let open Lwt in
     (match%lwt group >>= Tune.alt_names with
      | [] -> Lwt.return ""
@@ -28,21 +28,29 @@ let create slug page =
     (version >>= fun version ->
      group >>= Formatters.Kind.full_string version >|= Printf.sprintf "Kind: %s"),
     (group >>= Tune.author >>= Formatters.Credit.line >|= Printf.sprintf "Author: %s"),
+    (match%lwt version >>= Version.arranger with
+     | None -> Lwt.return ""
+     | Some arranger -> Formatters.Credit.line (Some arranger) >|= Printf.sprintf "Arranger: %s"),
     (version >>= Version.structure >|= Printf.sprintf "Structure: %s"),
-    (version >>= Version.key >|= Music.key_to_pretty_string >|= Printf.sprintf "Key: %s")
+    (version >>= Version.key >|= Music.key_to_pretty_string >|= Printf.sprintf "Key: %s"),
+    (version >>= Version.disambiguation >|= Printf.sprintf "Disambiguation: %s")
   in
-  let aka, kind, author, structure, key =
+  let aka, kind, author, arranger, structure, key, disambiguation =
     Text.Paragraph.create ~placeholder:"Also known as:" ~text:aka_text page,
     Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page,
     Text.Paragraph.create ~placeholder:"Author: " ~text:author_text page,
+    Text.Paragraph.create ~placeholder:"Arranger: " ~text:arranger_text page,
     Text.Paragraph.create ~placeholder:"Structure:" ~text:structure_text page,
-    Text.Paragraph.create ~placeholder:"Key:" ~text:key_text page
+    Text.Paragraph.create ~placeholder:"Key:" ~text:key_text page,
+    Text.Paragraph.create ~placeholder:"Disambiguation:" ~text:disambiguation_text page
   in
   Dom.appendChild content (Text.Paragraph.root aka);
   Dom.appendChild content (Text.Paragraph.root kind);
   Dom.appendChild content (Text.Paragraph.root author);
+  Dom.appendChild content (Text.Paragraph.root arranger);
   Dom.appendChild content (Text.Paragraph.root structure);
   Dom.appendChild content (Text.Paragraph.root key);
+  Dom.appendChild content (Text.Paragraph.root disambiguation);
   let pdf_href, ly_href =
     Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
     Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()

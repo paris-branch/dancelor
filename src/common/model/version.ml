@@ -60,7 +60,7 @@ module type S = sig
     t Score.t list Lwt.t
 
   val count :
-    ?filter:VersionFilter.t -> 
+    ?filter:VersionFilter.t ->
     unit -> int Lwt.t
 end
 
