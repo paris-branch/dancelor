@@ -27,7 +27,14 @@ let make_version_search_result page score =
     ~href
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~text:(Tune.name tune) page;
+      Table.Cell.text ~text:(
+        let%lwt name = Tune.name tune in
+        let%lwt disambiguation =
+          match%lwt Version.disambiguation version with
+          | "" -> Lwt.return ""
+          | disambiguation -> Lwt.return (" (" ^ disambiguation ^ ")")
+        in
+        Lwt.return (name ^ disambiguation)) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
       Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) page;
       Table.Cell.text ~text:(Version.structure version) page]
