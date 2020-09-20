@@ -16,32 +16,45 @@ type t =
 let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let group = Tune.get slug in
-  let title = Text.Heading.h1 ~text:(Lwt.bind group Tune.name) page in
-  Dom.appendChild content (Text.Heading.root title);
-  let aka_text, kind_text, author_text =
-    let open Lwt in
-    (match%lwt group >>= Tune.alt_names with
-     | [] -> Lwt.return ""
-     | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return),
-    (let%lwt kind = group >>= Tune.kind in
-     Lwt.return ("Kind: " ^ Kind.base_to_string kind)),
-    (group >>= Tune.author >>= Formatters.Credit.line >|= Printf.sprintf "Author: %s")
-  in
-  let aka, kind, author =
-    Text.Paragraph.create ~placeholder:"Also known as:" ~text:aka_text page,
-    Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page,
-    Text.Paragraph.create ~placeholder:"Author: " ~text:author_text page
-  in
-  Dom.appendChild content (Text.Paragraph.root aka);
-  Dom.appendChild content (Text.Paragraph.root kind);
-  Dom.appendChild content (Text.Paragraph.root author);
-  Dom.appendChild content (Html.createHr document);
+  let tune = Tune.get slug in
 
-  let lyversions =
-    Text.Paragraph.create ~text:(Lwt.return "Versions:") page
+  let () =
+    let title = Text.Heading.h2 ~text:(Lwt.bind tune Tune.name) page in
+    Dom.appendChild content (Text.Heading.root title)
   in
-  Dom.appendChild content (Text.Paragraph.root lyversions);
+
+  (* aka *)
+  let () =
+    let aka_text =
+      match%lwt Lwt.bind tune Tune.alt_names with
+      | [] -> Lwt.return ""
+      | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return
+    in
+    let aka = Text.Heading.h3 ~text:aka_text page in
+    Dom.appendChild content (Text.Heading.root aka)
+  in
+
+  (* kind and author *)
+  let () =
+    let open Lwt in
+    let kind_by_author_text =
+      let%lwt kind = tune >>= Tune.kind in
+      let kind = Kind.base_to_string kind in
+      let%lwt author = tune >>= Tune.author in
+      match author with
+      | None ->
+        Lwt.return (String.capitalize_ascii kind)
+      | Some author when Credit.is_trad author ->
+        Lwt.return ("Traditional " ^ kind)
+      | Some author ->
+        let%lwt line = Credit.line author in
+        Lwt.return (String.capitalize_ascii kind ^ " by " ^ line)
+    in
+    let kind_by_author = Text.Heading.h3 ~text:kind_by_author_text page in
+    Dom.appendChild content (Text.Heading.root kind_by_author)
+  in
+
+  Dom.appendChild content (Html.createHr document);
 
   (* Copied from VersionExplorer. Should be factorised. *)
   let header =
@@ -59,7 +72,7 @@ let create slug page =
   (* Copied from VersionExplorer. Should be factorised. *)
   let rows =
     let%lwt filter =
-      let%lwt group = group in
+      let%lwt group = tune in
       VersionFilter.make ~group:[group] ()
     in
     let%lwt versions = Version.all ~filter () in
