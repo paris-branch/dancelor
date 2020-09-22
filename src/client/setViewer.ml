@@ -59,7 +59,11 @@ let create slug page =
 
   let () =
     let open Lwt in
-    let text = set >>= Set.deviser >>= Formatters.Credit.line >|= Printf.sprintf "Set devised by %s" in
+    let text =
+      match%lwt set >>= Set.deviser with
+      | None -> Lwt.return ""
+      | Some deviser -> Formatters.Credit.line (Some deviser) >|= Printf.sprintf "Set devised by %s"
+    in
     Text.Heading.h3 ~text page
     |> Text.Heading.root
     |> Dom.appendChild content
