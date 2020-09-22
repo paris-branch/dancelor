@@ -16,17 +16,6 @@ let base_to_char = function
   | Strathspey -> 'S'
   | Waltz -> 'W'
 
-let base_to_string = function
-  | Jig -> "jig"
-  | Polka -> "polka"
-  | Reel -> "reel"
-  | Strathspey -> "strathspey"
-  | Waltz -> "waltz"
-
-let pprint_base b =
-  base_to_string b
-  |> String.capitalize_ascii
-
 let base_of_char c =
   match Char.uppercase_ascii c with
   | 'J' -> Jig
@@ -48,6 +37,17 @@ let base_of_yojson = function
     (try Ok (base_of_string s)
      with _ -> Error "Dancelor_commn_model.Kind.base_of_yojson: not a valid base kind")
   | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
+
+let base_to_pretty_string ?(capitalised=false) base =
+  (
+    match base with
+    | Jig -> "jig"
+    | Polka -> "polka"
+    | Reel -> "reel"
+    | Strathspey -> "strathspey"
+    | Waltz -> "waltz"
+  )
+  |> if capitalised then String.capitalize_ascii else Fun.id
 
 (* ============================= [ Version Kind ] ============================== *)
 
@@ -89,6 +89,9 @@ let version_of_yojson = function
      with _ -> Error "Dancelor_commn_model.Kind.version_of_yojson: not a valid version kind")
   | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
+let version_to_pretty_string (repeats, base) =
+  spf "%d %s" repeats (base_to_pretty_string ~capitalised:true base)
+
 (* ============================= [ Dance Kind ] ============================= *)
 
 type dance =
@@ -97,7 +100,7 @@ type dance =
 let dance_to_string (repeats, versions) =
   List.map version_to_string versions
   |> String.concat " + "
-  |> (if List.length versions = 1 then id else spf "(%s)")
+  |> (if repeats = 1 || List.length versions = 1 then id else spf "(%s)")
   |> (if repeats = 1 then id else spf "%dx%s" repeats)
 
 let dance_of_string s =
@@ -135,6 +138,13 @@ let dance_of_yojson = function
     (try Ok (dance_of_string s)
      with _ -> Error "Dancelor_commn_model.Kind.dance_of_yojson: not a valid dance kind")
   | _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a JSON string"
+
+let dance_to_pretty_string (repeats, versions) =
+  versions
+  |> List.map version_to_pretty_string
+  |> String.concat " + "
+  |> (if repeats = 1 || List.length versions = 1 then Fun.id else spf "(%s)")
+  |> (if repeats = 1 then Fun.id else spf "%d x %s" repeats)
 
 module Dance = struct
   type t = dance

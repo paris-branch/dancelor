@@ -59,8 +59,8 @@ let lengths = [
   48;
   64]
 
-let update_table t = 
-  let rows = 
+let update_table t =
+  let rows =
     let%lwt versions =
       let%lwt filter = t.search in
       let pagination = PageNav.pagination t.page_nav in
@@ -87,12 +87,12 @@ let update_table t =
   let section = Table.Section.create ~rows t.page in
   Table.replace_bodies t.table (Lwt.return [section])
 
-let update_filter t upd = 
+let update_filter t upd =
   t.search <- Lwt.bind t.search upd;
   Lwt.on_success t.search (fun filter ->
     Lwt.on_success (Version.count ~filter ()) (PageNav.set_entries t.page_nav))
 
-let fill_search t = 
+let fill_search t =
   let document = Page.document t.page in
   let key_section_header = Html.createB document in
   key_section_header##.textContent := Js.some (js "Filter by key:");
@@ -131,7 +131,7 @@ let fill_search t =
   Dom.appendChild t.search_div kind_section_header;
   let kinds_div = Html.createDiv document in
   List.iter (fun kind ->
-    let text = Kind.pprint_base kind in
+    let text = Kind.base_to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
     let id = Printf.sprintf "button_%s" text in
     let on_change active =
       if active then update_filter t (VersionFilter.add_kind kind)
@@ -200,8 +200,8 @@ let create page =
 let contents t =
   t.content
 
-let refresh t = 
+let refresh t =
   ignore t
 
-let init t = 
+let init t =
   ignore t

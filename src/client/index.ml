@@ -36,7 +36,7 @@ let make_version_search_result page score =
         in
         Lwt.return (name ^ disambiguation)) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
-      Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) page;
+      Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
       Table.Cell.text ~text:(Version.structure version) page]
     page
   in

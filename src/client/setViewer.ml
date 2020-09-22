@@ -43,19 +43,28 @@ let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let set = Set.get slug in
-  let title = Text.Heading.h1 ~text:(Lwt.bind set Set.name) page in
-  Dom.appendChild content (Text.Heading.root title);
-  let deviser_text, kind_text =
+
+  let () =
+    let title = Text.Heading.h2 ~text:(Lwt.bind set Set.name) page in
+    Dom.appendChild content (Text.Heading.root title)
+  in
+
+  let () =
     let open Lwt in
-    (set >>= Set.deviser >>= Formatters.Credit.line >|= Printf.sprintf "Deviser: %s"),
-    (set >>= Set.kind >|= Kind.dance_to_string >|= Printf.sprintf "Kind: %s")
+    let text = set >>= Set.kind >|= Kind.dance_to_pretty_string in
+    Text.Heading.h3 ~text page
+    |> Text.Heading.root
+    |> Dom.appendChild content
   in
-  let deviser, kind =
-    Text.Paragraph.create ~placeholder:"Deviser:" ~text:deviser_text page,
-    Text.Paragraph.create ~placeholder:"Kind:" ~text:kind_text page
+
+  let () =
+    let open Lwt in
+    let text = set >>= Set.deviser >>= Formatters.Credit.line >|= Printf.sprintf "Set devised by %s" in
+    Text.Heading.h3 ~text page
+    |> Text.Heading.root
+    |> Dom.appendChild content
   in
-  Dom.appendChild content (Text.Paragraph.root deviser);
-  Dom.appendChild content (Text.Paragraph.root kind);
+
   let c_pdf_href, b_pdf_href, e_pdf_href, ly_href =
     Helpers.build_path ~api:true ~route:(Router.SetPdf slug) (),
     Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
@@ -74,9 +83,9 @@ let create slug page =
   Dom.appendChild content (Inputs.Button.root b_pdf);
   Dom.appendChild content (Inputs.Button.root e_pdf);
   Dom.appendChild content (Inputs.Button.root ly);
+
   Dom.appendChild content (Html.createHr document);
-  let prev_title = Text.Heading.h2 ~text:(Lwt.return "Previsualisation") page in
-  Dom.appendChild content (Text.Heading.root prev_title);
+
   let versions = Html.createUl (Page.document page) in
   versions##.textContent := Js.some (js "Loading versions...");
   Dom.appendChild content versions;

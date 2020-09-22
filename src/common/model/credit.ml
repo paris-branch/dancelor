@@ -17,7 +17,7 @@ let status c = Lwt.return c.status
 let line c = Lwt.return c.line
 let persons c = Lwt.return c.persons
 
-let is_trad c = c.slug = "trad"
+let is_trad c = c.slug = "traditional"
 
 module type S = sig
   type nonrec t = t

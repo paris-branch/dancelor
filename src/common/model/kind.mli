@@ -9,10 +9,11 @@ type base = Jig | Polka | Reel | Strathspey | Waltz
 val base_to_char : base -> char
 val base_of_char : char -> base
 
-val base_to_string : base -> string
 val base_of_string : string -> base
 
-val pprint_base : base -> string
+val base_to_pretty_string : ?capitalised:bool -> base -> string
+(** Pretty version. Capitalised if the corresponding boolean is set to true
+   (default: false). *)
 
 val base_to_yojson : base -> Json.t
 val base_of_yojson : Json.t -> (base, string) result
@@ -25,6 +26,9 @@ type version = int * base
 val version_to_string : version -> string
 val version_of_string : string -> version
 
+val version_to_pretty_string : version -> string
+(** Pretty version *)
+
 val version_to_yojson : version -> Json.t
 val version_of_yojson : Json.t -> (version, string) result
 
@@ -35,6 +39,9 @@ type dance = int * version list
 
 val dance_to_string : dance -> string
 val dance_of_string : string -> dance
+
+val dance_to_pretty_string : dance -> string
+(** Pretty version *)
 
 val check_dance : string -> bool
 

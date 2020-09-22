@@ -39,7 +39,7 @@ let create slug page =
     let open Lwt in
     let kind_by_author_text =
       let%lwt kind = tune >>= Tune.kind in
-      let kind = Kind.base_to_string kind in
+      let kind = Kind.base_to_pretty_string kind in
       let%lwt author = tune >>= Tune.author in
       match author with
       | None ->

@@ -108,7 +108,7 @@ let make_version_search_result composer page score =
       Table.Cell.text ~text:(Lwt.return name) page;
       Table.Cell.text ~text:(Lwt.return disambiguation) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
-      Table.Cell.text ~text:(Lwt.return (Kind.base_to_string kind)) page;
+      Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
       Table.Cell.text ~text:(Lwt.return structure) page]
     page
   in
