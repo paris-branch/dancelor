@@ -1,4 +1,5 @@
 open Nes open Option.Syntax
+module Log = (val Dancelor_server_logs.create "config" : Logs.LOG)
 
 let int = Json.int
 let string = Json.string
@@ -42,6 +43,7 @@ let sync_storage = ref true
 let write_storage = ref true
 
 let load_from_file filename =
+  Log.debug (fun m -> m "Reading configuration from file %s" filename);
   let config =
     try
       let ichan = open_in filename in
@@ -52,7 +54,9 @@ let load_from_file filename =
       close_in ichan;
       config
     with
-      exn -> raise exn
+      Sys_error _ ->
+      Log.err (fun m -> m "Could not find config file \"%s\"" filename);
+      Dancelor_server_logs.log_die (module Log)
   in
   let field config ~type_ ~default path =
     match Json.(get_opt ~k:type_ path config) with

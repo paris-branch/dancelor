@@ -4,5 +4,6 @@
  (libraries
   dancelor.nes.unix
   dancelor.common
-  dancelor.server.logs)
+  dancelor.server.logs
+  dancelor.server.config)
  (preprocess (pps lwt_ppx)))

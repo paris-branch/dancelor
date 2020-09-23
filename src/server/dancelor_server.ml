@@ -32,10 +32,8 @@ let log_exn ~msg exn =
   m "%a" (Format.pp_multiline_sensible msg)
     ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
 
-let log_exit n =
-  Log.info (fun m -> m "Exiting with return code %d" n);
-  (* FIXME: flush? *)
-  exit n
+let log_exit = Dancelor_server_logs.log_exit (module Log)
+let log_die () = Dancelor_server_logs.log_die (module Log)
 
 let remove_prefix_suffix prefix suffix string =
   Option.assert_ (String.starts_with ~needle:prefix string) >>=? fun () ->
@@ -122,7 +120,7 @@ let read_configuration () =
   Dancelor_server_config.parse_cmd_line ()
 
 let initialise_logs () =
-  Dancelor_server_logs.initialise ()
+  Dancelor_server_logs.initialise !Dancelor_server_config.loglevel
 
 let initialise_database () =
   Log.info (fun m -> m "Initialising database");
@@ -176,10 +174,10 @@ let main =
     with
       exn ->
       log_exn ~msg:"Uncaught Lwt exception in main" exn;
-      log_exit 1
+      log_die ()
   with
     exn ->
     log_exn ~msg:"Uncaught exception in main" exn;
-    log_exit 1
+    log_die ()
 
 let () = Lwt_main.run main

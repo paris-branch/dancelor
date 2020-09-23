@@ -30,10 +30,7 @@ let my_reporter () =
   in
   { Logs.report }
 
-let initialise_reporter () =
-  Logs.(set_reporter (my_reporter ()))
-
-let update_past_loglevel () =
+let update_past_loglevel loglevel =
   (* Crawl through all defined sources, handle the one for this module before
      all others. *)
   (log_src :: Logs.Src.list ()) |> List.iter @@ fun src ->
@@ -45,17 +42,34 @@ let update_past_loglevel () =
        || name = "lilypond" || String.starts_with ~needle:"lilypond." name
        || name = "nes"      || String.starts_with ~needle:"nes." name
     then
-      Some !Dancelor_server_config.loglevel
+      Some loglevel
     else
       None
   in
   Logs.Src.set_level src level;
   Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
 
-let initialise_future_loglevel () =
-  Logs.set_level ~all:false (Some !Dancelor_server_config.loglevel)
+let initialise_future_loglevel loglevel =
+  Logs.set_level ~all:false (Some loglevel)
 
-let initialise () =
-  initialise_reporter ();
-  update_past_loglevel ();
-  initialise_future_loglevel ()
+let () =
+  (* This has to be done before anything else, so that even if early things
+     break, we get some logging. The logging level will then be possibly changed
+     by the configuration. *)
+  Logs.(set_reporter (my_reporter ()));
+  update_past_loglevel Logs.Info;
+  initialise_future_loglevel Logs.Info;
+  Log.info (fun m -> m "Early initialisation of logging done")
+
+let initialise loglevel =
+  Log.info (fun m -> m "Initialise logging");
+  update_past_loglevel loglevel;
+  initialise_future_loglevel loglevel
+
+let log_exit (module Log : Logs.LOG) n =
+  Log.info (fun m -> m "Exiting with return code %d" n);
+  (* no need to flush as all logging messages are flushed individually already *)
+  exit n
+
+let log_die (module Log : Logs.LOG) =
+  log_exit (module Log) 1
