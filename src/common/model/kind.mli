@@ -9,6 +9,7 @@ type base = Jig | Polka | Reel | Strathspey | Waltz
 val base_to_char : base -> char
 val base_of_char : char -> base
 
+val base_to_string : base -> string
 val base_of_string : string -> base
 
 val base_to_pretty_string : ?capitalised:bool -> base -> string

@@ -25,12 +25,15 @@ let base_of_char c =
   | 'W' -> Waltz
   | _ -> failwith "Dancelor_common_model.Kind.base_of_char"
 
+let base_to_string b =
+  String.make 1 (base_to_char b)
+
 let base_of_string s =
   try base_of_char s.[0]
   with Invalid_argument _ | Failure _ -> failwith "Dancelor_common_model.Kind.base_of_string"
 
 let base_to_yojson b =
-  `String (String.make 1 (base_to_char b))
+  `String (base_to_string b)
 
 let base_of_yojson = function
   | `String s ->
@@ -54,7 +57,7 @@ let base_to_pretty_string ?(capitalised=false) base =
 type version = int * base
 
 let version_to_string (repeats, base) =
-    spf "%d%c" repeats (base_to_char base)
+    spf "%d %s" repeats (base_to_string base)
 
 let version_of_string s =
   let s = NesString.remove_char ' ' s in
@@ -70,10 +73,10 @@ let version_of_string s =
       Scanf.Scan_failure _ ->
       raise (Invalid_argument "Dancelor_model.Kind.version_of_string")
 
-let%test _ = version_to_string (32, Waltz) = "32W"
-let%test _ = version_to_string (64, Reel) = "64R"
-let%test _ = version_to_string (24, Jig) = "24J"
-let%test _ = version_to_string (48, Strathspey) = "48S"
+let%test _ = version_to_string (32, Waltz) = "32 W"
+let%test _ = version_to_string (64, Reel) = "64 R"
+let%test _ = version_to_string (24, Jig) = "24 J"
+let%test _ = version_to_string (48, Strathspey) = "48 S"
 
 let%test _ = version_of_string "W 32" = (32, Waltz)
 let%test _ = version_of_string "64 Reel" = (64, Reel)
@@ -101,7 +104,7 @@ let dance_to_string (repeats, versions) =
   List.map version_to_string versions
   |> String.concat " + "
   |> (if repeats = 1 || List.length versions = 1 then id else spf "(%s)")
-  |> (if repeats = 1 then id else spf "%dx%s" repeats)
+  |> (if repeats = 1 then id else spf "%d x %s" repeats)
 
 let dance_of_string s =
   let s = String.remove_char ' ' s in

@@ -33,6 +33,8 @@ type controller =
   | Set of Set.t Slug.t
   | SetDelete of Set.t Slug.t
 
+  | Source of Source.t Slug.t
+
   | Tune of Tune.t Slug.t
 
   | VersionAll

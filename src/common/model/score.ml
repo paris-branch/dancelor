@@ -7,6 +7,9 @@ type 'a t =
 
 let score s = s.score
 
+let score_to_string s =
+  score s |> ( *. ) 100. |> int_of_float |> string_of_int
+
 let from_value value = { score = 1. ; value }
 
 let value s = s.value
