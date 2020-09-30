@@ -16,7 +16,7 @@ type t =
 let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let title = Html.createH1 document in
+  let title = Html.createH2 document in
   title##.textContent := Js.some (js "All Programs");
   Dom.appendChild content title;
   Dom.appendChild content (Html.createHr document);
@@ -56,7 +56,7 @@ let create page =
 let contents t =
   t.content
 
-let init t = 
+let init t =
   ignore t
 
 let refresh t =

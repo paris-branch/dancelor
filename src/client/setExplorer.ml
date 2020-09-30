@@ -7,7 +7,7 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
@@ -15,16 +15,16 @@ type t =
   table : Table.t;
 }
 
-let update_table t = 
-  let rows = 
+let update_table t =
+  let rows =
     let pagination = PageNav.pagination t.page_nav in
     Set.all ~pagination ()
-    |> NesLwtList.map (fun set -> 
-      let href = 
+    |> NesLwtList.map (fun set ->
+      let href =
         let%lwt slug = Set.slug set in
-        Lwt.return (Router.path_of_controller (Router.Set slug) |> snd) 
+        Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
       in
-      let cells = 
+      let cells =
         let open Lwt in [
         Table.Cell.link ~href ~text:(Set.name set) t.page;
         Table.Cell.text ~text:(Set.deviser set >>= Formatters.Credit.line) t.page;
@@ -36,16 +36,16 @@ let update_table t =
   let section = Table.Section.create ~rows t.page in
   Table.replace_bodies t.table (Lwt.return [section])
 
-let create page = 
+let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let title = Html.createH1 document in
+  let title = Html.createH2 document in
   title##.textContent := Js.some (js "All Sets");
   Dom.appendChild content title;
   Dom.appendChild content (Html.createHr document);
   Dom.appendChild content (Html.createBr document);
-  let header = 
-    Table.Row.create 
+  let header =
+    Table.Row.create
       ~cells:[
         Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Sets") ~text:(Lwt.return "Name") page;
         Table.Cell.header_text ~text:(Lwt.return "Deviser") page;
@@ -73,8 +73,8 @@ let create page =
 let contents t =
   t.content
 
-let refresh t = 
+let refresh t =
   ignore t
 
-let init t = 
+let init t =
   ignore t
