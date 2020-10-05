@@ -27,62 +27,23 @@ let create slug page =
 
   (* aka *)
   let () =
-    let aka_text =
-      match%lwt Lwt.bind tune Tune.alt_names with
-      | [] -> Lwt.return ""
-      | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return
-    in
-    let aka = Text.Heading.h3 ~text:aka_text page in
+    let text = Formatters.Tune.aka tune in
+    let aka = Text.Heading.h3 ~text page in
     Dom.appendChild content (Text.Heading.root aka)
   in
 
-  (* kind and author *)
+  (* tune description *)
   let () =
-    let open Lwt in
-    let kind_by_author_text =
-      let%lwt kind = tune >>= Tune.kind in
-      let kind = Kind.base_to_pretty_string kind in
-      let%lwt author = tune >>= Tune.author in
-      match author with
-      | None ->
-        Lwt.return (String.capitalize_ascii kind)
-      | Some author when Credit.is_trad author ->
-        Lwt.return ("Traditional " ^ kind)
-      | Some author ->
-        let%lwt line = Credit.line author in
-        Lwt.return (String.capitalize_ascii kind ^ " by " ^ line)
-    in
-    let kind_by_author = Text.Heading.h3 ~text:kind_by_author_text page in
-    Dom.appendChild content (Text.Heading.root kind_by_author)
+    let text = Formatters.Tune.description tune in
+    let tune_description = Text.Heading.h3 ~text page in
+    Dom.appendChild content (Text.Heading.root tune_description)
   in
 
-  (* version details *)
+  (* version description *)
   let () =
-    let open Lwt in
-    let version_details_text =
-      let%lwt bars = version >>= Version.bars in
-      let%lwt structure = version >>= Version.structure in
-      let%lwt key = version >>= Version.key in
-      let%lwt arranger =
-        match%lwt version >>= Version.arranger with
-        | None -> Lwt.return ""
-        | Some arranger ->
-          Formatters.Credit.line (Some arranger)
-          >|= Format.sprintf " arranged by %s"
-      in
-      let%lwt disambiguation =
-        match%lwt version >>= Version.disambiguation with
-        | "" -> Lwt.return ""
-        | disambiguation ->
-          Format.sprintf " (%s)" disambiguation
-          |> Lwt.return
-      in
-      Format.sprintf "%d-bar %s version in %s%s%s"
-        bars structure (Music.key_to_pretty_string key) arranger disambiguation
-    |> Lwt.return
-    in
-    let version_details = Text.Heading.h3 ~text:version_details_text page in
-    Dom.appendChild content (Text.Heading.root version_details)
+    let text = Formatters.Version.description version in
+    let version_description = Text.Heading.h3 ~text page in
+    Dom.appendChild content (Text.Heading.root version_description)
   in
 
   let pdf_href, ly_href =

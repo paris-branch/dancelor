@@ -25,33 +25,16 @@ let create slug page =
 
   (* aka *)
   let () =
-    let aka_text =
-      match%lwt Lwt.bind tune Tune.alt_names with
-      | [] -> Lwt.return ""
-      | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return
-    in
-    let aka = Text.Heading.h3 ~text:aka_text page in
+    let text = Formatters.Tune.aka tune in
+    let aka = Text.Heading.h3 ~text page in
     Dom.appendChild content (Text.Heading.root aka)
   in
 
-  (* kind and author *)
+  (* description *)
   let () =
-    let open Lwt in
-    let kind_by_author_text =
-      let%lwt kind = tune >>= Tune.kind in
-      let kind = Kind.base_to_pretty_string kind in
-      let%lwt author = tune >>= Tune.author in
-      match author with
-      | None ->
-        Lwt.return (String.capitalize_ascii kind)
-      | Some author when Credit.is_trad author ->
-        Lwt.return ("Traditional " ^ kind)
-      | Some author ->
-        let%lwt line = Credit.line author in
-        Lwt.return (String.capitalize_ascii kind ^ " by " ^ line)
-    in
-    let kind_by_author = Text.Heading.h3 ~text:kind_by_author_text page in
-    Dom.appendChild content (Text.Heading.root kind_by_author)
+    let text = Formatters.Tune.description tune in
+    let description = Text.Heading.h3 ~text page in
+    Dom.appendChild content (Text.Heading.root description)
   in
 
   Dom.appendChild content (Html.createHr document);
