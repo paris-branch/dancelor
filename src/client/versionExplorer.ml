@@ -74,7 +74,7 @@ let update_table t =
       let cells =
         let tune = Version.tune version in
         let open Lwt in [
-        Table.Cell.link ~href ~text:(tune >>= Tune.name) t.page;
+        Table.Cell.text ~text:(tune >>= Tune.name) t.page;
         Table.Cell.text ~text:(Version.disambiguation version) t.page;
         Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) t.page;
         Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;

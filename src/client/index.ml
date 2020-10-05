@@ -21,7 +21,7 @@ let make_credit_result ~prefix page credit =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Credit slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.text ~span:3 ~text:(Credit.line credit) page
+      Table.Cell.text ~colspan:3 ~text:(Credit.line credit) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -43,7 +43,7 @@ let make_person_result ~prefix page person =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Person slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.text ~span:3 ~text:(Person.name person) page
+      Table.Cell.text ~colspan:3 ~text:(Person.name person) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -53,7 +53,7 @@ let make_program_result ~prefix page program =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Program slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.text ~span:3 ~text:(Program.name program) page
+      Table.Cell.text ~colspan:3 ~text:(Program.name program) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -75,7 +75,7 @@ let make_source_result ~prefix page source =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Source slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.text ~span:3 ~text:(Source.name source) page;
+      Table.Cell.text ~colspan:3 ~text:(Source.name source) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

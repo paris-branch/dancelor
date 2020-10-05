@@ -14,31 +14,30 @@ module Cell = struct
     root : root Js.t;
   }
 
-  let link ?width ?span ~href ~text page = 
+  let text ?width ?colspan ~text page =
+    (* Cell, span & style *)
     let cell = Html.createTd (Page.document page) in
-    let link = Html.createA (Page.document page) in
-    Dom.appendChild cell link;
-    NesOption.ifsome (fun i -> cell##.colSpan := i) span;
+    NesOption.ifsome (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
-    Lwt.on_success text (fun text -> link##.textContent := Js.some (js text));
-    Lwt.on_success href (fun href -> link##.href := js href);
+    (* Content *)
+    let span = Html.createSpan (Page.document page) in
+    Dom.appendChild cell span;
+    Lwt.on_success text (fun text -> span##.textContent := Js.some (js text));
+    (* Return *)
     {page; root = cell}
 
-  let text ?width ?span ~text page = 
-    let cell = Html.createTd (Page.document page) in
-    NesOption.ifsome (fun i -> cell##.colSpan := i) span;
-    Style.set ?width cell;
-    Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text));
-    {page; root = cell}
-
-  let header_text ?width ?span ?alt ~text page = 
+  let header_text ?width ?colspan ?alt ~text page =
+    (* Cell, span & style *)
     let cell = Html.createTh (Page.document page) in
-    NesOption.ifsome (fun i -> cell##.colSpan := i) span;
+    NesOption.ifsome (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
+    (* Content *)
     begin match alt with
-    | None -> 
-      Lwt.on_success text (fun text -> cell##.textContent := Js.some (js text))
-    | Some alt -> 
+    | None ->
+      let span = Html.createSpan (Page.document page) in
+      Lwt.on_success text (fun text -> span##.textContent := Js.some (js text));
+      Dom.appendChild cell span;
+    | Some alt ->
       let span_main = Html.createSpan (Page.document page) in
       let span_alt = Html.createSpan (Page.document page) in
       Lwt.on_success text (fun text -> span_main##.textContent := Js.some (js text));
@@ -50,11 +49,21 @@ module Cell = struct
     end;
     {page; root = cell}
 
-  let root t = 
+  let wrap_link ~href cell =
+    let children = JsHelpers.extract_children cell.root in
+    let link = Html.createA (Page.document cell.page) in
+    link##.classList##add (js "fill");
+    Lwt.on_success href (fun href -> link##.href := js href);
+    let div = Html.createDiv (Page.document cell.page) in
+    JsHelpers.add_children div children;
+    Dom.appendChild link div;
+    Dom.appendChild cell.root link
+
+  let root t =
     t.root
 
 end
-    
+
 module Row = struct
 
   type root = Html.tableRowElement
@@ -65,22 +74,23 @@ module Row = struct
     root : root Js.t;
   }
 
-  let create ?on_click ?href ~cells page = 
+  let create ?on_click ?href ~cells page =
     ignore href;
     let row = Html.createTr (Page.document page) in
     List.iter (fun cell -> Cell.root cell |> Dom.appendChild row) cells;
     begin match href with
     | None -> ()
-    | Some href -> 
+    | Some href ->
+      List.iter (fun cell -> Cell.wrap_link ~href cell) cells;
       row##.classList##add (js "clickable");
-      Lwt.async (fun () ->
-        Lwt_js_events.clicks row
-          (fun _ev _ ->
-            Lwt.map (fun href -> Html.window##.location##.href := js href) href))
+      (* Lwt.async (fun () ->
+       *   Lwt_js_events.clicks row
+       *     (fun _ev _ ->
+       *       Lwt.map (fun href -> Html.window##.location##.href := js href) href)) *)
     end;
     begin match on_click with
     | None -> ()
-    | Some on_click -> 
+    | Some on_click ->
       row##.classList##add (js "clickable");
       Lwt.async (fun () ->
         Lwt_js_events.clicks row
@@ -88,16 +98,16 @@ module Row = struct
     end;
     {page; size = List.length cells; root = row}
 
-  let on_click row on_click = 
+  let on_click row on_click =
     row.root##.classList##add (js "clickable");
     Lwt.async (fun () ->
       Lwt_js_events.clicks row.root
         (fun _ev _ -> on_click (); Lwt.return ()))
 
-  let root t = 
+  let root t =
     t.root
 
-  let size t = 
+  let size t =
     t.size
 
 end
@@ -112,22 +122,22 @@ module Section = struct
     header : Row.t option;
   }
 
-  let root t = 
+  let root t =
     t.root
-  
-  let add t tr = 
+
+  let add t tr =
     Dom.appendChild t.root (Row.root tr)
-  
-  let clear t = 
+
+  let clear t =
     JsHelpers.clear_children t.root;
     NesOption.ifsome (fun h -> add t h) t.header
 
-  let replace_rows t rows = 
+  let replace_rows t rows =
     Lwt.on_success rows (fun rows ->
       clear t;
       List.iter (add t) rows)
 
-  let create ?header ~rows page = 
+  let create ?header ~rows page =
     let root = Html.createTbody (Page.document page) in
     let t = {root; page; header} in
     replace_rows t rows;
@@ -146,7 +156,7 @@ end
 
 module Kind = struct
 
-  type t = 
+  type t =
     | Separated
     | Dropdown
 
@@ -164,28 +174,28 @@ type t = {
   head : Html.tableSectionElement Js.t;
 }
 
-let root t = 
+let root t =
   t.root
 
-let add t sec = 
+let add t sec =
   Dom.appendChild t.root (Section.root sec)
 
-let clear t = 
+let clear t =
   JsHelpers.clear_children t.root;
   Dom.appendChild t.root t.head
 
-let replace_bodies t bodies = 
+let replace_bodies t bodies =
   Lwt.on_success bodies (fun bodies ->
     clear t;
     List.iter (add t) bodies)
 
-let hide t = 
+let hide t =
   t.root##.classList##remove (js "visible")
 
-let show t = 
+let show t =
   t.root##.classList##add (js "visible")
 
-let set_visible t b = 
+let set_visible t b =
   if b then show t
   else hide t
 
@@ -197,13 +207,13 @@ let create ?(visible=true) ?header ?contents ?kind page =
   NesOption.ifsome (fun h -> Dom.appendChild head (Row.root h)) header;
   NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
   NesOption.ifsome (fun contents ->
-    let span = 
+    let colspan =
       match header with
       | Some h -> Row.size h
       | None -> 1
     in
-    let loading_row = 
-      Row.create ~cells:[Cell.text ~span ~text:(Lwt.return "Loading...") page] page 
+    let loading_row =
+      Row.create ~cells:[Cell.text ~colspan ~text:(Lwt.return "Loading...") page] page
     in
     let loading = Section.create ~rows:(Lwt.return [loading_row]) page in
     add table loading;
@@ -211,6 +221,6 @@ let create ?(visible=true) ?header ?contents ?kind page =
   set_visible table visible;
   table
 
-let visible t = 
+let visible t =
   t.root##.classList##contains (js "visible")
   |> Js.to_bool

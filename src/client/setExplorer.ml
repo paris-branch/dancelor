@@ -26,7 +26,7 @@ let update_table t =
       in
       let cells =
         let open Lwt in [
-        Table.Cell.link ~href ~text:(Set.name set) t.page;
+        Table.Cell.text ~text:(Set.name set) t.page;
         Table.Cell.text ~text:(Set.deviser set >>= Formatters.Credit.line) t.page;
         Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page;
         Table.Cell.text ~text:(Lwt.return "") t.page]

@@ -78,9 +78,16 @@ tbody tr:hover, tbody tr:focus {
   position: relative;
 }
 
-a {
-  color: #960010;
-}
+/* All links have a nice red color, except for the "fill" links that are just
+   here to make the whole cell clickable. If one wants to change the style of
+   clickable rows, this should be done on the "clickable" class. */
+a { color: #960010; }
+a.fill { color: inherit; }
+
+/* "fill" links cover whole table cells; the margin + padding thing is a bit
+   hacking but works just fine. */
+td { overflow: hidden; }
+a.fill { display: block; width: 100%; height: 100%; margin: -10000px; padding: 10000px; }
 
 h2, h3 { text-align: center; margin-bottom: 0.5rem; }
 h2 { font-size: 2.0rem; font-weight: bold; }

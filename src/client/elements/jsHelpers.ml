@@ -4,11 +4,23 @@ module Html = Dom_html
 
 let js = Js.string
 
-let clear_children t =
-  while Js.to_bool t##hasChildNodes do
-    let child = Js.Opt.get t##.firstChild (fun () -> assert false) in
-    t##removeChild child |> ignore
-  done
+let add_children t cs =
+  List.iter (Dom.appendChild t) cs
+
+let extract_children t =
+  let rec extract_children acc =
+    if Js.to_bool t##hasChildNodes then
+      (
+        let child = Js.Opt.get t##.firstChild (fun () -> assert false) in
+        t##removeChild child |> ignore;
+        extract_children (child :: acc)
+      )
+    else
+      List.rev acc
+  in
+  extract_children []
+
+let clear_children t = ignore (extract_children t)
 
 let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t) -> bool =
   fun c p ->
