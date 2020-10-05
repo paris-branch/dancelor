@@ -7,7 +7,8 @@ module Self = struct
       name : string ;
       deviser : Credit.t Slug.t option [@default None] ;
       kind : Kind.dance ;
-      versions : Version.t Slug.t list       [@default []] }
+      versions : Version.t Slug.t list [@default []] ;
+      instructions : string  [@default ""] }
   [@@deriving make, yojson]
 
   let _key = "set"
@@ -40,6 +41,7 @@ let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser
 let kind s = Lwt.return s.kind
 let versions s = Lwt.return s.versions
+let instructions s = Lwt.return s.instructions
 
 let contains t s = List.mem t s.versions
 
@@ -63,6 +65,7 @@ module type S = sig
   val deviser : t -> Credit.t option Lwt.t
   val kind : t -> Kind.dance Lwt.t
   val versions : t -> Version.t list Lwt.t
+  val instructions : t -> string Lwt.t
 
   val contains : Version.t Slug.t -> t -> bool
 

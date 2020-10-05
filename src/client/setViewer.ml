@@ -90,6 +90,18 @@ let create slug page =
 
   Dom.appendChild content (Html.createHr document);
 
+  let () =
+    let open Lwt in
+    let text =
+      match%lwt set >>= Set.instructions with
+      | "" -> Lwt.return ""
+      | instructions -> Lwt.return ("Instructions: " ^ instructions)
+    in
+    Text.Paragraph.create ~text page
+    |> Text.Paragraph.root
+    |> Dom.appendChild content
+  in
+
   let versions = Html.createUl (Page.document page) in
   versions##.textContent := Js.some (js "Loading versions...");
   Dom.appendChild content versions;
