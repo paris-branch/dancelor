@@ -26,6 +26,8 @@ type controller =
   | Set of Set.t Slug.t
   | SetDelete of Set.t Slug.t
 
+  | Source of Source.t Slug.t
+
   | Tune of Tune.t Slug.t
 
   | VersionAll
@@ -193,6 +195,12 @@ let routes : route list =
       ~prefix:"/set"
       (fun set -> Some (SetDelete set))
       (function SetDelete set -> Some set | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/source"
+      (fun source -> Some (Source source))
+      (function Source source -> Some source | _ -> None) ;
 
     with_slug
       ~meth:`GET

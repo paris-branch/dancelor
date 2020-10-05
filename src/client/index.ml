@@ -1,3 +1,4 @@
+open Lwt
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
@@ -15,18 +16,88 @@ type t =
   search : SearchBar.t;
 }
 
-let make_version_search_result page score =
-  let version = Score.value score in
-  let score = score.Score.score in
+let make_credit_result ~prefix page credit =
+  let%lwt slug = Credit.slug credit in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Credit slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~span:3 ~text:(Credit.line credit) page
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_dance_result ~prefix page dance =
+  let%lwt slug = Dance.slug dance in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Dance slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~text:(Dance.name dance) page ;
+      Table.Cell.text ~text:(Dance.kind dance >|= Kind.dance_to_string) page ;
+      Table.Cell.text ~text:(Dance.deviser dance >>= Formatters.Credit.line) page ;
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_person_result ~prefix page person =
+  let%lwt slug = Person.slug person in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Person slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~span:3 ~text:(Person.name person) page
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_program_result ~prefix page program =
+  let%lwt slug = Program.slug program in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Program slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~span:3 ~text:(Program.name program) page
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_set_result ~prefix page set =
+  let%lwt slug = Set.slug set in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Set slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~text:(Set.name set) page;
+      Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page ;
+      Table.Cell.text ~text:(Set.deviser set >>= Formatters.Credit.line) page;
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_source_result ~prefix page source =
+  let%lwt slug = Source.slug source in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Source slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~span:3 ~text:(Source.name source) page;
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_tune_result ~prefix page tune =
+  let%lwt slug = Tune.slug tune in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Tune slug) ()) in
+  let cells =
+    prefix @ [
+      Table.Cell.text ~text:(Tune.name tune) page ;
+      Table.Cell.text ~text:(Tune.kind tune >|= Kind.base_to_pretty_string ~capitalised:true) page ;
+      Table.Cell.text ~text:(Tune.author tune >>= Formatters.Credit.line) page ;
+    ]
+  in
+  Lwt.return (Table.Row.create ~href ~cells page)
+
+let make_version_result ~prefix page version =
   let%lwt slug = Version.slug version in
-  let%lwt bars = Version.bars version in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Version slug) ()) in
   let%lwt tune = Version.tune version in
-  let%lwt kind = Tune.kind tune in
-  let href = Lwt.return (Router.path_of_controller (Router.Version slug) |> snd) in
-  let row = Table.Row.create
-    ~href
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+  let cells =
+    prefix @ [
       Table.Cell.text ~text:(
         let%lwt name = Tune.name tune in
         let%lwt disambiguation =
@@ -34,118 +105,72 @@ let make_version_search_result page score =
           | "" -> Lwt.return ""
           | disambiguation -> Lwt.return (" (" ^ disambiguation ^ ")")
         in
-        Lwt.return (name ^ disambiguation)) page;
-      Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
-      Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
-      Table.Cell.text ~text:(Version.structure version) page]
-    page
-  in
-  Lwt.return row
+        Lwt.return (name ^ disambiguation)
+      ) page ;
 
-let make_set_search_result page score =
-  let set = Score.value score in
-  let score = score.Score.score in
-  let%lwt slug = Set.slug set in
-  let href =
-    Helpers.build_path ~route:(Router.Set slug) ()
-    |> Lwt.return
-  in
-  let score = string_of_int (int_of_float (score *. 100.)) in
-  let cells =
-    let open Lwt in [
-    Table.Cell.text ~text:(Lwt.return score) page;
-    Table.Cell.text ~text:(Set.name set) page;
-    Table.Cell.text ~text:(Set.deviser set >>= Formatters.Credit.line) page;
-    Table.Cell.text ~span:2 ~text:(Set.kind set >|= Kind.dance_to_string) page]
-  in
-  let row = Table.Row.create ~href ~cells page in
-  Lwt.return row
+      Table.Cell.text ~text:(
+        let%lwt bars = Version.bars version in
+        let%lwt kind = Tune.kind tune in
+        let%lwt structure = Version.structure version in
+        Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
+      ) page ;
 
-let make_credit_search_result page score =
-  let deviser = Score.value score in
-  let score = score.Score.score in
-  let%lwt slug = Credit.slug deviser in
-  let href =
-    Helpers.build_path ~route:(Router.Credit slug) ()
-    |> Lwt.return
+      Table.Cell.text ~text:(
+        let%lwt author = Tune.author tune in
+        let%lwt arranger = Version.arranger version in
+        match author, arranger with
+        | None, None -> Lwt.return ""
+        | Some author, None -> Credit.line author
+        | None, Some arranger ->
+          let%lwt line_arranger = Credit.line arranger in
+          Lwt.return ("arr. by " ^ line_arranger)
+        | Some author, Some arranger ->
+          let%lwt line_author = Credit.line author in
+          let%lwt line_arranger = Credit.line arranger in
+          Lwt.return (line_author ^ ", arr. by " ^ line_arranger)
+      ) page ;
+    ]
   in
-  let row = Table.Row.create
-    ~href
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~span:4 ~text:(Credit.line deviser) page]
-    page
-  in
-  Lwt.return row
+  Lwt.return (Table.Row.create ~href ~cells page)
 
-let make_person_search_result page score =
-  let person = Score.value score in
-  let score = score.Score.score in
-  let%lwt slug = Person.slug person in
-  let href =
-    Helpers.build_path ~route:(Router.Person slug) ()
-    |> Lwt.return
+let search input =
+  let threshold = 0.4 in
+  let pagination = Pagination.{ start = 0; end_ = 15 } in
+  Any.search ~threshold ~pagination input
+
+let make_result page score =
+  let any = Score.value score in
+  let prefix = [
+    Table.Cell.text ~text:(Lwt.return (Score.score_to_string score)) page ;
+    Table.Cell.text ~text:(Lwt.return (Any.constructor_to_string any)) page ;
+  ]
   in
-  let score = string_of_int (int_of_float (score *. 100.)) in
-  let row = Table.Row.create
-    ~href
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (score)) page;
-      Table.Cell.text ~span:4 ~text:(Person.name person) page]
-    page
-  in
-  Lwt.return row
+  match any with
+  | Credit credit   -> make_credit_result  ~prefix page credit
+  | Dance dance     -> make_dance_result   ~prefix page dance
+  | Person person   -> make_person_result  ~prefix page person
+  | Program program -> make_program_result ~prefix page program
+  | Set set         -> make_set_result     ~prefix page set
+  | Source source   -> make_source_result  ~prefix page source
+  | Tune tune       -> make_tune_result    ~prefix page tune
+  | Version version -> make_version_result ~prefix page version
 
 let create page =
   let document = Html.window##.document in
   let content = Html.createDiv document in
-  let search_versions =
-    SearchBar.Section.create
-      ~search:(fun input ->
-        Version.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 4} input)
-      ~make_result:(fun score -> make_version_search_result page score)
-      ~header:(Table.Row.create
-        ~cells:[Table.Cell.header_text ~text:(Lwt.return "Versions") ~span:5 page]
-        page)
-      page
-  in
-  let search_sets =
-    SearchBar.Section.create
-      ~search:(fun input ->
-        Set.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
-      ~make_result:(fun score -> make_set_search_result page score)
-      ~header:(Table.Row.create
-        ~cells:[Table.Cell.header_text ~text:(Lwt.return "Sets") ~span:5 page]
-        page)
-      page
-  in
-  let search_credits =
-    SearchBar.Section.create
-      ~search:(fun input ->
-        Credit.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
-      ~make_result:(fun score -> make_credit_search_result page score)
-      ~header:(Table.Row.create
-        ~cells:[Table.Cell.header_text ~text:(Lwt.return "Credits") ~span:5 page]
-        page)
-      page
-  in
-  let search_persons =
-    SearchBar.Section.create
-      ~search:(fun input ->
-        Person.search ~threshold:0.2 ~pagination:Pagination.{start = 0; end_ = 3} input)
-      ~make_result:(fun score -> make_person_search_result page score)
-      ~header:(Table.Row.create
-        ~cells:[Table.Cell.header_text ~text:(Lwt.return "Persons") ~span:5 page]
-        page)
-      page
-  in
+
   let search =
+    let main_section =
+      SearchBar.Section.create
+        ~search ~make_result:(make_result page)
+        page
+    in
     SearchBar.create
       ~placeholder:"Search for anything (it's magic!)"
-      ~sections:[search_versions; search_sets; search_credits; search_persons]
-      ~hide_sections:true
+      ~sections:[main_section]
       page
   in
+
   Dom.appendChild content (SearchBar.root search);
   {page; document; content; search}
 
