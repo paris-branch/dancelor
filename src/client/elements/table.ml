@@ -20,9 +20,9 @@ module Cell = struct
     NesOption.ifsome (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
     (* Content *)
-    let span = Html.createSpan (Page.document page) in
-    Dom.appendChild cell span;
-    Lwt.on_success text (fun text -> span##.textContent := Js.some (js text));
+    let text_node = (Page.document page)##createTextNode (js "") in
+    Dom.appendChild cell text_node;
+    Lwt.on_success text (fun text -> text_node##.data := js text);
     (* Return *)
     {page; root = cell}
 
@@ -54,9 +54,7 @@ module Cell = struct
     let link = Html.createA (Page.document cell.page) in
     link##.classList##add (js "fill");
     Lwt.on_success href (fun href -> link##.href := js href);
-    let div = Html.createDiv (Page.document cell.page) in
-    JsHelpers.add_children div children;
-    Dom.appendChild link div;
+    JsHelpers.add_children link children;
     Dom.appendChild cell.root link
 
   let root t =
