@@ -74,13 +74,11 @@ let update_table t =
       let cells =
         let tune = Version.tune version in
         let open Lwt in [
-        Table.Cell.text ~text:(tune >>= Tune.name) t.page;
-        Table.Cell.text ~text:(Version.disambiguation version) t.page;
-        Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) t.page;
+        Table.Cell.text ~text:(Formatters.Version.name_and_disambiguation version) t.page;
+        Table.Cell.text ~text:(Formatters.Kind.full_string_lwt (Lwt.return version) tune) t.page;
         Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;
         Table.Cell.text ~text:(Version.structure version) t.page;
-        Table.Cell.text ~text:(tune >>= Tune.author >>= Formatters.Credit.line) t.page;
-        Table.Cell.text ~text:(Version.arranger version >>= Formatters.Credit.line) t.page]
+        Table.Cell.text ~text:(Formatters.Version.author_and_arranger version) t.page; ]
       in
       Table.Row.create ~href ~cells t.page) versions)
   in
@@ -174,13 +172,12 @@ let create page =
   let header =
     Table.Row.create
       ~cells:[
-        Table.Cell.header_text ~width:"30%" ~alt:(Lwt.return "Versions") ~text:(Lwt.return "Name") page;
-        Table.Cell.header_text ~text:(Lwt.return "Disambiguation") page;
+        Table.Cell.header_text ~alt:(Lwt.return "Versions") ~text:(Lwt.return "Name") page;
         Table.Cell.header_text ~text:(Lwt.return "Kind") page;
         Table.Cell.header_text ~text:(Lwt.return "Key") page;
         Table.Cell.header_text ~text:(Lwt.return "Structure") page;
-        Table.Cell.header_text ~width:"20%" ~text:(Lwt.return "Author") page;
-        Table.Cell.header_text ~text:(Lwt.return "Arranger") page]
+        Table.Cell.header_text ~text:(Lwt.return "Author") page;
+      ]
       page
   in
   let table = Table.create ~kind:Table.Kind.Separated ~header page in

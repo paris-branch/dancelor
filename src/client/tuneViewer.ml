@@ -25,14 +25,14 @@ let create slug page =
 
   (* aka *)
   let () =
-    let text = Formatters.Tune.aka tune in
+    let text = Formatters.Tune.aka_lwt tune in
     let aka = Text.Heading.h3 ~text page in
     Dom.appendChild content (Text.Heading.root aka)
   in
 
   (* description *)
   let () =
-    let text = Formatters.Tune.description tune in
+    let text = Formatters.Tune.description_lwt tune in
     let description = Text.Heading.h3 ~text page in
     Dom.appendChild content (Text.Heading.root description)
   in
