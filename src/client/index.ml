@@ -98,37 +98,14 @@ let make_version_result ~prefix page version =
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(
-        let%lwt name = Tune.name tune in
-        let%lwt disambiguation =
-          match%lwt Version.disambiguation version with
-          | "" -> Lwt.return ""
-          | disambiguation -> Lwt.return (" (" ^ disambiguation ^ ")")
-        in
-        Lwt.return (name ^ disambiguation)
-      ) page ;
-
+      Table.Cell.create ~content:(Formatters.Version.name_and_disambiguation version page) page;
       Table.Cell.text ~text:(
         let%lwt bars = Version.bars version in
         let%lwt kind = Tune.kind tune in
         let%lwt structure = Version.structure version in
         Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
-
-      Table.Cell.text ~text:(
-        let%lwt author = Tune.author tune in
-        let%lwt arranger = Version.arranger version in
-        match author, arranger with
-        | None, None -> Lwt.return ""
-        | Some author, None -> Credit.line author
-        | None, Some arranger ->
-          let%lwt line_arranger = Credit.line arranger in
-          Lwt.return ("arr. by " ^ line_arranger)
-        | Some author, Some arranger ->
-          let%lwt line_author = Credit.line author in
-          let%lwt line_arranger = Credit.line arranger in
-          Lwt.return (line_author ^ ", arr. by " ^ line_arranger)
-      ) page ;
+      Table.Cell.create ~content:(Formatters.Version.author_and_arranger version page) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

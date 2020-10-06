@@ -14,17 +14,17 @@ module Cell = struct
     root : root Js.t;
   }
 
-  let text ?width ?colspan ~text page =
-    (* Cell, span & style *)
+  let create ?width ?colspan ~content page =
     let cell = Html.createTd (Page.document page) in
     NesOption.ifsome (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
-    (* Content *)
-    let text_node = (Page.document page)##createTextNode (js "") in
-    Dom.appendChild cell text_node;
-    Lwt.on_success text (fun text -> text_node##.data := js text);
-    (* Return *)
+    JsHelpers.add_children cell content;
     {page; root = cell}
+
+  let text ?width ?colspan ~text page =
+    let text_node = (Page.document page)##createTextNode (js "") in
+    Lwt.on_success text (fun text -> text_node##.data := js text);
+    create ?width ?colspan ~content:[text_node] page
 
   let header_text ?width ?colspan ?alt ~text page =
     (* Cell, span & style *)

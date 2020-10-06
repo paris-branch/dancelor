@@ -1,11 +1,49 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_client_elements
+
 module M = Dancelor_client_model
 
 module Html = Dom_html
 
 let js = Js.string
 
+(* Generic node creator *)
+(* FIXME: all these should probably go in their own helper module. *)
+
+let make_node ?(classes=[]) create page =
+  let node = create (Page.document page) in
+  List.iter (fun class_ -> node##.classList##add (js class_)) classes;
+  node
+
+let make_node_with_content ?classes ~content create page =
+  let node = make_node ?classes create page in
+  JsHelpers.add_children node content;
+  node
+
+(* Text nodes have a special handling *)
+
+let text_lwt text page =
+  let text_node = (Page.document page)##createTextNode (js "") in
+  Lwt.on_success text (fun text -> text_node##.data := js text);
+  text_node
+
+let text text page =
+  text_lwt (Lwt.return text) page
+
+let space = text " "
+
+(* Other nodes *)
+
+let span ?classes content page =
+  make_node_with_content ?classes ~content Html.createSpan page
+
+let link ?classes ~href content page =
+  let link = make_node_with_content ?classes ~content Html.createA page in
+  Lwt.on_success href (fun href -> link##.href := js href);
+  link
+
+(* Formatters *)
 
 module Kind = struct
 
@@ -89,35 +127,46 @@ module Version = struct
   let description_lwt version =
     Lwt.bind version description
 
-  let name_and_disambiguation version =
-    (* FIXME: put the disambiguation in a class "dim" that makes it gray-ish.
-       Not sure it can really be done in formatters though? *)
-    let%lwt tune = M.Version.tune version in
-    let%lwt name = M.Tune.name tune in
-    match%lwt M.Version.disambiguation version with
-    | "" -> Lwt.return name
-    | disambiguation ->
-      Lwt.return (spf "%s (%s)" name disambiguation)
+  let name_and_disambiguation version page =
+    let name =
+      let%lwt tune = M.Version.tune version in
+      M.Tune.name tune
+    in
+    let disambiguation =
+      match%lwt M.Version.disambiguation version with
+      | "" -> Lwt.return ""
+      | disambiguation -> Lwt.return (spf " (%s)" disambiguation)
+    in
+    [
+      (text_lwt name page :> Dom.node Js.t);
+      (span ~classes:["dim"] [text_lwt disambiguation page] page :> Dom.node Js.t)
+    ]
 
-  let name_and_disambiguation_lwt version =
-    Lwt.bind version name_and_disambiguation
-
-  let author_and_arranger ?(short=true) version =
-    (* FIXME: put the arranger in a class "dim" that makes it gray-ish? Not sure
-       it can really be done in formatters though? *)
-    let%lwt tune = M.Version.tune version in
-    let%lwt author = M.Tune.author tune in
-    let%lwt arranger = M.Version.arranger version in
-    let arr = if short then "arr." else "arranged by" in
-    match author, arranger with
-    | None, None -> Lwt.return ""
-    | Some author, None -> M.Credit.line author
-    | None, Some arranger ->
-      let%lwt arranger = M.Credit.line arranger in
-      Lwt.return (spf "%s %s" arr arranger)
-    | Some author, Some arranger ->
-      let%lwt author = M.Credit.line author in
-      let%lwt arranger = M.Credit.line arranger in
-      Lwt.return (spf "%s, %s %s" author arr arranger)
+  let author_and_arranger ?(short=true) version page =
+    let author =
+      let%lwt tune = M.Version.tune version in
+      match%lwt M.Tune.author tune with
+      | None -> Lwt.return ""
+      | Some author -> M.Credit.line author
+    in
+    let has_author =
+      let%lwt tune = M.Version.tune version in
+      match%lwt M.Tune.author tune with
+      | None -> Lwt.return_false
+      | Some _ -> Lwt.return_true
+    in
+    let arranged_by =
+      match%lwt M.Version.arranger version with
+      | None -> Lwt.return ""
+      | Some arranger ->
+        let%lwt comma = if%lwt has_author then Lwt.return ", " else Lwt.return "" in
+        let arr = if short then "arr." else "arranged by" in
+        let%lwt arranger = M.Credit.line arranger in
+        Lwt.return (spf "%s%s %s" comma arr arranger)
+    in
+    [
+      (text_lwt author page :> Dom.node Js.t);
+      (span ~classes:["dim"] [text_lwt arranged_by page] page :> Dom.node Js.t)
+    ]
 
 end
