@@ -90,8 +90,8 @@ module Version = struct
     Lwt.bind version description
 
   let name_and_disambiguation version =
-    (* FIXME: put in a class "disambiguation" that makes it appear gray-ish. Not
-       sure it can really be done in formatters though? *)
+    (* FIXME: put the disambiguation in a class "dim" that makes it gray-ish.
+       Not sure it can really be done in formatters though? *)
     let%lwt tune = M.Version.tune version in
     let%lwt name = M.Tune.name tune in
     match%lwt M.Version.disambiguation version with
@@ -103,6 +103,8 @@ module Version = struct
     Lwt.bind version name_and_disambiguation
 
   let author_and_arranger ?(short=true) version =
+    (* FIXME: put the arranger in a class "dim" that makes it gray-ish? Not sure
+       it can really be done in formatters though? *)
     let%lwt tune = M.Version.tune version in
     let%lwt author = M.Tune.author tune in
     let%lwt arranger = M.Version.arranger version in
