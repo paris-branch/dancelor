@@ -113,7 +113,7 @@ let make_version_result ~prefix page version =
 let search input =
   let threshold = 0.4 in
   let pagination = Pagination.{ start = 0; end_ = 15 } in
-  Any.search ~threshold ~pagination ~except:[(Any.Type.Version)] input
+  Any.search ~threshold ~pagination ~except:[Any.Type.Version; Any.Type.Person] input
 
 let make_result page score =
   let any = Score.value score in
