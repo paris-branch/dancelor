@@ -4,7 +4,7 @@ include Dancelor_common_model.Any
 let version_search ?pagination ?threshold input =
   Version.search ?pagination ?threshold input
 
-let search ?pagination ?threshold input =
+let search ?pagination ?threshold ?(except=[]) input =
   let search_wrap_and_add search wrapper list =
     let%lwt scores = search ?pagination ?threshold input in
     let scores = Score.list_map wrapper scores in
@@ -21,7 +21,11 @@ let search ?pagination ?threshold input =
     >>=| search_wrap_and_add Tune.search (fun c -> Tune c)
     >>=| search_wrap_and_add version_search (fun c -> Version c)
   in
-  let scores = Score.list_sort_decreasing scores in
+  let scores =
+    scores
+    |> Score.list_filter (fun value -> List.for_all ((<>) (type_of value)) except)
+    |> Score.list_sort_decreasing
+  in
   Option.unwrap_map_or Lwt.return Pagination.apply pagination scores
 
 let () =
@@ -30,5 +34,6 @@ let () =
     search
       ?pagination:(o Arg.pagination)
       ?threshold: (o Arg.threshold)
+      ?except: (o Arg.type_)
       (a Arg.string)
   )

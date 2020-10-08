@@ -23,6 +23,9 @@ let lwt_map_from_list score =
 let list_from_values s = List.map from_value s
 
 let list_filter p =
+  List.filter (fun score -> p score.value)
+
+let list_filter_lwt p =
   Lwt_list.filter_s (fun score -> p score.value)
 
 let list_filter_threshold threshold =

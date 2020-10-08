@@ -14,25 +14,54 @@ module Self = struct
 end
 include Self
 
-let constructor_to_string = function
-  | Credit _ -> "Credit"
-  | Dance _ -> "Dance"
-  | Person _ -> "Person"
-  | Program _ -> "Program"
-  | Set _ -> "Set"
-  | Source _ -> "Source"
-  | Tune _ -> "Tune"
-  | Version _ -> "Version"
+module Type = struct
+  type t =
+    | Credit
+    | Dance
+    | Person
+    | Program
+    | Set
+    | Source
+    | Tune
+    | Version
+  [@@deriving yojson]
+
+  let to_string = function
+    | Credit -> "Credit"
+    | Dance -> "Dance"
+    | Person -> "Person"
+    | Program -> "Program"
+    | Set -> "Set"
+    | Source -> "Source"
+    | Tune -> "Tune"
+    | Version -> "Version"
+
+  let _key = "type"
+end
+
+let type_of = function
+  | Credit _ -> Type.Credit
+  | Dance _ -> Type.Dance
+  | Person _ -> Type.Person
+  | Program _ -> Type.Program
+  | Set _ -> Type.Set
+  | Source _ -> Type.Source
+  | Tune _ -> Type.Tune
+  | Version _ -> Type.Version
 
 module type S = sig
   type nonrec t = t
 
-  val constructor_to_string : t -> string
+  module Type = Type
+
+  val type_of : t -> Type.t
 
   val search :
     (* ?filter:VersionFilter.t -> *)
     ?pagination:Pagination.t ->
-    ?threshold:float -> string ->
+    ?threshold:float ->
+    ?except:Type.t list ->
+    string ->
     t Score.t list Lwt.t
 end
 
@@ -41,6 +70,7 @@ module Arg = struct
   (* let filter = optarg (module VersionFilter) *)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
+  let type_ = optarg ~key:"type" (module MList (Type))
   let string = arg (module MString)
 end
 

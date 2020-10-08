@@ -113,13 +113,13 @@ let make_version_result ~prefix page version =
 let search input =
   let threshold = 0.4 in
   let pagination = Pagination.{ start = 0; end_ = 15 } in
-  Any.search ~threshold ~pagination input
+  Any.search ~threshold ~pagination ~except:[(Any.Type.Version)] input
 
 let make_result page score =
   let any = Score.value score in
   let prefix = [
     Table.Cell.text ~text:(Lwt.return (Score.score_to_string score)) page ;
-    Table.Cell.text ~text:(Lwt.return (Any.constructor_to_string any)) page ;
+    Table.Cell.text ~text:(Lwt.return (any |> Any.type_of |> Any.Type.to_string)) page ;
   ]
   in
   match any with

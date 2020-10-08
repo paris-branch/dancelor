@@ -49,7 +49,7 @@ let apply_filter_on_scores filter all =
   let%lwt f_tune_kind = VersionFilter.tune_kind filter in
   let%lwt f_key = VersionFilter.key filter in
   let%lwt f_bars = VersionFilter.bars filter in
-  Score.list_filter (* FIXME: this is literally the only difference between this function and the previous one *)
+  Score.list_filter_lwt (* FIXME: this is literally the only difference between this function and the previous one *)
     (fun version ->
        let%lwt tune = tune version in
        let%lwt tune_slug = Tune.slug tune in
