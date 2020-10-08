@@ -61,6 +61,19 @@ let create slug page =
       VersionFilter.make ~tune:[tune] ()
     in
     let%lwt versions = Version.all ~filter () in
+
+    (* If only one version, redirect directly to there. *)
+    if List.length versions = 1 then
+      (
+        Lwt.async @@ fun () ->
+        let%lwt href =
+          let%lwt slug = Version.slug (List.hd versions) in
+          Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+        in
+        Html.window##.location##.href := js href;
+        Lwt.return_unit
+      );
+
     Lwt.return (List.map (fun version ->
         let href =
           let%lwt slug = Version.slug version in
