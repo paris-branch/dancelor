@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -58,12 +59,26 @@ let create slug page =
   Dom.appendChild content (Inputs.Button.root ly);
   Dom.appendChild content (Html.createHr document);
 
-  let href =
-    let%lwt slug = Lwt.bind tune Tune.slug in
-    Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+  let () =
+    let href =
+      let%lwt slug = Lwt.bind tune Tune.slug in
+      Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+    in
+    let text =
+      let%lwt filter =
+        let%lwt tune = tune in
+        VersionFilter.make ~tune:[tune] ()
+      in
+      let%lwt versions = Version.all ~filter () in
+      match List.length versions with
+      | 1 -> Lwt.return "No other version"
+      | nb ->
+        assert (nb > 1);
+        Lwt.return (spf "There are %d other versions available" (nb - 1))
+    in
+    let title = Text.Link.create ~href ~text page in
+    Dom.appendChild content (Text.Link.root title)
   in
-  let title = Text.Link.create ~href ~text:(Lwt.return "See all versions") page in
-  Dom.appendChild content (Text.Link.root title);
 
   let source =
     Printf.sprintf "/%s%s"
