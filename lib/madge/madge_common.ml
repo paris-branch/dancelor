@@ -65,38 +65,51 @@ let bad_query string = raise (BadQuery string)
 
 let prefix = ref "/madge"
 
-module MUnit : SERIALISABLE with type t = unit = struct
-  type t = unit
-  [@@deriving yojson]
+module MUnit : SERIALISABLE
+  with type t = unit =
+struct
+  type t = unit [@@deriving yojson]
   let _key = "unit"
 end
 
-module MInteger : SERIALISABLE with type t = int = struct
-  type t = int
-  [@@deriving yojson]
+module MInteger : SERIALISABLE
+  with type t = int =
+struct
+  type t = int [@@deriving yojson]
   let _key = "int"
 end
 
-module MFloat : SERIALISABLE with type t = float = struct
-  type t = float
-  [@@deriving yojson]
+module MFloat : SERIALISABLE
+  with type t = float =
+struct
+  type t = float [@@deriving yojson]
   let _key = "float"
 end
 
-module MString : SERIALISABLE with type t = string = struct
-  type t = string
-  [@@deriving yojson]
+module MString : SERIALISABLE
+  with type t = string =
+struct
+  type t = string [@@deriving yojson]
   let _key = "string"
 end
 
-module MOption(A : SERIALISABLE) : SERIALISABLE with type t = A.t option = struct
-  type t = A.t option
-  [@@deriving yojson]
+module MOption (A : SERIALISABLE) : SERIALISABLE
+  with type t = A.t option =
+struct
+  type t = A.t option [@@deriving yojson]
   let _key = A._key ^ "-option"
 end
 
-module MList(A : SERIALISABLE) : SERIALISABLE with type t = A.t list = struct
-  type t = A.t list
-  [@@deriving yojson]
+module MPair (A : SERIALISABLE) (B : SERIALISABLE) : SERIALISABLE
+  with type t = A.t * B.t =
+struct
+  type t = A.t * B.t [@@deriving yojson]
+  let _key = A._key ^ "-" ^ B._key ^ "-pair"
+end
+
+module MList (A : SERIALISABLE) : SERIALISABLE
+  with type t = A.t list =
+struct
+  type t = A.t list [@@deriving yojson]
   let _key = A._key ^ "-list"
 end
