@@ -4,19 +4,7 @@ open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.program" : Logs.LOG)
 
 module Ly = struct
-  let render ?transpose_target program =
-    let (target, instrument) =
-      match transpose_target with
-      | None -> ("c", "C")
-      | Some target ->
-        let instrument =
-          match target with
-          | "bes," -> "B flat"
-          | "ees" -> "E flat"
-          | _ -> target
-        in
-        (target, instrument)
-    in
+  let render ?(parameters=ProgramParameters.none) program =
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt name = Program.name program in
@@ -24,7 +12,7 @@ module Ly = struct
       fpf fmt [%blob "template/program/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/program/globals.ly"]
-        name instrument;
+        name (Parameter.get ~default:"" parameters.instruments);
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/program/paper.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
@@ -35,8 +23,8 @@ module Ly = struct
       let%lwt () =
         let%lwt sets_and_parameters = Program.sets_and_parameters program in
         Lwt_list.iter_s
-          (fun (set, _parameters) ->
-             (* FIXME: use parameters *)
+          (fun (set, set_parameters) ->
+             let set_parameters = SetParameters.compose ~parent:set_parameters (ProgramParameters.every_set parameters) in
              let%lwt name = Set.name set in
              let%lwt kind = Set.kind set in
              let kind = Kind.dance_to_string kind in
@@ -44,21 +32,27 @@ module Ly = struct
                name kind name kind;
              let%lwt () =
                let%lwt versions_and_parameters = Set.versions_and_parameters set in
-               let versions = List.map fst versions_and_parameters in
                Lwt_list.iter_s
-                 (fun version ->
+                 (fun (version, version_parameters) ->
+                    let version_parameters = VersionParameters.compose ~parent:version_parameters (SetParameters.every_version set_parameters) in
                     let%lwt content = Version.content version in
                     let%lwt tune = Version.tune version in
+                    let%lwt key = Version.key version in
                     let%lwt name = Tune.name tune in
                     let%lwt author =
                       match%lwt Tune.author tune with
                       | None -> Lwt.return ""
                       | Some author -> Credit.line author
                     in
+                    let source, target =
+                      match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
+                      | Relative (source, target) -> (source, target)
+                      | Absolute target -> (key |> fst |> Music.pitch_to_string, target)
+                    in
                     fpf fmt [%blob "template/program/version.ly"]
-                      name author name target content;
+                      name author name source target content;
                     Lwt.return ())
-                 versions
+                 versions_and_parameters
              in
              fpf fmt [%blob "template/program/set_end.ly"];
              Lwt.return ())
@@ -74,11 +68,11 @@ end
 module Pdf = struct
   let cache : ('a * Program.t, string Lwt.t) Cache.t = Cache.create ()
 
-  let render ?transpose_target program =
+  let render ?parameters program =
     Cache.use
-      cache (transpose_target, program)
+      cache (parameters, program)
       (fun () ->
-        let%lwt lilypond = Ly.render ?transpose_target program in
+        let%lwt lilypond = Ly.render ?parameters program in
         let path = Filename.concat !Dancelor_server_config.cache "program" in
         let%lwt (fname_ly, fname_pdf) =
           let%lwt slug = Program.slug program in
@@ -94,7 +88,16 @@ module Pdf = struct
 
   let get program query =
     let%lwt program = Program.get program in
-    let%lwt transpose_target = query_string_opt query "transpose-target" in
-    let%lwt path_pdf = render ?transpose_target program in
+    let%lwt parameters =
+      match%lwt query_string_opt query "parameters" with
+      | None -> Lwt.return_none
+      | Some parameters ->
+        parameters
+        |> Yojson.Safe.from_string
+        |> ProgramParameters.of_yojson
+        |> Result.get_ok
+        |> Lwt.return_some
+    in
+    let%lwt path_pdf = render ?parameters program in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

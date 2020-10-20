@@ -5,20 +5,7 @@ module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
 module Ly = struct
 
-  let render ?transpose_target set =
-    let (transpose, target, instrument) =
-      (* transpose introduces a comment when we don't want to transpose *)
-      match transpose_target with
-      | None -> ("%", "c", "C")
-      | Some target ->
-        let instrument =
-          match target with
-          | "bes," -> "B flat"
-          | "ees" -> "E flat"
-          | _ -> target
-        in
-        ("", target, instrument)
-    in
+  let render ?(parameters=SetParameters.none) set =
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Set.name set in
@@ -34,11 +21,12 @@ module Ly = struct
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/set/header.ly"]
         title (Kind.dance_to_string kind)
-        transpose instrument;
+        (Parameter.get ~default:"" parameters.instruments);
       Lwt_list.iter_s
-        (fun (version, _parameters) ->
-           (* FIXME: use parameters *)
+        (fun (version, version_parameters) ->
+           let version_parameters = VersionParameters.compose ~parent:version_parameters (SetParameters.every_version parameters) in
            let%lwt content = Version.content version in
+           let%lwt key = Version.key version in
            let%lwt tune = Version.tune version in
            let%lwt name = Tune.name tune in
            let%lwt author =
@@ -46,11 +34,15 @@ module Ly = struct
              | None -> Lwt.return ""
              | Some author -> Credit.line author
            in
+           let source, target =
+             match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
+             | Relative (source, target) -> (source, target)
+             | Absolute target -> (key |> fst |> Music.pitch_to_string, target)
+           in
            fpf fmt [%blob "template/set/version.ly"]
              name author
-             transpose target
-             content
-             transpose;
+             source target
+             content;
            Lwt.return ())
         versions_and_parameters
     in
@@ -59,19 +51,28 @@ module Ly = struct
 
   let get set query =
     let%lwt set = Set.get set in
-    let%lwt transpose_target = query_string_opt query "transpose-target" in
-    let%lwt lilypond = render ?transpose_target set in
+    let%lwt parameters =
+      match%lwt query_string_opt query "parameters" with
+      | None -> Lwt.return_none
+      | Some parameters ->
+        parameters
+        |> Yojson.Safe.from_string
+        |> SetParameters.of_yojson
+        |> Result.get_ok
+        |> Lwt.return_some
+    in
+    let%lwt lilypond = render ?parameters set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
 
 module Pdf = struct
   let cache : (('a * Set.t), string Lwt.t) Cache.t = Cache.create ()
 
-  let render ?transpose_target set =
+  let render ?parameters set =
     Cache.use
-      cache (transpose_target, set)
+      cache (parameters, set)
       (fun () ->
-        let%lwt lilypond = Ly.render ?transpose_target set in
+        let%lwt lilypond = Ly.render ?parameters set in
         let path = Filename.concat !Dancelor_server_config.cache "set" in
         let%lwt (fname_ly, fname_pdf) =
           let%lwt slug = Set.slug set in
@@ -87,7 +88,16 @@ module Pdf = struct
 
   let get set query =
     let%lwt set = Set.get set in
-    let%lwt transpose_target = query_string_opt query "transpose-target" in
-    let%lwt path_pdf = render ?transpose_target set in
+    let%lwt parameters =
+      match%lwt query_string_opt query "parameters" with
+      | None -> Lwt.return_none
+      | Some parameters ->
+        parameters
+        |> Yojson.Safe.from_string
+        |> SetParameters.of_yojson
+        |> Result.get_ok
+        |> Lwt.return_some
+    in
+    let%lwt path_pdf = render ?parameters set in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

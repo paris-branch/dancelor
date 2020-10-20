@@ -4,7 +4,7 @@
     opus = "%s"
   }
 
-  %s \transpose %s c {
+  \transpose %s %s {
     %s
-  %s }
+  }
 }

@@ -3,8 +3,10 @@ module Common = Dancelor_common_model
 module Kind   = Kind
 module Music  = Music
 module Pagination = Pagination
+module Parameter = Parameter
 module Status = Status
 module Score  = Score
+module Transposition = Transposition
 
 module Person        : Common.Person.S        = Person
 module Credit        : Common.Credit.S        = Credit
@@ -15,6 +17,8 @@ module Version       : Common.Version.S       = Version
 module VersionFilter : Common.VersionFilter.S = VersionFilter
 module VersionParameters                      = VersionParameters
 module Set           : Common.Set.S           = Set
+module SetParameters                          = SetParameters
 module Program       : Common.Program.S       = Program
+module ProgramParameters                      = ProgramParameters
 
 module Any           : Common.Any.S           = Any

@@ -7,7 +7,7 @@
   {
     \tocVersion \markup { %s }
 
-    \transpose %s c {
+    \transpose %s %s {
       %s
     }
   }

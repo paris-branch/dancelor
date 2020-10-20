@@ -13,6 +13,11 @@ type alteration = Flat | Sharp | Natural
 type pitch = note * alteration
 (** An alteration plus a note gives a pitch. *)
 
+val pitch_to_string : pitch -> string
+(** Prints a pitch as a LilyPond-like string. **)
+
+val pitch_to_pretty_string : pitch -> string
+
 type mode = Major | Minor
 (** Type for modes. *)
 

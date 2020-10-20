@@ -45,9 +45,9 @@ let create slug page =
   let c_pdf_href, b_pdf_href, e_pdf_href =
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) (),
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
-      ~query:["transpose-target", ["bes"]] (),
+      ~query:["parameters", [ProgramParameters.(make_instrument ~octave:(-1) (B, Flat) |> to_yojson |> Yojson.Safe.to_string)]] (),
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
-      ~query:["transpose-target", ["ees"]] ()
+      ~query:["parameters", [ProgramParameters.(make_instrument (E, Flat) |> to_yojson |> Yojson.Safe.to_string)]] ()
   in
   let c_pdf, b_pdf, e_pdf =
     Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
@@ -70,8 +70,8 @@ let create slug page =
 let contents t =
   t.content
 
-let init t = 
+let init t =
   ignore t
 
-let refresh t = 
+let refresh t =
   ignore t

@@ -44,8 +44,13 @@ let alteration_to_pretty_string = function
 
 type pitch = note * alteration
 
+let pitch_to_pretty_string (n, a) =
+  String.make 1 (note_to_pretty_char n)
+  ^ alteration_to_pretty_string a
+
 let pitch_to_string (n, a) =
-  String.make 1 (note_to_char n) ^ alteration_to_string a
+  String.make 1 (note_to_char n)
+  ^ alteration_to_string a
 
 let pitch_of_string s =
   if String.length s > 0 then
@@ -86,17 +91,13 @@ let key_of_string str =
   | Some i -> (pitch_of_string (String.sub str 0 i),
                mode_of_string (String.sub str i (String.length str - i)))
 
-let key_to_safe_string ((n, alt), mode) =
-  Printf.sprintf "%c%s%s"
-    (note_to_char n)
-    (alteration_to_string alt)
-    (mode_to_safe_string mode)
+let key_to_safe_string (pitch, mode) =
+  pitch_to_string pitch
+  ^ mode_to_safe_string mode
 
-let key_to_pretty_string ((n, alt), mode) =
-  Printf.sprintf "%c%s%s"
-    (note_to_pretty_char n)
-    (alteration_to_pretty_string alt)
-    (mode_to_pretty_string mode)
+let key_to_pretty_string (pitch, mode) =
+  pitch_to_pretty_string pitch
+  ^ mode_to_pretty_string mode
 
 let%test _ = let k = ((C, Flat), Minor) in
              key_of_string (key_to_string k) = k

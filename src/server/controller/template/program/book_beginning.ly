@@ -11,7 +11,7 @@
           \vspace #12
           \bold \abs-fontsize #48 \my-wordwrap-string #CENTER \booktitle
           \vspace #10
-          \abs-fontsize #16 \concat { \instrument " instruments" }
+          \abs-fontsize #16 \instrument
         }
       }
     }
