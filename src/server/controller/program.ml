@@ -42,7 +42,8 @@ module Ly = struct
              fpf fmt [%blob "template/program/set_beginning.ly"]
                name kind name kind;
              let%lwt () =
-               let%lwt versions = Set.versions set in
+               let%lwt versions_and_parameters = Set.versions_and_parameters set in
+               let versions = List.map fst versions_and_parameters in
                Lwt_list.iter_s
                  (fun version ->
                     let%lwt content = Version.content version in

@@ -4,7 +4,7 @@ module Self = struct
   type t =
     { slug : t Slug.t ;
       status : Status.t                 [@default Status.bot] ;
-      tune : Tune.t Slug.t              [@key "tune"];
+      tune : Tune.t Slug.t ;
       bars : int ;
       key : Music.key ;
       structure : string ;

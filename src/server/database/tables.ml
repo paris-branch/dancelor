@@ -1,3 +1,5 @@
+open Nes
+
 module Model = Dancelor_common_model
 
 module Person = Table.Make (
@@ -71,7 +73,8 @@ module Set = Table.Make (
 
     let dependencies set =
       let%lwt deviser = deviser set in
-      let%lwt versions = versions set in
+      let%lwt versions_and_parameters = versions_and_parameters set in
+      let versions = List.map fst versions_and_parameters in
       List.map (Table.make_slug_and_table (module Version)) versions
       |> (match deviser with
           | None -> Fun.id

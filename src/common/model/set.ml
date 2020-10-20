@@ -7,15 +7,15 @@ module Self = struct
       name : string ;
       deviser : Credit.t Slug.t option [@default None] ;
       kind : Kind.dance ;
-      versions : Version.t Slug.t list [@default []] ;
-      instructions : string  [@default ""] }
+      versions_and_parameters : (Version.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
+      instructions : string            [@default ""] }
   [@@deriving make, yojson]
 
   let _key = "set"
 end
 include Self
 
-let make ?status ~slug ~name ?deviser ~kind ?versions () =
+let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters () =
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
@@ -23,27 +23,37 @@ let make ?status ~slug ~name ?deviser ~kind ?versions () =
       let%lwt deviser = Credit.slug deviser in
       Lwt.return_some deviser
   in
-  let%lwt versions =
-    match versions with
+  let%lwt versions_and_parameters =
+    match versions_and_parameters with
     | None -> Lwt.return_none
-    | Some versions ->
-      let%lwt versions = Lwt_list.map_s Version.slug versions in
-      Lwt.return_some versions
+    | Some versions_and_parameters ->
+      let%lwt versions_and_parameters =
+        Lwt_list.map_s
+          (fun (version, parameters) ->
+             let%lwt slug = Version.slug version in
+             Lwt.return (slug, parameters))
+          versions_and_parameters
+      in
+      Lwt.return_some versions_and_parameters
   in
-  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions ())
+  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters ())
 
-let make_temp ~name ?deviser ~kind ?versions () =
-  make ~slug:Slug.none ~name ?deviser ~kind ?versions ()
+let make_temp ~name ?deviser ~kind ?versions_and_parameters () =
+  make ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters ()
 
 let slug s = Lwt.return s.slug
 let status s = Lwt.return s.status
 let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser
 let kind s = Lwt.return s.kind
-let versions s = Lwt.return s.versions
+let versions_and_parameters s = Lwt.return s.versions_and_parameters
 let instructions s = Lwt.return s.instructions
 
-let contains t s = List.mem t s.versions
+let contains_version slug1 set =
+  List.exists
+    (fun (slug2, _parameters) ->
+       Slug.equal slug1 slug2)
+    set.versions_and_parameters
 
 type warning =
   | Empty
@@ -64,10 +74,10 @@ module type S = sig
   val name : t -> string Lwt.t
   val deviser : t -> Credit.t option Lwt.t
   val kind : t -> Kind.dance Lwt.t
-  val versions : t -> Version.t list Lwt.t
+  val versions_and_parameters : t -> (Version.t * VersionParameters.t) list Lwt.t
   val instructions : t -> string Lwt.t
 
-  val contains : Version.t Slug.t -> t -> bool
+  val contains_version : Version.t Slug.t -> t -> bool
 
   (* {2 Warnings} *)
 
@@ -92,7 +102,7 @@ module type S = sig
     name:string ->
     ?deviser:Credit.t ->
     kind:Kind.dance ->
-    ?versions:Version.t list ->
+    ?versions_and_parameters:(Version.t * VersionParameters.t) list ->
     unit -> t Lwt.t
 
   val make_and_save :
@@ -100,7 +110,7 @@ module type S = sig
     name:string ->
     ?deviser:Credit.t ->
     kind:Kind.dance ->
-    ?versions:Version.t list ->
+    ?versions_and_parameters:(Version.t * VersionParameters.t) list ->
     unit -> t Lwt.t
 
   val delete : t -> unit Lwt.t
@@ -122,7 +132,7 @@ module Arg = struct
   let name = arg ~key:"name" (module MString)
   let deviser = optarg ~key:"deviser" (module Credit)
   let kind = arg ~key:"kind" (module Kind.Dance)
-  let versions = optarg ~key:"versions" (module MList (Version))
+  let versions_and_parameters = optarg ~key:"versions-and-parameters" (module MList (MPair (Version) (VersionParameters)))
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let string = arg (module MString)

@@ -23,7 +23,7 @@ module Ly = struct
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Set.name set in
       let%lwt kind = Set.kind set in
-      let%lwt versions = Set.versions set in
+      let%lwt versions_and_parameters = Set.versions_and_parameters set in
       fpf fmt [%blob "template/lyversion.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/paper.ly"];
@@ -36,7 +36,8 @@ module Ly = struct
         title (Kind.dance_to_string kind)
         transpose instrument;
       Lwt_list.iter_s
-        (fun version ->
+        (fun (version, _parameters) ->
+           (* FIXME: use parameters *)
            let%lwt content = Version.content version in
            let%lwt tune = Version.tune version in
            let%lwt name = Tune.name tune in
@@ -51,7 +52,7 @@ module Ly = struct
              content
              transpose;
            Lwt.return ())
-        versions
+        versions_and_parameters
     in
     prom; %lwt
     Lwt.return res

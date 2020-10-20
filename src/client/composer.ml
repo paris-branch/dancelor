@@ -177,7 +177,8 @@ let erase_storage _ =
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
+  let versions_and_parameters = List.map (fun version -> (version, VersionParameters.none)) versions in
   let kind = Kind.dance_of_string t.kind in
-  let answer = Set.make_and_save ~kind ~name:t.name ~versions ?deviser:(deviser t) () in
+  let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ?deviser:(deviser t) () in
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer

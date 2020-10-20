@@ -36,3 +36,6 @@ let from_string str =
 let%test _ = from_string "Hello you, how are you?!" = "hello-you-how-are-you"
 let%test _ = from_string "<> My friend!" = "my-friend"
 let%test _ = from_string "*ù" = "-"
+
+let equal = (=)
+let compare = compare

@@ -3,7 +3,7 @@ open Nes
 module Self = struct
   type t =
     { slug : t Slug.t ;
-      status : Status.t [@default Status.bot] ;
+      status : Status.t               [@default Status.bot] ;
       name : string ;
       alt_names : string list [@key "alt-names"] [@default []] ;
       kind : Kind.base ;

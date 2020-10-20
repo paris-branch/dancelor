@@ -14,9 +14,10 @@ type t =
   versions : Html.uListElement Js.t;
 }
 
-let display_versions t versions =
+let display_versions_and_parameters t versions_and_parameters =
   t.versions##.textContent := Js.null;
-  List.iter (fun version ->
+  List.iter (fun (version, _parameters) ->
+      (* FIXME: use parameters *)
     let tune = Version.tune version in
     let slug = Version.slug version in
     let href =
@@ -37,7 +38,7 @@ let display_versions t versions =
     Dom.appendChild li (Text.Link.root title);
     Dom.appendChild li (Image.root img);
     Dom.appendChild t.versions li)
-    versions
+    versions_and_parameters
 
 let create slug page =
   let document = Page.document page in
@@ -106,7 +107,7 @@ let create slug page =
   versions##.textContent := Js.some (js "Loading versions...");
   Dom.appendChild content versions;
   let t = {page; content; versions} in
-  Lwt.on_success set (fun set -> Lwt.on_success (Set.versions set) (display_versions t));
+  Lwt.on_success set (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));
   t
 
 let contents t =
