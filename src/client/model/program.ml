@@ -1,13 +1,20 @@
 open Nes
 include Dancelor_common_model.Program
 
-let sets = sets >=>| Lwt_list.map_p Set.get
+let sets_and_parameters program =
+  let%lwt sets_and_parameters = sets_and_parameters program in
+  Lwt_list.map_p
+    (fun (slug, parameters) ->
+       let%lwt set = Set.get slug in
+       Lwt.return (set, parameters))
+    sets_and_parameters
 
 let warnings p =
   let warnings = ref [] in
   let add_warning w = warnings := w :: !warnings in
   (* Check that there are no duplicate sets. *)
-  let%lwt sets = sets p in
+  let%lwt sets_and_parameters = sets_and_parameters p in
+  let sets = List.map fst sets_and_parameters in
   let sets = List.sort Stdlib.compare sets in
   (match sets with
    | [] -> add_warning Empty

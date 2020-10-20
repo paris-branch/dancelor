@@ -1,7 +1,13 @@
 open Nes
 include Dancelor_common_model.Program
 
-let sets = sets >=>| Lwt_list.map_s Set.get
+let sets_and_parameters program =
+  let%lwt sets_and_parameters = sets_and_parameters program in
+  Lwt_list.map_p
+    (fun (slug, parameters) ->
+       let%lwt set = Set.get slug in
+       Lwt.return (set, parameters))
+    sets_and_parameters
 
 let warnings _p = assert false (* FIXME *)
 

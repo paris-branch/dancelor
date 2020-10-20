@@ -8,7 +8,7 @@ let get_all () = get_all ()
 
 let get_programs_that_contain (slug : Model.Set.t Slug.t) : Model.Program.t list Lwt.t =
   let%lwt all = Tables.Program.get_all () in
-  Lwt.return (List.filter (Model.Program.contains slug) all)
+  Lwt.return (List.filter (Model.Program.contains_set slug) all)
 
 exception UsedInProgram of Model.Program.t Slug.t
 

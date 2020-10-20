@@ -6,7 +6,7 @@ module Self = struct
       status : Status.t [@default Status.bot] ;
       name : string ;
       date : Date.t ;
-      sets : Set.t Slug.t list }
+      sets_and_parameters : (Set.t Slug.t * SetParameters.t) list [@key "sets-and-parameters"] }
   [@@deriving yojson]
 
   let _key = "program"
@@ -17,9 +17,13 @@ let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
 let name p = Lwt.return p.name
 let date p = Lwt.return p.date
-let sets p = Lwt.return p.sets
+let sets_and_parameters p = Lwt.return p.sets_and_parameters
 
-let contains s p = List.mem s p.sets
+let contains_set slug1 program =
+  List.exists
+    (fun (slug2, _parameters) ->
+       Slug.equal slug1 slug2)
+    program.sets_and_parameters
 
 let compare p1 p2 =
   (* Compare first by date *)
@@ -45,9 +49,9 @@ module type S = sig
   val status : t -> Status.t Lwt.t
   val name : t -> string Lwt.t
   val date : t -> Date.t Lwt.t
-  val sets : t -> Set.t list Lwt.t
+  val sets_and_parameters : t -> (Set.t * SetParameters.t) list Lwt.t
 
-  val contains : Set.t Slug.t -> t -> bool
+  val contains_set : Set.t Slug.t -> t -> bool
   val compare : t -> t -> int
 
   (* {2 Warnings} *)

@@ -14,9 +14,10 @@ type t =
   sets : Html.uListElement Js.t;
 }
 
-let display_sets t sets =
+let display_sets_and_parameters t sets_and_parameters =
   t.sets##.textContent := Js.null;
-  List.iter (fun set ->
+  List.iter (fun (set, _parameters) ->
+      (* FIXME: use parameters *)
     let slug = Set.slug set in
     let href =
       let%lwt slug = slug in
@@ -27,7 +28,7 @@ let display_sets t sets =
     let li = Html.createLi (Page.document t.page) in
     Dom.appendChild li (Text.Link.root link);
     Dom.appendChild t.sets li)
-    sets
+    sets_and_parameters
 
 let create slug page =
   let document = Page.document page in
@@ -63,7 +64,7 @@ let create slug page =
   sets##.textContent := Js.some (js "Loading sets...");
   Dom.appendChild content sets;
   let t = {page; content; sets} in
-  Lwt.on_success program (fun prog -> Lwt.on_success (Program.sets prog) (display_sets t));
+  Lwt.on_success program (fun prog -> Lwt.on_success (Program.sets_and_parameters prog) (display_sets_and_parameters t));
   t
 
 let contents t =

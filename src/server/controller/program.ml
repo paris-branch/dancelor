@@ -33,9 +33,10 @@ module Ly = struct
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/program/book_beginning.ly"];
       let%lwt () =
-        let%lwt sets = Program.sets program in
+        let%lwt sets_and_parameters = Program.sets_and_parameters program in
         Lwt_list.iter_s
-          (fun set ->
+          (fun (set, _parameters) ->
+             (* FIXME: use parameters *)
              let%lwt name = Set.name set in
              let%lwt kind = Set.kind set in
              let kind = Kind.dance_to_string kind in
@@ -61,7 +62,7 @@ module Ly = struct
              in
              fpf fmt [%blob "template/program/set_end.ly"];
              Lwt.return ())
-          sets
+          sets_and_parameters
       in
       fpf fmt [%blob "template/program/book_end.ly"];
       Lwt.return ()

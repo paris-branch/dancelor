@@ -87,7 +87,8 @@ module Program = Table.Make (
     include Model.Program
 
     let dependencies program =
-      let%lwt sets = sets program in
+      let%lwt sets_and_parameters = sets_and_parameters program in
+      let sets = List.map fst sets_and_parameters in
       List.map (Table.make_slug_and_table (module Set)) sets
       |> Lwt.return
   end)
