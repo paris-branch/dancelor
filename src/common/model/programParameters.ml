@@ -8,6 +8,7 @@ module Self = struct
       every_set : SetParameters.t [@key "every-set"] [@default SetParameters.none] ;
       front_page : bool Parameter.t [@key "front-page"] [@default Parameter.Undefined] ;
       table_of_contents : where Parameter.t [@key "table-of-contents"] [@default Parameter.Undefined] ;
+      two_sided : bool Parameter.t [@key "two-sided"] [@default Parameter.Undefined] ;
     }
   [@@deriving make, yojson]
 
@@ -34,3 +35,4 @@ let instruments p = p.instruments
 let every_set p = p.every_set
 let front_page p = p.front_page
 let table_of_contents p = p.table_of_contents
+let two_sided p = p.two_sided

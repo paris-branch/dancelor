@@ -19,9 +19,8 @@
     \null
   }
 
-  two-sided = ##t
-  inner-margin = 20\mm
-  outer-margin = 10\mm
+  left-margin = 10\mm
+  right-margin = 10\mm
 
   bookTitleMarkup = \markup {
     \fill-line {

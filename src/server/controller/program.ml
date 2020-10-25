@@ -15,6 +15,8 @@ module Ly = struct
         name (Parameter.get ~default:"" parameters.instruments);
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/program/paper.ly"];
+      if parameters |> ProgramParameters.two_sided |> Parameter.is true then
+        fpf fmt [%blob "template/program/two-sided.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
@@ -34,6 +36,9 @@ module Ly = struct
              let kind = Kind.dance_to_string kind in
              fpf fmt [%blob "template/program/set_beginning.ly"]
                name kind name kind;
+             (match set_parameters |> SetParameters.forced_pages with
+              | Undefined -> ()
+              | Defined n -> fpf fmt [%blob "template/program/set-forced-pages.ly"] n);
              let%lwt () =
                let%lwt versions_and_parameters = Set.versions_and_parameters set in
                Lwt_list.iter_s
