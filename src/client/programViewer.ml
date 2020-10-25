@@ -57,11 +57,43 @@ let create slug page =
         ()
     )
   in
+  let bass_parameters =
+    ProgramParameters.(
+      make ~every_set:SetParameters.(
+          make ~every_version:VersionParameters.(
+              make
+                ~clef:Music.Bass
+                ~transposition:(Relative("c", "c,"))
+                ()
+            )
+            ()
+        )
+        ()
+    )
+  in
   let b_parameters = ProgramParameters.make_instrument ~octave:(-1) (B, Flat) in
   let e_parameters = ProgramParameters.make_instrument (E, Flat) in
 
-  let c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, c_pdf_href, b_pdf_href, e_pdf_href =
+  let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
+      c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          b_parameters
+          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          e_parameters
+          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          bass_parameters
+          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+      Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["parameters", [
           booklet_parameters
           |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
@@ -81,32 +113,33 @@ let create slug page =
           )
         ]] (),
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
-      (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["parameters", [
-          b_parameters
-          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
-        ]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
-      ~query:["parameters", [
-          e_parameters
-          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+          ProgramParameters.(
+            compose ~parent:bass_parameters booklet_parameters
+            |> to_yojson |> Yojson.Safe.to_string
+          )
         ]] ()
   in
-  let c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, c_pdf, b_pdf, e_pdf =
+  let c_pdf, b_pdf, e_pdf, bass_pdf,
+      c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, bass_booklet_pdf =
+    Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
+    Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (Bb)" page,
+    Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (Eb)" page,
+    Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (bass)" page,
     Inputs.Button.create ~href:(Lwt.return c_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet)" page,
     Inputs.Button.create ~href:(Lwt.return b_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet, Bb)" page,
     Inputs.Button.create ~href:(Lwt.return e_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet, Eb)" page,
-    Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-    Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (Bb)" page,
-    Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (Eb)" page
+    Inputs.Button.create ~href:(Lwt.return bass_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet, bass)" page
   in
-  Dom.appendChild content (Inputs.Button.root c_booklet_pdf);
-  Dom.appendChild content (Inputs.Button.root b_booklet_pdf);
-  Dom.appendChild content (Inputs.Button.root e_booklet_pdf);
   Dom.appendChild content (Inputs.Button.root c_pdf);
   Dom.appendChild content (Inputs.Button.root b_pdf);
   Dom.appendChild content (Inputs.Button.root e_pdf);
+  Dom.appendChild content (Inputs.Button.root bass_pdf);
+  Dom.appendChild content (Html.createBr document);
+  Dom.appendChild content (Inputs.Button.root c_booklet_pdf);
+  Dom.appendChild content (Inputs.Button.root b_booklet_pdf);
+  Dom.appendChild content (Inputs.Button.root e_booklet_pdf);
+  Dom.appendChild content (Inputs.Button.root bass_booklet_pdf);
   Dom.appendChild content (Html.createHr document);
   let prev_title = Text.Heading.h2 ~text:(Lwt.return "Sets") page in
   Dom.appendChild content (Text.Heading.root prev_title);

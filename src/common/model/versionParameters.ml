@@ -9,9 +9,10 @@ module Self = struct
 end
 include Self
 
-let make ?transposition () =
-  let transposition = Option.map Parameter.defined (transposition : Transposition.t option) in
-  make ?transposition ()
+let make ?transposition ?clef () =
+  let transposition = Option.map Parameter.defined transposition in
+  let clef = Option.map Parameter.defined clef in
+  make ?transposition ?clef ()
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
