@@ -36,6 +36,13 @@ module Ly = struct
                  (fun (version, version_parameters) ->
                     let version_parameters = VersionParameters.compose ~parent:version_parameters (SetParameters.every_version set_parameters) in
                     let%lwt content = Version.content version in
+                    let content =
+                      match version_parameters |> VersionParameters.clef with
+                      | Parameter.Undefined -> content
+                      | Parameter.Defined clef_parameter ->
+                        let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
+                        Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
+                    in
                     let%lwt tune = Version.tune version in
                     let%lwt key = Version.key version in
                     let%lwt name = Tune.name tune in
