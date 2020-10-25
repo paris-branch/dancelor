@@ -70,25 +70,59 @@ let create slug page =
     |> Dom.appendChild content
   in
 
-  let c_pdf_href, b_pdf_href, e_pdf_href, ly_href =
-    Helpers.build_path ~api:true ~route:(Router.SetPdf slug) (),
+
+  let bass_parameters =
+    SetParameters.(
+      make ~every_version:VersionParameters.(
+          make
+            ~clef:Music.Bass
+            ~transposition:(Relative("c", "c,"))
+            ()
+        )
+        ()
+    )
+  in
+  let b_parameters = SetParameters.make_instrument ~octave:(-1) (B, Flat) in
+  let e_parameters = SetParameters.make_instrument (E, Flat) in
+
+  let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
+      ly_href
+    =
     Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-      ~query:["parameters", [SetParameters.(make_instrument ~octave:(-1) (B, Flat) |> to_yojson |> Yojson.Safe.to_string)]] (),
+      (),
     Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-      ~query:["parameters", [SetParameters.(make_instrument (E, Flat) |> to_yojson |> Yojson.Safe.to_string)]] (),
+      ~query:["parameters", [
+          b_parameters
+          |> SetParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
+      ~query:["parameters", [
+          e_parameters
+          |> SetParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
+      ~query:["parameters", [
+          bass_parameters
+          |> SetParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
     Helpers.build_path ~api:true ~route:(Router.SetLy slug) ()
   in
-  let c_pdf, b_pdf, e_pdf, ly =
+  let c_pdf, b_pdf, e_pdf, bass_pdf,
+      ly
+    =
     Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-    Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (Bb)" page,
-    Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (Eb)" page,
+    Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
+    Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
+    Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
     Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
   in
+
   Dom.appendChild content (Inputs.Button.root c_pdf);
   Dom.appendChild content (Inputs.Button.root b_pdf);
   Dom.appendChild content (Inputs.Button.root e_pdf);
+  Dom.appendChild content (Inputs.Button.root bass_pdf);
+  Dom.appendChild content (Html.createBr document);
   Dom.appendChild content (Inputs.Button.root ly);
-
   Dom.appendChild content (Html.createHr document);
 
   let () =

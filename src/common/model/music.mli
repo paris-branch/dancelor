@@ -45,3 +45,6 @@ type clef = Treble | Bass [@@deriving yojson]
 
 val clef_to_string : clef -> string
 val clef_of_string : string -> clef
+
+val clef_to_symbol : clef -> string
+(** Unicode symbol of the clef. *)

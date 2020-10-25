@@ -121,6 +121,10 @@ let clef_to_string = function
   | Treble -> "treble"
   | Bass -> "bass"
 
+let clef_to_symbol = function
+  | Treble -> "𝄞"
+  | Bass -> "𝄢"
+
 let clef_of_string = function
   | "treble" -> Treble
   | "bass" -> Bass
