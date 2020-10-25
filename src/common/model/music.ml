@@ -114,3 +114,23 @@ let key_of_yojson = function
     (try Ok (key_of_string s)
      with _ -> Error "Dancelor_common_model.Music.key_of_yojson")
   | _ -> Error "Dancelor_common_model.Music.key_of_yojson"
+
+type clef = Treble | Bass
+
+let clef_to_string = function
+  | Treble -> "treble"
+  | Bass -> "bass"
+
+let clef_of_string = function
+  | "treble" -> Treble
+  | "bass" -> Bass
+  | _ -> failwith "clef_of_string"
+
+let clef_to_yojson clef =
+  `String (clef_to_string clef)
+
+let clef_of_yojson = function
+  | `String s ->
+    (try Ok (clef_of_string s)
+     with _ -> Error "Dancelor_common_model.Music.clef_of_yojson")
+  | _ -> Error "Dancelor_common_model.Music.clef_of_yojson"

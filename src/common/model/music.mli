@@ -38,3 +38,10 @@ val key_to_safe_string : key -> string
 
 val key_to_pretty_string : key -> string
 (** Turns a key into a pretty human-readable string. *)
+
+(** {2 Clef} *)
+
+type clef = Treble | Bass [@@deriving yojson]
+
+val clef_to_string : clef -> string
+val clef_of_string : string -> clef
