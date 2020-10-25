@@ -66,6 +66,7 @@ module Ly = struct
              Lwt.return ())
           sets_and_parameters
       in
+      fpf fmt [%blob "template/program/book_table_of_contents.ly"];
       fpf fmt [%blob "template/program/book_end.ly"];
       Lwt.return ()
     in
