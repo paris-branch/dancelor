@@ -34,7 +34,7 @@ let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let program = Program.get slug in
-  let title = Text.Heading.h1 ~text:(Lwt.bind program Program.name) page in
+  let title = Text.Heading.h2 ~text:(Lwt.bind program Program.name) page in
   Dom.appendChild content (Text.Heading.root title);
   let date_text =
     let open Lwt in
