@@ -42,18 +42,68 @@ let create slug page =
   in
   let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);
-  let c_pdf_href, b_pdf_href, e_pdf_href =
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug) (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
-      ~query:["parameters", [ProgramParameters.(make_instrument ~octave:(-1) (B, Flat) |> to_yojson |> Yojson.Safe.to_string)]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
-      ~query:["parameters", [ProgramParameters.(make_instrument (E, Flat) |> to_yojson |> Yojson.Safe.to_string)]] ()
+
+  let booklet_parameters =
+    ProgramParameters.(
+      make
+        ~front_page:true
+        ~table_of_contents:End
+        ~two_sided:true
+        ~every_set:SetParameters.(
+            make
+              ~forced_pages:2
+              ()
+          )
+        ()
+    )
   in
-  let c_pdf, b_pdf, e_pdf =
+  let b_parameters = ProgramParameters.make_instrument ~octave:(-1) (B, Flat) in
+  let e_parameters = ProgramParameters.make_instrument (E, Flat) in
+
+  let c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, c_pdf_href, b_pdf_href, e_pdf_href =
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          booklet_parameters
+          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          ProgramParameters.(
+            compose ~parent:b_parameters booklet_parameters
+            |> to_yojson |> Yojson.Safe.to_string
+          )
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          ProgramParameters.(
+            compose ~parent:e_parameters booklet_parameters
+            |> to_yojson |> Yojson.Safe.to_string
+          )
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          b_parameters
+          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+        ]] (),
+    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      ~query:["parameters", [
+          e_parameters
+          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+        ]] ()
+  in
+  let c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, c_pdf, b_pdf, e_pdf =
+    Inputs.Button.create ~href:(Lwt.return c_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet)" page,
+    Inputs.Button.create ~href:(Lwt.return b_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet, Bb)" page,
+    Inputs.Button.create ~href:(Lwt.return e_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (booklet, Eb)" page,
     Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
     Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (Bb)" page,
     Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (Eb)" page
   in
+  Dom.appendChild content (Inputs.Button.root c_booklet_pdf);
+  Dom.appendChild content (Inputs.Button.root b_booklet_pdf);
+  Dom.appendChild content (Inputs.Button.root e_booklet_pdf);
   Dom.appendChild content (Inputs.Button.root c_pdf);
   Dom.appendChild content (Inputs.Button.root b_pdf);
   Dom.appendChild content (Inputs.Button.root e_pdf);

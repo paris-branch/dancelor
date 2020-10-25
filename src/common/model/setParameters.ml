@@ -10,9 +10,10 @@ module Self = struct
 end
 include Self
 
-let make ?instruments ?every_version () =
+let make ?instruments ?forced_pages ?every_version () =
   let instruments = Option.map Parameter.defined instruments in
-  make ?instruments ?every_version ()
+  let forced_pages = Option.map Parameter.defined forced_pages in
+  make ?instruments ?forced_pages ?every_version ()
 
 let make_instrument ?(octave=0) key =
   let instruments = Music.pitch_to_pretty_string key ^ " instruments" in
