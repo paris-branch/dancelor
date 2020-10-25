@@ -20,7 +20,10 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/program/book_beginning.ly"];
-      fpf fmt [%blob "template/program/book_front_page.ly"];
+      if parameters |> ProgramParameters.front_page |> Parameter.is true then
+        fpf fmt [%blob "template/program/book_front_page.ly"];
+      if parameters |> ProgramParameters.table_of_contents |> Parameter.is ProgramParameters.Beginning then
+        fpf fmt [%blob "template/program/book_table_of_contents.ly"];
       let%lwt () =
         let%lwt sets_and_parameters = Program.sets_and_parameters program in
         Lwt_list.iter_s
@@ -66,7 +69,8 @@ module Ly = struct
              Lwt.return ())
           sets_and_parameters
       in
-      fpf fmt [%blob "template/program/book_table_of_contents.ly"];
+      if parameters |> ProgramParameters.table_of_contents |> Parameter.is ProgramParameters.End then
+        fpf fmt [%blob "template/program/book_table_of_contents.ly"];
       fpf fmt [%blob "template/program/book_end.ly"];
       Lwt.return ()
     in

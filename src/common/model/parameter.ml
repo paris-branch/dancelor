@@ -16,6 +16,9 @@ let get ?default = function
     | None -> failwith "Parameter.get"
     | Some default -> default
 
+let is_undefined parameter = parameter = Undefined
+let is value parameter = parameter = Defined value
+
 let fail _ _ = failwith "Parameter.fail"
 let most_recent _ _2 = _2
 
