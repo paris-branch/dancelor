@@ -8,3 +8,6 @@ val is_empty : 'a t -> bool
 
 val hd_opt : 'a t -> 'a option
 (** return the first element of the sequence if there is one *)
+
+val exists : ('a -> bool) -> 'a t -> bool
+val for_all : ('a -> bool) -> 'a t -> bool

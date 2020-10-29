@@ -131,3 +131,6 @@ let sensible_inclusion_proximity ~needle haystack =
 
 let sensible_compare s1 s2 =
   Stdlib.compare (sensibilise s1) (sensibilise s2)
+
+let exists p s = to_seq s |> NesSeq.exists p
+let for_all p s = to_seq s |> NesSeq.for_all p

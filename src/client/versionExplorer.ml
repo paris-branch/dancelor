@@ -18,34 +18,36 @@ type t =
 }
 
 let major_keys = Music.[
-  (C, Natural);
-  (G, Natural);
-  (D, Natural);
-  (A, Natural);
-  (E, Natural);
-  (B, Natural);
-  (F, Sharp);
-  (C, Sharp);
-  (F, Natural);
-  (B, Flat);
-  (E, Flat);
-  (A, Flat);
-  (D, Flat)]
+    make_pitch C Natural 0 ;
+    make_pitch G Natural 0 ;
+    make_pitch D Natural 0 ;
+    make_pitch A Natural 0 ;
+    make_pitch E Natural 0 ;
+    make_pitch B Natural 0 ;
+    make_pitch F  Sharp  0 ;
+    make_pitch C  Sharp  0 ;
+    make_pitch F Natural 0 ;
+    make_pitch B   Flat  0 ;
+    make_pitch E   Flat  0 ;
+    make_pitch A   Flat  0 ;
+    make_pitch D   Flat  0 ;
+  ]
 
 let minor_keys = Music.[
-  (A, Natural);
-  (E, Natural);
-  (B, Natural);
-  (F, Sharp);
-  (C, Sharp);
-  (G, Sharp);
-  (D, Sharp);
-  (A, Sharp);
-  (D, Natural);
-  (G, Natural);
-  (C, Natural);
-  (F, Natural);
-  (B, Flat)]
+    make_pitch A Natural 0 ;
+    make_pitch E Natural 0 ;
+    make_pitch B Natural 0 ;
+    make_pitch F  Sharp  0 ;
+    make_pitch C  Sharp  0 ;
+    make_pitch G  Sharp  0 ;
+    make_pitch D  Sharp  0 ;
+    make_pitch A  Sharp  0 ;
+    make_pitch D Natural 0 ;
+    make_pitch G Natural 0 ;
+    make_pitch C Natural 0 ;
+    make_pitch F Natural 0 ;
+    make_pitch B   Flat  0 ;
+  ]
 
 let kinds = Kind.[
   Reel;
@@ -97,7 +99,7 @@ let fill_search t =
   Dom.appendChild t.search_div key_section_header;
   let line1 = Html.createDiv document in
   List.iter (fun key ->
-    let key = (key, Music.Major) in
+    let key = Music.make_key key Music.Major in
     let text = Music.key_to_pretty_string key in
     let id = Printf.sprintf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
@@ -111,7 +113,7 @@ let fill_search t =
   Dom.appendChild t.search_div line1;
   let line2 = Html.createDiv document in
   List.iter (fun key ->
-    let key = (key, Music.Minor) in
+    let key = Music.make_key key Music.Minor in
     let text = Music.key_to_pretty_string key in
     let id = Printf.sprintf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =

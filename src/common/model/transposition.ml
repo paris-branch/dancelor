@@ -1,8 +1,8 @@
 
 module Self = struct
   type t =
-    | Relative of string * string
-    | Absolute of string
+    | Relative of Music.pitch * Music.pitch
+    | Absolute of Music.pitch
   [@@deriving yojson]
 
   let _key = "transposition"
@@ -12,7 +12,7 @@ include Self
 let relative a b = Relative (a, b)
 let absolute a = Absolute a
 
-let identity = relative "c" "c"
+let identity = relative Music.pitch_c Music.pitch_c
 
 let compose t1 t2 =
   match t1, t2 with

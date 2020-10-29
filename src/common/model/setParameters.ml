@@ -15,22 +15,17 @@ let make ?instruments ?forced_pages ?every_version () =
   let forced_pages = Option.map Parameter.defined forced_pages in
   make ?instruments ?forced_pages ?every_version ()
 
-let make_instrument ?(octave=0) key =
-  let instruments = Music.pitch_to_pretty_string key ^ " instruments" in
-  let source =
-    Music.pitch_to_string key
-    ^ (if octave < 0 then
-         String.make (-octave) ','
-       else if octave > 0 then
-         String.make octave '\''
-       else
-         "")
+let make_instrument pitch =
+  let instruments =
+    Music.pitch_to_pretty_string
+      ~strict_octave:false
+      pitch ^ " instruments"
   in
   make
     ~instruments
     ~every_version:(
       VersionParameters.make
-        ~transposition:(Transposition.relative source "c")
+        ~transposition:(Transposition.relative pitch Music.pitch_c)
         ()
     )
     ()

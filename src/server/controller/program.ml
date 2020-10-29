@@ -63,10 +63,13 @@ module Ly = struct
                     let source, target =
                       match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
                       | Relative (source, target) -> (source, target)
-                      | Absolute target -> (key |> fst |> Music.pitch_to_string, target)
+                      | Absolute target -> (key |> Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
                     in
                     fpf fmt [%blob "template/program/version.ly"]
-                      name author name source target content;
+                      name author name
+                      (Music.pitch_to_lilypond_string source)
+                      (Music.pitch_to_lilypond_string target)
+                      content;
                     Lwt.return ())
                  versions_and_parameters
              in

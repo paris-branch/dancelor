@@ -16,3 +16,13 @@ let hd_opt s =
   match s () with
   | Nil -> None
   | Cons (x, _) -> Some x
+
+let rec exists p s =
+  match s () with
+  | Nil -> false
+  | Cons (x, s') -> p x || exists p s'
+
+let rec for_all p s =
+  match s () with
+  | Nil -> true
+  | Cons (x, s') -> p x && for_all p s'

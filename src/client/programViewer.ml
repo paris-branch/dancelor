@@ -63,7 +63,7 @@ let create slug page =
           make ~every_version:VersionParameters.(
               make
                 ~clef:Music.Bass
-                ~transposition:(Relative("c", "c,"))
+                ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
                 ()
             )
             ()
@@ -71,8 +71,8 @@ let create slug page =
         ()
     )
   in
-  let b_parameters = ProgramParameters.make_instrument ~octave:(-1) (B, Flat) in
-  let e_parameters = ProgramParameters.make_instrument (E, Flat) in
+  let b_parameters = ProgramParameters.make_instrument (Music.make_pitch B Flat (-1)) in
+  let e_parameters = ProgramParameters.make_instrument (Music.make_pitch E Flat 0) in
 
   let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
       c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =

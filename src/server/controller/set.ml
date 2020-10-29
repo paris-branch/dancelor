@@ -31,7 +31,7 @@ module Ly = struct
              | Parameter.Undefined -> content
              | Parameter.Defined clef_parameter ->
                let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-               Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
+               Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
            in
            let%lwt key = Version.key version in
            let%lwt tune = Version.tune version in
@@ -44,11 +44,12 @@ module Ly = struct
            let source, target =
              match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
              | Relative (source, target) -> (source, target)
-             | Absolute target -> (key |> fst |> Music.pitch_to_string, target)
+             | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here*)
            in
            fpf fmt [%blob "template/set/version.ly"]
              name author
-             source target
+             (Music.pitch_to_lilypond_string source)
+             (Music.pitch_to_lilypond_string target)
              content;
            Lwt.return ())
         versions_and_parameters

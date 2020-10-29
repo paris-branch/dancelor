@@ -23,11 +23,15 @@ let make ?instruments ?front_page ?table_of_contents ?two_sided ?every_set () =
   let two_sided = Option.map Parameter.defined two_sided in
   make ?instruments ?front_page ?table_of_contents ?two_sided ?every_set ()
 
-let make_instrument ?(octave=0) key =
-  let instruments = Music.pitch_to_pretty_string key ^ " instruments" in
+let make_instrument pitch =
+  let instruments =
+    Music.pitch_to_pretty_string
+      ~strict_octave:false
+      pitch ^ " instruments"
+  in
   make
     ~instruments
-    ~every_set:(SetParameters.make_instrument ~octave key)
+    ~every_set:(SetParameters.make_instrument pitch)
     ()
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
