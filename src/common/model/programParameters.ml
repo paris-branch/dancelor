@@ -24,11 +24,7 @@ let make ?instruments ?front_page ?table_of_contents ?two_sided ?every_set () =
   make ?instruments ?front_page ?table_of_contents ?two_sided ?every_set ()
 
 let make_instrument pitch =
-  let instruments =
-    Music.pitch_to_pretty_string
-      ~strict_octave:false
-      pitch ^ " instruments"
-  in
+  let instruments = Music.pitch_to_pretty_string pitch ^ " instruments" in
   make
     ~instruments
     ~every_set:(SetParameters.make_instrument pitch)

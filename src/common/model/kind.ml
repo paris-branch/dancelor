@@ -125,9 +125,9 @@ let check_dance s =
   | exception (End_of_file) -> false
   | _ -> true
 
-let%test _ = dance_to_string (3, [32, Strathspey]) = "3x32S"
-let%test _ = dance_to_string (1, [128, Jig]) = "128J"
-let%test _ = dance_to_string (2, [(32, Strathspey); (24, Reel)]) = "2x(32S + 24R)"
+let%test _ = dance_to_string (3, [32, Strathspey]) = "3 x 32 S"
+let%test _ = dance_to_string (1, [128, Jig]) = "128 J"
+let%test _ = dance_to_string (2, [(32, Strathspey); (24, Reel)]) = "2 x (32 S + 24 R)"
 
 let%test _ = dance_of_string "3 x ( 32 Strathspey )" = (3, [32, Strathspey])
 let%test _ = dance_of_string "(32W + 64R)" = (1, [(32, Waltz); (64, Reel)])

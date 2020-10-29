@@ -59,21 +59,24 @@ let alteration_of_string = function
 
 type octave = int
 
-let octave_to_lilypond_string octave =
+let octave_to_string octave =
   if octave < 0
   then String.make (-octave) ','
   else String.make octave '\''
 
-(* let octave_of_lilypond_string = function
- *   | "" -> 0
- *   | str ->
- *     let chr = str.[0] in
- *     if String.exists ((<>) chr) str then
- *       failwith "Dancelor_common_model.Music.octave_of_lilypond_string";
- *     match chr with
- *     | '\'' -> String.length str
- *     | ',' -> - (String.length str)
- *     | _ -> failwith "Dancelor_common_model.Music.octave_of_lilypond_string" *)
+let octave_to_pretty_string = octave_to_string
+let octave_to_lilypond_string = octave_to_string
+
+let octave_of_string = function
+  | "" -> 0
+  | str ->
+    let chr = str.[0] in
+    if String.exists ((<>) chr) str then
+      failwith "Dancelor_common_model.Music.octave_of_string";
+    match chr with
+    | '\'' -> String.length str
+    | ',' -> - (String.length str)
+    | _ -> failwith "Dancelor_common_model.Music.octave_of_string"
 
 (* Pitch *)
 
@@ -84,19 +87,21 @@ type pitch =
 
 let make_pitch note alteration octave =
   { note; alteration; octave }
+let pitch_note pitch = pitch.note
+let pitch_alteration pitch = pitch.alteration
+let pitch_octave pitch = pitch.octave
+
 let pitch_c = make_pitch C Natural 0
 
-let pitch_to_string ?(strict_octave=true) pitch =
-  if strict_octave && pitch.octave <> 0 then
-    failwith "Dancelor_common_model.Music.pitch_to_string";
+let pitch_to_string pitch =
   note_to_string pitch.note
   ^ alteration_to_string pitch.alteration
+  ^ octave_to_string pitch.octave
 
-let pitch_to_pretty_string ?(strict_octave=true) pitch =
-  if strict_octave && pitch.octave <> 0 then
-    failwith "Dancelor_common_model.Music.pitch_to_pretty_string";
+let pitch_to_pretty_string pitch =
   note_to_pretty_string pitch.note
   ^ alteration_to_pretty_string pitch.alteration
+  ^ octave_to_pretty_string pitch.octave
 
 let pitch_to_lilypond_string pitch =
   note_to_lilypond_string pitch.note
@@ -112,9 +117,23 @@ let pitch_to_safe_string ?(strict_octave=true) pitch =
 let pitch_of_string = function
   | "" -> failwith "Dancelor_common_model.Music.pitch_of_string"
   | s ->
-    { note = note_of_char s.[0] ;
-      alteration = alteration_of_string (String.sub s 1 (String.length s - 1)) ;
-      octave = 0 }
+    let note_alteration_str, octave_str =
+      (* FIXME: Dirty as fuck *)
+      match String.index_opt s ',' with
+      | Some i ->
+        (String.sub s 0 i, String.sub s i (String.length s - i))
+      | None ->
+        match String.index_opt s '\'' with
+        | Some i ->
+          (String.sub s 0 i, String.sub s i (String.length s - i))
+        | None ->
+          (s, "")
+    in
+    let note_char = note_alteration_str.[0] in
+    let alteration_str = String.sub note_alteration_str 1 (String.length note_alteration_str - 1) in
+    { note = note_of_char note_char ;
+      alteration = alteration_of_string alteration_str ;
+      octave = octave_of_string octave_str }
 
 let pitch_to_yojson = to_yojson__of__to_string pitch_to_string
 let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common_model.Music.pitch_of_yojson"

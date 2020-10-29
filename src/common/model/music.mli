@@ -11,18 +11,16 @@ type octave = int
 type pitch [@@deriving yojson]
 
 val make_pitch : note -> alteration -> octave -> pitch
+
+val pitch_note : pitch -> note
+val pitch_alteration : pitch -> alteration
+val pitch_octave : pitch -> octave
+
 val pitch_c : pitch
 
-(* val pitch_to_string : ?strict_octave:bool -> pitch -> string
- * (\** Print a pitch as a string, eg. C D# Eb. The [strict_octave] flag defaults to
- *    [true] and make the function fail if the octave is not 0. *\) *)
-
-val pitch_to_pretty_string : ?strict_octave:bool -> pitch -> string
-(** Same as [pitch_to_string] except alterations are pretty, eg. C D♯ E♭. *)
-
+(* val pitch_to_string : pitch -> string *)
+val pitch_to_pretty_string : pitch -> string
 val pitch_to_lilypond_string : pitch -> string
-(** Same as [pitch_to_string] except uses LilyPond's syntax, eg. c dis ees.
-   Supports octaves. *)
 
 (* val pitch_of_string : string -> pitch *)
 

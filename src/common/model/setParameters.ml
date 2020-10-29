@@ -16,11 +16,7 @@ let make ?instruments ?forced_pages ?every_version () =
   make ?instruments ?forced_pages ?every_version ()
 
 let make_instrument pitch =
-  let instruments =
-    Music.pitch_to_pretty_string
-      ~strict_octave:false
-      pitch ^ " instruments"
-  in
+  let instruments = Music.pitch_to_pretty_string pitch ^ " instruments" in
   make
     ~instruments
     ~every_version:(
