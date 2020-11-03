@@ -2,7 +2,6 @@ open Nes
 include Dancelor_common_model.Dance
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
-let originals = originals >=>| Lwt_list.map_s Tune.get
 
 (* * *)
 

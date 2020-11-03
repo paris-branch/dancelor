@@ -3,6 +3,8 @@ include Dancelor_common_model.Tune
 
 let author = author >=>?| (Credit.get >=>| Lwt.return_some)
 
+let dances = dances >=>| Lwt_list.map_p Dance.get
+
 (* * *)
 
 let get = Dancelor_server_database.Tune.get

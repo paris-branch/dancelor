@@ -26,15 +26,28 @@ module Source = Table.Make (
     let dependencies _ = Lwt.return []
   end)
 
+module Dance = Table.Make (
+  struct
+    include Model.Dance
+
+    let dependencies dance =
+      match%lwt deviser dance with
+      | None -> Lwt.return_nil
+      | Some deviser -> Lwt.return [Table.make_slug_and_table (module Credit) deviser]
+  end)
+
 module Tune = Table.Make (
   struct
     include Model.Tune
 
     let dependencies tune =
-      match%lwt author tune with
-      | None -> Lwt.return_nil
-      | Some author ->
-        Lwt.return [Table.make_slug_and_table (module Credit) author]
+      let%lwt dances = dances tune in
+      let%lwt author = author tune in
+      List.map (Table.make_slug_and_table (module Dance)) dances
+      |> (match author with
+          | None -> Fun.id
+          | Some author -> List.cons (Table.make_slug_and_table (module Credit) author))
+      |> Lwt.return
   end)
 
 module Version = Table.Make (
@@ -50,20 +63,6 @@ module Version = Table.Make (
           | None -> Fun.id
           | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
       |> List.cons (Table.make_slug_and_table (module Tune) tune)
-      |> Lwt.return
-  end)
-
-module Dance = Table.Make (
-  struct
-    include Model.Dance
-
-    let dependencies dance =
-      let%lwt deviser = deviser dance in
-      let%lwt originals = originals dance in
-      List.map (Table.make_slug_and_table (module Version)) originals
-      |> (match deviser with
-          | None -> Fun.id
-          | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
       |> Lwt.return
   end)
 
