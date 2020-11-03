@@ -91,7 +91,7 @@ module Tune = struct
     Lwt.bind tune description
 
   let aka tune =
-    match%lwt M.Tune.alt_names tune with
+    match%lwt M.Tune.alternative_names tune with
     | [] -> Lwt.return ""
     | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return
 

@@ -5,7 +5,7 @@ module Self = struct
     { slug : t Slug.t ;
       status : Status.t               [@default Status.bot] ;
       name : string ;
-      alt_names : string list [@key "alt-names"] [@default []] ;
+      alternative_names : string list [@key "alternative-names"] [@default []] ;
       kind : Kind.base ;
       author : Credit.t Slug.t option [@default None] ;
       dances : Dance.t Slug.t list    [@default []] ;
@@ -16,14 +16,14 @@ module Self = struct
 end
 include Self
 
-let slug g = Lwt.return g.slug
-let status g = Lwt.return g.status
-let name g = Lwt.return g.name
-let alt_names g = Lwt.return g.alt_names
-let kind g = Lwt.return g.kind
-let author g = Lwt.return g.author
-let dances g = Lwt.return g.dances
-let remark g = Lwt.return g.remark
+let slug tune = Lwt.return tune.slug
+let status tune = Lwt.return tune.status
+let name tune = Lwt.return tune.name
+let alternative_names tune = Lwt.return tune.alternative_names
+let kind tune = Lwt.return tune.kind
+let author tune = Lwt.return tune.author
+let dances tune = Lwt.return tune.dances
+let remark tune = Lwt.return tune.remark
 
 module type S = sig
   type nonrec t = t
@@ -31,7 +31,7 @@ module type S = sig
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Status.t Lwt.t
   val name : t -> string Lwt.t
-  val alt_names : t -> string list Lwt.t
+  val alternative_names : t -> string list Lwt.t
   val kind : t -> Kind.base Lwt.t
   val author : t -> Credit.t option Lwt.t
   val dances : t -> Dance.t list Lwt.t

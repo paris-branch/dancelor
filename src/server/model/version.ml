@@ -147,7 +147,7 @@ let score ~kinds ~authors ~keys words version =
   let%lwt key = key version in
   let%lwt kind = Tune.kind tune in
   let%lwt name = Tune.name tune in
-  let%lwt alt_names = Tune.alt_names tune in
+  let%lwt alternative_names = Tune.alternative_names tune in
   let%lwt credit = Tune.author tune in
   let%lwt credit_words =
     match credit with
@@ -158,7 +158,7 @@ let score ~kinds ~authors ~keys words version =
       let%lwt names = Lwt_list.map_s Person.name persons in
       Lwt.return (author :: names)
   in
-  let version_words = name::alt_names in
+  let version_words = name::alternative_names in
   if (keys <> [] && not (List.mem key keys))
   || (kinds <> [] && not (List.mem kind kinds)) then
     Lwt.return 0.
