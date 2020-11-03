@@ -1,3 +1,4 @@
+open Nes
 open Dancelor_common
 
 exception IO_error of string
@@ -19,7 +20,7 @@ let meth_to_string = function
 let build_path ?(api=false) ?query ~route () =
   let _, path = Router.path_of_controller route in
   let full_path =
-    if api then Printf.sprintf "/%s%s" Constant.api_prefix path
+    if api then spf "/%s%s" Constant.api_prefix path
     else path
   in
   let uri = Uri.make ~path:full_path ?query () in

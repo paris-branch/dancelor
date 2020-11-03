@@ -95,9 +95,9 @@ let rec search_and_extract acc s regexp =
     Not_found | Invalid_argument _ -> rem, acc
 
 let extract_search_option s opt =
-  let dquote_regex = Printf.sprintf "%s:\"\\([^\"]*\\)\"" opt |> Str.regexp in
-  let squote_regex = Printf.sprintf "%s:'\\([^']*\\)'" opt |> Str.regexp in
-  let simple_regex = Printf.sprintf "%s:\\([^ ]*\\)" opt |> Str.regexp in
+  let dquote_regex = spf "%s:\"\\([^\"]*\\)\"" opt |> Str.regexp in
+  let squote_regex = spf "%s:'\\([^']*\\)'" opt |> Str.regexp in
+  let simple_regex = spf "%s:\\([^ ]*\\)" opt |> Str.regexp in
   let rem, l = search_and_extract [] s dquote_regex in
   let rem, l = search_and_extract l rem squote_regex in
   search_and_extract l rem simple_regex

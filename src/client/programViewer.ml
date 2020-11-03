@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -38,7 +39,7 @@ let create slug page =
   Dom.appendChild content (Text.Heading.root title);
   let date_text =
     let open Lwt in
-    (program >>= Program.date >|= NesDate.to_string >|= Printf.sprintf "Date: %s")
+    (program >>= Program.date >|= NesDate.to_string >|= spf "Date: %s")
   in
   let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);

@@ -88,7 +88,7 @@ let create slug page =
   in
 
   let source =
-    Printf.sprintf "/%s%s"
+    spf "/%s%s"
       Constant.api_prefix
       (Router.path_of_controller (Router.VersionSvg slug) |> snd)
     |> Lwt.return

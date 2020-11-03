@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_model
 open Dancelor_client_elements
@@ -65,7 +66,7 @@ let make_version_subwindow t index version =
   Dom.appendChild toolbar buttons;
   Dom.appendChild subwin toolbar;
   let source =
-    Printf.sprintf "/%s%s"
+    spf "/%s%s"
       Constant.api_prefix
       (Router.path_of_controller (Router.VersionSvg version.Composer.slug) |> snd)
     |> Lwt.return

@@ -51,7 +51,7 @@ module Kind = struct
     let open Lwt in
     let%lwt base = M.Tune.kind tune >|= M.Kind.base_to_char in
     let%lwt bars = M.Version.bars version in
-    Lwt.return (Printf.sprintf "%i %c" bars base)
+    Lwt.return (spf "%i %c" bars base)
 
   let full_string_lwt version tune =
     let%lwt version = version in
@@ -93,7 +93,7 @@ module Tune = struct
   let aka tune =
     match%lwt M.Tune.alternative_names tune with
     | [] -> Lwt.return ""
-    | names -> Printf.sprintf "Also known as %s" (String.concat ", " names) |> Lwt.return
+    | names -> spf "Also known as %s" (String.concat ", " names) |> Lwt.return
 
   let aka_lwt tune =
     Lwt.bind tune aka

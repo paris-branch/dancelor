@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_model
 
@@ -79,12 +80,12 @@ let pagination t =
 
 let make_info t =
   if t.cur_page = 0 then
-    Printf.sprintf "Loading entries..."
+    spf "Loading entries..."
   else if t.entries = 0 then
-    Printf.sprintf "No entries"
+    spf "No entries"
   else begin
     let pag = pagination t in
-    Printf.sprintf "Showing %i to %i of %i entries" (Pagination.start pag + 1) (Pagination.end_ pag) t.entries
+    spf "Showing %i to %i of %i entries" (Pagination.start pag + 1) (Pagination.end_ pag) t.entries
   end
 
 let rebuild t =

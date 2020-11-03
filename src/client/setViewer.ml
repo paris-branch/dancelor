@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -28,7 +29,7 @@ let display_versions_and_parameters t versions_and_parameters =
     let title = Text.Link.create ~href ~text:name t.page in
     let source =
       Lwt.map (fun slug ->
-        Printf.sprintf "/%s%s"
+        spf "/%s%s"
           Constant.api_prefix
           (Router.path_of_controller (Router.VersionSvg slug) |> snd))
         slug
@@ -63,7 +64,7 @@ let create slug page =
     let text =
       match%lwt set >>= Set.deviser with
       | None -> Lwt.return ""
-      | Some deviser -> Formatters.Credit.line (Some deviser) >|= Printf.sprintf "Set devised by %s"
+      | Some deviser -> Formatters.Credit.line (Some deviser) >|= spf "Set devised by %s"
     in
     Text.Heading.h3 ~text page
     |> Text.Heading.root

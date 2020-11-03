@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_common
@@ -101,7 +102,7 @@ let fill_search t =
   List.iter (fun key ->
     let key = Music.make_key key Music.Major in
     let text = Music.key_to_pretty_string key in
-    let id = Printf.sprintf "button_%s" (Music.key_to_safe_string key) in
+    let id = spf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
       if active then update_filter t (VersionFilter.add_key key)
       else update_filter t (VersionFilter.remove_key key)
@@ -115,7 +116,7 @@ let fill_search t =
   List.iter (fun key ->
     let key = Music.make_key key Music.Minor in
     let text = Music.key_to_pretty_string key in
-    let id = Printf.sprintf "button_%s" (Music.key_to_safe_string key) in
+    let id = spf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
       if active then update_filter t (VersionFilter.add_key key)
       else update_filter t (VersionFilter.remove_key key)
@@ -132,7 +133,7 @@ let fill_search t =
   let kinds_div = Html.createDiv document in
   List.iter (fun kind ->
     let text = Kind.base_to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
-    let id = Printf.sprintf "button_%s" text in
+    let id = spf "button_%s" text in
     let on_change active =
       if active then update_filter t (VersionFilter.add_kind kind)
       else update_filter t (VersionFilter.remove_kind kind)
@@ -148,8 +149,8 @@ let fill_search t =
   Dom.appendChild t.search_div bars_section_header;
   let bars = Html.createDiv document in
   List.iter (fun n_bars ->
-    let text = Printf.sprintf "%d Bars" n_bars in
-    let id = Printf.sprintf "button_%dbars" n_bars in
+    let text = spf "%d Bars" n_bars in
+    let id = spf "button_%dbars" n_bars in
     let on_change active =
       if active then update_filter t (VersionFilter.add_bars n_bars)
       else update_filter t (VersionFilter.remove_bars n_bars)
