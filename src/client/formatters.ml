@@ -93,11 +93,21 @@ module Tune = struct
   let aka tune =
     match%lwt M.Tune.alternative_names tune with
     | [] -> Lwt.return ""
-    | names -> Printf.sprintf "Also known as: %s" (String.concat ", " names) |> Lwt.return
+    | names -> Printf.sprintf "Also known as %s" (String.concat ", " names) |> Lwt.return
 
   let aka_lwt tune =
     Lwt.bind tune aka
 
+  let recommended tune =
+    match%lwt M.Tune.dances tune with
+    | [] -> Lwt.return ""
+    | dances ->
+      let%lwt dance_names = Lwt_list.map_p M.Dance.name dances in
+      spf "Recommended for %s" (String.concat ", " dance_names)
+      |> Lwt.return
+
+  let recommended_lwt tune =
+    Lwt.bind tune recommended
 end
 
 module Version = struct

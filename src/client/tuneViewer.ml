@@ -30,6 +30,13 @@ let create slug page =
     Dom.appendChild content (Text.Heading.root aka)
   in
 
+  (* recommended *)
+  let () =
+    let text = Formatters.Tune.recommended_lwt tune in
+    let recommended = Text.Heading.h3 ~text page in
+    Dom.appendChild content (Text.Heading.root recommended)
+  in
+
   (* description *)
   let () =
     let text = Formatters.Tune.description_lwt tune in
