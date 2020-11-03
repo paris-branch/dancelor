@@ -11,6 +11,8 @@ let versions_and_parameters set =
        Lwt.return (version, parameters))
     versions_and_parameters
 
+let dances = dances >=>| Lwt_list.map_p Dance.get
+
 let warnings s =
   let warnings = ref [] in
   let add_warning w = warnings := w :: !warnings in
@@ -75,14 +77,15 @@ let all ?pagination () =
     o Arg.pagination pagination
   )
 
-let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters () =
+let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances () =
   Madge_client.(
     call ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
     o Arg.status status;
     a Arg.name name;
     o Arg.deviser deviser;
     a Arg.kind kind;
-    o Arg.versions_and_parameters versions_and_parameters
+    o Arg.versions_and_parameters versions_and_parameters;
+    o Arg.dances dances
   )
 
 let delete s =

@@ -180,3 +180,18 @@ module Version = struct
     ]
 
 end
+
+module Set = struct
+
+  let works set =
+    match%lwt M.Set.dances set with
+    | [] -> Lwt.return ""
+    | dances ->
+      let%lwt dance_names = Lwt_list.map_p M.Dance.name dances in
+      spf "Works for %s" (String.concat ", " dance_names)
+      |> Lwt.return
+
+  let works_lwt set =
+    Lwt.bind set works
+
+end

@@ -11,6 +11,8 @@ let versions_and_parameters set =
        Lwt.return (version, parameters))
     versions_and_parameters
 
+let dances = dances >=>| Lwt_list.map_p Dance.get
+
 let warnings _s = assert false (* FIXME *)
 
 (* * *)
@@ -34,9 +36,9 @@ let () =
     all ?pagination:(o Arg.pagination) ()
   )
 
-let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters () =
+let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances () =
   Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ()
+  make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances ()
 
 let () =
   Madge_server.(
@@ -47,6 +49,7 @@ let () =
       ~kind:   (a Arg.kind)
       ?status: (o Arg.status)
       ?versions_and_parameters:(o Arg.versions_and_parameters)
+      ?dances:(o Arg.dances)
       ()
   )
 

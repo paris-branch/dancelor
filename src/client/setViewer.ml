@@ -52,6 +52,12 @@ let create slug page =
   in
 
   let () =
+    let text = Formatters.Set.works_lwt set in
+    let works = Text.Heading.h3 ~text page in
+    Dom.appendChild content (Text.Heading.root works)
+  in
+
+  let () =
     let open Lwt in
     let text = set >>= Set.kind >|= Kind.dance_to_pretty_string in
     Text.Heading.h3 ~text page
