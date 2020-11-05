@@ -6,7 +6,8 @@ module Self = struct
       status : Status.t [@default Status.bot] ;
       name : string ;
       date : Date.t ;
-      sets_and_parameters : (Set.t Slug.t * SetParameters.t) list [@key "sets-and-parameters"] }
+      sets_and_parameters : (Set.t Slug.t * SetParameters.t) list [@key "sets-and-parameters"] ;
+      remark : string [@default ""] }
   [@@deriving yojson]
 
   let _key = "program"
@@ -18,6 +19,7 @@ let status p = Lwt.return p.status
 let name p = Lwt.return p.name
 let date p = Lwt.return p.date
 let sets_and_parameters p = Lwt.return p.sets_and_parameters
+let remark program = Lwt.return program.remark
 
 let contains_set slug1 program =
   List.exists
@@ -50,6 +52,7 @@ module type S = sig
   val name : t -> string Lwt.t
   val date : t -> Date.t Lwt.t
   val sets_and_parameters : t -> (Set.t * SetParameters.t) list Lwt.t
+  val remark : t -> string Lwt.t
 
   val contains_set : Set.t Slug.t -> t -> bool
   val compare : t -> t -> int

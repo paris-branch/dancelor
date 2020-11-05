@@ -9,7 +9,8 @@ module Self = struct
       kind : Kind.dance ;
       versions_and_parameters : (Version.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
       instructions : string            [@default ""] ;
-      dances : Dance.t Slug.t list     [@default []] }
+      dances : Dance.t Slug.t list     [@default []] ;
+      remark : string                  [@default ""] }
   [@@deriving make, yojson]
 
   let _key = "set"
@@ -57,6 +58,7 @@ let kind s = Lwt.return s.kind
 let versions_and_parameters s = Lwt.return s.versions_and_parameters
 let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
+let remark set = Lwt.return set.remark
 
 let contains_version slug1 set =
   List.exists
@@ -86,6 +88,7 @@ module type S = sig
   val versions_and_parameters : t -> (Version.t * VersionParameters.t) list Lwt.t
   val instructions : t -> string Lwt.t
   val dances : t -> Dance.t list Lwt.t
+  val remark : t -> string Lwt.t
 
   val contains_version : Version.t Slug.t -> t -> bool
 
