@@ -12,43 +12,43 @@ module Ly = struct
       fpf fmt [%blob "template/program/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/program/globals.ly"]
-        name (Parameter.get ~default:"" parameters.instruments);
+        name (Option.unwrap_or ~default:"" parameters.instruments);
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/program/paper.ly"];
-      if parameters |> ProgramParameters.two_sided |> Parameter.is true then
+      if parameters |> ProgramParameters.two_sided |> (=) (Some true) then
         fpf fmt [%blob "template/program/two-sided.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/program/book_beginning.ly"];
-      if parameters |> ProgramParameters.front_page |> Parameter.is true then
+      if parameters |> ProgramParameters.front_page |> (=) (Some true) then
         fpf fmt [%blob "template/program/book_front_page.ly"];
-      if parameters |> ProgramParameters.table_of_contents |> Parameter.is ProgramParameters.Beginning then
+      if parameters |> ProgramParameters.table_of_contents |> (=) (Some ProgramParameters.Beginning) then
         fpf fmt [%blob "template/program/book_table_of_contents.ly"];
       let%lwt () =
         let%lwt sets_and_parameters = Program.sets_and_parameters program in
         Lwt_list.iter_s
           (fun (set, set_parameters) ->
-             let set_parameters = SetParameters.compose ~parent:set_parameters (ProgramParameters.every_set parameters) in
+             let set_parameters = SetParameters.compose set_parameters (ProgramParameters.every_set parameters) in
              let%lwt name = Set.name set in
              let%lwt kind = Set.kind set in
              let kind = Kind.dance_to_string kind in
              fpf fmt [%blob "template/program/set_beginning.ly"]
                name kind name kind;
              (match set_parameters |> SetParameters.forced_pages with
-              | Undefined -> ()
-              | Defined n -> fpf fmt [%blob "template/program/set-forced-pages.ly"] n);
+              | None -> ()
+              | Some n -> fpf fmt [%blob "template/program/set-forced-pages.ly"] n);
              let%lwt () =
                let%lwt versions_and_parameters = Set.versions_and_parameters set in
                Lwt_list.iter_s
                  (fun (version, version_parameters) ->
-                    let version_parameters = VersionParameters.compose ~parent:version_parameters (SetParameters.every_version set_parameters) in
+                    let version_parameters = VersionParameters.compose version_parameters (SetParameters.every_version set_parameters) in
                     let%lwt content = Version.content version in
                     let content =
                       match version_parameters |> VersionParameters.clef with
-                      | Parameter.Undefined -> content
-                      | Parameter.Defined clef_parameter ->
+                      | None -> content
+                      | Some clef_parameter ->
                         let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
                         Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
                     in
@@ -58,7 +58,7 @@ module Ly = struct
                     let name =
                       version_parameters
                       |> VersionParameters.display_name
-                      |> Parameter.get ~default:name
+                      |> Option.unwrap_or ~default:name
                     in
                     let%lwt author =
                       match%lwt Tune.author tune with
@@ -68,15 +68,15 @@ module Ly = struct
                     let author =
                       version_parameters
                       |> VersionParameters.display_author
-                      |> Parameter.get ~default:author
+                      |> Option.unwrap_or ~default:author
                     in
                     let first_bar =
                       version_parameters
                       |> VersionParameters.first_bar
-                      |> Parameter.get ~default:1
+                      |> Option.unwrap_or ~default:1
                     in
                     let source, target =
-                      match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
+                      match version_parameters |> VersionParameters.transposition |> Option.unwrap_or ~default:Transposition.identity with
                       | Relative (source, target) -> (source, target)
                       | Absolute target -> (key |> Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
                     in
@@ -94,7 +94,7 @@ module Ly = struct
              Lwt.return ())
           sets_and_parameters
       in
-      if parameters |> ProgramParameters.table_of_contents |> Parameter.is ProgramParameters.End then
+      if parameters |> ProgramParameters.table_of_contents |> (=) (Some ProgramParameters.End) then
         fpf fmt [%blob "template/program/book_table_of_contents.ly"];
       fpf fmt [%blob "template/program/book_end.ly"];
       Lwt.return ()

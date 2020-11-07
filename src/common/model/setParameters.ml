@@ -1,24 +1,24 @@
+open Nes
 
 module Self = struct
   type t =
-    { instruments : string Parameter.t [@default Parameter.Undefined];
-      forced_pages : int Parameter.t [@key "forced-pages"] [@default Parameter.Undefined];
-      every_version : VersionParameters.t [@key "every-version"] [@default VersionParameters.none ]}
+    { instruments   : string option       [@default None] ;
+      forced_pages  : int    option       [@default None] [@key "forced-pages"] ;
+
+      every_version : VersionParameters.t [@default VersionParameters.none ] [@key "every-version"] }
   [@@deriving make, yojson]
 
   let _key = "set-parameters"
 end
 include Self
 
+(* FIXME: see remark in VersionParameters *)
 let make ?instruments ?forced_pages ?every_version () =
-  let instruments = Option.map Parameter.defined instruments in
-  let forced_pages = Option.map Parameter.defined forced_pages in
-  make ?instruments ?forced_pages ?every_version ()
+  make ~instruments ~forced_pages ?every_version ()
 
 let make_instrument pitch =
-  let instruments = Music.pitch_to_pretty_string pitch ^ " instruments" in
   make
-    ~instruments
+    ~instruments:(Music.pitch_to_pretty_string pitch ^ " instruments")
     ~every_version:(
       VersionParameters.make
         ~transposition:(Transposition.relative pitch Music.pitch_c)
@@ -28,11 +28,12 @@ let make_instrument pitch =
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let instruments p = p.instruments
-let every_version p = p.every_version
-let forced_pages p = p.forced_pages
+let instruments   p = p.instruments
+let forced_pages  p = p.forced_pages
 
-let compose ~parent parameters =
-  { instruments = Parameter.compose parent.instruments parameters.instruments ;
-    forced_pages = Parameter.compose parent.forced_pages parameters.forced_pages ;
-    every_version = VersionParameters.compose ~parent:parent.every_version parameters.every_version }
+let every_version p = p.every_version
+
+let compose first second =
+  { instruments   = Option.choose_strict first.instruments  second.instruments ;
+    forced_pages  = Option.choose_strict first.forced_pages second.forced_pages ;
+    every_version = VersionParameters.compose first.every_version second.every_version }

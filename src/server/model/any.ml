@@ -26,7 +26,7 @@ let search ?pagination ?threshold ?(except=[]) input =
     |> Score.list_filter (fun value -> List.for_all ((<>) (type_of value)) except)
     |> Score.list_sort_decreasing
   in
-  Option.unwrap_map_or Lwt.return Pagination.apply pagination scores
+  Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination scores
 
 let () =
   Madge_server.(

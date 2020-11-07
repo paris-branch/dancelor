@@ -1,14 +1,16 @@
+open Nes
 
 type where = Beginning | End | Nowhere
 [@@deriving yojson]
 
 module Self = struct
   type t = {
-    instruments : string Parameter.t                          [@default Parameter.Undefined] ;
-    front_page : bool Parameter.t         [@key "front-page"] [@default Parameter.Undefined] ;
-    table_of_contents : where Parameter.t [@key "table-of-contents"] [@default Parameter.Undefined] ;
-    two_sided : bool Parameter.t          [@key "two-sided"]  [@default Parameter.Undefined] ;
-    every_set : SetParameters.t           [@key "every-set"]  [@default SetParameters.none] ;
+    instruments       : string option [@default None] ;
+    front_page        : bool   option [@default None] [@key "front-page"] ;
+    table_of_contents : where  option [@default None] [@key "table-of-contents"] ;
+    two_sided         : bool   option [@default None] [@key "two-sided"] ;
+
+    every_set : SetParameters.t [@default SetParameters.none] [@key "every-set"] ;
   }
   [@@deriving make, yojson]
 
@@ -16,31 +18,28 @@ module Self = struct
 end
 include Self
 
+(* FIXME: see remark in VersionParameters *)
 let make ?instruments ?front_page ?table_of_contents ?two_sided ?every_set () =
-  let instruments = Option.map Parameter.defined instruments in
-  let front_page = Option.map Parameter.defined front_page in
-  let table_of_contents = Option.map Parameter.defined table_of_contents in
-  let two_sided = Option.map Parameter.defined two_sided in
-  make ?instruments ?front_page ?table_of_contents ?two_sided ?every_set ()
+  make ~instruments ~front_page ~table_of_contents ~two_sided ?every_set ()
 
 let make_instrument pitch =
-  let instruments = Music.pitch_to_pretty_string pitch ^ " instruments" in
   make
-    ~instruments
+    ~instruments:(Music.pitch_to_pretty_string pitch ^ " instruments")
     ~every_set:(SetParameters.make_instrument pitch)
     ()
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let instruments p = p.instruments
-let every_set p = p.every_set
-let front_page p = p.front_page
+let instruments       p = p.instruments
+let every_set         p = p.every_set
+let front_page        p = p.front_page
 let table_of_contents p = p.table_of_contents
-let two_sided p = p.two_sided
+let two_sided         p = p.two_sided
 
-let compose ~parent parameters =
-  { instruments = Parameter.compose parent.instruments parameters.instruments ;
-    front_page = Parameter.compose parent.front_page parameters.front_page ;
-    table_of_contents = Parameter.compose parent.table_of_contents parameters.table_of_contents ;
-    two_sided = Parameter.compose parent.two_sided parameters.two_sided ;
-    every_set = SetParameters.compose ~parent:parent.every_set parameters.every_set }
+let compose first second =
+  { instruments       = Option.choose_strict first.instruments       second.instruments ;
+    front_page        = Option.choose_strict first.front_page        second.front_page ;
+    table_of_contents = Option.choose_strict first.table_of_contents second.table_of_contents ;
+    two_sided         = Option.choose_strict first.two_sided         second.two_sided ;
+
+    every_set = SetParameters.compose first.every_set second.every_set }

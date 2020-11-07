@@ -102,21 +102,21 @@ let create slug page =
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["parameters", [
           ProgramParameters.(
-            compose ~parent:b_parameters booklet_parameters
+            compose b_parameters booklet_parameters
             |> to_yojson |> Yojson.Safe.to_string
           )
         ]] (),
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["parameters", [
           ProgramParameters.(
-            compose ~parent:e_parameters booklet_parameters
+            compose e_parameters booklet_parameters
             |> to_yojson |> Yojson.Safe.to_string
           )
         ]] (),
     Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
       ~query:["parameters", [
           ProgramParameters.(
-            compose ~parent:bass_parameters booklet_parameters
+            compose bass_parameters booklet_parameters
             |> to_yojson |> Yojson.Safe.to_string
           )
         ]] ()

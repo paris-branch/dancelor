@@ -21,15 +21,15 @@ module Ly = struct
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/set/header.ly"]
         title (Kind.dance_to_string kind)
-        (Parameter.get ~default:"" parameters.instruments);
+        (Option.unwrap_or ~default:"" parameters.instruments);
       Lwt_list.iter_s
         (fun (version, version_parameters) ->
-           let version_parameters = VersionParameters.compose ~parent:version_parameters (SetParameters.every_version parameters) in
+           let version_parameters = VersionParameters.compose version_parameters (SetParameters.every_version parameters) in
            let%lwt content = Version.content version in
            let content =
              match version_parameters |> VersionParameters.clef with
-             | Parameter.Undefined -> content
-             | Parameter.Defined clef_parameter ->
+             | None -> content
+             | Some clef_parameter ->
                let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
                Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
            in
@@ -39,7 +39,7 @@ module Ly = struct
            let name =
              version_parameters
              |> VersionParameters.display_name
-             |> Parameter.get ~default:name
+             |> Option.unwrap_or ~default:name
            in
            let%lwt author =
              match%lwt Tune.author tune with
@@ -49,15 +49,15 @@ module Ly = struct
            let author =
              version_parameters
              |> VersionParameters.display_author
-             |> Parameter.get ~default:author
+             |> Option.unwrap_or ~default:author
            in
            let first_bar =
              version_parameters
              |> VersionParameters.first_bar
-             |> Parameter.get ~default:1
+             |> Option.unwrap_or ~default:1
            in
            let source, target =
-             match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
+             match version_parameters |> VersionParameters.transposition |> Option.unwrap_or ~default:Transposition.identity with
              | Relative (source, target) -> (source, target)
              | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here*)
            in

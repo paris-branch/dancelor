@@ -16,12 +16,12 @@ let unwrap = function
   | Some x -> x
   | None -> failwith "NesOption.unwrap"
 
-let unwrap_or or_ = function
-  | None -> or_
+let unwrap_or ~default = function
+  | None -> default
   | Some x -> x
 
-let unwrap_map_or or_ f = function
-  | None -> or_
+let unwrap_map_or ~default f = function
+  | None -> default
   | Some x -> f x
 
 let wrap x = Some x
@@ -47,3 +47,19 @@ module Syntax = struct
   let (>>=?) = bind
   let (>=>?) = compose
 end
+
+let choose ~tie first second =
+  match first, second with
+  | None, None -> None
+  | Some x, None | None, Some x -> Some x
+  | Some x, Some y -> Some (tie x y)
+
+let choose_strict first second =
+  choose
+    ~tie:(fun _ _ -> failwith "NesOption.choose_strict")
+    first second
+
+let choose_latest first second =
+  choose
+    ~tie:(fun _ y -> y)
+    first second

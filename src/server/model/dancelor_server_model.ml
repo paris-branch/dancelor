@@ -3,7 +3,6 @@ module Common = Dancelor_common_model
 module Kind   = Kind
 module Music  = Music
 module Pagination = Pagination
-module Parameter = Parameter
 module Status = Status
 module Score  = Score
 module Transposition = Transposition

@@ -28,7 +28,7 @@ let () =
 let all ?pagination () =
   Dancelor_server_database.Set.get_all ()
   >>=| Lwt_list.proj_sort_s ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
-  >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
+  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
   Madge_server.(
@@ -74,7 +74,7 @@ let search ?pagination ?(threshold=0.) string =
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.list_proj_sort_decreasing ~proj:name String.sensible_compare
-  >>=| Option.unwrap_map_or Lwt.return Pagination.apply pagination
+  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
   Madge_server.(
