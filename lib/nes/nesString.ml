@@ -123,8 +123,18 @@ let escape ?(esc='\\') ~chars s =
 let%test _ = escape ~chars:"\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\\'lui ai dit \\\\: \\\"Yo, ç\\'va ?\\\""
 
 let sensibilise s =
-  (* FIXME: "a", "the" at the end of the string. *)
-  String.lowercase_ascii s
+  (* FIXME: accents *)
+  List.fold_left
+    (fun s prefix ->
+       if starts_with ~needle:prefix s then
+         let lp = String.length prefix in
+         String.sub s lp (String.length s - lp)
+       else
+         s)
+    (String.lowercase_ascii s)
+    [ "a "; "the "; "la "; "le "; "l'" ]
+
+let%test _ = sensibilise "A Case Apart" = "case apart"
 
 let sensible_inclusion_proximity ~needle haystack =
   inclusion_proximity ~needle:(sensibilise needle) (sensibilise haystack)

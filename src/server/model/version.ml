@@ -70,7 +70,7 @@ let apply_filter_on_scores filter all =
 let all ?filter ?pagination () =
   Dancelor_server_database.Version.get_all ()
   >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter filter
-  >>=| Lwt_list.proj_sort_s ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
+  >>=| Lwt_list.proj_sort_s ~proj:(tune >=>| Tune.name) String.sensible_compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =

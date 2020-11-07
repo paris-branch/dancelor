@@ -27,7 +27,7 @@ let () =
 
 let all ?pagination () =
   Dancelor_server_database.Set.get_all ()
-  >>=| Lwt_list.proj_sort_s ~proj:slug compare (* FIXME: We shouldn't sort wrt. slugs. *)
+  >>=| Lwt_list.proj_sort_s ~proj:name String.sensible_compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
