@@ -36,10 +36,25 @@ module Ly = struct
            let%lwt key = Version.key version in
            let%lwt tune = Version.tune version in
            let%lwt name = Tune.name tune in
+           let name =
+             version_parameters
+             |> VersionParameters.display_name
+             |> Parameter.get ~default:name
+           in
            let%lwt author =
              match%lwt Tune.author tune with
              | None -> Lwt.return ""
              | Some author -> Credit.line author
+           in
+           let author =
+             version_parameters
+             |> VersionParameters.display_author
+             |> Parameter.get ~default:author
+           in
+           let first_bar =
+             version_parameters
+             |> VersionParameters.first_bar
+             |> Parameter.get ~default:1
            in
            let source, target =
              match version_parameters |> VersionParameters.transposition |> Parameter.get ~default:Transposition.identity with
@@ -47,7 +62,7 @@ module Ly = struct
              | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here*)
            in
            fpf fmt [%blob "template/set/version.ly"]
-             name author
+             name author first_bar
              (Music.pitch_to_lilypond_string source)
              (Music.pitch_to_lilypond_string target)
              content;
