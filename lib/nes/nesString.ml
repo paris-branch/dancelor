@@ -3,12 +3,12 @@ include String
 
 let pp = Format.pp_print_string
 
-let remove_char c s =
+let remove_char ?(char_equal=Char.equal) c s =
   let b = Bytes.create (length s) in
   let j = ref 0 in
   iter
     (fun c' ->
-      if c <> c' then
+      if not (char_equal c c') then
         (Bytes.set b !j c'; incr j))
     s;
   Bytes.sub_string b 0 !j
@@ -16,30 +16,33 @@ let remove_char c s =
 let%test _ = remove_char '%' "Cou%cou, %%je s%ui%%s N%i%ols%" = "Coucou, je suis Niols"
 
 let split n s =
-  (String.sub s 0 n, String.sub s n (String.length s - n))
+  (sub s 0 n, sub s n (length s - n))
 
 let%test _ = split 2 "hello" = ("he", "llo")
 
-let starts_with ~needle haystack =
-  try sub haystack 0 (length needle) = needle
+let starts_with ?(equal=equal) ~needle haystack =
+  try equal (sub haystack 0 (length needle)) needle
   with Invalid_argument _ -> false
 
 let%test _ = starts_with ~needle:"he" "hello"
 let%test _ = not (starts_with ~needle:"hee" "hello")
 let%test _ = not (starts_with ~needle:"hello" "he")
 
-let ends_with ~needle haystack =
+let ends_with ?(equal=equal) ~needle haystack =
   let l = length needle in
-  try sub haystack (length haystack - l) l = needle
+  try equal (sub haystack (length haystack - l) l) needle
   with Invalid_argument _ -> false
 
 let%test _ = ends_with ~needle:"lo" "hello"
 let%test _ = not (ends_with ~needle:"elo" "hello")
 let%test _ = not (ends_with ~needle:"hello" "lo")
 
-let remove_prefix ~needle haystack =
+let remove_prefix_exn ~needle haystack =
   let l = length needle in
-  try Some (sub haystack l (length haystack - l))
+  sub haystack l (length haystack - l)
+
+let remove_prefix ~needle haystack =
+  try Some (remove_prefix_exn ~needle haystack)
   with Invalid_argument _ -> None
 
 let%test _ = remove_prefix ~needle:"" "hello" = Some "hello"
@@ -56,7 +59,7 @@ let%test _ = remove_suffix ~needle:"lo" "hello" = Some "hel"
 let%test _ = remove_suffix ~needle:"hello" "hello" = Some ""
 let%test _  =remove_suffix ~needle:"hhello" "hello" = None
 
-let inclusion_distance ~needle haystack =
+let inclusion_distance ?(char_equal=Char.equal) ~needle haystack =
   let ln = length needle in
   let lh = length haystack in
   let a = Array.make_matrix (ln+1) (lh+1) (-1) in
@@ -74,7 +77,7 @@ let inclusion_distance ~needle haystack =
               min3
                 (1 + aux (n+1) h)
                 ((if n = 0 then 0 else 1) + aux n (h+1))
-                ((if needle.[n] = haystack.[h] then 0 else 1) + aux (n+1) (h+1))
+                ((if char_equal needle.[n] haystack.[h] then 0 else 1) + aux (n+1) (h+1))
             )
       );
     a.(n).(h)
@@ -86,17 +89,17 @@ let%test _ = inclusion_distance ~needle:"chou" "acoul" = 1
 let%test _ = inclusion_distance ~needle:"chou" "achhouffe" = 1
 let%test _ = inclusion_distance ~needle:"chou" "achauffe" = 1
 
-let inclusion_proximity ~needle haystack =
+let inclusion_proximity ?char_equal ~needle haystack =
   let l = length needle in
   1. -. (
     if l = 0 then 0.
     else
-      let d = inclusion_distance ~needle haystack in
+      let d = inclusion_distance ?char_equal ~needle haystack in
       (foi d) /. (foi l)
   )
 
 let escape ?(esc='\\') ~chars s =
-  let l = String.length s in
+  let l = length s in
   let t = Bytes.create (2 * l) in
   let rec aux i j =
     if i >= l then
@@ -105,7 +108,7 @@ let escape ?(esc='\\') ~chars s =
       )
     else
       (
-        if s.[i] = esc || String.contains chars s.[i] then
+        if s.[i] = esc || contains chars s.[i] then
           (
             Bytes.set t j esc;
             Bytes.set t (j+1) s.[i];
@@ -122,25 +125,33 @@ let escape ?(esc='\\') ~chars s =
 
 let%test _ = escape ~chars:"\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\\'lui ai dit \\\\: \\\"Yo, ç\\'va ?\\\""
 
-let sensibilise s =
-  (* FIXME: accents *)
-  List.fold_left
-    (fun s prefix ->
-       if starts_with ~needle:prefix s then
-         let lp = String.length prefix in
-         String.sub s lp (String.length s - lp)
-       else
-         s)
-    (String.lowercase_ascii s)
-    [ "a "; "the "; "la "; "le "; "l'" ]
-
-let%test _ = sensibilise "A Case Apart" = "case apart"
-
-let sensible_inclusion_proximity ~needle haystack =
-  inclusion_proximity ~needle:(sensibilise needle) (sensibilise haystack)
-
-let sensible_compare s1 s2 =
-  Stdlib.compare (sensibilise s1) (sensibilise s2)
-
 let exists p s = to_seq s |> NesSeq.exists p
 let for_all p s = to_seq s |> NesSeq.for_all p
+
+module Sensible = struct
+
+  (* We would be tempted to define [equal] as [compare = 0]. But since compare
+     is sensible to prefix, it needs [equal] to be computed. *)
+  let equal s1 s2 =
+    NesSeq.for_all2 NesChar.Sensible.equal (to_seq s1) (to_seq s2)
+
+  let extract_prefix s =
+    let prefixes = [ "a "; "the "; "la "; "le "; "les "; "l'" ] in
+    let has_prefix prefix = starts_with ~equal ~needle:prefix s in
+    match List.find_opt has_prefix prefixes with
+    | None -> ("", s)
+    | Some prefix -> split (length prefix) s
+
+  let%test _ = extract_prefix "A Case Apart" = ("A ", "Case Apart")
+  let%test _ = extract_prefix "les tests c'est chiant" = ("les ", "tests c'est chiant")
+  let%test _ = extract_prefix "L'abricot magique" = ("L'", "abricot magique")
+
+  let compare s1 s2 =
+    NesSeq.compare NesChar.Sensible.compare (to_seq s1) (to_seq s2)
+
+  let compare s1 s2 =
+    let (p1, s1) = extract_prefix s1 in
+    let (p2, s2) = extract_prefix s2 in
+    let c =  compare s1 s2 in
+    if c <> 0 then c else compare p1 p2
+end

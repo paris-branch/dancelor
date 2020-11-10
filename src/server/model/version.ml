@@ -70,7 +70,7 @@ let apply_filter_on_scores filter all =
 let all ?filter ?pagination () =
   Dancelor_server_database.Version.get_all ()
   >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter filter
-  >>=| Lwt_list.proj_sort_s ~proj:(tune >=>| Tune.name) String.sensible_compare
+  >>=| Lwt_list.proj_sort_s ~proj:(tune >=>| Tune.name) String.Sensible.compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
@@ -132,7 +132,7 @@ let extract_search s =
   )
 
 let score_list_vs_word words needle =
-  List.map (String.sensible_inclusion_proximity ~needle) words
+  List.map (String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle) words
   |> List.fold_left max 0.
 
 let score_list_vs_list words needles =
@@ -174,7 +174,7 @@ let search ?filter ?pagination ?(threshold=0.) string =
   >>=| Score.lwt_map_from_list (score ~kinds ~authors ~keys words)
   >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter_on_scores filter
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:(tune >=>| Tune.name) String.sensible_compare
+  >>=| Score.list_proj_sort_decreasing ~proj:(tune >=>| Tune.name) String.Sensible.compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =

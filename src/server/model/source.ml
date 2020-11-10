@@ -25,14 +25,14 @@ let () =
 
 let search string source =
   let%lwt name = name source in
-  String.sensible_inclusion_proximity ~needle:string name
+  String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string name
   |> Lwt.return
 
 let search ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Source.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:name String.sensible_compare
+  >>=| Score.list_proj_sort_decreasing ~proj:name String.Sensible.compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =

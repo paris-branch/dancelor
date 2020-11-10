@@ -35,14 +35,14 @@ let () =
 
 let search string credit =
   let%lwt line = line credit in
-  String.sensible_inclusion_proximity ~needle:string line
+  String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string line
   |> Lwt.return
 
 let search ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Credit.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:line String.sensible_compare
+  >>=| Score.list_proj_sort_decreasing ~proj:line String.Sensible.compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
