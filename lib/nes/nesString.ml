@@ -135,6 +135,9 @@ module Sensible = struct
   let equal s1 s2 =
     NesSeq.for_all2 NesChar.Sensible.equal (to_seq s1) (to_seq s2)
 
+  (* FIXME: sensible comparison of string should also extract integers and
+     compare them numerically. *)
+
   let extract_prefix s =
     let prefixes = [ "a "; "the "; "la "; "le "; "les "; "l'" ] in
     let has_prefix prefix = starts_with ~equal ~needle:prefix s in
