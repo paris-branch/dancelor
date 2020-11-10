@@ -1,6 +1,7 @@
 (* Extensions to existing modules. *)
 
 include NesPervasives
+module Char = NesChar
 module Filename = NesFilename
 module Format = NesFormat
 module List = NesList
