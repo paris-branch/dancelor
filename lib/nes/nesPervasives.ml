@@ -50,3 +50,6 @@ let%test _ = (pmod    7    7 ) + (pdiv    7    7 ) *   7 =   7
 let%test _ = (pmod  (-4)  67 ) + (pdiv  (-4)  67 ) *  67 =  -4
 let%test _ = (pmod (-67)   4 ) + (pdiv (-67)   4 ) *   4 = -67
 let%test _ = (pmod (-67) (-4)) + (pdiv (-67) (-4)) *  -4 = -67
+
+let compare_or cmp1 cmp2 =
+  if cmp1 <> 0 then cmp1 else cmp2 ()

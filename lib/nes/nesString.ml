@@ -1,4 +1,4 @@
-open NesPervasives.Syntax
+open NesPervasives open Syntax
 include String
 
 let pp = Format.pp_print_string
@@ -149,12 +149,32 @@ module Sensible = struct
   let%test _ = extract_prefix "les tests c'est chiant" = ("les ", "tests c'est chiant")
   let%test _ = extract_prefix "L'abricot magique" = ("L'", "abricot magique")
 
+  let rec extract_head_number n s =
+    match s() with
+    | NesSeq.Cons(c, s') when NesChar.is_digit c ->
+      extract_head_number (10 * n + int_of_char c) s'
+    | _ -> (n, s)
+
+  let rec compare s1 s2 =
+    match s1(), s2() with
+    | Seq.Nil, Seq.Nil -> 0
+    | Nil, _ -> -1
+    | _, Nil -> 1
+    | Cons(c1, s1'), Cons(c2, s2') ->
+      if NesChar.is_digit c1 && NesChar.is_digit c2 then
+        (
+          let (n1, s1') = extract_head_number 0 s1 in
+          let (n2, s2') = extract_head_number 0 s2 in
+          compare_or (Int.compare n1 n2) @@ fun () -> compare s1' s2'
+        )
+      else
+        compare_or (NesChar.Sensible.compare c1 c2) @@ fun () -> compare s1' s2'
+
   let compare s1 s2 =
-    NesSeq.compare NesChar.Sensible.compare (to_seq s1) (to_seq s2)
+    compare (to_seq s1) (to_seq s2)
 
   let compare s1 s2 =
     let (p1, s1) = extract_prefix s1 in
     let (p2, s2) = extract_prefix s2 in
-    let c =  compare s1 s2 in
-    if c <> 0 then c else compare p1 p2
+    compare_or (compare s1 s2) @@ fun () -> compare p1 p2
 end
