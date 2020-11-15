@@ -10,7 +10,8 @@ module Self = struct
       versions_and_parameters : (Version.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
       instructions : string            [@default ""] ;
       dances : Dance.t Slug.t list     [@default []] ;
-      remark : string                  [@default ""] }
+      remark : string                  [@default ""] ;
+      sources : Source.t Slug.t list   [@default []] }
   [@@deriving make, yojson]
 
   let _key = "set"
