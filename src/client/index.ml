@@ -48,12 +48,12 @@ let make_person_result ~prefix page person =
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
-let make_program_result ~prefix page program =
-  let%lwt slug = Program.slug program in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Program slug) ()) in
+let make_book_result ~prefix page book =
+  let%lwt slug = Book.slug book in
+  let href = Lwt.return (Helpers.build_path ~route:(Router.Book slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Program.name program) page
+      Table.Cell.text ~colspan:3 ~text:(Book.name book) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -126,7 +126,7 @@ let make_result page score =
   | Credit credit   -> make_credit_result  ~prefix page credit
   | Dance dance     -> make_dance_result   ~prefix page dance
   | Person person   -> make_person_result  ~prefix page person
-  | Program program -> make_program_result ~prefix page program
+  | Book book -> make_book_result ~prefix page book
   | Set set         -> make_set_result     ~prefix page set
   | Source source   -> make_source_result  ~prefix page source
   | Tune tune       -> make_tune_result    ~prefix page tune

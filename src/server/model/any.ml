@@ -15,7 +15,7 @@ let search ?pagination ?threshold ?(except=[]) input =
     >>=| search_wrap_and_add Credit.search (fun c -> Credit c)
     >>=| search_wrap_and_add Dance.search (fun c -> Dance c)
     >>=| search_wrap_and_add Person.search (fun c -> Person c)
-    >>=| search_wrap_and_add Program.search (fun c -> Program c)
+    >>=| search_wrap_and_add Book.search (fun c -> Book c)
     >>=| search_wrap_and_add Set.search (fun c -> Set c)
     >>=| search_wrap_and_add Source.search (fun c -> Source c)
     >>=| search_wrap_and_add Tune.search (fun c -> Tune c)

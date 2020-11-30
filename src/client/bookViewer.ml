@@ -34,18 +34,18 @@ let display_sets_and_parameters t sets_and_parameters =
 let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let program = Program.get slug in
-  let title = Text.Heading.h2 ~text:(Lwt.bind program Program.name) page in
+  let book = Book.get slug in
+  let title = Text.Heading.h2 ~text:(Lwt.bind book Book.name) page in
   Dom.appendChild content (Text.Heading.root title);
   let date_text =
     let open Lwt in
-    (program >>= Program.date >|= NesDate.to_string >|= spf "Date: %s")
+    (book >>= Book.date >|= NesDate.to_string >|= spf "Date: %s")
   in
   let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);
 
   let booklet_parameters =
-    ProgramParameters.(
+    BookParameters.(
       make
         ~front_page:true
         ~table_of_contents:End
@@ -59,7 +59,7 @@ let create slug page =
     )
   in
   let bass_parameters =
-    ProgramParameters.(
+    BookParameters.(
       make ~every_set:SetParameters.(
           make ~every_version:VersionParameters.(
               make
@@ -72,50 +72,50 @@ let create slug page =
         ()
     )
   in
-  let b_parameters = ProgramParameters.make_instrument (Music.make_pitch B Flat (-1)) in
-  let e_parameters = ProgramParameters.make_instrument (Music.make_pitch E Flat 0) in
+  let b_parameters = BookParameters.make_instrument (Music.make_pitch B Flat (-1)) in
+  let e_parameters = BookParameters.make_instrument (Music.make_pitch E Flat 0) in
 
   let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
       c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
           b_parameters
-          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+          |> BookParameters.to_yojson |> Yojson.Safe.to_string
         ]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
           e_parameters
-          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+          |> BookParameters.to_yojson |> Yojson.Safe.to_string
         ]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
           bass_parameters
-          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+          |> BookParameters.to_yojson |> Yojson.Safe.to_string
         ]] (),
-      Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
           booklet_parameters
-          |> ProgramParameters.to_yojson |> Yojson.Safe.to_string
+          |> BookParameters.to_yojson |> Yojson.Safe.to_string
         ]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
-          ProgramParameters.(
+          BookParameters.(
             compose b_parameters booklet_parameters
             |> to_yojson |> Yojson.Safe.to_string
           )
         ]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
-          ProgramParameters.(
+          BookParameters.(
             compose e_parameters booklet_parameters
             |> to_yojson |> Yojson.Safe.to_string
           )
         ]] (),
-    Helpers.build_path ~api:true ~route:(Router.ProgramPdf slug)
+    Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
       ~query:["parameters", [
-          ProgramParameters.(
+          BookParameters.(
             compose bass_parameters booklet_parameters
             |> to_yojson |> Yojson.Safe.to_string
           )
@@ -148,7 +148,20 @@ let create slug page =
   sets##.textContent := Js.some (js "Loading sets...");
   Dom.appendChild content sets;
   let t = {page; content; sets} in
-  Lwt.on_success program (fun prog -> Lwt.on_success (Program.sets_and_parameters prog) (display_sets_and_parameters t));
+  Lwt.on_success book
+    (fun prog ->
+       Lwt.on_success
+         (
+           (** FIXME: that is not handling books correctly as they might have
+              versions. Inline version can be safely ignored. *)
+           let%lwt contents = Book.contents prog in
+           Lwt_list.filter_map_p
+             (function
+               | Book.Version _ -> Lwt.return_none
+               | Set (s, p) | InlineSet (s, p) -> Lwt.return_some (s, p))
+             contents
+         )
+         (display_sets_and_parameters t));
   t
 
 let contents t =

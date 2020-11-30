@@ -21,9 +21,9 @@ type controller =
   | PersonSave
   | Person of Person.t Slug.t
 
-  | ProgramAll
-  | ProgramPdf of Program.t Slug.t
-  | Program of Program.t Slug.t
+  | BookAll
+  | BookPdf of Book.t Slug.t
+  | Book of Book.t Slug.t
 
   | SetAll
   | SetCompose

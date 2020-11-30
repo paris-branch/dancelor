@@ -3,7 +3,7 @@ module Self = struct
     | Credit of Credit.t
     | Dance of Dance.t
     | Person of Person.t
-    | Program of Program.t
+    | Book of Book.t
     | Set of Set.t
     | Source of Source.t
     | Tune of Tune.t
@@ -19,7 +19,7 @@ module Type = struct
     | Credit
     | Dance
     | Person
-    | Program
+    | Book
     | Set
     | Source
     | Tune
@@ -30,7 +30,7 @@ module Type = struct
     | Credit -> "Credit"
     | Dance -> "Dance"
     | Person -> "Person"
-    | Program -> "Program"
+    | Book -> "Book"
     | Set -> "Set"
     | Source -> "Source"
     | Tune -> "Tune"
@@ -43,7 +43,7 @@ let type_of = function
   | Credit _ -> Type.Credit
   | Dance _ -> Type.Dance
   | Person _ -> Type.Person
-  | Program _ -> Type.Program
+  | Book _ -> Type.Book
   | Set _ -> Type.Set
   | Source _ -> Type.Source
   | Tune _ -> Type.Tune

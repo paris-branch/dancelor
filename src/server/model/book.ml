@@ -1,19 +1,20 @@
 open Nes
-include Dancelor_common_model.Program
+include Dancelor_common_model.Book
 
-let sets_and_parameters program =
-  let%lwt sets_and_parameters = sets_and_parameters program in
+let contents p =
+  let%lwt contents = contents p in
   Lwt_list.map_p
-    (fun (slug, parameters) ->
-       let%lwt set = Set.get slug in
-       Lwt.return (set, parameters))
-    sets_and_parameters
+    (function
+      | (Version (v, p) : Self.page) -> let%lwt v = Version.get v in Lwt.return (Version (v, p))
+      | Set (s, p) -> let%lwt s = Set.get s in Lwt.return (Set (s, p))
+      | InlineSet (s, p) -> Lwt.return (InlineSet (s, p)))
+    contents
 
 let warnings _p = assert false (* FIXME *)
 
 (* * *)
 
-let get = Dancelor_server_database.Program.get
+let get = Dancelor_server_database.Book.get
 
 let () =
   Madge_server.(
@@ -21,7 +22,7 @@ let () =
     get (a Arg.slug)
   )
 
-let get_all = Dancelor_server_database.Program.get_all
+let get_all = Dancelor_server_database.Book.get_all
 
 let () =
   Madge_server.(
@@ -35,7 +36,7 @@ let search string person =
   |> Lwt.return
 
 let search ?pagination ?(threshold=0.) string =
-  Dancelor_server_database.Program.get_all ()
+  Dancelor_server_database.Book.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.list_proj_sort_decreasing ~proj:name String.Sensible.compare

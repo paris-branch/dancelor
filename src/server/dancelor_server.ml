@@ -46,7 +46,7 @@ let apply_controller path =
   if path = "/victor2" then log_exit 102;
   if path = "/victor3" then log_exit 103;
   if path = "/victor4" then log_exit 104;
-  [ "/program/", ".pdf", Program.Pdf.get ;
+  [ "/book/", ".pdf", Book.Pdf.get ;
     "/set/",     ".ly",  Set.Ly.get ;
     "/set/",     ".pdf", Set.Pdf.get ;
     "/version/",    ".ly",  Version.get_ly ;

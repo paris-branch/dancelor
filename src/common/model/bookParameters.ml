@@ -14,7 +14,7 @@ module Self = struct
   }
   [@@deriving make, yojson]
 
-  let _key = "program-parameters"
+  let _key = "book-parameters"
 end
 include Self
 

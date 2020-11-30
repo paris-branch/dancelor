@@ -17,31 +17,31 @@ let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let title = Html.createH2 document in
-  title##.textContent := Js.some (js "All Programs");
+  title##.textContent := Js.some (js "All Books");
   Dom.appendChild content title;
   Dom.appendChild content (Html.createHr document);
   Dom.appendChild content (Html.createBr document);
   let header =
     Table.Row.create
       ~cells:[
-        Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Programs") ~text:(Lwt.return "Program") page;
+        Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Books") ~text:(Lwt.return "Book") page;
         Table.Cell.header_text ~text:(Lwt.return "Date") page]
       page
   in
   let rows =
-    let%lwt programs = Program.get_all () in
-    let programs = List.sort (fun p1 p2 -> NesDate.compare (Program.date p1) (Program.date p2)) programs in
-    Lwt.return (List.map (fun program ->
+    let%lwt books = Book.get_all () in
+    let books = List.sort (fun p1 p2 -> NesDate.compare (Book.date p1) (Book.date p2)) books in
+    Lwt.return (List.map (fun book ->
       let href =
-        let%lwt slug = Program.slug program in
-        Lwt.return (Router.path_of_controller (Router.Program slug) |> snd)
+        let%lwt slug = Book.slug book in
+        Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
       in
       let cells =
         let open Lwt in [
-        Table.Cell.text ~text:(Program.name program) page;
-        Table.Cell.text ~text:(Program.date program >|= NesDate.to_string) page]
+        Table.Cell.text ~text:(Book.name book) page;
+        Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page]
       in
-      Table.Row.create ~href ~cells page) programs)
+      Table.Row.create ~href ~cells page) books)
   in
   let section = Table.Section.create ~rows page in
   let table = Table.create

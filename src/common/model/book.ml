@@ -1,16 +1,22 @@
 open Nes
 
 module Self = struct
+  type page =
+    | Version       of Version.t Slug.t * VersionParameters.t
+    | Set           of     Set.t Slug.t * SetParameters.t
+    | InlineSet     of     Set.t        * SetParameters.t
+  [@@deriving yojson]
+
   type t =
     { slug : t Slug.t ;
       status : Status.t [@default Status.bot] ;
       name : string ;
       date : Date.t ;
-      sets_and_parameters : (Set.t Slug.t * SetParameters.t) list [@key "sets-and-parameters"] ;
+      contents : page list ;
       remark : string [@default ""] }
   [@@deriving yojson]
 
-  let _key = "program"
+  let _key = "book"
 end
 include Self
 
@@ -18,14 +24,15 @@ let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
 let name p = Lwt.return p.name
 let date p = Lwt.return p.date
-let sets_and_parameters p = Lwt.return p.sets_and_parameters
-let remark program = Lwt.return program.remark
+let contents p = Lwt.return p.contents
+let remark p = Lwt.return p.remark
 
-let contains_set slug1 program =
+let contains_set slug1 p =
   List.exists
-    (fun (slug2, _parameters) ->
-       Slug.equal slug1 slug2)
-    program.sets_and_parameters
+    (function
+      | Set (slug2, _) -> Slug.equal slug1 slug2
+      | _ -> false)
+    p.contents
 
 let compare p1 p2 =
   (* Compare first by date *)
@@ -44,14 +51,24 @@ type warning =
 type warnings = warning list
 [@@deriving yojson]
 
+type page =
+  | Version       of Version.t * VersionParameters.t
+  | Set           of     Set.t * SetParameters.t
+  | InlineSet     of     Set.t * SetParameters.t
+
 module type S = sig
+  type page =
+    | Version       of Version.t * VersionParameters.t
+    | Set           of     Set.t * SetParameters.t
+    | InlineSet     of     Set.t * SetParameters.t
+
   type nonrec t = t
 
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Status.t Lwt.t
   val name : t -> string Lwt.t
   val date : t -> Date.t Lwt.t
-  val sets_and_parameters : t -> (Set.t * SetParameters.t) list Lwt.t
+  val contents : t -> page list Lwt.t
   val remark : t -> string Lwt.t
 
   val contains_set : Set.t Slug.t -> t -> bool
@@ -92,7 +109,7 @@ end
 
 module Endpoint = struct
   open Madge_common
-  let get = endpoint ~path:"/program" (module Self)
-  let get_all = endpoint ~path:"/program/all" (module MList (Self))
-  let search = endpoint ~path:"/program/search" (module MList (Score.Make_Serialisable (Self)))
+  let get = endpoint ~path:"/book" (module Self)
+  let get_all = endpoint ~path:"/book/all" (module MList (Self))
+  let search = endpoint ~path:"/book/search" (module MList (Score.Make_Serialisable (Self)))
 end

@@ -43,10 +43,10 @@ let dispatch url =
     pack (module ComposerInterface) ComposerInterface.create
   | ["set";slug] ->
     pack (module SetViewer) (SetViewer.create slug)
-  | ["program";"all"] ->
-    pack (module ProgramExplorer) ProgramExplorer.create
-  | ["program";slug] ->
-    pack (module ProgramViewer) (ProgramViewer.create slug)
+  | ["book";"all"] ->
+    pack (module BookExplorer) BookExplorer.create
+  | ["book";slug] ->
+    pack (module BookViewer) (BookViewer.create slug)
   | ["credit";"add"] ->
     pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
   | [] ->

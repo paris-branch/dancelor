@@ -11,7 +11,7 @@ let on_load _ev =
   let header = Header.create page in
   Header.add_menu_entry header "Versions" (Router.path_of_controller Router.VersionAll |> snd);
   Header.add_menu_entry header "Sets" (Router.path_of_controller Router.SetAll |> snd);
-  Header.add_menu_entry header "Programs" (Router.path_of_controller Router.ProgramAll |> snd);
+  Header.add_menu_entry header "Books" (Router.path_of_controller Router.BookAll |> snd);
   Header.add_menu_entry header "Compose a Set" (Router.path_of_controller Router.SetCompose |> snd);
   Page.set_header page (Header.contents header);
   let url = 

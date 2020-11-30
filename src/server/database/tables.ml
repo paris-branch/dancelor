@@ -81,15 +81,18 @@ module Set = Table.Make (
       |> Lwt.return
   end)
 
-module Program = Table.Make (
+module Book = Table.Make (
   struct
-    include Model.Program
+    include Model.Book
 
-    let dependencies program =
-      let%lwt sets_and_parameters = sets_and_parameters program in
-      let sets = List.map fst sets_and_parameters in
-      List.map (Table.make_slug_and_table (module Set)) sets
-      |> Lwt.return
+    let dependencies book =
+      let%lwt contents = contents book in
+      Lwt_list.filter_map_p
+        (function
+          | (Version (v, _) : Self.page) -> Lwt.return_some (Table.make_slug_and_table (module Version) v)
+          | Set (s, _) -> Lwt.return_some (Table.make_slug_and_table (module Set) s)
+          | _ -> Lwt.return_none)
+        contents
   end)
 
 module Storage = Storage
@@ -102,7 +105,7 @@ let tables : (module Table.S) list = [
   (module Version) ;
   (module Tune) ;
   (module Set) ;
-  (module Program)
+  (module Book)
 ]
 
 module Log = (val Dancelor_server_logs.create "database" : Logs.LOG)

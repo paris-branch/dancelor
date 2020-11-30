@@ -14,9 +14,9 @@ type controller =
   | PersonSave
   | Person of Person.t Slug.t
 
-  | ProgramAll
-  | ProgramPdf of Program.t Slug.t
-  | Program of Program.t Slug.t
+  | BookAll
+  | BookPdf of Book.t Slug.t
+  | Book of Book.t Slug.t
 
   | SetAll
   | SetCompose
@@ -139,21 +139,21 @@ let routes : route list =
 
     direct
       ~meth:`GET
-      ~path:"/program/all"
-      ProgramAll ;
+      ~path:"/book/all"
+      BookAll ;
 
     with_slug
       ~meth:`GET
-      ~prefix:"/program"
+      ~prefix:"/book"
       ~ext:"pdf"
-      (fun program -> Some (ProgramPdf program))
-      (function ProgramPdf program -> Some program | _ -> None) ;
+      (fun book -> Some (BookPdf book))
+      (function BookPdf book -> Some book | _ -> None) ;
 
     with_slug
       ~meth:`GET
-      ~prefix:"/program"
-      (fun program -> Some (Program program))
-      (function Program program -> Some program | _ -> None) ;
+      ~prefix:"/book"
+      (fun book -> Some (Book book))
+      (function Book book -> Some book | _ -> None) ;
 
     direct
       ~meth:`GET
