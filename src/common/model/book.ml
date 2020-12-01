@@ -11,9 +11,9 @@ module Self = struct
     { slug : t Slug.t ;
       status : Status.t [@default Status.bot] ;
       name : string ;
-      date : Date.t ;
+      date : Date.t     [@default Date.none] ;
       contents : page list ;
-      remark : string [@default ""] }
+      remark : string   [@default ""] }
   [@@deriving yojson]
 
   let _key = "book"

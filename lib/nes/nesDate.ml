@@ -2,6 +2,8 @@ open NesPervasives.Syntax
 
 type t = int * int * int
 
+let none = (0, 0, 0)
+
 let from_string s =
   match String.split_on_char '-' s |> List.map int_of_string_opt with
   | [Some year; Some month; Some day]

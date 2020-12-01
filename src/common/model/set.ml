@@ -2,7 +2,7 @@ open Nes
 
 module Self = struct
   type t =
-    { slug : t Slug.t ;
+    { slug : t Slug.t                  [@default Slug.none] ;
       status : Status.t                [@default Status.bot] ;
       name : string ;
       deviser : Credit.t Slug.t option [@default None] ;
