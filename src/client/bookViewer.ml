@@ -15,21 +15,60 @@ type t =
   sets : Html.uListElement Js.t;
 }
 
-let display_sets_and_parameters t sets_and_parameters =
+let display_contents t contents =
+  (** FIXME: cleaner presentation *)
+  (** FIXME: do something with parameters *)
   t.sets##.textContent := Js.null;
-  List.iter (fun (set, _parameters) ->
-      (* FIXME: use parameters *)
-    let slug = Set.slug set in
-    let href =
-      let%lwt slug = slug in
-      Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
-    in
-    let name = Set.name set in
-    let link = Text.Link.create ~href ~text:name t.page in
-    let li = Html.createLi (Page.document t.page) in
-    Dom.appendChild li (Text.Link.root link);
-    Dom.appendChild t.sets li)
-    sets_and_parameters
+  List.iter
+    (function
+      | Book.Set (set, _parameters) ->
+        (
+          let slug = Set.slug set in
+          let href =
+            let%lwt slug = slug in
+            Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+          in
+          let text =
+            let%lwt name = Set.name set in
+            Lwt.return ("Set: " ^ name)
+          in
+          let link = Text.Link.create ~href ~text t.page in
+          let li = Html.createLi (Page.document t.page) in
+          Dom.appendChild li (Text.Link.root link);
+          Dom.appendChild t.sets li
+        )
+
+      | InlineSet (set, _parameters) ->
+        (
+          let text =
+            let%lwt name = Set.name set in
+            Lwt.return ("Set (inline): " ^ name)
+          in
+          let paragraph = Text.Paragraph.create ~text t.page in
+          let li = Html.createLi (Page.document t.page) in
+          Dom.appendChild li (Text.Paragraph.root paragraph);
+          Dom.appendChild t.sets li
+        )
+
+      | Version (version, _parameters) ->
+        (
+          let slug = Version.slug version in
+          let href =
+            let%lwt slug = slug in
+            Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+          in
+          let text =
+            let%lwt tune = Version.tune version in
+            let%lwt name = Tune.name tune in
+            Lwt.return ("Version: " ^ name)
+          in
+          let link = Text.Link.create ~href ~text t.page in
+          let li = Html.createLi (Page.document t.page) in
+          Dom.appendChild li (Text.Link.root link);
+          Dom.appendChild t.sets li
+        )
+    )
+    contents
 
 let create slug page =
   let document = Page.document page in
@@ -142,26 +181,13 @@ let create slug page =
   Dom.appendChild content (Inputs.Button.root e_booklet_pdf);
   Dom.appendChild content (Inputs.Button.root bass_booklet_pdf);
   Dom.appendChild content (Html.createHr document);
-  let prev_title = Text.Heading.h2 ~text:(Lwt.return "Sets") page in
+  let prev_title = Text.Heading.h2 ~text:(Lwt.return "Contents") page in
   Dom.appendChild content (Text.Heading.root prev_title);
   let sets = Html.createUl (Page.document page) in
   sets##.textContent := Js.some (js "Loading sets...");
   Dom.appendChild content sets;
   let t = {page; content; sets} in
-  Lwt.on_success book
-    (fun prog ->
-       Lwt.on_success
-         (
-           (** FIXME: that is not handling books correctly as they might have
-              versions. Inline version can be safely ignored. *)
-           let%lwt contents = Book.contents prog in
-           Lwt_list.filter_map_p
-             (function
-               | Book.Version _ -> Lwt.return_none
-               | Set (s, p) | InlineSet (s, p) -> Lwt.return_some (s, p))
-             contents
-         )
-         (display_sets_and_parameters t));
+  Lwt.on_success book (fun prog -> Lwt.on_success (Book.contents prog)  (display_contents t));
   t
 
 let contents t =
