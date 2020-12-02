@@ -81,8 +81,12 @@ let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
   let book = Book.get slug in
-  let title = Text.Heading.h2 ~text:(Lwt.bind book Book.name) page in
-  Dom.appendChild content (Text.Heading.root title);
+  let () =
+    let title = Text.Heading.h2 ~text:(Lwt.bind book Book.title) page in
+    Dom.appendChild content (Text.Heading.root title);
+    let subtitle = Text.Heading.h3 ~text:(Lwt.bind book Book.subtitle) page in
+    Dom.appendChild content (Text.Heading.root subtitle)
+  in
   let date_text =
     let open Lwt in
     (book >>= Book.date >|= NesDate.to_string >|= spf "Date: %s")

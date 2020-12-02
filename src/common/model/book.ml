@@ -8,12 +8,13 @@ module Self = struct
   [@@deriving yojson]
 
   type t =
-    { slug : t Slug.t ;
-      status : Status.t [@default Status.bot] ;
-      name : string ;
-      date : Date.t     [@default Date.none] ;
+    { slug     : t Slug.t ;
+      status   : Status.t  [@default Status.bot] ;
+      title    : string ;
+      subtitle : string    [@default ""] ;
+      date     : Date.t    [@default Date.none] ;
       contents : page list ;
-      remark : string   [@default ""] }
+      remark   : string    [@default ""] }
   [@@deriving yojson]
 
   let _key = "book"
@@ -22,7 +23,8 @@ include Self
 
 let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
-let name p = Lwt.return p.name
+let title p = Lwt.return p.title
+let subtitle p = Lwt.return p.subtitle
 let date p = Lwt.return p.date
 let contents p = Lwt.return p.contents
 let remark p = Lwt.return p.remark
@@ -66,7 +68,8 @@ module type S = sig
 
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Status.t Lwt.t
-  val name : t -> string Lwt.t
+  val title : t -> string Lwt.t
+  val subtitle : t -> string Lwt.t
   val date : t -> Date.t Lwt.t
   val contents : t -> page list Lwt.t
   val remark : t -> string Lwt.t

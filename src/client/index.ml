@@ -53,7 +53,7 @@ let make_book_result ~prefix page book =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Book slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Book.name book) page
+      Table.Cell.text ~colspan:3 ~text:(Book.title book) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

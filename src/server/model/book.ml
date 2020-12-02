@@ -30,16 +30,16 @@ let () =
     get_all ()
   )
 
-let search string person =
-  let%lwt name = name person in
-  String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string name
+let search string book =
+  let%lwt title = title book in
+  String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string title
   |> Lwt.return
 
 let search ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Book.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:name String.Sensible.compare
+  >>=| Score.list_proj_sort_decreasing ~proj:title String.Sensible.compare
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =

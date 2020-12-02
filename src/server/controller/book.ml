@@ -7,12 +7,12 @@ module Ly = struct
   let render ?(parameters=BookParameters.none) book =
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
-      let%lwt name = Book.name book in
+      let%lwt title = Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/book/globals.ly"]
-        name (Option.unwrap_or ~default:"" parameters.instruments);
+        title (Option.unwrap_or ~default:"" parameters.instruments);
       fpf fmt [%blob "template/paper.ly"];
       fpf fmt [%blob "template/book/paper.ly"];
       if parameters |> BookParameters.two_sided |> (=) (Some true) then

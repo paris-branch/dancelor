@@ -38,7 +38,7 @@ let create page =
       in
       let cells =
         let open Lwt in [
-        Table.Cell.text ~text:(Book.name book) page;
+        Table.Cell.text ~text:(Book.title book) page;
         Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page]
       in
       Table.Row.create ~href ~cells page) books)
