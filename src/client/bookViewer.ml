@@ -88,10 +88,14 @@ let create slug page =
     Dom.appendChild content (Text.Heading.root subtitle)
   in
   let date_text =
-    let open Lwt in
-    (book >>= Book.date >|= NesDate.to_string >|= spf "Date: %s")
+    let%lwt book = book in
+    let%lwt date = Book.date book in
+    if Date.is_none date then
+      Lwt.return ""
+    else
+      Lwt.return (spf "Date: %s" (NesDate.to_string date))
   in
-  let date = Text.Paragraph.create ~placeholder:"Date:" ~text:date_text page in
+  let date = Text.Paragraph.create ~placeholder:"Getting date..." ~text:date_text page in
   Dom.appendChild content (Text.Paragraph.root date);
 
   let booklet_parameters =
