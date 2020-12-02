@@ -12,63 +12,70 @@ type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
-  sets : Html.uListElement Js.t;
+  table : Table.t;
 }
 
 let display_contents t contents =
-  (** FIXME: cleaner presentation *)
-  (** FIXME: do something with parameters *)
-  t.sets##.textContent := Js.null;
-  List.iter
-    (function
-      | Book.Set (set, _parameters) ->
-        (
-          let slug = Set.slug set in
-          let href =
-            let%lwt slug = slug in
-            Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
-          in
-          let text =
-            let%lwt name = Set.name set in
-            Lwt.return ("Set: " ^ name)
-          in
-          let link = Text.Link.create ~href ~text t.page in
-          let li = Html.createLi (Page.document t.page) in
-          Dom.appendChild li (Text.Link.root link);
-          Dom.appendChild t.sets li
-        )
+  let rows =
+    List.map
+      (function
+        | Book.Set (set, _parameters) ->
+          (
+            let slug = Set.slug set in
+            let href =
+              let%lwt slug = slug in
+              Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+            in
+            let cells =
+              let open Lwt in [
+                Table.Cell.text ~text:(Lwt.return "Set") t.page;
+                Table.Cell.text ~text:(Set.name set) t.page;
+                Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
+              ]
+            in
+            Table.Row.create ~href ~cells t.page
+          )
 
-      | InlineSet (set, _parameters) ->
-        (
-          let text =
-            let%lwt name = Set.name set in
-            Lwt.return ("Set (inline): " ^ name)
-          in
-          let paragraph = Text.Paragraph.create ~text t.page in
-          let li = Html.createLi (Page.document t.page) in
-          Dom.appendChild li (Text.Paragraph.root paragraph);
-          Dom.appendChild t.sets li
-        )
+        | InlineSet (set, _parameters) ->
+          (
+            let cells =
+              let open Lwt in [
+                Table.Cell.text ~text:(Lwt.return "Set (inline)") t.page;
+                Table.Cell.text ~text:(Set.name set) t.page;
+                Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
+              ]
+            in
+            Table.Row.create ~cells t.page
+          )
 
-      | Version (version, _parameters) ->
-        (
-          let slug = Version.slug version in
-          let href =
-            let%lwt slug = slug in
-            Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-          in
-          let text =
-            let%lwt tune = Version.tune version in
-            let%lwt name = Tune.name tune in
-            Lwt.return ("Version: " ^ name)
-          in
-          let link = Text.Link.create ~href ~text t.page in
-          let li = Html.createLi (Page.document t.page) in
-          Dom.appendChild li (Text.Link.root link);
-          Dom.appendChild t.sets li
-        )
-    )
-    contents
+        | Version (version, _parameters) ->
+          (
+            let slug = Version.slug version in
+            let href =
+              let%lwt slug = slug in
+              Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+            in
+            let cells =
+              let open Lwt in [
+                Table.Cell.text ~text:(Lwt.return "Version") t.page;
+                Table.Cell.text ~text:(Version.tune version >>= Tune.name) t.page;
+                Table.Cell.text ~text:(
+                  let%lwt tune = Version.tune version in
+                  let%lwt kind = Tune.kind tune in
+                  let%lwt bars = Version.bars version in
+                  let kind = (bars, kind) in
+                  Lwt.return (Kind.version_to_string kind)
+                ) t.page
+              ]
+            in
+            Table.Row.create ~href ~cells t.page
+          )
+      )
+      contents
+    |> Lwt.return
+  in
+  let section = Table.Section.create ~rows t.page in
+  Table.replace_bodies t.table (Lwt.return [section])
 
 let create slug page =
   let document = Page.document page in
@@ -183,11 +190,25 @@ let create slug page =
   Dom.appendChild content (Html.createHr document);
   let prev_title = Text.Heading.h2 ~text:(Lwt.return "Contents") page in
   Dom.appendChild content (Text.Heading.root prev_title);
-  let sets = Html.createUl (Page.document page) in
-  sets##.textContent := Js.some (js "Loading sets...");
-  Dom.appendChild content sets;
-  let t = {page; content; sets} in
-  Lwt.on_success book (fun prog -> Lwt.on_success (Book.contents prog)  (display_contents t));
+
+  let header =
+    Table.Row.create
+      ~cells:[
+        Table.Cell.header_text ~text:(Lwt.return "Type") page;
+        Table.Cell.header_text ~text:(Lwt.return "Name") page;
+        Table.Cell.header_text ~text:(Lwt.return "Kind") page;
+      ]
+      page
+  in
+  let table = Table.create
+      ~header
+      ~kind:Table.Kind.Separated
+      page
+  in
+  Dom.appendChild content (Table.root table);
+
+  let t = {page; content; table} in
+  Lwt.on_success book (fun prog -> Lwt.on_success (Book.contents prog) (display_contents t));
   t
 
 let contents t =
