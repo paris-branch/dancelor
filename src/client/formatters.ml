@@ -212,11 +212,11 @@ module Set = struct
            in
            let name =
              let%lwt tune = M.Version.tune version in
-             let%lwt name = M.Tune.name tune in
-             Lwt.return (" - " ^ name)
+             M.Tune.name tune
            in
-           link ~href [text_lwt name page] page)
+           (link ~href [text_lwt name page] page :> Dom.node Js.t))
         versions_and_parameters
+      |> List.intertwine (fun _ -> (text " - " page :> Dom.node Js.t))
       |> Lwt.return
     in
     Lwt.return [
