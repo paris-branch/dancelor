@@ -31,3 +31,12 @@ let rec ft = function
   | [] -> failwith "ft"
   | [e] -> e
   | _::q -> ft q
+
+let intertwine f l =
+  let rec intertwine i = function
+    | [] -> []
+    | [e] -> [e]
+    | h :: q ->
+      h :: (f i) :: intertwine (i+1) q
+  in
+  intertwine 0 l
