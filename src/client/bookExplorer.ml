@@ -37,7 +37,7 @@ let create page =
       in
       let cells =
         let open Lwt in [
-          Table.Cell.create_static ~content:(Formatters.Book.title_and_subtitle book page) page;
+          Table.Cell.create ~content:(Formatters.Book.title_and_subtitle book page) page;
           Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page
         ]
       in

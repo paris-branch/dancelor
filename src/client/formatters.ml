@@ -221,11 +221,16 @@ end
 module Book = struct
 
   let title_and_subtitle book page =
-    let title = M.Book.title book in
-    let subtitle = M.Book.subtitle book in
-    [
-      (text_lwt title page :> Dom.node Js.t);
-      (span_static ~classes:["details"] [text_lwt subtitle page] page :> Dom.node Js.t)
-    ]
+    let%lwt subtitle_block =
+      match%lwt M.Book.subtitle book with
+      | "" -> Lwt.return_nil
+      | subtitle -> Lwt.return [
+          (span_static ~classes:["details"] [text subtitle page] page :> Dom.node Js.t)
+        ]
+    in
+    Lwt.return (
+      (text_lwt (M.Book.title book) page :> Dom.node Js.t)
+      :: subtitle_block
+    )
 
 end
