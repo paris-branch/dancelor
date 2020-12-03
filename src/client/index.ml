@@ -98,7 +98,7 @@ let make_version_result ~prefix page version =
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [
-      Table.Cell.create_static ~content:(Formatters.Version.name_and_disambiguation version page) page;
+      Table.Cell.create ~content:(Formatters.Version.name_and_disambiguation version page) page;
       Table.Cell.text ~text:(
         let%lwt bars = Version.bars version in
         let%lwt kind = Tune.kind tune in

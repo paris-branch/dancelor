@@ -149,15 +149,17 @@ module Version = struct
       let%lwt tune = M.Version.tune version in
       M.Tune.name tune
     in
-    let disambiguation =
+    let%lwt disambiguation_block =
       match%lwt M.Version.disambiguation version with
-      | "" -> Lwt.return ""
-      | disambiguation -> Lwt.return (spf " (%s)" disambiguation)
+      | "" -> Lwt.return_nil
+      | disambiguation -> Lwt.return [
+          (span_static ~classes:["dim"] [text (spf " (%s)" disambiguation) page] page :> Dom.node Js.t)
+        ]
     in
-    [
-      (text_lwt name page :> Dom.node Js.t);
-      (span_static ~classes:["dim"] [text_lwt disambiguation page] page :> Dom.node Js.t)
-    ]
+    Lwt.return (
+      (text_lwt name page :> Dom.node Js.t)
+      :: disambiguation_block
+    )
 
   let author_and_arranger ?(short=true) version page =
     let author =
