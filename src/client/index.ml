@@ -53,7 +53,7 @@ let make_book_result ~prefix page book =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Book slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.create ~colspan:3 ~content:(Formatters.Book.title_and_subtitle book page) page
+      Table.Cell.create_static ~colspan:3 ~content:(Formatters.Book.title_and_subtitle book page) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -98,14 +98,14 @@ let make_version_result ~prefix page version =
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [
-      Table.Cell.create ~content:(Formatters.Version.name_and_disambiguation version page) page;
+      Table.Cell.create_static ~content:(Formatters.Version.name_and_disambiguation version page) page;
       Table.Cell.text ~text:(
         let%lwt bars = Version.bars version in
         let%lwt kind = Tune.kind tune in
         let%lwt structure = Version.structure version in
         Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
-      Table.Cell.create ~content:(Formatters.Version.author_and_arranger version page) page;
+      Table.Cell.create_static ~content:(Formatters.Version.author_and_arranger version page) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

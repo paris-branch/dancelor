@@ -18,7 +18,7 @@ let make_node ?(classes=[]) create page =
 
 let make_node_with_content ?classes ~content create page =
   let node = make_node ?classes create page in
-  JsHelpers.add_children node content;
+  Lwt.on_success content @@ JsHelpers.add_children node;
   node
 
 (* Text nodes have a special handling *)
@@ -37,6 +37,9 @@ let space = text " "
 
 let span ?classes content page =
   make_node_with_content ?classes ~content Html.createSpan page
+
+let span_static ?classes content page =
+  span ?classes (Lwt.return content) page
 
 let link ?classes ~href content page =
   let link = make_node_with_content ?classes ~content Html.createA page in
@@ -149,7 +152,7 @@ module Version = struct
     in
     [
       (text_lwt name page :> Dom.node Js.t);
-      (span ~classes:["dim"] [text_lwt disambiguation page] page :> Dom.node Js.t)
+      (span_static ~classes:["dim"] [text_lwt disambiguation page] page :> Dom.node Js.t)
     ]
 
   let author_and_arranger ?(short=true) version page =
@@ -176,7 +179,7 @@ module Version = struct
     in
     [
       (text_lwt author page :> Dom.node Js.t);
-      (span ~classes:["dim"] [text_lwt arranged_by page] page :> Dom.node Js.t)
+      (span_static ~classes:["dim"] [text_lwt arranged_by page] page :> Dom.node Js.t)
     ]
 
 end
@@ -194,6 +197,25 @@ module Set = struct
   let works_lwt set =
     Lwt.bind set works
 
+  let name_and_tunes set page =
+    let versions =
+      let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
+      List.map
+        (fun (version, _) ->
+           let name =
+             let%lwt tune = M.Version.tune version in
+             let%lwt name = M.Tune.name tune in
+             Lwt.return (" - " ^ name)
+           in
+           text_lwt name page)
+        versions_and_parameters
+      |> Lwt.return
+    in
+    Lwt.return [
+      (text_lwt (M.Set.name set) page :> Dom.node Js.t) ;
+      (span ~classes:["details"] versions page :> Dom.node Js.t)
+    ]
+
 end
 
 module Book = struct
@@ -203,7 +225,7 @@ module Book = struct
     let subtitle = M.Book.subtitle book in
     [
       (text_lwt title page :> Dom.node Js.t);
-      (span ~classes:["details"] [text_lwt subtitle page] page :> Dom.node Js.t)
+      (span_static ~classes:["details"] [text_lwt subtitle page] page :> Dom.node Js.t)
     ]
 
 end

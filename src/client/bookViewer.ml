@@ -30,12 +30,7 @@ let display_contents t contents =
               let open Lwt in
               [
                 Table.Cell.text ~text:(Lwt.return "Set") t.page;
-                Table.Cell.create ~content:[
-                  (Formatters.text_lwt (Set.name set) t.page :> Dom.node Js.t);
-                  (Formatters.span ~classes:["details"] [
-                      Formatters.text_lwt (Lwt.return "FIXME") t.page
-                    ] t.page :> Dom.node Js.t);
-                ] t.page;
+                Table.Cell.create ~content:(Formatters.Set.name_and_tunes set t.page) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
               ]
             in
@@ -47,7 +42,7 @@ let display_contents t contents =
             let cells =
               let open Lwt in [
                 Table.Cell.text ~text:(Lwt.return "Set (inline)") t.page;
-                Table.Cell.text ~text:(Set.name set) t.page;
+                Table.Cell.create ~content:(Formatters.Set.name_and_tunes set t.page) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
               ]
             in
