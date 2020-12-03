@@ -22,7 +22,13 @@ let () =
     get (a Arg.slug)
   )
 
-let get_all = Dancelor_server_database.Book.get_all
+let get_all () =
+  let%lwt books = Dancelor_server_database.Book.get_all () in
+  Lwt_list.(sort_multiple [
+      increasing     date NesDate.compare ;
+      increasing    title String.Sensible.compare ;
+      increasing subtitle String.Sensible.compare
+    ]) books
 
 let () =
   Madge_server.(
@@ -40,6 +46,7 @@ let search ?pagination ?(threshold=0.) string =
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
+      increasing     date NesDate.compare ;
       increasing    title String.Sensible.compare ;
       increasing subtitle String.Sensible.compare
     ])

@@ -30,7 +30,6 @@ let create page =
   in
   let rows =
     let%lwt books = Book.get_all () in
-    let books = List.sort (fun p1 p2 -> NesDate.compare (Book.date p1) (Book.date p2)) books in
     Lwt.return (List.map (fun book ->
       let href =
         let%lwt slug = Book.slug book in
