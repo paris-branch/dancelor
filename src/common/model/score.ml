@@ -31,15 +31,23 @@ let list_filter_lwt p =
 let list_filter_threshold threshold =
   List.filter (fun score -> score.score >= threshold)
 
-let list_proj_sort_decreasing ~proj cmp =
-  Lwt_list.proj_sort_s
-    ~proj:(fun s -> let%lwt value = proj s.value in Lwt.return { s with value })
-    (fun s1 s2 ->
-       let c = - compare s1.score s2.score in
-       if c = 0 then cmp s1.value s2.value else c)
+let increasing = Lwt_list.increasing
+let decreasing = Lwt_list.decreasing
 
-let list_sort_decreasing l =
-  List.sort (fun s1 s2 -> - compare s1.score s2.score) l
+let list_proj_sort_decreasing compares l =
+  let compares =
+    List.map
+      (fun compare ->
+         fun x y -> compare x.value y.value)
+      compares
+  in
+  let compares =
+    (decreasing (fun x -> Lwt.return x.score) compare)
+    :: compares
+  in
+  Lwt_list.sort_multiple compares l
+
+let list_sort_decreasing l = list_proj_sort_decreasing [] l
 
 let list_map f =
   List.map (fun score -> { score with value = f score.value })

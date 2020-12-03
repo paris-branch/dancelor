@@ -21,7 +21,7 @@ let search ?pagination ?threshold ?(except=[]) input =
     >>=| search_wrap_and_add Tune.search (fun c -> Tune c)
     >>=| search_wrap_and_add version_search (fun c -> Version c)
   in
-  let scores =
+  let%lwt scores =
     scores
     |> Score.list_filter (fun value -> List.for_all ((<>) (type_of value)) except)
     |> Score.list_sort_decreasing

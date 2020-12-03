@@ -27,7 +27,9 @@ let () =
 
 let all ?pagination () =
   Dancelor_server_database.Set.get_all ()
-  >>=| Lwt_list.proj_sort_s ~proj:name String.Sensible.compare
+  >>=| Lwt_list.(sort_multiple [
+      increasing name String.Sensible.compare
+    ])
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
@@ -73,7 +75,9 @@ let search ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Set.get_all ()
   >>=| Score.lwt_map_from_list (search string)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.list_proj_sort_decreasing ~proj:name String.Sensible.compare
+  >>=| Score.(list_proj_sort_decreasing [
+      increasing name String.Sensible.compare
+    ])
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
