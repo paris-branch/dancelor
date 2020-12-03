@@ -114,7 +114,7 @@ let make_version_result ~prefix page version =
         let%lwt structure = Version.structure version in
         Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
-      Table.Cell.create_static ~content:(Formatters.Version.author_and_arranger version page) page;
+      Table.Cell.create ~content:(Formatters.Version.author_and_arranger version page) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

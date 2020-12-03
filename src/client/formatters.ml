@@ -175,11 +175,11 @@ module Version = struct
     Lwt.return (name_block @ disambiguation_block)
 
   let author_and_arranger ?(short=true) version page =
-    let author =
+    let%lwt author_block =
       let%lwt tune = M.Version.tune version in
       match%lwt M.Tune.author tune with
-      | None -> Lwt.return ""
-      | Some author -> M.Credit.line author
+      | None -> Lwt.return []
+      | Some author -> Credit.line (Some author) page
     in
     let has_author =
       let%lwt tune = M.Version.tune version in
@@ -187,19 +187,24 @@ module Version = struct
       | None -> Lwt.return_false
       | Some _ -> Lwt.return_true
     in
-    let arranged_by =
+    let%lwt arranger_block =
       match%lwt M.Version.arranger version with
-      | None -> Lwt.return ""
+      | None -> Lwt.return []
       | Some arranger ->
         let%lwt comma = if%lwt has_author then Lwt.return ", " else Lwt.return "" in
         let arr = if short then "arr." else "arranged by" in
-        let%lwt arranger = M.Credit.line arranger in
-        Lwt.return (spf "%s%s %s" comma arr arranger)
+        let%lwt arranger_block = Credit.line (Some arranger) page in
+        Lwt.return [
+          (span_static ~classes:["dim"] (
+              (text (spf "%s%s " comma arr) page :> Dom.node Js.t)
+              :: arranger_block
+            ) page :> Dom.node Js.t)
+        ]
     in
-    [
-      (text_lwt author page :> Dom.node Js.t);
-      (span_static ~classes:["dim"] [text_lwt arranged_by page] page :> Dom.node Js.t)
-    ]
+    Lwt.return (
+      author_block
+      @ arranger_block
+    )
 
 end
 
