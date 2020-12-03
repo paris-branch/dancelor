@@ -83,9 +83,9 @@ let create slug page =
   let content = Html.createDiv document in
   let book = Book.get slug in
   let () =
-    let title = Text.Heading.h2 ~text:(Lwt.bind book Book.title) page in
+    let title = Text.Heading.h2_static ~text:(Lwt.bind book Book.title) page in
     Dom.appendChild content (Text.Heading.root title);
-    let subtitle = Text.Heading.h3 ~text:(Lwt.bind book Book.subtitle) page in
+    let subtitle = Text.Heading.h3_static ~text:(Lwt.bind book Book.subtitle) page in
     Dom.appendChild content (Text.Heading.root subtitle)
   in
   let date_text =
@@ -197,7 +197,7 @@ let create slug page =
   Dom.appendChild content (Inputs.Button.root e_booklet_pdf);
   Dom.appendChild content (Inputs.Button.root bass_booklet_pdf);
   Dom.appendChild content (Html.createHr document);
-  let prev_title = Text.Heading.h2 ~text:(Lwt.return "Contents") page in
+  let prev_title = Text.Heading.h2_static ~text:(Lwt.return "Contents") page in
   Dom.appendChild content (Text.Heading.root prev_title);
 
   let header =

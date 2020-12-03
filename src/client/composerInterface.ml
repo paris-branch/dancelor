@@ -25,7 +25,7 @@ let make_version_subwindow t index version =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3 ~text:(Tune.name version.Composer.tune) t.page in
+  let title = Text.Heading.h3_static ~text:(Tune.name version.Composer.tune) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
@@ -156,7 +156,7 @@ let make_deviser_search_result composer page score =
 let create page =
   let composer = Composer.create () in
   let content = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h2 ~text:(Lwt.return "Compose a Set") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
     ~default:"Set Name"

@@ -22,35 +22,35 @@ let create slug page =
 
   (* title *)
   let () =
-    let title = Text.Heading.h2 ~text:(Lwt.bind tune Tune.name) page in
+    let title = Text.Heading.h2_static ~text:(Lwt.bind tune Tune.name) page in
     Dom.appendChild content (Text.Heading.root title)
   in
 
   (* aka *)
   let () =
     let text = Formatters.Tune.aka_lwt tune in
-    let aka = Text.Heading.h3 ~text page in
+    let aka = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root aka)
   in
 
   (* recommended *)
   let () =
     let text = Formatters.Tune.recommended_lwt tune in
-    let recommended = Text.Heading.h3 ~text page in
+    let recommended = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root recommended)
   in
 
   (* tune description *)
   let () =
     let text = Formatters.Tune.description_lwt tune in
-    let tune_description = Text.Heading.h3 ~text page in
+    let tune_description = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root tune_description)
   in
 
   (* version description *)
   let () =
     let text = Formatters.Version.description_lwt version in
-    let version_description = Text.Heading.h3 ~text page in
+    let version_description = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root version_description)
   in
 

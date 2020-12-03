@@ -19,28 +19,28 @@ let create slug page =
   let tune = Tune.get slug in
 
   let () =
-    let title = Text.Heading.h2 ~text:(Lwt.bind tune Tune.name) page in
+    let title = Text.Heading.h2_static ~text:(Lwt.bind tune Tune.name) page in
     Dom.appendChild content (Text.Heading.root title)
   in
 
   (* aka *)
   let () =
     let text = Formatters.Tune.aka_lwt tune in
-    let aka = Text.Heading.h3 ~text page in
+    let aka = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root aka)
   in
 
   (* recommended *)
   let () =
     let text = Formatters.Tune.recommended_lwt tune in
-    let recommended = Text.Heading.h3 ~text page in
+    let recommended = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root recommended)
   in
 
   (* description *)
   let () =
     let text = Formatters.Tune.description_lwt tune in
-    let description = Text.Heading.h3 ~text page in
+    let description = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root description)
   in
 
@@ -90,7 +90,10 @@ let create slug page =
           let tune = Version.tune version in
           let open Lwt in [
             Table.Cell.text ~text:(Version.disambiguation version) page;
-            Table.Cell.text ~text:(Version.arranger version >>= Formatters.Credit.line) page;
+            Table.Cell.create ~content:(
+              let%lwt arranger = Version.arranger version in
+              Formatters.Credit.line arranger page
+            ) page;
             Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
             Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
             Table.Cell.text ~text:(Version.structure version) page;

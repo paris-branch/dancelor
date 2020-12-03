@@ -47,36 +47,37 @@ let create slug page =
   let set = Set.get slug in
 
   let () =
-    let title = Text.Heading.h2 ~text:(Lwt.bind set Set.name) page in
+    let title = Text.Heading.h2_static ~text:(Lwt.bind set Set.name) page in
     Dom.appendChild content (Text.Heading.root title)
   in
 
   let () =
     let text = Formatters.Set.works_lwt set in
-    let works = Text.Heading.h3 ~text page in
+    let works = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root works)
   in
 
   let () =
     let open Lwt in
     let text = set >>= Set.kind >|= Kind.dance_to_pretty_string in
-    Text.Heading.h3 ~text page
+    Text.Heading.h3_static ~text page
     |> Text.Heading.root
     |> Dom.appendChild content
   in
 
   let () =
     let open Lwt in
-    let text =
+    let line_block =
       match%lwt set >>= Set.deviser with
-      | None -> Lwt.return ""
-      | Some deviser -> Formatters.Credit.line (Some deviser) >|= spf "Set devised by %s"
+      | None -> Lwt.return []
+      | Some deviser ->
+        let%lwt line_block = Formatters.Credit.line (Some deviser) page in
+        Lwt.return ((Formatters.text "Set devised by" page :> Dom.node Js.t) :: line_block)
     in
-    Text.Heading.h3 ~text page
+    Text.Heading.h3 ~content:line_block page
     |> Text.Heading.root
     |> Dom.appendChild content
   in
-
 
   let bass_parameters =
     SetParameters.(

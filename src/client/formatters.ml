@@ -69,12 +69,15 @@ end
 
 module Credit = struct
 
-  let line = function
-    | None -> Lwt.return ""
-    | Some c -> M.Credit.line c
-
-  let line_lwt credit =
-    Lwt.bind credit line
+  let line credit page =
+    match credit with
+    | None -> Lwt.return_nil
+    | Some credit ->
+      let href =
+        let%lwt slug = M.Credit.slug credit in
+        Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
+      in
+      Lwt.return [(link ~href [text_lwt (M.Credit.line credit) page] page :> Dom.node Js.t)]
 
 end
 

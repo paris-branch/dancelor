@@ -164,7 +164,7 @@ let fill_search t =
 let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let title = Text.Heading.h2 ~text:(Lwt.return "All Versions") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "All Versions") page in
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr document);
   Dom.appendChild content (Html.createBr document);

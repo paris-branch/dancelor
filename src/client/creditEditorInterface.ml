@@ -96,7 +96,7 @@ let refresh t =
 let create ?on_save page =
   let editor = CreditEditor.create () in
   let content = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h1 ~text:(Lwt.return "Create a Credit") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Create a Credit") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
     ~default:"Display name"

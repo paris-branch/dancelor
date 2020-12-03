@@ -33,7 +33,10 @@ let make_dance_result ~prefix page dance =
     prefix @ [
       Table.Cell.text ~text:(Dance.name dance) page ;
       Table.Cell.text ~text:(Dance.kind dance >|= Kind.dance_to_string) page ;
-      Table.Cell.text ~text:(Dance.deviser dance >>= Formatters.Credit.line) page ;
+      Table.Cell.create ~content:(
+        let%lwt deviser = Dance.deviser dance in
+        Formatters.Credit.line deviser page
+      ) page ;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -65,7 +68,10 @@ let make_set_result ~prefix page set =
     prefix @ [
       Table.Cell.text ~text:(Set.name set) page;
       Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page ;
-      Table.Cell.text ~text:(Set.deviser set >>= Formatters.Credit.line) page;
+      Table.Cell.create ~content:(
+        let%lwt deviser = Set.deviser set in
+        Formatters.Credit.line deviser page
+      ) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -87,7 +93,10 @@ let make_tune_result ~prefix page tune =
     prefix @ [
       Table.Cell.text ~text:(Tune.name tune) page ;
       Table.Cell.text ~text:(Tune.kind tune >|= Kind.base_to_pretty_string ~capitalised:true) page ;
-      Table.Cell.text ~text:(Tune.author tune >>= Formatters.Credit.line) page ;
+      Table.Cell.create ~content:(
+        let%lwt author = Tune.author tune in
+        Formatters.Credit.line author page
+      ) page ;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

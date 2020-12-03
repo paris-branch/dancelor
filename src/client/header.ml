@@ -26,7 +26,7 @@ let create page =
     toggle
   in
   let title = 
-    Text.Heading.h1 ~text:(Lwt.return "Dancelor") page
+    Text.Heading.h1_static ~text:(Lwt.return "Dancelor") page
     |> Text.Link.h1 ~href:(Lwt.return "/")
   in
   let menu = Html.createUl document in

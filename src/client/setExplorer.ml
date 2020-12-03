@@ -27,7 +27,10 @@ let update_table t =
       let cells =
         let open Lwt in [
         Table.Cell.text ~text:(Set.name set) t.page;
-        Table.Cell.text ~text:(Set.deviser set >>= Formatters.Credit.line) t.page;
+        Table.Cell.create ~content:(
+          let%lwt deviser = Set.deviser set in
+          Formatters.Credit.line deviser t.page
+        ) t.page;
         Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page;
         Table.Cell.text ~text:(Lwt.return "") t.page]
       in

@@ -13,18 +13,31 @@ module Heading = struct
     root : root Js.t;
   }
 
-  let h create ~text page =
+  let h create ~content page =
+    let h = create (Page.document page) in
+    h##.textContent := Js.some (js "Loading...");
+    Lwt.on_success content @@ JsHelpers.add_children h;
+    {page; root = h}
+
+  let h1 ~content page = h Html.createH1 ~content page
+  let h2 ~content page = h Html.createH2 ~content page
+  let h3 ~content page = h Html.createH3 ~content page
+  let h4 ~content page = h Html.createH4 ~content page
+  let h5 ~content page = h Html.createH5 ~content page
+  let h6 ~content page = h Html.createH6 ~content page
+
+  let h_static create ~text page =
     let h = create (Page.document page) in
     h##.textContent := Js.some (js "Loading...");
     Lwt.on_success text (fun text -> h##.textContent := Js.some (js text));
     {page; root = h}
 
-  let h1 = h Html.createH1
-  let h2 = h Html.createH2
-  let h3 = h Html.createH3
-  let h4 = h Html.createH4
-  let h5 = h Html.createH5
-  let h6 = h Html.createH6
+  let h1_static = h_static Html.createH1
+  let h2_static = h_static Html.createH2
+  let h3_static = h_static Html.createH3
+  let h4_static = h_static Html.createH4
+  let h5_static = h_static Html.createH5
+  let h6_static = h_static Html.createH6
 
   let root t =
     t.root
