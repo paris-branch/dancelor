@@ -211,18 +211,13 @@ module Set = struct
   let name_and_tunes set page =
     let versions =
       let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
-      List.map
-        (fun (version, _) ->
-           let href =
-             let%lwt slug = M.Version.slug version in
-             Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-           in
-           let name =
-             let%lwt tune = M.Version.tune version in
-             M.Tune.name tune
-           in
-           (link ~href [text_lwt name page] page :> Dom.node Js.t))
-        versions_and_parameters
+      let%lwt versions =
+        Lwt_list.map_p
+          (fun (version, _) -> Version.name version page)
+          versions_and_parameters
+      in
+      versions
+      |> List.flatten
       |> List.intertwine (fun _ -> (text " - " page :> Dom.node Js.t))
       |> Lwt.return
     in
