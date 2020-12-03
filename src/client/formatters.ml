@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_client_elements
 
 module M = Dancelor_client_model
+module Router = Dancelor_common.Router
 
 module Html = Dom_html
 
@@ -41,10 +42,13 @@ let span ?classes content page =
 let span_static ?classes content page =
   span ?classes (Lwt.return content) page
 
-let link ?classes ~href content page =
+let link_lwt ?classes ~href content page =
   let link = make_node_with_content ?classes ~content Html.createA page in
   Lwt.on_success href (fun href -> link##.href := js href);
   link
+
+let link ?classes ~href content page =
+  link_lwt ?classes ~href (Lwt.return content) page
 
 (* Formatters *)
 
@@ -202,12 +206,16 @@ module Set = struct
       let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
       List.map
         (fun (version, _) ->
+           let href =
+             let%lwt slug = M.Version.slug version in
+             Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+           in
            let name =
              let%lwt tune = M.Version.tune version in
              let%lwt name = M.Tune.name tune in
              Lwt.return (" - " ^ name)
            in
-           text_lwt name page)
+           link ~href [text_lwt name page] page)
         versions_and_parameters
       |> Lwt.return
     in
