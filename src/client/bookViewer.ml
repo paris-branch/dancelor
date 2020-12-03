@@ -27,9 +27,15 @@ let display_contents t contents =
               Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
             in
             let cells =
-              let open Lwt in [
+              let open Lwt in
+              [
                 Table.Cell.text ~text:(Lwt.return "Set") t.page;
-                Table.Cell.text ~text:(Set.name set) t.page;
+                Table.Cell.create ~content:[
+                  (Formatters.text_lwt (Set.name set) t.page :> Dom.node Js.t);
+                  (Formatters.span ~classes:["details"] [
+                      Formatters.text_lwt (Lwt.return "FIXME") t.page
+                    ] t.page :> Dom.node Js.t);
+                ] t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
               ]
             in
