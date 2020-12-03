@@ -8,7 +8,8 @@ tr {
 }
 
 td, th {
-  padding: .2rem;
+    padding: .2rem;
+    vertical-align: middle;
 }
 
 thead, tbody {
@@ -94,3 +95,4 @@ h2 { font-size: 2.0rem; font-weight: bold; }
 h3 { font-size: 1.2rem; }
 
 .dim { opacity: .5; }
+.details { display: block; font-size: 0.9rem; line-height: 0.9rem; }

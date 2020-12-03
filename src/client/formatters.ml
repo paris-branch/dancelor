@@ -195,3 +195,15 @@ module Set = struct
     Lwt.bind set works
 
 end
+
+module Book = struct
+
+  let title_and_subtitle book page =
+    let title = M.Book.title book in
+    let subtitle = M.Book.subtitle book in
+    [
+      (text_lwt title page :> Dom.node Js.t);
+      (span ~classes:["details"] [text_lwt subtitle page] page :> Dom.node Js.t)
+    ]
+
+end
