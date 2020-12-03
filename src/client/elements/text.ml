@@ -15,7 +15,7 @@ module Heading = struct
 
   let h create ~content page =
     let h = create (Page.document page) in
-    h##.textContent := Js.some (js "Loading...");
+    h##.textContent := Js.some (js "");
     Lwt.on_success content @@ JsHelpers.add_children h;
     {page; root = h}
 
@@ -28,7 +28,7 @@ module Heading = struct
 
   let h_static create ~text page =
     let h = create (Page.document page) in
-    h##.textContent := Js.some (js "Loading...");
+    h##.textContent := Js.some (js "");
     Lwt.on_success text (fun text -> h##.textContent := Js.some (js text));
     {page; root = h}
 

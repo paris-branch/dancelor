@@ -39,8 +39,11 @@ let create slug page =
 
   (* description *)
   let () =
-    let text = Formatters.Tune.description_lwt tune in
-    let description = Text.Heading.h3_static ~text page in
+    let text =
+      let%lwt tune = tune in
+      Formatters.Tune.description tune page
+    in
+    let description = Text.Heading.h3 ~content:text page in
     Dom.appendChild content (Text.Heading.root description)
   in
 

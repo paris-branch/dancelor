@@ -83,22 +83,25 @@ end
 
 module Tune = struct
 
-  let description tune =
-    (* FIXME: make author a link *)
+  let description tune page =
     let%lwt kind = M.Tune.kind tune in
     let kind = M.Kind.base_to_pretty_string kind in
     let%lwt author = M.Tune.author tune in
     match author with
     | None ->
-      Lwt.return (String.capitalize_ascii kind)
+      Lwt.return [
+        (text (String.capitalize_ascii kind) page :> Dom.node Js.t)
+      ]
     | Some author when M.Credit.is_trad author ->
-      Lwt.return ("Traditional " ^ kind)
+      Lwt.return [
+        (text ("Traditional " ^ kind) page :> Dom.node Js.t)
+      ]
     | Some author ->
-      let%lwt line = M.Credit.line author in
-      Lwt.return (String.capitalize_ascii kind ^ " by " ^ line)
-
-  let description_lwt tune =
-    Lwt.bind tune description
+      let%lwt line_block = Credit.line (Some author) page in
+      Lwt.return (
+        (text (String.capitalize_ascii kind ^ " by ") page :> Dom.node Js.t)
+        :: line_block
+      )
 
   let aka tune =
     match%lwt M.Tune.alternative_names tune with
@@ -122,30 +125,32 @@ end
 
 module Version = struct
 
-  let description version =
-    (* FIXME: make arranger a link *)
+  let description version page =
     let%lwt bars = M.Version.bars version in
     let%lwt structure = M.Version.structure version in
     let%lwt key = M.Version.key version in
-    let%lwt arranger =
+    let shape = spf "%d-bar %s version in %s" bars structure (M.Music.key_to_pretty_string key) in
+    let%lwt arranger_block =
       match%lwt M.Version.arranger version with
-      | None -> Lwt.return ""
+      | None -> Lwt.return []
       | Some arranger ->
-        let%lwt line = M.Credit.line arranger in
-        Lwt.return (spf " arranged by %s" line)
+        let%lwt line_block = Credit.line (Some arranger) page in
+        Lwt.return (
+          (text " arranged by " page :> Dom.node Js.t)
+          :: line_block
+        )
     in
-    let%lwt disambiguation =
+    let%lwt disambiguation_block =
       match%lwt M.Version.disambiguation version with
-      | "" -> Lwt.return ""
+      | "" -> Lwt.return []
       | disambiguation ->
-        Lwt.return (spf " (%s)" disambiguation)
+        Lwt.return [(text (spf " (%s)" disambiguation) page :> Dom.node Js.t)]
     in
-    spf "%d-bar %s version in %s%s%s"
-      bars structure (M.Music.key_to_pretty_string key) arranger disambiguation
-    |> Lwt.return
-
-  let description_lwt version =
-    Lwt.bind version description
+    Lwt.return (
+      [(text shape page :> Dom.node Js.t)]
+      @ arranger_block
+      @ disambiguation_block
+    )
 
   let name version page =
     let href =

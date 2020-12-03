@@ -42,15 +42,21 @@ let create slug page =
 
   (* tune description *)
   let () =
-    let text = Formatters.Tune.description_lwt tune in
-    let tune_description = Text.Heading.h3_static ~text page in
+    let text =
+      let%lwt tune = tune in
+      Formatters.Tune.description tune page
+    in
+    let tune_description = Text.Heading.h3 ~content:text page in
     Dom.appendChild content (Text.Heading.root tune_description)
   in
 
   (* version description *)
   let () =
-    let text = Formatters.Version.description_lwt version in
-    let version_description = Text.Heading.h3_static ~text page in
+    let text =
+      let%lwt version = version in
+      Formatters.Version.description version page
+    in
+    let version_description = Text.Heading.h3 ~content:text page in
     Dom.appendChild content (Text.Heading.root version_description)
   in
 
