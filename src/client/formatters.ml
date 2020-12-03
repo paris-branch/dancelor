@@ -144,11 +144,19 @@ module Version = struct
   let description_lwt version =
     Lwt.bind version description
 
-  let name_and_disambiguation version page =
+  let name version page =
+    let href =
+      let%lwt slug = M.Version.slug version in
+      Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+    in
     let name =
       let%lwt tune = M.Version.tune version in
       M.Tune.name tune
     in
+    Lwt.return [(link ~href [text_lwt name page] page :> Dom.node Js.t)]
+
+  let name_and_disambiguation version page =
+    let%lwt name_block = name version page in
     let%lwt disambiguation_block =
       match%lwt M.Version.disambiguation version with
       | "" -> Lwt.return_nil
@@ -156,10 +164,7 @@ module Version = struct
           (span_static ~classes:["dim"] [text (spf " (%s)" disambiguation) page] page :> Dom.node Js.t)
         ]
     in
-    Lwt.return (
-      (text_lwt name page :> Dom.node Js.t)
-      :: disambiguation_block
-    )
+    Lwt.return (name_block @ disambiguation_block)
 
   let author_and_arranger ?(short=true) version page =
     let author =
