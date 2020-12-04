@@ -29,10 +29,22 @@ module Ly = struct
       let%lwt () =
         let%lwt sets_and_parameters =
           let%lwt contents = Book.contents book in
-          Lwt_list.filter_map_p
+          Lwt_list.map_p
             (function
-              | Book.Version _ -> Lwt.return_none (* FIXME: handle versions in books *)
-              | Set (s, p) | InlineSet (s, p) -> Lwt.return_some (s, p))
+              | Book.Version (version, parameters) ->
+                let%lwt tune = Version.tune version in
+                let%lwt name = Tune.name tune in
+                let%lwt bars = Version.bars version in
+                let%lwt kind = Tune.kind tune in
+                let%lwt set =
+                  Set.make_temp ~name ~kind:(1, [bars, kind])
+                    ~versions_and_parameters:[version, parameters]
+                    ()
+                in
+                Lwt.return (set, SetParameters.none)
+
+              | Set (set, parameters) | InlineSet (set, parameters) ->
+                Lwt.return (set, parameters))
             contents
         in
         Lwt_list.iter_s
