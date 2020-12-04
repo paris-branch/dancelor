@@ -14,9 +14,26 @@ module Ly = struct
       fpf fmt [%blob "template/book/globals.ly"]
         title (Option.unwrap_or ~default:"" parameters.instruments);
       fpf fmt [%blob "template/paper.ly"];
+
+
       fpf fmt [%blob "template/book/paper.ly"];
       if parameters |> BookParameters.two_sided |> (=) (Some true) then
-        fpf fmt [%blob "template/book/two-sided.ly"];
+        (
+          fpf fmt [%blob "template/book/two-sided.ly"];
+          fpf fmt
+            (if parameters |> BookParameters.running_header |> (=) (Some false) then
+               [%blob "template/book/header/none.ly"]
+             else
+               [%blob "template/book/header/two-sided.ly"])
+        )
+      else
+        (
+          fpf fmt
+            (if parameters |> BookParameters.running_header |> (=) (Some false) then
+               [%blob "template/book/header/none.ly"]
+             else
+               [%blob "template/book/header/one-sided.ly"])
+        );
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
