@@ -4,6 +4,7 @@ module Self = struct
   type t =
     { instruments   : string option       [@default None] ;
       forced_pages  : int    option       [@default None] [@key "forced-pages"] ;
+      show_dances   : bool   option       [@default None] [@key "show-dances"] ;
 
       every_version : VersionParameters.t [@default VersionParameters.none ] [@key "every-version"] }
   [@@deriving make, yojson]
@@ -28,12 +29,15 @@ let make_instrument pitch =
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let instruments   p = p.instruments
-let forced_pages  p = p.forced_pages
+let instruments  p = p.instruments
+let forced_pages p = p.forced_pages
+let show_dances  p = p.show_dances
 
 let every_version p = p.every_version
 
 let compose first second =
   { instruments   = Option.choose_strict first.instruments  second.instruments ;
     forced_pages  = Option.choose_strict first.forced_pages second.forced_pages ;
+    show_dances   = Option.choose_strict first.show_dances  second.show_dances ;
+
     every_version = VersionParameters.compose first.every_version second.every_version }
