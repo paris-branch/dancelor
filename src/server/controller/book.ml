@@ -68,7 +68,7 @@ module Ly = struct
         in
         Lwt_list.iter_s
           (fun (set, set_parameters) ->
-             let set_parameters = SetParameters.compose set_parameters (BookParameters.every_set parameters) in
+             let set_parameters = SetParameters.compose (BookParameters.every_set parameters) set_parameters in
              let%lwt name = Set.name set in
              let%lwt kind =
                if not (set_parameters |> SetParameters.show_dances) then
@@ -92,7 +92,7 @@ module Ly = struct
                let%lwt versions_and_parameters = Set.versions_and_parameters set in
                Lwt_list.iter_s
                  (fun (version, version_parameters) ->
-                    let version_parameters = VersionParameters.compose version_parameters (SetParameters.every_version set_parameters) in
+                    let version_parameters = VersionParameters.compose (SetParameters.every_version set_parameters) version_parameters in
                     let%lwt content = Version.content version in
                     let content =
                       match version_parameters |> VersionParameters.clef with

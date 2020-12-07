@@ -22,10 +22,10 @@ module Ly = struct
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/set/header.ly"]
         title (Kind.dance_to_string kind)
-        (Option.unwrap_or ~default:"" parameters.instruments);
+        (SetParameters.instruments parameters);
       Lwt_list.iter_s
         (fun (version, version_parameters) ->
-           let version_parameters = VersionParameters.compose version_parameters (SetParameters.every_version parameters) in
+           let version_parameters = VersionParameters.compose (SetParameters.every_version parameters) version_parameters in
            let%lwt content = Version.content version in
            let content =
              match version_parameters |> VersionParameters.clef with
