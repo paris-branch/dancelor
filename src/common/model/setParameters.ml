@@ -2,11 +2,11 @@ open Nes
 
 module Self = struct
   type t =
-    { instruments   : string option       [@default None] ;
-      forced_pages  : int    option       [@default None] [@key "forced-pages"] ;
-      show_dances   : bool   option       [@default None] [@key "show-dances"] ;
+    { instruments   : string       option [@default None] ;
+      forced_pages  : int          option [@default None] [@key "forced-pages"] ;
+      show_dances   : bool         option [@default None] [@key "show-dances"] ;
 
-      every_version : VersionParameters.t [@default VersionParameters.none ] [@key "every-version"] }
+      every_version : VersionParameters.t [@default VersionParameters.none] [@key "every-version"] }
   [@@deriving make, yojson]
 
   let _key = "set-parameters"
@@ -27,17 +27,27 @@ let make_instrument pitch =
     )
     ()
 
-let none = `Assoc [] |> of_yojson |> Result.get_ok
-
-let instruments  p = p.instruments
-let forced_pages p = p.forced_pages
-let show_dances  p = p.show_dances
+let instruments  p = Option.unwrap p.instruments
+let forced_pages p = Option.unwrap p.forced_pages
+let show_dances  p = Option.unwrap p.show_dances
 
 let every_version p = p.every_version
 
+let none = `Assoc [] |> of_yojson |> Result.get_ok
+
+let default = {
+  instruments = Some "" ;
+  forced_pages = Some 0 ;
+  show_dances = Some false ;
+
+  every_version = VersionParameters.default ;
+}
+
 let compose first second =
-  { instruments   = Option.choose_strict first.instruments  second.instruments ;
-    forced_pages  = Option.choose_strict first.forced_pages second.forced_pages ;
-    show_dances   = Option.choose_strict first.show_dances  second.show_dances ;
+  { instruments   = Option.(choose ~tie:fail) first.instruments  second.instruments ;
+    forced_pages  = Option.(choose ~tie:fail) first.forced_pages second.forced_pages ;
+    show_dances   = Option.(choose ~tie:fail) first.show_dances  second.show_dances ;
 
     every_version = VersionParameters.compose first.every_version second.every_version }
+
+let fill = compose default

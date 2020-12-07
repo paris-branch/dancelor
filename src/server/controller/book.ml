@@ -5,6 +5,7 @@ module Log = (val Dancelor_server_logs.create "controller.book" : Logs.LOG)
 
 module Ly = struct
   let render ?(parameters=BookParameters.none) book =
+    let parameters = BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Book.title book in (** FIXME: subtitle *)
@@ -17,31 +18,32 @@ module Ly = struct
 
 
       fpf fmt [%blob "template/book/paper.ly"];
-      if parameters |> BookParameters.two_sided |> (=) (Some true) then
+      if parameters |> BookParameters.two_sided then
         (
           fpf fmt [%blob "template/book/two-sided.ly"];
           fpf fmt
-            (if parameters |> BookParameters.running_header |> (=) (Some false) then
-               [%blob "template/book/header/none.ly"]
+            (if parameters |> BookParameters.running_header then
+               [%blob "template/book/header/two-sided.ly"]
              else
-               [%blob "template/book/header/two-sided.ly"])
+               [%blob "template/book/header/none.ly"])
+
         )
       else
         (
           fpf fmt
-            (if parameters |> BookParameters.running_header |> (=) (Some false) then
-               [%blob "template/book/header/none.ly"]
+            (if parameters |> BookParameters.running_header then
+               [%blob "template/book/header/one-sided.ly"]
              else
-               [%blob "template/book/header/one-sided.ly"])
+               [%blob "template/book/header/none.ly"])
         );
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
-      if parameters |> BookParameters.front_page |> (=) (Some true) then
+      if parameters |> BookParameters.front_page then
         fpf fmt [%blob "template/book/book_front_page.ly"];
-      if parameters |> BookParameters.table_of_contents |> (=) (Some BookParameters.Beginning) then
+      if parameters |> BookParameters.table_of_contents |> (=) BookParameters.Beginning then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       let%lwt () =
         let%lwt sets_and_parameters =
@@ -69,7 +71,7 @@ module Ly = struct
              let set_parameters = SetParameters.compose set_parameters (BookParameters.every_set parameters) in
              let%lwt name = Set.name set in
              let%lwt kind =
-               if set_parameters |> SetParameters.show_dances |> (<>) (Some true) then
+               if not (set_parameters |> SetParameters.show_dances) then
                  let%lwt kind = Set.kind set in
                  Lwt.return (Kind.dance_to_string kind)
                else
@@ -84,8 +86,8 @@ module Ly = struct
              fpf fmt [%blob "template/book/set_beginning.ly"]
                name kind name kind;
              (match set_parameters |> SetParameters.forced_pages with
-              | None -> ()
-              | Some n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
+              | 0 -> ()
+              | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
              let%lwt () =
                let%lwt versions_and_parameters = Set.versions_and_parameters set in
                Lwt_list.iter_s
@@ -120,10 +122,9 @@ module Ly = struct
                     let first_bar =
                       version_parameters
                       |> VersionParameters.first_bar
-                      |> Option.unwrap_or ~default:1
                     in
                     let source, target =
-                      match version_parameters |> VersionParameters.transposition |> Option.unwrap_or ~default:Transposition.identity with
+                      match version_parameters |> VersionParameters.transposition with
                       | Relative (source, target) -> (source, target)
                       | Absolute target -> (key |> Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
                     in
@@ -141,7 +142,7 @@ module Ly = struct
              Lwt.return ())
           sets_and_parameters
       in
-      if parameters |> BookParameters.table_of_contents |> (=) (Some BookParameters.End) then
+      if parameters |> BookParameters.table_of_contents |> (=) BookParameters.End then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       fpf fmt [%blob "template/book/book_end.ly"];
       Lwt.return ()

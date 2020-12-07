@@ -6,6 +6,7 @@ module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 module Ly = struct
 
   let render ?(parameters=SetParameters.none) set =
+    let parameters = SetParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Set.name set in
@@ -54,10 +55,9 @@ module Ly = struct
            let first_bar =
              version_parameters
              |> VersionParameters.first_bar
-             |> Option.unwrap_or ~default:1
            in
            let source, target =
-             match version_parameters |> VersionParameters.transposition |> Option.unwrap_or ~default:Transposition.identity with
+             match version_parameters |> VersionParameters.transposition with
              | Relative (source, target) -> (source, target)
              | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here*)
            in

@@ -21,11 +21,11 @@ val choose : tie:('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
    is [Some x] and the other is bottom. If they are both [None], [None] is
    returned. If they are both [Some], [tie] is called. *)
 
-val choose_strict : 'a t -> 'a t -> 'a t
-(** Same as [choose] except it fails in case of tie. *)
+val fail : 'a -> 'a -> 'a
+(** For {!NesOption.choose}'s [tie] argument. Fails. *)
 
-val choose_latest : 'a t -> 'a t -> 'a t
-(** Same as [choose] except it chooses the second one in case of tie. *)
+val second : 'a -> 'a -> 'a
+(** For {!NesOption.choose}'s [tie] argument. Takes the second argument. *)
 
 val assert_some : 'a t -> 'a t
 (** Fails when = None *)

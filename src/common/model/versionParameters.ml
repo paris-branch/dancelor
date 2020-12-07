@@ -3,8 +3,9 @@ open Nes
 module Self = struct
   type t =
     { transposition  : Transposition.t option [@default None] ;
-      clef           : Music.clef      option [@default None] ;
       first_bar      : int             option [@default None] [@key "first-bar"] ;
+
+      clef           : Music.clef      option [@default None] ;
       display_name   : string          option [@default None] [@key "display-name"] ;
       display_author : string          option [@default None] [@key "display-author"] }
   [@@deriving make, yojson]
@@ -22,17 +23,29 @@ include Self
 let make ?transposition ?clef ?first_bar ?display_name ?display_author () =
   make ~transposition ~clef ~first_bar ~display_name ~display_author ()
 
+let transposition  p = Option.unwrap p.transposition
+let first_bar      p = Option.unwrap p.first_bar
+
+let clef           p = p.clef
+let display_name   p = p.display_name
+let display_author p = p.display_author
+
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let transposition p = p.transposition
-let clef p = p.clef
-let first_bar p = p.first_bar
-let display_name p = p.display_name
-let display_author p = p.display_author
+let default = {
+  transposition  = Some Transposition.identity ;
+  first_bar      = Some 1 ;
+
+  clef           = None ;
+  display_name   = None ;
+  display_author = None ;
+}
 
 let compose first second =
   { transposition  = Option.choose ~tie:Transposition.compose first.transposition second.transposition ;
-    clef           = Option.choose_latest first.clef           second.clef ;
-    first_bar      = Option.choose_latest first.first_bar      second.first_bar ;
-    display_name   = Option.choose_latest first.display_name   second.display_name ;
-    display_author = Option.choose_latest first.display_author second.display_author }
+    clef           = Option.(choose ~tie:second) first.clef           second.clef ;
+    first_bar      = Option.(choose ~tie:second) first.first_bar      second.first_bar ;
+    display_name   = Option.(choose ~tie:second) first.display_name   second.display_name ;
+    display_author = Option.(choose ~tie:second) first.display_author second.display_author }
+
+let fill = compose default

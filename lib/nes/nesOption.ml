@@ -54,12 +54,5 @@ let choose ~tie first second =
   | Some x, None | None, Some x -> Some x
   | Some x, Some y -> Some (tie x y)
 
-let choose_strict first second =
-  choose
-    ~tie:(fun _ _ -> failwith "NesOption.choose_strict")
-    first second
-
-let choose_latest first second =
-  choose
-    ~tie:(fun _ y -> y)
-    first second
+let fail = fun _ _ -> failwith "NesOption.choose ~tie:fail"
+let second = fun _ y -> y

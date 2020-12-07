@@ -29,20 +29,33 @@ let make_instrument pitch =
     ~every_set:(SetParameters.make_instrument pitch)
     ()
 
+let instruments       p = Option.unwrap p.instruments
+let front_page        p = Option.unwrap p.front_page
+let table_of_contents p = Option.unwrap p.table_of_contents
+let two_sided         p = Option.unwrap p.two_sided
+let running_header    p = Option.unwrap p.running_header
+
+let every_set         p = p.every_set
+
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let instruments       p = p.instruments
-let every_set         p = p.every_set
-let front_page        p = p.front_page
-let table_of_contents p = p.table_of_contents
-let two_sided         p = p.two_sided
-let running_header    p = p.running_header
+let default = {
+  instruments = Some "" ;
+  front_page = Some false ;
+  table_of_contents = Some Nowhere ;
+  two_sided = Some false ;
+  running_header = Some false ;
+
+  every_set = SetParameters.default ;
+}
 
 let compose first second =
-  { instruments       = Option.choose_strict first.instruments       second.instruments ;
-    front_page        = Option.choose_strict first.front_page        second.front_page ;
-    table_of_contents = Option.choose_strict first.table_of_contents second.table_of_contents ;
-    two_sided         = Option.choose_strict first.two_sided         second.two_sided ;
-    running_header    = Option.choose_strict first.running_header    second.running_header ;
+  { instruments       = Option.(choose ~tie:fail) first.instruments       second.instruments ;
+    front_page        = Option.(choose ~tie:fail) first.front_page        second.front_page ;
+    table_of_contents = Option.(choose ~tie:fail) first.table_of_contents second.table_of_contents ;
+    two_sided         = Option.(choose ~tie:fail) first.two_sided         second.two_sided ;
+    running_header    = Option.(choose ~tie:fail) first.running_header    second.running_header ;
 
     every_set = SetParameters.compose first.every_set second.every_set }
+
+let fill = compose default
