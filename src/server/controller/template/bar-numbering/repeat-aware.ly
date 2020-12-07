@@ -107,6 +107,11 @@
 #(define (context-spec-music-applied-to-score f)
   (context-spec-music (make-apply-context f) 'Score))
 
+%% Property to carry information on whether it is the first time we meet a
+%% repeat or not. We choose to rely on a property rather than on bar numbers
+%% because some scores might not start at bar 1!
+#(create-context-property 'firstRepeat boolean? "")
+
 #(define (new-volta-set music)
   (let* ((elt (ly:music-property music 'element))
          (alts (ly:music-property music 'elements))
@@ -127,13 +132,16 @@
         (set! start-barnum (partial-aware-bar-number context))
         (add-repeat-offsets-layer! context offsets)))
 
-      ;; If this is the first bar, then force the apparition of a repeat bar.
+      ;; If this is the first time we meet a repeat then force the apparition of
+      ;; a repeat bar. This only makes a difference on the very first bar.
       (context-spec-music-applied-to-score
        (lambda (context)
         (let ((barnum (partial-aware-bar-number context))
               (start-repeat-type (ly:context-property context 'startRepeatType)))
-         (if (= barnum 1)
-          (ly:context-set-property! context 'whichBar start-repeat-type)))))
+         (if (ly:context-property context 'firstRepeat)
+          (begin
+           (ly:context-set-property! context 'firstRepeat #f)
+           (ly:context-set-property! context 'whichBar start-repeat-type))))))
 
       elt
 
