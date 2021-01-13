@@ -4,7 +4,12 @@
   \context {
     \Score
 
-    %% Prevent LilyPond from breaking inside a score without explicit notice.
+    %% Prevent LilyPond from breaking line inside a score without explicit
+    %% notice.
+    \override NonMusicalPaperColumn.line-break-permission = ##f
+
+    %% Prevent LilyPond from breaking page inside a score without explicit
+    %% notice.
     \override NonMusicalPaperColumn.page-break-permission = ##f
   }
 
