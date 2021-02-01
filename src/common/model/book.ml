@@ -8,13 +8,14 @@ module Self = struct
   [@@deriving yojson]
 
   type t =
-    { slug     : t Slug.t ;
-      status   : Status.t  [@default Status.bot] ;
-      title    : string ;
-      subtitle : string    [@default ""] ;
-      date     : Date.t    [@default Date.none] ;
-      contents : page list ;
-      remark   : string    [@default ""] }
+    { slug        : t Slug.t ;
+      status      : Status.t  [@default Status.bot] ;
+      title       : string ;
+      subtitle    : string    [@default ""] ;
+      short_title : string    [@default ""] [@key "short-title"] ;
+      date        : Date.t    [@default Date.none] ;
+      contents    : page list ;
+      remark      : string    [@default ""] }
   [@@deriving yojson]
 
   let _key = "book"
