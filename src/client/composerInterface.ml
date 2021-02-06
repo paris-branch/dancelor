@@ -199,7 +199,7 @@ let create page =
         page
     in
     SearchBar.create
-      ~placeholder:"Search for a version"
+      ~placeholder:"Search for a tune"
       ~sections:[main_section]
       page
   in

@@ -232,7 +232,7 @@ module Set = struct
       versions
       |> List.flatten
       |> List.intertwine (fun _ -> (text " - " page :> Dom.node Js.t))
-      |> List.cons (text "Versions: " page :> Dom.node Js.t)
+      |> List.cons (text "Tunes: " page :> Dom.node Js.t)
       |> Lwt.return
     in
     Lwt.return [

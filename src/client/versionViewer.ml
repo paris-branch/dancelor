@@ -84,10 +84,10 @@ let create slug page =
       in
       let%lwt versions = Version.all ~filter () in
       match List.length versions with
-      | 1 -> Lwt.return "No other version"
+      | 1 -> Lwt.return "No other version for this tune"
       | nb ->
         assert (nb > 1);
-        Lwt.return (spf "There are %d other versions available" (nb - 1))
+        Lwt.return (spf "There are %d other versions available for this tune" (nb - 1))
     in
     let title = Text.Link.create ~href ~text page in
     Dom.appendChild content (Text.Link.root title)

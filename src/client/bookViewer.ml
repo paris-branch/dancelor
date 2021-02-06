@@ -58,7 +58,7 @@ let display_contents t contents =
             in
             let cells =
               let open Lwt in [
-                Table.Cell.text ~text:(Lwt.return "Version") t.page;
+                Table.Cell.text ~text:(Lwt.return "Tune") t.page;
                 Table.Cell.text ~text:(Version.tune version >>= Tune.name) t.page;
                 Table.Cell.text ~text:(
                   let%lwt tune = Version.tune version in

@@ -164,7 +164,7 @@ let fill_search t =
 let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let title = Text.Heading.h2_static ~text:(Lwt.return "All Versions") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "All Tunes") page in
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr document);
   Dom.appendChild content (Html.createBr document);
@@ -175,7 +175,7 @@ let create page =
   let header =
     Table.Row.create
       ~cells:[
-        Table.Cell.header_text ~alt:(Lwt.return "Versions") ~text:(Lwt.return "Name") page;
+        Table.Cell.header_text ~alt:(Lwt.return "Tunes") ~text:(Lwt.return "Name") page;
         Table.Cell.header_text ~text:(Lwt.return "Kind") page;
         Table.Cell.header_text ~text:(Lwt.return "Key") page;
         Table.Cell.header_text ~text:(Lwt.return "Structure") page;

@@ -146,7 +146,7 @@ let create slug page =
   in
 
   let versions = Html.createUl (Page.document page) in
-  versions##.textContent := Js.some (js "Loading versions...");
+  versions##.textContent := Js.some (js "Loading tunes...");
   Dom.appendChild content versions;
   let t = {page; content; versions} in
   Lwt.on_success set (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));
