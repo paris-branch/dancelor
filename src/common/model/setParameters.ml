@@ -44,9 +44,9 @@ let default = {
 }
 
 let compose first second =
-  { instruments   = Option.(choose ~tie:fail) first.instruments  second.instruments ;
-    forced_pages  = Option.(choose ~tie:fail) first.forced_pages second.forced_pages ;
-    show_dances   = Option.(choose ~tie:fail) first.show_dances  second.show_dances ;
+  { instruments   = Option.(choose ~tie:second) first.instruments  second.instruments ;
+    forced_pages  = Option.(choose ~tie:second) first.forced_pages second.forced_pages ;
+    show_dances   = Option.(choose ~tie:second) first.show_dances  second.show_dances ;
 
     every_version = VersionParameters.compose first.every_version second.every_version }
 

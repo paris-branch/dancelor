@@ -50,11 +50,11 @@ let default = {
 }
 
 let compose first second =
-  { instruments       = Option.(choose ~tie:fail) first.instruments       second.instruments ;
-    front_page        = Option.(choose ~tie:fail) first.front_page        second.front_page ;
-    table_of_contents = Option.(choose ~tie:fail) first.table_of_contents second.table_of_contents ;
-    two_sided         = Option.(choose ~tie:fail) first.two_sided         second.two_sided ;
-    running_header    = Option.(choose ~tie:fail) first.running_header    second.running_header ;
+  { instruments       = Option.(choose ~tie:second) first.instruments       second.instruments ;
+    front_page        = Option.(choose ~tie:second) first.front_page        second.front_page ;
+    table_of_contents = Option.(choose ~tie:second) first.table_of_contents second.table_of_contents ;
+    two_sided         = Option.(choose ~tie:second) first.two_sided         second.two_sided ;
+    running_header    = Option.(choose ~tie:second) first.running_header    second.running_header ;
 
     every_set = SetParameters.compose first.every_set second.every_set }
 
