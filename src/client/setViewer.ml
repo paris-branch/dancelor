@@ -72,7 +72,7 @@ let create slug page =
       | None -> Lwt.return []
       | Some deviser ->
         let%lwt line_block = Formatters.Credit.line (Some deviser) page in
-        Lwt.return ((Formatters.text "Set devised by" page :> Dom.node Js.t) :: line_block)
+        Lwt.return ((Formatters.text "Set devised by " page :> Dom.node Js.t) :: line_block)
     in
     Text.Heading.h3 ~content:line_block page
     |> Text.Heading.root
