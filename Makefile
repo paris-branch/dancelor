@@ -1,9 +1,13 @@
-.PHONY: build clean
+.PHONY: build doc release test local serve init-only check-tunes clean
 
 build:
 	dune build @install
 	ln -sf _build/install/default/bin .
 	ln -sf ../../_build/install/default/share/dancelor share/static/
+
+doc:
+	dune build @doc
+	ln -sf _build/default/_doc/_html doc
 
 release:
 	dune build --profile=release @install

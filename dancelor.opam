@@ -23,6 +23,7 @@ depends: [
   "js_of_ocaml-ppx"          {build}
   "lwt_ppx"                  {build}
   "ocaml"                    {build & >= "4.08.0"}
+  "odoc"                     {with-doc}
   "ppx_blob"                 {build}
   "ppx_deriving"
   "ppx_deriving_yojson"
