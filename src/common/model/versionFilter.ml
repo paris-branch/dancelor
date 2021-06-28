@@ -23,19 +23,19 @@ let add_key k t =
   Lwt.return {t with key = k :: t.key}
 
 let remove_key k t =
-  Lwt.return {t with key = List.filter (fun k' -> k <> k') t.key}
+  Lwt.return {t with key = List.filter ((<>) k) t.key}
 
 let add_bars b t =
   Lwt.return {t with bars = b :: t.bars}
 
 let remove_bars b t =
-  Lwt.return {t with bars = List.filter (fun b' -> b <> b') t.bars}
+  Lwt.return {t with bars = List.filter ((<>) b) t.bars}
 
 let add_kind k t =
   Lwt.return {t with tune_kind = k :: t.tune_kind}
 
 let remove_kind k t =
-  Lwt.return {t with tune_kind = List.filter (fun k' -> k <> k') t.tune_kind}
+  Lwt.return {t with tune_kind = List.filter ((<>) k) t.tune_kind}
 
 module type S = sig
   type nonrec t = t

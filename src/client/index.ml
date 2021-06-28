@@ -135,7 +135,7 @@ let make_result page score =
   | Credit credit   -> make_credit_result  ~prefix page credit
   | Dance dance     -> make_dance_result   ~prefix page dance
   | Person person   -> make_person_result  ~prefix page person
-  | Book book -> make_book_result ~prefix page book
+  | Book book       -> make_book_result    ~prefix page book
   | Set set         -> make_set_result     ~prefix page set
   | Source source   -> make_source_result  ~prefix page source
   | Tune tune       -> make_tune_result    ~prefix page tune

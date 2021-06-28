@@ -14,7 +14,7 @@ let on_load _ev =
   Header.add_menu_entry header "Books" (Router.path_of_controller Router.BookAll |> snd);
   Header.add_menu_entry header "Compose a Set" (Router.path_of_controller Router.SetCompose |> snd);
   Page.set_header page (Header.contents header);
-  let url = 
+  let url =
     Html.window##.location##.href
     |> Js.to_string
     |> Uri.of_string

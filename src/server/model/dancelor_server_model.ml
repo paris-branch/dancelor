@@ -9,6 +9,7 @@ module Transposition = Transposition
 
 module Person        : Common.Person.S        = Person
 module Credit        : Common.Credit.S        = Credit
+module CreditFilter  : Common.CreditFilter.S  = CreditFilter
 module Source        : Common.Source.S        = Source
 module Dance         : Common.Dance.S         = Dance
 module Tune          : Common.Tune.S          = Tune
@@ -17,7 +18,7 @@ module VersionFilter : Common.VersionFilter.S = VersionFilter
 module VersionParameters                      = VersionParameters
 module Set           : Common.Set.S           = Set
 module SetParameters                          = SetParameters
-module Book       : Common.Book.S       = Book
-module BookParameters                      = BookParameters
+module Book          : Common.Book.S          = Book
+module BookParameters                         = BookParameters
 
 module Any           : Common.Any.S           = Any

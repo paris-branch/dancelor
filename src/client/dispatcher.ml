@@ -12,7 +12,7 @@ module type PAGE = sig
   val refresh : t -> unit
 end
 
-let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) = 
+let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
   (module struct
     type t = M.t
     let create = create
@@ -49,6 +49,8 @@ let dispatch url =
     pack (module BookViewer) (BookViewer.create slug)
   | ["credit";"add"] ->
     pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
+  | ["person"; slug] ->
+    pack (module PersonViewer) (PersonViewer.create slug)
   | [] ->
     pack (module Index) Index.create
   | _ ->

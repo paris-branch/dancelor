@@ -11,6 +11,13 @@ let get slug =
     a Arg.slug slug
   )
 
+let all ?filter ?pagination () =
+  Madge_client.(
+    call ~endpoint:Endpoint.all @@ fun _ {o} ->
+    o Arg.filter filter;
+    o Arg.pagination pagination
+  )
+
 let make_and_save ?status ~line ?persons () =
   Madge_client.(
     call ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->

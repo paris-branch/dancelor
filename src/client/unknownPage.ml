@@ -4,13 +4,13 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t = 
+type t =
 {
   document : Html.document Js.t;
   content : Html.divElement Js.t;
 }
 
-let create _ = 
+let create _ =
   let document = Html.window##.document in
   let content = Html.createDiv document in
   let text = Html.createEm document in
@@ -21,7 +21,7 @@ let create _ =
 let contents t =
   t.content
 
-let refresh t = 
+let refresh t =
   ignore t
 
 let init t =

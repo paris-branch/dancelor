@@ -33,6 +33,10 @@ module type S = sig
 
   val get : t Slug.t -> t Lwt.t
 
+  val all :
+    ?filter:CreditFilter.t -> ?pagination:Pagination.t ->
+    unit -> t list Lwt.t
+
   val make_and_save :
     ?status:Status.t ->
     line:string ->
@@ -53,6 +57,7 @@ module Arg = struct
   let line = arg ~key:"line" (module MString)
   let persons = optarg ~key:"persons" (module MList(Person))
   let pagination = optarg (module Pagination)
+  let filter = optarg (module CreditFilter)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let string = arg (module MString)
 end
@@ -60,6 +65,7 @@ end
 module Endpoint = struct
   open Madge_common
   let get = endpoint ~path:"/credit" (module Self)
+  let all = endpoint ~path:"/credit/all" (module MList (Self))
   let make_and_save = endpoint ~path:"/credit/save" (module Self)
   let search = endpoint ~path:"/credit/search" (module MList (Score.Make_Serialisable (Self)))
 end

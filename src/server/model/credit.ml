@@ -13,6 +13,31 @@ let () =
     get (a Arg.slug)
   )
 
+let apply_filter filter all =
+  let%lwt f_person = CreditFilter.person filter in
+  Lwt_list.filter_s
+    (fun credit ->
+       let%lwt persons = persons credit in
+       Lwt.return
+         (
+           List.exists (fun person -> f_person = [] || List.mem person f_person) persons
+         ))
+    all
+
+let all ?filter ?pagination () =
+  Dancelor_server_database.Credit.get_all ()
+  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter filter
+  >>=| Lwt_list.(sort_multiple [
+      increasing line String.Sensible.compare
+    ])
+  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
+
+let () =
+  Madge_server.(
+    register ~endpoint:Endpoint.all @@ fun _ {o} ->
+    all ?filter:(o Arg.filter) ?pagination:(o Arg.pagination) ()
+  )
+
 let make_and_save ?status ~line ?persons () =
   let%lwt persons =
     match persons with
