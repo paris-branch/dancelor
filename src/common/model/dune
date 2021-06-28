@@ -12,5 +12,6 @@
    ppx_inline_test
    ppx_deriving_yojson
    ppx_deriving.std))
- (modules_without_implementation person_S)
+ (modules_without_implementation
+  Person_S Credit_S)
  (inline_tests))
