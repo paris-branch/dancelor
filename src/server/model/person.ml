@@ -5,10 +5,13 @@ include Dancelor_common_model.Person
 
 let get = Dancelor_server_database.Person.get
 
+module E = Dancelor_common_model.Person_endpoints
+module A = E.Arg
+
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun {a} _ ->
-    get (a Arg.slug)
+    register ~endpoint:E.get @@ fun {a} _ ->
+    get (a A.slug)
   )
 
 let make_and_save ?status ~name () =
@@ -17,9 +20,9 @@ let make_and_save ?status ~name () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.make_and_save @@ fun {a} _ ->
+    register ~endpoint:E.make_and_save @@ fun {a} _ ->
     make_and_save
-      ~name:(a Arg.name)
+      ~name:(a A.name)
       ()
   )
 
@@ -39,9 +42,9 @@ let search ?pagination ?(threshold=0.) string =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?pagination:(o Arg.pagination)
-      ?threshold: (o Arg.threshold)
-      (a Arg.string)
+      ?pagination:(o A.pagination)
+      ?threshold: (o A.threshold)
+      (a A.string)
   )
