@@ -31,24 +31,26 @@ let dispatch url =
     | l -> l
   in
   begin match trim path with
-  | ["version";"all"] ->
+  | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
-  | ["version";slug] ->
+  | ["version"; slug] ->
     pack (module VersionViewer) (VersionViewer.create slug)
-  | ["tune";slug] ->
+  | ["tune"; slug] ->
     pack (module TuneViewer) (TuneViewer.create slug)
-  | ["set";"all"] ->
+  | ["set"; "all"] ->
     pack (module SetExplorer) SetExplorer.create
-  | ["set";"compose"] ->
+  | ["set"; "compose"] ->
     pack (module ComposerInterface) ComposerInterface.create
-  | ["set";slug] ->
+  | ["set"; slug] ->
     pack (module SetViewer) (SetViewer.create slug)
-  | ["book";"all"] ->
+  | ["book"; "all"] ->
     pack (module BookExplorer) BookExplorer.create
-  | ["book";slug] ->
+  | ["book"; slug] ->
     pack (module BookViewer) (BookViewer.create slug)
-  | ["credit";"add"] ->
+  | ["credit"; "add"] ->
     pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
+  | ["credit"; slug] ->
+    pack (module CreditViewer) (CreditViewer.create slug)
   | ["person"; slug] ->
     pack (module PersonViewer) (PersonViewer.create slug)
   | [] ->

@@ -28,7 +28,7 @@ let create slug page =
   (* Credits *)
 
   let () =
-    let pre_text = Text.Paragraph.creeate ~text:(Lwt.return "appears in the following credits:") page in
+    let pre_text = Text.Paragraph.create ~text:(Lwt.return "appears in the following credits:") page in
     Dom.appendChild content (Text.Paragraph.root pre_text);
 
     let credits_dom = Html.createUl (Page.document page) in
