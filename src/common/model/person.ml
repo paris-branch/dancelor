@@ -5,7 +5,7 @@ module Self = struct
     { slug : t Slug.t ;
       status : Status.t [@default Status.bot] ;
       name : string }
-  [@@deriving make, yojson]
+  [@@deriving yojson, make]
 
   let _key = "person"
 end
@@ -15,12 +15,41 @@ let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
 let name p = Lwt.return p.name
 
+module Filter = struct
+  type t =
+    | Is of Self.t
+    | HasName of string
+  [@@deriving yojson]
+
+  let _key = "person-filter"
+
+  let accepts filter person =
+    match filter with
+    | Is person' ->
+      let%lwt slug' = slug person' in
+      let%lwt slug  = slug person  in
+      Lwt.return (Slug.equal slug slug')
+    | HasName name' ->
+      let%lwt name = name person in
+      Lwt.return (name = name')
+end
+
 module type S = sig
   type nonrec t = t
 
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Status.t Lwt.t
   val name : t -> string Lwt.t
+
+  (** {2 Filter} *)
+
+  module Filter : sig
+    type t = Filter.t =
+      | Is of Self.t
+      | HasName of string
+
+    val accepts : t -> Self.t -> bool Lwt.t
+  end
 
   (** {2 Getters and setters} *)
 
@@ -43,6 +72,7 @@ module Arg = struct
   let slug = arg ~key:"slug" (module MString)
   let status = optarg (module Status)
   let name = arg ~key:"name" (module MString)
+  let filter = optarg (module Filter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let string = arg (module MString)

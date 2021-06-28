@@ -6,7 +6,7 @@ module Self = struct
       status : Status.t [@default Status.bot] ;
       line : string ;
       persons : Person.t Slug.t list [@default []] }
-  [@@deriving make, yojson]
+  [@@deriving yojson, make]
 
   let _key = "credit"
 end
@@ -19,8 +19,17 @@ let persons c = Lwt.return c.persons
 
 let is_trad c = c.slug = "traditional"
 
+module Filter = struct
+  type t =
+    | ExistsPerson of Person.Filter.t
+    | ForallPersons of Person.Filter.t
+  [@@deriving yojson]
+
+  let _key = "credit-filter"
+end
+
 module type S = sig
-  type nonrec t = t
+  type t = Self.t
 
   val slug : t -> t Slug.t Lwt.t
   val status : t -> Status.t Lwt.t
@@ -29,12 +38,22 @@ module type S = sig
 
   val is_trad : t -> bool
 
+  (** {2 Filter} *)
+
+  module Filter : sig
+    type t = Filter.t =
+      | ExistsPerson of Person.Filter.t
+      | ForallPersons of Person.Filter.t
+
+    val accepts : t -> Self.t -> bool Lwt.t
+  end
+
   (** {2 Getters and setters} *)
 
   val get : t Slug.t -> t Lwt.t
 
   val all :
-    ?filter:CreditFilter.t -> ?pagination:Pagination.t ->
+    ?filter:Filter.t -> ?pagination:Pagination.t ->
     unit -> t list Lwt.t
 
   val make_and_save :
@@ -57,7 +76,7 @@ module Arg = struct
   let line = arg ~key:"line" (module MString)
   let persons = optarg ~key:"persons" (module MList(Person))
   let pagination = optarg (module Pagination)
-  let filter = optarg (module CreditFilter)
+  let filter = optarg (module Filter)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let string = arg (module MString)
 end

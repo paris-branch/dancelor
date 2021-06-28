@@ -9,7 +9,6 @@ module Transposition = Transposition
 
 module Person        : Common.Person.S        = Person
 module Credit        : Common.Credit.S        = Credit
-module CreditFilter  : Common.CreditFilter.S  = CreditFilter
 module Source        : Common.Source.S        = Source
 module Dance         : Common.Dance.S         = Dance
 module Tune          : Common.Tune.S          = Tune

@@ -5,6 +5,19 @@ let persons = persons >=>| Lwt_list.map_p Person.get
 
 (* * *)
 
+module Filter = struct
+  include Filter
+
+  let accepts filter credit =
+    match filter with
+    | ExistsPerson pfilter ->
+      persons credit
+      >>=| Lwt_list.exists_s (Person.Filter.accepts pfilter)
+    | ForallPersons pfilter ->
+      persons credit
+      >>=| Lwt_list.for_all_s (Person.Filter.accepts pfilter)
+end
+
 let get slug =
   Madge_client.(
     call ~endpoint:Endpoint.get @@ fun {a} _ ->

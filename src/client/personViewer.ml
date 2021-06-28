@@ -35,7 +35,12 @@ let create slug page =
     Dom.appendChild content credits_dom;
 
     (* Create the Lwt value containing the request to the credits *)
-    Lwt.on_success (person >>=| CreditFilter.only_person) @@ fun filter ->
+    let filter =
+      let%lwt person = person in
+      Credit.Filter.ExistsPerson (Person.Filter.Is person)
+      |> Lwt.return
+    in
+    Lwt.on_success filter @@ fun filter ->
     Lwt.on_success (Credit.all ~filter ()) @@ fun credits ->
 
     List.iter (fun credit ->

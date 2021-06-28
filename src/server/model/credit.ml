@@ -5,6 +5,19 @@ let persons = persons >=>| Lwt_list.map_s Person.get
 
 (* * *)
 
+module Filter = struct
+  include Filter
+
+  let accepts filter credit =
+    match filter with
+    | ExistsPerson pfilter ->
+      persons credit
+      >>=| Lwt_list.exists_s (Person.Filter.accepts pfilter)
+    | ForallPersons pfilter ->
+      persons credit
+      >>=| Lwt_list.for_all_s (Person.Filter.accepts pfilter)
+end
+
 let get = Dancelor_server_database.Credit.get
 
 let () =
@@ -13,16 +26,8 @@ let () =
     get (a Arg.slug)
   )
 
-let apply_filter filter all =
-  let%lwt f_person = CreditFilter.person filter in
-  Lwt_list.filter_s
-    (fun credit ->
-       let%lwt persons = persons credit in
-       Lwt.return
-         (
-           List.exists (fun person -> f_person = [] || List.mem person f_person) persons
-         ))
-    all
+let apply_filter filter credits =
+  Lwt_list.filter_s (Filter.accepts filter) credits
 
 let all ?filter ?pagination () =
   Dancelor_server_database.Credit.get_all ()
