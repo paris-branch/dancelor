@@ -1,22 +1,19 @@
 open Nes
 
-module Self = struct
-  type t =
-    { slug : t Slug.t                  [@default Slug.none] ;
-      status : Status.t                [@default Status.bot] ;
-      name : string ;
-      deviser : Credit.t Slug.t option [@default None] ;
-      kind : Kind.dance ;
-      versions_and_parameters : (Version.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
-      instructions : string            [@default ""] ;
-      dances : Dance.t Slug.t list     [@default []] ;
-      remark : string                  [@default ""] ;
-      sources : Source.t Slug.t list   [@default []] }
-  [@@deriving make, yojson]
+type t =
+  { slug : t Slug.t                  [@default Slug.none] ;
+    status : Status.t                [@default Status.bot] ;
+    name : string ;
+    deviser : Credit.t Slug.t option [@default None] ;
+    kind : Kind.dance ;
+    versions_and_parameters : (Version.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
+    instructions : string            [@default ""] ;
+    dances : Dance.t Slug.t list     [@default []] ;
+    remark : string                  [@default ""] ;
+    sources : Source.t Slug.t list   [@default []] }
+[@@deriving make, yojson]
 
-  let _key = "set"
-end
-include Self
+let _key = "set"
 
 let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () =
   let%lwt deviser =
@@ -77,90 +74,3 @@ type warning =
 
 type warnings = warning list
 [@@deriving yojson]
-
-module type S = sig
-  type nonrec t = t
-
-  val slug : t -> t Slug.t Lwt.t
-  val status : t -> Status.t Lwt.t
-  val name : t -> string Lwt.t
-  val deviser : t -> Credit.t option Lwt.t
-  val kind : t -> Kind.dance Lwt.t
-  val versions_and_parameters : t -> (Version.t * VersionParameters.t) list Lwt.t
-  val instructions : t -> string Lwt.t
-  val dances : t -> Dance.t list Lwt.t
-  val remark : t -> string Lwt.t
-
-  val contains_version : Version.t Slug.t -> t -> bool
-
-  (* {2 Warnings} *)
-
-  type warning =
-    | Empty
-    | WrongKind
-    | WrongVersionBars of Version.t
-    | WrongVersionKind of Tune.t
-    | DuplicateVersion of Tune.t
-
-  type warnings = warning list
-
-  val warnings : t -> warnings Lwt.t
-
-  (** {2 Getters and setters} *)
-
-  val get : t Slug.t -> t Lwt.t
-
-  val all : ?pagination:Pagination.t -> unit -> t list Lwt.t
-
-  val make_temp :
-    name:string ->
-    ?deviser:Credit.t ->
-    kind:Kind.dance ->
-    ?versions_and_parameters:(Version.t * VersionParameters.t) list ->
-    ?dances:Dance.t list ->
-    unit -> t Lwt.t
-
-  val make_and_save :
-    ?status:Status.t ->
-    name:string ->
-    ?deviser:Credit.t ->
-    kind:Kind.dance ->
-    ?versions_and_parameters:(Version.t * VersionParameters.t) list ->
-    ?dances:Dance.t list ->
-    unit -> t Lwt.t
-
-  val delete : t -> unit Lwt.t
-
-  val search :
-    ?pagination:Pagination.t ->
-    ?threshold:float ->
-    string ->
-    t Score.t list Lwt.t
-
-  val count: unit -> int Lwt.t
-  (** Number of sets in the database. *)
-end
-
-module Arg = struct
-  open Madge_common
-  let slug = arg ~key:"slug" (module MString)
-  let status = optarg (module Status)
-  let name = arg ~key:"name" (module MString)
-  let deviser = optarg ~key:"deviser" (module Credit)
-  let kind = arg ~key:"kind" (module Kind.Dance)
-  let versions_and_parameters = optarg ~key:"versions-and-parameters" (module MList (MPair (Version) (VersionParameters)))
-  let dances = optarg ~key:"dances" (module MList (Dance))
-  let pagination = optarg (module Pagination)
-  let threshold = optarg ~key:"threshold" (module MFloat)
-  let string = arg (module MString)
-end
-
-module Endpoint = struct
-  open Madge_common
-  let get = endpoint ~path:"/set" (module Self)
-  let all = endpoint ~path:"/set/all" (module MList (Self))
-  let make_and_save = endpoint ~path:"/set/save" (module (Self))
-  let delete = endpoint ~path:"/set/delete" (module MUnit)
-  let search = endpoint ~path:"/set/search" (module MList (Score.Make_Serialisable (Self)))
-  let count = endpoint ~path:"/set/count" (module MInteger)
-end

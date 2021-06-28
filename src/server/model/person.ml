@@ -1,12 +1,10 @@
 open Nes
+module E = Dancelor_common_model.Person_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Person
 
-(* * *)
-
 let get = Dancelor_server_database.Person.get
-
-module E = Dancelor_common_model.Person_endpoints
-module A = E.Arg
 
 let () =
   Madge_server.(

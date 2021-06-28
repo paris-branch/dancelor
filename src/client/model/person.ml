@@ -1,9 +1,8 @@
-include Dancelor_common_model.Person
+open Dancelor_common_model
+include Person
 
-(* * *)
-
-module E = Dancelor_common_model.Person_endpoints
-module A = E.Arg
+module E = Person_endpoints
+module A = E.Arguments
 
 let get slug =
   Madge_client.(

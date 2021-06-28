@@ -1,23 +1,23 @@
 open Nes
 
-module Self = struct
-  type t =
-    { slug : t Slug.t ;
-      status : Status.t [@default Status.bot] ;
-      name : string }
-  [@@deriving yojson, make]
+type t =
+  { slug : t Slug.t ;
+    status : Status.t [@default Status.bot] ;
+    name : string }
+[@@deriving yojson, make]
 
-  let _key = "person"
-end
-include Self
+let _key = "person"
 
 let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
 let name p = Lwt.return p.name
 
 module Filter = struct
+  type person = t
+  [@@deriving yojson]
+
   type t =
-    | Is of Self.t
+    | Is of person
     | HasName of string
   [@@deriving yojson]
 

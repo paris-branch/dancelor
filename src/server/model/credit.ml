@@ -1,4 +1,7 @@
 open Nes
+module E = Dancelor_common_model.Credit_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Credit
 
 let persons = persons >=>| Lwt_list.map_s Person.get
@@ -22,8 +25,8 @@ let get = Dancelor_server_database.Credit.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun {a} _ ->
-    get (a Arg.slug)
+    register ~endpoint:E.get @@ fun {a} _ ->
+    get (a A.slug)
   )
 
 let apply_filter filter credits =
@@ -39,8 +42,8 @@ let all ?filter ?pagination () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.all @@ fun _ {o} ->
-    all ?filter:(o Arg.filter) ?pagination:(o Arg.pagination) ()
+    register ~endpoint:E.all @@ fun _ {o} ->
+    all ?filter:(o A.filter) ?pagination:(o A.pagination) ()
   )
 
 let make_and_save ?status ~line ?persons () =
@@ -56,10 +59,10 @@ let make_and_save ?status ~line ?persons () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
+    register ~endpoint:E.make_and_save @@ fun {a} {o} ->
     make_and_save
-      ~line:   (a Arg.line)
-      ?persons:(o Arg.persons)
+      ~line:   (a A.line)
+      ?persons:(o A.persons)
       ()
   )
 
@@ -79,9 +82,9 @@ let search ?pagination ?(threshold=0.) string =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?pagination:(o Arg.pagination)
-      ?threshold: (o Arg.threshold)
-      (a Arg.string)
+      ?pagination:(o A.pagination)
+      ?threshold: (o A.threshold)
+      (a A.string)
   )

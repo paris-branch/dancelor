@@ -1,7 +1,6 @@
 open Madge_common
 
-module Arg = struct
-  open Madge_common
+module Arguments = struct
   let slug = arg ~key:"slug" (module MString)
   let status = optarg (module Status)
   let line = arg ~key:"line" (module MString)

@@ -1,4 +1,7 @@
 open Nes
+module E = Dancelor_common_model.Set_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Set
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
@@ -67,41 +70,41 @@ let warnings s =
 
 let get slug =
   Madge_client.(
-    call ~endpoint:Endpoint.get @@ fun {a} _ ->
-    a Arg.slug slug
+    call ~endpoint:E.get @@ fun {a} _ ->
+    a A.slug slug
   )
 
 let all ?pagination () =
   Madge_client.(
-    call ~endpoint:Endpoint.all @@ fun _ {o} ->
-    o Arg.pagination pagination
+    call ~endpoint:E.all @@ fun _ {o} ->
+    o A.pagination pagination
   )
 
 let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances () =
   Madge_client.(
-    call ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
-    o Arg.status status;
-    a Arg.name name;
-    o Arg.deviser deviser;
-    a Arg.kind kind;
-    o Arg.versions_and_parameters versions_and_parameters;
-    o Arg.dances dances
+    call ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    o A.status status;
+    a A.name name;
+    o A.deviser deviser;
+    a A.kind kind;
+    o A.versions_and_parameters versions_and_parameters;
+    o A.dances dances
   )
 
 let delete s =
   let%lwt slug = slug s in (* FIXME: SetDelete could maybe take a set directly? *)
   Madge_client.(
-    call ~endpoint:Endpoint.delete @@ fun {a} _ ->
-    a Arg.slug slug
+    call ~endpoint:E.delete @@ fun {a} _ ->
+    a A.slug slug
   )
 
 let search ?pagination ?threshold string =
   Madge_client.(
-    call ~endpoint:Endpoint.search @@ fun {a} {o} ->
-    o Arg.pagination pagination;
-    o Arg.threshold threshold;
-    a Arg.string string
+    call ~endpoint:E.search @@ fun {a} {o} ->
+    o A.pagination pagination;
+    o A.threshold threshold;
+    a A.string string
   )
 
 let count () =
-  Madge_client.call ~endpoint:Endpoint.count @@ fun _ _ -> ()
+  Madge_client.call ~endpoint:E.count @@ fun _ _ -> ()

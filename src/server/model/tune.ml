@@ -1,18 +1,18 @@
 open Nes
+module E = Dancelor_common_model.Tune_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Tune
 
 let author = author >=>?| (Credit.get >=>| Lwt.return_some)
-
 let dances = dances >=>| Lwt_list.map_p Dance.get
-
-(* * *)
 
 let get = Dancelor_server_database.Tune.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun {a} _ ->
-    get (a Arg.slug)
+    register ~endpoint:E.get @@ fun {a} _ ->
+    get (a A.slug)
   )
 
 let search string person =
@@ -31,9 +31,9 @@ let search ?pagination ?(threshold=0.) string =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?pagination:(o Arg.pagination)
-      ?threshold: (o Arg.threshold)
-      (a Arg.string)
+      ?pagination:(o A.pagination)
+      ?threshold: (o A.threshold)
+      (a A.string)
   )

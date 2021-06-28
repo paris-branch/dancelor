@@ -1,11 +1,14 @@
 open Nes
+module E = Dancelor_common_model.Book_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Book
 
 let contents p =
   let%lwt contents = contents p in
   Lwt_list.map_p
     (function
-      | (Version (v, p) : Self.page) -> let%lwt v = Version.get v in Lwt.return (Version (v, p))
+      | (Version (v, p) : page_slug) -> let%lwt v = Version.get v in Lwt.return (Version (v, p))
       | Set (s, p) -> let%lwt s = Set.get s in Lwt.return (Set (s, p))
       | InlineSet (s, p) -> Lwt.return (InlineSet (s, p)))
     contents
@@ -75,17 +78,17 @@ let warnings p =
 
 let get slug =
   Madge_client.(
-    call ~endpoint:Endpoint.get @@ fun {a} _ ->
-    a Arg.slug slug
+    call ~endpoint:E.get @@ fun {a} _ ->
+    a A.slug slug
   )
 
 let get_all () =
-  Madge_client.call ~endpoint:Endpoint.get_all @@ fun _ _ -> ()
+  Madge_client.call ~endpoint:E.get_all @@ fun _ _ -> ()
 
 let search ?pagination ?threshold string =
   Madge_client.(
-    call ~endpoint:Endpoint.search @@ fun {a} {o} ->
-    o Arg.pagination pagination;
-    o Arg.threshold threshold;
-    a Arg.string string
+    call ~endpoint:E.search @@ fun {a} {o} ->
+    o A.pagination pagination;
+    o A.threshold threshold;
+    a A.string string
   )

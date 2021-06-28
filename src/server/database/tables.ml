@@ -89,7 +89,7 @@ module Book = Table.Make (
       let%lwt contents = contents book in
       Lwt_list.filter_map_p
         (function
-          | (Version (v, _) : Self.page) -> Lwt.return_some (Table.make_slug_and_table (module Version) v)
+          | (Version (v, _) : page_slug) -> Lwt.return_some (Table.make_slug_and_table (module Version) v)
           | Set (s, _) -> Lwt.return_some (Table.make_slug_and_table (module Set) s)
           | _ -> Lwt.return_none)
         contents

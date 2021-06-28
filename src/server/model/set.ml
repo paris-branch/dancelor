@@ -1,4 +1,7 @@
 open Nes
+module E = Dancelor_common_model.Set_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Set
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
@@ -21,8 +24,8 @@ let get = Dancelor_server_database.Set.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun {a} _ ->
-    get (a Arg.slug)
+    register ~endpoint:E.get @@ fun {a} _ ->
+    get (a A.slug)
   )
 
 let all ?pagination () =
@@ -34,8 +37,8 @@ let all ?pagination () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.all @@ fun _ {o} ->
-    all ?pagination:(o Arg.pagination) ()
+    register ~endpoint:E.all @@ fun _ {o} ->
+    all ?pagination:(o A.pagination) ()
   )
 
 let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances () =
@@ -44,14 +47,14 @@ let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances 
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.make_and_save @@ fun {a} {o} ->
+    register ~endpoint:E.make_and_save @@ fun {a} {o} ->
     make_and_save
-      ~name:   (a Arg.name)
-      ?deviser:(o Arg.deviser)
-      ~kind:   (a Arg.kind)
-      ?status: (o Arg.status)
-      ?versions_and_parameters:(o Arg.versions_and_parameters)
-      ?dances:(o Arg.dances)
+      ~name:   (a A.name)
+      ?deviser:(o A.deviser)
+      ~kind:   (a A.kind)
+      ?status: (o A.status)
+      ?versions_and_parameters:(o A.versions_and_parameters)
+      ?dances:(o A.dances)
       ()
   )
 
@@ -61,8 +64,8 @@ let delete s =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.delete @@ fun {a} _ ->
-    let%lwt set = get (a Arg.slug) in
+    register ~endpoint:E.delete @@ fun {a} _ ->
+    let%lwt set = get (a A.slug) in
     delete set
   )
 
@@ -82,11 +85,11 @@ let search ?pagination ?(threshold=0.) string =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?pagination:(o Arg.pagination)
-      ?threshold: (o Arg.threshold)
-      (a Arg.string)
+      ?pagination:(o A.pagination)
+      ?threshold: (o A.threshold)
+      (a A.string)
   )
 
 let count () =
@@ -94,4 +97,4 @@ let count () =
   Lwt.return (List.length l)
 
 let () =
-  Madge_server.register ~endpoint:Endpoint.count @@ fun _ _ -> count ()
+  Madge_server.register ~endpoint:E.count @@ fun _ _ -> count ()

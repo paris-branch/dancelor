@@ -1,4 +1,7 @@
 open Nes
+module E = Dancelor_common_model.Any_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Any
 
 let version_search ?pagination ?threshold input =
@@ -30,10 +33,10 @@ let search ?pagination ?threshold ?(except=[]) input =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?pagination:(o Arg.pagination)
-      ?threshold: (o Arg.threshold)
-      ?except: (o Arg.type_)
-      (a Arg.string)
+      ?pagination:(o A.pagination)
+      ?threshold: (o A.threshold)
+      ?except: (o A.type_)
+      (a A.string)
   )

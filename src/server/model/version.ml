@@ -1,4 +1,7 @@
 open Nes
+module E = Dancelor_common_model.Version_endpoints
+module A = E.Arguments
+
 include Dancelor_common_model.Version
 
 let tune = tune >=>| Tune.get
@@ -13,8 +16,8 @@ let get = Dancelor_server_database.Version.get
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.get @@ fun {a} _ ->
-    get (a Arg.slug)
+    register ~endpoint:E.get @@ fun {a} _ ->
+    get (a A.slug)
   )
 
 (* FIXME: merge apply_filter and apply_filter_on_scores *)
@@ -77,8 +80,8 @@ let all ?filter ?pagination () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.all @@ fun _ {o} ->
-    all ?filter:(o Arg.filter) ?pagination:(o Arg.pagination) ()
+    register ~endpoint:E.all @@ fun _ {o} ->
+    all ?filter:(o A.filter) ?pagination:(o A.pagination) ()
   )
 
 let rec search_and_extract acc s regexp =
@@ -183,12 +186,12 @@ let search ?filter ?pagination ?(threshold=0.) string =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.search @@ fun {a} {o} ->
+    register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?filter:    (o Arg.filter)
-      ?pagination:(o Arg.pagination)
-      ?threshold: (o Arg.threshold)
-      (a Arg.string)
+      ?filter:    (o A.filter)
+      ?pagination:(o A.pagination)
+      ?threshold: (o A.threshold)
+      (a A.string)
   )
 
 let count ?filter () =
@@ -197,7 +200,7 @@ let count ?filter () =
 
 let () =
   Madge_server.(
-    register ~endpoint:Endpoint.count @@ fun _ {o} ->
+    register ~endpoint:E.count @@ fun _ {o} ->
     count
-      ?filter:(o Arg.filter) ()
+      ?filter:(o A.filter) ()
   )
