@@ -7,8 +7,8 @@ module Status = Status
 module Score  = Score
 module Transposition = Transposition
 
-module Person        : module type of Common.Person_S = Person
-module Credit        : module type of Common.Credit_S = Credit
+module Person        : Common.PERSON          = Person
+module Credit        : Common.CREDIT          = Credit
 module Source        : Common.Source.S        = Source
 module Dance         : Common.Dance.S         = Dance
 module Tune          : Common.Tune.S          = Tune
