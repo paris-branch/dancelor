@@ -66,5 +66,7 @@ module Filter = struct
     | Is of book
     | ExistsVersion of Version.Filter.t
     | ForallVersions of Version.Filter.t
+    | ExistsSet of Set.Filter.t
+    | ForallSets of Set.Filter.t
   [@@deriving yojson]
 end

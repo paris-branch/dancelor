@@ -173,6 +173,33 @@ let create slug page =
   let t = {page; content; versions} in
   Lwt.on_success set (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));
 
+  (* Books in which this version can be found *)
+
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Books in Which This Set Appears") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
+
+    let books_lwt =
+      let%lwt set = set in
+      let filter = Book.Filter.ExistsSet (Set.Filter.Is set) in
+      Book.all ~filter ()
+    in
+
+    let table = Dancelor_client_tables.Book.make books_lwt page in
+
+    (* When getting the books, decide to show just a text or the table *)
+
+    Lwt.on_success books_lwt @@ fun books ->
+    if books = [] then
+      let text = Text.Paragraph.create ~text:(Lwt.return "There are no books containing this version.") page in
+      Dom.appendChild tableHolder (Text.Paragraph.root text)
+    else
+      Dom.appendChild tableHolder (Table.root table)
+  in
+
   t
 
 let contents t =
