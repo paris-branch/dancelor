@@ -23,21 +23,27 @@ let create slug page =
   (* title *)
   let () =
     let title = Text.Heading.h2_static ~text:(Lwt.bind tune Tune.name) page in
-    Dom.appendChild content (Text.Heading.root title)
+    let title = Text.Heading.root title in
+    title##.classList##add (js "title");
+    Dom.appendChild content title
   in
 
   (* aka *)
   let () =
     let text = Formatters.Tune.aka_lwt tune in
     let aka = Text.Heading.h3_static ~text page in
-    Dom.appendChild content (Text.Heading.root aka)
+    let aka = Text.Heading.root aka in
+    aka##.classList##add (js "title");
+    Dom.appendChild content aka
   in
 
   (* recommended *)
   let () =
     let text = Formatters.Tune.recommended_lwt tune in
     let recommended = Text.Heading.h3_static ~text page in
-    Dom.appendChild content (Text.Heading.root recommended)
+    let recommended = Text.Heading.root recommended in
+    recommended##.classList##add (js "title");
+    Dom.appendChild content recommended
   in
 
   (* tune description *)
@@ -47,7 +53,9 @@ let create slug page =
       Formatters.Tune.description tune page
     in
     let tune_description = Text.Heading.h3 ~content:text page in
-    Dom.appendChild content (Text.Heading.root tune_description)
+    let tune_description = Text.Heading.root tune_description in
+    tune_description##.classList##add (js "title");
+    Dom.appendChild content tune_description
   in
 
   (* Version description *)
@@ -58,7 +66,9 @@ let create slug page =
       Formatters.Version.description version page
     in
     let version_description = Text.Heading.h3 ~content:text page in
-    Dom.appendChild content (Text.Heading.root version_description)
+    let version_description = Text.Heading.root version_description in
+    version_description##.classList##add (js "title");
+    Dom.appendChild content version_description
   in
 
   (* Buttons *)
