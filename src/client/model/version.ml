@@ -55,5 +55,6 @@ let search ?filter ?pagination ?threshold string =
 
 let count ?filter () =
   Madge_client.(
-    call ~endpoint:E.count @@ fun _ {o} -> o A.filter filter
+    call ~endpoint:E.count @@ fun _ {o} ->
+    o A.filter filter
   )
