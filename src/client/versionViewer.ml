@@ -50,7 +50,8 @@ let create slug page =
     Dom.appendChild content (Text.Heading.root tune_description)
   in
 
-  (* version description *)
+  (* Version description *)
+
   let () =
     let text =
       let%lwt version = version in
@@ -60,19 +61,48 @@ let create slug page =
     Dom.appendChild content (Text.Heading.root version_description)
   in
 
-  let pdf_href, ly_href =
-    Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
-    Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
-  in
-  let pdf, ly =
-    Inputs.Button.create ~href:(Lwt.return pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-    Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
-  in
-  Dom.appendChild content (Inputs.Button.root pdf);
-  Dom.appendChild content (Inputs.Button.root ly);
-  Dom.appendChild content (Html.createHr document);
+  (* Buttons *)
 
   let () =
+    let span = Html.createDiv (Page.document page) in
+    span##.classList##add (js "buttons");
+
+    let pdf_href, ly_href =
+      Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
+      Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
+    in
+    let pdf, ly =
+      Inputs.Button.create ~href:(Lwt.return pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
+      Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
+    in
+    Dom.appendChild span (Inputs.Button.root pdf);
+    Dom.appendChild span (Inputs.Button.root ly);
+
+    Dom.appendChild content span
+  in
+
+  (* Previsualisation *)
+
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Previsualisation") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+
+    let source =
+      spf "/%s%s"
+        Constant.api_prefix
+        (Router.path_of_controller (Router.VersionSvg slug) |> snd)
+      |> Lwt.return
+    in
+    let img = Image.create ~source page in
+    Dom.appendChild content (Image.root img);
+  in
+
+  (* Other versions *)
+
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Other Versions") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+
     let href =
       let%lwt slug = Lwt.bind tune Tune.slug in
       Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
@@ -95,20 +125,11 @@ let create slug page =
     Dom.appendChild content (Text.Link.root title)
   in
 
-  let source =
-    spf "/%s%s"
-      Constant.api_prefix
-      (Router.path_of_controller (Router.VersionSvg slug) |> snd)
-    |> Lwt.return
-  in
-  let img = Image.create ~source page in
-  Dom.appendChild content (Image.root img);
-
   (* Sets in which this version can be found *)
 
   let () =
-    let pre_text = Text.Paragraph.create ~text:(Lwt.return "appears in the following sets:") page in
-    Dom.appendChild content (Text.Paragraph.root pre_text);
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Sets in Which This Version Appears") page in
+    Dom.appendChild content (Text.Heading.root pretext);
 
     let sets_dom = Html.createUl (Page.document page) in
     Dom.appendChild content sets_dom;
@@ -137,8 +158,8 @@ let create slug page =
   (* Books in which this version can be found *)
 
   let () =
-    let pre_text = Text.Paragraph.create ~text:(Lwt.return "appears in the following books:") page in
-    Dom.appendChild content (Text.Paragraph.root pre_text);
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Books in Which This Version Appears") page in
+    Dom.appendChild content (Text.Heading.root pretext);
 
     let books_dom = Html.createUl (Page.document page) in
     Dom.appendChild content books_dom;
