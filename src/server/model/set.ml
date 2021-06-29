@@ -2,38 +2,41 @@ open Nes
 module E = Dancelor_common_model.Set_endpoints
 module A = E.Arguments
 
-include Dancelor_common_model.Set
+module Self = struct
+  include Dancelor_common_model.Set
 
-let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
+  let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
 
-let versions_and_parameters set =
-  let%lwt versions_and_parameters = versions_and_parameters set in
-  Lwt_list.map_s
-    (fun (slug, parameters) ->
-       let%lwt version = Version.get slug in
-       Lwt.return (version, parameters))
-    versions_and_parameters
+  let versions_and_parameters set =
+    let%lwt versions_and_parameters = versions_and_parameters set in
+    Lwt_list.map_s
+      (fun (slug, parameters) ->
+         let%lwt version = Version.get slug in
+         Lwt.return (version, parameters))
+      versions_and_parameters
 
-let dances = dances >=>| Lwt_list.map_p Dance.get
+  let dances = dances >=>| Lwt_list.map_p Dance.get
 
-let warnings _s = assert false (* FIXME *)
+  let warnings _s = assert false (* FIXME *)
+end
+include Self
 
 module Filter = struct
   include Filter
 
   let accepts filter set =
-    match filter with
+    Formula.interpret filter @@ function
 
     | Is set' ->
       equal set set'
 
     | Deviser dfilter ->
-      (match%lwt deviser set with
+      (match%lwt Self.deviser set with
        | None -> Lwt.return_false
        | Some deviser -> Credit.Filter.accepts dfilter deviser)
 
     | ExistsVersion vfilter ->
-      let%lwt versions_and_parameters = versions_and_parameters set in
+      let%lwt versions_and_parameters = Self.versions_and_parameters set in
       Lwt_list.exists_s
         (fun (version, _) ->
            Version.Filter.accepts vfilter version)

@@ -22,13 +22,18 @@ let equal credit1 credit2 =
   Lwt.return (Slug.equal slug1 slug2)
 
 module Filter = struct
-  type credit = t
-  [@@deriving yojson]
+  let _key = "credit-filter"
 
-  type t =
-    | Is of credit
+  type predicate =
+    | Is of t
     | ExistsPerson of Person.Filter.t
   [@@deriving yojson]
 
-  let _key = "credit-filter"
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is credit = Formula.pred (Is credit)
+  let existsPerson pfilter = Formula.pred (ExistsPerson pfilter)
+  let memPerson person = existsPerson (Person.Filter.is person)
+  let forallPersons pfilter = Formula.(not_ (existsPerson (not_ pfilter)))
 end

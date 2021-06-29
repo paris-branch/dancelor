@@ -2,33 +2,36 @@ open Nes
 module E = Dancelor_common_model.Version_endpoints
 module A = E.Arguments
 
-include Dancelor_common_model.Version
+module Self = struct
+  include Dancelor_common_model.Version
 
-let tune = tune >=>| Tune.get
-let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
-let sources = sources >=>| Lwt_list.map_s Source.get
+  let tune = tune >=>| Tune.get
+  let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
+  let sources = sources >=>| Lwt_list.map_s Source.get
 
-let content = Dancelor_server_database.Version.read_content
+  let content = Dancelor_server_database.Version.read_content
+end
+include Self
 
 module Filter = struct
   include Filter
 
   let accepts filter version =
-    match filter with
+    Formula.interpret filter @@ function
 
     | Is version' ->
       equal version version'
 
     | Tune tfilter ->
-      let%lwt tune = tune version in
+      let%lwt tune = Self.tune version in
       Tune.Filter.accepts tfilter tune
 
     | Key key' ->
-      let%lwt key = key version in
+      let%lwt key = Self.key version in
       Lwt.return (key = key')
 
     | Bars bars' ->
-      let%lwt bars = bars version in
+      let%lwt bars = Self.bars version in
       Lwt.return (bars = bars')
 end
 
@@ -41,10 +44,10 @@ let () =
   )
 
 let apply_filter filter all =
-  Lwt_list.filter_s (Formula.accepts Filter.accepts filter) all
+  Lwt_list.filter_s (Filter.accepts filter) all
 
 let apply_filter_on_scores filter all =
-  Score.list_filter_lwt (Formula.accepts Filter.accepts filter) all
+  Score.list_filter_lwt (Filter.accepts filter) all
 
 let all ?filter ?pagination () =
   Dancelor_server_database.Version.get_all ()

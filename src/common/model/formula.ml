@@ -26,7 +26,7 @@ let or_l = function
 
 let pred value = Pred value
 
-let accepts faccepts form value =
+let interpret form interpret_predicate =
   let rec accepts = function
     | False -> Lwt.return_false
     | True -> Lwt.return_true
@@ -42,7 +42,7 @@ let accepts faccepts form value =
       and     a2 = accepts f2 in
       Lwt.return (a1 || a2)
     | Pred p ->
-      faccepts p value
+      interpret_predicate p
   in
   accepts form
 

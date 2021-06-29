@@ -83,12 +83,17 @@ type warnings = warning list
 module Filter = struct
   let _key = "set-filter"
 
-  type set = t
-  [@@deriving yojson]
-
-  type t =
-    | Is of set
+  type predicate =
+    | Is of t
     | Deviser of Credit.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of Version.Filter.t
   [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is set = Formula.pred (Is set)
+  let deviser pfilter = Formula.pred (Deviser pfilter)
+  let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
+  let memVersion version = existsVersion (Version.Filter.is version)
 end

@@ -20,23 +20,16 @@ let equal person1 person2 =
 module Filter = struct
   let _key = "person-filter"
 
-  type person = t
+  type predicate =
+    | Is of t
   [@@deriving yojson]
 
-  type t =
-    | Is of person
-    | HasName of string
+  type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is person = Formula.pred (Is person)
 
   let accepts filter person =
-    match filter with
-
-    | Is person' ->
-      let%lwt slug' = slug person' in
-      let%lwt slug  = slug person  in
-      Lwt.return (Slug.equal slug slug')
-
-    | HasName name' ->
-      let%lwt name = name person in
-      Lwt.return (name = name')
+    Formula.interpret filter @@ function
+    | Is person' -> equal person person'
 end

@@ -78,7 +78,7 @@ module Filter = struct
   include Filter
 
   let accepts filter book =
-    match filter with
+    Formula.interpret filter @@ function
 
     | Is book' ->
       equal book book'

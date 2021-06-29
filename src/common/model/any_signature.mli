@@ -12,7 +12,7 @@ module Filter : sig
 end
 
 val search :
-  ?filter:Filter.t Formula.t ->
+  ?filter:Filter.t ->
   ?pagination:Pagination.t ->
   ?threshold:float ->
   string ->

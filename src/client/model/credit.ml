@@ -10,7 +10,7 @@ module Filter = struct
   include Filter
 
   let accepts filter credit =
-    match filter with
+    Formula.interpret filter @@ function
 
     | Is credit' ->
       equal credit credit'

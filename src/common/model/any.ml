@@ -63,11 +63,14 @@ let type_of = function
 module Filter = struct
   let _key = "any-filter"
 
-  type any = t
-  [@@deriving yojson]
-
-  type t =
-    | Is of any
+  type predicate =
+    | Is of t
     | TypeIs of Type.t
   [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is any = Formula.pred (Is any)
+  let typeIs type_ = Formula.pred (TypeIs type_)
 end

@@ -4,7 +4,7 @@ module Filter = struct
   include Filter
 
   let accepts filter any =
-    match filter with
+    Formula.interpret filter @@ function
     | Is any' -> equal any any'
     | TypeIs type_ -> Lwt.return (Type.equal (type_of any) type_)
 end

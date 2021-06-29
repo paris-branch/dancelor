@@ -36,8 +36,7 @@ let create slug page =
     (* Create the Lwt value containing the request to the credits *)
     let filter =
       let%lwt person = person in
-      Credit.Filter.ExistsPerson (Person.Filter.Is person)
-      |> Lwt.return
+      Lwt.return (Credit.Filter.memPerson person)
     in
     Lwt.on_success filter @@ fun filter ->
     Lwt.on_success (Credit.all ~filter ()) @@ fun credits ->
@@ -90,7 +89,7 @@ let create slug page =
 
     let tunes_lwt =
       let%lwt person = person in
-      let filter = Tune.Filter.Author (Credit.Filter.ExistsPerson (Person.Filter.Is person)) in
+      let filter = Tune.Filter.author (Credit.Filter.memPerson person) in
       Tune.all ~filter ()
     in
 
@@ -117,7 +116,7 @@ let create slug page =
 
     let sets_lwt =
       let%lwt person = person in
-      let filter = Set.Filter.Deviser (Credit.Filter.ExistsPerson (Person.Filter.Is person)) in
+      let filter = Set.Filter.deviser (Credit.Filter.memPerson person) in
       Set.all ~filter ()
     in
 

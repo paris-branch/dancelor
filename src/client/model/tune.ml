@@ -2,28 +2,30 @@ open Nes
 module E = Dancelor_common_model.Tune_endpoints
 module A = E.Arguments
 
-include Dancelor_common_model.Tune
+module Self = struct
+  include Dancelor_common_model.Tune
 
-let author = author >=>?| (Credit.get >=>| Lwt.return_some)
-
-let dances = dances >=>| Lwt_list.map_p Dance.get
+  let author = author >=>?| (Credit.get >=>| Lwt.return_some)
+  let dances = dances >=>| Lwt_list.map_p Dance.get
+end
+include Self
 
 module Filter = struct
   include Filter
 
   let accepts filter tune =
-    match filter with
+    Formula.interpret filter @@ function
 
     | Is tune' ->
       equal tune tune'
 
     | Author afilter ->
-      (match%lwt author tune with
+      (match%lwt Self.author tune with
        | None -> Lwt.return_false
        | Some author -> Credit.Filter.accepts afilter author)
 
     | Kind kind' ->
-      let%lwt kind = kind tune in
+      let%lwt kind = Self.kind tune in
       Lwt.return (kind = kind')
 end
 

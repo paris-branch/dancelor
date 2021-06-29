@@ -34,13 +34,19 @@ let equal version1 version2 =
 module Filter = struct
   let _key = "version-filter"
 
-  type version = t
-  [@@deriving yojson]
-
-  type t =
-    | Is of version
+  type predicate =
+    | Is of t
     | Tune of Tune.Filter.t
     | Key of Music.key
     | Bars of int
   [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is version = Formula.pred (Is version)
+  let tune tfilter = Formula.pred (Tune tfilter)
+  let tuneIs tune_ = tune (Tune.Filter.is tune_)
+  let key key_ = Formula.pred (Key key_)
+  let bars bars_ = Formula.pred (Bars bars_)
 end

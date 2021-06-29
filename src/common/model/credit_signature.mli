@@ -21,7 +21,8 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val all :
-  ?filter:Filter.t -> ?pagination:Pagination.t ->
+  ?filter:Filter.t ->
+  ?pagination:Pagination.t ->
   unit -> t list Lwt.t
 
 val make_and_save :

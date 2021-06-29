@@ -64,12 +64,41 @@ type page =
 module Filter = struct
   let _key = "book-filter"
 
-  type book = t
-  [@@deriving yojson]
-
-  type t =
-    | Is of book
+  type predicate =
+    | Is of t
     | ExistsVersion of Version.Filter.t
     | ExistsSet of Set.Filter.t
   [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is book = Formula.pred (Is book)
+  let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
+  let memVersion version = existsVersion (Version.Filter.is version)
+  let existsSet sfilter = Formula.pred (ExistsSet sfilter)
+  let memSet set = existsSet (Set.Filter.is set)
+
+  let existsVersionDeep vfilter =
+    Formula.or_l [
+      existsVersion vfilter;
+      existsSet (Set.Filter.existsVersion vfilter)
+      (* FIXME: inline sets *)
+    ]
+  (** Check whether the given version filter can be satisfied in the book at any
+      depth. This is different from {!existsVersion} which checks only in the
+      direct list of version. *)
+
+  let memVersionDeep version = existsVersionDeep (Version.Filter.is version)
+
+  let existsTuneDeep tfilter =
+    Formula.or_l [
+      existsVersion (Version.Filter.tune tfilter);
+      existsSet (Set.Filter.existsVersion (Version.Filter.tune tfilter))
+      (* FIXME: inline sets *)
+    ]
+  (** Checks whether the given tune filter can be satisfied in the book at any
+      depth. *)
+
+  let memTuneDeep tune = existsTuneDeep (Tune.Filter.is tune)
 end

@@ -6,7 +6,7 @@ module Filter = struct
   include Filter
 
   let accepts filter any =
-    match filter with
+    Formula.interpret filter @@ function
     | Is any' -> equal any any'
     | TypeIs type_ -> Lwt.return (Type.equal (type_of any) type_)
 end
@@ -27,7 +27,7 @@ let version_search ?pagination ?threshold input =
   Version.search ?pagination ?threshold input
 
 let apply_filter_on_scores filter all =
-  Score.list_filter_lwt (Formula.accepts Filter.accepts filter) all
+  Score.list_filter_lwt (Filter.accepts filter) all
 
 let search ?filter ?pagination ?threshold input =
   let search_wrap_and_add search wrapper list =

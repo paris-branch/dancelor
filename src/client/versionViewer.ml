@@ -114,11 +114,10 @@ let create slug page =
     let%lwt tune = tune in
     let%lwt version = version in
     let filter =
-      Formula.(
-        and_
-          (pred (Version.Filter.Tune (Tune.Filter.Is tune)))
-          (not_ (pred (Version.Filter.Is version)))
-      )
+      Formula.(and_l [
+          Version.Filter.tuneIs tune;
+          not_ (Version.Filter.is version);
+        ])
     in
     Version.all ~filter ()
   in
@@ -188,7 +187,7 @@ let create slug page =
 
     let sets_lwt =
       let%lwt version = version in
-      let filter = Set.Filter.ExistsVersion (Version.Filter.Is version) in
+      let filter = Set.Filter.memVersion version in
       Set.all ~filter ()
     in
 
@@ -236,13 +235,7 @@ let create slug page =
 
     let books_lwt =
       let%lwt version = version in
-      let filter =
-        Formula.(or_l [
-            pred (Book.Filter.ExistsVersion (Version.Filter.Is version));
-            (* FIXME: ExistsInlineSet (or ExistsVersion vs. ExistsDirectVersion) *)
-            pred (Book.Filter.ExistsSet (Set.Filter.ExistsVersion (Version.Filter.Is version)))
-          ])
-      in
+      let filter = Book.Filter.memVersionDeep version in
       Book.all ~filter ()
     in
 
