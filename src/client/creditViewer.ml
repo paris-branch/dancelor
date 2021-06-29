@@ -81,31 +81,28 @@ let create slug page =
   (* Sets devised *)
 
   let () =
-    let pre_text = Text.Paragraph.create ~text:(Lwt.return "devised the following sets:") page in
-    Dom.appendChild content (Text.Paragraph.root pre_text);
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Sets Devised") page in
+    Dom.appendChild content (Text.Heading.root pretext);
 
-    let sets_dom = Html.createUl (Page.document page) in
-    Dom.appendChild content sets_dom;
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
 
-    let filter =
+    let sets_lwt =
       let%lwt credit = credit in
-      Set.Filter.Deviser (Credit.Filter.Is credit)
-      |> Lwt.return
+      let filter = Set.Filter.Deviser (Credit.Filter.Is credit) in
+      Set.all ~filter ()
     in
-    Lwt.on_success filter @@ fun filter ->
-    Lwt.on_success (Set.all ~filter ()) @@ fun sets ->
 
-    List.iter (fun set ->
-        let slug = Set.slug set in
-        let href =
-          let%lwt slug = slug in
-          Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
-        in
-        let link = Text.Link.create ~href ~text:(Set.name set) page in
-        let li = Html.createLi (Page.document page) in
-        Dom.appendChild li (Text.Link.root link);
-        Dom.appendChild sets_dom li)
-      sets
+    let table = Dancelor_client_tables.Set.make sets_lwt page in
+
+    (* When getting the sets, decide to show just a text or the table *)
+
+    Lwt.on_success sets_lwt @@ fun sets ->
+    if sets = [] then
+      let text = Text.Paragraph.create ~text:(Lwt.return "There are no sets containing this version.") page in
+      Dom.appendChild tableHolder (Text.Paragraph.root text)
+    else
+      Dom.appendChild tableHolder (Table.root table)
   in
 
   {page; content}

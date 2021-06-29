@@ -18,28 +18,29 @@ type t =
 
 let display_versions_and_parameters t versions_and_parameters =
   t.versions##.textContent := Js.null;
-  List.iter (fun (version, _parameters) ->
-      (* FIXME: use parameters *)
-    let tune = Version.tune version in
-    let slug = Version.slug version in
-    let href =
-      let%lwt slug = slug in
-      Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-    in
-    let name = Lwt.bind tune Tune.name in
-    let title = Text.Link.create ~href ~text:name t.page in
-    let source =
-      Lwt.map (fun slug ->
-        spf "/%s%s"
-          Constant.api_prefix
-          (Router.path_of_controller (Router.VersionSvg slug) |> snd))
-        slug
-    in
-    let img = Image.create ~source t.page in
-    let li = Html.createLi (Page.document t.page) in
-    Dom.appendChild li (Text.Link.root title);
-    Dom.appendChild li (Image.root img);
-    Dom.appendChild t.versions li)
+  List.iter
+    (fun (version, _parameters) ->
+       (* FIXME: use parameters *)
+       let tune = Version.tune version in
+       let slug = Version.slug version in
+       let href =
+         let%lwt slug = slug in
+         Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+       in
+       let name = Text.Link.create ~href ~text:(tune >>=| Tune.name) t.page in
+       let title = Html.createH4 (Page.document t.page) in
+       Dom.appendChild title (Text.Link.root name);
+
+       let source =
+         Lwt.map (fun slug ->
+             spf "/%s%s"
+               Constant.api_prefix
+               (Router.path_of_controller (Router.VersionSvg slug) |> snd))
+           slug
+       in
+       let img = Image.create ~source t.page in
+       Dom.appendChild t.versions title;
+       Dom.appendChild t.versions (Image.root img))
     versions_and_parameters
 
 let create slug page =
@@ -86,59 +87,67 @@ let create slug page =
     Dom.appendChild content by
   in
 
-  let bass_parameters =
-    SetParameters.(
-      make ~every_version:VersionParameters.(
-          make
-            ~clef:Music.Bass
-            ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-            ()
-        )
-        ()
-    )
-  in
-  let b_parameters = SetParameters.make_instrument (Music.make_pitch B Flat (-1)) in
-  let e_parameters = SetParameters.make_instrument (Music.make_pitch E Flat 0) in
+  (* Buttons *)
 
-  let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
-      ly_href
-    =
-    Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-      (),
-    Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-      ~query:["parameters", [
-          b_parameters
-          |> SetParameters.to_yojson |> Yojson.Safe.to_string
-        ]] (),
-    Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-      ~query:["parameters", [
-          e_parameters
-          |> SetParameters.to_yojson |> Yojson.Safe.to_string
-        ]] (),
-    Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-      ~query:["parameters", [
-          bass_parameters
-          |> SetParameters.to_yojson |> Yojson.Safe.to_string
-        ]] (),
-    Helpers.build_path ~api:true ~route:(Router.SetLy slug) ()
-  in
-  let c_pdf, b_pdf, e_pdf, bass_pdf,
-      ly
-    =
-    Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-    Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
-    Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
-    Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
-    Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
-  in
+  let () =
 
-  Dom.appendChild content (Inputs.Button.root c_pdf);
-  Dom.appendChild content (Inputs.Button.root b_pdf);
-  Dom.appendChild content (Inputs.Button.root e_pdf);
-  Dom.appendChild content (Inputs.Button.root bass_pdf);
-  Dom.appendChild content (Html.createBr document);
-  Dom.appendChild content (Inputs.Button.root ly);
-  Dom.appendChild content (Html.createHr document);
+    let bass_parameters =
+      SetParameters.(
+        make ~every_version:VersionParameters.(
+            make
+              ~clef:Music.Bass
+              ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
+              ()
+          )
+          ()
+      )
+    in
+    let b_parameters = SetParameters.make_instrument (Music.make_pitch B Flat (-1)) in
+    let e_parameters = SetParameters.make_instrument (Music.make_pitch E Flat 0) in
+
+    let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
+        ly_href
+      =
+      Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
+        (),
+      Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
+        ~query:["parameters", [
+            b_parameters
+            |> SetParameters.to_yojson |> Yojson.Safe.to_string
+          ]] (),
+      Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
+        ~query:["parameters", [
+            e_parameters
+            |> SetParameters.to_yojson |> Yojson.Safe.to_string
+          ]] (),
+      Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
+        ~query:["parameters", [
+            bass_parameters
+            |> SetParameters.to_yojson |> Yojson.Safe.to_string
+          ]] (),
+      Helpers.build_path ~api:true ~route:(Router.SetLy slug) ()
+    in
+    let c_pdf, b_pdf, e_pdf, bass_pdf,
+        ly
+      =
+      Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
+      Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
+      Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
+      Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
+      Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
+    in
+
+    let div = Html.createDiv (Page.document page) in
+    div##.classList##add (js "buttons");
+    Dom.appendChild content div;
+
+    Dom.appendChild div (Inputs.Button.root c_pdf);
+    Dom.appendChild div (Inputs.Button.root b_pdf);
+    Dom.appendChild div (Inputs.Button.root e_pdf);
+    Dom.appendChild div (Inputs.Button.root bass_pdf);
+    Dom.appendChild div (Html.createBr document);
+    Dom.appendChild div (Inputs.Button.root ly);
+  in
 
   let () =
     let open Lwt in
@@ -152,11 +161,18 @@ let create slug page =
     |> Dom.appendChild content
   in
 
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Previsualisation") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+  in
+
   let versions = Html.createUl (Page.document page) in
   versions##.textContent := Js.some (js "Loading tunes...");
   Dom.appendChild content versions;
+
   let t = {page; content; versions} in
   Lwt.on_success set (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));
+
   t
 
 let contents t =
