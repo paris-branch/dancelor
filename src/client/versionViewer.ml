@@ -153,7 +153,7 @@ let create slug page =
         Dom.appendChild tableHolder (Table.root table);
 
         let linkHolder = Html.createP (Page.document page) in
-        Dom.appendChild linkHolder ((Page.document page)##createTextNode (js "Hint: You can also go to the "));
+        Dom.appendChild linkHolder ((Page.document page)##createTextNode (js "You can also go to the "));
         Dom.appendChild linkHolder (link_page_of_tunes ());
         Dom.appendChild linkHolder ((Page.document page)##createTextNode (js "."));
         Dom.appendChild tableHolder linkHolder
@@ -181,7 +181,7 @@ let create slug page =
       (fun versions ->
          if versions <> [] then
            (
-             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "Hint: If you want to see the sets in which this version or any other appear, go to the "));
+             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "If you want to see the sets in which this version or any other appear, go to the "));
              Dom.appendChild none_and_hint (link_page_of_tunes ());
              Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "."))
            ));
@@ -229,7 +229,7 @@ let create slug page =
       (fun versions ->
          if versions <> [] then
            (
-             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "Hint: If you want to see the books in which this version or any other appear, go to the "));
+             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "If you want to see the books in which this version or any other appear, go to the "));
              Dom.appendChild none_and_hint (link_page_of_tunes ());
              Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "."))
            ));
