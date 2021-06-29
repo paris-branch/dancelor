@@ -45,7 +45,9 @@ let create page =
   let content = Html.createDiv document in
   let title = Html.createH2 document in
   title##.textContent := Js.some (js "All Sets");
+  title##.classList##add (js "title");
   Dom.appendChild content title;
+
   Dom.appendChild content (Html.createHr document);
   Dom.appendChild content (Html.createBr document);
   let header =

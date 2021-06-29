@@ -149,28 +149,28 @@ let create slug page =
     let pretext = Text.Heading.h3_static ~text:(Lwt.return "Sets in Which This Version Appears") page in
     Dom.appendChild content (Text.Heading.root pretext);
 
-    let sets_dom = Html.createUl (Page.document page) in
-    Dom.appendChild content sets_dom;
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
 
-    let filter =
-      let%lwt version = version in
-      Set.Filter.ExistsVersion (Version.Filter.Is version)
-      |> Lwt.return
+    let sets_lwt =
+      let%lwt filter =
+        let%lwt version = version in
+        Set.Filter.ExistsVersion (Version.Filter.Is version)
+        |> Lwt.return
+      in
+      Set.all ~filter ()
     in
-    Lwt.on_success filter @@ fun filter ->
-    Lwt.on_success (Set.all ~filter ()) @@ fun sets ->
 
-    List.iter (fun set ->
-        let slug = Set.slug set in
-        let href =
-          let%lwt slug = slug in
-          Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
-        in
-        let link = Text.Link.create ~href ~text:(Set.name set) page in
-        let li = Html.createLi (Page.document page) in
-        Dom.appendChild li (Text.Link.root link);
-        Dom.appendChild sets_dom li)
-      sets
+    let table = Dancelor_client_tables.Set.make sets_lwt page in
+
+    (* When getting the versions, decide to show just a text or the table *)
+
+    Lwt.on_success sets_lwt @@ fun sets ->
+    if sets = [] then
+      let text = Text.Paragraph.create ~text:(Lwt.return "There are no sets containing this version.") page in
+      Dom.appendChild tableHolder (Text.Paragraph.root text)
+    else
+      Dom.appendChild tableHolder (Table.root table)
   in
 
   (* Books in which this version can be found *)

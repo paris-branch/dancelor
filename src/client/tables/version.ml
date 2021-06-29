@@ -19,25 +19,27 @@ let make versions_lwt page =
 
   let rows =
     let%lwt versions = versions_lwt in
-    List.map (fun version ->
-        let href =
-          let%lwt slug = Version.slug version in
-          Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-        in
-        let cells =
-          let tune = Version.tune version in
-          let open Lwt in [
-            Table.Cell.text ~text:(Version.disambiguation version) page;
-            Table.Cell.create ~content:(
-              let%lwt arranger = Version.arranger version in
-              Formatters.Credit.line arranger page
-            ) page;
-            Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
-            Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
-            Table.Cell.text ~text:(Version.structure version) page;
-          ]
-        in
-        Table.Row.create ~href ~cells page) versions
+    List.map
+      (fun version ->
+         let href =
+           let%lwt slug = Version.slug version in
+           Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+         in
+         let cells =
+           let tune = Version.tune version in
+           let open Lwt in [
+             Table.Cell.text ~text:(Version.disambiguation version) page;
+             Table.Cell.create ~content:(
+               let%lwt arranger = Version.arranger version in
+               Formatters.Credit.line arranger page
+             ) page;
+             Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
+             Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
+             Table.Cell.text ~text:(Version.structure version) page;
+           ]
+         in
+         Table.Row.create ~href ~cells page)
+      versions
     |> Lwt.return
   in
 
