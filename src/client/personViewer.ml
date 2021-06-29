@@ -56,6 +56,33 @@ let create slug page =
       credits
   in
 
+  (* Sets devised *)
+
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Sets Devised") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
+
+    let sets_lwt =
+      let%lwt person = person in
+      let filter = Set.Filter.Deviser (Credit.Filter.ExistsPerson (Person.Filter.Is person)) in
+      Set.all ~filter ()
+    in
+
+    let table = Dancelor_client_tables.Set.make sets_lwt page in
+
+    (* When getting the sets, decide to show just a text or the table *)
+
+    Lwt.on_success sets_lwt @@ fun sets ->
+    if sets = [] then
+      let text = Text.Paragraph.create ~text:(Lwt.return "There are no sets containing this version.") page in
+      Dom.appendChild tableHolder (Text.Paragraph.root text)
+    else
+      Dom.appendChild tableHolder (Table.root table)
+  in
+
   {page; content}
 
 let contents t =
