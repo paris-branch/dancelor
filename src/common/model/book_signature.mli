@@ -47,12 +47,12 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val all :
-  ?filter:Filter.t ->
+  ?filter:Filter.t Formula.t ->
   ?pagination:Pagination.t ->
   unit -> t list Lwt.t
 
 val search :
-  ?filter:Filter.t ->
+  ?filter:Filter.t Formula.t ->
   ?pagination:Pagination.t ->
   ?threshold:float ->
   string ->

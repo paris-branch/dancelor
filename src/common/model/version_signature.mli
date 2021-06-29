@@ -32,16 +32,16 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val all :
-  ?filter:Version.Filter.t Formula.t ->
+  ?filter:Filter.t Formula.t ->
   ?pagination:Pagination.t ->
   unit -> t list Lwt.t
 
 val search :
-  ?filter:Version.Filter.t Formula.t ->
+  ?filter:Filter.t Formula.t ->
   ?pagination:Pagination.t ->
   ?threshold:float -> string ->
   t Score.t list Lwt.t
 
 val count :
-  ?filter:Version.Filter.t Formula.t ->
+  ?filter:Filter.t Formula.t ->
   unit -> int Lwt.t

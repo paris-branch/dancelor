@@ -81,10 +81,10 @@ let () =
   )
 
 let apply_filter filter all =
-  Lwt_list.filter_s (Filter.accepts filter) all
+  Lwt_list.filter_s (Formula.accepts Filter.accepts filter) all
 
 let apply_filter_on_scores filter all =
-  Score.list_filter_lwt (Filter.accepts filter) all
+  Score.list_filter_lwt (Formula.accepts Filter.accepts filter) all
 
 let all ?filter ?pagination () =
   Dancelor_server_database.Book.get_all ()

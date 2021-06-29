@@ -136,7 +136,13 @@ let create slug page =
 
     let books_lwt =
       let%lwt tune = tune in
-      let filter = Book.Filter.ExistsVersion (Version.Filter.Tune (Tune.Filter.Is tune)) in
+      let filter =
+        Formula.(or_l [
+            pred (Book.Filter.ExistsVersion (Version.Filter.Tune (Tune.Filter.Is tune)));
+            (* FIXME: ExistsInlineSet (or ExistsVersion vs. ExistsDirectVersion) *)
+            pred (Book.Filter.ExistsSet (Set.Filter.ExistsVersion (Version.Filter.Tune (Tune.Filter.Is tune))));
+          ])
+      in
       Book.all ~filter ()
     in
 

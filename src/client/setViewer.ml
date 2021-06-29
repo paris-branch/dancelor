@@ -184,7 +184,7 @@ let create slug page =
 
     let books_lwt =
       let%lwt set = set in
-      let filter = Book.Filter.ExistsSet (Set.Filter.Is set) in
+      let filter = Formula.pred (Book.Filter.ExistsSet (Set.Filter.Is set)) in
       Book.all ~filter ()
     in
 
