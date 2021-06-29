@@ -59,6 +59,9 @@ let create slug page =
     Dom.appendChild content description
   in
 
+  let pretext = Text.Heading.h3_static ~text:(Lwt.return "Versions of this Tune") page in
+  Dom.appendChild content (Text.Heading.root pretext);
+
   let versions_lwt =
     let%lwt filter =
       let%lwt tune = tune in
@@ -85,6 +88,68 @@ let create slug page =
 
   let table = Dancelor_client_tables.Version.make versions_lwt page in
   Dom.appendChild content (Table.root table);
+
+  (* Sets in which this tune can be found *)
+
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Sets in Which This Tune Appears") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
+
+    let none = (Page.document page)##createTextNode (js "") in
+    let none_maybe = Html.createP (Page.document page) in
+    Dom.appendChild none_maybe none;
+    Dom.appendChild content none_maybe;
+
+    let sets_lwt =
+      let%lwt tune = tune in
+      let filter = Set.Filter.ExistsVersion (Version.Filter.Tune (Tune.Filter.Is tune)) in
+      Set.all ~filter ()
+    in
+
+    let table = Dancelor_client_tables.Set.make sets_lwt page in
+
+    (* When getting the sets, decide to show just a text or the table *)
+
+    Lwt.on_success sets_lwt @@ fun sets ->
+    if sets = [] then
+      none##.data := js "There are no sets containing this tune."
+    else
+      Dom.appendChild tableHolder (Table.root table)
+  in
+
+  (* Books in which this version can be found *)
+
+  let () =
+    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Books in Which This Tune Appears") page in
+    Dom.appendChild content (Text.Heading.root pretext);
+
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
+
+    let none = (Page.document page)##createTextNode (js "") in
+    let none_maybe = Html.createP (Page.document page) in
+    Dom.appendChild none_maybe none;
+    Dom.appendChild content none_maybe;
+
+    let books_lwt =
+      let%lwt tune = tune in
+      let filter = Book.Filter.ExistsVersion (Version.Filter.Tune (Tune.Filter.Is tune)) in
+      Book.all ~filter ()
+    in
+
+    let table = Dancelor_client_tables.Book.make books_lwt page in
+
+    (* When getting the books, decide to show just a text or the table *)
+
+    Lwt.on_success books_lwt @@ fun books ->
+    if books = [] then
+      none##.data := js "There are no books containing this tune."
+    else
+      Dom.appendChild tableHolder (Table.root table)
+  in
 
   {page; content}
 
