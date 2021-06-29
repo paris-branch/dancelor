@@ -87,7 +87,7 @@ let filter_to_versionfilter filter =
 
   [tunes; tune_authors; tune_author_defined; tune_kinds; key; bars]
   |> Formula.and_l
-  Lwt.return
+  |> Lwt.return
 
 type t =
 {
