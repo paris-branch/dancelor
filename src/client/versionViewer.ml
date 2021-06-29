@@ -103,26 +103,75 @@ let create slug page =
     let pretext = Text.Heading.h3_static ~text:(Lwt.return "Other Versions") page in
     Dom.appendChild content (Text.Heading.root pretext);
 
-    let href =
-      let%lwt slug = Lwt.bind tune Tune.slug in
-      Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
+
+    (* Copied from VersionExplorer. Should be factorised. *)
+    let header =
+      Table.Row.create
+        ~cells:[
+          Table.Cell.header_text ~text:(Lwt.return "Disambiguation") page;
+          Table.Cell.header_text ~text:(Lwt.return "Arranger") page;
+          Table.Cell.header_text ~text:(Lwt.return "Kind") page;
+          Table.Cell.header_text ~text:(Lwt.return "Key") page;
+          Table.Cell.header_text ~text:(Lwt.return "Structure") page
+        ]
+        page
     in
-    let text =
+    let table = Table.create ~kind:Table.Kind.Separated ~header page in
+
+    (* Get versions *)
+
+    let versions_lwt =
       let%lwt filter =
         let%lwt tune = tune in
-        Version.Filter.Tune (Tune.Filter.Is tune)
-        |> Formula.pred
-        |> Lwt.return
+        let%lwt version = version in
+        Lwt.return
+          Formula.(
+            and_
+              (pred (Version.Filter.Tune (Tune.Filter.Is tune)))
+              (not_ (pred (Version.Filter.Is version)))
+          )
       in
-      let%lwt versions = Version.all ~filter () in
-      match List.length versions with
-      | 1 -> Lwt.return "No other version for this tune"
-      | nb ->
-        assert (nb > 1);
-        Lwt.return (spf "There are %d other versions available for this tune" (nb - 1))
+      Version.all ~filter ()
     in
-    let title = Text.Link.create ~href ~text page in
-    Dom.appendChild content (Text.Link.root title)
+
+    (* When getting the versions, decide to show just a text or the table *)
+
+    let () =
+      Lwt.on_success versions_lwt @@ fun versions ->
+      if versions = [] then
+        let text = Text.Paragraph.create ~text:(Lwt.return "There are no other versions available for this tune.") page in
+        Dom.appendChild tableHolder (Text.Paragraph.root text)
+      else
+        Dom.appendChild tableHolder (Table.root table)
+    in
+
+    (* Copied from VersionExplorer. Should be factorised. *)
+    let rows =
+      let%lwt versions = versions_lwt in
+      Lwt.return (List.map (fun version ->
+          let href =
+            let%lwt slug = Version.slug version in
+            Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+          in
+          let cells =
+            let tune = Version.tune version in
+            let open Lwt in [
+              Table.Cell.text ~text:(Version.disambiguation version) page;
+              Table.Cell.create ~content:(
+                let%lwt arranger = Version.arranger version in
+                Formatters.Credit.line arranger page
+              ) page;
+              Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
+              Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
+              Table.Cell.text ~text:(Version.structure version) page;
+            ]
+          in
+          Table.Row.create ~href ~cells page) versions)
+    in
+    let section = Table.Section.create ~rows page in
+    Table.replace_bodies table (Lwt.return [section]);
   in
 
   (* Sets in which this version can be found *)
