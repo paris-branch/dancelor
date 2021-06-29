@@ -1,9 +1,9 @@
 open Madge_common
 
 module Arguments = struct
+  let filter = optarg (module Formula.Make_Serialisable (Any.Filter))
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
-  let type_ = optarg ~key:"type" (module MList (Any.Type))
   let string = arg (module MString)
 end
 

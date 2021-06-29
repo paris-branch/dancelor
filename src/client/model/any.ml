@@ -1,14 +1,22 @@
-open Dancelor_common_model
-module E = Any_endpoints
+include Dancelor_common_model.Any
+
+module Filter = struct
+  include Filter
+
+  let accepts filter any =
+    match filter with
+    | Is any' -> equal any any'
+    | TypeIs type_ -> Lwt.return (Type.equal (type_of any) type_)
+end
+
+module E = Dancelor_common_model.Any_endpoints
 module A = E.Arguments
 
-include Any
-
-let search ?pagination ?threshold ?except string =
+let search ?filter ?pagination ?threshold string =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->
+    o A.filter     filter;
     o A.pagination pagination;
-    o A.threshold threshold;
-    o A.type_ except;
-    a A.string string
+    o A.threshold  threshold;
+    a A.string     string
   )

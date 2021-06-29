@@ -1,5 +1,7 @@
 open Nes
 
+let _key = "version"
+
 type t =
   { slug : t Slug.t ;
     status : Status.t                 [@default Status.bot] ;
@@ -13,8 +15,6 @@ type t =
     disambiguation : string           [@default ""] }
 [@@deriving yojson]
 
-let _key = "version"
-
 let slug t = Lwt.return t.slug
 let status t = Lwt.return t.status
 let tune t = Lwt.return t.tune
@@ -26,7 +26,14 @@ let sources t = Lwt.return t.sources
 let remark t = Lwt.return t.remark
 let disambiguation t = Lwt.return t.disambiguation
 
+let equal version1 version2 =
+  let%lwt slug1 = slug version1 in
+  let%lwt slug2 = slug version2 in
+  Lwt.return (Slug.equal slug1 slug2)
+
 module Filter = struct
+  let _key = "version-filter"
+
   type version = t
   [@@deriving yojson]
 
@@ -36,6 +43,4 @@ module Filter = struct
     | Key of Music.key
     | Bars of int
   [@@deriving yojson]
-
-  let _key = "version-filter"
 end
