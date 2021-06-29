@@ -39,11 +39,16 @@ let filter_to_versionfilter filter =
   let%lwt tunes = Lwt_list.map_p Tune.get filter.tune in
   let%lwt tune_authors = Lwt_list.map_p Credit.get filter.tune_author in
 
+  let or_if_not_empty = function
+    | [] -> Formula.true_
+    | l -> Formula.or_l l
+  in
+
   let tunes =
     tunes
     |> List.map (fun tune -> Version.Filter.Tune (Tune.Filter.Is tune))
     |> List.map Formula.pred
-    |> Formula.or_l
+    |> or_if_not_empty
   in
 
   let tune_author_defined =
@@ -56,33 +61,33 @@ let filter_to_versionfilter filter =
     tune_authors
     |> List.map (fun author -> Version.Filter.Tune (Tune.Filter.Author (Credit.Filter.Is author)))
     |> List.map Formula.pred
-    |> Formula.or_l
+    |> or_if_not_empty
   in
 
   let tune_kinds =
     filter.tune_kind
     |> List.map (fun kind -> Version.Filter.Tune (Tune.Filter.Kind kind))
     |> List.map Formula.pred
-    |> Formula.or_l
+    |> or_if_not_empty
   in
 
   let key =
     filter.key
     |> List.map (fun key -> Version.Filter.Key key)
     |> List.map Formula.pred
-    |> Formula.or_l
+    |> or_if_not_empty
   in
 
   let bars =
     filter.bars
     |> List.map (fun bars -> Version.Filter.Bars bars)
     |> List.map Formula.pred
-    |> Formula.or_l
+    |> or_if_not_empty
   in
 
   [tunes; tune_authors; tune_author_defined; tune_kinds; key; bars]
   |> Formula.and_l
-  |> Lwt.return
+  Lwt.return
 
 type t =
 {
