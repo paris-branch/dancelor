@@ -45,6 +45,17 @@ module Filter = struct
           content
       in
       Lwt_list.exists_s (Set.Filter.accepts sfilter) sets
+
+    | ExistsInlineSet sfilter ->
+      let%lwt content = contents book in
+      let%lwt isets =
+        Lwt_list.filter_map_s
+          (function
+            | InlineSet (s, _p) -> Lwt.return_some s
+            | _ -> Lwt.return_none)
+          content
+      in
+      Lwt_list.exists_s (Set.Filter.accepts sfilter) isets
 end
 
 let get = Dancelor_server_database.Book.get
