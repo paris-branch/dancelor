@@ -15,7 +15,6 @@ module Filter : sig
   type t = Credit.Filter.t =
     | Is of Credit.t
     | ExistsPerson of Person.Filter.t
-    | ForallPersons of Person.Filter.t
 
   val accepts : t -> Credit.t -> bool Lwt.t
 end

@@ -28,7 +28,6 @@ module Filter = struct
   type t =
     | Is of credit
     | ExistsPerson of Person.Filter.t
-    | ForallPersons of Person.Filter.t
   [@@deriving yojson]
 
   let _key = "credit-filter"

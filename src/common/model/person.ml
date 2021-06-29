@@ -30,10 +30,12 @@ module Filter = struct
 
   let accepts filter person =
     match filter with
+
     | Is person' ->
       let%lwt slug' = slug person' in
       let%lwt slug  = slug person  in
       Lwt.return (Slug.equal slug slug')
+
     | HasName name' ->
       let%lwt name = name person in
       Lwt.return (name = name')

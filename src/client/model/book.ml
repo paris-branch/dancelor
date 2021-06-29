@@ -94,17 +94,6 @@ module Filter = struct
       in
       Lwt_list.exists_s (Version.Filter.accepts vfilter) versions
 
-    | ForallVersions vfilter ->
-      let%lwt content = contents book in
-      let%lwt versions =
-        Lwt_list.filter_map_s
-          (function
-            | Version (v, _p) -> Lwt.return_some v
-            | _ -> Lwt.return_none)
-          content
-      in
-      Lwt_list.for_all_s (Version.Filter.accepts vfilter) versions
-
     | ExistsSet sfilter ->
       let%lwt content = contents book in
       let%lwt sets =
@@ -115,17 +104,6 @@ module Filter = struct
           content
       in
       Lwt_list.exists_s (Set.Filter.accepts sfilter) sets
-
-    | ForallSets sfilter ->
-      let%lwt content = contents book in
-      let%lwt sets =
-        Lwt_list.filter_map_s
-          (function
-            | Set (s, _p) -> Lwt.return_some s
-            | _ -> Lwt.return_none)
-          content
-      in
-      Lwt_list.for_all_s (Set.Filter.accepts sfilter) sets
 end
 
 let get slug =

@@ -35,9 +35,7 @@ module Filter : sig
   type t = Book.Filter.t =
     | Is of Book.t
     | ExistsVersion of Version.Filter.t
-    | ForallVersions of Version.Filter.t
     | ExistsSet of Set.Filter.t
-    | ForallSets of Set.Filter.t
 
   val accepts : t -> Book.t -> bool Lwt.t
 end

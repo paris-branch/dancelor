@@ -18,10 +18,6 @@ module Filter = struct
     | ExistsPerson pfilter ->
       persons credit
       >>=| Lwt_list.exists_s (Person.Filter.accepts pfilter)
-
-    | ForallPersons pfilter ->
-      persons credit
-      >>=| Lwt_list.for_all_s (Person.Filter.accepts pfilter)
 end
 
 let get = Dancelor_server_database.Credit.get

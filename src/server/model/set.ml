@@ -32,20 +32,9 @@ module Filter = struct
        | None -> Lwt.return_false
        | Some deviser -> Credit.Filter.accepts dfilter deviser)
 
-    | DeviserIsDefined ->
-      let%lwt deviser = deviser set in
-      Lwt.return (deviser <> None)
-
     | ExistsVersion vfilter ->
       let%lwt versions_and_parameters = versions_and_parameters set in
       Lwt_list.exists_s
-        (fun (version, _) ->
-           Version.Filter.accepts vfilter version)
-        versions_and_parameters
-
-    | ForallVersions vfilter ->
-      let%lwt versions_and_parameters = versions_and_parameters set in
-      Lwt_list.for_all_s
         (fun (version, _) ->
            Version.Filter.accepts vfilter version)
         versions_and_parameters

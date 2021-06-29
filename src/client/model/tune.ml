@@ -22,10 +22,6 @@ module Filter = struct
        | None -> Lwt.return_false
        | Some author -> Credit.Filter.accepts afilter author)
 
-    | AuthorIsDefined ->
-      let%lwt author = author tune in
-      Lwt.return (author <> None)
-
     | Kind kind' ->
       let%lwt kind = kind tune in
       Lwt.return (kind = kind')
