@@ -14,11 +14,7 @@ val remark : t -> string Lwt.t
 (** {2 Filter} *)
 
 module Filter : sig
-  type t = Tune.Filter.t =
-    | Is of Tune.t
-    | Author of Credit.Filter.t (** author is defined and passes the filter *)
-    | Kind of Kind.base
-
+  include module type of Tune.Filter
   val accepts : t -> Tune.t -> bool Lwt.t
 end
 

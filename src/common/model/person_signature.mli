@@ -9,10 +9,7 @@ val name : t -> string Lwt.t
 (** {2 Filter} *)
 
 module Filter : sig
-  type t = Person.Filter.t =
-    | Is of Person.t
-    | HasName of string
-
+  include module type of Person.Filter
   val accepts : t -> Person.t -> bool Lwt.t
 end
 

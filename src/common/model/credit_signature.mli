@@ -12,10 +12,7 @@ val is_trad : t -> bool
 (** {2 Filter} *)
 
 module Filter : sig
-  type t = Credit.Filter.t =
-    | Is of Credit.t
-    | ExistsPerson of Person.Filter.t
-
+  include module type of Credit.Filter
   val accepts : t -> Credit.t -> bool Lwt.t
 end
 

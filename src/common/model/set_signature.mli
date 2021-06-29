@@ -30,11 +30,7 @@ val warnings : t -> warnings Lwt.t
 (** {2 Filter} *)
 
 module Filter : sig
-  type t = Set.Filter.t =
-    | Is of Set.t
-    | Deviser of Credit.Filter.t (** deviser is defined and passes the filter *)
-    | ExistsVersion of Version.Filter.t
-
+  include module type of Set.Filter
   val accepts : t -> Set.t -> bool Lwt.t
 end
 

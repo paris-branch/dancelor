@@ -32,11 +32,7 @@ val warnings : t -> warnings Lwt.t
 (** {2 Filter} *)
 
 module Filter : sig
-  type t = Book.Filter.t =
-    | Is of Book.t
-    | ExistsVersion of Version.Filter.t
-    | ExistsSet of Set.Filter.t
-
+  include module type of Book.Filter
   val accepts : t -> Book.t -> bool Lwt.t
 end
 

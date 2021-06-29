@@ -18,12 +18,7 @@ val content : t -> string Lwt.t
 (** {2 Filter} *)
 
 module Filter : sig
-  type t = Version.Filter.t =
-    | Is of Version.t
-    | Tune of Tune.Filter.t
-    | Key of Music.key
-    | Bars of int
-
+  include module type of Version.Filter
   val accepts : t -> Version.t -> bool Lwt.t
 end
 

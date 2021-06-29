@@ -7,10 +7,7 @@ module Type = Any.Type
 val type_of : t -> Type.t
 
 module Filter : sig
-  type t = Any.Filter.t =
-    | Is of Any.t
-    | TypeIs of Type.t
-
+  include module type of Any.Filter
   val accepts : t -> Any.t -> bool Lwt.t
 end
 

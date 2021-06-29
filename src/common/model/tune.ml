@@ -35,7 +35,7 @@ module Filter = struct
 
   type t =
     | Is of tune
-    | Author of Credit.Filter.t
+    | Author of Credit.Filter.t (** author is defined and passes the filter *)
     | Kind of Kind.base
   [@@deriving yojson]
 end
