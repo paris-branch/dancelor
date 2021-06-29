@@ -9,7 +9,7 @@ OPTIONS:
   --no-pull    build
   --no-clean   pull and build
   --no-opam    clean, pull, and build
-  --full       clean, pull, update OPAM, and build (default)
+  --full       clean, pull, install deps, and build (default)
 
   --help  print this help and exit
 EOF
@@ -39,7 +39,7 @@ done
 
 clean () { make clean; }
 pull () { git pull; }
-update_opam () { opam update; opam upgrade -y; }
+opam_deps () { opam update; opam install . --deps-only; }
 build () { make release; }
 serve () { bin/dancelor-server --config share/config.json; }
 
@@ -51,7 +51,7 @@ while :; do
 
         103) clean; pull; build ;;
 
-        104) clean; pull; update_opam; build ;;
+        104) clean; pull; opam_deps; build ;;
 
         *) printf 'Unexpected return code `%d`. Restarting anyway.\n' "$rc"
     esac
