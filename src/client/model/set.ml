@@ -6,6 +6,24 @@ include Dancelor_common_model.Set
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
 
+module Filter = struct
+  include Filter
+
+  let accepts filter set =
+    match filter with
+    | Is set' ->
+      let%lwt slug' = slug set' in
+      let%lwt slug  = slug set  in
+      Lwt.return (Slug.equal slug slug')
+    | Deviser dfilter ->
+      (match%lwt deviser set with
+       | None -> Lwt.return_false
+       | Some deviser -> Credit.Filter.accepts dfilter deviser)
+    | DeviserIsDefined ->
+      let%lwt deviser = deviser set in
+      Lwt.return (deviser <> None)
+end
+
 let versions_and_parameters set =
   let%lwt versions_and_parameters = versions_and_parameters set in
   Lwt_list.map_s
@@ -74,9 +92,10 @@ let get slug =
     a A.slug slug
   )
 
-let all ?pagination () =
+let all ?filter ?pagination () =
   Madge_client.(
     call ~endpoint:E.all @@ fun _ {o} ->
+    o A.filter filter;
     o A.pagination pagination
   )
 
@@ -98,9 +117,10 @@ let delete s =
     a A.slug slug
   )
 
-let search ?pagination ?threshold string =
+let search ?filter ?pagination ?threshold string =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->
+    o A.filter filter;
     o A.pagination pagination;
     o A.threshold threshold;
     a A.string string

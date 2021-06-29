@@ -74,3 +74,16 @@ type warning =
 
 type warnings = warning list
 [@@deriving yojson]
+
+module Filter = struct
+  let _key = "set-filter"
+
+  type set = t
+  [@@deriving yojson]
+
+  type t =
+    | Is of set
+    | Deviser of Credit.Filter.t
+    | DeviserIsDefined
+  [@@deriving yojson]
+end

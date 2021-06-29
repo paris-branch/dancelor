@@ -23,6 +23,8 @@ let dances tune = Lwt.return tune.dances
 let remark tune = Lwt.return tune.remark
 
 module Filter = struct
+  let _key = "tune-filter"
+
   type tune = t
   [@@deriving yojson]
 

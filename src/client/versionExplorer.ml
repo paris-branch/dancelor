@@ -51,12 +51,6 @@ let filter_to_versionfilter filter =
     |> or_if_not_empty
   in
 
-  let tune_author_defined =
-    match tune_authors with
-    | [] -> Formula.true_
-    | _ -> Formula.pred (Version.Filter.Tune (Tune.Filter.AuthorIsDefined))
-  in
-
   let tune_authors =
     tune_authors
     |> List.map (fun author -> Version.Filter.Tune (Tune.Filter.Author (Credit.Filter.Is author)))
@@ -85,7 +79,7 @@ let filter_to_versionfilter filter =
     |> or_if_not_empty
   in
 
-  [tunes; tune_authors; tune_author_defined; tune_kinds; key; bars]
+  [tunes; tune_authors; tune_kinds; key; bars]
   |> Formula.and_l
   |> Lwt.return
 

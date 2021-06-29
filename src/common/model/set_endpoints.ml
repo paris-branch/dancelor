@@ -8,6 +8,7 @@ module Arguments = struct
   let kind = arg ~key:"kind" (module Kind.Dance)
   let versions_and_parameters = optarg ~key:"versions-and-parameters" (module MList (MPair (Version) (VersionParameters)))
   let dances = optarg ~key:"dances" (module MList (Dance))
+  let filter = optarg (module Set.Filter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let string = arg (module MString)
