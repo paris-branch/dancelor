@@ -118,15 +118,14 @@ let create slug page =
     Dom.appendChild content tableHolder;
 
     let versions_lwt =
-      let%lwt filter =
-        let%lwt tune = tune in
-        let%lwt version = version in
-        Lwt.return
-          Formula.(
-            and_
-              (pred (Version.Filter.Tune (Tune.Filter.Is tune)))
-              (not_ (pred (Version.Filter.Is version)))
-          )
+      let%lwt tune = tune in
+      let%lwt version = version in
+      let filter =
+        Formula.(
+          and_
+            (pred (Version.Filter.Tune (Tune.Filter.Is tune)))
+            (not_ (pred (Version.Filter.Is version)))
+        )
       in
       Version.all ~filter ()
     in
@@ -153,17 +152,14 @@ let create slug page =
     Dom.appendChild content tableHolder;
 
     let sets_lwt =
-      let%lwt filter =
-        let%lwt version = version in
-        Set.Filter.ExistsVersion (Version.Filter.Is version)
-        |> Lwt.return
-      in
+      let%lwt version = version in
+      let filter = Set.Filter.ExistsVersion (Version.Filter.Is version) in
       Set.all ~filter ()
     in
 
     let table = Dancelor_client_tables.Set.make sets_lwt page in
 
-    (* When getting the versions, decide to show just a text or the table *)
+    (* When getting the sets, decide to show just a text or the table *)
 
     Lwt.on_success sets_lwt @@ fun sets ->
     if sets = [] then
@@ -179,28 +175,25 @@ let create slug page =
     let pretext = Text.Heading.h3_static ~text:(Lwt.return "Books in Which This Version Appears") page in
     Dom.appendChild content (Text.Heading.root pretext);
 
-    let books_dom = Html.createUl (Page.document page) in
-    Dom.appendChild content books_dom;
+    let tableHolder = Html.createDiv (Page.document page) in
+    Dom.appendChild content tableHolder;
 
-    let filter =
+    let books_lwt =
       let%lwt version = version in
-      Book.Filter.ExistsVersion (Version.Filter.Is version)
-      |> Lwt.return
+      let filter = Book.Filter.ExistsVersion (Version.Filter.Is version) in
+      Book.all ~filter ()
     in
-    Lwt.on_success filter @@ fun filter ->
-    Lwt.on_success (Book.all ~filter ()) @@ fun books ->
 
-    List.iter (fun book ->
-        let slug = Book.slug book in
-        let href =
-          let%lwt slug = slug in
-          Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
-        in
-        let link = Text.Link.create ~href ~text:(Book.title book) page in
-        let li = Html.createLi (Page.document page) in
-        Dom.appendChild li (Text.Link.root link);
-        Dom.appendChild books_dom li)
-      books
+    let table = Dancelor_client_tables.Book.make books_lwt page in
+
+    (* When getting the books, decide to show just a text or the table *)
+
+    Lwt.on_success books_lwt @@ fun books ->
+    if books = [] then
+      let text = Text.Paragraph.create ~text:(Lwt.return "There are no books containing this version.") page in
+      Dom.appendChild tableHolder (Text.Paragraph.root text)
+    else
+      Dom.appendChild tableHolder (Table.root table)
   in
 
   {page; content}

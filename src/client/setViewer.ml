@@ -49,21 +49,26 @@ let create slug page =
 
   let () =
     let title = Text.Heading.h2_static ~text:(Lwt.bind set Set.name) page in
-    Dom.appendChild content (Text.Heading.root title)
+    let title = Text.Heading.root title in
+    title##.classList##add (js "title");
+    Dom.appendChild content title
   in
 
   let () =
     let text = Formatters.Set.works_lwt set in
     let works = Text.Heading.h3_static ~text page in
-    Dom.appendChild content (Text.Heading.root works)
+    let works = Text.Heading.root works in
+    works##.classList##add (js "title");
+    Dom.appendChild content works
   in
 
   let () =
     let open Lwt in
     let text = set >>= Set.kind >|= Kind.dance_to_pretty_string in
-    Text.Heading.h3_static ~text page
-    |> Text.Heading.root
-    |> Dom.appendChild content
+    let kind = Text.Heading.h3_static ~text page in
+    let kind = Text.Heading.root kind in
+    kind##.classList##add (js "title");
+    Dom.appendChild content kind
   in
 
   let () =
@@ -75,9 +80,10 @@ let create slug page =
         let%lwt line_block = Formatters.Credit.line (Some deviser) page in
         Lwt.return ((Formatters.text "Set devised by " page :> Dom.node Js.t) :: line_block)
     in
-    Text.Heading.h3 ~content:line_block page
-    |> Text.Heading.root
-    |> Dom.appendChild content
+    let by = Text.Heading.h3 ~content:line_block page in
+    let by = Text.Heading.root by in
+    by##.classList##add (js "title");
+    Dom.appendChild content by
   in
 
   let bass_parameters =
