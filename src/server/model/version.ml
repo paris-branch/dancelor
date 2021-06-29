@@ -10,7 +10,25 @@ let sources = sources >=>| Lwt_list.map_s Source.get
 
 let content = Dancelor_server_database.Version.read_content
 
-(* * *)
+module Filter = struct
+  include Filter
+
+  let accepts filter version =
+    match filter with
+    | Is version' ->
+      let%lwt slug' = slug version' in
+      let%lwt slug  = slug version  in
+      Lwt.return (Slug.equal slug slug')
+    | Tune tfilter ->
+      let%lwt tune = tune version in
+      Tune.Filter.accepts tfilter tune
+    | Key key' ->
+      let%lwt key = key version in
+      Lwt.return (key = key')
+    | Bars bars' ->
+      let%lwt bars = bars version in
+      Lwt.return (bars = bars')
+end
 
 let get = Dancelor_server_database.Version.get
 
@@ -20,55 +38,11 @@ let () =
     get (a A.slug)
   )
 
-(* FIXME: merge apply_filter and apply_filter_on_scores *)
-
 let apply_filter filter all =
-  let%lwt f_tune = VersionFilter.tune filter in
-  let%lwt f_tune_author = VersionFilter.tune_author filter in
-  let%lwt f_tune_kind = VersionFilter.tune_kind filter in
-  let%lwt f_key = VersionFilter.key filter in
-  let%lwt f_bars = VersionFilter.bars filter in
-  Lwt_list.filter_s
-    (fun version ->
-       let%lwt tune = tune version in
-       let%lwt tune_slug = Tune.slug tune in
-       let%lwt tune_author = Tune.author tune in
-       let%lwt tune_kind = Tune.kind tune in
-       let%lwt key = key version in
-       let%lwt bars = bars version in
-       Lwt.return
-         (
-           (f_tune = [] || List.mem tune_slug f_tune)
-           && (f_tune_author = [] || (match tune_author with None -> true | Some tune_author -> List.mem tune_author f_tune_author))
-           && (f_tune_kind = [] || List.mem tune_kind f_tune_kind)
-           && (f_key = [] || List.mem key f_key)
-           && (f_bars = [] || List.mem bars f_bars)
-         ))
-    all
+  Lwt_list.filter_s (Formula.accepts Filter.accepts filter) all
 
 let apply_filter_on_scores filter all =
-  let%lwt f_tune = VersionFilter.tune filter in
-  let%lwt f_tune_author = VersionFilter.tune_author filter in
-  let%lwt f_tune_kind = VersionFilter.tune_kind filter in
-  let%lwt f_key = VersionFilter.key filter in
-  let%lwt f_bars = VersionFilter.bars filter in
-  Score.list_filter_lwt (* FIXME: this is literally the only difference between this function and the previous one *)
-    (fun version ->
-       let%lwt tune = tune version in
-       let%lwt tune_slug = Tune.slug tune in
-       let%lwt tune_author = Tune.author tune in
-       let%lwt tune_kind = Tune.kind tune in
-       let%lwt key = key version in
-       let%lwt bars = bars version in
-       Lwt.return
-         (
-           (f_tune = [] || List.mem tune_slug f_tune)
-           && (f_tune_author = [] || (match tune_author with None -> true | Some tune_author -> List.mem tune_author f_tune_author))
-           && (f_tune_kind = [] || List.mem tune_kind f_tune_kind)
-           && (f_key = [] || List.mem key f_key)
-           && (f_bars = [] || List.mem bars f_bars)
-         ))
-    all
+  Score.list_filter_lwt (Formula.accepts Filter.accepts filter) all
 
 let all ?filter ?pagination () =
   Dancelor_server_database.Version.get_all ()

@@ -21,3 +21,15 @@ let kind tune = Lwt.return tune.kind
 let author tune = Lwt.return tune.author
 let dances tune = Lwt.return tune.dances
 let remark tune = Lwt.return tune.remark
+
+module Filter = struct
+  type tune = t
+  [@@deriving yojson]
+
+  type t =
+    | Is of tune
+    | Author of Credit.Filter.t
+    | AuthorIsDefined
+    | Kind of Kind.base
+  [@@deriving yojson]
+end

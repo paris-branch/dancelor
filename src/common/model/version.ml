@@ -25,3 +25,17 @@ let arranger t = Lwt.return t.arranger
 let sources t = Lwt.return t.sources
 let remark t = Lwt.return t.remark
 let disambiguation t = Lwt.return t.disambiguation
+
+module Filter = struct
+  type version = t
+  [@@deriving yojson]
+
+  type t =
+    | Is of version
+    | Tune of Tune.Filter.t
+    | Key of Music.key
+    | Bars of int
+  [@@deriving yojson]
+
+  let _key = "version-filter"
+end

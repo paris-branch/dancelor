@@ -82,7 +82,7 @@ let list_map_score f (l : 'a t list) : 'a t list Lwt.t =
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t
 
-  let _key = "score"
+  let _key = M._key ^ "-score"
 
   let of_yojson = of_yojson M.of_yojson
   let to_yojson = to_yojson M.to_yojson

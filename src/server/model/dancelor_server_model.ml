@@ -6,6 +6,7 @@ module Pagination = Pagination
 module Status = Status
 module Score  = Score
 module Transposition = Transposition
+module Formula = Formula
 
 module Person        : Common.PERSON          = Person
 module Credit        : Common.CREDIT          = Credit
@@ -13,11 +14,9 @@ module Source        : Common.SOURCE          = Source
 module Dance         : Common.DANCE           = Dance
 module Tune          : Common.TUNE            = Tune
 module Version       : Common.VERSION         = Version
-module VersionFilter : Common.VersionFilter.S = VersionFilter
 module VersionParameters                      = VersionParameters
 module Set           : Common.SET             = Set
 module SetParameters                          = SetParameters
 module Book          : Common.BOOK            = Book
 module BookParameters                         = BookParameters
-
 module Any           : Common.ANY             = Any

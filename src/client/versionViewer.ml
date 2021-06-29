@@ -80,7 +80,9 @@ let create slug page =
     let text =
       let%lwt filter =
         let%lwt tune = tune in
-        VersionFilter.make ~tune:[tune] ()
+        Version.Filter.Tune (Tune.Filter.Is tune)
+        |> Formula.pred
+        |> Lwt.return
       in
       let%lwt versions = Version.all ~filter () in
       match List.length versions with

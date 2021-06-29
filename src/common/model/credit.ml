@@ -17,7 +17,11 @@ let persons c = Lwt.return c.persons
 let is_trad c = c.slug = "traditional"
 
 module Filter = struct
+  type credit = t
+  [@@deriving yojson]
+
   type t =
+    | Is of credit
     | ExistsPerson of Person.Filter.t
     | ForallPersons of Person.Filter.t
   [@@deriving yojson]

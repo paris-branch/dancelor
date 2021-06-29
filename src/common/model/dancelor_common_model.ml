@@ -29,7 +29,6 @@ module Version = Version
 module type VERSION = module type of Version_signature
 module Version_endpoints = Version_endpoints
 
-module VersionFilter = VersionFilter
 module VersionParameters = VersionParameters
 
 module Set = Set
@@ -47,3 +46,5 @@ module BookParameters = BookParameters
 module Any = Any
 module type ANY = module type of Any_signature
 module Any_endpoints = Any_endpoints
+
+module Formula = Formula

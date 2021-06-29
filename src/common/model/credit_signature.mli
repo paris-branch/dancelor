@@ -13,6 +13,7 @@ val is_trad : t -> bool
 
 module Filter : sig
   type t = Credit.Filter.t =
+    | Is of Credit.t
     | ExistsPerson of Person.Filter.t
     | ForallPersons of Person.Filter.t
 

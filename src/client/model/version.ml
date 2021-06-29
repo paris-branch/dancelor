@@ -11,7 +11,25 @@ let sources = sources >=>| Lwt_list.map_p Source.get
 let content _t =
   assert false (* FIXME *)
 
-(* * *)
+module Filter = struct
+  include Filter
+
+  let accepts filter version =
+    match filter with
+    | Is version' ->
+      let%lwt slug' = slug version' in
+      let%lwt slug  = slug version  in
+      Lwt.return (Slug.equal slug slug')
+    | Tune tfilter ->
+      let%lwt tune = tune version in
+      Tune.Filter.accepts tfilter tune
+    | Key key' ->
+      let%lwt key = key version in
+      Lwt.return (key = key')
+    | Bars bars' ->
+      let%lwt bars = bars version in
+      Lwt.return (bars = bars')
+end
 
 let get slug =
   Madge_client.(

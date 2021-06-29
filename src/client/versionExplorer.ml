@@ -8,13 +8,89 @@ module Html = Dom_html
 
 let js = Js.string
 
+type filter =
+  { tune : Tune.t Slug.t list ;
+    tune_author : Credit.t Slug.t list ;
+    tune_kind : Kind.base list ;
+    key : Music.key list ;
+    bars : int list }
+
+let filter_empty = { tune = []; tune_author = []; tune_kind = []; key = []; bars = [] }
+
+let filter_add_key k t =
+  {t with key = k :: t.key}
+
+let filter_remove_key k t =
+  {t with key = List.filter ((<>) k) t.key}
+
+let filter_add_bars b t =
+  {t with bars = b :: t.bars}
+
+let filter_remove_bars b t =
+  {t with bars = List.filter ((<>) b) t.bars}
+
+let filter_add_kind k t =
+  {t with tune_kind = k :: t.tune_kind}
+
+let filter_remove_kind k t =
+  {t with tune_kind = List.filter ((<>) k) t.tune_kind}
+
+let filter_to_versionfilter filter =
+  let%lwt tunes = Lwt_list.map_p Tune.get filter.tune in
+  let%lwt tune_authors = Lwt_list.map_p Credit.get filter.tune_author in
+
+  let tunes =
+    tunes
+    |> List.map (fun tune -> Version.Filter.Tune (Tune.Filter.Is tune))
+    |> List.map Formula.pred
+    |> Formula.or_l
+  in
+
+  let tune_author_defined =
+    match tune_authors with
+    | [] -> Formula.true_
+    | _ -> Formula.pred (Version.Filter.Tune (Tune.Filter.AuthorIsDefined))
+  in
+
+  let tune_authors =
+    tune_authors
+    |> List.map (fun author -> Version.Filter.Tune (Tune.Filter.Author (Credit.Filter.Is author)))
+    |> List.map Formula.pred
+    |> Formula.or_l
+  in
+
+  let tune_kinds =
+    filter.tune_kind
+    |> List.map (fun kind -> Version.Filter.Tune (Tune.Filter.Kind kind))
+    |> List.map Formula.pred
+    |> Formula.or_l
+  in
+
+  let key =
+    filter.key
+    |> List.map (fun key -> Version.Filter.Key key)
+    |> List.map Formula.pred
+    |> Formula.or_l
+  in
+
+  let bars =
+    filter.bars
+    |> List.map (fun bars -> Version.Filter.Bars bars)
+    |> List.map Formula.pred
+    |> Formula.or_l
+  in
+
+  [tunes; tune_authors; tune_author_defined; tune_kinds; key; bars]
+  |> Formula.and_l
+  |> Lwt.return
+
 type t =
 {
   page : Page.t;
   content : Html.divElement Js.t;
   page_nav : PageNav.t;
   search_div : Html.divElement Js.t;
-  mutable search : VersionFilter.t Lwt.t;
+  mutable search : filter;
   table : Table.t;
 }
 
@@ -65,7 +141,8 @@ let lengths = [
 let update_table t =
   let rows =
     let%lwt versions =
-      let%lwt filter = t.search in
+      let filter = t.search in
+      let%lwt filter = filter_to_versionfilter filter in
       let pagination = PageNav.pagination t.page_nav in
       Version.all ~filter ~pagination ()
     in
@@ -89,9 +166,9 @@ let update_table t =
   Table.replace_bodies t.table (Lwt.return [section])
 
 let update_filter t upd =
-  t.search <- Lwt.bind t.search upd;
-  Lwt.on_success t.search (fun filter ->
-    Lwt.on_success (Version.count ~filter ()) (PageNav.set_entries t.page_nav))
+  t.search <- upd t.search;
+  Lwt.on_success (filter_to_versionfilter t.search) @@ fun filter ->
+  Lwt.on_success (Version.count ~filter ()) (PageNav.set_entries t.page_nav)
 
 let fill_search t =
   let document = Page.document t.page in
@@ -104,8 +181,8 @@ let fill_search t =
     let text = Music.key_to_pretty_string key in
     let id = spf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
-      if active then update_filter t (VersionFilter.add_key key)
-      else update_filter t (VersionFilter.remove_key key)
+      if active then update_filter t (filter_add_key key)
+      else update_filter t (filter_remove_key key)
     in
     let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
     Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
@@ -118,8 +195,8 @@ let fill_search t =
     let text = Music.key_to_pretty_string key in
     let id = spf "button_%s" (Music.key_to_safe_string key) in
     let on_change active =
-      if active then update_filter t (VersionFilter.add_key key)
-      else update_filter t (VersionFilter.remove_key key)
+      if active then update_filter t (filter_add_key key)
+      else update_filter t (filter_remove_key key)
     in
     let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
     Style.set ~width:"3rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
@@ -135,8 +212,8 @@ let fill_search t =
     let text = Kind.base_to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
     let id = spf "button_%s" text in
     let on_change active =
-      if active then update_filter t (VersionFilter.add_kind kind)
-      else update_filter t (VersionFilter.remove_kind kind)
+      if active then update_filter t (filter_add_kind kind)
+      else update_filter t (filter_remove_kind kind)
     in
     let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
     Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
@@ -152,8 +229,8 @@ let fill_search t =
     let text = spf "%d Bars" n_bars in
     let id = spf "button_%dbars" n_bars in
     let on_change active =
-      if active then update_filter t (VersionFilter.add_bars n_bars)
-      else update_filter t (VersionFilter.remove_bars n_bars)
+      if active then update_filter t (filter_add_bars n_bars)
+      else update_filter t (filter_remove_bars n_bars)
     in
     let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
     Style.set ~width:"6rem" ~margin:"0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
@@ -170,7 +247,7 @@ let create page =
   Dom.appendChild content (Html.createBr document);
   let search_div = Html.createDiv document in
   Dom.appendChild content search_div;
-  let search = VersionFilter.make () in
+  let search = filter_empty in
   Dom.appendChild content (Html.createBr document);
   let header =
     Table.Row.create

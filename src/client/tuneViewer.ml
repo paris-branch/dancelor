@@ -23,21 +23,24 @@ let create slug page =
     Dom.appendChild content (Text.Heading.root title)
   in
 
-  (* aka *)
+  (* Aka *)
+
   let () =
     let text = Formatters.Tune.aka_lwt tune in
     let aka = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root aka)
   in
 
-  (* recommended *)
+  (* Recommended *)
+
   let () =
     let text = Formatters.Tune.recommended_lwt tune in
     let recommended = Text.Heading.h3_static ~text page in
     Dom.appendChild content (Text.Heading.root recommended)
   in
 
-  (* description *)
+  (* Description *)
+
   let () =
     let text =
       let%lwt tune = tune in
@@ -68,7 +71,9 @@ let create slug page =
   let rows =
     let%lwt filter =
       let%lwt tune = tune in
-      VersionFilter.make ~tune:[tune] ()
+      Version.Filter.Tune (Tune.Filter.Is tune)
+      |> Formula.pred
+      |> Lwt.return
     in
     let%lwt versions = Version.all ~filter () in
 

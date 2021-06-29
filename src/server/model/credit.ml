@@ -13,6 +13,10 @@ module Filter = struct
 
   let accepts filter credit =
     match filter with
+    | Is credit' ->
+      let%lwt slug' = slug credit' in
+      let%lwt slug  = slug credit  in
+      Lwt.return (Slug.equal slug slug')
     | ExistsPerson pfilter ->
       persons credit
       >>=| Lwt_list.exists_s (Person.Filter.accepts pfilter)
