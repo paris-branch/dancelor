@@ -102,5 +102,6 @@ h4 { font-size: 1.2rem; }
 .details { display: block; font-size: 0.8rem; line-height: 0.8rem; font-style: italic; }
 
 .buttons {
+    margin-top: 2rem;
     text-align: right;
 }
