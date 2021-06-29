@@ -3,8 +3,6 @@ module A = E.Arguments
 
 include Dancelor_common_model.Source
 
-(* * *)
-
 let get slug =
   Madge_client.(
     call ~endpoint:E.get @@ fun {a} _ ->

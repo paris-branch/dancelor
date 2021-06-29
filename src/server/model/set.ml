@@ -25,9 +25,7 @@ module Filter = struct
     match filter with
 
     | Is set' ->
-      let%lwt slug' = slug set' in
-      let%lwt slug  = slug set  in
-      Lwt.return (Slug.equal slug slug')
+      equal set set'
 
     | Deviser dfilter ->
       (match%lwt deviser set with

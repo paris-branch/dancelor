@@ -15,16 +15,18 @@ module Filter = struct
 
   let accepts filter version =
     match filter with
+
     | Is version' ->
-      let%lwt slug' = slug version' in
-      let%lwt slug  = slug version  in
-      Lwt.return (Slug.equal slug slug')
+      equal version version'
+
     | Tune tfilter ->
       let%lwt tune = tune version in
       Tune.Filter.accepts tfilter tune
+
     | Key key' ->
       let%lwt key = key version in
       Lwt.return (key = key')
+
     | Bars bars' ->
       let%lwt bars = bars version in
       Lwt.return (bars = bars')

@@ -6,20 +6,19 @@ include Dancelor_common_model.Credit
 
 let persons = persons >=>| Lwt_list.map_s Person.get
 
-(* * *)
-
 module Filter = struct
   include Filter
 
   let accepts filter credit =
     match filter with
+
     | Is credit' ->
-      let%lwt slug' = slug credit' in
-      let%lwt slug  = slug credit  in
-      Lwt.return (Slug.equal slug slug')
+      equal credit credit'
+
     | ExistsPerson pfilter ->
       persons credit
       >>=| Lwt_list.exists_s (Person.Filter.accepts pfilter)
+
     | ForallPersons pfilter ->
       persons credit
       >>=| Lwt_list.for_all_s (Person.Filter.accepts pfilter)

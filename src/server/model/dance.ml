@@ -6,8 +6,6 @@ include Dancelor_common_model.Dance
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
 
-(* * *)
-
 let get = Dancelor_server_database.Dance.get
 
 let () =

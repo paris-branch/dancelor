@@ -13,17 +13,19 @@ module Filter = struct
 
   let accepts filter tune =
     match filter with
+
     | Is tune' ->
-      let%lwt slug' = slug tune' in
-      let%lwt slug  = slug tune  in
-      Lwt.return (Slug.equal slug slug')
+      equal tune tune'
+
     | Author afilter ->
       (match%lwt author tune with
        | None -> Lwt.return_false
        | Some author -> Credit.Filter.accepts afilter author)
+
     | AuthorIsDefined ->
       let%lwt author = author tune in
       Lwt.return (author <> None)
+
     | Kind kind' ->
       let%lwt kind = kind tune in
       Lwt.return (kind = kind')

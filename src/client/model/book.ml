@@ -81,9 +81,7 @@ module Filter = struct
     match filter with
 
     | Is book' ->
-      let%lwt slug' = slug book' in
-      let%lwt slug  = slug book  in
-      Lwt.return (Slug.equal slug slug')
+      equal book book'
 
     | ExistsVersion vfilter ->
       let%lwt content = contents book in
