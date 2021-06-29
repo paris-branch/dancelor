@@ -15,7 +15,39 @@ let contents p =
 
 let warnings _p = assert false (* FIXME *)
 
-(* * *)
+module Filter = struct
+  include Filter
+
+  let accepts filter book =
+    match filter with
+
+    | Is book' ->
+      let%lwt slug' = slug book' in
+      let%lwt slug  = slug book  in
+      Lwt.return (Slug.equal slug slug')
+
+    | ExistsVersion vfilter ->
+      let%lwt content = contents book in
+      let%lwt versions =
+        Lwt_list.filter_map_s
+          (function
+            | Version (v, _p) -> Lwt.return_some v
+            | _ -> Lwt.return_none)
+          content
+      in
+      Lwt_list.exists_s (Version.Filter.accepts vfilter) versions
+
+    | ForallVersions vfilter ->
+      let%lwt content = contents book in
+      let%lwt versions =
+        Lwt_list.filter_map_s
+          (function
+            | Version (v, _p) -> Lwt.return_some v
+            | _ -> Lwt.return_none)
+          content
+      in
+      Lwt_list.for_all_s (Version.Filter.accepts vfilter) versions
+end
 
 let get = Dancelor_server_database.Book.get
 
@@ -25,18 +57,29 @@ let () =
     get (a A.slug)
   )
 
-let get_all () =
-  let%lwt books = Dancelor_server_database.Book.get_all () in
-  Lwt_list.(sort_multiple [
+let apply_filter filter all =
+  Lwt_list.filter_s (Filter.accepts filter) all
+
+let apply_filter_on_scores filter all =
+  Score.list_filter_lwt (Filter.accepts filter) all
+
+let all ?filter ?pagination () =
+  Dancelor_server_database.Book.get_all ()
+  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter filter
+  >>=| Lwt_list.(sort_multiple [
       increasing     date NesDate.compare ;
       increasing    title String.Sensible.compare ;
       increasing subtitle String.Sensible.compare
-    ]) books
+    ])
+  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
   Madge_server.(
-    register ~endpoint:E.get_all @@ fun _ _ ->
-    get_all ()
+    register ~endpoint:E.all @@ fun _ {o} ->
+    all
+      ?filter:(o A.filter)
+      ?pagination:(o A.pagination)
+      ()
   )
 
 let search string book =
@@ -44,9 +87,10 @@ let search string book =
   String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string title
   |> Lwt.return
 
-let search ?pagination ?(threshold=0.) string =
+let search ?filter ?pagination ?(threshold=0.) string =
   Dancelor_server_database.Book.get_all ()
   >>=| Score.lwt_map_from_list (search string)
+  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter_on_scores filter
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
       increasing     date NesDate.compare ;
@@ -59,6 +103,7 @@ let () =
   Madge_server.(
     register ~endpoint:E.search @@ fun {a} {o} ->
     search
+      ?filter:    (o A.filter)
       ?pagination:(o A.pagination)
       ?threshold: (o A.threshold)
       (a A.string)

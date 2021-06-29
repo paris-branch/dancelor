@@ -4,6 +4,9 @@ module A = E.Arguments
 
 include Dancelor_common_model.Any
 
+let book_search ?pagination ?threshold input =
+  Book.search ?pagination ?threshold input
+
 let set_search ?pagination ?threshold input =
   Set.search ?pagination ?threshold input
 
@@ -24,7 +27,7 @@ let search ?pagination ?threshold ?(except=[]) input =
     >>=| search_wrap_and_add Credit.search (fun c -> Credit c)
     >>=| search_wrap_and_add Dance.search (fun c -> Dance c)
     >>=| search_wrap_and_add Person.search (fun c -> Person c)
-    >>=| search_wrap_and_add Book.search (fun c -> Book c)
+    >>=| search_wrap_and_add book_search (fun c -> Book c)
     >>=| search_wrap_and_add set_search (fun c -> Set c)
     >>=| search_wrap_and_add Source.search (fun c -> Source c)
     >>=| search_wrap_and_add tune_search (fun c -> Tune c)

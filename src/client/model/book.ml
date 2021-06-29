@@ -74,7 +74,39 @@ let warnings p =
   (* Return *)
   Lwt.return !warnings
 
-(* * *)
+module Filter = struct
+  include Filter
+
+  let accepts filter book =
+    match filter with
+
+    | Is book' ->
+      let%lwt slug' = slug book' in
+      let%lwt slug  = slug book  in
+      Lwt.return (Slug.equal slug slug')
+
+    | ExistsVersion vfilter ->
+      let%lwt content = contents book in
+      let%lwt versions =
+        Lwt_list.filter_map_s
+          (function
+            | Version (v, _p) -> Lwt.return_some v
+            | _ -> Lwt.return_none)
+          content
+      in
+      Lwt_list.exists_s (Version.Filter.accepts vfilter) versions
+
+    | ForallVersions vfilter ->
+      let%lwt content = contents book in
+      let%lwt versions =
+        Lwt_list.filter_map_s
+          (function
+            | Version (v, _p) -> Lwt.return_some v
+            | _ -> Lwt.return_none)
+          content
+      in
+      Lwt_list.for_all_s (Version.Filter.accepts vfilter) versions
+end
 
 let get slug =
   Madge_client.(
@@ -82,12 +114,17 @@ let get slug =
     a A.slug slug
   )
 
-let get_all () =
-  Madge_client.call ~endpoint:E.get_all @@ fun _ _ -> ()
+let all ?filter ?pagination () =
+  Madge_client.(
+    call ~endpoint:E.all @@ fun _ {o} ->
+    o A.filter filter;
+    o A.pagination pagination;
+  )
 
-let search ?pagination ?threshold string =
+let search ?filter ?pagination ?threshold string =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->
+    o A.filter filter;
     o A.pagination pagination;
     o A.threshold threshold;
     a A.string string

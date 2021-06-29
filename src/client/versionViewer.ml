@@ -103,6 +103,67 @@ let create slug page =
   in
   let img = Image.create ~source page in
   Dom.appendChild content (Image.root img);
+
+  (* Sets in which this version can be found *)
+
+  let () =
+    let pre_text = Text.Paragraph.create ~text:(Lwt.return "appears in the following sets:") page in
+    Dom.appendChild content (Text.Paragraph.root pre_text);
+
+    let sets_dom = Html.createUl (Page.document page) in
+    Dom.appendChild content sets_dom;
+
+    let filter =
+      let%lwt version = version in
+      Set.Filter.ExistsVersion (Version.Filter.Is version)
+      |> Lwt.return
+    in
+    Lwt.on_success filter @@ fun filter ->
+    Lwt.on_success (Set.all ~filter ()) @@ fun sets ->
+
+    List.iter (fun set ->
+        let slug = Set.slug set in
+        let href =
+          let%lwt slug = slug in
+          Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+        in
+        let link = Text.Link.create ~href ~text:(Set.name set) page in
+        let li = Html.createLi (Page.document page) in
+        Dom.appendChild li (Text.Link.root link);
+        Dom.appendChild sets_dom li)
+      sets
+  in
+
+  (* Books in which this version can be found *)
+
+  let () =
+    let pre_text = Text.Paragraph.create ~text:(Lwt.return "appears in the following books:") page in
+    Dom.appendChild content (Text.Paragraph.root pre_text);
+
+    let books_dom = Html.createUl (Page.document page) in
+    Dom.appendChild content books_dom;
+
+    let filter =
+      let%lwt version = version in
+      Book.Filter.ExistsVersion (Version.Filter.Is version)
+      |> Lwt.return
+    in
+    Lwt.on_success filter @@ fun filter ->
+    Lwt.on_success (Book.all ~filter ()) @@ fun books ->
+
+    List.iter (fun book ->
+        let slug = Book.slug book in
+        let href =
+          let%lwt slug = slug in
+          Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+        in
+        let link = Text.Link.create ~href ~text:(Book.title book) page in
+        let li = Html.createLi (Page.document page) in
+        Dom.appendChild li (Text.Link.root link);
+        Dom.appendChild books_dom li)
+      books
+  in
+
   {page; content}
 
 let contents t =

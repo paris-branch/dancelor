@@ -29,13 +29,28 @@ type warnings = warning list
 
 val warnings : t -> warnings Lwt.t
 
+(** {2 Filter} *)
+
+module Filter : sig
+  type t = Book.Filter.t =
+    | Is of Book.t
+    | ExistsVersion of Version.Filter.t
+    | ForallVersions of Version.Filter.t
+
+  val accepts : t -> Book.t -> bool Lwt.t
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
 
-val get_all : unit -> t list Lwt.t
+val all :
+  ?filter:Filter.t ->
+  ?pagination:Pagination.t ->
+  unit -> t list Lwt.t
 
 val search :
+  ?filter:Filter.t ->
   ?pagination:Pagination.t ->
   ?threshold:float ->
   string ->

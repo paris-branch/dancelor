@@ -34,6 +34,8 @@ module Filter : sig
     | Is of Set.t
     | Deviser of Credit.Filter.t
     | DeviserIsDefined
+    | ExistsVersion of Version.Filter.t
+    | ForallVersions of Version.Filter.t
 
   val accepts : t -> Set.t -> bool Lwt.t
 end

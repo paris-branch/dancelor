@@ -29,7 +29,7 @@ let create page =
       page
   in
   let rows =
-    let%lwt books = Book.get_all () in
+    let%lwt books = Book.all () in
     Lwt.return (List.map (fun book ->
       let href =
         let%lwt slug = Book.slug book in

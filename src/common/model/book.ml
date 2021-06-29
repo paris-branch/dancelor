@@ -55,3 +55,16 @@ type page =
   | Version       of Version.t * VersionParameters.t
   | Set           of     Set.t * SetParameters.t
   | InlineSet     of     Set.t * SetParameters.t
+
+module Filter = struct
+  let _key = "book-filter"
+
+  type book = t
+  [@@deriving yojson]
+
+  type t =
+    | Is of book
+    | ExistsVersion of Version.Filter.t
+    | ForallVersions of Version.Filter.t
+  [@@deriving yojson]
+end

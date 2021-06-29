@@ -85,5 +85,7 @@ module Filter = struct
     | Is of set
     | Deviser of Credit.Filter.t
     | DeviserIsDefined
+    | ExistsVersion of Version.Filter.t
+    | ForallVersions of Version.Filter.t
   [@@deriving yojson]
 end
