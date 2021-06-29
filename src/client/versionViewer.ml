@@ -110,6 +110,29 @@ let create slug page =
 
   (* Other versions *)
 
+  let other_versions_lwt =
+    let%lwt tune = tune in
+    let%lwt version = version in
+    let filter =
+      Formula.(
+        and_
+          (pred (Version.Filter.Tune (Tune.Filter.Is tune)))
+          (not_ (pred (Version.Filter.Is version)))
+      )
+    in
+    Version.all ~filter ()
+  in
+
+  let link_page_of_tunes () =
+    let href =
+      let%lwt tune = tune in
+      let%lwt slug = Tune.slug tune in
+      Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+    in
+    let link = Text.Link.create ~href ~text:(Lwt.return "page of the tune") page in
+    Text.Link.root link
+  in
+
   let () =
     let pretext = Text.Heading.h3_static ~text:(Lwt.return "Other Versions") page in
     Dom.appendChild content (Text.Heading.root pretext);
@@ -117,29 +140,24 @@ let create slug page =
     let tableHolder = Html.createDiv (Page.document page) in
     Dom.appendChild content tableHolder;
 
-    let versions_lwt =
-      let%lwt tune = tune in
-      let%lwt version = version in
-      let filter =
-        Formula.(
-          and_
-            (pred (Version.Filter.Tune (Tune.Filter.Is tune)))
-            (not_ (pred (Version.Filter.Is version)))
-        )
-      in
-      Version.all ~filter ()
-    in
-
-    let table = Dancelor_client_tables.Version.make versions_lwt page in
+    let table = Dancelor_client_tables.Version.make other_versions_lwt page in
 
     (* When getting the versions, decide to show just a text or the table *)
 
-    Lwt.on_success versions_lwt @@ fun versions ->
+    Lwt.on_success other_versions_lwt @@ fun versions ->
     if versions = [] then
       let text = Text.Paragraph.create ~text:(Lwt.return "There are no other versions available for this tune.") page in
       Dom.appendChild tableHolder (Text.Paragraph.root text)
     else
-      Dom.appendChild tableHolder (Table.root table)
+      (
+        Dom.appendChild tableHolder (Table.root table);
+
+        let linkHolder = Html.createP (Page.document page) in
+        Dom.appendChild linkHolder ((Page.document page)##createTextNode (js "Hint: You can also go to the "));
+        Dom.appendChild linkHolder (link_page_of_tunes ());
+        Dom.appendChild linkHolder ((Page.document page)##createTextNode (js "."));
+        Dom.appendChild tableHolder linkHolder
+      )
   in
 
   (* Sets in which this version can be found *)
@@ -150,6 +168,23 @@ let create slug page =
 
     let tableHolder = Html.createDiv (Page.document page) in
     Dom.appendChild content tableHolder;
+
+    let none = (Page.document page)##createTextNode (js "") in
+    let space = (Page.document page)##createTextNode (js " ") in
+
+    let none_and_hint = Html.createP (Page.document page) in
+    Dom.appendChild none_and_hint none;
+    Dom.appendChild none_and_hint space;
+    Dom.appendChild content none_and_hint;
+
+    Lwt.on_success other_versions_lwt
+      (fun versions ->
+         if versions <> [] then
+           (
+             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "Hint: If you want to see the sets in which this version or any other appear, go to the "));
+             Dom.appendChild none_and_hint (link_page_of_tunes ());
+             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "."))
+           ));
 
     let sets_lwt =
       let%lwt version = version in
@@ -163,8 +198,7 @@ let create slug page =
 
     Lwt.on_success sets_lwt @@ fun sets ->
     if sets = [] then
-      let text = Text.Paragraph.create ~text:(Lwt.return "There are no sets containing this version.") page in
-      Dom.appendChild tableHolder (Text.Paragraph.root text)
+      none##.data := js "There are no sets containing this version."
     else
       Dom.appendChild tableHolder (Table.root table)
   in
@@ -178,6 +212,28 @@ let create slug page =
     let tableHolder = Html.createDiv (Page.document page) in
     Dom.appendChild content tableHolder;
 
+    (* Two text nodes; one containing a note that there are no sets containing
+       this version, the other explaining to go to the page of the tune if on
+       wants that. *)
+    let none = (Page.document page)##createTextNode (js "") in
+    let space = (Page.document page)##createTextNode (js " ") in
+    let hint = (Page.document page)##createTextNode (js "") in
+
+    let none_and_hint = Html.createP (Page.document page) in
+    Dom.appendChild none_and_hint none;
+    Dom.appendChild none_and_hint space;
+    Dom.appendChild none_and_hint hint;
+    Dom.appendChild content none_and_hint;
+
+    Lwt.on_success other_versions_lwt
+      (fun versions ->
+         if versions <> [] then
+           (
+             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "Hint: If you want to see the books in which this version or any other appear, go to the "));
+             Dom.appendChild none_and_hint (link_page_of_tunes ());
+             Dom.appendChild none_and_hint ((Page.document page)##createTextNode (js "."))
+           ));
+
     let books_lwt =
       let%lwt version = version in
       let filter = Book.Filter.ExistsVersion (Version.Filter.Is version) in
@@ -190,8 +246,7 @@ let create slug page =
 
     Lwt.on_success books_lwt @@ fun books ->
     if books = [] then
-      let text = Text.Paragraph.create ~text:(Lwt.return "There are no books containing this version.") page in
-      Dom.appendChild tableHolder (Text.Paragraph.root text)
+      none##.data := js "There are no books containing this version."
     else
       Dom.appendChild tableHolder (Table.root table)
   in

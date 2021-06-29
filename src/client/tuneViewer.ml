@@ -1,4 +1,5 @@
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
@@ -67,6 +68,20 @@ let create slug page =
     in
     Version.all ~filter ()
   in
+
+  (* If only one version, redirect to it *)
+  Lwt.on_success versions_lwt
+    (fun versions ->
+       if List.length versions = 1 then
+         (
+           Lwt.async @@ fun () ->
+           let%lwt href =
+             let%lwt slug = Version.slug (List.hd versions) in
+             Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+           in
+           Html.window##.location##.href := js href;
+           Lwt.return_unit
+         ));
 
   let table = Dancelor_client_tables.Version.make versions_lwt page in
   Dom.appendChild content (Table.root table);
