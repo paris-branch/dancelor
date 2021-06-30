@@ -237,7 +237,7 @@ module Set = struct
     in
     Lwt.return [
       (text_lwt (M.Set.name set) page :> Dom.node Js.t) ;
-      (span ~classes:["details"] versions page :> Dom.node Js.t)
+      (span ~classes:["dim"; "details"] versions page :> Dom.node Js.t)
     ]
 
 end

@@ -26,7 +26,7 @@ let make sets_lwt page =
          in
          let cells =
            let open Lwt in [
-             Table.Cell.text ~text:(Set.name set) page;
+             Table.Cell.create ~content:(Formatters.Set.name_and_tunes set page) page;
              Table.Cell.create ~content:(
                let%lwt deviser = Set.deviser set in
                Formatters.Credit.line deviser page

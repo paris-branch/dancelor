@@ -21,21 +21,22 @@ let update_table t =
     let pagination = PageNav.pagination t.page_nav in
     Set.all ~pagination ()
     |> NesLwtList.map (fun set ->
-      let href =
-        let%lwt slug = Set.slug set in
-        Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
-      in
-      let cells =
-        let open Lwt in [
-        Table.Cell.text ~text:(Set.name set) t.page;
-        Table.Cell.create ~content:(
-          let%lwt deviser = Set.deviser set in
-          Formatters.Credit.line deviser t.page
-        ) t.page;
-        Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page;
-        Table.Cell.text ~text:(Lwt.return "") t.page]
-      in
-      Table.Row.create ~href ~cells t.page)
+        let href =
+          let%lwt slug = Set.slug set in
+          Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+        in
+        let cells =
+          let open Lwt in [
+            Table.Cell.create ~content:(Formatters.Set.name_and_tunes set t.page) t.page;
+            Table.Cell.create ~content:(
+              let%lwt deviser = Set.deviser set in
+              Formatters.Credit.line deviser t.page
+            ) t.page;
+            Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page;
+            Table.Cell.text ~text:(Lwt.return "") t.page
+          ]
+        in
+        Table.Row.create ~href ~cells t.page)
   in
   let section = Table.Section.create ~rows t.page in
   Table.replace_bodies t.table (Lwt.return [section])
