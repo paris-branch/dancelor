@@ -118,26 +118,26 @@ module Initialise = struct
     else
       Lwt.return_unit
 
-  let create_new_db_lyversion () =
-    Log.info (fun m -> m "Creating new database lyversion");
+  let create_new_db_version () =
+    Log.info (fun m -> m "Creating new database version");
     Table.Version.create ()
 
-  let create_tables lyversion =
-    Log.info (fun m -> m "Creating tables for this lyversion");
+  let create_tables version =
+    Log.info (fun m -> m "Creating tables for this version");
     tables |> List.iter @@ fun (module Table : Table.S) ->
-    Table.create_lyversion ~lyversion
+    Table.create_version ~version
 
-  let load_tables lyversion =
-    Log.info (fun m -> m "Loading tables for this lyversion");
+  let load_tables version =
+    Log.info (fun m -> m "Loading tables for this version");
     tables |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
-    Table.load_lyversion ~lyversion
+    Table.load_version ~version
 
-  let check_dependency_problems lyversion =
+  let check_dependency_problems version =
     Log.info (fun m -> m "Checking for dependency problems");
     let%lwt found_problem =
       Lwt_list.fold_left_s
         (fun found_problem (module Table : Table.S) ->
-           let%lwt problems = Table.list_dependency_problems ~lyversion in
+           let%lwt problems = Table.list_dependency_problems ~version in
            (
              problems |> List.iter @@ function
              | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
@@ -158,21 +158,21 @@ module Initialise = struct
     | None -> Lwt.return ()
     | Some problem -> Dancelor_common.Error.fail problem
 
-  let establish_lyversion lyversion =
-    Log.info (fun m -> m "Establishing new lyversion");
+  let establish_version version =
+    Log.info (fun m -> m "Establishing new version");
     let () =
       tables |> List.iter @@ fun (module Table : Table.S) ->
-      Table.establish_lyversion ~lyversion
+      Table.establish_version ~version
     in
-    Log.info (fun m -> m "New lyversion is in place")
+    Log.info (fun m -> m "New version is in place")
 
   let initialise () =
     sync_db (); %lwt
-    let lyversion = create_new_db_lyversion () in
-    create_tables lyversion;
-    load_tables lyversion; %lwt
-    check_dependency_problems lyversion; %lwt
-    establish_lyversion lyversion;
+    let version = create_new_db_version () in
+    create_tables version;
+    load_tables version; %lwt
+    check_dependency_problems version; %lwt
+    establish_version version;
     Lwt.return_unit
 end
 
