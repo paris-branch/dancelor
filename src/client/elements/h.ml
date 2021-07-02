@@ -91,3 +91,6 @@ let a_lwt ?href ?href_lwt ?classes children_lwt document =
 
 let a ?href ?href_lwt ?classes children document =
   a_lwt ?href ?href_lwt ?classes (Lwt.return children) document
+
+let br document = (Html.createBr document :> dom_node)
+let hr document = (Html.createHr document :> dom_node)

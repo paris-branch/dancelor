@@ -10,11 +10,11 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  content : Html.divElement Js.t;
-  table : Table.t;
-}
+  {
+    page : Page.t;
+    content : Html.divElement Js.t;
+    table : Table.t;
+  }
 
 let display_contents t contents =
   let rows =
@@ -82,138 +82,7 @@ let display_contents t contents =
 let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let book = Book.get slug in
-  let () =
-    let title = Text.Heading.h2_static ~text:(Lwt.bind book Book.title) page in
-    let title = Text.Heading.root title in
-    title##.classList##add (js "title");
-    Dom.appendChild content title;
-
-    let subtitle = Text.Heading.h3_static ~text:(Lwt.bind book Book.subtitle) page in
-    let subtitle = Text.Heading.root subtitle in
-    subtitle##.classList##add (js "title");
-    Dom.appendChild content subtitle
-  in
-  let date_text =
-    let%lwt book = book in
-    let%lwt date = Book.date book in
-    if Date.is_none date then
-      Lwt.return ""
-    else
-      Lwt.return (spf "Date: %s" (NesDate.to_string date))
-  in
-  let date = Text.Paragraph.create ~placeholder:"Getting date..." ~text:date_text page in
-  Dom.appendChild content (Text.Paragraph.root date);
-
-  (* Buttons *)
-
-  let () =
-    let booklet_parameters =
-      BookParameters.(
-        make
-          ~front_page:true
-          ~table_of_contents:End
-          ~two_sided:true
-          ~every_set:SetParameters.(
-              make
-                ~forced_pages:2
-                ()
-            )
-          ()
-      )
-    in
-    let bass_parameters =
-      BookParameters.(
-        make ~every_set:SetParameters.(
-            make ~every_version:VersionParameters.(
-                make
-                  ~clef:Music.Bass
-                  ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-                  ()
-              )
-              ()
-          )
-          ()
-      )
-    in
-    let b_parameters = BookParameters.make_instrument (Music.make_pitch B Flat (-1)) in
-    let e_parameters = BookParameters.make_instrument (Music.make_pitch E Flat 0) in
-
-    let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
-        c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            b_parameters
-            |> BookParameters.to_yojson |> Yojson.Safe.to_string
-          ]] (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            e_parameters
-            |> BookParameters.to_yojson |> Yojson.Safe.to_string
-          ]] (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            bass_parameters
-            |> BookParameters.to_yojson |> Yojson.Safe.to_string
-          ]] (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            booklet_parameters
-            |> BookParameters.to_yojson |> Yojson.Safe.to_string
-          ]] (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            BookParameters.(
-              compose b_parameters booklet_parameters
-              |> to_yojson |> Yojson.Safe.to_string
-            )
-          ]] (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            BookParameters.(
-              compose e_parameters booklet_parameters
-              |> to_yojson |> Yojson.Safe.to_string
-            )
-          ]] (),
-      Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-        ~query:["parameters", [
-            BookParameters.(
-              compose bass_parameters booklet_parameters
-              |> to_yojson |> Yojson.Safe.to_string
-            )
-          ]] ()
-    in
-    let c_pdf, b_pdf, e_pdf, bass_pdf,
-        c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, bass_booklet_pdf =
-      Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-      Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
-      Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
-      Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
-      Inputs.Button.create ~href:(Lwt.return c_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (book)" page,
-      Inputs.Button.create ~href:(Lwt.return b_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭, book)" page,
-      Inputs.Button.create ~href:(Lwt.return e_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭, book)" page,
-      Inputs.Button.create ~href:(Lwt.return bass_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢, book)" page
-    in
-
-    let div = Html.createDiv (Page.document page) in
-    div##.classList##add (js "buttons");
-    Dom.appendChild content div;
-
-    Dom.appendChild div (Inputs.Button.root c_pdf);
-    Dom.appendChild div (Inputs.Button.root b_pdf);
-    Dom.appendChild div (Inputs.Button.root e_pdf);
-    Dom.appendChild div (Inputs.Button.root bass_pdf);
-    Dom.appendChild div (Html.createBr document);
-    Dom.appendChild div (Inputs.Button.root c_booklet_pdf);
-    Dom.appendChild div (Inputs.Button.root b_booklet_pdf);
-    Dom.appendChild div (Inputs.Button.root e_booklet_pdf);
-    Dom.appendChild div (Inputs.Button.root bass_booklet_pdf)
-  in
-
-  let prev_title = Text.Heading.h3_static ~text:(Lwt.return "Contents") page in
-  Dom.appendChild content (Text.Heading.root prev_title);
+  let book_lwt = Book.get slug in
 
   let header =
     Table.Row.create
@@ -229,10 +98,132 @@ let create slug page =
       ~kind:Table.Kind.Separated
       page
   in
-  Dom.appendChild content (Table.root table);
+
+  Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
+      h2 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.title) ];
+      h3 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.subtitle) ];
+
+      p [ text_lwt (
+          let%lwt book = book_lwt in
+          let%lwt date = Book.date book in
+          if Date.is_none date then
+            Lwt.return ""
+          else
+            Lwt.return (spf "Date: %s" (NesDate.to_string date))
+        ) ];
+
+      div ~classes:["buttons"] (
+        let booklet_parameters =
+          BookParameters.(
+            make
+              ~front_page:true
+              ~table_of_contents:End
+              ~two_sided:true
+              ~every_set:SetParameters.(
+                  make
+                    ~forced_pages:2
+                    ()
+                )
+              ()
+          )
+        in
+        let bass_parameters =
+          BookParameters.(
+            make ~every_set:SetParameters.(
+                make ~every_version:VersionParameters.(
+                    make
+                      ~clef:Music.Bass
+                      ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
+                      ()
+                  )
+                  ()
+              )
+              ()
+          )
+        in
+        let b_parameters = BookParameters.make_instrument (Music.make_pitch B Flat (-1)) in
+        let e_parameters = BookParameters.make_instrument (Music.make_pitch E Flat 0) in
+
+        let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
+            c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                b_parameters
+                |> BookParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                e_parameters
+                |> BookParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                bass_parameters
+                |> BookParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                booklet_parameters
+                |> BookParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                BookParameters.(
+                  compose b_parameters booklet_parameters
+                  |> to_yojson |> Yojson.Safe.to_string
+                )
+              ]] (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                BookParameters.(
+                  compose e_parameters booklet_parameters
+                  |> to_yojson |> Yojson.Safe.to_string
+                )
+              ]] (),
+          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
+            ~query:["parameters", [
+                BookParameters.(
+                  compose bass_parameters booklet_parameters
+                  |> to_yojson |> Yojson.Safe.to_string
+                )
+              ]] ()
+        in
+        let c_pdf, b_pdf, e_pdf, bass_pdf,
+            c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, bass_booklet_pdf =
+          Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
+          Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
+          Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
+          Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
+          Inputs.Button.create ~href:(Lwt.return c_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (book)" page,
+          Inputs.Button.create ~href:(Lwt.return b_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭, book)" page,
+          Inputs.Button.create ~href:(Lwt.return e_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭, book)" page,
+          Inputs.Button.create ~href:(Lwt.return bass_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢, book)" page
+        in
+
+        [
+          node_of_dom_node (Inputs.Button.root c_pdf :> dom_node);
+          node_of_dom_node (Inputs.Button.root b_pdf :> dom_node);
+          node_of_dom_node (Inputs.Button.root e_pdf :> dom_node);
+          node_of_dom_node (Inputs.Button.root bass_pdf :> dom_node);
+          br;
+          node_of_dom_node (Inputs.Button.root c_booklet_pdf :> dom_node);
+          node_of_dom_node (Inputs.Button.root b_booklet_pdf :> dom_node);
+          node_of_dom_node (Inputs.Button.root e_booklet_pdf :> dom_node);
+          node_of_dom_node (Inputs.Button.root bass_booklet_pdf :> dom_node);
+        ]
+      );
+
+      div ~classes:["section"] [
+        h3 [ text "Contents" ];
+
+        node_of_dom_node (Table.root table :> dom_node)
+      ]
+    ]);
 
   let t = {page; content; table} in
-  Lwt.on_success book (fun prog -> Lwt.on_success (Book.contents prog) (display_contents t));
+  Lwt.on_success book_lwt (fun prog -> Lwt.on_success (Book.contents prog) (display_contents t));
   t
 
 let contents t =

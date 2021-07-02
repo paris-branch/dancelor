@@ -17,16 +17,16 @@ type t =
 let create slug page =
   let document = Page.document page in
   let content = Html.createDiv document in
-  let person = Person.get slug in
+  let person_lwt = Person.get slug in
 
   Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
 
-      h2 ~classes:["title"] [ text_lwt (person >>=| Person.name) ];
+      h2 ~classes:["title"] [ text_lwt (person_lwt >>=| Person.name) ];
 
       div ~classes:["section"] [
         p_lwt (
           let%lwt filter =
-            let%lwt person = person in
+            let%lwt person = person_lwt in
             Lwt.return (Credit.Filter.memPerson person)
           in
           let%lwt credits = Credit.all ~filter () in
@@ -73,7 +73,7 @@ let create slug page =
 
         div_lwt (
           let tunes_lwt =
-            let%lwt person = person in
+            let%lwt person = person_lwt in
             let filter = Tune.Filter.author (Credit.Filter.memPerson person) in
             Tune.all ~filter ()
           in
@@ -96,7 +96,7 @@ let create slug page =
 
         div_lwt (
           let sets_lwt =
-            let%lwt person = person in
+            let%lwt person = person_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.memPerson person) in
             Set.all ~filter ()
           in

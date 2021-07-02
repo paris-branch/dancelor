@@ -43,3 +43,6 @@ val a     : ?href:string -> ?href_lwt:string Lwt.t -> node_maker
 (** Create an anchor element [<a>].
 
     @raises Invalid_argument if none or both [?href] and [?href_lwt] are set. *)
+
+val hr : node
+val br : node
