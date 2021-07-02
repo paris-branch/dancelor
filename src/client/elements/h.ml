@@ -27,6 +27,9 @@ let text_lwt str_lwt (document : document) =
 let text str document =
   text_lwt (Lwt.return str) document
 
+type node_maker_lwt = ?classes:string list -> node list Lwt.t -> node
+type node_maker = ?classes:string list -> node list -> node
+
 let elt_lwt create ?(classes=[]) children_lwt document =
   let (elt : 'element Js.t) = create document in
   List.iter (fun class_ -> elt##.classList##add (Js.string class_)) classes;

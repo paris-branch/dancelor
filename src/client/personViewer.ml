@@ -19,118 +19,101 @@ let create slug page =
   let content = Html.createDiv document in
   let person = Person.get slug in
 
-  (* title *)
-  let () =
-    let title = Text.Heading.h2_static ~text:(Lwt.bind person Person.name) page in
-    Dom.appendChild content (Text.Heading.root title)
-  in
+  Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
 
-  (* Credits *)
+      h2 ~classes:["title"] [ text_lwt (person >>=| Person.name) ];
 
-  let () =
-    let credits_text = Html.createP (Page.document page) in
-    Dom.appendChild content credits_text;
+      div ~classes:["section"] [
+        p_lwt (
+          let%lwt filter =
+            let%lwt person = person in
+            Lwt.return (Credit.Filter.memPerson person)
+          in
+          let%lwt credits = Credit.all ~filter () in
 
-    Dom.appendChild credits_text ((Page.document page)##createTextNode (js "This is the page of a person involved in "));
+          let link_of_credit credit =
+            let slug_lwt = Credit.slug credit in
+            let href_lwt =
+              let%lwt slug = slug_lwt in
+              Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
+            in
+            a ~href_lwt [ text_lwt (Credit.line credit) ]
+          in
 
-    (* Create the Lwt value containing the request to the credits *)
-    let filter =
-      let%lwt person = person in
-      Lwt.return (Credit.Filter.memPerson person)
-    in
-    Lwt.on_success filter @@ fun filter ->
-    Lwt.on_success (Credit.all ~filter ()) @@ fun credits ->
+          Lwt.return (
+            (text "This is the page of a person involved in ")
 
-    let link_of_credit credit =
-      let slug = Credit.slug credit in
-      let href =
-        let%lwt slug = slug in
-        Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
-      in
-      let link = Text.Link.create ~href ~text:(Credit.line credit) page in
-      Text.Link.root link
-    in
+            :: match credits with
+            | [] ->
+              [text "no credits. Why this person exists in the database is a mystery!"]
 
-    match credits with
-    | [] ->
-      Dom.appendChild credits_text ((Page.document page)##createTextNode (js "no credits. Why this person exists in the database is a mystery!"))
+            | [credit] ->
+              [
+                text "the sole credit ";
+                link_of_credit credit;
+                text "."
+              ]
 
-    | [credit] ->
-      Dom.appendChild credits_text ((Page.document page)##createTextNode (js "the sole credit "));
-      Dom.appendChild credits_text (link_of_credit credit);
-      Dom.appendChild credits_text ((Page.document page)##createTextNode (js "."))
+            | first_credit :: credits ->
+              let last_credit = List.ft credits in
+              let credits = List.bd credits in
 
-    | first_credit :: credits ->
-      let last_credit = List.ft credits in
-      let credits = List.bd credits in
+              [ text "the credits "; link_of_credit first_credit ]
+              @ List.concat_map (fun credit -> [ text ", ";  link_of_credit credit ]) credits
+              @ [ text " and "; link_of_credit last_credit; text ".";
+                  text " The current page will contain all the work this person";
+                  text " is involved in. Visit the page of the credits for work";
+                  text " done specifically as that particular credit." ]
+          )
+        )
+      ];
 
-      Dom.appendChild credits_text ((Page.document page)##createTextNode (js "the credits "));
-      Dom.appendChild credits_text (link_of_credit first_credit);
+      div ~classes:["section"] [
+        h3 [ text "Tunes Composed" ];
 
-      List.iter
-        (fun credit ->
-           Dom.appendChild credits_text ((Page.document page)##createTextNode (js ", "));
-           Dom.appendChild credits_text (link_of_credit credit))
-        credits;
+        div_lwt (
+          let tunes_lwt =
+            let%lwt person = person in
+            let filter = Tune.Filter.author (Credit.Filter.memPerson person) in
+            Tune.all ~filter ()
+          in
+          let%lwt tunes = tunes_lwt in
 
-      Dom.appendChild credits_text ((Page.document page)##createTextNode (js " and "));
-      Dom.appendChild credits_text (link_of_credit last_credit);
-      Dom.appendChild credits_text ((Page.document page)##createTextNode (js ". The current page will contain all the work this person is involved in. Visit the page of the credits for work done specifically as that particular credit."))
-  in
+          Lwt.return [
+            if tunes = [] then
+              text "There are no tunes composed by this credit."
+            else
+              node_of_dom_node (
+                Table.root (Dancelor_client_tables.Tune.make tunes_lwt page)
+                :> dom_node
+              )
+          ]
+        )
+      ];
 
-  (* Tunes Composed *)
+      div ~classes:["section"] [
+        h3 [ text "Sets Devised" ];
 
-  let () =
-    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Tunes Composed") page in
-    Dom.appendChild content (Text.Heading.root pretext);
+        div_lwt (
+          let sets_lwt =
+            let%lwt person = person in
+            let filter = Set.Filter.deviser (Credit.Filter.memPerson person) in
+            Set.all ~filter ()
+          in
+          let%lwt sets = sets_lwt in
 
-    let tableHolder = Html.createDiv (Page.document page) in
-    Dom.appendChild content tableHolder;
-
-    let tunes_lwt =
-      let%lwt person = person in
-      let filter = Tune.Filter.author (Credit.Filter.memPerson person) in
-      Tune.all ~filter ()
-    in
-
-    let table = Dancelor_client_tables.Tune.make tunes_lwt page in
-
-    (* When getting the sets, decide to show just a text or the table *)
-
-    Lwt.on_success tunes_lwt @@ fun tunes ->
-    if tunes = [] then
-      let text = Text.Paragraph.create ~text:(Lwt.return "There are no tunes composed by this credit.") page in
-      Dom.appendChild tableHolder (Text.Paragraph.root text)
-    else
-      Dom.appendChild tableHolder (Table.root table)
-  in
-
-  (* Sets devised *)
-
-  let () =
-    let pretext = Text.Heading.h3_static ~text:(Lwt.return "Sets Devised") page in
-    Dom.appendChild content (Text.Heading.root pretext);
-
-    let tableHolder = Html.createDiv (Page.document page) in
-    Dom.appendChild content tableHolder;
-
-    let sets_lwt =
-      let%lwt person = person in
-      let filter = Set.Filter.deviser (Credit.Filter.memPerson person) in
-      Set.all ~filter ()
-    in
-
-    let table = Dancelor_client_tables.Set.make sets_lwt page in
-
-    (* When getting the sets, decide to show just a text or the table *)
-
-    Lwt.on_success sets_lwt @@ fun sets ->
-    if sets = [] then
-      let text = Text.Paragraph.create ~text:(Lwt.return "There are no sets containing this version.") page in
-      Dom.appendChild tableHolder (Text.Paragraph.root text)
-    else
-      Dom.appendChild tableHolder (Table.root table)
-  in
+          Lwt.return [
+            if sets = [] then
+              text "There are no sets containing this version."
+            else
+              node_of_dom_node (
+                Table.root (Dancelor_client_tables.Set.make sets_lwt page)
+                :> dom_node
+              )
+          ]
+        )
+      ];
+    ]);
 
   {page; content}
 
