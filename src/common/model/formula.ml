@@ -26,25 +26,34 @@ let or_l = function
 
 let pred value = Pred value
 
-let interpret form interpret_predicate =
-  let rec accepts = function
-    | False -> Lwt.return_false
-    | True -> Lwt.return_true
-    | Not f ->
-      let%lwt a = accepts f in
-      Lwt.return (not a)
-    | And (f1, f2) ->
-      let%lwt a1 = accepts f1
-      and     a2 = accepts f2 in
-      Lwt.return (a1 && a2)
-    | Or (f1, f2) ->
-      let%lwt a1 = accepts f1
-      and     a2 = accepts f2 in
-      Lwt.return (a1 || a2)
-    | Pred p ->
-      interpret_predicate p
+let interpret_score formula interpret_predicate =
+  let rec interpret = function
+    | False -> Lwt.return 0.
+    | True -> Lwt.return 1.
+    | Not formula ->
+      let%lwt score = interpret formula in
+      Lwt.return (1. -. score)
+    | And (formula1, formula2) ->
+      let%lwt score1 = interpret formula1
+      and     score2 = interpret formula2 in
+      Lwt.return (score1 *. score2)
+    | Or (formula1, formula2) ->
+      interpret (Not (And (Not formula1, Not formula2)))
+    | Pred predicate ->
+      interpret_predicate predicate
   in
-  accepts form
+  interpret formula
+
+let interpret formula interpret_predicate =
+  let%lwt result =
+    interpret_score formula @@ fun predicate ->
+    if%lwt interpret_predicate predicate then
+      Lwt.return 1.
+    else
+      Lwt.return 0.
+  in
+  assert (result = 1. || result = 0.);
+  Lwt.return (result = 1.)
 
 let fpf = Format.fprintf
 
