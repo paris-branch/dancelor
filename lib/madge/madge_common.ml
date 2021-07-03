@@ -113,3 +113,10 @@ struct
   type t = A.t list [@@deriving yojson]
   let _key = A._key ^ "-list"
 end
+
+module MSlug (A : SERIALISABLE) : SERIALISABLE
+  with type t = A.t NesSlug.t =
+struct
+  type t = A.t NesSlug.t [@@deriving yojson]
+  let _key = A._key ^ "-slug"
+end

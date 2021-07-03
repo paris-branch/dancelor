@@ -67,3 +67,7 @@ module MPair :
 module MList :
   functor (A : SERIALISABLE) -> SERIALISABLE
   with type t = A.t list
+
+module MSlug :
+  functor (A : SERIALISABLE) -> SERIALISABLE
+  with type t = A.t NesSlug.t

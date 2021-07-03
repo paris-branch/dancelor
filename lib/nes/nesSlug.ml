@@ -39,3 +39,7 @@ let%test _ = from_string "*ù" = "-"
 
 let equal = (=)
 let compare = compare
+
+let to_string x = x
+let pp = Format.pp_print_string
+let unsafe_of_string x = x

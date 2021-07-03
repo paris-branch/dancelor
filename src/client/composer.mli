@@ -1,7 +1,8 @@
+open Nes
 open Dancelor_client_model
 
 type cached_version = {
-  slug : string;
+  slug : Version.t Slug.t;
   version : Version.t;
   tune : Tune.t
 }
@@ -20,15 +21,15 @@ val set_kind : t -> string -> unit
 
 val deviser : t -> Credit.t option
 
-val set_deviser : t -> string -> unit Lwt.t
+val set_deviser : t -> Credit.t Slug.t -> unit Lwt.t
 
 val remove_deviser : t -> unit
 
 val count : t -> int
 
-val insert : t -> string -> int -> unit Lwt.t
+val insert : t -> Version.t Slug.t -> int -> unit Lwt.t
 
-val add : t -> string -> unit Lwt.t
+val add : t -> Version.t Slug.t -> unit Lwt.t
 
 val get : t -> int -> cached_version option
 

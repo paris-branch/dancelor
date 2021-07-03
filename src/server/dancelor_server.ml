@@ -41,24 +41,27 @@ let remove_prefix_suffix prefix suffix string =
   Option.assert_ (String.ends_with ~needle:suffix string) >>=? fun () ->
   String.remove_suffix ~needle:suffix string
 
+type controller =
+  | C : ('any Slug.t -> QueryHelpers.query -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) -> controller
+
 let apply_controller path =
   if path = "/victor"  then log_exit 101;
   if path = "/victor2" then log_exit 102;
   if path = "/victor3" then log_exit 103;
   if path = "/victor4" then log_exit 104;
-  [ "/book/", ".pdf", Book.Pdf.get ;
-    "/set/",     ".ly",  Set.Ly.get ;
-    "/set/",     ".pdf", Set.Pdf.get ;
-    "/version/",    ".ly",  Version.get_ly ;
-    "/version/",    ".svg", Version.Svg.get ;
-    "/version/",    ".pdf", Version.Pdf.get ]
+  [ "/book/",       ".pdf", C Book.Pdf.get ;
+    "/set/",        ".ly",  C Set.Ly.get ;
+    "/set/",        ".pdf", C Set.Pdf.get ;
+    "/version/",    ".ly",  C Version.get_ly ;
+    "/version/",    ".svg", C Version.Svg.get ;
+    "/version/",    ".pdf", C Version.Pdf.get ]
   |> List.map
     (fun (prefix, suffix, controller) ->
        remove_prefix_suffix prefix suffix path, controller)
   |> List.find
     (fun (slug, _) -> slug <> None)
-  |> (fun (slug, controller) ->
-      controller (Option.unwrap slug))
+  |> (fun (slug, C controller) ->
+      controller (Slug.unsafe_of_string (Option.unwrap slug)))
 
 let callback _ request _body =
   (* We have a double try ... with to catch all non-Lwt and Lwt

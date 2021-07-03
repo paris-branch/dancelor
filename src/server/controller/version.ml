@@ -58,7 +58,7 @@ module Svg = struct
          Log.debug (fun m -> m "Rendering the LilyPond version");
          let%lwt (fname_ly, fname_svg) =
            let%lwt slug = Version.slug version in
-           let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
+           let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
            Lwt.return (fname^".ly", fname^".cropped.svg")
          in
          Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
@@ -72,7 +72,7 @@ module Svg = struct
          Lwt.return (Filename.concat path fname_svg))
 
   let get version _ =
-    Log.debug (fun m -> m "Version.Svg.get %s" version);
+    Log.debug (fun m -> m "Version.Svg.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt path_svg = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
@@ -82,7 +82,7 @@ module Pdf = struct
   let render version =
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
-      let fname = spf "%s-%x-with-meta" slug (Random.int (1 lsl 29)) in
+      let fname = aspf "%a-%x-with-meta" Slug.pp slug (Random.int (1 lsl 29)) in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
@@ -93,7 +93,7 @@ module Pdf = struct
     Lwt.return (Filename.concat path fname_pdf)
 
   let get version _ =
-    Log.debug (fun m -> m "Version.pdf.get %s" version);
+    Log.debug (fun m -> m "Version.pdf.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt path_pdf = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()

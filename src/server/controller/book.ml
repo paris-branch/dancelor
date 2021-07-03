@@ -162,7 +162,7 @@ module Pdf = struct
         let path = Filename.concat !Dancelor_server_config.cache "book" in
         let%lwt (fname_ly, fname_pdf) =
           let%lwt slug = Book.slug book in
-          let fname = spf "%s-%x" slug (Random.int (1 lsl 29)) in
+          let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
           Lwt.return (fname^".ly", fname^".pdf")
         in
         Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)

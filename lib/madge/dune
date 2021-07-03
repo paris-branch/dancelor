@@ -2,7 +2,7 @@
  (name madge_common)
  (modules madge_common)
  (public_name dancelor.madge.common)
- (libraries cohttp yojson)
+ (libraries dancelor.nes cohttp yojson)
  (preprocess (pps ppx_deriving_yojson lwt_ppx)))
 
 (library

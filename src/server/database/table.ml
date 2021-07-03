@@ -179,13 +179,13 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Boxed (dep_slug, (module Dep_table)) ->
       match%lwt Dep_table.get_status ~version dep_slug with
       | None ->
-        [Dancelor_common.Error.DependencyDoesNotExist((_key, slug), (Dep_table._key, dep_slug))]
+        [Dancelor_common.Error.DependencyDoesNotExist((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
         |> Lwt.return
       | Some dep_status ->
         if Dancelor_common_model.Status.ge dep_status status then
           Lwt.return_nil
         else
-          [Dancelor_common.Error.DependencyViolatesStatus((_key, slug), (Dep_table._key, dep_slug))]
+          [Dancelor_common.Error.DependencyViolatesStatus((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
           |> Lwt.return
 
   let list_dependency_problems ~version =
@@ -215,7 +215,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
          if Stats.get_accesses stats = 0 then
            Log.warn (fun m -> Lwt.async (fun () ->
                let%lwt slug = Model.slug model in
-               m "Without access: %s / %s" Model._key slug;
+               m "Without access: %s / %a" Model._key Slug.pp slug;
                Lwt.return ()))) (* FIXME *)
 
   let get ?version slug =
@@ -223,7 +223,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Some model ->
       Lwt.return model
     | None ->
-      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, slug)))
+      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, Slug.to_string slug)))
 
   let get_all ?version () =
     get_table ?version ()
@@ -237,11 +237,12 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   (* World of Side Effects; no versions here. *)
 
-  let uniq_slug ~hint =
+  let uniq_slug ~hint : 'any Slug.t =
     let table = get_table () in
     let slug = Slug.from_string hint in
     let rec aux i =
-      let slug = slug ^ "-" ^ (string_of_int i) in
+      (* FIXME: cleaner way to do this *)
+      let slug = Slug.(unsafe_of_string (to_string slug ^ "-" ^ (string_of_int i))) in
       if Hashtbl.mem table slug then
         aux (i+1)
       else
@@ -258,27 +259,27 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_json Model._key slug "meta.json" json; %lwt
+    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %lwt
     Storage.save_changes_on_entry
-      ~msg:(spf "[auto] save %s / %s" Model._key slug)
-      Model._key slug; %lwt
+      ~msg:(spf "[auto] save %s / %s" Model._key (Slug.to_string slug))
+      Model._key (Slug.to_string slug); %lwt
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
   let delete slug =
     let table = get_table () in
-    Storage.delete_entry Model._key slug; %lwt
+    Storage.delete_entry Model._key (Slug.to_string slug); %lwt
     Storage.save_changes_on_entry
-      ~msg:(spf "[auto] delete %s / %s" Model._key slug)
-      Model._key slug; %lwt
+      ~msg:(spf "[auto] delete %s / %s" Model._key (Slug.to_string slug))
+      Model._key (Slug.to_string slug); %lwt
     Hashtbl.remove table slug;
     Lwt.return ()
 
   let read_separated_file model file =
     let%lwt slug = Model.slug model in
-    Storage.read_entry_file Model._key slug file
+    Storage.read_entry_file Model._key (Slug.to_string slug) file
 
   let write_separated_file model file content =
     let%lwt slug = Model.slug model in
-    Storage.write_entry_file Model._key slug file content
+    Storage.write_entry_file Model._key (Slug.to_string slug) file content
 end

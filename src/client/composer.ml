@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_model
 
@@ -6,7 +7,7 @@ module Html = Dom_html
 let js = Js.string
 
 type cached_version = {
-  slug : string;
+  slug : Version.t Slug.t;
   version : Version.t;
   tune : Tune.t
 }
@@ -14,7 +15,7 @@ type cached_version = {
 type t = {
   mutable name : string;
   mutable kind : string;
-  mutable deviser : (string * Credit.t) option;
+  mutable deviser : (Credit.t Slug.t * Credit.t) option;
   mutable versions : cached_version option array;
   mutable count : int;
 }
@@ -132,11 +133,12 @@ let save t =
       let versions =
         list_versions t
         |> List.map (fun t -> t.slug)
+        |> List.map Slug.to_string
         |> String.concat ";"
       in
       begin match t.deviser with
       | None -> ()
-      | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js slug)
+      | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js (Slug.to_string slug))
       end;
       local_storage##setItem (js "composer.name") (js t.name);
       local_storage##setItem (js "composer.kind") (js t.kind);
@@ -161,10 +163,11 @@ let load t =
         (fun versions ->
           String.split_on_char ';' (Js.to_string versions)
           |> List.filter (fun s -> s <> " " && s <> "")
+          |> List.map Slug.unsafe_of_string
           |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
       >>= (fun () ->
       Js.Opt.case deviser (fun () -> Lwt.return ())
-        (fun deviser -> set_deviser t (Js.to_string deviser))))
+        (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
 
 let erase_storage _ =
   Js.Optdef.case Html.window##.localStorage

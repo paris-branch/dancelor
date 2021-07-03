@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 
@@ -34,25 +35,25 @@ let dispatch url =
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
   | ["version"; slug] ->
-    pack (module VersionViewer) (VersionViewer.create slug)
+    pack (module VersionViewer) (VersionViewer.create (Slug.unsafe_of_string slug))
   | ["tune"; slug] ->
-    pack (module TuneViewer) (TuneViewer.create slug)
+    pack (module TuneViewer) (TuneViewer.create (Slug.unsafe_of_string slug))
   | ["set"; "all"] ->
     pack (module SetExplorer) SetExplorer.create
   | ["set"; "compose"] ->
     pack (module ComposerInterface) ComposerInterface.create
   | ["set"; slug] ->
-    pack (module SetViewer) (SetViewer.create slug)
+    pack (module SetViewer) (SetViewer.create (Slug.unsafe_of_string slug))
   | ["book"; "all"] ->
     pack (module BookExplorer) BookExplorer.create
   | ["book"; slug] ->
-    pack (module BookViewer) (BookViewer.create slug)
+    pack (module BookViewer) (BookViewer.create (Slug.unsafe_of_string slug))
   | ["credit"; "add"] ->
     pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
   | ["credit"; slug] ->
-    pack (module CreditViewer) (CreditViewer.create slug)
+    pack (module CreditViewer) (CreditViewer.create (Slug.unsafe_of_string slug))
   | ["person"; slug] ->
-    pack (module PersonViewer) (PersonViewer.create slug)
+    pack (module PersonViewer) (PersonViewer.create (Slug.unsafe_of_string slug))
   | [] ->
     pack (module Index) Index.create
   | _ ->

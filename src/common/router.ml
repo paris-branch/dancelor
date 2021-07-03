@@ -76,12 +76,12 @@ let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
              (
                let suffix = String.sub path (i+1) (String.length path - i-1) in
                match ext with
-               | None -> slug_to_controller suffix
+               | None -> slug_to_controller (Slug.unsafe_of_string suffix)
                | Some ext ->
                   let ext = "." ^ ext in
                   if Filename.check_suffix suffix ext then
                     (
-                      slug_to_controller (Filename.chop_suffix suffix ext)
+                      slug_to_controller (Slug.unsafe_of_string (Filename.chop_suffix suffix ext))
                     )
                   else
                     None
@@ -94,7 +94,8 @@ let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
   ),
   (
     controller_to_slug >=>? fun slug ->
-    Some (meth_to_match, prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext))
+      let slug = Slug.to_string slug in
+      Some (meth_to_match, prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext))
   )
 
 let routes : route list =

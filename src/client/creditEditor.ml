@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_model
 
@@ -7,7 +8,7 @@ let js = Js.string
 
 type cached_person = {
   person : Person.t;
-  slug : string
+  slug : Person.t Slug.t
 }
 
 type t = {
