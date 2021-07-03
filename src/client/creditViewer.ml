@@ -21,7 +21,10 @@ let create slug page =
 
   Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
 
-      h2 ~classes:["title"] [ text_lwt (credit_lwt >>=| Credit.line) ];
+      h2 ~classes:["title"] [
+        text_lwt (credit_lwt >>=| Credit.line);
+        text " (Credit)"
+      ];
 
       div ~classes:["section"] [
         p_lwt (
