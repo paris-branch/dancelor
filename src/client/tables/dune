@@ -8,5 +8,6 @@
     dancelor.common
     dancelor.client.model
     dancelor.client.elements
+    dancelor.client.html
     dancelor.client.formatters
     dancelor.nes))

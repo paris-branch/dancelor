@@ -36,7 +36,8 @@ let make_dance_result ~prefix page dance =
       Table.Cell.text ~text:(Dance.kind dance >|= Kind.dance_to_string) page ;
       Table.Cell.create ~content:(
         let%lwt deviser = Dance.deviser dance in
-        Formatters.Credit.line deviser page
+        let%lwt content = Formatters.Credit.line deviser in
+        Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
       ) page ;
     ]
   in
@@ -57,7 +58,10 @@ let make_book_result ~prefix page book =
   let href = Lwt.return (Helpers.build_path ~route:(Router.Book slug) ()) in
   let cells =
     prefix @ [
-      Table.Cell.create ~colspan:3 ~content:(Formatters.Book.title_and_subtitle book page) page
+      Table.Cell.create ~colspan:3 ~content:(
+        let%lwt content = Formatters.Book.title_and_subtitle book in
+        Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
+      ) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -71,7 +75,8 @@ let make_set_result ~prefix page set =
       Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page ;
       Table.Cell.create ~content:(
         let%lwt deviser = Set.deviser set in
-        Formatters.Credit.line deviser page
+        let%lwt content = Formatters.Credit.line deviser in
+        Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
       ) page;
     ]
   in
@@ -96,7 +101,8 @@ let make_tune_result ~prefix page tune =
       Table.Cell.text ~text:(Tune.kind tune >|= Kind.base_to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
         let%lwt author = Tune.author tune in
-        Formatters.Credit.line author page
+        let%lwt content = Formatters.Credit.line author in
+        Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
       ) page ;
     ]
   in
@@ -108,14 +114,20 @@ let make_version_result ~prefix page version =
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [
-      Table.Cell.create ~content:(Formatters.Version.name_and_disambiguation version page) page;
+      Table.Cell.create ~content:(
+        let%lwt content = Formatters.Version.name_and_disambiguation version in
+        Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
+      ) page;
       Table.Cell.text ~text:(
         let%lwt bars = Version.bars version in
         let%lwt kind = Tune.kind tune in
         let%lwt structure = Version.structure version in
         Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
-      Table.Cell.create ~content:(Formatters.Version.author_and_arranger version page) page;
+      Table.Cell.create ~content:(
+        let%lwt content = Formatters.Version.author_and_arranger version in
+        Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
+      ) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

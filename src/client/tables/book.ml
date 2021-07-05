@@ -22,7 +22,10 @@ let make books_lwt page =
          in
          let cells =
            let open Lwt in [
-             Table.Cell.create ~content:(Formatters.Book.title_and_subtitle book page) page;
+             Table.Cell.create ~content:(
+               let%lwt content = Formatters.Book.title_and_subtitle book in
+               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
+             ) page;
              Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page
            ]
          in

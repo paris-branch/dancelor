@@ -53,17 +53,14 @@ let create slug page =
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
-      h3 ~classes:["title"] [ text_lwt (Formatters.Set.works_lwt set_lwt) ];
+      h3_lwt ~classes:["title"] (set_lwt >>=| Formatters.Set.works);
       h3 ~classes:["title"] [ text_lwt (let open Lwt in set_lwt >>=| Set.kind >|= Kind.dance_to_pretty_string) ];
       h3_lwt ~classes:["title"] (
-        let%lwt nodes =
-          match%lwt set_lwt >>=| Set.deviser with
-          | None -> Lwt.return []
-          | Some deviser ->
-            let%lwt line_block = Formatters.Credit.line (Some deviser) page in
-            Lwt.return ((Formatters.text "Set devised by " page :> Dom.node Js.t) :: line_block)
-        in
-        Lwt.return (List.map node_of_dom_node nodes)
+        match%lwt set_lwt >>=| Set.deviser with
+        | None -> Lwt.return_nil
+        | Some deviser ->
+          let%lwt line_block = Formatters.Credit.line (Some deviser) in
+          Lwt.return (text "Set devised by " :: line_block)
       );
 
       div ~classes:["buttons"] (

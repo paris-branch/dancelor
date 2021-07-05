@@ -32,18 +32,10 @@ let create slug page =
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
-      h3 ~classes:["title"] [ text_lwt (Formatters.Tune.aka_lwt tune_lwt) ];
-      h3 ~classes:["title"] [ text_lwt (Formatters.Tune.recommended_lwt tune_lwt) ];
-      h3_lwt ~classes:["title"] (
-        let%lwt tune = tune_lwt in
-        let%lwt descr = Formatters.Tune.description tune page in
-        Lwt.return (List.map node_of_dom_node descr)
-      );
-      h3_lwt ~classes:["title"] (
-        let%lwt version = version_lwt in
-        let%lwt descr = Formatters.Version.description version page in
-        Lwt.return (List.map node_of_dom_node descr)
-      );
+      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
+      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.recommended);
+      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
+      h3_lwt ~classes:["title"] (version_lwt >>=| Formatters.Version.description);
 
       div ~classes:["buttons"] (
         let pdf_href, ly_href =

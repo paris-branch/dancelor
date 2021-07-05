@@ -8,4 +8,5 @@
     dancelor.common
     dancelor.client.model
     dancelor.client.elements
+    dancelor.client.html
     dancelor.nes))

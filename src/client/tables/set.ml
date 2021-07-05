@@ -26,10 +26,14 @@ let make sets_lwt page =
          in
          let cells =
            let open Lwt in [
-             Table.Cell.create ~content:(Formatters.Set.name_and_tunes set page) page;
+             Table.Cell.create ~content:(
+               let%lwt content = Formatters.Set.name_and_tunes set in
+               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
+             ) page;
              Table.Cell.create ~content:(
                let%lwt deviser = Set.deviser set in
-               Formatters.Credit.line deviser page
+               let%lwt content = Formatters.Credit.line deviser in
+               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
              ) page;
              Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page;
              Table.Cell.text ~text:(Lwt.return "") page]

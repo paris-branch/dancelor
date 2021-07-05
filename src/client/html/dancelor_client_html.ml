@@ -1,5 +1,4 @@
 open Js_of_ocaml
-module Html = Dom_html
 
 type dom_node = Dom.node Js.t
 type document = Dom_html.document Js.t
@@ -7,16 +6,19 @@ type document = Dom_html.document Js.t
 type node = document -> dom_node
 
 let node_of_dom_node dom_node =
-  fun _document -> dom_node
+  fun _document -> dom_node (* FIXME: assert that document is the same *)
 
-let append_nodes
-    (parent : #Dom.node Js.t)
-    (document : Html.document Js.t)
-    (children : (Html.document Js.t -> #Dom.node Js.t) list)
-  =
-  children
-  |> List.map ((|>) document)
-  |> List.iter (Dom.appendChild parent)
+let node_to_dom_node document node =
+  node document
+
+let nodes_to_dom_nodes document nodes =
+  List.map (node_to_dom_node document) nodes
+
+let append_node (parent : #Dom.node Js.t) (document : document) (node : node) =
+  Dom.appendChild parent (node_to_dom_node document node)
+
+let append_nodes (parent : #Dom.node Js.t) (document : document) (nodes : node list) =
+  List.iter (append_node parent document) nodes
 
 let text_lwt str_lwt (document : document) =
   let text = document##createTextNode (Js.string "") in
@@ -38,44 +40,49 @@ let elt_lwt create ?(classes=[]) children_lwt document =
   elt
 
 let h1_lwt ?classes children_lwt document =
-  (elt_lwt Html.createH1 ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createH1 ?classes children_lwt document :> dom_node)
 let h1 ?classes children document =
   h1_lwt ?classes (Lwt.return children) document
 
 let h2_lwt ?classes children_lwt document =
-  (elt_lwt Html.createH2 ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createH2 ?classes children_lwt document :> dom_node)
 let h2 ?classes children document =
   h2_lwt ?classes (Lwt.return children) document
 
 let h3_lwt ?classes children_lwt document =
-  (elt_lwt Html.createH3 ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createH3 ?classes children_lwt document :> dom_node)
 let h3 ?classes children document =
   h3_lwt ?classes (Lwt.return children) document
 
 let h4_lwt ?classes children_lwt document =
-  (elt_lwt Html.createH4 ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createH4 ?classes children_lwt document :> dom_node)
 let h4 ?classes children document =
   h4_lwt ?classes (Lwt.return children) document
 
 let h5_lwt ?classes children_lwt document =
-  (elt_lwt Html.createH5 ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createH5 ?classes children_lwt document :> dom_node)
 let h5 ?classes children document =
   h5_lwt ?classes (Lwt.return children) document
 
 let h6_lwt ?classes children_lwt document =
-  (elt_lwt Html.createH6 ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createH6 ?classes children_lwt document :> dom_node)
 let h6 ?classes children document =
   h6_lwt ?classes (Lwt.return children) document
 
 let p_lwt ?classes children_lwt document =
-  (elt_lwt Html.createP ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createP ?classes children_lwt document :> dom_node)
 let p ?classes children document =
   p_lwt ?classes (Lwt.return children) document
 
 let div_lwt ?classes children_lwt document =
-  (elt_lwt Html.createDiv ?classes children_lwt document :> dom_node)
+  (elt_lwt Dom_html.createDiv ?classes children_lwt document :> dom_node)
 let div ?classes children document =
   div_lwt ?classes (Lwt.return children) document
+
+let span_lwt ?classes children_lwt document =
+  (elt_lwt Dom_html.createSpan ?classes children_lwt document :> dom_node)
+let span ?classes children document =
+  span_lwt ?classes (Lwt.return children) document
 
 let a_lwt ?href ?href_lwt ?classes children_lwt document =
   let href_lwt =
@@ -84,7 +91,7 @@ let a_lwt ?href ?href_lwt ?classes children_lwt document =
     | Some href, None -> Lwt.return href
     | None, Some href_lwt -> href_lwt
   in
-  let a = elt_lwt Html.createA ?classes children_lwt document in
+  let a = elt_lwt Dom_html.createA ?classes children_lwt document in
   Lwt.on_success href_lwt (fun href ->
       a##.href := Js.string href);
   (a :> dom_node)
@@ -92,5 +99,5 @@ let a_lwt ?href ?href_lwt ?classes children_lwt document =
 let a ?href ?href_lwt ?classes children document =
   a_lwt ?href ?href_lwt ?classes (Lwt.return children) document
 
-let br document = (Html.createBr document :> dom_node)
-let hr document = (Html.createHr document :> dom_node)
+let br document = (Dom_html.createBr document :> dom_node)
+let hr document = (Dom_html.createHr document :> dom_node)

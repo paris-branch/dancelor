@@ -6,6 +6,10 @@ type document = Dom_html.document Js.t
 type node
 
 val node_of_dom_node : dom_node -> node
+val node_to_dom_node : document -> node -> dom_node
+val nodes_to_dom_nodes : document -> node list -> dom_node list
+
+val append_node : dom_node -> document -> node -> unit
 val append_nodes : dom_node -> document -> node list -> unit
 
 val text_lwt : string Lwt.t -> node
@@ -37,6 +41,9 @@ val p : node_maker
 
 val div_lwt : node_maker_lwt
 val div : node_maker
+
+val span_lwt : node_maker_lwt
+val span : node_maker
 
 val a_lwt : ?href:string -> ?href_lwt:string Lwt.t -> node_maker_lwt
 val a     : ?href:string -> ?href_lwt:string Lwt.t -> node_maker

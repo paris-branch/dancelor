@@ -29,7 +29,8 @@ let make tunes_lwt page =
              Table.Cell.text ~text:(Tune.kind tune >|= Kind.base_to_pretty_string ~capitalised:true) page ;
              Table.Cell.create ~content:(
                let%lwt author = Tune.author tune in
-               Formatters.Credit.line author page
+               let%lwt content = Formatters.Credit.line author in
+               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
              ) page ;
            ]
          in

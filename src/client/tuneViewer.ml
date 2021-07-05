@@ -20,13 +20,9 @@ let create slug page =
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
-      h3 ~classes:["title"] [ text_lwt (Formatters.Tune.aka_lwt tune_lwt) ];
-      h3 ~classes:["title"] [ text_lwt (Formatters.Tune.recommended_lwt tune_lwt) ];
-      h3_lwt ~classes:["title"] (
-        let%lwt tune = tune_lwt in
-        let%lwt dom_nodes = Formatters.Tune.description tune page in
-        Lwt.return (List.map node_of_dom_node dom_nodes)
-      );
+      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
+      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.recommended);
+      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
 
       div ~classes:["section"] [
         h3 [ text "Versions of This Tune" ];

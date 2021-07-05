@@ -27,10 +27,14 @@ let update_table t =
         in
         let cells =
           let open Lwt in [
-            Table.Cell.create ~content:(Formatters.Set.name_and_tunes set t.page) t.page;
+            Table.Cell.create ~content:(
+              let%lwt content = Formatters.Set.name_and_tunes set in
+              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+            ) t.page;
             Table.Cell.create ~content:(
               let%lwt deviser = Set.deviser set in
-              Formatters.Credit.line deviser t.page
+              let%lwt content = Formatters.Credit.line deviser in
+              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
             ) t.page;
             Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page;
             Table.Cell.text ~text:(Lwt.return "") t.page

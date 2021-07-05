@@ -31,9 +31,13 @@ let make versions_lwt page =
              Table.Cell.text ~text:(Version.disambiguation version) page;
              Table.Cell.create ~content:(
                let%lwt arranger = Version.arranger version in
-               Formatters.Credit.line arranger page
+               let%lwt content = Formatters.Credit.line arranger in
+               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
              ) page;
-             Table.Cell.text ~text:(tune >>= Formatters.Kind.full_string version) page;
+             Table.Cell.create ~content:(
+               let%lwt content = tune >>= Formatters.Kind.full_string version in
+               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
+             ) page;
              Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) page;
              Table.Cell.text ~text:(Version.structure version) page;
            ]

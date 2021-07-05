@@ -142,20 +142,30 @@ let update_table t =
       Version.all ~filter ~pagination ()
     in
     Lwt.return (List.map (fun version ->
-      let href =
-        let%lwt slug = Version.slug version in
-        Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-      in
-      let cells =
-        let tune = Version.tune version in
-        let open Lwt in [
-        Table.Cell.create ~content:(Formatters.Version.name_and_disambiguation version t.page) t.page;
-        Table.Cell.text ~text:(Formatters.Kind.full_string_lwt (Lwt.return version) tune) t.page;
-        Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;
-        Table.Cell.text ~text:(Version.structure version) t.page;
-        Table.Cell.create ~content:(Formatters.Version.author_and_arranger version t.page) t.page; ]
-      in
-      Table.Row.create ~href ~cells t.page) versions)
+        let href =
+          let%lwt slug = Version.slug version in
+          Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+        in
+        let cells =
+          let tune = Version.tune version in
+          let open Lwt in [
+            Table.Cell.create ~content:(
+              let%lwt content = Formatters.Version.name_and_disambiguation version in
+              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+            ) t.page;
+            Table.Cell.create ~content:(
+              let%lwt tune = tune in
+              let%lwt content = Formatters.Kind.full_string version tune in
+              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+            ) t.page;
+            Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;
+            Table.Cell.text ~text:(Version.structure version) t.page;
+            Table.Cell.create ~content:(
+              let%lwt content = Formatters.Version.author_and_arranger version in
+              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+            ) t.page; ]
+        in
+        Table.Row.create ~href ~cells t.page) versions)
   in
   let section = Table.Section.create ~rows t.page in
   Table.replace_bodies t.table (Lwt.return [section])
