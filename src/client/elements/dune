@@ -7,4 +7,5 @@
     cohttp-lwt-jsoo
     dancelor.common
     dancelor.client.model
+    dancelor.client.html
     dancelor.nes))

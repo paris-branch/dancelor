@@ -57,14 +57,13 @@ let create slug page =
       div ~classes:["section"] [
         h3 [ text "Previsualisation" ];
 
-        let source =
+        let src_lwt =
           spf "/%s%s"
             Constant.api_prefix
             (Router.path_of_controller (Router.VersionSvg slug) |> snd)
           |> Lwt.return
         in
-        let img = Image.create ~source page in
-        node_of_dom_node (Image.root img :> dom_node)
+        img ~src_lwt ();
       ];
 
       div ~classes:["section"] [

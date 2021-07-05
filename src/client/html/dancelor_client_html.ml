@@ -87,7 +87,7 @@ let span ?classes children document =
 let a_lwt ?href ?href_lwt ?classes children_lwt document =
   let href_lwt =
     match href, href_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_elements.H.a"
+    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.a"
     | Some href, None -> Lwt.return href
     | None, Some href_lwt -> href_lwt
   in
@@ -101,3 +101,15 @@ let a ?href ?href_lwt ?classes children document =
 
 let br document = (Dom_html.createBr document :> dom_node)
 let hr document = (Dom_html.createHr document :> dom_node)
+
+let img ?src ?src_lwt ?classes () document =
+  let src_lwt =
+    match src, src_lwt with
+    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.img"
+    | Some src, None -> Lwt.return src
+    | None, Some src_lwt -> src_lwt
+  in
+  let img = elt_lwt Dom_html.createImg ?classes Lwt.return_nil document in
+  Lwt.on_success src_lwt (fun src ->
+      img##.src := Js.string src);
+  (img :> dom_node)
