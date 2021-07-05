@@ -99,7 +99,7 @@ let create slug page =
       page
   in
 
-  Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
+  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.title) ];
       h3 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.subtitle) ];
 

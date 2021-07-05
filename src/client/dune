@@ -3,6 +3,7 @@
  (libraries
   js_of_ocaml-lwt
   cohttp-lwt-jsoo
+  dancelor.client.html
   dancelor.client.elements
   dancelor.client.tables
   dancelor.client.formatters

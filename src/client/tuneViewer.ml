@@ -20,7 +20,7 @@ let create slug page =
   let content = Html.createDiv document in
   let tune_lwt = Tune.get slug in
 
-  Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
+  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
       h3 ~classes:["title"] [ text_lwt (Formatters.Tune.aka_lwt tune_lwt) ];
       h3 ~classes:["title"] [ text_lwt (Formatters.Tune.recommended_lwt tune_lwt) ];

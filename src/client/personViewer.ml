@@ -19,7 +19,7 @@ let create slug page =
   let content = Html.createDiv document in
   let person_lwt = Person.get slug in
 
-  Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
+  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
 
       h2 ~classes:["title"] [
         text_lwt (person_lwt >>=| Person.name);

@@ -53,7 +53,7 @@ let create slug page =
   let t = {page; content; versions} in
   Lwt.on_success set_lwt (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));
 
-  Dancelor_client_elements.H.(append_nodes (content :> dom_node) (Page.document page) [
+  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
       h3 ~classes:["title"] [ text_lwt (Formatters.Set.works_lwt set_lwt) ];
       h3 ~classes:["title"] [ text_lwt (let open Lwt in set_lwt >>=| Set.kind >|= Kind.dance_to_pretty_string) ];
