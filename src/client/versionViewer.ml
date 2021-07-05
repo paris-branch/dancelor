@@ -5,19 +5,17 @@ open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
 
-module Html = Dom_html
-
 let js = Js.string
 
 type t =
   {
     page : Page.t;
-    content : Html.divElement Js.t;
+    content : Dom_html.divElement Js.t;
   }
 
 let create slug page =
   let document = Page.document page in
-  let content = Html.createDiv document in
+  let content = Dom_html.createDiv document in
   let version_lwt = Version.get slug in
   let tune_lwt = version_lwt >>=| Version.tune in
   let other_versions_lwt =

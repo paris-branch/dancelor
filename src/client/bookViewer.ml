@@ -5,14 +5,12 @@ open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
 
-module Html = Dom_html
-
 let js = Js.string
 
 type t =
   {
     page : Page.t;
-    content : Html.divElement Js.t;
+    content : Dom_html.divElement Js.t;
     table : Table.t;
   }
 
@@ -81,7 +79,7 @@ let display_contents t contents =
 
 let create slug page =
   let document = Page.document page in
-  let content = Html.createDiv document in
+  let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
 
   let header =

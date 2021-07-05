@@ -5,19 +5,17 @@ open Dancelor_client_elements
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
-module Html = Dom_html
-
 let js = Js.string
 
 type t =
 {
   page : Page.t;
-  content : Html.divElement Js.t;
+  content : Dom_html.divElement Js.t;
 }
 
 let create slug page =
   let document = Page.document page in
-  let content = Html.createDiv document in
+  let content = Dom_html.createDiv document in
   let tune_lwt = Tune.get slug in
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
@@ -51,7 +49,7 @@ let create slug page =
                 let%lwt slug = Version.slug (List.hd versions) in
                 Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
               in
-              Html.window##.location##.href := js href;
+              Dom_html.window##.location##.href := js href;
               Lwt.return_unit
             );
 
@@ -68,7 +66,7 @@ let create slug page =
 
         div_lwt (
           let none = (Page.document page)##createTextNode (js "") in
-          let none_maybe = Html.createP (Page.document page) in
+          let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
           Dom.appendChild content none_maybe;
 

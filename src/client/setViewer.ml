@@ -5,15 +5,13 @@ open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
 
-module Html = Dom_html
-
 let js = Js.string
 
 type t =
 {
   page : Page.t;
-  content : Html.divElement Js.t;
-  versions : Html.uListElement Js.t;
+  content : Dom_html.divElement Js.t;
+  versions : Dom_html.uListElement Js.t;
 }
 
 let display_versions_and_parameters t versions_and_parameters =
@@ -28,7 +26,7 @@ let display_versions_and_parameters t versions_and_parameters =
          Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
        in
        let name = Text.Link.create ~href ~text:(tune >>=| Tune.name) t.page in
-       let title = Html.createH4 (Page.document t.page) in
+       let title = Dom_html.createH4 (Page.document t.page) in
        Dom.appendChild title (Text.Link.root name);
 
        let source =
@@ -45,10 +43,10 @@ let display_versions_and_parameters t versions_and_parameters =
 
 let create slug page =
   let document = Page.document page in
-  let content = Html.createDiv document in
+  let content = Dom_html.createDiv document in
   let set_lwt = Set.get slug in
 
-  let versions = Html.createUl (Page.document page) in
+  let versions = Dom_html.createUl (Page.document page) in
   versions##.textContent := Js.some (js "Loading tunes...");
   let t = {page; content; versions} in
   Lwt.on_success set_lwt (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));

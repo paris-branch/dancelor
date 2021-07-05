@@ -4,19 +4,17 @@ open Dancelor_client_elements
 open Dancelor_client_model
 open Dancelor_common
 
-module Html = Dom_html
-
 let js = Js.string
 
 type t =
   {
     page : Page.t;
-    content : Html.divElement Js.t;
+    content : Dom_html.divElement Js.t;
   }
 
 let create slug page =
   let document = Page.document page in
-  let content = Html.createDiv document in
+  let content = Dom_html.createDiv document in
   let credit_lwt = Credit.get slug in
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
