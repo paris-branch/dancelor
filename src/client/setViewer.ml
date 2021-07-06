@@ -138,9 +138,7 @@ let create slug page =
             if books = [] then
               p [ text "There are no books containing this set." ]
             else
-              node_of_dom_node
-                (Table.root (Dancelor_client_tables.Book.make books_lwt page)
-                 :> dom_node)
+              Dancelor_client_tables.Book.make books
           ]
         )
       ]

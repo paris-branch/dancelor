@@ -1,45 +1,30 @@
-open Dancelor_client_elements
-open Dancelor_client_model
 open Dancelor_common
+open Dancelor_client_model
+open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
 
-let make books_lwt page =
-  let header =
-    Table.Row.create
-      ~cells:[
-        Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Books") ~text:(Lwt.return "Book") page;
-        Table.Cell.header_text ~text:(Lwt.return "Date") page]
-      page
-  in
+let make books =
+  table ~classes:["separated-table"; "visible"] [
+    thead [
+      tr [
+        td [ text "Book" ];
+        td [ text "Date" ];
+      ]
+    ];
 
-  let rows =
-    let%lwt books = books_lwt in
-    List.map
-      (fun book ->
-         let href =
-           let%lwt slug = Book.slug book in
-           Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
-         in
-         let cells =
-           let open Lwt in [
-             Table.Cell.create ~content:(
-               let%lwt content = Formatters.Book.title_and_subtitle book in
-               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
-             ) page;
-             Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page
+    tbody (
+      List.map
+        (fun book ->
+           let href_lwt =
+             let%lwt slug = Book.slug book in
+             Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+           in
+
+           tr ~classes:["clickable"] [
+             td [ a_lwt ~href_lwt ~classes:["fill"] (Formatters.Book.title_and_subtitle book) ];
+             td [ a ~href_lwt ~classes:["fill"] [ text_lwt (let open Lwt in Book.date book >|= NesDate.to_string) ] ]
            ]
-         in
-         Table.Row.create ~href ~cells page)
-      books
-    |> Lwt.return
-  in
-
-  let section = Table.Section.create ~rows page in
-  let table = Table.create
-      ~kind:Table.Kind.Separated
-      ~header
-      ~contents:(Lwt.return [section])
-      page
-  in
-
-  table
+        )
+        books
+    )
+  ]

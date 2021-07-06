@@ -140,20 +140,17 @@ let create slug page =
         h3 [ text "Books in Which This Version Appears" ];
 
         div_lwt (
-          let books_lwt =
+          let%lwt books =
             let%lwt version = version_lwt in
             let filter = Book.Filter.memVersionDeep version in
             Book.all ~filter ()
           in
-          let%lwt books = books_lwt in
 
           Lwt.return [
             if books = [] then
               text "There are no books containing this version."
             else
-              node_of_dom_node
-                (Table.root (Dancelor_client_tables.Book.make books_lwt page)
-                 :> dom_node)
+              Dancelor_client_tables.Book.make books
           ]
         );
 
