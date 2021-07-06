@@ -97,7 +97,7 @@ let create slug page =
       ]
       page
   in
-  let table = Table.create
+  let ttable = Table.create
       ~header
       ~kind:Table.Kind.Separated
       page
@@ -222,11 +222,11 @@ let create slug page =
       div ~classes:["section"] [
         h3 [ text "Contents" ];
 
-        node_of_dom_node (Table.root table :> dom_node)
+        node_of_dom_node (Table.root ttable :> dom_node)
       ]
     ]);
 
-  let t = {page; content; table} in
+  let t = {page; content; table=ttable} in
   Lwt.on_success book_lwt (fun prog -> Lwt.on_success (Book.contents prog) (display_contents t));
   t
 

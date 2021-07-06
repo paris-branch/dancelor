@@ -29,60 +29,50 @@ let text_lwt str_lwt (document : document) =
 let text str document =
   text_lwt (Lwt.return str) document
 
-type node_maker_lwt = ?classes:string list -> node list Lwt.t -> node
-type node_maker = ?classes:string list -> node list -> node
+type 'children node_maker = ?classes:string list -> 'children -> node
 
-let elt_lwt create ?(classes=[]) children_lwt document =
+type std_node_maker_lwt = node list Lwt.t node_maker
+type std_node_maker     = node list       node_maker
+
+let gen_node_lwt create ?(classes=[]) children_lwt document =
   let (elt : 'element Js.t) = create document in
   List.iter (fun class_ -> elt##.classList##add (Js.string class_)) classes;
   Lwt.on_success children_lwt (fun children ->
       append_nodes elt document children);
   elt
 
-let h1_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createH1 ?classes children_lwt document :> dom_node)
-let h1 ?classes children document =
-  h1_lwt ?classes (Lwt.return children) document
+let node_lwt create ?classes children_lwt document =
+  (gen_node_lwt create ?classes children_lwt document :> dom_node)
 
-let h2_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createH2 ?classes children_lwt document :> dom_node)
-let h2 ?classes children document =
-  h2_lwt ?classes (Lwt.return children) document
+let node create ?classes children document =
+  node_lwt create ?classes (Lwt.return children) document
 
-let h3_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createH3 ?classes children_lwt document :> dom_node)
-let h3 ?classes children document =
-  h3_lwt ?classes (Lwt.return children) document
+let h1_lwt = node_lwt Dom_html.createH1
+let h1     = node     Dom_html.createH1
 
-let h4_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createH4 ?classes children_lwt document :> dom_node)
-let h4 ?classes children document =
-  h4_lwt ?classes (Lwt.return children) document
+let h2_lwt = node_lwt Dom_html.createH2
+let h2     = node     Dom_html.createH2
 
-let h5_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createH5 ?classes children_lwt document :> dom_node)
-let h5 ?classes children document =
-  h5_lwt ?classes (Lwt.return children) document
+let h3_lwt = node_lwt Dom_html.createH3
+let h3     = node     Dom_html.createH3
 
-let h6_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createH6 ?classes children_lwt document :> dom_node)
-let h6 ?classes children document =
-  h6_lwt ?classes (Lwt.return children) document
+let h4_lwt = node_lwt Dom_html.createH4
+let h4     = node     Dom_html.createH4
 
-let p_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createP ?classes children_lwt document :> dom_node)
-let p ?classes children document =
-  p_lwt ?classes (Lwt.return children) document
+let h5_lwt = node_lwt Dom_html.createH5
+let h5     = node     Dom_html.createH5
 
-let div_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createDiv ?classes children_lwt document :> dom_node)
-let div ?classes children document =
-  div_lwt ?classes (Lwt.return children) document
+let h6_lwt = node_lwt Dom_html.createH6
+let h6     = node     Dom_html.createH6
 
-let span_lwt ?classes children_lwt document =
-  (elt_lwt Dom_html.createSpan ?classes children_lwt document :> dom_node)
-let span ?classes children document =
-  span_lwt ?classes (Lwt.return children) document
+let p_lwt = node_lwt Dom_html.createP
+let p     = node     Dom_html.createP
+
+let div_lwt = node_lwt Dom_html.createDiv
+let div     = node     Dom_html.createDiv
+
+let span_lwt = node_lwt Dom_html.createSpan
+let span     = node     Dom_html.createSpan
 
 let a_lwt ?href ?href_lwt ?classes children_lwt document =
   let href_lwt =
@@ -91,13 +81,46 @@ let a_lwt ?href ?href_lwt ?classes children_lwt document =
     | Some href, None -> Lwt.return href
     | None, Some href_lwt -> href_lwt
   in
-  let a = elt_lwt Dom_html.createA ?classes children_lwt document in
+  let a = gen_node_lwt Dom_html.createA ?classes children_lwt document in
   Lwt.on_success href_lwt (fun href ->
       a##.href := Js.string href);
   (a :> dom_node)
 
 let a ?href ?href_lwt ?classes children document =
   a_lwt ?href ?href_lwt ?classes (Lwt.return children) document
+
+let table_lwt = node_lwt Dom_html.createTable
+let table     = node     Dom_html.createTable
+
+let thead_lwt = node_lwt Dom_html.createThead
+let thead     = node     Dom_html.createThead
+
+let tbody_lwt = node_lwt Dom_html.createTbody
+let tbody     = node     Dom_html.createTbody
+
+let tfoot_lwt = node_lwt Dom_html.createTfoot
+let tfoot     = node     Dom_html.createTfoot
+
+let tr_lwt = node_lwt Dom_html.createTr
+let tr     = node     Dom_html.createTr
+
+let td_lwt ?colspan ?rowspan ?classes children_lwt document =
+  let td = gen_node_lwt Dom_html.createTd ?classes children_lwt document in
+  (match colspan with None -> () | Some colspan -> td##.colSpan := colspan);
+  (match rowspan with None -> () | Some rowspan -> td##.rowSpan := rowspan);
+  (td :> dom_node)
+
+let td ?colspan ?rowspan ?classes children document =
+  td_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
+
+let th_lwt ?colspan ?rowspan ?classes children_lwt document =
+  let th = gen_node_lwt Dom_html.createTh ?classes children_lwt document in
+  (match colspan with None -> () | Some colspan -> th##.colSpan := colspan);
+  (match rowspan with None -> () | Some rowspan -> th##.rowSpan := rowspan);
+  (th :> dom_node)
+
+let th ?colspan ?rowspan ?classes children document =
+  th_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
 
 let br document = (Dom_html.createBr document :> dom_node)
 let hr document = (Dom_html.createHr document :> dom_node)
@@ -109,7 +132,7 @@ let img ?src ?src_lwt ?classes () document =
     | Some src, None -> Lwt.return src
     | None, Some src_lwt -> src_lwt
   in
-  let img = elt_lwt Dom_html.createImg ?classes Lwt.return_nil document in
+  let img = gen_node_lwt Dom_html.createImg ?classes Lwt.return_nil document in
   Lwt.on_success src_lwt (fun src ->
       img##.src := Js.string src);
   (img :> dom_node)
