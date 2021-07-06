@@ -82,7 +82,7 @@ let create slug page =
 
           Lwt.return [
             if tunes = [] then
-              text "There are no tunes composed by this credit."
+              text "There are no tunes composed by this person."
             else
               node_of_dom_node (
                 Table.root (Dancelor_client_tables.Tune.make tunes_lwt page)
@@ -105,7 +105,7 @@ let create slug page =
 
           Lwt.return [
             if sets = [] then
-              text "There are no sets containing this version."
+              text "There are no sets devised by this person."
             else
               node_of_dom_node (
                 Table.root (Dancelor_client_tables.Set.make sets_lwt page)

@@ -11,45 +11,12 @@ type t =
 {
   page : Page.t;
   content : Dom_html.divElement Js.t;
-  versions : Dom_html.uListElement Js.t;
 }
-
-let display_versions_and_parameters t versions_and_parameters =
-  t.versions##.textContent := Js.null;
-  List.iter
-    (fun (version, _parameters) ->
-       (* FIXME: use parameters *)
-       let tune = Version.tune version in
-       let slug = Version.slug version in
-       let href =
-         let%lwt slug = slug in
-         Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-       in
-       let name = Text.Link.create ~href ~text:(tune >>=| Tune.name) t.page in
-       let title = Dom_html.createH4 (Page.document t.page) in
-       Dom.appendChild title (Text.Link.root name);
-
-       let source =
-         Lwt.map (fun slug ->
-             spf "/%s%s"
-               Constant.api_prefix
-               (Router.path_of_controller (Router.VersionSvg slug) |> snd))
-           slug
-       in
-       let img = Image.create ~source t.page in
-       Dom.appendChild t.versions title;
-       Dom.appendChild t.versions (Image.root img))
-    versions_and_parameters
 
 let create slug page =
   let document = Page.document page in
   let content = Dom_html.createDiv document in
   let set_lwt = Set.get slug in
-
-  let versions = Dom_html.createUl (Page.document page) in
-  versions##.textContent := Js.some (js "Loading tunes...");
-  let t = {page; content; versions} in
-  Lwt.on_success set_lwt (fun set -> Lwt.on_success (Set.versions_and_parameters set) (display_versions_and_parameters t));
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
@@ -128,10 +95,32 @@ let create slug page =
       div ~classes:["section"] [
         h3 [ text "Previsualisation" ];
 
-        div [
-          (* FIXME *)
-          node_of_dom_node (versions :> dom_node)
-        ];
+        div_lwt (
+          let%lwt set = set_lwt in
+          let%lwt versions_and_parameters = Set.versions_and_parameters set in
+
+          Lwt_list.map_p
+            (fun (version, _parameters) ->
+               (* FIXME: use parameters *)
+               let%lwt tune = Version.tune version in
+               let%lwt slug = Version.slug version in
+
+               Lwt.return (div ~classes:["image-container"] [
+                   (let href =
+                      Router.path_of_controller (Router.Version slug) |> snd
+                    in
+                    h4 [ a ~href [ text_lwt (Tune.name tune) ] ]);
+
+                   (let src =
+                      spf "/%s%s"
+                        Constant.api_prefix
+                        (Router.path_of_controller (Router.VersionSvg slug) |> snd)
+                    in
+                    img ~src ())
+                 ])
+            )
+            versions_and_parameters
+        );
       ];
 
       div ~classes:["section"] [
@@ -147,7 +136,7 @@ let create slug page =
 
           Lwt.return [
             if books = [] then
-              text "There are no books containing this set."
+              p [ text "There are no books containing this set." ]
             else
               node_of_dom_node
                 (Table.root (Dancelor_client_tables.Book.make books_lwt page)
@@ -157,7 +146,7 @@ let create slug page =
       ]
     ]);
 
-  t
+  {page; content}
 
 let contents t =
   t.content

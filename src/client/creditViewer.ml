@@ -109,7 +109,7 @@ let create slug page =
 
           Lwt.return [
             if sets = [] then
-              text "There are no sets containing this version."
+              text "There are no sets devised by this credit."
             else
               node_of_dom_node (
                 Table.root (Dancelor_client_tables.Set.make sets_lwt page)
