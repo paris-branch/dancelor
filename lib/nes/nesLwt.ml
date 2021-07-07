@@ -6,5 +6,5 @@ let compose f g =
 module Syntax = struct
   let (>>=|) = bind
   let (>=>|) = compose
-  let (<&>|) = map
+  let (>|=|) p f = map f p
 end

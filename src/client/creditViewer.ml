@@ -77,21 +77,17 @@ let create slug page =
         h3 [ text "Tunes Composed" ];
 
         div_lwt (
-          let tunes_lwt =
+          let%lwt tunes =
             let%lwt credit = credit_lwt in
             let filter = Formula.(pred (Tune.Filter.Author (pred (Credit.Filter.Is credit)))) in
             Tune.all ~filter ()
           in
-          let%lwt tunes = tunes_lwt in
 
           Lwt.return [
             if tunes = [] then
               text "There are no tunes composed by this credit."
             else
-              node_of_dom_node (
-                Table.root (Dancelor_client_tables.Tune.make tunes_lwt page)
-                :> dom_node
-              )
+              Dancelor_client_tables.tunes tunes
           ]
         );
       ];
@@ -100,21 +96,17 @@ let create slug page =
         h3 [ text "Sets Devised" ];
 
         div_lwt (
-          let sets_lwt =
+          let%lwt sets =
             let%lwt credit = credit_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.is credit) in
             Set.all ~filter ()
           in
-          let%lwt sets = sets_lwt in
 
           Lwt.return [
             if sets = [] then
               text "There are no sets devised by this credit."
             else
-              node_of_dom_node (
-                Table.root (Dancelor_client_tables.Set.make sets_lwt page)
-                :> dom_node
-              )
+              Dancelor_client_tables.sets sets
           ]
         );
       ]]);

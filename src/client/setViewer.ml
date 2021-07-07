@@ -21,7 +21,7 @@ let create slug page =
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
       h3_lwt ~classes:["title"] (set_lwt >>=| Formatters.Set.works);
-      h3 ~classes:["title"] [ text_lwt (let open Lwt in set_lwt >>=| Set.kind >|= Kind.dance_to_pretty_string) ];
+      h3 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.kind >|=| Kind.dance_to_pretty_string) ];
       h3_lwt ~classes:["title"] (
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
@@ -138,7 +138,7 @@ let create slug page =
             if books = [] then
               p [ text "There are no books containing this set." ]
             else
-              Dancelor_client_tables.Book.make books
+              Dancelor_client_tables.books books
           ]
         )
       ]

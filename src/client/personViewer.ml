@@ -84,10 +84,7 @@ let create slug page =
             if tunes = [] then
               text "There are no tunes composed by this person."
             else
-              node_of_dom_node (
-                Table.root (Dancelor_client_tables.Tune.make tunes_lwt page)
-                :> dom_node
-              )
+              Dancelor_client_tables.tunes tunes
           ]
         )
       ];
@@ -96,21 +93,17 @@ let create slug page =
         h3 [ text "Sets Devised" ];
 
         div_lwt (
-          let sets_lwt =
+          let%lwt sets =
             let%lwt person = person_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.memPerson person) in
             Set.all ~filter ()
           in
-          let%lwt sets = sets_lwt in
 
           Lwt.return [
             if sets = [] then
               text "There are no sets devised by this person."
             else
-              node_of_dom_node (
-                Table.root (Dancelor_client_tables.Set.make sets_lwt page)
-                :> dom_node
-              )
+              Dancelor_client_tables.sets sets
           ]
         )
       ];

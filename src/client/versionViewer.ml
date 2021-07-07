@@ -77,9 +77,7 @@ let create slug page =
               [ p [ text "There are no other versions available for this tune." ] ]
             else
               [
-                node_of_dom_node
-                  (Table.root (Dancelor_client_tables.Version.make other_versions_lwt page)
-                   :> dom_node);
+                Dancelor_client_tables.versions other_versions;
 
                 let href_lwt =
                   let%lwt tune = tune_lwt in
@@ -111,9 +109,7 @@ let create slug page =
             if sets = [] then
               text "There are no sets containing this version."
             else
-              node_of_dom_node
-                (Table.root (Dancelor_client_tables.Set.make sets_lwt page)
-                 :> dom_node)
+              Dancelor_client_tables.sets sets
           ]
         );
 
@@ -150,7 +146,7 @@ let create slug page =
             if books = [] then
               text "There are no books containing this version."
             else
-              Dancelor_client_tables.Book.make books
+              Dancelor_client_tables.books books
           ]
         );
 

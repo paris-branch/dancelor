@@ -49,11 +49,7 @@ let create slug page =
               Lwt.return_unit
             );
 
-          Lwt.return [
-            node_of_dom_node
-              (Table.root (Dancelor_client_tables.Version.make versions_lwt page)
-               :> dom_node)
-          ]
+          Lwt.return [ Dancelor_client_tables.versions versions ]
         )
       ];
 
@@ -77,9 +73,7 @@ let create slug page =
             if sets = [] then
               text "There are no sets containing this tune."
             else
-              node_of_dom_node
-                (Table.root (Dancelor_client_tables.Set.make sets_lwt page)
-                 :> dom_node)
+              Dancelor_client_tables.sets sets
           ]
         )
       ];
@@ -98,7 +92,7 @@ let create slug page =
             if books = [] then
               text "There are no books containing this tune."
             else
-              Dancelor_client_tables.Book.make books
+              Dancelor_client_tables.books books
           ]
         )
       ]
