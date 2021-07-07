@@ -18,71 +18,102 @@ val append_nodes : dom_node -> document -> node list -> unit
 
 (** {2 Elements Builders} *)
 
-type 'children node_maker = ?classes:string list -> 'children -> node
+(** {3 Raw Text}
 
-(** {3 Raw Text} *)
+   Raw text is not {i per se} an HTML element; it does not support attributes.
+   It is the only element that actually shows text. *)
 
+val text     : string       -> node
 val text_lwt : string Lwt.t -> node
-val text : string -> node
+
+(** {3 Node Maker Types}
+
+   There are several kinds of makers sharing a very similar interface. The only
+   difference is that they receive their children in different ways, mainly as a
+   list or as a delayed list. *)
+
+type 'children node_maker = ?classes:string list -> 'children -> node
+(** Common type for all node maker elements (except {!text} above). *)
+
+type std_node_maker = node list node_maker
+(** Type for node makers that directly receive their children as a list. *)
+
+type std_node_maker_lwt = node list Lwt.t node_maker
+(** Type for node makers that receive their children as a delayed list. *)
 
 (** {3 Elements With Children} *)
 
-type std_node_maker_lwt = node list Lwt.t node_maker
-type std_node_maker     = node list       node_maker
+val h1 : std_node_maker
+(** Create a first-level title element [<h1></h1>]. *)
 
 val h1_lwt : std_node_maker_lwt
-val h1     : std_node_maker
+(** Same as {!h1} except it receives children as a delayed list. *)
 
-val h2_lwt : std_node_maker_lwt
 val h2     : std_node_maker
+val h2_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for second-level title elements [<h2></h2>]. *)
 
-val h3_lwt : std_node_maker_lwt
 val h3     : std_node_maker
+val h3_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for third-level title elements [<h3></h3>]. *)
 
-val h4_lwt : std_node_maker_lwt
 val h4     : std_node_maker
+val h4_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for fourth-level title elements [<h4></h4>]. *)
 
-val h5_lwt : std_node_maker_lwt
 val h5     : std_node_maker
+val h5_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for fifth-level title elements [<h5></h5>]. *)
 
-val h6_lwt : std_node_maker_lwt
 val h6     : std_node_maker
+val h6_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for sixth-level title elements [<h6></h6>]. *)
 
-val p_lwt : std_node_maker_lwt
 val p     : std_node_maker
+val p_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for paragraph elements [<p></p>]. *)
 
-val div_lwt : std_node_maker_lwt
 val div     : std_node_maker
+val div_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for div elements [<div></div>]. *)
 
-val span_lwt : std_node_maker_lwt
 val span     : std_node_maker
+val span_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for span elements [<span></span>]. *)
 
-val a_lwt : ?href:string -> ?href_lwt:string Lwt.t -> std_node_maker_lwt
+val table     : std_node_maker
+val table_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table elements [<table></table>]. *)
+
+val thead     : std_node_maker
+val thead_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table header elements [<thead></thead>]. *)
+
+val tbody     : std_node_maker
+val tbody_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table body elements [<tbody></tbody>]. *)
+
+val tfoot     : std_node_maker
+val tfoot_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table footer elements [<tfoot></tfoot>]. *)
+
+val tr     : std_node_maker
+val tr_lwt : std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table row elements [<tr></tr>]. *)
+
+val td     : ?colspan:int -> ?rowspan:int -> std_node_maker
+val td_lwt : ?colspan:int -> ?rowspan:int -> std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table cell elements [<td></td>]. *)
+
+val th     : ?colspan:int -> ?rowspan:int -> std_node_maker
+val th_lwt : ?colspan:int -> ?rowspan:int -> std_node_maker_lwt
+(** Same as {!h1} and {!h1_lwt} for table header cell elements [<th></th>]. *)
+
 val a     : ?href:string -> ?href_lwt:string Lwt.t -> std_node_maker
+val a_lwt : ?href:string -> ?href_lwt:string Lwt.t -> std_node_maker_lwt
 (** Create an anchor element [<a></a>].
 
-    @raises Invalid_argument if none or both [?href] and [?href_lwt] are set. *)
-
-val table_lwt : std_node_maker_lwt
-val table     : std_node_maker
-
-val thead_lwt : std_node_maker_lwt
-val thead     : std_node_maker
-
-val tbody_lwt : std_node_maker_lwt
-val tbody     : std_node_maker
-
-val tfoot_lwt : std_node_maker_lwt
-val tfoot     : std_node_maker
-
-val tr_lwt : std_node_maker_lwt
-val tr     : std_node_maker
-
-val td_lwt : ?colspan:int -> ?rowspan:int -> std_node_maker_lwt
-val td     : ?colspan:int -> ?rowspan:int -> std_node_maker
-
-val th_lwt : ?colspan:int -> ?rowspan:int -> std_node_maker_lwt
-val th     : ?colspan:int -> ?rowspan:int -> std_node_maker
+    @raise Invalid_argument if none or both [?href] and [?href_lwt] are set. *)
 
 (** {3 Elements With No Children} *)
 
@@ -92,4 +123,4 @@ val br : node
 val img : ?src:string -> ?src_lwt:string Lwt.t -> unit node_maker
 (** Create an image element [<img/>].
 
-    @raises Invalid_argument if none or both [?src] and [?src_lwt] are set. *)
+    @raise Invalid_argument if none or both [?src] and [?src_lwt] are set. *)
