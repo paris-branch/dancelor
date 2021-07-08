@@ -19,17 +19,19 @@ end
 
 module Credit = struct
 
-  let line credit =
+  let line ?(link=false) credit =
     match credit with
     | None -> Lwt.return_nil
     | Some credit ->
-      let href_lwt =
-        let%lwt slug = M.Credit.slug credit in
-        Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
-      in
-      Lwt.return [
-        (a ~href_lwt [ text_lwt (M.Credit.line credit) ])
-      ]
+      let text = [ text_lwt (M.Credit.line credit) ] in
+      if link then
+        let href_lwt =
+          let%lwt slug = M.Credit.slug credit in
+          Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
+        in
+        Lwt.return [ a ~href_lwt text ]
+      else
+        Lwt.return text
 
 end
 
@@ -188,12 +190,12 @@ module Version = struct
       span_lwt ~classes:["dim"; "details"] sources_lwt
     ]
 
-  let author_and_arranger ?(short=true) version =
+  let author_and_arranger ?(short=true) ?link version =
     let%lwt author_block =
       let%lwt tune = M.Version.tune version in
       match%lwt M.Tune.author tune with
       | None -> Lwt.return_nil
-      | Some author -> Credit.line (Some author)
+      | Some author -> Credit.line ?link (Some author)
     in
     let has_author =
       let%lwt tune = M.Version.tune version in
@@ -207,7 +209,7 @@ module Version = struct
       | Some arranger ->
         let%lwt comma = if%lwt has_author then Lwt.return ", " else Lwt.return "" in
         let arr = if short then "arr." else "arranged by" in
-        let%lwt arranger_block = Credit.line (Some arranger) in
+        let%lwt arranger_block = Credit.line ?link (Some arranger) in
         Lwt.return [
           span ~classes:["dim"] ([ text (spf "%s%s " comma arr) ] @ arranger_block)
         ]

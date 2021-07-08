@@ -105,9 +105,12 @@ let make_version_search_result composer page score =
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
       Table.Cell.create ~content:(
-        let%lwt content = Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version in
-        Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content
-        |> Lwt.return
+        Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version
+        >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
+      ) page;
+      Table.Cell.create ~content:(
+        Dancelor_client_formatters.Version.author_and_arranger ~link:false version
+        >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
       ) page;
       Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
       Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
