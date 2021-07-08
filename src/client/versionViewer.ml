@@ -57,13 +57,15 @@ let create slug page =
       div ~classes:["section"] [
         h3 [ text "Previsualisation" ];
 
-        let src_lwt =
-          spf "/%s%s"
-            Constant.api_prefix
-            (Router.path_of_controller (Router.VersionSvg slug) |> snd)
-          |> Lwt.return
-        in
-        img ~src_lwt ();
+        div ~classes:["image-container"] [
+          let src_lwt =
+            spf "/%s%s"
+              Constant.api_prefix
+              (Router.path_of_controller (Router.VersionSvg slug) |> snd)
+            |> Lwt.return
+          in
+          img ~src_lwt ();
+        ]
       ];
 
       div ~classes:["section"] [
