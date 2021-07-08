@@ -117,16 +117,19 @@ module Version = struct
     in
     Lwt.return ([text shape] @ arranger_block @ disambiguation_block)
 
-  let name version =
-    let href_lwt =
-      let%lwt slug = M.Version.slug version in
-      Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-    in
-    let name = M.Version.tune version >>=| M.Tune.name in
-    Lwt.return [ a ~href_lwt [ text_lwt name ] ]
+  let name ?(link=true) version =
+    let name_lwt = M.Version.tune version >>=| M.Tune.name in
+    if link then
+      let href_lwt =
+        let%lwt slug = M.Version.slug version in
+        Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+      in
+      Lwt.return [ a ~href_lwt [ text_lwt name_lwt ] ]
+    else
+      Lwt.return [ text_lwt name_lwt ]
 
-  let name_and_disambiguation version =
-    let%lwt name_block = name version in
+  let name_and_disambiguation ?link version =
+    let%lwt name_block = name ?link version in
     let%lwt disambiguation_block =
       match%lwt M.Version.disambiguation version with
       | "" -> Lwt.return_nil
@@ -135,6 +138,31 @@ module Version = struct
         ]
     in
     Lwt.return (name_block @ disambiguation_block)
+
+  let name_disambiguation_and_sources ?link version =
+    let sources_lwt =
+      let%lwt sources =
+        let filter = M.Book.Filter.(
+            M.Formula.and_ (memVersionDeep version) isSource
+          )
+        in
+        M.Book.all ~filter ()
+      in
+      match%lwt Lwt_list.map_p Book.short_title sources with
+      | [] -> Lwt.return_nil
+      | [title] -> Lwt.return (text "Source: " :: title)
+      | titles ->
+        titles
+        |> List.intertwine (fun _ -> [text " - "])
+        |> List.flatten
+        |> List.cons (text "Sources: ")
+        |> Lwt.return
+    in
+    let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
+    Lwt.return (
+      name_and_disambiguation
+      @ [ span_lwt ~classes:["dim"; "details"] sources_lwt ]
+    )
 
   let disambiguation_and_sources version =
     let sources_lwt =
