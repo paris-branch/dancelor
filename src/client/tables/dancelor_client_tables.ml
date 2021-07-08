@@ -62,7 +62,7 @@ let versions versions =
     Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
   in
   clickable_row ~href_lwt [
-    Lwt.return [ text_lwt (Version.disambiguation version) ];
+    (Formatters.Version.disambiguation_and_sources version);
     (Version.arranger version >>=| Formatters.Credit.line);
     (tune_lwt >>=| Formatters.Kind.full_string version);
     Lwt.return [ text_lwt (Version.key version >|=| Music.key_to_pretty_string) ];

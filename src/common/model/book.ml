@@ -16,21 +16,26 @@ type t =
     short_title : string    [@default ""] [@key "short-title"] ;
     date        : Date.t    [@default Date.none] ;
     contents    : page_slug list ;
+    source      : bool      [@default false] ;
     remark      : string    [@default ""] }
 [@@deriving yojson]
 
 let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
 let title p = Lwt.return p.title
+let short_title p = if p.short_title = "" then title p else Lwt.return p.short_title
 let subtitle p = Lwt.return p.subtitle
 let date p = Lwt.return p.date
 let contents p = Lwt.return p.contents
+let source p = Lwt.return p.source
 let remark p = Lwt.return p.remark
 
 let equal book1 book2 =
   let%lwt slug1 = slug book1 in
   let%lwt slug2 = slug book2 in
   Lwt.return (Slug.equal slug1 slug2)
+
+let is_source p = source p
 
 let contains_set slug1 p =
   List.exists
@@ -66,6 +71,7 @@ module Filter = struct
 
   type predicate =
     | Is of t
+    | IsSource
     | ExistsVersion of Version.Filter.t
     | ExistsSet of Set.Filter.t
     | ExistsInlineSet of Set.Filter.t
@@ -75,6 +81,7 @@ module Filter = struct
   [@@deriving yojson]
 
   let is book = Formula.pred (Is book)
+  let isSource = Formula.pred IsSource
   let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
   let memVersion version = existsVersion (Version.Filter.is version)
   let existsSet sfilter = Formula.pred (ExistsSet sfilter)

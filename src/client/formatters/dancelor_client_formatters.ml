@@ -74,6 +74,27 @@ module Tune = struct
 
 end
 
+module Book = struct
+
+  let title_and_subtitle book =
+    let%lwt subtitle_block =
+      match%lwt M.Book.subtitle book with
+      | "" -> Lwt.return_nil
+      | subtitle -> Lwt.return [
+          span ~classes:["details"] [ text subtitle ]
+        ]
+    in
+    Lwt.return ([ text_lwt (M.Book.title book) ] @ subtitle_block)
+
+  let short_title book =
+    let href_lwt =
+      let%lwt slug = M.Book.slug book in
+      Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+    in
+    Lwt.return [ a ~href_lwt [ text_lwt (M.Book.short_title book) ] ]
+
+end
+
 module Version = struct
 
   let description version =
@@ -114,6 +135,30 @@ module Version = struct
         ]
     in
     Lwt.return (name_block @ disambiguation_block)
+
+  let disambiguation_and_sources version =
+    let sources_lwt =
+      let%lwt sources =
+        let filter = M.Book.Filter.(
+            M.Formula.and_ (memVersionDeep version) isSource
+          )
+        in
+        M.Book.all ~filter ()
+      in
+      match%lwt Lwt_list.map_p Book.short_title sources with
+      | [] -> Lwt.return_nil
+      | [title] -> Lwt.return (text "Source: " :: title)
+      | titles ->
+        titles
+        |> List.intertwine (fun _ -> [text " - "])
+        |> List.flatten
+        |> List.cons (text "Sources: ")
+        |> Lwt.return
+    in
+    Lwt.return [
+      text_lwt (M.Version.disambiguation version);
+      span_lwt ~classes:["dim"; "details"] sources_lwt
+    ]
 
   let author_and_arranger ?(short=true) version =
     let%lwt author_block =
@@ -163,8 +208,8 @@ module Set = struct
           versions_and_parameters
       in
       versions
+      |> List.intertwine (fun _ -> [text " - "])
       |> List.flatten
-      |> List.intertwine (fun _ -> text " - ")
       |> List.cons (text "Tunes: ")
       |> Lwt.return
     in
@@ -172,19 +217,5 @@ module Set = struct
       text_lwt (M.Set.name set) ;
       span ~classes:["dim"; "details"] versions
     ]
-
-end
-
-module Book = struct
-
-  let title_and_subtitle book =
-    let%lwt subtitle_block =
-      match%lwt M.Book.subtitle book with
-      | "" -> Lwt.return_nil
-      | subtitle -> Lwt.return [
-          span ~classes:["details"] [ text subtitle ]
-        ]
-    in
-    Lwt.return ([ text_lwt (M.Book.title book) ] @ subtitle_block)
 
 end

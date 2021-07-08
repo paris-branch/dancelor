@@ -11,6 +11,7 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val title : t -> string Lwt.t
 val subtitle : t -> string Lwt.t
+val short_title : t -> string Lwt.t
 val date : t -> Date.t Lwt.t
 val contents : t -> page list Lwt.t
 val remark : t -> string Lwt.t

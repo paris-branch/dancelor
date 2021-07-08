@@ -83,6 +83,9 @@ module Filter = struct
     | Is book' ->
       equal book book'
 
+    | IsSource ->
+      is_source book
+
     | ExistsVersion vfilter ->
       let%lwt content = contents book in
       let%lwt versions =
