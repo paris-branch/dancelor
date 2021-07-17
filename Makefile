@@ -31,5 +31,6 @@ check-tunes: build
 
 clean:
 	dune clean
+	rm -f *.opam
 	rm -f bin doc
 	rm -f share/static/dancelor
