@@ -24,6 +24,20 @@ let create slug page =
         text " (Credit)"
       ];
 
+      div_lwt ~classes:["section"] (
+        match%lwt credit_lwt >>=| Credit.scddb_id with
+        | None -> Lwt.return_nil
+        | Some scddb_id ->
+          let href = spf "https://my.strathspey.org/dd/person/%d/" scddb_id in
+          Lwt.return [
+            p [
+              text "You can ";
+              a ~href ~target:Blank [ text "see this credit on the Strathspey Database" ];
+              text "."
+            ]
+          ]
+      );
+
       div ~classes:["section"] [
         p_lwt (
           let%lwt credit = credit_lwt in

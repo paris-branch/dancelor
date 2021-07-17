@@ -74,7 +74,9 @@ let div     = node     Dom_html.createDiv
 let span_lwt = node_lwt Dom_html.createSpan
 let span     = node     Dom_html.createSpan
 
-let a_lwt ?href ?href_lwt ?classes children_lwt document =
+type target = Blank | Self | Parent | Top | Frame of string
+
+let a_lwt ?href ?href_lwt ?target ?classes children_lwt document =
   let href_lwt =
     match href, href_lwt with
     | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.a"
@@ -84,10 +86,20 @@ let a_lwt ?href ?href_lwt ?classes children_lwt document =
   let a = gen_node_lwt Dom_html.createA ?classes children_lwt document in
   Lwt.on_success href_lwt (fun href ->
       a##.href := Js.string href);
+  (match target with
+   | None -> ()
+   | Some target ->
+     a##.target := Js.string
+         (match target with
+          | Blank -> "_blank"
+          | Self -> "_self"
+          | Parent -> "_parent"
+          | Top -> "_top"
+          | Frame name -> name));
   (a :> dom_node)
 
-let a ?href ?href_lwt ?classes children document =
-  a_lwt ?href ?href_lwt ?classes (Lwt.return children) document
+let a ?href ?href_lwt ?target ?classes children document =
+  a_lwt ?href ?href_lwt ?target ?classes (Lwt.return children) document
 
 let table_lwt = node_lwt Dom_html.createTable
 let table     = node     Dom_html.createTable

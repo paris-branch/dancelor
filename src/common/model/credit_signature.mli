@@ -6,6 +6,7 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val line : t -> string Lwt.t
 val persons : t -> Person.t list Lwt.t
+val scddb_id : t -> int option Lwt.t
 
 val is_trad : t -> bool
 

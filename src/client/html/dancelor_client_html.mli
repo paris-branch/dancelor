@@ -109,8 +109,10 @@ val th     : ?colspan:int -> ?rowspan:int -> std_node_maker
 val th_lwt : ?colspan:int -> ?rowspan:int -> std_node_maker_lwt
 (** Same as {!h1} and {!h1_lwt} for table header cell elements [<th></th>]. *)
 
-val a     : ?href:string -> ?href_lwt:string Lwt.t -> std_node_maker
-val a_lwt : ?href:string -> ?href_lwt:string Lwt.t -> std_node_maker_lwt
+type target = Blank | Self | Parent | Top | Frame of string
+
+val a     : ?href:string -> ?href_lwt:string Lwt.t -> ?target:target -> std_node_maker
+val a_lwt : ?href:string -> ?href_lwt:string Lwt.t -> ?target:target -> std_node_maker_lwt
 (** Create an anchor element [<a></a>].
 
     @raise Invalid_argument if none or both [?href] and [?href_lwt] are set. *)
