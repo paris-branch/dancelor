@@ -23,7 +23,7 @@ let call ~endpoint query_builder =
   let add_opt_arg = add_opt_arg query in
   query_builder add_arg add_opt_arg;
   let%lwt (response, body) =
-    Cohttp_lwt_xhr.Client.call
+    Cohttp_lwt_jsoo.Client.call
       (endpoint_meth endpoint)
       (Uri.make ~path:(!prefix ^ endpoint_path endpoint) ~query:!query ())
   in
