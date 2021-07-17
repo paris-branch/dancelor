@@ -7,6 +7,7 @@ module Person = Table.Make (
     include Model.Person
 
     let dependencies _ = Lwt.return []
+    let standalone = false
   end)
 
 module Credit = Table.Make (
@@ -17,6 +18,8 @@ module Credit = Table.Make (
     let%lwt persons = persons credit in
     List.map (Table.make_slug_and_table (module Person)) persons
     |> Lwt.return
+
+  let standalone = false
   end)
 
 module Source = Table.Make (
@@ -24,6 +27,7 @@ module Source = Table.Make (
     include Model.Source
 
     let dependencies _ = Lwt.return []
+    let standalone = false
   end)
 
 module Dance = Table.Make (
@@ -34,6 +38,8 @@ module Dance = Table.Make (
       match%lwt deviser dance with
       | None -> Lwt.return_nil
       | Some deviser -> Lwt.return [Table.make_slug_and_table (module Credit) deviser]
+
+    let standalone = false
   end)
 
 module Tune = Table.Make (
@@ -48,6 +54,8 @@ module Tune = Table.Make (
           | None -> Fun.id
           | Some author -> List.cons (Table.make_slug_and_table (module Credit) author))
       |> Lwt.return
+
+    let standalone = false
   end)
 
 module Version = Table.Make (
@@ -64,6 +72,8 @@ module Version = Table.Make (
           | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
       |> List.cons (Table.make_slug_and_table (module Tune) tune)
       |> Lwt.return
+
+    let standalone = true
   end)
 
 module Set = Table.Make (
@@ -79,6 +89,8 @@ module Set = Table.Make (
           | None -> Fun.id
           | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
       |> Lwt.return
+
+    let standalone = true
   end)
 
 module Book = Table.Make (
@@ -93,6 +105,8 @@ module Book = Table.Make (
           | Set (s, _) -> Lwt.return_some (Table.make_slug_and_table (module Set) s)
           | _ -> Lwt.return_none)
         contents
+
+    let standalone = true
   end)
 
 module Storage = Storage
@@ -158,6 +172,15 @@ module Initialise = struct
     | None -> Lwt.return ()
     | Some problem -> Dancelor_common.Error.fail problem
 
+  let report_without_accesses version =
+    Log.info (fun m -> m "Checking for unaccessible entries");
+    List.iter
+      (fun (module Table : Table.S) ->
+         if not Table.standalone then
+           Table.report_without_accesses ~version)
+      tables;
+    Lwt.return ()
+
   let establish_version version =
     Log.info (fun m -> m "Establishing new version");
     let () =
@@ -172,6 +195,7 @@ module Initialise = struct
     create_tables version;
     load_tables version; %lwt
     check_dependency_problems version; %lwt
+    report_without_accesses version; %lwt
     establish_version version;
     Lwt.return_unit
 end

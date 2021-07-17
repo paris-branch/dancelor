@@ -45,6 +45,8 @@ module type S = sig
   val list_dependency_problems : version:Version.t -> Dancelor_common.Error.t list Lwt.t
   val report_without_accesses : version:Version.t -> unit (* FIXME *)
 
+  val standalone : bool
+
   val establish_version : version:Version.t -> unit
 
   (* The establish_version introduces the notion of a default version of the
@@ -89,6 +91,9 @@ module type Model = sig
 
   val dependencies : t -> slug_and_table list Lwt.t
 
+  val standalone : bool
+  (** Whether entries of this table make sense on their own. *)
+
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
 
@@ -101,6 +106,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   module Log = (val Dancelor_server_logs.create ("database." ^ Model._key) : Logs.LOG)
 
   let _key = Model._key
+  let standalone = Model.standalone
 
   type value = Model.t
 
@@ -213,10 +219,10 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> Seq.iter
       (fun (stats, model) ->
          if Stats.get_accesses stats = 0 then
-           Log.warn (fun m -> Lwt.async (fun () ->
+           Lwt.async (fun () ->
                let%lwt slug = Model.slug model in
-               m "Without access: %s / %a" Model._key Slug.pp slug;
-               Lwt.return ()))) (* FIXME *)
+               Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp slug);
+               Lwt.return ()))
 
   let get ?version slug =
     match%lwt get_opt ?version slug with
