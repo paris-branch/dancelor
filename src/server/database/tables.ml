@@ -2,36 +2,32 @@ open Nes
 
 module Model = Dancelor_common_model
 
-module Person = Table.Make (
-  struct
+module Person = Table.Make (struct
     include Model.Person
 
     let dependencies _ = Lwt.return []
     let standalone = false
   end)
 
-module Credit = Table.Make (
-  struct
+module Credit = Table.Make (struct
     include Model.Credit
 
-  let dependencies credit =
-    let%lwt persons = persons credit in
-    List.map (Table.make_slug_and_table (module Person)) persons
-    |> Lwt.return
+    let dependencies credit =
+      let%lwt persons = persons credit in
+      List.map (Table.make_slug_and_table (module Person)) persons
+      |> Lwt.return
 
-  let standalone = false
+    let standalone = false
   end)
 
-module Source = Table.Make (
-  struct
+module Source = Table.Make (struct
     include Model.Source
 
     let dependencies _ = Lwt.return []
     let standalone = false
   end)
 
-module Dance = Table.Make (
-  struct
+module Dance = Table.Make (struct
     include Model.Dance
 
     let dependencies dance =
@@ -42,8 +38,7 @@ module Dance = Table.Make (
     let standalone = false
   end)
 
-module Tune = Table.Make (
-  struct
+module Tune = Table.Make (struct
     include Model.Tune
 
     let dependencies tune =
@@ -58,8 +53,7 @@ module Tune = Table.Make (
     let standalone = false
   end)
 
-module Version = Table.Make (
-  struct
+module Version = Table.Make (struct
     include Model.Version
 
     let dependencies version =
@@ -76,8 +70,7 @@ module Version = Table.Make (
     let standalone = true
   end)
 
-module Set = Table.Make (
-  struct
+module Set = Table.Make (struct
     include Model.Set
 
     let dependencies set =
@@ -93,18 +86,20 @@ module Set = Table.Make (
     let standalone = true
   end)
 
-module Book = Table.Make (
-  struct
+module Book = Table.Make (struct
     include Model.Book
 
     let dependencies book =
       let%lwt contents = contents book in
-      Lwt_list.filter_map_p
-        (function
-          | (Version (v, _) : page_slug) -> Lwt.return_some (Table.make_slug_and_table (module Version) v)
-          | Set (s, _) -> Lwt.return_some (Table.make_slug_and_table (module Set) s)
-          | _ -> Lwt.return_none)
-        contents
+      let%lwt dependencies =
+        Lwt_list.filter_map_p
+          (function
+            | (Version (v, _) : page_slug) -> Lwt.return_some (Table.make_slug_and_table (module Version) v)
+            | Set (s, _) -> Lwt.return_some (Table.make_slug_and_table (module Set) s)
+            | _ -> Lwt.return_none)
+          contents
+      in
+      Lwt.return dependencies
 
     let standalone = true
   end)
