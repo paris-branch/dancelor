@@ -39,7 +39,11 @@ done
 
 clean () { make clean; }
 pull () { git pull; }
-opam_deps () { opam update; opam install . --deps-only; }
+opam_deps () {
+    opam update
+    dune build &>/dev/null || true
+    opam install . --deps-only
+}
 build () { make release; }
 serve () { bin/dancelor-server --config share/config.json; }
 
