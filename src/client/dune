@@ -1,5 +1,6 @@
 (executables
  (names main)
+ (modes js)
  (libraries
   js_of_ocaml-lwt
   cohttp-lwt-jsoo
