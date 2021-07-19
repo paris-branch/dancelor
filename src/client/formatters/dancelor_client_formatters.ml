@@ -51,7 +51,7 @@ module Tune = struct
         text ("Traditional " ^ kind)
       ]
     | Some author ->
-      let%lwt line_block = Credit.line (Some author) in
+      let%lwt line_block = Credit.line ~link:true (Some author) in
       Lwt.return (
         [text (String.capitalize_ascii kind ^ " by ")]
         @ line_block
