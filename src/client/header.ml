@@ -25,7 +25,7 @@ let create page =
     Dom.appendChild toggle icon;
     toggle
   in
-  let title = 
+  let title =
     Text.Heading.h1_static ~text:(Lwt.return "Dancelor") page
     |> Text.Link.h1 ~href:(Lwt.return "/")
   in
