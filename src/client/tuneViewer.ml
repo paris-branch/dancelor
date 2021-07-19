@@ -18,6 +18,13 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let tune_lwt = Tune.get slug in
 
+  Lwt.async (fun () ->
+      let%lwt tune = tune_lwt in
+      let%lwt name = Tune.name tune in
+      document##.title := js (name ^ " | Tune | Dancelor");
+      Lwt.return ()
+    );
+
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);

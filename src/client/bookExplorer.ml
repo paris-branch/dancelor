@@ -16,6 +16,9 @@ type t =
 
 let create page =
   let document = Page.document page in
+
+  document##.title := js "All Books | Dancelor";
+
   let content = Html.createDiv document in
   let title = Html.createH2 document in
   title##.textContent := Js.some (js "All Books");

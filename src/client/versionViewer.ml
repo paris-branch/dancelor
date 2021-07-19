@@ -18,6 +18,14 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let version_lwt = Version.get slug in
   let tune_lwt = version_lwt >>=| Version.tune in
+
+  Lwt.async (fun () ->
+      let%lwt tune = tune_lwt in
+      let%lwt name = Tune.name tune in
+      document##.title := js (name ^ " | Tune | Dancelor");
+      Lwt.return ()
+    );
+
   let other_versions_lwt =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in

@@ -88,6 +88,14 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
 
+  Lwt.async (fun () ->
+      let%lwt book = book_lwt in
+      let%lwt title = Book.title book in
+      document##.title := js (title ^ " | Book | Dancelor");
+      Lwt.return ()
+    );
+
+
   let header =
     Table.Row.create
       ~cells:[

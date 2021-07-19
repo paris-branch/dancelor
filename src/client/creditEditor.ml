@@ -33,7 +33,7 @@ let set_name t name =
 let count t =
   t.count
 
-let set_field t i v = 
+let set_field t i v =
   match t.persons.(i) with
   | Some (`Edit _) -> t.persons.(i) <- Some (`Edit v)
   | _ -> assert false
@@ -53,10 +53,10 @@ let insert t data i =
     let%lwt person = Person.get slug in
     t.persons.(min t.count i) <- Some (`Person {person; slug});
     Lwt.return ()
-  | `New str -> 
+  | `New str ->
     t.persons.(min t.count i) <- Some (`Edit str);
     Lwt.return ()
-    
+
 let add t slug =
   insert t slug t.count
 
@@ -87,18 +87,18 @@ let move_down t i =
   move_up t (i+1)
 
 let fold t f acc =
-  let rec aux acc i = 
+  let rec aux acc i =
     if i < 0 then Lwt.return acc
     else begin
       match t.persons.(i) with
       | None -> aux acc (i-1)
-      | Some person -> 
+      | Some person ->
         Lwt.bind (f i person acc) (fun acc' -> aux acc' (i-1))
     end
   in
   aux acc (t.count - 1)
 
-let iter t f = 
+let iter t f =
   for i = 0 to t.count - 1 do
     match t.persons.(i) with
     | None -> ()
@@ -114,13 +114,13 @@ let clear t =
 
 let submit t =
   let save_and_get_person = function
-    | `Edit name -> 
-      Person.make_and_save ~name () 
-    | `Person p -> 
+    | `Edit name ->
+      Person.make_and_save ~name ()
+    | `Person p ->
       Lwt.return p.person
   in
-  let%lwt persons = 
-    fold t (fun _ person acc -> 
+  let%lwt persons =
+    fold t (fun _ person acc ->
       Lwt.map (fun p -> p :: acc) (save_and_get_person person))
       []
   in

@@ -17,6 +17,13 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let person_lwt = Person.get slug in
 
+  Lwt.async (fun () ->
+      let%lwt person = person_lwt in
+      let%lwt name = Person.name person in
+      document##.title := js (name ^ " | Person | Dancelor");
+      Lwt.return ()
+    );
+
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
 
       h2 ~classes:["title"] [

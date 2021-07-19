@@ -18,6 +18,13 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let set_lwt = Set.get slug in
 
+  Lwt.async (fun () ->
+      let%lwt set = set_lwt in
+      let%lwt title = Set.name set in
+      document##.title := js (title ^ " | Set | Dancelor");
+      Lwt.return ()
+    );
+
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
       h3_lwt ~classes:["title"] (set_lwt >>=| Formatters.Set.works);

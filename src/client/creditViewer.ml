@@ -17,6 +17,13 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let credit_lwt = Credit.get slug in
 
+  Lwt.async (fun () ->
+      let%lwt credit = credit_lwt in
+      let%lwt line = Credit.line credit in
+      document##.title := js (line ^ " | Credit | Dancelor");
+      Lwt.return ()
+    );
+
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
 
       h2 ~classes:["title"] [

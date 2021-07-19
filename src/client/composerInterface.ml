@@ -158,6 +158,8 @@ let make_deviser_search_result composer page score =
   Lwt.return row
 
 let create page =
+  (Page.document page)##.title := js "Compose a Set | Dancelor";
+
   let composer = Composer.create () in
   let content = Html.createDiv (Page.document page) in
   let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in

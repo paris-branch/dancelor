@@ -245,6 +245,9 @@ let fill_search t =
 
 let create page =
   let document = Page.document page in
+
+  document##.title := js "All Tunes";
+
   let content = Html.createDiv document in
   let title = Text.Heading.h2_static ~text:(Lwt.return "All Tunes") page in
   Dom.appendChild content (Text.Heading.root title);
