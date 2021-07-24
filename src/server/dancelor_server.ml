@@ -54,6 +54,7 @@ let apply_controller path =
     "/set/",        ".pdf", C Set.Pdf.get ;
     "/version/",    ".ly",  C Version.get_ly ;
     "/version/",    ".svg", C Version.Svg.get ;
+    "/version/",    ".ogg", C Version.Ogg.get ;
     "/version/",    ".pdf", C Version.Pdf.get ]
   |> List.map
     (fun (prefix, suffix, controller) ->

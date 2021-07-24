@@ -90,7 +90,7 @@ module Pdf = struct
     let path = Filename.concat !Dancelor_server_config.cache "version" in
     prepare_ly_file ~show_meta:true ~meta_in_title:true
       ~fname:(Filename.concat path fname_ly) version; %lwt
-      Log.debug (fun m -> m "Processing with LilyPond");
+    Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.run ~exec_path:path fname_ly; %lwt
     Lwt.return (Filename.concat path fname_pdf)
 
@@ -99,4 +99,24 @@ module Pdf = struct
     let%lwt version = Version.get version in
     let%lwt path_pdf = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
+end
+
+module Ogg = struct
+  let render version =
+    let%lwt (fname_ly, fname_ogg) =
+      let%lwt slug = Version.slug version in
+      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      Lwt.return (fname^".ly", fname^".ogg")
+    in
+    let path = Filename.concat !Dancelor_server_config.cache "version" in
+    prepare_ly_file ~fname:(Filename.concat path fname_ly) version; %lwt
+      Log.debug (fun m -> m "Processing with LilyPond");
+    LilyPond.ogg ~exec_path:path fname_ly; %lwt
+    Lwt.return (Filename.concat path fname_ogg)
+
+  let get version _ =
+    Log.debug (fun m -> m "Version.Ogg.get %a" Slug.pp version);
+    let%lwt version = Version.get version in
+    let%lwt path_ogg = render version in
+    Cohttp_lwt_unix.Server.respond_file ~fname:path_ogg ()
 end

@@ -78,3 +78,15 @@ let cropped_svg ?lilypond_bin ?(exec_path=".") filename =
     ~exec_path
     ((Filename.chop_extension filename) ^ ".svg")
     ~output:((Filename.chop_extension filename) ^ ".cropped.svg")
+
+let ogg ?lilypond_bin ?(exec_path=".") filename =
+  run ?lilypond_bin ~exec_path filename; %lwt
+  try%lwt
+    NesProcess.run_ignore ~cwd:exec_path
+      ~on_wrong_status:Logs.Error
+      ~on_nonempty_stdout:Logs.Error
+      ~on_nonempty_stderr:Logs.Error
+      [ "timidity"; "-Ov"; "--quiet=7";
+        (Filename.chop_extension filename)^".midi" ]
+  with
+    Failure _ -> Lwt.return_unit
