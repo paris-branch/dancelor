@@ -28,6 +28,8 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     else
       "", ""
   in
+  let%lwt kind = Tune.kind tune in
+  let (tempo_unit, tempo_value) = Kind.base_tempo kind in
   Log.debug (fun m -> m "Getting content");
   let%lwt content = Version.content version in
   Log.debug (fun m -> m "Generating lilypond string");
@@ -42,7 +44,7 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     fpf fmt [%blob "template/repeat-volta-fancy.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus content
+    fpf fmt [%blob "template/version.ly"] piece opus tempo_unit tempo_value content
   in
   Log.debug (fun m -> m "Writing it to filesystem");
   Lwt_io.with_file ~mode:Output fname

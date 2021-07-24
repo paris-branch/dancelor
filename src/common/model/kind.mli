@@ -19,6 +19,10 @@ val base_to_pretty_string : ?capitalised:bool -> base -> string
 val base_to_yojson : base -> Json.t
 val base_of_yojson : Json.t -> (base, string) result
 
+val base_tempo : base -> string * int
+(** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
+   for reels. *)
+
 (** {2 Version Kind} *)
 
 type version = int * base

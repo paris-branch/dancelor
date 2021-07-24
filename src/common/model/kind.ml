@@ -52,6 +52,12 @@ let base_to_pretty_string ?(capitalised=false) base =
   )
   |> if capitalised then String.capitalize_ascii else Fun.id
 
+let base_tempo = function
+  | Jig -> ("4.", 108)
+  | Polka | Reel -> ("2", 108)
+  | Strathspey -> ("2", 60)
+  | Waltz -> ("2.", 96)
+
 (* ============================= [ Version Kind ] ============================== *)
 
 type version = int * base

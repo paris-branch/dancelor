@@ -4,5 +4,8 @@
     opus = "%s"
   }
 
+  \layout {}
+  \midi { \tempo %s = %d }
+
   %s
 }

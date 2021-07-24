@@ -1,0 +1,7 @@
+depexts: [
+  [ "timidity++" "freepats-general-midi"]
+    { os-distribution = "archlinux" }
+
+  [ "timidity" "freepats" ]
+    { os-distribution = "debian" }
+]
