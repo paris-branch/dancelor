@@ -76,6 +76,16 @@ let create slug page =
         ]
       ];
 
+      div ~classes:["audio-container"] [
+        let src_lwt =
+          spf "/%s%s"
+            Constant.api_prefix
+            (Router.path_of_controller (Router.VersionOgg slug) |> snd)
+          |> Lwt.return
+        in
+        audio ~src_lwt ~controls:true ()
+      ];
+
       div ~classes:["section"] [
         h3 [ text "Other Versions" ];
 

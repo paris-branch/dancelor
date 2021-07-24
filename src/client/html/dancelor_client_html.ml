@@ -141,10 +141,21 @@ let img ?src ?src_lwt ?classes () document =
   let src_lwt =
     match src, src_lwt with
     | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.img"
-    | Some src, None -> Lwt.return src
-    | None, Some src_lwt -> src_lwt
+    | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
   in
   let img = gen_node_lwt Dom_html.createImg ?classes Lwt.return_nil document in
   Lwt.on_success src_lwt (fun src ->
       img##.src := Js.string src);
   (img :> dom_node)
+
+let audio ?src ?src_lwt ?(controls=false) ?classes () document =
+  let src_lwt =
+    match src, src_lwt with
+    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.audio"
+    | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
+  in
+  let audio = gen_node_lwt Dom_html.createAudio ?classes Lwt.return_nil document in
+  audio##.controls := Js.bool controls;
+  Lwt.on_success src_lwt (fun src ->
+    audio##.src := Js.string src);
+  (audio :> dom_node)

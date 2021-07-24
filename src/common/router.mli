@@ -41,6 +41,7 @@ type controller =
   | VersionSearch
   | VersionLy of Version.t Slug.t
   | VersionSvg of Version.t Slug.t
+  | VersionOgg of Version.t Slug.t
   | VersionPdf of Version.t Slug.t
   | Version of Version.t Slug.t
 

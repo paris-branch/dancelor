@@ -126,3 +126,8 @@ val img : ?src:string -> ?src_lwt:string Lwt.t -> unit node_maker
 (** Create an image element [<img/>].
 
     @raise Invalid_argument if none or both [?src] and [?src_lwt] are set. *)
+
+val audio : ?src:string -> ?src_lwt:string Lwt.t -> ?controls:bool -> unit node_maker
+(** Create an audio element [<audio/>].
+
+    @raise Invalid_argument if none or both [?src] and [?src_lwt] are set. *)

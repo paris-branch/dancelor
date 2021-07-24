@@ -34,6 +34,7 @@ type controller =
   | VersionSearch
   | VersionLy of Version.t Slug.t
   | VersionSvg of Version.t Slug.t
+  | VersionOgg of Version.t Slug.t
   | VersionPdf of Version.t Slug.t
   | Version of Version.t Slug.t
 
@@ -236,6 +237,13 @@ let routes : route list =
     with_slug
       ~meth:`GET
       ~prefix:"/version"
+      ~ext:"ogg"
+      (fun version -> Some (VersionOgg version))
+      (function VersionOgg version -> Some version | _ -> None) ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/version"
       ~ext:"pdf"
       (fun version -> Some (VersionPdf version))
       (function VersionPdf version -> Some version | _ -> None) ;
@@ -245,11 +253,6 @@ let routes : route list =
       ~prefix:"/version"
       (fun version -> Some (Version version))
       (function Version version -> Some version | _ -> None) ;
-
-    direct
-      ~meth:`GET
-      ~path:"/blaireau"
-      Victor ;
 
     direct
       ~meth:`GET
