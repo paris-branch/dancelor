@@ -5,7 +5,14 @@
   }
 
   \layout {}
-  \midi { \tempo %s = %d }
 
   %s
+}
+
+%%%% FIXME
+#(set! make-music the-make-music)
+
+\score {
+  \midi { \tempo %s = %d }
+  \fancyUnfoldRepeats %s
 }

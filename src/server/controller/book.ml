@@ -39,7 +39,6 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
-      fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
       if parameters |> BookParameters.front_page then
         fpf fmt [%blob "template/book/book_front_page.ly"];

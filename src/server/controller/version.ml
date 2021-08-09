@@ -9,6 +9,7 @@ let get_ly version _ =
 
 let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
+  let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Version.tune version in
   let%lwt name = Tune.name tune in
   let%lwt author =
@@ -32,23 +33,35 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
   let (tempo_unit, tempo_value) = Kind.base_tempo kind in
   Log.debug (fun m -> m "Getting content");
   let%lwt content = Version.content version in
-  Log.debug (fun m -> m "Generating lilypond string");
+  Log.debug (fun m -> m "Generating Scheme & LilyPond string");
   let lilypond =
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/lyversion.ly"];
+    fpf fmt "#(load \"%s\")\n\n" (Filename.basename fname_scm);
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
     fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
     fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
-    fpf fmt [%blob "template/repeat-volta-fancy.ly"];
+    fpf fmt [%blob "template/fancy-unfold-repeats/fancy-unfold-repeats.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus tempo_unit tempo_value content
+    fpf fmt [%blob "template/version.ly"] piece opus content tempo_unit tempo_value content
   in
-  Log.debug (fun m -> m "Writing it to filesystem");
+  let scheme =
+    Format.with_formatter_to_string @@ fun fmt ->
+    fpf fmt [%blob "template/fancy-unfold-repeats/extlib.scm"];
+    fpf fmt [%blob "template/fancy-unfold-repeats/extlylib.scm"];
+    fpf fmt [%blob "template/fancy-unfold-repeats/total-durations.scm"];
+    fpf fmt [%blob "template/fancy-unfold-repeats/unfold-first-volta-repeat.scm"];
+    fpf fmt [%blob "template/fancy-unfold-repeats/extract-span.scm"];
+    fpf fmt [%blob "template/fancy-unfold-repeats/fancy-unfold-repeats.scm"]
+  in
+  Log.debug (fun m -> m "Writing them to filesystem");
   Lwt_io.with_file ~mode:Output fname
-    (fun ochan -> Lwt_io.write ochan lilypond)
+    (fun ochan -> Lwt_io.write ochan lilypond);%lwt
+  Lwt_io.with_file ~mode:Output fname_scm
+    (fun ochan -> Lwt_io.write ochan scheme)
 
 module Svg = struct
   let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
