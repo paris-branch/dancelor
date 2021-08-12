@@ -1,41 +1,3 @@
-(define (print-indent indent)
-  (if (> indent 0)
-      (begin
-        (display " ")
-        (print-indent (- indent 1)))))
-
-(define (print-types-aux indent music)
-  (display (ly:music-property music 'types))
-
-  (let ((total-duration (ly:music-property music 'niols-total-duration)))
-    (display " ")(display (ly:duration-length total-duration)))
-  (let ((element (ly:music-property music 'element))
-        (elements (ly:music-property music 'elements)))
-    (if (ly:music? element) (display " element"))
-    (if (not (null? elements)) (display " elements")))
-  (newline)
-
-  (let ((element (ly:music-property music 'element)))
-    (if (ly:music? element)
-        (begin
-          (print-indent indent)
-          (display "+ ")
-          (print-types-aux (+ indent 2) element))))
-
-  (map
-   (lambda (element)
-     (print-indent indent)
-     (display "- ")
-     (print-types-aux (+ indent 2) element))
-   (ly:music-property music 'elements)))
-
-(define (print-types music) (print-types-aux 0 music))
-
-
-
-
-
-
 
 (define (extract-next-group groups-and-musics duration)
   (let* ((groups (car groups-and-musics))
@@ -63,24 +25,6 @@
          (builder (list unfolded))))
 
       (else '()))))
-
-;; (define (fancy-unfold-repeats-one music)
-;;   (let ((first-volta (unfold-first-volta-repeat ly:moment-zero music)))
-;;     (case (cadr first-volta)
-;;       ((FoundVolta)
-;;        (let* ((music     (car first-volta))
-;;               (start     (caddr first-volta))
-;;               (times     (cadddr first-volta)) ;; number of repetitions of the volta
-;;               (durations (cddddr first-volta)))
-;;          (list 'Unfolded (unfold-absent-volta-repeat music times start durations))))
-;;       (else (list 'NoVolta)))))
-
-;; (define (fancy-unfold-repeats music)
-;;   (add-total-durations music)
-;;   (let ((result (fancy-unfold-repeats-one music)))
-;;     (case (car result)
-;;       ((Unfolded) (fancy-unfold-repeats (cadr result)))
-;;       ((NoVolta) music))))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
 

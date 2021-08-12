@@ -19,3 +19,18 @@
 
 (define (ly:moment-is-zero? m)
   (= (ly:moment-main-numerator m) 0))
+
+(define (event-chord-duration chord)
+  (let* ((notes (event-chord-notes chord))
+         (note  (car notes)))
+    (ly:music-property note 'duration)))
+
+(define (make-note-event pitch duration)
+  (make-music 'NoteEvent 'pitch pitch 'duration duration))
+
+(define (note-set-duration! note duration)
+  (ly:music-property note 'duration duration))
+
+(define (chord-set-duration! chord duration)
+  (let ((notes (ly:music-property chord 'elements)))
+    (map (lambda (note) (note-set-duration! note duration)) notes)))
