@@ -15,4 +15,10 @@
 (define (assert-singleton x)
   (if (and (list? x) (not (null? x)) (null? (cdr x)))
       (car x)
-      (ly:error "assert-singleton failed; the following list is not a singleton: ~a" x)))
+      (ly:error "assert-singleton: failed on: ~a" x)))
+
+(define (displayl . l)
+  (map display l))
+
+(define (flatten l)
+  (apply append l))

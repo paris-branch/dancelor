@@ -24,7 +24,16 @@
               (unfolded (make-repeat "unfold" times main alts)))
          (builder (list unfolded))))
 
-      (else '()))))
+      (else (ly:error "unfold-absent-volta-repeat")))))
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
+
+(define (split-at-start-and-durations music start durations)
+  (let ((music (split-rhythmic-event-at music start)))
+    (if (null? durations)
+        music
+        (let ((start (ly:moment-add start (car durations))))
+          (split-at-start-and-durations music start (cdr durations))))))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; ;;
 
@@ -35,7 +44,9 @@
        (let* ((main      (car main-result))
               (start     (caddr main-result))
               (times     (cadddr main-result)) ;; number of repetitions of the volta
-              (durations (cddddr main-result)))
+              (durations (cddddr main-result))
+
+              (others    (map (lambda (other) (split-at-start-and-durations other start durations)) others)))
 
          (append
           (list 'Unfolded main)
@@ -46,8 +57,6 @@
       (else (list 'NothingToDo)))))
 
 (define (fancy-unfold-repeats-here main others)
-  (add-total-durations main)
-  (map add-total-durations others)
   (let ((result (fancy-unfold-repeats-here-once main others)))
     (case (car result)
       ((Unfolded) (fancy-unfold-repeats-here (cadr result) (cddr result)))

@@ -57,12 +57,12 @@
        (else 'SpanContainedStrictly)))))
 
 (define (element-contains-span start element span-start span-duration)
-  (let* ((end      (ly:moment-add start      (get-total-length element)))
+  (let* ((end      (ly:moment-add start      (length-of-music element)))
          (span-end (ly:moment-add span-start  span-duration)))
     (contains-span start end span-start span-end)))
 
 (define (elements-contain-span start elements span-start span-duration)
-  (let* ((durations (map get-total-length elements))
+  (let* ((durations (map length-of-music elements))
          (end       (fold-left ly:moment-add start durations))
          (span-end  (ly:moment-add span-start  span-duration)))
     (contains-span start end span-start span-end)))
@@ -102,9 +102,6 @@
 ;;   Returns a list whose first element is a string behaving as a             ;;
 ;;   "constructor". The constructor can be:                                   ;;
 ;;                                                                            ;;
-;;   - [ShouldNotHappen], if we entered a case supposed to be impossible.     ;;
-;;     This means that there is a bug in the algorithm.                       ;;
-;;                                                                            ;;
 ;;   - [NotPossible], if there is no way to find a clean way to cut the       ;;
 ;;     required span in the given [music] object.                             ;;
 ;;                                                                            ;;
@@ -118,9 +115,8 @@
 
 (define (extract-span-seek start music span-start span-duration)
 
-  ;; FIXME: remove the simultaneous music!
   (if (music-is-of-type? music 'simultaneous-music)
-      (display "ALERT: SIMULTANEOUS MUSIC!!!\n"))
+      (ly:error "extract-span: unexpected simultaneous music"))
 
   ;; Have a look at how the span is contained in the [music] element.
   (let ((containment (element-contains-span start music span-start span-duration)))
@@ -138,7 +134,7 @@
                                'SpanOutsideAfter)))
 
          (case containment
-           ((SpanOutsideBefore) (list 'ShouldNotHappen))
+           ((SpanOutsideBefore) (ly:error "extract-span: reached case that should not happen in extract-span-seek (SpanOutsideBefore)"))
            ((SpanHasBadOverlap) (list 'NotPossible))
 
            ;; Should not happen but whatever.
@@ -156,7 +152,7 @@
            ;; if there is no element), then it must be in the elements (plural),
            ;; so we go have a look at them.
            ((SpanOutsideAfter)
-            (let* ((element-duration (if (ly:music? element) (get-total-length element) ly:moment-zero))
+            (let* ((element-duration (if (ly:music? element) (length-of-music element) ly:moment-zero))
                    (element-end      (ly:moment-add start element-duration))
                    (elements         (ly:music-property music 'elements)))
               (rebuild-if-needed
@@ -168,13 +164,13 @@
 (define (extract-span-seek-list start musics span-start span-duration)
 
   (if (null? musics)
-      'ShouldNotHappen
+      (ly:error "extract-span: reached case that should not happen in extract-span-seek-list (musics is null)")
 
       (let* ((element (car musics)))
 
         ;; Try to see if the first element could not contain the whole thing.
         (case (element-contains-span start element span-start span-duration)
-          ((SpanOutsideBefore) 'ShouldNotHappen)
+          ((SpanOutsideBefore) (ly:error "extract-span: reached case that should not happen in extract-span-seek-list (SpanOutsideBefore)"))
 
           ;; Should not happen, because otherwise, we would have called
           ;; extract-span-here on the element, but whatever.
@@ -193,7 +189,7 @@
           ;; If the span is contained fully after, we discard the current
           ;; element and go look for the span in the rest of the list.
           ((SpanOutsideAfter)
-           (let* ((element-duration (get-total-length element))
+           (let* ((element-duration (length-of-music element))
                   (element-end      (ly:moment-add start element-duration))
                   (elements         (cdr musics)))
              (rebuild-if-needed
@@ -222,7 +218,7 @@
                           'SpanOutsideAfter)))
 
     (case containment
-      ((SpanOutsideBefore) (list 'ShouldNotHappen))
+      ((SpanOutsideBefore) (ly:error "extract-span: case that should not happen in extract-span-here (SpanOutsideBefore)"))
       ((SpanHasBadOverlap) (list 'NotPossible))
 
       ((SpanContainedHere)
@@ -230,14 +226,14 @@
         (extract-span-here element span-duration)
         (lambda (replacement) (music-clone music 'element replacement))))
 
-      ((SpanContainedStrictly) (list 'ShouldNotHappen))
+      ((SpanContainedStrictly) (ly:error "extract-span: case that should not happen in extract-span-here (SpanContainedStrictly)"))
 
       ;; If the span is completely contained after the element (or possibly if
       ;; there is no element), then it must be that the element is of null
       ;; length. The span is then in the elements (plural), so we go have a look
       ;; at them.
       ((SpanOutsideAfter)
-       (let ((element-duration (if (ly:music? element) (get-total-length element) ly:moment-zero)))
+       (let ((element-duration (if (ly:music? element) (length-of-music element) ly:moment-zero)))
          (if (not (ly:moment=? element-duration ly:moment-zero))
              (list 'NotPossible)
 
@@ -257,17 +253,17 @@
             (lambda (replacement) (append replacement elements)))
 
       (if (null? elements)
-          (list 'ShouldNotHappen)
+          (ly:error "extract-span: case that should not happen in extract-span-here-list-acc")
 
           (let* ((first (car elements))
-                 (length (get-total-length first)))
+                 (length (length-of-music first)))
             (case (ly:compare-moments length span-duration)
 
               ((Greater)
                ;; The last element contains, all the rest of the length,
                ;; strictly. This only makes sense if we went through no elements
                ;; so far, or only zero-length elements.
-               (let* ((acc-lengths      (map get-total-length acc))
+               (let* ((acc-lengths      (map length-of-music acc))
                       (acc-total-length (fold-left ly:moment-add ly:moment-zero acc-lengths)))
                  (if (ly:moment=? acc-total-length ly:moment-zero)
 
@@ -304,7 +300,7 @@
           '()
 
           (let* ((first  (car elements))
-                 (length (get-total-length first)))
+                 (length (length-of-music first)))
             (case (ly:compare-moments length span-duration)
               ((Greater) '())
 
@@ -323,11 +319,3 @@
   (extract-span-seek
    ly:moment-zero
    music start duration))
-
-;; ('SpanOutsideBefore ...)
-;; ('SpanOutsideAfter ...)
-;; ('SpanHasBadOverlap ...)
-;; ('SpanContainedHere ...)
-;; ('SpanContainedStrictly ...)
-
-;; FIXME: ly:music-start ??????

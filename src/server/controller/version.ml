@@ -43,18 +43,25 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
     fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
     fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
+    fpf fmt [%blob "template/scottish-chords.ly"];
     fpf fmt [%blob "template/fancy-unfold-repeats.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus content tempo_unit tempo_value content
+    fpf fmt [%blob "template/version.ly"] piece opus content tempo_unit tempo_value (Kind.base_to_pretty_string ~capitalised:false kind) content
   in
   let scheme =
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/scheme/extlib.scm"];
     fpf fmt [%blob "template/scheme/extlylib.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/total-durations.scm"];
+    fpf fmt [%blob "template/scheme/get-partial.scm"];
+    fpf fmt [%blob "template/scheme/duration-of-music.scm"];
+    fpf fmt [%blob "template/scheme/scottish-chords/jig-chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish-chords/reel-chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish-chords/waltz-chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish-chords/chords.scm"];
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/unfold-first-volta-repeat.scm"];
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/extract-span.scm"];
+    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/split-rhythmic-event-at.scm"];
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/fancy-unfold-repeats.scm"]
   in
   Log.debug (fun m -> m "Writing them to filesystem");

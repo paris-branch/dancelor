@@ -14,5 +14,5 @@
 
 \score {
   \midi { \tempo %s = %d }
-  \fancyUnfoldRepeats %s
+  \%sChords \fancyUnfoldRepeats { %s }
 }

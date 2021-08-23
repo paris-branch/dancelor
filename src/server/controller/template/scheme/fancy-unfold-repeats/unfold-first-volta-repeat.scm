@@ -101,7 +101,7 @@
                (list
                 (make-music 'UnfoldedRepeatedMusic music)
                 'FoundVolta duration (ly:music-property music 'repeat-count))
-               (map get-total-length (ly:music-property-all-elements music)))
+               (map length-of-music (ly:music-property-all-elements music)))
 
               ;; Finally, if the music is none of these, we crawl through its
               ;; sub-elements until we find something.
