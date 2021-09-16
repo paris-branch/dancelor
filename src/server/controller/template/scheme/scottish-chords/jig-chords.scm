@@ -3,24 +3,23 @@
   (let* ((position (ly:moment-mod position (ly:make-moment 6 8)))
 
          (fourth   (ly:make-moment 1 4))
-         (fourth-duration (make-duration-of-length fourth))
+         (fourth-duration (duration-of-length fourth))
          (eigth    (ly:make-moment 1 8))
-         (eigth-duration (make-duration-of-length eigth))
+         (eigth-duration (duration-of-length eigth))
 
-         (bass-chord (make-event-chord (list (make-note-event bass fourth-duration))))
-         (fifth-chord (make-event-chord (list (make-note-event fifth fourth-duration))))
+         (bass-chord (make-chord-of-pitches (list bass) fourth-duration))
+         (fifth-chord (make-chord-of-pitches (list fifth) fourth-duration))
 
-         (chord (map (lambda (note) (make-note-event note eigth-duration)) notes))
-         (chord (make-event-chord chord))
-
-         (chord-with-bass (map (lambda (note) (make-note-event note eigth-duration)) (cons bass notes)))
-         (chord-with-bass (make-event-chord chord-with-bass)))
+         (chord (make-chord-of-pitches notes eigth-duration))
+         (chord-with-bass (make-chord-of-pitches (cons bass notes) eigth-duration))
+         (chord-with-bass-and-original-duration
+          (make-chord-of-pitches (cons bass notes) (duration-of-length duration))))
 
     ;; If we are shorter than an eigth, then we don't know what to do. Either
     ;; it's zero and we return an empty list, or it's not and we return the
     ;; chord as it is (rewritten).
     (if (ly:moment<=? duration eigth)
-        (if (ly:moment-is-zero? duration) '() (list chord))
+        (if (ly:moment-is-zero? duration) '() (list chord-with-bass-and-original-duration))
 
         ;; If beginning of the bar, then just bass.
         (if (ly:moment-is-zero? position)

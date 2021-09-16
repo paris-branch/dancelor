@@ -13,7 +13,6 @@
          (result   (extract-span music start duration)))
 
     (case (car result)
-
       ((Extracted)
        (let* ((elements (cadr result))
               (builder  (caddr result))

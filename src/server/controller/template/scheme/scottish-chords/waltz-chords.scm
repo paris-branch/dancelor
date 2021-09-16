@@ -2,22 +2,20 @@
   (let* ((position (ly:moment-mod position (ly:make-moment 6 4)))
 
          (fourth   (ly:make-moment 1 4))
-         (fourth-duration (make-duration-of-length fourth))
+         (fourth-duration (duration-of-length fourth))
 
-         (bass-chord (make-event-chord (list (make-note-event bass fourth-duration))))
-         (fifth-chord (make-event-chord (list (make-note-event fifth fourth-duration))))
-
-         (chord (map (lambda (note) (make-note-event note fourth-duration)) notes))
-         (chord (make-event-chord chord))
-
-         (chord-with-bass (map (lambda (note) (make-note-event note fourth-duration)) (cons bass notes)))
-         (chord-with-bass (make-event-chord chord-with-bass)))
+         (bass-chord (make-chord-of-pitches (list bass) fourth-duration))
+         (fifth-chord (make-chord-of-pitches (list fifth) fourth-duration))
+         (chord (make-chord-of-pitches notes fourth-duration))
+         (chord-with-bass (make-chord-of-pitches (cons bass notes) fourth-duration))
+         (chord-with-bass-and-original-duration
+          (make-chord-of-pitches (cons bass notes) (duration-of-length duration))))
 
     ;; If we are strictly shorter than a fourth, then we don't know what to do.
     ;; Either it's zero and we return an empty list, or it's not and we return
     ;; the chord as it is (rewritten).
     (if (ly:moment<? duration fourth)
-        (if (ly:moment-is-zero? duration) '() (list chord))
+        (if (ly:moment-is-zero? duration) '() (list chord-with-bass-and-original-duration))
 
         ;; Otherwise, there is room to do something with it.
         (begin

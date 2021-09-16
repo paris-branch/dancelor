@@ -31,14 +31,27 @@
 (define (make-note-event pitch duration)
   (make-music 'NoteEvent 'pitch pitch 'duration duration))
 
+(define (make-chord-of-pitches pitches duration)
+  (make-event-chord (map (lambda (pitch) (make-note-event pitch duration)) pitches)))
+
+;; Same as make-duration-of-length but better on round values.
+(define (duration-of-length moment)
+  (let* ((num  (ly:moment-main-numerator moment))
+         (den  (ly:moment-main-denominator moment))
+         (length   (/ (log den) (log 2)))
+         (dotcount (- (/ (log (+ num 1)) (log 2)) 1)))
+    (if (and (integer? length) (integer? dotcount))
+        (ly:make-duration (inexact->exact length) (inexact->exact dotcount))
+        (ly:make-duration 1 1 num den))))
+
 (define (music-set-duration! music duration)
   (let ((prev-duration (ly:music-property music 'duration)))
     (if (null? prev-duration)
-        (ly:error "music-set-duration!: cannot set duration on an object that do not already have one")
+        (ly:error "music-set-duration!: cannot set duration on an object that does not already have one")
         (ly:music-set-property! music 'duration duration))))
 
 (define (music-set-length! music length)
-  (music-set-duration! music (make-duration-of-length length)))
+  (music-set-duration! music (duration-of-length length)))
 
 (define (chord-set-duration! chord duration)
   (let* ((notes (ly:music-property chord 'elements))
@@ -46,7 +59,7 @@
     (map (lambda (note) (music-set-duration! note duration)) notes)))
 
 (define (chord-set-length! chord length)
-  (chord-set-duration! chord (make-duration-of-length length)))
+  (chord-set-duration! chord (duration-of-length length)))
 
 (define (music-add-last-element! music element)
   (let ((elements (ly:music-property music 'elements)))

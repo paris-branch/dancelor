@@ -2,7 +2,7 @@
 ;; Compute the total duration or length of a music event.
 
 (define (duration-of-music music)
-  (make-duration-of-length (length-of-music music)))
+  (duration-of-length (length-of-music music)))
 
 (define (length-of-music music)
 
@@ -23,8 +23,11 @@
             (fold-left ly:moment-max length lengths)
             (fold-left ly:moment-add length lengths)))))
 
+(define (length-of-musics musics)
+  (fold-left ly:moment-add ly:moment-zero (map length-of-music musics)))
+
 (define (duration-of-sub-element music)
-  (make-duration-of-length (length-of-sub-element music)))
+  (duration-of-length (length-of-sub-element music)))
 
 (define (length-of-sub-element music)
   (let ((element (ly:music-property music 'element)))

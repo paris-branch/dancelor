@@ -56,7 +56,7 @@ let base_tempo = function
   | Jig -> ("4.", 108)
   | Polka | Reel -> ("2", 108)
   | Strathspey -> ("2", 60)
-  | Waltz -> ("2.", 96)
+  | Waltz -> ("2.", 60)
 
 (* ============================= [ Version Kind ] ============================== *)
 

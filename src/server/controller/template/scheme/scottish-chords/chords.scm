@@ -21,10 +21,7 @@
          (bass (rewrite-chord-bass bass))
 
          ;; Compute the fifth of the bass.
-         (g     (ly:make-pitch 0 4 0))
-         (c     (ly:make-pitch 0 0 0))
-         (fifth (ly:pitch-diff g c))
-         (fifth (ly:pitch-transpose bass fifth))
+         (fifth (caddr notes))
          (fifth (rewrite-chord-bass fifth))
 
          ;; We rewrite the chord by rewriting every note in it and rebuilding
