@@ -1,12 +1,12 @@
 (define (fold-left f x l)
   (if (pair? l) (fold-left f (f x (car l)) (cdr l)) x))
 
-(define (reverse-aux lst acc)
-  (if (null? lst) acc
-      (reverse-aux (cdr lst) (cons (car lst) acc))))
+(define (reverse-append l1 l2)
+  (if (null? l1) l2
+      (reverse-append (cdr l1) (cons (car l1) l2))))
 
 (define (reverse lst)
-  (reverse-aux lst '()))
+  (reverse-append lst '()))
 
 (define (pair a b) (cons a b))
 
@@ -22,3 +22,15 @@
 
 (define (flatten l)
   (apply append l))
+
+(define (forall p l)
+  (if (null? l)
+      #t
+      (and (p (car l)) (forall p (cdr l)))))
+
+(define (for-all p l) (forall p l))
+
+(define (exists p l)
+  (if (null? l)
+      #f
+      (or (p (car l)) (exists p (cdr l)))))

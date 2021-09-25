@@ -12,6 +12,9 @@
 (define (ly:moment=? m1 m2)
   (= (ly:moment-main-numerator (ly:moment-sub m1 m2)) 0))
 
+(define (ly:moment<>? m1 m2)
+  (not (ly:moment=? m1 m2)))
+
 (define (ly:compare-moments m1 m2)
   (if (ly:moment<? m1 m2) 'Lower (if (ly:moment=? m1 m2) 'Equal 'Greater)))
 

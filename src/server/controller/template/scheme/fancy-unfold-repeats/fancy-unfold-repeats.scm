@@ -45,6 +45,7 @@
               (times     (cadddr main-result)) ;; number of repetitions of the volta
               (durations (cddddr main-result))
 
+              (others    (map (lambda (other) (add-trailing-silence other (length-of-music main))) others))
               (others    (map (lambda (other) (split-at-start-and-durations other start durations)) others)))
 
          (append

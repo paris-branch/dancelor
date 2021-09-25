@@ -62,6 +62,7 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/unfold-first-volta-repeat.scm"];
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/extract-span.scm"];
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/split-rhythmic-event-at.scm"];
+    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/add-trailing-silence.scm"];
     fpf fmt [%blob "template/scheme/fancy-unfold-repeats/fancy-unfold-repeats.scm"]
   in
   Log.debug (fun m -> m "Writing them to filesystem");
