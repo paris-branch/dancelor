@@ -67,6 +67,14 @@
 (define (chord-set-length! chord length)
   (chord-set-duration! chord (duration-of-length length)))
 
+(define (music-or-chord-set-duration! music duration)
+  (if (music-is-of-type? music 'event-chord)
+      (chord-set-duration! music duration)
+      (music-set-duration! music duration)))
+
+(define (music-or-chord-set-length! music length)
+  (music-or-chord-set-duration! music (duration-of-length length)))
+
 (define (music-add-last-element! music element)
   (let ((elements (ly:music-property music 'elements)))
     (ly:music-set-property! music 'elements (append elements (list element)))))

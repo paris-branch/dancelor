@@ -56,6 +56,7 @@ let prepare_ly_file ?(show_meta=false) ?(meta_in_title=false) ~fname version =
     fpf fmt [%blob "template/scheme/extlylib.scm"];
     fpf fmt [%blob "template/scheme/get-partial.scm"];
     fpf fmt [%blob "template/scheme/duration-of-music.scm"];
+    fpf fmt [%blob "template/scheme/skip-as-repeat.scm"];
     fpf fmt [%blob "template/scheme/scottish-chords/jig-chords.scm"];
     fpf fmt [%blob "template/scheme/scottish-chords/reel-chords.scm"];
     fpf fmt [%blob "template/scheme/scottish-chords/waltz-chords.scm"];

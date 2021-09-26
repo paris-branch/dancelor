@@ -92,6 +92,7 @@
             (list music))))))
 
 (define (chords rewrite-chord music)
-  (let* ((partial-duration (get-partial-length music))
+  (let* ((music (skip-as-repeat music))
+         (partial-duration (get-partial-length music))
          (position (ly:moment-sub ly:moment-zero partial-duration)))
     (assert-singleton (rewrite-chords rewrite-chord #f music position))))
