@@ -11,14 +11,17 @@
   (if (music-is-of-type? music 'rhythmic-event)
       (ly:duration-length (ly:music-property music 'duration))
 
-      ;; We do a special case for repeated music that shows on the score (ie.
-      ;; not volta) where we need to multiply the length.
-      (if (and (music-is-of-type? music 'repeated-music)
-               (not (music-is-of-type? music 'volta-repeated-music)))
-          (let* ((length       (length-of-sub-element music))
-                 (repeat-count (ly:music-property music 'repeat-count))
-                 (repeat-count (ly:make-moment repeat-count 1)))
-            (ly:moment-mul length repeat-count))
+      ;; FIXME: actually, no, but not doing it will break the tunes that
+      ;; use unfold repeats (or tremolos or whatnot)
+      ;;
+      ;; ;; We do a special case for repeated music that shows on the score (ie.
+      ;; ;; not volta) where we need to multiply the length.
+      ;; (if (and (music-is-of-type? music 'repeated-music)
+      ;;          (not (music-is-of-type? music 'volta-repeated-music)))
+      ;;     (let* ((length       (length-of-sub-element music))
+      ;;            (repeat-count (ly:music-property music 'repeat-count))
+      ;;            (repeat-count (ly:make-moment repeat-count 1)))
+      ;;       (ly:moment-mul length repeat-count))
 
           ;; Otherwise, compute the lengths of the sub-elements.
           (let* ((length   (length-of-sub-element music))
@@ -30,7 +33,7 @@
             ;; Otherwise, we return the sum.
             (if (music-is-of-type? music 'simultaneous-music)
                 (fold-left ly:moment-max length lengths)
-                (fold-left ly:moment-add length lengths))))))
+                (fold-left ly:moment-add length lengths)))));)
 
 (define (length-of-musics musics)
   (fold-left ly:moment-add ly:moment-zero (map length-of-music musics)))
