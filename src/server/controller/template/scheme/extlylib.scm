@@ -37,15 +37,18 @@
 (define (make-chord-of-pitches pitches duration)
   (make-event-chord (map (lambda (pitch) (make-note-event pitch duration)) pitches)))
 
-;; Same as make-duration-of-length but better on round values.
+;; ;; Same as make-duration-of-length but better on round values.
+;; ;; FIXME: And completely buggy so deactivated for now.
+;; (define (duration-of-length moment)
+;;   (let* ((num  (ly:moment-main-numerator moment))
+;;          (den  (ly:moment-main-denominator moment))
+;;          (length   (/ (log den) (log 2)))
+;;          (dotcount (- (/ (log (+ num 1)) (log 2)) 1)))
+;;     (if (and (integer? length) (integer? dotcount))
+;;         (ly:make-duration (inexact->exact length) (inexact->exact dotcount))
+;;         (ly:make-duration 0 0 num den))))
 (define (duration-of-length moment)
-  (let* ((num  (ly:moment-main-numerator moment))
-         (den  (ly:moment-main-denominator moment))
-         (length   (/ (log den) (log 2)))
-         (dotcount (- (/ (log (+ num 1)) (log 2)) 1)))
-    (if (and (integer? length) (integer? dotcount))
-        (ly:make-duration (inexact->exact length) (inexact->exact dotcount))
-        (ly:make-duration 1 1 num den))))
+  (make-duration-of-length moment))
 
 (define (music-set-duration! music duration)
   (let ((prev-duration (ly:music-property music 'duration)))
@@ -71,3 +74,13 @@
 (define (music-add-last-articulation! music articulation)
   (let ((articulations (ly:music-property music 'articulations)))
     (ly:music-set-property! music 'articulations (append articulations (list articulation)))))
+
+;; This function checks whether all the note events appear within a chord. This
+;; is used to detect a chord line to modify.
+(define (only-chords? music)
+  (if (music-is-of-type? music 'event-chord)
+      #t
+      (if (music-is-of-type? music 'note-event)
+          #f
+          (let ((elements (ly:music-property-all-elements music)))
+            (forall only-chords? elements)))))

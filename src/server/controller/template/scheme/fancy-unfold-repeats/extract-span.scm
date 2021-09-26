@@ -17,13 +17,11 @@
 ;;     of course to provide a different list of music objects.                ;;
 
 (define (extract-span music start duration)
-  (displayl "(extract-span <music> " start " " duration ")\n")
   (es music start (ly:moment-add start duration)))
 
 ;; Auxiliary function that seeks the right place in the music tree, considering
 ;; the given music object.
 (define (es music start end)
-  (displayl "(es <music> " start " " end ")\n")
 
   ;; If the starting point is strictly below zero, then it's impossible.
   (if (ly:moment<? start ly:moment-zero)
@@ -44,7 +42,6 @@
 ;; the sub-element of the given music object. If it does not work in the
 ;; sub-element, then we go to the sub-elements.
 (define (es-sub music start end)
-  (displayl "(es-sub <music> " start " " end ")\n")
 
   (let ((sub (ly:music-property music 'element)))
     (if (ly:music? sub)
@@ -72,7 +69,6 @@
 ;; the sub-elements of the given music object. If it does not work in the
 ;; sub-elements, then we fail.
 (define (es-subs music start end)
-  (displayl "(es-subs <music> " start " " end ")\n")
 
   ;; Get the sub-elements, call es-list on them and analyse the result. If the
   ;; result is impossible, then we fail.
@@ -90,7 +86,6 @@
   (es-list-seek '() musics start end))
 
 (define (es-list-seek before musics start end)
-  (displayl "(es-list-seek <before> <musics> " start " " end ")\n")
 
   ;; If start is zero, then it's a job for es-list-here.
   (if (ly:moment-is-zero? start)
@@ -122,7 +117,6 @@
         '(Impossible))))
 
 (define (es-list-here before musics end)
-  (displayl "(es-list-here <before> <musics> " end ")\n")
 
   ;; If end is exactly zero, then we are done here.
   (if (ly:moment-is-zero? end)
