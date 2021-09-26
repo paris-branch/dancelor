@@ -36,6 +36,7 @@ module Ly = struct
              else
                [%blob "template/book/header/none.ly"])
         );
+      fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
