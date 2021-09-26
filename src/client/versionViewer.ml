@@ -43,7 +43,7 @@ let create slug page =
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.recommended);
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
-      h3_lwt ~classes:["title"] (version_lwt >>=| Formatters.Version.description);
+      h3_lwt ~classes:["title"] (version_lwt >>=| Formatters.Version.description ~link:true);
 
       div ~classes:["buttons"] (
         let pdf_href, ly_href =

@@ -99,7 +99,7 @@ end
 
 module Version = struct
 
-  let description version =
+  let description ?link version =
     let%lwt bars = M.Version.bars version in
     let%lwt structure = M.Version.structure version in
     let%lwt key = M.Version.key version in
@@ -108,7 +108,7 @@ module Version = struct
       match%lwt M.Version.arranger version with
       | None -> Lwt.return_nil
       | Some arranger ->
-        let%lwt line_block = Credit.line (Some arranger) in
+        let%lwt line_block = Credit.line ?link (Some arranger) in
         Lwt.return ([text " arranged by "] @ line_block)
     in
     let%lwt disambiguation_block =
