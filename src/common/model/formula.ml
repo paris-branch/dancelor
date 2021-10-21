@@ -1,30 +1,6 @@
 (** {1 Formula} *)
 
-type 'filter t =
-  | False
-  | True
-  | Not of 'filter t
-  | And of 'filter t * 'filter t
-  | Or  of 'filter t * 'filter t
-  | Pred of 'filter
-[@@deriving yojson]
-
-let false_ = False
-let true_ = True
-
-let not_ f = Not f
-
-let and_ f1 f2 = And(f1, f2)
-let and_l = function
-  | [] -> True
-  | h::t -> List.fold_left and_ h t
-
-let or_ f1 f2 = Or(f1, f2)
-let or_l = function
-  | [] -> False
-  | h::t -> List.fold_left or_ h t
-
-let pred value = Pred value
+include FormulaType
 
 let interpret_score formula interpret_predicate =
   let rec interpret = function
@@ -79,17 +55,10 @@ module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   let to_yojson = to_yojson M.to_yojson
 end
 
+let pp_text_formula = FormulaPrinter.pp
 
-
-
-
-(* FIXME: put that somewhere at some point *)
-
-type text_formula = text_predicate t
-
-and text_predicate =
-  | Raw of string
-  | App of string * text_formula
-
-let raw s = Pred (Raw s)
-let app p e = Pred (App (p, e))
+let text_formula_from_string string =
+  FormulaParser.formula FormulaLexer.token (Lexing.from_string string)
+(* FIXME: use incremental parsing to get a proper error reporting *)
+(* return a result type because there will be errors often and *)
+(* we want the client code to handle them *)

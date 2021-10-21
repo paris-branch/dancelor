@@ -1,16 +1,17 @@
 %{
-  open Formula
+  open FormulaType
 %}
 
 %token TRUE FALSE NOT AND OR
 %token ANYOF ALLOF
 %token LPAR RPAR
-%token<string> PREDICATE LITERAL
+%token<string> PREDICATE NULLARY_PREDICATE LITERAL
 %token EOF
 
 %left OR
 %left AND
 %left NOT
+%left PREDICATE
 
 %start<text_formula> formula
 %%
@@ -30,7 +31,11 @@ expression:
   | e1=expression  OR e2=expression { Or  (e1, e2) }
 
   | l=LITERAL { raw l }
-  | p=PREDICATE e=expression { app p e }
+  | p=NULLARY_PREDICATE { nullary p }
+  | p=PREDICATE e=expression { unary p e }
 
-  | p=PREDICATE ALLOF es=nonempty_list(expression) { and_l (List.map (app p) es) }
-  | p=PREDICATE ANYOF es=nonempty_list(expression) { or_l  (List.map (app p) es) }
+  | p=PREDICATE ALLOF es=nonempty_list(expression) { and_l (List.map (unary p) es) }
+  | p=PREDICATE ANYOF es=nonempty_list(expression) { or_l  (List.map (unary p) es) }
+
+/* FIXME: one shift/reduce conflict */
+/* will come bite us in the ass later */

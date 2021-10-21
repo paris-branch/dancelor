@@ -17,8 +17,6 @@ let digit = ['0'-'9']
 
 let identifier = alpha (alpha | symbol | digit)*
 
-let literal = [^ ':' ' ']+
-
 rule token = parse
 
   | ' ' { token lexbuf }
@@ -29,20 +27,24 @@ rule token = parse
   | ":" (identifier as id) {
       match List.assoc_opt id keywords with
       | Some kw -> kw
-      | _ -> failwith "unknown keyword"
+      | _ -> NULLARY_PREDICATE id
     }
+
+  | '!'  { NOT }
+  | "&&" { AND }
+  | "||" { OR }
 
   | (identifier as id) ":" {
       PREDICATE id
     }
 
-  | (literal as lit) {
-      LITERAL lit
-    }
-
   | '"' {
       let buf = Buffer.create 8 in
       LITERAL (string buf lexbuf)
+    }
+
+  | (identifier as lit) {
+      LITERAL lit
     }
 
   | eof { EOF }
