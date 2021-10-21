@@ -1,3 +1,6 @@
+(ocamllex formulaLexer)
+(menhir (modules formulaParser))
+
 (library
  (name dancelor_common_model)
  (public_name dancelor.common.model)

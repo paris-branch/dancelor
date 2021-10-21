@@ -78,3 +78,18 @@ module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   let of_yojson = of_yojson M.of_yojson
   let to_yojson = to_yojson M.to_yojson
 end
+
+
+
+
+
+(* FIXME: put that somewhere at some point *)
+
+type text_formula = text_predicate t
+
+and text_predicate =
+  | Raw of string
+  | App of string * text_formula
+
+let raw s = Pred (Raw s)
+let app p e = Pred (App (p, e))
