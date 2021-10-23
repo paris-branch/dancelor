@@ -79,6 +79,9 @@ let list_map_score f (l : 'a t list) : 'a t list Lwt.t =
            value = score.value })
     l
 
+let list_erase l =
+  List.map (fun score -> score.value) l
+
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t
 

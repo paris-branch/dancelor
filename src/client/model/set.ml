@@ -73,19 +73,28 @@ module Filter = struct
   include Filter
 
   let accepts filter set =
+    let char_equal = Char.Sensible.equal in
     Formula.interpret filter @@ function
 
     | Is set' ->
-      equal set set'
+      equal set set' >|=| Formula.interpret_bool
+
+    | Name string ->
+      let%lwt name = Self.name set in
+      Lwt.return (String.proximity ~char_equal string name)
+
+    | NameMatches string ->
+      let%lwt name = Self.name set in
+      Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
 
     | Deviser dfilter ->
       (match%lwt Self.deviser set with
-       | None -> Lwt.return_false
+       | None -> Lwt.return Formula.interpret_false
        | Some deviser -> Credit.Filter.accepts dfilter deviser)
 
     | ExistsVersion vfilter ->
       let%lwt versions_and_parameters = Self.versions_and_parameters set in
-      Lwt_list.exists_s
+      Formula.interpret_exists
         (fun (version, _) ->
            Version.Filter.accepts vfilter version)
         versions_and_parameters
@@ -95,13 +104,6 @@ let get slug =
   Madge_client.(
     call ~endpoint:E.get @@ fun {a} _ ->
     a A.slug slug
-  )
-
-let all ?filter ?pagination () =
-  Madge_client.(
-    call ~endpoint:E.all @@ fun _ {o} ->
-    o A.filter filter;
-    o A.pagination pagination
   )
 
 let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances () =
@@ -122,14 +124,16 @@ let delete s =
     a A.slug slug
   )
 
-let search ?filter ?pagination ?threshold string =
+let search ?pagination ?threshold filter =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->
-    o A.filter filter;
     o A.pagination pagination;
     o A.threshold threshold;
-    a A.string string
+    a A.filter filter;
   )
 
-let count () =
-  Madge_client.call ~endpoint:E.count @@ fun _ _ -> ()
+let count filter =
+  Madge_client.(
+    call ~endpoint:E.count @@ fun {a} _ ->
+    a A.filter filter;
+  )

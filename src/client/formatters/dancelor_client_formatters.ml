@@ -148,7 +148,8 @@ module Version = struct
             M.Formula.and_ (memVersionDeep version) isSource
           )
         in
-        M.Book.all ~filter ()
+        M.Book.search filter
+        >|=| M.Score.list_erase
       in
       match%lwt Lwt_list.map_p Book.short_title sources with
       | [] -> Lwt.return_nil
@@ -173,7 +174,8 @@ module Version = struct
             M.Formula.and_ (memVersionDeep version) isSource
           )
         in
-        M.Book.all ~filter ()
+        M.Book.search filter
+        >|=| M.Score.list_erase
       in
       match%lwt Lwt_list.map_p Book.short_title sources with
       | [] -> Lwt.return_nil

@@ -1,5 +1,5 @@
-(ocamllex formulaLexer)
-(menhir (modules formulaParser))
+(ocamllex textFormulaLexer)
+(menhir (modules textFormulaParser))
 
 (library
  (name dancelor_common_model)

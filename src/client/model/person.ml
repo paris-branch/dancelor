@@ -17,10 +17,10 @@ let make_and_save ?status ~name () =
     a A.name name
   )
 
-let search ?pagination ?threshold string =
+let search ?pagination ?threshold filter =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->
     o A.pagination pagination;
     o A.threshold threshold;
-    a A.string string
+    a A.filter filter
   )

@@ -32,6 +32,8 @@ module Filter = struct
 
   type predicate =
     | Is of t
+    | Name of string
+    | NameMatches of string
     | Author of Credit.Filter.t (** author is defined and passes the filter *)
     | Kind of Kind.base
   [@@deriving yojson]
@@ -40,7 +42,26 @@ module Filter = struct
   [@@deriving yojson]
 
   let is tune = Formula.pred (Is tune)
+  let name string = Formula.pred (Name string)
+  let nameMatches string = Formula.pred (NameMatches string)
   let author cfilter = Formula.pred (Author cfilter)
   let authorIs author_ = author (Credit.Filter.is author_)
   let kind kind = Formula.pred (Kind kind)
+
+  let raw = nameMatches
+
+  let nullary_text_predicates = []
+
+  let unary_text_predicates =
+    TextFormula.[
+      "name",         raw_only ~convert:Fun.id name;
+      "name-matches", raw_only ~convert:Fun.id nameMatches;
+      "author",       (author @@@ Credit.Filter.from_text_formula);
+      "kind",         raw_only ~convert:Kind.base_of_string kind
+    ]
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
 end

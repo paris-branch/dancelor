@@ -15,8 +15,8 @@ val make_and_save :
   name:string ->
   unit -> t Lwt.t
 
-val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
-  string ->
-  t Score.t list Lwt.t
+(* val search : *)
+(*   ?pagination:Pagination.t -> *)
+(*   ?threshold:float -> *)
+(*   string -> *)
+(*   t Score.t list Lwt.t *)

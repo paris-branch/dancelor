@@ -7,6 +7,7 @@ module Status = Status
 module Score  = Score
 module Transposition = Transposition
 module Formula = Formula
+module TextFormula = TextFormula
 
 module Person        : Common.PERSON          = Person
 module Credit        : Common.CREDIT          = Credit

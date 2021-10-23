@@ -20,7 +20,7 @@ module Filter = struct
     Formula.interpret filter @@ function
 
     | Is version' ->
-      equal version version'
+      equal version version' >|=| Formula.interpret_bool
 
     | Tune tfilter ->
       let%lwt tune = Self.tune version in
@@ -28,11 +28,26 @@ module Filter = struct
 
     | Key key' ->
       let%lwt key = Self.key version in
-      Lwt.return (key = key')
+      Lwt.return (Formula.interpret_bool (key = key'))
 
-    | Bars bars' ->
+    | BarsEq bars' ->
       let%lwt bars = Self.bars version in
-      Lwt.return (bars = bars')
+      Lwt.return (Formula.interpret_bool (bars = bars'))
+    | BarsNe bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars <> bars'))
+    | BarsGt bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars > bars'))
+    | BarsGe bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars >= bars'))
+    | BarsLt bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars < bars'))
+    | BarsLe bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars <= bars'))
 end
 
 let get = Dancelor_server_database.Version.get
@@ -41,26 +56,6 @@ let () =
   Madge_server.(
     register ~endpoint:E.get @@ fun {a} _ ->
     get (a A.slug)
-  )
-
-let apply_filter filter all =
-  Lwt_list.filter_s (Filter.accepts filter) all
-
-let apply_filter_on_scores filter all =
-  Score.list_filter_lwt (Filter.accepts filter) all
-
-let all ?filter ?pagination () =
-  Dancelor_server_database.Version.get_all ()
-  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter filter
-  >>=| Lwt_list.(sort_multiple [
-      increasing (tune >=>| Tune.name) String.Sensible.compare
-    ])
-  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
-
-let () =
-  Madge_server.(
-    register ~endpoint:E.all @@ fun _ {o} ->
-    all ?filter:(o A.filter) ?pagination:(o A.pagination) ()
   )
 
 let rec search_and_extract acc s regexp =
@@ -78,43 +73,6 @@ let rec search_and_extract acc s regexp =
   with
     Not_found | Invalid_argument _ -> rem, acc
 
-let extract_search_option s opt =
-  let dquote_regex = spf "%s:\"\\([^\"]*\\)\"" opt |> Str.regexp in
-  let squote_regex = spf "%s:'\\([^']*\\)'" opt |> Str.regexp in
-  let simple_regex = spf "%s:\\([^ ]*\\)" opt |> Str.regexp in
-  let rem, l = search_and_extract [] s dquote_regex in
-  let rem, l = search_and_extract l rem squote_regex in
-  search_and_extract l rem simple_regex
-
-let parse_filter_kind k =
-  try
-    Some (Kind.base_of_string k)
-  with
-    Failure _ -> None
-
-let parse_filter_key k =
-  try
-    Some (Music.key_of_string k)
-  with
-    Failure _ -> None
-
-let extract_search s =
-  let rem, kinds = extract_search_option s "kind" in
-  let rem, keys = extract_search_option rem "key" in
-  let rem, authors = extract_search_option rem "author" in
-  let words =
-    String.split_on_char ' ' rem
-    |> List.map (String.remove_char '"')
-    |> List.map (String.remove_char '\'')
-    |> List.filter (fun s -> s <> "")
-  in
-  (
-    List.filter_map parse_filter_kind kinds,
-    authors,
-    List.filter_map parse_filter_key keys,
-    String.concat " " words
-  )
-
 let score_list_vs_word words needle =
   List.map (String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle) words
   |> List.fold_left max 0.
@@ -126,37 +84,9 @@ let score_list_vs_list words needles =
     |> List.fold_left max 0.
   end
 
-let score ~kinds ~authors ~keys words version =
-  let%lwt tune = tune version in
-  let%lwt key = key version in
-  let%lwt kind = Tune.kind tune in
-  let%lwt name = Tune.name tune in
-  let%lwt alternative_names = Tune.alternative_names tune in
-  let%lwt credit = Tune.author tune in
-  let%lwt credit_words =
-    match credit with
-    | None -> Lwt.return []
-    | Some credit ->
-      let%lwt author = Credit.line credit in
-      let%lwt persons = Credit.persons credit in
-      let%lwt names = Lwt_list.map_s Person.name persons in
-      Lwt.return (author :: names)
-  in
-  let version_words = name::alternative_names in
-  if (keys <> [] && not (List.mem key keys))
-  || (kinds <> [] && not (List.mem kind kinds)) then
-    Lwt.return 0.
-  else begin
-    let authors_score = score_list_vs_list credit_words authors in
-    let words_score = score_list_vs_word version_words words in
-    Lwt.return (authors_score *. words_score)
-  end
-
-let search ?filter ?pagination ?(threshold=0.) string =
-  let kinds, authors, keys, words = extract_search string in
+let search ?pagination ?(threshold=0.) filter =
   Dancelor_server_database.Version.get_all ()
-  >>=| Score.lwt_map_from_list (score ~kinds ~authors ~keys words)
-  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter_on_scores filter
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
       increasing (tune >=>| Tune.name) String.Sensible.compare
@@ -167,19 +97,17 @@ let () =
   Madge_server.(
     register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?filter:    (o A.filter)
       ?pagination:(o A.pagination)
       ?threshold: (o A.threshold)
-      (a A.string)
+      (a A.filter)
   )
 
-let count ?filter () =
-  let%lwt l = all ?filter () in
+let count filter =
+  let%lwt l = search filter in
   Lwt.return (List.length l)
 
 let () =
   Madge_server.(
-    register ~endpoint:E.count @@ fun _ {o} ->
-    count
-      ?filter:(o A.filter) ()
+    register ~endpoint:E.count @@ fun {a} _ ->
+    count (a A.filter)
   )

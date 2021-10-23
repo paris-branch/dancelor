@@ -72,6 +72,10 @@ module Filter = struct
   type predicate =
     | Is of t
     | IsSource
+    | Title of string
+    | TitleMatches of string
+    | Subtitle of string
+    | SubtitleMatches of string
     | ExistsVersion of Version.Filter.t
     | ExistsSet of Set.Filter.t
     | ExistsInlineSet of Set.Filter.t
@@ -81,6 +85,10 @@ module Filter = struct
   [@@deriving yojson]
 
   let is book = Formula.pred (Is book)
+  let title string = Formula.pred (Title string)
+  let titleMatches string = Formula.pred (TitleMatches string)
+  let subtitle string = Formula.pred (Subtitle string)
+  let subtitleMatches string = Formula.pred (SubtitleMatches string)
   let isSource = Formula.pred IsSource
   let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
   let memVersion version = existsVersion (Version.Filter.is version)
@@ -105,4 +113,30 @@ module Filter = struct
       depth. *)
 
   let memTuneDeep tune = existsTuneDeep (Tune.Filter.is tune)
+
+  let raw string =
+    Formula.or_l [
+      titleMatches string;
+      subtitleMatches string;
+    ]
+
+  let nullary_text_predicates = [
+    "source", isSource
+  ]
+
+  let unary_text_predicates =
+    TextFormula.[
+      "title",             raw_only ~convert:Fun.id title;
+      "title-matches",     raw_only ~convert:Fun.id titleMatches;
+      "subtitle",          raw_only ~convert:Fun.id subtitle;
+      "subtitle-matches",  raw_only ~convert:Fun.id subtitleMatches;
+      "exists-version",    (existsVersion @@@ Version.Filter.from_text_formula);
+      "exists-set",        (existsSet @@@ Set.Filter.from_text_formula);
+      "exists-inline-set", (existsInlineSet @@@ Set.Filter.from_text_formula);
+    ]
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
 end

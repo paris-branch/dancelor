@@ -71,7 +71,7 @@ let filter_to_versionfilter filter =
 
   let bars =
     filter.bars
-    |> List.map (fun bars -> Version.Filter.bars bars)
+    |> List.map (fun bars -> Version.Filter.barsEq bars)
     |> or_if_not_empty
   in
 
@@ -139,7 +139,8 @@ let update_table t =
       let filter = t.search in
       let%lwt filter = filter_to_versionfilter filter in
       let pagination = PageNav.pagination t.page_nav in
-      Version.all ~filter ~pagination ()
+      Version.search ~pagination filter
+      >|=| Score.list_erase
     in
     Lwt.return (List.map (fun version ->
         let href =
@@ -173,7 +174,7 @@ let update_table t =
 let update_filter t upd =
   t.search <- upd t.search;
   Lwt.on_success (filter_to_versionfilter t.search) @@ fun filter ->
-  Lwt.on_success (Version.count ~filter ()) (PageNav.set_entries t.page_nav)
+  Lwt.on_success (Version.count filter) (PageNav.set_entries t.page_nav)
 
 let fill_search t =
   let document = Page.document t.page in
@@ -276,7 +277,7 @@ let create page =
   PageNav.connect_on_page_change page_nav (fun _ ->
     PageNav.rebuild page_nav;
     update_table t);
-  Lwt.on_success (Version.count ()) (fun entries ->
+  Lwt.on_success (Version.count Formula.true_) (fun entries ->
     PageNav.set_entries page_nav entries);
   fill_search t;
   update_table t;

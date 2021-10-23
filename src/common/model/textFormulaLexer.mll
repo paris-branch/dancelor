@@ -1,5 +1,5 @@
 {
-  open FormulaParser
+  open TextFormulaParser
 
   let keywords =
     [ "true",   TRUE;

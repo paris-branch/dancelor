@@ -59,6 +59,59 @@ let%test _ = remove_suffix ~needle:"lo" "hello" = Some "hel"
 let%test _ = remove_suffix ~needle:"hello" "hello" = Some ""
 let%test _  =remove_suffix ~needle:"hhello" "hello" = None
 
+(** [distance needle haystack] is the Levenshtein distance between [needle] and
+   [haystack]. The character equality can be changed with the optional
+   [?char_equal] argument, defaulting to {!Char.equal}. *)
+
+let distance ?(char_equal=Char.equal) needle haystack =
+  let ln = length needle in
+  let lh = length haystack in
+  let a = Array.make_matrix (ln+1) (lh+1) (-1) in
+  let min3 a b c = min (min a b) c in
+  let rec aux n h =
+    if a.(n).(h) = -1 then
+      (
+        a.(n).(h) <-
+          if n >= ln then
+            lh - h
+          else if h >= lh then
+            ln - n
+          else
+            (
+              min3
+                (1 + aux (n+1) h)
+                (1 + aux n (h+1))
+                ((if char_equal needle.[n] haystack.[h] then 0 else 1) + aux (n+1) (h+1))
+            )
+      );
+    a.(n).(h)
+  in
+  aux 0 0
+
+let%test _ = distance "achouffe" "achouffe" = 0
+let%test _ = distance "achou" "achouffe" = 3
+let%test _ = distance "achouffe" "achou" = 3
+let%test _ = distance "uffe" "achouffe" = 4
+let%test _ = distance "chou" "achouffe" = 4
+let%test _ = distance "chou" "acoul" = 3
+let%test _ = distance "chou" "achhouffe" = 5
+let%test _ = distance "chou" "achauffe" = 5
+
+(** The proximity is defined roughly as the distance divised by the size. *)
+
+let proximity ?char_equal needle haystack =
+  let l = max (length needle) (length haystack) in
+  1. -. (
+    if l = 0 then 0.
+    else
+      let d = distance ?char_equal needle haystack in
+      (foi d) /. (foi l)
+  )
+
+(** [inclusion_distance ~needle haystack] is similar to [distance needle
+   haystack] except with the best sub-string of [haystack]. Note: this is not a
+   proper distance. *)
+
 let inclusion_distance ?(char_equal=Char.equal) ~needle haystack =
   let ln = length needle in
   let lh = length haystack in
@@ -88,6 +141,8 @@ let%test _ = inclusion_distance ~needle:"chou" "achouffe" = 0
 let%test _ = inclusion_distance ~needle:"chou" "acoul" = 1
 let%test _ = inclusion_distance ~needle:"chou" "achhouffe" = 1
 let%test _ = inclusion_distance ~needle:"chou" "achauffe" = 1
+
+(** Similar to {!proximity} but for {!inclusion_distance}. *)
 
 let inclusion_proximity ?char_equal ~needle haystack =
   let l = length needle in
@@ -178,3 +233,6 @@ module Sensible = struct
     let (p2, s2) = extract_prefix s2 in
     compare_or (compare s1 s2) @@ fun () -> compare p1 p2
 end
+
+let compare_lengths s1 s2 =
+  Int.compare (length s1) (length s2)

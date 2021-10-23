@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -19,7 +20,8 @@ type t =
 let update_table t =
   let rows =
     let pagination = PageNav.pagination t.page_nav in
-    Set.all ~pagination ()
+    (Set.search ~pagination Formula.true_
+     >|=| Score.list_erase)
     |> NesLwtList.map (fun set ->
         let href =
           let%lwt slug = Set.slug set in
@@ -79,7 +81,7 @@ let create page =
   PageNav.connect_on_page_change page_nav (fun _ ->
     PageNav.rebuild page_nav;
     update_table t);
-  Lwt.on_success (Set.count ()) (fun entries ->
+  Lwt.on_success (Set.count Formula.true_) (fun entries ->
     PageNav.set_entries page_nav entries);
   update_table t;
   t

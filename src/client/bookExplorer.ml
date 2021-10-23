@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -33,7 +34,7 @@ let create page =
       page
   in
   let rows =
-    let%lwt books = Book.all () in
+    let%lwt books = Book.search Formula.true_ >|=| Score.list_erase in
     Lwt.return (List.map (fun book ->
       let href =
         let%lwt slug = Book.slug book in

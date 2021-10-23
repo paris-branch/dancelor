@@ -1,5 +1,6 @@
 module Syntax = struct
   let (||>) f g x = f x |> g
+  let (@@@) f g x = f (g x)
 
   let foi = float_of_int
 

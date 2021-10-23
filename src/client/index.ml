@@ -133,15 +133,18 @@ let make_version_result ~prefix page version =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let search input =
+  (* FIXME: no! this is where the parsing should happen! instead of putting
+     the input as a raw (but let's check first that it works shall we?) *)
   let threshold = 0.4 in
   let filter =
     Formula.(and_l [
-        not_ (pred (Any.Filter.TypeIs Any.Type.Version));
-        not_ (pred (Any.Filter.TypeIs Any.Type.Person));
+        not_ (pred (Any.Filter.Type Any.Type.Version));
+        not_ (pred (Any.Filter.Type Any.Type.Person));
+        Any.Filter.raw input
       ])
   in
   let pagination = Pagination.{ start = 0; end_ = 15 } in
-  Any.search ~filter ~threshold ~pagination input
+  Any.search ~threshold ~pagination filter
 
 let make_result page score =
   let any = Score.value score in
@@ -156,7 +159,7 @@ let make_result page score =
   | Person person   -> make_person_result  ~prefix page person
   | Book book       -> make_book_result    ~prefix page book
   | Set set         -> make_set_result     ~prefix page set
-  | Source source   -> make_source_result  ~prefix page source
+  (* | Source source   -> make_source_result  ~prefix page source *)
   | Tune tune       -> make_tune_result    ~prefix page tune
   | Version version -> make_version_result ~prefix page version
 

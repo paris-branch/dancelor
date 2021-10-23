@@ -14,14 +14,9 @@ let () =
     get (a A.slug)
   )
 
-let search string person =
-  let%lwt name = name person in
-  String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string name
-  |> Lwt.return
-
-let search ?pagination ?(threshold=0.) string =
+let search ?pagination ?(threshold=0.) filter =
   Dancelor_server_database.Dance.get_all ()
-  >>=| Score.lwt_map_from_list (search string)
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
       increasing name String.Sensible.compare
@@ -34,5 +29,5 @@ let () =
     search
       ?pagination:(o A.pagination)
       ?threshold: (o A.threshold)
-      (a A.string)
+      (a A.filter)
   )

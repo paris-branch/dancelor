@@ -14,17 +14,12 @@ val is_trad : t -> bool
 
 module Filter : sig
   include module type of Credit.Filter
-  val accepts : t -> Credit.t -> bool Lwt.t
+  val accepts : t -> Credit.t -> float Lwt.t
 end
 
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
-
-val all :
-  ?filter:Filter.t ->
-  ?pagination:Pagination.t ->
-  unit -> t list Lwt.t
 
 val make_and_save :
   ?status:Status.t ->
@@ -35,5 +30,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  string ->
+  Filter.t ->
   t Score.t list Lwt.t

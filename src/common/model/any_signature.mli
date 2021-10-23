@@ -8,12 +8,11 @@ val type_of : t -> Type.t
 
 module Filter : sig
   include module type of Any.Filter
-  val accepts : t -> Any.t -> bool Lwt.t
+  val accepts : t -> Any.t -> float Lwt.t
 end
 
 val search :
-  ?filter:Filter.t ->
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  string ->
+  Filter.t ->
   t Score.t list Lwt.t

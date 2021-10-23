@@ -7,53 +7,75 @@ module Filter = struct
 
   let accepts filter any =
     Formula.interpret filter @@ function
-    | Is any' -> equal any any'
-    | TypeIs type_ -> Lwt.return (Type.equal (type_of any) type_)
+    | Type type_ ->
+      Type.equal (type_of any) type_
+      |> Formula.interpret_bool
+      |> Lwt.return
+
+    | AsCredit cfilter ->
+      (match any with
+       | Credit credit -> Credit.Filter.accepts cfilter credit
+       | _ -> Lwt.return Formula.interpret_false)
+
+    | AsDance dfilter ->
+      (match any with
+       | Dance dance -> Dance.Filter.accepts dfilter dance
+       | _ -> Lwt.return Formula.interpret_false)
+
+    | AsPerson pfilter ->
+      (match any with
+       | Person person -> Person.Filter.accepts pfilter person
+       | _ -> Lwt.return Formula.interpret_false)
+
+    | AsBook bfilter ->
+      (match any with
+       | Book book -> Book.Filter.accepts bfilter book
+       | _ -> Lwt.return Formula.interpret_false)
+
+    | AsSet sfilter ->
+      (match any with
+       | Set set -> Set.Filter.accepts sfilter set
+       | _ -> Lwt.return Formula.interpret_false)
+
+    (* | AsSource sfilter -> *)
+    (*   (match any with *)
+    (*    | Source source -> Source.Filter.accepts sfilter source *)
+    (*    | _ -> Lwt.return Formula.interpret_false) *)
+
+    | AsTune tfilter ->
+      (match any with
+       | Tune tune -> Tune.Filter.accepts tfilter tune
+       | _ -> Lwt.return Formula.interpret_false)
+
+    | AsVersion vfilter ->
+      (match any with
+       | Version version -> Version.Filter.accepts vfilter version
+       | _ -> Lwt.return Formula.interpret_false)
 end
 
 module E = Dancelor_common_model.Any_endpoints
 module A = E.Arguments
 
-let book_search ?pagination ?threshold input =
-  Book.search ?pagination ?threshold input
-
-let set_search ?pagination ?threshold input =
-  Set.search ?pagination ?threshold input
-
-let tune_search ?pagination ?threshold input =
-  Tune.search ?pagination ?threshold input
-
-let version_search ?pagination ?threshold input =
-  Version.search ?pagination ?threshold input
-
-let apply_filter_on_scores filter all =
-  Score.list_filter_lwt (Filter.accepts filter) all
-
-let search ?filter ?pagination ?threshold input =
-  let search_wrap_and_add search wrapper list =
-    let%lwt scores = search ?pagination ?threshold input in
-    let scores = Score.list_map wrapper scores in
-    Lwt.return (list @ scores)
-  in
-  Lwt.return []
-  >>=| search_wrap_and_add Credit.search (fun c -> Credit c)
-  >>=| search_wrap_and_add Dance.search (fun c -> Dance c)
-  >>=| search_wrap_and_add Person.search (fun c -> Person c)
-  >>=| search_wrap_and_add book_search (fun c -> Book c)
-  >>=| search_wrap_and_add set_search (fun c -> Set c)
-  >>=| search_wrap_and_add Source.search (fun c -> Source c)
-  >>=| search_wrap_and_add tune_search (fun c -> Tune c)
-  >>=| search_wrap_and_add version_search (fun c -> Version c)
-  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter_on_scores filter
-  >>=| Score.list_sort_decreasing
+let search ?pagination ?(threshold=0.) filter =
+  let%lwt credits  = Dancelor_server_database.Credit.get_all ()  >|=| List.map (fun c -> Credit c) in
+  let%lwt dances   = Dancelor_server_database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
+  let%lwt persons  = Dancelor_server_database.Person.get_all ()  >|=| List.map (fun p -> Person p) in
+  let%lwt books    = Dancelor_server_database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
+  let%lwt sets     = Dancelor_server_database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
+  (* let%lwt sources  = Dancelor_server_database.Source.get_all ()  >|=| List.map (fun s -> Source s) in *)
+  let%lwt tunes    = Dancelor_server_database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
+  let%lwt versions = Dancelor_server_database.Version.get_all () >|=| List.map (fun v -> Version v) in
+  (Lwt.return (credits @ dances @ persons @ books @ sets @ tunes @ versions))
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
+  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+  >>=| Score.(list_proj_sort_decreasing [])
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
 let () =
   Madge_server.(
     register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?filter:(o A.filter)
       ?pagination:(o A.pagination)
       ?threshold:(o A.threshold)
-      (a A.string)
+      (a A.filter)
   )

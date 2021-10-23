@@ -101,7 +101,7 @@ let create slug page =
           let%lwt tunes =
             let%lwt credit = credit_lwt in
             let filter = Formula.(pred (Tune.Filter.Author (pred (Credit.Filter.Is credit)))) in
-            Tune.all ~filter ()
+            Tune.search filter >|=| Score.list_erase
           in
 
           Lwt.return [
@@ -120,7 +120,8 @@ let create slug page =
           let%lwt sets =
             let%lwt credit = credit_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.is credit) in
-            Set.all ~filter ()
+            Set.search filter
+            >|=| Score.list_erase
           in
 
           Lwt.return [

@@ -19,24 +19,18 @@ val content : t -> string Lwt.t
 
 module Filter : sig
   include module type of Version.Filter
-  val accepts : t -> Version.t -> bool Lwt.t
+  val accepts : t -> Version.t -> float Lwt.t
 end
 
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
 
-val all :
-  ?filter:Filter.t ->
-  ?pagination:Pagination.t ->
-  unit -> t list Lwt.t
-
 val search :
-  ?filter:Filter.t ->
   ?pagination:Pagination.t ->
-  ?threshold:float -> string ->
+  ?threshold:float ->
+  Filter.t ->
   t Score.t list Lwt.t
 
 val count :
-  ?filter:Filter.t ->
-  unit -> int Lwt.t
+  Filter.t -> int Lwt.t

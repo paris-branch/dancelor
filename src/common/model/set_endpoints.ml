@@ -8,14 +8,12 @@ module Arguments = struct
   let kind = arg ~key:"kind" (module Kind.Dance)
   let versions_and_parameters = optarg ~key:"versions-and-parameters" (module MList(MPair(Version)(VersionParameters)))
   let dances = optarg ~key:"dances" (module MList(Dance))
-  let filter = optarg (module Set.Filter)
+  let filter = arg (module Set.Filter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
-  let string = arg (module MString)
 end
 
 let get = endpoint ~path:"/set" (module Set)
-let all = endpoint ~path:"/set/all" (module MList(Set))
 let make_and_save = endpoint ~path:"/set/save" (module Set)
 let delete = endpoint ~path:"/set/delete" (module MUnit)
 let search = endpoint ~path:"/set/search" (module MList(Score.Make_Serialisable(Set)))

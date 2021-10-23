@@ -10,7 +10,7 @@ val name : t -> string Lwt.t
 
 module Filter : sig
   include module type of Person.Filter
-  val accepts : t -> Person.t -> bool Lwt.t
+  val accepts : t -> Person.t -> float Lwt.t
 end
 
 (** {2 Getters and setters} *)
@@ -25,5 +25,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  string ->
+  Filter.t ->
   t Score.t list Lwt.t

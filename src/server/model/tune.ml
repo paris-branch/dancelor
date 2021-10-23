@@ -12,19 +12,28 @@ module Filter = struct
   include Filter
 
   let accepts filter tune =
+    let char_equal = Char.Sensible.equal in
     Formula.interpret filter @@ function
 
     | Is tune' ->
-      equal tune tune'
+      equal tune tune' >|=| Formula.interpret_bool
+
+    | Name string ->
+      let%lwt name = Self.name tune in
+      Lwt.return (String.proximity ~char_equal string name)
+
+    | NameMatches string ->
+      let%lwt name = Self.name tune in
+      Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
 
     | Author afilter ->
       (match%lwt Self.author tune with
-       | None -> Lwt.return_false
+       | None -> Formula.interpret_false |> Lwt.return
        | Some author -> Credit.Filter.accepts afilter author)
 
     | Kind kind' ->
       let%lwt kind = Self.kind tune in
-      Lwt.return (kind = kind')
+      Lwt.return (Formula.interpret_bool (kind = kind'))
 end
 
 module E = Dancelor_common_model.Tune_endpoints
@@ -38,38 +47,13 @@ let () =
     get (a A.slug)
   )
 
-let apply_filter filter all =
-  Lwt_list.filter_s (Filter.accepts filter) all
-
-let apply_filter_on_scores filter all =
-  Score.list_filter_lwt (Filter.accepts filter) all
-
-let all ?filter ?pagination () =
+let search ?pagination ?(threshold=0.) filter =
   Dancelor_server_database.Tune.get_all ()
-  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter filter
-  >>=| Lwt_list.(sort_multiple [
-      increasing name String.Sensible.compare
-    ])
-  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
-
-let () =
-  Madge_server.(
-    register ~endpoint:E.all @@ fun _ {o} ->
-    all ?filter:(o A.filter) ?pagination:(o A.pagination) ()
-  )
-
-let search string person =
-  let%lwt name = name person in
-  String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle:string name
-  |> Lwt.return
-
-let search ?filter ?pagination ?(threshold=0.) string =
-  Dancelor_server_database.Tune.get_all ()
-  >>=| Score.lwt_map_from_list (search string)
-  >>=| Option.unwrap_map_or ~default:Lwt.return apply_filter_on_scores filter
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
-      increasing name String.Sensible.compare
+      increasing name String.Sensible.compare;
+      increasing name String.compare_lengths;
     ])
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
 
@@ -77,8 +61,7 @@ let () =
   Madge_server.(
     register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?filter:    (o A.filter)
       ?pagination:(o A.pagination)
       ?threshold: (o A.threshold)
-      (a A.string)
+      (a A.filter)
   )

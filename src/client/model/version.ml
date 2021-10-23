@@ -21,7 +21,7 @@ module Filter = struct
     Formula.interpret filter @@ function
 
     | Is version' ->
-      equal version version'
+      equal version version' >|=| Formula.interpret_bool
 
     | Tune tfilter ->
       let%lwt tune = Self.tune version in
@@ -29,11 +29,26 @@ module Filter = struct
 
     | Key key' ->
       let%lwt key = Self.key version in
-      Lwt.return (key = key')
+      Lwt.return (Formula.interpret_bool (key = key'))
 
-    | Bars bars' ->
+    | BarsEq bars' ->
       let%lwt bars = Self.bars version in
-      Lwt.return (bars = bars')
+      Lwt.return (Formula.interpret_bool (bars = bars'))
+    | BarsNe bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars <> bars'))
+    | BarsGt bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars > bars'))
+    | BarsGe bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars >= bars'))
+    | BarsLt bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars < bars'))
+    | BarsLe bars' ->
+      let%lwt bars = Self.bars version in
+      Lwt.return (Formula.interpret_bool (bars <= bars'))
 end
 
 let get slug =
@@ -42,24 +57,16 @@ let get slug =
     a A.slug slug
   )
 
-let all ?filter ?pagination () =
-  Madge_client.(
-    call ~endpoint:E.all @@ fun _ {o} ->
-    o A.filter filter;
-    o A.pagination pagination
-  )
-
-let search ?filter ?pagination ?threshold string =
+let search ?pagination ?threshold filter =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->
-    o A.filter filter;
     o A.pagination pagination;
     o A.threshold threshold;
-    a A.string string
+    a A.filter filter;
   )
 
-let count ?filter () =
+let count filter =
   Madge_client.(
-    call ~endpoint:E.count @@ fun _ {o} ->
-    o A.filter filter
+    call ~endpoint:E.count @@ fun {a} _ ->
+    a A.filter filter
   )

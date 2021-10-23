@@ -35,7 +35,8 @@ let create slug page =
           not_ (Version.Filter.is version);
         ])
     in
-    Version.all ~filter ()
+    Version.search filter
+    >|=| Score.list_erase
   in
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
@@ -121,7 +122,8 @@ let create slug page =
           let sets_lwt =
             let%lwt version = version_lwt in
             let filter = Set.Filter.memVersion version in
-            Set.all ~filter ()
+            Set.search filter
+            >|=| Score.list_erase
           in
           let%lwt sets = sets_lwt in
 
@@ -159,7 +161,8 @@ let create slug page =
           let%lwt books =
             let%lwt version = version_lwt in
             let filter = Book.Filter.memVersionDeep version in
-            Book.all ~filter ()
+            Book.search filter
+            >|=| Score.list_erase
           in
 
           Lwt.return [

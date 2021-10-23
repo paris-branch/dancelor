@@ -48,3 +48,4 @@ module type ANY = module type of Any_signature
 module Any_endpoints = Any_endpoints
 
 module Formula = Formula
+module TextFormula = TextFormula

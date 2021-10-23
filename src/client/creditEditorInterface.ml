@@ -107,7 +107,7 @@ let create ?on_save page =
   let search_bar =
     let main_section = 
       SearchBar.Section.create
-        ~search:(fun input -> Person.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} input)
+        ~search:(fun input -> Person.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} (Person.Filter.raw input))
         ~default:(Table.Row.create
           ~cells:[
             Table.Cell.text ~text:(Lwt.return "  +") page;

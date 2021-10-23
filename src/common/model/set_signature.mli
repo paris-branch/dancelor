@@ -31,17 +31,12 @@ val warnings : t -> warnings Lwt.t
 
 module Filter : sig
   include module type of Set.Filter
-  val accepts : t -> Set.t -> bool Lwt.t
+  val accepts : t -> Set.t -> float Lwt.t
 end
 
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
-
-val all :
-  ?filter:Filter.t ->
-  ?pagination:Pagination.t ->
-  unit -> t list Lwt.t
 
 val make_temp :
   name:string ->
@@ -63,11 +58,10 @@ val make_and_save :
 val delete : t -> unit Lwt.t
 
 val search :
-  ?filter:Filter.t ->
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  string ->
+  Filter.t ->
   t Score.t list Lwt.t
 
-val count: unit -> int Lwt.t
+val count: Filter.t -> int Lwt.t
 (** Number of sets in the database. *)

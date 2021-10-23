@@ -5,7 +5,7 @@ module Arguments = struct
   let status = optarg (module Status)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
-  let string = arg (module MString)
+  let filter = arg (module Dance.Filter)
 end
 
 let get = endpoint ~path:"/dance" (module Dance)
