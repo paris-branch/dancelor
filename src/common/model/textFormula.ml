@@ -41,26 +41,35 @@ let to_formula predicate_to_formula formula =
   in
   to_formula formula
 
+let make_predicate_to_formula
+    raw_builder nullary_text_predicates unary_text_predicates
+  =
+  function
+  | Raw string ->
+    raw_builder string
+  | Nullary pred ->
+    (match List.assoc_opt pred nullary_text_predicates with
+     | None -> false_ (* FIXME: do we want to raise an error? *)
+     | Some pred -> pred)
+  | Unary (pred, sub_formula) ->
+    (match List.assoc_opt pred unary_text_predicates with
+     | None -> false_ (* FIXME: do we want to raise an error? *)
+     | Some mk_pred -> mk_pred sub_formula)
+
 let make_to_formula
     (raw_builder : 'a raw_builder)
     (nullary_text_predicates : 'a nullary_text_predicates)
     (unary_text_predicates : 'a unary_text_predicates)
     (formula : t)
-    : 'a Formula.t
-    =
-    let predicate_to_formula = function
-      | Raw string ->
-        raw_builder string
-      | Nullary pred ->
-        (match List.assoc_opt pred nullary_text_predicates with
-         | None -> false_ (* FIXME: do we want to raise an error? *)
-         | Some pred -> pred)
-      | Unary (pred, sub_formula) ->
-        (match List.assoc_opt pred unary_text_predicates with
-         | None -> false_ (* FIXME: do we want to raise an error? *)
-         | Some mk_pred -> mk_pred sub_formula)
-    in
-    to_formula predicate_to_formula formula
+  : 'a Formula.t
+  =
+  let predicate_to_formula =
+    make_predicate_to_formula
+      raw_builder
+      nullary_text_predicates
+      unary_text_predicates
+  in
+  to_formula predicate_to_formula formula
 
 (** Helper to build a unary predicate whose argument must be raw only. *)
 let raw_only

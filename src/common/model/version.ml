@@ -65,6 +65,7 @@ module Filter = struct
     TextFormula.[
       "tune",    (tune @@@ Tune.Filter.from_text_formula);
       "key",     raw_only ~convert:Music.key_of_string key;
+      "bars",    raw_only ~convert:int_of_string barsEq;
       "bars-eq", raw_only ~convert:int_of_string barsEq;
       "bars-ne", raw_only ~convert:int_of_string barsNe;
       "bars-gt", raw_only ~convert:int_of_string barsGt;

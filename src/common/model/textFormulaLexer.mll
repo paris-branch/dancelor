@@ -15,7 +15,7 @@ let alpha = ['a'-'z' 'A'-'Z']
 let symbol = ['_' '-']
 let digit = ['0'-'9']
 
-let identifier = alpha (alpha | symbol | digit)*
+let identifier = (alpha | symbol | digit)+
 
 rule token = parse
 

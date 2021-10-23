@@ -122,8 +122,14 @@ module Filter = struct
     ]
 
   let from_text_formula =
+    let predicate_to_formula =
+      TextFormula.make_predicate_to_formula raw
+        nullary_text_predicates
+        unary_text_predicates
+    in
     let predicate_to_formula pred =
       Formula.or_l [
+        predicate_to_formula pred;
         asCredit   (Credit.Filter.from_text_formula (Pred pred));
         asDance     (Dance.Filter.from_text_formula (Pred pred));
         asPerson   (Person.Filter.from_text_formula (Pred pred));

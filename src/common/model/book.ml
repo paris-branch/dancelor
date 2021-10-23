@@ -133,6 +133,8 @@ module Filter = struct
       "exists-version",    (existsVersion @@@ Version.Filter.from_text_formula);
       "exists-set",        (existsSet @@@ Set.Filter.from_text_formula);
       "exists-inline-set", (existsInlineSet @@@ Set.Filter.from_text_formula);
+      "exists-version-deep", (existsVersionDeep @@@ Version.Filter.from_text_formula);
+      "exists-tune-deep",    (existsVersionDeep @@@ Version.Filter.from_text_formula);
     ]
 
   let from_text_formula =
