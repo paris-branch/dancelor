@@ -137,11 +137,12 @@ let search input =
      the input as a raw (but let's check first that it works shall we?) *)
   let threshold = 0.4 in
   let filter =
-    Formula.(and_l [
-        not_ (pred (Any.Filter.Type Any.Type.Version));
-        not_ (pred (Any.Filter.Type Any.Type.Person));
-        Any.Filter.raw input
-      ])
+    Any.Filter.from_text_formula (TextFormula.from_string input)
+    (* Formula.(and_l [ *)
+    (*     not_ (pred (Any.Filter.Type Any.Type.Version)); *)
+    (*     not_ (pred (Any.Filter.Type Any.Type.Person)); *)
+    (*     Any.Filter.raw input *)
+    (*   ]) *)
   in
   let pagination = Pagination.{ start = 0; end_ = 15 } in
   Any.search ~threshold ~pagination filter
