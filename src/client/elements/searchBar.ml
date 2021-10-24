@@ -25,8 +25,8 @@ module Section = struct
     let empty =
       Table.Row.create
         ~cells:[
-          Table.Cell.text ~text:(Lwt.return " ") page;
-          Table.Cell.text ~text:(Lwt.return "No results") page]
+          Table.Cell.text ~text:(Lwt.return "⚠️") page;
+          Table.Cell.text ~text:(Lwt.return "Your search returned no results.") page]
         page
     in
     let t = {page; search; section; default; empty; make_result; header} in
@@ -38,34 +38,41 @@ module Section = struct
   let reset (Wrapped t) =
     Table.Section.clear t.section
 
-  let make_result_rows t input cb =
-    let Wrapped t = t in
+  let make_error_row (Wrapped t) msg =
+    let open Table in
+    Row.create
+      ~cells:[
+        Cell.text ~text:(Lwt.return "❌") t.page;
+        Cell.text ~text:(Lwt.return (spf "There is an error in your request: %s." msg)) t.page
+      ]
+      t.page
+
+  let make_result_rows (Wrapped t) input cb =
     let make_row score =
       let%lwt row = t.make_result score in
       Table.Row.on_click row (fun () -> cb ());
       Lwt.return row
     in
     if String.length input > 2 then
-      (
+      try%lwt
         t.search input >>=| fun scores ->
         if List.length scores > 0 then
-          (
-            NesList.sub 10 scores
-            |> Lwt_list.map_p make_row
-            >>=| fun l ->
-            match t.default with
-            | None -> Lwt.return l
-            | Some d -> Lwt.return (l @ [d])
-          )
+          NesList.sub 10 scores
+          |> Lwt_list.map_p make_row
+          >>=| fun l ->
+          match t.default with
+          | None -> Lwt.return l
+          | Some d -> Lwt.return (l @ [d])
         else
-          (match t.default with
-           | None -> Lwt.return [t.empty]
-           | Some d -> Lwt.return [t.empty; d])
-      )
+          match t.default with
+          | None -> Lwt.return [t.empty]
+          | Some d -> Lwt.return [t.empty; d]
+      with
+        _ -> Lwt.return [make_error_row (Wrapped t) ""]
     else
-      (match t.default with
-       | None -> Lwt.return []
-       | Some d -> Lwt.return [d])
+      match t.default with
+      | None -> Lwt.return []
+      | Some d -> Lwt.return [d]
 
   let update t input cb =
     let Wrapped wt = t in
@@ -110,22 +117,30 @@ let rec reset t =
 and update t =
   let input = Inputs.Text.contents t.bar in
   List.iter (fun s -> Section.update s input (fun () -> reset t)) t.sections;
-  if String.length input < 3 then begin
-    let progress =
-      Table.Row.create
-        ~cells:[
-          Table.Cell.text ~text:(Lwt.return " ") t.page;
-          Table.Cell.text ~text:(Lwt.return "Start typing to search") t.page]
-        t.page
-    in
-    Table.Section.replace_rows t.progress (Lwt.return [progress]);
-    if t.hide_sections then
-      Table.replace_bodies t.table (Lwt.return [t.progress])
-  end else begin
-    let bodies = List.map Section.body t.sections in
-    Table.Section.clear t.progress;
-    Table.replace_bodies t.table (Lwt.return (t.progress :: bodies))
-  end
+  if String.length input < 3 then
+    (
+      let info_message =
+        if input = "" then "Start typing to search."
+        else "Type at least three characters."
+      in
+      let progress =
+        Table.Row.create
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "👉") t.page;
+            Table.Cell.text ~text:(Lwt.return info_message) t.page
+          ]
+          t.page
+      in
+      Table.Section.replace_rows t.progress (Lwt.return [progress]);
+      if t.hide_sections then
+        Table.replace_bodies t.table (Lwt.return [t.progress])
+    )
+  else
+    (
+      let bodies = List.map Section.body t.sections in
+      Table.Section.clear t.progress;
+      Table.replace_bodies t.table (Lwt.return (t.progress :: bodies))
+    )
 
 let create ~placeholder ~sections ?(hide_sections = false) page =
   let root = Html.createDiv (Page.document page) in

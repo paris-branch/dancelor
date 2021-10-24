@@ -42,7 +42,9 @@ let to_formula predicate_to_formula formula =
   to_formula formula
 
 let make_predicate_to_formula
-    raw_builder nullary_text_predicates unary_text_predicates
+    (raw_builder : 'a raw_builder)
+    (nullary_text_predicates : 'a nullary_text_predicates)
+    (unary_text_predicates : 'a unary_text_predicates)
   =
   function
   | Raw string ->

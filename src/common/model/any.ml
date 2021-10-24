@@ -122,14 +122,10 @@ module Filter = struct
     ]
 
   let from_text_formula =
-    let predicate_to_formula =
-      TextFormula.make_predicate_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-    in
-    let predicate_to_formula pred =
+    let from_text_predicate pred =
       Formula.or_l [
-        predicate_to_formula pred;
+        TextFormula.make_predicate_to_formula raw
+          nullary_text_predicates unary_text_predicates pred;
         asCredit   (Credit.Filter.from_text_formula (Pred pred));
         asDance     (Dance.Filter.from_text_formula (Pred pred));
         asPerson   (Person.Filter.from_text_formula (Pred pred));
@@ -140,5 +136,17 @@ module Filter = struct
         asVersion (Version.Filter.from_text_formula (Pred pred));
       ]
     in
-    TextFormula.to_formula predicate_to_formula
+    TextFormula.to_formula from_text_predicate
+
+  (** Tries to detect if the formula implies a unique type and returns it. *)
+  (** FIXME: replace by something that detects all the types that can be
+     returned. *)
+  let rec type_from_text_formula =
+    let open Formula in function
+      | Pred (Type type_) -> Some type_
+      | And (f1, f2) ->
+        (match type_from_text_formula f1 with
+         | Some type_ -> Some type_
+         | _ -> type_from_text_formula f2)
+      | _ -> None
 end
