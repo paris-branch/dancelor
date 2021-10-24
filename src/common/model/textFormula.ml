@@ -9,13 +9,12 @@ open Formula
 include TextFormulaType
 
 module Lexer = TextFormulaLexer
-module Parser = TextFormulaParser
 module Printer = TextFormulaPrinter
 
-module Parsing = struct
+module Parser = struct
   module L = MenhirLib.LexerUtil
   module E = MenhirLib.ErrorReports
-  module I = Parser.MenhirInterpreter
+  module I = TextFormulaParser.MenhirInterpreter
 
   exception ParseError of Lexing.position * Lexing.position * string
 
@@ -53,7 +52,7 @@ module Parsing = struct
     let lexbuf = L.init filename (Lexing.from_string text) in
     let supplier = I.lexer_lexbuf_to_supplier Lexer.token lexbuf in
     let (buffer, supplier) = E.wrap_supplier supplier in
-    let checkpoint = Parser.Incremental.formula lexbuf.lex_curr_p in
+    let checkpoint = TextFormulaParser.Incremental.formula lexbuf.lex_curr_p in
     I.loop_handle succeed (fail text buffer) supplier checkpoint
 
   let from_string_exn ?filename text =
@@ -61,7 +60,7 @@ module Parsing = struct
     | Ok v -> v
     | Error (start, end_, msg) -> parse_error start end_ msg
 end
-let from_string = Parsing.from_string_exn
+let from_string = Parser.from_string_exn
 
 let pp = Printer.pp
 

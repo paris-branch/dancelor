@@ -76,7 +76,7 @@ module Section = struct
         make_error_row (Wrapped t) "There is an unexpected character in your request: '%c'. If you really want to type it, protect it with quotes, eg. \"foo%cbar\"." char char
       | Dancelor_common_model.TextFormula.Lexer.UnterminatedQuote ->
         make_error_row (Wrapped t) "There is an unterminated quote in your request. If you just want to type a quote character, whether inside quotes or not, escape it, eg. \"foo\\\"bar\"."
-      | Dancelor_common_model.TextFormula.Parsing.ParseError (_, _, where) ->
+      | Dancelor_common_model.TextFormula.Parser.ParseError (_, _, where) ->
         make_error_row (Wrapped t) "There is a syntax error %s in your request." where
       | Dancelor_common_model.Any.Filter.UnknownPredicate(arity, pred) ->
         make_error_row (Wrapped t) "There is an unknown %s predicate in your request: \"%s\"." arity pred
@@ -93,7 +93,6 @@ module Section = struct
     let Wrapped wt = t in
     make_result_rows t input cb
     |> Table.Section.replace_rows wt.section
-
 end
 
 type root = Html.divElement
