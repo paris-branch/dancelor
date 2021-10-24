@@ -46,7 +46,7 @@ module Section = struct
            Row.create
              ~cells:[
                Cell.text ~text:(Lwt.return "❌") t.page;
-               Cell.text ~text:(Lwt.return (spf "There is an error in your request: %s." msg)) t.page
+               Cell.text ~text:(Lwt.return msg) t.page
              ]
              t.page
          ])
@@ -72,14 +72,18 @@ module Section = struct
           | None -> Lwt.return [t.empty]
           | Some d -> Lwt.return [t.empty; d]
       with
-      | Dancelor_common_model.TextFormula.ParseError ->
-        make_error_row (Wrapped t) "it is not grammatically correct"
+      | Dancelor_common_model.TextFormula.Lexer.UnexpectedCharacter char ->
+        make_error_row (Wrapped t) "There is an unexpected character in your request: '%c'. If you really want to type it, protect it with quotes, eg. \"foo%cbar\"." char char
+      | Dancelor_common_model.TextFormula.Lexer.UnterminatedQuote ->
+        make_error_row (Wrapped t) "There is an unterminated quote in your request. If you just want to type a quote character, whether inside quotes or not, escape it, eg. \"foo\\\"bar\"."
+      | Dancelor_common_model.TextFormula.Parsing.ParseError (_, _, where) ->
+        make_error_row (Wrapped t) "There is a syntax error %s in your request." where
       | Dancelor_common_model.Any.Filter.UnknownPredicate(arity, pred) ->
-        make_error_row (Wrapped t) "unknown %s predicate: \"%s\"" arity pred
+        make_error_row (Wrapped t) "There is an unknown %s predicate in your request: \"%s\"." arity pred
       | Dancelor_common_model.Any.Type.NotAType str ->
-        make_error_row (Wrapped t) "\"%s\" is not a type" str
+        make_error_row (Wrapped t) "There is an error in your request: \"%s\" is not a type." str
       | exn ->
-        make_error_row (Wrapped t) "unknown exception: %s" (Printexc.to_string exn)
+        make_error_row (Wrapped t) "Handling your request caused an unknown exception: %s. Contact your system administrator with this message." (Printexc.to_string exn)
     else
       match t.default with
       | None -> Lwt.return []

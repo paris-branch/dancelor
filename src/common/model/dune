@@ -1,5 +1,5 @@
 (ocamllex textFormulaLexer)
-(menhir (modules textFormulaParser))
+(menhir (modules textFormulaParser) (flags --table))
 
 (library
  (name dancelor_common_model)
@@ -8,7 +8,7 @@
   lwt
   dancelor.nes
   dancelor.madge.common
-  yojson ppx_deriving_yojson.runtime)
+  menhirLib yojson ppx_deriving_yojson.runtime)
  (preprocess
   (pps
    lwt_ppx
