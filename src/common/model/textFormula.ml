@@ -4,6 +4,7 @@
    contains only the types, because they are necessary for the lexing, parsing
    and printing. This module contains the actual functions. *)
 
+open Nes
 open Formula
 include TextFormulaType
 
@@ -82,3 +83,26 @@ let raw_only
   function
   | Pred (Raw s) -> mk (convert s)
   | _ -> false_ (* FIXME: do we want to raise an error? *)
+
+let rec predicates from_predicate = function
+  | False -> String.Set.empty
+  | True -> String.Set.empty
+  | Not formula -> predicates from_predicate formula
+  | And (formula1, formula2) | Or (formula1, formula2) ->
+    String.Set.union
+      (predicates from_predicate formula1)
+      (predicates from_predicate formula2)
+  | Pred pred ->
+    match from_predicate pred with
+    | None -> String.Set.empty
+    | Some string -> String.Set.singleton string
+
+let nullary_predicates =
+  predicates @@ function
+  | Nullary string -> Some string
+  | _ -> None
+
+let unary_predicates =
+  predicates @@ function
+  | Unary (string, _) -> Some string
+  | _ -> None

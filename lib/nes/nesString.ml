@@ -236,3 +236,13 @@ end
 
 let compare_lengths s1 s2 =
   Int.compare (length s1) (length s2)
+
+module Set = Set.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
+
+module Map = Map.Make(struct
+    type nonrec t = t
+    let compare = compare
+  end)
