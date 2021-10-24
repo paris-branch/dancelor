@@ -37,6 +37,16 @@ module Type = struct
     | Version
   [@@deriving yojson]
 
+  module Set = Stdlib.Set.Make(struct
+      type nonrec t = t
+      let compare = compare
+    end)
+
+  let all = Set.of_list [
+      Credit; Dance; Person; Book;
+      Set; (* Source; *) Tune; Version;
+    ]
+
   let equal = (=)
 
   let to_string = function
@@ -131,22 +141,41 @@ module Filter = struct
         asPerson   (Person.Filter.from_text_formula (Pred pred));
         asBook       (Book.Filter.from_text_formula (Pred pred));
         asSet         (Set.Filter.from_text_formula (Pred pred));
-        (* asSource (Source.Filter.from_text_formula (Pred pred)); *)
+        (* asSource   (Source.Filter.from_text_formula (Pred pred)); *)
         asTune       (Tune.Filter.from_text_formula (Pred pred));
         asVersion (Version.Filter.from_text_formula (Pred pred));
       ]
     in
     TextFormula.to_formula from_text_predicate
 
-  (** Tries to detect if the formula implies a unique type and returns it. *)
-  (** FIXME: replace by something that detects all the types that can be
-     returned. *)
-  let rec type_from_text_formula =
+  (** All the possible types that a formula can return. *)
+  let rec possible_types =
     let open Formula in function
-      | Pred (Type type_) -> Some type_
-      | And (f1, f2) ->
-        (match type_from_text_formula f1 with
-         | Some type_ -> Some type_
-         | _ -> type_from_text_formula f2)
-      | _ -> None
+      | False -> Type.Set.empty
+      | True -> Type.all
+      | Not formula ->
+        Type.Set.diff
+          Type.all
+          (possible_types formula)
+      | And (formula1, formula2) ->
+        Type.Set.inter
+          (possible_types formula1)
+          (possible_types formula2)
+      | Or (formula1, formula2) ->
+        Type.Set.union
+          (possible_types formula1)
+          (possible_types formula2)
+      | Pred pred ->
+        (* FIXME: We could do better here by checking in depth whether a formula
+           has a chance to return. That would eliminate some other types. *)
+        match pred with
+        | Type type_  -> Type.Set.singleton type_
+        | AsCredit  _ -> Type.Set.singleton Credit
+        | AsDance   _ -> Type.Set.singleton Dance
+        | AsPerson  _ -> Type.Set.singleton Person
+        | AsBook    _ -> Type.Set.singleton Book
+        | AsSet     _ -> Type.Set.singleton Set
+        (* | AsSource _ ->   Type.Set.singleton Source *)
+        | AsTune    _ -> Type.Set.singleton Tune
+        | AsVersion _ -> Type.Set.singleton Version
 end
