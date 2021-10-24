@@ -38,14 +38,18 @@ module Section = struct
   let reset (Wrapped t) =
     Table.Section.clear t.section
 
-  let make_error_row (Wrapped t) msg =
-    let open Table in
-    Row.create
-      ~cells:[
-        Cell.text ~text:(Lwt.return "❌") t.page;
-        Cell.text ~text:(Lwt.return (spf "There is an error in your request: %s." msg)) t.page
-      ]
-      t.page
+  let make_error_row (Wrapped t) =
+    Format.kasprintf
+      (fun msg ->
+         Lwt.return [
+           let open Table in
+           Row.create
+             ~cells:[
+               Cell.text ~text:(Lwt.return "❌") t.page;
+               Cell.text ~text:(Lwt.return (spf "There is an error in your request: %s." msg)) t.page
+             ]
+             t.page
+         ])
 
   let make_result_rows (Wrapped t) input cb =
     let make_row score =
@@ -68,7 +72,14 @@ module Section = struct
           | None -> Lwt.return [t.empty]
           | Some d -> Lwt.return [t.empty; d]
       with
-        _ -> Lwt.return [make_error_row (Wrapped t) ""]
+      | Dancelor_common_model.TextFormula.ParseError ->
+        make_error_row (Wrapped t) "it is not grammatically correct"
+      | Dancelor_common_model.Any.Filter.UnknownPredicate(arity, pred) ->
+        make_error_row (Wrapped t) "unknown %s predicate: \"%s\"" arity pred
+      | Dancelor_common_model.Any.Type.NotAType str ->
+        make_error_row (Wrapped t) "\"%s\" is not a type" str
+      | exn ->
+        make_error_row (Wrapped t) "unknown exception: %s" (Printexc.to_string exn)
     else
       match t.default with
       | None -> Lwt.return []

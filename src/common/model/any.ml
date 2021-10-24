@@ -1,3 +1,5 @@
+open Nes
+
 let _key = "any"
 
 type t =
@@ -59,6 +61,8 @@ module Type = struct
     | Tune -> "Tune"
     | Version -> "Version"
 
+  exception NotAType of string
+
   let of_string str =
     match String.lowercase_ascii str with
     | "credit" -> Credit
@@ -69,7 +73,7 @@ module Type = struct
     (* | "source" -> Source *)
     | "tune" -> Tune
     | "version" -> Version
-    | _ -> failwith "Any.Type.of_string"
+    | _ -> raise (NotAType str)
 end
 
 let type_of = function
@@ -150,32 +154,88 @@ module Filter = struct
 
   (** All the possible types that a formula can return. *)
   let rec possible_types =
-    let open Formula in function
-      | False -> Type.Set.empty
-      | True -> Type.all
-      | Not formula ->
-        Type.Set.diff
-          Type.all
-          (possible_types formula)
-      | And (formula1, formula2) ->
-        Type.Set.inter
-          (possible_types formula1)
-          (possible_types formula2)
-      | Or (formula1, formula2) ->
-        Type.Set.union
-          (possible_types formula1)
-          (possible_types formula2)
-      | Pred pred ->
-        (* FIXME: We could do better here by checking in depth whether a formula
-           has a chance to return. That would eliminate some other types. *)
-        match pred with
-        | Type type_  -> Type.Set.singleton type_
-        | AsCredit  _ -> Type.Set.singleton Credit
-        | AsDance   _ -> Type.Set.singleton Dance
-        | AsPerson  _ -> Type.Set.singleton Person
-        | AsBook    _ -> Type.Set.singleton Book
-        | AsSet     _ -> Type.Set.singleton Set
-        (* | AsSource _ ->   Type.Set.singleton Source *)
-        | AsTune    _ -> Type.Set.singleton Tune
-        | AsVersion _ -> Type.Set.singleton Version
+    let open Formula in
+    function
+    | False -> Type.Set.empty
+    | True -> Type.all
+    | Not formula -> Type.Set.diff Type.all (possible_types formula)
+    | And (formula1, formula2) -> Type.Set.inter (possible_types formula1) (possible_types formula2)
+    | Or  (formula1, formula2) -> Type.Set.union (possible_types formula1) (possible_types formula2)
+    | Pred pred ->
+      (* FIXME: We could do better here by checking in depth whether a formula
+         has a chance to return. That would eliminate some other types. *)
+      match pred with
+      | Type type_  -> Type.Set.singleton type_
+      | AsCredit  _ -> Type.Set.singleton Credit
+      | AsDance   _ -> Type.Set.singleton Dance
+      | AsPerson  _ -> Type.Set.singleton Person
+      | AsBook    _ -> Type.Set.singleton Book
+      | AsSet     _ -> Type.Set.singleton Set
+      (* | AsSource _ ->   Type.Set.singleton Source *)
+      | AsTune    _ -> Type.Set.singleton Tune
+      | AsVersion _ -> Type.Set.singleton Version
+
+  let nullary_text_predicates_of_type type_ =
+    String.Set.of_list
+      (match type_ with
+       | Type.Credit  -> List.map fst  Credit.Filter.nullary_text_predicates
+       | Type.Dance   -> List.map fst   Dance.Filter.nullary_text_predicates
+       | Type.Person  -> List.map fst  Person.Filter.nullary_text_predicates
+       | Type.Book    -> List.map fst    Book.Filter.nullary_text_predicates
+       | Type.Set     -> List.map fst     Set.Filter.nullary_text_predicates
+       (* | Type.Source  -> List.map fst  Source.Filter.nullary_text_predicates *)
+       | Type.Tune    -> List.map fst    Tune.Filter.nullary_text_predicates
+       | Type.Version -> List.map fst Version.Filter.nullary_text_predicates)
+
+  let nullary_text_predicates_of_types types =
+    Type.Set.fold
+      (String.Set.union @@@ nullary_text_predicates_of_type)
+      types (String.Set.of_list (List.map fst nullary_text_predicates))
+
+  let unary_text_predicates_of_type type_ =
+    String.Set.of_list
+      (match type_ with
+       | Type.Credit  -> List.map fst  Credit.Filter.unary_text_predicates
+       | Type.Dance   -> List.map fst   Dance.Filter.unary_text_predicates
+       | Type.Person  -> List.map fst  Person.Filter.unary_text_predicates
+       | Type.Book    -> List.map fst    Book.Filter.unary_text_predicates
+       | Type.Set     -> List.map fst     Set.Filter.unary_text_predicates
+       (* | Type.Source  -> List.map fst  Source.Filter.unary_text_predicates *)
+       | Type.Tune    -> List.map fst    Tune.Filter.unary_text_predicates
+       | Type.Version -> List.map fst Version.Filter.unary_text_predicates)
+
+  let unary_text_predicates_of_types types =
+    Type.Set.fold
+      (String.Set.union @@@ unary_text_predicates_of_type)
+      types (String.Set.of_list (List.map fst unary_text_predicates))
+
+  (* let check_predicates text_formula = *)
+
+  exception UnknownPredicate of string * string
+
+  let from_string string =
+    let text_formula = TextFormula.from_string string in
+    let formula = from_text_formula text_formula in (* can raise parse error *)
+    let types_ = possible_types formula in
+    (
+      let unknown_nullary_text_predicates =
+        String.Set.diff
+          (TextFormula.nullary_predicates text_formula)
+          (nullary_text_predicates_of_types types_)
+      in
+      match String.Set.choose_opt unknown_nullary_text_predicates with
+      | None -> ()
+      | Some pred -> raise (UnknownPredicate ("nullary", pred))
+    );
+    (
+      let unknown_unary_text_predicates =
+        String.Set.diff
+          (TextFormula.unary_predicates text_formula)
+          (unary_text_predicates_of_types types_)
+      in
+      match String.Set.choose_opt unknown_unary_text_predicates with
+      | None -> ()
+      | Some pred -> raise (UnknownPredicate ("unary", pred))
+    );
+    formula
 end

@@ -8,8 +8,13 @@ open Nes
 open Formula
 include TextFormulaType
 
+exception ParseError
+
 let from_string string =
-  TextFormulaParser.formula TextFormulaLexer.token (Lexing.from_string string)
+  try
+    TextFormulaParser.formula TextFormulaLexer.token (Lexing.from_string string)
+  with
+    _ -> raise ParseError
 (* FIXME: use incremental parsing to get a proper error reporting *)
 (* return a result type because there will be errors often and *)
 (* we want the client code to handle them *)
