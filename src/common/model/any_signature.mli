@@ -1,18 +1,13 @@
 open Nes
 
-type t = Any.t
+type t = AnyCore.t
 
-module Type = Any.Type
+module Type = AnyCore.Type
 
 val type_of : t -> Type.t
-
-module Filter : sig
-  include module type of Any.Filter
-  val accepts : t -> Any.t -> float Lwt.t
-end
 
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  Filter.t ->
+  AnyFilter.t ->
   t Score.t list Lwt.t

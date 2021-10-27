@@ -144,7 +144,7 @@ module Version = struct
   let name_disambiguation_and_sources ?link version =
     let sources_lwt =
       let%lwt sources =
-        let filter = M.Book.Filter.(
+        let filter = M.BookFilter.(
             M.Formula.and_ (memVersionDeep version) isSource
           )
         in
@@ -170,7 +170,7 @@ module Version = struct
   let disambiguation_and_sources version =
     let sources_lwt =
       let%lwt sources =
-        let filter = M.Book.Filter.(
+        let filter = M.BookFilter.(
             M.Formula.and_ (memVersionDeep version) isSource
           )
         in

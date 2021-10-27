@@ -35,7 +35,7 @@ let create slug page =
         p_lwt (
           let%lwt filter =
             let%lwt person = person_lwt in
-            Lwt.return (Credit.Filter.memPerson person)
+            Lwt.return (CreditFilter.memPerson person)
           in
           let%lwt credits =
             Credit.search filter
@@ -85,7 +85,7 @@ let create slug page =
         div_lwt (
           let tunes_lwt =
             let%lwt person = person_lwt in
-            let filter = Tune.Filter.author (Credit.Filter.memPerson person) in
+            let filter = TuneFilter.author (CreditFilter.memPerson person) in
             Tune.search filter
             >|=| Score.list_erase
           in
@@ -106,7 +106,7 @@ let create slug page =
         div_lwt (
           let%lwt sets =
             let%lwt person = person_lwt in
-            let filter = Set.Filter.deviser (Credit.Filter.memPerson person) in
+            let filter = SetFilter.deviser (CreditFilter.memPerson person) in
             Set.search filter
             >|=| Score.list_erase
           in

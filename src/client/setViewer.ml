@@ -136,7 +136,7 @@ let create slug page =
         div_lwt (
           let books_lwt =
             let%lwt set = set_lwt in
-            let filter = Book.Filter.memSet set in
+            let filter = BookFilter.memSet set in
             Book.search filter
             >|=| Score.list_erase
           in

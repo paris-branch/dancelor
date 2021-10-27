@@ -1,17 +1,10 @@
 open Nes
 
-type t = Person.t
+type t = PersonCore.t
 
 val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
-
-(** {2 Filter} *)
-
-module Filter : sig
-  include module type of Person.Filter
-  val accepts : t -> Person.t -> float Lwt.t
-end
 
 (** {2 Getters and setters} *)
 
@@ -25,5 +18,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  Filter.t ->
+  PersonFilter.t ->
   t Score.t list Lwt.t

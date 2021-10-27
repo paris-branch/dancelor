@@ -6,17 +6,17 @@ include Tables.Set
 let get slug = get slug
 let get_all () = get_all ()
 
-let get_books_that_contain (slug : Model.Set.t Slug.t) : Model.Book.t list Lwt.t =
+let get_books_that_contain (slug : Model.SetCore.t Slug.t) : Model.BookCore.t list Lwt.t =
   let%lwt all = Tables.Book.get_all () in
-  Lwt.return (List.filter (Model.Book.contains_set slug) all)
+  Lwt.return (List.filter (Model.BookCore.contains_set slug) all)
 
-exception UsedInBook of Model.Book.t Slug.t
+exception UsedInBook of Model.BookCore.t Slug.t
 
-let delete (set : Model.Set.t Slug.t) =
+let delete (set : Model.SetCore.t Slug.t) =
   let%lwt all = get_books_that_contain set in
   match all with
   | [] ->
     delete set
   | book :: _ ->
-    let%lwt slug = Model.Book.slug book in
+    let%lwt slug = Model.BookCore.slug book in
     Lwt.fail (UsedInBook slug)

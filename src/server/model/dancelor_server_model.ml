@@ -9,15 +9,29 @@ module Transposition = Transposition
 module Formula = Formula
 module TextFormula = TextFormula
 
-module Person        : Common.PERSON          = Person
-module Credit        : Common.CREDIT          = Credit
-module Source        : Common.SOURCE          = Source
-module Dance         : Common.DANCE           = Dance
-module Tune          : Common.TUNE            = Tune
-module Version       : Common.VERSION         = Version
-module VersionParameters                      = VersionParameters
-module Set           : Common.SET             = Set
-module SetParameters                          = SetParameters
-module Book          : Common.BOOK            = Book
-module BookParameters                         = BookParameters
-module Any           : Common.ANY             = Any
+module Person            : Common.PERSON  = Person
+module PersonFilter                       = PersonFilter
+
+module Credit            : Common.CREDIT  = Credit
+module CreditFilter                       = CreditFilter
+
+module Dance             : Common.DANCE   = Dance
+module DanceFilter                        = DanceFilter
+
+module Tune              : Common.TUNE    = Tune
+module TuneFilter                         = TuneFilter
+
+module Version           : Common.VERSION = Version
+module VersionFilter                      = VersionFilter
+module VersionParameters                  = VersionParameters
+
+module Set               : Common.SET     = Set
+module SetFilter                          = SetFilter
+module SetParameters                      = SetParameters
+
+module Book              : Common.BOOK    = Book
+module BookFilter                         = BookFilter
+module BookParameters                     = BookParameters
+
+module Any               : Common.ANY     = Any
+module AnyFilter                          = AnyFilter

@@ -12,38 +12,36 @@ type controller =
   | Index
 
   | CreditSave
-  | Credit of Credit.t Slug.t
+  | Credit of CreditCore.t Slug.t
 
-  | Dance of Dance.t Slug.t
+  | Dance of DanceCore.t Slug.t
 
   | Pascaline
 
   | PersonSave
-  | Person of Person.t Slug.t
+  | Person of PersonCore.t Slug.t
 
   | BookAll
-  | BookPdf of Book.t Slug.t
-  | Book of Book.t Slug.t
+  | BookPdf of BookCore.t Slug.t
+  | Book of BookCore.t Slug.t
 
   | SetAll
   | SetCompose
   | SetSave
-  | SetLy of Set.t Slug.t
-  | SetPdf of Set.t Slug.t
-  | Set of Set.t Slug.t
-  | SetDelete of Set.t Slug.t
+  | SetLy of SetCore.t Slug.t
+  | SetPdf of SetCore.t Slug.t
+  | Set of SetCore.t Slug.t
+  | SetDelete of SetCore.t Slug.t
 
-  | Source of Source.t Slug.t
-
-  | Tune of Tune.t Slug.t
+  | Tune of TuneCore.t Slug.t
 
   | VersionAll
   | VersionSearch
-  | VersionLy of Version.t Slug.t
-  | VersionSvg of Version.t Slug.t
-  | VersionOgg of Version.t Slug.t
-  | VersionPdf of Version.t Slug.t
-  | Version of Version.t Slug.t
+  | VersionLy of VersionCore.t Slug.t
+  | VersionSvg of VersionCore.t Slug.t
+  | VersionOgg of VersionCore.t Slug.t
+  | VersionPdf of VersionCore.t Slug.t
+  | Version of VersionCore.t Slug.t
 
   | Victor
 

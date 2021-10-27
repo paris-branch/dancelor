@@ -1,16 +1,8 @@
 open Nes
+include PersonCore
+
 module E = Dancelor_common_model.Person_endpoints
 module A = E.Arguments
-
-include Dancelor_common_model.Person
-
-let get = Dancelor_server_database.Person.get
-
-let () =
-  Madge_server.(
-    register ~endpoint:E.get @@ fun {a} _ ->
-    get (a A.slug)
-  )
 
 let make_and_save ?status ~name () =
   Dancelor_server_database.Person.save ~slug_hint:name @@ fun slug ->
@@ -26,7 +18,7 @@ let () =
 
 let search ?pagination ?(threshold=0.) filter =
   Dancelor_server_database.Person.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
+  >>=| Score.lwt_map_from_list (PersonFilter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
       increasing name String.Sensible.compare;

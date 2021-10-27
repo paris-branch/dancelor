@@ -3,14 +3,14 @@ open Nes
 module Model = Dancelor_common_model
 
 module Person = Table.Make (struct
-    include Model.Person
+    include Model.PersonCore
 
     let dependencies _ = Lwt.return []
     let standalone = false
   end)
 
 module Credit = Table.Make (struct
-    include Model.Credit
+    include Model.CreditCore
 
     let dependencies credit =
       let%lwt persons = persons credit in
@@ -20,15 +20,8 @@ module Credit = Table.Make (struct
     let standalone = false
   end)
 
-module Source = Table.Make (struct
-    include Model.Source
-
-    let dependencies _ = Lwt.return []
-    let standalone = false
-  end)
-
 module Dance = Table.Make (struct
-    include Model.Dance
+    include Model.DanceCore
 
     let dependencies dance =
       match%lwt deviser dance with
@@ -39,7 +32,7 @@ module Dance = Table.Make (struct
   end)
 
 module Tune = Table.Make (struct
-    include Model.Tune
+    include Model.TuneCore
 
     let dependencies tune =
       let%lwt dances = dances tune in
@@ -54,13 +47,12 @@ module Tune = Table.Make (struct
   end)
 
 module Version = Table.Make (struct
-    include Model.Version
+    include Model.VersionCore
 
     let dependencies version =
       let%lwt tune = tune version in
       let%lwt arranger = arranger version in
-      let%lwt sources = sources version in
-      List.map (Table.make_slug_and_table (module Source)) sources
+      []
       |> (match arranger with
           | None -> Fun.id
           | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
@@ -71,7 +63,7 @@ module Version = Table.Make (struct
   end)
 
 module Set = Table.Make (struct
-    include Model.Set
+    include Model.SetCore
 
     let dependencies set =
       let%lwt deviser = deviser set in
@@ -87,7 +79,7 @@ module Set = Table.Make (struct
   end)
 
 module Book = Table.Make (struct
-    include Model.Book
+    include Model.BookCore
 
     let dependencies book =
       let%lwt contents = contents book in
@@ -109,7 +101,6 @@ module Storage = Storage
 let tables : (module Table.S) list = [
   (module Person) ;
   (module Credit) ;
-  (module Source) ;
   (module Dance) ;
   (module Version) ;
   (module Tune) ;

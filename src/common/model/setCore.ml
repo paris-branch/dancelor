@@ -6,13 +6,12 @@ type t =
   { slug : t Slug.t                  [@default Slug.none] ;
     status : Status.t                [@default Status.bot] ;
     name : string ;
-    deviser : Credit.t Slug.t option [@default None] ;
+    deviser : CreditCore.t Slug.t option [@default None] ;
     kind : Kind.dance ;
-    versions_and_parameters : (Version.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
+    versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
     instructions : string            [@default ""] ;
-    dances : Dance.t Slug.t list     [@default []] ;
-    remark : string                  [@default ""] ;
-    sources : Source.t Slug.t list   [@default []] }
+    dances : DanceCore.t Slug.t list     [@default []] ;
+    remark : string                  [@default ""] }
 [@@deriving make, yojson]
 
 let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () =
@@ -20,7 +19,7 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () 
     match deviser with
     | None -> Lwt.return_none
     | Some deviser ->
-      let%lwt deviser = Credit.slug deviser in
+      let%lwt deviser = CreditCore.slug deviser in
       Lwt.return_some deviser
   in
   let%lwt versions_and_parameters =
@@ -30,7 +29,7 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () 
       let%lwt versions_and_parameters =
         Lwt_list.map_s
           (fun (version, parameters) ->
-             let%lwt slug = Version.slug version in
+             let%lwt slug = VersionCore.slug version in
              Lwt.return (slug, parameters))
           versions_and_parameters
       in
@@ -40,7 +39,7 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () 
     match dances with
     | None -> Lwt.return_none
     | Some dances ->
-      let%lwt dances = Lwt_list.map_p Dance.slug dances in
+      let%lwt dances = Lwt_list.map_p DanceCore.slug dances in
       Lwt.return_some dances
   in
   Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters ?dances ())
@@ -72,49 +71,10 @@ let contains_version slug1 set =
 type warning =
   | Empty
   | WrongKind
-  | WrongVersionBars of Version.t
-  | WrongVersionKind of Tune.t
-  | DuplicateVersion of Tune.t
+  | WrongVersionBars of VersionCore.t
+  | WrongVersionKind of TuneCore.t
+  | DuplicateVersion of TuneCore.t
 [@@deriving yojson]
 
 type warnings = warning list
 [@@deriving yojson]
-
-module Filter = struct
-  let _key = "set-filter"
-
-  type predicate =
-    | Is of t
-    | Name of string
-    | NameMatches of string
-    | Deviser of Credit.Filter.t (** deviser is defined and passes the filter *)
-    | ExistsVersion of Version.Filter.t
-  [@@deriving yojson]
-
-  type t = predicate Formula.t
-  [@@deriving yojson]
-
-  let is set = Formula.pred (Is set)
-  let name name = Formula.pred (Name name)
-  let nameMatches name = Formula.pred (NameMatches name)
-  let deviser pfilter = Formula.pred (Deviser pfilter)
-  let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
-  let memVersion version = existsVersion (Version.Filter.is version)
-
-  let raw = nameMatches
-
-  let nullary_text_predicates = []
-
-  let unary_text_predicates =
-    TextFormula.[
-      "name",           raw_only ~convert:Fun.id name;
-      "name-matches",   raw_only ~convert:Fun.id nameMatches;
-      "deviser",        (deviser @@@ Credit.Filter.from_text_formula);
-      "exists-version", (existsVersion @@@ Version.Filter.from_text_formula)
-    ]
-
-  let from_text_formula =
-    TextFormula.make_to_formula raw
-      nullary_text_predicates
-      unary_text_predicates
-end

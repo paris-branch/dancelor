@@ -1,11 +1,11 @@
 open Nes
 
-type page = Book.page =
-  | Version       of Version.t * VersionParameters.t
-  | Set           of     Set.t * SetParameters.t
-  | InlineSet     of     Set.t * SetParameters.t
+type page = BookCore.page =
+  | Version       of VersionCore.t * VersionParameters.t
+  | Set           of     SetCore.t * SetParameters.t
+  | InlineSet     of     SetCore.t * SetParameters.t
 
-type t = Book.t
+type t = BookCore.t
 
 val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
@@ -16,26 +16,19 @@ val date : t -> Date.t Lwt.t
 val contents : t -> page list Lwt.t
 val remark : t -> string Lwt.t
 
-val contains_set : Set.t Slug.t -> t -> bool
+val contains_set : SetCore.t Slug.t -> t -> bool
 val compare : t -> t -> int
 
 (* {2 Warnings} *)
 
-type warning = Book.warning =
+type warning = BookCore.warning =
   | Empty
-  | DuplicateSet of Set.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of Tune.t
+  | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)
+  | DuplicateVersion of TuneCore.t
 
 type warnings = warning list
 
 val warnings : t -> warnings Lwt.t
-
-(** {2 Filter} *)
-
-module Filter : sig
-  include module type of Book.Filter
-  val accepts : t -> Book.t -> float Lwt.t
-end
 
 (** {2 Getters and setters} *)
 
@@ -44,5 +37,5 @@ val get : t Slug.t -> t Lwt.t
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  Filter.t ->
+  BookFilter.t ->
   t Score.t list Lwt.t

@@ -82,16 +82,6 @@ let make_set_result ~prefix page set =
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
-let make_source_result ~prefix page source =
-  let%lwt slug = Source.slug source in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Source slug) ()) in
-  let cells =
-    prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Source.name source) page;
-    ]
-  in
-  Lwt.return (Table.Row.create ~href ~cells page)
-
 let make_tune_result ~prefix page tune =
   let%lwt slug = Tune.slug tune in
   let href = Lwt.return (Helpers.build_path ~route:(Router.Tune slug) ()) in
@@ -134,7 +124,7 @@ let make_version_result ~prefix page version =
 
 let search input =
   let threshold = 0.4 in
-  let filter = Any.Filter.from_string input in
+  let filter = AnyFilter.from_string input in
   let pagination = Pagination.{ start = 0; end_ = 15 } in
   Any.search ~threshold ~pagination filter
 

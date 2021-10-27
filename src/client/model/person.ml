@@ -1,14 +1,7 @@
-open Dancelor_common_model
-include Person
+include PersonCore
 
-module E = Person_endpoints
+module E = Dancelor_common_model.Person_endpoints
 module A = E.Arguments
-
-let get slug =
-  Madge_client.(
-    call ~endpoint:E.get @@ fun {a} _ ->
-    a A.slug slug
-  )
 
 let make_and_save ?status ~name () =
   Madge_client.(

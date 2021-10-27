@@ -38,7 +38,7 @@ let create slug page =
           let versions_lwt =
             let%lwt filter =
               let%lwt tune = tune_lwt in
-              Lwt.return (Version.Filter.tuneIs tune)
+              Lwt.return (VersionFilter.tuneIs tune)
             in
             Version.search filter
             >|=| Score.list_erase
@@ -72,7 +72,7 @@ let create slug page =
 
           let sets_lwt =
             let%lwt tune = tune_lwt in
-            let filter = Set.Filter.existsVersion (Version.Filter.tuneIs tune) in
+            let filter = SetFilter.existsVersion (VersionFilter.tuneIs tune) in
             Set.search filter
             >|=| Score.list_erase
           in
@@ -93,7 +93,7 @@ let create slug page =
         div_lwt (
           let%lwt books =
             let%lwt tune = tune_lwt in
-            let filter = Book.Filter.memTuneDeep tune in
+            let filter = BookFilter.memTuneDeep tune in
             Book.search filter
             >|=| Score.list_erase
           in
