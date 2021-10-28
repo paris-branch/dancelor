@@ -4,7 +4,7 @@ include AnyCore
 module E = Dancelor_common_model.Any_endpoints
 module A = E.Arguments
 
-let search ?pagination ?(threshold=0.) filter =
+let search ?pagination ?(threshold=Float.min_float) filter =
   let%lwt credits  = Dancelor_server_database.Credit.get_all ()  >|=| List.map (fun c -> Credit c) in
   let%lwt dances   = Dancelor_server_database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
   let%lwt persons  = Dancelor_server_database.Person.get_all ()  >|=| List.map (fun p -> Person p) in

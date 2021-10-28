@@ -4,7 +4,7 @@ include TuneCore
 module E = Dancelor_common_model.Tune_endpoints
 module A = E.Arguments
 
-let search ?pagination ?(threshold=0.) filter =
+let search ?pagination ?(threshold=Float.min_float) filter =
   Dancelor_server_database.Tune.get_all ()
   >>=| Score.lwt_map_from_list (TuneFilter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)

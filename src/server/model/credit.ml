@@ -21,7 +21,7 @@ let () =
       ()
   )
 
-let search ?pagination ?(threshold=0.) filter =
+let search ?pagination ?(threshold=Float.min_float) filter =
   Dancelor_server_database.Credit.get_all ()
   >>=| Score.lwt_map_from_list (CreditFilter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
