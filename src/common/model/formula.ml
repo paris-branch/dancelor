@@ -51,8 +51,8 @@ let interpret_bool b =
 
 let interpret formula interpret_predicate =
   let rec interpret = function
-    | False -> Lwt.return 0.
-    | True -> Lwt.return 1.
+    | False -> Lwt.return interpret_false
+    | True -> Lwt.return interpret_true
     | Not formula ->
       let%lwt score = interpret formula in
       Lwt.return (interpret_not score)
