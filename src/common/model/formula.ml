@@ -69,19 +69,6 @@ let interpret formula interpret_predicate =
   in
   interpret formula
 
-let fpf = Format.fprintf
-
-let rec pp pp_pred fmt = function
-  | False -> fpf fmt "false"
-  | True -> fpf fmt "true"
-  | Not f -> fpf fmt "not (%a)" (pp pp_pred) f
-  | And (f1, f2) -> fpf fmt "(%a) && (%a)" (pp pp_pred) f1 (pp pp_pred) f2
-  | Or  (f1, f2) -> fpf fmt "(%a) || (%a)" (pp pp_pred) f1 (pp pp_pred) f2
-  | Pred pred -> pp_pred fmt pred
-
-let pp_opaque fmt f =
-  pp (fun fmt _ -> fpf fmt "<opaque>") fmt f
-
 (** {2 Serialisable} *)
 
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
