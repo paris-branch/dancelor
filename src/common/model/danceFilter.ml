@@ -6,6 +6,7 @@ type predicate =
   | Is of DanceCore.t
   | Name of string
   | NameMatches of string
+  | Kind of KindFilter.dance
 [@@deriving yojson]
 
 type t = predicate Formula.t
@@ -14,6 +15,7 @@ type t = predicate Formula.t
 let is dance = Formula.pred (Is dance)
 let name name = Formula.pred (Name name)
 let nameMatches name = Formula.pred (NameMatches name)
+let kind kfilter = Formula.pred (Kind kfilter)
 
 let raw = nameMatches
 
@@ -31,6 +33,10 @@ let accepts filter dance =
   | NameMatches string ->
     let%lwt name = DanceCore.name dance in
     Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+
+  | Kind kfilter ->
+    let%lwt kind = DanceCore.kind dance in
+    KindFilter.accepts_dance kfilter kind
 
 let nullary_text_predicates = []
 
