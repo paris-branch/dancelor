@@ -41,6 +41,10 @@ let unary_text_predicates =
     "bars-lt", raw_only ~convert:int_of_string barsLt;
     "bars-le", raw_only ~convert:int_of_string barsLe
   ]
+  @ (List.map
+       (fun (name, pred) ->
+          (name, fun x -> tune (pred x)))
+       TuneFilter.unary_text_predicates)
 
 let from_text_formula =
   TextFormula.make_to_formula raw
