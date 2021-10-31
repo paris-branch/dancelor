@@ -71,7 +71,7 @@ let filter_to_versionfilter filter =
 
   let bars =
     filter.bars
-    |> List.map (fun bars -> VersionFilter.barsEq bars)
+    |> List.map (fun bars -> VersionFilter.kind (KindFilter.Version.barsEq bars))
     |> or_if_not_empty
   in
 

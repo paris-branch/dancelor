@@ -1,9 +1,11 @@
-module Kind = Kind
 module Music = Music
 module Pagination = Pagination
 module Status = Status
 module Score = Score
 module Transposition = Transposition
+
+module Kind = Kind
+module KindFilter = KindFilter
 
 module PersonCore = PersonCore
 module type PERSON = module type of Person_signature

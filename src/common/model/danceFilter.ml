@@ -6,7 +6,7 @@ type predicate =
   | Is of DanceCore.t
   | Name of string
   | NameMatches of string
-  | Kind of KindFilter.dance
+  | Kind of KindFilter.Dance.t
 [@@deriving yojson]
 
 type t = predicate Formula.t
@@ -36,7 +36,7 @@ let accepts filter dance =
 
   | Kind kfilter ->
     let%lwt kind = DanceCore.kind dance in
-    KindFilter.accepts_dance kfilter kind
+    KindFilter.Dance.accepts kfilter kind
 
 let nullary_text_predicates = []
 

@@ -1,69 +1,106 @@
 (* Base *)
 
-type base_predicate =
-  | IsBase of Kind.base
-[@@deriving yojson]
+module Base = struct
+  type predicate =
+    | Is of Kind.base
+  [@@deriving yojson]
 
-type base = base_predicate Formula.t
-[@@deriving yojson]
+  type t = predicate Formula.t
+  [@@deriving yojson]
 
-let isBase kind = Formula.pred (IsBase kind)
+  let is kind = Formula.pred (Is kind)
 
-let accepts_base filter kind =
-  Formula.interpret filter @@ function
+  let accepts filter kind =
+    Formula.interpret filter @@ function
 
-  | IsBase kind' ->
-    Lwt.return (Formula.interpret_bool (kind = kind'))
+    | Is kind' ->
+      Lwt.return (Formula.interpret_bool (kind = kind'))
+end
 
 (* Version *)
 
-type version_predicate =
-  | IsVersion of Kind.version
-  | Base of base
-[@@deriving yojson]
+module Version = struct
+  type predicate =
+    | Is of Kind.version
+    | BarsEq of int | BarsGt of int | BarsLt of int
+    | Base of Base.t
+  [@@deriving yojson]
 
-type version = version_predicate Formula.t
-[@@deriving yojson]
+  type t = predicate Formula.t
+  [@@deriving yojson]
 
-let isVersion kind = Formula.pred (IsVersion kind)
-let base bfilter = Formula.pred (Base bfilter)
+  let is kind = Formula.pred (Is kind)
+  let barsEq int = Formula.pred (BarsEq int)
+  let barsNe int = Formula.not_ (barsEq int)
+  let barsGt int = Formula.pred (BarsGt int)
+  let barsGe int = Formula.or_l [ barsEq int; barsGt int ]
+  let barsLt int = Formula.pred (BarsLt int)
+  let barsLe int = Formula.or_l [ barsEq int; barsLt int ]
 
-let accepts_version filter kind =
-  Formula.interpret filter @@ function
+  let base bfilter = Formula.pred (Base bfilter)
 
-  | IsVersion kind' ->
-    Lwt.return (Formula.interpret_bool (kind = kind'))
+  let accepts filter kind =
+    Formula.interpret filter @@ function
 
-  | Base bfilter ->
-    let (_bars, bkind) = kind in
-    accepts_base bfilter bkind
+    | Is kind' ->
+      Lwt.return (Formula.interpret_bool (kind = kind'))
+
+    | BarsEq bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars = bars'))
+
+    | BarsGt bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars > bars'))
+
+    | BarsLt bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars < bars'))
+
+    | Base bfilter ->
+      let (_bars, bkind) = kind in
+      Base.accepts bfilter bkind
+
+  let raw string = is (Kind.version_of_string string)
+
+  let nullary_text_predicates = []
+
+  let unary_text_predicates = []
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
+end
 
 (* Dance *)
 
-type dance_predicate =
-  | IsDance of Kind.dance
-  | Simple
-  | Version of version
-[@@deriving yojson]
+module Dance = struct
+  type predicate =
+    | Is of Kind.dance
+    | Simple
+    | Version of Version.t
+  [@@deriving yojson]
 
-type dance = dance_predicate Formula.t
-[@@deriving yojson]
+  type t = predicate Formula.t
+  [@@deriving yojson]
 
-let isDance kind = Formula.pred (IsDance kind)
-let version vfilter = Formula.pred (Version vfilter)
+  let is kind = Formula.pred (Is kind)
+  let version vfilter = Formula.pred (Version vfilter)
 
-let accepts_dance filter kind =
-  Formula.interpret filter @@ function
+  let accepts filter kind =
+    Formula.interpret filter @@ function
 
-  | IsDance kind' ->
-    Lwt.return (Formula.interpret_bool (kind = kind'))
+    | Is kind' ->
+      Lwt.return (Formula.interpret_bool (kind = kind'))
 
-  | Simple ->
-    (match kind with
-     | _, [_] -> Lwt.return Formula.interpret_true
-     | _ -> Lwt.return Formula.interpret_false)
+    | Simple ->
+      (match kind with
+       | _, [_] -> Lwt.return Formula.interpret_true
+       | _ -> Lwt.return Formula.interpret_false)
 
-  | Version vfilter ->
-    (match kind with
-     | _, [vkind] -> accepts_version vfilter vkind
-     | _ -> Lwt.return Formula.interpret_false)
+    | Version vfilter ->
+      (match kind with
+       | _, [vkind] -> Version.accepts vfilter vkind
+       | _ -> Lwt.return Formula.interpret_false)
+end

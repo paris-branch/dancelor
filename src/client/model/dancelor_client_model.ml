@@ -1,6 +1,5 @@
 module Common = Dancelor_common_model
 
-module Kind   = Kind
 module Music  = Music
 module Pagination = Pagination
 module Status = Status
@@ -8,6 +7,9 @@ module Score  = Score
 module Transposition = Transposition
 module Formula = Formula
 module TextFormula = TextFormula
+
+module Kind                               = Kind
+module KindFilter                         = KindFilter
 
 module Person            : Common.PERSON  = Person
 module PersonFilter                       = PersonFilter
