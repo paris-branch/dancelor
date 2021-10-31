@@ -22,6 +22,6 @@ let accepts filter tune =
      | None -> Formula.interpret_false |> Lwt.return
      | Some author -> CreditFilter.accepts afilter author)
 
-  | Kind kind' ->
+  | Kind kfilter ->
     let%lwt kind = TuneCore.kind tune in
-    Lwt.return (Formula.interpret_bool (kind = kind'))
+    KindFilter.Base.accepts kfilter kind

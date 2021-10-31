@@ -15,6 +15,17 @@ module Base = struct
 
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
+
+  let raw string = is (Kind.base_of_string string)
+
+  let nullary_text_predicates = []
+
+  let unary_text_predicates = []
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
 end
 
 (* Version *)
@@ -103,4 +114,15 @@ module Dance = struct
       (match kind with
        | _, [vkind] -> Version.accepts vfilter vkind
        | _ -> Lwt.return Formula.interpret_false)
+
+  let raw string = is (Kind.dance_of_string string)
+
+  let nullary_text_predicates = []
+
+  let unary_text_predicates = []
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
 end

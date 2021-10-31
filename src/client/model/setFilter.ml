@@ -27,3 +27,7 @@ let accepts filter set =
       (fun (version, _) ->
          VersionFilter.accepts vfilter version)
       versions_and_parameters
+
+  | Kind kfilter ->
+    let%lwt kind = Set.kind set in
+    KindFilter.Dance.accepts kfilter kind

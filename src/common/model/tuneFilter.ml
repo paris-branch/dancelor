@@ -7,7 +7,7 @@ type predicate =
   | Name of string
   | NameMatches of string
   | Author of CreditFilter.t (** author is defined and passes the filter *)
-  | Kind of Kind.base
+  | Kind of KindFilter.Base.t
 [@@deriving yojson]
 
 type t = predicate Formula.t
@@ -18,7 +18,7 @@ let name string = Formula.pred (Name string)
 let nameMatches string = Formula.pred (NameMatches string)
 let author cfilter = Formula.pred (Author cfilter)
 let authorIs author_ = author (CreditFilter.is author_)
-let kind kind = Formula.pred (Kind kind)
+let kind kfilter = Formula.pred (Kind kfilter)
 
 let raw = nameMatches
 
@@ -29,7 +29,7 @@ let unary_text_predicates =
     "name",         raw_only ~convert:Fun.id name;
     "name-matches", raw_only ~convert:Fun.id nameMatches;
     "author",       (author @@@ CreditFilter.from_text_formula);
-    "kind",         raw_only ~convert:Kind.base_of_string kind
+    "kind",         (kind @@@ KindFilter.Base.from_text_formula);
   ]
 
 let from_text_formula =
