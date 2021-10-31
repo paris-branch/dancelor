@@ -23,14 +23,15 @@ let base_of_char c =
   | 'R' -> Reel
   | 'S' -> Strathspey
   | 'W' -> Waltz
-  | _ -> failwith "Dancelor_common_model.Kind.base_of_char"
+  | _ -> invalid_arg "Dancelor_common_model.Kind.base_of_char"
 
 let base_to_string b =
   String.make 1 (base_to_char b)
 
 let base_of_string s =
   try base_of_char s.[0]
-  with Invalid_argument _ | Failure _ -> failwith "Dancelor_common_model.Kind.base_of_string"
+  with Invalid_argument _ | Failure _ ->
+    invalid_arg "Dancelor_common_model.Kind.base_of_string"
 
 let base_to_yojson b =
   `String (base_to_string b)
@@ -71,13 +72,13 @@ let version_of_string s =
     ssf s "%d%[a-zA-Z]"
       (fun repeats base -> (repeats, base_of_string base))
   with
-    Scanf.Scan_failure _ ->
+  | End_of_file | Scanf.Scan_failure _ ->
     try
       ssf s "%[a-zA-Z]%d"
         (fun base repeats -> (repeats, base_of_string base))
     with
-      Scanf.Scan_failure _ ->
-      raise (Invalid_argument "Dancelor_model.Kind.version_of_string")
+    | End_of_file | Scanf.Scan_failure _ ->
+      invalid_arg "Dancelor_common_model.Kind.version_of_string"
 
 let%test _ = version_to_string (32, Waltz) = "32 W"
 let%test _ = version_to_string (64, Reel) = "64 R"
@@ -88,6 +89,13 @@ let%test _ = version_of_string "W 32" = (32, Waltz)
 let%test _ = version_of_string "64 Reel" = (64, Reel)
 let%test _ = version_of_string "JIG 24" = (24, Jig)
 let%test _ = version_of_string "48 sTrathPEY" = (48, Strathspey)
+
+let%test _ =
+  try ignore (version_of_string "R"); false
+  with Invalid_argument _ -> true
+let%test _ =
+  try ignore (version_of_string "8x32R"); false
+  with Invalid_argument _ -> true
 
 let version_to_yojson t =
   `String (version_to_string t)
@@ -138,6 +146,10 @@ let%test _ = dance_to_string (2, [(32, Strathspey); (24, Reel)]) = "2 x (32 S + 
 let%test _ = dance_of_string "3 x ( 32 Strathspey )" = (3, [32, Strathspey])
 let%test _ = dance_of_string "(32W + 64R)" = (1, [(32, Waltz); (64, Reel)])
 let%test _ = dance_of_string "3x40J" = (3, [40, Jig])
+let%test _ = dance_of_string "32R" = (1, [32, Reel])
+let%test _ =
+  try ignore (dance_of_string "R"); false
+  with Invalid_argument _ -> true
 
 let dance_to_yojson d =
   `String (dance_to_string d)
