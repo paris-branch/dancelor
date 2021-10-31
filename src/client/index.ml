@@ -105,7 +105,7 @@ let make_version_result ~prefix page version =
   let cells =
     prefix @ [
       Table.Cell.create ~content:(
-        let%lwt content = Formatters.Version.name_and_disambiguation version in
+        let%lwt content = Formatters.Version.name_and_disambiguation ~link:false version in
         Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document page) content)
       ) page;
       Table.Cell.text ~text:(
@@ -141,7 +141,6 @@ let make_result page score =
   | Person person   -> make_person_result  ~prefix page person
   | Book book       -> make_book_result    ~prefix page book
   | Set set         -> make_set_result     ~prefix page set
-  (* | Source source   -> make_source_result  ~prefix page source *)
   | Tune tune       -> make_tune_result    ~prefix page tune
   | Version version -> make_version_result ~prefix page version
 
