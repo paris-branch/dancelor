@@ -11,6 +11,7 @@ val base_of_char : char -> base
 
 val base_to_string : base -> string
 val base_of_string : string -> base
+val base_of_string_opt : string -> base option
 
 val base_to_pretty_string : ?capitalised:bool -> base -> string
 (** Pretty version. Capitalised if the corresponding boolean is set to true
@@ -30,6 +31,7 @@ type version = int * base
 
 val version_to_string : version -> string
 val version_of_string : string -> version
+val version_of_string_opt : string -> version option
 
 val version_to_pretty_string : version -> string
 (** Pretty version *)
@@ -44,6 +46,7 @@ type dance = int * version list
 
 val dance_to_string : dance -> string
 val dance_of_string : string -> dance
+val dance_of_string_opt : string -> dance option
 
 val dance_to_pretty_string : dance -> string
 (** Pretty version *)

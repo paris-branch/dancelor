@@ -72,7 +72,13 @@ module Version = struct
       let (_bars, bkind) = kind in
       Base.accepts bfilter bkind
 
-  let raw string = is (Kind.version_of_string string)
+  let raw string =
+    match Kind.base_of_string_opt string with
+    | Some bkind -> base (Base.is bkind)
+    | None ->
+      match Kind.version_of_string_opt string with
+      | Some vkind -> is vkind
+      | None -> invalid_arg "Dancelor_common_model.KindFilter.Version.raw"
 
   let nullary_text_predicates = []
 
@@ -98,6 +104,7 @@ module Dance = struct
 
   let is kind = Formula.pred (Is kind)
   let version vfilter = Formula.pred (Version vfilter)
+  let base bfilter = version (Version.base bfilter)
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -115,7 +122,16 @@ module Dance = struct
        | _, [vkind] -> Version.accepts vfilter vkind
        | _ -> Lwt.return Formula.interpret_false)
 
-  let raw string = is (Kind.dance_of_string string)
+  let raw string =
+    match Kind.base_of_string_opt string with
+    | Some bkind -> base (Base.is bkind)
+    | None ->
+      match Kind.version_of_string_opt string with
+      | Some vkind -> version (Version.is vkind)
+      | None ->
+        match Kind.dance_of_string_opt string with
+        | Some dkind -> is dkind
+        | None -> invalid_arg "Dancelor_common_model.KindFilter.Version.raw"
 
   let nullary_text_predicates = []
 

@@ -33,6 +33,10 @@ let base_of_string s =
   with Invalid_argument _ | Failure _ ->
     invalid_arg "Dancelor_common_model.Kind.base_of_string"
 
+let base_of_string_opt s =
+  try Some (base_of_string s)
+  with Invalid_argument _ -> None
+
 let base_to_yojson b =
   `String (base_to_string b)
 
@@ -97,6 +101,10 @@ let%test _ =
   try ignore (version_of_string "8x32R"); false
   with Invalid_argument _ -> true
 
+let version_of_string_opt string =
+  try Some (version_of_string string)
+  with Invalid_argument _ -> None
+
 let version_to_yojson t =
   `String (version_to_string t)
 
@@ -150,6 +158,10 @@ let%test _ = dance_of_string "32R" = (1, [32, Reel])
 let%test _ =
   try ignore (dance_of_string "R"); false
   with Invalid_argument _ -> true
+
+let dance_of_string_opt s =
+  try Some (dance_of_string s)
+  with Invalid_argument _ -> None
 
 let dance_to_yojson d =
   `String (dance_to_string d)
