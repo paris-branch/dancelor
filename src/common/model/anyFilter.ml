@@ -29,13 +29,13 @@ let asVersion filter = Formula.pred (AsVersion filter)
 
 let raw str =
   let filters = [
-    (match  CreditFilter.raw str with Ok cfilter -> Ok ( asCredit cfilter) | Error err -> error_fmt " credit: %s" err);
-    (match   DanceFilter.raw str with Ok dfilter -> Ok (  asDance dfilter) | Error err -> error_fmt "  dance: %s" err);
-    (match  PersonFilter.raw str with Ok pfilter -> Ok ( asPerson pfilter) | Error err -> error_fmt " person: %s" err);
-    (match    BookFilter.raw str with Ok bfilter -> Ok (   asBook bfilter) | Error err -> error_fmt "   book: %s" err);
-    (match     SetFilter.raw str with Ok sfilter -> Ok (    asSet sfilter) | Error err -> error_fmt "    set: %s" err);
-    (match    TuneFilter.raw str with Ok tfilter -> Ok (   asTune tfilter) | Error err -> error_fmt "   tune: %s" err);
-    (match VersionFilter.raw str with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "version: %s" err);
+    (match  CreditFilter.raw str with Ok cfilter -> Ok ( asCredit cfilter) | Error err -> error_fmt "- for credits, %s"  err);
+    (match   DanceFilter.raw str with Ok dfilter -> Ok (  asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
+    (match  PersonFilter.raw str with Ok pfilter -> Ok ( asPerson pfilter) | Error err -> error_fmt "- for persons, %s"  err);
+    (match    BookFilter.raw str with Ok bfilter -> Ok (   asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
+    (match     SetFilter.raw str with Ok sfilter -> Ok (    asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
+    (match    TuneFilter.raw str with Ok tfilter -> Ok (   asTune tfilter) | Error err -> error_fmt "- for tunes, %s"    err);
+    (match VersionFilter.raw str with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "- for versions, %s" err);
   ] in
   let filters, errors =
     List.partition_map
@@ -65,13 +65,13 @@ let from_text_formula =
     let filters = [
       TextFormula.make_predicate_to_formula raw
         nullary_text_predicates unary_text_predicates pred;
-      (match  CreditFilter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asCredit cfilter) | Error err -> error_fmt " credit: %s" err);
-      (match   DanceFilter.from_text_formula (Pred pred) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "  dance: %s" err);
-      (match  PersonFilter.from_text_formula (Pred pred) with Ok pfilter -> Ok  (asPerson pfilter) | Error err -> error_fmt " person: %s" err);
-      (match    BookFilter.from_text_formula (Pred pred) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "   book: %s" err);
-      (match     SetFilter.from_text_formula (Pred pred) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "    set: %s" err);
-      (match    TuneFilter.from_text_formula (Pred pred) with Ok tfilter -> Ok    (asTune tfilter) | Error err -> error_fmt "   tune: %s" err);
-      (match VersionFilter.from_text_formula (Pred pred) with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "version: %s" err);
+      (match  CreditFilter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asCredit cfilter) | Error err -> error_fmt "- for credits, %s"  err);
+      (match   DanceFilter.from_text_formula (Pred pred) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
+      (match  PersonFilter.from_text_formula (Pred pred) with Ok pfilter -> Ok  (asPerson pfilter) | Error err -> error_fmt "- for persons, %s"  err);
+      (match    BookFilter.from_text_formula (Pred pred) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
+      (match     SetFilter.from_text_formula (Pred pred) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
+      (match    TuneFilter.from_text_formula (Pred pred) with Ok tfilter -> Ok    (asTune tfilter) | Error err -> error_fmt "- for tunes, %s"    err);
+      (match VersionFilter.from_text_formula (Pred pred) with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "- for versions, %s" err);
     ] in
     let filters, errors =
       List.partition_map
@@ -84,12 +84,11 @@ let from_text_formula =
       match errors with
       | [] -> assert false
       | _ ->
-        error_fmt
-          ("There is a part of your formula on which all types encountered an error.\n"
-           ^^ "The part in question is: %a.\n"
-           ^^ "The errors are: %s")
-          (TextFormula.Printer.pp_predicate False) pred
-          (String.concat "; " errors) (* FIXME: list of errors (one per line?) *)
+        Error ([
+            "There is a part of your formula on which all types encountered an error.";
+            aspf "The part in question is: %a." (TextFormula.Printer.pp_predicate False) pred;
+            "The errors are:"
+          ] @ errors)
   in
   TextFormula.to_formula from_text_predicate
 
@@ -185,18 +184,18 @@ let from_string string =
     )
   with
   | TextFormula.Lexer.UnexpectedCharacter char ->
-    error_fmt ("There is an unexpected character in your request: '%c'. "
-               ^^ "If you really want to type it, protect it with quotes, "
-               ^^ "eg. \"foo%cbar\".") char char
+    errors_fmt ("There is an unexpected character in your request: '%c'. "
+                ^^ "If you really want to type it, protect it with quotes, "
+                ^^ "eg. \"foo%cbar\".") char char
   | TextFormula.Lexer.UnterminatedQuote ->
-    error_fmt ("There is an unterminated quote in your request. "
-               ^^ "If you just want to type a quote character, "
-               ^^ "whether inside quotes or not, escape it, eg. \"foo\\\"bar\".")
+    errors_fmt ("There is an unterminated quote in your request. "
+                ^^ "If you just want to type a quote character, "
+                ^^ "whether inside quotes or not, escape it, eg. \"foo\\\"bar\".")
   | TextFormula.Parser.ParseError (_, _, where) ->
-    error_fmt "There is a syntax error %s in your request." where
+    errors_fmt "There is a syntax error %s in your request." where
   | UnknownPredicate(arity, pred) ->
-    error_fmt "There is an unknown %s predicate in your request: \"%s\"." arity pred
+    errors_fmt "There is an unknown %s predicate in your request: \"%s\"." arity pred
   | exn ->
-    error_fmt ("Handling your request caused an unknown exception: %s. "
-               ^^ "Contact your system administrator with this message.")
+    errors_fmt ("Handling your request caused an unknown exception: %s. "
+                ^^ "Contact your system administrator with this message.")
       (Printexc.to_string exn)

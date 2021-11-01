@@ -62,3 +62,4 @@ let compare_or cmp1 cmp2 =
   if cmp1 <> 0 then cmp1 else cmp2 ()
 
 let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
+let errors_fmt fmt = Format.kasprintf (fun s -> Error [s]) fmt
