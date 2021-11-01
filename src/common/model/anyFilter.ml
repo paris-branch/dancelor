@@ -56,7 +56,8 @@ let unary_text_predicates =
     "type", raw_only ~convert:(fun s ->
         match AnyCore.Type.of_string_opt s with
         | Some t -> Ok t
-        | None -> error_fmt "There is an error in your request: \"%s\" is not a valid type." s) type_;
+        | None -> error_fmt ("There is an error in your request: "
+                             ^^ "\"%s\" is not a valid type.") s) type_;
   ]
 
 let from_text_formula =

@@ -43,7 +43,8 @@ let nullary_text_predicates = []
 let unary_text_predicates =
   TextFormula.[
     "name",         raw_only ~convert:no_convert name;
-    "name-matches", raw_only ~convert:no_convert nameMatches
+    "name-matches", raw_only ~convert:no_convert nameMatches;
+    "kind",         (kind @@@@ KindFilter.Dance.from_text_formula);
   ]
 
 let from_text_formula =
