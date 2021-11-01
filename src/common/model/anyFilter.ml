@@ -56,7 +56,7 @@ let unary_text_predicates =
     "type", raw_only ~convert:(fun s ->
         match AnyCore.Type.of_string_opt s with
         | Some t -> Ok t
-        | None -> error_fmt "the string \"%s\" is not a valid type" s) type_;
+        | None -> error_fmt "There is an error in your request: \"%s\" is not a valid type." s) type_;
   ]
 
 let from_text_formula =
@@ -64,13 +64,13 @@ let from_text_formula =
     let filters = [
       TextFormula.make_predicate_to_formula raw
         nullary_text_predicates unary_text_predicates pred;
-      (match  (CreditFilter.from_text_formula (Pred pred)) with Ok cfilter -> Ok  (asCredit cfilter) | Error err -> error_fmt " credit: %s" err);
-      (match   (DanceFilter.from_text_formula (Pred pred)) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "  dance: %s" err);
-      (match  (PersonFilter.from_text_formula (Pred pred)) with Ok pfilter -> Ok  (asPerson pfilter) | Error err -> error_fmt " person: %s" err);
-      (match    (BookFilter.from_text_formula (Pred pred)) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "   book: %s" err);
-      (match     (SetFilter.from_text_formula (Pred pred)) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "    set: %s" err);
-      (match    (TuneFilter.from_text_formula (Pred pred)) with Ok tfilter -> Ok    (asTune tfilter) | Error err -> error_fmt "   tune: %s" err);
-      (match (VersionFilter.from_text_formula (Pred pred)) with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "version: %s" err);
+      (match  CreditFilter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asCredit cfilter) | Error err -> error_fmt " credit: %s" err);
+      (match   DanceFilter.from_text_formula (Pred pred) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "  dance: %s" err);
+      (match  PersonFilter.from_text_formula (Pred pred) with Ok pfilter -> Ok  (asPerson pfilter) | Error err -> error_fmt " person: %s" err);
+      (match    BookFilter.from_text_formula (Pred pred) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "   book: %s" err);
+      (match     SetFilter.from_text_formula (Pred pred) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "    set: %s" err);
+      (match    TuneFilter.from_text_formula (Pred pred) with Ok tfilter -> Ok    (asTune tfilter) | Error err -> error_fmt "   tune: %s" err);
+      (match VersionFilter.from_text_formula (Pred pred) with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "version: %s" err);
     ] in
     let filters, errors =
       List.partition_map
@@ -145,49 +145,51 @@ let unary_text_predicates_of_types types =
 exception UnknownPredicate of string * string
 
 let from_string string =
-  let text_formula = TextFormula.from_string string in
-  match from_text_formula text_formula with (* can yield parse error *)
-  | Ok formula ->
+  try
     (
-      let types_ = possible_types formula in
-      (
-        let unknown_nullary_text_predicates =
-          String.Set.diff
-            (TextFormula.nullary_predicates text_formula)
-            (nullary_text_predicates_of_types types_)
-        in
-        match String.Set.choose_opt unknown_nullary_text_predicates with
-        | None -> ()
-        | Some pred -> raise (UnknownPredicate ("nullary", pred))
-      );
-      (
-        let unknown_unary_text_predicates =
-          String.Set.diff
-            (TextFormula.unary_predicates text_formula)
-            (unary_text_predicates_of_types types_)
-        in
-        match String.Set.choose_opt unknown_unary_text_predicates with
-        | None -> ()
-        | Some pred -> raise (UnknownPredicate ("unary", pred))
-      );
-      Ok formula
+      let text_formula = TextFormula.from_string string in
+      match from_text_formula text_formula with (* can yield parse error *)
+      | Ok formula ->
+        (
+          let types_ = possible_types formula in
+          (
+            let unknown_nullary_text_predicates =
+              String.Set.diff
+                (TextFormula.nullary_predicates text_formula)
+                (nullary_text_predicates_of_types types_)
+            in
+            match String.Set.choose_opt unknown_nullary_text_predicates with
+            | None -> ()
+            | Some pred -> raise (UnknownPredicate ("nullary", pred))
+          );
+          (
+            let unknown_unary_text_predicates =
+              String.Set.diff
+                (TextFormula.unary_predicates text_formula)
+                (unary_text_predicates_of_types types_)
+            in
+            match String.Set.choose_opt unknown_unary_text_predicates with
+            | None -> ()
+            | Some pred -> raise (UnknownPredicate ("unary", pred))
+          );
+          Ok formula
+        )
+      | Error err -> Error err
     )
-  | Error err -> Error err
-  | exception TextFormula.Lexer.UnexpectedCharacter char ->
+  with
+  | TextFormula.Lexer.UnexpectedCharacter char ->
     error_fmt ("There is an unexpected character in your request: '%c'. "
                ^^ "If you really want to type it, protect it with quotes, "
                ^^ "eg. \"foo%cbar\".") char char
-  | exception TextFormula.Lexer.UnterminatedQuote ->
+  | TextFormula.Lexer.UnterminatedQuote ->
     error_fmt ("There is an unterminated quote in your request. "
                ^^ "If you just want to type a quote character, "
                ^^ "whether inside quotes or not, escape it, eg. \"foo\\\"bar\".")
-  | exception TextFormula.Parser.ParseError (_, _, where) ->
+  | TextFormula.Parser.ParseError (_, _, where) ->
     error_fmt "There is a syntax error %s in your request." where
-  | exception UnknownPredicate(arity, pred) ->
+  | UnknownPredicate(arity, pred) ->
     error_fmt "There is an unknown %s predicate in your request: \"%s\"." arity pred
-  | exception AnyCore.Type.NotAType str ->
-    error_fmt "There is an error in your request: \"%s\" is not a type." str
-  | exception exn ->
+  | exn ->
     error_fmt ("Handling your request caused an unknown exception: %s. "
                ^^ "Contact your system administrator with this message.")
       (Printexc.to_string exn)
