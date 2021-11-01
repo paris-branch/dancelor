@@ -109,11 +109,11 @@ let make_predicate_to_formula
     raw_builder string
   | Nullary pred ->
     (match List.assoc_opt pred nullary_text_predicates with
-     | None -> error_fmt "the nullary predicate :%s does not exist" pred
+     | None -> error_fmt "the nullary predicate \":%s\" does not exist" pred
      | Some pred -> Ok pred)
   | Unary (pred, sub_formula) ->
     (match List.assoc_opt pred unary_text_predicates with
-     | None -> error_fmt "the unary predicate %s: does not exist" pred
+     | None -> error_fmt "the unary predicate \"%s:\" does not exist" pred
      | Some mk_pred -> mk_pred sub_formula)
 
 let make_to_formula

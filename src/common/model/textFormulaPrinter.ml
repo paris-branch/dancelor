@@ -21,9 +21,12 @@ let rec pp fmt formula =
   | Not f -> fpf fmt ":not %a" (pp_pars formula) f
   | And (f1, f2) -> fpf fmt "%a :and %a" (pp_pars formula) f1 (pp_pars formula) f2
   | Or  (f1, f2) -> fpf fmt "%a :or %a" (pp_pars formula) f1 (pp_pars formula) f2
-  | Pred (Raw string) -> pp_raw fmt string
-  | Pred (Nullary pred) -> fpf fmt ":%s" pred
-  | Pred (Unary (pred, f)) -> fpf fmt "%s:%a" pred (pp_pars formula) f
+  | Pred pred -> pp_predicate formula fmt pred
+
+and pp_predicate parent fmt = function
+  | Raw string -> pp_raw fmt string
+  | Nullary pred -> fpf fmt ":%s" pred
+  | Unary (pred, f) -> fpf fmt "%s:%a" pred (pp_pars parent) f
 
 and pp_pars parent fmt formula =
   if level parent > level formula then

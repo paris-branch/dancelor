@@ -83,7 +83,13 @@ let from_text_formula =
     else
       match errors with
       | [] -> assert false
-      | err :: _ -> Error err (* FIXME: also show the others *)
+      | _ ->
+        error_fmt
+          ("There is a part of your formula on which all types encountered an error.\n"
+           ^^ "The part in question is: %a.\n"
+           ^^ "The errors are: %s")
+          (TextFormula.Printer.pp_predicate False) pred
+          (String.concat "; " errors) (* FIXME: list of errors (one per line?) *)
   in
   TextFormula.to_formula from_text_predicate
 
