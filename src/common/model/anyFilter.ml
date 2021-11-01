@@ -53,7 +53,10 @@ let nullary_text_predicates = []
 
 let unary_text_predicates =
   TextFormula.[
-    "type", raw_only ~convert:(fun s -> match AnyCore.Type.of_string_opt s with Some t -> Ok t | None -> Error "FIXME") type_;
+    "type", raw_only ~convert:(fun s ->
+        match AnyCore.Type.of_string_opt s with
+        | Some t -> Ok t
+        | None -> error_fmt "the string \"%s\" is not a valid type" s) type_;
   ]
 
 let from_text_formula =
