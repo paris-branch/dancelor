@@ -105,9 +105,17 @@ let create ?on_save page =
   in
   let persons_area = Html.createDiv (Page.document page) in
   let search_bar =
-    let main_section = 
+    let main_section =
       SearchBar.Section.create
-        ~search:(fun input -> Person.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} (PersonFilter.raw input))
+        ~search:(fun input ->
+            match PersonFilter.raw input with
+            | Ok formula ->
+              let%lwt results =
+                Person.search ~threshold:0.4
+                  ~pagination:Pagination.{start = 0; end_ = 10} formula
+              in
+              Lwt.return_ok results
+            | Error err -> Lwt.return_error err)
         ~default:(Table.Row.create
           ~cells:[
             Table.Cell.text ~text:(Lwt.return "  +") page;
@@ -190,5 +198,5 @@ let create ?on_save page =
 let contents t =
   t.content
 
-let init t = 
+let init t =
   refresh t

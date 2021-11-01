@@ -20,16 +20,16 @@ let author cfilter = Formula.pred (Author cfilter)
 let authorIs author_ = author (CreditFilter.is author_)
 let kind kfilter = Formula.pred (Kind kfilter)
 
-let raw = nameMatches
+let raw string = Ok (nameMatches string)
 
 let nullary_text_predicates = []
 
 let unary_text_predicates =
   TextFormula.[
-    "name",         raw_only ~convert:Fun.id name;
-    "name-matches", raw_only ~convert:Fun.id nameMatches;
-    "author",       (author @@@ CreditFilter.from_text_formula);
-    "kind",         (kind @@@ KindFilter.Base.from_text_formula);
+    "name",         raw_only ~convert:no_convert name;
+    "name-matches", raw_only ~convert:no_convert nameMatches;
+    "author",       (author @@@@ CreditFilter.from_text_formula);
+    "kind",         (kind @@@@ KindFilter.Base.from_text_formula);
   ]
 
 let from_text_formula =

@@ -1,3 +1,5 @@
+open Nes
+
 (* Base *)
 
 module Base = struct
@@ -16,7 +18,10 @@ module Base = struct
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
-  let raw string = is (Kind.base_of_string string)
+  let raw string =
+    match Kind.base_of_string_opt string with
+    | Some kind -> Ok (is kind)
+    | None -> error_fmt "could not interpret \"%s\" as a base kind" string
 
   let nullary_text_predicates = []
 
@@ -74,11 +79,11 @@ module Version = struct
 
   let raw string =
     match Kind.base_of_string_opt string with
-    | Some bkind -> base (Base.is bkind)
+    | Some bkind -> Ok (base (Base.is bkind))
     | None ->
       match Kind.version_of_string_opt string with
-      | Some vkind -> is vkind
-      | None -> invalid_arg "Dancelor_common_model.KindFilter.Version.raw"
+      | Some vkind -> Ok (is vkind)
+      | None -> error_fmt "could not interpret \"%s\" as a kind for versions" string
 
   let nullary_text_predicates = []
 
@@ -124,14 +129,14 @@ module Dance = struct
 
   let raw string =
     match Kind.base_of_string_opt string with
-    | Some bkind -> base (Base.is bkind)
+    | Some bkind -> Ok (base (Base.is bkind))
     | None ->
       match Kind.version_of_string_opt string with
-      | Some vkind -> version (Version.is vkind)
+      | Some vkind -> Ok (version (Version.is vkind))
       | None ->
         match Kind.dance_of_string_opt string with
-        | Some dkind -> is dkind
-        | None -> invalid_arg "Dancelor_common_model.KindFilter.Version.raw"
+        | Some dkind -> Ok (is dkind)
+        | None -> error_fmt "could not interpret \"%s\" as a kind for dances" string
 
   let nullary_text_predicates = []
 

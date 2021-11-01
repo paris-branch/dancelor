@@ -67,24 +67,33 @@ let pp = Printer.pp
 (******************************************************************************)
 (* To help convert from text_formula to filter. *)
 
-type 'a raw_builder = string -> 'a Formula.t
+type 'a or_error = ('a, string) result
+let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
+
+type 'a raw_builder = string -> 'a Formula.t or_error
 type 'a nullary_builder = 'a Formula.t
 type 'a nullary_text_predicates = (string * 'a nullary_builder) list
-type 'a unary_builder = t -> 'a Formula.t
+type 'a unary_builder = t -> 'a Formula.t or_error
 type 'a unary_text_predicates = (string * 'a unary_builder) list
 
 let to_formula predicate_to_formula formula =
   let rec to_formula = function
-    | False -> False
-    | True -> True
+    | False -> Ok False
+    | True -> Ok True
     | Not formula ->
-      Not (to_formula formula)
+      (match to_formula formula with
+       | Ok formula -> Ok (Not formula)
+       | Error err -> Error err) (* FIXME: ppx_syntext *)
     | And (formula1, formula2) ->
-      And (to_formula formula1,
-           to_formula formula2)
+      (match to_formula formula1,
+             to_formula formula2 with
+      | Ok formula1, Ok formula2 -> Ok (And (formula1, formula2))
+      | Error err, _ | _, Error err -> Error err)
     | Or (formula1, formula2) ->
-      Or (to_formula formula1,
-          to_formula formula2)
+      (match to_formula formula1,
+             to_formula formula2 with
+      | Ok formula1, Ok formula2 -> Ok (Or (formula1, formula2))
+      | Error err, _ | _, Error err -> Error err)
     | Pred pred ->
       predicate_to_formula pred
   in
@@ -100,11 +109,11 @@ let make_predicate_to_formula
     raw_builder string
   | Nullary pred ->
     (match List.assoc_opt pred nullary_text_predicates with
-     | None -> false_ (* FIXME: do we want to raise an error? *)
-     | Some pred -> pred)
+     | None -> error_fmt "the nullary predicate :%s does not exist" pred
+     | Some pred -> Ok pred)
   | Unary (pred, sub_formula) ->
     (match List.assoc_opt pred unary_text_predicates with
-     | None -> false_ (* FIXME: do we want to raise an error? *)
+     | None -> error_fmt "the unary predicate %s: does not exist" pred
      | Some mk_pred -> mk_pred sub_formula)
 
 let make_to_formula
@@ -112,7 +121,7 @@ let make_to_formula
     (nullary_text_predicates : 'a nullary_text_predicates)
     (unary_text_predicates : 'a unary_text_predicates)
     (formula : t)
-  : 'a Formula.t
+  : 'a Formula.t or_error
   =
   let predicate_to_formula =
     make_predicate_to_formula
@@ -124,13 +133,18 @@ let make_to_formula
 
 (** Helper to build a unary predicate whose argument must be raw only. *)
 let raw_only
-    ~(convert : string -> 'a)
+    ~(convert : string -> ('a, string) result)
     (mk : 'a -> 'b Formula.t)
-  : t -> 'b Formula.t
+  : t -> ('b Formula.t, string) result
   =
   function
-  | Pred (Raw s) -> mk (convert s)
-  | _ -> false_ (* FIXME: do we want to raise an error? *)
+  | Pred (Raw s) ->
+    (match convert s with
+     | Ok s -> Ok (mk s)
+     | Error err -> Error err)
+  | _ -> Error "this predicate only accepts raw arguments"
+
+let no_convert x = Ok x
 
 let rec predicates from_predicate = function
   | False -> String.Set.empty

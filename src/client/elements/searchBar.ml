@@ -10,7 +10,7 @@ module Section = struct
 
   type 'a t = {
     page : Page.t;
-    search : string -> ('a Score.t) list Lwt.t;
+    search : string -> (('a Score.t) list, string) result Lwt.t;
     section : Table.Section.t;
     default : Table.Row.t option;
     empty : Table.Row.t;
@@ -58,32 +58,25 @@ module Section = struct
       Lwt.return row
     in
     if String.length input > 2 then
-      try%lwt
-        t.search input >>=| fun scores ->
-        if List.length scores > 0 then
-          NesList.sub 10 scores
-          |> Lwt_list.map_p make_row
-          >>=| fun l ->
-          match t.default with
-          | None -> Lwt.return l
-          | Some d -> Lwt.return (l @ [d])
-        else
-          match t.default with
-          | None -> Lwt.return [t.empty]
-          | Some d -> Lwt.return [t.empty; d]
-      with
-      | TextFormula.Lexer.UnexpectedCharacter char ->
-        make_error_row (Wrapped t) "There is an unexpected character in your request: '%c'. If you really want to type it, protect it with quotes, eg. \"foo%cbar\"." char char
-      | TextFormula.Lexer.UnterminatedQuote ->
-        make_error_row (Wrapped t) "There is an unterminated quote in your request. If you just want to type a quote character, whether inside quotes or not, escape it, eg. \"foo\\\"bar\"."
-      | TextFormula.Parser.ParseError (_, _, where) ->
-        make_error_row (Wrapped t) "There is a syntax error %s in your request." where
-      | AnyFilter.UnknownPredicate(arity, pred) ->
-        make_error_row (Wrapped t) "There is an unknown %s predicate in your request: \"%s\"." arity pred
-      | Any.Type.NotAType str ->
-        make_error_row (Wrapped t) "There is an error in your request: \"%s\" is not a type." str
-      | exn ->
-        make_error_row (Wrapped t) "Handling your request caused an unknown exception: %s. Contact your system administrator with this message." (Printexc.to_string exn)
+      (
+        match%lwt t.search input with
+        | Ok scores ->
+          (
+            if List.length scores > 0 then
+              NesList.sub 10 scores
+              |> Lwt_list.map_p make_row
+              >>=| fun l ->
+              match t.default with
+              | None -> Lwt.return l
+              | Some d -> Lwt.return (l @ [d])
+            else
+              match t.default with
+              | None -> Lwt.return [t.empty]
+              | Some d -> Lwt.return [t.empty; d]
+          )
+        | Error err ->
+          make_error_row (Wrapped t) "%s" err
+      )
     else
       match t.default with
       | None -> Lwt.return []

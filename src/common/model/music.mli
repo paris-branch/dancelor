@@ -39,6 +39,7 @@ val key_to_lilypond_string : key -> string (** eg. c dis:m ees *)
 val key_to_safe_string : key -> string     (** eg. c  dism ees *)
 
 val key_of_string : string -> key
+val key_of_string_opt : string -> key option
 
 (** {2 Clef} *)
 

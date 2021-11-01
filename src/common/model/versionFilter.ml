@@ -18,19 +18,25 @@ let tuneIs tune_ = tune (TuneFilter.is tune_)
 let key key_ = Formula.pred (Key key_)
 let kind kfilter = Formula.pred (Kind kfilter)
 
-let raw string = tune (TuneFilter.raw string)
+let raw string =
+  match TuneFilter.raw string with
+  | Ok tfilter -> Ok (tune tfilter)
+  | Error err -> Error err (* FIXME: syntext *)
 
 let nullary_text_predicates = []
 
 let unary_text_predicates =
   TextFormula.[
-    "tune",    (tune @@@ TuneFilter.from_text_formula);
-    "key",     raw_only ~convert:Music.key_of_string key;
-    "kind",    (kind @@@ KindFilter.Version.from_text_formula);
+    "tune",    (tune @@@@ TuneFilter.from_text_formula);
+    "key",     raw_only ~convert:(fun s -> match Music.key_of_string_opt s with Some k -> Ok k | None -> Error "not a valid key") key;
+    "kind",    (kind @@@@ KindFilter.Version.from_text_formula);
   ]
   @ (List.map
        (fun (name, pred) ->
-          (name, fun x -> tune (pred x)))
+          (name, fun x ->
+              match pred x with
+              | Ok tfilter -> Ok (tune tfilter)
+              | Error err -> Error err))
        TuneFilter.unary_text_predicates)
 
 let from_text_formula =

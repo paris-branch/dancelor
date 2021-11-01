@@ -66,6 +66,10 @@ module Type = struct
     | "tune"    -> Tune
     | "version" -> Version
     | _ -> raise (NotAType str)
+
+  let of_string_opt str =
+    try Some (of_string str)
+    with NotAType _ -> None
 end
 
 let type_of = function

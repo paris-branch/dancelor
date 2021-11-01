@@ -48,10 +48,12 @@ let existsTuneDeep tfilter = existsVersionDeep (VersionFilter.tune tfilter)
 let memTuneDeep tune = existsTuneDeep (TuneFilter.is tune)
 
 let raw string =
-  Formula.or_l [
-    titleMatches string;
-    subtitleMatches string;
-  ]
+  Ok (
+    Formula.or_l [
+      titleMatches string;
+      subtitleMatches string;
+    ]
+  )
 
 let nullary_text_predicates = [
   "source", isSource
@@ -59,15 +61,15 @@ let nullary_text_predicates = [
 
 let unary_text_predicates =
   TextFormula.[
-    "title",             raw_only ~convert:Fun.id title;
-    "title-matches",     raw_only ~convert:Fun.id titleMatches;
-    "subtitle",          raw_only ~convert:Fun.id subtitle;
-    "subtitle-matches",  raw_only ~convert:Fun.id subtitleMatches;
-    "exists-version",    (existsVersion @@@ VersionFilter.from_text_formula);
-    "exists-set",        (existsSet @@@ SetFilter.from_text_formula);
-    "exists-inline-set", (existsInlineSet @@@ SetFilter.from_text_formula);
-    "exists-version-deep", (existsVersionDeep @@@ VersionFilter.from_text_formula);
-    "exists-tune-deep",    (existsVersionDeep @@@ VersionFilter.from_text_formula);
+    "title",             raw_only ~convert:no_convert title;
+    "title-matches",     raw_only ~convert:no_convert titleMatches;
+    "subtitle",          raw_only ~convert:no_convert subtitle;
+    "subtitle-matches",  raw_only ~convert:no_convert subtitleMatches;
+    "exists-version",    (existsVersion @@@@ VersionFilter.from_text_formula);
+    "exists-set",        (existsSet @@@@ SetFilter.from_text_formula);
+    "exists-inline-set", (existsInlineSet @@@@ SetFilter.from_text_formula);
+    "exists-version-deep", (existsVersionDeep @@@@ VersionFilter.from_text_formula);
+    "exists-tune-deep",    (existsVersionDeep @@@@ VersionFilter.from_text_formula);
   ]
 
 let from_text_formula =

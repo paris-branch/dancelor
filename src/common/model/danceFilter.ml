@@ -17,7 +17,7 @@ let name name = Formula.pred (Name name)
 let nameMatches name = Formula.pred (NameMatches name)
 let kind kfilter = Formula.pred (Kind kfilter)
 
-let raw = nameMatches
+let raw string = Ok (nameMatches string)
 
 let accepts filter dance =
   let char_equal = Char.Sensible.equal in
@@ -42,8 +42,8 @@ let nullary_text_predicates = []
 
 let unary_text_predicates =
   TextFormula.[
-    "name",         raw_only ~convert:Fun.id name;
-    "name-matches", raw_only ~convert:Fun.id nameMatches
+    "name",         raw_only ~convert:no_convert name;
+    "name-matches", raw_only ~convert:no_convert nameMatches
   ]
 
 let from_text_formula =

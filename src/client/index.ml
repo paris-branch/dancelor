@@ -124,9 +124,12 @@ let make_version_result ~prefix page version =
 
 let search input =
   let threshold = 0.4 in
-  let filter = AnyFilter.from_string input in
   let pagination = Pagination.{ start = 0; end_ = 15 } in
-  Any.search ~threshold ~pagination filter
+  match AnyFilter.from_string input with
+  | Ok filter ->
+    let%lwt results = Any.search ~threshold ~pagination filter in
+    Lwt.return_ok results
+  | Error err -> Lwt.return_error err
 
 let make_result page score =
   let any = Score.value score in

@@ -2,6 +2,12 @@ module Syntax = struct
   let (||>) f g x = f x |> g
   let (@@@) f g x = f (g x)
 
+  (* FIXME: this has to be renamed and go in the Result syntax *)
+  let (@@@@) f g x =
+    match g x with
+    | Ok y -> Ok (f y)
+    | Error err -> Error err
+
   let foi = float_of_int
 
   let   pf = Format.printf
@@ -54,3 +60,5 @@ let%test _ = (pmod (-67) (-4)) + (pdiv (-67) (-4)) *  -4 = -67
 
 let compare_or cmp1 cmp2 =
   if cmp1 <> 0 then cmp1 else cmp2 ()
+
+let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt

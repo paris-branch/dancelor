@@ -181,6 +181,10 @@ let key_of_string = function
     in
     { pitch = pitch_of_string pitch_str ; mode }
 
+let key_of_string_opt s =
+  try Some (key_of_string s)
+  with Failure _ -> None
+
 let key_to_yojson = to_yojson__of__to_string key_to_string
 let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common_model.Music.key_of_yojson"
 
