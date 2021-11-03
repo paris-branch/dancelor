@@ -146,6 +146,11 @@ let raw_only
 
 let no_convert x = Ok x
 
+let convert_int s =
+  match int_of_string_opt s with
+  | Some n -> Ok n
+  | None -> Error "this predicate only accepts integers"
+
 let rec predicates from_predicate = function
   | False -> String.Set.empty
   | True -> String.Set.empty

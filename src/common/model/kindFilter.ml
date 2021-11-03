@@ -87,7 +87,15 @@ module Version = struct
 
   let nullary_text_predicates = []
 
-  let unary_text_predicates = []
+  let unary_text_predicates =
+    TextFormula.[
+      "bars-eq", raw_only ~convert:convert_int barsEq;
+      "bars-ne", raw_only ~convert:convert_int barsNe;
+      "bars-gt", raw_only ~convert:convert_int barsGt;
+      "bars-ge", raw_only ~convert:convert_int barsGe;
+      "bars-lt", raw_only ~convert:convert_int barsLt;
+      "bars-le", raw_only ~convert:convert_int barsLe;
+    ]
 
   let from_text_formula =
     TextFormula.make_to_formula raw
@@ -140,7 +148,16 @@ module Dance = struct
 
   let nullary_text_predicates = []
 
-  let unary_text_predicates = []
+  (* Unary text_predicates lifted from Versions. *)
+  let unary_text_predicates =
+    List.map
+      (fun (name, builder) ->
+         (name,
+          (fun formula ->
+             match builder formula with
+             | Ok formula -> Ok (version formula)
+             | Error err -> Error err)))
+      Version.unary_text_predicates
 
   let from_text_formula =
     TextFormula.make_to_formula raw
