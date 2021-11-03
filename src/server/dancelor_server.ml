@@ -42,7 +42,7 @@ let remove_prefix_suffix prefix suffix string =
   String.remove_suffix ~needle:suffix string
 
 type controller =
-  | C : ('any Slug.t -> QueryHelpers.query -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) -> controller
+  | C : ('any Slug.t -> (string * Yojson.Safe.t) list -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) -> controller
 
 let apply_controller path =
   if path = "/victor"  then log_exit 101;
@@ -64,7 +64,7 @@ let apply_controller path =
   |> (fun (slug, C controller) ->
       controller (Slug.unsafe_of_string (Option.unwrap slug)))
 
-let callback _ request _body =
+let callback _ request body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
      exceptions. *)
   try
@@ -72,9 +72,13 @@ let callback _ request _body =
       let uri = Request.uri request in
       let meth = Request.meth request in
       let path = Uri.path uri in
-      let query = Uri.query uri in
+      (* let query = Uri.query uri in *)
       Log.info (fun m -> m "Request for %s" path);
-
+      let%lwt body = Cohttp_lwt.Body.to_string body in
+      let body = if body = "" then "{}" else body in
+      Log.debug (fun m -> m "Body: %s" body);
+      let body = Yojson.Safe.from_string body in
+      let body = match body with `Assoc body -> body | _ -> assert false in
       let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
       Log.debug (fun m -> m "Looking for %s" full_path);
       if Sys.file_exists full_path && not (Sys.is_directory full_path) then
@@ -85,16 +89,14 @@ let callback _ request _body =
       else
         (
           Log.debug (fun m -> m "Asking Madge for %s." path);
-          match%lwt Madge_server.handle meth path query with
+          match%lwt Madge_server.handle meth path body with
           | Some response -> Lwt.return response
           | None ->
             if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
               (
                 let path = String.sub path 4 (String.length path - 4) in
                 Log.debug (fun m -> m "Looking for an API controller for %s." path);
-                let query = cleanup_query query in
-                Log.debug (fun m -> m "Query: %a" pp_query query);
-                apply_controller path query
+                apply_controller path body
               )
             else
               (

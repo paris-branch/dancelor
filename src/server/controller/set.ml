@@ -1,6 +1,5 @@
 open Nes
 open Dancelor_server_model
-open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
 module Ly = struct
@@ -75,11 +74,10 @@ module Ly = struct
   let get set query =
     let%lwt set = Set.get set in
     let%lwt parameters =
-      match%lwt query_string_opt query "parameters" with
+      match List.assoc_opt "parameters" query with
       | None -> Lwt.return_none
       | Some parameters ->
         parameters
-        |> Yojson.Safe.from_string
         |> SetParameters.of_yojson
         |> Result.get_ok
         |> Lwt.return_some
@@ -112,11 +110,10 @@ module Pdf = struct
   let get set query =
     let%lwt set = Set.get set in
     let%lwt parameters =
-      match%lwt query_string_opt query "parameters" with
+      match List.assoc_opt "parameters" query with
       | None -> Lwt.return_none
       | Some parameters ->
         parameters
-        |> Yojson.Safe.from_string
         |> SetParameters.of_yojson
         |> Result.get_ok
         |> Lwt.return_some

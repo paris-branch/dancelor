@@ -36,8 +36,6 @@ val endpoint_path : 'a endpoint -> string
 val endpoint_serialiser : 'a endpoint -> 'a serialiser
 val endpoint_unserialiser : 'a endpoint -> 'a unserialiser
 
-type query = (string * string list) list ref
-
 exception BadQuery of string
 val bad_query : string -> 'a
 

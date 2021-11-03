@@ -44,7 +44,7 @@ type 'a endpoint =
     path : string ;
     returns : (module SERIALISABLE with type t = 'a) }
 
-let endpoint ?(meth=`GET) ~path returns =
+let endpoint ?(meth=`POST) ~path returns =
   { meth; path; returns }
 
 let endpoint_meth endpoint = endpoint.meth
@@ -57,8 +57,6 @@ let endpoint_serialiser (type s) endpoint =
 let endpoint_unserialiser (type s) endpoint =
   let (module M : SERIALISABLE with type t = s) = endpoint.returns in
   M.of_yojson
-
-type query = (string * string list) list ref
 
 exception BadQuery of string
 let bad_query string = raise (BadQuery string)

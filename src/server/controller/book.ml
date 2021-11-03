@@ -1,6 +1,5 @@
 open Nes
 open Dancelor_server_model
-open QueryHelpers
 module Log = (val Dancelor_server_logs.create "controller.book" : Logs.LOG)
 
 module Ly = struct
@@ -175,11 +174,10 @@ module Pdf = struct
   let get book query =
     let%lwt book = Book.get book in
     let%lwt parameters =
-      match%lwt query_string_opt query "parameters" with
+      match List.assoc_opt "parameters" query with
       | None -> Lwt.return_none
       | Some parameters ->
         parameters
-        |> Yojson.Safe.from_string
         |> BookParameters.of_yojson
         |> Result.get_ok
         |> Lwt.return_some

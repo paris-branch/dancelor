@@ -10,5 +10,5 @@ val register :
 
 val handle :
   Cohttp.Code.meth -> string ->
-  (string * string list) list ->
+  (string * Yojson.Safe.t) list ->
   (Cohttp.Response.t * Cohttp_lwt.Body.t) option Lwt.t
