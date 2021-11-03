@@ -25,3 +25,8 @@ let accepts filter tune =
   | Kind kfilter ->
     let%lwt kind = TuneCore.kind tune in
     KindFilter.Base.accepts kfilter kind
+
+  | ExistsDance dfilter ->
+    let%lwt dances = TuneCore.dances tune in
+    let%lwt scores = Lwt_list.map_s (DanceFilter.accepts dfilter) dances in
+    Lwt.return (Formula.interpet_or_l scores)

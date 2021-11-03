@@ -54,6 +54,8 @@ let dispatch url =
     pack (module CreditViewer) (CreditViewer.create (Slug.unsafe_of_string slug))
   | ["person"; slug] ->
     pack (module PersonViewer) (PersonViewer.create (Slug.unsafe_of_string slug))
+  | ["dance"; slug] ->
+    pack (module DanceViewer) (DanceViewer.create (Slug.unsafe_of_string slug))
   | [] ->
     pack (module Index) Index.create
   | _ ->

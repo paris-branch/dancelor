@@ -41,6 +41,18 @@ let sets sets =
     Lwt.return [ text_lwt (Set.kind set >|=| Kind.dance_to_string) ];
   ]
 
+let dances dances =
+  map_table ~header:[ "Name"; "Deviser"; "Kind" ] dances @@ fun dance ->
+  let href_lwt =
+    let%lwt slug = Dance.slug dance in
+    Lwt.return (Router.path_of_controller (Router.Dance slug) |> snd)
+  in
+  clickable_row ~href_lwt [
+    Lwt.return [ text_lwt (Dance.name dance) ];
+    (Dance.deviser dance >>=| Formatters.Credit.line);
+    Lwt.return [ text_lwt (Dance.kind dance >|=| Kind.dance_to_string) ];
+  ]
+
 let tunes tunes =
   map_table ~header:[ "Name"; "Kind"; "Author" ] tunes @@ fun tune ->
   let href_lwt =

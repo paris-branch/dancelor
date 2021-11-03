@@ -28,7 +28,6 @@ let create slug page =
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
-      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.recommended);
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
 
       div ~classes:["section"] [
@@ -58,6 +57,27 @@ let create slug page =
             );
 
           Lwt.return [ Dancelor_client_tables.versions versions ]
+        )
+      ];
+
+      div ~classes:["section"] [
+        h3 [ text "Dances That Recommend This Tune" ];
+
+        div_lwt (
+          let none = (Page.document page)##createTextNode (js "") in
+          let none_maybe = Dom_html.createP (Page.document page) in
+          Dom.appendChild none_maybe none;
+          Dom.appendChild content none_maybe;
+
+          let%lwt tune = tune_lwt in
+          let%lwt dances = Tune.dances tune in
+
+          Lwt.return [
+            if dances = [] then
+              text "There are no dances that recommende this tune."
+            else
+              Dancelor_client_tables.dances dances
+          ]
         )
       ];
 
