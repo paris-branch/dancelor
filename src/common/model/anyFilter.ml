@@ -194,7 +194,9 @@ let from_string string =
   | TextFormula.Parser.ParseError (_, _, where) ->
     errors_fmt "There is a syntax error %s in your request." where
   | UnknownPredicate(arity, pred) ->
-    errors_fmt "There is an unknown %s predicate in your request: \"%s\"." arity pred
+    (* FIXME: when building the predicate produces an error, it is considered
+       unknown. This is shite. *)
+    errors_fmt "The following %s predicate is either unknown or produces an error: \"%s\"." arity pred
   | exn ->
     errors_fmt ("Handling your request caused an unknown exception: %s. "
                 ^^ "Contact your system administrator with this message.")
