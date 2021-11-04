@@ -49,7 +49,15 @@ let raw str =
     | [] -> assert false
     | err :: _ -> Error err (* FIXME: also show the others *)
 
-let nullary_text_predicates = []
+let nullary_text_predicates = [
+  "credit",  type_ AnyCore.Type.Credit;  (* alias for type:Credit *)
+  "dance",   type_ AnyCore.Type.Dance;   (* alias for type:Dance *)
+  "person",  type_ AnyCore.Type.Person;  (* alias for type:Person *)
+  "book",    type_ AnyCore.Type.Book;    (* alias for type:Book *)
+  "set",     type_ AnyCore.Type.Set;     (* alias for type:Set *)
+  "tune",    type_ AnyCore.Type.Tune;    (* alias for type:Tune *)
+  "version", type_ AnyCore.Type.Version; (* alias for type:Version *)
+]
 
 let unary_text_predicates =
   TextFormula.[
