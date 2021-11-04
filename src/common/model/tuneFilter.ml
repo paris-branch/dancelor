@@ -31,6 +31,7 @@ let unary_text_predicates =
     "name",         raw_only ~convert:no_convert name;
     "name-matches", raw_only ~convert:no_convert nameMatches;
     "author",       (author @@@@ CreditFilter.from_text_formula);
+    "by",           (author @@@@ CreditFilter.from_text_formula); (* alias for author; FIXME: make this clearer *)
     "kind",         (kind @@@@ KindFilter.Base.from_text_formula);
     "exists-dance", (existsDance @@@@ DanceFilter.from_text_formula);
   ]

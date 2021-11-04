@@ -17,7 +17,7 @@ type t = predicate Formula.t
 let is set = Formula.pred (Is set)
 let name name = Formula.pred (Name name)
 let nameMatches name = Formula.pred (NameMatches name)
-let deviser pfilter = Formula.pred (Deviser pfilter)
+let deviser cfilter = Formula.pred (Deviser cfilter)
 let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
 let memVersion version = existsVersion (VersionFilter.is version)
 let kind kfilter = Formula.pred (Kind kfilter)
@@ -31,6 +31,7 @@ let unary_text_predicates =
     "name",           raw_only ~convert:no_convert name;
     "name-matches",   raw_only ~convert:no_convert nameMatches;
     "deviser",        (deviser @@@@ CreditFilter.from_text_formula);
+    "by",             (deviser @@@@ CreditFilter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
     "exists-version", (existsVersion @@@@ VersionFilter.from_text_formula);
     "kind",           (kind @@@@ KindFilter.Dance.from_text_formula);
   ]
