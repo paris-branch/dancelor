@@ -23,7 +23,12 @@ let raw string =
   | Ok tfilter -> Ok (tune tfilter)
   | Error err -> Error err (* FIXME: syntext *)
 
-let nullary_text_predicates = []
+let nullary_text_predicates = [
+  "reel",       (kind KindFilter.(Version.base (Base.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
+  "jig",        (kind KindFilter.(Version.base (Base.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
+  "strathspey", (kind KindFilter.(Version.base (Base.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
+  "waltz",      (kind KindFilter.(Version.base (Base.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
+]
 
 let unary_text_predicates =
   TextFormula.[

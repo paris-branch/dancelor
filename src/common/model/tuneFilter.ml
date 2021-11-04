@@ -24,7 +24,12 @@ let existsDance dfilter = Formula.pred (ExistsDance dfilter)
 
 let raw string = Ok (nameMatches string)
 
-let nullary_text_predicates = []
+let nullary_text_predicates = [
+  "reel",       (kind KindFilter.(Base.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
+  "jig",        (kind KindFilter.(Base.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
+  "strathspey", (kind KindFilter.(Base.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
+  "waltz",      (kind KindFilter.(Base.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
+]
 
 let unary_text_predicates =
   TextFormula.[
