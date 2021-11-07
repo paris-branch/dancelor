@@ -10,7 +10,6 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   let%lwt persons  = Dancelor_server_database.Person.get_all ()  >|=| List.map (fun p -> Person p) in
   let%lwt books    = Dancelor_server_database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
   let%lwt sets     = Dancelor_server_database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
-  (* let%lwt sources  = Dancelor_server_database.Source.get_all ()  >|=| List.map (fun s -> Source s) in *)
   let%lwt tunes    = Dancelor_server_database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
   let%lwt versions = Dancelor_server_database.Version.get_all () >|=| List.map (fun v -> Version v) in
   (Lwt.return (credits @ dances @ persons @ books @ sets @ tunes @ versions))
@@ -26,4 +25,14 @@ let () =
       ?pagination:(o A.pagination)
       ?threshold:(o A.threshold)
       (a A.filter)
+  )
+
+let count ?threshold filter =
+  let%lwt l = search ?threshold filter in
+  Lwt.return (List.length l)
+
+let () =
+  Madge_server.(
+    register ~endpoint:E.count @@ fun {a} {o} ->
+    count ?threshold:(o A.threshold) (a A.filter)
   )

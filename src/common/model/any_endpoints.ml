@@ -7,3 +7,4 @@ module Arguments = struct
 end
 
 let search = endpoint ~path:"/any/search" (module MList (Score.Make_Serialisable (AnyCore)))
+let count = endpoint ~path:"/any/count" (module MInteger)

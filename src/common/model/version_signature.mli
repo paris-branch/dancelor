@@ -25,4 +25,6 @@ val search :
   t Score.t list Lwt.t
 
 val count :
-  VersionFilter.t -> int Lwt.t
+  ?threshold:float ->
+  VersionFilter.t ->
+  int Lwt.t

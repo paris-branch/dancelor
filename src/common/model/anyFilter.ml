@@ -209,3 +209,10 @@ let from_string string =
     errors_fmt ("Handling your request caused an unknown exception: %s. "
                 ^^ "Contact your system administrator with this message.")
       (Printexc.to_string exn)
+
+exception Error of string list
+
+let from_string_exn string =
+  match from_string string with
+  | Ok results -> results
+  | Error err -> raise (Error err)

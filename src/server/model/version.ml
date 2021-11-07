@@ -48,12 +48,12 @@ let () =
       (a A.filter)
   )
 
-let count filter =
-  let%lwt l = search filter in
+let count ?threshold filter =
+  let%lwt l = search ?threshold filter in
   Lwt.return (List.length l)
 
 let () =
   Madge_server.(
-    register ~endpoint:E.count @@ fun {a} _ ->
-    count (a A.filter)
+    register ~endpoint:E.count @@ fun {a} {o} ->
+    count ?threshold:(o A.threshold) (a A.filter)
   )

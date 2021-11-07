@@ -32,6 +32,8 @@ let dispatch url =
     | l -> l
   in
   begin match trim path with
+  | ["search"] ->
+    pack (module Search) Search.create
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
   | ["version"; slug] ->

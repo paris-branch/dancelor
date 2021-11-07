@@ -11,3 +11,8 @@ val search :
   ?threshold:float ->
   AnyFilter.t ->
   t Score.t list Lwt.t
+
+val count :
+  ?threshold:float ->
+  AnyFilter.t ->
+  int Lwt.t
