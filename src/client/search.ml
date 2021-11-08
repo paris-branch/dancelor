@@ -137,4 +137,4 @@ let refresh t =
   ignore t
 
 let init t =
-  ignore t
+  (Inputs.Text.root t.bar)##focus
