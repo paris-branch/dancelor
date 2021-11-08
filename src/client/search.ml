@@ -13,7 +13,10 @@ type t =
   page : Page.t;
   content : Html.divElement Js.t;
   page_nav : PageNav.t;
+  table_wrapper : Html.divElement Js.t;
+  error_wrapper : Html.divElement Js.t;
   table : Table.t;
+  error : Html.divElement Js.t;
   bar : Inputs.Text.t;
 }
 
@@ -45,13 +48,25 @@ let update t =
   match AnyFilter.from_string input with
   | Ok filter ->
     (
+      t.table_wrapper##.style##.display := js "block";
+      t.error_wrapper##.style##.display := js "none";
       Lwt.on_success (Any.count filter) (PageNav.set_entries t.page_nav);
       update_table t
     )
-  | Error _err ->
+  | Error msgs ->
     (
-      Format.printf "FIXME: HANDLE ERRORS@."
-    ) (* FIXME *)
+      t.table_wrapper##.style##.display := js "none";
+      t.error_wrapper##.style##.display := js "block";
+      JsHelpers.clear_children t.error;
+      let ul = Html.createUl (Page.document t.page) in
+      List.iter
+        (fun msg ->
+           let li = Html.createLi (Page.document t.page) in
+           li##.textContent := Js.some (js msg);
+           Dom.appendChild ul li)
+        msgs;
+      Dom.appendChild t.error ul
+    )
 
 let create page =
   let document = Page.document page in
@@ -79,10 +94,14 @@ let create page =
     ~kind:Table.Kind.Separated
     page
   in
+  let table_wrapper = Html.createDiv document in
+  let error_wrapper = Html.createDiv document in
+  let error = Html.createDiv document in
+  Dom.appendChild error_wrapper error;
 
   let page_nav = PageNav.create ~entries:0 ~entries_per_page:25 page in
 
-  let t = { page ; content ; page_nav ; table ; bar } in
+  let t = { page; content; page_nav; table_wrapper; error_wrapper; table; error; bar } in
 
   let () =
     let title = Text.Heading.h2_static ~text:(Lwt.return "Magic Search") page in
@@ -96,8 +115,10 @@ let create page =
 
   Dom.appendChild content (Html.createHr document);
 
-  Dom.appendChild content (Table.root table);
-  Dom.appendChild content (PageNav.root page_nav);
+  Dom.appendChild table_wrapper (Table.root table);
+  Dom.appendChild table_wrapper (PageNav.root page_nav);
+  Dom.appendChild content table_wrapper;
+  Dom.appendChild content error_wrapper;
 
   PageNav.connect_on_page_change page_nav (fun _ ->
       PageNav.rebuild page_nav;
