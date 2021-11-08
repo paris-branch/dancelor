@@ -3,6 +3,7 @@ open Dancelor_common_model
 
 type controller =
   | Index
+  | MagicSearch (* FIXME: argument *)
 
   | CreditSave
   | Credit of CreditCore.t Slug.t
@@ -103,6 +104,11 @@ let routes : route list =
       ~meth:`GET
       ~path:"/"
       Index ;
+
+    direct
+      ~meth:`GET
+      ~path:"/search"
+      MagicSearch ;
 
     direct
       ~meth:`GET

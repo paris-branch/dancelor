@@ -9,6 +9,7 @@ let js = Js.string
 let on_load _ev =
   let page = Page.create () in
   let header = Header.create page in
+  Header.add_menu_entry header "Magic Search" (Router.path_of_controller Router.MagicSearch |> snd);
   Header.add_menu_entry header "Tunes" (Router.path_of_controller Router.VersionAll |> snd);
   Header.add_menu_entry header "Sets" (Router.path_of_controller Router.SetAll |> snd);
   Header.add_menu_entry header "Books" (Router.path_of_controller Router.BookAll |> snd);
