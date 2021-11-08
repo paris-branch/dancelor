@@ -96,7 +96,7 @@ type t = {
   root : root Js.t;
   bar : Inputs.Text.t;
   table : Table.t;
-  progress : Table.Section.t;
+  messages : Table.Section.t;
   sections : Section.wrapped list;
   hide_sections : bool;
 }
@@ -113,10 +113,10 @@ let bar t =
 let rec reset t =
   Table.set_visible t.table false;
   if t.hide_sections then
-    Table.replace_bodies t.table (Lwt.return [t.progress])
+    Table.replace_bodies t.table (Lwt.return [t.messages])
   else begin
     let bodies = List.map Section.body t.sections in
-    Table.replace_bodies t.table (Lwt.return (t.progress :: bodies));
+    Table.replace_bodies t.table (Lwt.return (t.messages :: bodies));
   end;
   List.iter Section.reset t.sections;
   Inputs.Text.erase t.bar;
@@ -131,7 +131,7 @@ and update t =
         if input = "" then "Start typing to search."
         else "Type at least three characters."
       in
-      let progress =
+      let messages =
         Table.Row.create
           ~cells:[
             Table.Cell.text ~text:(Lwt.return "👉") t.page;
@@ -139,15 +139,15 @@ and update t =
           ]
           t.page
       in
-      Table.Section.replace_rows t.progress (Lwt.return [progress]);
+      Table.Section.replace_rows t.messages (Lwt.return [messages]);
       if t.hide_sections then
-        Table.replace_bodies t.table (Lwt.return [t.progress])
+        Table.replace_bodies t.table (Lwt.return [t.messages])
     )
   else
     (
       let bodies = List.map Section.body t.sections in
-      Table.Section.clear t.progress;
-      Table.replace_bodies t.table (Lwt.return (t.progress :: bodies))
+      Table.Section.clear t.messages;
+      Table.replace_bodies t.table (Lwt.return (t.messages :: bodies))
     )
 
 let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
@@ -159,10 +159,10 @@ let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
       ~on_focus:(fun b -> if b then Table.set_visible table true)
       page
   in
-  let progress = Table.Section.create ~rows:(Lwt.return []) page in
+  let messages = Table.Section.create ~rows:(Lwt.return []) page in
   Dom.appendChild root (Inputs.Text.root bar);
   Dom.appendChild root (Table.root table);
-  let t = {page; root; bar; table; progress; sections; hide_sections} in
+  let t = {page; root; bar; table; messages; sections; hide_sections} in
   List.iter (fun (Section.Wrapped section) ->
     NesOption.ifsome
       (fun default -> Table.Row.on_click default (fun () -> reset t))
