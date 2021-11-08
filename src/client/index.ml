@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
@@ -35,6 +36,9 @@ let create page =
         page
     in
     SearchBar.create
+      ~on_enter:(fun input ->
+          Dom_html.window##.location##.href := js (spf "/search?q=%s" input);
+          Lwt.return_unit)
       ~placeholder:"Search for anything (it's magic!)"
       ~sections:[main_section]
       page

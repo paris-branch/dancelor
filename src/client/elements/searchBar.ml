@@ -150,7 +150,7 @@ and update t =
       Table.replace_bodies t.table (Lwt.return (t.progress :: bodies))
     )
 
-let create ~placeholder ~sections ?(hide_sections = false) page =
+let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
   let root = Html.createDiv (Page.document page) in
   let table = Table.create ~visible:false ~kind:Table.Kind.Dropdown page in
   let bar =
@@ -168,6 +168,9 @@ let create ~placeholder ~sections ?(hide_sections = false) page =
       (fun default -> Table.Row.on_click default (fun () -> reset t))
       section.Section.default) sections;
   Inputs.Text.on_change bar (fun _ -> update t);
+  NesOption.ifsome (fun on_enter ->
+      Inputs.Text.on_enter bar on_enter)
+    on_enter;
   Page.register_modal page
     ~element:(Table.root table :> Html.element Js.t)
     ~on_unfocus:(fun () -> Table.set_visible table false)

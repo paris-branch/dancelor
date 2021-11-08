@@ -92,6 +92,13 @@ module Text = struct
       Lwt_js_events.inputs t.root
         (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
 
+  let on_enter t cb =
+    Lwt.async (fun () ->
+        Lwt_js_events.keydowns t.root
+          (fun ev _ ->
+             if Js.Optdef.to_option ev##.key = Some (js "Enter")
+             then cb (Js.to_string t.root##.value) else Lwt.return_unit))
+
   let on_focus t cb =
     Lwt.async (fun () ->
       Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ()));
