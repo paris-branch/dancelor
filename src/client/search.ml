@@ -126,7 +126,8 @@ let create input page =
 
   PageNav.connect_on_page_change page_nav (fun _ ->
       PageNav.rebuild page_nav;
-      update_table t);
+      update_table t;
+      (Inputs.Text.root t.bar)##focus);
   update t;
   t
 
