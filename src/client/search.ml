@@ -96,6 +96,7 @@ let create page =
   in
   let table_wrapper = Html.createDiv document in
   let error_wrapper = Html.createDiv document in
+  error_wrapper##.classList##add (js "error");
   let error = Html.createDiv document in
   Dom.appendChild error_wrapper error;
 

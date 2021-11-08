@@ -114,3 +114,10 @@ p {
     text-align: right;
     margin-top: 1rem;
 }
+
+.error {
+  padding: 1rem;
+  background: #ffbaba;
+  border: 2px solid red;
+  border-radius: 2px;
+}
