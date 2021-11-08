@@ -33,7 +33,9 @@ let dispatch url =
   in
   begin match trim path with
   | ["search"] ->
-    pack (module Search) Search.create
+    (match List.assoc_opt "q" (Uri.query url) with
+     | Some [q] -> pack (module Search) (Search.create (Some q))
+     | _ -> pack (module Search) (Search.create None))
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
   | ["version"; slug] ->

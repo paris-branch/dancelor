@@ -155,7 +155,7 @@ let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
   let table = Table.create ~visible:false ~kind:Table.Kind.Dropdown page in
   let bar =
     Inputs.Text.create
-      ~default:placeholder
+      ~placeholder
       ~on_focus:(fun b -> if b then Table.set_visible table true)
       page
   in

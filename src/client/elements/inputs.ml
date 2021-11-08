@@ -68,9 +68,10 @@ module Text = struct
     if b then t.root##.classList##remove (js "invalid")
     else t.root##.classList##add (js "invalid")
 
-  let create ?default ?on_change ?on_focus page =
+  let create ?placeholder ?default ?on_change ?on_focus page =
     let root = Html.createInput ~_type:(js "text") (Page.document page) in
-    NesOption.ifsome (fun t -> root##.placeholder := js t) default;
+    NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
+    NesOption.ifsome (fun t -> root##.value := js t) default;
     NesOption.ifsome (fun cb ->
       Lwt.async (fun () ->
         Lwt_js_events.inputs root

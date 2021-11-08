@@ -68,13 +68,14 @@ let update t =
       Dom.appendChild t.error ul
     )
 
-let create page =
+let create input page =
   let document = Page.document page in
   let content = Html.createDiv document in
 
   let bar =
     Inputs.Text.create
-      ~default:"Search for anything (it really is magic!)"
+      ?default:input
+      ~placeholder:"Search for anything (it really is magic!)"
       page
   in
 

@@ -165,14 +165,14 @@ let create page =
   let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
-    ~default:"Set Name"
+    ~placeholder:"Set Name"
     ~on_change:(fun name ->
       Composer.set_name composer name;
       Composer.save composer)
     page
   in
   let input_kind = Inputs.Text.create
-    ~default:"Set Kind (e.g. 8x32R)"
+    ~placeholder:"Set Kind (eg. 8x32R)"
     ~on_change:(fun kind ->
       Composer.set_kind composer kind;
       Composer.save composer)

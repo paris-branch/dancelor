@@ -60,7 +60,7 @@ let make_person_subdiv t index person =
   | `Edit name ->
     let input_name =
       Inputs.Text.create
-        ~default:"Enter name"
+        ~placeholder:"Enter name"
         ~on_change:(CreditEditor.set_field t.editor index)
         t.page
     in
@@ -99,7 +99,7 @@ let create ?on_save page =
   let title = Text.Heading.h2_static ~text:(Lwt.return "Create a Credit") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
-    ~default:"Display name"
+    ~placeholder:"Display name"
     ~on_change:(fun name -> CreditEditor.set_name editor name)
     page
   in
