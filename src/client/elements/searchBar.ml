@@ -146,8 +146,16 @@ and update t =
   else
     (
       let bodies = List.map Section.body t.sections in
-      Table.Section.clear t.messages;
-      Table.replace_bodies t.table (Lwt.return (t.messages :: bodies))
+      let enter_for_more =
+        Table.Row.create
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "👉") t.page;
+            Table.Cell.text ~colspan:4 ~text:(Lwt.return "Press enter for more results.") t.page
+          ]
+          t.page
+      in
+      Table.Section.replace_rows t.messages (Lwt.return [enter_for_more]);
+      Table.replace_bodies t.table (Lwt.return (bodies @ [t.messages]))
     )
 
 let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
