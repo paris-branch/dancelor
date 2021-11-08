@@ -32,18 +32,20 @@ let update_table t =
   let section = Table.Section.create ~rows t.page in
   Table.replace_bodies t.table (Lwt.return [section])
 
-let update_title t =
-  (* FIXME: will only make sense when the URL also changes *)
-  (* let input = Inputs.Text.contents t.bar in *)
-  (* let for_ = *)
-  (*   if input = "" then "" *)
-  (*   else spf " for %s" input *)
-  (* in *)
-  let for_ = "" in
-  (Page.document t.page)##.title := js (spf "Magic Search%s | Dancelor" for_)
+let update_title_and_uri t =
+  (* Update title *)
+  let input = Inputs.Text.contents t.bar in
+  let for_ =
+    if input = "" then ""
+    else spf " for %s" input
+  in
+  (Page.document t.page)##.title := js (spf "Magic Search%s | Dancelor" for_);
+  (* Update URI *)
+  Dom_html.window##.history##replaceState
+    "fixme-the-state" (js "") (Js.some (js (spf "/search?q=%s" input)))
 
 let update t =
-  update_title t;
+  update_title_and_uri t;
   let input = Inputs.Text.contents t.bar in
   match AnyFilter.from_string input with
   | Ok filter ->
