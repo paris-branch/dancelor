@@ -70,17 +70,14 @@ module Ly = struct
              let set_parameters = SetParameters.compose (BookParameters.every_set parameters) set_parameters in
              let%lwt name = Set.name set in
              let%lwt kind =
-               if not (set_parameters |> SetParameters.show_dances) then
+               match%lwt set_parameters |> SetParameters.show_dance with
+               | None ->
                  let%lwt kind = Set.kind set in
                  Lwt.return (Kind.dance_to_string kind)
-               else
-                 match%lwt Set.dances set with
-                 | [] -> Lwt.return ""
-                 | [dance] ->
-                   let%lwt name = Dance.name dance in
-                   let%lwt kind = Dance.kind dance in
-                   Lwt.return (spf "Dance: %s — %s" name (Kind.dance_to_string kind))
-                 | _ -> assert false (** FIXME: handle several dances *)
+               | Some dance ->
+                 let%lwt name = Dance.name dance in
+                 let%lwt kind = Dance.kind dance in
+                 Lwt.return (spf "Dance: %s — %s" name (Kind.dance_to_string kind))
              in
              fpf fmt [%blob "template/book/set_beginning.ly"]
                name kind name kind;
