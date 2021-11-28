@@ -1,18 +1,16 @@
 (lang dune 2.5)
 
-(name dancelor)
-(source (uri https://gitlab.vlanvin.fr/paris-band/dancelor))
+(homepage https://gitlab.vlanvin.fr/paris-band/dancelor)
+(source (uri git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git))
+(bug_reports https://gitlab.vlanvin.fr/paris-band/dancelor/issues)
 
 (authors
- "Nicolas “Niols” Jeannerod <niols@niols.fr>"
- "Victor Lanvin <victor.lanvin2@gmail.com>"
-)
+  "Nicolas “Niols” Jeannerod <niols@niols.fr>"
+  "Victor Lanvin <victor.lanvin2@gmail.com>")
+(maintainers
+  "Nicolas “Niols” Jeannerod <niols@niols.fr>")
+
 (license GPL3)
-
-(maintainers "Nicolas “Niols” Jeannerod <niols@niols.fr>")
-(generate_opam_files)
-
-(allow_approximate_merlin)
 
 (package
  (name dancelor)
@@ -34,4 +32,7 @@
    ppx_deriving_yojson
   (ppx_inline_test     (or :build :with-test))
   (yojson              (>= 1.6.0))))
+
 (using menhir 2.1)
+(generate_opam_files)
+(allow_approximate_merlin)
