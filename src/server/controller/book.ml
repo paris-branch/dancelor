@@ -80,18 +80,18 @@ module Ly = struct
                  let kind = Kind.dance_to_pretty_string kind in
                  Lwt.return (kind, spf "Dance: %s — %s" name kind)
              in
-             let%lwt dance_and_kind_and_deviser =
+             let%lwt deviser =
                if not (set_parameters |> SetParameters.show_deviser) then
-                 Lwt.return dance_and_kind
+                 Lwt.return ""
                else
                  (match%lwt Set.deviser set with
-                  | None -> Lwt.return dance_and_kind
+                  | None -> Lwt.return ""
                   | Some deviser ->
                     let%lwt deviser = Credit.line deviser in
-                    Lwt.return (spf "%s — Set by %s" dance_and_kind deviser))
+                    Lwt.return (spf "Set by %s" deviser))
              in
              fpf fmt [%blob "template/book/set_beginning.ly"]
-               name kind name dance_and_kind_and_deviser;
+               name kind name deviser dance_and_kind;
              (match set_parameters |> SetParameters.forced_pages with
               | 0 -> ()
               | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);

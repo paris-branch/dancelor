@@ -3,5 +3,6 @@
 
   \header {
     title = "%s"
+    deviser = "%s"
     kind = "%s"
   }
