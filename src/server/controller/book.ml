@@ -15,7 +15,6 @@ module Ly = struct
         title (Option.unwrap_or ~default:"" parameters.instruments);
       fpf fmt [%blob "template/paper.ly"];
 
-
       fpf fmt [%blob "template/book/paper.ly"];
       if parameters |> BookParameters.two_sided then
         (
@@ -81,8 +80,18 @@ module Ly = struct
                  let kind = Kind.dance_to_pretty_string kind in
                  Lwt.return (kind, spf "Dance: %s — %s" name kind)
              in
+             let%lwt dance_and_kind_and_deviser =
+               if not (set_parameters |> SetParameters.show_deviser) then
+                 Lwt.return dance_and_kind
+               else
+                 (match%lwt Set.deviser set with
+                  | None -> Lwt.return dance_and_kind
+                  | Some deviser ->
+                    let%lwt deviser = Credit.line deviser in
+                    Lwt.return (spf "%s — Set by %s" dance_and_kind deviser))
+             in
              fpf fmt [%blob "template/book/set_beginning.ly"]
-               name kind name dance_and_kind;
+               name kind name dance_and_kind_and_deviser;
              (match set_parameters |> SetParameters.forced_pages with
               | 0 -> ()
               | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
