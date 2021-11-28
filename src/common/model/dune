@@ -5,6 +5,7 @@
  (name dancelor_common_model)
  (public_name dancelor.common.model)
  (libraries
+  str
   lwt
   dancelor.nes
   dancelor.madge.common

@@ -7,6 +7,7 @@ module Arguments = struct
   let deviser = optarg ~key:"deviser" (module CreditCore)
   let kind = arg ~key:"kind" (module Kind.Dance)
   let versions_and_parameters = optarg ~key:"versions-and-parameters" (module MList(MPair(VersionCore)(VersionParameters)))
+  let order = arg (module SetOrder)
   let dances = optarg ~key:"dances" (module MList(DanceCore))
   let filter = arg (module SetFilter)
   let pagination = optarg (module Pagination)

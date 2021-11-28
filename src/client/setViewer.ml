@@ -31,7 +31,7 @@ let create slug page =
       h3 ~classes:["title"] [
         text_lwt (set_lwt >>=| Set.kind >|=| Kind.dance_to_pretty_string);
         text " — Play ";
-        text_lwt (set_lwt >>=| Set.order_as_pretty_string)
+        text_lwt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string)
       ];
       h3_lwt ~classes:["title"] (
         match%lwt set_lwt >>=| Set.deviser with

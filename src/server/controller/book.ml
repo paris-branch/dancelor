@@ -56,6 +56,7 @@ module Ly = struct
                 let%lwt set =
                   Set.make_temp ~name ~kind:(1, [bars, kind])
                     ~versions_and_parameters:[version, parameters]
+                    ~order:[Internal 1]
                     ()
                 in
                 Lwt.return (set, SetParameters.none)
@@ -90,7 +91,7 @@ module Ly = struct
                     let%lwt deviser = Credit.line deviser in
                     Lwt.return (spf "Set by %s" deviser))
              in
-             let%lwt order = Set.order_as_pretty_string set in
+             let%lwt order = Set.order set >|=| SetOrder.to_pretty_string in
              fpf fmt [%blob "template/book/set_beginning.ly"]
                name kind name deviser dance_and_kind order;
              (match set_parameters |> SetParameters.forced_pages with

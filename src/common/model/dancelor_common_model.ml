@@ -33,6 +33,7 @@ module Version_endpoints = Version_endpoints
 module VersionFilter = VersionFilter
 module VersionParameters = VersionParameters
 
+module SetOrder = SetOrder
 module SetCore = SetCore
 module type SET = module type of Set_signature
 module Set_endpoints = Set_endpoints

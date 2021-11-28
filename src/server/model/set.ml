@@ -4,9 +4,9 @@ include SetCore
 module E = Dancelor_common_model.Set_endpoints
 module A = E.Arguments
 
-let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ?dances () =
+let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
   Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances ()
+  make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
 
 let () =
   Madge_server.(
@@ -17,7 +17,8 @@ let () =
       ~kind:   (a A.kind)
       ?status: (o A.status)
       ?versions_and_parameters:(o A.versions_and_parameters)
-      ?dances:(o A.dances)
+      ~order:  (a A.order)
+      ?dances: (o A.dances)
       ()
   )
 

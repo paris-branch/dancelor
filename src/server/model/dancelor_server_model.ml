@@ -27,6 +27,7 @@ module Version           : Common.VERSION = Version
 module VersionFilter                      = VersionFilter
 module VersionParameters                  = VersionParameters
 
+module SetOrder                           = SetOrder
 module Set               : Common.SET     = Set
 module SetFilter                          = SetFilter
 module SetParameters                      = SetParameters

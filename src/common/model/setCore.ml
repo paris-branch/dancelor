@@ -9,13 +9,13 @@ type t =
     deviser : CreditCore.t Slug.t option [@default None] ;
     kind : Kind.dance ;
     versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
-    order : int list ;
+    order : SetOrder.t ;
     instructions : string            [@default ""] ;
     dances : DanceCore.t Slug.t list [@default []] ;
     remark : string                  [@default ""] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () =
+let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
@@ -43,10 +43,10 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ?dances () 
       let%lwt dances = Lwt_list.map_p DanceCore.slug dances in
       Lwt.return_some dances
   in
-  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters ?dances ())
+  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters ~order ?dances ())
 
-let make_temp ~name ?deviser ~kind ?versions_and_parameters ?dances () =
-  make ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters ?dances ()
+let make_temp ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
+  make ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
 
 let slug s = Lwt.return s.slug
 let status s = Lwt.return s.status
@@ -59,13 +59,6 @@ let order s = Lwt.return s.order
 let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
-
-let order_as_pretty_string s =
-  let%lwt order = order s in
-  order
-  |> List.map string_of_int
-  |> String.concat " "
-  |> Lwt.return
 
 let equal set1 set2 =
   let%lwt slug1 = slug set1 in
