@@ -90,8 +90,9 @@ module Ly = struct
                     let%lwt deviser = Credit.line deviser in
                     Lwt.return (spf "Set by %s" deviser))
              in
+             let%lwt order = Set.order_as_pretty_string set in
              fpf fmt [%blob "template/book/set_beginning.ly"]
-               name kind name deviser dance_and_kind;
+               name kind name deviser dance_and_kind order;
              (match set_parameters |> SetParameters.forced_pages with
               | 0 -> ()
               | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);

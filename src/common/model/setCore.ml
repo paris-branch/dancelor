@@ -9,7 +9,7 @@ type t =
     deviser : CreditCore.t Slug.t option [@default None] ;
     kind : Kind.dance ;
     versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
-    order : int list                 [@default []] ; (* FIXME: make mandatory *)
+    order : int list ;
     instructions : string            [@default ""] ;
     dances : DanceCore.t Slug.t list [@default []] ;
     remark : string                  [@default ""] }
@@ -54,9 +54,18 @@ let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser
 let kind s = Lwt.return s.kind
 let versions_and_parameters s = Lwt.return s.versions_and_parameters
+let order s = Lwt.return s.order
+
 let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
+
+let order_as_pretty_string s =
+  let%lwt order = order s in
+  order
+  |> List.map string_of_int
+  |> String.concat " "
+  |> Lwt.return
 
 let equal set1 set2 =
   let%lwt slug1 = slug set1 in
