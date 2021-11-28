@@ -9,8 +9,9 @@ type t =
     deviser : CreditCore.t Slug.t option [@default None] ;
     kind : Kind.dance ;
     versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
+    order : int list                 [@default []] ; (* FIXME: make mandatory *)
     instructions : string            [@default ""] ;
-    dances : DanceCore.t Slug.t list     [@default []] ;
+    dances : DanceCore.t Slug.t list [@default []] ;
     remark : string                  [@default ""] }
 [@@deriving make, yojson]
 
