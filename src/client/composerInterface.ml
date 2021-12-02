@@ -18,6 +18,7 @@ type t =
   deviser_search : SearchBar.t;
   versions_area : Html.divElement Js.t;
   version_search : SearchBar.t;
+  input_order : Inputs.Text.t;
 }
 
 let make_version_subwindow t index version =
@@ -165,14 +166,14 @@ let create page =
   let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
-    ~placeholder:"Set Name"
+    ~placeholder:"Name"
     ~on_change:(fun name ->
       Composer.set_name composer name;
       Composer.save composer)
     page
   in
   let input_kind = Inputs.Text.create
-    ~placeholder:"Set Kind (eg. 8x32R)"
+    ~placeholder:"Kind (eg. 8x32R)"
     ~on_change:(fun kind ->
       Composer.set_kind composer kind;
       Composer.save composer)
@@ -200,7 +201,7 @@ let create page =
         page
     in
     SearchBar.create
-      ~placeholder:"Select a Deviser"
+      ~placeholder:"Deviser (Magic Search)"
       ~sections:[main_section]
       page
   in
@@ -221,7 +222,7 @@ let create page =
         page
     in
     SearchBar.create
-      ~placeholder:"Search for a tune"
+      ~placeholder:"Add tune (Magic Search)"
       ~sections:[main_section]
       page
   in
@@ -231,9 +232,16 @@ let create page =
       Composer.remove_deviser composer;
       Page.refresh page
     end);
+  let input_order = Inputs.Text.create
+      ~placeholder:"Order (eg. 1,2,3,4,2,3,4,1)"
+      ~on_change:(fun order ->
+          Composer.set_order composer order;
+          Composer.save composer)
+      page
+  in
   let t =
     {page; composer; content; versions_area; deviser_search;
-    version_search; input_name; input_kind}
+    version_search; input_name; input_kind; input_order}
   in
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -241,15 +249,17 @@ let create page =
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-        let b1, b2, b3, b4 =
+        let b1, b2, b3, b4, b5 =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
           Inputs.Text.check (SearchBar.bar t.version_search)
             (fun _ -> Composer.count t.composer > 0),
           Inputs.Text.check (SearchBar.bar t.deviser_search)
-            (fun _ -> Composer.deviser t.composer <> None)
+            (fun _ -> Composer.deviser t.composer <> None),
+          Inputs.Text.check t.input_order
+            (SetOrder.check ~number:(Composer.count t.composer))
         in
-        if b1 && b2 && b3 && b4 then (
+        if b1 && b2 && b3 && b4 && b5 then (
           Lwt.on_success (Composer.submit composer) (fun set ->
           Lwt.on_success (Set.slug set) (fun slug ->
           let href = Router.path_of_controller (Router.Set slug) |> snd in
@@ -279,6 +289,8 @@ let create page =
   Dom.appendChild form versions_area;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root version_search);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_order);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;

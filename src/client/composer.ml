@@ -17,7 +17,7 @@ type t = {
   mutable kind : string;
   mutable deviser : (Credit.t Slug.t * Credit.t) option;
   mutable versions : cached_version option array;
-  mutable order : SetOrder.t;
+  mutable order : string;
   mutable count : int;
 }
 
@@ -27,7 +27,7 @@ let create () =
   kind = "";
   deviser = None;
   versions = Array.make 2 None;
-  order = [External 999]; (* FIXME *)
+  order = "";
   count = 0;
 }
 
@@ -42,6 +42,11 @@ let kind t =
 
 let set_kind t kind =
   t.kind <- kind
+
+let order t = t.order
+
+let set_order t order =
+  t.order <- order
 
 let deviser t =
   match t.deviser with
@@ -184,6 +189,7 @@ let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
   let versions_and_parameters = List.map (fun version -> (version, VersionParameters.none)) versions in
   let kind = Kind.dance_of_string t.kind in
-  let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ~order:t.order ?deviser:(deviser t) () in
+  let order = SetOrder.of_string t.order in
+  let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ~order ?deviser:(deviser t) () in
   Lwt.on_success answer (fun _ -> erase_storage t);
   answer

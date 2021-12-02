@@ -25,6 +25,10 @@ val set_deviser : t -> Credit.t Slug.t -> unit Lwt.t
 
 val remove_deviser : t -> unit
 
+val order : t -> string
+
+val set_order : t -> string -> unit
+
 val count : t -> int
 
 val insert : t -> Version.t Slug.t -> int -> unit Lwt.t
