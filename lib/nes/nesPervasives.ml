@@ -48,8 +48,8 @@ let max_l = function
   | [] -> failwith "NesPervasives.max_l"
   | h :: q -> List.fold_left max h q
 
-let pmod a b = a mod b + if a < 0 then b else 0
-let pdiv a b = a / b + if a < 0 then -1 else 0
+let pmod a b = ((a mod b) + b) mod b
+let pdiv a b = (a - pmod a b) / b
 
 let%test _ = (pmod (-27)  12 ) + (pdiv (-27)  12 ) *  12 = -27
 let%test _ = (pmod   27 (-12)) + (pdiv   27 (-12)) * -12 =  27
