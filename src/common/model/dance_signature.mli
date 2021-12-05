@@ -7,6 +7,7 @@ val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val kind : t -> Kind.dance Lwt.t
 val deviser : t -> CreditCore.t option Lwt.t
+val two_chords : t -> bool Lwt.t
 
 (** {2 Getters and setters} *)
 

@@ -42,6 +42,12 @@ let create slug page =
         in
         Lwt.return (kind @ by)
       );
+      div_lwt (
+        let%lwt dance = dance_lwt in
+        match%lwt Dance.two_chords dance with
+        | false -> Lwt.return_nil
+        | true -> Lwt.return [ h3 ~classes:["title"] [ text "Two Chords" ] ]
+      );
 
       div ~classes:["section"] [
         h3 [ text "Recommended Tunes" ];
