@@ -10,14 +10,15 @@ type page_slug =
 
 type t =
   { slug        : t Slug.t ;
-    status      : Status.t  [@default Status.bot] ;
+    status      : Status.t   [@default Status.bot] ;
     title       : string ;
-    subtitle    : string    [@default ""] ;
-    short_title : string    [@default ""] [@key "short-title"] ;
-    date        : Date.t    [@default Date.none] ;
+    subtitle    : string     [@default ""] ;
+    short_title : string     [@default ""] [@key "short-title"] ;
+    date        : Date.t     [@default Date.none] ;
     contents    : page_slug list ;
-    source      : bool      [@default false] ;
-    remark      : string    [@default ""] }
+    source      : bool       [@default false] ;
+    remark      : string     [@default ""] ;
+    scddb_id    : int option [@default None] [@key "scddb-id"] }
 [@@deriving yojson]
 
 let slug p = Lwt.return p.slug

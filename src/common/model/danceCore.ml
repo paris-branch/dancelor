@@ -8,7 +8,8 @@ type t =
     name : string ;
     kind : Kind.dance ;
     deviser : CreditCore.t Slug.t option [@default None] ;
-    two_chords : bool [@default false] [@key "two-chords"] }
+    two_chords : bool [@default false] [@key "two-chords"] ;
+    scddb_id : int option [@default None] [@key "scddb-id"] }
 [@@deriving yojson]
 
 let slug d = Lwt.return d.slug
