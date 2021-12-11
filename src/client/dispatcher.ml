@@ -34,7 +34,10 @@ let dispatch url =
   begin match trim path with
   | ["search"] ->
     (match List.assoc_opt "q" (Uri.query url) with
-     | Some [q] -> pack (module Search) (Search.create (Some q))
+     | Some [q] ->
+       (match Yojson.Safe.from_string q with
+        | `String q -> pack (module Search) (Search.create (Some q))
+        | _ -> assert false)
      | _ -> pack (module Search) (Search.create None))
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
