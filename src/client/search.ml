@@ -42,7 +42,7 @@ let update_title_and_uri t =
   (Page.document t.page)##.title := js (spf "Magic Search%s | Dancelor" for_);
   (* Update URI *)
   Dom_html.window##.history##replaceState
-    "fixme-the-state" (js "") (Js.some (js (spf "/search?q=%s" input)))
+    "fixme-the-state" (js "") (Js.some (js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)))))
 
 let update t =
   update_title_and_uri t;
