@@ -23,7 +23,7 @@ let remove_prefix_suffix prefix suffix string =
 
 type controller =
   | C : ('any Slug.t ->
-         (string * Yojson.Safe.t) list ->
+         QueryParameters.t ->
          (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t)
       -> controller
 
@@ -48,7 +48,7 @@ let apply_controller path =
       controller (Slug.unsafe_of_string (Option.unwrap slug)))
 
 (** Consider the query and the body to build a consolidated query. *)
-let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojson.Safe.t) list Lwt.t =
+let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
   let query =
     List.map
       (fun (k, vs) ->
@@ -67,7 +67,7 @@ let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojso
     Lwt.return body
   in
   (* Body takes precedence. *)
-  Lwt.return (body @ query)
+  Lwt.return (QueryParameters.from_list (body @ query))
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
    exceptions. Exceptions are logged as uncaught, and then the `die` function is
@@ -108,7 +108,7 @@ let callback _ request body =
   else
     (
       Log.debug (fun m -> m "Asking Madge for %s." path);
-      match%lwt Madge_server.handle meth path query with
+      match%lwt Madge_server.handle meth path (QueryParameters.to_list query) with
       | Some response -> Lwt.return response
       | None ->
         if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then

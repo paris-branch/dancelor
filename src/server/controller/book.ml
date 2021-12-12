@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common
 open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.book" : Logs.LOG)
 
@@ -181,10 +182,10 @@ module Pdf = struct
         let path_pdf = Filename.concat path fname_pdf in
         Lwt.return path_pdf)
 
-  let get book query =
+  let get book query_parameters =
     let%lwt book = Book.get book in
     let%lwt parameters =
-      match List.assoc_opt "parameters" query with
+      match QueryParameters.get "parameters" query_parameters with
       | None -> Lwt.return_none
       | Some parameters ->
         parameters
