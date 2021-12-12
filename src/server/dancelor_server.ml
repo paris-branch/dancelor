@@ -70,23 +70,24 @@ let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojso
   (* Consolidate query and body into a single query. Body takes precedence. *)
   Lwt.return (body @ query)
 
-let catchall fun_ =
-  (* We have a double try ... with to catch all non-Lwt and Lwt
-     exceptions. *)
+let catchall ~place ~die fun_ =
   try
     try%lwt
       fun_ ()
     with
       exn ->
-      log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
-      Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
+      log_exn ~msg:("Uncaught Lwt exception in "^place) exn;
+      die ()
   with
     exn ->
-    log_exn ~msg:"Uncaught exception in the callback" exn;
-    Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
+    log_exn ~msg:("Uncaught exception in "^place) exn;
+    die ()
 
 let callback _ request body =
-  catchall @@ fun () ->
+  catchall
+    ~place:"the callback"
+    ~die:(Server.respond_error ~status:`Internal_server_error ~body:"{}")
+  @@ fun () ->
   let uri = Request.uri request in
   let meth = Request.meth request in
   let path = Uri.path uri in
@@ -153,42 +154,30 @@ let start_routines () =
   else
     Log.info (fun m -> m "Not starting routines")
 
-let start_server () =
+let run_server () =
   Log.info (fun m -> m "Starting server");
+  catchall
+    ~place:"the server"
+    ~die:log_die
+  @@ fun () ->
   let server =
-    Lwt.catch
-      (fun () ->
-         Server.create
-           ~mode:(`TCP (`Port !Dancelor_server_config.port))
-           (Server.make ~callback ()))
-      (fun exn ->
-         log_exn ~msg:"Uncaught Lwt exception in the server" exn;
-         Lwt.return ())
+    Server.create
+      ~mode:(`TCP (`Port !Dancelor_server_config.port))
+      (Server.make ~callback ())
   in
   Log.info (fun m -> m "Server is up and running");
-  try
-    server
-  with
-    exn ->
-    log_exn ~msg:"Uncaught exception in the server" exn;
-    Lwt.return ()
+  server
 
 let main =
-  try
-    try%lwt
-      read_configuration ();
-      initialise_logs ();
-      initialise_database (); %lwt
-        check_init_only ();
-      start_routines ();
-      start_server ()
-    with
-      exn ->
-      log_exn ~msg:"Uncaught Lwt exception in main" exn;
-      log_die ()
-  with
-    exn ->
-    log_exn ~msg:"Uncaught exception in main" exn;
-    log_die ()
+  catchall
+    ~place:"main"
+    ~die:log_die
+  @@ fun () ->
+  read_configuration ();
+  initialise_logs ();
+  initialise_database (); %lwt
+    check_init_only ();
+  start_routines ();
+  run_server ()
 
 let () = Lwt_main.run main
