@@ -49,25 +49,9 @@ let apply_controller path =
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
-  let query =
-    List.map
-      (fun (k, vs) ->
-         (k,
-          match vs with
-          | [v] -> Yojson.Safe.from_string v
-          | vs -> `List (List.map Yojson.Safe.from_string vs)))
-      (Uri.query uri)
-  in
-  let%lwt body =
-    let%lwt body = Cohttp_lwt.Body.to_string body in
-    let body = if body = "" then "{}" else body in
-    Log.debug (fun m -> m "Body: %s" body);
-    let body = Yojson.Safe.from_string body in
-    let body = match body with `Assoc body -> body | _ -> assert false in
-    Lwt.return body
-  in
-  (* Body takes precedence. *)
-  Lwt.return (QueryParameters.from_list (body @ query))
+  let%lwt high = QueryParameters.from_body body in
+  let low = QueryParameters.from_uri uri in
+  Lwt.return (QueryParameters.append ~high ~low)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
    exceptions. Exceptions are logged as uncaught, and then the `die` function is
