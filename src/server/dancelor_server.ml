@@ -42,7 +42,10 @@ let remove_prefix_suffix prefix suffix string =
   String.remove_suffix ~needle:suffix string
 
 type controller =
-  | C : ('any Slug.t -> (string * Yojson.Safe.t) list -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) -> controller
+  | C : ('any Slug.t ->
+         (string * Yojson.Safe.t) list ->
+         (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t)
+      -> controller
 
 let apply_controller path =
   if path = "/victor"  then log_exit 101;
