@@ -7,26 +7,6 @@ module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
 type query = (string * string list) list
 [@@deriving show]
 
-let cleanup_query query =
-  let rec remove_empties = function
-    | [] -> []
-    | (_, [""]) :: t -> remove_empties t
-    | x :: t -> x :: remove_empties t
-  in
-  let rec merge_duplicates = function
-    | [] -> []
-    | [m] -> [m]
-    | (k1, v1) :: (k2, v2) :: query when k1 = k2 ->
-       merge_duplicates ((k1, v1 @ v2) :: query)
-    | (k, v) :: query ->
-       (k, v) :: merge_duplicates query
-  in
-  query
-  |> remove_empties
-  (* FIXME: Before sorting, shouldn't we rename key[] into key? *)
-  |> List.sort (fun (k1, _) (k2, _) -> compare k1 k2)
-  |> merge_duplicates
-
 let log_exn ~msg exn =
   Log.err @@ fun m ->
   m "%a" (Format.pp_multiline_sensible msg)
@@ -67,6 +47,29 @@ let apply_controller path =
   |> (fun (slug, C controller) ->
       controller (Slug.unsafe_of_string (Option.unwrap slug)))
 
+(** Consider the query and the body to build a consolidated query. *)
+let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojson.Safe.t) list Lwt.t =
+  let query =
+    List.map
+      (fun (k, vs) ->
+         (k,
+          match vs with
+          | [v] -> Yojson.Safe.from_string v
+          | vs -> `List (List.map Yojson.Safe.from_string vs)))
+      (Uri.query uri)
+  in
+  (* Get body, parse it as an associative JSON *)
+  let%lwt body =
+    let%lwt body = Cohttp_lwt.Body.to_string body in
+    let body = if body = "" then "{}" else body in
+    Log.debug (fun m -> m "Body: %s" body);
+    let body = Yojson.Safe.from_string body in
+    let body = match body with `Assoc body -> body | _ -> assert false in
+    Lwt.return body
+  in
+  (* Consolidate query and body into a single query. Body takes precedence. *)
+  Lwt.return (body @ query)
+
 let callback _ request body =
   (* We have a double try ... with to catch all non-Lwt and Lwt
      exceptions. *)
@@ -76,27 +79,7 @@ let callback _ request body =
       let meth = Request.meth request in
       let path = Uri.path uri in
       Log.info (fun m -> m "Request for %s" path);
-      (* Get query, parse it as an associative JSON *)
-      let query =
-        List.map
-          (fun (k, vs) ->
-             (k,
-              match vs with
-              | [v] -> Yojson.Safe.from_string v
-              | vs -> `List (List.map Yojson.Safe.from_string vs)))
-          (Uri.query uri)
-      in
-      (* Get body, parse it as an associative JSON *)
-      let%lwt body =
-        let%lwt body = Cohttp_lwt.Body.to_string body in
-        let body = if body = "" then "{}" else body in
-        Log.debug (fun m -> m "Body: %s" body);
-        let body = Yojson.Safe.from_string body in
-        let body = match body with `Assoc body -> body | _ -> assert false in
-        Lwt.return body
-      in
-      (* Consolidate query and body into a single query. Body takes precedence. *)
-      let query = body @ query in
+      let%lwt query = consolidate_query uri body in
       let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
       Log.debug (fun m -> m "Looking for %s" full_path);
       if Sys.file_exists full_path && not (Sys.is_directory full_path) then
