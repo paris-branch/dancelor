@@ -4,7 +4,6 @@
 %}
 
 %token TRUE FALSE NOT AND OR
-%token ANYOF ALLOF
 %token LPAR RPAR
 %token<string> PREDICATE NULLARY_PREDICATE LITERAL
 %token EOF
@@ -30,13 +29,6 @@ expression:
   | NOT e=expression { Not e }
   | e1=expression AND e2=expression { And (e1, e2) }
   | e1=expression  OR e2=expression { Or  (e1, e2) }
-
   | l=LITERAL { raw l }
   | p=NULLARY_PREDICATE { nullary p }
   | p=PREDICATE e=expression { unary p e }
-
-  | p=PREDICATE ALLOF es=nonempty_list(expression) { and_l (List.map (unary p) es) }
-  | p=PREDICATE ANYOF es=nonempty_list(expression) { or_l  (List.map (unary p) es) }
-
-/* FIXME: one shift/reduce conflict */
-/* will come bite us in the ass later */

@@ -9,9 +9,7 @@
       "false",  FALSE;
       "and",    AND;
       "or",     OR;
-      "not",    NOT;
-      "any-of", ANYOF;
-      "all-of", ALLOF ]
+      "not",    NOT ]
 }
 
 let alpha = ['a'-'z' 'A'-'Z']
