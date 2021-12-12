@@ -48,7 +48,7 @@ let apply_controller path =
       controller (Slug.unsafe_of_string (Option.unwrap slug)))
 
 (** Consider the query and the body to build a consolidated query. *)
-let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
+let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
   let query =
     List.map
       (fun (k, vs) ->
@@ -97,8 +97,8 @@ let callback _ request body =
   let meth = Request.meth request in
   let path = Uri.path uri in
   Log.info (fun m -> m "Request for %s" path);
-  let%lwt query = consolidate_query uri body in
-  let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
+  let%lwt query_parameters = consolidate_query_parameters uri body in
+  let full_path = Filename.concat_l [ !Dancelor_server_config.share; "static"; path ] in
   Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
@@ -108,14 +108,14 @@ let callback _ request body =
   else
     (
       Log.debug (fun m -> m "Asking Madge for %s." path);
-      match%lwt Madge_server.handle meth path (QueryParameters.to_list query) with
+      match%lwt Madge_server.handle meth path (QueryParameters.to_list query_parameters) with
       | Some response -> Lwt.return response
       | None ->
         if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
           (
             let path = String.sub path 4 (String.length path - 4) in
             Log.debug (fun m -> m "Looking for an API controller for %s." path);
-            apply_controller path query
+            apply_controller path query_parameters
           )
         else
           (
