@@ -58,7 +58,6 @@ let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojso
           | vs -> `List (List.map Yojson.Safe.from_string vs)))
       (Uri.query uri)
   in
-  (* Get body, parse it as an associative JSON *)
   let%lwt body =
     let%lwt body = Cohttp_lwt.Body.to_string body in
     let body = if body = "" then "{}" else body in
@@ -67,9 +66,12 @@ let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojso
     let body = match body with `Assoc body -> body | _ -> assert false in
     Lwt.return body
   in
-  (* Consolidate query and body into a single query. Body takes precedence. *)
+  (* Body takes precedence. *)
   Lwt.return (body @ query)
 
+(** Wraps a function into a double catchall: regular exceptions and Lwt
+   exceptions. Exceptions are logged as uncaught, and then the `die` function is
+   called. *)
 let catchall ~place ~die fun_ =
   try
     try%lwt
@@ -83,6 +85,9 @@ let catchall ~place ~die fun_ =
     log_exn ~msg:("Uncaught exception in "^place) exn;
     die ()
 
+(** Callback handling one client request. It is in charge of trying to find what
+   will answer to the request: a static file, or a Madge API point, or the
+   standard main JS file. *)
 let callback _ request body =
   catchall
     ~place:"the callback"
@@ -176,7 +181,7 @@ let main =
   read_configuration ();
   initialise_logs ();
   initialise_database (); %lwt
-    check_init_only ();
+  check_init_only ();
   start_routines ();
   run_server ()
 
