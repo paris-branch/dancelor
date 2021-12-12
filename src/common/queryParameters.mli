@@ -5,10 +5,17 @@ type t
 
 type key = string
 
-(** Get the parameter whose key is given. Depending on the version, return an
-   option or raises [Not_found]. *)
+(** Get the parameter whose key is given. *)
 val get : key -> t -> Yojson.Safe.t option
-val get_exn : key -> t -> Yojson.Safe.t
+
+(** Exception raised when a parameter is expected of a certain type (first
+   string) but has another one (second string). *)
+exception WrongType of string * string
+
+(** Get the parameter whose key is given, converted to the right type. Return
+   [None] if the parameter is not found. Raises {!WrongType} if the parameter is
+   found but has the wrong type. *)
+val get_string : key -> t -> string option
 
 (** {2 Importing and Exporting} *)
 

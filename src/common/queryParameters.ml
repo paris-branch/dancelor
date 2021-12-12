@@ -2,7 +2,29 @@ type key = string
 type t = (key * Yojson.Safe.t) list
 
 let get = List.assoc_opt
-let get_exn = List.assoc
+
+exception WrongType of string * string
+let wrong_type expected provided =
+  let provided =
+    match provided with
+    | `Null -> "null"
+    | `Bool _ -> "bool"
+    | `Int _ -> "int"
+    | `Intlit _ -> "intlit"
+    | `Float _ -> "float"
+    | `String _ -> "string"
+    | `Assoc _ -> "assoc"
+    | `List _ -> "list"
+    | `Tuple _ -> "tuple"
+    | `Variant _ -> "variant"
+  in
+  raise (WrongType (expected, provided))
+
+let get_string k p =
+  match get k p with
+  | Some (`String s) -> Some s
+  | Some j -> wrong_type "string" j
+  | None -> None
 
 let to_list = Fun.id
 
