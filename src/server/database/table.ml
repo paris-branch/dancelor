@@ -267,7 +267,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let json = Json.remove_field "slug" json in
     Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %lwt
     Storage.save_changes_on_entry
-      ~msg:(spf "[auto] save %s / %s" Model._key (Slug.to_string slug))
+      ~msg:(spf "save %s / %s" Model._key (Slug.to_string slug))
       Model._key (Slug.to_string slug); %lwt
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
@@ -276,7 +276,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let table = get_table () in
     Storage.delete_entry Model._key (Slug.to_string slug); %lwt
     Storage.save_changes_on_entry
-      ~msg:(spf "[auto] delete %s / %s" Model._key (Slug.to_string slug))
+      ~msg:(spf "delete %s / %s" Model._key (Slug.to_string slug))
       Model._key (Slug.to_string slug); %lwt
     Hashtbl.remove table slug;
     Lwt.return ()

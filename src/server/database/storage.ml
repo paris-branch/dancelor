@@ -10,7 +10,11 @@ module Git = struct
 
   let commit ~msg =
     Log.debug (fun m -> m "Running git commit");
-    Process.run_ignore ~cwd:!prefix ~on_wrong_status:Logs.Error ["git"; "commit"; "-m"; msg]
+    Process.run_ignore ~cwd:!prefix ~on_wrong_status:Logs.Error [
+      "git"; "commit";
+      "--author=Auto <noreply@dancelor.org>";
+      ("--message="^msg)
+    ]
 
   let push () =
     Log.debug (fun m -> m "Running git push");
