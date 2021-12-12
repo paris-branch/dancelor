@@ -70,41 +70,12 @@ let consolidate_query (uri : Uri.t) (body : Cohttp_lwt.Body.t) : (string * Yojso
   (* Consolidate query and body into a single query. Body takes precedence. *)
   Lwt.return (body @ query)
 
-let callback _ request body =
+let catchall fun_ =
   (* We have a double try ... with to catch all non-Lwt and Lwt
      exceptions. *)
   try
     try%lwt
-      let uri = Request.uri request in
-      let meth = Request.meth request in
-      let path = Uri.path uri in
-      Log.info (fun m -> m "Request for %s" path);
-      let%lwt query = consolidate_query uri body in
-      let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
-      Log.debug (fun m -> m "Looking for %s" full_path);
-      if Sys.file_exists full_path && not (Sys.is_directory full_path) then
-        (
-          Log.debug (fun m -> m "Serving static file.");
-          Server.respond_file ~fname:full_path ()
-        )
-      else
-        (
-          Log.debug (fun m -> m "Asking Madge for %s." path);
-          match%lwt Madge_server.handle meth path query with
-          | Some response -> Lwt.return response
-          | None ->
-            if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
-              (
-                let path = String.sub path 4 (String.length path - 4) in
-                Log.debug (fun m -> m "Looking for an API controller for %s." path);
-                apply_controller path query
-              )
-            else
-              (
-                Log.debug (fun m -> m "Serving main file.");
-                Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
-              )
-        )
+      fun_ ()
     with
       exn ->
       log_exn ~msg:"Uncaught Lwt exception in the callback" exn;
@@ -113,6 +84,39 @@ let callback _ request body =
     exn ->
     log_exn ~msg:"Uncaught exception in the callback" exn;
     Server.respond_error ~status:`Internal_server_error ~body:"{}" ()
+
+let callback _ request body =
+  catchall @@ fun () ->
+  let uri = Request.uri request in
+  let meth = Request.meth request in
+  let path = Uri.path uri in
+  Log.info (fun m -> m "Request for %s" path);
+  let%lwt query = consolidate_query uri body in
+  let full_path = Filename.(concat (concat !Dancelor_server_config.share "static") path) in
+  Log.debug (fun m -> m "Looking for %s" full_path);
+  if Sys.file_exists full_path && not (Sys.is_directory full_path) then
+    (
+      Log.debug (fun m -> m "Serving static file.");
+      Server.respond_file ~fname:full_path ()
+    )
+  else
+    (
+      Log.debug (fun m -> m "Asking Madge for %s." path);
+      match%lwt Madge_server.handle meth path query with
+      | Some response -> Lwt.return response
+      | None ->
+        if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
+          (
+            let path = String.sub path 4 (String.length path - 4) in
+            Log.debug (fun m -> m "Looking for an API controller for %s." path);
+            apply_controller path query
+          )
+        else
+          (
+            Log.debug (fun m -> m "Serving main file.");
+            Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
+          )
+    )
 
 let () =
   Lwt.async_exception_hook :=
