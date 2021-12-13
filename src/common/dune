@@ -4,10 +4,11 @@
  (libraries
   dancelor.nes
   dancelor.common.model
-  cohttp logs
+  cohttp cohttp-lwt logs
   yojson ppx_deriving_yojson.runtime)
  (preprocess
   (pps
+   lwt_ppx
    ppx_deriving_yojson
    ppx_deriving.std
    ppx_inline_test))
