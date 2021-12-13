@@ -10,8 +10,6 @@ type controller =
 
   | Dance of DanceCore.t Slug.t
 
-  | Pascaline
-
   | PersonSave
   | Person of PersonCore.t Slug.t
 
@@ -126,11 +124,6 @@ let routes : route list =
       ~prefix:"/dance"
       (fun dance -> Some (Dance dance))
       (function Dance dance -> Some dance | _ -> None) ;
-
-    direct
-      ~meth:`GET
-      ~path:"/pascaline"
-      Pascaline ;
 
     direct
       ~meth:`GET

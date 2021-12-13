@@ -17,8 +17,6 @@ type controller =
 
   | Dance of DanceCore.t Slug.t
 
-  | Pascaline
-
   | PersonSave
   | Person of PersonCore.t Slug.t
 
