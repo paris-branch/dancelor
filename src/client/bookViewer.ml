@@ -148,7 +148,7 @@ let create slug page =
         (* Only open a warnings div if there are warnings *)
         (match%lwt book_lwt >>=| Book.warnings with
         | [] -> Lwt.return []
-        | warnings -> Lwt.return [div_lwt ~classes:["error"] (display_warnings warnings)]);
+        | warnings -> Lwt.return [div_lwt ~classes:["warning"] (display_warnings warnings)]);
 
       p [ text_lwt (
           let%lwt book = book_lwt in

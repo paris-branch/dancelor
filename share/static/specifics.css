@@ -121,3 +121,10 @@ p {
   border: 2px solid red;
   border-radius: 2px;
 }
+
+.warning {
+  padding: 1rem;
+  background: #ffc87c;
+  border: 2px solid orange;
+  border-radius: 2px;
+}
