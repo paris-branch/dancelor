@@ -1,5 +1,6 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 
 module Html = Dom_html
@@ -24,21 +25,17 @@ let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
 
 let dispatch url =
   let path =
-    Uri.path url
-    |> String.split_on_char '/'
+    let rec trim = function
+      | "" :: l -> trim l
+      | l -> l
+    in
+    Uri.path url |> String.split_on_char '/' |> trim
   in
-  let rec trim = function
-    | "" :: l -> trim l
-    | l -> l
-  in
-  begin match trim path with
+  let query_parameters = QueryParameters.from_uri url in
+  match path with
   | ["search"] ->
-    (match List.assoc_opt "q" (Uri.query url) with
-     | Some [q] ->
-       (match Yojson.Safe.from_string q with
-        | `String q -> pack (module Search) (Search.create (Some q))
-        | _ -> assert false)
-     | _ -> pack (module Search) (Search.create None))
+    let q = QueryParameters.get_string "q" query_parameters in
+    pack (module Search) (Search.create q)
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
   | ["version"; slug] ->
@@ -67,4 +64,3 @@ let dispatch url =
     pack (module Index) Index.create
   | _ ->
     pack (module UnknownPage) UnknownPage.create
-  end
