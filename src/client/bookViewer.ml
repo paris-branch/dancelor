@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
 open Dancelor_common
+open Dancelor_common_model
 module Formatters = Dancelor_client_formatters
 
 let js = Js.string
@@ -13,6 +14,34 @@ type t =
     content : Dom_html.divElement Js.t;
     table : Table.t;
   }
+
+let display_warnings warnings =
+  let display_warning warning =
+    match warning with
+    | BookCore.Empty ->
+        [Dancelor_client_html.text "This book does not contain any set"]
+    | BookCore.DuplicateSet set ->
+        [Dancelor_client_html.text "Set \"";
+         Dancelor_client_html.text_lwt (Set.name set);
+         Dancelor_client_html.text "\" is several times in this book"]
+    | BookCore.DuplicateVersion tune ->
+        [Dancelor_client_html.text "Tune \"";
+         Dancelor_client_html.text_lwt (Tune.name tune);
+         Dancelor_client_html.text "\" appears in several sets"]
+  in
+
+  (* Insert an hr block between any pair of warnings *)
+  let rec insert_lines = function
+    | [] -> []
+    | [hd] -> [hd]
+    | hd :: tl -> hd :: [Dancelor_client_html.hr] :: insert_lines tl
+  in
+
+  List.map display_warning warnings |>
+  insert_lines |>
+  List.flatten |>
+  Lwt.return
+
 
 let display_contents t contents =
   let rows =
@@ -114,6 +143,12 @@ let create slug page =
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.title) ];
       h3 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.subtitle) ];
+
+      div_lwt
+        (* Only open a warnings div if there are warnings *)
+        (match%lwt book_lwt >>=| Book.warnings with
+        | [] -> Lwt.return []
+        | warnings -> Lwt.return [div_lwt ~classes:["error"] (display_warnings warnings)]);
 
       p [ text_lwt (
           let%lwt book = book_lwt in
