@@ -18,27 +18,20 @@ let display_warnings warnings =
   let display_warning warning =
     match warning with
     | Dancelor_common_model.BookCore.Empty ->
-        [Dancelor_client_html.text "This book does not contain any set"]
+        Dancelor_client_html.li [Dancelor_client_html.text "This book does not contain any set"]
     | Dancelor_common_model.BookCore.DuplicateSet set ->
-        [Dancelor_client_html.text "Set \"";
-         Dancelor_client_html.text_lwt (Set.name set);
-         Dancelor_client_html.text "\" is several times in this book"]
+        Dancelor_client_html.li [
+          Dancelor_client_html.text "Set \"";
+          Dancelor_client_html.text_lwt (Set.name set);
+          Dancelor_client_html.text "\" is several times in this book"]
     | Dancelor_common_model.BookCore.DuplicateVersion tune ->
-        [Dancelor_client_html.text "Tune \"";
-         Dancelor_client_html.text_lwt (Tune.name tune);
-         Dancelor_client_html.text "\" appears in several sets"]
-  in
-
-  (* Insert an hr block between any pair of warnings *)
-  let rec insert_lines = function
-    | [] -> []
-    | [hd] -> [hd]
-    | hd :: tl -> hd :: [Dancelor_client_html.hr] :: insert_lines tl
+        Dancelor_client_html.li [
+          Dancelor_client_html.text "Tune \"";
+          Dancelor_client_html.text_lwt (Tune.name tune);
+          Dancelor_client_html.text "\" appears in several sets"]
   in
 
   List.map display_warning warnings |>
-  insert_lines |>
-  List.flatten |>
   Lwt.return
 
 
