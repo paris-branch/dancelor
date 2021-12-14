@@ -109,6 +109,15 @@ val th     : ?colspan:int -> ?rowspan:int -> std_node_maker
 val th_lwt : ?colspan:int -> ?rowspan:int -> std_node_maker_lwt
 (** Same as {!h1} and {!h1_lwt} for table header cell elements [<th></th>]. *)
 
+val ol : std_node_maker
+val ol_lwt : std_node_maker_lwt
+
+val ul : std_node_maker
+val ul_lwt : std_node_maker_lwt
+
+val li : std_node_maker
+val li_lwt : std_node_maker_lwt
+
 type target = Blank | Self | Parent | Top | Frame of string
 
 val a     : ?href:string -> ?href_lwt:string Lwt.t -> ?target:target -> std_node_maker
