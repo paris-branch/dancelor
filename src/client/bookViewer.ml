@@ -3,7 +3,6 @@ open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
 open Dancelor_common
-open Dancelor_common_model
 module Formatters = Dancelor_client_formatters
 
 let js = Js.string
@@ -18,13 +17,13 @@ type t =
 let display_warnings warnings =
   let display_warning warning =
     match warning with
-    | BookCore.Empty ->
+    | Dancelor_common_model.BookCore.Empty ->
         [Dancelor_client_html.text "This book does not contain any set"]
-    | BookCore.DuplicateSet set ->
+    | Dancelor_common_model.BookCore.DuplicateSet set ->
         [Dancelor_client_html.text "Set \"";
          Dancelor_client_html.text_lwt (Set.name set);
          Dancelor_client_html.text "\" is several times in this book"]
-    | BookCore.DuplicateVersion tune ->
+    | Dancelor_common_model.BookCore.DuplicateVersion tune ->
         [Dancelor_client_html.text "Tune \"";
          Dancelor_client_html.text_lwt (Tune.name tune);
          Dancelor_client_html.text "\" appears in several sets"]
