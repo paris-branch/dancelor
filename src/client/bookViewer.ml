@@ -17,14 +17,14 @@ type t =
 let display_warnings warnings =
   let display_warning warning =
     match warning with
-    | Dancelor_common_model.BookCore.Empty ->
+    | Book.Empty ->
         Dancelor_client_html.li [Dancelor_client_html.text "This book does not contain any set"]
-    | Dancelor_common_model.BookCore.DuplicateSet set ->
+    | Book.DuplicateSet set ->
         Dancelor_client_html.li [
           Dancelor_client_html.text "Set \"";
           Dancelor_client_html.text_lwt (Set.name set);
           Dancelor_client_html.text "\" is several times in this book"]
-    | Dancelor_common_model.BookCore.DuplicateVersion tune ->
+    | Book.DuplicateVersion tune ->
         Dancelor_client_html.li [
           Dancelor_client_html.text "Tune \"";
           Dancelor_client_html.text_lwt (Tune.name tune);
