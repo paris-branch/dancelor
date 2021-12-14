@@ -31,8 +31,7 @@ let display_warnings warnings =
           Dancelor_client_html.text "\" appears in several sets"]
   in
 
-  List.map display_warning warnings |>
-  Lwt.return
+  List.map display_warning warnings
 
 
 let display_contents t contents =
@@ -140,7 +139,7 @@ let create slug page =
         (* Only open a warnings div if there are warnings *)
         (match%lwt book_lwt >>=| Book.warnings with
         | [] -> Lwt.return []
-        | warnings -> Lwt.return [div ~classes:["warning"] [ul_lwt (display_warnings warnings)]]);
+        | warnings -> Lwt.return [div ~classes:["warning"] [ul (display_warnings warnings)]]);
 
       p [ text_lwt (
           let%lwt book = book_lwt in
