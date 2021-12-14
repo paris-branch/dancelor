@@ -56,7 +56,7 @@ let compare p1 p2 =
 type warning =
   | Empty
   | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of TuneCore.t
+  | DuplicateVersion of TuneCore.t * SetCore.t option list
 [@@deriving yojson]
 
 type warnings = warning list

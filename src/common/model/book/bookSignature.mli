@@ -24,7 +24,7 @@ val compare : t -> t -> int
 type warning = BookCore.warning =
   | Empty
   | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of TuneCore.t
+  | DuplicateVersion of TuneCore.t * SetCore.t option list
 
 type warnings = warning list
 
