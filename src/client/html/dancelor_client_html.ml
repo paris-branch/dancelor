@@ -134,6 +134,15 @@ let th_lwt ?colspan ?rowspan ?classes children_lwt document =
 let th ?colspan ?rowspan ?classes children document =
   th_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
 
+let ol = node Dom_html.createOl
+let ol_lwt = node_lwt Dom_html.createOl
+
+let ul = node Dom_html.createUl
+let ul_lwt = node_lwt Dom_html.createUl
+
+let li = node Dom_html.createLi
+let li_lwt = node_lwt Dom_html.createLi
+
 let br document = (Dom_html.createBr document :> dom_node)
 let hr document = (Dom_html.createHr document :> dom_node)
 

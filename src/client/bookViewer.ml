@@ -14,6 +14,26 @@ type t =
     table : Table.t;
   }
 
+let display_warnings warnings =
+  let display_warning warning =
+    match warning with
+    | Book.Empty ->
+        Dancelor_client_html.li [Dancelor_client_html.text "This book does not contain any set"]
+    | Book.DuplicateSet set ->
+        Dancelor_client_html.li [
+          Dancelor_client_html.text "Set \"";
+          Dancelor_client_html.text_lwt (Set.name set);
+          Dancelor_client_html.text "\" is several times in this book"]
+    | Book.DuplicateVersion tune ->
+        Dancelor_client_html.li [
+          Dancelor_client_html.text "Tune \"";
+          Dancelor_client_html.text_lwt (Tune.name tune);
+          Dancelor_client_html.text "\" appears in several sets"]
+  in
+
+  List.map display_warning warnings
+
+
 let display_contents t contents =
   let rows =
     List.map
@@ -114,6 +134,12 @@ let create slug page =
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.title) ];
       h3 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.subtitle) ];
+
+      div_lwt
+        (* Only open a warnings div if there are warnings *)
+        (match%lwt book_lwt >>=| Book.warnings with
+        | [] -> Lwt.return []
+        | warnings -> Lwt.return [div ~classes:["warning"] [ul (display_warnings warnings)]]);
 
       p [ text_lwt (
           let%lwt book = book_lwt in
