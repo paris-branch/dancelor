@@ -83,25 +83,6 @@ let warnings p =
     )
     tunes_to_set; 
 
-(*
-  let versions = standalone_versions @ contained_versions in
-  let%lwt tunes = Lwt_list.map_s Version.tune versions in
-  let tunes = List.sort Stdlib.compare tunes in
-  (match tunes with
-   | [] -> ()
-   | tune :: tunes ->
-     let _ =
-       List.fold_left
-         (fun prev curr ->
-            if prev = curr then
-              add_warning (DuplicateVersion curr);
-            curr)
-         tune
-         tunes
-     in
-     ());
-*)
-
   (* Return *)
   Lwt.return !warnings
 
