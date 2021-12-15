@@ -17,6 +17,9 @@ let warnings p =
 
   let%lwt contents = contents p in
 
+  (* Raise the [Empty] warning if there is nothing in this book *)
+  if contents = [] then add_warning Empty;
+
   (* Check that there are no duplicate sets. *)
   let%lwt sets =
     Lwt_list.filter_map_p
@@ -27,7 +30,7 @@ let warnings p =
   in
   let sets = List.sort Stdlib.compare sets in
   (match sets with
-   | [] -> add_warning Empty
+   | [] -> ()
    | set :: sets ->
      let _ =
        List.fold_left
