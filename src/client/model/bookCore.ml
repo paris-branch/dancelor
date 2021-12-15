@@ -68,13 +68,12 @@ let warnings p =
   let%lwt _ = Lwt_list.iter_s (fun set ->
       let%lwt versions_and_parameters = Set.versions_and_parameters set in
       let versions = List.map fst versions_and_parameters in
-      let%lwt _ = Lwt_list.iter_s
+      Lwt_list.iter_s
         (fun v ->
            let%lwt tune = Version.tune v in
            extend tunes_to_set tune (Some set);
            Lwt.return ()
-        ) versions in
-      Lwt.return ()
+        ) versions
     ) sets in
 
   Hashtbl.iter
