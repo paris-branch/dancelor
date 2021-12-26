@@ -30,7 +30,7 @@ let update_table t =
         let cells =
           let open Lwt in [
             Table.Cell.create ~content:(
-              let%lwt content = Formatters.Set.name_and_tunes set in
+              let%lwt content = Formatters.Set.name_and_tunes ~link:false set in
               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
             ) t.page;
             Table.Cell.create ~content:(

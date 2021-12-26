@@ -64,7 +64,7 @@ let display_contents t contents =
               [
                 Table.Cell.text ~text:(Lwt.return "Set") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Set.name_and_tunes set in
+                  let%lwt content = Formatters.Set.name_and_tunes ~link:false set in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
@@ -79,7 +79,7 @@ let display_contents t contents =
               let open Lwt in [
                 Table.Cell.text ~text:(Lwt.return "Set (inline)") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Set.name_and_tunes set in
+                  let%lwt content = Formatters.Set.name_and_tunes ~link:false set in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
