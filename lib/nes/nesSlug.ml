@@ -1,10 +1,16 @@
-type 'a t = string
+type 'a t = string option
 
-let none = ""
+let none = None
 
-let to_yojson _ s = `String s
+let is_none = (=) None
+
+let to_yojson _ = function
+  | Some s -> `String s
+  | None -> `Null
+
 let of_yojson _ = function
-  | `String s -> Ok s
+  | `String s -> Ok (Some s)
+  | `Null -> Ok None
   | _ -> Error "NesSlug.of_yojson"
 
 let from_string str =
@@ -29,17 +35,22 @@ let from_string str =
       )
   done;
   if !last_letter < 0 then
-    "-"
+    Some "-"
   else
-    Bytes.sub_string out 0 (!last_letter+1)
+    Some (Bytes.sub_string out 0 (!last_letter+1))
 
-let%test _ = from_string "Hello you, how are you?!" = "hello-you-how-are-you"
-let%test _ = from_string "<> My friend!" = "my-friend"
-let%test _ = from_string "*ù" = "-"
+let%test _ = from_string "Hello you, how are you?!" = Some "hello-you-how-are-you"
+let%test _ = from_string "<> My friend!" = Some "my-friend"
+let%test _ = from_string "*ù" = Some "-"
 
 let equal = (=)
 let compare = compare
 
-let to_string x = x
-let pp = Format.pp_print_string
-let unsafe_of_string x = x
+let to_string = function
+  | Some s -> s
+  | None -> failwith "NesSlug.to_string"
+
+let pp fmt slug =
+  Format.pp_print_string fmt (to_string slug)
+
+let unsafe_of_string str = Some str

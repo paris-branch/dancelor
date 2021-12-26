@@ -5,6 +5,7 @@ type 'value t
 [@@deriving yojson]
 
 val none : 'any t
+val is_none : 'any t -> bool
 
 val equal : 'any t -> 'any t -> bool
 val compare : 'any t -> 'any t -> int
