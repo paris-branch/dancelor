@@ -13,7 +13,7 @@ module Kind = struct
     let open Lwt in
     let%lwt base = M.Tune.kind tune >|= M.Kind.base_to_char in
     let%lwt bars = M.Version.bars version in
-    Lwt.return [ text (spf "%i %c" bars base) ]
+    Lwt.return [text (spf "%i %c" bars base)]
 
 end
 
@@ -23,13 +23,13 @@ module Credit = struct
     match credit with
     | None -> Lwt.return_nil
     | Some credit ->
-      let text = [ text_lwt (M.Credit.line credit) ] in
+      let text = [text_lwt (M.Credit.line credit)] in
       if link then
         let href_lwt =
           let%lwt slug = M.Credit.slug credit in
           Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
         in
-        Lwt.return [ a ~href_lwt text ]
+        Lwt.return [a ~href_lwt text]
       else
         Lwt.return text
 
@@ -90,7 +90,7 @@ module Book = struct
       match%lwt M.Book.subtitle book with
       | "" -> Lwt.return_nil
       | subtitle -> Lwt.return [
-          span ~classes:["details"] [ text subtitle ]
+          span ~classes:["details"] [text subtitle]
         ]
     in
     Lwt.return ([ text_lwt (M.Book.title book) ] @ subtitle_block)
@@ -100,7 +100,7 @@ module Book = struct
       let%lwt slug = M.Book.slug book in
       Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
     in
-    Lwt.return [ a ~href_lwt [ text_lwt (M.Book.short_title book) ] ]
+    Lwt.return [a ~href_lwt [text_lwt (M.Book.short_title book)]]
 
 end
 
@@ -133,9 +133,9 @@ module Version = struct
         let%lwt slug = M.Version.slug version in
         Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
       in
-      Lwt.return [ a ~href_lwt [ text_lwt name_lwt ] ]
+      Lwt.return [a ~href_lwt [text_lwt name_lwt]]
     else
-      Lwt.return [ text_lwt name_lwt ]
+      Lwt.return [text_lwt name_lwt]
 
   let name_and_disambiguation ?link version =
     let%lwt name_block = name ?link version in
@@ -143,7 +143,7 @@ module Version = struct
       match%lwt M.Version.disambiguation version with
       | "" -> Lwt.return_nil
       | disambiguation -> Lwt.return [
-          span ~classes:["dim"] [ text (spf " (%s)" disambiguation) ]
+          span ~classes:["dim"] [text (spf " (%s)" disambiguation)]
         ]
     in
     Lwt.return (name_block @ disambiguation_block)
@@ -171,7 +171,7 @@ module Version = struct
     let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
     Lwt.return (
       name_and_disambiguation
-      @ [ span_lwt ~classes:["dim"; "details"] sources_lwt ]
+      @ [span_lwt ~classes:["dim"; "details"] sources_lwt]
     )
 
   let disambiguation_and_sources version =
@@ -220,7 +220,7 @@ module Version = struct
         let arr = if short then "arr." else "arranged by" in
         let%lwt arranger_block = Credit.line ?link (Some arranger) in
         Lwt.return [
-          span ~classes:["dim"] ([ text (spf "%s%s " comma arr) ] @ arranger_block)
+          span ~classes:["dim"] (text (spf "%s%s " comma arr) :: arranger_block)
         ]
     in
     Lwt.return (author_block @ arranger_block)
