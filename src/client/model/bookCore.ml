@@ -55,35 +55,40 @@ let warnings p =
   let extend htbl tune set_opt =
     match Hashtbl.find_opt htbl tune with
     | None -> Hashtbl.add htbl tune [set_opt]
-    | Some sets -> Hashtbl.replace htbl tune (set_opt::sets)
+    | Some sets -> Hashtbl.replace htbl tune (set_opt :: sets)
   in
-  
+
   (* [tunes_to_set] is a hashtable from tunes to sets they belong to.
      Standalone tunes are associated with None *)
   let tunes_to_set = Hashtbl.create 8 in
-  let%lwt _ = Lwt_list.iter_s
-    (fun v -> 
-      let%lwt tune = Version.tune v in
-      extend tunes_to_set tune None;
-      Lwt.return ())
-    standalone_versions in
-  
-  let%lwt _ = Lwt_list.iter_s (fun set ->
-      let%lwt versions_and_parameters = Set.versions_and_parameters set in
-      let versions = List.map fst versions_and_parameters in
-      Lwt_list.iter_s
-        (fun v ->
-           let%lwt tune = Version.tune v in
-           extend tunes_to_set tune (Some set);
-           Lwt.return ()
-        ) versions
-    ) sets in
+  let%lwt _ =
+    Lwt_list.iter_s
+      (fun v ->
+         let%lwt tune = Version.tune v in
+         extend tunes_to_set tune None;
+         Lwt.return ())
+      standalone_versions
+  in
+
+  let%lwt _ =
+    Lwt_list.iter_s
+      (fun set ->
+         let%lwt versions_and_parameters = Set.versions_and_parameters set in
+         let versions = List.map fst versions_and_parameters in
+         Lwt_list.iter_s
+           (fun v ->
+              let%lwt tune = Version.tune v in
+              extend tunes_to_set tune (Some set);
+              Lwt.return ())
+           versions)
+      sets
+  in
 
   Hashtbl.iter
-    (fun tune sets_opt -> if List.length sets_opt > 1 then
-         add_warning (DuplicateVersion (tune, sets_opt))
-    )
-    tunes_to_set; 
+    (fun tune sets_opt ->
+       if List.length sets_opt > 1 then
+         add_warning (DuplicateVersion (tune, sets_opt)))
+    tunes_to_set;
 
   (* Return *)
   Lwt.return !warnings
