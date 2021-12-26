@@ -12,7 +12,7 @@ let contents p =
 
 let warnings _p = assert false (* FIXME *)
 
-module E = Dancelor_common_model.Book_endpoints
+module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Book.get

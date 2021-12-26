@@ -17,6 +17,6 @@
    ppx_deriving_yojson
    ppx_deriving.std))
  (modules_without_implementation
-   person_signature credit_signature dance_signature book_signature
-   any_signature set_signature tune_signature version_signature)
+   personSignature creditSignature danceSignature bookSignature
+   anySignature setSignature tuneSignature versionSignature)
  (inline_tests))

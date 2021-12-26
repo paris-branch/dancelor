@@ -4,7 +4,7 @@ include Dancelor_common_model.TuneCore
 let author = author >=>?| (Credit.get >=>| Lwt.return_some)
 let dances = dances >=>| Lwt_list.map_p Dance.get
 
-module E = Dancelor_common_model.Tune_endpoints
+module E = Dancelor_common_model.TuneEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Tune.get

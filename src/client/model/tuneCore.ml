@@ -5,7 +5,7 @@ include TuneCore
 let author = author >=>?| (Credit.get >=>| Lwt.return_some)
 let dances = dances >=>| Lwt_list.map_p Dance.get
 
-module E = Tune_endpoints
+module E = TuneEndpoints
 module A = E.Arguments
 
 let get slug =

@@ -1,6 +1,6 @@
 include AnyCore
 
-module E = Dancelor_common_model.Any_endpoints
+module E = Dancelor_common_model.AnyEndpoints
 module A = E.Arguments
 
 let search ?pagination ?threshold filter =

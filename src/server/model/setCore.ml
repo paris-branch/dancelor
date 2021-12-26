@@ -15,7 +15,7 @@ let dances = dances >=>| Lwt_list.map_p Dance.get
 
 let warnings _s = assert false (* FIXME *)
 
-module E = Dancelor_common_model.Set_endpoints
+module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Set.get

@@ -3,7 +3,7 @@ include Dancelor_common_model.DanceCore
 
 let deviser = deviser >=>?| (CreditCore.get >=>| Lwt.return_some)
 
-module E = Dancelor_common_model.Dance_endpoints
+module E = Dancelor_common_model.DanceEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Dance.get

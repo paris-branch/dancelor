@@ -1,7 +1,7 @@
 open Nes
 include VersionCore
 
-module E = Dancelor_common_model.Version_endpoints
+module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let rec search_and_extract acc s regexp =

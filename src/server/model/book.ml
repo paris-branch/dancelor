@@ -1,7 +1,7 @@
 open Nes
 include BookCore
 
-module E = Dancelor_common_model.Book_endpoints
+module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments
 
 let search ?pagination ?(threshold=Float.min_float) filter =
