@@ -37,6 +37,13 @@ end
 
 module Tune = struct
 
+  let name tune =
+    let href_lwt =
+      let%lwt slug = M.Tune.slug tune in
+      Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+    in
+    Lwt.return [a ~href_lwt [text_lwt (M.Tune.name tune)]]
+
   let description tune =
     let%lwt kind = M.Tune.kind tune in
     let kind = M.Kind.base_to_pretty_string kind in

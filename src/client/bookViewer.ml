@@ -41,7 +41,7 @@ let display_warnings warnings =
     | Book.DuplicateVersion (tune, sets_opt) ->
       li (
         text "Tune “"
-        :: text_lwt (Tune.name tune)
+        :: span_lwt (Formatters.Tune.name tune)
         :: text "” appears in several sets ("
         :: (display_sets sets_opt |> format_set_list)
       )
