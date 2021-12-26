@@ -238,6 +238,13 @@ module Set = struct
         text (spf "Works for %s" (String.concat ", " dance_names))
       ]
 
+  let name set =
+    let href_lwt =
+      let%lwt slug = M.Set.slug set in
+      Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+    in
+    Lwt.return [a ~href_lwt [text_lwt (M.Set.name set)]]
+
   let name_and_tunes set =
     let%lwt versions =
       let%lwt versions_and_parameters = M.Set.versions_and_parameters set in

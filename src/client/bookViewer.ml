@@ -19,7 +19,7 @@ let display_warnings warnings =
   let rec display_sets = function
     | [] -> []
     | None :: tl -> text "standalone" :: display_sets tl
-    | Some set :: tl -> text_lwt (Set.name set) :: display_sets tl
+    | Some set :: tl -> span_lwt (Formatters.Set.name set) :: display_sets tl
   in
   let rec format_set_list = function
     (* If the warning DuplicateVersion has been logged, the list of sets,
@@ -35,7 +35,7 @@ let display_warnings warnings =
     | Book.DuplicateSet set ->
       li [
         text "Set “";
-        text_lwt (Set.name set);
+        span_lwt (Formatters.Set.name set);
         text "” is several times in this book"
       ]
     | Book.DuplicateVersion (tune, sets_opt) ->
