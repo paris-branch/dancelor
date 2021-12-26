@@ -1,6 +1,6 @@
 include DanceCore
 
-module E = Dancelor_common_model.Dance_endpoints
+module E = Dancelor_common_model.DanceEndpoints
 module A = E.Arguments
 
 let search ?pagination ?threshold filter =

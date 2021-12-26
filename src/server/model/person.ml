@@ -1,7 +1,7 @@
 open Nes
 include PersonCore
 
-module E = Dancelor_common_model.Person_endpoints
+module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
 
 let make_and_save ?status ~name () =

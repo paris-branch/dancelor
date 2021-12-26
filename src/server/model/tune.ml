@@ -1,7 +1,7 @@
 open Nes
 include TuneCore
 
-module E = Dancelor_common_model.Tune_endpoints
+module E = Dancelor_common_model.TuneEndpoints
 module A = E.Arguments
 
 let search ?pagination ?(threshold=Float.min_float) filter =

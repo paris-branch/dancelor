@@ -1,6 +1,6 @@
 include CreditCore
 
-module E = Dancelor_common_model.Credit_endpoints
+module E = Dancelor_common_model.CreditEndpoints
 module A = E.Arguments
 
 let make_and_save ?status ~line ?persons () =

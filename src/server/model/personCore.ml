@@ -1,6 +1,6 @@
 include Dancelor_common_model.PersonCore
 
-module E = Dancelor_common_model.Person_endpoints
+module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Person.get

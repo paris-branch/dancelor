@@ -73,7 +73,7 @@ let warnings p =
   Lwt.return !warnings
 
 let get the_slug =
-  let open Book_endpoints in
+  let open BookEndpoints in
   let open Arguments in
   Madge_client.(
     call ~endpoint:get @@ fun {a} _ ->

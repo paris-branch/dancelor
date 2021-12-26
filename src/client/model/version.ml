@@ -1,6 +1,6 @@
 include VersionCore
 
-module E = Dancelor_common_model.Version_endpoints
+module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let search ?pagination ?threshold filter =

@@ -4,7 +4,7 @@ include CreditCore
 
 let persons = persons >=>| Lwt_list.map_p Person.get
 
-module E = Credit_endpoints
+module E = CreditEndpoints
 module A = E.Arguments
 
 let get slug =

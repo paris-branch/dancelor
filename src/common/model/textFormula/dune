@@ -1,0 +1,2 @@
+(ocamllex textFormulaLexer)
+(menhir (modules textFormulaParser) (flags --table))

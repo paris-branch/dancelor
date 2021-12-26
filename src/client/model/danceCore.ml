@@ -4,7 +4,7 @@ include DanceCore
 
 let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
 
-module E = Dance_endpoints
+module E = DanceEndpoints
 module A = E.Arguments
 
 let get slug =

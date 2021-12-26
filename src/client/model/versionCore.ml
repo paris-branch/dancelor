@@ -8,7 +8,7 @@ let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
 let content _t =
   assert false (* FIXME *)
 
-module E = Version_endpoints
+module E = VersionEndpoints
 module A = E.Arguments
 
 let get slug =

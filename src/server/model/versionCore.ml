@@ -6,7 +6,7 @@ let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
 
 let content = Dancelor_server_database.Version.read_content
 
-module E = Dancelor_common_model.Version_endpoints
+module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Version.get

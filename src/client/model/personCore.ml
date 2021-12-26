@@ -1,7 +1,7 @@
 open Dancelor_common_model
 include PersonCore
 
-module E = Person_endpoints
+module E = PersonEndpoints
 module A = E.Arguments
 
 let get slug =

@@ -1,7 +1,7 @@
 open Nes
 include SetCore
 
-module E = Dancelor_common_model.Set_endpoints
+module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
