@@ -49,6 +49,10 @@ let make_temp ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
   make ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
 
 let slug s = Lwt.return s.slug
+let is_slug_none s =
+  let%lwt slug = slug s in
+  Lwt.return (Slug.is_none slug)
+
 let status s = Lwt.return s.status
 let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser

@@ -252,7 +252,8 @@ module Set = struct
 
   let name ?(link=true) set =
     let name_text = [text_lwt (M.Set.name set)] in
-    if link then
+    let%lwt is_inline = M.Set.is_slug_none set in
+    if link && not is_inline then
       let href_lwt =
         let%lwt slug = M.Set.slug set in
         Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)

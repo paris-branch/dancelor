@@ -3,6 +3,8 @@ open Nes
 type t = SetCore.t
 
 val slug : t -> t Slug.t Lwt.t
+val is_slug_none : t -> bool Lwt.t
+
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val deviser : t -> CreditCore.t option Lwt.t
