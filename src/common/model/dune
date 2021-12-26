@@ -1,5 +1,4 @@
-(ocamllex textFormulaLexer)
-(menhir (modules textFormulaParser) (flags --table))
+(include_subdirs unqualified)
 
 (library
  (name dancelor_common_model)
