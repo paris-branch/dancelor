@@ -28,6 +28,8 @@ let warnings p =
         | Set (s, _) | InlineSet (s, _) -> Lwt.return_some s)
       contents
   in
+  (* FIXME: a clean comparison function for model objects (basically slug; and
+     none = different) *)
   let sets = List.sort Stdlib.compare sets in
   (match sets with
    | [] -> ()
@@ -41,6 +43,11 @@ let warnings p =
          set sets
      in
      ());
+
+  (* remove duplicate sets to avoid further warnings *)
+  (* FIXME: a clean comparison function for model objects (basically slug; and
+     none = different) *)
+  let sets = List.sort_uniq Stdlib.compare sets in
 
   (* Check that there are no duplicate tune. *)
   let%lwt standalone_versions =
