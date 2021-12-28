@@ -1,4 +1,13 @@
-type 'a t = 'a option
+(** {1 Lists} *)
+
+(** {2 Standard Library}
+
+   This module contains everything defined for lists by the OCaml standard
+   library. For these functions, refer to the official documentation. *)
+
+include module type of Stdlib.Option
+
+(** {2 Additional Contents} *)
 
 val bind : 'a t -> ('a -> 'b t) -> 'b t
 val compose : ('a -> 'b t) -> ('b -> 'c t) -> ('a -> 'c t)

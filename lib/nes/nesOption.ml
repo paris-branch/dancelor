@@ -1,4 +1,4 @@
-type 'a t = 'a option
+include Option
 
 let bind x f =
   match x with
