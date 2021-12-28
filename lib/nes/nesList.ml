@@ -40,3 +40,17 @@ let intertwine f l =
       h :: (f i) :: intertwine (i+1) q
   in
   intertwine 0 l
+
+let sort_uniq_count cmp l =
+  (* count_duplicates assumes that the list is sorted *)
+  let rec count_duplicates acc (prev, nb) = function
+    | [] -> rev ((prev, nb) :: acc)
+    | h :: t ->
+      if cmp h prev = 0 then
+        count_duplicates acc (prev, nb+1) t
+      else
+        count_duplicates ((prev,nb)::acc) (h,1) t
+  in
+  match sort cmp l with
+  | [] -> []
+  | h :: t -> count_duplicates [] (h,1) t

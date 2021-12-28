@@ -68,13 +68,14 @@ let warnings p =
   (* [tunes_to_set] is a hashtable from tunes to sets they belong to.
      Standalone tunes are associated with None *)
   let tunes_to_set = Hashtbl.create 8 in
+  (* register standalone tunes *)
   Lwt_list.iter_s
     (fun v ->
        let%lwt tune = Version.tune v in
        extend tunes_to_set tune None;
        Lwt.return ())
     standalone_versions;%lwt
-
+  (* register tunes in sets *)
   Lwt_list.iter_s
     (fun set ->
        let%lwt versions_and_parameters = Set.versions_and_parameters set in
@@ -86,11 +87,16 @@ let warnings p =
             Lwt.return ())
          versions)
     sets;%lwt
-
+  (* crawl all registered tunes and see if they appear several times. if that is
+     the case, add a warning accordingly *)
   Hashtbl.iter
     (fun tune sets_opt ->
        if List.length sets_opt > 1 then
-         add_warning (DuplicateVersion (tune, List.map (fun set_opt -> (set_opt, 1)) sets_opt)))
+         (* FIXME: a clean comparison function for model objects (basically
+            slug; and none = different) and composable comparison functions for
+            options/lists/etc. *)
+         let sets_opt = List.sort_uniq_count Stdlib.compare sets_opt in
+         add_warning (DuplicateVersion (tune, sets_opt)))
     tunes_to_set;
 
   (* Return *)
