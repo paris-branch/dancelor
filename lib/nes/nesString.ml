@@ -246,3 +246,56 @@ module Map = Map.Make(struct
     type nonrec t = t
     let compare = compare
   end)
+
+let ltrim ?(char_equal=Char.equal) ?(char=' ') input =
+  let first = ref 0 in
+  let length = length input in
+  while !first < length && char_equal input.[!first] char do
+    incr first
+  done;
+  sub input !first (length - !first)
+
+let%test _ = ltrim "" = ""
+let%test _ = ltrim "abc" = "abc"
+let%test _ = ltrim "   abc   " = "abc   "
+let%test _ = ltrim ~char:'a' "abc" = "bc"
+let%test _ = ltrim ~char:'a' "   abc   " = "   abc   "
+
+let rtrim ?(char_equal=Char.equal) ?(char=' ') input =
+  let last = ref (length input - 1) in
+  while !last >= 0 && char_equal input.[!last] char do
+    decr last
+  done;
+  sub input 0 (!last + 1)
+
+let%test _ = rtrim "" = ""
+let%test _ = rtrim "abc" = "abc"
+let%test _ = rtrim "   abc   " = "   abc"
+let%test _ = rtrim ~char:'c' "abc" = "ab"
+let%test _ = rtrim ~char:'c' "   abc   " = "   abc   "
+
+let trim ?char_equal ?char input =
+  input
+  |> rtrim ?char_equal ?char
+  |> ltrim ?char_equal ?char
+
+let%test _ = trim "" = ""
+let%test _ = trim "abc" = "abc"
+let%test _ = trim "   abc   " = "abc"
+let%test _ = trim ~char:'c' "abc" = "ab"
+let%test _ = trim ~char:'c' "   abc   " = "   abc   "
+
+let remove_duplicates ?(char_equal=Char.equal) ?(char=' ') input =
+  let length = length input in
+  let output = Buffer.create length in
+  let last_was_char = ref false in
+  for i = 0 to length - 1 do
+    if char_equal input.[i] char then
+      (if not !last_was_char then
+         (last_was_char := true;
+          Buffer.add_char output char))
+    else
+      (last_was_char := false;
+       Buffer.add_char output input.[i])
+  done;
+  trim ~char (Buffer.contents output)
