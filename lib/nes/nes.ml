@@ -4,6 +4,7 @@ include NesPervasives
 module Char = NesChar
 module Filename = NesFilename
 module Format = NesFormat
+module Int = NesInt
 module List = NesList
 module Lwt = NesLwt
 module Lwt_list = NesLwt_list
