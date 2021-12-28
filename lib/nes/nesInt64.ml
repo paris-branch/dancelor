@@ -124,9 +124,14 @@ let%test _ = to_english_string (-9_223_372_036_854_775_808L) =
              ^ " seven hundred seventy five thousand"
              ^ " eight hundred eight"
 
-let to_english_times_string = function
+let to_english_string_times_unsigned = function
+  | 1L -> "once"
+  | 2L -> "twice"
+  | n -> to_english_string_unsigned n ^ " times"
+
+let to_english_string_times = function
   | 1L -> "once"
   | 2L -> "twice"
   | n -> to_english_string n ^ " times"
 
-(* FIXME: to_english_nth_string *)
+(* FIXME: to_english_string_nth *)
