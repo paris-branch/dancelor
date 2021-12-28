@@ -93,9 +93,8 @@ let warnings p =
     (fun tune sets_opt ->
        if List.length sets_opt > 1 then
          (* FIXME: a clean comparison function for model objects (basically
-            slug; and none = different) and composable comparison functions for
-            options/lists/etc. *)
-         let sets_opt = List.sort_uniq_count Stdlib.compare sets_opt in
+            slug; and none = different). *)
+         let sets_opt = List.sort_uniq_count (Option.compare Stdlib.compare) sets_opt in
          add_warning (DuplicateVersion (tune, sets_opt)))
     tunes_to_set;
 
