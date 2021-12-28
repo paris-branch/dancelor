@@ -9,6 +9,25 @@ include module type of Stdlib.List
 
 (** {2 Additional Contents} *)
 
+(** {3 Sort Functions} *)
+
+val sort_count : ('a -> 'a -> int) -> 'a list -> ('a * int) t
+(** Same as {!sort_uniq}, but count duplicates. *)
+
+val sort_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t Lwt.t
+(** Same as {!sort} when the comparison returns an Lwt value. *)
+
+val sort_uniq_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t Lwt.t
+(** Same as {!sort_uniq} when the comparison returns an Lwt value. *)
+
+val sort_count_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> ('a * int) t Lwt.t
+(** Same as {!sort_count} when the comparison returns an Lwt value. *)
+
+val merge_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> 'a t Lwt.t
+(** Same as {!merge} when the comparison returns an Lwt value. *)
+
+(** {3 Others} *)
+
 val map_filter : ('a -> 'b option) -> 'a t -> 'b t
 (** Legacy alias for {!filter_map}. *)
 (* FIXME: get rid of this function and add constraint on OCaml's version. *)
@@ -27,6 +46,3 @@ val ft : 'a t -> 'a
     @raise Failure if the list is empty. *)
 
 val intertwine : (int -> 'a) -> 'a t -> 'a t
-
-val sort_uniq_count : ('a -> 'a -> int) -> 'a list -> ('a * int) t
-(** Same as {!sort_uniq}, but count duplicates. *)
