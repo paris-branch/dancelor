@@ -28,9 +28,7 @@ let warnings p =
         | Set (s, _) | InlineSet (s, _) -> Lwt.return_some s)
       contents
   in
-  (* FIXME: a clean comparison function for model objects (basically slug; and
-     none = different) *)
-  let sets = List.sort Stdlib.compare sets in
+  let%lwt sets = List.sort_lwt Set.compare sets in
   (match sets with
    | [] -> ()
    | set :: sets ->
@@ -45,9 +43,9 @@ let warnings p =
      ());
 
   (* remove duplicate sets to avoid further warnings *)
-  (* FIXME: a clean comparison function for model objects (basically slug; and
-     none = different) *)
-  let sets = List.sort_uniq Stdlib.compare sets in
+  (* FIXME: we know that [sets] is sorted so we could use something more
+     efficient here *)
+  let%lwt sets = List.sort_uniq_lwt Set.compare sets in
 
   (* Check that there are no duplicate tune. *)
   let%lwt standalone_versions =
@@ -89,14 +87,13 @@ let warnings p =
     sets;%lwt
   (* crawl all registered tunes and see if they appear several times. if that is
      the case, add a warning accordingly *)
-  Hashtbl.iter
-    (fun tune sets_opt ->
+  Hashtbl.to_seq tunes_to_set
+  |> Seq.iter_lwt
+    (fun (tune, sets_opt) ->
+       let%lwt sets_opt = List.sort_count_lwt (Option.compare_lwt Set.compare) sets_opt in
        if List.length sets_opt > 1 then
-         (* FIXME: a clean comparison function for model objects (basically
-            slug; and none = different). *)
-         let sets_opt = List.sort_count (Option.compare Stdlib.compare) sets_opt in
-         add_warning (DuplicateVersion (tune, sets_opt)))
-    tunes_to_set;
+          add_warning (DuplicateVersion (tune, sets_opt));
+       Lwt.return_unit);%lwt
 
   (* Return *)
   Lwt.return !warnings

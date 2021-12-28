@@ -48,8 +48,7 @@ let warnings s =
   in
   (* Check that there are no duplicates. *)
   let%lwt tunes = Lwt_list.map_s Version.tune versions in
-  (* FIXME: comparison function for tunes *)
-  let tunes = List.sort Stdlib.compare tunes in
+  let%lwt tunes = List.sort_lwt Tune.compare tunes in
   (match tunes with
    | [] -> add_warning Empty
    | tune :: tunes ->
