@@ -68,28 +68,24 @@ let warnings p =
   (* [tunes_to_set] is a hashtable from tunes to sets they belong to.
      Standalone tunes are associated with None *)
   let tunes_to_set = Hashtbl.create 8 in
-  let%lwt _ =
-    Lwt_list.iter_s
-      (fun v ->
-         let%lwt tune = Version.tune v in
-         extend tunes_to_set tune None;
-         Lwt.return ())
-      standalone_versions
-  in
+  Lwt_list.iter_s
+    (fun v ->
+       let%lwt tune = Version.tune v in
+       extend tunes_to_set tune None;
+       Lwt.return ())
+    standalone_versions;%lwt
 
-  let%lwt _ =
-    Lwt_list.iter_s
-      (fun set ->
-         let%lwt versions_and_parameters = Set.versions_and_parameters set in
-         let versions = List.map fst versions_and_parameters in
-         Lwt_list.iter_s
-           (fun v ->
-              let%lwt tune = Version.tune v in
-              extend tunes_to_set tune (Some set);
-              Lwt.return ())
-           versions)
-      sets
-  in
+  Lwt_list.iter_s
+    (fun set ->
+       let%lwt versions_and_parameters = Set.versions_and_parameters set in
+       let versions = List.map fst versions_and_parameters in
+       Lwt_list.iter_s
+         (fun v ->
+            let%lwt tune = Version.tune v in
+            extend tunes_to_set tune (Some set);
+            Lwt.return ())
+         versions)
+    sets;%lwt
 
   Hashtbl.iter
     (fun tune sets_opt ->
