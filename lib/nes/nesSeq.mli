@@ -9,6 +9,9 @@ val is_empty : 'a t -> bool
 val hd_opt : 'a t -> 'a option
 (** return the first element of the sequence if there is one *)
 
+val iter_lwt : ('a -> unit Lwt.t) -> 'a t -> unit Lwt.t
+(** Same as {!iter} when the function returns an Lwt value. *)
+
 val for_all : ('a -> bool) -> 'a t -> bool
 (** [for_all p [a1; ...; an; ...]] checks if all elements of the (possibly
    infinite) sequence satisfy the predicate [p]. That is, it returns [(p a1) &&
