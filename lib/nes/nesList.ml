@@ -81,6 +81,19 @@ let rec merge_lwt compare l1 l2 =
     if cmp <= 0 then cons_lwt h1 (merge_lwt compare t1 (h2::t2))
     else cons_lwt h2 (merge_lwt compare (h1::t1) t2)
 
+let%test_module _ = (module struct
+  let test_merge_lwt l1 l2 expected =
+    Lwt_main.run
+      (let%lwt result = merge_lwt NesInt.compare_lwt l1 l2 in
+       Lwt.return (result = expected))
+
+  let%test _ = test_merge_lwt [] [] []
+  let%test _ = test_merge_lwt [2; 3] [] [2; 3]
+  let%test _ = test_merge_lwt [] [5; 8] [5; 8]
+  let%test _ = test_merge_lwt [0; 1; 3; 5; 7] [0; 4; 5; 6]
+      [0; 0; 1; 3; 4; 5; 5; 6; 7]
+end)
+
 (* Same as {!merge_lwt} but merges equal occurrences and counts them. *)
 let rec merge_count_lwt compare l1 l2 =
   match (l1, l2) with
@@ -91,6 +104,21 @@ let rec merge_count_lwt compare l1 l2 =
     if cmp < 0 then cons_lwt (h1,n1) (merge_count_lwt compare t1 ((h2,n2) :: t2))
     else if cmp = 0 then cons_lwt (h1,n1+n2) (merge_count_lwt compare t1 t2)
     else cons_lwt (h2,n2) (merge_count_lwt compare ((h1,n1) :: t1) t2)
+
+let%test_module _ = (module struct
+  let test_merge_count_lwt l1 l2 expected =
+    Lwt_main.run
+      (let%lwt result = merge_count_lwt NesInt.compare_lwt l1 l2 in
+       Lwt.return (result = expected))
+
+  let%test _ = test_merge_count_lwt [] [] []
+  let%test _ = test_merge_count_lwt [(2, 4); (3, 5)] [] [(2, 4); (3, 5)]
+  let%test _ = test_merge_count_lwt [] [(5, 4); (8, 5)] [(5, 4); (8, 5)]
+  let%test _ = test_merge_count_lwt
+      [(0, 4); (1, 7); (3, 8); (5, 9); (7, 10)]
+      [(0, 2); (4, 4); (5, 3); (6, 6)]
+      [(0, 6); (1, 7); (3, 8); (4, 4); (5, 12); (6, 6); (7, 10)]
+end)
 
 (* morally, this could be called split, but the name is already taken *)
 let rec untangle = function
