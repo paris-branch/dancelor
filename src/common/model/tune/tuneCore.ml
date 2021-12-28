@@ -23,7 +23,5 @@ let author tune = Lwt.return tune.author
 let dances tune = Lwt.return tune.dances
 let remark tune = Lwt.return tune.remark
 
-let equal tune1 tune2 =
-  let%lwt slug1 = slug tune1 in
-  let%lwt slug2 = slug tune2 in
-  Lwt.return (Slug.equal slug1 slug2)
+let compare = compare_slugs slug
+let equal = equal_from_compare compare

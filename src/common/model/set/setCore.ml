@@ -64,17 +64,8 @@ let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
 
-let compare set1 set2 =
-  let%lwt slug1 = slug set1 in
-  let%lwt slug2 = slug set2 in
-  match Slug.compare slug1 slug2 with
-  | 0 when set1 = set2 -> Lwt.return 0
-  | 0 -> failwith "Dancelor_common.Model.SetCore: compare" (* should never happen *)
-  | c -> Lwt.return c
-
-let equal set1 set2 =
-  let%lwt c = compare set1 set2 in
-  Lwt.return (c = 0)
+let compare = compare_slugs slug
+let equal = equal_from_compare compare
 
 let contains_version slug1 set =
   List.exists

@@ -63,3 +63,12 @@ let compare_or cmp1 cmp2 =
 
 let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
 let errors_fmt fmt = Format.kasprintf (fun s -> Error [s]) fmt
+
+let compare_slugs slug x y =
+  let%lwt slug_x = slug x in
+  let%lwt slug_y = slug y in
+  Lwt.return (NesSlug.compare slug_x slug_y)
+
+let equal_from_compare cmp x y =
+  let%lwt c = cmp x y in
+  Lwt.return (c = 0)
