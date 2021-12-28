@@ -16,26 +16,20 @@ let tens_to_english_string =
   |] in
   fun n -> tens.(to_int n)
 
-let ones_to_english_string =
-  (* first a version only for numbers between 0 and 1000 *)
-  fun number ->
-    assert (zero <= number && number < 1_000L);
-    let so_far = ref [] in
-    let number = ref number in
-    if rem !number 100L < 20L then
-      (
-        so_far := nums_to_english_string (rem !number 100L);
-        number := div !number 100L
-      )
+let ones_to_english_string number =
+  assert (0L <= number && number < 1_000L);
+  let ones_and_tens =
+    if rem number 100L < 20L then
+      nums_to_english_string (rem number 100L)
     else
-      (
-        so_far := nums_to_english_string (rem !number 10L);
-        number := div !number 10L;
-        so_far := tens_to_english_string (rem !number 10L) @ !so_far;
-        number := div !number 10L
-      );
-    if !number = 0L then !so_far
-    else nums_to_english_string !number @ ["hundred"] @ !so_far
+      tens_to_english_string (rem (div number 10L) 10L)
+      @ nums_to_english_string (rem number 10L)
+  in
+  if number < 100L then
+    ones_and_tens
+  else
+    nums_to_english_string (div number 100L)
+    @ ["hundred"] @ ones_and_tens
 
 let to_english_string_unsigned number =
   (* the following code works up to quintillions, that is for any number
