@@ -94,7 +94,7 @@ let warnings p =
   Hashtbl.iter
     (fun tune sets_opt ->
        if List.length sets_opt > 1 then
-         add_warning (DuplicateVersion (tune, sets_opt)))
+         add_warning (DuplicateVersion (tune, List.map (fun set_opt -> (set_opt, 1)) sets_opt)))
     tunes_to_set;
 
   (* Return *)
