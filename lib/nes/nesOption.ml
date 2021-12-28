@@ -56,3 +56,10 @@ let choose ~tie first second =
 
 let fail = fun _ _ -> failwith "NesOption.choose ~tie:fail"
 let second = fun _ y -> y
+
+let compare_lwt cmp o0 o1 =
+  match o0, o1 with
+  | Some v0, Some v1 -> cmp v0 v1
+  | None, None -> Lwt.return 0
+  | None, Some _ -> Lwt.return (-1)
+  | Some _, None -> Lwt.return 1

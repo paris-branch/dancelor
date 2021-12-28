@@ -41,6 +41,16 @@ let intertwine f l =
   in
   intertwine 0 l
 
+let rec compare_lwt cmp l1 l2 =
+  match l1, l2 with
+  | [], [] -> Lwt.return 0
+  | [], _::_ -> Lwt.return (-1)
+  | _::_, [] -> Lwt.return 1
+  | a1::l1, a2::l2 ->
+    let%lwt c = cmp a1 a2 in
+    if c <> 0 then Lwt.return c
+    else compare_lwt cmp l1 l2
+
 let sort_count cmp l =
   (* count_duplicates assumes that the list is sorted *)
   let rec count_duplicates acc (prev, nb) = function

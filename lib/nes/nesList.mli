@@ -46,3 +46,6 @@ val ft : 'a t -> 'a
     @raise Failure if the list is empty. *)
 
 val intertwine : (int -> 'a) -> 'a t -> 'a t
+
+val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
+(** Same as {!compare} when the comparison function returns an Lwt value. *)
