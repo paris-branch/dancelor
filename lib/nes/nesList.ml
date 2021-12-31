@@ -172,6 +172,26 @@ let sort_count_lwt compare l =
   in
   sort_aux (List.map (fun x -> (x, 1)) l)
 
+let%test_module _ = (module struct
+  let rec test_sort_count_lwt ~repeat ~length =
+    if repeat = 0 then true
+    else
+      let input = init length (fun _ -> Random.bits ()) in
+      let output = Lwt_main.run (sort_count_lwt NesInt.compare_lwt input) in
+      let expected = sort_count NesInt.compare input in
+      output = expected && test_sort_count_lwt ~repeat:(repeat-1) ~length
+
+  let%test _ = test_sort_count_lwt ~repeat:1 ~length:0
+  let%test _ = test_sort_count_lwt ~repeat:1 ~length:1
+  let%test _ = test_sort_count_lwt ~repeat:4 ~length:2
+  let%test _ = test_sort_count_lwt ~repeat:9 ~length:3
+  let%test _ = test_sort_count_lwt ~repeat:25 ~length:5
+  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:10
+  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:100
+  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:1_000
+  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:10_000
+end)
+
 let sort_uniq_lwt compare l =
   let%lwt l = sort_count_lwt compare l in
   Lwt.return (List.map fst l)
