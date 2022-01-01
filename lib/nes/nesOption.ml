@@ -43,11 +43,6 @@ let assert_some = function
 
 let assert_ b = if b then Some () else None
 
-module Syntax = struct
-  let (>>=?) = bind
-  let (>=>?) = compose
-end
-
 let choose ~tie first second =
   match first, second with
   | None, None -> None

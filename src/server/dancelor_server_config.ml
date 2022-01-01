@@ -1,4 +1,4 @@
-open Nes open Option.Syntax
+open Nes
 module Log = (val Dancelor_server_logs.create "config" : Logs.LOG)
 
 let int = Json.int

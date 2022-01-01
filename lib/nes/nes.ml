@@ -22,7 +22,5 @@ module Slug = NesSlug
 
 (* Syntax *)
 
+module Syntax = NesSyntax
 include Syntax
-include Option.Syntax
-include Lwt.Syntax
-include NesLwtOption.Syntax

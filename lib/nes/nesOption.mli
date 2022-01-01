@@ -44,8 +44,3 @@ val assert_some : 'a t -> 'a t
 
 val assert_ : bool -> unit t
 (** [None] if [false], [Some ()] if [true]. *)
-
-module Syntax : sig
-  val (>>=?) : 'a t -> ('a -> 'b t) -> 'b t
-  val (>=>?) : ('a -> 'b t) -> ('b -> 'c t) -> ('a -> 'c t)
-end

@@ -1,4 +1,4 @@
-open Nes open Option.Syntax
+open Nes
 open Dancelor_common_model
 
 type controller =
