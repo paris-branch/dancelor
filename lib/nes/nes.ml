@@ -19,7 +19,6 @@ module Date = NesDate
 module Filesystem = NesFilesystem
 module Json = NesJson
 module LwtOption = NesLwtOption
-module LwtList = NesLwtList
 module Slug = NesSlug
 
 (* Syntax *)
