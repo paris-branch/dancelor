@@ -64,9 +64,15 @@ let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
 
-let compare = compare_slugs slug
+let compare =
+  compare_slugs_or
+    ~fallback:(fun set1 set2 ->
+        Lwt.return (Stdlib.compare set1 set2))
+    slug
+
 let equal = equal_from_compare compare
 
+(* FIXME: use Version.equal *)
 let contains_version slug1 set =
   List.exists
     (fun (slug2, _parameters) ->

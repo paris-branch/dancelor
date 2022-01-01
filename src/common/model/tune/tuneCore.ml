@@ -23,5 +23,10 @@ let author tune = Lwt.return tune.author
 let dances tune = Lwt.return tune.dances
 let remark tune = Lwt.return tune.remark
 
-let compare = compare_slugs slug
+let compare =
+  compare_slugs_or
+    ~fallback:(fun tune1 tune2 ->
+        Lwt.return (Stdlib.compare tune1 tune2))
+    slug
+
 let equal = equal_from_compare compare

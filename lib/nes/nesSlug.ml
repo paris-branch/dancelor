@@ -43,8 +43,15 @@ let%test _ = from_string "Hello you, how are you?!" = Some "hello-you-how-are-yo
 let%test _ = from_string "<> My friend!" = Some "my-friend"
 let%test _ = from_string "*ù" = Some "-"
 
-let equal = (=)
-let compare = compare
+let equal slug1 slug2 =
+  match slug1, slug2 with
+  | Some slug1, Some slug2 -> String.equal slug1 slug2
+  | _ -> failwith "NesSlug.equal: cannot be None"
+
+let compare slug1 slug2 =
+  match slug1, slug2 with
+  | Some slug1, Some slug2 -> String.compare slug1 slug2
+  | _ -> failwith "NesSlug.compare: cannot be None"
 
 let to_string = function
   | Some s -> s
