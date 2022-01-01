@@ -18,7 +18,6 @@ module Option = NesOption
 module Date = NesDate
 module Filesystem = NesFilesystem
 module Json = NesJson
-module LwtOption = NesLwtOption
 module Slug = NesSlug
 
 (* Syntax *)
@@ -26,4 +25,4 @@ module Slug = NesSlug
 include Syntax
 include Option.Syntax
 include Lwt.Syntax
-include LwtOption.Syntax
+include NesLwtOption.Syntax
