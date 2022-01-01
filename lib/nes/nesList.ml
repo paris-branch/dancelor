@@ -66,7 +66,11 @@ let sort_count cmp l =
   | h :: t -> count_duplicates [] (h,1) t
 
 (******************************************************************************)
-(* Lwt-Aware Sorting functions *)
+(* Lwt-Aware Sorting functions                                                *)
+(*                                                                            *)
+(* The tests for these functions can be found in test/nesListTest.ml. They    *)
+(* not inline because that would require lwt.unix which clashes with          *)
+(* js_of_ocaml.                                                               *)
 
 let cons_lwt h l =
   let%lwt l' = l in
@@ -81,19 +85,6 @@ let rec merge_lwt compare l1 l2 =
     if cmp <= 0 then cons_lwt h1 (merge_lwt compare t1 (h2::t2))
     else cons_lwt h2 (merge_lwt compare (h1::t1) t2)
 
-let%test_module _ = (module struct
-  let test_merge_lwt l1 l2 expected =
-    Lwt_main.run
-      (let%lwt result = merge_lwt NesInt.compare_lwt l1 l2 in
-       Lwt.return (result = expected))
-
-  let%test _ = test_merge_lwt [] [] []
-  let%test _ = test_merge_lwt [2; 3] [] [2; 3]
-  let%test _ = test_merge_lwt [] [5; 8] [5; 8]
-  let%test _ = test_merge_lwt [0; 1; 3; 5; 7] [0; 4; 5; 6]
-      [0; 0; 1; 3; 4; 5; 5; 6; 7]
-end)
-
 (* Same as {!merge_lwt} but merges equal occurrences and counts them. *)
 let rec merge_count_lwt compare l1 l2 =
   match (l1, l2) with
@@ -104,21 +95,6 @@ let rec merge_count_lwt compare l1 l2 =
     if cmp < 0 then cons_lwt (h1,n1) (merge_count_lwt compare t1 ((h2,n2) :: t2))
     else if cmp = 0 then cons_lwt (h1,n1+n2) (merge_count_lwt compare t1 t2)
     else cons_lwt (h2,n2) (merge_count_lwt compare ((h1,n1) :: t1) t2)
-
-let%test_module _ = (module struct
-  let test_merge_count_lwt l1 l2 expected =
-    Lwt_main.run
-      (let%lwt result = merge_count_lwt NesInt.compare_lwt l1 l2 in
-       Lwt.return (result = expected))
-
-  let%test _ = test_merge_count_lwt [] [] []
-  let%test _ = test_merge_count_lwt [(2, 4); (3, 5)] [] [(2, 4); (3, 5)]
-  let%test _ = test_merge_count_lwt [] [(5, 4); (8, 5)] [(5, 4); (8, 5)]
-  let%test _ = test_merge_count_lwt
-      [(0, 4); (1, 7); (3, 8); (5, 9); (7, 10)]
-      [(0, 2); (4, 4); (5, 3); (6, 6)]
-      [(0, 6); (1, 7); (3, 8); (4, 4); (5, 12); (6, 6); (7, 10)]
-end)
 
 (* morally, this could be called split, but the name is already taken *)
 let rec untangle = function
@@ -140,26 +116,6 @@ let sort_lwt compare l =
   in
   sort_aux l
 
-let%test_module _ = (module struct
-  let rec test_sort_lwt ~repeat ~length =
-    if repeat = 0 then true
-    else
-      let input = init length (fun _ -> Random.bits ()) in
-      let output = Lwt_main.run (sort_lwt NesInt.compare_lwt input) in
-      let expected = sort NesInt.compare input in
-      output = expected && test_sort_lwt ~repeat:(repeat-1) ~length
-
-  let%test _ = test_sort_lwt ~repeat:1 ~length:0
-  let%test _ = test_sort_lwt ~repeat:1 ~length:1
-  let%test _ = test_sort_lwt ~repeat:4 ~length:2
-  let%test _ = test_sort_lwt ~repeat:9 ~length:3
-  let%test _ = test_sort_lwt ~repeat:25 ~length:5
-  let%test _ = test_sort_lwt ~repeat:1_000 ~length:10
-  let%test _ = test_sort_lwt ~repeat:1_000 ~length:100
-  let%test _ = test_sort_lwt ~repeat:1_000 ~length:1_000
-  let%test _ = test_sort_lwt ~repeat:1_000 ~length:10_000
-end)
-
 let sort_count_lwt compare l =
   let rec sort_aux = function
     | [] -> Lwt.return []
@@ -172,46 +128,6 @@ let sort_count_lwt compare l =
   in
   sort_aux (List.map (fun x -> (x, 1)) l)
 
-let%test_module _ = (module struct
-  let rec test_sort_count_lwt ~repeat ~length =
-    if repeat = 0 then true
-    else
-      let input = init length (fun _ -> Random.bits ()) in
-      let output = Lwt_main.run (sort_count_lwt NesInt.compare_lwt input) in
-      let expected = sort_count NesInt.compare input in
-      output = expected && test_sort_count_lwt ~repeat:(repeat-1) ~length
-
-  let%test _ = test_sort_count_lwt ~repeat:1 ~length:0
-  let%test _ = test_sort_count_lwt ~repeat:1 ~length:1
-  let%test _ = test_sort_count_lwt ~repeat:4 ~length:2
-  let%test _ = test_sort_count_lwt ~repeat:9 ~length:3
-  let%test _ = test_sort_count_lwt ~repeat:25 ~length:5
-  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:10
-  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:100
-  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:1_000
-  let%test _ = test_sort_count_lwt ~repeat:1_000 ~length:10_000
-end)
-
 let sort_uniq_lwt compare l =
   let%lwt l = sort_count_lwt compare l in
   Lwt.return (List.map fst l)
-
-let%test_module _ = (module struct
-  let rec test_sort_uniq_lwt ~repeat ~length =
-    if repeat = 0 then true
-    else
-      let input = init length (fun _ -> Random.bits ()) in
-      let output = Lwt_main.run (sort_uniq_lwt NesInt.compare_lwt input) in
-      let expected = sort_uniq NesInt.compare input in
-      output = expected && test_sort_uniq_lwt ~repeat:(repeat-1) ~length
-
-  let%test _ = test_sort_uniq_lwt ~repeat:1 ~length:0
-  let%test _ = test_sort_uniq_lwt ~repeat:1 ~length:1
-  let%test _ = test_sort_uniq_lwt ~repeat:4 ~length:2
-  let%test _ = test_sort_uniq_lwt ~repeat:9 ~length:3
-  let%test _ = test_sort_uniq_lwt ~repeat:25 ~length:5
-  let%test _ = test_sort_uniq_lwt ~repeat:1_000 ~length:10
-  let%test _ = test_sort_uniq_lwt ~repeat:1_000 ~length:100
-  let%test _ = test_sort_uniq_lwt ~repeat:1_000 ~length:1_000
-  let%test _ = test_sort_uniq_lwt ~repeat:1_000 ~length:10_000
-end)
