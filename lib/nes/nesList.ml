@@ -41,6 +41,8 @@ let intertwine f l =
   in
   intertwine 0 l
 
+let singleton x = [x]
+
 let rec compare_lwt cmp l1 l2 =
   match l1, l2 with
   | [], [] -> Lwt.return 0

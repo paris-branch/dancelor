@@ -72,7 +72,7 @@ let display_contents t contents =
               [
                 Table.Cell.text ~text:(Lwt.return "Set") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Set.name_tunes_and_dance set parameters in
+                  let%lwt content = Formatters.Set.name_tunes_and_dance ~link:false set parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
@@ -87,7 +87,7 @@ let display_contents t contents =
               let open Lwt in [
                 Table.Cell.text ~text:(Lwt.return "Set (inline)") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Set.name_tunes_and_dance set parameters in
+                  let%lwt content = Formatters.Set.name_tunes_and_dance ~link:false set parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
@@ -106,7 +106,7 @@ let display_contents t contents =
             let cells = [
                 Table.Cell.text ~text:(Lwt.return "Tune") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Version.name_and_dance version parameters in
+                  let%lwt content = Formatters.Version.name_and_dance ~link:false version parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(

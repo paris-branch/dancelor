@@ -164,14 +164,14 @@ module Version = struct
     else
       Lwt.return name_text
 
-  let name_and_dance version parameters =
-    let%lwt name = name version in
+  let name_and_dance ?link ?dance_link version parameters =
+    let%lwt name = name ?link version in
     let%lwt dance =
       match%lwt M.VersionParameters.for_dance parameters with
       | None -> Lwt.return_nil
       | Some dance -> Lwt.return [
           span ~classes:["dim"; "details"] [
-            text "For dance: "; span_lwt (Dance.name dance)
+            text "For dance: "; span_lwt (Dance.name ?link:dance_link dance)
           ]]
     in
     Lwt.return (name @ dance)
@@ -289,52 +289,35 @@ module Set = struct
     else
       Lwt.return name_text
 
-  let name_and_tunes ?link ?version_links set =
+  let name_and_tunes ?link ?tunes_link set =
+    let%lwt name = name ?link set in
     let%lwt versions =
       let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
       let%lwt versions =
         Lwt_list.map_p
-          (fun (version, _) -> Version.name ?link:version_links version)
+          (fun (version, _) -> Version.name ?link:tunes_link version)
           versions_and_parameters
       in
       versions
       |> List.intertwine (fun _ -> [text " - "])
       |> List.flatten
       |> List.cons (text "Tunes: ")
+      |> span ~classes:["dim"; "details"]
+      |> List.singleton
       |> Lwt.return
     in
-    let%lwt name_block = name ?link set in
-    Lwt.return (
-      name_block
-      @ [span ~classes:["dim"; "details"] versions]
-    )
+    Lwt.return (name @ versions)
 
-  let name_tunes_and_dance set parameters =
-    let%lwt versions =
-      let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
-      let%lwt versions =
-        Lwt_list.map_p
-          (fun (version, _) -> Version.name version)
-          versions_and_parameters
-      in
-      versions
-      |> List.intertwine (fun _ -> [text " - "])
-      |> List.flatten
-      |> List.cons (text "Tunes: ")
-      |> Lwt.return
-    in
+  let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
+    let%lwt name_and_tunes = name_and_tunes ?link ?tunes_link set in
     let%lwt dance =
       match%lwt M.SetParameters.for_dance parameters with
       | None -> Lwt.return_nil
       | Some dance -> Lwt.return [
           span ~classes:["dim"; "details"] [
-            text "For dance: "; span_lwt (Dance.name dance)
+            text "For dance: "; span_lwt (Dance.name ?link:dance_link dance)
           ]]
     in
-    Lwt.return (
-      [ text_lwt (M.Set.name set) ;
-        span ~classes:["dim"; "details"] versions ]
-      @ dance
-    )
+    Lwt.return (name_and_tunes @ dance)
 
 end
