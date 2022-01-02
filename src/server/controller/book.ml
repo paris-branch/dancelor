@@ -54,6 +54,7 @@ module Ly = struct
                 let%lwt name = Tune.name tune in
                 let%lwt bars = Version.bars version in
                 let%lwt kind = Tune.kind tune in
+                let parameters = VersionParameters.set_display_name "" parameters in
                 let%lwt set =
                   Set.make_temp ~name ~kind:(1, [bars, kind])
                     ~versions_and_parameters:[version, parameters]

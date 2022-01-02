@@ -34,6 +34,9 @@ let clef           p = p.clef
 let display_name   p = p.display_name
 let display_author p = p.display_author
 
+let set_display_name display_name p =
+  { p with display_name = Some display_name }
+
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
 let default = {
