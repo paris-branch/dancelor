@@ -41,7 +41,19 @@ let to_pretty_string order =
   in
   let max_indice = max_indice order in
   if max_indice < 10 then
-    List.map component_to_pretty_string order
+    let rec components_to_pretty_strings ~previous = function
+      | [] -> []
+      | (Internal n) :: rest when n < previous && rest <> [] ->
+        (" " ^ component_to_pretty_string (Internal n))
+        :: components_to_pretty_strings ~previous:n rest
+      | (External n) :: rest ->
+        (" " ^ component_to_pretty_string (External n))
+        :: components_to_pretty_strings ~previous:max_int rest
+      | (Internal n) :: rest ->
+        component_to_pretty_string (Internal n)
+        :: components_to_pretty_strings ~previous:n rest
+    in
+    components_to_pretty_strings ~previous:0 order
     |> String.concat ""
   else
     to_string order
