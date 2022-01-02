@@ -102,8 +102,18 @@ module Ly = struct
                else
                  Lwt.return dance_and_kind
              in
+             let%lwt dance_kind_order_and_chords =
+               match%lwt SetParameters.for_dance set_parameters with
+               | None -> Lwt.return dance_kind_and_order
+               | Some dance ->
+                 let%lwt two_chords = Dance.two_chords dance in
+                 if two_chords then
+                   Lwt.return (spf "%s — Two Chords" dance_kind_and_order)
+                 else
+                   Lwt.return dance_kind_and_order
+             in
              fpf fmt [%blob "template/book/set_beginning.ly"]
-               name kind name deviser dance_kind_and_order;
+               name kind name deviser dance_kind_order_and_chords;
              (match set_parameters |> SetParameters.forced_pages with
               | 0 -> ()
               | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
