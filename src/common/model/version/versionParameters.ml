@@ -29,7 +29,6 @@ let transposition  p = Option.unwrap p.transposition
 let first_bar      p = Option.unwrap p.first_bar
 
 let for_dance      p = p.for_dance
-
 let clef           p = p.clef
 let display_name   p = p.display_name
 let display_author p = p.display_author
@@ -43,7 +42,6 @@ let default = {
   transposition  = Some Transposition.identity ;
   first_bar      = Some 1 ;
   for_dance      = None ;
-
   clef           = None ;
   display_name   = None ;
   display_author = None ;

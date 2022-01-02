@@ -62,7 +62,7 @@ module Ly = struct
                     ()
                 in
                 let%lwt for_dance = VersionParameters.for_dance parameters in
-                let%lwt set_parameters = SetParameters.make ?for_dance () in
+                let%lwt set_parameters = SetParameters.make ?for_dance ~show_order:false () in
                 Lwt.return (set, set_parameters)
 
               | Set (set, parameters) | InlineSet (set, parameters) ->
@@ -95,7 +95,12 @@ module Ly = struct
                     let%lwt deviser = Credit.line deviser in
                     Lwt.return (spf "Set by %s" deviser))
              in
-             let%lwt order = Set.order set >|=| SetOrder.to_pretty_string in
+             let%lwt order =
+               if SetParameters.show_order set_parameters then
+                 Set.order set >|=| SetOrder.to_pretty_string
+               else
+                 Lwt.return ""
+             in
              fpf fmt [%blob "template/book/set_beginning.ly"]
                name kind name deviser dance_and_kind order;
              (match set_parameters |> SetParameters.forced_pages with
