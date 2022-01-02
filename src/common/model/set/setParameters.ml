@@ -16,8 +16,8 @@ end
 include Self
 
 (* FIXME: see remark in VersionParameters *)
-let make ?instruments ?forced_pages ?every_version () =
-  make ~instruments ~forced_pages ?every_version ()
+let make ?instruments ?forced_pages ?show_deviser ?for_dance ?every_version () =
+  make ~instruments ~forced_pages ~show_deviser ~for_dance ?every_version ()
 
 let make_instrument pitch =
   make
