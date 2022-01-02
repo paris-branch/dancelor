@@ -35,6 +35,21 @@ module Credit = struct
 
 end
 
+module Dance = struct
+
+  let name ?(link=true) dance =
+    let name_lwt = M.Dance.name dance in
+    if link then
+      let href_lwt =
+        let%lwt slug = M.Dance.slug dance in
+        Lwt.return (Router.path_of_controller (Router.Dance slug) |> snd)
+      in
+      Lwt.return [ a ~href_lwt [ text_lwt name_lwt ] ]
+    else
+      Lwt.return [ text_lwt name_lwt ]
+
+end
+
 module Tune = struct
 
   let name ?(link=true) tune =
@@ -148,6 +163,18 @@ module Version = struct
       Lwt.return [a ~href_lwt name_text]
     else
       Lwt.return name_text
+
+  let name_and_dance version parameters =
+    let%lwt name = name version in
+    let%lwt dance =
+      match%lwt M.VersionParameters.for_dance parameters with
+      | None -> Lwt.return_nil
+      | Some dance -> Lwt.return [
+          span ~classes:["dim"; "details"] [
+            text "For dance: "; span_lwt (Dance.name dance)
+          ]]
+    in
+    Lwt.return (name @ dance)
 
   let name_and_disambiguation ?link version =
     let%lwt name_block = name ?link version in
@@ -280,6 +307,34 @@ module Set = struct
     Lwt.return (
       name_block
       @ [span ~classes:["dim"; "details"] versions]
+    )
+
+  let name_tunes_and_dance set parameters =
+    let%lwt versions =
+      let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
+      let%lwt versions =
+        Lwt_list.map_p
+          (fun (version, _) -> Version.name version)
+          versions_and_parameters
+      in
+      versions
+      |> List.intertwine (fun _ -> [text " - "])
+      |> List.flatten
+      |> List.cons (text "Tunes: ")
+      |> Lwt.return
+    in
+    let%lwt dance =
+      match%lwt M.SetParameters.for_dance parameters with
+      | None -> Lwt.return_nil
+      | Some dance -> Lwt.return [
+          span ~classes:["dim"; "details"] [
+            text "For dance: "; span_lwt (Dance.name dance)
+          ]]
+    in
+    Lwt.return (
+      [ text_lwt (M.Set.name set) ;
+        span ~classes:["dim"; "details"] versions ]
+      @ dance
     )
 
 end
