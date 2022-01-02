@@ -27,11 +27,7 @@
       \dir-column {
         \center-align \bold \abs-fontsize #26 \fromproperty #'header:title
         \center-align \large \fromproperty #'header:deviser
-        \center-align \large \concat {
-          \fromproperty #'header:kind
-          " — Play "
-          \fromproperty #'header:order
-        }
+        \center-align \large \fromproperty #'header:kind
         " "
       }
     }
