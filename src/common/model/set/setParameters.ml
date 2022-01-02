@@ -4,8 +4,9 @@ module Self = struct
   type t =
     { instruments   : string option [@default None] ;
       forced_pages  : int    option [@default None] [@key "forced-pages"] ;
-      show_dance    : DanceCore.t Slug.t option [@default None] [@key "show-dance"] ;
       show_deviser  : bool   option [@default None] [@key "show-deviser"] ;
+
+      for_dance     : DanceCore.t Slug.t option [@default None] [@key "for-dance"] ;
 
       every_version : VersionParameters.t [@default VersionParameters.none] [@key "every-version"] }
   [@@deriving make, yojson]
@@ -30,7 +31,7 @@ let make_instrument pitch =
 
 let instruments  p = Option.unwrap p.instruments
 let forced_pages p = Option.unwrap p.forced_pages
-let show_dance   p = p.show_dance
+let for_dance    p = p.for_dance
 let show_deviser p = Option.unwrap p.show_deviser
 
 let every_version p = p.every_version
@@ -40,7 +41,7 @@ let none = `Assoc [] |> of_yojson |> Result.get_ok
 let default = {
   instruments = Some "" ;
   forced_pages = Some 0 ;
-  show_dance = None ;
+  for_dance = None ;
   show_deviser = Some true ;
 
   every_version = VersionParameters.default ;
@@ -49,7 +50,7 @@ let default = {
 let compose first second =
   { instruments   = Option.(choose ~tie:second) first.instruments  second.instruments ;
     forced_pages  = Option.(choose ~tie:second) first.forced_pages second.forced_pages ;
-    show_dance    = Option.(choose ~tie:fail)   first.show_dance   second.show_dance ;
+    for_dance     = Option.(choose ~tie:fail)   first.for_dance    second.for_dance ;
     show_deviser  = Option.(choose ~tie:second) first.show_deviser second.show_deviser ;
 
     every_version = VersionParameters.compose first.every_version second.every_version }

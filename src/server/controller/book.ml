@@ -71,7 +71,7 @@ module Ly = struct
              let set_parameters = SetParameters.compose (BookParameters.every_set parameters) set_parameters in
              let%lwt name = Set.name set in
              let%lwt (kind, dance_and_kind) =
-               match%lwt set_parameters |> SetParameters.show_dance with
+               match%lwt set_parameters |> SetParameters.for_dance with
                | None ->
                  let%lwt kind = Set.kind set in
                  let kind = Kind.dance_to_pretty_string kind in
