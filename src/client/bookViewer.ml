@@ -60,7 +60,7 @@ let display_contents t contents =
   let rows =
     List.map
       (function
-        | Book.Set (set, _parameters) ->
+        | Book.Set (set, parameters) ->
           (
             let slug = Set.slug set in
             let href =
@@ -72,7 +72,7 @@ let display_contents t contents =
               [
                 Table.Cell.text ~text:(Lwt.return "Set") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Set.name_and_tunes ~link:false set in
+                  let%lwt content = Formatters.Set.name_tunes_and_dance ~link:false set parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
@@ -81,13 +81,13 @@ let display_contents t contents =
             Table.Row.create ~href ~cells t.page
           )
 
-        | InlineSet (set, _parameters) ->
+        | InlineSet (set, parameters) ->
           (
             let cells =
               let open Lwt in [
                 Table.Cell.text ~text:(Lwt.return "Set (inline)") t.page;
                 Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Set.name_and_tunes ~link:false set in
+                  let%lwt content = Formatters.Set.name_tunes_and_dance ~link:false set parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
                 Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
@@ -96,17 +96,19 @@ let display_contents t contents =
             Table.Row.create ~cells t.page
           )
 
-        | Version (version, _parameters) ->
+        | Version (version, parameters) ->
           (
             let slug = Version.slug version in
             let href =
               let%lwt slug = slug in
               Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
             in
-            let cells =
-              let open Lwt in [
+            let cells = [
                 Table.Cell.text ~text:(Lwt.return "Tune") t.page;
-                Table.Cell.text ~text:(Version.tune version >>= Tune.name) t.page;
+                Table.Cell.create ~content:(
+                  let%lwt content = Formatters.Version.name_and_dance ~link:false version parameters in
+                  Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+                ) t.page;
                 Table.Cell.text ~text:(
                   let%lwt tune = Version.tune version in
                   let%lwt kind = Tune.kind tune in

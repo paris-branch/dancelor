@@ -4,6 +4,43 @@ open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.book" : Logs.LOG)
 
 module Ly = struct
+
+  let kind set set_parmeters =
+    let%lwt kind =
+      match%lwt SetParameters.for_dance set_parmeters with
+      | None -> Set.kind set
+      | Some dance -> Dance.kind dance
+    in
+    Lwt.return (Kind.dance_to_pretty_string kind)
+
+  let details_line set set_parameters =
+    let%lwt dance =
+      match%lwt SetParameters.for_dance set_parameters with
+      | None -> Lwt.return_nil
+      | Some dance ->
+        let%lwt name = Dance.name dance in
+        Lwt.return [spf "Dance: %s" name]
+    in
+    let%lwt kind = kind set set_parameters in
+    let%lwt order =
+      if SetParameters.show_order set_parameters then
+        let%lwt order = Set.order set >|=| SetOrder.to_pretty_string in
+        Lwt.return [spf "Play %s" order]
+      else
+        Lwt.return_nil
+    in
+    let%lwt chords =
+      match%lwt SetParameters.for_dance set_parameters with
+      | None -> Lwt.return_nil
+      | Some dance ->
+        let%lwt two_chords = Dance.two_chords dance in
+        if two_chords then
+          Lwt.return ["Two Chords"]
+        else
+          Lwt.return_nil
+    in
+    Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
+
   let render ?(parameters=BookParameters.none) book =
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
@@ -54,13 +91,16 @@ module Ly = struct
                 let%lwt name = Tune.name tune in
                 let%lwt bars = Version.bars version in
                 let%lwt kind = Tune.kind tune in
+                let parameters = VersionParameters.set_display_name "" parameters in
                 let%lwt set =
                   Set.make_temp ~name ~kind:(1, [bars, kind])
                     ~versions_and_parameters:[version, parameters]
                     ~order:[Internal 1]
                     ()
                 in
-                Lwt.return (set, SetParameters.none)
+                let%lwt for_dance = VersionParameters.for_dance parameters in
+                let%lwt set_parameters = SetParameters.make ?for_dance ~show_order:false () in
+                Lwt.return (set, set_parameters)
 
               | Set (set, parameters) | InlineSet (set, parameters) ->
                 Lwt.return (set, parameters))
@@ -70,18 +110,6 @@ module Ly = struct
           (fun (set, set_parameters) ->
              let set_parameters = SetParameters.compose (BookParameters.every_set parameters) set_parameters in
              let%lwt name = Set.name set in
-             let%lwt (kind, dance_and_kind) =
-               match%lwt set_parameters |> SetParameters.show_dance with
-               | None ->
-                 let%lwt kind = Set.kind set in
-                 let kind = Kind.dance_to_pretty_string kind in
-                 Lwt.return (kind, kind)
-               | Some dance ->
-                 let%lwt name = Dance.name dance in
-                 let%lwt kind = Dance.kind dance in
-                 let kind = Kind.dance_to_pretty_string kind in
-                 Lwt.return (kind, spf "Dance: %s — %s" name kind)
-             in
              let%lwt deviser =
                if not (set_parameters |> SetParameters.show_deviser) then
                  Lwt.return ""
@@ -92,9 +120,10 @@ module Ly = struct
                     let%lwt deviser = Credit.line deviser in
                     Lwt.return (spf "Set by %s" deviser))
              in
-             let%lwt order = Set.order set >|=| SetOrder.to_pretty_string in
+             let%lwt kind = kind set set_parameters in
+             let%lwt details_line = details_line set set_parameters in
              fpf fmt [%blob "template/book/set_beginning.ly"]
-               name kind name deviser dance_and_kind order;
+               name kind name deviser details_line;
              (match set_parameters |> SetParameters.forced_pages with
               | 0 -> ()
               | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);

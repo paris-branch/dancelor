@@ -49,3 +49,6 @@ val intertwine : (int -> 'a) -> 'a t -> 'a t
 
 val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
 (** Same as {!compare} when the comparison function returns an Lwt value. *)
+
+val singleton : 'a -> 'a list
+(** [singleton x] is [[x]]. *)
