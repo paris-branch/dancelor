@@ -84,14 +84,33 @@ module Book = Table.Make (struct
     let dependencies book =
       let%lwt contents = contents book in
       let%lwt dependencies =
-        Lwt_list.filter_map_p
+        Lwt_list.map_p
           (function
-            | (Version (v, _) : page_slug) -> Lwt.return_some (Table.make_slug_and_table (module Version) v)
-            | Set (s, _) -> Lwt.return_some (Table.make_slug_and_table (module Set) s)
-            | _ -> Lwt.return_none)
+            | (Version (version, parameters) : page_slug) ->
+              Lwt.return (
+                [Table.make_slug_and_table (module Version) version]
+                @
+                match Model.VersionParameters.for_dance parameters with
+                | None -> []
+                | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+              )
+            | Set (set, parameters) ->
+              Lwt.return (
+                [Table.make_slug_and_table (module Set) set]
+                @
+                match Model.SetParameters.for_dance parameters with
+                | None -> []
+                | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+              )
+            | InlineSet (_, parameters) ->
+              Lwt.return (
+                match Model.SetParameters.for_dance parameters with
+                | None -> []
+                | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+              ))
           contents
       in
-      Lwt.return dependencies
+      Lwt.return (List.flatten dependencies)
 
     let standalone = true
   end)
