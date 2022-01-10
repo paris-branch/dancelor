@@ -11,6 +11,9 @@ val author : t -> CreditCore.t option Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string Lwt.t
 
+val compare : t -> t -> int Lwt.t
+val equal : t -> t -> bool Lwt.t
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t

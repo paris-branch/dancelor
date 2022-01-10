@@ -49,6 +49,10 @@ let make_temp ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
   make ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
 
 let slug s = Lwt.return s.slug
+let is_slug_none s =
+  let%lwt slug = slug s in
+  Lwt.return (Slug.is_none slug)
+
 let status s = Lwt.return s.status
 let name s = Lwt.return s.name
 let deviser s = Lwt.return s.deviser
@@ -60,11 +64,15 @@ let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
 
-let equal set1 set2 =
-  let%lwt slug1 = slug set1 in
-  let%lwt slug2 = slug set2 in
-  Lwt.return (Slug.equal slug1 slug2)
+let compare =
+  compare_slugs_or
+    ~fallback:(fun set1 set2 ->
+        Lwt.return (Stdlib.compare set1 set2))
+    slug
 
+let equal = equal_from_compare compare
+
+(* FIXME: use Version.equal *)
 let contains_version slug1 set =
   List.exists
     (fun (slug2, _parameters) ->

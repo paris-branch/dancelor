@@ -13,29 +13,40 @@ module Kind = struct
     let open Lwt in
     let%lwt base = M.Tune.kind tune >|= M.Kind.base_to_char in
     let%lwt bars = M.Version.bars version in
-    Lwt.return [ text (spf "%i %c" bars base) ]
+    Lwt.return [text (spf "%i %c" bars base)]
 
 end
 
 module Credit = struct
 
-  let line ?(link=false) credit =
+  let line ?(link=true) credit =
     match credit with
     | None -> Lwt.return_nil
     | Some credit ->
-      let text = [ text_lwt (M.Credit.line credit) ] in
+      let line_text = [text_lwt (M.Credit.line credit)] in
       if link then
         let href_lwt =
           let%lwt slug = M.Credit.slug credit in
           Lwt.return (Router.path_of_controller (Router.Credit slug) |> snd)
         in
-        Lwt.return [ a ~href_lwt text ]
+        Lwt.return [a ~href_lwt line_text]
       else
-        Lwt.return text
+        Lwt.return line_text
 
 end
 
 module Tune = struct
+
+  let name ?(link=true) tune =
+    let name_text = [text_lwt (M.Tune.name tune)] in
+    if link then
+      let href_lwt =
+        let%lwt slug = M.Tune.slug tune in
+        Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+      in
+      Lwt.return [a ~href_lwt name_text]
+    else
+      Lwt.return name_text
 
   let description tune =
     let%lwt kind = M.Tune.kind tune in
@@ -78,22 +89,30 @@ end
 
 module Book = struct
 
-  let title_and_subtitle book =
-    let%lwt subtitle_block =
-      match%lwt M.Book.subtitle book with
-      | "" -> Lwt.return_nil
-      | subtitle -> Lwt.return [
-          span ~classes:["details"] [ text subtitle ]
-        ]
-    in
-    Lwt.return ([ text_lwt (M.Book.title book) ] @ subtitle_block)
+  let title_and_subtitle ?(link=true) book =
+    let title_text = [text_lwt (M.Book.title book)] in
+    if link then
+      let%lwt subtitle_block =
+        match%lwt M.Book.subtitle book with
+        | "" -> Lwt.return_nil
+        | subtitle -> Lwt.return [
+            span ~classes:["details"] [text subtitle]
+          ]
+      in
+      Lwt.return (title_text @ subtitle_block)
+    else
+      Lwt.return title_text
 
-  let short_title book =
-    let href_lwt =
-      let%lwt slug = M.Book.slug book in
-      Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
-    in
-    Lwt.return [ a ~href_lwt [ text_lwt (M.Book.short_title book) ] ]
+  let short_title ?(link=true) book =
+    let short_title_text = [text_lwt (M.Book.short_title book)] in
+    if link then
+      let href_lwt =
+        let%lwt slug = M.Book.slug book in
+        Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+      in
+      Lwt.return [a ~href_lwt short_title_text]
+    else
+      Lwt.return short_title_text
 
 end
 
@@ -120,15 +139,15 @@ module Version = struct
     Lwt.return ([text shape] @ arranger_block @ disambiguation_block)
 
   let name ?(link=true) version =
-    let name_lwt = M.Version.tune version >>=| M.Tune.name in
+    let name_text = [text_lwt (M.Version.tune version >>=| M.Tune.name)] in
     if link then
       let href_lwt =
         let%lwt slug = M.Version.slug version in
         Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
       in
-      Lwt.return [ a ~href_lwt [ text_lwt name_lwt ] ]
+      Lwt.return [a ~href_lwt name_text]
     else
-      Lwt.return [ text_lwt name_lwt ]
+      Lwt.return name_text
 
   let name_and_disambiguation ?link version =
     let%lwt name_block = name ?link version in
@@ -136,7 +155,7 @@ module Version = struct
       match%lwt M.Version.disambiguation version with
       | "" -> Lwt.return_nil
       | disambiguation -> Lwt.return [
-          span ~classes:["dim"] [ text (spf " (%s)" disambiguation) ]
+          span ~classes:["dim"] [text (spf " (%s)" disambiguation)]
         ]
     in
     Lwt.return (name_block @ disambiguation_block)
@@ -164,7 +183,7 @@ module Version = struct
     let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
     Lwt.return (
       name_and_disambiguation
-      @ [ span_lwt ~classes:["dim"; "details"] sources_lwt ]
+      @ [span_lwt ~classes:["dim"; "details"] sources_lwt]
     )
 
   let disambiguation_and_sources version =
@@ -213,7 +232,7 @@ module Version = struct
         let arr = if short then "arr." else "arranged by" in
         let%lwt arranger_block = Credit.line ?link (Some arranger) in
         Lwt.return [
-          span ~classes:["dim"] ([ text (spf "%s%s " comma arr) ] @ arranger_block)
+          span ~classes:["dim"] (text (spf "%s%s " comma arr) :: arranger_block)
         ]
     in
     Lwt.return (author_block @ arranger_block)
@@ -231,12 +250,24 @@ module Set = struct
         text (spf "Works for %s" (String.concat ", " dance_names))
       ]
 
-  let name_and_tunes set =
+  let name ?(link=true) set =
+    let name_text = [text_lwt (M.Set.name set)] in
+    let%lwt is_inline = M.Set.is_slug_none set in
+    if link && not is_inline then
+      let href_lwt =
+        let%lwt slug = M.Set.slug set in
+        Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+      in
+      Lwt.return [a ~href_lwt name_text]
+    else
+      Lwt.return name_text
+
+  let name_and_tunes ?link ?version_links set =
     let%lwt versions =
       let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
       let%lwt versions =
         Lwt_list.map_p
-          (fun (version, _) -> Version.name version)
+          (fun (version, _) -> Version.name ?link:version_links version)
           versions_and_parameters
       in
       versions
@@ -245,9 +276,10 @@ module Set = struct
       |> List.cons (text "Tunes: ")
       |> Lwt.return
     in
-    Lwt.return [
-      text_lwt (M.Set.name set) ;
-      span ~classes:["dim"; "details"] versions
-    ]
+    let%lwt name_block = name ?link set in
+    Lwt.return (
+      name_block
+      @ [span ~classes:["dim"; "details"] versions]
+    )
 
 end

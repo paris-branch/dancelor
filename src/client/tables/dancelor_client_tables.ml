@@ -36,7 +36,7 @@ let sets sets =
     Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
   in
   clickable_row ~href_lwt [
-    (Formatters.Set.name_and_tunes set);
+    (Formatters.Set.name_and_tunes ~link:false set);
     (Set.deviser set >>=| Formatters.Credit.line);
     Lwt.return [ text_lwt (Set.kind set >|=| Kind.dance_to_string) ];
   ]

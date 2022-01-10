@@ -3,6 +3,8 @@ open Nes
 type t = SetCore.t
 
 val slug : t -> t Slug.t Lwt.t
+val is_slug_none : t -> bool Lwt.t
+
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val deviser : t -> CreditCore.t option Lwt.t
@@ -14,6 +16,9 @@ val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string Lwt.t
 
 val contains_version : VersionCore.t Slug.t -> t -> bool
+
+val compare : t -> t -> int Lwt.t
+val equal : t -> t -> bool Lwt.t
 
 (* {2 Warnings} *)
 
