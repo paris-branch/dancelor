@@ -1,4 +1,4 @@
-open NesOption.Syntax
+open NesSyntax
 
 type t = Yojson.Safe.t
 

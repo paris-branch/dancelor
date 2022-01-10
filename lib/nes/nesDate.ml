@@ -1,4 +1,4 @@
-open NesPervasives.Syntax
+open NesPervasives
 
 type t = int * int * int
 

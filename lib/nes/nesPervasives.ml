@@ -1,23 +1,12 @@
-module Syntax = struct
-  let (||>) f g x = f x |> g
-  let (@@@) f g x = f (g x)
+let foi = float_of_int
 
-  (* FIXME: this has to be renamed and go in the Result syntax *)
-  let (@@@@) f g x =
-    match g x with
-    | Ok y -> Ok (f y)
-    | Error err -> Error err
+let   pf = Format.printf
+let  epf = Format.eprintf
+let  fpf = Format.fprintf
+let  spf = Format.sprintf
+let aspf = Format.asprintf
 
-  let foi = float_of_int
-
-  let   pf = Format.printf
-  let  epf = Format.eprintf
-  let  fpf = Format.fprintf
-  let  spf = Format.sprintf
-  let aspf = Format.asprintf
-
-  let ssf = Scanf.sscanf
-end
+let ssf = Scanf.sscanf
 
 let id = fun x -> x
 

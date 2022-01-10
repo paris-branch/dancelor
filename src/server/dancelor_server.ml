@@ -1,4 +1,4 @@
-open Nes open Option.Syntax
+open Nes
 open Dancelor_common
 open Dancelor_server_controller
 open Cohttp_lwt_unix
