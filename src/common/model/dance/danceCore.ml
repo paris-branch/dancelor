@@ -9,7 +9,8 @@ type t =
     kind : Kind.dance ;
     deviser : CreditCore.t Slug.t option [@default None] ;
     two_chords : bool [@default false] [@key "two-chords"] ;
-    scddb_id : int option [@default None] [@key "scddb-id"] }
+    scddb_id : int option [@default None] [@key "scddb-id"] ;
+    disambiguation : string [@default ""] }
 [@@deriving yojson]
 
 let slug d = Lwt.return d.slug
@@ -18,6 +19,7 @@ let name d = Lwt.return d.name
 let kind d = Lwt.return d.kind
 let deviser d = Lwt.return d.deviser
 let two_chords d = Lwt.return d.two_chords
+let disambiguation d = Lwt.return d.disambiguation
 
 let equal dance1 dance2 =
   let%lwt slug1 = slug dance1 in

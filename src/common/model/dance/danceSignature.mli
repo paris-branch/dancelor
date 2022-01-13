@@ -8,6 +8,7 @@ val name : t -> string Lwt.t
 val kind : t -> Kind.dance Lwt.t
 val deviser : t -> CreditCore.t option Lwt.t
 val two_chords : t -> bool Lwt.t
+val disambiguation : t -> string Lwt.t
 
 (** {2 Getters and setters} *)
 
