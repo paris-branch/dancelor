@@ -131,7 +131,8 @@ let clear t =
   t.name <- "";
   t.kind <- "";
   t.count <- 0;
-  t.deviser <- None
+  t.deviser <- None;
+  t.order <- ""
 
 let save t =
   Js.Optdef.case Html.window##.localStorage
@@ -183,6 +184,7 @@ let erase_storage _ =
       local_storage##removeItem (js "composer.name");
       local_storage##removeItem (js "composer.kind");
       local_storage##removeItem (js "composer.deviser");
+      local_storage##removeItem (js "composer.order");
       local_storage##removeItem (js "composer.versions"))
 
 let submit t =
