@@ -12,7 +12,8 @@ type t =
     sources : string list [@default []] ; (* FIXME: remove from DB *)
     arranger : CreditCore.t Slug.t option [@default None] ;
     remark : string                   [@default ""] ;
-    disambiguation : string           [@default ""] }
+    disambiguation : string           [@default ""] ;
+    broken : bool                     [@default false] }
 [@@deriving yojson]
 
 let slug t = Lwt.return t.slug
@@ -24,6 +25,7 @@ let structure t = Lwt.return t.structure
 let arranger t = Lwt.return t.arranger
 let remark t = Lwt.return t.remark
 let disambiguation t = Lwt.return t.disambiguation
+let broken t = Lwt.return t.broken
 
 let equal version1 version2 =
   let%lwt slug1 = slug version1 in
