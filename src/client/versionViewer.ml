@@ -86,6 +86,23 @@ let create slug page =
         audio ~src_lwt ~controls:true ()
       ];
 
+      div_lwt ~classes:["buttons"] (
+        let%lwt is_broken = version_lwt >>=| Version.broken in
+
+        let broken_href = Helpers.build_path
+          ~api:true
+          ~route:(if is_broken then Router.VersionMarkFixed slug else Router.VersionMarkBroken slug)
+          ()
+        in
+
+        let broken =
+          Inputs.Button.create ~href:(Lwt.return broken_href) ~text:(if is_broken then "Mark fixed" else "Mark broken") page
+        in
+
+        Lwt.return [ node_of_dom_node (Inputs.Button.root broken :> dom_node) ]
+      );
+
+
       div ~classes:["section"] [
         h3 [ text "Other Versions" ];
 
