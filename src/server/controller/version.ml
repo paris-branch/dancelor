@@ -77,24 +77,22 @@ module Svg = struct
   let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
 
   let render version =
-    Cache.use
-      cache version
-      (fun () ->
-         Log.debug (fun m -> m "Rendering the LilyPond version");
-         let%lwt (fname_ly, fname_svg) =
-           let%lwt slug = Version.slug version in
-           let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
-           Lwt.return (fname^".ly", fname^".cropped.svg")
-         in
-         Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
-         Log.debug (fun m -> m "SVG file name: %s" fname_svg);
-         let path = Filename.concat !Dancelor_server_config.cache "version" in
-         Log.debug (fun m -> m "Preparing lilypond file");
-         prepare_ly_file ~show_meta:false ~fname:(Filename.concat path fname_ly) version; %lwt
-         Log.debug (fun m -> m "Generate score and crop");
-         LilyPond.cropped_svg ~exec_path:path fname_ly; %lwt
-         Log.debug (fun m -> m "done!");
-         Lwt.return (Filename.concat path fname_svg))
+    Cache.use ~cache ~key:version @@ fun () ->
+    Log.debug (fun m -> m "Rendering the LilyPond version");
+    let%lwt (fname_ly, fname_svg) =
+      let%lwt slug = Version.slug version in
+      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      Lwt.return (fname^".ly", fname^".cropped.svg")
+    in
+    Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
+    Log.debug (fun m -> m "SVG file name: %s" fname_svg);
+    let path = Filename.concat !Dancelor_server_config.cache "version" in
+    Log.debug (fun m -> m "Preparing lilypond file");
+    prepare_ly_file ~show_meta:false ~fname:(Filename.concat path fname_ly) version; %lwt
+    Log.debug (fun m -> m "Generate score and crop");
+    LilyPond.cropped_svg ~exec_path:path fname_ly; %lwt
+    Log.debug (fun m -> m "done!");
+    Lwt.return (Filename.concat path fname_svg)
 
   let get version _ =
     Log.debug (fun m -> m "Version.Svg.get %a" Slug.pp version);

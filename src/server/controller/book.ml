@@ -194,22 +194,20 @@ module Pdf = struct
   let cache : ('a * Book.t, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?parameters book =
-    Cache.use
-      cache (parameters, book)
-      (fun () ->
-        let%lwt lilypond = Ly.render ?parameters book in
-        let path = Filename.concat !Dancelor_server_config.cache "book" in
-        let%lwt (fname_ly, fname_pdf) =
-          let%lwt slug = Book.slug book in
-          let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
-          Lwt.return (fname^".ly", fname^".pdf")
-        in
-        Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
-          (fun ochan -> Lwt_io.write ochan lilypond); %lwt
-        Log.debug (fun m -> m "Processing with LilyPond");
-        LilyPond.run ~exec_path:path fname_ly; %lwt
-        let path_pdf = Filename.concat path fname_pdf in
-        Lwt.return path_pdf)
+    Cache.use ~cache ~key:(parameters, book) @@ fun () ->
+    let%lwt lilypond = Ly.render ?parameters book in
+    let path = Filename.concat !Dancelor_server_config.cache "book" in
+    let%lwt (fname_ly, fname_pdf) =
+      let%lwt slug = Book.slug book in
+      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      Lwt.return (fname^".ly", fname^".pdf")
+    in
+    Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
+      (fun ochan -> Lwt_io.write ochan lilypond); %lwt
+    Log.debug (fun m -> m "Processing with LilyPond");
+    LilyPond.run ~exec_path:path fname_ly; %lwt
+    let path_pdf = Filename.concat path fname_pdf in
+    Lwt.return path_pdf
 
   let get book query_parameters =
     let%lwt book = Book.get book in
