@@ -17,6 +17,9 @@ let add_opt_arg query : add_opt_arg =
   in
   { o }
 
+let call ~meth ~uri ~body =
+  Cohttp_lwt_jsoo.Client.call meth uri ~body
+
 let call ~endpoint query_builder =
   let query =
     let query = ref [] in
@@ -26,9 +29,9 @@ let call ~endpoint query_builder =
     Yojson.Safe.to_string (`Assoc !query)
   in
   let%lwt (response, body) =
-    Cohttp_lwt_jsoo.Client.call
-      (endpoint_meth endpoint)
-      (Uri.make ~path:(!prefix ^ endpoint_path endpoint) ())
+    call
+      ~meth:(endpoint_meth endpoint)
+      ~uri:(Uri.make ~path:(!prefix ^ endpoint_path endpoint) ())
       ~body:(`String query)
   in
   if Cohttp.(Code.(is_success (code_of_status (Response.status response)))) then
