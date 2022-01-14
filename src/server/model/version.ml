@@ -57,3 +57,23 @@ let () =
     register ~endpoint:E.count @@ fun {a} {o} ->
     count ?threshold:(o A.threshold) (a A.filter)
   )
+
+let mark_fixed version =
+  let%lwt version = set_broken version false in
+  Dancelor_server_database.Version.update version
+
+let () =
+  Madge_server.(
+    register ~endpoint:E.mark_fixed @@ fun {a} _ ->
+    mark_fixed (a A.version)
+  )
+
+let mark_broken version =
+  let%lwt version = set_broken version true in
+  Dancelor_server_database.Version.update version
+
+let () =
+  Madge_server.(
+    register ~endpoint:E.mark_broken @@ fun {a} _ ->
+    mark_broken (a A.version)
+  )

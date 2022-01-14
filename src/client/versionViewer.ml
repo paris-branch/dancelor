@@ -89,14 +89,11 @@ let create slug page =
       div_lwt ~classes:["buttons"] (
         let%lwt is_broken = version_lwt >>=| Version.broken in
 
-        let broken_href = Helpers.build_path
-          ~api:true
-          ~route:(if is_broken then Router.VersionMarkFixed slug else Router.VersionMarkBroken slug)
-          ()
-        in
-
         let broken =
-          Inputs.Button.create ~href:(Lwt.return broken_href) ~text:(if is_broken then "Mark fixed" else "Mark broken") page
+          Inputs.Button.create
+            ~on_click:(fun () -> Lwt.async (fun () ->
+              if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken))
+            ~text:(if is_broken then "Mark fixed" else "Mark broken") page
         in
 
         Lwt.return [ node_of_dom_node (Inputs.Button.root broken :> dom_node) ]

@@ -33,8 +33,6 @@ type controller =
   | VersionSvg of VersionCore.t Slug.t
   | VersionOgg of VersionCore.t Slug.t
   | VersionPdf of VersionCore.t Slug.t
-  | VersionMarkBroken of VersionCore.t Slug.t
-  | VersionMarkFixed of VersionCore.t Slug.t
   | Version of VersionCore.t Slug.t
 
   | Victor
@@ -240,18 +238,6 @@ let routes : route list =
       ~ext:"pdf"
       (fun version -> Some (VersionPdf version))
       (function VersionPdf version -> Some version | _ -> None) ;
-
-    with_slug
-      ~meth:`POST
-      ~prefix:"/version/broken"
-      (fun version -> Some (VersionMarkBroken version))
-      (function VersionMarkBroken version -> Some version | _ -> None) ;
-
-    with_slug
-      ~meth:`POST
-      ~prefix:"/version/fix"
-      (fun version -> Some (VersionMarkFixed version))
-      (function VersionMarkFixed version -> Some version | _ -> None) ;
 
     with_slug
       ~meth:`GET

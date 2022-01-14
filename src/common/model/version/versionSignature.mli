@@ -13,6 +13,8 @@ val remark : t -> string Lwt.t
 val disambiguation : t -> string Lwt.t
 val broken : t -> bool Lwt.t
 
+val set_broken : t -> bool -> t Lwt.t
+
 val content : t -> string Lwt.t
 
 (** {2 Getters and setters} *)
@@ -29,3 +31,7 @@ val count :
   ?threshold:float ->
   VersionFilter.t ->
   int Lwt.t
+
+val mark_broken : t -> unit Lwt.t
+
+val mark_fixed : t -> unit Lwt.t

@@ -17,3 +17,15 @@ let count ?threshold filter =
     o A.threshold threshold;
     a A.filter filter
   )
+
+let mark_fixed version =
+  Madge_client.(
+    call ~endpoint:E.mark_fixed @@ fun {a} _ ->
+    a A.version version
+  )
+
+let mark_broken version =
+  Madge_client.(
+    call ~endpoint:E.mark_broken @@ fun {a} _ ->
+    a A.version version
+  )

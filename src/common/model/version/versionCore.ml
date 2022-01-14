@@ -27,6 +27,8 @@ let remark t = Lwt.return t.remark
 let disambiguation t = Lwt.return t.disambiguation
 let broken t = Lwt.return t.broken
 
+let set_broken t broken = Lwt.return {t with broken}
+
 let equal version1 version2 =
   let%lwt slug1 = slug version1 in
   let%lwt slug2 = slug version2 in

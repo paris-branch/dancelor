@@ -63,6 +63,7 @@ module type S = sig
      writing on the disk. *)
 
   val save : slug_hint:string -> (value Slug.t -> value Lwt.t) -> value Lwt.t
+  val update: value -> unit Lwt.t
   val delete : value Slug.t -> unit Lwt.t
 
   val read_separated_file : value -> string -> string Lwt.t
@@ -272,6 +273,19 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
+  let update model =
+    let table = get_table () in
+    let%lwt slug = Model.slug model in
+    let json = Model.to_yojson model in
+    let json = Json.remove_field "slug" json in
+    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %lwt
+    Storage.save_changes_on_entry
+      ~msg:(spf "update %s / %s" Model._key (Slug.to_string slug))
+      Model._key (Slug.to_string slug); %lwt
+    (* FIXME: Make more robust and maybe update stats*)
+    Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
+    Lwt.return_unit
+
   let delete slug =
     let table = get_table () in
     Storage.delete_entry Model._key (Slug.to_string slug); %lwt
@@ -279,7 +293,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       ~msg:(spf "delete %s / %s" Model._key (Slug.to_string slug))
       Model._key (Slug.to_string slug); %lwt
     Hashtbl.remove table slug;
-    Lwt.return ()
+    Lwt.return_unit
 
   let read_separated_file model file =
     let%lwt slug = Model.slug model in

@@ -40,8 +40,6 @@ type controller =
   | VersionSvg of VersionCore.t Slug.t
   | VersionOgg of VersionCore.t Slug.t
   | VersionPdf of VersionCore.t Slug.t
-  | VersionMarkBroken of VersionCore.t Slug.t
-  | VersionMarkFixed of VersionCore.t Slug.t
   | Version of VersionCore.t Slug.t
 
   | Victor
