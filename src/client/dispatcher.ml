@@ -38,6 +38,8 @@ let dispatch url =
     pack (module Search) (Search.create q)
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
+  | ["version"; "broken"] ->
+    pack (module VersionBrokenExplorer) VersionBrokenExplorer.create
   | ["version"; slug] ->
     pack (module VersionViewer) (VersionViewer.create (Slug.unsafe_of_string slug))
   | ["tune"; slug] ->

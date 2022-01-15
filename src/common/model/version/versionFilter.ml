@@ -7,6 +7,7 @@ type predicate =
   | Tune of TuneFilter.t
   | Key of Music.key
   | Kind of KindFilter.Version.t
+  | Broken
 [@@deriving yojson]
 
 type t = predicate Formula.t
@@ -17,6 +18,7 @@ let tune tfilter = Formula.pred (Tune tfilter)
 let tuneIs tune_ = tune (TuneFilter.is tune_)
 let key key_ = Formula.pred (Key key_)
 let kind kfilter = Formula.pred (Kind kfilter)
+let broken = Formula.pred Broken
 
 let raw string =
   match TuneFilter.raw string with
@@ -24,10 +26,11 @@ let raw string =
   | Error err -> Error err (* FIXME: syntext *)
 
 let nullary_text_predicates = [
-  "reel",       (kind KindFilter.(Version.base (Base.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
-  "jig",        (kind KindFilter.(Version.base (Base.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
-  "strathspey", (kind KindFilter.(Version.base (Base.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
-  "waltz",      (kind KindFilter.(Version.base (Base.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
+  "reel",       (kind KindFilter.(Version.base (Base.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
+  "jig",        (kind KindFilter.(Version.base (Base.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
+  "strathspey", (kind KindFilter.(Version.base (Base.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
+  "waltz",      (kind KindFilter.(Version.base (Base.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
+  "broken",      broken;
 ]
 
 let unary_text_predicates =

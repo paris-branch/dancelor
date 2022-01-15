@@ -11,6 +11,7 @@ val structure : t -> string Lwt.t
 val arranger : t -> CreditCore.t option Lwt.t
 val remark : t -> string Lwt.t
 val disambiguation : t -> string Lwt.t
+val broken : t -> bool Lwt.t
 
 val content : t -> string Lwt.t
 
@@ -28,3 +29,7 @@ val count :
   ?threshold:float ->
   VersionFilter.t ->
   int Lwt.t
+
+val mark_broken : t -> unit Lwt.t
+
+val mark_fixed : t -> unit Lwt.t

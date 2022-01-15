@@ -21,3 +21,6 @@ let accepts filter version =
     let%lwt kind = Tune.kind tune in
     let%lwt bars = bars version in
     KindFilter.Version.accepts kfilter (bars, kind)
+
+  | Broken ->
+    VersionCore.broken version >|=| Formula.interpret_bool
