@@ -13,8 +13,6 @@ val remark : t -> string Lwt.t
 val disambiguation : t -> string Lwt.t
 val broken : t -> bool Lwt.t
 
-val set_broken : t -> bool -> t Lwt.t
-
 val content : t -> string Lwt.t
 
 (** {2 Getters and setters} *)
