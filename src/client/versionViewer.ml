@@ -92,7 +92,9 @@ let create slug page =
         let broken =
           Inputs.Button.create
             ~on_click:(fun () -> Lwt.async (fun () ->
-              if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken))
+              if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken; %lwt
+              Dom_html.window##.location##reload ;
+              Lwt.return_unit ))
             ~text:(if is_broken then "Mark fixed" else "Mark broken") page
         in
 
