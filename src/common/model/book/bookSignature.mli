@@ -25,6 +25,7 @@ type warning = BookCore.warning =
   | Empty
   | DuplicateSet of SetCore.t
   | DuplicateVersion of TuneCore.t * (SetCore.t option * int) list
+  | SetDanceMismatch of SetCore.t * DanceCore.t
 
 type warnings = warning list
 
