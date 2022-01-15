@@ -15,7 +15,7 @@ let create page =
   let document = Page.document page in
   let content = Dom_html.createDiv document in
 
-  document##.title := js ("Broken Versions");
+  document##.title := js "Broken Versions | Dancelor";
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
     h2 ~classes:["title"] [text "List of Broken Versions"];
