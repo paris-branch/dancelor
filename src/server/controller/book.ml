@@ -41,7 +41,10 @@ module Ly = struct
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
+  let cache : (Book.t * BookParameters.t, string Lwt.t) Cache.t = Cache.create ()
+
   let render ?(parameters=BookParameters.none) book =
+    Cache.use ~cache ~key:(book, parameters) @@ fun () ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->

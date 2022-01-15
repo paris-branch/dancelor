@@ -102,7 +102,10 @@ module Svg = struct
 end
 
 module Pdf = struct
+  let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
+
   let render version =
+    Cache.use ~cache ~key:version @@ fun () ->
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
       let fname = aspf "%a-%x-with-meta" Slug.pp slug (Random.int (1 lsl 29)) in
@@ -123,7 +126,10 @@ module Pdf = struct
 end
 
 module Ogg = struct
+  let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
+
   let render version =
+    Cache.use ~cache ~key:version @@ fun () ->
     let%lwt (fname_ly, fname_ogg) =
       let%lwt slug = Version.slug version in
       let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
