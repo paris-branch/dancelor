@@ -17,6 +17,19 @@ let add_opt_arg query : add_opt_arg =
   in
   { o }
 
+let cache = NesCache.create ()
+
+let call_with_cache ~meth ~uri ~body =
+  NesCache.use ~cache ~key:(meth, uri, body) @@ fun () ->
+  let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth uri ~body in
+  if Cohttp.(Code.(is_success (code_of_status (Response.status response)))) then
+    (
+      let%lwt body = Cohttp_lwt.Body.to_string body in
+      Lwt.return (Yojson.Safe.from_string body)
+    )
+  else
+    assert false (* FIXME *)
+
 let call ~endpoint query_builder =
   let query =
     let query = ref [] in
@@ -25,21 +38,14 @@ let call ~endpoint query_builder =
     query_builder add_arg add_opt_arg;
     Yojson.Safe.to_string (`Assoc !query)
   in
-  let%lwt (response, body) =
-    Cohttp_lwt_jsoo.Client.call
-      (endpoint_meth endpoint)
-      (Uri.make ~path:(!prefix ^ endpoint_path endpoint) ())
+  let%lwt response_body =
+    call_with_cache
+      ~meth:(endpoint_meth endpoint)
+      ~uri:(Uri.make ~path:(!prefix ^ endpoint_path endpoint) ())
       ~body:(`String query)
   in
-  if Cohttp.(Code.(is_success (code_of_status (Response.status response)))) then
-    (
-      let%lwt body = Cohttp_lwt.Body.to_string body in
-      let body = Yojson.Safe.from_string body in
-      match endpoint_unserialiser endpoint body with
-      | Ok x -> Lwt.return x
-      | Error _ -> assert false (* FIXME *)
-    )
-  else
-    assert false (* FIXME *)
+  match endpoint_unserialiser endpoint response_body with
+  | Ok x -> Lwt.return x
+  | Error _ -> assert false (* FIXME *)
 
 (* FIXME: handle errors in request and unserialiser *)
