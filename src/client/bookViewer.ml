@@ -53,6 +53,14 @@ let display_warnings warnings =
         :: text "” appears several times: "
         :: (display_sets sets_opt |> format_set_list)
       )
+    | Book.SetDanceMismatch (set, dance) ->
+      li [
+        text "Set “";
+        span_lwt (Formatters.Set.name set);
+        text "” does not have the same kind as its associated dance “";
+        span_lwt (Formatters.Dance.name dance);
+        text "”."
+      ]
   in
   List.map display_warning warnings
 

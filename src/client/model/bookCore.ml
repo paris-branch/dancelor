@@ -95,6 +95,23 @@ let warnings p =
           add_warning (DuplicateVersion (tune, sets_opt));
        Lwt.return_unit);%lwt
 
+  (* Check if a set points to a dance with a different kind *)
+  Lwt_list.iter_s
+    (function
+      | Set (set, p) | InlineSet (set, p) ->
+        (
+          match SetParameters.for_dance p with
+          | None -> Lwt.return_unit
+          | Some dance_slug ->
+            let%lwt dance = Dance.get dance_slug in
+            let%lwt dance_kind = DanceCore.kind dance in
+            let%lwt set_kind = SetCore.kind set in
+            if set_kind = dance_kind then Lwt.return_unit
+            else (add_warning (SetDanceMismatch (set, dance)); Lwt.return_unit)
+        )
+      | Version _ -> Lwt.return_unit)
+    contents;%lwt
+
   (* Return *)
   Lwt.return !warnings
 
