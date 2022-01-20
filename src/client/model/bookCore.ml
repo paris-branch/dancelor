@@ -16,7 +16,41 @@ let contents book =
         Lwt.return (InlineSet (set, parameters)))
     contents
 
+let versions_from_contents book =
+  let%lwt contents = contents book in
+  Lwt_list.filter_map_p
+    (function
+      | Version (version, _) -> Lwt.return_some version
+      | _ -> Lwt.return_none)
+    contents
+
+let sets_from_contents book =
+  let%lwt contents = contents book in
+  Lwt_list.filter_map_p
+    (function
+      | Version _ -> Lwt.return_none
+      | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set)
+    contents
+
+let unique_sets_from_contents book =
+  let%lwt sets = sets_from_contents book in
+  List.sort_uniq_lwt Set.compare sets
+
+let sets_and_parameters_from_contents book =
+  let%lwt contents = contents book in
+  Lwt_list.filter_map_p
+    (function
+      | Set (set, parameters) | InlineSet (set, parameters) ->
+        Lwt.return_some (set, parameters)
+      | Version _ -> Lwt.return_none)
+    contents
+
 module Warnings = struct
+  (* The following functions all have the name of a warning of
+     {!Dancelor_common_model.BookCore.warning}. They all are in charge of
+     generating a list of the associated warning corresponding to the given
+     book. The {!all} function then gathers all these warnings in a common list. *)
+
   let empty book =
     let%lwt contents = contents book in
     if contents = [] then
@@ -24,37 +58,8 @@ module Warnings = struct
     else
       Lwt.return_nil
 
-  let standalone_versions book =
-    let%lwt contents = contents book in
-    Lwt_list.filter_map_p
-      (function
-        | Version (version, _) -> Lwt.return_some version
-        | _ -> Lwt.return_none)
-      contents
-
-  let sets book =
-    let%lwt contents = contents book in
-    Lwt_list.filter_map_p
-      (function
-        | Version _ -> Lwt.return_none
-        | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set)
-      contents
-
-  let unique_sets book =
-    let%lwt sets = sets book in
-    List.sort_uniq_lwt Set.compare sets
-
-  let sets_and_parameters book =
-    let%lwt contents = contents book in
-    Lwt_list.filter_map_p
-      (function
-        | Set (set, parameters) | InlineSet (set, parameters) ->
-          Lwt.return_some (set, parameters)
-        | Version _ -> Lwt.return_none)
-      contents
-
   let duplicateSet book =
-    let%lwt sets = sets book in
+    let%lwt sets = sets_from_contents book in
     match%lwt List.sort_lwt Set.compare sets with
     | [] -> Lwt.return_nil
     | first_set :: other_sets ->
@@ -74,8 +79,8 @@ module Warnings = struct
       Lwt.return warnings
 
   let duplicateVersion book =
-    let%lwt sets = unique_sets book in
-    let%lwt standalone_versions = standalone_versions book in
+    let%lwt sets = unique_sets_from_contents book in
+    let%lwt standalone_versions = versions_from_contents book in
     (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
        Standalone tunes are associated with None *)
     let tunes_to_sets = Hashtbl.create 8 in
@@ -119,7 +124,7 @@ module Warnings = struct
       []
 
   let setDanceMismatch book =
-    let%lwt sets_and_parameters = sets_and_parameters book in
+    let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
     Lwt_list.filter_map_p
       (fun (set, parameters) ->
          match SetParameters.for_dance parameters with
