@@ -48,6 +48,17 @@ let create slug page =
         | false -> Lwt.return_nil
         | true -> Lwt.return [ h3 ~classes:["title"] [ text "Two Chords" ] ]
       );
+      div_lwt (
+        match%lwt dance_lwt >>=| Dance.scddb_id with
+        | None -> Lwt.return_nil
+        | Some scddb_id ->
+          let href = spf "https://my.strathspey.org/dd/dance/%d/" scddb_id in
+          Lwt.return [
+            h3 ~classes:["title"] [
+               a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            ]
+          ]
+      );
 
       div ~classes:["section"] [
         h3 [ text "Recommended Tunes" ];
