@@ -31,6 +31,7 @@ module TuneFilter = TuneFilter
 
 module VersionCore = VersionCore
 module type VERSION = module type of VersionSignature
+module VersionLifted = VersionLifted
 module VersionEndpoints = VersionEndpoints
 module VersionFilter = VersionFilter
 module VersionParameters = VersionParameters

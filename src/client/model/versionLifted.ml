@@ -1,12 +1,8 @@
-open Nes
 open Dancelor_common_model
-include VersionCore
 
-let tune = tune >=>| Tune.get
-let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
+include VersionLifted.Make(Credit)(Tune)
 
-let content _t =
-  assert false (* FIXME *)
+let content _version = assert false (* FIXME *)
 
 module E = VersionEndpoints
 module A = E.Arguments

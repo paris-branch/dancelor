@@ -1,5 +1,5 @@
 open Nes
-include VersionCore
+include VersionLifted
 
 module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments

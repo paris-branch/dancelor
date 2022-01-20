@@ -1,8 +1,6 @@
-open Nes
-include Dancelor_common_model.VersionCore
+open Dancelor_common_model
 
-let tune = tune >=>| Tune.get
-let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
+include VersionLifted.Make(Credit)(Tune)
 
 let content = Dancelor_server_database.Version.read_content
 
