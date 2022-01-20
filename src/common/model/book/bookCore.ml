@@ -24,12 +24,13 @@ type t =
 let slug book = Lwt.return book.slug
 let status book = Lwt.return book.status
 let title book = Lwt.return book.title
-let short_title book = if book.short_title = "" then title book else Lwt.return book.short_title
 let subtitle book = Lwt.return book.subtitle
+let short_title book = if book.short_title = "" then title book else Lwt.return book.short_title
 let date book = Lwt.return book.date
 let contents book = Lwt.return book.contents
-let source book = Lwt.return book.source
+let source book = Lwt.return book.source (* FIXME: Should be removed *)
 let remark book = Lwt.return book.remark
+let scddb_id book = Lwt.return book.scddb_id
 
 let equal book1 book2 =
   let%lwt slug1 = slug book1 in

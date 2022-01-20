@@ -166,6 +166,17 @@ let create slug page =
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
       h2 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.title) ];
       h3 ~classes:["title"] [ text_lwt (book_lwt >>=| Book.subtitle) ];
+      div_lwt (
+        match%lwt book_lwt >>=| Book.scddb_id with
+        | None -> Lwt.return_nil
+        | Some scddb_id ->
+          let href = spf "https://my.strathspey.org/dd/list/%d/" scddb_id in
+          Lwt.return [
+            h3 ~classes:["title"] [
+               a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            ]
+          ]
+      );
 
       div_lwt
         (* Only open a warnings div if there are warnings *)
