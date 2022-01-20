@@ -38,6 +38,18 @@ val remark : t -> string Lwt.t
 
 val is_source : t -> bool Lwt.t
 
+val versions_from_contents : t -> VersionCore.t list Lwt.t
+(** Extract only the versions from the book's contents. *)
+
+val sets_from_contents : t -> SetCore.t list Lwt.t
+(** Extract the sets (both normal and inline) from the book's contents. *)
+
+val unique_sets_from_contents : t -> SetCore.t list Lwt.t
+(** Same as {!sets_from_contents} but without duplicate sets. *)
+
+val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t) list Lwt.t
+(** Same as {!sets_from_contents} but also includes parameters. *)
+
 (** {2 Utilities} *)
 
 val contains_set : SetCore.t Slug.t -> t -> bool
