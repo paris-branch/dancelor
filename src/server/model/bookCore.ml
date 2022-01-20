@@ -1,16 +1,21 @@
 open Nes
 include Dancelor_common_model.BookCore
 
-let contents p =
-  let%lwt contents = contents p in
+let contents book =
+  let%lwt contents = contents book in
   Lwt_list.map_p
     (function
-      | (Version (v, p) : page_slug) -> let%lwt v = Version.get v in Lwt.return (Version (v, p))
-      | Set (s, p) -> let%lwt s = Set.get s in Lwt.return (Set (s, p))
-      | InlineSet (s, p) -> Lwt.return (InlineSet (s, p)))
+      | (Version (version, parameters) : page_slug) ->
+        let%lwt version = Version.get version in
+        Lwt.return (Version (version, parameters))
+      | Set (set, parameters) ->
+        let%lwt set = Set.get set in
+        Lwt.return (Set (set, parameters))
+      | InlineSet (set, parameters) ->
+        Lwt.return (InlineSet (set, parameters)))
     contents
 
-let warnings _p = assert false (* FIXME *)
+let warnings _book = assert false (* FIXME *)
 
 module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments

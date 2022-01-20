@@ -2,45 +2,50 @@ open Nes
 open Dancelor_common_model
 include BookCore
 
-let contents p =
-  let%lwt contents = contents p in
+let contents book =
+  let%lwt contents = contents book in
   Lwt_list.map_p
     (function
-      | (Version (v, p) : page_slug) -> let%lwt v = Version.get v in Lwt.return (Version (v, p))
-      | Set (s, p) -> let%lwt s = Set.get s in Lwt.return (Set (s, p))
-      | InlineSet (s, p) -> Lwt.return (InlineSet (s, p)))
+      | (Version (version, parameters) : page_slug) ->
+        let%lwt version = Version.get version in
+        Lwt.return (Version (version, parameters))
+      | Set (set, parameters) ->
+        let%lwt set = Set.get set in
+        Lwt.return (Set (set, parameters))
+      | InlineSet (set, parameters) ->
+        Lwt.return (InlineSet (set, parameters)))
     contents
 
 module Warnings = struct
-  let empty dance =
-    let%lwt contents = contents dance in
+  let empty book =
+    let%lwt contents = contents book in
     if contents = [] then
       Lwt.return [Empty]
     else
       Lwt.return_nil
 
-  let standalone_versions dance =
-    let%lwt contents = contents dance in
+  let standalone_versions book =
+    let%lwt contents = contents book in
     Lwt_list.filter_map_p
       (function
-        | Version (v, _) -> Lwt.return_some v
+        | Version (version, _) -> Lwt.return_some version
         | _ -> Lwt.return_none)
       contents
 
-  let sets dance =
-    let%lwt contents = contents dance in
+  let sets book =
+    let%lwt contents = contents book in
     Lwt_list.filter_map_p
       (function
         | Version _ -> Lwt.return_none
-        | Set (s, _) | InlineSet (s, _) -> Lwt.return_some s)
+        | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set)
       contents
 
-  let unique_sets dance =
-    let%lwt sets = sets dance in
+  let unique_sets book =
+    let%lwt sets = sets book in
     List.sort_uniq_lwt Set.compare sets
 
-  let sets_and_parameters dance =
-    let%lwt contents = contents dance in
+  let sets_and_parameters book =
+    let%lwt contents = contents book in
     Lwt_list.filter_map_p
       (function
         | Set (set, parameters) | InlineSet (set, parameters) ->
@@ -48,8 +53,8 @@ module Warnings = struct
         | Version _ -> Lwt.return_none)
       contents
 
-  let duplicateSet dance =
-    let%lwt sets = sets dance in
+  let duplicateSet book =
+    let%lwt sets = sets book in
     match%lwt List.sort_lwt Set.compare sets with
     | [] -> Lwt.return_nil
     | first_set :: other_sets ->
@@ -68,9 +73,9 @@ module Warnings = struct
       in
       Lwt.return warnings
 
-  let duplicateVersion dance =
-    let%lwt sets = unique_sets dance in
-    let%lwt standalone_versions = standalone_versions dance in
+  let duplicateVersion book =
+    let%lwt sets = unique_sets book in
+    let%lwt standalone_versions = standalone_versions book in
     (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
        Standalone tunes are associated with None *)
     let tunes_to_sets = Hashtbl.create 8 in
@@ -113,8 +118,8 @@ module Warnings = struct
            Lwt.return warnings)
       []
 
-  let setDanceMismatch dance =
-    let%lwt sets_and_parameters = sets_and_parameters dance in
+  let setDanceMismatch book =
+    let%lwt sets_and_parameters = sets_and_parameters book in
     Lwt_list.filter_map_p
       (fun (set, parameters) ->
          match SetParameters.for_dance parameters with
@@ -131,19 +136,19 @@ module Warnings = struct
              Lwt.return_some (SetDanceMismatch (set, dance)))
       sets_and_parameters
 
-  let all dance =
+  let all book =
     Lwt_list.fold_left_s
       (fun warnings new_warnings_lwt ->
          let%lwt new_warnings = new_warnings_lwt in
          Lwt.return (warnings @ new_warnings))
       []
-      [ empty dance;
-        duplicateSet dance;
-        duplicateVersion dance;
-        setDanceMismatch dance ]
+      [ empty book;
+        duplicateSet book;
+        duplicateVersion book;
+        setDanceMismatch book ]
 end
 
-let warnings dance = Warnings.all dance
+let warnings book = Warnings.all book
 
 let get the_slug =
   let open BookEndpoints in
