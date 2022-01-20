@@ -37,6 +37,7 @@ module VersionParameters = VersionParameters
 module SetOrder = SetOrder
 module SetCore = SetCore
 module type SET = module type of SetSignature
+module SetLifted = SetLifted
 module SetEndpoints = SetEndpoints
 module SetFilter = SetFilter
 module SetParameters = SetParameters
