@@ -22,6 +22,7 @@ let kind tune = Lwt.return tune.kind
 let author tune = Lwt.return tune.author
 let dances tune = Lwt.return tune.dances
 let remark tune = Lwt.return tune.remark
+let scddb_id tune = Lwt.return tune.scddb_id
 
 let compare =
   compare_slugs_or

@@ -10,6 +10,7 @@ val kind : t -> Kind.base Lwt.t
 val author : t -> CreditCore.t option Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string Lwt.t
+val scddb_id : t -> int option Lwt.t
 
 val compare : t -> t -> int Lwt.t
 val equal : t -> t -> bool Lwt.t

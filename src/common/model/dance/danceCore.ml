@@ -19,6 +19,7 @@ let name d = Lwt.return d.name
 let kind d = Lwt.return d.kind
 let deviser d = Lwt.return d.deviser
 let two_chords d = Lwt.return d.two_chords
+let scddb_id d = Lwt.return d.scddb_id
 let disambiguation d = Lwt.return d.disambiguation
 
 let equal dance1 dance2 =

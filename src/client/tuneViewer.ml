@@ -29,6 +29,17 @@ let create slug page =
       h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
       h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
+      div_lwt (
+        match%lwt tune_lwt >>=| Tune.scddb_id with
+        | None -> Lwt.return_nil
+        | Some scddb_id ->
+          let href = spf "https://my.strathspey.org/dd/tune/%d/" scddb_id in
+          Lwt.return [
+            h3 ~classes:["title"] [
+               a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            ]
+          ]
+      );
 
       div ~classes:["section"] [
         h3 [ text "Versions of This Tune" ];

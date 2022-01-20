@@ -32,7 +32,9 @@ val subtitle : t -> string Lwt.t
 val short_title : t -> string Lwt.t
 val date : t -> Date.t Lwt.t
 val contents : t -> page list Lwt.t
+val source : t -> bool Lwt.t (* FIXME: Should be removed *)
 val remark : t -> string Lwt.t
+val scddb_id : t -> int option Lwt.t
 
 (** {2 Advanced Field Getters} *)
 
