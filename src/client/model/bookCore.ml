@@ -2,101 +2,158 @@ open Nes
 open Dancelor_common_model
 include BookCore
 
-let contents p =
-  let%lwt contents = contents p in
+let contents book =
+  let%lwt contents = contents book in
   Lwt_list.map_p
     (function
-      | (Version (v, p) : page_slug) -> let%lwt v = Version.get v in Lwt.return (Version (v, p))
-      | Set (s, p) -> let%lwt s = Set.get s in Lwt.return (Set (s, p))
-      | InlineSet (s, p) -> Lwt.return (InlineSet (s, p)))
+      | (Version (version, parameters) : page_slug) ->
+        let%lwt version = Version.get version in
+        Lwt.return (Version (version, parameters))
+      | Set (set, parameters) ->
+        let%lwt set = Set.get set in
+        Lwt.return (Set (set, parameters))
+      | InlineSet (set, parameters) ->
+        Lwt.return (InlineSet (set, parameters)))
     contents
 
-let warnings p =
-  let warnings = ref [] in
-  let add_warning w = warnings := w :: !warnings in
+let versions_from_contents book =
+  let%lwt contents = contents book in
+  Lwt_list.filter_map_p
+    (function
+      | Version (version, _) -> Lwt.return_some version
+      | _ -> Lwt.return_none)
+    contents
 
-  let%lwt contents = contents p in
+let sets_from_contents book =
+  let%lwt contents = contents book in
+  Lwt_list.filter_map_p
+    (function
+      | Version _ -> Lwt.return_none
+      | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set)
+    contents
 
-  (* Raise the [Empty] warning if there is nothing in this book *)
-  if contents = [] then add_warning Empty;
+let unique_sets_from_contents book =
+  let%lwt sets = sets_from_contents book in
+  List.sort_uniq_lwt Set.compare sets
 
-  (* Check that there are no duplicate sets. *)
-  let%lwt sets =
+let sets_and_parameters_from_contents book =
+  let%lwt contents = contents book in
+  Lwt_list.filter_map_p
+    (function
+      | Set (set, parameters) | InlineSet (set, parameters) ->
+        Lwt.return_some (set, parameters)
+      | Version _ -> Lwt.return_none)
+    contents
+
+module Warnings = struct
+  (* The following functions all have the name of a warning of
+     {!Dancelor_common_model.BookCore.warning}. They all are in charge of
+     generating a list of the associated warning corresponding to the given
+     book. The {!all} function then gathers all these warnings in a common list. *)
+
+  let empty book =
+    let%lwt contents = contents book in
+    if contents = [] then
+      Lwt.return [Empty]
+    else
+      Lwt.return_nil
+
+  let duplicateSet book =
+    let%lwt sets = sets_from_contents book in
+    match%lwt List.sort_lwt Set.compare sets with
+    | [] -> Lwt.return_nil
+    | first_set :: other_sets ->
+      let%lwt (_, warnings) =
+        Lwt_list.fold_left_s
+          (fun (previous_set, warnings) current_set ->
+             let%lwt warnings =
+               if%lwt Set.equal current_set previous_set then
+                 Lwt.return ((DuplicateSet current_set) :: warnings)
+               else
+                 Lwt.return warnings
+             in
+             Lwt.return (current_set, warnings))
+          (first_set, [])
+          other_sets
+      in
+      Lwt.return warnings
+
+  let duplicateVersion book =
+    let%lwt sets = unique_sets_from_contents book in
+    let%lwt standalone_versions = versions_from_contents book in
+    (* [tunes_to_sets] is a hashtable from tunes to sets they belong to.
+       Standalone tunes are associated with None *)
+    let tunes_to_sets = Hashtbl.create 8 in
+    (* Extend the list of sets associated to this tune. Creates it if it was not
+       yet in the hashtable *)
+    let register_tune_to_set tune set_opt =
+      match Hashtbl.find_opt tunes_to_sets tune with
+      | None -> Hashtbl.add tunes_to_sets tune [set_opt]
+      | Some set_opts -> Hashtbl.replace tunes_to_sets tune (set_opt :: set_opts)
+    in
+    (* register standalone tunes *)
+    Lwt_list.iter_s
+      (fun v ->
+         let%lwt tune = Version.tune v in
+         register_tune_to_set tune None;
+         Lwt.return ())
+      standalone_versions;%lwt
+    (* register tunes in sets *)
+    Lwt_list.iter_s
+      (fun set ->
+         let%lwt versions_and_parameters = Set.versions_and_parameters set in
+         let versions = List.map fst versions_and_parameters in
+         Lwt_list.iter_s
+           (fun v ->
+              let%lwt tune = Version.tune v in
+              register_tune_to_set tune (Some set);
+              Lwt.return ())
+           versions)
+      sets;%lwt
+    (* crawl all registered tunes and see if they appear several times. if that is
+       the case, add a warning accordingly *)
+    Hashtbl.to_seq tunes_to_sets
+    |> List.of_seq
+    |> Lwt_list.fold_left_s
+      (fun warnings (tune, set_opts) ->
+         let%lwt set_opts = List.sort_count_lwt (Option.compare_lwt Set.compare) set_opts in
+         if List.length set_opts > 1 then
+           Lwt.return ((DuplicateVersion (tune, set_opts)) :: warnings)
+         else
+           Lwt.return warnings)
+      []
+
+  let setDanceMismatch book =
+    let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
     Lwt_list.filter_map_p
-      (function
-        | Version _ -> Lwt.return_none
-        | Set (s, _) | InlineSet (s, _) -> Lwt.return_some s)
-      contents
-  in
-  let%lwt sets = List.sort_lwt Set.compare sets in
-  (match sets with
-   | [] -> ()
-   | set :: sets ->
-     let _ =
-       List.fold_left
-         (fun prev curr ->
-            if prev = curr then
-              add_warning (DuplicateSet curr);
-            curr)
-         set sets
-     in
-     ());
+      (fun (set, parameters) ->
+         match SetParameters.for_dance parameters with
+         | None -> Lwt.return_none
+         | Some dance_slug ->
+           (* FIXME: SetParameters should be hidden behind the same kind of
+              mechanism as the rest; and this step should not be necessary *)
+           let%lwt dance = Dance.get dance_slug in
+           let%lwt dance_kind = DanceCore.kind dance in
+           let%lwt set_kind = SetCore.kind set in
+           if set_kind = dance_kind then
+             Lwt.return_none
+           else
+             Lwt.return_some (SetDanceMismatch (set, dance)))
+      sets_and_parameters
 
-  (* remove duplicate sets to avoid further warnings *)
-  (* FIXME: we know that [sets] is sorted so we could use something more
-     efficient here *)
-  let%lwt sets = List.sort_uniq_lwt Set.compare sets in
+  let all book =
+    Lwt_list.fold_left_s
+      (fun warnings new_warnings_lwt ->
+         let%lwt new_warnings = new_warnings_lwt in
+         Lwt.return (warnings @ new_warnings))
+      []
+      [ empty book;
+        duplicateSet book;
+        duplicateVersion book;
+        setDanceMismatch book ]
+end
 
-  (* Check that there are no duplicate tune. *)
-  let%lwt standalone_versions =
-    Lwt_list.filter_map_p
-      (function
-        | Version (v, _) -> Lwt.return_some v
-        | _ -> Lwt.return_none)
-      contents
-  in
-
-  (* Extend the list of sets associated to this tune. Creates it if it was not yet in the hashtable *)
-  let extend htbl tune set_opt =
-    match Hashtbl.find_opt htbl tune with
-    | None -> Hashtbl.add htbl tune [set_opt]
-    | Some sets -> Hashtbl.replace htbl tune (set_opt :: sets)
-  in
-
-  (* [tunes_to_set] is a hashtable from tunes to sets they belong to.
-     Standalone tunes are associated with None *)
-  let tunes_to_set = Hashtbl.create 8 in
-  (* register standalone tunes *)
-  Lwt_list.iter_s
-    (fun v ->
-       let%lwt tune = Version.tune v in
-       extend tunes_to_set tune None;
-       Lwt.return ())
-    standalone_versions;%lwt
-  (* register tunes in sets *)
-  Lwt_list.iter_s
-    (fun set ->
-       let%lwt versions_and_parameters = Set.versions_and_parameters set in
-       let versions = List.map fst versions_and_parameters in
-       Lwt_list.iter_s
-         (fun v ->
-            let%lwt tune = Version.tune v in
-            extend tunes_to_set tune (Some set);
-            Lwt.return ())
-         versions)
-    sets;%lwt
-  (* crawl all registered tunes and see if they appear several times. if that is
-     the case, add a warning accordingly *)
-  Hashtbl.to_seq tunes_to_set
-  |> Seq.iter_lwt
-    (fun (tune, sets_opt) ->
-       let%lwt sets_opt = List.sort_count_lwt (Option.compare_lwt Set.compare) sets_opt in
-       if List.length sets_opt > 1 then
-          add_warning (DuplicateVersion (tune, sets_opt));
-       Lwt.return_unit);%lwt
-
-  (* Return *)
-  Lwt.return !warnings
+let warnings book = Warnings.all book
 
 let get the_slug =
   let open BookEndpoints in

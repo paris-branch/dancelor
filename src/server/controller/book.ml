@@ -92,6 +92,11 @@ module Ly = struct
               | Book.Version (version, parameters) ->
                 let%lwt tune = Version.tune version in
                 let%lwt name = Tune.name tune in
+                let name =
+                  parameters
+                  |> VersionParameters.display_name
+                  |> Option.unwrap_or ~default:name
+                in
                 let%lwt bars = Version.bars version in
                 let%lwt kind = Tune.kind tune in
                 let parameters = VersionParameters.set_display_name "" parameters in
@@ -113,6 +118,11 @@ module Ly = struct
           (fun (set, set_parameters) ->
              let set_parameters = SetParameters.compose (BookParameters.every_set parameters) set_parameters in
              let%lwt name = Set.name set in
+             let name =
+               set_parameters
+               |> SetParameters.display_name
+               |> Option.unwrap_or ~default:name
+             in
              let%lwt deviser =
                if not (set_parameters |> SetParameters.show_deviser) then
                  Lwt.return ""
