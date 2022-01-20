@@ -1,9 +1,9 @@
 open Nes
 
-module Make
-    (Version : module type of VersionSignature)
-    (Set     : module type of     SetSignature)
+module Lift
     (Dance   : module type of   DanceSignature)
+    (Set     : module type of     SetSignature)
+    (Version : module type of VersionSignature)
 = struct
   include BookCore
 

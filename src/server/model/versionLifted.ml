@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include VersionLifted.Make(Credit)(Tune)
+include VersionLifter.Lift(Credit)(Tune)
 
 let content = Dancelor_server_database.Version.read_content
 

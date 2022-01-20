@@ -1,6 +1,6 @@
 open Nes
 
-module Make
+module Lift
     (Credit : module type of CreditSignature)
     (Dance  : module type of  DanceSignature)
 = struct

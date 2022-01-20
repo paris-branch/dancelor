@@ -14,7 +14,7 @@ module PersonFilter = PersonFilter
 
 module CreditCore = CreditCore
 module type CREDIT = module type of CreditSignature
-module CreditLifted = CreditLifted
+module CreditLifter = CreditLifter
 module CreditEndpoints = CreditEndpoints
 module CreditFilter = CreditFilter
 
@@ -25,13 +25,13 @@ module DanceFilter = DanceFilter
 
 module TuneCore = TuneCore
 module type TUNE = module type of TuneSignature
-module TuneLifted = TuneLifted
+module TuneLifter = TuneLifter
 module TuneEndpoints = TuneEndpoints
 module TuneFilter = TuneFilter
 
 module VersionCore = VersionCore
 module type VERSION = module type of VersionSignature
-module VersionLifted = VersionLifted
+module VersionLifter = VersionLifter
 module VersionEndpoints = VersionEndpoints
 module VersionFilter = VersionFilter
 module VersionParameters = VersionParameters
@@ -39,14 +39,14 @@ module VersionParameters = VersionParameters
 module SetOrder = SetOrder
 module SetCore = SetCore
 module type SET = module type of SetSignature
-module SetLifted = SetLifted
+module SetLifter = SetLifter
 module SetEndpoints = SetEndpoints
 module SetFilter = SetFilter
 module SetParameters = SetParameters
 
 module BookCore = BookCore
 module type BOOK = module type of BookSignature
-module BookLifted = BookLifted
+module BookLifter = BookLifter
 module BookEndpoints = BookEndpoints
 module BookFilter = BookFilter
 module BookParameters = BookParameters

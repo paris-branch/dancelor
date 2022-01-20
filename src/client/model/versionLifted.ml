@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include VersionLifted.Make(Credit)(Tune)
+include VersionLifter.Lift(Credit)(Tune)
 
 let content _version = assert false (* FIXME *)
 

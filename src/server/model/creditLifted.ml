@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include CreditLifted.Make(Person)
+include CreditLifter.Lift(Person)
 
 module E = CreditEndpoints
 module A = E.Arguments
