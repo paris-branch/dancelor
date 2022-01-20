@@ -1,5 +1,5 @@
 open Nes
-include CreditCore
+include CreditLifted
 
 let make_and_save ?status ~line ?persons () =
   let%lwt persons =

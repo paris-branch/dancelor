@@ -1,7 +1,7 @@
 open Nes
 include Dancelor_common_model.DanceCore
 
-let deviser = deviser >=>?| (CreditCore.get >=>| Lwt.return_some)
+let deviser = deviser >=>?| (CreditLifted.get >=>| Lwt.return_some)
 
 module E = Dancelor_common_model.DanceEndpoints
 module A = E.Arguments

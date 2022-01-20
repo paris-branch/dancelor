@@ -1,9 +1,8 @@
-open Nes
-include Dancelor_common_model.CreditCore
+open Dancelor_common_model
 
-let persons = persons >=>| Lwt_list.map_s PersonCore.get
+include CreditLifted.Make(Person)
 
-module E = Dancelor_common_model.CreditEndpoints
+module E = CreditEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Credit.get

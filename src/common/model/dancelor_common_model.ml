@@ -14,6 +14,7 @@ module PersonFilter = PersonFilter
 
 module CreditCore = CreditCore
 module type CREDIT = module type of CreditSignature
+module CreditLifted = CreditLifted
 module CreditEndpoints = CreditEndpoints
 module CreditFilter = CreditFilter
 
