@@ -1,5 +1,5 @@
 open Nes
-open AnyCore
+open AnyLifted
 include Dancelor_common_model.AnyFilter
 
 let accepts filter any =

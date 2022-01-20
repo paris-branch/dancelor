@@ -1,5 +1,5 @@
 open Nes
-include AnyCore
+include AnyLifted
 
 module E = Dancelor_common_model.AnyEndpoints
 module A = E.Arguments

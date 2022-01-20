@@ -1,5 +1,5 @@
 open Nes
-include PersonCore
+include PersonLifted
 
 module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
