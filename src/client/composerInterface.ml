@@ -79,6 +79,7 @@ let make_version_subwindow t index version =
 let refresh t =
   Inputs.Text.set_contents t.input_name (Composer.name t.composer);
   Inputs.Text.set_contents t.input_kind (Composer.kind t.composer);
+  Inputs.Text.set_contents t.input_order (Composer.order t.composer);
   begin match Composer.deviser t.composer with
   | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
   | Some cr ->
