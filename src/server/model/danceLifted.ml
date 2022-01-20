@@ -1,9 +1,8 @@
-open Nes
-include Dancelor_common_model.DanceCore
+open Dancelor_common_model
 
-let deviser = deviser >=>?| (CreditLifted.get >=>| Lwt.return_some)
+include DanceLifter.Lift(Credit)
 
-module E = Dancelor_common_model.DanceEndpoints
+module E = DanceEndpoints
 module A = E.Arguments
 
 let get = Dancelor_server_database.Dance.get

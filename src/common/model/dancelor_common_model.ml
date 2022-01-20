@@ -20,6 +20,7 @@ module CreditFilter = CreditFilter
 
 module DanceCore = DanceCore
 module type DANCE = module type of DanceSignature
+module DanceLifter = DanceLifter
 module DanceEndpoints = DanceEndpoints
 module DanceFilter = DanceFilter
 

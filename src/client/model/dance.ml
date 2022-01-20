@@ -1,4 +1,4 @@
-include DanceCore
+include DanceLifted
 
 module E = Dancelor_common_model.DanceEndpoints
 module A = E.Arguments
