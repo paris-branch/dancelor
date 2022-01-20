@@ -1,5 +1,5 @@
 open Nes
-include TuneCore
+include TuneLifted
 
 module E = Dancelor_common_model.TuneEndpoints
 module A = E.Arguments

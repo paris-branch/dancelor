@@ -25,6 +25,7 @@ module DanceFilter = DanceFilter
 
 module TuneCore = TuneCore
 module type TUNE = module type of TuneSignature
+module TuneLifted = TuneLifted
 module TuneEndpoints = TuneEndpoints
 module TuneFilter = TuneFilter
 
