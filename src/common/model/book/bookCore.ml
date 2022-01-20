@@ -21,35 +21,35 @@ type t =
     scddb_id    : int option [@default None] [@key "scddb-id"] }
 [@@deriving yojson]
 
-let slug p = Lwt.return p.slug
-let status p = Lwt.return p.status
-let title p = Lwt.return p.title
-let short_title p = if p.short_title = "" then title p else Lwt.return p.short_title
-let subtitle p = Lwt.return p.subtitle
-let date p = Lwt.return p.date
-let contents p = Lwt.return p.contents
-let source p = Lwt.return p.source
-let remark p = Lwt.return p.remark
+let slug book = Lwt.return book.slug
+let status book = Lwt.return book.status
+let title book = Lwt.return book.title
+let short_title book = if book.short_title = "" then title book else Lwt.return book.short_title
+let subtitle book = Lwt.return book.subtitle
+let date book = Lwt.return book.date
+let contents book = Lwt.return book.contents
+let source book = Lwt.return book.source
+let remark book = Lwt.return book.remark
 
 let equal book1 book2 =
   let%lwt slug1 = slug book1 in
   let%lwt slug2 = slug book2 in
   Lwt.return (Slug.equal slug1 slug2)
 
-let is_source p = source p
+let is_source book = source book
 
-let contains_set slug1 p =
+let contains_set set1 book =
   List.exists
     (function
-      | Set (slug2, _) -> Slug.equal slug1 slug2
+      | Set (set2, _) -> Slug.equal set1 set2
       | _ -> false)
-    p.contents
+    book.contents
 
-let compare p1 p2 =
+let compare book1 book2 =
   (* Compare first by date *)
-  let c = compare p1.date p2.date in
+  let c = compare book1.date book2.date in
   if c = 0 then
-    compare p1 p2
+    compare book1 book2
   else
     c
 
