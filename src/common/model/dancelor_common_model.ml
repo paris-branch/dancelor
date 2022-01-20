@@ -43,6 +43,7 @@ module SetParameters = SetParameters
 
 module BookCore = BookCore
 module type BOOK = module type of BookSignature
+module BookLifted = BookLifted
 module BookEndpoints = BookEndpoints
 module BookFilter = BookFilter
 module BookParameters = BookParameters
