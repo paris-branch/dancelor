@@ -14,11 +14,22 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
 
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Version.tune version in
+  let%lwt key = Version.key version in
   let%lwt name = Tune.name tune in
+  let name =
+    parameters
+    |> VersionParameters.display_name
+    |> Option.unwrap_or ~default:name
+  in
   let%lwt author =
     match%lwt Tune.author tune with
       | None -> Lwt.return ""
       | Some author -> Credit.line author
+  in
+  let author =
+    parameters
+    |> VersionParameters.display_author
+    |> Option.unwrap_or ~default:author
   in
   let title, piece =
     if show_meta then
@@ -36,6 +47,9 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
   let (tempo_unit, tempo_value) = Kind.base_tempo kind in
   Log.debug (fun m -> m "Getting content");
   let%lwt content = Version.content version in
+
+  (* Handle parameters *)
+
   let content =
     match parameters |> VersionParameters.clef with
     | None -> content
@@ -43,7 +57,16 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
       Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
   in
+  let source, target =
+    match parameters |> VersionParameters.transposition with
+    | Relative (source, target) -> (source, target)
+    | Absolute target -> (Music.key_pitch key, target)
+    (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
+  in
+  let source = Music.pitch_to_lilypond_string source in
+  let target = Music.pitch_to_lilypond_string target in
 
+  (* Create the Lilypond file *)
   Log.debug (fun m -> m "Generating Scheme & LilyPond string");
   let lilypond =
     Format.with_formatter_to_string @@ fun fmt ->
@@ -60,7 +83,7 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     fpf fmt [%blob "template/header.ly"] title subtitle;
 
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus content tempo_unit tempo_value (Kind.base_to_pretty_string ~capitalised:false kind) content
+    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.base_to_pretty_string ~capitalised:false kind) source target content
   in
   let scheme =
     Format.with_formatter_to_string @@ fun fmt ->

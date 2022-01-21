@@ -6,7 +6,9 @@
 
   \layout {}
 
-  %s
+  \transpose %s %s {
+    %s
+  }
 }
 
 %%%% FIXME
@@ -14,5 +16,9 @@
 
 \score {
   \midi { \tempo %s = %d }
-  \%sChords \fancyUnfoldRepeats { %s }
+  \%sChords \fancyUnfoldRepeats {
+    \transpose %s %s {
+       %s
+    }
+  }
 }
