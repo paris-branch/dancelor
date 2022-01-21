@@ -109,10 +109,10 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     (fun ochan -> Lwt_io.write ochan scheme)
 
 module Svg = struct
-  let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t * VersionParameters.t option, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?parameters version =
-    Cache.use ~cache ~key:version @@ fun () ->
+    Cache.use ~cache ~key:(version, parameters) @@ fun () ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
       let%lwt slug = Version.slug version in
@@ -146,10 +146,10 @@ module Svg = struct
 end
 
 module Pdf = struct
-  let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t * VersionParameters.t option, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?parameters version =
-    Cache.use ~cache ~key:version @@ fun () ->
+    Cache.use ~cache ~key:(version, parameters) @@ fun () ->
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
       let fname = aspf "%a-%x-with-meta" Slug.pp slug (Random.int (1 lsl 29)) in
@@ -179,10 +179,10 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : (Version.t, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t * VersionParameters.t option, string Lwt.t) Cache.t = Cache.create ()
 
-  let render version =
-    Cache.use ~cache ~key:version @@ fun () ->
+  let render ?parameters version =
+    Cache.use ~cache ~key:(version, parameters) @@ fun () ->
     let%lwt (fname_ly, fname_ogg) =
       let%lwt slug = Version.slug version in
       let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
