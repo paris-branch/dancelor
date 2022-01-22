@@ -118,6 +118,9 @@ val ul_lwt : std_node_maker_lwt
 val li : std_node_maker
 val li_lwt : std_node_maker_lwt
 
+val i : std_node_maker
+val i_lwt : std_node_maker_lwt
+
 type target = Blank | Self | Parent | Top | Frame of string
 
 val a     : ?href:string -> ?href_lwt:string Lwt.t -> ?target:target -> std_node_maker

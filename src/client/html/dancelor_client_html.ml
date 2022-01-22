@@ -74,6 +74,9 @@ let div     = node     Dom_html.createDiv
 let span_lwt = node_lwt Dom_html.createSpan
 let span     = node     Dom_html.createSpan
 
+let i_lwt = node_lwt Dom_html.createI
+let i     = node     Dom_html.createI
+
 type target = Blank | Self | Parent | Top | Frame of string
 
 let a_lwt ?href ?href_lwt ?target ?classes children_lwt document =
