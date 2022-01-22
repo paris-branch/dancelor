@@ -271,28 +271,17 @@ let create slug page =
                 )
               ]] ()
         in
-        let c_pdf, b_pdf, e_pdf, bass_pdf,
-            c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, bass_booklet_pdf =
-          Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-          Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
-          Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
-          Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
-          Inputs.Button.create ~href:(Lwt.return c_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (book)" page,
-          Inputs.Button.create ~href:(Lwt.return b_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭, book)" page,
-          Inputs.Button.create ~href:(Lwt.return e_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭, book)" page,
-          Inputs.Button.create ~href:(Lwt.return bass_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢, book)" page
-        in
 
         [
-          node_of_dom_node (Inputs.Button.root c_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root b_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root e_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root bass_pdf :> dom_node);
+          a ~classes:["button"] ~href:c_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF" ];
+          a ~classes:["button"] ~href:b_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (B♭)" ];
+          a ~classes:["button"] ~href:e_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (E♭)" ];
+          a ~classes:["button"] ~href:bass_pdf_href [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (𝄢)" ];
           br;
-          node_of_dom_node (Inputs.Button.root c_booklet_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root b_booklet_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root e_booklet_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root bass_booklet_pdf :> dom_node);
+          a ~classes:["button"] ~href:c_booklet_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (book)" ];
+          a ~classes:["button"] ~href:b_booklet_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (B♭, book)" ];
+          a ~classes:["button"] ~href:e_booklet_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (E♭, book)" ];
+          a ~classes:["button"] ~href:bass_booklet_pdf_href [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (𝄢, book)" ];
         ]
       );
 
