@@ -77,7 +77,7 @@ let create slug page =
           )
         in
 
-        let  c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href, ly_href =
+        let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href, ly_href =
           Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
           Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
             ~query:["parameters", [
@@ -97,21 +97,13 @@ let create slug page =
           Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
         in
 
-        let c_pdf, b_pdf, e_pdf, bass_pdf, ly =
-          Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-          Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
-          Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
-          Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
-          Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
-        in
-
-
         [
-          node_of_dom_node (Inputs.Button.root c_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root b_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root e_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root bass_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root ly  :> dom_node);
+          a ~classes:["button"] ~href:c_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF" ];
+          a ~classes:["button"] ~href:b_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (B♭)" ];
+          a ~classes:["button"] ~href:e_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (E♭)" ];
+          a ~classes:["button"] ~href:bass_pdf_href [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (𝄢)" ];
+          br;
+          a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
         ]
       );
 
