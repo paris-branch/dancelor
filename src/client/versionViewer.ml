@@ -97,11 +97,17 @@ let create slug page =
           Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
         in
 
+        let pdf_button href txt =
+          a ~classes:["button"] ~href ~target:Blank [
+            i ~classes:["fas"; "fa-file-pdf"] [];
+            text (" "^txt)
+          ]
+        in
         [
-          a ~classes:["button"] ~href:c_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF" ];
-          a ~classes:["button"] ~href:b_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (B♭)" ];
-          a ~classes:["button"] ~href:e_pdf_href    [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (E♭)" ];
-          a ~classes:["button"] ~href:bass_pdf_href [ i ~classes:["fas"; "fa-file-pdf"] []; text " PDF (𝄢)" ];
+          pdf_button c_pdf_href    "PDF";
+          pdf_button b_pdf_href    "PDF (B♭)";
+          pdf_button e_pdf_href    "PDF (E♭)";
+          pdf_button bass_pdf_href "PDF (𝄢)";
           br;
           a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
         ]
