@@ -78,23 +78,20 @@ let create slug page =
               ]] (),
           Helpers.build_path ~api:true ~route:(Router.SetLy slug) ()
         in
-        let c_pdf, b_pdf, e_pdf, bass_pdf,
-            ly
-          =
-          Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-          Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
-          Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
-          Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
-          Inputs.Button.create ~href:(Lwt.return ly_href) ~icon:"file-alt" ~text:"LilyPond" page
-        in
 
+        let pdf_button href txt =
+          a ~classes:["button"] ~href ~target:Blank [
+            i ~classes:["fas"; "fa-file-pdf"] [];
+            text (" "^txt)
+          ]
+        in
         [
-          node_of_dom_node (Inputs.Button.root c_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root b_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root e_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root bass_pdf :> dom_node);
+          pdf_button c_pdf_href    "PDF";
+          pdf_button b_pdf_href    "PDF (B♭)";
+          pdf_button e_pdf_href    "PDF (E♭)";
+          pdf_button bass_pdf_href "PDF (𝄢)";
           br;
-          node_of_dom_node (Inputs.Button.root ly :> dom_node);
+          a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
         ]
       );
 

@@ -271,28 +271,23 @@ let create slug page =
                 )
               ]] ()
         in
-        let c_pdf, b_pdf, e_pdf, bass_pdf,
-            c_booklet_pdf, b_booklet_pdf, e_booklet_pdf, bass_booklet_pdf =
-          Inputs.Button.create ~href:(Lwt.return c_pdf_href) ~icon:"file-pdf" ~text:"PDF" page,
-          Inputs.Button.create ~href:(Lwt.return b_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭)" page,
-          Inputs.Button.create ~href:(Lwt.return e_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭)" page,
-          Inputs.Button.create ~href:(Lwt.return bass_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢)" page,
-          Inputs.Button.create ~href:(Lwt.return c_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (book)" page,
-          Inputs.Button.create ~href:(Lwt.return b_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (B♭, book)" page,
-          Inputs.Button.create ~href:(Lwt.return e_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (E♭, book)" page,
-          Inputs.Button.create ~href:(Lwt.return bass_booklet_pdf_href) ~icon:"file-pdf" ~text:"PDF (𝄢, book)" page
-        in
 
+        let pdf_button href txt =
+          a ~classes:["button"] ~href ~target:Blank [
+            i ~classes:["fas"; "fa-file-pdf"] [];
+            text (" "^txt)
+          ]
+        in
         [
-          node_of_dom_node (Inputs.Button.root c_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root b_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root e_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root bass_pdf :> dom_node);
+          pdf_button c_pdf_href    "PDF";
+          pdf_button b_pdf_href    "PDF (B♭)";
+          pdf_button e_pdf_href    "PDF (E♭)";
+          pdf_button bass_pdf_href "PDF (𝄢)";
           br;
-          node_of_dom_node (Inputs.Button.root c_booklet_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root b_booklet_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root e_booklet_pdf :> dom_node);
-          node_of_dom_node (Inputs.Button.root bass_booklet_pdf :> dom_node);
+          pdf_button c_booklet_pdf_href    "PDF (book)";
+          pdf_button b_booklet_pdf_href    "PDF (B♭, book)";
+          pdf_button e_booklet_pdf_href    "PDF (E♭, book)";
+          pdf_button bass_booklet_pdf_href "PDF (𝄢, book)";
         ]
       );
 

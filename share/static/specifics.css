@@ -101,9 +101,20 @@ h4 { font-size: 1.2rem; }
 .dim { opacity: .5; }
 .details { display: block; font-size: 0.8rem; line-height: 0.8rem; font-style: italic; }
 
+/* Class for div/span wrapper around a group of buttons. */
 .buttons {
     margin-top: 2rem;
     text-align: right;
+}
+
+/* Class to make a link "look like" a button. */
+.button {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: .375rem .75rem;
+  line-height: 1.5;
+  font-size: 1rem;
+  display: inline-block;
 }
 
 p {
