@@ -1,6 +1,7 @@
 .PHONY: build doc release test local serve init-only check-tunes clean
 
 build:
+	cd share/static/style && sass style.scss ../style.css
 	dune build @install
 	ln -sf _build/install/default/bin .
 	ln -sf ../../_build/install/default/share/dancelor share/static/

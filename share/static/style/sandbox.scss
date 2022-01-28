@@ -117,7 +117,7 @@ li:not(:first-child):not(:last-child) button {
   z-index: 10;
   position: absolute;
   background-color: #ffffff;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   display: none;
 }
 
@@ -141,7 +141,7 @@ li:not(:first-child):not(:last-child) button {
   z-index: 10;
   left: 0;
   top: 0;
-  background-color: rgb(0,0,0,0.4);
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 .modal-window {
@@ -149,7 +149,7 @@ li:not(:first-child):not(:last-child) button {
   padding: 15pt;
   margin: 10% auto;
   width: 50%;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   border: 1px solid #ced4da;
 }
 

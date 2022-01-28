@@ -16,6 +16,9 @@
 /cache
 /share/config.json
 /share/static/dancelor
-
-## DB
 /database
+
+## CSS
+*.css
+*.css.map
+.sass-cache
