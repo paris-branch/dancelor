@@ -139,7 +139,7 @@ module Textarea = struct
     else t.root##.classList##add (js "invalid")
 
   let create ?placeholder ?default ?on_change ?on_focus page =
-    let root = Html.createTextarea ~_type:(js "text") (Page.document page) in
+    let root = Html.createTextarea (Page.document page) in
     NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
     NesOption.ifsome (fun t -> root##.value := js t) default;
     NesOption.ifsome (fun cb ->
