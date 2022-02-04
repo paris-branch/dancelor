@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
+open Dancelor_client_utils
 open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters

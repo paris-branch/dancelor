@@ -1,0 +1,17 @@
+(include_subdirs unqualified)
+
+(library
+ (name dancelor_client_views)
+ (public_name dancelor.client.views)
+ (preprocess (pps lwt_ppx js_of_ocaml-ppx))
+ (libraries
+   js_of_ocaml-lwt
+   cohttp-lwt-jsoo
+   dancelor.client.html
+   dancelor.client.elements
+   dancelor.client.tables
+   dancelor.client.formatters
+   dancelor.client.utils
+   dancelor.client.model
+   dancelor.nes
+   dancelor.common))
