@@ -1,4 +1,4 @@
-include BookCore
+include BookLifted
 
 module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments

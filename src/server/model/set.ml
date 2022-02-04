@@ -1,5 +1,5 @@
 open Nes
-include SetCore
+include SetLifted
 
 module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments

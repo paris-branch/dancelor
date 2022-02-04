@@ -1,5 +1,5 @@
 open Nes
-open BookCore
+open BookLifted
 include Dancelor_common_model.BookFilter
 
 let accepts filter book =
@@ -10,19 +10,19 @@ let accepts filter book =
     equal book book' >|=| Formula.interpret_bool
 
   | Title string ->
-    let%lwt title = BookCore.title book in
+    let%lwt title = BookLifted.title book in
     Lwt.return (String.proximity ~char_equal string title)
 
   | TitleMatches string ->
-    let%lwt title = BookCore.title book in
+    let%lwt title = BookLifted.title book in
     Lwt.return (String.inclusion_proximity ~char_equal ~needle:string title)
 
   | Subtitle string ->
-    let%lwt subtitle = BookCore.subtitle book in
+    let%lwt subtitle = BookLifted.subtitle book in
     Lwt.return (String.proximity ~char_equal string subtitle)
 
   | SubtitleMatches string ->
-    let%lwt subtitle = BookCore.subtitle book in
+    let%lwt subtitle = BookLifted.subtitle book in
     Lwt.return (String.inclusion_proximity ~char_equal ~needle:string subtitle)
 
   | IsSource ->

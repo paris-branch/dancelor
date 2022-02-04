@@ -1,9 +1,6 @@
-open Nes
 open Dancelor_common_model
-include TuneCore
 
-let author = author >=>?| (Credit.get >=>| Lwt.return_some)
-let dances = dances >=>| Lwt_list.map_p Dance.get
+include TuneLifter.Lift(Credit)(Dance)
 
 module E = TuneEndpoints
 module A = E.Arguments
