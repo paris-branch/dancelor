@@ -27,6 +27,7 @@ type controller =
 
   | Tune of TuneCore.t Slug.t
 
+  | VersionAddition
   | VersionAll
   | VersionSearch
   | VersionLy of VersionCore.t Slug.t
@@ -200,6 +201,11 @@ let routes : route list =
       ~prefix:"/tune"
       (fun tune -> Some (Tune tune))
       (function Tune tune -> Some tune | _ -> None) ;
+
+    direct
+      ~meth:`GET
+      ~path:"/version/add"
+      VersionAddition ;
 
     direct
       ~meth:`GET

@@ -37,6 +37,8 @@ let dispatch url =
   | ["search"] ->
     let q = QueryParameters.get_string "q" query_parameters in
     pack (module Search) (Search.create q)
+  | ["version"; "add"] ->
+    pack (module VersionEditorInterface) VersionEditorInterface.create
   | ["version"; "all"] ->
     pack (module VersionExplorer) VersionExplorer.create
   | ["version"; "broken"] ->
