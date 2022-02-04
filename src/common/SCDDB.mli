@@ -28,7 +28,7 @@ val entry_id : entry -> entry_id
 
 val entry_url : entry -> string
 (** Given an entry, produce a URL to this entry. *)
-(* FIXME: should use the URI type. *)
+(* FIXME: should use the Uri.t type. *)
 
 val dance_url : entry_id -> string
 val formation_url : entry_id -> string
@@ -39,3 +39,7 @@ val recording_url : entry_id -> string
 val tune_url : entry_id -> string
 val list_url : entry_id -> string
 (** Given an entry id, produce a URL to the corresponding entry. *)
+
+val entry_from_uri : string -> (entry, string) result
+(** Given an URI, attempts to parse it into an entry. *)
+(* FIXME: should use the Uri.t type. *)
