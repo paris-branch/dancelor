@@ -5,6 +5,7 @@ module Arguments = struct
   let status = optarg (module Status)
   let line = arg ~key:"line" (module MString)
   let persons = optarg ~key:"persons" (module MList(PersonCore))
+  let scddb_id = optarg ~key:"scddb_id" (module MInteger)
   let pagination = optarg (module Pagination)
   let filter = arg (module CreditFilter)
   let threshold = optarg ~key:"threshold" (module MFloat)

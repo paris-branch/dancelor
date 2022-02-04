@@ -18,6 +18,7 @@ val make_and_save :
   ?status:Status.t ->
   line:string ->
   ?persons:PersonCore.t list ->
+  ?scddb_id:int ->
   unit -> t Lwt.t
 
 val search :
