@@ -1,7 +1,7 @@
 open Nes
 include CreditCore
 
-let make_and_save ?status ~line ?persons () =
+let make_and_save ?status ~line ?persons ?scddb_id () =
   let%lwt persons =
     match persons with
     | None -> Lwt.return_none
@@ -10,7 +10,7 @@ let make_and_save ?status ~line ?persons () =
       Lwt.return_some persons
   in
   Dancelor_server_database.Credit.save ~slug_hint:line @@ fun slug ->
-  Lwt.return (make ?status ~slug ~line ?persons ()) (* FIXME: status should probably go in save *)
+  Lwt.return (make ?status ~slug ~line ?persons ~scddb_id ()) (* FIXME: status should probably go in save *)
 
 let () =
   Madge_server.(
@@ -18,6 +18,7 @@ let () =
     make_and_save
       ~line:   (a A.line)
       ?persons:(o A.persons)
+      ?scddb_id:(o A.scddb_id)
       ()
   )
 

@@ -15,6 +15,7 @@ type t = {
   mutable name : string;
   mutable persons : [`Edit of string | `Person of cached_person] option array;
   mutable count : int;
+  mutable scddb_id : string;
 }
 
 let create () =
@@ -22,6 +23,7 @@ let create () =
   name = "";
   persons = Array.make 2 None;
   count = 0;
+  scddb_id = "";
 }
 
 let name t =
@@ -32,6 +34,12 @@ let set_name t name =
 
 let count t =
   t.count
+
+let scddb_id t =
+  t.scddb_id
+
+let set_scddb_id t id =
+  t.scddb_id <- id
 
 let set_field t i v =
   match t.persons.(i) with
@@ -110,7 +118,8 @@ let list_persons t =
 
 let clear t =
   t.name <- "";
-  t.count <- 0
+  t.count <- 0;
+  t.scddb_id <- ""
 
 let submit t =
   let save_and_get_person = function
@@ -124,4 +133,6 @@ let submit t =
       Lwt.map (fun p -> p :: acc) (save_and_get_person person))
       []
   in
-  Credit.make_and_save ~line:t.name ~persons ()
+  (* The fact that the string is an integer will have been checked in the form *)
+  let scddb_id = if t.scddb_id = "" then None else Some (int_of_string t.scddb_id) in
+  Credit.make_and_save ~line:t.name ~persons ?scddb_id ()
