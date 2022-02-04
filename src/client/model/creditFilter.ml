@@ -1,5 +1,5 @@
 open Nes
-open CreditCore
+open CreditLifted
 include Dancelor_common_model.CreditFilter
 
 let accepts filter credit =
@@ -10,13 +10,13 @@ let accepts filter credit =
     equal credit credit' >|=| Formula.interpret_bool
 
   | Line string ->
-    let%lwt line = CreditCore.line credit in
+    let%lwt line = CreditLifted.line credit in
     Lwt.return (String.proximity ~char_equal string line)
 
   | LineMatches string ->
-    let%lwt line = CreditCore.line credit in
+    let%lwt line = CreditLifted.line credit in
     Lwt.return (String.inclusion_proximity ~char_equal ~needle:string line)
 
   | ExistsPerson pfilter ->
-    CreditCore.persons credit
+    persons credit
     >>=| Formula.interpret_exists (PersonFilter.accepts pfilter)

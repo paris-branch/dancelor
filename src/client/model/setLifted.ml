@@ -1,10 +1,8 @@
-open Nes
 open Dancelor_common_model
-include CreditCore
 
-let persons = persons >=>| Lwt_list.map_p Person.get
+include SetLifter.Lift(Credit)(Dance)(Tune)(Version)
 
-module E = CreditEndpoints
+module E = SetEndpoints
 module A = E.Arguments
 
 let get slug =

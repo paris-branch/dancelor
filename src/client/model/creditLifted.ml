@@ -1,10 +1,8 @@
-open Nes
 open Dancelor_common_model
-include DanceCore
 
-let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
+include CreditLifter.Lift(Person)
 
-module E = DanceEndpoints
+module E = CreditEndpoints
 module A = E.Arguments
 
 let get slug =

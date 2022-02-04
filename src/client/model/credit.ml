@@ -1,4 +1,4 @@
-include CreditCore
+include CreditLifted
 
 module E = Dancelor_common_model.CreditEndpoints
 module A = E.Arguments
