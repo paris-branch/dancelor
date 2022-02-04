@@ -87,9 +87,7 @@ let make_person_subdiv t index person =
 
 let refresh t =
   Inputs.Text.set_contents t.input_name (CreditEditor.name t.editor);
-  Inputs.Text.set_contents t.input_scddb_id (match CreditEditor.scddb_id t.editor with
-    | None -> ""
-    | Some id -> string_of_int id);
+  Inputs.Text.set_contents t.input_scddb_id (CreditEditor.scddb_id t.editor);
   Helpers.clear_children t.persons_area;
   t.persons_inputs <- [];
   CreditEditor.iter t.editor (fun i person ->
@@ -110,7 +108,7 @@ let create ?on_save page =
   in
   let input_scddb_id = Inputs.Text.create
     ~placeholder:"Strathspey Database id (optional)"
-    ~on_change:(fun id -> try CreditEditor.set_scddb_id editor (int_of_string id) with _ -> ())
+    ~on_change:(fun id -> CreditEditor.set_scddb_id editor id)
     page
   in
   let persons_area = Html.createDiv (Page.document page) in
