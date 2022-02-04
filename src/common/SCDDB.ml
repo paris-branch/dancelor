@@ -68,3 +68,24 @@ let entry_from_uri uri =
 let%test _ = entry_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok (Person, 11781)
 let%test _ = entry_from_uri "https://my.strathspey.org/dd/tune/14452/" = Ok (Tune, 14452)
 let%test _ = Result.is_error @@ entry_from_uri "https://my.strathspey.org/choucroute/"
+
+let specific_entry_from_uri type_ uri =
+  match entry_from_uri uri with
+  | Error err -> Error err
+  | Ok (type', _) when type_ <> type' ->
+    error_fmt "Dancelor_common.SCDDB.*_from_uri: expected %s but got %s"
+      (entry_type_to_string type_) (entry_type_to_string type')
+  | Ok (_, id) -> Ok id
+
+let dance_from_uri uri = specific_entry_from_uri Dance uri
+let formation_from_uri uri = specific_entry_from_uri Formation uri
+let person_from_uri uri = specific_entry_from_uri Person uri
+let publication_from_uri uri = specific_entry_from_uri Publication uri
+let album_from_uri uri = specific_entry_from_uri Album uri
+let recording_from_uri uri = specific_entry_from_uri Recording uri
+let tune_from_uri uri = specific_entry_from_uri Tune uri
+let list_from_uri uri = specific_entry_from_uri List uri
+
+let%test _ = person_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok 11781
+let%test _ = Result.is_error @@ person_from_uri "https://my.strathspey.org/dd/tune/14452/"
+let%test _ = Result.is_error @@ person_from_uri "https://my.strathspey.org/choucroute/"
