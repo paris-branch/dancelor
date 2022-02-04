@@ -17,6 +17,7 @@ type t =
   input_name : Inputs.Text.t;
   search_bar : SearchBar.t;
   mutable persons_inputs : Inputs.Text.t list;
+  input_scddb_id : Inputs.Text.t;
 }
 
 let make_person_subdiv t index person =
@@ -86,6 +87,9 @@ let make_person_subdiv t index person =
 
 let refresh t =
   Inputs.Text.set_contents t.input_name (CreditEditor.name t.editor);
+  Inputs.Text.set_contents t.input_scddb_id (match CreditEditor.scddb_id t.editor with
+    | None -> ""
+    | Some id -> string_of_int id);
   Helpers.clear_children t.persons_area;
   t.persons_inputs <- [];
   CreditEditor.iter t.editor (fun i person ->
@@ -102,6 +106,11 @@ let create ?on_save page =
   let input_name = Inputs.Text.create
     ~placeholder:"Display name"
     ~on_change:(fun name -> CreditEditor.set_name editor name)
+    page
+  in
+  let input_scddb_id = Inputs.Text.create
+    ~placeholder:"Strathspey Database id (optional)"
+    ~on_change:(fun id -> try CreditEditor.set_scddb_id editor (int_of_string id) with _ -> ())
     page
   in
   let persons_area = Html.createDiv (Page.document page) in
@@ -152,17 +161,20 @@ let create ?on_save page =
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
-  let t = {page; editor; content; persons_area; input_name; search_bar; persons_inputs = []} in
+  let t = {page; editor; content; persons_area; input_name; search_bar; persons_inputs = []; input_scddb_id} in
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-        let b1, b2, b3 =
+        let b1, b2, b3, b4 =
           Inputs.Text.check input_name (fun str -> str <> ""),
           Inputs.Text.check (SearchBar.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
           List.for_all (fun input -> Inputs.Text.check input (fun str -> str <> ""))
-            t.persons_inputs
+            t.persons_inputs,
+          Inputs.Text.check input_scddb_id (fun str -> str = "" || try int_of_string str >= 0 with _ -> false)
+
+ (* (fun str -> try str = "" || int_of_string str >= 0 with _ -> false) *)
         in
-        if b1 && b2 && b3 then (
+        if b1 && b2 && b3 && b4 then (
           Lwt.on_success (CreditEditor.submit editor) (fun credit ->
           Lwt.on_success (Credit.slug credit) (fun slug ->
           begin match on_save with
@@ -191,6 +203,8 @@ let create ?on_save page =
   Dom.appendChild form persons_area;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root search_bar);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_scddb_id);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;
