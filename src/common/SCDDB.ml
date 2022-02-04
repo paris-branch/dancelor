@@ -56,7 +56,7 @@ let list_url id = entry_url (List, id)
 let entry_from_uri uri =
   let uri = Uri.of_string uri in
   match String.split_on_char '/' (Uri.path uri) with
-  | ["dd"; type_; id; ""] ->
+  | [""; "dd"; type_; id; ""] ->
     (match entry_type_of_string type_ with
      | None -> error_fmt "Dancelor_common.SCDDB.entry_from_uri: no such entry type: %s" type_
      | Some type_ ->
@@ -64,3 +64,7 @@ let entry_from_uri uri =
         | None -> error_fmt "Dancelor_common.SCDDB.entry_from_uri: not a valid id: %s" id
         | Some id -> Ok (type_, id)))
   | _ -> error_fmt "Dancelor_common.SCDDB.entry_from_uri: could not recognise path"
+
+let%test _ = entry_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok (Person, 11781)
+let%test _ = entry_from_uri "https://my.strathspey.org/dd/tune/14452/" = Ok (Tune, 14452)
+let%test _ = Result.is_error @@ entry_from_uri "https://my.strathspey.org/choucroute/"
