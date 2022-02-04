@@ -118,7 +118,8 @@ let list_persons t =
 
 let clear t =
   t.name <- "";
-  t.count <- 0
+  t.count <- 0;
+  t.scddb_id <- None
 
 let submit t =
   let save_and_get_person = function
