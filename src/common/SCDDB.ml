@@ -41,17 +41,17 @@ type entry = entry_type * entry_id
 let entry_type = fst
 let entry_id = snd
 
-let entry_url (type_, id) =
+let entry_uri (type_, id) =
   spf "%s%s/%d/" root (entry_type_to_string type_) id
 
-let dance_url id = entry_url (Dance, id)
-let formation_url id = entry_url (Formation, id)
-let person_url id = entry_url (Person, id)
-let publication_url id = entry_url (Publication, id)
-let album_url id = entry_url (Album, id)
-let recording_url id = entry_url (Recording, id)
-let tune_url id = entry_url (Tune, id)
-let list_url id = entry_url (List, id)
+let dance_uri id = entry_uri (Dance, id)
+let formation_uri id = entry_uri (Formation, id)
+let person_uri id = entry_uri (Person, id)
+let publication_uri id = entry_uri (Publication, id)
+let album_uri id = entry_uri (Album, id)
+let recording_uri id = entry_uri (Recording, id)
+let tune_uri id = entry_uri (Tune, id)
+let list_uri id = entry_uri (List, id)
 
 let entry_from_uri uri =
   let uri = Uri.of_string uri in

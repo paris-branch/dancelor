@@ -1,6 +1,6 @@
 (** {1 SCDDB}
 
-    This module contains helpers to create and parse SCDDB URLs. *)
+    This module contains helpers to create and parse SCDDB URIs. *)
 
 (** {2 Definitions} *)
 
@@ -30,19 +30,19 @@ val entry_id : entry -> entry_id
 
 (** {2 Entry to URI} *)
 
-val entry_url : entry -> string
-(** Given an entry, produce a URL to this entry. *)
+val entry_uri : entry -> string
+(** Given an entry, produce a URI to this entry. *)
 (* FIXME: should use the Uri.t type. *)
 
-val dance_url : entry_id -> string
-val formation_url : entry_id -> string
-val person_url : entry_id -> string
-val publication_url : entry_id -> string
-val album_url : entry_id -> string
-val recording_url : entry_id -> string
-val tune_url : entry_id -> string
-val list_url : entry_id -> string
-(** Given an entry id, produce a URL to the corresponding entry. *)
+val dance_uri : entry_id -> string
+val formation_uri : entry_id -> string
+val person_uri : entry_id -> string
+val publication_uri : entry_id -> string
+val album_uri : entry_id -> string
+val recording_uri : entry_id -> string
+val tune_uri : entry_id -> string
+val list_uri : entry_id -> string
+(** Given an entry id, produce a URI to the corresponding entry. *)
 
 (** {2 Entry from URI} *)
 

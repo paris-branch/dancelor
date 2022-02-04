@@ -53,7 +53,7 @@ let create slug page =
         match%lwt dance_lwt >>=| Dance.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.dance_url scddb_id in
+          let href = SCDDB.dance_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] [
                a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
