@@ -171,7 +171,7 @@ let create slug page =
         match%lwt book_lwt >>=| Book.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = spf "https://my.strathspey.org/dd/list/%d/" scddb_id in
+          let href = SCDDB.list_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] [
                a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
