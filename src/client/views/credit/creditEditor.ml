@@ -15,6 +15,7 @@ type t = {
   mutable name : string;
   mutable persons : [`Edit of string | `Person of cached_person] option array;
   mutable count : int;
+  mutable scddb_id : int option;
 }
 
 let create () =
@@ -22,6 +23,7 @@ let create () =
   name = "";
   persons = Array.make 2 None;
   count = 0;
+  scddb_id = None;
 }
 
 let name t =
@@ -32,6 +34,12 @@ let set_name t name =
 
 let count t =
   t.count
+
+let scddb_id t =
+  t.scddb_id
+
+let set_scddb_id t id =
+  t.scddb_id <- Some id
 
 let set_field t i v =
   match t.persons.(i) with
@@ -124,4 +132,4 @@ let submit t =
       Lwt.map (fun p -> p :: acc) (save_and_get_person person))
       []
   in
-  Credit.make_and_save ~line:t.name ~persons ()
+  Credit.make_and_save ~line:t.name ~persons ?scddb_id:t.scddb_id ()
