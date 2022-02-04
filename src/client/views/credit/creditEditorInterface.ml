@@ -169,8 +169,6 @@ let create ?on_save page =
           List.for_all (fun input -> Inputs.Text.check input (fun str -> str <> ""))
             t.persons_inputs,
           Inputs.Text.check input_scddb_id (fun str -> str = "" || try int_of_string str >= 0 with _ -> false)
-
- (* (fun str -> try str = "" || int_of_string str >= 0 with _ -> false) *)
         in
         if b1 && b2 && b3 && b4 then (
           Lwt.on_success (CreditEditor.submit editor) (fun credit ->
