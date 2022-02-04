@@ -1,3 +1,5 @@
+(include_subdirs no)
+
 (library
   (name dancelor_client_elements)
   (public_name dancelor.client.elements)

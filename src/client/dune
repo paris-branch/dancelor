@@ -1,3 +1,5 @@
+(include_subdirs no)
+
 (executables
  (names main)
  (modes js)
@@ -9,6 +11,8 @@
   dancelor.client.tables
   dancelor.client.formatters
   dancelor.client.model
+  dancelor.client.views
+  dancelor.client.utils
   dancelor.nes
   dancelor.common)
  (preprocess (pps lwt_ppx js_of_ocaml-ppx)))
