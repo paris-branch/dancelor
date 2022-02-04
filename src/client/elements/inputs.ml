@@ -125,6 +125,76 @@ module Text = struct
 
 end
 
+module Textarea = struct
+
+  type root = Html.textAreaElement
+
+  type t = {
+    page : Page.t;
+    root : root Js.t;
+  }
+
+  let set_valid t b =
+    if b then t.root##.classList##remove (js "invalid")
+    else t.root##.classList##add (js "invalid")
+
+  let create ?placeholder ?default ?on_change ?on_focus page =
+    let root = Html.createTextarea ~_type:(js "text") (Page.document page) in
+    NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
+    NesOption.ifsome (fun t -> root##.value := js t) default;
+    NesOption.ifsome (fun cb ->
+      Lwt.async (fun () ->
+        Lwt_js_events.inputs root
+          (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
+      on_change;
+    Lwt.async (fun () ->
+      Lwt_js_events.inputs root
+        (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ()));
+    NesOption.ifsome (fun cb ->
+      Lwt.async (fun () ->
+        Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ()));
+      Lwt.async (fun () ->
+        Lwt_js_events.blurs root (fun _ev _ -> cb false; Lwt.return ())))
+      on_focus;
+    {page; root}
+
+  let on_change t cb =
+    Lwt.async (fun () ->
+      Lwt_js_events.inputs t.root
+        (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
+
+  let on_enter t cb =
+    Lwt.async (fun () ->
+        Lwt_js_events.keydowns t.root
+          (fun ev _ ->
+             if Js.Optdef.to_option ev##.key = Some (js "Enter")
+             then cb (Js.to_string t.root##.value) else Lwt.return_unit))
+
+  let on_focus t cb =
+    Lwt.async (fun () ->
+      Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ()));
+    Lwt.async (fun () ->
+      Lwt_js_events.blurs t.root (fun _ev _ -> cb false; Lwt.return ()))
+
+  let set_contents t c =
+    t.root##.value := js c
+
+  let erase t =
+    set_contents t ""
+
+  let contents t =
+    Js.to_string t.root##.value
+
+  let check t checker =
+    let v = checker (contents t) in
+    set_valid t v;
+    v
+
+  let root t =
+    t.root
+
+end
+
 module Button = struct
 
   module Kind = struct
