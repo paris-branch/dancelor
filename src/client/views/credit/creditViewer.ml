@@ -35,7 +35,7 @@ let create slug page =
         match%lwt credit_lwt >>=| Credit.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = spf "https://my.strathspey.org/dd/person/%d/" scddb_id in
+          let href = SCDDB.person_url scddb_id in
           Lwt.return [
             p [
               text "You can ";

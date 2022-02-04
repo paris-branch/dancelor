@@ -49,7 +49,7 @@ let create slug page =
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = spf "https://my.strathspey.org/dd/tune/%d/" scddb_id in
+          let href = SCDDB.tune_url scddb_id in
           Lwt.return [
             h3 ~classes:["title"] [
                a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
