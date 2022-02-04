@@ -1,5 +1,6 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_model
 
 module Html = Dom_html
@@ -134,5 +135,15 @@ let submit t =
       []
   in
   (* The fact that the string is an integer will have been checked in the form *)
-  let scddb_id = if t.scddb_id = "" then None else Some (int_of_string t.scddb_id) in
+  let scddb_id =
+    if t.scddb_id = "" then
+      None
+    else
+      match int_of_string_opt t.scddb_id with
+      | Some scddb_id -> Some scddb_id
+      | None ->
+        match SCDDB.person_from_uri t.scddb_id with
+        | Ok scddb_id -> Some scddb_id
+        | Error _ -> None
+  in
   Credit.make_and_save ~line:t.name ~persons ?scddb_id ()
