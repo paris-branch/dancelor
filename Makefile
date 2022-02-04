@@ -1,4 +1,4 @@
-.PHONY: build doc release test local serve init-only check-tunes clean
+.PHONY: build doc release test local dev serve init-only check-tunes clean
 
 build:
 	cd share/static/style && sass style.scss ../style.css
@@ -20,6 +20,9 @@ test:
 
 local: build
 	bin/dancelor-server --config share/config.json --no-routines --no-sync-storage --no-write-storage
+
+dev: build
+	bin/dancelor-server --config share/config.json --no-routines --no-sync-storage
 
 serve: release
 	bin/dancelor-server --config share/config.json
