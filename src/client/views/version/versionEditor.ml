@@ -9,13 +9,15 @@ type t = {
   mutable bars : string;
   mutable key : string;
   mutable structure : string;
+  mutable content : string;
 }
 
 let create () = {
   tune = None;
   bars = "";
   key = "";
-  structure = ""
+  structure = "";
+  content = ""
 }
 
 let tune t =
@@ -49,12 +51,26 @@ let structure t =
 let set_structure t s =
   t.structure <- s
 
+let content t =
+  t.content
+
+let set_content t content =
+  t.content <- content
+
 let clear t =
   t.tune <- None;
   t.bars <- "";
   t.key <- "";
-  t.structure <- ""
+  t.structure <- "";
+  t.content <- ""
 
-let submit _t =
-  (* TODO : Requires endpoints to save a version *)
-  failwith "TODO"
+let submit t =
+  let tune = match tune t with
+  | None -> failwith "Empty tune"
+  | Some tune -> tune
+  in
+  let bars = int_of_string t.bars in
+  let key = Music.key_of_string t.key in
+  let structure = t.structure in
+  let content = t.content in
+  Version.make_and_save ~tune ~bars ~key ~structure ~content ()

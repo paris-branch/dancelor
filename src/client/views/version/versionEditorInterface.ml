@@ -16,6 +16,7 @@ type t =
     input_bars : Inputs.Text.t;
     input_key : Inputs.Text.t;
     input_structure : Inputs.Text.t;
+    input_content : Inputs.Textarea.t;
   }
 
 let refresh t =
@@ -28,7 +29,8 @@ let refresh t =
   end;
   Inputs.Text.set_contents t.input_bars (VersionEditor.bars t.editor);
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
-  Inputs.Text.set_contents t.input_structure (VersionEditor.structure t.editor)
+  Inputs.Text.set_contents t.input_structure (VersionEditor.structure t.editor);
+  Inputs.Textarea.set_contents t.input_content (VersionEditor.content t.editor)
 
 let make_tune_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
@@ -91,6 +93,11 @@ let create page =
     ~on_change:(fun s -> VersionEditor.set_structure editor s)
     page
   in
+  let input_content = Inputs.Textarea.create
+    ~placeholder:"Lilypond of the tune"
+    ~on_change:(fun content -> VersionEditor.set_content editor content)
+    page
+  in
 
   let tune_search =
     let main_section =
@@ -126,7 +133,7 @@ let create page =
     end);
 
   let t =
-    {page; editor; content; tune_search; input_bars; input_key; input_structure}
+    {page; editor; content; tune_search; input_bars; input_key; input_structure; input_content}
   in
 
   let submit = Html.createDiv (Page.document page) in
@@ -135,16 +142,17 @@ let create page =
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-        let b1, b2, b3, b4 =
+        let b1, b2, b3, b4, b5 =
           Inputs.Text.check (SearchBar.bar t.tune_search)
             (fun _ -> VersionEditor.tune t.editor <> None),
           Inputs.Text.check input_bars
             (fun str -> try int_of_string str > 0 with _ -> false),
           Inputs.Text.check input_key
             (fun str -> try Music.key_of_string str |> ignore; true with _ -> false),
-          Inputs.Text.check input_structure (fun str -> str <> "")
+          Inputs.Text.check input_structure (fun str -> str <> ""),
+          Inputs.Textarea.check input_content (fun str -> str <> "")
         in
-        if b1 && b2 && b3 && b4 then (
+        if b1 && b2 && b3 && b4 && b5 then (
           Lwt.on_success (VersionEditor.submit editor) (fun version ->
           Lwt.on_success (Version.slug version) (fun slug ->
           let href = Router.path_of_controller (Router.Version slug) |> snd in
@@ -171,6 +179,8 @@ let create page =
   Dom.appendChild form (Inputs.Text.root input_key);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form (Inputs.Text.root input_structure);
+  Dom.appendChild form (Html.createBr document);
+  Dom.appendChild form (Inputs.Textarea.root input_content);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form submit;
 
