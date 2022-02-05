@@ -301,5 +301,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   let write_separated_file model file content =
     let%lwt slug = Model.slug model in
-    Storage.write_entry_file Model._key (Slug.to_string slug) file content
+    Storage.write_entry_file Model._key (Slug.to_string slug) file content;%lwt
+    Storage.save_changes_on_entry
+      ~msg:(spf "save %s / %s" Model._key (Slug.to_string slug))
+      Model._key (Slug.to_string slug)
 end
