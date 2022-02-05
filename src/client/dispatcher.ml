@@ -50,7 +50,7 @@ let dispatch url =
   | ["set"; "all"] ->
     pack (module SetExplorer) SetExplorer.create
   | ["set"; "compose"] ->
-    pack (module ComposerInterface) ComposerInterface.create
+    pack (module SetEditorInterface) SetEditorInterface.create
   | ["set"; slug] ->
     pack (module SetViewer) (SetViewer.create (Slug.unsafe_of_string slug))
   | ["book"; "all"] ->
