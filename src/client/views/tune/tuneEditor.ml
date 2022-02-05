@@ -1,5 +1,6 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_model
 
 let js = Js.string
@@ -59,5 +60,15 @@ let clear t =
 let submit t =
   let name = t.name in
   let kind = Kind.base_of_string t.kind in
-  let scddb_id = if t.scddb_id = "" then None else Some (int_of_string t.scddb_id) in
+  let scddb_id =
+    if t.scddb_id = "" then
+      None
+    else
+      match int_of_string_opt t.scddb_id with
+      | Some scddb_id -> Some scddb_id
+      | None ->
+        match SCDDB.tune_from_uri t.scddb_id with
+        | Ok scddb_id -> Some scddb_id
+        | Error _ -> None
+  in
   Tune.make_and_save ~name ~kind ?author:(author t) ?scddb_id ()

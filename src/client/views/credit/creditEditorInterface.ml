@@ -107,7 +107,7 @@ let create ?on_save page =
     page
   in
   let input_scddb_id = Inputs.Text.create
-    ~placeholder:"Strathspey Database id (optional)"
+    ~placeholder:"Strathspey Database link or id (optional)"
     ~on_change:(fun id -> CreditEditor.set_scddb_id editor id)
     page
   in
@@ -168,7 +168,17 @@ let create ?on_save page =
           Inputs.Text.check (SearchBar.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
           List.for_all (fun input -> Inputs.Text.check input (fun str -> str <> ""))
             t.persons_inputs,
-          Inputs.Text.check input_scddb_id (fun str -> str = "" || try int_of_string str >= 0 with _ -> false)
+          Inputs.Text.check input_scddb_id (fun str ->
+              if str = "" then
+                true
+              else
+                match int_of_string_opt str with
+                | Some _ -> true
+                | None ->
+                  match SCDDB.person_from_uri str with
+                  | Ok _ -> true
+                  | Error _ -> false
+            )
         in
         if b1 && b2 && b3 && b4 then (
           Lwt.on_success (CreditEditor.submit editor) (fun credit ->
