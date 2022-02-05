@@ -12,7 +12,7 @@ let js = Js.string
 type t =
 {
   page : Page.t;
-  composer : Composer.t;
+  composer : SetEditor.t;
   content : Html.divElement Js.t;
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
@@ -27,28 +27,28 @@ let make_version_subwindow t index version =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3_static ~text:(Tune.name version.Composer.tune) t.page in
+  let title = Text.Heading.h3_static ~text:(Tune.name version.SetEditor.tune) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
     Inputs.Button.create
       ~on_click:(fun () ->
-        Composer.move_down t.composer index;
-        Composer.save t.composer;
+        SetEditor.move_down t.composer index;
+        SetEditor.save t.composer;
         Page.refresh t.page)
       ~icon:"chevron-down"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
-        Composer.move_up t.composer index;
-        Composer.save t.composer;
+        SetEditor.move_up t.composer index;
+        SetEditor.save t.composer;
         Page.refresh t.page)
       ~icon:"chevron-up"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
-        Composer.remove t.composer index;
-        Composer.save t.composer;
+        SetEditor.remove t.composer index;
+        SetEditor.save t.composer;
         Page.refresh t.page)
       ~kind:Inputs.Button.Kind.Danger
       ~icon:"times"
@@ -70,7 +70,7 @@ let make_version_subwindow t index version =
   let source =
     spf "/%s%s"
       Constant.api_prefix
-      (Router.path_of_controller (Router.VersionSvg version.Composer.slug) |> snd)
+      (Router.path_of_controller (Router.VersionSvg version.SetEditor.slug) |> snd)
     |> Lwt.return
   in
   let img = Image.create ~source t.page in
@@ -78,10 +78,10 @@ let make_version_subwindow t index version =
   subwin
 
 let refresh t =
-  Inputs.Text.set_contents t.input_name (Composer.name t.composer);
-  Inputs.Text.set_contents t.input_kind (Composer.kind t.composer);
-  Inputs.Text.set_contents t.input_order (Composer.order t.composer);
-  begin match Composer.deviser t.composer with
+  Inputs.Text.set_contents t.input_name (SetEditor.name t.composer);
+  Inputs.Text.set_contents t.input_kind (SetEditor.kind t.composer);
+  Inputs.Text.set_contents t.input_order (SetEditor.order t.composer);
+  begin match SetEditor.deviser t.composer with
   | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
   | Some cr ->
     let name = Credit.line cr in
@@ -89,7 +89,7 @@ let refresh t =
       Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
   Helpers.clear_children t.versions_area;
-  Composer.iter t.composer (fun i version ->
+  SetEditor.iter t.composer (fun i version ->
     let subwin = make_version_subwindow t i version in
     Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
     Dom.appendChild t.versions_area subwin)
@@ -104,7 +104,7 @@ let make_version_search_result composer page score =
   let%lwt kind = Tune.kind tune in
   let row = Table.Row.create
     ~on_click:(fun () ->
-      Lwt.on_success (Composer.add composer slug) (fun () -> Page.refresh page; Composer.save composer))
+      Lwt.on_success (SetEditor.add composer slug) (fun () -> Page.refresh page; SetEditor.save composer))
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
       Table.Cell.create ~content:(
@@ -130,7 +130,7 @@ let make_credit_modal composer content page =
       ~on_save:(fun slug ->
         Page.remove_modal page modal_bg;
         Dom.removeChild content modal_bg;
-        Lwt.on_success (Composer.set_deviser composer slug) (fun () -> Page.refresh page))
+        Lwt.on_success (SetEditor.set_deviser composer slug) (fun () -> Page.refresh page))
   in
   Dom.appendChild credits_modal (CreditEditorInterface.contents interface);
   credits_modal##.classList##add (js "modal-window");
@@ -151,8 +151,8 @@ let make_deviser_search_result composer page score =
   let row = Table.Row.create
     ~on_click:(fun () ->
       Lwt.on_success
-        (Composer.set_deviser composer slug)
-        (fun () -> Page.refresh page; Composer.save composer))
+        (SetEditor.set_deviser composer slug)
+        (fun () -> Page.refresh page; SetEditor.save composer))
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
       Table.Cell.text ~text:(Lwt.return name) page]
@@ -163,22 +163,22 @@ let make_deviser_search_result composer page score =
 let create page =
   (Page.document page)##.title := js "Compose a Set | Dancelor";
 
-  let composer = Composer.create () in
+  let composer = SetEditor.create () in
   let content = Html.createDiv (Page.document page) in
   let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
     ~placeholder:"Name"
     ~on_change:(fun name ->
-      Composer.set_name composer name;
-      Composer.save composer)
+      SetEditor.set_name composer name;
+      SetEditor.save composer)
     page
   in
   let input_kind = Inputs.Text.create
     ~placeholder:"Kind (eg. 8x32R)"
     ~on_change:(fun kind ->
-      Composer.set_kind composer kind;
-      Composer.save composer)
+      SetEditor.set_kind composer kind;
+      SetEditor.save composer)
     page
   in
   let deviser_search =
@@ -231,14 +231,14 @@ let create page =
   Inputs.Text.on_focus (SearchBar.bar deviser_search) (fun b ->
     if b then begin
       Inputs.Text.erase (SearchBar.bar deviser_search);
-      Composer.remove_deviser composer;
+      SetEditor.remove_deviser composer;
       Page.refresh page
     end);
   let input_order = Inputs.Text.create
       ~placeholder:"Order (eg. 1,2,3,4,2,3,4,1)"
       ~on_change:(fun order ->
-          Composer.set_order composer order;
-          Composer.save composer)
+          SetEditor.set_order composer order;
+          SetEditor.save composer)
       page
   in
   let t =
@@ -255,14 +255,14 @@ let create page =
           Inputs.Text.check t.input_kind Kind.check_dance,
           Inputs.Text.check t.input_name (fun str -> str <> ""),
           Inputs.Text.check (SearchBar.bar t.version_search)
-            (fun _ -> Composer.count t.composer > 0),
+            (fun _ -> SetEditor.count t.composer > 0),
           Inputs.Text.check (SearchBar.bar t.deviser_search)
-            (fun _ -> Composer.deviser t.composer <> None),
+            (fun _ -> SetEditor.deviser t.composer <> None),
           Inputs.Text.check t.input_order
-            (SetOrder.check ~number:(Composer.count t.composer))
+            (SetOrder.check ~number:(SetEditor.count t.composer))
         in
         if b1 && b2 && b3 && b4 && b5 then (
-          Lwt.on_success (Composer.submit composer) (fun set ->
+          Lwt.on_success (SetEditor.submit composer) (fun set ->
           Lwt.on_success (Set.slug set) (fun slug ->
           let href = Router.path_of_controller (Router.Set slug) |> snd in
           Html.window##.location##.href := js href))))
@@ -272,8 +272,8 @@ let create page =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
       ~on_click:(fun () ->
         if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
-          Composer.clear composer;
-          Composer.erase_storage composer;
+          SetEditor.clear composer;
+          SetEditor.erase_storage composer;
           refresh t
         end)
       page
@@ -296,7 +296,7 @@ let create page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
   Dom.appendChild content form;
-  Lwt.on_success (Composer.load composer) (fun () -> refresh t);
+  Lwt.on_success (SetEditor.load composer) (fun () -> refresh t);
   t
 
 let contents t =
