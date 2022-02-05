@@ -4,10 +4,10 @@ module Self = struct
   type t =
     { transposition  : Transposition.t option [@default None] ;
       first_bar      : int             option [@default None] [@key "first-bar"] ;
-
       for_dance      : DanceCore.t Slug.t option [@default None] [@key "for-dance"] ;
 
       clef           : Music.clef      option [@default None] ;
+      trivia         : string          option [@default None] ;
       display_name   : string          option [@default None] [@key "display-name"] ;
       display_author : string          option [@default None] [@key "display-author"] }
   [@@deriving make, yojson]
@@ -30,6 +30,7 @@ let first_bar      p = Option.unwrap p.first_bar
 
 let for_dance      p = p.for_dance
 let clef           p = p.clef
+let trivia         p = p.trivia
 let display_name   p = p.display_name
 let display_author p = p.display_author
 
@@ -43,6 +44,7 @@ let default = {
   first_bar      = Some 1 ;
   for_dance      = None ;
   clef           = None ;
+  trivia         = None ;
   display_name   = None ;
   display_author = None ;
 }
@@ -52,6 +54,7 @@ let compose first second =
     clef           = Option.(choose ~tie:second) first.clef           second.clef ;
     first_bar      = Option.(choose ~tie:second) first.first_bar      second.first_bar ;
     for_dance      = Option.(choose ~tie:fail)   first.for_dance      second.for_dance ;
+    trivia         = Option.(choose ~tie:second) first.trivia         second.trivia ;
     display_name   = Option.(choose ~tie:second) first.display_name   second.display_name ;
     display_author = Option.(choose ~tie:second) first.display_author second.display_author }
 
