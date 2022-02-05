@@ -7,16 +7,15 @@ module Arguments = struct
   let filter = arg (module VersionFilter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
-
   let tune = arg (module TuneCore)
   let bars = arg (module MInteger)
   let key = arg (module Music.Key)
-  let structure = arg (module MString) (* FIXME: several MString, CANNOT BE GOOD *)
-  let arranger = optarg (module CreditCore)
-  let remark = optarg (module MString) (* FIXME: several MString, CANNOT BE GOOD*)
-  let disambiguation = optarg (module MString) (* FIXME: several MString, CANNOT BE GOOD*)
-  let broken = optarg (module MBool)
-  let content = arg (module MString) (* FIXME *)
+  let structure = arg ~key:"structure" (module MString)
+  let arranger = optarg ~key:"arranger" (module CreditCore)
+  let remark = optarg ~key:"remark" (module MString)
+  let disambiguation = optarg ~key:"disambiguation" (module MString)
+  let broken = optarg ~key:"broken" (module MBool)
+  let content = arg ~key:"content" (module MString)
 end
 
 let get = endpoint ~path:"/version" (module VersionCore)
