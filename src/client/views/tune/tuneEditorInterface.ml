@@ -135,7 +135,17 @@ let create ?on_save page =
         let b1, b2, b3 =
           Inputs.Text.check input_name (fun str -> str <> ""),
           Inputs.Text.check input_kind (fun str -> try Kind.base_of_string str |> ignore; true with _ -> false),
-          Inputs.Text.check input_scddb_id (fun str -> str = "" || try int_of_string str >= 0 with _ -> false)
+          Inputs.Text.check input_scddb_id (fun str ->
+              if str = "" then
+                true
+              else
+                match int_of_string_opt str with
+                | Some _ -> true
+                | None ->
+                  match SCDDB.tune_from_uri str with
+                  | Ok _ -> true
+                  | Error _ -> false
+            )
         in
         if b1 && b2 && b3 then (
           Lwt.on_success (TuneEditor.submit editor) (fun tune ->
