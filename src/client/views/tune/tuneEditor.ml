@@ -53,5 +53,9 @@ let clear t =
   t.author <- None;
   t.scddb_id <- ""
 
-let submit _t =
-  failwith "TODO"
+let submit t =
+  let name = t.name in
+  let kind = Kind.base_of_string t.kind in
+  let scddb_id = if t.scddb_id = "" then None else Some (int_of_string t.scddb_id) in
+  (* TODO: Handle author *)
+  Tune.make_and_save ~name ~kind ?scddb_id ()
