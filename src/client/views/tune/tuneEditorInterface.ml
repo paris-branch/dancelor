@@ -84,7 +84,7 @@ let create ?on_save page =
     page
   in
   let input_scddb_id = Inputs.Text.create
-    ~placeholder:"Strathspey Database id (optional)"
+    ~placeholder:"Strathspey Database link or id (optional)"
     ~on_change:(fun id -> TuneEditor.set_scddb_id editor id)
     page
   in
