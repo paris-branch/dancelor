@@ -107,7 +107,8 @@ module Ly = struct
                     ()
                 in
                 let%lwt for_dance = VersionParameters.for_dance parameters in
-                let%lwt set_parameters = SetParameters.make ?for_dance ~show_order:false () in
+                let%lwt set_parameters = SetParameters.make
+                    ~display_name:name ?for_dance ~show_order:false () in
                 Lwt.return (set, set_parameters)
 
               | Set (set, parameters) | InlineSet (set, parameters) ->
