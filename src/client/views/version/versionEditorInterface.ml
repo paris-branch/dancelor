@@ -16,6 +16,7 @@ type t =
     input_bars : Inputs.Text.t;
     input_key : Inputs.Text.t;
     input_structure : Inputs.Text.t;
+    arranger_search : SearchBar.t;
     input_remark : Inputs.Text.t;
     input_disambiguation : Inputs.Text.t;
     input_content : Inputs.Textarea.t;
@@ -28,6 +29,13 @@ let refresh t =
     let name = Tune.name tune in
     Lwt.on_success name (fun name ->
       Inputs.Text.set_contents (SearchBar.bar t.tune_search) name)
+  end;
+  begin match VersionEditor.arranger t.editor with
+  | None -> Inputs.Text.set_contents (SearchBar.bar t.arranger_search) ""
+  | Some arranger ->
+    let name = Credit.line arranger in
+    Lwt.on_success name (fun name ->
+      Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name)
   end;
   Inputs.Text.set_contents t.input_bars (VersionEditor.bars t.editor);
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
@@ -66,6 +74,44 @@ let make_tune_search_result editor page score =
     ~on_click:(fun () ->
       Lwt.on_success
         (VersionEditor.set_tune editor slug)
+        (fun () -> Page.refresh page))
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+      Table.Cell.text ~text:(Lwt.return name) page]
+    page
+  in
+  Lwt.return row
+
+let make_arranger_modal editor content page =
+  let modal_bg = Html.createDiv (Page.document page) in
+  let arranger_modal = Html.createDiv (Page.document page) in
+  let interface =
+    CreditEditorInterface.create page
+      ~on_save:(fun slug ->
+        Page.remove_modal page modal_bg;
+        Dom.removeChild content modal_bg;
+        Lwt.on_success (VersionEditor.set_arranger editor slug) (fun () -> Page.refresh page))
+  in
+  Dom.appendChild arranger_modal (CreditEditorInterface.contents interface);
+  arranger_modal##.classList##add (js "modal-window");
+  modal_bg##.classList##add (js "modal-background");
+  Dom.appendChild modal_bg arranger_modal;
+  Dom.appendChild content modal_bg;
+  Page.register_modal page
+    ~element:modal_bg
+    ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
+    ~on_refresh:(fun () -> CreditEditorInterface.refresh interface)
+    ~targets:[arranger_modal]
+
+let make_arranger_search_result editor page score =
+  let arranger = Score.value score in
+  let score = score.Score.score in
+  let%lwt name = Credit.line arranger in
+  let%lwt slug = Credit.slug arranger in
+  let row = Table.Row.create
+    ~on_click:(fun () ->
+      Lwt.on_success
+        (VersionEditor.set_arranger editor slug)
         (fun () -> Page.refresh page))
     ~cells:[
       Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
@@ -146,8 +192,41 @@ let create page =
       Page.refresh page
     end);
 
+  let arranger_search =
+    let main_section =
+      SearchBar.Section.create
+        ~default:(Table.Row.create
+          ~on_click:(fun () -> make_arranger_modal editor content page)
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "  +") page;
+            Table.Cell.text ~text:(Lwt.return "Create a new arranger") page]
+          page)
+        ~search:(fun input ->
+          match CreditFilter.raw input with
+          | Ok formula ->
+            let%lwt results =
+            Credit.search ~threshold:0.4
+              ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results
+          | Error err -> Lwt.return_error err)
+        ~make_result:(fun score -> make_arranger_search_result editor page score)
+        page
+    in
+    SearchBar.create
+      ~placeholder:"Arranger, if different from the tune author (optional)"
+      ~sections:[main_section]
+      page
+  in
+  Inputs.Text.on_focus (SearchBar.bar arranger_search) (fun b ->
+    if b then begin
+      Inputs.Text.erase (SearchBar.bar arranger_search);
+      VersionEditor.remove_arranger editor;
+      Page.refresh page
+    end);
+
   let t =
-    {page; editor; content; tune_search; input_bars; input_key; input_structure; input_remark; input_disambiguation; input_content}
+    {page; editor; content; tune_search; input_bars; input_key; input_structure; arranger_search; input_remark; input_disambiguation; input_content}
   in
 
   let submit = Html.createDiv (Page.document page) in
@@ -193,6 +272,8 @@ let create page =
   Dom.appendChild form (Inputs.Text.root input_key);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form (Inputs.Text.root input_structure);
+  Dom.appendChild form (Html.createBr document);
+  Dom.appendChild form (SearchBar.root arranger_search);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form (Inputs.Text.root input_remark);
   Dom.appendChild form (Html.createBr document);
