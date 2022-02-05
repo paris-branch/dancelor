@@ -9,6 +9,7 @@ type t = {
   mutable bars : string;
   mutable key : string;
   mutable structure : string;
+  mutable remark : string;
   mutable content : string;
 }
 
@@ -17,6 +18,7 @@ let create () = {
   bars = "";
   key = "";
   structure = "";
+  remark = "";
   content = ""
 }
 
@@ -51,6 +53,12 @@ let structure t =
 let set_structure t s =
   t.structure <- s
 
+let remark t =
+  t.remark
+
+let set_remark t r =
+  t.remark <- r
+
 let content t =
   t.content
 
@@ -62,6 +70,7 @@ let clear t =
   t.bars <- "";
   t.key <- "";
   t.structure <- "";
+  t.remark <- "";
   t.content <- ""
 
 let submit t =
@@ -72,5 +81,6 @@ let submit t =
   let bars = int_of_string t.bars in
   let key = Music.key_of_string t.key in
   let structure = t.structure in
+  let remark = if t.remark = "" then None else Some t.remark in
   let content = t.content in
-  Version.make_and_save ~tune ~bars ~key ~structure ~content ()
+  Version.make_and_save ~tune ~bars ~key ~structure ~content ?remark ()
