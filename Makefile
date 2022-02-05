@@ -6,14 +6,15 @@ build:
 	ln -sf _build/install/default/bin .
 	ln -sf ../../_build/install/default/share/dancelor share/static/
 
-doc:
-	dune build @doc
-	ln -sf _build/default/_doc/_html doc
-
 release:
+	cd share/static/style && sass style.scss ../style.css
 	dune build --profile=release @install
 	ln -sf _build/install/default/bin .
 	ln -sf ../../_build/install/default/share/dancelor share/static/
+
+doc:
+	dune build @doc
+	ln -sf _build/default/_doc/_html doc
 
 test:
 	dune runtest
