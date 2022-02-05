@@ -15,6 +15,7 @@ let on_load _ev =
   Header.add_menu_entry header "Sets" (Router.path_of_controller Router.SetAll |> snd);
   Header.add_menu_entry header "Books" (Router.path_of_controller Router.BookAll |> snd);
   Header.add_menu_entry header "Compose a Set" (Router.path_of_controller Router.SetCompose |> snd);
+  Header.add_menu_entry header "Add a Tune" (Router.path_of_controller Router.VersionAddition |> snd);
   Page.set_header page (Header.contents header);
   let url =
     Html.window##.location##.href

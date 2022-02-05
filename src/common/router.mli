@@ -34,6 +34,7 @@ type controller =
 
   | Tune of TuneCore.t Slug.t
 
+  | VersionAddition
   | VersionAll
   | VersionSearch
   | VersionLy of VersionCore.t Slug.t

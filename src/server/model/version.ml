@@ -4,6 +4,36 @@ include VersionLifted
 module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
+let make_and_save
+    ?status ~tune ~bars ~key ~structure ?arranger
+    ?remark ?disambiguation ?broken ~content ()
+  =
+  let%lwt name = Tune.name tune in
+  let%lwt version =
+    Dancelor_server_database.Version.save ~slug_hint:name @@ fun slug ->
+    make ~slug ?status ~tune ~bars ~key ~structure
+      ?arranger ?remark ?disambiguation ?broken ()
+  in
+  Dancelor_server_database.Version.write_content version content;%lwt
+  Lwt.return version
+
+let () =
+  Madge_server.(
+    register ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    make_and_save
+      ?status:   (o A.status)
+      ~tune:     (a A.tune)
+      ~bars:     (a A.bars)
+      ~key:      (a A.key)
+      ~structure:(a A.structure)
+      ?arranger: (o A.arranger)
+      ?remark:   (o A.remark)
+      ?disambiguation:(o A.disambiguation)
+      ?broken:   (o A.broken)
+      ~content:  (a A.content)
+      ()
+  )
+
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
   try

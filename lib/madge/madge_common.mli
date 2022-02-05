@@ -44,6 +44,9 @@ val prefix : string ref
 module MUnit : SERIALISABLE
   with type t = unit
 
+module MBool : SERIALISABLE
+  with type t = bool
+
 module MFloat : SERIALISABLE
   with type t = float
 

@@ -63,6 +63,13 @@ let base_tempo = function
   | Strathspey -> ("2", 60)
   | Waltz -> ("2.", 60)
 
+module Base = struct
+  type t = base
+  let _key = "kind-base"
+  let to_yojson = base_to_yojson
+  let of_yojson = base_of_yojson
+end
+
 (* ============================= [ Version Kind ] ============================== *)
 
 type version = int * base
@@ -116,6 +123,13 @@ let version_of_yojson = function
 
 let version_to_pretty_string (repeats, base) =
   spf "%d %s" repeats (base_to_pretty_string ~capitalised:true base)
+
+module Version = struct
+  type t = version
+  let _key = "kind-version"
+  let to_yojson = version_to_yojson
+  let of_yojson = version_of_yojson
+end
 
 (* ============================= [ Dance Kind ] ============================= *)
 

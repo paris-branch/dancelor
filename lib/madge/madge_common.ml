@@ -70,6 +70,13 @@ struct
   let _key = "unit"
 end
 
+module MBool : SERIALISABLE
+  with type t = bool =
+struct
+  type t = bool [@@deriving yojson]
+  let _key = "bool"
+end
+
 module MInteger : SERIALISABLE
   with type t = int =
 struct
