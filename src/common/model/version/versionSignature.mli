@@ -29,6 +29,7 @@ val make_and_save :
   ?remark:string ->
   ?disambiguation:string ->
   ?broken:bool ->
+  content:string ->
   unit -> t Lwt.t
 
 val search :

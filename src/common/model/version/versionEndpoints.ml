@@ -16,6 +16,7 @@ module Arguments = struct
   let remark = optarg (module MString) (* FIXME: several MString, CANNOT BE GOOD*)
   let disambiguation = optarg (module MString) (* FIXME: several MString, CANNOT BE GOOD*)
   let broken = optarg (module MBool)
+  let content = arg (module MString) (* FIXME *)
 end
 
 let get = endpoint ~path:"/version" (module VersionCore)

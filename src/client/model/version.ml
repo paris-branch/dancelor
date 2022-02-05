@@ -4,8 +4,8 @@ module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~tune ~bars ~key ~structure
-    ?arranger ?remark ?disambiguation ?broken ()
+    ?status ~tune ~bars ~key ~structure ?arranger
+    ?remark ?disambiguation ?broken ~content ()
   =
   Madge_client.(
     call ~endpoint:E.make_and_save @@ fun {a} {o} ->
@@ -17,7 +17,8 @@ let make_and_save
     o A.arranger arranger;
     o A.remark remark;
     o A.disambiguation disambiguation;
-    o A.broken broken
+    o A.broken broken;
+    a A.content content;
   )
 
 let search ?pagination ?threshold filter =
