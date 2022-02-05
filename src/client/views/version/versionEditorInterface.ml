@@ -12,17 +12,61 @@ type t =
     page : Page.t;
     editor : VersionEditor.t;
     content : Dom_html.divElement Js.t;
-    input_name : Inputs.Text.t;
+    tune_search : SearchBar.t;
     input_bars : Inputs.Text.t;
     input_key : Inputs.Text.t;
     input_structure : Inputs.Text.t;
   }
 
 let refresh t =
-  Inputs.Text.set_contents t.input_name (VersionEditor.name t.editor);
+  begin match VersionEditor.tune t.editor with
+  | None -> Inputs.Text.set_contents (SearchBar.bar t.tune_search) ""
+  | Some tune ->
+    let name = Tune.name tune in
+    Lwt.on_success name (fun name ->
+      Inputs.Text.set_contents (SearchBar.bar t.tune_search) name)
+  end;
   Inputs.Text.set_contents t.input_bars (VersionEditor.bars t.editor);
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
   Inputs.Text.set_contents t.input_structure (VersionEditor.structure t.editor)
+
+let make_tune_modal editor content page =
+  let modal_bg = Html.createDiv (Page.document page) in
+  let tune_modal = Html.createDiv (Page.document page) in
+  let interface =
+    TuneEditorInterface.create page
+      ~on_save:(fun slug ->
+        Page.remove_modal page modal_bg;
+        Dom.removeChild content modal_bg;
+        Lwt.on_success (VersionEditor.set_tune editor slug) (fun () -> Page.refresh page))
+  in
+  Dom.appendChild tune_modal (TuneEditorInterface.contents interface);
+  tune_modal##.classList##add (js "modal-window");
+  modal_bg##.classList##add (js "modal-background");
+  Dom.appendChild modal_bg tune_modal;
+  Dom.appendChild content modal_bg;
+  Page.register_modal page
+    ~element:modal_bg
+    ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
+    ~on_refresh:(fun () -> TuneEditorInterface.refresh interface)
+    ~targets:[tune_modal]
+
+let make_tune_search_result editor page score =
+  let tune = Score.value score in
+  let score = score.Score.score in
+  let%lwt name = Tune.name tune in
+  let%lwt slug = Tune.slug tune in
+  let row = Table.Row.create
+    ~on_click:(fun () ->
+      Lwt.on_success
+        (VersionEditor.set_tune editor slug)
+        (fun () -> Page.refresh page))
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+      Table.Cell.text ~text:(Lwt.return name) page]
+    page
+  in
+  Lwt.return row
 
 let create page =
   let document = Page.document page in
@@ -32,12 +76,6 @@ let create page =
   let content = Dom_html.createDiv document in
   let title = Text.Heading.h2_static ~text:(Lwt.return "Add a new tune") page in
   let form = Html.createForm document in
-  let input_name = Inputs.Text.create
-    ~placeholder:"Name of the tune"
-    (* TODO: Do we need a local storage similar to setCompose? *)
-    ~on_change:(fun name -> VersionEditor.set_name editor name)
-    page
-  in
   let input_bars = Inputs.Text.create
     ~placeholder:"Number of bars"
     ~on_change:(fun bars -> VersionEditor.set_bars editor bars)
@@ -54,9 +92,41 @@ let create page =
     page
   in
 
+  let tune_search =
+    let main_section =
+      SearchBar.Section.create
+        ~default:(Table.Row.create
+          ~on_click:(fun () -> make_tune_modal editor content page)
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "  +") page;
+            Table.Cell.text ~text:(Lwt.return "Create a new associated tune") page]
+          page)
+        ~search:(fun input ->
+          match TuneFilter.raw input with
+          | Ok formula ->
+            let%lwt results =
+            Tune.search ~threshold:0.4
+              ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results
+          | Error err -> Lwt.return_error err)
+        ~make_result:(fun score -> make_tune_search_result editor page score)
+        page
+    in
+    SearchBar.create
+      ~placeholder:"Associated Tune (Magic Search)"
+      ~sections:[main_section]
+      page
+  in
+  Inputs.Text.on_focus (SearchBar.bar tune_search) (fun b ->
+    if b then begin
+      Inputs.Text.erase (SearchBar.bar tune_search);
+      VersionEditor.remove_tune editor;
+      Page.refresh page
+    end);
 
   let t =
-    {page; editor; content; input_name; input_bars; input_key; input_structure}
+    {page; editor; content; tune_search; input_bars; input_key; input_structure}
   in
 
   let submit = Html.createDiv (Page.document page) in
@@ -66,9 +136,12 @@ let create page =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
         let b1, b2, b3, b4 =
-          Inputs.Text.check input_name (fun str -> str <> ""),
-          Inputs.Text.check input_bars (fun str -> try int_of_string str > 0 with _ -> false),
-          Inputs.Text.check input_key (fun str -> try Music.key_of_string str |> ignore; true with _ -> false),
+          Inputs.Text.check (SearchBar.bar t.tune_search)
+            (fun _ -> VersionEditor.tune t.editor <> None),
+          Inputs.Text.check input_bars
+            (fun str -> try int_of_string str > 0 with _ -> false),
+          Inputs.Text.check input_key
+            (fun str -> try Music.key_of_string str |> ignore; true with _ -> false),
           Inputs.Text.check input_structure (fun str -> str <> "")
         in
         if b1 && b2 && b3 && b4 then (
@@ -91,7 +164,7 @@ let create page =
   Dom.appendChild submit (Inputs.Button.root save);
   Dom.appendChild submit (Inputs.Button.root clear);
 
-  Dom.appendChild form (Inputs.Text.root input_name);
+  Dom.appendChild form (SearchBar.root tune_search);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form (Inputs.Text.root input_bars);
   Dom.appendChild form (Html.createBr document);
