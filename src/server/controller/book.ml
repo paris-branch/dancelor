@@ -97,9 +97,14 @@ module Ly = struct
                   |> VersionParameters.display_name
                   |> Option.unwrap_or ~default:name
                 in
+                let trivia =
+                  parameters
+                  |> VersionParameters.trivia
+                  |> Option.unwrap_or ~default:" "
+                in
                 let%lwt bars = Version.bars version in
                 let%lwt kind = Tune.kind tune in
-                let parameters = VersionParameters.set_display_name "" parameters in
+                let parameters = VersionParameters.set_display_name trivia parameters in
                 let%lwt set =
                   Set.make_temp ~name ~kind:(1, [bars, kind])
                     ~versions_and_parameters:[version, parameters]
@@ -107,7 +112,8 @@ module Ly = struct
                     ()
                 in
                 let%lwt for_dance = VersionParameters.for_dance parameters in
-                let%lwt set_parameters = SetParameters.make ?for_dance ~show_order:false () in
+                let%lwt set_parameters = SetParameters.make
+                    ~display_name:name ?for_dance ~show_order:false () in
                 Lwt.return (set, set_parameters)
 
               | Set (set, parameters) | InlineSet (set, parameters) ->
