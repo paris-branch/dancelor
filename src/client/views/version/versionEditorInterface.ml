@@ -17,6 +17,7 @@ type t =
     input_key : Inputs.Text.t;
     input_structure : Inputs.Text.t;
     input_remark : Inputs.Text.t;
+    input_disambiguation : Inputs.Text.t;
     input_content : Inputs.Textarea.t;
   }
 
@@ -32,6 +33,7 @@ let refresh t =
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
   Inputs.Text.set_contents t.input_structure (VersionEditor.structure t.editor);
   Inputs.Text.set_contents t.input_remark (VersionEditor.remark t.editor);
+  Inputs.Text.set_contents t.input_disambiguation (VersionEditor.disambiguation t.editor);
   Inputs.Textarea.set_contents t.input_content (VersionEditor.content t.editor)
 
 let make_tune_modal editor content page =
@@ -100,6 +102,11 @@ let create page =
     ~on_change:(fun r -> VersionEditor.set_remark editor r)
     page
   in
+  let input_disambiguation = Inputs.Text.create
+    ~placeholder:"Disambiguation information if this is a new version (optional)"
+    ~on_change:(fun r -> VersionEditor.set_disambiguation editor r)
+    page
+  in
   let input_content = Inputs.Textarea.create
     ~placeholder:"Lilypond of the tune"
     ~on_change:(fun content -> VersionEditor.set_content editor content)
@@ -140,7 +147,7 @@ let create page =
     end);
 
   let t =
-    {page; editor; content; tune_search; input_bars; input_key; input_structure; input_remark; input_content}
+    {page; editor; content; tune_search; input_bars; input_key; input_structure; input_remark; input_disambiguation; input_content}
   in
 
   let submit = Html.createDiv (Page.document page) in
@@ -188,6 +195,8 @@ let create page =
   Dom.appendChild form (Inputs.Text.root input_structure);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form (Inputs.Text.root input_remark);
+  Dom.appendChild form (Html.createBr document);
+  Dom.appendChild form (Inputs.Text.root input_disambiguation);
   Dom.appendChild form (Html.createBr document);
   Dom.appendChild form (Inputs.Textarea.root input_content);
   Dom.appendChild form (Html.createBr document);

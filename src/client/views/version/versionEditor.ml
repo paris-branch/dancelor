@@ -10,6 +10,7 @@ type t = {
   mutable key : string;
   mutable structure : string;
   mutable remark : string;
+  mutable disambiguation : string;
   mutable content : string;
 }
 
@@ -19,6 +20,7 @@ let create () = {
   key = "";
   structure = "";
   remark = "";
+  disambiguation = "";
   content = ""
 }
 
@@ -59,6 +61,12 @@ let remark t =
 let set_remark t r =
   t.remark <- r
 
+let disambiguation t =
+  t.disambiguation
+
+let set_disambiguation t dis =
+  t.disambiguation <- dis
+
 let content t =
   t.content
 
@@ -82,5 +90,6 @@ let submit t =
   let key = Music.key_of_string t.key in
   let structure = t.structure in
   let remark = if t.remark = "" then None else Some t.remark in
+  let disambiguation = if t.disambiguation = "" then None else Some t.disambiguation in
   let content = t.content in
-  Version.make_and_save ~tune ~bars ~key ~structure ~content ?remark ()
+  Version.make_and_save ~tune ~bars ~key ~structure ~content ?remark ?disambiguation ()
