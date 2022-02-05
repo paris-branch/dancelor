@@ -19,6 +19,18 @@ val content : t -> string Lwt.t
 
 val get : t Slug.t -> t Lwt.t
 
+val make_and_save :
+  ?status:Status.t ->
+  tune:TuneCore.t ->
+  bars:int ->
+  key:Music.key ->
+  structure:string ->
+  ?arranger:CreditCore.t ->
+  ?remark:string ->
+  ?disambiguation:string ->
+  ?broken:bool ->
+  unit -> t Lwt.t
+
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->

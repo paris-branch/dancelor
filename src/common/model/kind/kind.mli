@@ -24,6 +24,8 @@ val base_tempo : base -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
    for reels. *)
 
+module Base : Madge_common.SERIALISABLE with type t = base
+
 (** {2 Version Kind} *)
 
 type version = int * base
@@ -38,6 +40,8 @@ val version_to_pretty_string : version -> string
 
 val version_to_yojson : version -> Json.t
 val version_of_yojson : Json.t -> (version, string) result
+
+module Version : Madge_common.SERIALISABLE with type t = version
 
 (** {2 Dance Kind} *)
 

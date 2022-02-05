@@ -3,6 +3,23 @@ include VersionLifted
 module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
+let make_and_save
+    ?status ~tune ~bars ~key ~structure
+    ?arranger ?remark ?disambiguation ?broken ()
+  =
+  Madge_client.(
+    call ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    o A.status status;
+    a A.tune tune;
+    a A.bars bars;
+    a A.key key;
+    a A.structure structure;
+    o A.arranger arranger;
+    o A.remark remark;
+    o A.disambiguation disambiguation;
+    o A.broken broken
+  )
+
 let search ?pagination ?threshold filter =
   Madge_client.(
     call ~endpoint:E.search @@ fun {a} {o} ->

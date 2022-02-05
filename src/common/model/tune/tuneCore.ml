@@ -12,7 +12,30 @@ type t =
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;
     scddb_id : int option               [@default None] [@key "scddb-id"] }
-[@@deriving yojson]
+[@@deriving make, yojson]
+
+let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id () =
+  let%lwt author =
+    match author with
+    | None -> Lwt.return_none
+    | Some author ->
+      let%lwt author = CreditCore.slug author in
+      Lwt.return_some author
+  in
+  let%lwt dances =
+    match dances with
+    | None -> Lwt.return_none
+    | Some dances ->
+      let%lwt dances =
+        Lwt_list.map_s
+          (fun dance ->
+             let%lwt dance = DanceCore.slug dance in
+             Lwt.return dance)
+          dances
+      in
+      Lwt.return_some dances
+  in
+  Lwt.return (make ?status ~slug ~name ?alternative_names ~kind ~author ?dances ?remark ~scddb_id ())
 
 let slug tune = Lwt.return tune.slug
 let status tune = Lwt.return tune.status
