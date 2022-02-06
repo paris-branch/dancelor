@@ -274,7 +274,12 @@ let create page =
         if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
           SetEditor.clear composer;
           SetEditor.erase_storage composer;
-          refresh t
+          refresh t;
+          Inputs.Text.set_valid input_kind true;
+          Inputs.Text.set_valid input_name true;
+          Inputs.Text.set_valid (SearchBar.bar version_search) true;
+          Inputs.Text.set_valid (SearchBar.bar deviser_search) true;
+          Inputs.Text.set_valid input_order true
         end)
       page
   in
