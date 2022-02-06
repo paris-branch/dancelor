@@ -7,6 +7,7 @@ let js = Js.string
 
 type t = {
   mutable name : string;
+  mutable alternative : string;
   mutable kind : string;
   mutable author : (Credit.t Slug.t * Credit.t) option;
   mutable scddb_id : string;
@@ -15,6 +16,7 @@ type t = {
 let create () =
 {
   name = "";
+  alternative = "";
   kind = "";
   author = None;
   scddb_id = "";
@@ -25,6 +27,12 @@ let name t =
 
 let set_name t name =
   t.name <- name
+
+let alternative t =
+  t.alternative
+
+let set_alternative t name =
+  t.alternative <- name
 
 let kind t =
   t.kind
@@ -53,12 +61,14 @@ let set_scddb_id t id =
 
 let clear t =
   t.name <- "";
+  t.alternative <- "";
   t.kind <- "";
   t.author <- None;
   t.scddb_id <- ""
 
 let submit t =
   let name = t.name in
+  let alternative_names = if t.alternative = "" then [] else [t.alternative] in
   let kind = Kind.base_of_string t.kind in
   let scddb_id =
     if t.scddb_id = "" then
@@ -71,4 +81,4 @@ let submit t =
         | Ok scddb_id -> Some scddb_id
         | Error _ -> None
   in
-  Tune.make_and_save ~name ~kind ?author:(author t) ?scddb_id ()
+  Tune.make_and_save ~name ~alternative_names ~kind ?author:(author t) ?scddb_id ()
