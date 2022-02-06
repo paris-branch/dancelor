@@ -13,6 +13,7 @@ type t =
   editor : TuneEditor.t;
   content : Html.divElement Js.t;
   input_name : Inputs.Text.t;
+  input_alternative : Inputs.Text.t;
   input_kind : Inputs.Text.t;
   author_search : SearchBar.t;
   input_scddb_id : Inputs.Text.t;
@@ -20,6 +21,7 @@ type t =
 
 let refresh t =
   Inputs.Text.set_contents t.input_name (TuneEditor.name t.editor);
+  Inputs.Text.set_contents t.input_alternative (TuneEditor.alternative t.editor);
   Inputs.Text.set_contents t.input_kind (TuneEditor.kind t.editor);
   begin match TuneEditor.author t.editor with
   | None -> Inputs.Text.set_contents (SearchBar.bar t.author_search) ""
@@ -78,6 +80,11 @@ let create ?on_save page =
     ~on_change:(fun name -> TuneEditor.set_name editor name)
     page
   in
+  let input_alternative = Inputs.Text.create
+    ~placeholder:"Alternative name, if any"
+    ~on_change:(fun name -> TuneEditor.set_alternative editor name)
+    page
+  in
   let input_kind = Inputs.Text.create
     ~placeholder:"Kind of the tune (J, P, R, S, W)"
     ~on_change:(fun kind -> TuneEditor.set_kind editor kind)
@@ -127,7 +134,7 @@ let create ?on_save page =
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
 
-  let t = {page; editor; content; input_name; input_kind; author_search; input_scddb_id} in
+  let t = {page; editor; content; input_name; input_alternative; input_kind; author_search; input_scddb_id} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
@@ -172,6 +179,8 @@ let create ?on_save page =
   Dom.appendChild submit (Inputs.Button.root clear);
 
   Dom.appendChild form (Inputs.Text.root input_name);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_alternative);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));

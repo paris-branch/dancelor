@@ -9,7 +9,9 @@ type t = {
   mutable bars : string;
   mutable key : string;
   mutable structure : string;
+  mutable arranger : (Credit.t Slug.t * Credit.t) option;
   mutable remark : string;
+  mutable disambiguation : string;
   mutable content : string;
 }
 
@@ -17,8 +19,10 @@ let create () = {
   tune = None;
   bars = "";
   key = "";
+  arranger = None;
   structure = "";
   remark = "";
+  disambiguation = "";
   content = ""
 }
 
@@ -34,6 +38,19 @@ let set_tune t slug =
 
 let remove_tune t =
   t.tune <- None
+
+let arranger t =
+  match t.arranger with
+  | None -> None
+  | Some (_, cr) -> Some cr
+
+let set_arranger t slug =
+  let%lwt arranger = Credit.get slug in
+  t.arranger <- Some (slug, arranger);
+  Lwt.return ()
+
+let remove_arranger t =
+  t.arranger <- None
 
 let bars t =
   t.bars
@@ -59,6 +76,12 @@ let remark t =
 let set_remark t r =
   t.remark <- r
 
+let disambiguation t =
+  t.disambiguation
+
+let set_disambiguation t dis =
+  t.disambiguation <- dis
+
 let content t =
   t.content
 
@@ -69,8 +92,10 @@ let clear t =
   t.tune <- None;
   t.bars <- "";
   t.key <- "";
+  t.arranger <- None;
   t.structure <- "";
   t.remark <- "";
+  t.disambiguation <- "";
   t.content <- ""
 
 let submit t =
@@ -80,7 +105,9 @@ let submit t =
   in
   let bars = int_of_string t.bars in
   let key = Music.key_of_string t.key in
+  let arranger = arranger t in
   let structure = t.structure in
   let remark = if t.remark = "" then None else Some t.remark in
+  let disambiguation = if t.disambiguation = "" then None else Some t.disambiguation in
   let content = t.content in
-  Version.make_and_save ~tune ~bars ~key ~structure ~content ?remark ()
+  Version.make_and_save ~tune ~bars ~key ~structure ?arranger ?remark ?disambiguation ~content ()
