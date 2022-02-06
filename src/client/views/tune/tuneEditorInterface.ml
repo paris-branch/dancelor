@@ -170,7 +170,10 @@ let create ?on_save page =
       ~on_click:(fun () ->
         if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
           TuneEditor.clear editor;
-          Page.refresh page
+          Page.refresh page;
+          Inputs.Text.set_valid input_name true;
+          Inputs.Text.set_valid input_kind true;
+          Inputs.Text.set_valid input_scddb_id true
         end)
       page
   in
