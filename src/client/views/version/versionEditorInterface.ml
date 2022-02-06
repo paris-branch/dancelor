@@ -257,7 +257,12 @@ let create page =
     ~on_click:(fun () ->
       if Html.window##confirm (js "Clear the version?") |> Js.to_bool then begin
         VersionEditor.clear editor;
-        refresh t
+        refresh t;
+        Inputs.Text.set_valid (SearchBar.bar t.tune_search) true;
+        Inputs.Text.set_valid input_bars true;
+        Inputs.Text.set_valid input_key true;
+        Inputs.Text.set_valid input_structure true;
+        Inputs.Textarea.set_valid input_content true
       end)
     page
   in
