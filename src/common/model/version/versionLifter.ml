@@ -6,6 +6,12 @@ module Lift
 = struct
   include VersionCore
 
-  let tune = tune >=>| Tune.get
-  let arranger = arranger >=>?| (Credit.get >=>| Lwt.return_some)
+  let tune version =
+    let%lwt tune_slug = tune version in
+    Tune.get tune_slug
+
+  let arranger tune =
+    let%optlwt arranger_slug = arranger tune in
+    let%lwt arranger = Credit.get arranger_slug in
+    Lwt.return_some arranger
 end
