@@ -49,9 +49,8 @@ let set_order t order =
   t.order <- order
 
 let deviser t =
-  match t.deviser with
-  | None -> None
-  | Some (_, cr) -> Some cr
+  let%opt (_, cr) = t.deviser in
+  Some cr
 
 let set_deviser t slug =
   let%lwt deviser = Credit.get slug in

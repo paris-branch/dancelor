@@ -13,9 +13,9 @@ let make
     ?display_name ?for_dance ?every_version ()
   =
   let%lwt for_dance =
-    match for_dance with
-    | None -> Lwt.return_none
-    | Some dance -> Dance.slug dance >>=| Lwt.return_some
+    let%optlwt dance = Lwt.return for_dance in
+    let%lwt dance = Dance.slug dance in
+    Lwt.return_some dance
   in
   Lwt.return (make ?instruments ?forced_pages ?show_deviser ?show_order
                 ?display_name ?for_dance ?every_version ())

@@ -21,10 +21,9 @@ let wrong_type expected provided =
   raise (WrongType (expected, provided))
 
 let get_string k p =
-  match get k p with
-  | Some (`String s) -> Some s
-  | Some j -> wrong_type "string" j
-  | None -> None
+  match%opt get k p with
+  | `String s -> Some s
+  | j -> wrong_type "string" j
 
 let to_list = Fun.id
 

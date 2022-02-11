@@ -77,13 +77,11 @@ module Ly = struct
   let get set query_parameters =
     let%lwt set = Set.get set in
     let%lwt parameters =
-      match QueryParameters.get "parameters" query_parameters with
-      | None -> Lwt.return_none
-      | Some parameters ->
-        parameters
-        |> SetParameters.of_yojson
-        |> Result.get_ok
-        |> Lwt.return_some
+      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      parameters
+      |> SetParameters.of_yojson
+      |> Result.get_ok
+      |> Lwt.return_some
     in
     let%lwt lilypond = render ?parameters set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
@@ -111,13 +109,11 @@ module Pdf = struct
   let get set query_parameters =
     let%lwt set = Set.get set in
     let%lwt parameters =
-      match QueryParameters.get "parameters" query_parameters with
-      | None -> Lwt.return_none
-      | Some parameters ->
-        parameters
-        |> SetParameters.of_yojson
-        |> Result.get_ok
-        |> Lwt.return_some
+      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      parameters
+      |> SetParameters.of_yojson
+      |> Result.get_ok
+      |> Lwt.return_some
     in
     let%lwt path_pdf = render ?parameters set in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()

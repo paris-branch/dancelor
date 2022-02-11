@@ -132,18 +132,16 @@ module Lift
       let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
       Lwt_list.filter_map_p
         (fun (set, parameters) ->
-           match SetParameters.for_dance parameters with
-           | None -> Lwt.return_none
-           | Some dance_slug ->
-             (* FIXME: SetParameters should be hidden behind the same kind of
-                mechanism as the rest; and this step should not be necessary *)
-             let%lwt dance = Dance.get dance_slug in
-             let%lwt dance_kind = DanceCore.kind dance in
-             let%lwt set_kind = SetCore.kind set in
-             if set_kind = dance_kind then
-               Lwt.return_none
-             else
-               Lwt.return_some (SetDanceMismatch (set, dance)))
+           let%optlwt dance_slug = Lwt.return (SetParameters.for_dance parameters) in
+           (* FIXME: SetParameters should be hidden behind the same kind of
+              mechanism as the rest; and this step should not be necessary *)
+           let%lwt dance = Dance.get dance_slug in
+           let%lwt dance_kind = DanceCore.kind dance in
+           let%lwt set_kind = SetCore.kind set in
+           if set_kind = dance_kind then
+             Lwt.return_none
+           else
+             Lwt.return_some (SetDanceMismatch (set, dance)))
         sets_and_parameters
 
     let all book =

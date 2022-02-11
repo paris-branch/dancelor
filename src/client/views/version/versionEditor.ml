@@ -27,9 +27,8 @@ let create () = {
 }
 
 let tune t =
-  match t.tune with
-  | None -> None
-  | Some (_, tune) -> Some tune
+  let%opt (_, tune) = t.tune in
+  Some tune
 
 let set_tune t slug =
   let%lwt tune = Tune.get slug in
@@ -40,9 +39,8 @@ let remove_tune t =
   t.tune <- None
 
 let arranger t =
-  match t.arranger with
-  | None -> None
-  | Some (_, cr) -> Some cr
+  let%opt (_, cr) = t.arranger in
+  Some cr
 
 let set_arranger t slug =
   let%lwt arranger = Credit.get slug in
