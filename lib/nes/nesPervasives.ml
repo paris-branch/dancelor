@@ -8,6 +8,8 @@ let aspf = Format.asprintf
 
 let ssf = Scanf.sscanf
 
+type 'a seq = 'a Seq.t
+
 let id = fun x -> x
 
 let in_channel_to_string ic =
@@ -53,14 +55,13 @@ let compare_or cmp1 cmp2 =
 let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
 let errors_fmt fmt = Format.kasprintf (fun s -> Error [s]) fmt
 
-let compare_slugs_or ~fallback slug x y =
-  let%lwt slug_x = slug x in
-  let%lwt slug_y = slug y in
-  if not (NesSlug.is_none slug_x) && not (NesSlug.is_none slug_y) then
-    Lwt.return (NesSlug.compare slug_x slug_y)
-  else
-    fallback x y
-
 let equal_from_compare cmp x y =
   let%lwt c = cmp x y in
   Lwt.return (c = 0)
+
+let rec first_non_zero ?(or_=0) = function
+  | [] -> or_
+  | first :: rest ->
+    match first () with
+    | 0 -> first_non_zero ~or_ rest
+    | n -> n

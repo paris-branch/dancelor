@@ -44,7 +44,7 @@ let remark tune = Lwt.return tune.remark
 let scddb_id tune = Lwt.return tune.scddb_id
 
 let compare =
-  compare_slugs_or
+  Slug.compare_slugs_or
     ~fallback:(fun tune1 tune2 ->
         Lwt.return (Stdlib.compare tune1 tune2))
     slug

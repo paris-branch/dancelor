@@ -16,7 +16,7 @@ let of_yojson _ = function
 let from_string string =
   if string = "" then
     raise (Invalid_argument "NesSlug.from_string");
-  let slug = Slug.slugify string in
+  let slug = NesString.slugify string in
   if slug = "" then
     Some "-"
   else
@@ -44,5 +44,12 @@ let to_string = function
 let pp fmt slug =
   Format.pp_print_string fmt (to_string slug)
 
-let slugify string = Slug.slugify string
 let unsafe_of_string str = Some str
+
+let compare_slugs_or ~fallback slug x y =
+  let%lwt slug_x = slug x in
+  let%lwt slug_y = slug y in
+  if not (is_none slug_x) && not (is_none slug_y) then
+    Lwt.return (compare slug_x slug_y)
+  else
+    fallback x y

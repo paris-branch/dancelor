@@ -59,7 +59,7 @@ let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
 
 let compare =
-  compare_slugs_or
+  Slug.compare_slugs_or
     ~fallback:(fun set1 set2 ->
         Lwt.return (Stdlib.compare set1 set2))
     slug
