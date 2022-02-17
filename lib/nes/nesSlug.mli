@@ -11,11 +11,19 @@ val equal : 'any t -> 'any t -> bool
 val compare : 'any t -> 'any t -> int
 
 val from_string : string -> 'any t
-(** Creates a slug from the given string. *)
+(** Creates a slug from the given string. This function fails with
+   [Invalid_argument _] if the given string is empty. The returned slug is never
+   [none]. *)
 
 val to_string : 'any t -> string
+(** Returns a string representing the slug. This function fails with [Failure _]
+   [none]. *)
 
 val pp : Format.formatter -> 'any t -> unit
+
+(** {2 Low-level and Unsafe} *)
+
+val slugify : string -> string
 
 val unsafe_of_string : string -> 'any t
 (** Take the given string as a slug as-is. Using [to_string] followed by
