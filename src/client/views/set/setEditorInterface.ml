@@ -191,14 +191,12 @@ let create page =
             Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
           page)
         ~search:(fun input ->
-            match CreditFilter.raw input with
-            | Ok formula ->
-              let%lwt results =
-                Credit.search ~threshold:0.4
-                  ~pagination:Pagination.{start = 0; end_ = 10} formula
-              in
-              Lwt.return_ok results
-            | Error err -> Lwt.return_error err)
+            let%rlwt formula = Lwt.return (CreditFilter.raw input) in
+            let%lwt results =
+              Credit.search ~threshold:0.4
+                ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results)
         ~make_result:(fun score -> make_deviser_search_result composer page score)
         page
     in
@@ -212,14 +210,12 @@ let create page =
     let main_section =
       SearchBar.Section.create
         ~search:(fun input ->
-            match VersionFilter.raw input with
-            | Ok formula ->
-              let%lwt results =
-                Version.search ~threshold:0.4
-                  ~pagination:Pagination.{start = 0; end_ = 10} formula
-              in
-              Lwt.return_ok results
-            | Error err -> Lwt.return_error err)
+            let%rlwt formula = Lwt.return (VersionFilter.raw input) in
+            let%lwt results =
+              Version.search ~threshold:0.4
+                ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results)
         ~make_result:(fun score -> make_version_search_result composer page score)
         page
     in

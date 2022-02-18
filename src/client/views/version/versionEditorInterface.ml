@@ -169,14 +169,12 @@ let create page =
             Table.Cell.text ~text:(Lwt.return "Create a new associated tune") page]
           page)
         ~search:(fun input ->
-          match TuneFilter.raw input with
-          | Ok formula ->
+            let%rlwt formula = Lwt.return (TuneFilter.raw input) in
             let%lwt results =
             Tune.search ~threshold:0.4
               ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
-            Lwt.return_ok results
-          | Error err -> Lwt.return_error err)
+            Lwt.return_ok results)
         ~make_result:(fun score -> make_tune_search_result editor page score)
         page
     in
@@ -202,14 +200,12 @@ let create page =
             Table.Cell.text ~text:(Lwt.return "Create a new arranger") page]
           page)
         ~search:(fun input ->
-          match CreditFilter.raw input with
-          | Ok formula ->
+            let%rlwt formula = Lwt.return (CreditFilter.raw input) in
             let%lwt results =
             Credit.search ~threshold:0.4
               ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
-            Lwt.return_ok results
-          | Error err -> Lwt.return_error err)
+            Lwt.return_ok results)
         ~make_result:(fun score -> make_arranger_search_result editor page score)
         page
     in
