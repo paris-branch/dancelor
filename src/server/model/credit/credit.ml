@@ -3,7 +3,7 @@ include CreditLifted
 
 let make_and_save ?status ~line ?persons ?scddb_id () =
   let%lwt persons =
-    let%optlwt persons = Lwt.return persons in
+    let%olwt persons = Lwt.return persons in
     let%lwt persons = Lwt_list.map_s Person.slug persons in
     Lwt.return_some persons
   in

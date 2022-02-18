@@ -77,7 +77,7 @@ module Ly = struct
   let get set query_parameters =
     let%lwt set = Set.get set in
     let%lwt parameters =
-      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
       parameters
       |> SetParameters.of_yojson
       |> Result.get_ok
@@ -109,7 +109,7 @@ module Pdf = struct
   let get set query_parameters =
     let%lwt set = Set.get set in
     let%lwt parameters =
-      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
       parameters
       |> SetParameters.of_yojson
       |> Result.get_ok

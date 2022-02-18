@@ -14,5 +14,5 @@ let mk_bind ~loc e f =
           | Some x -> f x) [%e f])]
 
 let () =
-  Ppx_monad.register "optlwt"
+  Ppx_monad.register "olwt"
     ~mk_return ~mk_bind

@@ -11,7 +11,7 @@ module Lift
     Tune.get tune_slug
 
   let arranger tune =
-    let%optlwt arranger_slug = arranger tune in
+    let%olwt arranger_slug = arranger tune in
     let%lwt arranger = Credit.get arranger_slug in
     Lwt.return_some arranger
 end

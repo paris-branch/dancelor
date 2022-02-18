@@ -13,5 +13,6 @@
    ppx_deriving.std
    ppx_inline_test
    ppx_monad.std
-   ppx_monad_optlwt))
+   ppx_monad_olwt
+   ppx_monad_rlwt))
  (inline_tests))

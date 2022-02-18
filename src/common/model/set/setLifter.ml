@@ -9,7 +9,7 @@ module Lift
   include SetCore
 
   let deviser set =
-    let%optlwt deviser_slug = deviser set in
+    let%olwt deviser_slug = deviser set in
     let%lwt deviser = Credit.get deviser_slug in
     Lwt.return_some deviser
 

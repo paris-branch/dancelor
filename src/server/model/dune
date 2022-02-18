@@ -11,4 +11,5 @@
   (pps
     lwt_ppx
     ppx_monad.std
-    ppx_monad_optlwt)))
+    ppx_monad_olwt
+    ppx_monad_rlwt)))

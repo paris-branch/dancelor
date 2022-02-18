@@ -1,5 +1,5 @@
 (library
- (name ppx_monad_optlwt)
+ (name ppx_monad_rlwt)
  (libraries ppx_monad)
  (preprocess (pps ppxlib.metaquot))
  (kind ppx_rewriter))

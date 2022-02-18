@@ -133,7 +133,7 @@ module Svg = struct
     Log.debug (fun m -> m "Version.Svg.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt parameters =
-      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
       parameters
       |> VersionParameters.of_yojson
       |> Result.get_ok
@@ -164,7 +164,7 @@ module Pdf = struct
     Log.debug (fun m -> m "Version.pdf.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt parameters =
-      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
       parameters
       |> VersionParameters.of_yojson
       |> Result.get_ok

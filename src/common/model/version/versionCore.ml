@@ -22,7 +22,7 @@ let make
   =
   let%lwt tune = TuneCore.slug tune in
   let%lwt arranger =
-    let%optlwt arranger = Lwt.return arranger in
+    let%olwt arranger = Lwt.return arranger in
     let%lwt arranger = CreditCore.slug arranger in
     Lwt.return_some arranger
   in

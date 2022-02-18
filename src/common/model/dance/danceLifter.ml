@@ -6,7 +6,7 @@ module Lift
   include DanceCore
 
   let deviser dance =
-    let%optlwt deviser_slug = deviser dance in
+    let%olwt deviser_slug = deviser dance in
     let%lwt deviser = Credit.get deviser_slug in
     Lwt.return_some deviser
 end

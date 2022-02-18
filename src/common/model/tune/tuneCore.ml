@@ -16,12 +16,12 @@ type t =
 
 let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id () =
   let%lwt author =
-    let%optlwt author = Lwt.return author in
+    let%olwt author = Lwt.return author in
     let%lwt author_slug = CreditCore.slug author in
     Lwt.return_some author_slug
   in
   let%lwt dances =
-    let%optlwt dances = Lwt.return dances in
+    let%olwt dances = Lwt.return dances in
     let%lwt dances =
       Lwt_list.map_s
         (fun dance ->

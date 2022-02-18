@@ -7,7 +7,7 @@ module Lift
   include TuneCore
 
   let author tune =
-    let%optlwt author_slug = author tune in
+    let%olwt author_slug = author tune in
     let%lwt author = Credit.get author_slug in
     Lwt.return_some author
 

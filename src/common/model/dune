@@ -16,7 +16,8 @@
    ppx_deriving_yojson
    ppx_deriving.std
    ppx_monad.std
-   ppx_monad_optlwt))
+   ppx_monad_olwt
+   ppx_monad_rlwt))
  (modules_without_implementation
    personSignature creditSignature danceSignature bookSignature
    anySignature setSignature tuneSignature versionSignature)

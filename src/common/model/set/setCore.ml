@@ -17,12 +17,12 @@ type t =
 
 let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
   let%lwt deviser =
-    let%optlwt deviser = Lwt.return deviser in
+    let%olwt deviser = Lwt.return deviser in
     let%lwt deviser = CreditCore.slug deviser in
     Lwt.return_some deviser
   in
   let%lwt versions_and_parameters =
-    let%optlwt versions_and_parameters = Lwt.return versions_and_parameters in
+    let%olwt versions_and_parameters = Lwt.return versions_and_parameters in
     let%lwt versions_and_parameters =
       Lwt_list.map_s
         (fun (version, parameters) ->
@@ -33,7 +33,7 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dan
     Lwt.return_some versions_and_parameters
   in
   let%lwt dances =
-    let%optlwt dances = Lwt.return dances in
+    let%olwt dances = Lwt.return dances in
     let%lwt dances = Lwt_list.map_p DanceCore.slug dances in
     Lwt.return_some dances
   in

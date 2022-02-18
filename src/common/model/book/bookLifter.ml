@@ -132,7 +132,7 @@ module Lift
       let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
       Lwt_list.filter_map_p
         (fun (set, parameters) ->
-           let%optlwt dance_slug = Lwt.return (SetParameters.for_dance parameters) in
+           let%olwt dance_slug = Lwt.return (SetParameters.for_dance parameters) in
            (* FIXME: SetParameters should be hidden behind the same kind of
               mechanism as the rest; and this step should not be necessary *)
            let%lwt dance = Dance.get dance_slug in

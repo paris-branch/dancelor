@@ -231,7 +231,7 @@ module Pdf = struct
   let get book query_parameters =
     let%lwt book = Book.get book in
     let%lwt parameters =
-      let%optlwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
       parameters
       |> BookParameters.of_yojson
       |> Result.get_ok
