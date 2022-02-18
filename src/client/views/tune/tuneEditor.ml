@@ -1,9 +1,6 @@
 open Nes
-open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
-
-let js = Js.string
 
 type t = {
   mutable name : string;

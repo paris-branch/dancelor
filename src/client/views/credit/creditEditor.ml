@@ -1,11 +1,6 @@
 open Nes
-open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
-
-module Html = Dom_html
-
-let js = Js.string
 
 type cached_person = {
   person : Person.t;
