@@ -16,6 +16,7 @@ type t =
   input_alternative : Inputs.Text.t;
   input_kind : Inputs.Text.t;
   author_search : SearchBar.t;
+  input_remark : Inputs.Text.t;
   input_scddb_id : Inputs.Text.t;
 }
 
@@ -30,6 +31,7 @@ let refresh t =
     Lwt.on_success name (fun name ->
       Inputs.Text.set_contents (SearchBar.bar t.author_search) name)
   end;
+  Inputs.Text.set_contents t.input_remark (TuneEditor.remark t.editor);
   Inputs.Text.set_contents t.input_scddb_id (TuneEditor.scddb_id t.editor)
 
 let make_author_modal editor content page =
@@ -90,6 +92,11 @@ let create ?on_save page =
     ~on_change:(fun kind -> TuneEditor.set_kind editor kind)
     page
   in
+  let input_remark = Inputs.Text.create
+    ~placeholder:"Additional remark about the tune, if any"
+    ~on_change:(fun str -> TuneEditor.set_remark editor str)
+    page
+  in
   let input_scddb_id = Inputs.Text.create
     ~placeholder:"Strathspey Database link or id (optional)"
     ~on_change:(fun id -> TuneEditor.set_scddb_id editor id)
@@ -132,7 +139,7 @@ let create ?on_save page =
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
 
-  let t = {page; editor; content; input_name; input_alternative; input_kind; author_search; input_scddb_id} in
+  let t = {page; editor; content; input_name; input_alternative; input_kind; author_search; input_remark; input_scddb_id} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
@@ -186,6 +193,8 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root author_search);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_remark);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_scddb_id);
   Dom.appendChild form (Html.createBr (Page.document page));
