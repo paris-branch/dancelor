@@ -183,34 +183,30 @@ let%test _ = escape ~chars:"\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\\
 let exists p s = to_seq s |> NesSeq.exists p
 let for_all p s = to_seq s |> NesSeq.for_all p
 
+let slugify ?sep string = Slug.slugify ?sep string
+
 module Sensible = struct
-
-  (* We would be tempted to define [equal] as [compare = 0]. But since compare
-     is sensible to prefix, it needs [equal] to be computed. *)
-  let equal s1 s2 =
-    NesSeq.for_all2 NesChar.Sensible.equal (to_seq s1) (to_seq s2)
-
-  (* FIXME: sensible comparison of string should also extract integers and
-     compare them numerically. *)
 
   let extract_prefix s =
     let prefixes = [ "a "; "the "; "la "; "le "; "les "; "l'" ] in
-    let has_prefix prefix = starts_with ~equal ~needle:prefix s in
+    let has_prefix prefix = starts_with ~needle:prefix s in
     match List.find_opt has_prefix prefixes with
     | None -> ("", s)
     | Some prefix -> split (length prefix) s
 
-  let%test _ = extract_prefix "A Case Apart" = ("A ", "Case Apart")
+  let%test _ = extract_prefix "tous les jours" = ("", "tous les jours")
+  let%test _ = extract_prefix "a case apart" = ("a ", "case apart")
   let%test _ = extract_prefix "les tests c'est chiant" = ("les ", "tests c'est chiant")
-  let%test _ = extract_prefix "L'abricot magique" = ("L'", "abricot magique")
+  let%test _ = extract_prefix "l'abricot magique" = ("l'", "abricot magique")
 
   let rec extract_head_number n s =
     match s() with
     | NesSeq.Cons(c, s') when NesChar.is_digit c ->
       extract_head_number (10 * n + int_of_char c) s'
     | _ -> (n, s)
+  let extract_head_number s = extract_head_number 0 s
 
-  let rec compare s1 s2 =
+  let rec compare (s1 : char seq) (s2 : char seq) =
     match s1(), s2() with
     | Seq.Nil, Seq.Nil -> 0
     | Nil, _ -> -1
@@ -218,20 +214,33 @@ module Sensible = struct
     | Cons(c1, s1'), Cons(c2, s2') ->
       if NesChar.is_digit c1 && NesChar.is_digit c2 then
         (
-          let (n1, s1') = extract_head_number 0 s1 in
-          let (n2, s2') = extract_head_number 0 s2 in
-          compare_or (Int.compare n1 n2) @@ fun () -> compare s1' s2'
+          let (n1, s1') = extract_head_number s1 in
+          let (n2, s2') = extract_head_number s2 in
+          first_non_zero [
+            (fun () -> Int.compare n1 n2);
+            (fun () -> compare s1' s2')
+          ]
         )
       else
-        compare_or (NesChar.Sensible.compare c1 c2) @@ fun () -> compare s1' s2'
+        first_non_zero [
+          (fun () -> NesChar.Sensible.compare c1 c2);
+          (fun () -> compare s1' s2');
+        ]
 
-  let compare s1 s2 =
-    compare (to_seq s1) (to_seq s2)
-
-  let compare s1 s2 =
+  let compare fs1 fs2 =
+    let s1 = slugify ~sep:" " fs1 in
+    let s2 = slugify ~sep:" " fs2 in
     let (p1, s1) = extract_prefix s1 in
     let (p2, s2) = extract_prefix s2 in
-    compare_or (compare s1 s2) @@ fun () -> compare p1 p2
+    first_non_zero [
+      (* compare the main string *)
+      (fun () -> compare (to_seq s1) (to_seq s2));
+      (* in case of equality, compare the prefixes *)
+      (fun () -> compare (to_seq p1) (to_seq p2));
+      (* in case of equality, fall back to low-level character comparison of the
+         initial strings *)
+      (fun () -> NesSeq.compare NesChar.Sensible.compare (to_seq fs1) (to_seq fs2));
+    ]
 end
 
 let compare_lengths s1 s2 =

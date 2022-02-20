@@ -13,35 +13,19 @@ let of_yojson _ = function
   | `Null -> Ok None
   | _ -> Error "NesSlug.of_yojson"
 
-let from_string str =
-  if str = "" then
+let from_string string =
+  if string = "" then
     raise (Invalid_argument "NesSlug.from_string");
-  let str = String.lowercase_ascii str in
-  let len = String.length str in
-  let out = Bytes.create len in
-  let j = ref 0 in
-  let last_letter = ref (-10) in
-  for i = 0 to len - 1 do
-    if ('a' <= str.[i] && str.[i] <= 'z') || ('0' <= str.[i] && str.[i] <= '9') then
-      (
-        Bytes.set out !j str.[i];
-        last_letter := !j;
-        incr j
-      )
-    else if !last_letter = !j - 1 then
-      (
-        Bytes.set out !j '-';
-        incr j
-      )
-  done;
-  if !last_letter < 0 then
+  let slug = NesString.slugify string in
+  if slug = "" then
     Some "-"
   else
-    Some (Bytes.sub_string out 0 (!last_letter+1))
+    Some slug
 
 let%test _ = from_string "Hello you, how are you?!" = Some "hello-you-how-are-you"
-let%test _ = from_string "<> My friend!" = Some "my-friend"
-let%test _ = from_string "*ù" = Some "-"
+let%test _ = from_string "<> My friend!" = Some "lessgreater-my-friend"
+let%test _ = from_string "*ù" = Some "u"
+let%test _ = from_string "*&&" = Some "andand"
 
 let equal slug1 slug2 =
   match slug1, slug2 with
@@ -61,3 +45,11 @@ let pp fmt slug =
   Format.pp_print_string fmt (to_string slug)
 
 let unsafe_of_string str = Some str
+
+let compare_slugs_or ~fallback slug x y =
+  let%lwt slug_x = slug x in
+  let%lwt slug_y = slug y in
+  if not (is_none slug_x) && not (is_none slug_y) then
+    Lwt.return (compare slug_x slug_y)
+  else
+    fallback x y
