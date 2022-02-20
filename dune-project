@@ -31,6 +31,7 @@
    ppx_deriving
    ppx_deriving_yojson
   (ppx_inline_test     (or :build :with-test))
+  (ppx_monad            :build)
   (yojson              (>= 1.6.0))))
 
 (using menhir 2.1)

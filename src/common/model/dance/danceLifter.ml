@@ -5,5 +5,8 @@ module Lift
 = struct
   include DanceCore
 
-  let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
+  let deviser dance =
+    let%olwt deviser_slug = deviser dance in
+    let%lwt deviser = Credit.get deviser_slug in
+    Lwt.return_some deviser
 end

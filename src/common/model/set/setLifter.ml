@@ -8,7 +8,10 @@ module Lift
 = struct
   include SetCore
 
-  let deviser = deviser >=>?| (Credit.get >=>| Lwt.return_some)
+  let deviser set =
+    let%olwt deviser_slug = deviser set in
+    let%lwt deviser = Credit.get deviser_slug in
+    Lwt.return_some deviser
 
   let versions_and_parameters set =
     let%lwt versions_and_parameters = versions_and_parameters set in
@@ -18,7 +21,9 @@ module Lift
          Lwt.return (version, parameters))
       versions_and_parameters
 
-  let dances = dances >=>| Lwt_list.map_p Dance.get
+  let dances set =
+    let%lwt dance_slugs = dances set in
+    Lwt_list.map_p Dance.get dance_slugs
 
   let warnings s =
     let warnings = ref [] in

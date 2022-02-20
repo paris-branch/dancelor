@@ -17,31 +17,25 @@ type t =
 
 let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
   let%lwt deviser =
-    match deviser with
-    | None -> Lwt.return_none
-    | Some deviser ->
-      let%lwt deviser = CreditCore.slug deviser in
-      Lwt.return_some deviser
+    let%olwt deviser = Lwt.return deviser in
+    let%lwt deviser = CreditCore.slug deviser in
+    Lwt.return_some deviser
   in
   let%lwt versions_and_parameters =
-    match versions_and_parameters with
-    | None -> Lwt.return_none
-    | Some versions_and_parameters ->
-      let%lwt versions_and_parameters =
-        Lwt_list.map_s
-          (fun (version, parameters) ->
-             let%lwt slug = VersionCore.slug version in
-             Lwt.return (slug, parameters))
-          versions_and_parameters
-      in
-      Lwt.return_some versions_and_parameters
+    let%olwt versions_and_parameters = Lwt.return versions_and_parameters in
+    let%lwt versions_and_parameters =
+      Lwt_list.map_s
+        (fun (version, parameters) ->
+           let%lwt slug = VersionCore.slug version in
+           Lwt.return (slug, parameters))
+        versions_and_parameters
+    in
+    Lwt.return_some versions_and_parameters
   in
   let%lwt dances =
-    match dances with
-    | None -> Lwt.return_none
-    | Some dances ->
-      let%lwt dances = Lwt_list.map_p DanceCore.slug dances in
-      Lwt.return_some dances
+    let%olwt dances = Lwt.return dances in
+    let%lwt dances = Lwt_list.map_p DanceCore.slug dances in
+    Lwt.return_some dances
   in
   Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters ~order ?dances ())
 

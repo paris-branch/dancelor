@@ -41,9 +41,8 @@ let set_kind t kind =
   t.kind <- kind
 
 let author t =
-  match t.author with
-  | None -> None
-  | Some (_, cr) -> Some cr
+  let%opt (_, cr) = t.author in
+  Some cr
 
 let set_author t slug =
   let%lwt author = Credit.get slug in
@@ -74,11 +73,7 @@ let submit t =
     if t.scddb_id = "" then
       None
     else
-      match int_of_string_opt t.scddb_id with
-      | Some scddb_id -> Some scddb_id
-      | None ->
-        match SCDDB.tune_from_uri t.scddb_id with
-        | Ok scddb_id -> Some scddb_id
-        | Error _ -> None
+      try%opt int_of_string_opt t.scddb_id
+      with _ -> Result.to_option (SCDDB.tune_from_uri t.scddb_id)
   in
   Tune.make_and_save ~name ~alternative_names ~kind ?author:(author t) ?scddb_id ()

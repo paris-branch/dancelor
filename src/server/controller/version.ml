@@ -133,13 +133,11 @@ module Svg = struct
     Log.debug (fun m -> m "Version.Svg.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt parameters =
-      match QueryParameters.get "parameters" query_parameters with
-      | None -> Lwt.return_none
-      | Some parameters ->
-        parameters
-        |> VersionParameters.of_yojson
-        |> Result.get_ok
-        |> Lwt.return_some
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      parameters
+      |> VersionParameters.of_yojson
+      |> Result.get_ok
+      |> Lwt.return_some
     in
     let%lwt path_svg = render ?parameters version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
@@ -166,13 +164,11 @@ module Pdf = struct
     Log.debug (fun m -> m "Version.pdf.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt parameters =
-      match QueryParameters.get "parameters" query_parameters with
-      | None -> Lwt.return_none
-      | Some parameters ->
-        parameters
-        |> VersionParameters.of_yojson
-        |> Result.get_ok
-        |> Lwt.return_some
+      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
+      parameters
+      |> VersionParameters.of_yojson
+      |> Result.get_ok
+      |> Lwt.return_some
     in
     let%lwt path_pdf = render ?parameters version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()

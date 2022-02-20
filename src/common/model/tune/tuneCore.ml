@@ -16,24 +16,20 @@ type t =
 
 let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id () =
   let%lwt author =
-    match author with
-    | None -> Lwt.return_none
-    | Some author ->
-      let%lwt author = CreditCore.slug author in
-      Lwt.return_some author
+    let%olwt author = Lwt.return author in
+    let%lwt author_slug = CreditCore.slug author in
+    Lwt.return_some author_slug
   in
   let%lwt dances =
-    match dances with
-    | None -> Lwt.return_none
-    | Some dances ->
-      let%lwt dances =
-        Lwt_list.map_s
-          (fun dance ->
-             let%lwt dance = DanceCore.slug dance in
-             Lwt.return dance)
-          dances
-      in
-      Lwt.return_some dances
+    let%olwt dances = Lwt.return dances in
+    let%lwt dances =
+      Lwt_list.map_s
+        (fun dance ->
+           let%lwt dance = DanceCore.slug dance in
+           Lwt.return dance)
+        dances
+    in
+    Lwt.return_some dances
   in
   Lwt.return (make ?status ~slug ~name ?alternative_names ~kind ~author ?dances ?remark ~scddb_id ())
 

@@ -22,11 +22,9 @@ let make
   =
   let%lwt tune = TuneCore.slug tune in
   let%lwt arranger =
-    match arranger with
-    | None -> Lwt.return_none
-    | Some arranger ->
-      let%lwt arranger = CreditCore.slug arranger in
-      Lwt.return_some arranger
+    let%olwt arranger = Lwt.return arranger in
+    let%lwt arranger = CreditCore.slug arranger in
+    Lwt.return_some arranger
   in
   Lwt.return (make ~slug ?status ~tune ~bars ~key ~structure
                 ~arranger ?remark ?disambiguation ?broken ())
