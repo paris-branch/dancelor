@@ -56,3 +56,22 @@ let add_menu_entry t name target =
   link##.textContent := Js.some (js name);
   link##.href := js target;
   Dom.appendChild t.menu entry
+
+let add_dropdown_menu_entry t name subentries =
+  let document = Page.document t.page in
+  let entry = Html.createLi document in
+  Dom.appendChild t.menu entry;
+  let entry_name = Html.createSpan document in
+  entry_name##.textContent := Js.some (js name);
+  Dom.appendChild entry entry_name;
+  let entry_ul = Html.createUl document in
+  Dom.appendChild entry entry_ul;
+  List.iter
+    (fun (name, target) ->
+       let subentry = Html.createLi document in
+       Dom.appendChild entry_ul subentry;
+       let subentry_link = Html.createA document in
+       Dom.appendChild subentry subentry_link;
+       subentry_link##.textContent := Js.some (js name);
+       subentry_link##.href := js target)
+    subentries
