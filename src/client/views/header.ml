@@ -48,18 +48,16 @@ let create page =
 let contents t =
   t.content
 
-let add_menu_entry t name target =
+let add_menu_entry t name href =
   Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
-      li ~classes:["entry"] [a ~href:target [text name]]
+      li [a ~href [text name]]
     ])
 
 let add_dropdown_menu_entry t name subentries =
   Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
-      li ~classes:["entry"] [
+      li [
         text (name ^ " ▾");
-        ul (List.map
-              (fun (name, target) ->
-                 li ~classes:["subentry"] [a ~href:target [text name]])
-              subentries)
+        ul ~classes:["subnav"]
+          (List.map (fun (name, href) -> li [a ~href [text name]]) subentries)
       ]
     ])
