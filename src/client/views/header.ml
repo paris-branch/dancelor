@@ -49,29 +49,17 @@ let contents t =
   t.content
 
 let add_menu_entry t name target =
-  let document = Page.document t.page in
-  let entry = Html.createLi document in
-  let link = Html.createA document in
-  Dom.appendChild entry link;
-  link##.textContent := Js.some (js name);
-  link##.href := js target;
-  Dom.appendChild t.menu entry
+  Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
+      li [ a ~href:target [ text name ] ]
+    ])
 
 let add_dropdown_menu_entry t name subentries =
-  let document = Page.document t.page in
-  let entry = Html.createLi document in
-  Dom.appendChild t.menu entry;
-  let entry_name = Html.createSpan document in
-  entry_name##.textContent := Js.some (js name);
-  Dom.appendChild entry entry_name;
-  let entry_ul = Html.createUl document in
-  Dom.appendChild entry entry_ul;
-  List.iter
-    (fun (name, target) ->
-       let subentry = Html.createLi document in
-       Dom.appendChild entry_ul subentry;
-       let subentry_link = Html.createA document in
-       Dom.appendChild subentry subentry_link;
-       subentry_link##.textContent := Js.some (js name);
-       subentry_link##.href := js target)
-    subentries
+  Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
+      li [
+        text name;
+        ul (List.map
+              (fun (name, target) ->
+                 li [ a ~href:target [ text name ] ])
+              subentries)
+      ]
+    ])
