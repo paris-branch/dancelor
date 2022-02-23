@@ -2,94 +2,117 @@ header {
   background: #960010;
   border-bottom: 1px solid black;
   margin-bottom: 20px;
-}
 
-header div.content > * {
-  vertical-align: middle;
-  line-height: 3rem;
-  display: inline-block;
+  /* All text in the header is non-selectable. */
+  user-select: none;
+
+  /* All text in the header is in white with no decorations, including links. */
   color: white;
-}
-
-header h1 {
-  font-size: 2rem;
-  font-weight: bolder;
-  letter-spacing: -0.04rem;
-  margin: 0;
-}
-
-header a {
-  color: white;
-  text-decoration: none;
-}
-
-header a:hover, header a:focus {
-  background: #b60008;
-  text-shadow: 0 0 .1rem #ffffff;
-}
-
-header a#to_nav {
-  font-size: 1.2rem;
-  padding-right: .5rem;
-  padding-left: .5rem;
-}
-
-header a#to_nav:hover, header a#to_nav:focus {
-  cursor: pointer;
-}
-
-header ul#nav {
-  clear: both;
-  display: none;
-}
-
-@media only screen and (max-width: 767px) {
-
-  header h1 {
-    margin-left: .5rem;
+  a {
+    color: white;
+    text-decoration: none;
   }
 
-  header ul#nav {
-    margin-bottom: .5rem;
+  /* Style of the main title. */
+  h1 {
+    font-size: 2rem;
+    font-weight: bolder;
+    letter-spacing: -0.04rem;
+    margin: 0;
   }
 
-  header ul#nav li {
-    line-height: 2rem;
-    width: 100%;
+  /* Hovering the links makes their background lighter and the text bigger. */
+  a:hover, a:focus {
+    background: #b60008;
+    text-shadow: 0 0 .1rem #ffffff;
   }
 
-  header ul#nav li a {
-    width: 100%;
-    padding-left: 1rem;
-    display: inline-block;
+  /**************************************************************************/
+  /* Desktop Style */
+  @media only screen and (min-width: 768px) {
+
+    /* All the header elements are high and aligned vertically. */
+    div.content > * {
+      line-height: 4.5rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* Hide the link to navigation (only useful in mobile style). */
+    a#to_nav {
+      display: none;
+    }
+
+    /* Send navigation to the right. */
+    ul#nav {
+      float: right;
+      display: inline-block;
+    }
+
+    /* Navigation elements float to the left with some space between them. The links
+       take all the vertical space they have (by being blocks). */
+    ul#nav > li {
+      float: left;
+      margin-left: 1.5rem;
+      a { display: block; }
+      position: relative;
+    }
+
+    /* Sub-navigation elements (aka dropdown menus) are hidden by default. They show
+       up vertically under their associated navigation element. */
+    ul.subnav {
+      display: none;
+      position: absolute;
+      background: #960010;
+      z-index: 99999;
+      padding: 0 1rem;
+      left: -1rem;
+      line-height: 2rem;
+      min-width: 4rem;
+    }
+
+    /* When a menu element is hovered, then we show the corresponding dropdown. */
+    li:hover ul.subnav {
+      display: block;
+    }
+  }
+
+  /**************************************************************************/
+  /* Mobile Style */
+  @media only screen and (max-width: 767px) {
+
+    div.content > * {
+      vertical-align: middle;
+      line-height: 3rem;
+      display: inline-block;
+      margin-left: .5rem;
+    }
+
+    a#to_nav {
+      font-size: 1.2rem;
+      padding: 0 .5rem;
+      margin: 0;
+    }
+
+    a#to_nav:hover, a#to_nav:focus {
+      cursor: pointer;
+    }
+
+    ul#nav {
+      clear: both;
+      display: none;
+      line-height: 2rem;
+    }
+
+    /* Subnavigation has an extra indentation. */
+    ul.subnav {
+      margin-left: 1rem;;
+    }
   }
 }
 
+/* In Desktop style, limit width and center. */
 @media only screen and (min-width: 768px) {
-
-  header div.content * {
-    line-height: 4.5rem;
-  }
-
-  header a#to_nav {
-    display: none;
-  }
-
-  header ul#nav {
-    float: right;
-    display: inline-block !important; /* important so that it outweights JS's style. */
-  }
-
-  header ul#nav li {
-    float: left;
-  }
-
-  header ul#nav li a {
-    padding-left: .5rem;
-    padding-right: .5rem;
-    display: inline-block;
-  }
-
   .content {
     width: 80%;
     margin: auto;

@@ -48,11 +48,16 @@ let create page =
 let contents t =
   t.content
 
-let add_menu_entry t name target =
-  let document = Page.document t.page in
-  let entry = Html.createLi document in
-  let link = Html.createA document in
-  Dom.appendChild entry link;
-  link##.textContent := Js.some (js name);
-  link##.href := js target;
-  Dom.appendChild t.menu entry
+let add_menu_entry t name href =
+  Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
+      li [a ~href [text name]]
+    ])
+
+let add_dropdown_menu_entry t name subentries =
+  Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
+      li [
+        text (name ^ " ▾");
+        ul ~classes:["subnav"]
+          (List.map (fun (name, href) -> li [a ~href [text name]]) subentries)
+      ]
+    ])
