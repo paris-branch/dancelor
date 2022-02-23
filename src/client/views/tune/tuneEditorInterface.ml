@@ -82,6 +82,27 @@ let make_dance_search_result editor page score =
   in
   Lwt.return row
 
+let make_dance_modal editor content page =
+  let modal_bg = Html.createDiv (Page.document page) in
+  let dance_modal = Html.createDiv (Page.document page) in
+  let interface =
+    DanceEditorInterface.create page
+      ~on_save:(fun slug ->
+        Page.remove_modal page modal_bg;
+        Dom.removeChild content modal_bg;
+        Lwt.on_success (TuneEditor.add editor slug) (fun () -> Page.refresh page))
+  in
+  Dom.appendChild dance_modal (DanceEditorInterface.contents interface);
+  dance_modal##.classList##add (js "modal-window");
+  modal_bg##.classList##add (js "modal-background");
+  Dom.appendChild modal_bg dance_modal;
+  Dom.appendChild content modal_bg;
+  Page.register_modal page
+    ~element:modal_bg
+    ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
+    ~on_refresh:(fun () -> DanceEditorInterface.refresh interface)
+    ~targets:[dance_modal]
+
 let make_author_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let credit_modal = Html.createDiv (Page.document page) in
@@ -155,6 +176,12 @@ let create ?on_save page =
   let dances_search =
     let main_section =
       SearchBar.Section.create
+        ~default:(Table.Row.create
+          ~on_click:(fun () -> make_dance_modal editor content page)
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "  +") page;
+            Table.Cell.text ~text:(Lwt.return "Create a new dance") page]
+          page)
         ~search:(fun input ->
           match DanceFilter.raw input with
           | Ok formula ->
