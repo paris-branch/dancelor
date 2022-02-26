@@ -146,6 +146,22 @@ let ul_lwt = node_lwt Dom_html.createUl
 let li = node Dom_html.createLi
 let li_lwt = node_lwt Dom_html.createLi
 
+let label = node Dom_html.createLabel
+let label_lwt = node_lwt Dom_html.createLabel
+
+type type_ = Checkbox
+
+let input ~type_ ?classes () document =
+  let type_ = match type_ with
+    | Checkbox -> "checkbox"
+  in
+  let input =
+    gen_node_lwt
+      (Dom_html.createInput ~_type:(Js.string type_))
+      ?classes Lwt.return_nil document
+  in
+  (input :> dom_node)
+
 let br document = (Dom_html.createBr document :> dom_node)
 let hr document = (Dom_html.createHr document :> dom_node)
 
