@@ -56,7 +56,7 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
 
 let check_ro_lock () =
   if Lwt_mutex.is_locked ro_lock then
-    Dancelor_common.Error.(lwt_fail StorageReadOnly)
+    Dancelor_common.Error.(lwt_fail `StorageReadOnly)
   else
     Lwt.return_unit
 

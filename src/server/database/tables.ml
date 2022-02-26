@@ -159,9 +159,9 @@ module Initialise = struct
            let%lwt problems = Table.list_dependency_problems ~version in
            (
              problems |> List.iter @@ function
-             | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
+             | `DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
-             | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
+             | `DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
              | _ -> ()
            );

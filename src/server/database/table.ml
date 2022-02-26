@@ -186,13 +186,13 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Boxed (dep_slug, (module Dep_table)) ->
       match%lwt Dep_table.get_status ~version dep_slug with
       | None ->
-        [Dancelor_common.Error.DependencyDoesNotExist((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
+        [`DependencyDoesNotExist((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
         |> Lwt.return
       | Some dep_status ->
         if Dancelor_common_model.Status.ge dep_status status then
           Lwt.return_nil
         else
-          [Dancelor_common.Error.DependencyViolatesStatus((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
+          [`DependencyViolatesStatus((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
           |> Lwt.return
 
   let list_dependency_problems ~version =
@@ -230,7 +230,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Some model ->
       Lwt.return model
     | None ->
-      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, Slug.to_string slug)))
+      Lwt.fail (Dancelor_common.Error.Exn (`EntityDoesNotExist (Model._key, Slug.to_string slug)))
 
   let get_all ?version () =
     get_table ?version ()
