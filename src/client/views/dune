@@ -18,6 +18,6 @@
   (pps
     lwt_ppx
     js_of_ocaml-ppx
-    ppx_monad.std
+    ppx_monad
     ppx_monad_olwt
     ppx_monad_rlwt)))
