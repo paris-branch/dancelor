@@ -40,7 +40,7 @@ let my_reporter () =
       then "ds." ^ String.remove_prefix_exn ~needle name
       else name
     in
-    Format.kfprintf k ppf ("@[<h 2>%s%s %s %s " ^^ fmt ^^ "\027[0m@]@.")
+    Format.kfprintf k ppf ("@[<h 2>%s%s %s %s | " ^^ fmt ^^ "\027[0m@]@.")
       (level_to_color level)
       time
       (level_to_string level)
