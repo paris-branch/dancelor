@@ -21,6 +21,11 @@ module Filesystem = NesFilesystem
 module Json = NesJson
 module Slug = NesSlug
 
+(* Monads *)
+
+module Olwt = NesOlwt
+module Rlwt = NesRlwt
+
 (* Syntax *)
 
 module Syntax = NesSyntax
