@@ -164,9 +164,16 @@ let main =
   @@ fun () ->
   read_configuration ();
   initialise_logs ();
-  initialise_database (); %lwt
+  initialise_database ();%rlwt
   check_init_only ();
   start_routines ();
-  run_server ()
+  run_server ();%lwt
+  Rlwt.return ()
+
+let main =
+  (* FIXME: handle errors in a clean way *)
+  match%lwt main with
+  | Ok main -> Lwt.return main
+  | Error _ -> assert false
 
 let () = Lwt_main.run main

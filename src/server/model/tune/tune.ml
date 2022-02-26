@@ -8,8 +8,12 @@ let make_and_save
     ?status ~name ?alternative_names
     ~kind ?author ?dances ?remark ?scddb_id ()
   =
-  Dancelor_server_database.Tune.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id ()
+  let%lwt tune =
+    Dancelor_server_database.Tune.save ~slug_hint:name @@ fun slug ->
+    make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id ()
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok tune)
 
 let () =
   Madge_server.(

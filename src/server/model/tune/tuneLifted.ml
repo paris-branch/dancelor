@@ -5,7 +5,10 @@ include TuneLifter.Lift(Credit)(Dance)
 module E = TuneEndpoints
 module A = E.Arguments
 
-let get = Dancelor_server_database.Tune.get
+let get slug =
+  let%lwt tune = Dancelor_server_database.Tune.get slug in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok tune)
 
 let () =
   Madge_server.(

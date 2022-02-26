@@ -1,3 +1,5 @@
+open Nes
+
 type t = [
   | `EntityDoesNotExist of string * string
   | `DependencyDoesNotExist of (string * string) * (string * string)
@@ -8,8 +10,6 @@ type t = [
 ]
 [@@deriving yojson]
 
-exception Exn of t
-
 let status = function
   | `EntityDoesNotExist _ -> `Not_found
   | `DependencyDoesNotExist _ -> `Internal_server_error
@@ -18,11 +18,14 @@ let status = function
   | `BadQuery _ -> `Bad_request
   | `Unexpected -> `Internal_server_error
 
+let entity_does_not_exist entity =
+  Rlwt.fail (`EntityDoesNotExist entity)
+
 let dependency_does_not_exist ~source ~dependency =
-  `DependencyDoesNotExist(source, dependency)
+  Rlwt.fail (`DependencyDoesNotExist(source, dependency))
 
 let dependency_violates_status ~source ~dependency =
-  `DependencyViolatesStatus(source, dependency)
+  Rlwt.fail (`DependencyViolatesStatus(source, dependency))
 
-let fail e = raise (Exn e)
-let lwt_fail e = Lwt.fail (Exn e)
+let storage_read_only () =
+  Rlwt.fail `StorageReadOnly

@@ -1,4 +1,5 @@
 open NesUnix
+
 module Log = (val Dancelor_server_logs.create "database.storage" : Logs.LOG)
 
 let prefix = Dancelor_server_config.database
@@ -56,9 +57,9 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
 
 let check_ro_lock () =
   if Lwt_mutex.is_locked ro_lock then
-    Dancelor_common.Error.(lwt_fail `StorageReadOnly)
+    Dancelor_common.Error.storage_read_only ()
   else
-    Lwt.return_unit
+    Rlwt.return ()
 
 let with_read_only f =
   (
@@ -71,9 +72,15 @@ let with_read_only f =
   Lwt_mutex.unlock ro_lock;
   Lwt.return y
 
-let with_locks (type a) (f : unit -> a Lwt.t) : a Lwt.t =
+(* The type is a clever thing: [f] may fail with [`StorageReadOnly] or more, and
+   this will be the return type of the [with_locks] call. This is a way to say
+   that [f] can fail with anything and the [with_locks] fails with anything or,
+   additionally, [`StorageReadOnly]. *)
+let with_locks (type a) (f : unit -> (a, [> `StorageReadOnly] as 'e) Rlwt.t)
+    : (a, 'e) Rlwt.t
+  =
   with_lock @@ fun () ->
-  check_ro_lock (); %lwt
+  check_ro_lock (); %rlwt
   f ()
 
 (* Lock is required for all functions that manipulate the filesystem directly. *)
@@ -84,27 +91,27 @@ let list_entries table =
   Filename.concat !prefix table
   |> Filesystem.read_directory
   |> List.filter (fun dir -> Filename.concat_l [!prefix; table; dir] |> Sys.is_directory)
-  |> Lwt.return
+  |> Rlwt.return
 
 let list_entry_files table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Listing entries in %s / %s" table entry);
   Filename.concat_l [!prefix; table; entry]
   |> Filesystem.read_directory
-  |> Lwt.return
+  |> Rlwt.return
 
 let read_entry_file table entry file =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
   Filename.concat_l [!prefix; table; entry; file]
   |> Filesystem.read_file
-  |> Lwt.return
+  |> Rlwt.return
 
 let read_entry_json table entry file =
   (* no lock because using read_entry_file *)
-  let%lwt content = read_entry_file table entry file in
+  let%rlwt content = read_entry_file table entry file in
   Json.from_string content
-  |> Lwt.return
+  |> Rlwt.return
 
 let write_entry_file table entry file content =
   with_locks @@ fun () ->
@@ -116,7 +123,7 @@ let write_entry_file table entry file content =
       let path = Filename.concat path file in
       Filesystem.write_file path content
     );
-  Lwt.return ()
+  Rlwt.return ()
 
 let write_entry_json table entry file content =
   (* no lock because using write_entry_file *)
@@ -133,7 +140,7 @@ let delete_entry table entry =
       |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
       Filesystem.remove_directory path
     );
-  Lwt.return_unit
+  Rlwt.return ()
 
 let save_changes_on_entry ~msg table entry =
   with_locks @@ fun () ->
@@ -144,10 +151,10 @@ let save_changes_on_entry ~msg table entry =
       let path = Filename.concat_l [(*!prefix;*) table; entry] in
       Git.add path; %lwt
       Git.commit ~msg; %lwt
-      Lwt.return_unit
+      Rlwt.return ()
     )
   else
-    Lwt.return_unit
+    Rlwt.return ()
 
 let sync_changes () =
   with_locks @@ fun () ->
@@ -156,7 +163,7 @@ let sync_changes () =
     (
       Git.pull_rebase (); %lwt
       Git.push (); %lwt
-      Lwt.return_unit
+      Rlwt.return ()
     )
   else
-    Lwt.return_unit
+    Rlwt.return ()
