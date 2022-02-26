@@ -25,6 +25,7 @@ module Slug = NesSlug
 
 module Olwt = NesOlwt
 module Rlwt = NesRlwt
+module Rlwt_list = NesRlwt_list
 
 (* Syntax *)
 
