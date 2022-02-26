@@ -55,6 +55,40 @@ module Toggle = struct
 
 end
 
+module Switch = struct
+  type root = Html.labelElement
+
+  type t = {
+    page : Page.t;
+    root : root Js.t;
+    input : Html.inputElement Js.t
+  }
+
+  let create ~id ~on_change page =
+    let root = Html.createLabel (Page.document page) in
+    root##.classList##add (js "switch");
+    root##.htmlFor := js id;
+    let box = Html.createSpan (Page.document page) in
+    box##.classList##add (js "box");
+    Dom.appendChild root box;
+    let input = Html.createInput ~_type:(js "checkbox") (Page.document page) in
+    input##.id := js id;
+    let slider = Html.createSpan (Page.document page) in
+    slider##.classList##add (js "slider");
+    Dom.appendChild box input;
+    Dom.appendChild box slider;
+    Lwt.async (fun () ->
+        Lwt_js_events.changes box @@ fun _ev _ ->
+        on_change (Js.to_bool input##.checked);
+        Lwt.return_unit);
+    {page; root; input}
+
+  let disable t = t.input##.disabled := Js._true
+  let enable t = t.input##.disabled := Js._false
+  let checked t = t.input##.checked
+  let root t = t.root
+end
+
 module Text = struct
 
   type root = Html.inputElement
