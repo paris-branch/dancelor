@@ -8,6 +8,13 @@ let create unit =
   let src = Logs.Src.create ("dancelor.server." ^ unit) in
   Logs.src_log src
 
+let level_to_string = function
+  | Logs.Debug -> "DBG"
+  | Info -> "INF"
+  | Warning -> "WRN"
+  | Error -> "ERR"
+  | App -> "APP"
+
 let level_to_color = function
   | Logs.Debug -> "\027[37m" (* gray *)
   | Info -> ""               (* white *)
@@ -21,12 +28,23 @@ let my_reporter () =
     msgf @@ fun ?header ?tags fmt ->
     ignore tags; ignore header;
     let ppf = Format.err_formatter in
-    let open Unix in
-    let tm = Unix.(gettimeofday () |> localtime) in
-    Format.kfprintf k ppf ("@[<h 2>%s%04d-%02d-%02d %02d:%02d:%02d | %s | %s | " ^^ fmt ^^ "\027[0m@]@.")
+    let time =
+      let open Unix in
+      let tm = (gettimeofday () |> localtime) in
+      spf "%02d:%02d:%02d" tm.tm_hour tm.tm_min tm.tm_sec
+    in
+    let name =
+      let name = Logs.Src.name src in
+      let needle = "dancelor.server." in
+      if String.starts_with ~needle name
+      then "ds." ^ String.remove_prefix_exn ~needle name
+      else name
+    in
+    Format.kfprintf k ppf ("@[<h 2>%s%s %s %s " ^^ fmt ^^ "\027[0m@]@.")
       (level_to_color level)
-      (1900+tm.tm_year) (1+tm.tm_mon) tm.tm_mday tm.tm_hour tm.tm_min tm.tm_sec
-      (String.uppercase_ascii (Logs.level_to_string (Some level))) (Logs.Src.name src)
+      time
+      (level_to_string level)
+      name
   in
   { Logs.report }
 
