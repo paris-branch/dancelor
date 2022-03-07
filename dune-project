@@ -10,7 +10,7 @@
 (maintainers
   "Nicolas “Niols” Jeannerod <niols@niols.fr>")
 
-(license GPL3)
+(license GPL-3.0-or-later)
 
 (package
  (name dancelor)
