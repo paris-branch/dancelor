@@ -7,7 +7,6 @@ default:
 
 stages:
   - base
-  - deps
   - build
   - test
 
@@ -18,7 +17,7 @@ base:
     - docker build -t dancelor_base - < docker/base.dockerfile
 
 deps:
-  stage: deps
+  stage: base
   needs: [base]
   script:
     - docker build -t dancelor_deps -f docker/deps.dockerfile .
