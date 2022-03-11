@@ -46,6 +46,12 @@ test:
   script:
     - docker run dancelor_build opam exec -- make test
 
+test-indent:
+  stage: test
+  needs: [base]
+  script:
+    - docker build -t dancelor_indent -f docker/test/indent.dockerfile .
+
 test-opam-lint:
   stage: test
   needs: [deps]
