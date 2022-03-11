@@ -19,8 +19,9 @@ release:
 
 docker:
 	docker build -t dancelor_base - < docker/base.dockerfile
+	docker build -t dancelor_files -f docker/files.dockerfile .
 	docker build -t dancelor_deps  -f docker/deps.dockerfile .
-	docker build -t dancelor       -f docker/build.dockerfile .
+	docker build -t dancelor_build -f docker/build.dockerfile .
 
 doc:
 	dune build $(DUNEJOBSARG) @doc
