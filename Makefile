@@ -22,9 +22,11 @@ docker:
 	docker build -t dancelor_deps  -f docker/deps.dockerfile .
 	docker build -t dancelor_build -f docker/build.dockerfile .
 
+## FIXME: enable the indent test once the repository is ready.
 docker-test:
 	docker build -t dancelor_files -f docker/files.dockerfile .
 	docker build - < docker/test/test.dockerfile
+	docker build - < docker/test/indent.dockerfile || true
 	docker build - < docker/test/opam-lint.dockerfile
 	docker build - < docker/test/opam-diff.dockerfile
 

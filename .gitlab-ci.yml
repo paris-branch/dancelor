@@ -51,6 +51,13 @@ test:
   script:
     - docker build - < docker/test/test.dockerfile
 
+## FIXME: enable this test once the repository is ready.
+test-indent:
+  stage: test
+  needs: [files]
+  script:
+    - docker build - < docker/test/indent.dockerfile || true
+
 test-opam-lint:
   stage: test
   needs: [files]
