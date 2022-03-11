@@ -1,4 +1,4 @@
-.PHONY: build doc release test local dev serve init-only check-tunes clean
+.PHONY: build docker doc release test local dev serve init-only check-tunes clean
 
 build:
 	cd share/static/style && sassc style.scss ../style.css
@@ -11,6 +11,11 @@ release:
 	dune build --profile=release @install
 	ln -sf _build/install/default/bin .
 	ln -sf ../../_build/install/default/share/dancelor share/static/
+
+docker:
+	docker build -t dancelor_base - < docker/base.dockerfile
+	docker build -t dancelor_deps  -f docker/deps.dockerfile .
+	docker build -t dancelor       -f docker/build.dockerfile .
 
 doc:
 	dune build @doc
