@@ -1,4 +1,4 @@
-FROM ocaml/opam
+FROM ocaml/opam:debian-10-ocaml-4.12
 
 USER root
 
@@ -13,3 +13,8 @@ RUN ln -sf /usr/bin/opam-2.1 /usr/bin/opam
 ## to be the case.
 
 USER opam
+
+ARG JOBS=2
+
+ENV OPAMJOBS=$JOBS
+ENV DUNEJOBS=$JOBS
