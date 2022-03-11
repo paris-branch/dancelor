@@ -13,7 +13,7 @@ stages:
 
 base:
   stage: base
-  dependencies: []
+  needs: []
   script:
     - docker build -t dancelor_base - < docker/base.dockerfile
 
@@ -40,32 +40,26 @@ build-doc:
     paths:
       - documentation.tar.gz
 
+files:
+  stage: base
+  needs: [base]
+  script:
+    - docker build -t dancelor_files -f docker/files.dockerfile .
+
 test:
   stage: test
   needs: [build]
   script:
-    - docker run dancelor_build opam exec -- make test
+    - docker build - < docker/test/test.dockerfile
 
 test-opam-lint:
   stage: test
-  needs: [deps]
+  needs: [files]
   script:
-    - docker run dancelor_deps sh -c '
-        if [ -n "$(opam lint --short)" ]; then
-          opam lint;
-          exit 1;
-        fi'
+    - docker build - < docker/test/opam-lint.dockerfile
 
 test-opam-diff:
   stage: test
   needs: [build]
   script:
-    - docker run --cidfile build.cid dancelor_build true
-    - find . -name '*.opam' | while read file; do
-        docker cp $(cat build.cid):/home/opam/"$file" "$file";
-        if ! git diff --quiet "$file"; then
-          echo "/home/opam/$file differs before and after build:";
-          git diff --color "$file";
-          exit 1;
-        fi;
-      done
+    - docker build - < docker/test/opam-diff.dockerfile
