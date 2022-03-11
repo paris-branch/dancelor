@@ -1,4 +1,4 @@
-.PHONY: build docker doc release test local dev serve init-only check-tunes clean
+.PHONY: build docker docker-test doc release test local dev serve init-only check-tunes clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -19,9 +19,14 @@ release:
 
 docker:
 	docker build -t dancelor_base - < docker/base.dockerfile
-	docker build -t dancelor_files -f docker/files.dockerfile .
 	docker build -t dancelor_deps  -f docker/deps.dockerfile .
 	docker build -t dancelor_build -f docker/build.dockerfile .
+
+docker-test:
+	docker build -t dancelor_files -f docker/files.dockerfile .
+	docker build - < docker/test/test.dockerfile
+	docker build - < docker/test/opam-lint.dockerfile
+	docker build - < docker/test/opam-diff.dockerfile
 
 doc:
 	dune build $(DUNEJOBSARG) @doc
