@@ -12,6 +12,9 @@ RUN ln -sf /usr/bin/opam-2.1 /usr/bin/opam
 ## starting. It is supposed to read `~/.profile` but somehow that does not seem
 ## to be the case.
 
+WORKDIR /wd
+RUN chown -R opam:opam /wd
+
 USER opam
 
 ARG JOBS=2

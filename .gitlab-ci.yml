@@ -33,7 +33,7 @@ build-doc:
   needs: [build]
   script:
     - docker run --cidfile build-doc.cid dancelor_build opam exec -- make doc
-    - docker cp --follow-link $(cat build-doc.cid):/home/opam/doc documentation
+    - docker cp --follow-link $(cat build-doc.cid):/wd/doc documentation
     - tar cf documentation.tar.gz documentation
   artifacts:
     paths:
