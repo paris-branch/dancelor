@@ -1,0 +1,77 @@
+# .gitlab-ci.yml
+
+## Run on the Shell executor specifically
+##
+default:
+  tags: [shell]
+
+stages:
+  - base
+  - deps
+  - build
+  - test
+
+base:
+  stage: base
+  dependencies: []
+  script:
+    - docker build -t dancelor_base - < docker/base.dockerfile
+
+deps:
+  stage: deps
+  needs: [base]
+  script:
+    - docker build -t dancelor_deps -f docker/deps.dockerfile .
+
+build:
+  stage: build
+  needs: [deps]
+  script:
+    - docker build -t dancelor_build -f docker/build.dockerfile .
+
+build-doc:
+  stage: build
+  needs: [build]
+  script:
+    - docker run --cidfile build-doc.cid dancelor_build opam exec -- make doc
+    - docker cp --follow-link $(cat build-doc.cid):/home/opam/doc documentation
+    - tar cf documentation.tar.gz documentation
+  artifacts:
+    paths:
+      - documentation.tar.gz
+
+test:
+  stage: test
+  needs: [build]
+  script:
+    - docker run dancelor_build opam exec -- make test
+
+test-indent:
+  stage: test
+  needs: [base]
+  script:
+    - docker build -t dancelor_indent -f docker/test/indent.dockerfile .
+
+test-opam-lint:
+  stage: test
+  needs: [deps]
+  script:
+    - docker run dancelor_deps sh -c '
+        if [ -n "$(opam lint --short)" ]; then
+          opam lint;
+          exit 1;
+        fi'
+
+test-opam-diff:
+  stage: test
+  needs: [build]
+  script:
+    - docker run --cidfile build.cid dancelor_build true
+    - find . -name '*.opam' | while read file; do
+        docker cp $(cat build.cid):/home/opam/"$file" "$file";
+        if ! git diff --quiet "$file"; then
+          echo "/home/opam/$file differs before and after build:";
+          git diff --color "$file";
+          exit 1;
+        fi;
+      done
