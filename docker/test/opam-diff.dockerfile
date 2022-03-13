@@ -1,4 +1,7 @@
-FROM dancelor_build
+FROM dancelor_files
+
+## Dirty way to build only the OPAM files.
+RUN dune build || true
 
 RUN find . -name '*.opam' | while read -r file; do \
       if ! git diff --quiet "$file"; then \

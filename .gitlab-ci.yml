@@ -66,6 +66,6 @@ test-opam-lint:
 
 test-opam-diff:
   stage: test
-  needs: [build]
+  needs: [files]
   script:
     - docker build - < docker/test/opam-diff.dockerfile
