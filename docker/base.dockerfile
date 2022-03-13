@@ -17,7 +17,8 @@ RUN chown -R opam:opam /wd
 
 USER opam
 
-ARG JOBS=2
+RUN opam install --yes dune ocp-indent
 
+ARG JOBS=2
 ENV OPAMJOBS=$JOBS
 ENV DUNEJOBS=$JOBS

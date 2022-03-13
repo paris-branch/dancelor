@@ -1,7 +1,5 @@
 FROM dancelor_files
 
-RUN opam install --yes ocp-indent
-
 ## Find all files not in a .git directory that end in .ml or .mli and run
 ## `ocp-indent` on them. We do not run `ocp-indent` only .mll and .mly files
 ## because it tends to butcher them.
