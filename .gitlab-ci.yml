@@ -1,0 +1,70 @@
+# .gitlab-ci.yml
+
+## Run on the Shell executor specifically
+##
+default:
+  tags: [shell]
+
+stages:
+  - base
+  - build
+  - test
+
+base:
+  stage: base
+  needs: []
+  script:
+    - docker build -t dancelor_base - < docker/base.dockerfile
+
+deps:
+  stage: base
+  needs: [base]
+  script:
+    - docker build -t dancelor_deps -f docker/deps.dockerfile .
+
+build:
+  stage: build
+  needs: [deps]
+  script:
+    - docker build -t dancelor_build -f docker/build.dockerfile .
+
+build-doc:
+  stage: build
+  needs: [build]
+  script:
+    - docker run --cidfile build-doc.cid dancelor_build opam exec -- make doc
+    - docker cp --follow-link $(cat build-doc.cid):/wd/doc documentation
+  artifacts:
+    paths:
+      - documentation
+
+files:
+  stage: base
+  needs: [base]
+  script:
+    - docker build -t dancelor_files -f docker/files.dockerfile .
+
+test:
+  stage: test
+  needs: [build]
+  script:
+    - docker build - < docker/test/test.dockerfile
+
+## FIXME: enable this test once the repository is ready.
+test-indent:
+  stage: test
+  needs: [files]
+  script:
+    - docker build - < docker/test/indent.dockerfile || true
+
+test-opam-lint:
+  stage: test
+  needs: [files]
+  script:
+    - docker build - < docker/test/opam-lint.dockerfile
+
+test-opam-diff:
+  stage: test
+  needs: [files]
+  script:
+    - docker build - < docker/test/opam-diff.dockerfile
