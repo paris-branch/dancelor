@@ -64,13 +64,17 @@ module Switch = struct
     input : Html.inputElement Js.t
   }
 
-  let create ~id ~on_change page =
+  let create ?(text_before="") ?(text_after="") ~id ~on_change page =
     let root = Html.createLabel (Page.document page) in
     root##.classList##add (js "switch");
     root##.htmlFor := js id;
+    let text_before = (Page.document page)##createTextNode (Js.string text_before) in
+    let text_after = (Page.document page)##createTextNode (Js.string text_after) in
     let box = Html.createSpan (Page.document page) in
     box##.classList##add (js "box");
+    Dom.appendChild root text_before;
     Dom.appendChild root box;
+    Dom.appendChild root text_after;
     let input = Html.createInput ~_type:(js "checkbox") (Page.document page) in
     input##.id := js id;
     let slider = Html.createSpan (Page.document page) in
