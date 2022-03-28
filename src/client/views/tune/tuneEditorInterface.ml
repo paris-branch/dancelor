@@ -290,7 +290,6 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root author_search);
-  Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form dances_area;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root dances_search);
