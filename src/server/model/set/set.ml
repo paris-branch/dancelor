@@ -5,8 +5,12 @@ module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
-  Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
+  let%lwt set =
+    Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
+    make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok set)
 
 let () =
   Madge_server.(
@@ -23,8 +27,12 @@ let () =
   )
 
 let delete s =
-  let%lwt slug = slug s in
-  Dancelor_server_database.Set.delete slug
+  let%lwt unit =
+    let%lwt slug = slug s in
+    Dancelor_server_database.Set.delete slug
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok unit)
 
 let () =
   Madge_server.(

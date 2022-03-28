@@ -7,8 +7,12 @@ let make_and_save ?status ~line ?persons ?scddb_id () =
     let%lwt persons = Lwt_list.map_s Person.slug persons in
     Lwt.return_some persons
   in
-  Dancelor_server_database.Credit.save ~slug_hint:line @@ fun slug ->
-  Lwt.return (make ?status ~slug ~line ?persons ~scddb_id ()) (* FIXME: status should probably go in save *)
+  let%lwt credit =
+    Dancelor_server_database.Credit.save ~slug_hint:line @@ fun slug ->
+    Lwt.return (make ?status ~slug ~line ?persons ~scddb_id ()) (* FIXME: status should probably go in save *)
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok credit)
 
 let () =
   Madge_server.(

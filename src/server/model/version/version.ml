@@ -14,8 +14,14 @@ let make_and_save
     make ~slug ?status ~tune ~bars ~key ~structure
       ?arranger ?remark ?disambiguation ?broken ()
   in
-  Dancelor_server_database.Version.write_content version content;%lwt
-  Lwt.return version
+  (* FIXME: keep propagating instead of failing *)
+  let version = Result.get_ok version in
+  let%lwt version =
+    Dancelor_server_database.Version.write_content version content;%rlwt
+    Rlwt.return version
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok version)
 
 let () =
   Madge_server.(
@@ -89,8 +95,12 @@ let () =
   )
 
 let mark_fixed version =
-  let%lwt version = set_broken version false in
-  Dancelor_server_database.Version.update version
+  let%lwt unit =
+    let%lwt version = set_broken version false in
+    Dancelor_server_database.Version.update version
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok unit)
 
 let () =
   Madge_server.(
@@ -99,8 +109,12 @@ let () =
   )
 
 let mark_broken version =
-  let%lwt version = set_broken version true in
-  Dancelor_server_database.Version.update version
+  let%lwt unit =
+    let%lwt version = set_broken version true in
+    Dancelor_server_database.Version.update version
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok unit)
 
 let () =
   Madge_server.(

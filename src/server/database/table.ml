@@ -41,7 +41,7 @@ module type S = sig
   val create_version : version:Version.t -> unit
   val delete_version : version:Version.t -> unit
 
-  val load_version : version:Version.t -> unit Lwt.t
+  val load_version : version:Version.t -> (unit, [> `StorageReadOnly]) Rlwt.t
   val list_dependency_problems : version:Version.t -> Dancelor_common.Error.t list Lwt.t
   val report_without_accesses : version:Version.t -> unit (* FIXME *)
 
@@ -53,7 +53,7 @@ module type S = sig
      table. The following functions can either specify a specific version or use
      the default one. *)
 
-  val get : ?version:Version.t -> value Slug.t -> value Lwt.t
+  val get : ?version:Version.t -> value Slug.t -> (value, [> `EntityDoesNotExist of string * string]) Rlwt.t
   val get_opt : ?version:Version.t -> value Slug.t -> value option Lwt.t
   val get_all : ?version:Version.t -> unit -> value list Lwt.t
 
@@ -62,12 +62,12 @@ module type S = sig
   (* The next functions only work for the default version as they include
      writing on the disk. *)
 
-  val save : slug_hint:string -> (value Slug.t -> value Lwt.t) -> value Lwt.t
-  val update: value -> unit Lwt.t
-  val delete : value Slug.t -> unit Lwt.t
+  val save : slug_hint:string -> (value Slug.t -> value Lwt.t) -> (value, [> `StorageReadOnly]) Rlwt.t
+  val update: value -> (unit, [> `StorageReadOnly]) Rlwt.t
+  val delete : value Slug.t -> (unit, [> `StorageReadOnly]) Rlwt.t
 
-  val read_separated_file : value -> string -> string Lwt.t
-  val write_separated_file : value -> string -> string -> unit Lwt.t
+  val read_separated_file : value -> string -> (string, [> `StorageReadOnly]) Rlwt.t
+  val write_separated_file : value -> string -> string -> (unit, [> `StorageReadOnly]) Rlwt.t
 
   (* Logging *)
 
@@ -151,19 +151,19 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let load_version ~version =
     let table = get_table ~version () in
     let load entry =
-      let%lwt json = Storage.read_entry_json Model._key entry "meta.json" in
+      let%rlwt json = Storage.read_entry_json Model._key entry "meta.json" in
       let json = Json.add_field "slug" (`String entry) json in
       match Model.of_yojson json with
       | Ok model ->
         let%lwt slug = Model.slug model in
         Hashtbl.add table slug (Stats.empty (), model);
-        Lwt.return ()
+        Rlwt.return ()
       | Error msg ->
         Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.json" msg);
         exit 1
     in
-    let%lwt entries = Storage.list_entries Model._key in
-    Lwt_list.iter_s load entries
+    let%rlwt entries = Storage.list_entries Model._key in
+    Rlwt_list.iter load entries
 
   let get_opt ?version slug =
     let table = get_table ?version () in
@@ -186,13 +186,13 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Boxed (dep_slug, (module Dep_table)) ->
       match%lwt Dep_table.get_status ~version dep_slug with
       | None ->
-        [Dancelor_common.Error.DependencyDoesNotExist((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
+        [`DependencyDoesNotExist((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
         |> Lwt.return
       | Some dep_status ->
         if Dancelor_common_model.Status.ge dep_status status then
           Lwt.return_nil
         else
-          [Dancelor_common.Error.DependencyViolatesStatus((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
+          [`DependencyViolatesStatus((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
           |> Lwt.return
 
   let list_dependency_problems ~version =
@@ -228,9 +228,9 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let get ?version slug =
     match%lwt get_opt ?version slug with
     | Some model ->
-      Lwt.return model
+      Rlwt.return model
     | None ->
-      Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, Slug.to_string slug)))
+      Dancelor_common.Error.entity_does_not_exist (Model._key, Slug.to_string slug)
 
   let get_all ?version () =
     get_table ?version ()
@@ -266,34 +266,34 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %lwt
+    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %rlwt
     Storage.save_changes_on_entry
       ~msg:(spf "save %s / %s" Model._key (Slug.to_string slug))
-      Model._key (Slug.to_string slug); %lwt
+      Model._key (Slug.to_string slug);%rlwt
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
-    Lwt.return model
+    Rlwt.return model
 
   let update model =
     let table = get_table () in
     let%lwt slug = Model.slug model in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %lwt
+    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json; %rlwt
     Storage.save_changes_on_entry
       ~msg:(spf "update %s / %s" Model._key (Slug.to_string slug))
-      Model._key (Slug.to_string slug); %lwt
+      Model._key (Slug.to_string slug);%rlwt
     (* FIXME: Make more robust and maybe update stats*)
     Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
-    Lwt.return_unit
+    Rlwt.return ()
 
   let delete slug =
     let table = get_table () in
-    Storage.delete_entry Model._key (Slug.to_string slug); %lwt
+    Storage.delete_entry Model._key (Slug.to_string slug); %rlwt
     Storage.save_changes_on_entry
       ~msg:(spf "delete %s / %s" Model._key (Slug.to_string slug))
-      Model._key (Slug.to_string slug); %lwt
+      Model._key (Slug.to_string slug);%rlwt
     Hashtbl.remove table slug;
-    Lwt.return_unit
+    Rlwt.return ()
 
   let read_separated_file model file =
     let%lwt slug = Model.slug model in
@@ -301,7 +301,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   let write_separated_file model file content =
     let%lwt slug = Model.slug model in
-    Storage.write_entry_file Model._key (Slug.to_string slug) file content;%lwt
+    Storage.write_entry_file Model._key (Slug.to_string slug) file content;%rlwt
     Storage.save_changes_on_entry
       ~msg:(spf "save %s / %s" Model._key (Slug.to_string slug))
       Model._key (Slug.to_string slug)

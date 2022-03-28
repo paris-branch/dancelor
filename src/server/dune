@@ -9,7 +9,9 @@
  (preprocess
   (pps
    lwt_ppx
-   ppx_deriving.std))
+   ppx_deriving.std
+   ppx_monad_olwt
+   ppx_monad_rlwt))
  (modules :standard \ dancelor_server_logs dancelor_server_config))
 
 (library

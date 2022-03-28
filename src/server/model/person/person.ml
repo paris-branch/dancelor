@@ -5,8 +5,12 @@ module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
 
 let make_and_save ?status ~name () =
-  Dancelor_server_database.Person.save ~slug_hint:name @@ fun slug ->
-  Lwt.return (make ?status ~slug ~name ()) (* status should probably go in save *)
+  let%lwt person =
+    Dancelor_server_database.Person.save ~slug_hint:name @@ fun slug ->
+    Lwt.return (make ?status ~slug ~name ()) (* status should probably go in save *)
+  in
+  (* FIXME: keep propagating instead of failing *)
+  Lwt.return (Result.get_ok person)
 
 let () =
   Madge_server.(

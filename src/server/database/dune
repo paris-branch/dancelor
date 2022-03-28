@@ -6,4 +6,4 @@
   dancelor.common
   dancelor.server.logs
   dancelor.server.config)
- (preprocess (pps lwt_ppx)))
+ (preprocess (pps lwt_ppx ppx_monad_olwt ppx_monad_rlwt)))

@@ -135,7 +135,7 @@ module Initialise = struct
     if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
       Storage.sync_changes ()
     else
-      Lwt.return_unit
+      Rlwt.return ()
 
   let create_new_db_version () =
     Log.info (fun m -> m "Creating new database version");
@@ -148,7 +148,7 @@ module Initialise = struct
 
   let load_tables version =
     Log.info (fun m -> m "Loading tables for this version");
-    tables |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
+    tables |> Rlwt_list.iter @@ fun (module Table : Table.S) ->
     Table.load_version ~version
 
   let check_dependency_problems version =
@@ -159,9 +159,9 @@ module Initialise = struct
            let%lwt problems = Table.list_dependency_problems ~version in
            (
              problems |> List.iter @@ function
-             | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
+             | `DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
-             | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
+             | `DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
              | _ -> ()
            );
@@ -174,8 +174,8 @@ module Initialise = struct
         tables
     in
     match found_problem with
-    | None -> Lwt.return ()
-    | Some problem -> Dancelor_common.Error.fail problem
+    | None -> Rlwt.return ()
+    | Some problem -> Rlwt.fail problem
 
   let report_without_accesses version =
     Log.info (fun m -> m "Checking for unaccessible entries");
@@ -195,14 +195,14 @@ module Initialise = struct
     Log.info (fun m -> m "New version is in place")
 
   let initialise () =
-    sync_db (); %lwt
+    sync_db ();%rlwt
     let version = create_new_db_version () in
     create_tables version;
-    load_tables version; %lwt
-    check_dependency_problems version; %lwt
-    report_without_accesses version; %lwt
+    load_tables version;%rlwt
+    check_dependency_problems version;%rlwt
+    report_without_accesses version;%lwt
     establish_version version;
-    Lwt.return_unit
+    Rlwt.return ()
 end
 
 let initialise = Initialise.initialise
