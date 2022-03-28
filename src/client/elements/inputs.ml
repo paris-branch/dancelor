@@ -83,8 +83,8 @@ module Switch = struct
         Lwt.return_unit);
     {page; root; input}
 
-  let disable t = t.input##.disabled := Js._true
-  let enable t = t.input##.disabled := Js._false
+  let disable t = t.input##.checked := Js._false
+  let enable t = t.input##.checked := Js._true
   let checked t = t.input##.checked
   let root t = t.root
 end
