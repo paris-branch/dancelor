@@ -25,6 +25,8 @@
 
 label.switch {
     cursor: pointer;
+    display: inline-block;
+    height: 34px;
 
     span.box {
         position: relative;
