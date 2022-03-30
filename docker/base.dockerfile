@@ -1,4 +1,4 @@
-FROM ocaml/opam:debian-10-ocaml-4.12
+FROM ocaml/opam:debian-11-ocaml-4.14
 
 USER root
 
