@@ -11,7 +11,17 @@ type t =
     two_chords : bool [@default false] [@key "two-chords"] ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     disambiguation : string [@default ""] }
-[@@deriving yojson]
+[@@deriving make, yojson]
+
+let make ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id ?disambiguation () =
+  let%lwt deviser =
+    match deviser with
+    | None -> Lwt.return_none
+    | Some deviser ->
+      let%lwt deviser = CreditCore.slug deviser in
+      Lwt.return_some deviser
+  in
+  Lwt.return (make ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id ?disambiguation ())
 
 let slug d = Lwt.return d.slug
 let status d = Lwt.return d.status

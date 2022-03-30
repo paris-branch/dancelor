@@ -144,7 +144,7 @@ let create page =
     page
   in
   let input_remark = Inputs.Text.create
-    ~placeholder:"Additional information about the tune (origin, ...)"
+    ~placeholder:"Additional information about this version (origin, ...)"
     ~on_change:(fun r -> VersionEditor.set_remark editor r)
     page
   in

@@ -1,6 +1,7 @@
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
+open Dancelor_client_utils
 open Dancelor_client_model
 
 module Html = Dom_html
@@ -16,8 +17,35 @@ type t =
   input_alternative : Inputs.Text.t;
   input_kind : Inputs.Text.t;
   author_search : SearchBar.t;
+  dances_area : Html.divElement Js.t;
+  dances_search : SearchBar.t;
+  input_remark : Inputs.Text.t;
   input_scddb_id : Inputs.Text.t;
 }
+
+let make_dance_subwindow t index dance =
+  let subwin = Html.createDiv (Page.document t.page) in
+  subwin##.classList##add (js "subwindow");
+  let toolbar = Html.createDiv (Page.document t.page) in
+  toolbar##.classList##add (js "toolbar");
+  let title = Text.Heading.h3_static ~text:(Dance.name (snd dance)) t.page in
+  Dom.appendChild toolbar (Text.Heading.root title);
+  let buttons = Html.createUl (Page.document t.page) in
+  let del =
+    Inputs.Button.create
+      ~on_click:(fun () ->
+        TuneEditor.remove t.editor index;
+        Page.refresh t.page)
+      ~kind:Inputs.Button.Kind.Danger
+      ~icon:"times"
+      t.page
+  in
+  let delli = Html.createLi (Page.document t.page) in
+  Dom.appendChild delli (Inputs.Button.root del);
+  Dom.appendChild buttons delli;
+  Dom.appendChild toolbar buttons;
+  Dom.appendChild subwin toolbar;
+  subwin
 
 let refresh t =
   Inputs.Text.set_contents t.input_name (TuneEditor.name t.editor);
@@ -30,7 +58,50 @@ let refresh t =
     Lwt.on_success name (fun name ->
       Inputs.Text.set_contents (SearchBar.bar t.author_search) name)
   end;
+  Helpers.clear_children t.dances_area;
+  TuneEditor.iter t.editor (fun i dance ->
+    let subwin = make_dance_subwindow t i dance in
+    Dom.appendChild t.dances_area (Html.createBr (Page.document t.page));
+    Dom.appendChild t.dances_area subwin);
+  Inputs.Text.set_contents t.input_remark (TuneEditor.remark t.editor);
   Inputs.Text.set_contents t.input_scddb_id (TuneEditor.scddb_id t.editor)
+
+let make_dance_search_result editor page score =
+  let dance = Score.value score in
+  let score = score.Score.score in
+  let%lwt name = Dance.name dance in
+  let%lwt slug = Dance.slug dance in
+  let row = Table.Row.create
+    ~on_click:(fun () -> Lwt.on_success
+      (TuneEditor.add editor slug)
+      (fun () -> Page.refresh page))
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+      Table.Cell.text ~text:(Lwt.return name) page]
+    page
+  in
+  Lwt.return row
+
+let make_dance_modal editor content page =
+  let modal_bg = Html.createDiv (Page.document page) in
+  let dance_modal = Html.createDiv (Page.document page) in
+  let interface =
+    DanceEditorInterface.create page
+      ~on_save:(fun slug ->
+        Page.remove_modal page modal_bg;
+        Dom.removeChild content modal_bg;
+        Lwt.on_success (TuneEditor.add editor slug) (fun () -> Page.refresh page))
+  in
+  Dom.appendChild dance_modal (DanceEditorInterface.contents interface);
+  dance_modal##.classList##add (js "modal-window");
+  modal_bg##.classList##add (js "modal-background");
+  Dom.appendChild modal_bg dance_modal;
+  Dom.appendChild content modal_bg;
+  Page.register_modal page
+    ~element:modal_bg
+    ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
+    ~on_refresh:(fun () -> DanceEditorInterface.refresh interface)
+    ~targets:[dance_modal]
 
 let make_author_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
@@ -90,10 +161,43 @@ let create ?on_save page =
     ~on_change:(fun kind -> TuneEditor.set_kind editor kind)
     page
   in
+  let input_remark = Inputs.Text.create
+    ~placeholder:"Additional remark about the tune, if any"
+    ~on_change:(fun str -> TuneEditor.set_remark editor str)
+    page
+  in
   let input_scddb_id = Inputs.Text.create
     ~placeholder:"Strathspey Database link or id (optional)"
     ~on_change:(fun id -> TuneEditor.set_scddb_id editor id)
     page
+  in
+
+  let dances_area = Html.createDiv (Page.document page) in
+  let dances_search =
+    let main_section =
+      SearchBar.Section.create
+        ~default:(Table.Row.create
+          ~on_click:(fun () -> make_dance_modal editor content page)
+          ~cells:[
+            Table.Cell.text ~text:(Lwt.return "  +") page;
+            Table.Cell.text ~text:(Lwt.return "Create a new dance") page]
+          page)
+        ~search:(fun input ->
+          match DanceFilter.raw input with
+          | Ok formula ->
+            let%lwt results =
+              Dance.search ~threshold:0.4
+                ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results
+          | Error err -> Lwt.return_error err)
+        ~make_result:(fun score -> make_dance_search_result editor page score)
+        page
+    in
+    SearchBar.create
+      ~placeholder:"Associated dance, if any (Magic search)"
+      ~sections:[main_section]
+      page
   in
 
   let author_search =
@@ -132,7 +236,7 @@ let create ?on_save page =
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
 
-  let t = {page; editor; content; input_name; input_alternative; input_kind; author_search; input_scddb_id} in
+  let t = {page; editor; content; input_name; input_alternative; input_kind; author_search; dances_area; dances_search; input_remark; input_scddb_id} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
@@ -186,6 +290,11 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root author_search);
+  Dom.appendChild form dances_area;
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (SearchBar.root dances_search);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_remark);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_scddb_id);
   Dom.appendChild form (Html.createBr (Page.document page));

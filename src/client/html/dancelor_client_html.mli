@@ -129,6 +129,13 @@ val a_lwt : ?href:string -> ?href_lwt:string Lwt.t -> ?target:target -> std_node
 
     @raise Invalid_argument if none or both [?href] and [?href_lwt] are set. *)
 
+val label : std_node_maker
+val label_lwt : std_node_maker_lwt
+
+type type_ = Checkbox
+
+val input : type_:type_ -> unit node_maker
+
 (** {3 Elements With No Children} *)
 
 val hr : node
