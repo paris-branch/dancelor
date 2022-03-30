@@ -15,7 +15,7 @@ type t =
   input_name : Inputs.Text.t;
   input_kind : Inputs.Text.t;
   deviser_search : SearchBar.t;
-  input_two_chords : Inputs.Toggle.t;
+  input_two_chords : Inputs.Switch.t;
   input_scddb_id : Inputs.Text.t;
 }
 
@@ -30,8 +30,8 @@ let refresh t =
       Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
   if DanceEditor.two_chords t.editor then
-    Inputs.Toggle.enable t.input_two_chords
-  else Inputs.Toggle.disable t.input_two_chords;
+    Inputs.Switch.enable t.input_two_chords
+  else Inputs.Switch.disable t.input_two_chords;
   Inputs.Text.set_contents t.input_scddb_id (DanceEditor.scddb_id t.editor)
 
 let make_deviser_modal editor content page =
@@ -93,8 +93,8 @@ let create ?on_save page =
     page
   in
 
-  let input_two_chords = Inputs.Toggle.create
-    ~text:"Does this dance have two chords?"
+  let input_two_chords = Inputs.Switch.create
+    ~text_after:" Two Chords?"
     ~id:"Two Chords"
     ~on_change:(fun b -> DanceEditor.set_two_chords editor b)
     page
@@ -192,7 +192,8 @@ let create ?on_save page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root deviser_search);
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (Inputs.Toggle.root input_two_chords);
+  Dom.appendChild form (Inputs.Switch.root input_two_chords);
+  Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_scddb_id);
   Dom.appendChild form (Html.createBr (Page.document page));
