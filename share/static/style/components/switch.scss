@@ -1,0 +1,84 @@
+/******************************************************************************/
+/*                       _____          _ _       _                           */
+/*                      /  ___|        (_) |     | |                          */
+/*                      \ `--.__      ___| |_ ___| |__                        */
+/*                       `--. \ \ /\ / / | __/ __| '_ \                       */
+/*                      /\__/ /\ V  V /| | || (__| | | |                      */
+/*                      \____/  \_/\_/ |_|\__\___|_| |_|                      */
+/*                                                                            */
+/*                                                                            */
+/*   This file contains the style for toggle switch components. Such          */
+/*   components are simply cosmetic wrappers around checkboxes. They are      */
+/*   used as follows:                                                         */
+/*                                                                            */
+/*       <label class="switch">                                               */
+/*           <span class="box">                                               */
+/*               <input type="checkbox">                                      */
+/*               <span class="slider"></span>                                 */
+/*           </span>                                                          */
+/*       </label>                                                             */
+/*                                                                            */
+/*   Additional text labels can be added within the <label /> element,        */
+/*   either before or after the <span class="box" />.                         */
+/*                                                                            */
+/******************************************************************************/
+
+label.switch {
+    cursor: pointer;
+    display: inline-block;
+    height: 34px;
+
+    span.box {
+        position: relative;
+        display: inline-block;
+        vertical-align: 9px;
+        width: 60px;
+        height: 34px;
+
+        input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        span.slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        span.slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + span.slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + span.slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + span.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+    }
+}
