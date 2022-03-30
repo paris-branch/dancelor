@@ -1,6 +1,8 @@
-FROM ocaml/opam:debian-10-ocaml-4.12
+FROM ocaml/opam:debian-11-ocaml-4.14
 
 USER root
+
+RUN apt-get update -y
 
 ## FIXME: When OPAM 2.1 becomes the default, this will no longer be necessary.
 RUN ln -sf /usr/bin/opam-2.1 /usr/bin/opam
