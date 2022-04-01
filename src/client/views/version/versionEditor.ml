@@ -95,8 +95,8 @@ let clear t =
 
 let submit t =
   let tune = match tune t with
-  | None -> failwith "Empty tune"
-  | Some tune -> tune
+    | None -> failwith "Empty tune"
+    | Some tune -> tune
   in
   let bars = int_of_string t.bars in
   let key = Music.key_of_string t.key in

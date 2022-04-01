@@ -13,11 +13,11 @@ type entry_type =
   | Recording
   | Tune
   | List
-(** The type of an entry in the SCDDB. *)
+  (** The type of an entry in the SCDDB. *)
 
 type entry_id = int
 (** The type of an id in the SCDDB. Such ids only make sense for a given entry
-   type. *)
+    type. *)
 
 type entry
 (** Type of an entry in the SCDDB. *)

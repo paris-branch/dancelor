@@ -11,8 +11,7 @@ let level = function
 let pp_raw fmt string =
   match String.index_opt string ' ' with
   | None -> Format.pp_print_string fmt string
-  | Some _ -> fpf fmt "\"%s\"" string
-                (* FIXME: escape quotes *)
+  | Some _ -> fpf fmt "\"%s\"" string (* FIXME: escape quotes *)
 
 let rec pp fmt formula =
   match formula with

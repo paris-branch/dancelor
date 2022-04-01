@@ -14,16 +14,16 @@ type t = {
 }
 
 let create () =
-{
-  name = "";
-  alternative = "";
-  kind = "";
-  author = None;
-  count = 0;
-  dances = Array.make 1 None;
-  remark = "";
-  scddb_id = "";
-}
+  {
+    name = "";
+    alternative = "";
+    kind = "";
+    author = None;
+    count = 0;
+    dances = Array.make 1 None;
+    remark = "";
+    scddb_id = "";
+  }
 
 let name t =
   t.name

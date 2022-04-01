@@ -8,8 +8,8 @@ let remove_char ?(char_equal=Char.equal) c s =
   let j = ref 0 in
   iter
     (fun c' ->
-      if not (char_equal c c') then
-        (Bytes.set b !j c'; incr j))
+       if not (char_equal c c') then
+         (Bytes.set b !j c'; incr j))
     s;
   Bytes.sub_string b 0 !j
 
@@ -60,8 +60,8 @@ let%test _ = remove_suffix ~needle:"hello" "hello" = Some ""
 let%test _  =remove_suffix ~needle:"hhello" "hello" = None
 
 (** [distance needle haystack] is the Levenshtein distance between [needle] and
-   [haystack]. The character equality can be changed with the optional
-   [?char_equal] argument, defaulting to {!Char.equal}. *)
+    [haystack]. The character equality can be changed with the optional
+    [?char_equal] argument, defaulting to {!Char.equal}. *)
 
 let distance ?(char_equal=Char.equal) needle haystack =
   let ln = length needle in
@@ -109,8 +109,8 @@ let proximity ?char_equal needle haystack =
   )
 
 (** [inclusion_distance ~needle haystack] is similar to [distance needle
-   haystack] except with the best sub-string of [haystack]. Note: this is not a
-   proper distance. *)
+    haystack] except with the best sub-string of [haystack]. Note: this is not a
+    proper distance. *)
 
 let inclusion_distance ?(char_equal=Char.equal) ~needle haystack =
   let ln = length needle in

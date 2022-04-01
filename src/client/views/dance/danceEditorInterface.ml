@@ -8,26 +8,26 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  editor : DanceEditor.t;
-  content : Html.divElement Js.t;
-  input_name : Inputs.Text.t;
-  input_kind : Inputs.Text.t;
-  deviser_search : SearchBar.t;
-  input_two_chords : Inputs.Switch.t;
-  input_scddb_id : Inputs.Text.t;
-}
+  {
+    page : Page.t;
+    editor : DanceEditor.t;
+    content : Html.divElement Js.t;
+    input_name : Inputs.Text.t;
+    input_kind : Inputs.Text.t;
+    deviser_search : SearchBar.t;
+    input_two_chords : Inputs.Switch.t;
+    input_scddb_id : Inputs.Text.t;
+  }
 
 let refresh t =
   Inputs.Text.set_contents t.input_name (DanceEditor.name t.editor);
   Inputs.Text.set_contents t.input_kind (DanceEditor.kind t.editor);
   begin match DanceEditor.deviser t.editor with
-  | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
-  | Some cr ->
-    let name = Credit.line cr in
-    Lwt.on_success name (fun name ->
-      Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
+    | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
+    | Some cr ->
+      let name = Credit.line cr in
+      Lwt.on_success name (fun name ->
+          Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
   if DanceEditor.two_chords t.editor then
     Inputs.Switch.enable t.input_two_chords
@@ -40,9 +40,9 @@ let make_deviser_modal editor content page =
   let interface =
     CreditEditorInterface.create page
       ~on_save:(fun slug ->
-        Page.remove_modal page modal_bg;
-        Dom.removeChild content modal_bg;
-        Lwt.on_success (DanceEditor.set_deviser editor slug) (fun () -> Page.refresh page))
+          Page.remove_modal page modal_bg;
+          Dom.removeChild content modal_bg;
+          Lwt.on_success (DanceEditor.set_deviser editor slug) (fun () -> Page.refresh page))
   in
   Dom.appendChild credit_modal (CreditEditorInterface.contents interface);
   credit_modal##.classList##add (js "modal-window");
@@ -61,14 +61,14 @@ let make_deviser_search_result editor page score =
   let%lwt name = Credit.line deviser in
   let%lwt slug = Credit.slug deviser in
   let row = Table.Row.create
-    ~on_click:(fun () ->
-      Lwt.on_success
-        (DanceEditor.set_deviser editor slug)
-        (fun () -> Page.refresh page))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~text:(Lwt.return name) page]
-    page
+      ~on_click:(fun () ->
+          Lwt.on_success
+            (DanceEditor.set_deviser editor slug)
+            (fun () -> Page.refresh page))
+      ~cells:[
+        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+        Table.Cell.text ~text:(Lwt.return name) page]
+      page
   in
   Lwt.return row
 
@@ -78,37 +78,37 @@ let create ?on_save page =
   let title = Text.Heading.h2_static ~text:(Lwt.return "Add a Dance") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
-    ~placeholder:"Name of the dance"
-    ~on_change:(fun name -> DanceEditor.set_name editor name)
-    page
+      ~placeholder:"Name of the dance"
+      ~on_change:(fun name -> DanceEditor.set_name editor name)
+      page
   in
   let input_kind = Inputs.Text.create
-    ~placeholder:"Kind of the dance (8x32R, 2x(16R + 16S), ...)"
-    ~on_change:(fun kind -> DanceEditor.set_kind editor kind)
-    page
+      ~placeholder:"Kind of the dance (8x32R, 2x(16R + 16S), ...)"
+      ~on_change:(fun kind -> DanceEditor.set_kind editor kind)
+      page
   in
   let input_scddb_id = Inputs.Text.create
-    ~placeholder:"Strathspey Database link or id (optional)"
-    ~on_change:(fun id -> DanceEditor.set_scddb_id editor id)
-    page
+      ~placeholder:"Strathspey Database link or id (optional)"
+      ~on_change:(fun id -> DanceEditor.set_scddb_id editor id)
+      page
   in
 
   let input_two_chords = Inputs.Switch.create
-    ~text_after:" Two Chords?"
-    ~id:"Two Chords"
-    ~on_change:(fun b -> DanceEditor.set_two_chords editor b)
-    page
+      ~text_after:" Two Chords?"
+      ~id:"Two Chords"
+      ~on_change:(fun b -> DanceEditor.set_two_chords editor b)
+      page
   in
 
   let deviser_search =
     let main_section =
       SearchBar.Section.create
         ~default:(Table.Row.create
-          ~on_click:(fun () -> make_deviser_modal editor content page)
-          ~cells:[
-            Table.Cell.text ~text:(Lwt.return "  +") page;
-            Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
-          page)
+                    ~on_click:(fun () -> make_deviser_modal editor content page)
+                    ~cells:[
+                      Table.Cell.text ~text:(Lwt.return "  +") page;
+                      Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
+                    page)
         ~search:(fun input ->
             match CreditFilter.raw input with
             | Ok formula ->
@@ -128,11 +128,11 @@ let create ?on_save page =
   in
 
   Inputs.Text.on_focus (SearchBar.bar deviser_search) (fun b ->
-    if b then begin
-      Inputs.Text.erase (SearchBar.bar deviser_search);
-      DanceEditor.remove_deviser editor;
-      Page.refresh page
-    end);
+      if b then begin
+        Inputs.Text.erase (SearchBar.bar deviser_search);
+        DanceEditor.remove_deviser editor;
+        Page.refresh page
+      end);
 
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -142,44 +142,44 @@ let create ?on_save page =
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
-    ~on_click:(fun () ->
-      let b1, b2, b3 =
-        Inputs.Text.check input_name (fun str -> str <> ""),
-        Inputs.Text.check input_kind (fun str -> try Kind.dance_of_string str |> ignore; true with _ -> false),
-        Inputs.Text.check input_scddb_id (fun str ->
-              if str = "" then
-                true
-              else
-                match int_of_string_opt str with
-                | Some _ -> true
-                | None ->
-                  match SCDDB.tune_from_uri str with
-                  | Ok _ -> true
-                  | Error _ -> false
-            )
-        in
-        if b1 && b2 && b3 then (
-          Lwt.on_success (DanceEditor.submit editor) (fun dance ->
-          Lwt.on_success (Dance.slug dance) (fun slug ->
-          begin match on_save with
-          | None ->
-            let href = Router.path_of_controller (Router.Dance slug) |> snd in
-            Html.window##.location##.href := js href
-          | Some cb -> cb slug
-          end))))
+      ~on_click:(fun () ->
+          let b1, b2, b3 =
+            Inputs.Text.check input_name (fun str -> str <> ""),
+            Inputs.Text.check input_kind (fun str -> try Kind.dance_of_string str |> ignore; true with _ -> false),
+            Inputs.Text.check input_scddb_id (fun str ->
+                if str = "" then
+                  true
+                else
+                  match int_of_string_opt str with
+                  | Some _ -> true
+                  | None ->
+                    match SCDDB.tune_from_uri str with
+                    | Ok _ -> true
+                    | Error _ -> false
+              )
+          in
+          if b1 && b2 && b3 then (
+            Lwt.on_success (DanceEditor.submit editor) (fun dance ->
+                Lwt.on_success (Dance.slug dance) (fun slug ->
+                    begin match on_save with
+                      | None ->
+                        let href = Router.path_of_controller (Router.Dance slug) |> snd in
+                        Html.window##.location##.href := js href
+                      | Some cb -> cb slug
+                    end))))
       page
   in
 
   let clear =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
       ~on_click:(fun () ->
-        if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
-          DanceEditor.clear editor;
-          Page.refresh page;
-          Inputs.Text.set_valid input_name true;
-          Inputs.Text.set_valid input_kind true;
-          Inputs.Text.set_valid input_scddb_id true
-        end)
+          if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
+            DanceEditor.clear editor;
+            Page.refresh page;
+            Inputs.Text.set_valid input_name true;
+            Inputs.Text.set_valid input_kind true;
+            Inputs.Text.set_valid input_scddb_id true
+          end)
       page
   in
 

@@ -113,19 +113,19 @@ let display_contents t contents =
               Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
             in
             let cells = [
-                Table.Cell.text ~text:(Lwt.return "Tune") t.page;
-                Table.Cell.create ~content:(
-                  let%lwt content = Formatters.Version.name_and_dance ~link:false version parameters in
-                  Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
-                ) t.page;
-                Table.Cell.text ~text:(
-                  let%lwt tune = Version.tune version in
-                  let%lwt kind = Tune.kind tune in
-                  let%lwt bars = Version.bars version in
-                  let kind = (bars, kind) in
-                  Lwt.return (Kind.version_to_string kind)
-                ) t.page
-              ]
+              Table.Cell.text ~text:(Lwt.return "Tune") t.page;
+              Table.Cell.create ~content:(
+                let%lwt content = Formatters.Version.name_and_dance ~link:false version parameters in
+                Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+              ) t.page;
+              Table.Cell.text ~text:(
+                let%lwt tune = Version.tune version in
+                let%lwt kind = Tune.kind tune in
+                let%lwt bars = Version.bars version in
+                let kind = (bars, kind) in
+                Lwt.return (Kind.version_to_string kind)
+              ) t.page
+            ]
             in
             Table.Row.create ~href ~cells t.page
           )
@@ -174,7 +174,7 @@ let create slug page =
           let href = SCDDB.list_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] [
-               a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
             ]
           ]
       );
@@ -182,8 +182,8 @@ let create slug page =
       div_lwt
         (* Only open a warnings div if there are warnings *)
         (match%lwt book_lwt >>=| Book.warnings with
-        | [] -> Lwt.return []
-        | warnings -> Lwt.return [div ~classes:["warning"] [ul (display_warnings warnings)]]);
+         | [] -> Lwt.return []
+         | warnings -> Lwt.return [div ~classes:["warning"] [ul (display_warnings warnings)]]);
 
       p [ text_lwt (
           let%lwt book = book_lwt in

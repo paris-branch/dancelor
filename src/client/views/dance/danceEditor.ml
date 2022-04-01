@@ -11,13 +11,13 @@ type t = {
 }
 
 let create () =
-{
-  name = "";
-  kind = "";
-  deviser = None;
-  two_chords = false;
-  scddb_id = ""
-}
+  {
+    name = "";
+    kind = "";
+    deviser = None;
+    two_chords = false;
+    scddb_id = ""
+  }
 
 let name t =
   t.name

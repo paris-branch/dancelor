@@ -36,19 +36,19 @@ module Cell = struct
     Style.set ?width cell;
     (* Content *)
     begin match alt with
-    | None ->
-      let span = Html.createSpan (Page.document page) in
-      Lwt.on_success text (fun text -> span##.textContent := Js.some (js text));
-      Dom.appendChild cell span;
-    | Some alt ->
-      let span_main = Html.createSpan (Page.document page) in
-      let span_alt = Html.createSpan (Page.document page) in
-      Lwt.on_success text (fun text -> span_main##.textContent := Js.some (js text));
-      Lwt.on_success alt (fun text -> span_alt##.textContent := Js.some (js text));
-      span_main##.classList##add (js "full-content");
-      span_alt##.classList##add (js "collapse-content");
-      Dom.appendChild cell span_main;
-      Dom.appendChild cell span_alt;
+      | None ->
+        let span = Html.createSpan (Page.document page) in
+        Lwt.on_success text (fun text -> span##.textContent := Js.some (js text));
+        Dom.appendChild cell span;
+      | Some alt ->
+        let span_main = Html.createSpan (Page.document page) in
+        let span_alt = Html.createSpan (Page.document page) in
+        Lwt.on_success text (fun text -> span_main##.textContent := Js.some (js text));
+        Lwt.on_success alt (fun text -> span_alt##.textContent := Js.some (js text));
+        span_main##.classList##add (js "full-content");
+        span_alt##.classList##add (js "collapse-content");
+        Dom.appendChild cell span_main;
+        Dom.appendChild cell span_alt;
     end;
     {page; root = cell}
 
@@ -80,30 +80,30 @@ module Row = struct
     let row = Html.createTr (Page.document page) in
     List.iter (fun cell -> Cell.root cell |> Dom.appendChild row) cells;
     begin match href with
-    | None -> ()
-    | Some href ->
-      List.iter (fun cell -> Cell.wrap_link ~href cell) cells;
-      row##.classList##add (js "clickable");
-      (* Lwt.async (fun () ->
-       *   Lwt_js_events.clicks row
-       *     (fun _ev _ ->
-       *       Lwt.map (fun href -> Html.window##.location##.href := js href) href)) *)
+      | None -> ()
+      | Some href ->
+        List.iter (fun cell -> Cell.wrap_link ~href cell) cells;
+        row##.classList##add (js "clickable");
+        (* Lwt.async (fun () ->
+         *   Lwt_js_events.clicks row
+         *     (fun _ev _ ->
+         *       Lwt.map (fun href -> Html.window##.location##.href := js href) href)) *)
     end;
     begin match on_click with
-    | None -> ()
-    | Some on_click ->
-      row##.classList##add (js "clickable");
-      Lwt.async (fun () ->
-        Lwt_js_events.clicks row
-          (fun _ev _ -> on_click (); Lwt.return ()))
+      | None -> ()
+      | Some on_click ->
+        row##.classList##add (js "clickable");
+        Lwt.async (fun () ->
+            Lwt_js_events.clicks row
+              (fun _ev _ -> on_click (); Lwt.return ()))
     end;
     {page; size = List.length cells; root = row}
 
   let on_click row on_click =
     row.root##.classList##add (js "clickable");
     Lwt.async (fun () ->
-      Lwt_js_events.clicks row.root
-        (fun _ev _ -> on_click (); Lwt.return ()))
+        Lwt_js_events.clicks row.root
+          (fun _ev _ -> on_click (); Lwt.return ()))
 
   let root t =
     t.root
@@ -135,8 +135,8 @@ module Section = struct
 
   let replace_rows t rows =
     Lwt.on_success rows (fun rows ->
-      clear t;
-      List.iter (add t) rows)
+        clear t;
+        List.iter (add t) rows)
 
   let create ?header ~rows page =
     let root = Html.createTbody (Page.document page) in
@@ -149,9 +149,9 @@ module Section = struct
     let t = {root; page; header} in
     replace_rows t rows;
     Lwt.bind rows (fun rows ->
-      clear t;
-      List.iter (add t) rows;
-      Lwt.return t)
+        clear t;
+        List.iter (add t) rows;
+        Lwt.return t)
 
 end
 
@@ -187,8 +187,8 @@ let clear t =
 
 let replace_bodies t bodies =
   Lwt.on_success bodies (fun bodies ->
-    clear t;
-    List.iter (add t) bodies)
+      clear t;
+      List.iter (add t) bodies)
 
 let hide t =
   t.root##.classList##remove (js "visible")
@@ -208,17 +208,17 @@ let create ?(visible=true) ?header ?contents ?kind page =
   NesOption.ifsome (fun h -> Dom.appendChild head (Row.root h)) header;
   NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
   NesOption.ifsome (fun contents ->
-    let colspan =
-      match header with
-      | Some h -> Row.size h
-      | None -> 1
-    in
-    let loading_row =
-      Row.create ~cells:[Cell.text ~colspan ~text:(Lwt.return "Loading...") page] page
-    in
-    let loading = Section.create ~rows:(Lwt.return [loading_row]) page in
-    add table loading;
-    replace_bodies table contents) contents;
+      let colspan =
+        match header with
+        | Some h -> Row.size h
+        | None -> 1
+      in
+      let loading_row =
+        Row.create ~cells:[Cell.text ~colspan ~text:(Lwt.return "Loading...") page] page
+      in
+      let loading = Section.create ~rows:(Lwt.return [loading_row]) page in
+      add table loading;
+      replace_bodies table contents) contents;
   set_visible table visible;
   table
 
