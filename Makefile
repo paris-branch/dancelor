@@ -25,10 +25,10 @@ docker:
 ## FIXME: enable the indent test once the repository is ready.
 ci: docker
 	docker build -t dancelor_files -f docker/files.dockerfile .
-	docker build - < docker/test/test.dockerfile
-	docker build - < docker/test/indent.dockerfile || true
-	docker build - < docker/test/opam-lint.dockerfile
-	docker build - < docker/test/opam-diff.dockerfile
+	docker run dancelor_build opam exec -- make test
+	docker run dancelor_files docker/test/indent.sh || true
+	docker run dancelor_files docker/test/opam-lint.sh
+	docker run dancelor_files docker/test/opam-diff.sh
 
 doc:
 	dune build $(DUNEJOBSARG) @doc

@@ -48,23 +48,23 @@ test:
   stage: test
   needs: [build]
   script:
-    - docker build - < docker/test/test.dockerfile
+    - docker run dancelor_build opam exec -- make test
 
 ## FIXME: enable this test once the repository is ready.
 test-indent:
   stage: test
   needs: [files]
   script:
-    - docker build - < docker/test/indent.dockerfile || true
+    - docker run dancelor_files docker/test/indent.sh || true
 
 test-opam-lint:
   stage: test
   needs: [files]
   script:
-    - docker build - < docker/test/opam-lint.dockerfile
+    - docker run dancelor_files docker/test/opam-lint.sh
 
 test-opam-diff:
   stage: test
   needs: [files]
   script:
-    - docker build - < docker/test/opam-diff.dockerfile
+    - docker run dancelor_files docker/test/opam-diff.sh
