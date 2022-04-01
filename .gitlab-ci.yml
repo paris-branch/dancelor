@@ -55,16 +55,16 @@ test-indent:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files docker/test/indent.sh || true
+    - docker run dancelor_files ci/indent.sh || true
 
 test-opam-lint:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files docker/test/opam-lint.sh
+    - docker run dancelor_files ci/opam-lint.sh
 
 test-opam-diff:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files docker/test/opam-diff.sh
+    - docker run dancelor_files ci/opam-diff.sh

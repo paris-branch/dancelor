@@ -27,9 +27,9 @@ ci: docker
 	docker build --tag dancelor_deps  --target deps  .
 	docker build --tag dancelor_build --target build .
 	docker run dancelor_build opam exec -- make test
-	docker run dancelor_files docker/test/indent.sh || true
-	docker run dancelor_files docker/test/opam-lint.sh
-	docker run dancelor_files docker/test/opam-diff.sh
+	docker run dancelor_files ci/indent.sh || true
+	docker run dancelor_files ci/opam-lint.sh
+	docker run dancelor_files ci/opam-diff.sh
 
 doc:
 	dune build $(DUNEJOBSARG) @doc
