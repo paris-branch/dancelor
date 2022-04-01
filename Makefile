@@ -18,17 +18,18 @@ release:
 	ln -sf ../../_build/install/default/share/dancelor share/static/
 
 docker:
-	docker build -t dancelor_base - < docker/base.dockerfile
-	docker build -t dancelor_deps  -f docker/deps.dockerfile .
-	docker build -t dancelor_build -f docker/build.dockerfile .
+	docker build --tag dancelor .
 
 ## FIXME: enable the indent test once the repository is ready.
 ci: docker
-	docker build -t dancelor_files -f docker/files.dockerfile .
-	docker build - < docker/test/test.dockerfile
-	docker build - < docker/test/indent.dockerfile || true
-	docker build - < docker/test/opam-lint.dockerfile
-	docker build - < docker/test/opam-diff.dockerfile
+	docker build --tag dancelor_base  --target base  .
+	docker build --tag dancelor_files --target files .
+	docker build --tag dancelor_deps  --target deps  .
+	docker build --tag dancelor_build --target build .
+	docker run dancelor_build opam exec -- make test
+	docker run dancelor_files ci/indent.sh || true
+	docker run dancelor_files ci/opam-lint.sh
+	docker run dancelor_files ci/opam-diff.sh
 
 doc:
 	dune build $(DUNEJOBSARG) @doc
