@@ -73,14 +73,14 @@ let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) filename =
     Failure _ -> Lwt.return_unit
 
 let cropped_svg ?lilypond_bin ?(exec_path=".") filename =
-  run ?lilypond_bin ~exec_path ~options:["-dbackend=svg"] filename; %lwt
+  run ?lilypond_bin ~exec_path ~options:["-dbackend=svg"] filename;%lwt
   Inkscape.crop
     ~exec_path
     ((Filename.chop_extension filename) ^ ".svg")
     ~output:((Filename.chop_extension filename) ^ ".cropped.svg")
 
 let ogg ?lilypond_bin ?(exec_path=".") filename =
-  run ?lilypond_bin ~exec_path filename; %lwt
+  run ?lilypond_bin ~exec_path filename;%lwt
   try%lwt
     NesProcess.run_ignore ~cwd:exec_path
       ~on_wrong_status:Logs.Error

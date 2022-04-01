@@ -164,7 +164,7 @@ let main =
   @@ fun () ->
   read_configuration ();
   initialise_logs ();
-  initialise_database (); %lwt
+  initialise_database ();%lwt
   check_init_only ();
   start_routines ();
   run_server ()
