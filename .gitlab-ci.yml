@@ -50,12 +50,11 @@ test:
   script:
     - docker run dancelor_build opam exec -- make test
 
-## FIXME: enable this test once the repository is ready.
 test-indent:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files ci/indent.sh || true
+    - docker run dancelor_files ci/indent.sh
 
 test-opam-lint:
   stage: test
