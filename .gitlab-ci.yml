@@ -5,10 +5,18 @@
 default:
   tags: [shell]
 
+## Only run the workflow for pushes to branches. This matters at least for the
+## test in `pages` to make sense.
+##
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
 stages:
   - base
   - build
   - test
+  - deploy
 
 base:
   stage: base
@@ -67,3 +75,14 @@ test-opam-diff:
   needs: [files]
   script:
     - docker run dancelor_files ci/opam-diff.sh
+
+pages:
+  stage: deploy
+  needs: [build-doc]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - mv documentation public
+  artifacts:
+    paths:
+      - public
