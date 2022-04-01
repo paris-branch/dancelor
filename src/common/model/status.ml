@@ -3,11 +3,11 @@ type t =
   | ToBeConfirmed
   | Unlocked
 
-(*     Locked
-         |
-    ToBeConfirmed
-         |
-      Unlocked     *)
+(* Locked
+     |
+   ToBeConfirmed
+     |
+   Unlocked *)
 
 let bot = Unlocked
 let top = Locked

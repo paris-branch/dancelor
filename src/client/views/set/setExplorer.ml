@@ -10,12 +10,12 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  content : Html.divElement Js.t;
-  page_nav : PageNav.t;
-  table : Table.t;
-}
+  {
+    page : Page.t;
+    content : Html.divElement Js.t;
+    page_nav : PageNav.t;
+    table : Table.t;
+  }
 
 let update_table t =
   let rows =
@@ -72,19 +72,19 @@ let create page =
       page
   in
   let table = Table.create
-    ~header
-    ~kind:Table.Kind.Separated
-    page
+      ~header
+      ~kind:Table.Kind.Separated
+      page
   in
   Dom.appendChild content (Table.root table);
   let page_nav = PageNav.create ~entries:0 ~entries_per_page:25 page in
   Dom.appendChild content (PageNav.root page_nav);
   let t = {page; content; table; page_nav} in
   PageNav.connect_on_page_change page_nav (fun _ ->
-    PageNav.rebuild page_nav;
-    update_table t);
+      PageNav.rebuild page_nav;
+      update_table t);
   Lwt.on_success (Set.count Formula.true_) (fun entries ->
-    PageNav.set_entries page_nav entries);
+      PageNav.set_entries page_nav entries);
   update_table t;
   t
 

@@ -75,7 +75,7 @@ end
 type version = int * base
 
 let version_to_string (repeats, base) =
-    spf "%d %s" repeats (base_to_string base)
+  spf "%d %s" repeats (base_to_string base)
 
 let version_of_string s =
   let s = NesString.remove_char ' ' s in

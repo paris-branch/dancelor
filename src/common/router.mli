@@ -2,11 +2,11 @@ open Nes
 open Dancelor_common_model
 
 (** This module is the link between requests (method + path) and
-   controllers. Instead of linking directly to functions in
-   [Dancelor_controller], it works on an abstract representation of
-   controllers. This allows the client (in [js_of_ocaml]) to not
-   depend on [Unix] and still use this module. Also, it allows to ask
-   for the generation of links. *)
+    controllers. Instead of linking directly to functions in
+    [Dancelor_controller], it works on an abstract representation of
+    controllers. This allows the client (in [js_of_ocaml]) to not
+    depend on [Unix] and still use this module. Also, it allows to ask
+    for the generation of links. *)
 
 type controller =
   | Index

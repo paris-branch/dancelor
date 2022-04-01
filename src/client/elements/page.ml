@@ -6,22 +6,22 @@ module Html = Dom_html
 let js = Js.string
 
 type modal =
-{
-  element : Html.element Js.t;
-  on_unfocus : (unit -> unit);
-  targets : (Html.element Js.t) list;
-  on_refresh : (unit -> unit);
-}
+  {
+    element : Html.element Js.t;
+    on_unfocus : (unit -> unit);
+    targets : (Html.element Js.t) list;
+    on_refresh : (unit -> unit);
+  }
 
 type t =
-{
-  document : Html.document Js.t;
-  body : Html.bodyElement Js.t;
-  header : Html.element Js.t;
-  mutable content : (Html.divElement Js.t) option;
-  mutable modals : modal list;
-  mutable on_refresh : (unit -> unit);
-}
+  {
+    document : Html.document Js.t;
+    body : Html.bodyElement Js.t;
+    header : Html.element Js.t;
+    mutable content : (Html.divElement Js.t) option;
+    mutable modals : modal list;
+    mutable on_refresh : (unit -> unit);
+  }
 
 type page = t
 
@@ -41,17 +41,17 @@ let create () =
   Dom.appendChild body header;
   let t = {document; body; header; content = None; modals; on_refresh = (fun () -> ())} in
   Lwt.async (fun () -> Lwt_js_events.clicks ~use_capture:true document
-    (fun ev _ ->
-      Js.Opt.case ev##.target
-        (fun () -> ())
-        (fun trg ->
-          List.map (fun modal ->
-            (modal,
-              List.for_all
-                (fun modal_trg -> not (JsHelpers.is_child_of trg modal_trg))
-                modal.targets)) t.modals
-          |> List.iter (fun (modal, unfocus) -> if unfocus then modal.on_unfocus ()));
-      Lwt.return ()));
+                (fun ev _ ->
+                   Js.Opt.case ev##.target
+                     (fun () -> ())
+                     (fun trg ->
+                        List.map (fun modal ->
+                            (modal,
+                             List.for_all
+                               (fun modal_trg -> not (JsHelpers.is_child_of trg modal_trg))
+                               modal.targets)) t.modals
+                        |> List.iter (fun (modal, unfocus) -> if unfocus then modal.on_unfocus ()));
+                   Lwt.return ()));
   t
 
 let document t =
@@ -63,8 +63,8 @@ let set_header t contents =
 
 let set_contents (type s) (module M : CONTENTS with type t = s) t contents =
   begin match t.content with
-  | None -> Dom.appendChild t.body (M.contents contents)
-  | Some c -> Dom.replaceChild t.body c (M.contents contents)
+    | None -> Dom.appendChild t.body (M.contents contents)
+    | Some c -> Dom.replaceChild t.body c (M.contents contents)
   end;
   (M.contents contents)##.classList##add (js "content");
   (M.contents contents)##.classList##add (js "page-body");

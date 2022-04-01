@@ -2,8 +2,8 @@
 
 (** {2 Standard Library}
 
-   This module contains everything defined for lists by the OCaml standard
-   library. For these functions, refer to the official documentation. *)
+    This module contains everything defined for lists by the OCaml standard
+    library. For these functions, refer to the official documentation. *)
 
 include module type of Stdlib.Option
 
@@ -30,8 +30,8 @@ val ifsome_lwt : ('a -> unit Lwt.t) -> ('a t -> unit Lwt.t)
 
 val choose : tie:('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
 (** [choose ~tie first second] returns [Some x] when one of [first] or [second]
-   is [Some x] and the other is bottom. If they are both [None], [None] is
-   returned. If they are both [Some], [tie] is called. *)
+    is [Some x] and the other is bottom. If they are both [None], [None] is
+    returned. If they are both [Some], [tie] is called. *)
 
 val fail : 'a -> 'a -> 'a
 (** For {!NesOption.choose}'s [tie] argument. Fails. *)

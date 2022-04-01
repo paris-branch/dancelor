@@ -15,14 +15,14 @@ val base_of_string_opt : string -> base option
 
 val base_to_pretty_string : ?capitalised:bool -> base -> string
 (** Pretty version. Capitalised if the corresponding boolean is set to true
-   (default: false). *)
+    (default: false). *)
 
 val base_to_yojson : base -> Json.t
 val base_of_yojson : Json.t -> (base, string) result
 
 val base_tempo : base -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
-   for reels. *)
+    for reels. *)
 
 module Base : Madge_common.SERIALISABLE with type t = base
 

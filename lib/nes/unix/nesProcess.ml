@@ -108,7 +108,7 @@ let run
   Log.debug (fun m -> m "Command: %s" strcmd);
   let cmd = Lwt_process.shell strcmd in
   Lwt_process.with_process_full ?timeout ?env cmd @@ fun process ->
-  Lwt_io.write process#stdin stdin; %lwt
+  Lwt_io.write process#stdin stdin;%lwt
   let%lwt status = process#status in
   let%lwt stdout = Lwt_io.read process#stdout in
   let%lwt stderr = Lwt_io.read process#stderr in

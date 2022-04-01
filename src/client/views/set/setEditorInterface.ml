@@ -10,17 +10,17 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  composer : SetEditor.t;
-  content : Html.divElement Js.t;
-  input_name : Inputs.Text.t;
-  input_kind : Inputs.Text.t;
-  deviser_search : SearchBar.t;
-  versions_area : Html.divElement Js.t;
-  version_search : SearchBar.t;
-  input_order : Inputs.Text.t;
-}
+  {
+    page : Page.t;
+    composer : SetEditor.t;
+    content : Html.divElement Js.t;
+    input_name : Inputs.Text.t;
+    input_kind : Inputs.Text.t;
+    deviser_search : SearchBar.t;
+    versions_area : Html.divElement Js.t;
+    version_search : SearchBar.t;
+    input_order : Inputs.Text.t;
+  }
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -33,23 +33,23 @@ let make_version_subwindow t index version =
   let down, up, del =
     Inputs.Button.create
       ~on_click:(fun () ->
-        SetEditor.move_down t.composer index;
-        SetEditor.save t.composer;
-        Page.refresh t.page)
+          SetEditor.move_down t.composer index;
+          SetEditor.save t.composer;
+          Page.refresh t.page)
       ~icon:"chevron-down"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
-        SetEditor.move_up t.composer index;
-        SetEditor.save t.composer;
-        Page.refresh t.page)
+          SetEditor.move_up t.composer index;
+          SetEditor.save t.composer;
+          Page.refresh t.page)
       ~icon:"chevron-up"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
-        SetEditor.remove t.composer index;
-        SetEditor.save t.composer;
-        Page.refresh t.page)
+          SetEditor.remove t.composer index;
+          SetEditor.save t.composer;
+          Page.refresh t.page)
       ~kind:Inputs.Button.Kind.Danger
       ~icon:"times"
       t.page
@@ -82,17 +82,17 @@ let refresh t =
   Inputs.Text.set_contents t.input_kind (SetEditor.kind t.composer);
   Inputs.Text.set_contents t.input_order (SetEditor.order t.composer);
   begin match SetEditor.deviser t.composer with
-  | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
-  | Some cr ->
-    let name = Credit.line cr in
-    Lwt.on_success name (fun name ->
-      Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
+    | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
+    | Some cr ->
+      let name = Credit.line cr in
+      Lwt.on_success name (fun name ->
+          Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
   Helpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
-    let subwin = make_version_subwindow t i version in
-    Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
-    Dom.appendChild t.versions_area subwin)
+      let subwin = make_version_subwindow t i version in
+      Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
+      Dom.appendChild t.versions_area subwin)
 
 let make_version_search_result composer page score =
   let version = Score.value score in
@@ -103,22 +103,22 @@ let make_version_search_result composer page score =
   let%lwt tune = Version.tune version in
   let%lwt kind = Tune.kind tune in
   let row = Table.Row.create
-    ~on_click:(fun () ->
-      Lwt.on_success (SetEditor.add composer slug) (fun () -> Page.refresh page; SetEditor.save composer))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.create ~content:(
-        Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version
-        >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
-      ) page;
-      Table.Cell.create ~content:(
-        Dancelor_client_formatters.Version.author_and_arranger ~link:false version
-        >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
-      ) page;
-      Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
-      Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
-      Table.Cell.text ~text:(Lwt.return structure) page]
-    page
+      ~on_click:(fun () ->
+          Lwt.on_success (SetEditor.add composer slug) (fun () -> Page.refresh page; SetEditor.save composer))
+      ~cells:[
+        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+        Table.Cell.create ~content:(
+          Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version
+          >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
+        ) page;
+        Table.Cell.create ~content:(
+          Dancelor_client_formatters.Version.author_and_arranger ~link:false version
+          >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
+        ) page;
+        Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
+        Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
+        Table.Cell.text ~text:(Lwt.return structure) page]
+      page
   in
   Lwt.return row
 
@@ -128,9 +128,9 @@ let make_credit_modal composer content page =
   let interface =
     CreditEditorInterface.create page
       ~on_save:(fun slug ->
-        Page.remove_modal page modal_bg;
-        Dom.removeChild content modal_bg;
-        Lwt.on_success (SetEditor.set_deviser composer slug) (fun () -> Page.refresh page))
+          Page.remove_modal page modal_bg;
+          Dom.removeChild content modal_bg;
+          Lwt.on_success (SetEditor.set_deviser composer slug) (fun () -> Page.refresh page))
   in
   Dom.appendChild credits_modal (CreditEditorInterface.contents interface);
   credits_modal##.classList##add (js "modal-window");
@@ -149,14 +149,14 @@ let make_deviser_search_result composer page score =
   let%lwt name = Credit.line deviser in
   let%lwt slug = Credit.slug deviser in
   let row = Table.Row.create
-    ~on_click:(fun () ->
-      Lwt.on_success
-        (SetEditor.set_deviser composer slug)
-        (fun () -> Page.refresh page; SetEditor.save composer))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~text:(Lwt.return name) page]
-    page
+      ~on_click:(fun () ->
+          Lwt.on_success
+            (SetEditor.set_deviser composer slug)
+            (fun () -> Page.refresh page; SetEditor.save composer))
+      ~cells:[
+        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+        Table.Cell.text ~text:(Lwt.return name) page]
+      page
   in
   Lwt.return row
 
@@ -168,28 +168,28 @@ let create page =
   let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
-    ~placeholder:"Name"
-    ~on_change:(fun name ->
-      SetEditor.set_name composer name;
-      SetEditor.save composer)
-    page
+      ~placeholder:"Name"
+      ~on_change:(fun name ->
+          SetEditor.set_name composer name;
+          SetEditor.save composer)
+      page
   in
   let input_kind = Inputs.Text.create
-    ~placeholder:"Kind (eg. 8x32R)"
-    ~on_change:(fun kind ->
-      SetEditor.set_kind composer kind;
-      SetEditor.save composer)
-    page
+      ~placeholder:"Kind (eg. 8x32R)"
+      ~on_change:(fun kind ->
+          SetEditor.set_kind composer kind;
+          SetEditor.save composer)
+      page
   in
   let deviser_search =
     let main_section =
       SearchBar.Section.create
         ~default:(Table.Row.create
-          ~on_click:(fun () -> make_credit_modal composer content page)
-          ~cells:[
-            Table.Cell.text ~text:(Lwt.return "  +") page;
-            Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
-          page)
+                    ~on_click:(fun () -> make_credit_modal composer content page)
+                    ~cells:[
+                      Table.Cell.text ~text:(Lwt.return "  +") page;
+                      Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
+                    page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return (CreditFilter.raw input) in
             let%lwt results =
@@ -225,11 +225,11 @@ let create page =
       page
   in
   Inputs.Text.on_focus (SearchBar.bar deviser_search) (fun b ->
-    if b then begin
-      Inputs.Text.erase (SearchBar.bar deviser_search);
-      SetEditor.remove_deviser composer;
-      Page.refresh page
-    end);
+      if b then begin
+        Inputs.Text.erase (SearchBar.bar deviser_search);
+        SetEditor.remove_deviser composer;
+        Page.refresh page
+      end);
   let input_order = Inputs.Text.create
       ~placeholder:"Order (eg. 1,2,3,4,2,3,4,1)"
       ~on_change:(fun order ->
@@ -239,7 +239,7 @@ let create page =
   in
   let t =
     {page; composer; content; versions_area; deviser_search;
-    version_search; input_name; input_kind; input_order}
+     version_search; input_name; input_kind; input_order}
   in
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -247,36 +247,36 @@ let create page =
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-        let b1, b2, b3, b4, b5 =
-          Inputs.Text.check t.input_kind Kind.check_dance,
-          Inputs.Text.check t.input_name (fun str -> str <> ""),
-          Inputs.Text.check (SearchBar.bar t.version_search)
-            (fun _ -> SetEditor.count t.composer > 0),
-          Inputs.Text.check (SearchBar.bar t.deviser_search)
-            (fun _ -> SetEditor.deviser t.composer <> None),
-          Inputs.Text.check t.input_order
-            (SetOrder.check ~number:(SetEditor.count t.composer))
-        in
-        if b1 && b2 && b3 && b4 && b5 then (
-          Lwt.on_success (SetEditor.submit composer) (fun set ->
-          Lwt.on_success (Set.slug set) (fun slug ->
-          let href = Router.path_of_controller (Router.Set slug) |> snd in
-          Html.window##.location##.href := js href))))
+          let b1, b2, b3, b4, b5 =
+            Inputs.Text.check t.input_kind Kind.check_dance,
+            Inputs.Text.check t.input_name (fun str -> str <> ""),
+            Inputs.Text.check (SearchBar.bar t.version_search)
+              (fun _ -> SetEditor.count t.composer > 0),
+            Inputs.Text.check (SearchBar.bar t.deviser_search)
+              (fun _ -> SetEditor.deviser t.composer <> None),
+            Inputs.Text.check t.input_order
+              (SetOrder.check ~number:(SetEditor.count t.composer))
+          in
+          if b1 && b2 && b3 && b4 && b5 then (
+            Lwt.on_success (SetEditor.submit composer) (fun set ->
+                Lwt.on_success (Set.slug set) (fun slug ->
+                    let href = Router.path_of_controller (Router.Set slug) |> snd in
+                    Html.window##.location##.href := js href))))
       page
   in
   let clear =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
       ~on_click:(fun () ->
-        if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
-          SetEditor.clear composer;
-          SetEditor.erase_storage composer;
-          refresh t;
-          Inputs.Text.set_valid input_kind true;
-          Inputs.Text.set_valid input_name true;
-          Inputs.Text.set_valid (SearchBar.bar version_search) true;
-          Inputs.Text.set_valid (SearchBar.bar deviser_search) true;
-          Inputs.Text.set_valid input_order true
-        end)
+          if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
+            SetEditor.clear composer;
+            SetEditor.erase_storage composer;
+            refresh t;
+            Inputs.Text.set_valid input_kind true;
+            Inputs.Text.set_valid input_name true;
+            Inputs.Text.set_valid (SearchBar.bar version_search) true;
+            Inputs.Text.set_valid (SearchBar.bar deviser_search) true;
+            Inputs.Text.set_valid input_order true
+          end)
       page
   in
   Dom.appendChild submit (Inputs.Button.root save);

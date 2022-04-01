@@ -9,10 +9,10 @@ module Formatters = Dancelor_client_formatters
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  content : Dom_html.divElement Js.t;
-}
+  {
+    page : Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
 let create slug page =
   let document = Page.document page in

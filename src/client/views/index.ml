@@ -10,12 +10,12 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  document : Html.document Js.t;
-  content : Html.divElement Js.t;
-  search : SearchBar.t;
-}
+  {
+    page : Page.t;
+    document : Html.document Js.t;
+    content : Html.divElement Js.t;
+    search : SearchBar.t;
+  }
 
 let search input =
   let threshold = 0.4 in

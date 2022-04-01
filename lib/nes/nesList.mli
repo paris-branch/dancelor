@@ -2,8 +2,8 @@
 
 (** {2 Standard Library}
 
-   This module contains everything defined for lists by the OCaml standard
-   library. For these functions, refer to the official documentation. *)
+    This module contains everything defined for lists by the OCaml standard
+    library. For these functions, refer to the official documentation. *)
 
 include module type of Stdlib.List
 

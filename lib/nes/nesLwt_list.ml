@@ -44,24 +44,24 @@ let stable_sort cmp l =
       Lwt.return (s, tl)
 
     | 3, x1 :: x2 :: x3 :: tl ->
-        let%lwt s =
-          if%lwt cmp x1 x2 le 0 then
-            if%lwt cmp x2 x3 le 0 then Lwt.return [x1; x2; x3]
-            else if%lwt cmp x1 x3 le 0 then Lwt.return [x1; x3; x2]
-            else Lwt.return [x3; x1; x2]
-          else if%lwt cmp x1 x3 le 0 then Lwt.return [x2; x1; x3]
-          else if%lwt cmp x2 x3 le 0 then Lwt.return [x2; x3; x1]
-          else Lwt.return [x3; x2; x1]
-        in
-        Lwt.return (s, tl)
+      let%lwt s =
+        if%lwt cmp x1 x2 le 0 then
+          if%lwt cmp x2 x3 le 0 then Lwt.return [x1; x2; x3]
+          else if%lwt cmp x1 x3 le 0 then Lwt.return [x1; x3; x2]
+          else Lwt.return [x3; x1; x2]
+        else if%lwt cmp x1 x3 le 0 then Lwt.return [x2; x1; x3]
+        else if%lwt cmp x2 x3 le 0 then Lwt.return [x2; x3; x1]
+        else Lwt.return [x3; x2; x1]
+      in
+      Lwt.return (s, tl)
 
     | n, l ->
-        let n1 = n asr 1 in
-        let n2 = n - n1 in
-        let%lwt (s1, l2) = rev_sort n1 l in
-        let%lwt (s2, tl) = rev_sort n2 l2 in
-        let%lwt s = rev_merge_rev s1 s2 [] in
-        Lwt.return (s, tl)
+      let n1 = n asr 1 in
+      let n2 = n - n1 in
+      let%lwt (s1, l2) = rev_sort n1 l in
+      let%lwt (s2, tl) = rev_sort n2 l2 in
+      let%lwt s = rev_merge_rev s1 s2 [] in
+      Lwt.return (s, tl)
 
   and rev_sort n l =
     match n, l with
@@ -75,24 +75,24 @@ let stable_sort cmp l =
       Lwt.return (s, tl)
 
     | 3, x1 :: x2 :: x3 :: tl ->
-        let%lwt s =
-          if%lwt cmp x1 x2 gt 0 then
-            if%lwt cmp x2 x3 gt 0 then Lwt.return [x1; x2; x3]
-            else if%lwt cmp x1 x3 gt 0 then Lwt.return [x1; x3; x2]
-            else Lwt.return [x3; x1; x2]
-          else if%lwt cmp x1 x3 gt 0 then Lwt.return [x2; x1; x3]
-          else if%lwt cmp x2 x3 gt 0 then Lwt.return [x2; x3; x1]
-          else Lwt.return [x3; x2; x1]
-        in
-        Lwt.return (s, tl)
+      let%lwt s =
+        if%lwt cmp x1 x2 gt 0 then
+          if%lwt cmp x2 x3 gt 0 then Lwt.return [x1; x2; x3]
+          else if%lwt cmp x1 x3 gt 0 then Lwt.return [x1; x3; x2]
+          else Lwt.return [x3; x1; x2]
+        else if%lwt cmp x1 x3 gt 0 then Lwt.return [x2; x1; x3]
+        else if%lwt cmp x2 x3 gt 0 then Lwt.return [x2; x3; x1]
+        else Lwt.return [x3; x2; x1]
+      in
+      Lwt.return (s, tl)
 
     | n, l ->
-        let n1 = n asr 1 in
-        let n2 = n - n1 in
-        let%lwt (s1, l2) = sort n1 l in
-        let%lwt (s2, tl) = sort n2 l2 in
-        let%lwt s = rev_merge s1 s2 [] in
-        Lwt.return (s, tl)
+      let n1 = n asr 1 in
+      let n2 = n - n1 in
+      let%lwt (s1, l2) = sort n1 l in
+      let%lwt (s2, tl) = sort n2 l2 in
+      let%lwt s = rev_merge s1 s2 [] in
+      Lwt.return (s, tl)
   in
 
   let len = List.length l in

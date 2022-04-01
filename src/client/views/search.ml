@@ -10,16 +10,16 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  content : Html.divElement Js.t;
-  page_nav : PageNav.t;
-  table_wrapper : Html.divElement Js.t;
-  error_wrapper : Html.divElement Js.t;
-  table : Table.t;
-  error : Html.divElement Js.t;
-  bar : Inputs.Text.t;
-}
+  {
+    page : Page.t;
+    content : Html.divElement Js.t;
+    page_nav : PageNav.t;
+    table_wrapper : Html.divElement Js.t;
+    error_wrapper : Html.divElement Js.t;
+    table : Table.t;
+    error : Html.divElement Js.t;
+    bar : Inputs.Text.t;
+  }
 
 let update_table t =
   let pagination = PageNav.pagination t.page_nav in
@@ -94,9 +94,9 @@ let create input page =
       page
   in
   let table = Table.create
-    ~header
-    ~kind:Table.Kind.Separated
-    page
+      ~header
+      ~kind:Table.Kind.Separated
+      page
   in
   let table_wrapper = Html.createDiv document in
   let error_wrapper = Html.createDiv document in

@@ -22,14 +22,14 @@ type t = {
 }
 
 let create () =
-{
-  name = "";
-  kind = "";
-  deviser = None;
-  versions = Array.make 2 None;
-  order = "";
-  count = 0;
-}
+  {
+    name = "";
+    kind = "";
+    deviser = None;
+    versions = Array.make 2 None;
+    order = "";
+    count = 0;
+  }
 
 let name t =
   t.name
@@ -137,54 +137,54 @@ let save t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> ())
     (fun local_storage ->
-      let versions =
-        list_versions t
-        |> List.map (fun t -> t.slug)
-        |> List.map Slug.to_string
-        |> String.concat ";"
-      in
-      begin match t.deviser with
-      | None -> ()
-      | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js (Slug.to_string slug))
-      end;
-      local_storage##setItem (js "composer.name") (js t.name);
-      local_storage##setItem (js "composer.kind") (js t.kind);
-      local_storage##setItem (js "composer.versions") (js versions);)
+       let versions =
+         list_versions t
+         |> List.map (fun t -> t.slug)
+         |> List.map Slug.to_string
+         |> String.concat ";"
+       in
+       begin match t.deviser with
+         | None -> ()
+         | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js (Slug.to_string slug))
+       end;
+       local_storage##setItem (js "composer.name") (js t.name);
+       local_storage##setItem (js "composer.kind") (js t.kind);
+       local_storage##setItem (js "composer.versions") (js versions);)
 
 let load t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> Lwt.return ())
     (fun local_storage ->
-      let name, kind, versions, deviser =
-        local_storage##getItem (js "composer.name"),
-        local_storage##getItem (js "composer.kind"),
-        local_storage##getItem (js "composer.versions"),
-        local_storage##getItem (js "composer.deviser")
-      in
-      let open Lwt in
-      Js.Opt.case name (fun () -> ())
-        (fun name -> t.name <- Js.to_string name);
-      Js.Opt.case kind (fun () -> ())
-        (fun kind -> t.kind <- Js.to_string kind);
-      Js.Opt.case versions (fun () -> Lwt.return ())
-        (fun versions ->
-          String.split_on_char ';' (Js.to_string versions)
-          |> List.filter (fun s -> s <> " " && s <> "")
-          |> List.map Slug.unsafe_of_string
-          |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
-      >>= (fun () ->
-      Js.Opt.case deviser (fun () -> Lwt.return ())
-        (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
+       let name, kind, versions, deviser =
+         local_storage##getItem (js "composer.name"),
+         local_storage##getItem (js "composer.kind"),
+         local_storage##getItem (js "composer.versions"),
+         local_storage##getItem (js "composer.deviser")
+       in
+       let open Lwt in
+       Js.Opt.case name (fun () -> ())
+         (fun name -> t.name <- Js.to_string name);
+       Js.Opt.case kind (fun () -> ())
+         (fun kind -> t.kind <- Js.to_string kind);
+       Js.Opt.case versions (fun () -> Lwt.return ())
+         (fun versions ->
+            String.split_on_char ';' (Js.to_string versions)
+            |> List.filter (fun s -> s <> " " && s <> "")
+            |> List.map Slug.unsafe_of_string
+            |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
+       >>= (fun () ->
+           Js.Opt.case deviser (fun () -> Lwt.return ())
+             (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
 
 let erase_storage _ =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> ())
     (fun local_storage ->
-      local_storage##removeItem (js "composer.name");
-      local_storage##removeItem (js "composer.kind");
-      local_storage##removeItem (js "composer.deviser");
-      local_storage##removeItem (js "composer.order");
-      local_storage##removeItem (js "composer.versions"))
+       local_storage##removeItem (js "composer.name");
+       local_storage##removeItem (js "composer.kind");
+       local_storage##removeItem (js "composer.deviser");
+       local_storage##removeItem (js "composer.order");
+       local_storage##removeItem (js "composer.versions"))
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
