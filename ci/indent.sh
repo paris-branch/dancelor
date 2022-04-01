@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 set -euC
 
 ## Find all files not in a .git directory that end in .ml or .mli and run
