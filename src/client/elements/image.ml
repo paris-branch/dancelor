@@ -16,10 +16,10 @@ let create ~source page =
   root##.classList##add (js "image-container");
   root##.textContent := Js.some (js "Loading image...");
   Lwt.on_success source (fun src ->
-    let img = Html.createImg (Page.document page) in
-    img##.src := js src;
-    root##.textContent := Js.null;
-    Dom.appendChild root img);
+      let img = Html.createImg (Page.document page) in
+      img##.src := js src;
+      root##.textContent := Js.null;
+      Dom.appendChild root img);
   {page; root}
 
 let root t = 

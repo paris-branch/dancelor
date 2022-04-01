@@ -20,8 +20,8 @@ let in_channel_to_string ic =
     match input ic buf 0 bufsize with
     | 0 -> ()
     | n ->
-       Buffer.add_subbytes all buf 0 n;
-       aux ()
+      Buffer.add_subbytes all buf 0 n;
+      aux ()
   in
   aux ();
   Buffer.contents all

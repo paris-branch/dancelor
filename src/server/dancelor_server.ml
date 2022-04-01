@@ -54,8 +54,8 @@ let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Quer
   Lwt.return (QueryParameters.append ~high ~low)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
-   exceptions. Exceptions are logged as uncaught, and then the `die` function is
-   called. *)
+    exceptions. Exceptions are logged as uncaught, and then the `die` function
+    is called. *)
 let catchall ~place ~die fun_ =
   try
     try%lwt
@@ -70,8 +70,8 @@ let catchall ~place ~die fun_ =
     die ()
 
 (** Callback handling one client request. It is in charge of trying to find what
-   will answer to the request: a static file, or a Madge API point, or the
-   standard main JS file. *)
+    will answer to the request: a static file, or a Madge API point, or the
+    standard main JS file. *)
 let callback _ request body =
   catchall
     ~place:"the callback"
@@ -164,7 +164,7 @@ let main =
   @@ fun () ->
   read_configuration ();
   initialise_logs ();
-  initialise_database (); %lwt
+  initialise_database ();%lwt
   check_init_only ();
   start_routines ();
   run_server ()

@@ -5,10 +5,10 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  document : Html.document Js.t;
-  content : Html.divElement Js.t;
-}
+  {
+    document : Html.document Js.t;
+    content : Html.divElement Js.t;
+  }
 
 let create _ =
   let document = Html.window##.document in

@@ -1,8 +1,8 @@
 (** {1 Book Signature}
 
-   This module contains the signature of books, shared by both Dancelor's client
-   and server. On the server side, some of these functions involve database
-   accesses; on the client side, network calls. *)
+    This module contains the signature of books, shared by both Dancelor's client
+    and server. On the server side, some of these functions involve database
+    accesses; on the client side, network calls. *)
 
 open Nes
 
@@ -12,16 +12,16 @@ type page = BookCore.page =
   | Version   of VersionCore.t * VersionParameters.t
   | Set       of     SetCore.t *     SetParameters.t
   | InlineSet of     SetCore.t *     SetParameters.t
-(** The type of one page in a book. A page either consists of a version (eg.
-   in a book of tunes), or a set (eg. in a dance program) or a so-called
-   “inline set”. Inline sets are simply a way to define a set on-the-fly in
-   the database for books without actually giving it a corresponding set
-   entry. It can be useful to put several versions on the same page, for
-   instance, when they do not particularly make sense together. *)
+  (** The type of one page in a book. A page either consists of a version (eg.
+      in a book of tunes), or a set (eg. in a dance program) or a so-called
+      “inline set”. Inline sets are simply a way to define a set on-the-fly in
+      the database for books without actually giving it a corresponding set
+      entry. It can be useful to put several versions on the same page, for
+      instance, when they do not particularly make sense together. *)
 
 type t = BookCore.t
 (** The type of a book. Even if it is known that it is a record, it should never
-   be manipulated explicitly. *)
+    be manipulated explicitly. *)
 
 (** {2 Field Getters} *)
 

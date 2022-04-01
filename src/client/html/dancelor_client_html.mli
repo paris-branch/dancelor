@@ -20,17 +20,17 @@ val append_nodes : dom_node -> document -> node list -> unit
 
 (** {3 Raw Text}
 
-   Raw text is not {i per se} an HTML element; it does not support attributes.
-   It is the only element that actually shows text. *)
+    Raw text is not {i per se} an HTML element; it does not support attributes.
+    It is the only element that actually shows text. *)
 
 val text     : string       -> node
 val text_lwt : string Lwt.t -> node
 
 (** {3 Node Maker Types}
 
-   There are several kinds of makers sharing a very similar interface. The only
-   difference is that they receive their children in different ways, mainly as a
-   list or as a delayed list. *)
+    There are several kinds of makers sharing a very similar interface. The only
+    difference is that they receive their children in different ways, mainly as a
+    list or as a delayed list. *)
 
 type 'children node_maker = ?classes:string list -> 'children -> node
 (** Common type for all node maker elements (except {!text} above). *)

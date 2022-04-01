@@ -52,7 +52,7 @@ let create slug page =
           let href = SCDDB.tune_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] [
-               a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
             ]
           ]
       );
@@ -61,19 +61,19 @@ let create slug page =
         let bass_parameters =
           VersionParameters.(
             make ~clef:Music.Bass
-                 ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-                 ()
+              ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
+              ()
           )
         in
         let b_pitch = Music.make_pitch B Flat (-1) in
         let b_parameters = VersionParameters.(
-          make ~transposition:(Transposition.relative b_pitch Music.pitch_c)
+            make ~transposition:(Transposition.relative b_pitch Music.pitch_c)
               ()
           )
         in
         let e_pitch = Music.make_pitch E Flat 0 in
         let e_parameters = VersionParameters.(
-          make ~transposition:(Transposition.relative e_pitch Music.pitch_c)
+            make ~transposition:(Transposition.relative e_pitch Music.pitch_c)
               ()
           )
         in
@@ -82,19 +82,19 @@ let create slug page =
           Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
           Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
             ~query:["parameters", [
-              b_parameters
-              |> VersionParameters.to_yojson |> Yojson.Safe.to_string
-            ]] (),
+                b_parameters
+                |> VersionParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
           Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
             ~query:["parameters", [
-              e_parameters
-              |> VersionParameters.to_yojson |> Yojson.Safe.to_string
-            ]] (),
+                e_parameters
+                |> VersionParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
           Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
             ~query:["parameters", [
-              bass_parameters
-              |> VersionParameters.to_yojson |> Yojson.Safe.to_string
-            ]] (),
+                bass_parameters
+                |> VersionParameters.to_yojson |> Yojson.Safe.to_string
+              ]] (),
           Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
         in
 
@@ -144,9 +144,9 @@ let create slug page =
         let broken =
           Inputs.Button.create
             ~on_click:(fun () -> Lwt.async (fun () ->
-              if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken; %lwt
-              Dom_html.window##.location##reload ;
-              Lwt.return_unit ))
+                if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken;%lwt
+                Dom_html.window##.location##reload ;
+                Lwt.return_unit ))
             ~text:(if is_broken then "Mark fixed" else "Mark broken") page
         in
 

@@ -10,10 +10,10 @@ module Html = Dom_html
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  content : Html.divElement Js.t;
-}
+  {
+    page : Page.t;
+    content : Html.divElement Js.t;
+  }
 
 let create page =
   let document = Page.document page in
@@ -36,27 +36,27 @@ let create page =
   let rows =
     let%lwt books = Book.search Formula.true_ >|=| Score.list_erase in
     Lwt.return (List.map (fun book ->
-      let href =
-        let%lwt slug = Book.slug book in
-        Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
-      in
-      let cells =
-        let open Lwt in [
-          Table.Cell.create ~content:(
-            let%lwt content = Formatters.Book.title_and_subtitle book in
-            Lwt.return (Dancelor_client_html.nodes_to_dom_nodes document content)
-          ) page;
-          Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page
-        ]
-      in
-      Table.Row.create ~href ~cells page) books)
+        let href =
+          let%lwt slug = Book.slug book in
+          Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+        in
+        let cells =
+          let open Lwt in [
+            Table.Cell.create ~content:(
+              let%lwt content = Formatters.Book.title_and_subtitle book in
+              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes document content)
+            ) page;
+            Table.Cell.text ~text:(Book.date book >|= NesDate.to_string) page
+          ]
+        in
+        Table.Row.create ~href ~cells page) books)
   in
   let section = Table.Section.create ~rows page in
   let table = Table.create
-    ~kind:Table.Kind.Separated
-    ~header
-    ~contents:(Lwt.return [section])
-    page
+      ~kind:Table.Kind.Separated
+      ~header
+      ~contents:(Lwt.return [section])
+      page
   in
   Dom.appendChild content (Table.root table);
   {page; content}

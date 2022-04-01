@@ -205,7 +205,7 @@ module Ly = struct
       fpf fmt [%blob "template/book/book_end.ly"];
       Lwt.return ()
     in
-    prom; %lwt
+    prom;%lwt
     Lwt.return res
 end
 
@@ -222,9 +222,9 @@ module Pdf = struct
       Lwt.return (fname^".ly", fname^".pdf")
     in
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
-      (fun ochan -> Lwt_io.write ochan lilypond); %lwt
+      (fun ochan -> Lwt_io.write ochan lilypond);%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.run ~exec_path:path fname_ly; %lwt
+    LilyPond.run ~exec_path:path fname_ly;%lwt
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf
 

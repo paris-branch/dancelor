@@ -23,8 +23,8 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
   in
   let%lwt author =
     match%lwt Tune.author tune with
-      | None -> Lwt.return ""
-      | Some author -> Credit.line author
+    | None -> Lwt.return ""
+    | Some author -> Credit.line author
   in
   let author =
     parameters
@@ -123,9 +123,9 @@ module Svg = struct
     Log.debug (fun m -> m "SVG file name: %s" fname_svg);
     let path = Filename.concat !Dancelor_server_config.cache "version" in
     Log.debug (fun m -> m "Preparing lilypond file");
-    prepare_ly_file ?parameters ~show_meta:false ~fname:(Filename.concat path fname_ly) version; %lwt
+    prepare_ly_file ?parameters ~show_meta:false ~fname:(Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Generate score and crop");
-    LilyPond.cropped_svg ~exec_path:path fname_ly; %lwt
+    LilyPond.cropped_svg ~exec_path:path fname_ly;%lwt
     Log.debug (fun m -> m "done!");
     Lwt.return (Filename.concat path fname_svg)
 
@@ -155,9 +155,9 @@ module Pdf = struct
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
     prepare_ly_file ?parameters ~show_meta:true ~meta_in_title:true
-      ~fname:(Filename.concat path fname_ly) version; %lwt
+      ~fname:(Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.run ~exec_path:path fname_ly; %lwt
+    LilyPond.run ~exec_path:path fname_ly;%lwt
     Lwt.return (Filename.concat path fname_pdf)
 
   let get version query_parameters =
@@ -185,9 +185,9 @@ module Ogg = struct
       Lwt.return (fname^".ly", fname^".ogg")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
-    prepare_ly_file ~fname:(Filename.concat path fname_ly) version; %lwt
-      Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.ogg ~exec_path:path fname_ly; %lwt
+    prepare_ly_file ~fname:(Filename.concat path fname_ly) version;%lwt
+    Log.debug (fun m -> m "Processing with LilyPond");
+    LilyPond.ogg ~exec_path:path fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 
   let get version _ =

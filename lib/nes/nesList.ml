@@ -3,9 +3,9 @@ include List
 let rec map_filter f = function
   | [] -> []
   | h :: t ->
-     match f h with
-     | None -> map_filter f t
-     | Some x -> x :: map_filter f t
+    match f h with
+    | None -> map_filter f t
+    | Some x -> x :: map_filter f t
 
 let rec sub n l =
   if n <= 0 then []

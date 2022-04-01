@@ -65,11 +65,11 @@ let make_button_list t pages =
 let build_page_list cur_page max_pages =
   List.init max_pages (fun i -> i + 1)
   |> List.filter (fun i ->
-    (i = 1) || 
-    (i = max_pages) ||
-    (abs (cur_page - i) <= 1) ||
-    (i <= 5 && cur_page <= 4) ||
-    (i > max_pages - 5 && cur_page > max_pages - 4))
+      (i = 1) || 
+      (i = max_pages) ||
+      (abs (cur_page - i) <= 1) ||
+      (i <= 5 && cur_page <= 4) ||
+      (i > max_pages - 5 && cur_page > max_pages - 4))
 
 let pagination t =
   let f, l =

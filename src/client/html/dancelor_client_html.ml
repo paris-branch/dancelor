@@ -185,5 +185,5 @@ let audio ?src ?src_lwt ?(controls=false) ?classes () document =
   let audio = gen_node_lwt Dom_html.createAudio ?classes Lwt.return_nil document in
   audio##.controls := Js.bool controls;
   Lwt.on_success src_lwt (fun src ->
-    audio##.src := Js.string src);
+      audio##.src := Js.string src);
   (audio :> dom_node)

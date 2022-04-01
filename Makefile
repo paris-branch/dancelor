@@ -20,14 +20,13 @@ release:
 docker:
 	docker build --tag dancelor .
 
-## FIXME: enable the indent test once the repository is ready.
 ci: docker
 	docker build --tag dancelor_base  --target base  .
 	docker build --tag dancelor_files --target files .
 	docker build --tag dancelor_deps  --target deps  .
 	docker build --tag dancelor_build --target build .
 	docker run dancelor_build opam exec -- make test
-	docker run dancelor_files ci/indent.sh || true
+	docker run dancelor_files ci/indent.sh
 	docker run dancelor_files ci/opam-lint.sh
 	docker run dancelor_files ci/opam-diff.sh
 

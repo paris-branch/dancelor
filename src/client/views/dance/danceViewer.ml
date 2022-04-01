@@ -8,10 +8,10 @@ module Formatters = Dancelor_client_formatters
 let js = Js.string
 
 type t =
-{
-  page : Page.t;
-  content : Dom_html.divElement Js.t;
-}
+  {
+    page : Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
 let create slug page =
   let document = Page.document page in
@@ -56,7 +56,7 @@ let create slug page =
           let href = SCDDB.dance_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] [
-               a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
             ]
           ]
       );
