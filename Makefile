@@ -20,7 +20,7 @@ release:
 docker:
 	docker build --tag dancelor .
 
-ci: docker
+ci:
 	docker build --tag dancelor_base  --target base  .
 	docker build --tag dancelor_files --target files .
 	docker build --tag dancelor_deps  --target deps  .

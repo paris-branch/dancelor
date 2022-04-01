@@ -9,11 +9,9 @@
 ##  properly. All images except the final one will be based on this one. It does
 ##  not depend in any way on the files in the outside.
 
-FROM ocaml/opam:debian-11-ocaml-4.14 AS base
+FROM ocaml/opam:alpine-3.15-ocaml-4.14 AS base
 
 USER root
-
-RUN apt-get update -y
 
 ## FIXME: When OPAM 2.1 becomes the default, this will no longer be necessary.
 RUN ln -sf /usr/bin/opam-2.1 /usr/bin/opam

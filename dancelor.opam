@@ -46,7 +46,8 @@ dev-repo: "git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git"
 depexts: [
   [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" ]
     { os-distribution = "archlinux" }
-
+  [ "sassc" ]
+    { os-distribution = "alpine" }
   [ "timidity" "freepats" "inkscape" "lilypond" "sassc" ]
     { os-distribution = "debian" }
 ]
