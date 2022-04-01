@@ -14,19 +14,19 @@ base:
   stage: base
   needs: []
   script:
-    - docker build -t dancelor_base - < docker/base.dockerfile
+    - docker build --tag dancelor_base --target base .
 
 deps:
   stage: base
   needs: [base]
   script:
-    - docker build -t dancelor_deps -f docker/deps.dockerfile .
+    - docker build --tag dancelor_deps --target deps .
 
 build:
   stage: build
   needs: [deps]
   script:
-    - docker build -t dancelor_build -f docker/build.dockerfile .
+    - docker build --tag dancelor_build --target build .
 
 build-doc:
   stage: build
@@ -42,7 +42,7 @@ files:
   stage: base
   needs: [base]
   script:
-    - docker build -t dancelor_files -f docker/files.dockerfile .
+    - docker build --tag dancelor_files --target files .
 
 test:
   stage: test
