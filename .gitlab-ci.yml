@@ -10,13 +10,6 @@
 default:
   tags: [shell]
 
-## Only run the workflow for pushes to branches. This matters at least for the
-## test in `pages` to make sense.
-##
-workflow:
-  rules:
-    - if: '$CI_COMMIT_BRANCH'
-
 ## Split everything in four stages, described extensively below. FIXME: add a
 ## fifth stage for cleanup.
 ##
@@ -70,7 +63,7 @@ build:
   script:
     - docker build --tag dancelor_build --target build .
 
-doc:
+build-doc:
   stage: build
   needs: [build]
   script:
@@ -97,23 +90,23 @@ test:
   script:
     - docker run dancelor_build opam exec -- make test
 
-indent:
+test-indent:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files ci/indent.sh
+    - docker run dancelor_files ci/test-indent.sh
 
-opam-lint:
+test-opam-lint:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files ci/opam-lint.sh
+    - docker run dancelor_files ci/test-opam-lint.sh
 
-opam-diff:
+test-opam-diff:
   stage: test
   needs: [files]
   script:
-    - docker run dancelor_files ci/opam-diff.sh
+    - docker run dancelor_files ci/test-opam-diff.sh
 
 ################################################################################
 ##   ___           _
@@ -123,19 +116,11 @@ opam-diff:
 ##           |_|         |__/
 ##
 ##  If everything else is green, we can deploy various objects, including the
-##  documentation and (FIXME) Dancelor itself. Note that, at this point, the
-##  deployment of documentation seems rather dull and could be taken care of by
-##  the `doc` job. But this one only runs if everything else ran correctly, and
-##  there will also be some extra stuff done in there.
+##  documentation and (FIXME) Dancelor itself.
 
-pages:
+## This one has no `needs`. Therefore, it only runs at its stage, that is in the
+## deploy stage, when everything else succeeded.
+deploy-pages:
   stage: deploy
-  needs: [doc]
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-  when: on_success
   script:
-    - mv documentation public
-  artifacts:
-    paths:
-      - public
+    - ci/deploy-pages.sh
