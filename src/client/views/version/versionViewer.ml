@@ -196,7 +196,7 @@ let create slug page =
 
           Lwt.return [
             if dances = [] then
-              text "There are no dances that recommende this tune."
+              text "There are no dances that recommend this tune."
             else
               Dancelor_client_tables.dances dances
           ]
