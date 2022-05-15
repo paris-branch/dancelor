@@ -100,7 +100,7 @@ let create slug page =
         div_lwt (
           let%lwt tunes =
             let%lwt credit = credit_lwt in
-            let filter = Formula.(pred (TuneFilter.Author (pred (CreditFilter.Is credit)))) in
+            let filter = TuneFilter.authorIs credit in
             Tune.search filter >|=| Score.list_erase
           in
 
@@ -129,6 +129,25 @@ let create slug page =
               text "There are no sets devised by this credit."
             else
               Dancelor_client_tables.sets sets
+          ]
+        );
+      ];
+
+      div ~classes:["section"] [
+        h3 [ text "Dances Devised" ];
+
+        div_lwt (
+          let%lwt dances =
+            let%lwt credit = credit_lwt in
+            let filter = DanceFilter.deviser (CreditFilter.is credit) in
+            Dance.search filter >|=| Score.list_erase
+          in
+
+          Lwt.return [
+            if dances = [] then
+              text "There are no dances devised by this credit."
+            else
+              Dancelor_client_tables.dances dances
           ]
         );
       ]]);
