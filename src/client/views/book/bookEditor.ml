@@ -33,6 +33,16 @@ let insert t slug i =
   t.sets.(min t.count i) <- Some (slug, set);
   Lwt.return ()
 
+let add t slug =
+  insert t slug t.count
+
+let iter t f =
+  for i = 0 to t.count - 1 do
+    match t.sets.(i) with
+    | None -> ()
+    | Some set -> f i set
+  done
+
 let clear t =
   t.title <- "";
   t.count <- 0
