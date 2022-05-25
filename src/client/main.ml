@@ -19,6 +19,7 @@ let on_load _ev =
   Header.add_dropdown_menu_entry header "Add" [
     "Tune", (Router.path_of_controller Router.VersionAddition |> snd);
     "Set",  (Router.path_of_controller Router.SetCompose |> snd);
+    "Book",  (Router.path_of_controller Router.BookCompose |> snd);
   ];
   Page.set_header page (Header.contents header);
   let url =

@@ -55,6 +55,8 @@ let dispatch url =
     pack (module SetViewer) (SetViewer.create (Slug.unsafe_of_string slug))
   | ["book"; "all"] ->
     pack (module BookExplorer) BookExplorer.create
+  | ["book"; "compose"] ->
+    pack (module BookEditorInterface) BookEditorInterface.create
   | ["book"; slug] ->
     pack (module BookViewer) (BookViewer.create (Slug.unsafe_of_string slug))
   | ["credit"; "add"] ->
