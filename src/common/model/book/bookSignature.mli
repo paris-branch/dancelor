@@ -78,6 +78,11 @@ val warnings : t -> warnings Lwt.t
 
 val get : t Slug.t -> t Lwt.t
 
+val make_and_save :
+  ?status:Status.t ->
+  title:string ->
+  unit -> t Lwt.t
+
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->

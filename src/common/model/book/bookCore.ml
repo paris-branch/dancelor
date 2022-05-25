@@ -19,7 +19,10 @@ type t =
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;
     scddb_id    : int option [@default None] [@key "scddb-id"] }
-[@@deriving yojson]
+[@@deriving make, yojson]
+
+let make ?status ~slug ~title () =
+  Lwt.return (make ?status ~slug ~title ())
 
 let slug book = Lwt.return book.slug
 let status book = Lwt.return book.status
