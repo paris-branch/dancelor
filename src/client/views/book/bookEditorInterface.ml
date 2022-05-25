@@ -69,6 +69,8 @@ let create ?on_save page =
   Dom.appendChild submit (Inputs.Button.root clear);
 
   Dom.appendChild form (Inputs.Text.root input_title);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form submit;
 
   Dom.appendChild content (Text.Heading.root title);
   Dom.appendChild content (Html.createHr (Page.document page));
