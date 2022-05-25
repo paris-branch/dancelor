@@ -21,8 +21,8 @@ type t =
     scddb_id    : int option [@default None] [@key "scddb-id"] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~title () =
-  Lwt.return (make ?status ~slug ~title ())
+let make ?status ~slug ~title ?contents_and_parameters  () =
+  Lwt.return (make ?status ~slug ~title ?contents:contents_and_parameters ())
 
 let slug book = Lwt.return book.slug
 let status book = Lwt.return book.status
