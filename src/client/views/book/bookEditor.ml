@@ -43,10 +43,21 @@ let iter t f =
     | Some set -> f i set
   done
 
+let fold t f acc =
+  let acc = ref acc in
+  for i = t.count - 1 downto 0 do
+    match t.sets.(i) with
+      | None -> ()
+      | Some set -> acc := f i set !acc
+  done;
+  !acc
+
 let clear t =
   t.title <- "";
   t.count <- 0
 
 let submit t =
   let title = t.title in
-  Book.make_and_save ~title ()
+  let contents = fold t (fun _ set acc -> snd set :: acc) [] in
+  let contents_and_parameters = List.map (fun set -> Book.Set (set, SetParameters.none)) contents in
+  Book.make_and_save ~title ~contents_and_parameters ()
