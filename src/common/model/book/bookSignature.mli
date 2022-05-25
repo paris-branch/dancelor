@@ -81,7 +81,7 @@ val get : t Slug.t -> t Lwt.t
 val make_and_save :
   ?status:Status.t ->
   title:string ->
-  ?contents_and_parameters:BookCore.page_slug list ->
+  ?contents_and_parameters:page list ->
   unit -> t Lwt.t
 
 val search :
