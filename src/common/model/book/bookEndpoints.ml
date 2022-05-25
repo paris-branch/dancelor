@@ -1,19 +1,19 @@
 open Madge_common
 
-module Page_slug : Madge_common.SERIALISABLE
-  with type t = BookCore.page_slug
+module BookPage : Madge_common.SERIALISABLE
+  with type t = BookCore.page
   = struct
-  type t = BookCore.page_slug
+  type t = BookCore.page
   let _key = "book-page-slug"
-  let to_yojson = BookCore.page_slug_to_yojson
-  let of_yojson = BookCore.page_slug_of_yojson
+  let to_yojson = BookCore.page_to_yojson
+  let of_yojson = BookCore.page_of_yojson
 end
 
 module Arguments = struct
   let slug = arg ~key:"slug" (module MSlug(BookCore))
   let status = optarg (module Status)
   let title = arg ~key:"title" (module MString)
-  let contents_and_parameters = optarg ~key:"contents" (module MList(Page_slug))
+  let contents_and_parameters = optarg ~key:"contents" (module MList(BookPage))
   let filter = arg (module BookFilter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
