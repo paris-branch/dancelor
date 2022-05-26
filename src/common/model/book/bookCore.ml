@@ -74,7 +74,7 @@ type page =
   | InlineSet of     SetCore.t * SetParameters.t
 [@@deriving yojson]
 
-let make ?status ~slug ~title ?contents_and_parameters () =
+let make ?status ~slug ~title ?date ?contents_and_parameters () =
   let%lwt contents_and_parameters =
     let%olwt contents_and_parameters = Lwt.return contents_and_parameters in
     let%lwt contents_and_parameters =
@@ -93,4 +93,4 @@ let make ?status ~slug ~title ?contents_and_parameters () =
         contents_and_parameters
     in Lwt.return_some contents_and_parameters
   in
-  Lwt.return (make ?status ~slug ~title ?contents:contents_and_parameters ())
+  Lwt.return (make ?status ~slug ~title ?date ?contents:contents_and_parameters ())
