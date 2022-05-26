@@ -2,7 +2,7 @@ open Madge_common
 
 module BookPage : Madge_common.SERIALISABLE
   with type t = BookCore.page
-  = struct
+= struct
   type t = BookCore.page
   let _key = "book-page-slug"
   let to_yojson = BookCore.page_to_yojson

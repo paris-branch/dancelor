@@ -80,15 +80,15 @@ let make ?status ~slug ~title ?date ?contents_and_parameters () =
     let%lwt contents_and_parameters =
       Lwt_list.map_s
         (fun page ->
-          match page with
-          | Version (version, params) ->
-              let%lwt slug = VersionCore.slug version in
-              Lwt.return (Version (slug, params) : page_slug)
-          | Set (set, params) ->
-              let%lwt slug = SetCore.slug set in
-              Lwt.return (Set (slug, params) : page_slug)
-          | InlineSet (set, params) ->
-              Lwt.return (InlineSet (set, params) : page_slug)
+           match page with
+           | Version (version, params) ->
+             let%lwt slug = VersionCore.slug version in
+             Lwt.return (Version (slug, params) : page_slug)
+           | Set (set, params) ->
+             let%lwt slug = SetCore.slug set in
+             Lwt.return (Set (slug, params) : page_slug)
+           | InlineSet (set, params) ->
+             Lwt.return (InlineSet (set, params) : page_slug)
         )
         contents_and_parameters
     in Lwt.return_some contents_and_parameters

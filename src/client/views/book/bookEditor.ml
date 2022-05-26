@@ -75,8 +75,8 @@ let fold t f acc =
   let acc = ref acc in
   for i = t.count - 1 downto 0 do
     match t.sets.(i) with
-      | None -> ()
-      | Some set -> acc := f i set !acc
+    | None -> ()
+    | Some set -> acc := f i set !acc
   done;
   !acc
 
