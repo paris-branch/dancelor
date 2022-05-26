@@ -3,12 +3,14 @@ open Dancelor_client_model
 
 type t = {
   mutable title : string;
+  mutable date : string;
   mutable sets : (Set.t Slug.t * Set.t) option array;
   mutable count : int;
 }
 
 let create () =
   { title = "";
+    date = "";
     sets = Array.make 2 None;
     count = 0;
   }
@@ -18,6 +20,12 @@ let title t =
 
 let set_title t title =
   t.title <- title
+
+let date t =
+  t.date
+
+let set_date t date =
+  t.date <- date
 
 let insert t slug i =
   if Array.length t.sets = t.count then begin
@@ -54,10 +62,12 @@ let fold t f acc =
 
 let clear t =
   t.title <- "";
+  t.date <- "";
   t.count <- 0
 
 let submit t =
   let title = t.title in
+  let date = if t.date <> "" then Some (Date.from_string t.date) else None in
   let contents = fold t (fun _ set acc -> snd set :: acc) [] in
   let contents_and_parameters = List.map (fun set -> Book.Set (set, SetParameters.none)) contents in
-  Book.make_and_save ~title ~contents_and_parameters ()
+  Book.make_and_save ~title ?date ~contents_and_parameters ()
