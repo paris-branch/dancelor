@@ -44,6 +44,26 @@ let insert t slug i =
 let add t slug =
   insert t slug t.count
 
+let remove t i =
+  if i >= 0 && i < t.count then begin
+    t.sets.(i) <- None;
+    for j = i + 1 to t.count - 1 do
+      t.sets.(j-1) <- t.sets.(j)
+    done;
+    t.sets.(t.count - 1) <- None;
+    t.count <- t.count - 1
+  end
+
+let move_up t i =
+  if i > 0 && i < t.count then begin
+    let tmp = t.sets.(i-1) in
+    t.sets.(i-1) <- t.sets.(i);
+    t.sets.(i) <- tmp
+  end
+
+let move_down t i =
+  move_up t (i+1)
+
 let iter t f =
   for i = 0 to t.count - 1 do
     match t.sets.(i) with

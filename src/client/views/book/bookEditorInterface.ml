@@ -20,14 +20,47 @@ type t =
     sets_search : SearchBar.t;
   }
 
-let make_set_subwindow t _index set =
+let make_set_subwindow t index set =
   let subwin = Html.createDiv (Page.document t.page) in
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
   let title = Text.Heading.h3_static ~text:(Set.name (snd set)) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
-  (* TODO: Buttons *)
+  let buttons = Html.createUl (Page.document t.page) in
+  let down, up, del =
+    Inputs.Button.create
+      ~on_click:(fun () ->
+        BookEditor.move_down t.editor index;
+        Page.refresh t.page)
+      ~icon:"chevron-down"
+      t.page,
+    Inputs.Button.create
+      ~on_click:(fun () ->
+          BookEditor.move_up t.editor index;
+          Page.refresh t.page)
+      ~icon:"chevron-up"
+      t.page,
+    Inputs.Button.create
+      ~on_click:(fun () ->
+          BookEditor.remove t.editor index;
+          Page.refresh t.page)
+      ~kind:Inputs.Button.Kind.Danger
+      ~icon:"times"
+      t.page
+  in
+  let downli, upli, delli =
+    Html.createLi (Page.document t.page),
+    Html.createLi (Page.document t.page),
+    Html.createLi (Page.document t.page)
+  in
+  Dom.appendChild downli (Inputs.Button.root down);
+  Dom.appendChild upli (Inputs.Button.root up);
+  Dom.appendChild delli (Inputs.Button.root del);
+  Dom.appendChild buttons downli;
+  Dom.appendChild buttons upli;
+  Dom.appendChild buttons delli;
+  Dom.appendChild toolbar buttons;
   Dom.appendChild subwin toolbar;
   subwin
 
