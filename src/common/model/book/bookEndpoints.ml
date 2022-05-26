@@ -4,7 +4,7 @@ module BookPage : Madge_common.SERIALISABLE
   with type t = BookCore.page
 = struct
   type t = BookCore.page
-  let _key = "book-page-slug"
+  let _key = "book-page"
   let to_yojson = BookCore.page_to_yojson
   let of_yojson = BookCore.page_of_yojson
 end
