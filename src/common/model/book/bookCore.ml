@@ -19,7 +19,7 @@ type t =
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;
     scddb_id    : int option [@default None] [@key "scddb-id"] }
-[@@deriving yojson]
+[@@deriving make, yojson]
 
 let slug book = Lwt.return book.slug
 let status book = Lwt.return book.status
@@ -72,3 +72,25 @@ type page =
   | Version   of VersionCore.t * VersionParameters.t
   | Set       of     SetCore.t * SetParameters.t
   | InlineSet of     SetCore.t * SetParameters.t
+[@@deriving yojson]
+
+let make ?status ~slug ~title ?date ?contents_and_parameters () =
+  let%lwt contents_and_parameters =
+    let%olwt contents_and_parameters = Lwt.return contents_and_parameters in
+    let%lwt contents_and_parameters =
+      Lwt_list.map_s
+        (fun page ->
+          match page with
+          | Version (version, params) ->
+              let%lwt slug = VersionCore.slug version in
+              Lwt.return (Version (slug, params) : page_slug)
+          | Set (set, params) ->
+              let%lwt slug = SetCore.slug set in
+              Lwt.return (Set (slug, params) : page_slug)
+          | InlineSet (set, params) ->
+              Lwt.return (InlineSet (set, params) : page_slug)
+        )
+        contents_and_parameters
+    in Lwt.return_some contents_and_parameters
+  in
+  Lwt.return (make ?status ~slug ~title ?date ?contents:contents_and_parameters ())
