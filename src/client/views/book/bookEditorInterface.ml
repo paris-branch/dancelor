@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
@@ -14,6 +15,7 @@ type t =
     editor : BookEditor.t;
     content : Html.divElement Js.t;
     input_title : Inputs.Text.t;
+    input_date : Inputs.Text.t;
     sets_area : Html.divElement Js.t;
     sets_search : SearchBar.t;
   }
@@ -31,6 +33,7 @@ let make_set_subwindow t _index set =
 
 let refresh t =
   Inputs.Text.set_contents t.input_title (BookEditor.title t.editor);
+  Inputs.Text.set_contents t.input_date (BookEditor.date t.editor);
   Helpers.clear_children t.sets_area;
   BookEditor.iter t.editor (fun i set ->
     let subwin = make_set_subwindow t i set in
@@ -62,6 +65,11 @@ let create ?on_save page =
     ~on_change:(fun title -> BookEditor.set_title editor title)
     page
   in
+  let input_date = Inputs.Text.create
+    ~placeholder:"Date for the book, in the YYYY-MM-DD format (optional)"
+    ~on_change:(fun date -> BookEditor.set_date editor date)
+    page
+  in
 
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -87,16 +95,18 @@ let create ?on_save page =
       page
   in
 
-  let t = {page; editor; content; input_title; sets_area; sets_search} in
+  let t = {page; editor; content; input_title; input_date; sets_area; sets_search} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-        let b1 =
-          Inputs.Text.check input_title (fun str -> str <> "")
+        let b1, b2 =
+          Inputs.Text.check input_title (fun str -> str <> ""),
+          Inputs.Text.check input_date
+            (fun str -> try Date.from_string str |> ignore; true with _ -> str = "")
 
         in
-        if b1 then (
+        if b1 && b2 then (
           Lwt.on_success (BookEditor.submit editor) (fun book ->
             Lwt.on_success (Book.slug book) (fun slug ->
               begin match on_save with
@@ -114,7 +124,8 @@ let create ?on_save page =
         if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
           BookEditor.clear editor;
           Page.refresh page;
-          Inputs.Text.set_valid input_title true
+          Inputs.Text.set_valid input_title true;
+          Inputs.Text.set_valid input_date true
         end)
       page
   in
@@ -123,6 +134,8 @@ let create ?on_save page =
   Dom.appendChild submit (Inputs.Button.root clear);
 
   Dom.appendChild form (Inputs.Text.root input_title);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_date);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form sets_area;
   Dom.appendChild form (Html.createBr (Page.document page));
