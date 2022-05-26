@@ -81,6 +81,7 @@ val get : t Slug.t -> t Lwt.t
 val make_and_save :
   ?status:Status.t ->
   title:string ->
+  ?date:Date.t ->
   ?contents_and_parameters:page list ->
   unit -> t Lwt.t
 
