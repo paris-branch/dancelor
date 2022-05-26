@@ -5,10 +5,10 @@ module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~title ?contents_and_parameters ()
+    ?status ~title ?date ?contents_and_parameters ()
   =
   Dancelor_server_database.Book.save ~slug_hint:title @@ fun slug ->
-  make ?status ~slug ~title ?contents_and_parameters ()
+  make ?status ~slug ~title ?date ?contents_and_parameters ()
 
 let () =
   Madge_server.(
@@ -16,6 +16,7 @@ let () =
     make_and_save
       ?status:    (o A.status)
       ~title:     (a A.title)
+      ?date:      (o A.date)
       ?contents_and_parameters:(o A.contents_and_parameters)
       ()
   )
