@@ -13,11 +13,16 @@ let make_and_save
 let () =
   Madge_server.(
     register ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    let%lwt contents_and_parameters =
+      let%olwt contents = Lwt.return (o A.contents_and_parameters) in
+      let%lwt contents = Lwt_list.map_s page_core_to_page contents in
+      Lwt.return_some contents
+    in
     make_and_save
       ?status:    (o A.status)
       ~title:     (a A.title)
       ?date:      (o A.date)
-      ?contents_and_parameters:(o A.contents_and_parameters)
+      ?contents_and_parameters
       ()
   )
 
