@@ -42,3 +42,21 @@ let () =
       ?threshold: (o A.threshold)
       (a A.filter)
   )
+
+let update
+    ?status ~slug ~title ?date ?contents_and_parameters ()
+  =
+  let%lwt book = make ?status ~slug ~title ?date ?contents_and_parameters () in
+  Dancelor_server_database.Book.update book
+
+let () =
+  Madge_server.(
+    register ~endpoint:E.update @@ fun {a} {o} ->
+    update
+      ?status:    (o A.status)
+      ~slug:      (a A.slug)
+      ~title:     (a A.title)
+      ?date:      (o A.date)
+      ?contents_and_parameters:(o A.contents_and_parameters)
+      ()
+  )
