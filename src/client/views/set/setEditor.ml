@@ -216,15 +216,14 @@ let erase_storage _ =
 let submit_updated_book set opt_book =
   match opt_book with
   | None -> Lwt.return ()
-  | Some (book_slug, _) ->
-    let%lwt book = Book.get book_slug in
+  | Some (slug, _) ->
+    let%lwt book = Book.get slug in
     let%lwt title = Book.title book in
     let%lwt date = Book.date book in
     let%lwt contents = Book.contents book in
     let%lwt set = set in
     let contents_and_parameters = contents@[Set (set, SetParameters.none)] in
-    let _ = Book.make_and_save ~title ~date ~contents_and_parameters () in
-    Lwt.return ()
+    Book.update ~slug ~title ~date ~contents_and_parameters ()
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
