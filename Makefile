@@ -1,11 +1,11 @@
-.PHONY: build docker ci doc release test local dev serve init-only check-tunes clean
+.PHONY: build docker ci doc release test local dev serve init-only check-tunes indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
 DUNEJOBSARG := -j $(DUNEJOBS)
 endif
 
-build:
+build: indent
 	cd share/static/style && sassc style.scss ../style.css
 	dune build $(DUNEJOBSARG) @install
 	ln -sf _build/install/default/bin .
@@ -51,6 +51,11 @@ init-only: release
 
 check-tunes: build
 	bin/dancelor-server --config share/config.json --heavy-routines --no-sync-storage --no-write-storage --loglevel info
+
+indent:
+	opam exec -- \
+	  find . -name .git -prune -o '(' -name '*.ml' -o -name '*.mli' ')' \
+	  -exec ocp-indent --inplace '{}' ';'
 
 clean:
 	dune clean $(DUNEJOBSARG)
