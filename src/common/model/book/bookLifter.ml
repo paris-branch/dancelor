@@ -11,13 +11,13 @@ module Lift
     let%lwt contents = contents book in
     Lwt_list.map_p
       (function
-        | (Version (version, parameters) : page_slug) ->
+        | PageCore.Version (version, parameters) ->
           let%lwt version = Version.get version in
           Lwt.return (Version (version, parameters))
-        | Set (set, parameters) ->
+        | PageCore.Set (set, parameters) ->
           let%lwt set = Set.get set in
           Lwt.return (Set (set, parameters))
-        | InlineSet (set, parameters) ->
+        | PageCore.InlineSet (set, parameters) ->
           Lwt.return (InlineSet (set, parameters)))
       contents
 
@@ -157,4 +157,14 @@ module Lift
   end
 
   let warnings book = Warnings.all book
+
+  let page_core_to_page = function
+    | PageCore.Version (version, params) ->
+      let%lwt version = Version.get version in
+      Lwt.return @@ Version (version, params)
+    | PageCore.Set (set, params) ->
+      let%lwt set = Set.get set in
+      Lwt.return @@ Set (set, params)
+    | PageCore.InlineSet (set, params) ->
+      Lwt.return @@ InlineSet (set, params)
 end
