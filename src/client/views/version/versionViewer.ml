@@ -108,9 +108,9 @@ let create slug page =
         let add_to_set_button =
           Inputs.Button.create
             ~on_click:(fun () ->
-              SetEditor.add_to_storage slug;
-              let href = Router.path_of_controller (Router.SetCompose) |> snd in
-              Dom_html.window##.location##.href := js href)
+                SetEditor.add_to_storage slug;
+                let href = Router.path_of_controller (Router.SetCompose) |> snd in
+                Dom_html.window##.location##.href := js href)
             ~text:("Add to current set") page
         in
         Lwt.return [
