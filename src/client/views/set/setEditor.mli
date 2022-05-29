@@ -35,7 +35,7 @@ val insert : t -> Version.t Slug.t -> int -> unit Lwt.t
 
 val add : t -> Version.t Slug.t -> unit Lwt.t
 
-val add_to_storage : Version.t Slug.t -> unit Lwt.t
+val add_to_storage : Version.t Slug.t -> unit
 
 val get : t -> int -> cached_version option
 
