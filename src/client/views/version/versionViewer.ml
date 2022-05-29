@@ -114,6 +114,16 @@ let create slug page =
         ]
       );
 
+      div_lwt ~classes:["buttons"] (
+        let add_to_set =
+          Inputs.Button.create
+            ~on_click:(fun () -> SetEditor.add_to_storage slug)
+            ~text:("Add to current set") page
+        in
+
+        Lwt.return [ node_of_dom_node (Inputs.Button.root add_to_set :> dom_node) ]
+      );
+
       div ~classes:["section"] [
         h3 [ text "Previsualisation" ];
 
