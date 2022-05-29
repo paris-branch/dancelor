@@ -1,12 +1,16 @@
 open Nes
 
-let _key = "book"
+module PageCore = struct
+  let _key = "book-page"
 
-type page_slug =
-  | Version       of VersionCore.t Slug.t * VersionParameters.t
-  | Set           of     SetCore.t Slug.t * SetParameters.t
-  | InlineSet     of     SetCore.t        * SetParameters.t
-[@@deriving yojson]
+  type t =
+    | Version       of VersionCore.t Slug.t * VersionParameters.t
+    | Set           of     SetCore.t Slug.t * SetParameters.t
+    | InlineSet     of     SetCore.t        * SetParameters.t
+  [@@deriving yojson]
+end
+
+let _key = "book"
 
 type t =
   { slug        : t Slug.t ;
@@ -15,11 +19,11 @@ type t =
     subtitle    : string     [@default ""] ;
     short_title : string     [@default ""] [@key "short-title"] ;
     date        : Date.t     [@default Date.none] ;
-    contents    : page_slug list ;
+    contents    : PageCore.t list ;
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;
     scddb_id    : int option [@default None] [@key "scddb-id"] }
-[@@deriving yojson]
+[@@deriving make, yojson]
 
 let slug book = Lwt.return book.slug
 let status book = Lwt.return book.status
@@ -42,7 +46,7 @@ let is_source book = source book
 let contains_set set1 book =
   List.exists
     (function
-      | Set (set2, _) -> Slug.equal set1 set2
+      | PageCore.Set (set2, _) -> Slug.equal set1 set2
       | _ -> false)
     book.contents
 
@@ -72,3 +76,21 @@ type page =
   | Version   of VersionCore.t * VersionParameters.t
   | Set       of     SetCore.t * SetParameters.t
   | InlineSet of     SetCore.t * SetParameters.t
+
+let page_to_page_core = function
+  | (Version (version, params) : page) ->
+    let%lwt slug = VersionCore.slug version in
+    Lwt.return @@ PageCore.Version (slug, params)
+  | (Set (set, params) : page) ->
+    let%lwt slug = SetCore.slug set in
+    Lwt.return @@ PageCore.Set (slug, params)
+  | (InlineSet (set, params) : page) ->
+    Lwt.return @@ PageCore.InlineSet (set, params)
+
+let make ?status ~slug ~title ?date ?contents_and_parameters () =
+  let%lwt contents_and_parameters =
+    let%olwt contents = Lwt.return contents_and_parameters in
+    let%lwt contents = Lwt_list.map_s page_to_page_core contents in
+    Lwt.return_some contents
+  in
+  Lwt.return (make ?status ~slug ~title ?date ?contents:contents_and_parameters ())

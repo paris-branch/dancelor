@@ -86,7 +86,7 @@ module Book = Table.Make (struct
       let%lwt dependencies =
         Lwt_list.map_p
           (function
-            | (Version (version, parameters) : page_slug) ->
+            | PageCore.Version (version, parameters) ->
               Lwt.return (
                 [Table.make_slug_and_table (module Version) version]
                 @
@@ -94,7 +94,7 @@ module Book = Table.Make (struct
                 | None -> []
                 | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
-            | Set (set, parameters) ->
+            | PageCore.Set (set, parameters) ->
               Lwt.return (
                 [Table.make_slug_and_table (module Set) set]
                 @
@@ -102,7 +102,7 @@ module Book = Table.Make (struct
                 | None -> []
                 | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
-            | InlineSet (_, parameters) ->
+            | PageCore.InlineSet (_, parameters) ->
               Lwt.return (
                 match Model.SetParameters.for_dance parameters with
                 | None -> []
