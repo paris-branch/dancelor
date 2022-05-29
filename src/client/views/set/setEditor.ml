@@ -202,6 +202,23 @@ let load t =
            Js.Opt.case deviser (fun () -> Lwt.return ())
              (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
 
+let add_to_storage slug =
+  Js.Optdef.case Html.window##.localStorage
+    (fun () -> ())
+    (fun local_storage ->
+       let versions = local_storage##getItem (js "composer.versions") in
+       Js.Opt.case versions
+         (* No versions in storage yet, we add this one *)
+         (fun () -> local_storage##setItem (js "composer.versions") (js (Slug.to_string slug)))
+         (* This editor already contains versions, we add the new one at the head *)
+         (fun versions ->
+            let new_versions = String.cat
+                (String.cat (Slug.to_string slug) ";")
+                (Js.to_string versions)
+            in local_storage##setItem (js "composer.versions") (js new_versions)
+         )
+    )
+
 let erase_storage _ =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> ())
