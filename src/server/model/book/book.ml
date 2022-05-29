@@ -57,11 +57,16 @@ let update
 let () =
   Madge_server.(
     register ~endpoint:E.update @@ fun {a} {o} ->
+    let%lwt contents_and_parameters =
+      let%olwt contents = Lwt.return (o A.contents_and_parameters) in
+      let%lwt contents = Lwt_list.map_s page_core_to_page contents in
+      Lwt.return_some contents
+    in
     update
       ?status:    (o A.status)
       ~slug:      (a A.slug)
       ~title:     (a A.title)
       ?date:      (o A.date)
-      ?contents_and_parameters:(o A.contents_and_parameters)
+      ?contents_and_parameters
       ()
   )
