@@ -90,3 +90,11 @@ val search :
   ?threshold:float ->
   BookFilter.t ->
   t Score.t list Lwt.t
+
+val update :
+  ?status:Status.t ->
+  slug:t Slug.t ->
+  title:string ->
+  ?date:Date.t ->
+  ?contents_and_parameters:page list ->
+  unit -> unit Lwt.t

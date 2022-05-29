@@ -16,6 +16,7 @@ type t = {
   mutable name : string;
   mutable kind : string;
   mutable deviser : (Credit.t Slug.t * Credit.t) option;
+  mutable for_book : (Book.t Slug.t * Book.t) option;
   mutable versions : cached_version option array;
   mutable order : string;
   mutable count : int;
@@ -26,6 +27,7 @@ let create () =
     name = "";
     kind = "";
     deviser = None;
+    for_book = None;
     versions = Array.make 2 None;
     order = "";
     count = 0;
@@ -59,6 +61,18 @@ let set_deviser t slug =
 
 let remove_deviser t =
   t.deviser <- None
+
+let for_book t =
+  let%opt (_, bk) = t.for_book in
+  Some bk
+
+let set_for_book t slug =
+  let%lwt book = Book.get slug in
+  t.for_book <- Some (slug, book);
+  Lwt.return ()
+
+let remove_for_book t =
+  t.for_book <- None
 
 let count t =
   t.count
@@ -126,11 +140,15 @@ let fold t f acc =
 let list_versions t =
   fold t (fun _ version acc -> version::acc) []
 
+let list_tunes t =
+  fold t (fun _ version acc -> version.tune::acc) []
+
 let clear t =
   t.name <- "";
   t.kind <- "";
   t.count <- 0;
   t.deviser <- None;
+  t.for_book <- None;
   t.order <- ""
 
 let save t =
@@ -147,6 +165,10 @@ let save t =
          | None -> ()
          | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js (Slug.to_string slug))
        end;
+       begin match t.for_book with
+         | None -> ()
+         | Some (slug, _) -> local_storage##setItem (js "composer.for_book") (js (Slug.to_string slug))
+       end;
        local_storage##setItem (js "composer.name") (js t.name);
        local_storage##setItem (js "composer.kind") (js t.kind);
        local_storage##setItem (js "composer.versions") (js versions);)
@@ -155,10 +177,11 @@ let load t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> Lwt.return ())
     (fun local_storage ->
-       let name, kind, versions, deviser =
+       let name, kind, versions, for_book, deviser =
          local_storage##getItem (js "composer.name"),
          local_storage##getItem (js "composer.kind"),
          local_storage##getItem (js "composer.versions"),
+         local_storage##getItem (js "composer.for_book"),
          local_storage##getItem (js "composer.deviser")
        in
        let open Lwt in
@@ -173,6 +196,9 @@ let load t =
             |> List.map Slug.unsafe_of_string
             |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
        >>= (fun () ->
+           Js.Opt.case for_book (fun () -> Lwt.return ())
+             (fun book -> set_for_book t (Slug.unsafe_of_string (Js.to_string book))))
+       >>= (fun () ->
            Js.Opt.case deviser (fun () -> Lwt.return ())
              (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
 
@@ -183,8 +209,21 @@ let erase_storage _ =
        local_storage##removeItem (js "composer.name");
        local_storage##removeItem (js "composer.kind");
        local_storage##removeItem (js "composer.deviser");
+       local_storage##removeItem (js "composer.for_book");
        local_storage##removeItem (js "composer.order");
        local_storage##removeItem (js "composer.versions"))
+
+let submit_updated_book set opt_book =
+  match opt_book with
+  | None -> Lwt.return ()
+  | Some (slug, _) ->
+    let%lwt book = Book.get slug in
+    let%lwt title = Book.title book in
+    let%lwt date = Book.date book in
+    let%lwt contents = Book.contents book in
+    let%lwt set = set in
+    let contents_and_parameters = contents@[Set (set, SetParameters.none)] in
+    Book.update ~slug ~title ~date ~contents_and_parameters ()
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
@@ -192,5 +231,7 @@ let submit t =
   let kind = Kind.dance_of_string t.kind in
   let order = SetOrder.of_string t.order in
   let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ~order ?deviser:(deviser t) () in
-  Lwt.on_success answer (fun _ -> erase_storage t);
+  Lwt.on_success answer (fun _ -> erase_storage t;
+                          Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ())
+                        );
   answer
