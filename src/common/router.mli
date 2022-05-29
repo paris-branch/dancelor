@@ -21,6 +21,7 @@ type controller =
   | Person of PersonCore.t Slug.t
 
   | BookAll
+  | BookCompose
   | BookPdf of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
 
