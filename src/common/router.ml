@@ -14,6 +14,7 @@ type controller =
   | Person of PersonCore.t Slug.t
 
   | BookAll
+  | BookCompose
   | BookPdf of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
 
@@ -141,6 +142,11 @@ let routes : route list =
       ~meth:`GET
       ~path:"/book/all"
       BookAll ;
+
+    direct
+      ~meth:`GET
+      ~path:"/book/compose"
+      BookCompose ;
 
     with_slug
       ~meth:`GET
