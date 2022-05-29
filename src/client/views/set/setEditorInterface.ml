@@ -77,7 +77,7 @@ let display_warnings t =
           ]
         in
         Lwt.return [div ~classes:["warning"]
-          [ul (List.map display_duplicated_warning duplicated_tunes)]]
+          [ul (List.map display_duplicated_warning duplicated_tunes)]; br]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
