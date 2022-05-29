@@ -34,28 +34,28 @@ let get_duplicated_tunes t book =
   (* Register standalone tunes *)
   Lwt_list.iter_s
     (fun v ->
-      let%lwt tune = Version.tune v in
-      register_tune tune;
-      Lwt.return ())
+       let%lwt tune = Version.tune v in
+       register_tune tune;
+       Lwt.return ())
     standalone_versions;%lwt
   (* Register tunes in sets *)
   Lwt_list.iter_s
     (fun set ->
-      let%lwt versions_and_parameters = Set.versions_and_parameters set in
-      let versions = List.map fst versions_and_parameters in
-      Lwt_list.iter_s
-        (fun v ->
-          let%lwt tune = Version.tune v in
-          register_tune tune;
-          Lwt.return ())
-        versions)
+       let%lwt versions_and_parameters = Set.versions_and_parameters set in
+       let versions = List.map fst versions_and_parameters in
+       Lwt_list.iter_s
+         (fun v ->
+            let%lwt tune = Version.tune v in
+            register_tune tune;
+            Lwt.return ())
+         versions)
     sets;%lwt
 
   let set_tunes = SetEditor.list_tunes t.composer in
   Lwt.return (List.fold_left
-    (fun acc tune -> if Hashtbl.mem book_tunes tune then tune :: acc else acc)
-    []
-    set_tunes)
+                (fun acc tune -> if Hashtbl.mem book_tunes tune then tune :: acc else acc)
+                []
+                set_tunes)
 
 
 let display_warnings t =
@@ -64,20 +64,20 @@ let display_warnings t =
   match SetEditor.for_book t.composer with
   | None -> Lwt.return []
   | Some bk ->
-      let%lwt duplicated_tunes = get_duplicated_tunes t bk in
-      match duplicated_tunes with
-      | [] -> Lwt.return []
-      | duplicated_tunes ->
-        let display_duplicated_warning tune =
-          li [
-            text "Tune “";
-            span_lwt (Formatters.Tune.name tune);
-            text "” already appears in book ";
-            span_lwt (Formatters.Book.short_title bk);
-          ]
-        in
-        Lwt.return [div ~classes:["warning"]
-          [ul (List.map display_duplicated_warning duplicated_tunes)]; br]
+    let%lwt duplicated_tunes = get_duplicated_tunes t bk in
+    match duplicated_tunes with
+    | [] -> Lwt.return []
+    | duplicated_tunes ->
+      let display_duplicated_warning tune =
+        li [
+          text "Tune “";
+          span_lwt (Formatters.Tune.name tune);
+          text "” already appears in book ";
+          span_lwt (Formatters.Book.short_title bk);
+        ]
+      in
+      Lwt.return [div ~classes:["warning"]
+                    [ul (List.map display_duplicated_warning duplicated_tunes)]; br]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -150,7 +150,7 @@ let refresh t =
     | Some bk ->
       let title = Book.title bk in
       Lwt.on_success title (fun title ->
-        Inputs.Text.set_contents (SearchBar.bar t.book_search) title)
+          Inputs.Text.set_contents (SearchBar.bar t.book_search) title)
   end;
   Helpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
@@ -233,14 +233,14 @@ let make_book_search_result composer page score =
   let%lwt name = Book.title book in
   let%lwt slug = Book.slug book in
   let row = Table.Row.create
-    ~on_click:(fun () ->
-      Lwt.on_success
-        (SetEditor.set_for_book composer slug)
-        (fun () -> Page.refresh page; SetEditor.save composer))
-    ~cells:[
-      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-      Table.Cell.text ~text:(Lwt.return name) page]
-    page
+      ~on_click:(fun () ->
+          Lwt.on_success
+            (SetEditor.set_for_book composer slug)
+            (fun () -> Page.refresh page; SetEditor.save composer))
+      ~cells:[
+        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+        Table.Cell.text ~text:(Lwt.return name) page]
+      page
   in
   Lwt.return row
 
@@ -294,9 +294,9 @@ let create page =
     let main_section =
       SearchBar.Section.create
         ~search:(fun input ->
-          let%rlwt formula = Lwt.return (BookFilter.raw input) in
-          let%lwt results =
-            Book.search ~threshold:0.4
+            let%rlwt formula = Lwt.return (BookFilter.raw input) in
+            let%lwt results =
+              Book.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
@@ -334,11 +334,11 @@ let create page =
         Page.refresh page
       end);
   Inputs.Text.on_focus (SearchBar.bar book_search) (fun b ->
-    if b then begin
-      Inputs.Text.erase (SearchBar.bar book_search);
-      SetEditor.remove_for_book composer;
-      Page.refresh page
-    end);
+      if b then begin
+        Inputs.Text.erase (SearchBar.bar book_search);
+        SetEditor.remove_for_book composer;
+        Page.refresh page
+      end);
   let input_order = Inputs.Text.create
       ~placeholder:"Order (eg. 1,2,3,4,2,3,4,1)"
       ~on_change:(fun order ->

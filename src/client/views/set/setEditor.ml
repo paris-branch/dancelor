@@ -232,6 +232,6 @@ let submit t =
   let order = SetOrder.of_string t.order in
   let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ~order ?deviser:(deviser t) () in
   Lwt.on_success answer (fun _ -> erase_storage t;
-    Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ())
-  );
+                          Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ())
+                        );
   answer
