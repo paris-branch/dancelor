@@ -16,6 +16,7 @@ type t = {
   mutable name : string;
   mutable kind : string;
   mutable deviser : (Credit.t Slug.t * Credit.t) option;
+  mutable for_book : (Book.t Slug.t * Book.t) option;
   mutable versions : cached_version option array;
   mutable order : string;
   mutable count : int;
@@ -26,6 +27,7 @@ let create () =
     name = "";
     kind = "";
     deviser = None;
+    for_book = None;
     versions = Array.make 2 None;
     order = "";
     count = 0;
@@ -59,6 +61,18 @@ let set_deviser t slug =
 
 let remove_deviser t =
   t.deviser <- None
+
+let for_book t =
+  let%opt (_, bk) = t.for_book in
+  Some bk
+
+let set_for_book t slug =
+  let%lwt book = Book.get slug in
+  t.for_book <- Some (slug, book);
+  Lwt.return ()
+
+let remove_for_book t =
+  t.for_book <- None
 
 let count t =
   t.count
@@ -131,6 +145,7 @@ let clear t =
   t.kind <- "";
   t.count <- 0;
   t.deviser <- None;
+  t.for_book <- None;
   t.order <- ""
 
 let save t =

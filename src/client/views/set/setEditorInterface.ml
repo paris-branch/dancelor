@@ -17,6 +17,7 @@ type t =
     input_name : Inputs.Text.t;
     input_kind : Inputs.Text.t;
     deviser_search : SearchBar.t;
+    book_search : SearchBar.t;
     versions_area : Html.divElement Js.t;
     version_search : SearchBar.t;
     input_order : Inputs.Text.t;
@@ -87,6 +88,13 @@ let refresh t =
       let name = Credit.line cr in
       Lwt.on_success name (fun name ->
           Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
+  end;
+  begin match SetEditor.for_book t.composer with
+    | None -> Inputs.Text.set_contents (SearchBar.bar t.book_search) ""
+    | Some bk ->
+      let title = Book.title bk in
+      Lwt.on_success title (fun title ->
+        Inputs.Text.set_contents (SearchBar.bar t.book_search) title)
   end;
   Helpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
@@ -160,6 +168,23 @@ let make_deviser_search_result composer page score =
   in
   Lwt.return row
 
+let make_book_search_result composer page score =
+  let book = Score.value score in
+  let score = score.Score.score in
+  let%lwt name = Book.title book in
+  let%lwt slug = Book.slug book in
+  let row = Table.Row.create
+    ~on_click:(fun () ->
+      Lwt.on_success
+        (SetEditor.set_for_book composer slug)
+        (fun () -> Page.refresh page; SetEditor.save composer))
+    ~cells:[
+      Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+      Table.Cell.text ~text:(Lwt.return name) page]
+    page
+  in
+  Lwt.return row
+
 let create page =
   (Page.document page)##.title := js "Compose a Set | Dancelor";
 
@@ -205,6 +230,24 @@ let create page =
       ~sections:[main_section]
       page
   in
+  let book_search =
+    let main_section =
+      SearchBar.Section.create
+        ~search:(fun input ->
+          let%rlwt formula = Lwt.return (BookFilter.raw input) in
+          let%lwt results =
+            Book.search ~threshold:0.4
+                ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results)
+        ~make_result:(fun score -> make_book_search_result composer page score)
+        page
+    in
+    SearchBar.create
+      ~placeholder:"Book (Magic Search)"
+      ~sections:[main_section]
+      page
+  in
   let versions_area = Html.createDiv (Page.document page) in
   let version_search =
     let main_section =
@@ -230,6 +273,12 @@ let create page =
         SetEditor.remove_deviser composer;
         Page.refresh page
       end);
+  Inputs.Text.on_focus (SearchBar.bar book_search) (fun b ->
+    if b then begin
+      Inputs.Text.erase (SearchBar.bar book_search);
+      SetEditor.remove_for_book composer;
+      Page.refresh page
+    end);
   let input_order = Inputs.Text.create
       ~placeholder:"Order (eg. 1,2,3,4,2,3,4,1)"
       ~on_change:(fun order ->
@@ -238,7 +287,7 @@ let create page =
       page
   in
   let t =
-    {page; composer; content; versions_area; deviser_search;
+    {page; composer; content; versions_area; deviser_search; book_search;
      version_search; input_name; input_kind; input_order}
   in
   let submit = Html.createDiv (Page.document page) in
@@ -289,6 +338,8 @@ let create page =
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root deviser_search);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (SearchBar.root book_search);
   Dom.appendChild form versions_area;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root version_search);

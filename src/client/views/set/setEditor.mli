@@ -25,6 +25,12 @@ val set_deviser : t -> Credit.t Slug.t -> unit Lwt.t
 
 val remove_deviser : t -> unit
 
+val for_book : t -> Book.t option
+
+val set_for_book : t -> Book.t Slug.t -> unit Lwt.t
+
+val remove_for_book : t -> unit
+
 val order : t -> string
 
 val set_order : t -> string -> unit
