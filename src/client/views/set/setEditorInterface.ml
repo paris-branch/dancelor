@@ -14,6 +14,7 @@ type t =
     page : Page.t;
     composer : SetEditor.t;
     content : Html.divElement Js.t;
+    warnings_area : Html.divElement Js.t;
     input_name : Inputs.Text.t;
     input_kind : Inputs.Text.t;
     deviser_search : SearchBar.t;
@@ -22,6 +23,15 @@ type t =
     version_search : SearchBar.t;
     input_order : Inputs.Text.t;
   }
+
+let display_warnings t =
+  let open Dancelor_client_html in
+  (* Only open a warnings div if there are warnings *)
+  match SetEditor.for_book t.composer with
+  | None -> [div_lwt ~classes:["warning"]
+      (Lwt.return [p [text "No book"]])]
+  | Some _ -> [div_lwt ~classes:["warning"]
+      (Lwt.return [p [text "Found book"]])]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -100,7 +110,10 @@ let refresh t =
   SetEditor.iter t.composer (fun i version ->
       let subwin = make_version_subwindow t i version in
       Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
-      Dom.appendChild t.versions_area subwin)
+      Dom.appendChild t.versions_area subwin);
+  Helpers.clear_children t.warnings_area;
+  List.iter (fun x -> Dom.appendChild t.warnings_area
+    (Dancelor_client_html.node_to_dom_node (Page.document t.page) x)) (display_warnings t)
 
 let make_version_search_result composer page score =
   let version = Score.value score in
@@ -190,6 +203,7 @@ let create page =
 
   let composer = SetEditor.create () in
   let content = Html.createDiv (Page.document page) in
+  let warnings_area = Html.createDiv (Page.document page) in
   let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
@@ -286,9 +300,10 @@ let create page =
           SetEditor.save composer)
       page
   in
+
   let t =
-    {page; composer; content; versions_area; deviser_search; book_search;
-     version_search; input_name; input_kind; input_order}
+    {page; composer; content; warnings_area; versions_area; deviser_search;
+     book_search; version_search; input_name; input_kind; input_order}
   in
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display:"flex" submit;
@@ -328,6 +343,7 @@ let create page =
           end)
       page
   in
+
   Dom.appendChild submit (Inputs.Button.root save);
   Dom.appendChild submit (Inputs.Button.root clear);
   Dom.appendChild content (Text.Heading.root title);
@@ -347,6 +363,7 @@ let create page =
   Dom.appendChild form (Inputs.Text.root input_order);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
+  Dom.appendChild content warnings_area;
   Dom.appendChild content form;
   Lwt.on_success (SetEditor.load composer) (fun () -> refresh t);
   t

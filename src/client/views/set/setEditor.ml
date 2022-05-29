@@ -162,6 +162,10 @@ let save t =
          | None -> ()
          | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js (Slug.to_string slug))
        end;
+       begin match t.for_book with
+         | None -> ()
+         | Some (slug, _) -> local_storage##setItem (js "composer.for_book") (js (Slug.to_string slug))
+       end;
        local_storage##setItem (js "composer.name") (js t.name);
        local_storage##setItem (js "composer.kind") (js t.kind);
        local_storage##setItem (js "composer.versions") (js versions);)
