@@ -174,10 +174,11 @@ let load t =
   Js.Optdef.case Html.window##.localStorage
     (fun () -> Lwt.return ())
     (fun local_storage ->
-       let name, kind, versions, deviser =
+       let name, kind, versions, for_book, deviser =
          local_storage##getItem (js "composer.name"),
          local_storage##getItem (js "composer.kind"),
          local_storage##getItem (js "composer.versions"),
+         local_storage##getItem (js "composer.for_book"),
          local_storage##getItem (js "composer.deviser")
        in
        let open Lwt in
@@ -192,6 +193,9 @@ let load t =
             |> List.map Slug.unsafe_of_string
             |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
        >>= (fun () ->
+           Js.Opt.case for_book (fun () -> Lwt.return ())
+             (fun book -> set_for_book t (Slug.unsafe_of_string (Js.to_string book))))
+       >>= (fun () ->
            Js.Opt.case deviser (fun () -> Lwt.return ())
              (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
 
@@ -202,6 +206,7 @@ let erase_storage _ =
        local_storage##removeItem (js "composer.name");
        local_storage##removeItem (js "composer.kind");
        local_storage##removeItem (js "composer.deviser");
+       local_storage##removeItem (js "composer.for_book");
        local_storage##removeItem (js "composer.order");
        local_storage##removeItem (js "composer.versions"))
 
