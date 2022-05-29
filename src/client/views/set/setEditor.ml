@@ -140,6 +140,9 @@ let fold t f acc =
 let list_versions t =
   fold t (fun _ version acc -> version::acc) []
 
+let list_tunes t =
+  fold t (fun _ version acc -> version.tune::acc) []
+
 let clear t =
   t.name <- "";
   t.kind <- "";

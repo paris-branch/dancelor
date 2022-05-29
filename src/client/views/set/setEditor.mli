@@ -51,6 +51,8 @@ val move_down : t -> int -> unit
 
 val iter : t -> (int -> cached_version -> unit) -> unit
 
+val list_tunes : t -> Tune.t list
+
 val clear : t -> unit
 
 val save : t -> unit

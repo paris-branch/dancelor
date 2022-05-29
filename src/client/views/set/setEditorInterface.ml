@@ -4,6 +4,7 @@ open Dancelor_client_model
 open Dancelor_client_utils
 open Dancelor_client_elements
 open Dancelor_common
+module Formatters = Dancelor_client_formatters
 
 module Html = Dom_html
 
@@ -24,14 +25,59 @@ type t =
     input_order : Inputs.Text.t;
   }
 
+let get_duplicated_tunes t book =
+  let book_tunes = Hashtbl.create 0 in
+
+  let%lwt sets = Book.unique_sets_from_contents book in
+  let%lwt standalone_versions = Book.versions_from_contents book in
+  let register_tune tune = Hashtbl.add book_tunes tune true in
+  (* Register standalone tunes *)
+  Lwt_list.iter_s
+    (fun v ->
+      let%lwt tune = Version.tune v in
+      register_tune tune;
+      Lwt.return ())
+    standalone_versions;%lwt
+  (* Register tunes in sets *)
+  Lwt_list.iter_s
+    (fun set ->
+      let%lwt versions_and_parameters = Set.versions_and_parameters set in
+      let versions = List.map fst versions_and_parameters in
+      Lwt_list.iter_s
+        (fun v ->
+          let%lwt tune = Version.tune v in
+          register_tune tune;
+          Lwt.return ())
+        versions)
+    sets;%lwt
+
+  let set_tunes = SetEditor.list_tunes t.composer in
+  Lwt.return (List.fold_left
+    (fun acc tune -> if Hashtbl.mem book_tunes tune then tune :: acc else acc)
+    []
+    set_tunes)
+
+
 let display_warnings t =
   let open Dancelor_client_html in
   (* Only open a warnings div if there are warnings *)
   match SetEditor.for_book t.composer with
   | None -> Lwt.return []
   | Some bk ->
-      let%lwt warnings = Book.warnings bk in
-      Lwt.return [div ~classes:["warning"] [ul (BookWarnings.display_warnings warnings)]]
+      let%lwt duplicated_tunes = get_duplicated_tunes t bk in
+      match duplicated_tunes with
+      | [] -> Lwt.return []
+      | duplicated_tunes ->
+        let display_duplicated_warning tune =
+          li [
+            text "Tune “";
+            span_lwt (Formatters.Tune.name tune);
+            text "” already appears in book ";
+            span_lwt (Formatters.Book.short_title bk);
+          ]
+        in
+        Lwt.return [div ~classes:["warning"]
+          [ul (List.map display_duplicated_warning duplicated_tunes)]]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
