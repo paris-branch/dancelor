@@ -159,8 +159,7 @@ let refresh t =
       Dom.appendChild t.versions_area subwin);
   Helpers.clear_children t.warnings_area;
   Dom.appendChild t.warnings_area
-    Dancelor_client_html.(node_to_dom_node (Page.document t.page)
-        (ul_lwt (display_warnings t)))
+    Dancelor_client_html.(node_to_dom_node (Page.document t.page) (div_lwt (display_warnings t)))
 
 let make_version_search_result composer page score =
   let version = Score.value score in
