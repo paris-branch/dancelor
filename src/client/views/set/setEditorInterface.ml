@@ -28,10 +28,10 @@ let display_warnings t =
   let open Dancelor_client_html in
   (* Only open a warnings div if there are warnings *)
   match SetEditor.for_book t.composer with
-  | None -> [div_lwt ~classes:["warning"]
-      (Lwt.return [p [text "No book"]])]
-  | Some _ -> [div_lwt ~classes:["warning"]
-      (Lwt.return [p [text "Found book"]])]
+  | None -> Lwt.return []
+  | Some bk ->
+      let%lwt warnings = Book.warnings bk in
+      Lwt.return [div ~classes:["warning"] [ul (BookWarnings.display_warnings warnings)]]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -112,8 +112,9 @@ let refresh t =
       Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
       Dom.appendChild t.versions_area subwin);
   Helpers.clear_children t.warnings_area;
-  List.iter (fun x -> Dom.appendChild t.warnings_area
-    (Dancelor_client_html.node_to_dom_node (Page.document t.page) x)) (display_warnings t)
+  Dom.appendChild t.warnings_area
+    Dancelor_client_html.(node_to_dom_node (Page.document t.page)
+        (ul_lwt (display_warnings t)))
 
 let make_version_search_result composer page score =
   let version = Score.value score in
