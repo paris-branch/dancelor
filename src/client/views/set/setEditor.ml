@@ -213,11 +213,26 @@ let erase_storage _ =
        local_storage##removeItem (js "composer.order");
        local_storage##removeItem (js "composer.versions"))
 
+let submit_updated_book set opt_book =
+  match opt_book with
+  | None -> Lwt.return ()
+  | Some (book_slug, _) ->
+    let%lwt book = Book.get book_slug in
+    let%lwt title = Book.title book in
+    let%lwt date = Book.date book in
+    let%lwt contents = Book.contents book in
+    let%lwt set = set in
+    let contents_and_parameters = contents@[Set (set, SetParameters.none)] in
+    let _ = Book.make_and_save ~title ~date ~contents_and_parameters () in
+    Lwt.return ()
+
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
   let versions_and_parameters = List.map (fun version -> (version, VersionParameters.none)) versions in
   let kind = Kind.dance_of_string t.kind in
   let order = SetOrder.of_string t.order in
   let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ~order ?deviser:(deviser t) () in
-  Lwt.on_success answer (fun _ -> erase_storage t);
+  Lwt.on_success answer (fun _ -> erase_storage t;
+    Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ())
+  );
   answer
