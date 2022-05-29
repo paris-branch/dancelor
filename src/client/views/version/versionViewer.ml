@@ -57,7 +57,7 @@ let create slug page =
           ]
       );
 
-      div ~classes:["buttons"] (
+      div_lwt ~classes:["buttons"] (
         let bass_parameters =
           VersionParameters.(
             make ~clef:Music.Bass
@@ -104,24 +104,25 @@ let create slug page =
             text (" "^txt)
           ]
         in
-        [
+
+        let add_to_set_button =
+          Inputs.Button.create
+            ~on_click:(fun () ->
+              SetEditor.add_to_storage slug;
+              let href = Router.path_of_controller (Router.SetCompose) |> snd in
+              Dom_html.window##.location##.href := js href)
+            ~text:("Add to current set") page
+        in
+        Lwt.return [
           pdf_button c_pdf_href    "PDF";
           pdf_button b_pdf_href    "PDF (B♭)";
           pdf_button e_pdf_href    "PDF (E♭)";
           pdf_button bass_pdf_href "PDF (𝄢)";
           br;
           a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
+          br;
+          node_of_dom_node (Inputs.Button.root add_to_set_button :> dom_node)
         ]
-      );
-
-      div_lwt ~classes:["buttons"] (
-        let add_to_set =
-          Inputs.Button.create
-            ~on_click:(fun () -> SetEditor.add_to_storage slug)
-            ~text:("Add to current set") page
-        in
-
-        Lwt.return [ node_of_dom_node (Inputs.Button.root add_to_set :> dom_node) ]
       );
 
       div ~classes:["section"] [
