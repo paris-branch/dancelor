@@ -57,7 +57,7 @@ let create slug page =
           ]
       );
 
-      div_lwt ~classes:["buttons"] (
+      div ~classes:["buttons"] (
         let bass_parameters =
           VersionParameters.(
             make ~clef:Music.Bass
@@ -113,7 +113,7 @@ let create slug page =
                 Dom_html.window##.location##.href := js href)
             ~text:("Add to current set") page
         in
-        Lwt.return [
+        [
           pdf_button c_pdf_href    "PDF";
           pdf_button b_pdf_href    "PDF (B♭)";
           pdf_button e_pdf_href    "PDF (E♭)";
