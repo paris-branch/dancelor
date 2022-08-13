@@ -151,7 +151,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let load_version ~version =
     let table = get_table ~version () in
     let load entry =
-      let%lwt json = Storage.read_entry_json Model._key entry "meta.json" in
+      let%lwt json = Storage.read_entry_yaml Model._key entry "meta.yaml" in
       let json = Json.add_field "slug" (`String entry) json in
       match Model.of_yojson json with
       | Ok model ->
@@ -159,7 +159,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         Hashtbl.add table slug (Stats.empty (), model);
         Lwt.return ()
       | Error msg ->
-        Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.json" msg);
+        Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.yaml" msg);
         exit 1
     in
     let%lwt entries = Storage.list_entries Model._key in
@@ -266,7 +266,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json;%lwt
+    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg:(spf "save %s / %s" Model._key (Slug.to_string slug))
       Model._key (Slug.to_string slug);%lwt
@@ -278,7 +278,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let%lwt slug = Model.slug model in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_json Model._key (Slug.to_string slug) "meta.json" json;%lwt
+    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg:(spf "update %s / %s" Model._key (Slug.to_string slug))
       Model._key (Slug.to_string slug);%lwt

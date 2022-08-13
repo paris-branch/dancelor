@@ -151,10 +151,10 @@ let read_entry_file table entry file =
   |> Filesystem.read_file
   |> Lwt.return
 
-let read_entry_json table entry file =
+let read_entry_yaml table entry file =
   (* no lock because using read_entry_file *)
   let%lwt content = read_entry_file table entry file in
-  Json.from_string content
+  Json.from_yaml_string content
   |> Lwt.return
 
 let write_entry_file table entry file content =
@@ -169,9 +169,9 @@ let write_entry_file table entry file content =
     );
   Lwt.return ()
 
-let write_entry_json table entry file content =
+let write_entry_yaml table entry file content =
   (* no lock because using write_entry_file *)
-  Json.to_string content
+  Json.to_yaml_string content
   |> write_entry_file table entry file
 
 let delete_entry table entry =
