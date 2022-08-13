@@ -33,6 +33,7 @@
   (ppx_inline_test     (or :build :with-test))
   (ppx_monad           (and :build (>= 0.2.0)))
    slug
+   yaml
   (yojson              (>= 1.6.0))))
 
 (using menhir 2.1)
