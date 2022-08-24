@@ -210,11 +210,11 @@ let add_to_storage slug =
        Js.Opt.case versions
          (* No versions in storage yet, we add this one *)
          (fun () -> local_storage##setItem (js "composer.versions") (js (Slug.to_string slug)))
-         (* This editor already contains versions, we add the new one at the head *)
+         (* This editor already contains versions, we add the new one at the tail *)
          (fun versions ->
             let new_versions = String.cat
-                (String.cat (Slug.to_string slug) ";")
                 (Js.to_string versions)
+                (String.cat ";" (Slug.to_string slug))
             in local_storage##setItem (js "composer.versions") (js new_versions)
          )
     )
