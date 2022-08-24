@@ -60,6 +60,8 @@ val compare : t -> t -> int
 (* FIXME: this comparison function is a hack; a cleaner (more consistent with
    the rest of Dancelor) version should check the slug and return a Lwt.t *)
 
+val lilypond_contents : t -> string Lwt.t
+
 (** {2 Warnings} *)
 
 type warning = BookCore.warning =

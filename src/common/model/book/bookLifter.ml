@@ -50,6 +50,16 @@ module Lift
         | Version _ -> Lwt.return_none)
       contents
 
+  let lilypond_contents book =
+    let%lwt pages = contents book in
+    let%lwt contents = Lwt_list.map_p
+        (function
+          | Version (version, _) -> Version.content version
+          | Set (set, _) | InlineSet (set, _) -> Set.content set)
+        pages
+    in
+    Lwt.return (String.concat "\n" contents)
+
   module Warnings = struct
     (* The following functions all have the name of a warning of
        {!Dancelor_common_model.BookCore.warning}. They all are in charge of
