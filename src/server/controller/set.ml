@@ -88,8 +88,30 @@ module Ly = struct
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
 
+let populate_cache ~cache ~ext ~pp_ext =
+  Log.debug (fun m -> m "Populating the set %s cache" pp_ext);
+  let path = Filename.concat !Dancelor_server_config.cache "set" in
+  let files = Lwt_unix.files_of_directory path in
+  Lwt_stream.iter (fun x ->
+      if Filename.check_suffix x ext then (
+        Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+        let base = Filename.chop_suffix x ext in
+        let hash =
+          String.split_on_char '-' base
+          |> List.rev
+          |> List.hd
+          |> String.cat "0x"
+          |> int_of_string
+        in
+        StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
+      ) else ()
+    ) files
+
 module Pdf = struct
-  let cache : (Set.t * SetParameters.t option * string, string Lwt.t) StorageCache.t = StorageCache.create ()
+  let cache : (Set.t * SetParameters.t option * string, string Lwt.t) StorageCache.t =
+    let cache = StorageCache.create () in
+    Lwt_main.run (populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf");
+    cache
 
   let render ?parameters set =
     let%lwt body = Set.content set in

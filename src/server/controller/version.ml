@@ -109,7 +109,7 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     (fun ochan -> Lwt_io.write ochan scheme)
 
 let populate_cache ~cache ~ext ~pp_ext =
-  Log.debug (fun m -> m "Populating the %s cache" pp_ext);
+  Log.debug (fun m -> m "Populating the version %s cache" pp_ext);
   let path = Filename.concat !Dancelor_server_config.cache "version" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter (fun x ->
