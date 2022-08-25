@@ -4,6 +4,9 @@ type ('a, 'b) t = (int, 'b) Hashtbl.t
    and with an extra endpoint *)
 let create () = Hashtbl.create 8
 
+let add ~cache ~hash ~value =
+  Hashtbl.add cache hash value
+
 let use ~cache ~key thunk =
   let key = Hashtbl.hash key in
   match Hashtbl.find_opt cache key with
