@@ -4,11 +4,11 @@ open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
 module Ly = struct
-  let cache : (Set.t * SetParameters.t * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Set.t * SetParameters.t * string, string Lwt.t) StorageCache.t = StorageCache.create ()
 
   let render ?(parameters=SetParameters.none) set =
     let%lwt body = Set.content set in
-    Cache.use ~cache ~key:(set, parameters, body) @@ fun () ->
+    StorageCache.use ~cache ~key:(set, parameters, body) @@ fun () ->
     let parameters = SetParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
@@ -89,11 +89,11 @@ module Ly = struct
 end
 
 module Pdf = struct
-  let cache : (Set.t * SetParameters.t option * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Set.t * SetParameters.t option * string, string Lwt.t) StorageCache.t = StorageCache.create ()
 
   let render ?parameters set =
     let%lwt body = Set.content set in
-    Cache.use ~cache ~key:(set, parameters, body) @@ fun () ->
+    StorageCache.use ~cache ~key:(set, parameters, body) @@ fun () ->
     let%lwt lilypond = Ly.render ?parameters set in
     let path = Filename.concat !Dancelor_server_config.cache "set" in
     let%lwt (fname_ly, fname_pdf) =
