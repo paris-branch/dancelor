@@ -215,12 +215,14 @@ module Pdf = struct
 
   let render ?parameters book =
     let%lwt body = Book.lilypond_contents book in
-    StorageCache.use ~cache ~key:(parameters, book, body) @@ fun () ->
+    let key = (parameters, book, body) in
+    StorageCache.use ~cache ~key @@ fun () ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Book.slug book in
-      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      let hash = Hashtbl.hash key in
+      let fname = aspf "%a-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
