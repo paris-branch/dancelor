@@ -3,6 +3,9 @@
 *#
 .#*
 
+## direnv
+/.direnv
+
 ## Dune
 /*.install
 /_build
