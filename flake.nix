@@ -1,12 +1,6 @@
 {
   inputs = {
     opam-nix.url = "github:tweag/opam-nix";
-    ## The three following line make this flake follow the official OPAM
-    ## repository. This is necessary because `ppx_monad` is not currently in
-    ## `opam-nix`'s version of the OPAM repository.
-    opam-nix.inputs.opam-repository.follows = "opam-repository";
-    opam-repository.url = "github:ocaml/opam-repository";
-    opam-repository.flake = false;
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.follows = "opam-nix/nixpkgs";
   };
@@ -15,10 +9,10 @@
       let pkgs = nixpkgs.legacyPackages.${system};
           on = opam-nix.lib.${system};
           scope = on.buildOpamProject { } "dancelor" ./. {
-            merlin = null;
-            ocaml-base-compiler = null;
-            ocp-indent = null;
-            utop = null;
+            merlin = "*";
+            ocaml-base-compiler = "*";
+            ocp-indent = "*";
+            utop = "*";
           };
       in
       {
