@@ -14,7 +14,12 @@
     flake-utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
           on = opam-nix.lib.${system};
-          scope = on.buildOpamProject { } "dancelor" ./. { ocaml-base-compiler = null; };
+          scope = on.buildOpamProject { } "dancelor" ./. {
+            merlin = null;
+            ocaml-base-compiler = null;
+            ocp-indent = null;
+            utop = null;
+          };
       in
       {
         legacyPackages =
@@ -36,5 +41,10 @@
           scope.overrideScope' overlay;
 
       defaultPackage = self.legacyPackages.${system}.dancelor;
+
+      devShells.default = pkgs.mkShell {
+          buildInputs = [ scope.merlin scope.ocp-indent scope.utop ];
+          inputsFrom = [ scope.dancelor ];
+      };
     });
 }
