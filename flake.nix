@@ -12,6 +12,7 @@
             merlin = "*";
             ocaml-base-compiler = "*";
             ocp-indent = "*";
+            tuareg = "*";
             utop = "*";
           };
       in
@@ -37,7 +38,7 @@
       defaultPackage = self.legacyPackages.${system}.dancelor;
 
       devShells.default = pkgs.mkShell {
-          buildInputs = [ scope.merlin scope.ocp-indent scope.utop ];
+          buildInputs = [ scope.merlin scope.ocp-indent scope.tuareg scope.utop ];
           inputsFrom = [ scope.dancelor ];
       };
     });
