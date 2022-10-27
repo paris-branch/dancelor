@@ -44,7 +44,7 @@ module Ly = struct
   let cache : (Book.t * BookParameters.t * string, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?(parameters=BookParameters.none) book =
-    let%lwt body = Book.lilypond_contents book in
+    let%lwt body = Book.lilypond_contents_cache_key book in
     Cache.use ~cache ~key:(book, parameters, body) @@ fun () ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
@@ -214,7 +214,7 @@ module Pdf = struct
   let cache : ('a * Book.t * string, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?parameters book =
-    let%lwt body = Book.lilypond_contents book in
+    let%lwt body = Book.lilypond_contents_cache_key book in
     Cache.use ~cache ~key:(parameters, book, body) @@ fun () ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in

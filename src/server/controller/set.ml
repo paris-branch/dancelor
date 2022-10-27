@@ -7,7 +7,7 @@ module Ly = struct
   let cache : (Set.t * SetParameters.t * string, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?(parameters=SetParameters.none) set =
-    let%lwt body = Set.content set in
+    let%lwt body = Set.lilypond_content_cache_key set in
     Cache.use ~cache ~key:(set, parameters, body) @@ fun () ->
     let parameters = SetParameters.fill parameters in
     let (res, prom) =
@@ -92,7 +92,7 @@ module Pdf = struct
   let cache : (Set.t * SetParameters.t option * string, string Lwt.t) Cache.t = Cache.create ()
 
   let render ?parameters set =
-    let%lwt body = Set.content set in
+    let%lwt body = Set.lilypond_content_cache_key set in
     Cache.use ~cache ~key:(set, parameters, body) @@ fun () ->
     let%lwt lilypond = Ly.render ?parameters set in
     let path = Filename.concat !Dancelor_server_config.cache "set" in
