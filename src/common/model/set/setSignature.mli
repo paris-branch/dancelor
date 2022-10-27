@@ -20,6 +20,8 @@ val contains_version : VersionCore.t Slug.t -> t -> bool
 val compare : t -> t -> int Lwt.t
 val equal : t -> t -> bool Lwt.t
 
+val lilypond_content_cache_key : t -> string Lwt.t
+
 (* {2 Warnings} *)
 
 type warning = SetCore.warning =
