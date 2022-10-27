@@ -25,6 +25,12 @@ module Lift
     let%lwt dance_slugs = dances set in
     Lwt_list.map_p Dance.get dance_slugs
 
+  let lilypond_content_cache_key set =
+    let%lwt versions_and_parameters = versions_and_parameters set in
+    let versions = List.map fst versions_and_parameters in
+    let%lwt contents = Lwt_list.map_p Version.content versions in
+    Lwt.return (String.concat "\n" contents)
+
   let warnings s =
     let warnings = ref [] in
     let add_warning w = warnings := w :: !warnings in
