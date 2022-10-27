@@ -44,7 +44,7 @@ module Ly = struct
   let cache : (Book.t * BookParameters.t * string, string Lwt.t) StorageCache.t = StorageCache.create ()
 
   let render ?(parameters=BookParameters.none) book =
-    let%lwt body = Book.lilypond_contents book in
+    let%lwt body = Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key:(book, parameters, body) @@ fun () ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
@@ -236,7 +236,7 @@ module Pdf = struct
     cache
 
   let render ?parameters book =
-    let%lwt body = Book.lilypond_contents book in
+    let%lwt body = Book.lilypond_contents_cache_key book in
     let key = (parameters, book, body) in
     StorageCache.use ~cache ~key @@ fun () ->
     let%lwt lilypond = Ly.render ?parameters book in
