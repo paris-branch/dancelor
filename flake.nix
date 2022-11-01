@@ -4,7 +4,8 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.follows = "opam-nix/nixpkgs";
   };
-  outputs = { self, flake-utils, opam-nix, nixpkgs, ... }@inputs:
+
+  outputs = { self, flake-utils, opam-nix, nixpkgs, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
           on = opam-nix.lib.${system};
