@@ -41,11 +41,11 @@ module Ly = struct
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
-  let cache : (Book.t * BookParameters.t * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Book.t * BookParameters.t * string, string Lwt.t) StorageCache.t = StorageCache.create ()
 
   let render ?(parameters=BookParameters.none) book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    Cache.use ~cache ~key:(book, parameters, body) @@ fun () ->
+    StorageCache.use ~cache ~key:(book, parameters, body) @@ fun () ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
@@ -210,17 +210,41 @@ module Ly = struct
     Lwt.return res
 end
 
+let populate_cache ~cache ~ext ~pp_ext =
+  Log.debug (fun m -> m "Populating the book %s cache" pp_ext);
+  let path = Filename.concat !Dancelor_server_config.cache "book" in
+  let files = Lwt_unix.files_of_directory path in
+  Lwt_stream.iter (fun x ->
+      if Filename.check_suffix x ext then (
+        Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+        let base = Filename.chop_suffix x ext in
+        let hash =
+          String.split_on_char '-' base
+          |> List.rev
+          |> List.hd
+          |> String.cat "0x"
+          |> int_of_string
+        in
+        StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
+      ) else ()
+    ) files
+
 module Pdf = struct
-  let cache : ('a * Book.t * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : ('a * Book.t * string, string Lwt.t) StorageCache.t =
+    let cache = StorageCache.create () in
+    Lwt_main.run (populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf");
+    cache
 
   let render ?parameters book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    Cache.use ~cache ~key:(parameters, book, body) @@ fun () ->
+    let key = (parameters, book, body) in
+    StorageCache.use ~cache ~key @@ fun () ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Book.slug book in
-      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      let hash = Hashtbl.hash key in
+      let fname = aspf "%a-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)

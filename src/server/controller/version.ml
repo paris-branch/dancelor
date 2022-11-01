@@ -108,16 +108,40 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
   Lwt_io.with_file ~mode:Output fname_scm
     (fun ochan -> Lwt_io.write ochan scheme)
 
+let populate_cache ~cache ~ext ~pp_ext =
+  Log.debug (fun m -> m "Populating the version %s cache" pp_ext);
+  let path = Filename.concat !Dancelor_server_config.cache "version" in
+  let files = Lwt_unix.files_of_directory path in
+  Lwt_stream.iter (fun x ->
+      if Filename.check_suffix x ext then (
+        Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+        let base = Filename.chop_suffix x ext in
+        let hash =
+          String.split_on_char '-' base
+          |> List.rev
+          |> List.hd
+          |> String.cat "0x"
+          |> int_of_string
+        in
+        StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
+      ) else ()
+    ) files
+
 module Svg = struct
-  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+    let cache = StorageCache.create () in
+    Lwt_main.run (populate_cache ~cache ~ext:".cropped.svg" ~pp_ext:"svg");
+    cache
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    Cache.use ~cache ~key:(version, parameters, body) @@ fun () ->
+    let key = (version, parameters, body) in
+    StorageCache.use ~cache ~key @@ fun () ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
       let%lwt slug = Version.slug version in
-      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      let hash = Hashtbl.hash key in
+      let fname = aspf "%a-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".cropped.svg")
     in
     Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
@@ -145,14 +169,19 @@ module Svg = struct
 end
 
 module Pdf = struct
-  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+    let cache = StorageCache.create () in
+    Lwt_main.run (populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf");
+    cache
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    Cache.use ~cache ~key:(version, parameters, body) @@ fun () ->
+    let key = (version, parameters, body) in
+    StorageCache.use ~cache ~key @@ fun () ->
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
-      let fname = aspf "%a-%x-with-meta" Slug.pp slug (Random.int (1 lsl 29)) in
+      let hash = Hashtbl.hash key in
+      let fname = aspf "%a-%x-with-meta" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
@@ -177,14 +206,19 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) Cache.t = Cache.create ()
+  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+    let cache = StorageCache.create () in
+    Lwt_main.run (populate_cache ~cache ~ext:".ogg" ~pp_ext:"ogg");
+    cache
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    Cache.use ~cache ~key:(version, parameters, body) @@ fun () ->
+    let key = (version, parameters, body) in
+    StorageCache.use ~cache ~key @@ fun () ->
     let%lwt (fname_ly, fname_ogg) =
       let%lwt slug = Version.slug version in
-      let fname = aspf "%a-%x" Slug.pp slug (Random.int (1 lsl 29)) in
+      let hash = Hashtbl.hash key in
+      let fname = aspf "%a-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".ogg")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
