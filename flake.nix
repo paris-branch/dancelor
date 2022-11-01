@@ -16,30 +16,35 @@
             utop = "*";
           };
       in
-      {
-        legacyPackages =
-          let overlay = self: super: {
-                dancelor = super.dancelor.overrideAttrs (oa: {
-                  nativeBuildInputs = oa.nativeBuildInputs or [ ] ++ [ pkgs.makeWrapper ];
-                  postInstall =
-                    "wrapProgram $out/bin/dancelor-server --prefix PATH : ${
-                      pkgs.lib.makeBinPath [
-                        pkgs.freepats
-                        pkgs.inkscape
-                        pkgs.lilypond
-                        pkgs.timidity
-                      ]
-                    }";
-                });
-              };
-          in
-          scope.overrideScope' overlay;
+        {
+          legacyPackages =
+            let overlay = self: super: {
+                  dancelor = super.dancelor.overrideAttrs (oa: {
+                    nativeBuildInputs = oa.nativeBuildInputs or [ ] ++ [ pkgs.makeWrapper ];
+                    postInstall =
+                      "wrapProgram $out/bin/dancelor-server --prefix PATH : ${
+                        pkgs.lib.makeBinPath [
+                          pkgs.freepats
+                          pkgs.inkscape
+                          pkgs.lilypond
+                          pkgs.timidity
+                        ]
+                      }";
+                  });
+                };
+            in
+              scope.overrideScope' overlay;
 
-      defaultPackage = self.legacyPackages.${system}.dancelor;
+          defaultPackage = self.legacyPackages.${system}.dancelor;
 
-      devShells.default = pkgs.mkShell {
-          buildInputs = [ scope.merlin scope.ocp-indent scope.tuareg scope.utop ];
-          inputsFrom = [ scope.dancelor ];
-      };
-    });
+          devShells.default = pkgs.mkShell {
+            buildInputs = [
+              scope.merlin
+              scope.ocp-indent
+              scope.tuareg
+              scope.utop
+            ];
+            inputsFrom = [ scope.dancelor ];
+          };
+        });
 }
