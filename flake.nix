@@ -12,7 +12,6 @@
             merlin = "*";
             ocaml-base-compiler = "*";
             ocp-indent = "*";
-            tuareg = "*";
             utop = "*";
           };
       in
@@ -41,7 +40,6 @@
             buildInputs = [
               scope.merlin
               scope.ocp-indent
-              scope.tuareg
               scope.utop
             ];
             inputsFrom = [ scope.dancelor ];
