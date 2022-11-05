@@ -12,6 +12,7 @@
           scope = on.buildOpamProject { } "dancelor" ./. {
             merlin = "*";
             ocaml-base-compiler = "*";
+            ocaml-lsp-server = "*";
             ocp-indent = "*";
             utop = "*";
           };
@@ -40,6 +41,7 @@
           devShells.default = pkgs.mkShell {
             buildInputs = [
               scope.merlin
+              scope.ocaml-lsp-server
               scope.ocp-indent
               scope.utop
             ];
