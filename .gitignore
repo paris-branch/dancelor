@@ -3,6 +3,10 @@
 *#
 .#*
 
+## direnv
+/.direnv
+/.envrc
+
 ## Dune
 /*.install
 /_build
