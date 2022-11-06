@@ -41,3 +41,17 @@ let of_yojson = function
   | _ -> Error "NesDate.of_yojson: not a JSON string"
 
 let compare = compare
+
+let month_to_pretty_string month =
+  [| "January"; "February"; "March"; "April"; "May"; "June"; "July";
+     "August"; "September"; "October"; "November"; "December" |].(month - 1)
+
+let to_pretty_string ?(at=false) (year, month, day) =
+  if year = 0 then
+    ""
+  else if month = 0 then
+    spf "%s%d" (if at then "in " else "") year
+  else if day = 0 then
+    spf "%s%s %d" (if at then "on " else "") (month_to_pretty_string month) year
+  else
+    spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string month) year
