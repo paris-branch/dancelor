@@ -191,7 +191,7 @@ let create slug page =
           if Date.is_none date then
             Lwt.return ""
           else
-            Lwt.return (spf "Date: %s" (NesDate.to_string date))
+            Lwt.return (spf "Date: %s" (NesDate.to_pretty_string date))
         ) ];
 
       div ~classes:["buttons"] (
