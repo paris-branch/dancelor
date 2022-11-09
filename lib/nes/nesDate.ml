@@ -8,25 +8,20 @@ type partial = [
   | `YearMonth of int * int
   | `Year of int
 ]
-type partial_or_none = [ partial | `None ]
 
-type t = partial_or_none
-
-let none = `None
-let is_none = (=) `None
+type t = partial
 
 let check_day day = day >= 1 && day <= 31
 let check_month month = month >= 1 && month <= 12
 let check_year _year = true
 
-let check_gen allow_none allow_partial = function
+let check_gen allow_partial = function
   | `YearMonthDay (year, month, day) -> check_year year && check_month month && check_day day
   | `YearMonth (year, month) -> allow_partial && check_year year && check_month month
   | `Year year -> allow_partial && check_year year
-  | `None -> allow_none
 
-let check = check_gen true true
-let check_full = check_gen false false
+let check = check_gen true
+let check_full = check_gen false
 
 let from_string_gen check_ name s =
   let date =
@@ -46,7 +41,6 @@ let from_string_full str =
   | _ -> assert false
 
 let to_string = function
-  | `None -> ""
   | `Year year -> spf "%04d" year
   | `YearMonth (year, month) -> spf "%04d-%02d" year month
   | `YearMonthDay (year, month, day) -> spf "%04d-%02d-%02d" year month day
@@ -67,7 +61,6 @@ let month_to_pretty_string month =
      "August"; "September"; "October"; "November"; "December" |].(month - 1)
 
 let to_pretty_string ?(at=false) = function
-  | `None -> ""
   | `Year year -> spf "%s%d" (if at then "in " else "") year
   | `YearMonth (year, month) -> spf "%s%s %d" (if at then "in " else "") (month_to_pretty_string month) year
   | `YearMonthDay (year, month, day) -> spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string month) year

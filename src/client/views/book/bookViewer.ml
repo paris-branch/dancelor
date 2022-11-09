@@ -188,10 +188,9 @@ let create slug page =
       p [ text_lwt (
           let%lwt book = book_lwt in
           let%lwt date = Book.date book in
-          if Date.is_none date then
-            Lwt.return ""
-          else
-            Lwt.return (spf "Date: %s" (NesDate.to_pretty_string date))
+          match date with
+          | None -> Lwt.return ""
+          | Some date -> Lwt.return (spf "Date: %s" (NesDate.to_pretty_string date))
         ) ];
 
       div ~classes:["buttons"] (

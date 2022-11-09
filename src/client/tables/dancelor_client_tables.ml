@@ -26,7 +26,12 @@ let books books =
   in
   clickable_row ~href_lwt [
     Formatters.Book.title_and_subtitle book;
-    Lwt.return [ text_lwt (let open Lwt in Book.date book >|= NesDate.to_pretty_string) ]
+    Lwt.return [ text_lwt (
+        let open Lwt in
+        Book.date book >|= function
+        | None -> ""
+        | Some date -> NesDate.to_pretty_string date
+      ) ]
   ]
 
 let sets sets =

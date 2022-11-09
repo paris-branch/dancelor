@@ -8,7 +8,7 @@ let make_and_save
     ?status ~title ?date ?contents_and_parameters ()
   =
   Dancelor_server_database.Book.save ~slug_hint:title @@ fun slug ->
-  make ?status ~slug ~title ?date ?contents_and_parameters ()
+  make ?status ~slug ~title ~date ?contents_and_parameters ()
 
 let () =
   Madge_server.(
@@ -31,7 +31,7 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   >>=| Score.lwt_map_from_list (BookFilter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
-      decreasing     date NesDate.compare ;
+      decreasing     date (NesOption.compare NesDate.compare) ;
       increasing    title String.Sensible.compare ;
       increasing    title String.compare_lengths ;
       increasing subtitle String.Sensible.compare ;
@@ -51,7 +51,7 @@ let () =
 let update
     ?status ~slug ~title ?date ?contents_and_parameters ()
   =
-  let%lwt book = make ?status ~slug ~title ?date ?contents_and_parameters () in
+  let%lwt book = make ?status ~slug ~title ~date ?contents_and_parameters () in
   Dancelor_server_database.Book.update book
 
 let () =

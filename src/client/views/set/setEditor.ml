@@ -240,7 +240,7 @@ let submit_updated_book set opt_book =
     let%lwt contents = Book.contents book in
     let%lwt set = set in
     let contents_and_parameters = contents@[Set (set, SetParameters.none)] in
-    Book.update ~slug ~title ~date ~contents_and_parameters ()
+    Book.update ~slug ~title ?date ~contents_and_parameters ()
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in

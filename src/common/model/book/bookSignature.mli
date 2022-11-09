@@ -30,7 +30,7 @@ val status : t -> Status.t Lwt.t
 val title : t -> string Lwt.t
 val subtitle : t -> string Lwt.t
 val short_title : t -> string Lwt.t
-val date : t -> Date.t Lwt.t
+val date : t -> Date.t option Lwt.t
 val contents : t -> page list Lwt.t
 val source : t -> bool Lwt.t (* FIXME: Should be removed *)
 val remark : t -> string Lwt.t

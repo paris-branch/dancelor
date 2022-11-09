@@ -46,7 +46,10 @@ let create page =
               let%lwt content = Formatters.Book.title_and_subtitle book in
               Lwt.return (Dancelor_client_html.nodes_to_dom_nodes document content)
             ) page;
-            Table.Cell.text ~text:(Book.date book >|= NesDate.to_pretty_string) page
+            Table.Cell.text ~text:(Book.date book >|= function
+              | None -> ""
+              | Some date -> NesDate.to_pretty_string date
+              ) page
           ]
         in
         Table.Row.create ~href ~cells page) books)
