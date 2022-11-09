@@ -136,7 +136,7 @@ let create ?on_save page =
           let b1, b2 =
             Inputs.Text.check input_title (fun str -> str <> ""),
             Inputs.Text.check input_date
-              (fun str -> try Date.from_string str |> ignore; true with _ -> str = "")
+              (fun str -> try Date.Partial.from_string str |> ignore; true with _ -> str = "")
 
           in
           if b1 && b2 then (
