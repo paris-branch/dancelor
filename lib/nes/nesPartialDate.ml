@@ -57,3 +57,15 @@ let to_pretty_string ?(at=false) = function
   | `Year year -> spf "%s%d" (if at then "in " else "") year
   | `YearMonth (year, month) -> spf "%s%s %d" (if at then "in " else "") (month_to_pretty_string month) year
   | `YearMonthDay (year, month, day) -> spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string month) year
+
+(** {2 Helpers to Implement {!NesDate}}
+
+    {!NesDate} can be seen as an instance of this one. It just needs this two
+    functions to get it done. *)
+
+let internal__from_full (year, month, day) =
+  `YearMonthDay (year, month, day)
+
+let internal__to_full = function
+  | `YearMonthDay (year, month, day) -> Some (year, month, day)
+  | _ -> None
