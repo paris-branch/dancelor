@@ -31,7 +31,7 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   >>=| Score.lwt_map_from_list (BookFilter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
-      decreasing     date (NesOption.compare NesDate.Partial.compare) ;
+      decreasing     date (NesOption.compare NesPartialDate.compare) ;
       increasing    title String.Sensible.compare ;
       increasing    title String.compare_lengths ;
       increasing subtitle String.Sensible.compare ;

@@ -48,7 +48,7 @@ let create page =
             ) page;
             Table.Cell.text ~text:(Book.date book >|= function
               | None -> ""
-              | Some date -> NesDate.Partial.to_pretty_string date
+              | Some date -> NesPartialDate.to_pretty_string date
               ) page
           ]
         in

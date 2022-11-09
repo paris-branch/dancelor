@@ -30,7 +30,7 @@ let books books =
         let open Lwt in
         Book.date book >|= function
         | None -> ""
-        | Some date -> NesDate.Partial.to_pretty_string date
+        | Some date -> NesPartialDate.to_pretty_string date
       ) ]
   ]
 

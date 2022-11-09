@@ -30,7 +30,7 @@ val status : t -> Status.t Lwt.t
 val title : t -> string Lwt.t
 val subtitle : t -> string Lwt.t
 val short_title : t -> string Lwt.t
-val date : t -> Date.Partial.t option Lwt.t
+val date : t -> PartialDate.t option Lwt.t
 val contents : t -> page list Lwt.t
 val source : t -> bool Lwt.t (* FIXME: Should be removed *)
 val remark : t -> string Lwt.t
@@ -83,7 +83,7 @@ val get : t Slug.t -> t Lwt.t
 val make_and_save :
   ?status:Status.t ->
   title:string ->
-  ?date:Date.Partial.t ->
+  ?date:PartialDate.t ->
   ?contents_and_parameters:page list ->
   unit -> t Lwt.t
 
@@ -97,6 +97,6 @@ val update :
   ?status:Status.t ->
   slug:t Slug.t ->
   title:string ->
-  ?date:Date.Partial.t ->
+  ?date:PartialDate.t ->
   ?contents_and_parameters:page list ->
   unit -> unit Lwt.t

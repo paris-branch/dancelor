@@ -18,7 +18,7 @@ type t =
     title       : string ;
     subtitle    : string     [@default ""] ;
     short_title : string     [@default ""] [@key "short-title"] ;
-    date        : Date.Partial.t option [@default None] ;
+    date        : PartialDate.t option [@default None] ;
     contents    : PageCore.t list ;
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;

@@ -190,7 +190,7 @@ let create slug page =
           let%lwt date = Book.date book in
           match date with
           | None -> Lwt.return ""
-          | Some date -> Lwt.return (spf "Date: %s" (NesDate.Partial.to_pretty_string date))
+          | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
         ) ];
 
       div ~classes:["buttons"] (
