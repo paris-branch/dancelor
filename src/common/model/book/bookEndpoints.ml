@@ -9,6 +9,7 @@ module Arguments = struct
   let filter = arg (module BookFilter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
+  let modified_at = arg ~key:"modified-at" (module NesDate)
 end
 
 let get = endpoint ~path:"/book" (module BookCore)

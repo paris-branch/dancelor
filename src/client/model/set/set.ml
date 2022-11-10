@@ -4,7 +4,8 @@ include SetLifted
 module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
-let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
+let make_and_save ?status ~name ?deviser ~kind
+    ?versions_and_parameters ~order ?dances ~modified_at () =
   Madge_client.(
     call ~endpoint:E.make_and_save @@ fun {a} {o} ->
     o A.status status;
@@ -13,7 +14,8 @@ let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ~order ?
     a A.kind kind;
     o A.versions_and_parameters versions_and_parameters;
     a A.order order;
-    o A.dances dances
+    o A.dances dances;
+    a A.modified_at modified_at;
   )
 
 let delete s =

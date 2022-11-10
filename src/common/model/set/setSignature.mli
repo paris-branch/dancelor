@@ -46,6 +46,7 @@ val make_temp :
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
   ?dances:DanceCore.t list ->
+  modified_at:Date.t ->
   unit -> t Lwt.t
 
 val make_and_save :
@@ -56,6 +57,7 @@ val make_and_save :
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
   ?dances:DanceCore.t list ->
+  modified_at:Date.t ->
   unit -> t Lwt.t
 
 val delete : t -> unit Lwt.t

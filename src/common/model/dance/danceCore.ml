@@ -10,10 +10,12 @@ type t =
     deviser : CreditCore.t Slug.t option [@default None] ;
     two_chords : bool [@default false] [@key "two-chords"] ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
-    disambiguation : string [@default ""] }
+    disambiguation : string [@default ""] ;
+    modified_at : NesDate.t [@key "modified-at"] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id ?disambiguation () =
+let make ?status ~slug ~name ~kind ?deviser ~two_chords
+    ?scddb_id ?disambiguation ~modified_at () =
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
@@ -21,7 +23,8 @@ let make ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id ?disambiguatio
       let%lwt deviser = CreditCore.slug deviser in
       Lwt.return_some deviser
   in
-  Lwt.return (make ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id ?disambiguation ())
+  Lwt.return (make ?status ~slug ~name ~kind ~deviser ~two_chords
+                ~scddb_id ?disambiguation ~modified_at ())
 
 let slug d = Lwt.return d.slug
 let status d = Lwt.return d.status

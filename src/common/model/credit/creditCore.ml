@@ -7,7 +7,8 @@ type t =
     status : Status.t [@default Status.bot] ;
     line : string ;
     persons : PersonCore.t Slug.t list [@default []];
-    scddb_id : int option [@default None] [@key "scddb-id"] }
+    scddb_id : int option [@default None] [@key "scddb-id"] ;
+    modified_at : NesDate.t [@key "modified-at"] }
 [@@deriving yojson, make]
 
 let slug c = Lwt.return c.slug

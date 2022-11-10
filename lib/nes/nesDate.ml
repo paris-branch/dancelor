@@ -13,3 +13,16 @@ let from_string str =
   | exception Failure _ -> failwith "NesDate.from_string"
   | None -> failwith "NesDate.from_string"
   | Some date -> date
+
+let to_yojson date =
+  `String (to_string date)
+
+let of_yojson = function
+  | `String s ->
+    (try Ok (from_string s)
+     with _ -> Error "NesDate.of_yojson: not a valid date")
+  | _ -> Error "NesDate.of_yojson: not a JSON string"
+
+let now () =
+  let tm = Unix.(localtime (time ())) in
+  (1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday)

@@ -8,14 +8,17 @@ type t =
     name : string ;
     deviser : CreditCore.t Slug.t option [@default None] ;
     kind : Kind.dance ;
-    versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []] ;
+    versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list
+                              [@key "versions-and-parameters"] [@default []] ;
     order : SetOrder.t ;
     instructions : string            [@default ""] ;
     dances : DanceCore.t Slug.t list [@default []] ;
-    remark : string                  [@default ""] }
+    remark : string                  [@default ""] ;
+    modified_at : NesDate.t          [@key "modified-at"] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
+let make ?status ~slug ~name ?deviser ~kind
+    ?versions_and_parameters ~order ?dances ~modified_at () =
   let%lwt deviser =
     let%olwt deviser = Lwt.return deviser in
     let%lwt deviser = CreditCore.slug deviser in
@@ -37,10 +40,13 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dan
     let%lwt dances = Lwt_list.map_p DanceCore.slug dances in
     Lwt.return_some dances
   in
-  Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters ~order ?dances ())
+  Lwt.return (make ?status ~slug ~name ~deviser ~kind
+                ?versions_and_parameters ~order ?dances ~modified_at ())
 
-let make_temp ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
-  make ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
+let make_temp ~name ?deviser ~kind
+    ?versions_and_parameters ~order ?dances ~modified_at () =
+  make ~slug:Slug.none ~name ?deviser ~kind
+    ?versions_and_parameters ~order ?dances ~modified_at ()
 
 let slug s = Lwt.return s.slug
 let is_slug_none s =

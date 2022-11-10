@@ -24,9 +24,9 @@ let from_string s =
     | [Some year] -> Year year
     | [Some year; Some month] -> YearMonth (year, month)
     | [Some year; Some month; Some day] -> YearMonthDay (year, month, day)
-    | _ -> failwith "NesDate.Partial.from_string"
+    | _ -> failwith "NesPartialDate.from_string"
   in
-  if not (check date) then failwith "NesDate.Partial.from_string";
+  if not (check date) then failwith "NesPartialDate.from_string";
   date
 
 let to_string = function
@@ -40,8 +40,8 @@ let to_yojson date =
 let of_yojson = function
   | `String s ->
     (try Ok (from_string s)
-     with _ -> Error "NesDate.Partialof_yojson: not a valid date")
-  | _ -> Error "NesDate.Partialof_yojson: not a JSON string"
+     with _ -> Error "NesPartialDate.of_yojson: not a valid date")
+  | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
 
 let month_to_pretty_string month =
   [| "January"; "February"; "March"; "April"; "May"; "June"; "July";

@@ -5,7 +5,8 @@ let _key = "person"
 type t =
   { slug : t Slug.t ;
     status : Status.t [@default Status.bot] ;
-    name : string }
+    name : string ;
+    modified_at : NesDate.t [@key "modified-at"] }
 [@@deriving yojson, make]
 
 let slug p = Lwt.return p.slug
