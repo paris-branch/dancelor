@@ -16,6 +16,7 @@ module Arguments = struct
   let disambiguation = optarg ~key:"disambiguation" (module MString)
   let broken = optarg ~key:"broken" (module MBool)
   let content = arg ~key:"content" (module MString)
+  let modified_at = arg ~key:"modified-at" (module NesDate)
 end
 
 let get = endpoint ~path:"/version" (module VersionCore)

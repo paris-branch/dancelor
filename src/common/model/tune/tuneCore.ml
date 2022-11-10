@@ -11,10 +11,12 @@ type t =
     author : CreditCore.t Slug.t option [@default None] ;
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;
-    scddb_id : int option               [@default None] [@key "scddb-id"] }
+    scddb_id : int option               [@default None] [@key "scddb-id"] ;
+    modified_at : NesDate.t             [@key "modified-at"] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id () =
+let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances
+    ?remark ?scddb_id ~modified_at () =
   let%lwt author =
     let%olwt author = Lwt.return author in
     let%lwt author_slug = CreditCore.slug author in
@@ -31,7 +33,8 @@ let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?s
     in
     Lwt.return_some dances
   in
-  Lwt.return (make ?status ~slug ~name ?alternative_names ~kind ~author ?dances ?remark ~scddb_id ())
+  Lwt.return (make ?status ~slug ~name ?alternative_names ~kind ~author ?dances
+                ?remark ~scddb_id ~modified_at ())
 
 let slug tune = Lwt.return tune.slug
 let status tune = Lwt.return tune.status

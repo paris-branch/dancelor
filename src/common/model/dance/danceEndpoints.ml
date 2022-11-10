@@ -11,6 +11,7 @@ module Arguments = struct
   let deviser = optarg ~key:"deviser" (module CreditCore)
   let two_chords = arg ~key:"two-chords" (module MBool)
   let scddb_id = optarg ~key:"scddb-id" (module MInteger)
+  let modified_at = arg ~key:"modified-at" (module NesDate)
 end
 
 let get = endpoint ~path:"/dance" (module DanceCore)

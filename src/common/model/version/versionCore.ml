@@ -13,12 +13,13 @@ type t =
     arranger : CreditCore.t Slug.t option [@default None] ;
     remark : string                   [@default ""] ;
     disambiguation : string           [@default ""] ;
-    broken : bool                     [@default false] }
+    broken : bool                     [@default false] ;
+    modified_at : NesDate.t           [@key "modified-at"] }
 [@@deriving make, yojson]
 
 let make
-    ~slug ?status ~tune ~bars ~key ~structure
-    ?arranger ?remark ?disambiguation ?broken ()
+    ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
+    ?disambiguation ?broken ~modified_at ()
   =
   let%lwt tune = TuneCore.slug tune in
   let%lwt arranger =
@@ -26,8 +27,8 @@ let make
     let%lwt arranger = CreditCore.slug arranger in
     Lwt.return_some arranger
   in
-  Lwt.return (make ~slug ?status ~tune ~bars ~key ~structure
-                ~arranger ?remark ?disambiguation ?broken ())
+  Lwt.return (make ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
+                ?disambiguation ?broken ~modified_at ())
 
 let slug t = Lwt.return t.slug
 let status t = Lwt.return t.status

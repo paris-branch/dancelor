@@ -22,6 +22,7 @@ val make_and_save :
   ?deviser:CreditCore.t ->
   two_chords:bool ->
   ?scddb_id:int ->
+  modified_at:Date.t ->
   unit -> t Lwt.t
 
 val search :

@@ -5,7 +5,7 @@ module A = E.Arguments
 
 let make_and_save
     ?status ~tune ~bars ~key ~structure ?arranger
-    ?remark ?disambiguation ?broken ~content ()
+    ?remark ?disambiguation ?broken ~content ~modified_at ()
   =
   Madge_client.(
     call ~endpoint:E.make_and_save @@ fun {a} {o} ->
@@ -19,6 +19,7 @@ let make_and_save
     o A.disambiguation disambiguation;
     o A.broken broken;
     a A.content content;
+    a A.modified_at modified_at;
   )
 
 let search ?pagination ?threshold filter =

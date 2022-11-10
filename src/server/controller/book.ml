@@ -111,6 +111,7 @@ module Ly = struct
                   Set.make_temp ~name ~kind:(1, [bars, kind])
                     ~versions_and_parameters:[version, parameters]
                     ~order:[Internal 1]
+                    ~modified_at:(NesDate.now ())
                     ()
                 in
                 let%lwt for_dance = VersionParameters.for_dance parameters in

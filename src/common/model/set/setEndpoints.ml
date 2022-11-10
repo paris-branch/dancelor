@@ -12,6 +12,7 @@ module Arguments = struct
   let filter = arg (module SetFilter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
+  let modified_at = arg ~key:"modified-at" (module NesDate)
 end
 
 let get = endpoint ~path:"/set" (module SetCore)

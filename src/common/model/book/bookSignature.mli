@@ -85,6 +85,7 @@ val make_and_save :
   title:string ->
   ?date:PartialDate.t ->
   ?contents_and_parameters:page list ->
+  modified_at:Date.t ->
   unit -> t Lwt.t
 
 val search :
@@ -99,4 +100,5 @@ val update :
   title:string ->
   ?date:PartialDate.t ->
   ?contents_and_parameters:page list ->
+  modified_at:Date.t ->
   unit -> unit Lwt.t

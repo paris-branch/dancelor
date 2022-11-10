@@ -105,4 +105,6 @@ let submit t =
   let remark = if t.remark = "" then None else Some t.remark in
   let disambiguation = if t.disambiguation = "" then None else Some t.disambiguation in
   let content = t.content in
-  Version.make_and_save ~tune ~bars ~key ~structure ?arranger ?remark ?disambiguation ~content ()
+  let modified_at = NesDate.now () in
+  Version.make_and_save ~tune ~bars ~key ~structure ?arranger
+    ?remark ?disambiguation ~content ~modified_at ()

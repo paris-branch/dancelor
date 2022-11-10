@@ -22,7 +22,8 @@ type t =
     contents    : PageCore.t list ;
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;
-    scddb_id    : int option [@default None] [@key "scddb-id"] }
+    scddb_id    : int option [@default None] [@key "scddb-id"] ;
+    modified_at : Date.t     [@key "modified-at"] }
 [@@deriving make, yojson]
 
 let slug book = Lwt.return book.slug
@@ -87,10 +88,11 @@ let page_to_page_core = function
   | (InlineSet (set, params) : page) ->
     Lwt.return @@ PageCore.InlineSet (set, params)
 
-let make ?status ~slug ~title ?date ?contents_and_parameters () =
+let make ?status ~slug ~title ?date ?contents_and_parameters ~modified_at () =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
     let%lwt contents = Lwt_list.map_s page_to_page_core contents in
     Lwt.return_some contents
   in
-  Lwt.return (make ?status ~slug ~title ?date ?contents:contents_and_parameters ())
+  Lwt.return (make ?status ~slug ~title ?date
+                ?contents:contents_and_parameters ~modified_at ())

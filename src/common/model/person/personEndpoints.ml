@@ -7,6 +7,7 @@ module Arguments = struct
   let filter = arg (module PersonFilter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
+  let modified_at = arg ~key:"modified-at" (module NesDate)
 end
 
 let get = endpoint ~path:"/person" (module PersonCore)
