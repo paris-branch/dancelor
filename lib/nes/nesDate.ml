@@ -23,6 +23,6 @@ let of_yojson = function
      with _ -> Error "NesDate.of_yojson: not a valid date")
   | _ -> Error "NesDate.of_yojson: not a JSON string"
 
-let now () =
+let today () =
   let tm = Unix.(localtime (time ())) in
   (1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday)

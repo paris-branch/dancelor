@@ -240,7 +240,7 @@ let submit_updated_book set opt_book =
     let%lwt contents = Book.contents book in
     let%lwt set = set in
     let contents_and_parameters = contents@[Set (set, SetParameters.none)] in
-    let modified_at = NesDate.now () in
+    let modified_at = NesDate.today () in
     Book.update ~slug ~title ?date ~contents_and_parameters ~modified_at ()
 
 let submit t =
@@ -248,7 +248,7 @@ let submit t =
   let versions_and_parameters = List.map (fun version -> (version, VersionParameters.none)) versions in
   let kind = Kind.dance_of_string t.kind in
   let order = SetOrder.of_string t.order in
-  let modified_at = NesDate.now () in
+  let modified_at = NesDate.today () in
   let answer =
     Set.make_and_save ~kind ~name:t.name ~versions_and_parameters
       ~order ?deviser:(deviser t) ~modified_at () in
