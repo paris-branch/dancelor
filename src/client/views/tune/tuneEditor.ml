@@ -144,6 +144,6 @@ let submit t =
       try%opt int_of_string_opt t.scddb_id
       with _ -> Result.to_option (SCDDB.tune_from_uri t.scddb_id)
   in
-  let modified_at = NesDate.now () in
+  let modified_at = NesDate.today () in
   Tune.make_and_save ~name ~alternative_names ~kind ?author:(author t)
     ~dances ?remark ?scddb_id ~modified_at ()

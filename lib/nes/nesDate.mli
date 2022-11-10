@@ -18,5 +18,5 @@ val to_pretty_string : ?at:bool -> t -> string
     argument allows to represent the string “at <date>”, eg. [on 9 November
     2022]. *)
 
-val now : unit -> t
+val today : unit -> t
 (** Returns the current date. *)

@@ -120,7 +120,7 @@ let clear t =
 let submit t =
   let save_and_get_person = function
     | `Edit name ->
-      let modified_at = NesDate.now () in
+      let modified_at = NesDate.today () in
       Person.make_and_save ~name ~modified_at ()
     | `Person p ->
       Lwt.return p.person
@@ -142,5 +142,5 @@ let submit t =
         | Ok scddb_id -> Some scddb_id
         | Error _ -> None
   in
-  let modified_at = NesDate.now () in
+  let modified_at = NesDate.today () in
   Credit.make_and_save ~line:t.name ~persons ?scddb_id ~modified_at ()
