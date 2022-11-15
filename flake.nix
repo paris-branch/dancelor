@@ -5,11 +5,13 @@
     nixpkgs.follows = "opam-nix/nixpkgs";
   };
 
-  outputs = { self, flake-utils, opam-nix, nixpkgs, ... }:
+  outputs = { self, flake-utils, opam-nix, nixpkgs }:
     flake-utils.lib.eachDefaultSystem (system:
+
       let pkgs = nixpkgs.legacyPackages.${system};
           on = opam-nix.lib.${system};
-          scope = on.buildOpamProject { } "dancelor" ./. {
+
+          packages = on.buildOpamProject { } "dancelor" ./. {
             merlin = "*";
             ocaml-base-compiler = "*";
             ocaml-lsp-server = "*";
@@ -18,34 +20,18 @@
           };
       in
         {
-          legacyPackages =
-            let overlay = self: super: {
-                  dancelor = super.dancelor.overrideAttrs (oa: {
-                    nativeBuildInputs = oa.nativeBuildInputs or [ ] ++ [ pkgs.makeWrapper ];
-                    postInstall =
-                      "wrapProgram $out/bin/dancelor-server --prefix PATH : ${
-                        pkgs.lib.makeBinPath [
-                          pkgs.freepats
-                          pkgs.inkscape
-                          pkgs.lilypond
-                          pkgs.timidity
-                        ]
-                      }";
-                  });
-                };
-            in
-              scope.overrideScope' overlay;
-
-          defaultPackage = self.legacyPackages.${system}.dancelor;
+          packages = packages // {
+            default = self.packages.${system}.dancelor;
+          };
 
           devShells.default = pkgs.mkShell {
             buildInputs = [
-              scope.merlin
-              scope.ocaml-lsp-server
-              scope.ocp-indent
-              scope.utop
+              packages.merlin
+              packages.ocaml-lsp-server
+              packages.ocp-indent
+              packages.utop
             ];
-            inputsFrom = [ scope.dancelor ];
+            inputsFrom = [ packages.dancelor ];
           };
         });
 }
