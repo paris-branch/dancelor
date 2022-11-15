@@ -1,7 +1,7 @@
 {
   inputs = {
     opam-nix.url = github:tweag/opam-nix;
-    nixpkgs.follows = "opam-nix/nixpkgs";
+    nixpkgs.url = github:niols/nixpkgs/enable-vorbis-by-default;
 
     flake-utils.url = github:numtide/flake-utils;
   };
@@ -12,7 +12,7 @@
       let pkgs = nixpkgs.legacyPackages.${system};
           on = opam-nix.lib.${system};
 
-          packages = on.buildOpamProject { } "dancelor" ./. {
+          packages = on.buildOpamProject { pkgs = pkgs; } "dancelor" ./. {
             merlin = "*";
             ocaml-base-compiler = "*";
             ocaml-lsp-server = "*";

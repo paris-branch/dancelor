@@ -46,7 +46,38 @@
         "type": "github"
       }
     },
+    "flake-utils_3": {
+      "locked": {
+        "lastModified": 1667395993,
+        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1668554293,
+        "narHash": "sha256-IDtZCM1fJb8eAsnDwllpi+XR+z2lO5EjTfwPNbmcleI=",
+        "owner": "niols",
+        "repo": "nixpkgs",
+        "rev": "6aa0398be1cf5da0c06260d26141b79e374defd1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niols",
+        "ref": "enable-vorbis-by-default",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1657802959,
         "narHash": "sha256-9+JWARSdlL8KiH3ymnKDXltE1vM+/WEJ78F5B1kjXys=",
@@ -62,7 +93,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1640418986,
         "narHash": "sha256-a8GGtxn2iL3WAkY5H+4E0s3Q7XJt6bTOvos9qqxT5OQ=",
@@ -78,11 +109,24 @@
         "type": "github"
       }
     },
+    "nixpkgs_4": {
+      "locked": {
+        "lastModified": 1668326430,
+        "narHash": "sha256-fJEsHe+lzFf3qcQVTTdK9jqRtUUVXH71tdfgjcKJNpA=",
+        "path": "/nix/store/0snl06k943n8dhi8ig5g7irznfrdh8q0-source",
+        "rev": "fc07622617a373a742ed96d4dd536849d4bc1ec6",
+        "type": "path"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
     "opam-nix": {
       "inputs": {
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": "nixpkgs_2",
         "opam-repository": "opam-repository",
         "opam2json": "opam2json"
       },
@@ -118,7 +162,7 @@
     },
     "opam2json": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
         "lastModified": 1651529032,
@@ -137,11 +181,28 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": [
-          "opam-nix",
-          "nixpkgs"
-        ],
-        "opam-nix": "opam-nix"
+        "nixpkgs": "nixpkgs",
+        "opam-nix": "opam-nix",
+        "timidity": "timidity"
+      }
+    },
+    "timidity": {
+      "inputs": {
+        "flake-utils": "flake-utils_3",
+        "nixpkgs": "nixpkgs_4"
+      },
+      "locked": {
+        "lastModified": 1668552604,
+        "narHash": "sha256-c2UtdIy/XBg7jixmOSorNh+CIuOaYi0TJvhzf6rvl1k=",
+        "owner": "niols",
+        "repo": "nixpkg-timidity",
+        "rev": "6b4438404c03744fd569f5c7dd28620c0cff6e47",
+        "type": "github"
+      },
+      "original": {
+        "owner": "niols",
+        "repo": "nixpkg-timidity",
+        "type": "github"
       }
     }
   },
