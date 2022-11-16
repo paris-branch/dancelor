@@ -1,15 +1,20 @@
 {
   inputs = {
     opam-nix.url = github:tweag/opam-nix;
-    nixpkgs.url = github:niols/nixpkgs/enable-vorbis-by-default;
+    nixpkgs.follows = "opam-nix/nixpkgs";
 
     flake-utils.url = github:numtide/flake-utils;
+    timidity.url = github:niols/nixpkg-timidity;
   };
 
-  outputs = { self, flake-utils, opam-nix, nixpkgs }:
+  outputs = { self, nixpkgs, opam-nix, flake-utils, timidity }:
     flake-utils.lib.eachDefaultSystem (system:
 
-      let pkgs = nixpkgs.legacyPackages.${system};
+      let timidityOverlay = self: super: {
+            timidity = timidity.packages.${system}.timidityWithVorbis;
+          };
+          pkgs = nixpkgs.legacyPackages.${system}.extend timidityOverlay;
+
           on = opam-nix.lib.${system};
 
           packages = on.buildOpamProject { pkgs = pkgs; } "dancelor" ./. {
