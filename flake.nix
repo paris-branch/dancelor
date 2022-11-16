@@ -1,6 +1,6 @@
 {
   inputs = {
-    opam-nix.url = github:tweag/opam-nix;
+    opam-nix.url = github:niols/opam-nix/add-xvfb-to-external-dependencies-map;
     nixpkgs.follows = "opam-nix/nixpkgs";
 
     flake-utils.url = github:numtide/flake-utils;
