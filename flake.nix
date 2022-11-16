@@ -1,6 +1,6 @@
 {
   inputs = {
-    opam-nix.url = github:niols/opam-nix/add-xvfb-to-external-dependencies-map;
+    opam-nix.url = github:tweag/opam-nix;
     nixpkgs.follows = "opam-nix/nixpkgs";
 
     flake-utils.url = github:numtide/flake-utils;
@@ -13,7 +13,13 @@
       let timidityOverlay = self: super: {
             timidity = timidity.packages.${system}.timidityWithVorbis;
           };
-          pkgs = nixpkgs.legacyPackages.${system}.extend timidityOverlay;
+          xvfbOverlay = self: super: {
+            xvfb = self.xvfb-run;
+          };
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ timidityOverlay xvfbOverlay ];
+          };
 
           on = opam-nix.lib.${system};
 
