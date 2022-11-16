@@ -45,10 +45,10 @@ build: [
 ]
 dev-repo: "git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git"
 depexts: [
-  [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" ]
+  [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" "xorg-server-xvfb" ]
     { os-distribution = "archlinux" }
   [ "sassc" ]
     { os-distribution = "alpine" }
-  [ "timidity" "freepats" "inkscape" "lilypond" "sassc" ]
+  [ "timidity" "freepats" "inkscape" "lilypond" "sassc" "xvfb" ]
     { os-distribution = "debian" }
 ]
