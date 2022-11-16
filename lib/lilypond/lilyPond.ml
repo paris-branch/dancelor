@@ -17,7 +17,7 @@ module Inkscape = struct
       match !version_pre1 with
       | None ->
         Log.debug (fun m -> m "Polling Inkscape's version");
-        let%lwt out = NesProcess.run [!bin; "--version"] in
+        let%lwt out = NesProcess.run ["xvfb-run"; !bin; "--version"] in
         let b =
           if String.starts_with ~needle:"Inkscape 0." out.stdout then
             (
@@ -45,9 +45,9 @@ module Inkscape = struct
   let crop ~exec_path ~output file =
     let%lwt cmd =
       if%lwt is_version_pre1 () then
-        Lwt.return [get_bin (); "--without-gui"; "--export-area-drawing"; "--export-plain-svg="^output; file]
+        Lwt.return ["xvfb-run"; get_bin (); "--without-gui"; "--export-area-drawing"; "--export-plain-svg="^output; file]
       else
-        Lwt.return [get_bin (); "--export-area-drawing"; "--export-plain-svg"; "--export-filename="^output; file]
+        Lwt.return ["xvfb-run"; get_bin (); "--export-area-drawing"; "--export-plain-svg"; "--export-filename="^output; file]
     in
     try%lwt
       NesProcess.run_ignore
