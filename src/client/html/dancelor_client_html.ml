@@ -176,6 +176,18 @@ let img ?src ?src_lwt ?classes () document =
       img##.src := Js.string src);
   (img :> dom_node)
 
+let object_ ~type_ ?data ?data_lwt ?classes () document =
+  let data_lwt =
+    match data, data_lwt with
+    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.object_"
+    | Some data, _ -> Lwt.return data | _, Some data_lwt -> data_lwt
+  in
+  let object_ = gen_node_lwt Dom_html.createObject ?classes Lwt.return_nil document in
+  object_##._type := Js.string type_;
+  Lwt.on_success data_lwt (fun data ->
+      object_##.data := Js.string data);
+  (object_ :> dom_node)
+
 let audio ?src ?src_lwt ?(controls=false) ?classes () document =
   let src_lwt =
     match src, src_lwt with
