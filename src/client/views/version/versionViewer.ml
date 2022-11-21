@@ -135,7 +135,7 @@ let create slug page =
               (Router.path_of_controller (Router.VersionSvg slug) |> snd)
             |> Lwt.return
           in
-          object_ ~type_:"image/svg+xml" ~data_lwt ();
+          object_ ~type_:"image/svg+xml" ~data_lwt [];
         ]
       ];
 

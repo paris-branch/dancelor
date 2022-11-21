@@ -125,7 +125,7 @@ let create slug page =
                         Constant.api_prefix
                         (Router.path_of_controller (Router.VersionSvg slug) |> snd)
                     in
-                    object_ ~type_:"image/svg+xml" ~data ())
+                    object_ ~type_:"image/svg+xml" ~data [])
                  ])
             )
             versions_and_parameters
