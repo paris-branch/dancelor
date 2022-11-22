@@ -23,5 +23,12 @@
  (name madge_router)
  (modules madge_router)
  (public_name dancelor.madge.router)
- (libraries dancelor.nes cohttp)
+ (libraries dancelor.nes cohttp dancelor.madge.query)
+ (preprocess (pps ppx_deriving_yojson lwt_ppx)))
+
+(library
+ (name madge_query)
+ (modules madge_query)
+ (public_name dancelor.madge.query)
+ (libraries dancelor.nes cohttp-lwt)
  (preprocess (pps ppx_deriving_yojson lwt_ppx)))

@@ -4,7 +4,8 @@ open Nes
 
 type request =
   { method_ : Cohttp.Code.meth ;
-    path : string }
+    path : string ;
+    query : Madge_query.t }
 
 type 'resource route =
   { request_to_resource : request -> 'resource option ;
@@ -20,12 +21,12 @@ let direct method_ path resource =
   in
   let resource_to_request resource' =
     if resource = resource'
-    then Some { method_; path }
+    then Some { method_; path; query=Madge_query.empty }
     else None
   in
   { request_to_resource; resource_to_request }
 
-let with_slug method_ prefix ?ext (makeResource, unResource) =
+let with_slug_and_query method_ prefix ?ext makeResource unResource =
   let request_to_resource req' =
     if req'.method_ = method_ then
       (
@@ -37,11 +38,11 @@ let with_slug method_ prefix ?ext (makeResource, unResource) =
             (
               let suffix' = String.sub req'.path (i+1) (String.length req'.path - i-1) in
               match ext with
-              | None -> Option.some @@ makeResource @@ Slug.unsafe_of_string suffix'
+              | None -> Option.some @@ makeResource (Slug.unsafe_of_string suffix') req'.query
               | Some ext ->
                 let ext = "." ^ ext in
                 if Filename.check_suffix suffix' ext
-                then Option.some @@ makeResource @@ Slug.unsafe_of_string @@ Filename.chop_suffix suffix' ext
+                then Option.some @@ makeResource (Slug.unsafe_of_string @@ Filename.chop_suffix suffix' ext) req'.query
                 else None
             )
           else
@@ -50,12 +51,23 @@ let with_slug method_ prefix ?ext (makeResource, unResource) =
     else
       None
   in
-  let resource_to_request =
-    unResource >=>? fun slug ->
+  let resource_to_request resource =
+    match unResource resource with
+    | None -> None
+    | Some (slug, query) ->
       let slug = Slug.to_string slug in
-      Some { method_; path = prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext) }
+      Some {
+        method_ ;
+        path = prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext) ;
+        query ;
+      }
   in
   { request_to_resource; resource_to_request }
+
+let with_slug method_ prefix ?ext (makeResource, unResource) =
+  with_slug_and_query method_ prefix ?ext
+    (fun slug _query -> makeResource slug)
+    (fun resource -> Option.map (fun slug -> (slug, Madge_query.empty)) (unResource resource))
 
  (** {2 Matchers} *)
 

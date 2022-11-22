@@ -36,34 +36,40 @@ let unVersionPdf = function VersionPdf (slug, params) -> Some (slug, params) | _
 
 (** {2 Routes} *)
 
-let routes : endpoint Madge_router.route list = let open Madge_router in
+open Madge_router
+module MQ = Madge_query
+
+let routes : endpoint route list =
   [
-    with_slug   `GET  "/book" ~ext:"pdf"    ((fun slug -> BookPdf (slug, None)), (function BookPdf (slug, _) -> Some slug | _ -> None)) ; (* FIXME *)
+    with_slug_and_query `GET "/book/" ~ext:".pdf"
+      (fun slug query -> BookPdf (slug, MQ.get_ "parameters" BookParameters.of_yojson query))
+      (function
+        | BookPdf (slug, None) -> Some (slug, MQ.empty)
+        | BookPdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ BookParameters.to_yojson params)
+        | _ -> None);
+
     with_slug   `GET  "/set" ~ext:"ly"      (setLy, unSetLy) ;
-    with_slug   `GET  "/set" ~ext:"pdf"     ((fun slug -> SetPdf (slug, None)), (function SetPdf (slug, _) -> Some slug | _ -> None)) ; (* FIXME *)
+
+    with_slug_and_query `GET  "/set" ~ext:"pdf"
+      (fun slug query -> SetPdf (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
+      (function
+        | SetPdf (slug, None) -> Some (slug, MQ.empty)
+        | SetPdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params)
+        | _ -> None) ;
+
     with_slug   `GET  "/version" ~ext:"ly"  (versionLy, unVersionLy) ;
     with_slug   `GET  "/version" ~ext:"svg" (versionSvg, unVersionSvg) ;
     with_slug   `GET  "/version" ~ext:"ogg" (versionOgg, unVersionOgg) ;
-    with_slug   `GET  "/version" ~ext:"pdf" ((fun slug -> VersionPdf (slug, None)), (function VersionPdf (slug, _) -> Some slug | _ -> None)) ; (* FIXME *)
+
+    with_slug_and_query `GET "/version" ~ext:"pdf"
+      (fun slug query -> VersionPdf (slug, MQ.get_ "parameters" VersionParameters.of_yojson query))
+      (function
+        | VersionPdf (slug, None) -> Some (slug, MQ.empty)
+        | VersionPdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ VersionParameters.to_yojson params)
+        | _ -> None) ;
+
     direct      `GET  "/victor"              Victor ;
     direct      `GET  "/victor2"             Victor2 ;
     direct      `GET  "/victor3"             Victor3 ;
     direct      `GET  "/victor4"             Victor4 ;
   ]
-
-(* let path_to_endpoint ~meth ~path = Madge_router.path_to_resource meth path routes *)
-
-(* let path_of_endpoint ~api_prefix resource = *)
-(*   let (method_, path) = Madge_router.resource_to_path resource routes in *)
-(*   if api_prefix *)
-(*   then (method_, Constant.api_prefix ^ "/" ^ path) *)
-(*   else (method_, path) *)
-
-(* let path_of_get_endpoint ~api_prefix resource = *)
-(*   let (meth, path) = path_of_endpoint ~api_prefix resource in *)
-(*   if not (meth = `GET) then *)
-(*     failwith "path_of_get_resource"; *)
-(*   path *)
-
-(* let gpath ~api resource = *)
-(*   path_of_get_endpoint ~api_prefix:api resource *)
