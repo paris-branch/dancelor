@@ -1,7 +1,7 @@
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_common.Router
+module R = Dancelor_client_router
 
 let title_and_subtitle ?(link=true) book =
   let title_text = [text_lwt (M.Book.title book)] in
@@ -22,7 +22,7 @@ let short_title ?(link=true) book =
   if link then
     let href_lwt =
       let%lwt slug = M.Book.slug book in
-      Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+      Lwt.return R.(path (Book slug))
     in
     Lwt.return [a ~href_lwt short_title_text]
   else
