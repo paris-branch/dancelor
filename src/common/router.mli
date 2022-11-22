@@ -48,4 +48,4 @@ type controller =
 
 val path_to_controller : meth:Cohttp.Code.meth -> path:string -> controller option
 
-val path_of_controller : controller -> Cohttp.Code.meth * string
+val path_of_controller : ?api_prefix:bool -> controller -> Cohttp.Code.meth * string
