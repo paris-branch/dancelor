@@ -75,7 +75,7 @@ let display_contents t contents =
             let slug = Set.slug set in
             let href =
               let%lwt slug = slug in
-              Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+              Lwt.return Router.(path (Set slug))
             in
             let cells =
               let open Lwt in
@@ -111,7 +111,7 @@ let display_contents t contents =
             let slug = Version.slug version in
             let href =
               let%lwt slug = slug in
-              Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+              Lwt.return Router.(path (Version slug))
             in
             let cells = [
               Table.Cell.text ~text:(Lwt.return "Tune") t.page;
@@ -226,51 +226,16 @@ let create slug page =
         let b_parameters = BookParameters.make_instrument (Music.make_pitch B Flat (-1)) in
         let e_parameters = BookParameters.make_instrument (Music.make_pitch E Flat 0) in
 
-        let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
+        let c_pdf_href,         b_pdf_href,         e_pdf_href,         bass_pdf_href,
             c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                b_parameters
-                |> BookParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                e_parameters
-                |> BookParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                bass_parameters
-                |> BookParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                booklet_parameters
-                |> BookParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                BookParameters.(
-                  compose b_parameters booklet_parameters
-                  |> to_yojson |> Yojson.Safe.to_string
-                )
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                BookParameters.(
-                  compose e_parameters booklet_parameters
-                  |> to_yojson |> Yojson.Safe.to_string
-                )
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.BookPdf slug)
-            ~query:["parameters", [
-                BookParameters.(
-                  compose bass_parameters booklet_parameters
-                  |> to_yojson |> Yojson.Safe.to_string
-                )
-              ]] ()
+          ApiRouter.(path @@ bookPdf slug @@ none),
+          ApiRouter.(path @@ bookPdf slug @@ some @@            b_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ some @@            e_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ some @@         bass_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ some @@                         booklet_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ some @@ compose    b_parameters booklet_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ some @@ compose    e_parameters booklet_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ some @@ compose bass_parameters booklet_parameters)
         in
 
         let pdf_button href txt =

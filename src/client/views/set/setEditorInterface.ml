@@ -5,6 +5,7 @@ open Dancelor_client_utils
 open Dancelor_client_elements
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -124,12 +125,7 @@ let make_version_subwindow t index version =
   Dom.appendChild buttons delli;
   Dom.appendChild toolbar buttons;
   Dom.appendChild subwin toolbar;
-  let source =
-    spf "/%s%s"
-      Constant.api_prefix
-      (Router.path_of_controller (Router.VersionSvg version.SetEditor.slug) |> snd)
-    |> Lwt.return
-  in
+  let source = Lwt.return ApiRouter.(path (VersionSvg version.SetEditor.slug)) in
   let img = Image.create ~source t.page in
   Dom.appendChild subwin (Image.root img);
   subwin

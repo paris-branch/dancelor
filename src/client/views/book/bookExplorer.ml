@@ -2,8 +2,8 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
-open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -38,7 +38,7 @@ let create page =
     Lwt.return (List.map (fun book ->
         let href =
           let%lwt slug = Book.slug book in
-          Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+          Lwt.return Router.(path (Book slug))
         in
         let cells =
           let open Lwt in [

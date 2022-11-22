@@ -1,8 +1,8 @@
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
-open Dancelor_client_utils
 open Dancelor_client_model
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -58,7 +58,7 @@ let refresh t =
       Lwt.on_success name (fun name ->
           Inputs.Text.set_contents (SearchBar.bar t.author_search) name)
   end;
-  Helpers.clear_children t.dances_area;
+  JsHelpers.clear_children t.dances_area;
   TuneEditor.iter t.editor (fun i dance ->
       let subwin = make_dance_subwindow t i dance in
       Dom.appendChild t.dances_area (Html.createBr (Page.document t.page));
@@ -260,9 +260,7 @@ let create ?on_save page =
             Lwt.on_success (TuneEditor.submit editor) (fun tune ->
                 Lwt.on_success (Tune.slug tune) (fun slug ->
                     begin match on_save with
-                      | None ->
-                        let href = Router.path_of_controller (Router.Tune slug) |> snd in
-                        Html.window##.location##.href := js href
+                      | None -> Html.window##.location##.href := js Router.(path (Tune slug))
                       | Some cb -> cb slug
                     end))))
       page
