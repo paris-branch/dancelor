@@ -75,61 +75,9 @@ let unVersionOgg = function VersionOgg slug -> Some slug | _ -> None
 let unVersionPdf = function VersionPdf slug -> Some slug | _ -> None
 let unVersion = function Version slug -> Some slug | _ -> None
 
-(** {2 Routes}
+(** {2 Routes} *)
 
-    This part of the code defines a notion of {!route} linking a path and a
-    resource. It also defines two ways to build such routes. *)
-
-type route =
-  { path_to_resource : Cohttp.Code.meth -> string -> resource option ;
-    resource_to_path : resource -> (Cohttp.Code.meth * string) option }
-
-let direct method_ path resource =
-  let path_to_resource method_' path' =
-    if method_' = method_ && path' = path
-    then Some resource
-    else None
-  in
-  let resource_to_path resource' =
-    if resource = resource'
-    then Some (method_, path)
-    else None
-  in
-  { path_to_resource; resource_to_path }
-
-let with_slug method_ prefix ?ext (makeResource, unResource) =
-  let path_to_resource method_' path' =
-    if method_' = method_ then
-      (
-        match String.rindex_opt path' '/' with
-        | None -> None
-        | Some i ->
-          let prefix' = String.sub path' 0 i in
-          if prefix' = prefix then
-            (
-              let suffix' = String.sub path' (i+1) (String.length path' - i-1) in
-              match ext with
-              | None -> Option.some @@ makeResource @@ Slug.unsafe_of_string suffix'
-              | Some ext ->
-                let ext = "." ^ ext in
-                if Filename.check_suffix suffix' ext
-                then Option.some @@ makeResource @@ Slug.unsafe_of_string @@ Filename.chop_suffix suffix' ext
-                else None
-            )
-          else
-            None
-      )
-    else
-      None
-  in
-  let resource_to_path =
-    unResource >=>? fun slug ->
-      let slug = Slug.to_string slug in
-      Some (method_, prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext))
-  in
-  { path_to_resource; resource_to_path }
-
-let routes : route list =
+let routes : resource Madge_router.route list = let open Madge_router in
   [
     direct      `GET  "/"                    Index ;
     direct      `GET  "/search"              MagicSearch ;
@@ -161,28 +109,13 @@ let routes : route list =
     direct      `GET  "/victor"              Victor ;
   ]
 
-let path_to_resource ~meth ~path =
-  routes
-  |> List.map (fun { path_to_resource; _ } -> path_to_resource meth path)
-  |> List.find_opt ((<>) None)
-  >>=? fun x -> x
+let path_to_resource ~meth ~path = Madge_router.path_to_resource meth path routes
 
 let path_of_resource ~api_prefix resource =
-  let first_matching_route =
-    routes
-    |> List.map (fun { resource_to_path; _ } -> resource_to_path resource)
-    |> List.find_opt ((<>) None)
-  in
-  match first_matching_route with
-  | None -> failwith "path_of_resource"
-  | Some None -> assert false
-  | Some (Some (meth, path)) ->
-    let path =
-      if api_prefix
-      then Constant.api_prefix ^ "/" ^ path
-      else path
-    in
-    (meth, path)
+  let (method_, path) = Madge_router.resource_to_path resource routes in
+  if api_prefix
+  then (method_, Constant.api_prefix ^ "/" ^ path)
+  else (method_, path)
 
 let path_of_get_resource ~api_prefix resource =
   let (meth, path) = path_of_resource ~api_prefix resource in

@@ -18,3 +18,10 @@
  (public_name dancelor.madge.server)
  (libraries dancelor.madge.common cohttp-lwt-unix)
  (preprocess (pps ppx_deriving_yojson lwt_ppx)))
+
+(library
+ (name madge_router)
+ (modules madge_router)
+ (public_name dancelor.madge.router)
+ (libraries dancelor.nes cohttp)
+ (preprocess (pps ppx_deriving_yojson lwt_ppx)))
