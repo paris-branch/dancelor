@@ -89,7 +89,7 @@ module Ly = struct
 end
 
 let populate_cache ~cache ~ext ~pp_ext =
-  Log.debug (fun m -> m "Populating the set %s cache" pp_ext);
+  Log.info (fun m -> m "Populating the set %s cache" pp_ext);
   let path = Filename.concat !Dancelor_server_config.cache "set" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter (fun x ->
