@@ -8,7 +8,7 @@ open Dancelor_common_model
     depend on [Unix] and still use this module. Also, it allows to ask
     for the generation of links. *)
 
-type resource =
+type endpoint =
   | Index
   | MagicSearch (* FIXME: argument *)
 
@@ -46,15 +46,15 @@ type resource =
 
   | Victor
 
-val path_to_resource : meth:Cohttp.Code.meth -> path:string -> resource option
+val path_to_endpoint : meth:Cohttp.Code.meth -> path:string -> endpoint option
 
-val path_of_resource : api_prefix:bool -> resource -> Cohttp.Code.meth * string
+val path_of_endpoint : api_prefix:bool -> endpoint -> Cohttp.Code.meth * string
 (** Given a controller, returns the method and the path to it. The path is
     prefixed by the API prefix, unless [api_prefix] is set to [false]. *)
 
-val path_of_get_resource : api_prefix:bool -> resource -> string
+val path_of_get_endpoint : api_prefix:bool -> endpoint -> string
 (** Same as {!path_of_controller} but assumes a [GET] controller and fails
     otherwise. *)
 
-val gpath : api:bool -> resource -> string
-(** [gpath ~api con] is the same as [path_of_get_resource ~api_prefix:api con]. *)
+val gpath : api:bool -> endpoint -> string
+(** [gpath ~api con] is the same as [path_of_get_endpoint ~api_prefix:api con]. *)
