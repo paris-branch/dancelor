@@ -5,6 +5,7 @@ open Dancelor_client_utils
 open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -60,24 +61,11 @@ let create slug page =
         let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href,
             ly_href
           =
-          Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-            (),
-          Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-            ~query:["parameters", [
-                b_parameters
-                |> SetParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-            ~query:["parameters", [
-                e_parameters
-                |> SetParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.SetPdf slug)
-            ~query:["parameters", [
-                bass_parameters
-                |> SetParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.SetLy slug) ()
+          ApiRouter.(path @@ setPdf slug @@ none),
+          ApiRouter.(path @@ setPdf slug @@ some    b_parameters),
+          ApiRouter.(path @@ setPdf slug @@ some    e_parameters),
+          ApiRouter.(path @@ setPdf slug @@ some bass_parameters),
+          ApiRouter.(path @@ setLy slug)
         in
 
         let pdf_button href txt =
@@ -115,16 +103,10 @@ let create slug page =
                let%lwt slug = Version.slug version in
 
                Lwt.return (div ~classes:["image-container"] [
-                   (let href =
-                      Router.path_of_controller (Router.Version slug) |> snd
-                    in
+                   (let href = Router.(path (Version slug)) in
                     h4 [ a ~href [ text_lwt (Tune.name tune) ] ]);
 
-                   (let data =
-                      spf "/%s%s"
-                        Constant.api_prefix
-                        (Router.path_of_controller (Router.VersionSvg slug) |> snd)
-                    in
+                   (let src = ApiRouter.(path (VersionSvg slug)) in
                     object_ ~type_:"image/svg+xml" ~data [])
                  ])
             )
