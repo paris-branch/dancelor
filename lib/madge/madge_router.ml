@@ -83,7 +83,7 @@ let with_slug method_ prefix ?ext (makeResource, unResource) =
     (fun slug _query -> makeResource slug)
     (fun resource -> Option.map (fun slug -> (slug, Madge_query.empty)) (unResource resource))
 
- (** {2 Matchers} *)
+(** {2 Matchers} *)
 
 let request_to_resource request routes =
   routes
