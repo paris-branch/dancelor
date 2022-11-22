@@ -5,6 +5,7 @@ open Dancelor_client_utils
 open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 let js = Js.string
 
