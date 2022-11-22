@@ -285,3 +285,11 @@ let path_of_controller ?(api_prefix=true) controller =
       else path
     in
     (meth, path)
+
+let path_of_get_controller ?api_prefix controller =
+  let (meth, path) = path_of_controller ?api_prefix controller in
+  if not (meth = `GET) then
+    failwith "path_of_get_controller";
+  path
+
+let gpath controller = path_of_get_controller ~api_prefix:true controller
