@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common_model
 
-type controller =
+type resource = (** FIXME: resource = endpoint U page *)
   | Index
   | MagicSearch (* FIXME: argument *)
 
@@ -40,26 +40,21 @@ type controller =
   | Victor
 
 type route =
-  (meth:Cohttp.Code.meth -> path:string -> controller option)
-  * (controller -> (Cohttp.Code.meth * string) option)
+  { path_to_resource : Cohttp.Code.meth -> string -> resource option ;
+    resource_to_path : resource -> (Cohttp.Code.meth * string) option }
 
-let direct ~meth ~path controller =
-  let meth_to_match = meth in
-  let path_to_match = path in
-  (
-    fun ~meth ~path ->
-      if meth = meth_to_match && path = path_to_match then
-        Some controller
-      else
-        None
-  ),
-  (
-    fun controller' ->
-      if controller' = controller then
-        Some (meth_to_match, path_to_match)
-      else
-        None
-  )
+let direct method_ path resource =
+  let path_to_resource method_' path' =
+    if method_' = method_ && path' = path
+    then Some resource
+    else None
+  in
+  let resource_to_path resource' =
+    if resource = resource'
+    then Some (method_, path)
+    else None
+  in
+  { path_to_resource; resource_to_path }
 
 let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
   let meth_to_match = meth in
@@ -100,20 +95,9 @@ let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
 
 let routes : route list =
   [
-    direct
-      ~meth:`GET
-      ~path:"/"
-      Index ;
-
-    direct
-      ~meth:`GET
-      ~path:"/search"
-      MagicSearch ;
-
-    direct
-      ~meth:`GET
-      ~path:"/credit/save"
-      CreditSave ;
+    direct `GET "/" Index ;
+    direct `GET "/search" MagicSearch ;
+    direct `GET "/credit/save" CreditSave ;
 
     with_slug
       ~meth:`GET
@@ -127,10 +111,7 @@ let routes : route list =
       (fun dance -> Some (Dance dance))
       (function Dance dance -> Some dance | _ -> None) ;
 
-    direct
-      ~meth:`GET
-      ~path:"/person/save"
-      PersonSave ;
+    direct `GET "/person/save" PersonSave ;
 
     with_slug
       ~meth:`GET
@@ -138,15 +119,8 @@ let routes : route list =
       (fun person -> Some (Person person))
       (function Person person -> Some person | _ -> None) ;
 
-    direct
-      ~meth:`GET
-      ~path:"/book/all"
-      BookAll ;
-
-    direct
-      ~meth:`GET
-      ~path:"/book/compose"
-      BookCompose ;
+    direct `GET "/book/all" BookAll ;
+    direct `GET "/book/compose" BookCompose ;
 
     with_slug
       ~meth:`GET
@@ -161,20 +135,9 @@ let routes : route list =
       (fun book -> Some (Book book))
       (function Book book -> Some book | _ -> None) ;
 
-    direct
-      ~meth:`GET
-      ~path:"/set/all"
-      SetAll ;
-
-    direct
-      ~meth:`GET
-      ~path:"/set/compose"
-      SetCompose ;
-
-    direct
-      ~meth:`GET
-      ~path:"/set/save"
-      SetSave ;
+    direct `GET "/set/all" SetAll ;
+    direct `GET "/set/compose" SetCompose ;
+    direct `GET "/set/save" SetSave ;
 
     with_slug
       ~meth:`GET
@@ -208,20 +171,9 @@ let routes : route list =
       (fun tune -> Some (Tune tune))
       (function Tune tune -> Some tune | _ -> None) ;
 
-    direct
-      ~meth:`GET
-      ~path:"/version/add"
-      VersionAddition ;
-
-    direct
-      ~meth:`GET
-      ~path:"/version/all"
-      VersionAll ;
-
-    direct
-      ~meth:`GET
-      ~path:"/version/search"
-      VersionSearch ;
+    direct `GET "/version/add" VersionAddition ;
+    direct `GET "/version/all" VersionAll ;
+    direct `GET "/version/search" VersionSearch ;
 
     with_slug
       ~meth:`GET
@@ -257,10 +209,7 @@ let routes : route list =
       (fun version -> Some (Version version))
       (function Version version -> Some version | _ -> None) ;
 
-    direct
-      ~meth:`GET
-      ~path:"/victor"
-      Victor ;
+    direct `GET "/victor" Victor ;
   ]
 
 let path_to_controller ~meth ~path =
