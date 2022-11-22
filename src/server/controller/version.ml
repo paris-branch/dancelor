@@ -188,7 +188,7 @@ module Pdf = struct
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
       let hash = Hashtbl.hash key in
-      let fname = aspf "%a-%x-with-meta" Slug.pp slug hash in
+      let fname = aspf "%a-with-meta-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
