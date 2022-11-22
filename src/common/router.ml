@@ -1,7 +1,8 @@
 open Nes
 open Dancelor_common_model
 
-type resource = (** FIXME: resource = endpoint U page *)
+(** Existing resources in Dancelor. *)
+type resource =
   | Index
   | MagicSearch (* FIXME: argument *)
 
@@ -39,6 +40,46 @@ type resource = (** FIXME: resource = endpoint U page *)
 
   | Victor
 
+(** Constructors that can be used as functions. FIXME: This is a job for a PPX
+    and there is probably one that exists for that. *)
+let credit slug = Credit slug
+let dance slug = Dance slug
+let person slug = Person slug
+let bookPdf slug = BookPdf slug
+let book slug = Book slug
+let setLy slug = SetLy slug
+let setPdf slug = SetPdf slug
+let set slug = Set slug
+let setDelete slug = SetDelete slug
+let tune slug = Tune slug
+let versionLy slug = VersionLy slug
+let versionSvg slug = VersionSvg slug
+let versionOgg slug = VersionOgg slug
+let versionPdf slug = VersionPdf slug
+let version slug = Version slug
+
+(** Destructors. FIXME: This is also a job for a PPX. *)
+let unCredit = function Credit slug -> Some slug | _ -> None
+let unDance = function Dance slug -> Some slug | _ -> None
+let unPerson = function Person slug -> Some slug | _ -> None
+let unBookPdf = function BookPdf slug -> Some slug | _ -> None
+let unBook = function Book slug -> Some slug | _ -> None
+let unSetLy = function SetLy slug -> Some slug | _ -> None
+let unSetPdf = function SetPdf slug -> Some slug | _ -> None
+let unSet = function Set slug -> Some slug | _ -> None
+let unSetDelete = function SetDelete slug -> Some slug | _ -> None
+let unTune = function Tune slug -> Some slug | _ -> None
+let unVersionLy = function VersionLy slug -> Some slug | _ -> None
+let unVersionSvg = function VersionSvg slug -> Some slug | _ -> None
+let unVersionOgg = function VersionOgg slug -> Some slug | _ -> None
+let unVersionPdf = function VersionPdf slug -> Some slug | _ -> None
+let unVersion = function Version slug -> Some slug | _ -> None
+
+(** {2 Routes}
+
+    This part of the code defines a notion of {!route} linking a path and a
+    resource. It also defines two ways to build such routes. *)
+
 type route =
   { path_to_resource : Cohttp.Code.meth -> string -> resource option ;
     resource_to_path : resource -> (Cohttp.Code.meth * string) option }
@@ -56,176 +97,84 @@ let direct method_ path resource =
   in
   { path_to_resource; resource_to_path }
 
-let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
-  let meth_to_match = meth in
-  let prefix_to_match = prefix in
-  (
-    fun ~meth ~path ->
-      if meth = meth_to_match then
-        (
-          match String.rindex_opt path '/' with
-          | None -> None
-          | Some i ->
-            let prefix = String.sub path 0 i in
-            if prefix = prefix_to_match then
-              (
-                let suffix = String.sub path (i+1) (String.length path - i-1) in
-                match ext with
-                | None -> slug_to_controller (Slug.unsafe_of_string suffix)
-                | Some ext ->
-                  let ext = "." ^ ext in
-                  if Filename.check_suffix suffix ext then
-                    (
-                      slug_to_controller (Slug.unsafe_of_string (Filename.chop_suffix suffix ext))
-                    )
-                  else
-                    None
-              )
-            else
-              None
-        )
-      else
-        None
-  ),
-  (
-    controller_to_slug >=>? fun slug ->
+let with_slug method_ prefix ?ext (makeResource, unResource) =
+  let path_to_resource method_' path' =
+    if method_' = method_ then
+      (
+        match String.rindex_opt path' '/' with
+        | None -> None
+        | Some i ->
+          let prefix' = String.sub path' 0 i in
+          if prefix' = prefix then
+            (
+              let suffix' = String.sub path' (i+1) (String.length path' - i-1) in
+              match ext with
+              | None -> Option.some @@ makeResource @@ Slug.unsafe_of_string suffix'
+              | Some ext ->
+                let ext = "." ^ ext in
+                if Filename.check_suffix suffix' ext
+                then Option.some @@ makeResource @@ Slug.unsafe_of_string @@ Filename.chop_suffix suffix' ext
+                else None
+            )
+          else
+            None
+      )
+    else
+      None
+  in
+  let resource_to_path =
+    unResource >=>? fun slug ->
       let slug = Slug.to_string slug in
-      Some (meth_to_match, prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext))
-  )
+      Some (method_, prefix ^ "/" ^ slug ^ (match ext with None -> "" | Some ext -> "." ^ ext))
+  in
+  { path_to_resource; resource_to_path }
 
 let routes : route list =
   [
-    direct `GET "/" Index ;
-    direct `GET "/search" MagicSearch ;
-    direct `GET "/credit/save" CreditSave ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/credit"
-      (fun credit -> Some (Credit credit))
-      (function Credit credit -> Some credit | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/dance"
-      (fun dance -> Some (Dance dance))
-      (function Dance dance -> Some dance | _ -> None) ;
-
-    direct `GET "/person/save" PersonSave ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/person"
-      (fun person -> Some (Person person))
-      (function Person person -> Some person | _ -> None) ;
-
-    direct `GET "/book/all" BookAll ;
-    direct `GET "/book/compose" BookCompose ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/book"
-      ~ext:"pdf"
-      (fun book -> Some (BookPdf book))
-      (function BookPdf book -> Some book | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/book"
-      (fun book -> Some (Book book))
-      (function Book book -> Some book | _ -> None) ;
-
-    direct `GET "/set/all" SetAll ;
-    direct `GET "/set/compose" SetCompose ;
-    direct `GET "/set/save" SetSave ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/set"
-      ~ext:"ly"
-      (fun set -> Some (SetLy set))
-      (function SetLy set -> Some set | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/set"
-      ~ext:"pdf"
-      (fun set -> Some (SetPdf set))
-      (function SetPdf set -> Some set | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/set"
-      (fun set -> Some (Set set))
-      (function Set set -> Some set | _ -> None) ;
-
-    with_slug
-      ~meth:`DELETE
-      ~prefix:"/set"
-      (fun set -> Some (SetDelete set))
-      (function SetDelete set -> Some set | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/tune"
-      (fun tune -> Some (Tune tune))
-      (function Tune tune -> Some tune | _ -> None) ;
-
-    direct `GET "/version/add" VersionAddition ;
-    direct `GET "/version/all" VersionAll ;
-    direct `GET "/version/search" VersionSearch ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/version"
-      ~ext:"ly"
-      (fun version -> Some (VersionLy version))
-      (function VersionLy version -> Some version | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/version"
-      ~ext:"svg"
-      (fun version -> Some (VersionSvg version))
-      (function VersionSvg version -> Some version | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/version"
-      ~ext:"ogg"
-      (fun version -> Some (VersionOgg version))
-      (function VersionOgg version -> Some version | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/version"
-      ~ext:"pdf"
-      (fun version -> Some (VersionPdf version))
-      (function VersionPdf version -> Some version | _ -> None) ;
-
-    with_slug
-      ~meth:`GET
-      ~prefix:"/version"
-      (fun version -> Some (Version version))
-      (function Version version -> Some version | _ -> None) ;
-
-    direct `GET "/victor" Victor ;
+    direct      `GET  "/"                    Index ;
+    direct      `GET  "/search"              MagicSearch ;
+    direct      `GET  "/credit/save"         CreditSave ;
+    with_slug   `GET  "/credit"             (credit, unCredit) ;
+    with_slug   `GET  "/dance"              (dance, unDance) ;
+    direct      `GET  "/person/save"         PersonSave ;
+    with_slug   `GET  "/person"             (person, unPerson) ;
+    direct      `GET  "/book/all"            BookAll ;
+    direct      `GET  "/book/compose"        BookCompose ;
+    with_slug   `GET  "/book" ~ext:"pdf"    (bookPdf, unBookPdf) ;
+    with_slug   `GET  "/book"               (book, unBook) ;
+    direct      `GET  "/set/all"             SetAll ;
+    direct      `GET  "/set/compose"         SetCompose ;
+    direct      `GET  "/set/save"            SetSave ;
+    with_slug   `GET  "/set" ~ext:"ly"      (setLy, unSetLy) ;
+    with_slug   `GET  "/set" ~ext:"pdf"     (setPdf, unSetPdf) ;
+    with_slug   `GET  "/set"                (set, unSet) ;
+    with_slug `DELETE "/set"                (setDelete, unSetDelete) ;
+    with_slug   `GET  "/tune"               (tune, unTune) ;
+    direct      `GET  "/version/add"         VersionAddition ;
+    direct      `GET  "/version/all"         VersionAll ;
+    direct      `GET  "/version/search"      VersionSearch ;
+    with_slug   `GET  "/version" ~ext:"ly"  (versionLy, unVersionLy) ;
+    with_slug   `GET  "/version" ~ext:"svg" (versionSvg, unVersionSvg) ;
+    with_slug   `GET  "/version" ~ext:"ogg" (versionOgg, unVersionOgg) ;
+    with_slug   `GET  "/version" ~ext:"pdf" (versionPdf, unVersionPdf) ;
+    with_slug   `GET  "/version"            (version,    unVersion) ;
+    direct      `GET  "/victor"              Victor ;
   ]
 
-let path_to_controller ~meth ~path =
+let path_to_resource ~meth ~path =
   routes
-  |> List.map (fun (path_to_controller, _) -> path_to_controller ~meth ~path)
+  |> List.map (fun { path_to_resource; _ } -> path_to_resource meth path)
   |> List.find_opt ((<>) None)
   >>=? fun x -> x
 
-let path_of_controller ~api_prefix controller =
+let path_of_resource ~api_prefix resource =
   let first_matching_route =
     routes
-    |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
+    |> List.map (fun { resource_to_path; _ } -> resource_to_path resource)
     |> List.find_opt ((<>) None)
   in
   match first_matching_route with
-  | None -> failwith "path_of_controller"
+  | None -> failwith "path_of_resource"
   | Some None -> assert false
   | Some (Some (meth, path)) ->
     let path =
@@ -235,11 +184,11 @@ let path_of_controller ~api_prefix controller =
     in
     (meth, path)
 
-let path_of_get_controller ~api_prefix controller =
-  let (meth, path) = path_of_controller ~api_prefix controller in
+let path_of_get_resource ~api_prefix resource =
+  let (meth, path) = path_of_resource ~api_prefix resource in
   if not (meth = `GET) then
-    failwith "path_of_get_controller";
+    failwith "path_of_get_resource";
   path
 
-let gpath ~api controller =
-  path_of_get_controller ~api_prefix:api controller
+let gpath ~api resource =
+  path_of_get_resource ~api_prefix:api resource
