@@ -292,4 +292,5 @@ let path_of_get_controller ?api_prefix controller =
     failwith "path_of_get_controller";
   path
 
-let gpath controller = path_of_get_controller ~api_prefix:true controller
+let gpath ?api controller =
+  path_of_get_controller ?api_prefix:api controller
