@@ -13,7 +13,7 @@ let use ~cache ~key thunk =
   | Some value ->
     value
   | None ->
-    let value = thunk () in
+    let value = thunk key in
     Hashtbl.add cache key value;
     value
 

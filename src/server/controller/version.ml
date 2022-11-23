@@ -142,12 +142,10 @@ module Svg = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    let key = (version, parameters, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
       let%lwt slug = Version.slug version in
-      let hash = Hashtbl.hash key in
       let fname = aspf "%a-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".cropped.svg")
     in
@@ -183,11 +181,9 @@ module Pdf = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    let key = (version, parameters, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
-      let hash = Hashtbl.hash key in
       let fname = aspf "%a-with-meta-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
@@ -220,11 +216,9 @@ module Ogg = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    let key = (version, parameters, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
       let%lwt slug = Version.slug version in
-      let hash = Hashtbl.hash key in
       let fname = aspf "%a-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".ogg")
     in
