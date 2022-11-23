@@ -2,6 +2,8 @@ module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache") : Logs
 
 type hash = int
 
+let compute_hash = Hashtbl.hash
+
 let pp_hash fmt = Format.fprintf fmt "%x"
 let hash_to_string = Format.sprintf "%x"
 
@@ -17,6 +19,8 @@ type ('a, 'b) t = (int, 'b) Hashtbl.t
 let create () = Hashtbl.create 8
 
 let pp_cache_identifier fmt cache =
+  (* NOTE: For this one, we use [Hashtbl.hash]. It has big chances of collisions
+     but it is fast and more than sufficient to give a debugging identifier. *)
   Format.fprintf fmt "%x" (Hashtbl.hash cache)
 
 let add ~cache ~hash ~value =
@@ -24,7 +28,7 @@ let add ~cache ~hash ~value =
   Hashtbl.add cache hash value
 
 let use ~cache ~key thunk =
-  let key = Hashtbl.hash key in
+  let key = compute_hash key in
   Log.debug (fun m -> m "Looking for hash %a in cache %a" pp_hash key pp_cache_identifier cache);
   match Hashtbl.find_opt cache key with
   | Some value ->
@@ -38,6 +42,6 @@ let use ~cache ~key thunk =
     value
 
 let remove ~cache ~key =
-  let hash = Hashtbl.hash key in
+  let hash = compute_hash key in
   Log.debug (fun m -> m "Remove hash %a in cache %a" pp_hash hash pp_cache_identifier cache);
   Hashtbl.remove cache hash
