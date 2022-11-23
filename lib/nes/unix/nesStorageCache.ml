@@ -2,7 +2,13 @@ module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache") : Logs
 
 type hash = int
 
-let compute_hash = Hashtbl.hash
+let compute_hash key =
+  (* NOTE: [Hashtbl.hash] only traverses 10 “meaningful” nodes and 100 in total.
+     This might not be sufficient for our use and might fail differentiating
+     structures that differ only by little bits. We use a version that virtually
+     never stops instead. This will loop forever on cyclic structure, but life
+     is hard sometimes. *)
+  Hashtbl.hash_param max_int max_int key
 
 let pp_hash fmt = Format.fprintf fmt "%x"
 let hash_to_string = Format.sprintf "%x"
