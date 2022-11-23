@@ -16,25 +16,28 @@ type ('a, 'b) t = (int, 'b) Hashtbl.t
    and with an extra endpoint *)
 let create () = Hashtbl.create 8
 
+let pp_cache_identifier fmt cache =
+  Format.fprintf fmt "%x" (Hashtbl.hash cache)
+
 let add ~cache ~hash ~value =
-  Log.debug (fun m -> m "Add hash %a in cache %x" pp_hash hash (Hashtbl.hash cache));
+  Log.debug (fun m -> m "Add hash %a in cache %a" pp_hash hash pp_cache_identifier cache);
   Hashtbl.add cache hash value
 
 let use ~cache ~key thunk =
   let key = Hashtbl.hash key in
-  Log.debug (fun m -> m "Looking for hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
+  Log.debug (fun m -> m "Looking for hash %a in cache %a" pp_hash key pp_cache_identifier cache);
   match Hashtbl.find_opt cache key with
   | Some value ->
-    Log.debug (fun m -> m "Use cached hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
+    Log.debug (fun m -> m "Use cached hash %a in cache %a" pp_hash key pp_cache_identifier cache);
     value
   | None ->
-    Log.debug (fun m -> m "Generate hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
+    Log.debug (fun m -> m "Generate hash %a in cache %a" pp_hash key pp_cache_identifier cache);
     let value = thunk key in
-    Log.debug (fun m -> m "Store hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
+    Log.debug (fun m -> m "Store hash %a in cache %a" pp_hash key pp_cache_identifier cache);
     Hashtbl.add cache key value;
     value
 
 let remove ~cache ~key =
   let hash = Hashtbl.hash key in
-  Log.debug (fun m -> m "Remove hash %a in cache %x" pp_hash hash (Hashtbl.hash cache));
+  Log.debug (fun m -> m "Remove hash %a in cache %a" pp_hash hash pp_cache_identifier cache);
   Hashtbl.remove cache hash
