@@ -22,6 +22,7 @@ let add ~cache ~hash ~value =
 
 let use ~cache ~key thunk =
   let key = Hashtbl.hash key in
+  Log.debug (fun m -> m "Looking for hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
   match Hashtbl.find_opt cache key with
   | Some value ->
     Log.debug (fun m -> m "Use cached hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
