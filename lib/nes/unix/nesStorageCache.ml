@@ -30,6 +30,7 @@ let use ~cache ~key thunk =
   | None ->
     Log.debug (fun m -> m "Generate hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
     let value = thunk key in
+    Log.debug (fun m -> m "Store hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
     Hashtbl.add cache key value;
     value
 
