@@ -1,3 +1,5 @@
+module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache") : Logs.LOG)
+
 type hash = int
 
 let pp_hash fmt = Format.fprintf fmt "%x"
@@ -15,17 +17,22 @@ type ('a, 'b) t = (int, 'b) Hashtbl.t
 let create () = Hashtbl.create 8
 
 let add ~cache ~hash ~value =
+  Log.debug (fun m -> m "Add hash %a in cache %x" pp_hash hash (Hashtbl.hash cache));
   Hashtbl.add cache hash value
 
 let use ~cache ~key thunk =
   let key = Hashtbl.hash key in
   match Hashtbl.find_opt cache key with
   | Some value ->
+    Log.debug (fun m -> m "Use cached hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
     value
   | None ->
+    Log.debug (fun m -> m "Generate hash %a in cache %x" pp_hash key (Hashtbl.hash cache));
     let value = thunk key in
     Hashtbl.add cache key value;
     value
 
 let remove ~cache ~key =
-  Hashtbl.remove cache (Hashtbl.hash key)
+  let hash = Hashtbl.hash key in
+  Log.debug (fun m -> m "Remove hash %a in cache %x" pp_hash hash (Hashtbl.hash cache));
+  Hashtbl.remove cache hash
