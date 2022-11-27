@@ -109,22 +109,29 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     (fun ochan -> Lwt_io.write ochan scheme)
 
 let populate_cache ~cache ~ext ~pp_ext =
-  Log.debug (fun m -> m "Populating the version %s cache" pp_ext);
+  Log.info (fun m -> m "Populating the version %s cache" pp_ext);
   let path = Filename.concat !Dancelor_server_config.cache "version" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter (fun x ->
-      if Filename.check_suffix x ext then (
-        Log.debug (fun m -> m "Found %s file %s" pp_ext x);
-        let base = Filename.chop_suffix x ext in
-        let hash =
-          String.split_on_char '-' base
-          |> List.rev
-          |> List.hd
-          |> String.cat "0x"
-          |> int_of_string
-        in
-        StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
-      ) else ()
+      if Filename.check_suffix x ext then
+        try
+          Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+          let base = Filename.chop_suffix x ext in
+          let hash =
+            String.split_on_char '-' base
+            |> List.rev
+            |> List.hd
+            |> String.cat "0x"
+            |> int_of_string
+          in
+          StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
+        with
+          exn ->
+          Log.err (fun m ->
+              m "%a"
+                (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
+                ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ())));
+          exit 7
     ) files
 
 module Svg = struct
@@ -181,7 +188,7 @@ module Pdf = struct
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
       let hash = Hashtbl.hash key in
-      let fname = aspf "%a-%x-with-meta" Slug.pp slug hash in
+      let fname = aspf "%a-with-meta-%x" Slug.pp slug hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
