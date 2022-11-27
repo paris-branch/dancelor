@@ -129,13 +129,13 @@ let create slug page =
         h3 [ text "Previsualisation" ];
 
         div ~classes:["image-container"] [
-          let src_lwt =
+          let data_lwt =
             spf "/%s%s"
               Constant.api_prefix
               (Router.path_of_controller (Router.VersionSvg slug) |> snd)
             |> Lwt.return
           in
-          img ~src_lwt ();
+          object_ ~type_:"image/svg+xml" ~data_lwt [];
         ]
       ];
 
