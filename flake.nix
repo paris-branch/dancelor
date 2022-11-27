@@ -10,10 +10,18 @@
   outputs = { self, nixpkgs, opam-nix, flake-utils, timidity }:
     flake-utils.lib.eachDefaultSystem (system:
 
+      ## Curate our own set of packages that will be basically opam-nix's
+      ## nixpkgs with one modification: We overwrite the package `timidity` by a
+      ## custom version coming from our custom github:niols/nixpkg-timidity
+      ## flake that provides a version of TiMidity++ with Ogg Vorbis support.
+      ##
       let timidityOverlay = self: super: {
             timidity = timidity.packages.${system}.timidityWithVorbis;
           };
-          pkgs = nixpkgs.legacyPackages.${system}.extend timidityOverlay;
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ timidityOverlay ];
+          };
 
           on = opam-nix.lib.${system};
 

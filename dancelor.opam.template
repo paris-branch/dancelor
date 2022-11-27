@@ -1,8 +1,8 @@
 depexts: [
-  [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" ]
+  [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" "xorg-server-xvfb" ]
     { os-distribution = "archlinux" }
   [ "sassc" ]
     { os-distribution = "alpine" }
-  [ "timidity" "freepats" "inkscape" "lilypond" "sassc" ]
+  [ "timidity" "freepats" "inkscape" "lilypond" "sassc" "xvfb" ]
     { os-distribution = "debian" }
 ]
