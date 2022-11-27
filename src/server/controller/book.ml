@@ -211,22 +211,30 @@ module Ly = struct
 end
 
 let populate_cache ~cache ~ext ~pp_ext =
-  Log.debug (fun m -> m "Populating the book %s cache" pp_ext);
+  Log.info (fun m -> m "Populating the book %s cache" pp_ext);
   let path = Filename.concat !Dancelor_server_config.cache "book" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter (fun x ->
-      if Filename.check_suffix x ext then (
-        Log.debug (fun m -> m "Found %s file %s" pp_ext x);
-        let base = Filename.chop_suffix x ext in
-        let hash =
-          String.split_on_char '-' base
-          |> List.rev
-          |> List.hd
-          |> String.cat "0x"
-          |> int_of_string
-        in
-        StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
-      ) else ()
+      if Filename.check_suffix x ext then
+        try
+          Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+          let base = Filename.chop_suffix x ext in
+          let hash =
+            String.split_on_char '-' base
+            |> List.rev
+            |> List.hd
+            |> String.cat "0x"
+            |> (fun s -> Format.printf "\n%s\n\n" s; s)
+            |> int_of_string
+          in
+          StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
+        with
+          exn ->
+          Log.err (fun m ->
+              m "%a"
+                (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
+                ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ())));
+          exit 7
     ) files
 
 module Pdf = struct
