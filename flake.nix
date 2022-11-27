@@ -11,25 +11,16 @@
     flake-utils.lib.eachDefaultSystem (system:
 
       ## Curate our own set of packages that will be basically opam-nix's
-      ## nixpkgs with some modifications. In particular:
-      ##
-      ## - We overwrite the package `timidity` by a custom version coming from
-      ##   our custom github:niols/nixpkg-timidity flake that provides a version
-      ##   of TiMidity++ with Ogg Vorbis support.
-      ##
-      ## - We alias the package `xvfb-run` into `xvfb`. The latter is the name
-      ##   given to the package in Debian packages, so the alias helps opam-nix
-      ##   find it easily.
+      ## nixpkgs with one modification: We overwrite the package `timidity` by a
+      ## custom version coming from our custom github:niols/nixpkg-timidity
+      ## flake that provides a version of TiMidity++ with Ogg Vorbis support.
       ##
       let timidityOverlay = self: super: {
             timidity = timidity.packages.${system}.timidityWithVorbis;
           };
-          xvfbOverlay = self: super: {
-            xvfb = self.xvfb-run;
-          };
           pkgs = import nixpkgs {
             inherit system;
-            overlays = [ timidityOverlay xvfbOverlay ];
+            overlays = [ timidityOverlay ];
           };
 
           on = opam-nix.lib.${system};
