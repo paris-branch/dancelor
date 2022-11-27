@@ -2,6 +2,6 @@
  (name nes)
  (public_name dancelor.nes)
  (wrapped false)
- (libraries yojson ppx_deriving_yojson.runtime unix lwt slug)
+ (libraries yojson ppx_deriving_yojson.runtime unix lwt slug dates_calc)
  (preprocess (pps ppx_inline_test ppx_deriving_yojson lwt_ppx))
  (inline_tests))
