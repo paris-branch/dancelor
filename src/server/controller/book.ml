@@ -45,7 +45,7 @@ module Ly = struct
 
   let render ?(parameters=BookParameters.none) book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    StorageCache.use ~cache ~key:(book, parameters, body) @@ fun () ->
+    StorageCache.use ~cache ~key:(book, parameters, body) @@ fun _hash ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
@@ -221,11 +221,8 @@ let populate_cache ~cache ~ext ~pp_ext =
           let base = Filename.chop_suffix x ext in
           let hash =
             String.split_on_char '-' base
-            |> List.rev
-            |> List.hd
-            |> String.cat "0x"
-            |> (fun s -> Format.printf "\n%s\n\n" s; s)
-            |> int_of_string
+            |> List.ft
+            |> StorageCache.hash_from_string
           in
           StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
         with
@@ -245,14 +242,12 @@ module Pdf = struct
 
   let render ?parameters book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    let key = (parameters, book, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(parameters, book, body) @@ fun hash ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Book.slug book in
-      let hash = Hashtbl.hash key in
-      let fname = aspf "%a-%x" Slug.pp slug hash in
+      let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
