@@ -119,10 +119,8 @@ let populate_cache ~cache ~ext ~pp_ext =
           let base = Filename.chop_suffix x ext in
           let hash =
             String.split_on_char '-' base
-            |> List.rev
-            |> List.hd
-            |> String.cat "0x"
-            |> int_of_string
+            |> List.ft
+            |> StorageCache.hash_from_string
           in
           StorageCache.add ~cache ~hash ~value:(Lwt.return (Filename.concat path x))
         with
@@ -142,13 +140,11 @@ module Svg = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    let key = (version, parameters, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
       let%lwt slug = Version.slug version in
-      let hash = Hashtbl.hash key in
-      let fname = aspf "%a-%x" Slug.pp slug hash in
+      let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".cropped.svg")
     in
     Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
@@ -183,12 +179,10 @@ module Pdf = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    let key = (version, parameters, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
-      let hash = Hashtbl.hash key in
-      let fname = aspf "%a-with-meta-%x" Slug.pp slug hash in
+      let fname = aspf "%a-with-meta-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
@@ -220,12 +214,10 @@ module Ogg = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    let key = (version, parameters, body) in
-    StorageCache.use ~cache ~key @@ fun () ->
+    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
       let%lwt slug = Version.slug version in
-      let hash = Hashtbl.hash key in
-      let fname = aspf "%a-%x" Slug.pp slug hash in
+      let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".ogg")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
