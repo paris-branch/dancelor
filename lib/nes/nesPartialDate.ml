@@ -19,15 +19,30 @@ let check = function
   | Year year -> check_year year
 
 let from_string s =
-  let date =
-    match String.split_on_char '-' s |> List.map int_of_string_opt with
-    | [Some year] -> Year year
-    | [Some year; Some month] -> YearMonth (year, month)
-    | [Some year; Some month; Some day] -> YearMonthDay (year, month, day)
-    | _ -> failwith "NesDate.Partial.from_string"
-  in
-  if not (check date) then failwith "NesDate.Partial.from_string";
-  date
+  try
+    let date =
+      let repr = String.split_on_char '-' s in
+      assert (repr <> []);
+      let year, repr = List.(hd repr, tl repr) in
+      assert (String.length year = 4);
+      let year = int_of_string year in
+      match repr with
+      | [] -> Year year
+      | month :: repr ->
+        assert (String.length month = 2);
+        let month = int_of_string month in
+        match repr with
+        | [] -> YearMonth (year, month)
+        | day :: repr ->
+          assert (repr = []);
+          assert (String.length day = 2);
+          let day = int_of_string day in
+          YearMonthDay (year, month, day)
+    in
+    assert (check date);
+    date
+  with
+    Assert_failure _ | Failure _ -> failwith "NesPartialDate.from_string"
 
 let to_string = function
   | Year year -> spf "%04d" year
