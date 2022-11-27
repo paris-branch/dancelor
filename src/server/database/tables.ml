@@ -62,21 +62,23 @@ module Version = Table.Make (struct
     let standalone = true
   end)
 
-module Set = Table.Make (struct
-    include Model.SetCore
+module SetModel = struct
+  include Model.SetCore
 
-    let dependencies set =
-      let%lwt deviser = deviser set in
-      let%lwt versions_and_parameters = versions_and_parameters set in
-      let versions = List.map fst versions_and_parameters in
-      List.map (Table.make_slug_and_table (module Version)) versions
-      |> (match deviser with
-          | None -> Fun.id
-          | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
-      |> Lwt.return
+  let dependencies set =
+    let%lwt deviser = deviser set in
+    let%lwt versions_and_parameters = versions_and_parameters set in
+    let versions = List.map fst versions_and_parameters in
+    List.map (Table.make_slug_and_table (module Version)) versions
+    |> (match deviser with
+        | None -> Fun.id
+        | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
+    |> Lwt.return
 
-    let standalone = true
-  end)
+  let standalone = true
+end
+
+module Set = Table.Make (SetModel)
 
 module Book = Table.Make (struct
     include Model.BookCore
@@ -102,8 +104,11 @@ module Book = Table.Make (struct
                 | None -> []
                 | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
-            | PageCore.InlineSet (_, parameters) ->
+            | PageCore.InlineSet (set, parameters) ->
+              let%lwt set_dependencies = SetModel.dependencies set in
               Lwt.return (
+                set_dependencies
+                @
                 match Model.SetParameters.for_dance parameters with
                 | None -> []
                 | Some dance -> [Table.make_slug_and_table (module Dance) dance]
