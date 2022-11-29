@@ -114,9 +114,10 @@ let populate_cache ~cache ~ext ~pp_ext =
 
 module Pdf = struct
   let cache : (Set.t * SetParameters.t option * string, string Lwt.t) StorageCache.t =
-    let cache = StorageCache.create () in
-    Lwt_main.run (populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf");
-    cache
+    StorageCache.create ()
+
+  let populate_cache () =
+    populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf"
 
   let render ?parameters set =
     let%lwt body = Set.lilypond_content_cache_key set in

@@ -236,9 +236,10 @@ let populate_cache ~cache ~ext ~pp_ext =
 
 module Pdf = struct
   let cache : ('a * Book.t * string, string Lwt.t) StorageCache.t =
-    let cache = StorageCache.create () in
-    Lwt_main.run (populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf");
-    cache
+    StorageCache.create ()
+
+  let populate_cache () =
+    populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf"
 
   let render ?parameters book =
     let%lwt body = Book.lilypond_contents_cache_key book in

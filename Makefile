@@ -5,7 +5,7 @@ ifneq ($(DUNEJOBS),)
 DUNEJOBSARG := -j $(DUNEJOBS)
 endif
 
-build: indent
+build:
 	cd share/static/style && sassc style.scss ../style.css
 	dune build $(DUNEJOBSARG) @install
 	ln -sf _build/install/default/bin .
