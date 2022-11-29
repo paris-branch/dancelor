@@ -134,9 +134,10 @@ let populate_cache ~cache ~ext ~pp_ext =
 
 module Svg = struct
   let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
-    let cache = StorageCache.create () in
-    Lwt_main.run (populate_cache ~cache ~ext:".cropped.svg" ~pp_ext:"svg");
-    cache
+    StorageCache.create ()
+
+  let populate_cache () =
+    populate_cache ~cache ~ext:".cropped.svg" ~pp_ext:"svg"
 
   let render ?parameters version =
     let%lwt body = Version.content version in
@@ -173,9 +174,10 @@ end
 
 module Pdf = struct
   let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
-    let cache = StorageCache.create () in
-    Lwt_main.run (populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf");
-    cache
+    StorageCache.create ()
+
+  let populate_cache () =
+    populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf"
 
   let render ?parameters version =
     let%lwt body = Version.content version in
@@ -208,9 +210,10 @@ end
 
 module Ogg = struct
   let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
-    let cache = StorageCache.create () in
-    Lwt_main.run (populate_cache ~cache ~ext:".ogg" ~pp_ext:"ogg");
-    cache
+    StorageCache.create ()
+
+  let populate_cache () =
+    populate_cache ~cache ~ext:".ogg" ~pp_ext:"ogg"
 
   let render ?parameters version =
     let%lwt body = Version.content version in
