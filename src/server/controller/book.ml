@@ -45,7 +45,7 @@ module Ly = struct
 
   let render ?(parameters=BookParameters.none) book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    StorageCache.use ~cache ~key:(book, parameters, body) @@ fun _hash ->
+    StorageCache.use ~cache ~key:("ly", book, parameters, body) @@ fun _hash ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
@@ -243,7 +243,7 @@ module Pdf = struct
 
   let render ?parameters book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    StorageCache.use ~cache ~key:(parameters, book, body) @@ fun hash ->
+    StorageCache.use ~cache ~key:("pdf", book, parameters, body) @@ fun hash ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
