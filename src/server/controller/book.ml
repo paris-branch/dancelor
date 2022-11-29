@@ -41,11 +41,12 @@ module Ly = struct
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
-  let cache : (Book.t * BookParameters.t * string, string Lwt.t) StorageCache.t = StorageCache.create ()
+  let cache : ([`Ly] * Book.t * BookParameters.t * string, string Lwt.t) StorageCache.t =
+    StorageCache.create ()
 
   let render ?(parameters=BookParameters.none) book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    StorageCache.use ~cache ~key:("ly", book, parameters, body) @@ fun _hash ->
+    StorageCache.use ~cache ~key:(`Ly, book, parameters, body) @@ fun _hash ->
     let parameters = BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
@@ -235,7 +236,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     ) files
 
 module Pdf = struct
-  let cache : ('a * Book.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Book.t * BookParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -243,7 +244,7 @@ module Pdf = struct
 
   let render ?parameters book =
     let%lwt body = Book.lilypond_contents_cache_key book in
-    StorageCache.use ~cache ~key:("pdf", book, parameters, body) @@ fun hash ->
+    StorageCache.use ~cache ~key:(`Pdf, book, parameters, body) @@ fun hash ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
