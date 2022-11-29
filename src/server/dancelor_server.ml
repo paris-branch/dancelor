@@ -123,6 +123,13 @@ let read_configuration () =
 let initialise_logs () =
   Dancelor_server_logs.initialise !Dancelor_server_config.loglevel
 
+let populate_caches () =
+  Dancelor_server_controller.Version.Svg.populate_cache ();%lwt
+  Dancelor_server_controller.Version.Pdf.populate_cache ();%lwt
+  Dancelor_server_controller.Version.Ogg.populate_cache ();%lwt
+  Dancelor_server_controller.Set.Pdf.populate_cache ();%lwt
+  Dancelor_server_controller.Book.Pdf.populate_cache ()
+
 let initialise_database () =
   Log.info (fun m -> m "Initialising database");
   Dancelor_server_database.Tables.initialise ()
@@ -164,6 +171,7 @@ let main =
   @@ fun () ->
   read_configuration ();
   initialise_logs ();
+  populate_caches ();%lwt
   initialise_database ();%lwt
   check_init_only ();
   start_routines ();
