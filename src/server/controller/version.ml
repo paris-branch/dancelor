@@ -133,7 +133,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     ) files
 
 module Svg = struct
-  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Svg] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -141,7 +141,7 @@ module Svg = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
+    StorageCache.use ~cache ~key:(`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
       let%lwt slug = Version.slug version in
@@ -173,7 +173,7 @@ module Svg = struct
 end
 
 module Pdf = struct
-  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -181,7 +181,7 @@ module Pdf = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
+    StorageCache.use ~cache ~key:(`Pdf, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_pdf) =
       let%lwt slug = Version.slug version in
       let fname = aspf "%a-with-meta-%a" Slug.pp slug StorageCache.pp_hash hash in
@@ -209,7 +209,7 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : (Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ogg] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -217,7 +217,7 @@ module Ogg = struct
 
   let render ?parameters version =
     let%lwt body = Version.content version in
-    StorageCache.use ~cache ~key:(version, parameters, body) @@ fun hash ->
+    StorageCache.use ~cache ~key:(`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
       let%lwt slug = Version.slug version in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
