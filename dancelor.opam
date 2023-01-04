@@ -13,6 +13,7 @@ bug-reports: "https://gitlab.vlanvin.fr/paris-band/dancelor/issues"
 depends: [
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
+  "dates_calc"
   "dune" {build}
   "js_of_ocaml"
   "js_of_ocaml-lwt"
@@ -45,10 +46,10 @@ build: [
 ]
 dev-repo: "git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git"
 depexts: [
-  [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" ]
+  [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" "xorg-server-xvfb" ]
     { os-distribution = "archlinux" }
   [ "sassc" ]
     { os-distribution = "alpine" }
-  [ "timidity" "freepats" "inkscape" "lilypond" "sassc" ]
+  [ "timidity" "freepats" "inkscape" "lilypond" "sassc" "xvfb" ]
     { os-distribution = "debian" }
 ]

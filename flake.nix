@@ -1,15 +1,31 @@
 {
   inputs = {
-    opam-nix.url = "github:tweag/opam-nix";
-    flake-utils.url = "github:numtide/flake-utils";
+    opam-nix.url = github:tweag/opam-nix;
     nixpkgs.follows = "opam-nix/nixpkgs";
+
+    flake-utils.url = github:numtide/flake-utils;
+    timidity.url = github:niols/nixpkg-timidity;
   };
 
-  outputs = { self, flake-utils, opam-nix, nixpkgs, ... }:
+  outputs = { self, nixpkgs, opam-nix, flake-utils, timidity }:
     flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
+
+      ## Curate our own set of packages that will be basically opam-nix's
+      ## nixpkgs with one modification: We overwrite the package `timidity` by a
+      ## custom version coming from our custom github:niols/nixpkg-timidity
+      ## flake that provides a version of TiMidity++ with Ogg Vorbis support.
+      ##
+      let timidityOverlay = self: super: {
+            timidity = timidity.packages.${system}.timidityWithVorbis;
+          };
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ timidityOverlay ];
+          };
+
           on = opam-nix.lib.${system};
-          scope = on.buildOpamProject { } "dancelor" ./. {
+
+          packages = on.buildOpamProject { pkgs = pkgs; } "dancelor" ./. {
             merlin = "*";
             ocaml-base-compiler = "*";
             ocaml-lsp-server = "*";
@@ -18,34 +34,18 @@
           };
       in
         {
-          legacyPackages =
-            let overlay = self: super: {
-                  dancelor = super.dancelor.overrideAttrs (oa: {
-                    nativeBuildInputs = oa.nativeBuildInputs or [ ] ++ [ pkgs.makeWrapper ];
-                    postInstall =
-                      "wrapProgram $out/bin/dancelor-server --prefix PATH : ${
-                        pkgs.lib.makeBinPath [
-                          pkgs.freepats
-                          pkgs.inkscape
-                          pkgs.lilypond
-                          pkgs.timidity
-                        ]
-                      }";
-                  });
-                };
-            in
-              scope.overrideScope' overlay;
-
-          defaultPackage = self.legacyPackages.${system}.dancelor;
+          packages = packages // {
+            default = self.packages.${system}.dancelor;
+          };
 
           devShells.default = pkgs.mkShell {
             buildInputs = [
-              scope.merlin
-              scope.ocaml-lsp-server
-              scope.ocp-indent
-              scope.utop
+              packages.merlin
+              packages.ocaml-lsp-server
+              packages.ocp-indent
+              packages.utop
             ];
-            inputsFrom = [ scope.dancelor ];
+            inputsFrom = [ packages.dancelor ];
           };
         });
 }

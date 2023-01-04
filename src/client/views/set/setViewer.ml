@@ -120,12 +120,12 @@ let create slug page =
                     in
                     h4 [ a ~href [ text_lwt (Tune.name tune) ] ]);
 
-                   (let src =
+                   (let data =
                       spf "/%s%s"
                         Constant.api_prefix
                         (Router.path_of_controller (Router.VersionSvg slug) |> snd)
                     in
-                    img ~src ())
+                    object_ ~type_:"image/svg+xml" ~data [])
                  ])
             )
             versions_and_parameters

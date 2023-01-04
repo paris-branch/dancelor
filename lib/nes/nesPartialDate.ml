@@ -9,14 +9,18 @@ type t =
 
 let compare = compare
 
-let check_day day = day >= 1 && day <= 31
 let check_month month = month >= 1 && month <= 12
-let check_year _year = true
+let check_full_date ~year ~month ~day =
+  try
+    ignore (Dates_calc.Dates.make_date ~year ~month ~day);
+    true
+  with
+    Dates_calc.Dates.InvalidDate -> false
 
 let check = function
-  | YearMonthDay (year, month, day) -> check_year year && check_month month && check_day day
-  | YearMonth (year, month) -> check_year year && check_month month
-  | Year year -> check_year year
+  | YearMonthDay (year, month, day) -> check_full_date ~year ~month ~day
+  | YearMonth (_year, month) -> check_month month
+  | Year _year -> true
 
 let from_string s =
   let date =
