@@ -90,5 +90,6 @@ let submit t =
   let date = if t.date <> "" then Some (PartialDate.from_string t.date) else None in
   let contents = fold t (fun _ set acc -> snd set :: acc) [] in
   let contents_and_parameters = List.map (fun set -> Book.Set (set, SetParameters.none)) contents in
-  let modified_at = NesDate.today () in
-  Book.make_and_save ~title ?date ~contents_and_parameters ~modified_at ()
+  let modified_at = Datetime.now () in
+  let created_at = Datetime.now () in
+  Book.make_and_save ~title ?date ~contents_and_parameters ~modified_at ~created_at ()

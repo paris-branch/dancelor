@@ -78,6 +78,7 @@ let submit t =
         | Ok scddb_id -> Some scddb_id
         | Error _ -> None
   in
-  let modified_at = NesDate.today () in
+  let modified_at = Datetime.now () in
+  let created_at = Datetime.now () in
   Dance.make_and_save ~name ~kind ?deviser:(deviser t)
-    ~two_chords ?scddb_id ~modified_at ()
+    ~two_chords ?scddb_id ~modified_at ~created_at ()

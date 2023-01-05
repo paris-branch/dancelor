@@ -37,6 +37,8 @@ let contents book = Lwt.return book.contents
 let source book = Lwt.return book.source (* FIXME: Should be removed *)
 let remark book = Lwt.return book.remark
 let scddb_id book = Lwt.return book.scddb_id
+let modified_at book = Lwt.return book.modified_at
+let created_at book = Lwt.return book.created_at
 
 let equal book1 book2 =
   let%lwt slug1 = slug book1 in
