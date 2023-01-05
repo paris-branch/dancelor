@@ -15,8 +15,11 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~name ~kind ?deviser ~two_chords
-    ?scddb_id ?disambiguation ~modified_at () =
+let make
+    ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id
+    ?disambiguation ~modified_at ~created_at
+    ()
+  =
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
@@ -24,8 +27,10 @@ let make ?status ~slug ~name ~kind ?deviser ~two_chords
       let%lwt deviser = CreditCore.slug deviser in
       Lwt.return_some deviser
   in
-  Lwt.return (make ?status ~slug ~name ~kind ~deviser ~two_chords
-                ~scddb_id ?disambiguation ~modified_at ())
+  Lwt.return (make
+                ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id
+                ?disambiguation ~modified_at ~created_at
+                ())
 
 let slug d = Lwt.return d.slug
 let status d = Lwt.return d.status

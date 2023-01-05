@@ -5,10 +5,10 @@ module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~title ?date ?contents_and_parameters ~modified_at ()
+    ?status ~title ?date ?contents_and_parameters ~modified_at ~created_at ()
   =
   Dancelor_server_database.Book.save ~slug_hint:title @@ fun slug ->
-  make ?status ~slug ~title ~date ?contents_and_parameters ~modified_at ()
+  make ?status ~slug ~title ~date ?contents_and_parameters ~modified_at ~created_at ()
 
 let () =
   Madge_server.(
@@ -24,6 +24,7 @@ let () =
       ?date:      (o A.date)
       ?contents_and_parameters
       ~modified_at: (a A.modified_at)
+      ~created_at: (a A.created_at)
       ()
   )
 
@@ -50,9 +51,11 @@ let () =
   )
 
 let update
-    ?status ~slug ~title ?date ?contents_and_parameters ~modified_at ()
+    ?status ~slug ~title ?date ?contents_and_parameters
+    ~modified_at ~created_at
+    ()
   =
-  let%lwt book = make ?status ~slug ~title ~date ?contents_and_parameters ~modified_at () in
+  let%lwt book = make ?status ~slug ~title ~date ?contents_and_parameters ~modified_at ~created_at () in
   Dancelor_server_database.Book.update book
 
 let () =
@@ -70,5 +73,6 @@ let () =
       ?date:      (o A.date)
       ?contents_and_parameters
       ~modified_at: (a A.modified_at)
+      ~created_at: (a A.created_at)
       ()
   )

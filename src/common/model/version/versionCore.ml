@@ -20,7 +20,8 @@ type t =
 
 let make
     ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
-    ?disambiguation ?broken ~modified_at ()
+    ?disambiguation ?broken ~modified_at ~created_at
+    ()
   =
   let%lwt tune = TuneCore.slug tune in
   let%lwt arranger =
@@ -28,8 +29,10 @@ let make
     let%lwt arranger = CreditCore.slug arranger in
     Lwt.return_some arranger
   in
-  Lwt.return (make ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
-                ?disambiguation ?broken ~modified_at ())
+  Lwt.return (make
+                ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
+                ?disambiguation ?broken ~modified_at ~created_at
+                ())
 
 let slug t = Lwt.return t.slug
 let status t = Lwt.return t.status
