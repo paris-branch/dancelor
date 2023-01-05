@@ -28,7 +28,8 @@ val make_and_save :
   ?dances:DanceCore.t list ->
   ?remark:string ->
   ?scddb_id:int ->
-  modified_at:Date.t ->
+  modified_at:Datetime.t ->
+  created_at:Datetime.t ->
   unit -> t Lwt.t
 
 val search :

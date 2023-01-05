@@ -12,7 +12,8 @@ type t =
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;
     scddb_id : int option               [@default None] [@key "scddb-id"] ;
-    modified_at : NesDate.t             [@key "modified-at"] }
+    modified_at : Datetime.t            [@key "modified-at"] ;
+    created_at  : Datetime.t            [@key "created-at"] }
 [@@deriving make, yojson]
 
 let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances
