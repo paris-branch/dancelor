@@ -9,7 +9,8 @@ module Arguments = struct
   let pagination = optarg (module Pagination)
   let filter = arg (module CreditFilter)
   let threshold = optarg ~key:"threshold" (module MFloat)
-  let modified_at = arg ~key:"modified-at" (module NesDate)
+  let modified_at = arg ~key:"modified-at" (module NesDatetime)
+  let created_at = arg ~key:"created-at" (module NesDatetime)
 end
 
 let get = endpoint ~path:"/credit" (module CreditCore)

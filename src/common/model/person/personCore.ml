@@ -6,7 +6,8 @@ type t =
   { slug : t Slug.t ;
     status : Status.t [@default Status.bot] ;
     name : string ;
-    modified_at : NesDate.t [@key "modified-at"] }
+    modified_at : Datetime.t [@key "modified-at"] ;
+    created_at  : Datetime.t [@key "created-at"] }
 [@@deriving yojson, make]
 
 let slug p = Lwt.return p.slug

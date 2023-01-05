@@ -23,7 +23,8 @@ type t =
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;
     scddb_id    : int option [@default None] [@key "scddb-id"] ;
-    modified_at : Date.t     [@key "modified-at"] }
+    modified_at : Datetime.t [@key "modified-at"] ;
+    created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
 let slug book = Lwt.return book.slug
