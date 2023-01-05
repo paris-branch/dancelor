@@ -89,11 +89,13 @@ let page_to_page_core = function
   | (InlineSet (set, params) : page) ->
     Lwt.return @@ PageCore.InlineSet (set, params)
 
-let make ?status ~slug ~title ?date ?contents_and_parameters ~modified_at () =
+let make ?status ~slug ~title ?date ?contents_and_parameters ~modified_at ~created_at () =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
     let%lwt contents = Lwt_list.map_s page_to_page_core contents in
     Lwt.return_some contents
   in
-  Lwt.return (make ?status ~slug ~title ?date
-                ?contents:contents_and_parameters ~modified_at ())
+  Lwt.return (make
+                ?status ~slug ~title ?date
+                ?contents:contents_and_parameters ~modified_at ~created_at
+                ())

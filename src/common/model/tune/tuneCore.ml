@@ -16,8 +16,11 @@ type t =
     created_at  : Datetime.t            [@key "created-at"] }
 [@@deriving make, yojson]
 
-let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances
-    ?remark ?scddb_id ~modified_at () =
+let make
+    ?status ~slug ~name ?alternative_names ~kind ?author ?dances
+    ?remark ?scddb_id ~modified_at ~created_at
+    ()
+  =
   let%lwt author =
     let%olwt author = Lwt.return author in
     let%lwt author_slug = CreditCore.slug author in
@@ -34,8 +37,10 @@ let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances
     in
     Lwt.return_some dances
   in
-  Lwt.return (make ?status ~slug ~name ?alternative_names ~kind ~author ?dances
-                ?remark ~scddb_id ~modified_at ())
+  Lwt.return (make
+                ?status ~slug ~name ?alternative_names ~kind ~author ?dances
+                ?remark ~scddb_id ~modified_at ~created_at
+                ())
 
 let slug tune = Lwt.return tune.slug
 let status tune = Lwt.return tune.status
