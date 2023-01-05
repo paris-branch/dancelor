@@ -1,5 +1,4 @@
 open NesUnix
-open Dancelor_common
 open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.set" : Logs.LOG)
 
