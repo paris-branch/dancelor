@@ -69,10 +69,11 @@ let deviser s = Lwt.return s.deviser
 let kind s = Lwt.return s.kind
 let versions_and_parameters s = Lwt.return s.versions_and_parameters
 let order s = Lwt.return s.order
-
 let instructions s = Lwt.return s.instructions
 let dances set = Lwt.return set.dances
 let remark set = Lwt.return set.remark
+let modified_at set = Lwt.return set.modified_at
+let created_at set = Lwt.return set.created_at
 
 let compare =
   Slug.compare_slugs_or

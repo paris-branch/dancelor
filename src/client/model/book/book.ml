@@ -4,7 +4,8 @@ module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~title ?date ?contents_and_parameters ~modified_at ()
+    ?status ~title ?date ?contents_and_parameters ~modified_at ~created_at
+    ()
   =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
@@ -18,6 +19,7 @@ let make_and_save
     o A.date date;
     o A.contents_and_parameters contents_and_parameters;
     a A.modified_at modified_at;
+    a A.created_at created_at;
   )
 
 let search ?pagination ?threshold filter =
@@ -29,7 +31,8 @@ let search ?pagination ?threshold filter =
   )
 
 let update
-    ?status ~slug ~title ?date ?contents_and_parameters ~modified_at ()
+    ?status ~slug ~title ?date ?contents_and_parameters ~modified_at ~created_at
+    ()
   =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
@@ -44,4 +47,5 @@ let update
     o A.date date;
     o A.contents_and_parameters contents_and_parameters;
     a A.modified_at modified_at;
+    a A.created_at created_at;
   )
