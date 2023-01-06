@@ -21,10 +21,10 @@ let apply_controller path query =
   | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
   | Set (Ly (slug, params)) -> Set.Ly.get slug params
   | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
-  | VersionLy slug -> Version.get_ly slug
-  | VersionSvg (slug, params) -> Version.Svg.get slug params
-  | VersionOgg slug -> Version.Ogg.get slug
-  | VersionPdf (slug, params) -> Version.Pdf.get slug params
+  | Version (Ly slug) -> Version.get_ly slug
+  | Version (Svg (slug, params)) -> Version.Svg.get slug params
+  | Version (Ogg slug) -> Version.Ogg.get slug
+  | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
   | Victor  -> log_exit 101
   | Victor2 -> log_exit 102
   | Victor3 -> log_exit 103
