@@ -3,7 +3,7 @@ open Dancelor_common_model
 
 (** Existing endpoints in Dancelor's API. *)
 type endpoint =
-  | BookPdf of BookCore.t Slug.t * BookParameters.t option
+  | Book of BookEndpoints.t
   | SetLy of SetCore.t Slug.t * SetParameters.t option
   | SetPdf of SetCore.t Slug.t * SetParameters.t option
   | VersionLy of VersionCore.t Slug.t
@@ -15,9 +15,12 @@ type endpoint =
   | Victor3
   | Victor4
 
+let book e = Book e
+let unBook = function Book e -> Some e | _ -> None
+
 (** Constructors that can be used as functions. FIXME: This is a job for a PPX
     and there is probably one that exists for that. *)
-let bookPdf slug params = BookPdf (slug, params)
+let bookPdf slug params = Book (Pdf (slug, params))
 let setLy slug params = SetLy (slug, params)
 let setPdf slug params = SetPdf (slug, params)
 let versionLy slug = VersionLy slug
@@ -26,7 +29,7 @@ let versionOgg slug = VersionOgg slug
 let versionPdf slug params = VersionPdf (slug, params)
 
 (** Destructors. FIXME: This is also a job for a PPX. *)
-let unBookPdf = function BookPdf (slug, params) -> Some (slug, params) | _ -> None
+let unBookPdf = function Book (Pdf (slug, params)) -> Some (slug, params) | _ -> None
 let unSetLy = function SetLy (slug, params) -> Some (slug, params) | _ -> None
 let unSetPdf = function SetPdf (slug, params) -> Some (slug, params) | _ -> None
 let unVersionLy = function VersionLy slug -> Some slug | _ -> None
@@ -40,14 +43,8 @@ open Madge_router
 module MQ = Madge_query
 
 let routes : endpoint route list =
-  [
-    with_slug_and_query `GET "/book/" ~ext:".pdf"
-      (fun slug query -> BookPdf (slug, MQ.get_ "parameters" BookParameters.of_yojson query))
-      (function
-        | BookPdf (slug, None) -> Some (slug, MQ.empty)
-        | BookPdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ BookParameters.to_yojson params)
-        | _ -> None);
-
+  wrap_routes ~wrap:book ~unwrap:unBook BookEndpoints.routes
+  @ [
     with_slug_and_query `GET  "/set" ~ext:"ly"
       (fun slug query -> SetLy (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
       (function

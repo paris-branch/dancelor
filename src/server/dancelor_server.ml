@@ -16,8 +16,9 @@ let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
 let apply_controller path query =
-  match Option.get @@ ApiRouter.endpoint `GET path query with (* FIXME: not necessarily `GET *)
-  | ApiRouter.BookPdf (slug, params) -> Book.Pdf.get slug params
+  (* FIXME: not necessarily `GET *)
+  match Option.get @@ ApiRouter.endpoint `GET path query with
+  | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
   | SetLy (slug, params) -> Set.Ly.get slug params
   | SetPdf (slug, params) -> Set.Pdf.get slug params
   | VersionLy slug -> Version.get_ly slug
