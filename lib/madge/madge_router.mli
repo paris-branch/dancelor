@@ -41,12 +41,14 @@ val resource_to_request : 'resource -> 'resource route list -> request
 (* FIXME: support adding prefixes *)
 
 val wrap_route :
+  ?prefix:string ->
   wrap:('resource -> 'wresource) ->
   unwrap:('wresource -> 'resource option) ->
   'resource route ->
   'wresource route
 
 val wrap_routes :
+  ?prefix:string ->
   wrap:('resource -> 'wresource) ->
   unwrap:('wresource -> 'resource option) ->
   'resource route list ->
