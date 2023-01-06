@@ -37,9 +37,9 @@ let routes : endpoint route list =
     direct `GET "/victor2" @@ Victor Two ;
     direct `GET "/victor3" @@ Victor Three ;
     direct `GET "/victor4" @@ Victor Four ]
-  @ wrap_routes ~wrap:mkBook    ~unwrap:unBook       BookEndpoints.routes
-  @ wrap_routes ~wrap:mkSet     ~unwrap:unSet         SetEndpoints.routes
-  @ wrap_routes ~wrap:mkVersion ~unwrap:unVersion VersionEndpoints.routes
+  @ wrap_routes ~prefix:"/book"    ~wrap:mkBook    ~unwrap:unBook       BookEndpoints.routes
+  @ wrap_routes ~prefix:"/set"     ~wrap:mkSet     ~unwrap:unSet         SetEndpoints.routes
+  @ wrap_routes ~prefix:"/version" ~wrap:mkVersion ~unwrap:unVersion VersionEndpoints.routes
 
 let path ?(api_prefix=true) endpoint =
   let request = Madge_router.resource_to_request endpoint routes in
