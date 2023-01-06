@@ -4,8 +4,7 @@ open Dancelor_common_model
 (** Existing endpoints in Dancelor's API. *)
 type endpoint =
   | Book of BookEndpoints.t
-  | SetLy of SetCore.t Slug.t * SetParameters.t option
-  | SetPdf of SetCore.t Slug.t * SetParameters.t option
+  | Set of SetEndpoints.t
   | VersionLy of VersionCore.t Slug.t
   | VersionSvg of VersionCore.t Slug.t * VersionParameters.t option
   | VersionOgg of VersionCore.t Slug.t
@@ -18,11 +17,14 @@ type endpoint =
 let book e = Book e
 let unBook = function Book e -> Some e | _ -> None
 
+let set e = Set e
+let unSet = function Set e -> Some e | _ -> None
+
 (** Constructors that can be used as functions. FIXME: This is a job for a PPX
     and there is probably one that exists for that. *)
 let bookPdf slug params = Book (Pdf (slug, params))
-let setLy slug params = SetLy (slug, params)
-let setPdf slug params = SetPdf (slug, params)
+let setLy slug params = Set (Ly (slug, params))
+let setPdf slug params = Set (Pdf (slug, params))
 let versionLy slug = VersionLy slug
 let versionSvg slug params = VersionSvg (slug, params)
 let versionOgg slug = VersionOgg slug
@@ -30,8 +32,8 @@ let versionPdf slug params = VersionPdf (slug, params)
 
 (** Destructors. FIXME: This is also a job for a PPX. *)
 let unBookPdf = function Book (Pdf (slug, params)) -> Some (slug, params) | _ -> None
-let unSetLy = function SetLy (slug, params) -> Some (slug, params) | _ -> None
-let unSetPdf = function SetPdf (slug, params) -> Some (slug, params) | _ -> None
+let unSetLy = function Set (Ly (slug, params)) -> Some (slug, params) | _ -> None
+let unSetPdf = function Set (Pdf (slug, params)) -> Some (slug, params) | _ -> None
 let unVersionLy = function VersionLy slug -> Some slug | _ -> None
 let unVersionSvg = function VersionSvg (slug, params) -> Some (slug, params) | _ -> None
 let unVersionOgg = function VersionOgg slug -> Some slug | _ -> None
@@ -44,20 +46,8 @@ module MQ = Madge_query
 
 let routes : endpoint route list =
   wrap_routes ~wrap:book ~unwrap:unBook BookEndpoints.routes
+  @ wrap_routes ~wrap:set ~unwrap:unSet SetEndpoints.routes
   @ [
-    with_slug_and_query `GET  "/set" ~ext:"ly"
-      (fun slug query -> SetLy (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
-      (function
-        | SetLy (slug, None) -> Some (slug, MQ.empty)
-        | SetLy (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params)
-        | _ -> None) ;
-
-    with_slug_and_query `GET  "/set" ~ext:"pdf"
-      (fun slug query -> SetPdf (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
-      (function
-        | SetPdf (slug, None) -> Some (slug, MQ.empty)
-        | SetPdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params)
-        | _ -> None) ;
 
     with_slug   `GET  "/version" ~ext:"ly"  (versionLy, unVersionLy) ;
 
