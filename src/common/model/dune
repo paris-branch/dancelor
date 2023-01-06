@@ -8,6 +8,7 @@
   lwt
   dancelor.nes
   dancelor.madge.common
+  dancelor.madge.router
   menhirLib yojson ppx_deriving_yojson.runtime)
  (preprocess
   (pps
