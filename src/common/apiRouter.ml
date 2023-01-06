@@ -10,12 +10,11 @@ type endpoint =
   | Victor of victor_level
 
 let mkBook e = Book e
-let unBook = function Book e -> Some e | _ -> None
-
 let mkSet e = Set e
-let unSet = function Set e -> Some e | _ -> None
-
 let mkVersion e = Version e
+
+let unBook = function Book e -> Some e | _ -> None
+let unSet = function Set e -> Some e | _ -> None
 let unVersion = function Version e -> Some e | _ -> None
 
 (** Constructors that can be used as functions. FIXME: This is a job for a PPX
