@@ -35,3 +35,19 @@ val with_query :
 val request_to_resource : request -> 'resource route list -> 'resource option
 
 val resource_to_request : 'resource -> 'resource route list -> request
+
+(** {2 Wrapping Routes} *)
+
+(* FIXME: support adding prefixes *)
+
+val wrap_route :
+  wrap:('resource -> 'wresource) ->
+  unwrap:('wresource -> 'resource option) ->
+  'resource route ->
+  'wresource route
+
+val wrap_routes :
+  wrap:('resource -> 'wresource) ->
+  unwrap:('wresource -> 'resource option) ->
+  'resource route list ->
+  'wresource route list

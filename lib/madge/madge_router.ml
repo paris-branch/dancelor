@@ -101,3 +101,15 @@ let resource_to_request resource routes =
   | None -> failwith "Madge_router.resource_to_request"
   | Some None -> assert false
   | Some (Some request) -> request
+
+let wrap_route ~wrap ~unwrap route =
+  let request_to_resource request =
+    Option.map wrap @@ route.request_to_resource request
+  in
+  let resource_to_request wresource =
+    Option.bind (unwrap wresource) route.resource_to_request
+  in
+  { request_to_resource; resource_to_request }
+
+let wrap_routes ~wrap ~unwrap =
+  List.map (wrap_route ~wrap ~unwrap)
