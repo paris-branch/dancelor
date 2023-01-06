@@ -1,14 +1,13 @@
 open Dancelor_common_model
 
+type victor_level = One | Two | Three | Four
+
 (** Existing endpoints in Dancelor's API. *)
 type endpoint =
-  | Book of BookEndpoints.t
-  | Set of SetEndpoints.t
+  | Book    of    BookEndpoints.t
+  | Set     of     SetEndpoints.t
   | Version of VersionEndpoints.t
-  | Victor
-  | Victor2
-  | Victor3
-  | Victor4
+  | Victor of victor_level
 
 let mkBook e = Book e
 let unBook = function Book e -> Some e | _ -> None
@@ -35,13 +34,13 @@ open Madge_router
 module MQ = Madge_query
 
 let routes : endpoint route list =
-  wrap_routes ~wrap:mkBook ~unwrap:unBook BookEndpoints.routes
-  @ wrap_routes ~wrap:mkSet ~unwrap:unSet SetEndpoints.routes
+  [ direct `GET "/victor"  @@ Victor One ;
+    direct `GET "/victor2" @@ Victor Two ;
+    direct `GET "/victor3" @@ Victor Three ;
+    direct `GET "/victor4" @@ Victor Four ]
+  @ wrap_routes ~wrap:mkBook    ~unwrap:unBook       BookEndpoints.routes
+  @ wrap_routes ~wrap:mkSet     ~unwrap:unSet         SetEndpoints.routes
   @ wrap_routes ~wrap:mkVersion ~unwrap:unVersion VersionEndpoints.routes
-  @ [ direct `GET "/victor"  Victor ;
-      direct `GET "/victor2" Victor2 ;
-      direct `GET "/victor3" Victor3 ;
-      direct `GET "/victor4" Victor4 ]
 
 let path ?(api_prefix=true) endpoint =
   let request = Madge_router.resource_to_request endpoint routes in

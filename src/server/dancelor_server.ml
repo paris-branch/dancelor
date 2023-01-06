@@ -25,10 +25,10 @@ let apply_controller path query =
   | Version (Svg (slug, params)) -> Version.Svg.get slug params
   | Version (Ogg slug) -> Version.Ogg.get slug
   | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
-  | Victor  -> log_exit 101
-  | Victor2 -> log_exit 102
-  | Victor3 -> log_exit 103
-  | Victor4 -> log_exit 104
+  | Victor One   -> log_exit 101
+  | Victor Two   -> log_exit 102
+  | Victor Three -> log_exit 103
+  | Victor Four  -> log_exit 104
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
