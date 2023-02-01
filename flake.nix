@@ -14,22 +14,10 @@
         inputs.pre-commit-hooks.flakeModule
         ./.nix/systems.nix
         ./.nix/per-input-lib.nix
+        ./.nix/timidity-overlay.nix
       ];
 
       perSystem = { inputs', self', system, pkgs, config, ... }: {
-        ## Curate our own set of packages that will be basically opam-nix's
-        ## nixpkgs with one modification: We overwrite the package `timidity` by
-        ## a custom version coming from our custom github:niols/nixpkg-timidity
-        ## flake that provides a version of TiMidity++ with Ogg Vorbis support.
-        ##
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          overlays = [
-            (self: super: {
-              timidity = inputs'.timidity.packages.timidityWithVorbis;
-            })
-          ];
-        };
 
         pre-commit.settings.hooks = { nixfmt.enable = true; };
 
