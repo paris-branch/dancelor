@@ -17,23 +17,12 @@
         ./.nix/timidity-overlay.nix
         ./.nix/pre-commit-settings.nix
         ./.nix/formatter.nix
+        ./.nix/package-dancelor.nix
       ];
 
-      perSystem = { inputs', self', pkgs, config, ... }: {
-        packages =
-          (inputs'.opam-nix.lib.buildOpamProject { pkgs = pkgs; } "dancelor"
-            ./. {
-              merlin = "*";
-              ocaml-base-compiler = "*";
-              ocaml-lsp-server = "*";
-              ocp-indent = "*";
-              utop = "*";
-            }) // {
-              default = self'.packages.dancelor;
-            };
-
+      perSystem = { self', pkgs, config, ... }: {
         devShells.default = pkgs.mkShell {
-          buildInputs = with self'.packages; [
+          buildInputs = with self'.packages.dancelor.scope; [
             merlin
             ocaml-lsp-server
             ocp-indent
