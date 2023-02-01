@@ -15,15 +15,10 @@
         ./.nix/systems.nix
         ./.nix/per-input-lib.nix
         ./.nix/timidity-overlay.nix
+        ./.nix/pre-commit-settings.nix
       ];
 
       perSystem = { inputs', self', pkgs, config, ... }: {
-
-        pre-commit.settings.hooks = {
-          nixfmt.enable = true;
-          deadnix.enable = true;
-        };
-
         formatter = pkgs.nixfmt;
 
         packages =
