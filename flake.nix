@@ -10,15 +10,13 @@
 
   outputs = inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" ];
-
       ## Improve the way `inputs'` are computed by also handling the case of
       ## flakes having a `lib.${system}` attribute.
       ##
       perInput = system: flake:
         if flake ? lib.${system} then { lib = flake.lib.${system}; } else { };
 
-      imports = [ inputs.pre-commit-hooks.flakeModule ];
+      imports = [ inputs.pre-commit-hooks.flakeModule ./.nix/systems.nix ];
 
       perSystem = { inputs', self', system, pkgs, config, ... }: {
         ## Curate our own set of packages that will be basically opam-nix's
