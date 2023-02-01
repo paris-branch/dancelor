@@ -16,11 +16,10 @@
         ./.nix/per-input-lib.nix
         ./.nix/timidity-overlay.nix
         ./.nix/pre-commit-settings.nix
+        ./.nix/formatter.nix
       ];
 
       perSystem = { inputs', self', pkgs, config, ... }: {
-        formatter = pkgs.nixfmt;
-
         packages =
           (inputs'.opam-nix.lib.buildOpamProject { pkgs = pkgs; } "dancelor"
             ./. {
