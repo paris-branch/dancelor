@@ -12,14 +12,14 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.pre-commit-hooks.flakeModule
-        ./.nix/systems.nix
-        ./.nix/perinput-lib.nix
-        ./.nix/timidity-overlay.nix
-        ./.nix/pre-commit-settings.nix
+        ./.nix/devshell-default.nix
         ./.nix/formatter.nix
         ./.nix/package-dancelor.nix
         ./.nix/package-default.nix
-        ./.nix/devshell-default.nix
+        ./.nix/perinput-lib.nix
+        ./.nix/pre-commit-settings.nix
+        ./.nix/systems.nix
+        ./.nix/timidity-overlay.nix
       ];
     };
 }
