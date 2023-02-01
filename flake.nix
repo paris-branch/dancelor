@@ -18,6 +18,7 @@
         ./.nix/pre-commit-settings.nix
         ./.nix/formatter.nix
         ./.nix/package-dancelor.nix
+        ./.nix/package-default.nix
       ];
 
       perSystem = { self', pkgs, config, ... }: {
