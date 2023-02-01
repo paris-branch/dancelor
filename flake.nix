@@ -5,6 +5,7 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
     timidity.url = "github:niols/nixpkg-timidity";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
 
   outputs = inputs@{ self, flake-parts, ... }:
@@ -17,7 +18,9 @@
       perInput = system: flake:
         if flake ? lib.${system} then { lib = flake.lib.${system}; } else { };
 
-      perSystem = { inputs', self', system, pkgs, ... }: {
+      imports = [ inputs.pre-commit-hooks.flakeModule ];
+
+      perSystem = { inputs', self', system, pkgs, config, ... }: {
         ## Curate our own set of packages that will be basically opam-nix's
         ## nixpkgs with one modification: We overwrite the package `timidity` by
         ## a custom version coming from our custom github:niols/nixpkg-timidity
@@ -31,6 +34,8 @@
             })
           ];
         };
+
+        pre-commit.settings.hooks = { nixfmt.enable = true; };
 
         formatter = pkgs.nixfmt;
 
@@ -54,6 +59,7 @@
             utop
           ];
           inputsFrom = [ self'.packages.dancelor ];
+          shellHook = config.pre-commit.installationScript;
         };
       };
     };

@@ -6,6 +6,7 @@
 ## direnv
 /.direnv
 /.envrc
+/.pre-commit-config.yaml
 
 ## Dune
 /*.install
