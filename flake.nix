@@ -8,7 +8,7 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
 
-  outputs = inputs@{ self, flake-parts, ... }:
+  outputs = inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.pre-commit-hooks.flakeModule
@@ -17,9 +17,12 @@
         ./.nix/timidity-overlay.nix
       ];
 
-      perSystem = { inputs', self', system, pkgs, config, ... }: {
+      perSystem = { inputs', self', pkgs, config, ... }: {
 
-        pre-commit.settings.hooks = { nixfmt.enable = true; };
+        pre-commit.settings.hooks = {
+          nixfmt.enable = true;
+          deadnix.enable = true;
+        };
 
         formatter = pkgs.nixfmt;
 
