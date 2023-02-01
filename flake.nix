@@ -34,6 +34,8 @@
           };
       in
         {
+          formatter = pkgs.nixfmt;
+
           packages = packages // {
             default = self.packages.${system}.dancelor;
           };
