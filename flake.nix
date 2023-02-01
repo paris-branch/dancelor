@@ -13,7 +13,7 @@
       imports = [
         inputs.pre-commit-hooks.flakeModule
         ./.nix/systems.nix
-        ./.nix/per-input-lib.nix
+        ./.nix/perinput-lib.nix
         ./.nix/timidity-overlay.nix
         ./.nix/pre-commit-settings.nix
         ./.nix/formatter.nix
