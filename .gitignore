@@ -3,9 +3,11 @@
 *#
 .#*
 
-## direnv
-/.direnv
-/.envrc
+## Environment
+.direnv
+.envrc
+/.pre-commit-config.yaml
+result
 
 ## Dune
 /*.install
