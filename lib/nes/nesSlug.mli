@@ -29,7 +29,8 @@ val unsafe_of_string : string -> 'any t
     can violate interface properties. This should be avoided. *)
 
 val compare_slugs_or :
-  fallback:('a -> 'a -> int Lwt.t) ->
-  ('a -> 'a t Lwt.t) ->
-  'a -> 'a ->
+  fallback: ( 'a -> 'a -> int Lwt.t) ->
+  ( 'a -> 'a t Lwt.t) ->
+  'a ->
+  'a ->
   int Lwt.t

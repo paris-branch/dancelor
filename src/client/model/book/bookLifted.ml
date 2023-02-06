@@ -5,7 +5,6 @@ include BookLifter.Lift(Dance)(Set)(Version)
 let get the_slug =
   let open BookEndpoints in
   let open Arguments in
-  Madge_client.(
-    call ~endpoint:get @@ fun {a} _ ->
-    a slug the_slug
-  )
+  Madge_client.(call ~endpoint: get
+  @@ fun { a } _ ->
+    a slug the_slug)

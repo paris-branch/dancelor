@@ -16,16 +16,17 @@ val disambiguation : t -> string Lwt.t
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
-  kind:Kind.dance ->
-  ?deviser:CreditCore.t ->
-  two_chords:bool ->
-  ?scddb_id:int ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  name: string ->
+  kind: Kind.dance ->
+  ?deviser: CreditCore.t ->
+  two_chords: bool ->
+  ?scddb_id: int ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   DanceFilter.t ->
   t Score.t list Lwt.t

@@ -7,13 +7,26 @@ let for_dance p =
   Lwt.return_some dance
 
 let make
-    ?instruments ?forced_pages ?show_deviser ?show_order
-    ?display_name ?for_dance ?every_version ()
-  =
+  ?instruments
+  ?forced_pages
+  ?show_deviser
+  ?show_order
+  ?display_name
+  ?for_dance
+  ?every_version
+  () =
   let%lwt for_dance =
     let%olwt dance = Lwt.return for_dance in
     let%lwt dance = Dance.slug dance in
     Lwt.return_some dance
   in
-  Lwt.return (make ?instruments ?forced_pages ?show_deviser ?show_order
-                ?display_name ?for_dance ?every_version ())
+  Lwt.return
+    (make
+      ?instruments
+      ?forced_pages
+      ?show_deviser
+      ?show_order
+      ?display_name
+      ?for_dance
+      ?every_version
+      ())

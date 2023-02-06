@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Person : module type of PersonSignature)
+  (Person: module type of PersonSignature)
 = struct
   include CreditCore
 

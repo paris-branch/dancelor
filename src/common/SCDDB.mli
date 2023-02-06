@@ -13,7 +13,7 @@ type entry_type =
   | Recording
   | Tune
   | List
-  (** The type of an entry in the SCDDB. *)
+(** The type of an entry in the SCDDB. *)
 
 type entry_id = int
 (** The type of an id in the SCDDB. Such ids only make sense for a given entry
@@ -46,15 +46,15 @@ val list_uri : entry_id -> string
 
 (** {2 Entry from URI} *)
 
-val entry_from_uri : string -> (entry, string) result
+val entry_from_uri : string -> (entry , string ) result
 (** Given an URI, attempts to parse it into an entry. *)
 (* FIXME: should use the Uri.t type. *)
 
-val dance_from_uri : string -> (entry_id, string) result
-val formation_from_uri : string -> (entry_id, string) result
-val person_from_uri : string -> (entry_id, string) result
-val publication_from_uri : string -> (entry_id, string) result
-val album_from_uri : string -> (entry_id, string) result
-val recording_from_uri : string -> (entry_id, string) result
-val tune_from_uri : string -> (entry_id, string) result
-val list_from_uri : string -> (entry_id, string) result
+val dance_from_uri : string -> (entry_id , string ) result
+val formation_from_uri : string -> (entry_id , string ) result
+val person_from_uri : string -> (entry_id , string ) result
+val publication_from_uri : string -> (entry_id , string ) result
+val album_from_uri : string -> (entry_id , string ) result
+val recording_from_uri : string -> (entry_id , string ) result
+val tune_from_uri : string -> (entry_id , string ) result
+val list_from_uri : string -> (entry_id , string ) result

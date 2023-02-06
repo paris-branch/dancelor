@@ -1,5 +1,5 @@
 type key = string
-type t = (key * Yojson.Safe.t) list
+type t = (key * Yojson.Safe.t ) list
 
 let get = List.assoc_opt
 
@@ -30,10 +30,12 @@ let to_list = Fun.id
 let from_uri uri =
   List.map
     (fun (k, vs) ->
-       (k,
+      (
+        k,
         match vs with
         | [v] -> Yojson.Safe.from_string v
-        | vs -> `List (List.map Yojson.Safe.from_string vs)))
+        | vs -> `List (List.map Yojson.Safe.from_string vs)
+      ))
     (Uri.query uri)
 
 let from_body body =

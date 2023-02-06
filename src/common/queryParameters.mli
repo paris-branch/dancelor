@@ -19,11 +19,11 @@ val get_string : key -> t -> string option
 
 (** {2 Importing and Exporting} *)
 
-val to_list : t -> (string * Yojson.Safe.t) list
+val to_list : t -> (string * Yojson.Safe.t ) list
 
 val from_uri : Uri.t -> t
 val from_body : Cohttp_lwt.Body.t -> t Lwt.t
 
 (** Append query parameters together. The resulting query parameters are taken
     from the input ones with priority [high] and [low]. *)
-val append : high:t -> low:t -> t
+val append : high: t -> low: t -> t

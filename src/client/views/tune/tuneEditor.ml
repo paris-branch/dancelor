@@ -3,14 +3,14 @@ open Dancelor_common
 open Dancelor_client_model
 
 type t = {
-  mutable name : string;
-  mutable alternative : string;
-  mutable kind : string;
-  mutable author : (Credit.t Slug.t * Credit.t) option;
-  mutable dances : (Dance.t Slug.t * Dance.t) option array;
-  mutable remark : string;
-  mutable scddb_id : string;
-  mutable count : int;
+  mutable name: string;
+  mutable alternative: string;
+  mutable kind: string;
+  mutable author: (Credit.t Slug.t * Credit.t ) option;
+  mutable dances: (Dance.t Slug.t * Dance.t ) option array;
+  mutable remark: string;
+  mutable scddb_id: string;
+  mutable count: int;
 }
 
 let create () =
@@ -59,13 +59,14 @@ let count t =
   t.count
 
 let insert t slug i =
-  if Array.length t.dances = t.count then begin
-    let new_dances = Array.make (t.count * 2) None in
-    Array.blit t.dances 0 new_dances 0 t.count;
-    t.dances <- new_dances;
-  end;
-  for idx = t.count-1 downto i do
-    t.dances.(idx+1) <- t.dances.(idx)
+  if Array.length t.dances = t.count then
+    begin
+      let new_dances = Array.make (t.count * 2) None in
+      Array.blit t.dances 0 new_dances 0 t.count;
+      t.dances <- new_dances;
+    end;
+  for idx = t.count - 1 downto i do
+    t.dances.(idx + 1) <- t.dances.(idx)
   done;
   t.count <- t.count + 1;
   let%lwt dance = Dance.get slug in
@@ -82,14 +83,15 @@ let get t i =
     t.dances.(i)
 
 let remove t i =
-  if i >= 0 && i < t.count then begin
-    t.dances.(i) <- None;
-    for j = i + 1 to t.count - 1 do
-      t.dances.(j-1) <- t.dances.(j);
-      t.dances.(j) <- None;
-    done;
-    t.count <- t.count - 1
-  end
+  if i >= 0 && i < t.count then
+    begin
+      t.dances.(i) <- None;
+      for j = i + 1 to t.count - 1 do
+        t.dances.(j - 1) <- t.dances.(j);
+        t.dances.(j) <- None;
+      done;
+      t.count <- t.count - 1
+    end
 
 let iter t f =
   for i = 0 to t.count - 1 do
@@ -141,7 +143,9 @@ let submit t =
     if t.scddb_id = "" then
       None
     else
-      try%opt int_of_string_opt t.scddb_id
-      with _ -> Result.to_option (SCDDB.tune_from_uri t.scddb_id)
+      try%opt
+        int_of_string_opt t.scddb_id
+      with
+        _ -> Result.to_option (SCDDB.tune_from_uri t.scddb_id)
   in
-  Tune.make_and_save ~name ~alternative_names ~kind ?author:(author t) ~dances ?remark ?scddb_id ()
+  Tune.make_and_save ~name ~alternative_names ~kind ?author: (author t) ~dances ?remark ?scddb_id ()

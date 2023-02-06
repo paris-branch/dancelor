@@ -11,20 +11,15 @@ open Dancelor_common_model
 type controller =
   | Index
   | MagicSearch (* FIXME: argument *)
-
   | CreditSave
   | Credit of CreditCore.t Slug.t
-
   | Dance of DanceCore.t Slug.t
-
   | PersonSave
   | Person of PersonCore.t Slug.t
-
   | BookAll
   | BookCompose
   | BookPdf of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
-
   | SetAll
   | SetCompose
   | SetSave
@@ -32,9 +27,7 @@ type controller =
   | SetPdf of SetCore.t Slug.t
   | Set of SetCore.t Slug.t
   | SetDelete of SetCore.t Slug.t
-
   | Tune of TuneCore.t Slug.t
-
   | VersionAddition
   | VersionAll
   | VersionSearch
@@ -43,9 +36,8 @@ type controller =
   | VersionOgg of VersionCore.t Slug.t
   | VersionPdf of VersionCore.t Slug.t
   | Version of VersionCore.t Slug.t
-
   | Victor
 
-val path_to_controller : meth:Cohttp.Code.meth -> path:string -> controller option
+val path_to_controller : meth: Cohttp.Code.meth -> path: string -> controller option
 
 val path_of_controller : controller -> Cohttp.Code.meth * string

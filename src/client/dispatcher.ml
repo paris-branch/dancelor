@@ -15,14 +15,14 @@ module type PAGE = sig
   val refresh : t -> unit
 end
 
-let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
+let pack(type s) (module M: PAGE with type t = s) (create : Page.t -> s) =
   (module struct
     type t = M.t
     let create = create
     let contents t = M.contents t
     let init t = M.init t
     let refresh t = M.refresh t
-  end : Page.CONTENTS)
+  end: Page.CONTENTS)
 
 let dispatch url =
   let path =

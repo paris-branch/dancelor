@@ -20,18 +20,19 @@ val equal : t -> t -> bool Lwt.t
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
-  ?alternative_names:string list ->
-  kind:Kind.base ->
-  ?author:CreditCore.t ->
-  ?dances:DanceCore.t list ->
-  ?remark:string ->
-  ?scddb_id:int ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  name: string ->
+  ?alternative_names: string list ->
+  kind: Kind.base ->
+  ?author: CreditCore.t ->
+  ?dances: DanceCore.t list ->
+  ?remark: string ->
+  ?scddb_id: int ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   TuneFilter.t ->
   t Score.t list Lwt.t

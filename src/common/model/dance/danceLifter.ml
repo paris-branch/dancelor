@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
+  (Credit: module type of CreditSignature)
 = struct
   include DanceCore
 

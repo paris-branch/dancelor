@@ -9,13 +9,12 @@ module Html = Dom_html
 
 let js = Js.string
 
-type t =
-  {
-    page : Page.t;
-    document : Html.document Js.t;
-    content : Html.divElement Js.t;
-    search : SearchBar.t;
-  }
+type t = {
+  page: Page.t;
+  document: Html.document Js.t;
+  content: Html.divElement Js.t;
+  search: SearchBar.t;
+}
 
 let search input =
   let threshold = 0.4 in
@@ -27,24 +26,23 @@ let search input =
 let create page =
   let document = Html.window##.document in
   let content = Html.createDiv document in
-
   let search =
     let main_section =
       SearchBar.Section.create
-        ~search ~make_result:(AnyResult.make_result page)
+        ~search
+        ~make_result: (AnyResult.make_result page)
         page
     in
     SearchBar.create
-      ~on_enter:(fun input ->
-          Dom_html.window##.location##.href := js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)));
-          Lwt.return_unit)
-      ~placeholder:"Search for anything (it's magic!)"
-      ~sections:[main_section]
+      ~on_enter: (fun input ->
+        Dom_html.window##.location##.href := js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)));
+        Lwt.return_unit)
+      ~placeholder: "Search for anything (it's magic!)"
+      ~sections: [main_section]
       page
   in
-
   Dom.appendChild content (SearchBar.root search);
-  {page; document; content; search}
+  { page; document; content; search }
 
 let contents t =
   t.content

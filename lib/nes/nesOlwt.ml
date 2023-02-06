@@ -1,4 +1,3 @@
-
 (* necessary for Lwt's backtrace bind *)
 module Reraise = struct
   external reraise : exn -> 'a = "%reraise"
@@ -14,13 +13,13 @@ let bind e f =
     (fun exn -> try Reraise.reraise exn with exn -> exn)
     e
     (function
-      | Some x -> f x
-      | None -> Lwt.return_none)
+    | Some x -> f x
+    | None -> Lwt.return_none)
 
 let catch e f =
   Lwt.backtrace_bind
     (fun exn -> try Reraise.reraise exn with exn -> exn)
     e
     (function
-      | Some x -> Lwt.return_some x
-      | None -> f ())
+    | Some x -> Lwt.return_some x
+    | None -> f ())

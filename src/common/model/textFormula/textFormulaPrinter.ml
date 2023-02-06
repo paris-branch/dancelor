@@ -19,7 +19,7 @@ let rec pp fmt formula =
   | True -> fpf fmt ":true"
   | Not f -> fpf fmt ":not %a" (pp_pars formula) f
   | And (f1, f2) -> fpf fmt "%a :and %a" (pp_pars formula) f1 (pp_pars formula) f2
-  | Or  (f1, f2) -> fpf fmt "%a :or %a" (pp_pars formula) f1 (pp_pars formula) f2
+  | Or (f1, f2) -> fpf fmt "%a :or %a" (pp_pars formula) f1 (pp_pars formula) f2
   | Pred pred -> pp_predicate formula fmt pred
 
 and pp_predicate parent fmt = function

@@ -35,17 +35,17 @@ let rec test_sort_lwt ~repeat ~length =
     let output = Lwt_main.run (sort_lwt NesInt.compare_lwt input) in
     let expected = sort NesInt.compare input in
     assert (output = expected);
-    test_sort_lwt ~repeat:(repeat-1) ~length
+    test_sort_lwt ~repeat: (repeat - 1) ~length
 
-let () = test_sort_lwt ~repeat:1 ~length:0
-let () = test_sort_lwt ~repeat:1 ~length:1
-let () = test_sort_lwt ~repeat:4 ~length:2
-let () = test_sort_lwt ~repeat:9 ~length:3
-let () = test_sort_lwt ~repeat:25 ~length:5
-let () = test_sort_lwt ~repeat:1_000 ~length:10
-let () = test_sort_lwt ~repeat:1_000 ~length:100
-let () = test_sort_lwt ~repeat:1_000 ~length:1_000
-let () = test_sort_lwt ~repeat:1_000 ~length:10_000
+let () = test_sort_lwt ~repeat: 1 ~length: 0
+let () = test_sort_lwt ~repeat: 1 ~length: 1
+let () = test_sort_lwt ~repeat: 4 ~length: 2
+let () = test_sort_lwt ~repeat: 9 ~length: 3
+let () = test_sort_lwt ~repeat: 25 ~length: 5
+let () = test_sort_lwt ~repeat: 1_000 ~length: 10
+let () = test_sort_lwt ~repeat: 1_000 ~length: 100
+let () = test_sort_lwt ~repeat: 1_000 ~length: 1_000
+let () = test_sort_lwt ~repeat: 1_000 ~length: 10_000
 
 let rec test_sort_count_lwt ~repeat ~length =
   if repeat = 0 then ()
@@ -54,17 +54,17 @@ let rec test_sort_count_lwt ~repeat ~length =
     let output = Lwt_main.run (sort_count_lwt NesInt.compare_lwt input) in
     let expected = sort_count NesInt.compare input in
     assert (output = expected);
-    test_sort_count_lwt ~repeat:(repeat-1) ~length
+    test_sort_count_lwt ~repeat: (repeat - 1) ~length
 
-let () = test_sort_count_lwt ~repeat:1 ~length:0
-let () = test_sort_count_lwt ~repeat:1 ~length:1
-let () = test_sort_count_lwt ~repeat:4 ~length:2
-let () = test_sort_count_lwt ~repeat:9 ~length:3
-let () = test_sort_count_lwt ~repeat:25 ~length:5
-let () = test_sort_count_lwt ~repeat:1_000 ~length:10
-let () = test_sort_count_lwt ~repeat:1_000 ~length:100
-let () = test_sort_count_lwt ~repeat:1_000 ~length:1_000
-let () = test_sort_count_lwt ~repeat:1_000 ~length:10_000
+let () = test_sort_count_lwt ~repeat: 1 ~length: 0
+let () = test_sort_count_lwt ~repeat: 1 ~length: 1
+let () = test_sort_count_lwt ~repeat: 4 ~length: 2
+let () = test_sort_count_lwt ~repeat: 9 ~length: 3
+let () = test_sort_count_lwt ~repeat: 25 ~length: 5
+let () = test_sort_count_lwt ~repeat: 1_000 ~length: 10
+let () = test_sort_count_lwt ~repeat: 1_000 ~length: 100
+let () = test_sort_count_lwt ~repeat: 1_000 ~length: 1_000
+let () = test_sort_count_lwt ~repeat: 1_000 ~length: 10_000
 
 let rec test_sort_uniq_lwt ~repeat ~length =
   if repeat = 0 then ()
@@ -73,14 +73,14 @@ let rec test_sort_uniq_lwt ~repeat ~length =
     let output = Lwt_main.run (sort_uniq_lwt NesInt.compare_lwt input) in
     let expected = sort_uniq NesInt.compare input in
     assert (output = expected);
-    test_sort_uniq_lwt ~repeat:(repeat-1) ~length
+    test_sort_uniq_lwt ~repeat: (repeat - 1) ~length
 
-let () = test_sort_uniq_lwt ~repeat:1 ~length:0
-let () = test_sort_uniq_lwt ~repeat:1 ~length:1
-let () = test_sort_uniq_lwt ~repeat:4 ~length:2
-let () = test_sort_uniq_lwt ~repeat:9 ~length:3
-let () = test_sort_uniq_lwt ~repeat:25 ~length:5
-let () = test_sort_uniq_lwt ~repeat:1_000 ~length:10
-let () = test_sort_uniq_lwt ~repeat:1_000 ~length:100
-let () = test_sort_uniq_lwt ~repeat:1_000 ~length:1_000
-let () = test_sort_uniq_lwt ~repeat:1_000 ~length:10_000
+let () = test_sort_uniq_lwt ~repeat: 1 ~length: 0
+let () = test_sort_uniq_lwt ~repeat: 1 ~length: 1
+let () = test_sort_uniq_lwt ~repeat: 4 ~length: 2
+let () = test_sort_uniq_lwt ~repeat: 9 ~length: 3
+let () = test_sort_uniq_lwt ~repeat: 25 ~length: 5
+let () = test_sort_uniq_lwt ~repeat: 1_000 ~length: 10
+let () = test_sort_uniq_lwt ~repeat: 1_000 ~length: 100
+let () = test_sort_uniq_lwt ~repeat: 1_000 ~length: 1_000
+let () = test_sort_uniq_lwt ~repeat: 1_000 ~length: 10_000

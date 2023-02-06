@@ -1,8 +1,8 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
-    (Tune   : module type of   TuneSignature)
+  (Credit: module type of CreditSignature)
+  (Tune: module type of TuneSignature)
 = struct
   include VersionCore
 

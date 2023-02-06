@@ -1,16 +1,16 @@
 open Dancelor_client_elements
-open Js_of_ocaml open Js_of_ocaml_lwt
+open Js_of_ocaml
+open Js_of_ocaml_lwt
 
 module Html = Dom_html
 
 let js = Js.string
 
-type t =
-  {
-    page : Page.t;
-    content : Html.divElement Js.t;
-    menu : Html.uListElement Js.t;
-  }
+type t = {
+  page: Page.t;
+  content: Html.divElement Js.t;
+  menu: Html.uListElement Js.t;
+}
 
 let create page =
   let document = Page.document page in
@@ -26,38 +26,48 @@ let create page =
     toggle
   in
   let title =
-    Text.Heading.h1_static ~text:(Lwt.return "Dancelor") page
-    |> Text.Link.h1 ~href:(Lwt.return "/")
+    Text.Heading.h1_static ~text: (Lwt.return "Dancelor") page
+    |> Text.Link.h1 ~href: (Lwt.return "/")
   in
   let menu = Html.createUl document in
   menu##.id := js "nav";
-  Lwt.async (fun () ->
-      Lwt_js_events.clicks menu_toggle
+  Lwt.async
+    (fun () ->
+      Lwt_js_events.clicks
+        menu_toggle
         (fun _ev _ ->
-           print_endline (Style.display menu);
-           if Style.display menu = "none" || Style.display menu = "" then
-             Style.set ~display:"block" menu
-           else
-             Style.set ~display:"none" menu;
-           Lwt.return ()));
+          print_endline (Style.display menu);
+          if Style.display menu = "none" || Style.display menu = "" then
+            Style.set ~display: "block" menu
+          else
+            Style.set ~display: "none" menu;
+          Lwt.return ()));
   Dom.appendChild content menu_toggle;
   Dom.appendChild content (Text.Link.root title);
   Dom.appendChild content menu;
-  {page; content; menu}
+  { page; content; menu }
 
 let contents t =
   t.content
 
 let add_menu_entry t name href =
-  Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
-      li [a ~href [text name]]
+  Dancelor_client_html.(append_nodes
+    (t.menu :> dom_node)
+    (Page.document t.page)
+    [
+      li [a ~href [text name]];
     ])
 
 let add_dropdown_menu_entry t name subentries =
-  Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
-      li [
-        text (name ^ " ▾");
-        ul ~classes:["subnav"]
-          (List.map (fun (name, href) -> li [a ~href [text name]]) subentries)
-      ]
+  Dancelor_client_html.(append_nodes
+    (t.menu :> dom_node)
+    (Page.document t.page)
+    [
+      li
+        [
+          text (name ^ " ▾");
+          ul
+            ~classes: ["subnav"]
+            (List.map (fun (name, href) -> li [a ~href [text name]]) subentries);
+        ];
     ])

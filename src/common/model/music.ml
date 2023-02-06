@@ -5,18 +5,24 @@ let to_yojson__of__to_string to_string value =
 
 let of_yojson__of__of_string of_string message = function
   | `String s ->
-    (
-      try Ok (of_string s)
-      with _ -> Error message
-    )
+    ( try
+      Ok (of_string s)
+    with
+      _ -> Error message)
   | _ -> Error message
 
 (* Note *)
 
 type note = A | B | C | D | E | F | G
 
-let note_to_char = function A -> 'a' | B -> 'b' | C -> 'c'
-                          | D -> 'd' | E -> 'e' | F -> 'f' | G -> 'g'
+let note_to_char = function
+  A -> 'a'
+  | B -> 'b'
+  | C -> 'c'
+  | D -> 'd'
+  | E -> 'e'
+  | F -> 'f'
+  | G -> 'g'
 
 let note_to_string note = note_to_char note |> Char.uppercase_ascii |> String.make 1
 let note_to_pretty_string = note_to_string
@@ -60,8 +66,7 @@ let alteration_of_string = function
 type octave = int
 
 let octave_to_string octave =
-  if octave < 0
-  then String.make (-octave) ','
+  if octave < 0 then String.make (-octave) ','
   else String.make octave '\''
 
 let octave_to_pretty_string = octave_to_string
@@ -71,19 +76,20 @@ let octave_of_string = function
   | "" -> 0
   | str ->
     let chr = str.[0] in
-    if String.exists ((<>) chr) str then
+    if String.exists (( <> ) chr) str then
       failwith "Dancelor_common_model.Music.octave_of_string";
     match chr with
     | '\'' -> String.length str
-    | ',' -> - (String.length str)
+    | ',' -> -(String.length str)
     | _ -> failwith "Dancelor_common_model.Music.octave_of_string"
 
 (* Pitch *)
 
-type pitch =
-  { note : note ;
-    alteration : alteration ;
-    octave : octave }
+type pitch = {
+  note: note;
+  alteration: alteration;
+  octave: octave;
+}
 
 let make_pitch note alteration octave =
   { note; alteration; octave }
@@ -108,7 +114,7 @@ let pitch_to_lilypond_string pitch =
   ^ alteration_to_lilypond_string pitch.alteration
   ^ octave_to_lilypond_string pitch.octave
 
-let pitch_to_safe_string ?(strict_octave=true) pitch =
+let pitch_to_safe_string ?(strict_octave = true) pitch =
   if strict_octave && pitch.octave <> 0 then
     failwith "Dancelor_common_model.Music.pitch_to_safe_string";
   note_to_safe_string pitch.note
@@ -131,9 +137,11 @@ let pitch_of_string = function
     in
     let note_char = note_alteration_str.[0] in
     let alteration_str = String.sub note_alteration_str 1 (String.length note_alteration_str - 1) in
-    { note = note_of_char note_char ;
-      alteration = alteration_of_string alteration_str ;
-      octave = octave_of_string octave_str }
+    {
+      note = note_of_char note_char;
+      alteration = alteration_of_string alteration_str;
+      octave = octave_of_string octave_str
+    }
 
 let pitch_to_yojson = to_yojson__of__to_string pitch_to_string
 let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common_model.Music.pitch_of_yojson"
@@ -159,7 +167,7 @@ let mode_to_safe_string = mode_to_string
 
 (* Key *)
 
-type key = { pitch : pitch ; mode : mode }
+type key = { pitch: pitch; mode: mode; }
 
 let make_key pitch mode = { pitch; mode }
 let key_pitch key = key.pitch
@@ -179,11 +187,13 @@ let key_of_string = function
       else
         (str, Major)
     in
-    { pitch = pitch_of_string pitch_str ; mode }
+    { pitch = pitch_of_string pitch_str; mode }
 
 let key_of_string_opt s =
-  try Some (key_of_string s)
-  with Failure _ -> None
+  try
+    Some (key_of_string s)
+  with
+    Failure _ -> None
 
 let key_to_yojson = to_yojson__of__to_string key_to_string
 let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common_model.Music.key_of_yojson"

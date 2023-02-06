@@ -1,7 +1,6 @@
 open Formula
 
 type t = predicate Formula.t
-
 and predicate =
   | Raw of string
   | Nullary of string

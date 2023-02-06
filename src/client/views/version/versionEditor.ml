@@ -2,26 +2,27 @@ open Nes
 open Dancelor_client_model
 
 type t = {
-  mutable tune : (Tune.t Slug.t * Tune.t) option;
-  mutable bars : string;
-  mutable key : string;
-  mutable structure : string;
-  mutable arranger : (Credit.t Slug.t * Credit.t) option;
-  mutable remark : string;
-  mutable disambiguation : string;
-  mutable content : string;
+  mutable tune: (Tune.t Slug.t * Tune.t ) option;
+  mutable bars: string;
+  mutable key: string;
+  mutable structure: string;
+  mutable arranger: (Credit.t Slug.t * Credit.t ) option;
+  mutable remark: string;
+  mutable disambiguation: string;
+  mutable content: string;
 }
 
-let create () = {
-  tune = None;
-  bars = "";
-  key = "";
-  arranger = None;
-  structure = "";
-  remark = "";
-  disambiguation = "";
-  content = ""
-}
+let create () =
+  {
+    tune = None;
+    bars = "";
+    key = "";
+    arranger = None;
+    structure = "";
+    remark = "";
+    disambiguation = "";
+    content = ""
+  }
 
 let tune t =
   let%opt (_, tune) = t.tune in
@@ -94,7 +95,8 @@ let clear t =
   t.content <- ""
 
 let submit t =
-  let tune = match tune t with
+  let tune =
+    match tune t with
     | None -> failwith "Empty tune"
     | Some tune -> tune
   in

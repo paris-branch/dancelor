@@ -1,4 +1,4 @@
-module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache") : Logs.LOG)
+module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache"): Logs.LOG)
 
 type hash = int
 
@@ -18,7 +18,7 @@ let hash_from_string repr =
   | None -> invalid_arg "NesStorageCache.hash_from_string"
   | Some hash -> hash
 
-type ('a, 'b) t = (int, 'b) Hashtbl.t
+type ('a , 'b )t = (int , 'b ) Hashtbl.t
 
 (* FIXME: support lifetime; to be given on creation and cleaned up lazily on use
    and with an extra endpoint *)

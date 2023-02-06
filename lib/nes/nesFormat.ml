@@ -20,10 +20,9 @@ let pp_multiline_sensible name fmt s =
     | [] -> []
     | "" :: lines ->
       (
-        match remove_empty_last_lines lines with
-        | [] -> []
-        | lines -> "" :: lines
-      )
+      match remove_empty_last_lines lines with
+      | [] -> []
+      | lines -> "" :: lines)
     | line :: lines ->
       line :: remove_empty_last_lines lines
   in
@@ -33,9 +32,8 @@ let pp_multiline_sensible name fmt s =
   |> remove_empty_last_lines
   |> (function [] -> ["(empty)"] | s -> s)
   |> (function
-      | [] -> assert false
-      | [line] -> Format.fprintf fmt "%s: %s" name line
-      | lines ->
-        Format.fprintf fmt "%s:" name;
-        List.iter (Format.fprintf fmt "@\n%s") lines
-    )
+  | [] -> assert false
+  | [line] -> Format.fprintf fmt "%s: %s" name line
+  | lines ->
+    Format.fprintf fmt "%s:" name;
+    List.iter (Format.fprintf fmt "@\n%s") lines)

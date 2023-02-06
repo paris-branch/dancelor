@@ -3,11 +3,11 @@ open Dancelor_common
 open Dancelor_client_model
 
 type t = {
-  mutable name : string;
-  mutable kind : string;
-  mutable deviser : (Credit.t Slug.t * Credit.t) option;
-  mutable two_chords : bool;
-  mutable scddb_id : string;
+  mutable name: string;
+  mutable kind: string;
+  mutable deviser: (Credit.t Slug.t * Credit.t ) option;
+  mutable two_chords: bool;
+  mutable scddb_id: string;
 }
 
 let create () =
@@ -78,6 +78,4 @@ let submit t =
         | Ok scddb_id -> Some scddb_id
         | Error _ -> None
   in
-  Dance.make_and_save ~name ~kind ?deviser:(deviser t) ~two_chords ?scddb_id ()
-
-
+  Dance.make_and_save ~name ~kind ?deviser: (deviser t) ~two_chords ?scddb_id ()

@@ -9,15 +9,15 @@ open Nes
 (** {2 Types} *)
 
 type page = BookCore.page =
-  | Version   of VersionCore.t * VersionParameters.t
-  | Set       of     SetCore.t *     SetParameters.t
-  | InlineSet of     SetCore.t *     SetParameters.t
-  (** The type of one page in a book. A page either consists of a version (eg.
-      in a book of tunes), or a set (eg. in a dance program) or a so-called
-      “inline set”. Inline sets are simply a way to define a set on-the-fly in
-      the database for books without actually giving it a corresponding set
-      entry. It can be useful to put several versions on the same page, for
-      instance, when they do not particularly make sense together. *)
+  | Version of VersionCore.t * VersionParameters.t
+  | Set of SetCore.t * SetParameters.t
+  | InlineSet of SetCore.t * SetParameters.t
+(** The type of one page in a book. A page either consists of a version (eg.
+        in a book of tunes), or a set (eg. in a dance program) or a so-called
+        “inline set”. Inline sets are simply a way to define a set on-the-fly in
+        the database for books without actually giving it a corresponding set
+        entry. It can be useful to put several versions on the same page, for
+        instance, when they do not particularly make sense together. *)
 
 type t = BookCore.t
 (** The type of a book. Even if it is known that it is a record, it should never
@@ -49,7 +49,7 @@ val sets_from_contents : t -> SetCore.t list Lwt.t
 val unique_sets_from_contents : t -> SetCore.t list Lwt.t
 (** Same as {!sets_from_contents} but without duplicate sets. *)
 
-val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t) list Lwt.t
+val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t ) list Lwt.t
 (** Same as {!sets_from_contents} but also includes parameters. *)
 
 (** {2 Utilities} *)
@@ -67,10 +67,10 @@ val lilypond_contents_cache_key : t -> string Lwt.t
 type warning = BookCore.warning =
   | Empty
   | DuplicateSet of SetCore.t
-  | DuplicateVersion of TuneCore.t * (SetCore.t option * int) list
+  | DuplicateVersion of TuneCore.t * (SetCore.t option * int ) list
   | SetDanceMismatch of SetCore.t * DanceCore.t
-  (* FIXME: a more specific type for (SetCore.t option * int) list. Maybe
-     “occurrences”? And maybe with a record so that this “int” has a name? *)
+(* FIXME: a more specific type for (SetCore.t option * int) list. Maybe
+       “occurrences”? And maybe with a record so that this “int” has a name? *)
 
 type warnings = warning list
 
@@ -81,22 +81,24 @@ val warnings : t -> warnings Lwt.t
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  title:string ->
-  ?date:PartialDate.t ->
-  ?contents_and_parameters:page list ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  title: string ->
+  ?date: PartialDate.t ->
+  ?contents_and_parameters: page list ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   BookFilter.t ->
   t Score.t list Lwt.t
 
 val update :
-  ?status:Status.t ->
-  slug:t Slug.t ->
-  title:string ->
-  ?date:PartialDate.t ->
-  ?contents_and_parameters:page list ->
-  unit -> unit Lwt.t
+  ?status: Status.t ->
+  slug: t Slug.t ->
+  title: string ->
+  ?date: PartialDate.t ->
+  ?contents_and_parameters: page list ->
+  unit ->
+  unit Lwt.t

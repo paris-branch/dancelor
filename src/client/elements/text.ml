@@ -9,15 +9,15 @@ module Heading = struct
   type root = Html.headingElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
+    page: Page.t;
+    root: root Js.t;
   }
 
   let h create ~content page =
     let h = create (Page.document page) in
     h##.textContent := Js.some (js "");
     Lwt.on_success content @@ JsHelpers.add_children h;
-    {page; root = h}
+    { page; root = h }
 
   let h1 ~content page = h Html.createH1 ~content page
   let h2 ~content page = h Html.createH2 ~content page
@@ -30,7 +30,7 @@ module Heading = struct
     let h = create (Page.document page) in
     h##.textContent := Js.some (js "");
     Lwt.on_success text (fun text -> h##.textContent := Js.some (js text));
-    {page; root = h}
+    { page; root = h }
 
   let h1_static = h_static Html.createH1
   let h2_static = h_static Html.createH2
@@ -41,7 +41,6 @@ module Heading = struct
 
   let root t =
     t.root
-
 end
 
 module Paragraph = struct
@@ -49,19 +48,18 @@ module Paragraph = struct
   type root = Html.paragraphElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
+    page: Page.t;
+    root: root Js.t;
   }
 
   let create ?placeholder ~text page =
     let p = Html.createP (Page.document page) in
     NesOption.ifsome (fun ph -> p##.textContent := Js.some (js ph)) placeholder;
     Lwt.on_success text (fun text -> p##.textContent := Js.some (js text));
-    {page; root = p}
+    { page; root = p }
 
   let root t =
     t.root
-
 end
 
 module Link = struct
@@ -69,24 +67,23 @@ module Link = struct
   type root = Html.anchorElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
+    page: Page.t;
+    root: root Js.t;
   }
 
   let create ~href ~text page =
     let link = Html.createA (Page.document page) in
     Lwt.on_success text (fun text -> link##.textContent := Js.some (js text));
     Lwt.on_success href (fun href -> link##.href := js href);
-    {page; root = link}
+    { page; root = link }
 
   let h1 ~href h1 =
     let page = h1.Heading.page in
     let link = Html.createA (Page.document page) in
     Lwt.on_success href (fun href -> link##.href := js href);
     Dom.appendChild link (Heading.root h1);
-    {page; root = link}
+    { page; root = link }
 
   let root t =
     t.root
-
 end
