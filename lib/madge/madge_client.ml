@@ -24,8 +24,10 @@ let call_with_cache ~meth ~uri ~body =
   @@ fun () ->
     let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth uri ~body in
     if Cohttp.(Code.(is_success (code_of_status (Response.status response)))) then
-      ( let%lwt body = Cohttp_lwt.Body.to_string body in
-      Lwt.return (Yojson.Safe.from_string body))
+      (
+        let%lwt body = Cohttp_lwt.Body.to_string body in
+        Lwt.return (Yojson.Safe.from_string body)
+      )
     else
       assert false (* FIXME *)
 

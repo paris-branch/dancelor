@@ -17,19 +17,21 @@ let identity = relative Music.pitch_c Music.pitch_c
 
 let music_pitch_to_int pitch =
   (
-  match Music.pitch_note pitch with
-  | C -> 0
-  | D -> 2
-  | E -> 4
-  | F -> 5
-  | G -> 7
-  | A -> 9
-  | B -> 11)
+    match Music.pitch_note pitch with
+    | C -> 0
+    | D -> 2
+    | E -> 4
+    | F -> 5
+    | G -> 7
+    | A -> 9
+    | B -> 11
+  )
   + (
-  match Music.pitch_alteration pitch with
-  | Flat -> -1
-  | Natural -> 0
-  | Sharp -> +1)
+    match Music.pitch_alteration pitch with
+    | Flat -> -1
+    | Natural -> 0
+    | Sharp -> +1
+  )
   + (Music.pitch_octave pitch * 12)
 
 let music_pitch_of_int_array =
@@ -69,9 +71,11 @@ let%test _ = (7 |> music_pitch_of_int |> music_pitch_to_int) = 7
 
 let music_pitch_transpose ~source ~target p =
   music_pitch_of_int
-    (music_pitch_to_int target
-    - music_pitch_to_int source
-    + music_pitch_to_int p)
+    (
+      music_pitch_to_int target
+      - music_pitch_to_int source
+      + music_pitch_to_int p
+    )
 
 let compose trans1 trans2 =
   match trans2 with

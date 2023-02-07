@@ -26,9 +26,11 @@ let make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dan
     let%olwt versions_and_parameters = Lwt.return versions_and_parameters in
     let%lwt versions_and_parameters =
       Lwt_list.map_s
-        (fun (version, parameters) ->
-          let%lwt slug = VersionCore.slug version in
-          Lwt.return (slug, parameters))
+        (
+          fun (version, parameters) ->
+            let%lwt slug = VersionCore.slug version in
+            Lwt.return (slug, parameters)
+        )
         versions_and_parameters
     in
     Lwt.return_some versions_and_parameters
@@ -61,8 +63,10 @@ let remark set = Lwt.return set.remark
 
 let compare =
   Slug.compare_slugs_or
-    ~fallback: (fun set1 set2 ->
-      Lwt.return (Stdlib.compare set1 set2))
+    ~fallback: (
+      fun set1 set2 ->
+        Lwt.return (Stdlib.compare set1 set2)
+    )
     slug
 
 let equal = equal_from_compare compare
@@ -70,8 +74,10 @@ let equal = equal_from_compare compare
 (* FIXME: use Version.equal *)
 let contains_version slug1 set =
   List.exists
-    (fun (slug2, _parameters) ->
-      Slug.equal slug1 slug2)
+    (
+      fun (slug2, _parameters) ->
+        Slug.equal slug1 slug2
+    )
     set.versions_and_parameters
 
 type warning =

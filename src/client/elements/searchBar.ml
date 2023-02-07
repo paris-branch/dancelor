@@ -42,15 +42,19 @@ module Section = struct
   let make_error_rows (Wrapped t) messages =
     let open Table in
     Lwt.return
-      (List.map
-        (fun message ->
-          Row.create
-            ~cells: [
-              Cell.text ~text: (Lwt.return "❌") t.page;
-              Cell.text ~text: (Lwt.return message) t.page;
-            ]
-            t.page)
-        messages)
+      (
+        List.map
+          (
+            fun message ->
+              Row.create
+                ~cells: [
+                  Cell.text ~text: (Lwt.return "❌") t.page;
+                  Cell.text ~text: (Lwt.return message) t.page;
+                ]
+                t.page
+          )
+          messages
+      )
 
   let make_result_rows (Wrapped t) input cb =
     let make_row score =
@@ -60,21 +64,24 @@ module Section = struct
     in
     if String.length input > 2 then
       (
-      match%lwt t.search input with
-      | Ok scores ->
-        (if List.length scores > 0 then
-          NesList.sub 10 scores
-          |> Lwt_list.map_p make_row
-          >>=| fun l ->
-            match t.default with
-            | None -> Lwt.return l
-            | Some d -> Lwt.return (l @ [d])
-        else
-          match t.default with
-          | None -> Lwt.return [t.empty]
-          | Some d -> Lwt.return [t.empty; d])
-      | Error errors ->
-        make_error_rows (Wrapped t) errors)
+        match%lwt t.search input with
+        | Ok scores ->
+          (
+            if List.length scores > 0 then
+              NesList.sub 10 scores
+              |> Lwt_list.map_p make_row
+              >>=| fun l ->
+                match t.default with
+                | None -> Lwt.return l
+                | Some d -> Lwt.return (l @ [d])
+            else
+              match t.default with
+              | None -> Lwt.return [t.empty]
+              | Some d -> Lwt.return [t.empty; d]
+          )
+        | Error errors ->
+          make_error_rows (Wrapped t) errors
+      )
     else
       match t.default with
       | None -> Lwt.return []
@@ -124,33 +131,37 @@ and update t =
   let input = Inputs.Text.contents t.bar in
   List.iter (fun s -> Section.update s input (fun () -> reset t)) t.sections;
   if String.length input < 3 then
-    ( let info_message =
-      if input = "" then "Start typing to search."
-      else "Type at least three characters."
-    in
-    let messages =
-      Table.Row.create
-        ~cells: [
-          Table.Cell.text ~text: (Lwt.return "👉") t.page;
-          Table.Cell.text ~text: (Lwt.return info_message) t.page;
-        ]
-        t.page
-    in
-    Table.Section.replace_rows t.messages (Lwt.return [messages]);
-    if t.hide_sections then
-      Table.replace_bodies t.table (Lwt.return [t.messages]))
+    (
+      let info_message =
+        if input = "" then "Start typing to search."
+        else "Type at least three characters."
+      in
+      let messages =
+        Table.Row.create
+          ~cells: [
+            Table.Cell.text ~text: (Lwt.return "👉") t.page;
+            Table.Cell.text ~text: (Lwt.return info_message) t.page;
+          ]
+          t.page
+      in
+      Table.Section.replace_rows t.messages (Lwt.return [messages]);
+      if t.hide_sections then
+        Table.replace_bodies t.table (Lwt.return [t.messages])
+    )
   else
-    ( let bodies = List.map Section.body t.sections in
-    let enter_for_more =
-      Table.Row.create
-        ~cells: [
-          Table.Cell.text ~text: (Lwt.return "👉") t.page;
-          Table.Cell.text ~colspan: 4 ~text: (Lwt.return "Press enter for more results.") t.page;
-        ]
-        t.page
-    in
-    Table.Section.replace_rows t.messages (Lwt.return [enter_for_more]);
-    Table.replace_bodies t.table (Lwt.return (bodies @ [t.messages])))
+    (
+      let bodies = List.map Section.body t.sections in
+      let enter_for_more =
+        Table.Row.create
+          ~cells: [
+            Table.Cell.text ~text: (Lwt.return "👉") t.page;
+            Table.Cell.text ~colspan: 4 ~text: (Lwt.return "Press enter for more results.") t.page;
+          ]
+          t.page
+      in
+      Table.Section.replace_rows t.messages (Lwt.return [enter_for_more]);
+      Table.replace_bodies t.table (Lwt.return (bodies @ [t.messages]))
+    )
 
 let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
   let root = Html.createDiv (Page.document page) in
@@ -166,15 +177,19 @@ let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
   Dom.appendChild root (Table.root table);
   let t = { page; root; bar; table; messages; sections; hide_sections } in
   List.iter
-    (fun (Section.Wrapped section) ->
-      NesOption.ifsome
-        (fun default -> Table.Row.on_click default (fun () -> reset t))
-        section.Section.default)
+    (
+      fun (Section.Wrapped section) ->
+        NesOption.ifsome
+          (fun default -> Table.Row.on_click default (fun () -> reset t))
+          section.Section.default
+    )
     sections;
   Inputs.Text.on_change bar (fun _ -> update t);
   NesOption.ifsome
-    (fun on_enter ->
-      Inputs.Text.on_enter bar on_enter)
+    (
+      fun on_enter ->
+        Inputs.Text.on_enter bar on_enter
+    )
     on_enter;
   Page.register_modal
     page

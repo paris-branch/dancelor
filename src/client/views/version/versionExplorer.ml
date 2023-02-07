@@ -142,35 +142,45 @@ let update_table t =
       >|=| Score.list_erase
     in
     Lwt.return
-      (List.map
-        (fun version ->
-          let href =
-            let%lwt slug = Version.slug version in
-            Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
-          in
-          let cells =
-            let tune = Version.tune version in
-            let open Lwt in
-            [
-              Table.Cell.create
-                ~content: ( let%lwt content = Formatters.Version.name_and_disambiguation version in
-                Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content))
-                t.page;
-              Table.Cell.create
-                ~content: ( let%lwt tune = tune in
-                let%lwt content = Formatters.Kind.full_string version tune in
-                Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content))
-                t.page;
-              Table.Cell.text ~text: (Version.key version >|= Music.key_to_pretty_string) t.page;
-              Table.Cell.text ~text: (Version.structure version) t.page;
-              Table.Cell.create
-                ~content: ( let%lwt content = Formatters.Version.author_and_arranger version in
-                Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content))
-                t.page;
-            ]
-          in
-          Table.Row.create ~href ~cells t.page)
-        versions)
+      (
+        List.map
+          (
+            fun version ->
+              let href =
+                let%lwt slug = Version.slug version in
+                Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+              in
+              let cells =
+                let tune = Version.tune version in
+                let open Lwt in
+                [
+                  Table.Cell.create
+                    ~content: (
+                      let%lwt content = Formatters.Version.name_and_disambiguation version in
+                      Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+                    )
+                    t.page;
+                  Table.Cell.create
+                    ~content: (
+                      let%lwt tune = tune in
+                      let%lwt content = Formatters.Kind.full_string version tune in
+                      Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+                    )
+                    t.page;
+                  Table.Cell.text ~text: (Version.key version >|= Music.key_to_pretty_string) t.page;
+                  Table.Cell.text ~text: (Version.structure version) t.page;
+                  Table.Cell.create
+                    ~content: (
+                      let%lwt content = Formatters.Version.author_and_arranger version in
+                      Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
+                    )
+                    t.page;
+                ]
+              in
+              Table.Row.create ~href ~cells t.page
+          )
+          versions
+      )
   in
   let section = Table.Section.create ~rows t.page in
   Table.replace_bodies t.table (Lwt.return [section])
@@ -188,32 +198,36 @@ let fill_search t =
   Dom.appendChild t.search_div key_section_header;
   let line1 = Html.createDiv document in
   List.iter
-    (fun key ->
-      let key = Music.make_key key Music.Major in
-      let text = Music.key_to_pretty_string key in
-      let id = spf "button_%s" (Music.key_to_safe_string key) in
-      let on_change active =
-        if active then update_filter t (filter_add_key key)
-        else update_filter t (filter_remove_key key)
-      in
-      let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
-      Style.set ~width: "3rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
-      Dom.appendChild line1 (Inputs.Toggle.root b))
+    (
+      fun key ->
+        let key = Music.make_key key Music.Major in
+        let text = Music.key_to_pretty_string key in
+        let id = spf "button_%s" (Music.key_to_safe_string key) in
+        let on_change active =
+          if active then update_filter t (filter_add_key key)
+          else update_filter t (filter_remove_key key)
+        in
+        let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+        Style.set ~width: "3rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+        Dom.appendChild line1 (Inputs.Toggle.root b)
+    )
     major_keys;
   Dom.appendChild t.search_div line1;
   let line2 = Html.createDiv document in
   List.iter
-    (fun key ->
-      let key = Music.make_key key Music.Minor in
-      let text = Music.key_to_pretty_string key in
-      let id = spf "button_%s" (Music.key_to_safe_string key) in
-      let on_change active =
-        if active then update_filter t (filter_add_key key)
-        else update_filter t (filter_remove_key key)
-      in
-      let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
-      Style.set ~width: "3rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
-      Dom.appendChild line2 (Inputs.Toggle.root b))
+    (
+      fun key ->
+        let key = Music.make_key key Music.Minor in
+        let text = Music.key_to_pretty_string key in
+        let id = spf "button_%s" (Music.key_to_safe_string key) in
+        let on_change active =
+          if active then update_filter t (filter_add_key key)
+          else update_filter t (filter_remove_key key)
+        in
+        let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+        Style.set ~width: "3rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+        Dom.appendChild line2 (Inputs.Toggle.root b)
+    )
     minor_keys;
   Dom.appendChild t.search_div line2;
   Dom.appendChild t.search_div (Html.createBr document);
@@ -222,16 +236,18 @@ let fill_search t =
   Dom.appendChild t.search_div kind_section_header;
   let kinds_div = Html.createDiv document in
   List.iter
-    (fun kind ->
-      let text = Kind.base_to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
-      let id = spf "button_%s" text in
-      let on_change active =
-        if active then update_filter t (filter_add_kind kind)
-        else update_filter t (filter_remove_kind kind)
-      in
-      let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
-      Style.set ~width: "6rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
-      Dom.appendChild kinds_div (Inputs.Toggle.root b))
+    (
+      fun kind ->
+        let text = Kind.base_to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
+        let id = spf "button_%s" text in
+        let on_change active =
+          if active then update_filter t (filter_add_kind kind)
+          else update_filter t (filter_remove_kind kind)
+        in
+        let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+        Style.set ~width: "6rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+        Dom.appendChild kinds_div (Inputs.Toggle.root b)
+    )
     kinds;
   Dom.appendChild t.search_div kinds_div;
   Dom.appendChild t.search_div (Html.createBr document);
@@ -240,16 +256,18 @@ let fill_search t =
   Dom.appendChild t.search_div bars_section_header;
   let bars = Html.createDiv document in
   List.iter
-    (fun n_bars ->
-      let text = spf "%d Bars" n_bars in
-      let id = spf "button_%dbars" n_bars in
-      let on_change active =
-        if active then update_filter t (filter_add_bars n_bars)
-        else update_filter t (filter_remove_bars n_bars)
-      in
-      let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
-      Style.set ~width: "6rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
-      Dom.appendChild bars (Inputs.Toggle.root b))
+    (
+      fun n_bars ->
+        let text = spf "%d Bars" n_bars in
+        let id = spf "button_%dbars" n_bars in
+        let on_change active =
+          if active then update_filter t (filter_add_bars n_bars)
+          else update_filter t (filter_remove_bars n_bars)
+        in
+        let b = Inputs.Toggle.create ~id ~text ~on_change t.page in
+        Style.set ~width: "6rem" ~margin: "0pt 2pt 2pt 0pt" (Inputs.Toggle.root b);
+        Dom.appendChild bars (Inputs.Toggle.root b)
+    )
     lengths;
   Dom.appendChild t.search_div bars
 
@@ -283,13 +301,17 @@ let create page =
   let t = { page; content; search_div; search; table; page_nav } in
   PageNav.connect_on_page_change
     page_nav
-    (fun _ ->
-      PageNav.rebuild page_nav;
-      update_table t);
+    (
+      fun _ ->
+        PageNav.rebuild page_nav;
+        update_table t
+    );
   Lwt.on_success
     (Version.count Formula.true_)
-    (fun entries ->
-      PageNav.set_entries page_nav entries);
+    (
+      fun entries ->
+        PageNav.set_entries page_nav entries
+    );
   fill_search t;
   update_table t;
   t

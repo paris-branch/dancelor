@@ -141,9 +141,10 @@ module Make (Model: Model) : S with type value = Model.t = struct
     match version with
     | None ->
       (
-      match !default with
-      | None -> failwith "no default table"
-      | Some default -> default)
+        match !default with
+        | None -> failwith "no default table"
+        | Some default -> default
+      )
     | Some version ->
       Hashtbl.find versions version
 
@@ -199,31 +200,37 @@ module Make (Model: Model) : S with type value = Model.t = struct
     |> Hashtbl.to_seq_values
     |> List.of_seq
     |> Lwt_list.fold_left_s
-      (fun problems (_, model) ->
-        let%lwt slug = Model.slug model in
-        let%lwt status = Model.status model in
-        let%lwt deps = Model.dependencies model in
-        let%lwt new_problems =
-          deps
-          |> Lwt_list.map_s (list_dependency_problems_for slug status ~version)
-        in
-        new_problems
-        |> List.flatten
-        |> (fun new_problems -> new_problems @ problems)
-        |> Lwt.return)
+      (
+        fun problems (_, model) ->
+          let%lwt slug = Model.slug model in
+          let%lwt status = Model.status model in
+          let%lwt deps = Model.dependencies model in
+          let%lwt new_problems =
+            deps
+            |> Lwt_list.map_s (list_dependency_problems_for slug status ~version)
+          in
+          new_problems
+          |> List.flatten
+          |> (fun new_problems -> new_problems @ problems)
+          |> Lwt.return
+      )
       []
 
   let report_without_accesses ~version =
     get_table ~version ()
     |> Hashtbl.to_seq_values
     |> Seq.iter
-      (fun (stats, model) ->
-        if Stats.get_accesses stats = 0 then
-          Lwt.async
-            (fun () ->
-              let%lwt slug = Model.slug model in
-              Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp slug);
-              Lwt.return ()))
+      (
+        fun (stats, model) ->
+          if Stats.get_accesses stats = 0 then
+            Lwt.async
+              (
+                fun () ->
+                  let%lwt slug = Model.slug model in
+                  Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp slug);
+                  Lwt.return ()
+              )
+      )
 
   let get ?version slug =
     match%lwt get_opt ?version slug with
@@ -236,9 +243,11 @@ module Make (Model: Model) : S with type value = Model.t = struct
     get_table ?version ()
     |> Hashtbl.to_seq_values
     |> Seq.map
-      (fun (stats, model) ->
-        Stats.add_access stats;
-        model)
+      (
+        fun (stats, model) ->
+          Stats.add_access stats;
+          model
+      )
     |> List.of_seq
     |> Lwt.return
 

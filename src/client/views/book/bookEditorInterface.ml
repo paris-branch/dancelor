@@ -29,21 +29,27 @@ let make_set_subwindow t index set =
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
     Inputs.Button.create
-      ~on_click: (fun () ->
-        BookEditor.move_down t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          BookEditor.move_down t.editor index;
+          Page.refresh t.page
+      )
       ~icon: "chevron-down"
       t.page,
     Inputs.Button.create
-      ~on_click: (fun () ->
-        BookEditor.move_up t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          BookEditor.move_up t.editor index;
+          Page.refresh t.page
+      )
       ~icon: "chevron-up"
       t.page,
     Inputs.Button.create
-      ~on_click: (fun () ->
-        BookEditor.remove t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          BookEditor.remove t.editor index;
+          Page.refresh t.page
+      )
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "times"
       t.page
@@ -69,10 +75,12 @@ let refresh t =
   Helpers.clear_children t.sets_area;
   BookEditor.iter
     t.editor
-    (fun i set ->
-      let subwin = make_set_subwindow t i set in
-      Dom.appendChild t.sets_area (Html.createBr (Page.document t.page));
-      Dom.appendChild t.sets_area subwin)
+    (
+      fun i set ->
+        let subwin = make_set_subwindow t i set in
+        Dom.appendChild t.sets_area (Html.createBr (Page.document t.page));
+        Dom.appendChild t.sets_area subwin
+    )
 
 let make_set_search_result editor page score =
   let set = Score.value score in
@@ -81,8 +89,10 @@ let make_set_search_result editor page score =
   let%lwt name = Set.name set in
   let row =
     Table.Row.create
-      ~on_click: (fun () ->
-        Lwt.on_success (BookEditor.add editor slug) (fun () -> Page.refresh page))
+      ~on_click: (
+        fun () ->
+          Lwt.on_success (BookEditor.add editor slug) (fun () -> Page.refresh page)
+      )
       ~cells: [
         Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text: (Lwt.return name) page;
@@ -115,15 +125,17 @@ let create ?on_save page =
   let sets_search =
     let main_section =
       SearchBar.Section.create
-        ~search: (fun input ->
-          let%rlwt formula = Lwt.return (SetFilter.raw input) in
-          let%lwt results =
-            Set.search
-              ~threshold: 0.4
-              ~pagination: Pagination.{ start = 0; end_ = 10 }
-              formula
-          in
-          Lwt.return_ok results)
+        ~search: (
+          fun input ->
+            let%rlwt formula = Lwt.return (SetFilter.raw input) in
+            let%lwt results =
+              Set.search
+                ~threshold: 0.4
+                ~pagination: Pagination.{ start = 0; end_ = 10 }
+                formula
+            in
+            Lwt.return_ok results
+        )
         ~make_result: (fun score -> make_set_search_result editor page score)
         page
     in
@@ -138,27 +150,35 @@ let create ?on_save page =
       ~kind: Inputs.Button.Kind.Success
       ~icon: "save"
       ~text: "Save"
-      ~on_click: (fun () ->
-        let b1, b2 =
-          Inputs.Text.check input_title (fun str -> str <> ""),
-          Inputs.Text.check
-            input_date
-            (fun str -> try PartialDate.from_string str |> ignore; true with _ -> str = "")
-        in
-        if b1 && b2 then
-          (Lwt.on_success
-            (BookEditor.submit editor)
-            (fun book ->
+      ~on_click: (
+        fun () ->
+          let b1, b2 =
+            Inputs.Text.check input_title (fun str -> str <> ""),
+            Inputs.Text.check
+              input_date
+              (fun str -> try PartialDate.from_string str |> ignore; true with _ -> str = "")
+          in
+          if b1 && b2 then
+            (
               Lwt.on_success
-                (Book.slug book)
-                (fun slug ->
-                  begin
-                    match on_save with
-                    | None ->
-                      let href = Router.path_of_controller (Router.Book slug) |> snd in
-                      Html.window##.location##.href := js href
-                    | Some cb -> cb slug
-                  end))))
+                (BookEditor.submit editor)
+                (
+                  fun book ->
+                    Lwt.on_success
+                      (Book.slug book)
+                      (
+                        fun slug ->
+                          begin
+                            match on_save with
+                            | None ->
+                              let href = Router.path_of_controller (Router.Book slug) |> snd in
+                              Html.window##.location##.href := js href
+                            | Some cb -> cb slug
+                          end
+                      )
+                )
+            )
+      )
       page
   in
   let clear =
@@ -166,14 +186,16 @@ let create ?on_save page =
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "exclamation-triangle"
       ~text: "Clear"
-      ~on_click: (fun () ->
-        if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then
-          begin
-            BookEditor.clear editor;
-            Page.refresh page;
-            Inputs.Text.set_valid input_title true;
-            Inputs.Text.set_valid input_date true
-          end)
+      ~on_click: (
+        fun () ->
+          if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then
+            begin
+              BookEditor.clear editor;
+              Page.refresh page;
+              Inputs.Text.set_valid input_title true;
+              Inputs.Text.set_valid input_date true
+            end
+      )
       page
   in
   Dom.appendChild submit (Inputs.Button.root save);

@@ -96,20 +96,24 @@ module Row = struct
       | Some on_click ->
         row##.classList##add (js "clickable");
         Lwt.async
-          (fun () ->
-            Lwt_js_events.clicks
-              row
-              (fun _ev _ -> on_click (); Lwt.return ()))
+          (
+            fun () ->
+              Lwt_js_events.clicks
+                row
+                (fun _ev _ -> on_click (); Lwt.return ())
+          )
     end;
     { page; size = List.length cells; root = row }
 
   let on_click row on_click =
     row.root##.classList##add (js "clickable");
     Lwt.async
-      (fun () ->
-        Lwt_js_events.clicks
-          row.root
-          (fun _ev _ -> on_click (); Lwt.return ()))
+      (
+        fun () ->
+          Lwt_js_events.clicks
+            row.root
+            (fun _ev _ -> on_click (); Lwt.return ())
+      )
 
   let root t =
     t.root
@@ -141,9 +145,11 @@ module Section = struct
   let replace_rows t rows =
     Lwt.on_success
       rows
-      (fun rows ->
-        clear t;
-        List.iter (add t) rows)
+      (
+        fun rows ->
+          clear t;
+          List.iter (add t) rows
+      )
 
   let create ?header ~rows page =
     let root = Html.createTbody (Page.document page) in
@@ -157,10 +163,12 @@ module Section = struct
     replace_rows t rows;
     Lwt.bind
       rows
-      (fun rows ->
-        clear t;
-        List.iter (add t) rows;
-        Lwt.return t)
+      (
+        fun rows ->
+          clear t;
+          List.iter (add t) rows;
+          Lwt.return t
+      )
 end
 
 module Kind = struct
@@ -195,9 +203,11 @@ let clear t =
 let replace_bodies t bodies =
   Lwt.on_success
     bodies
-    (fun bodies ->
-      clear t;
-      List.iter (add t) bodies)
+    (
+      fun bodies ->
+        clear t;
+        List.iter (add t) bodies
+    )
 
 let hide t =
   t.root##.classList##remove (js "visible")
@@ -217,18 +227,20 @@ let create ?(visible = true) ?header ?contents ?kind page =
   NesOption.ifsome (fun h -> Dom.appendChild head (Row.root h)) header;
   NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
   NesOption.ifsome
-    (fun contents ->
-      let colspan =
-        match header with
-        | Some h -> Row.size h
-        | None -> 1
-      in
-      let loading_row =
-        Row.create ~cells: [Cell.text ~colspan ~text: (Lwt.return "Loading...") page] page
-      in
-      let loading = Section.create ~rows: (Lwt.return [loading_row]) page in
-      add table loading;
-      replace_bodies table contents)
+    (
+      fun contents ->
+        let colspan =
+          match header with
+          | Some h -> Row.size h
+          | None -> 1
+        in
+        let loading_row =
+          Row.create ~cells: [Cell.text ~colspan ~text: (Lwt.return "Loading...") page] page
+        in
+        let loading = Section.create ~rows: (Lwt.return [loading_row]) page in
+        add table loading;
+        replace_bodies table contents
+    )
     contents;
   set_visible table visible;
   table

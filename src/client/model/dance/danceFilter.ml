@@ -18,6 +18,7 @@ let accepts filter dance =
     KindFilter.Dance.accepts kfilter kind
   | Deviser cfilter ->
     (
-    match%lwt DanceLifted.deviser dance with
-    | None -> Lwt.return Formula.interpret_false
-    | Some deviser -> CreditFilter.accepts cfilter deviser)
+      match%lwt DanceLifted.deviser dance with
+      | None -> Lwt.return Formula.interpret_false
+      | Some deviser -> CreditFilter.accepts cfilter deviser
+    )

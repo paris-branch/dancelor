@@ -29,8 +29,10 @@ let refresh t =
       let name = Tune.name tune in
       Lwt.on_success
         name
-        (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.tune_search) name)
+        (
+          fun name ->
+            Inputs.Text.set_contents (SearchBar.bar t.tune_search) name
+        )
   end;
   begin
     match VersionEditor.arranger t.editor with
@@ -39,8 +41,10 @@ let refresh t =
       let name = Credit.line arranger in
       Lwt.on_success
         name
-        (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name)
+        (
+          fun name ->
+            Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name
+        )
   end;
   Inputs.Text.set_contents t.input_bars (VersionEditor.bars t.editor);
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
@@ -55,10 +59,12 @@ let make_tune_modal editor content page =
   let interface =
     TuneEditorInterface.create
       page
-      ~on_save: (fun slug ->
-        Page.remove_modal page modal_bg;
-        Dom.removeChild content modal_bg;
-        Lwt.on_success (VersionEditor.set_tune editor slug) (fun () -> Page.refresh page))
+      ~on_save: (
+        fun slug ->
+          Page.remove_modal page modal_bg;
+          Dom.removeChild content modal_bg;
+          Lwt.on_success (VersionEditor.set_tune editor slug) (fun () -> Page.refresh page)
+      )
   in
   Dom.appendChild tune_modal (TuneEditorInterface.contents interface);
   tune_modal##.classList##add (js "modal-window");
@@ -79,10 +85,12 @@ let make_tune_search_result editor page score =
   let%lwt slug = Tune.slug tune in
   let row =
     Table.Row.create
-      ~on_click: (fun () ->
-        Lwt.on_success
-          (VersionEditor.set_tune editor slug)
-          (fun () -> Page.refresh page))
+      ~on_click: (
+        fun () ->
+          Lwt.on_success
+            (VersionEditor.set_tune editor slug)
+            (fun () -> Page.refresh page)
+      )
       ~cells: [
         Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text: (Lwt.return name) page;
@@ -97,10 +105,12 @@ let make_arranger_modal editor content page =
   let interface =
     CreditEditorInterface.create
       page
-      ~on_save: (fun slug ->
-        Page.remove_modal page modal_bg;
-        Dom.removeChild content modal_bg;
-        Lwt.on_success (VersionEditor.set_arranger editor slug) (fun () -> Page.refresh page))
+      ~on_save: (
+        fun slug ->
+          Page.remove_modal page modal_bg;
+          Dom.removeChild content modal_bg;
+          Lwt.on_success (VersionEditor.set_arranger editor slug) (fun () -> Page.refresh page)
+      )
   in
   Dom.appendChild arranger_modal (CreditEditorInterface.contents interface);
   arranger_modal##.classList##add (js "modal-window");
@@ -121,10 +131,12 @@ let make_arranger_search_result editor page score =
   let%lwt slug = Credit.slug arranger in
   let row =
     Table.Row.create
-      ~on_click: (fun () ->
-        Lwt.on_success
-          (VersionEditor.set_arranger editor slug)
-          (fun () -> Page.refresh page))
+      ~on_click: (
+        fun () ->
+          Lwt.on_success
+            (VersionEditor.set_arranger editor slug)
+            (fun () -> Page.refresh page)
+      )
       ~cells: [
         Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text: (Lwt.return name) page;
@@ -179,22 +191,26 @@ let create page =
   let tune_search =
     let main_section =
       SearchBar.Section.create
-        ~default: (Table.Row.create
-          ~on_click: (fun () -> make_tune_modal editor content page)
-          ~cells: [
-            Table.Cell.text ~text: (Lwt.return "  +") page;
-            Table.Cell.text ~text: (Lwt.return "Create a new associated tune") page;
-          ]
-          page)
-        ~search: (fun input ->
-          let%rlwt formula = Lwt.return (TuneFilter.raw input) in
-          let%lwt results =
-            Tune.search
-              ~threshold: 0.4
-              ~pagination: Pagination.{ start = 0; end_ = 10 }
-              formula
-          in
-          Lwt.return_ok results)
+        ~default: (
+          Table.Row.create
+            ~on_click: (fun () -> make_tune_modal editor content page)
+            ~cells: [
+              Table.Cell.text ~text: (Lwt.return "  +") page;
+              Table.Cell.text ~text: (Lwt.return "Create a new associated tune") page;
+            ]
+            page
+        )
+        ~search: (
+          fun input ->
+            let%rlwt formula = Lwt.return (TuneFilter.raw input) in
+            let%lwt results =
+              Tune.search
+                ~threshold: 0.4
+                ~pagination: Pagination.{ start = 0; end_ = 10 }
+                formula
+            in
+            Lwt.return_ok results
+        )
         ~make_result: (fun score -> make_tune_search_result editor page score)
         page
     in
@@ -205,32 +221,38 @@ let create page =
   in
   Inputs.Text.on_focus
     (SearchBar.bar tune_search)
-    (fun b ->
-      if b then
-        begin
-          Inputs.Text.erase (SearchBar.bar tune_search);
-          VersionEditor.remove_tune editor;
-          Page.refresh page
-        end);
+    (
+      fun b ->
+        if b then
+          begin
+            Inputs.Text.erase (SearchBar.bar tune_search);
+            VersionEditor.remove_tune editor;
+            Page.refresh page
+          end
+    );
   let arranger_search =
     let main_section =
       SearchBar.Section.create
-        ~default: (Table.Row.create
-          ~on_click: (fun () -> make_arranger_modal editor content page)
-          ~cells: [
-            Table.Cell.text ~text: (Lwt.return "  +") page;
-            Table.Cell.text ~text: (Lwt.return "Create a new arranger") page;
-          ]
-          page)
-        ~search: (fun input ->
-          let%rlwt formula = Lwt.return (CreditFilter.raw input) in
-          let%lwt results =
-            Credit.search
-              ~threshold: 0.4
-              ~pagination: Pagination.{ start = 0; end_ = 10 }
-              formula
-          in
-          Lwt.return_ok results)
+        ~default: (
+          Table.Row.create
+            ~on_click: (fun () -> make_arranger_modal editor content page)
+            ~cells: [
+              Table.Cell.text ~text: (Lwt.return "  +") page;
+              Table.Cell.text ~text: (Lwt.return "Create a new arranger") page;
+            ]
+            page
+        )
+        ~search: (
+          fun input ->
+            let%rlwt formula = Lwt.return (CreditFilter.raw input) in
+            let%lwt results =
+              Credit.search
+                ~threshold: 0.4
+                ~pagination: Pagination.{ start = 0; end_ = 10 }
+                formula
+            in
+            Lwt.return_ok results
+        )
         ~make_result: (fun score -> make_arranger_search_result editor page score)
         page
     in
@@ -241,13 +263,15 @@ let create page =
   in
   Inputs.Text.on_focus
     (SearchBar.bar arranger_search)
-    (fun b ->
-      if b then
-        begin
-          Inputs.Text.erase (SearchBar.bar arranger_search);
-          VersionEditor.remove_arranger editor;
-          Page.refresh page
-        end);
+    (
+      fun b ->
+        if b then
+          begin
+            Inputs.Text.erase (SearchBar.bar arranger_search);
+            VersionEditor.remove_arranger editor;
+            Page.refresh page
+          end
+    );
   let t =
     { page; editor; content; tune_search; input_bars; input_key; input_structure; arranger_search; input_remark; input_disambiguation; input_content }
   in
@@ -259,29 +283,37 @@ let create page =
       ~kind: Inputs.Button.Kind.Success
       ~icon: "save"
       ~text: "Save"
-      ~on_click: (fun () ->
-        let b1, b2, b3, b4, b5 =
-          Inputs.Text.check
-            (SearchBar.bar t.tune_search)
-            (fun _ -> VersionEditor.tune t.editor <> None),
-          Inputs.Text.check
-            input_bars
-            (fun str -> try int_of_string str > 0 with _ -> false),
-          Inputs.Text.check
-            input_key
-            (fun str -> try Music.key_of_string str |> ignore; true with _ -> false),
-          Inputs.Text.check input_structure (fun str -> str <> ""),
-          Inputs.Textarea.check input_content (fun str -> str <> "")
-        in
-        if b1 && b2 && b3 && b4 && b5 then
-          (Lwt.on_success
-            (VersionEditor.submit editor)
-            (fun version ->
+      ~on_click: (
+        fun () ->
+          let b1, b2, b3, b4, b5 =
+            Inputs.Text.check
+              (SearchBar.bar t.tune_search)
+              (fun _ -> VersionEditor.tune t.editor <> None),
+            Inputs.Text.check
+              input_bars
+              (fun str -> try int_of_string str > 0 with _ -> false),
+            Inputs.Text.check
+              input_key
+              (fun str -> try Music.key_of_string str |> ignore; true with _ -> false),
+            Inputs.Text.check input_structure (fun str -> str <> ""),
+            Inputs.Textarea.check input_content (fun str -> str <> "")
+          in
+          if b1 && b2 && b3 && b4 && b5 then
+            (
               Lwt.on_success
-                (Version.slug version)
-                (fun slug ->
-                  let href = Router.path_of_controller (Router.Version slug) |> snd in
-                  Html.window##.location##.href := js href))))
+                (VersionEditor.submit editor)
+                (
+                  fun version ->
+                    Lwt.on_success
+                      (Version.slug version)
+                      (
+                        fun slug ->
+                          let href = Router.path_of_controller (Router.Version slug) |> snd in
+                          Html.window##.location##.href := js href
+                      )
+                )
+            )
+      )
       page
   in
   let clear =
@@ -289,17 +321,19 @@ let create page =
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "exclamation-triangle"
       ~text: "Clear"
-      ~on_click: (fun () ->
-        if Html.window##confirm (js "Clear the version?") |> Js.to_bool then
-          begin
-            VersionEditor.clear editor;
-            refresh t;
-            Inputs.Text.set_valid (SearchBar.bar t.tune_search) true;
-            Inputs.Text.set_valid input_bars true;
-            Inputs.Text.set_valid input_key true;
-            Inputs.Text.set_valid input_structure true;
-            Inputs.Textarea.set_valid input_content true
-          end)
+      ~on_click: (
+        fun () ->
+          if Html.window##confirm (js "Clear the version?") |> Js.to_bool then
+            begin
+              VersionEditor.clear editor;
+              refresh t;
+              Inputs.Text.set_valid (SearchBar.bar t.tune_search) true;
+              Inputs.Text.set_valid input_bars true;
+              Inputs.Text.set_valid input_key true;
+              Inputs.Text.set_valid input_structure true;
+              Inputs.Textarea.set_valid input_content true
+            end
+      )
       page
   in
   Dom.appendChild submit (Inputs.Button.root save);

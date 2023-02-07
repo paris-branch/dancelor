@@ -20,13 +20,15 @@ let create page =
     [
       h2 ~classes: ["title"] [text "List of Broken Versions"];
       div_lwt
-        ( let%lwt versions = Version.search VersionFilter.broken >|=| Score.list_erase in
+        (
+          let%lwt versions = Version.search VersionFilter.broken >|=| Score.list_erase in
 
-        (* If there is no broken version, no need to print the table *)
-        if List.length versions = 0 then
-          Lwt.return [text "No broken version"]
-        else
-          Lwt.return [Dancelor_client_tables.versions_with_names versions]);
+          (* If there is no broken version, no need to print the table *)
+          if List.length versions = 0 then
+            Lwt.return [text "No broken version"]
+          else
+            Lwt.return [Dancelor_client_tables.versions_with_names versions]
+        );
     ]);
   { page; content }
 

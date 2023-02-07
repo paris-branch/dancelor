@@ -34,29 +34,37 @@ let create page =
   let rows =
     let%lwt books = Book.search Formula.true_ >|=| Score.list_erase in
     Lwt.return
-      (List.map
-        (fun book ->
-          let href =
-            let%lwt slug = Book.slug book in
-            Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
-          in
-          let cells =
-            let open Lwt in
-            [
-              Table.Cell.create
-                ~content: ( let%lwt content = Formatters.Book.title_and_subtitle book in
-                Lwt.return (Dancelor_client_html.nodes_to_dom_nodes document content))
-                page;
-              Table.Cell.text
-                ~text: (Book.date book
-                >|= function
-                | None -> ""
-                | Some date -> NesPartialDate.to_pretty_string date)
-                page;
-            ]
-          in
-          Table.Row.create ~href ~cells page)
-        books)
+      (
+        List.map
+          (
+            fun book ->
+              let href =
+                let%lwt slug = Book.slug book in
+                Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+              in
+              let cells =
+                let open Lwt in
+                [
+                  Table.Cell.create
+                    ~content: (
+                      let%lwt content = Formatters.Book.title_and_subtitle book in
+                      Lwt.return (Dancelor_client_html.nodes_to_dom_nodes document content)
+                    )
+                    page;
+                  Table.Cell.text
+                    ~text: (
+                      Book.date book
+                      >|= function
+                      | None -> ""
+                      | Some date -> NesPartialDate.to_pretty_string date
+                    )
+                    page;
+                ]
+              in
+              Table.Row.create ~href ~cells page
+          )
+          books
+      )
   in
   let section = Table.Section.create ~rows page in
   let table =

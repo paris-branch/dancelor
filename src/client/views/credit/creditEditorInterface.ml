@@ -26,21 +26,27 @@ let make_person_subdiv t index person =
   Style.set ~display: "flex" buttons;
   let down, up, del =
     Inputs.Button.create
-      ~on_click: (fun () ->
-        CreditEditor.move_down t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          CreditEditor.move_down t.editor index;
+          Page.refresh t.page
+      )
       ~icon: "chevron-down"
       t.page,
     Inputs.Button.create
-      ~on_click: (fun () ->
-        CreditEditor.move_up t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          CreditEditor.move_up t.editor index;
+          Page.refresh t.page
+      )
       ~icon: "chevron-up"
       t.page,
     Inputs.Button.create
-      ~on_click: (fun () ->
-        CreditEditor.remove t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          CreditEditor.remove t.editor index;
+          Page.refresh t.page
+      )
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "times"
       t.page
@@ -93,10 +99,12 @@ let refresh t =
   t.persons_inputs <- [];
   CreditEditor.iter
     t.editor
-    (fun i person ->
-      let subwin = make_person_subdiv t i person in
-      Dom.appendChild t.persons_area (Html.createBr (Page.document t.page));
-      Dom.appendChild t.persons_area subwin)
+    (
+      fun i person ->
+        let subwin = make_person_subdiv t i person in
+        Dom.appendChild t.persons_area (Html.createBr (Page.document t.page));
+        Dom.appendChild t.persons_area subwin
+    )
   |> ignore
 
 let create ?on_save page =
@@ -120,43 +128,53 @@ let create ?on_save page =
   let search_bar =
     let main_section =
       SearchBar.Section.create
-        ~search: (fun input ->
-          let%rlwt formula = Lwt.return (PersonFilter.raw input) in
-          let%lwt results =
-            Person.search
-              ~threshold: 0.4
-              ~pagination: Pagination.{ start = 0; end_ = 10 }
-              formula
-          in
-          Lwt.return_ok results)
-        ~default: (Table.Row.create
-          ~cells: [
-            Table.Cell.text ~text: (Lwt.return "  +") page;
-            Table.Cell.text ~text: (Lwt.return "Create a new person") page;
-          ]
-          ~on_click: (fun () ->
-            Lwt.on_success
-              (CreditEditor.add editor (`New ""))
-              (fun () -> Page.refresh page))
-          page)
-        ~make_result: (fun score ->
-          let person = Score.value score in
-          let score = score.Score.score in
-          let%lwt slug = Person.slug person in
-          let%lwt name = Person.name person in
-          let row =
-            Table.Row.create
-              ~on_click: (fun () ->
+        ~search: (
+          fun input ->
+            let%rlwt formula = Lwt.return (PersonFilter.raw input) in
+            let%lwt results =
+              Person.search
+                ~threshold: 0.4
+                ~pagination: Pagination.{ start = 0; end_ = 10 }
+                formula
+            in
+            Lwt.return_ok results
+        )
+        ~default: (
+          Table.Row.create
+            ~cells: [
+              Table.Cell.text ~text: (Lwt.return "  +") page;
+              Table.Cell.text ~text: (Lwt.return "Create a new person") page;
+            ]
+            ~on_click: (
+              fun () ->
                 Lwt.on_success
-                  (CreditEditor.add editor (`Slug slug))
-                  (fun () -> Page.refresh page))
-              ~cells: [
-                Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-                Table.Cell.text ~text: (Lwt.return name) page;
-              ]
-              page
-          in
-          Lwt.return row)
+                  (CreditEditor.add editor (`New ""))
+                  (fun () -> Page.refresh page)
+            )
+            page
+        )
+        ~make_result: (
+          fun score ->
+            let person = Score.value score in
+            let score = score.Score.score in
+            let%lwt slug = Person.slug person in
+            let%lwt name = Person.name person in
+            let row =
+              Table.Row.create
+                ~on_click: (
+                  fun () ->
+                    Lwt.on_success
+                      (CreditEditor.add editor (`Slug slug))
+                      (fun () -> Page.refresh page)
+                )
+                ~cells: [
+                  Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
+                  Table.Cell.text ~text: (Lwt.return name) page;
+                ]
+                page
+            in
+            Lwt.return row
+        )
         page
     in
     SearchBar.create
@@ -173,40 +191,50 @@ let create ?on_save page =
       ~kind: Inputs.Button.Kind.Success
       ~icon: "save"
       ~text: "Save"
-      ~on_click: (fun () ->
-        let b1, b2, b3, b4 =
-          Inputs.Text.check input_name (fun str -> str <> ""),
-          Inputs.Text.check (SearchBar.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
-          List.for_all
-            (fun input -> Inputs.Text.check input (fun str -> str <> ""))
-            t.persons_inputs,
-          Inputs.Text.check
-            input_scddb_id
-            (fun str ->
-              if str = "" then
-                true
-              else
-                match int_of_string_opt str with
-                | Some _ -> true
-                | None ->
-                  match SCDDB.person_from_uri str with
-                  | Ok _ -> true
-                  | Error _ -> false)
-        in
-        if b1 && b2 && b3 && b4 then
-          (Lwt.on_success
-            (CreditEditor.submit editor)
-            (fun credit ->
-              Lwt.on_success
-                (Credit.slug credit)
-                (fun slug ->
-                  begin
-                    match on_save with
+      ~on_click: (
+        fun () ->
+          let b1, b2, b3, b4 =
+            Inputs.Text.check input_name (fun str -> str <> ""),
+            Inputs.Text.check (SearchBar.bar search_bar) (fun _ -> CreditEditor.count editor > 0),
+            List.for_all
+              (fun input -> Inputs.Text.check input (fun str -> str <> ""))
+              t.persons_inputs,
+            Inputs.Text.check
+              input_scddb_id
+              (
+                fun str ->
+                  if str = "" then
+                    true
+                  else
+                    match int_of_string_opt str with
+                    | Some _ -> true
                     | None ->
-                      let href = Router.path_of_controller (Router.Credit slug) |> snd in
-                      Html.window##.location##.href := js href
-                    | Some cb -> cb slug
-                  end))))
+                      match SCDDB.person_from_uri str with
+                      | Ok _ -> true
+                      | Error _ -> false
+              )
+          in
+          if b1 && b2 && b3 && b4 then
+            (
+              Lwt.on_success
+                (CreditEditor.submit editor)
+                (
+                  fun credit ->
+                    Lwt.on_success
+                      (Credit.slug credit)
+                      (
+                        fun slug ->
+                          begin
+                            match on_save with
+                            | None ->
+                              let href = Router.path_of_controller (Router.Credit slug) |> snd in
+                              Html.window##.location##.href := js href
+                            | Some cb -> cb slug
+                          end
+                      )
+                )
+            )
+      )
       page
   in
   let clear =
@@ -214,15 +242,17 @@ let create ?on_save page =
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "exclamation-triangle"
       ~text: "Clear"
-      ~on_click: (fun () ->
-        if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then
-          begin
-            CreditEditor.clear editor;
-            Page.refresh page;
-            Inputs.Text.set_valid input_name true;
-            Inputs.Text.set_valid (SearchBar.bar search_bar) true;
-            Inputs.Text.set_valid input_scddb_id true
-          end)
+      ~on_click: (
+        fun () ->
+          if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then
+            begin
+              CreditEditor.clear editor;
+              Page.refresh page;
+              Inputs.Text.set_valid input_name true;
+              Inputs.Text.set_valid (SearchBar.bar search_bar) true;
+              Inputs.Text.set_valid input_scddb_id true
+            end
+      )
       page
   in
   Dom.appendChild submit (Inputs.Button.root save);

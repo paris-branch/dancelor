@@ -87,8 +87,10 @@ let name_disambiguation_and_sources ?link version =
   in
   let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
   Lwt.return
-    (name_and_disambiguation
-    @ [span_lwt ~classes: ["dim"; "details"] sources_lwt])
+    (
+      name_and_disambiguation
+      @ [span_lwt ~classes: ["dim"; "details"] sources_lwt]
+    )
 
 let disambiguation_and_sources version =
   let sources_lwt =

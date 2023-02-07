@@ -46,20 +46,23 @@ let base_to_yojson b =
 
 let base_of_yojson = function
   | `String s ->
-    ( try
-      Ok (base_of_string s)
-    with
-      _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind")
+    (
+      try
+        Ok (base_of_string s)
+      with
+        _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
 
 let base_to_pretty_string ?(capitalised = false) base =
   (
-  match base with
-  | Jig -> "jig"
-  | Polka -> "polka"
-  | Reel -> "reel"
-  | Strathspey -> "strathspey"
-  | Waltz -> "waltz")
+    match base with
+    | Jig -> "jig"
+    | Polka -> "polka"
+    | Reel -> "reel"
+    | Strathspey -> "strathspey"
+    | Waltz -> "waltz"
+  )
   |> if capitalised then String.capitalize_ascii else Fun.id
 
 let base_tempo = function
@@ -132,10 +135,12 @@ let version_to_yojson t =
 
 let version_of_yojson = function
   | `String s ->
-    ( try
-      Ok (version_of_string s)
-    with
-      _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind")
+    (
+      try
+        Ok (version_of_string s)
+      with
+        _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
 let version_to_pretty_string (repeats, base) =
@@ -206,10 +211,12 @@ let dance_to_yojson d =
 
 let dance_of_yojson = function
   | `String s ->
-    ( try
-      Ok (dance_of_string s)
-    with
-      _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a valid dance kind")
+    (
+      try
+        Ok (dance_of_string s)
+      with
+        _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a valid dance kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a JSON string"
 
 let dance_to_pretty_string (repeats, versions) =

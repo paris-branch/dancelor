@@ -46,9 +46,11 @@ let is_source book = source book
 
 let contains_set set1 book =
   List.exists
-    (function
-    | PageCore.Set (set2, _) -> Slug.equal set1 set2
-    | _ -> false)
+    (
+      function
+      | PageCore.Set (set2, _) -> Slug.equal set1 set2
+      | _ -> false
+    )
     book.contents
 
 let compare book1 book2 =

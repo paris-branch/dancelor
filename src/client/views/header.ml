@@ -32,16 +32,20 @@ let create page =
   let menu = Html.createUl document in
   menu##.id := js "nav";
   Lwt.async
-    (fun () ->
-      Lwt_js_events.clicks
-        menu_toggle
-        (fun _ev _ ->
-          print_endline (Style.display menu);
-          if Style.display menu = "none" || Style.display menu = "" then
-            Style.set ~display: "block" menu
-          else
-            Style.set ~display: "none" menu;
-          Lwt.return ()));
+    (
+      fun () ->
+        Lwt_js_events.clicks
+          menu_toggle
+          (
+            fun _ev _ ->
+              print_endline (Style.display menu);
+              if Style.display menu = "none" || Style.display menu = "" then
+                Style.set ~display: "block" menu
+              else
+                Style.set ~display: "none" menu;
+              Lwt.return ()
+          )
+    );
   Dom.appendChild content menu_toggle;
   Dom.appendChild content (Text.Link.root title);
   Dom.appendChild content menu;

@@ -75,16 +75,20 @@ let check ?number s =
       (* Check that the n tunes are mentioned *)
       let present = Array.make n false in
       List.iter
-        (function
-        | External _ -> ()
-        | Internal i -> present.(i - 1) <- true)
+        (
+          function
+          | External _ -> ()
+          | Internal i -> present.(i - 1) <- true
+        )
         o;
       Array.for_all Fun.id present
 
 let of_yojson = function
   | `String string ->
-    ( try
-      Ok (of_string string)
-    with
-      _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a valid set order")
+    (
+      try
+        Ok (of_string string)
+      with
+        _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a valid set order"
+    )
   | _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a JSON string"

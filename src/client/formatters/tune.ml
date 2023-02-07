@@ -33,8 +33,10 @@ let description tune =
   | Some author ->
     let%lwt line_block = Credit.line ~link: true (Some author) in
     Lwt.return
-      ([text (String.capitalize_ascii kind ^ " by ")]
-      @ line_block)
+      (
+        [text (String.capitalize_ascii kind ^ " by ")]
+        @ line_block
+      )
 
 let aka tune =
   match%lwt M.Tune.alternative_names tune with

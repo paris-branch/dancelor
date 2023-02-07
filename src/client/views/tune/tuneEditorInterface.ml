@@ -32,9 +32,11 @@ let make_dance_subwindow t index dance =
   let buttons = Html.createUl (Page.document t.page) in
   let del =
     Inputs.Button.create
-      ~on_click: (fun () ->
-        TuneEditor.remove t.editor index;
-        Page.refresh t.page)
+      ~on_click: (
+        fun () ->
+          TuneEditor.remove t.editor index;
+          Page.refresh t.page
+      )
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "times"
       t.page
@@ -57,16 +59,20 @@ let refresh t =
       let name = Credit.line cr in
       Lwt.on_success
         name
-        (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.author_search) name)
+        (
+          fun name ->
+            Inputs.Text.set_contents (SearchBar.bar t.author_search) name
+        )
   end;
   Helpers.clear_children t.dances_area;
   TuneEditor.iter
     t.editor
-    (fun i dance ->
-      let subwin = make_dance_subwindow t i dance in
-      Dom.appendChild t.dances_area (Html.createBr (Page.document t.page));
-      Dom.appendChild t.dances_area subwin);
+    (
+      fun i dance ->
+        let subwin = make_dance_subwindow t i dance in
+        Dom.appendChild t.dances_area (Html.createBr (Page.document t.page));
+        Dom.appendChild t.dances_area subwin
+    );
   Inputs.Text.set_contents t.input_remark (TuneEditor.remark t.editor);
   Inputs.Text.set_contents t.input_scddb_id (TuneEditor.scddb_id t.editor)
 
@@ -77,10 +83,12 @@ let make_dance_search_result editor page score =
   let%lwt slug = Dance.slug dance in
   let row =
     Table.Row.create
-      ~on_click: (fun () ->
-        Lwt.on_success
-          (TuneEditor.add editor slug)
-          (fun () -> Page.refresh page))
+      ~on_click: (
+        fun () ->
+          Lwt.on_success
+            (TuneEditor.add editor slug)
+            (fun () -> Page.refresh page)
+      )
       ~cells: [
         Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text: (Lwt.return name) page;
@@ -95,10 +103,12 @@ let make_dance_modal editor content page =
   let interface =
     DanceEditorInterface.create
       page
-      ~on_save: (fun slug ->
-        Page.remove_modal page modal_bg;
-        Dom.removeChild content modal_bg;
-        Lwt.on_success (TuneEditor.add editor slug) (fun () -> Page.refresh page))
+      ~on_save: (
+        fun slug ->
+          Page.remove_modal page modal_bg;
+          Dom.removeChild content modal_bg;
+          Lwt.on_success (TuneEditor.add editor slug) (fun () -> Page.refresh page)
+      )
   in
   Dom.appendChild dance_modal (DanceEditorInterface.contents interface);
   dance_modal##.classList##add (js "modal-window");
@@ -118,10 +128,12 @@ let make_author_modal editor content page =
   let interface =
     CreditEditorInterface.create
       page
-      ~on_save: (fun slug ->
-        Page.remove_modal page modal_bg;
-        Dom.removeChild content modal_bg;
-        Lwt.on_success (TuneEditor.set_author editor slug) (fun () -> Page.refresh page))
+      ~on_save: (
+        fun slug ->
+          Page.remove_modal page modal_bg;
+          Dom.removeChild content modal_bg;
+          Lwt.on_success (TuneEditor.set_author editor slug) (fun () -> Page.refresh page)
+      )
   in
   Dom.appendChild credit_modal (CreditEditorInterface.contents interface);
   credit_modal##.classList##add (js "modal-window");
@@ -142,10 +154,12 @@ let make_author_search_result editor page score =
   let%lwt slug = Credit.slug author in
   let row =
     Table.Row.create
-      ~on_click: (fun () ->
-        Lwt.on_success
-          (TuneEditor.set_author editor slug)
-          (fun () -> Page.refresh page))
+      ~on_click: (
+        fun () ->
+          Lwt.on_success
+            (TuneEditor.set_author editor slug)
+            (fun () -> Page.refresh page)
+      )
       ~cells: [
         Table.Cell.text ~text: (Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text: (Lwt.return name) page;
@@ -193,24 +207,28 @@ let create ?on_save page =
   let dances_search =
     let main_section =
       SearchBar.Section.create
-        ~default: (Table.Row.create
-          ~on_click: (fun () -> make_dance_modal editor content page)
-          ~cells: [
-            Table.Cell.text ~text: (Lwt.return "  +") page;
-            Table.Cell.text ~text: (Lwt.return "Create a new dance") page;
-          ]
-          page)
-        ~search: (fun input ->
-          match DanceFilter.raw input with
-          | Ok formula ->
-            let%lwt results =
-              Dance.search
-                ~threshold: 0.4
-                ~pagination: Pagination.{ start = 0; end_ = 10 }
-                formula
-            in
-            Lwt.return_ok results
-          | Error err -> Lwt.return_error err)
+        ~default: (
+          Table.Row.create
+            ~on_click: (fun () -> make_dance_modal editor content page)
+            ~cells: [
+              Table.Cell.text ~text: (Lwt.return "  +") page;
+              Table.Cell.text ~text: (Lwt.return "Create a new dance") page;
+            ]
+            page
+        )
+        ~search: (
+          fun input ->
+            match DanceFilter.raw input with
+            | Ok formula ->
+              let%lwt results =
+                Dance.search
+                  ~threshold: 0.4
+                  ~pagination: Pagination.{ start = 0; end_ = 10 }
+                  formula
+              in
+              Lwt.return_ok results
+            | Error err -> Lwt.return_error err
+        )
         ~make_result: (fun score -> make_dance_search_result editor page score)
         page
     in
@@ -222,22 +240,26 @@ let create ?on_save page =
   let author_search =
     let main_section =
       SearchBar.Section.create
-        ~default: (Table.Row.create
-          ~on_click: (fun () -> make_author_modal editor content page)
-          ~cells: [
-            Table.Cell.text ~text: (Lwt.return "  +") page;
-            Table.Cell.text ~text: (Lwt.return "Create a new author") page;
-          ]
-          page)
-        ~search: (fun input ->
-          let%rlwt formula = Lwt.return (CreditFilter.raw input) in
-          let%lwt results =
-            Credit.search
-              ~threshold: 0.4
-              ~pagination: Pagination.{ start = 0; end_ = 10 }
-              formula
-          in
-          Lwt.return_ok results)
+        ~default: (
+          Table.Row.create
+            ~on_click: (fun () -> make_author_modal editor content page)
+            ~cells: [
+              Table.Cell.text ~text: (Lwt.return "  +") page;
+              Table.Cell.text ~text: (Lwt.return "Create a new author") page;
+            ]
+            page
+        )
+        ~search: (
+          fun input ->
+            let%rlwt formula = Lwt.return (CreditFilter.raw input) in
+            let%lwt results =
+              Credit.search
+                ~threshold: 0.4
+                ~pagination: Pagination.{ start = 0; end_ = 10 }
+                formula
+            in
+            Lwt.return_ok results
+        )
         ~make_result: (fun score -> make_author_search_result editor page score)
         page
     in
@@ -248,13 +270,15 @@ let create ?on_save page =
   in
   Inputs.Text.on_focus
     (SearchBar.bar author_search)
-    (fun b ->
-      if b then
-        begin
-          Inputs.Text.erase (SearchBar.bar author_search);
-          TuneEditor.remove_author editor;
-          Page.refresh page
-        end);
+    (
+      fun b ->
+        if b then
+          begin
+            Inputs.Text.erase (SearchBar.bar author_search);
+            TuneEditor.remove_author editor;
+            Page.refresh page
+          end
+    );
   let submit = Html.createDiv (Page.document page) in
   Style.set ~display: "flex" submit;
   submit##.classList##add (js "justify-content-space-between");
@@ -264,37 +288,47 @@ let create ?on_save page =
       ~kind: Inputs.Button.Kind.Success
       ~icon: "save"
       ~text: "Save"
-      ~on_click: (fun () ->
-        let b1, b2, b3 =
-          Inputs.Text.check input_name (fun str -> str <> ""),
-          Inputs.Text.check input_kind (fun str -> try Kind.base_of_string str |> ignore; true with _ -> false),
-          Inputs.Text.check
-            input_scddb_id
-            (fun str ->
-              if str = "" then
-                true
-              else
-                match int_of_string_opt str with
-                | Some _ -> true
-                | None ->
-                  match SCDDB.tune_from_uri str with
-                  | Ok _ -> true
-                  | Error _ -> false)
-        in
-        if b1 && b2 && b3 then
-          (Lwt.on_success
-            (TuneEditor.submit editor)
-            (fun tune ->
-              Lwt.on_success
-                (Tune.slug tune)
-                (fun slug ->
-                  begin
-                    match on_save with
+      ~on_click: (
+        fun () ->
+          let b1, b2, b3 =
+            Inputs.Text.check input_name (fun str -> str <> ""),
+            Inputs.Text.check input_kind (fun str -> try Kind.base_of_string str |> ignore; true with _ -> false),
+            Inputs.Text.check
+              input_scddb_id
+              (
+                fun str ->
+                  if str = "" then
+                    true
+                  else
+                    match int_of_string_opt str with
+                    | Some _ -> true
                     | None ->
-                      let href = Router.path_of_controller (Router.Tune slug) |> snd in
-                      Html.window##.location##.href := js href
-                    | Some cb -> cb slug
-                  end))))
+                      match SCDDB.tune_from_uri str with
+                      | Ok _ -> true
+                      | Error _ -> false
+              )
+          in
+          if b1 && b2 && b3 then
+            (
+              Lwt.on_success
+                (TuneEditor.submit editor)
+                (
+                  fun tune ->
+                    Lwt.on_success
+                      (Tune.slug tune)
+                      (
+                        fun slug ->
+                          begin
+                            match on_save with
+                            | None ->
+                              let href = Router.path_of_controller (Router.Tune slug) |> snd in
+                              Html.window##.location##.href := js href
+                            | Some cb -> cb slug
+                          end
+                      )
+                )
+            )
+      )
       page
   in
   let clear =
@@ -302,15 +336,17 @@ let create ?on_save page =
       ~kind: Inputs.Button.Kind.Danger
       ~icon: "exclamation-triangle"
       ~text: "Clear"
-      ~on_click: (fun () ->
-        if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then
-          begin
-            TuneEditor.clear editor;
-            Page.refresh page;
-            Inputs.Text.set_valid input_name true;
-            Inputs.Text.set_valid input_kind true;
-            Inputs.Text.set_valid input_scddb_id true
-          end)
+      ~on_click: (
+        fun () ->
+          if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then
+            begin
+              TuneEditor.clear editor;
+              Page.refresh page;
+              Inputs.Text.set_valid input_name true;
+              Inputs.Text.set_valid input_kind true;
+              Inputs.Text.set_valid input_scddb_id true
+            end
+      )
       page
   in
   Dom.appendChild submit (Inputs.Button.root save);

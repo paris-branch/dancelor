@@ -7,9 +7,11 @@ let remove_char ?(char_equal = Char.equal) c s =
   let b = Bytes.create (length s) in
   let j = ref 0 in
   iter
-    (fun c' ->
-      if not (char_equal c c') then
-        (Bytes.set b !j c'; incr j))
+    (
+      fun c' ->
+        if not (char_equal c c') then
+          (Bytes.set b !j c'; incr j)
+    )
     s;
   Bytes.sub_string b 0 !j
 
@@ -78,16 +80,20 @@ let distance ?(char_equal = Char.equal) needle haystack =
   let min3 a b c = min (min a b) c in
   let rec aux n h =
     if a.(n).(h) = -1 then
-      (a.(n).(h) <- if n >= ln then
-        lh - h
-      else
-        if h >= lh then
-          ln - n
+      (
+        a.(n).(h) <- if n >= ln then
+          lh - h
         else
-          (min3
-            (1 + aux (n + 1) h)
-            (1 + aux n (h + 1))
-            ((if char_equal needle.[n] haystack.[h] then 0 else 1) + aux (n + 1) (h + 1))));
+          if h >= lh then
+            ln - n
+          else
+            (
+              min3
+                (1 + aux (n + 1) h)
+                (1 + aux n (h + 1))
+                ((if char_equal needle.[n] haystack.[h] then 0 else 1) + aux (n + 1) (h + 1))
+            )
+      );
     a.(n).(h)
   in
   aux 0 0
@@ -106,10 +112,12 @@ let%test _ = distance "chou" "achauffe" = 5
 let proximity ?char_equal needle haystack =
   let l = max (length needle) (length haystack) in
   1.
-  -. (if l = 0 then 0.
-  else
-    let d = distance ?char_equal needle haystack in
-    (foi d) /. (foi l))
+  -. (
+    if l = 0 then 0.
+    else
+      let d = distance ?char_equal needle haystack in
+      (foi d) /. (foi l)
+  )
 
 (** [inclusion_distance ~needle haystack] is similar to [distance needle
     haystack] except with the best sub-string of [haystack]. Note: this is not a
@@ -122,16 +130,20 @@ let inclusion_distance ?(char_equal = Char.equal) ~needle haystack =
   let min3 a b c = min (min a b) c in
   let rec aux n h =
     if a.(n).(h) = -1 then
-      (a.(n).(h) <- if n >= ln then
-        0
-      else
-        if h >= lh then
-          ln - n
+      (
+        a.(n).(h) <- if n >= ln then
+          0
         else
-          (min3
-            (1 + aux (n + 1) h)
-            ((if n = 0 then 0 else 1) + aux n (h + 1))
-            ((if char_equal needle.[n] haystack.[h] then 0 else 1) + aux (n + 1) (h + 1))));
+          if h >= lh then
+            ln - n
+          else
+            (
+              min3
+                (1 + aux (n + 1) h)
+                ((if n = 0 then 0 else 1) + aux n (h + 1))
+                ((if char_equal needle.[n] haystack.[h] then 0 else 1) + aux (n + 1) (h + 1))
+            )
+      );
     a.(n).(h)
   in
   aux 0 0
@@ -146,10 +158,12 @@ let%test _ = inclusion_distance ~needle: "chou" "achauffe" = 1
 let inclusion_proximity ?char_equal ~needle haystack =
   let l = length needle in
   1.
-  -. (if l = 0 then 0.
-  else
-    let d = inclusion_distance ?char_equal ~needle haystack in
-    (foi d) /. (foi l))
+  -. (
+    if l = 0 then 0.
+    else
+      let d = inclusion_distance ?char_equal ~needle haystack in
+      (foi d) /. (foi l)
+  )
 
 let escape ?(esc = '\\') ~chars s =
   let l = length s in
@@ -158,13 +172,19 @@ let escape ?(esc = '\\') ~chars s =
     if i >= l then
       (Bytes.sub_string t 0 j)
     else
-      (if s.[i] = esc || contains chars s.[i] then
-        (Bytes.set t j esc;
-        Bytes.set t (j + 1) s.[i];
-        aux (i + 1) (j + 2))
-      else
-        (Bytes.set t j s.[i];
-        aux (i + 1) (j + 1)))
+      (
+        if s.[i] = esc || contains chars s.[i] then
+          (
+            Bytes.set t j esc;
+            Bytes.set t (j + 1) s.[i];
+            aux (i + 1) (j + 2)
+          )
+        else
+          (
+            Bytes.set t j s.[i];
+            aux (i + 1) (j + 1)
+          )
+      )
   in
   aux 0 0
 
@@ -203,13 +223,15 @@ module Sensible = struct
     | _, Nil -> 1
     | Cons (c1, s1'), Cons (c2, s2') ->
       if NesChar.is_digit c1 && NesChar.is_digit c2 then
-        ( let (n1, s1') = extract_head_number s1 in
-        let (n2, s2') = extract_head_number s2 in
-        first_non_zero
-          [
-            (fun () -> Int.compare n1 n2);
-            (fun () -> compare s1' s2');
-          ])
+        (
+          let (n1, s1') = extract_head_number s1 in
+          let (n2, s2') = extract_head_number s2 in
+          first_non_zero
+            [
+              (fun () -> Int.compare n1 n2);
+              (fun () -> compare s1' s2');
+            ]
+        )
       else
         first_non_zero
           [
@@ -291,11 +313,17 @@ let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
   let last_was_char = ref false in
   for i = 0 to length - 1 do
     if char_equal input.[i] char then
-      (if not !last_was_char then
-        (last_was_char := true;
-        Buffer.add_char output char))
+      (
+        if not !last_was_char then
+          (
+            last_was_char := true;
+            Buffer.add_char output char
+          )
+      )
     else
-      (last_was_char := false;
-      Buffer.add_char output input.[i])
+      (
+        last_was_char := false;
+        Buffer.add_char output input.[i]
+      )
   done;
   trim ~char (Buffer.contents output)

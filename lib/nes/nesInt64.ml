@@ -69,38 +69,54 @@ let to_english_string_unsigned number =
   if number = 0L then
     ["zero"]
   else
-    (( let quintillions = rem (div number 1_000_000_000_000_000_000L) 1_000L in
-    match quintillions with
-    | 0L -> []
-    | 1L -> ["one"; "quintillion"]
-    | _ -> ones_to_english_string quintillions @ ["quintillion"])
-    @ ( let quadrillions = rem (div number 1_000_000_000_000_000L) 1_000L in
-    match quadrillions with
-    | 0L -> []
-    | 1L -> ["one"; "quadrillion"]
-    | _ -> ones_to_english_string quadrillions @ ["quadrillion"])
-    @ ( let trillions = rem (div number 1_000_000_000_000L) 1_000L in
-    match trillions with
-    | 0L -> []
-    | 1L -> ["one"; "trillion"]
-    | _ -> ones_to_english_string trillions @ ["trillion"])
-    @ ( let billions = rem (div number 1_000_000_000L) 1_000L in
-    match billions with
-    | 0L -> []
-    | 1L -> ["one"; "billion"]
-    | _ -> ones_to_english_string billions @ ["billion"])
-    @ ( let millions = rem (div number 1_000_000L) 1_000L in
-    match millions with
-    | 0L -> []
-    | 1L -> ["one"; "million"]
-    | _ -> ones_to_english_string millions @ ["million"])
-    @ ( let thousands = rem (div number 1_000L) 1_000L in
-    match thousands with
-    | 0L -> []
-    | 1L -> ["one"; "thousand"]
-    | _ -> ones_to_english_string thousands @ ["thousand"])
-    @ ( let ones = rem number 1_000L in
-    ones_to_english_string ones))
+    (
+      (
+        let quintillions = rem (div number 1_000_000_000_000_000_000L) 1_000L in
+        match quintillions with
+        | 0L -> []
+        | 1L -> ["one"; "quintillion"]
+        | _ -> ones_to_english_string quintillions @ ["quintillion"]
+      )
+      @ (
+        let quadrillions = rem (div number 1_000_000_000_000_000L) 1_000L in
+        match quadrillions with
+        | 0L -> []
+        | 1L -> ["one"; "quadrillion"]
+        | _ -> ones_to_english_string quadrillions @ ["quadrillion"]
+      )
+      @ (
+        let trillions = rem (div number 1_000_000_000_000L) 1_000L in
+        match trillions with
+        | 0L -> []
+        | 1L -> ["one"; "trillion"]
+        | _ -> ones_to_english_string trillions @ ["trillion"]
+      )
+      @ (
+        let billions = rem (div number 1_000_000_000L) 1_000L in
+        match billions with
+        | 0L -> []
+        | 1L -> ["one"; "billion"]
+        | _ -> ones_to_english_string billions @ ["billion"]
+      )
+      @ (
+        let millions = rem (div number 1_000_000L) 1_000L in
+        match millions with
+        | 0L -> []
+        | 1L -> ["one"; "million"]
+        | _ -> ones_to_english_string millions @ ["million"]
+      )
+      @ (
+        let thousands = rem (div number 1_000L) 1_000L in
+        match thousands with
+        | 0L -> []
+        | 1L -> ["one"; "thousand"]
+        | _ -> ones_to_english_string thousands @ ["thousand"]
+      )
+      @ (
+        let ones = rem number 1_000L in
+        ones_to_english_string ones
+      )
+    )
 
 let to_english_string_unsigned number =
   String.concat " " (to_english_string_unsigned number)

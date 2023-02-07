@@ -32,53 +32,55 @@ module Ly = struct
             (Kind.dance_to_string kind)
             (SetParameters.instruments parameters);
           Lwt_list.iter_s
-            (fun (version, version_parameters) ->
-              let version_parameters = VersionParameters.compose (SetParameters.every_version parameters) version_parameters in
-              let%lwt content = Version.content version in
-              let content =
-                match version_parameters |> VersionParameters.clef with
-                | None -> content
-                | Some clef_parameter ->
-                  let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-                  Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
-              in
-              let%lwt key = Version.key version in
-              let%lwt tune = Version.tune version in
-              let%lwt name = Tune.name tune in
-              let name =
-                version_parameters
-                |> VersionParameters.display_name
-                |> Option.unwrap_or ~default: name
-              in
-              let%lwt author =
-                match%lwt Tune.author tune with
-                | None -> Lwt.return ""
-                | Some author -> Credit.line author
-              in
-              let author =
-                version_parameters
-                |> VersionParameters.display_author
-                |> Option.unwrap_or ~default: author
-              in
-              let first_bar =
-                version_parameters
-                |> VersionParameters.first_bar
-              in
-              let source, target =
-                match version_parameters |> VersionParameters.transposition with
-                | Relative (source, target) -> (source, target)
-                | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here*)
-              in
-              fpf
-                fmt
-                [%blob "template/set/version.ly"]
-                name
-                author
-                first_bar
-                (Music.pitch_to_lilypond_string source)
-                (Music.pitch_to_lilypond_string target)
-                content;
-              Lwt.return ())
+            (
+              fun (version, version_parameters) ->
+                let version_parameters = VersionParameters.compose (SetParameters.every_version parameters) version_parameters in
+                let%lwt content = Version.content version in
+                let content =
+                  match version_parameters |> VersionParameters.clef with
+                  | None -> content
+                  | Some clef_parameter ->
+                    let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
+                    Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
+                in
+                let%lwt key = Version.key version in
+                let%lwt tune = Version.tune version in
+                let%lwt name = Tune.name tune in
+                let name =
+                  version_parameters
+                  |> VersionParameters.display_name
+                  |> Option.unwrap_or ~default: name
+                in
+                let%lwt author =
+                  match%lwt Tune.author tune with
+                  | None -> Lwt.return ""
+                  | Some author -> Credit.line author
+                in
+                let author =
+                  version_parameters
+                  |> VersionParameters.display_author
+                  |> Option.unwrap_or ~default: author
+                in
+                let first_bar =
+                  version_parameters
+                  |> VersionParameters.first_bar
+                in
+                let source, target =
+                  match version_parameters |> VersionParameters.transposition with
+                  | Relative (source, target) -> (source, target)
+                  | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here*)
+                in
+                fpf
+                  fmt
+                  [%blob "template/set/version.ly"]
+                  name
+                  author
+                  first_bar
+                  (Music.pitch_to_lilypond_string source)
+                  (Music.pitch_to_lilypond_string target)
+                  content;
+                Lwt.return ()
+            )
             versions_and_parameters
       in
       prom;%lwt
@@ -102,26 +104,30 @@ let populate_cache ~cache ~ext ~pp_ext =
   let path = Filename.concat !Dancelor_server_config.cache "set" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
-    (fun x ->
-      if Filename.check_suffix x ext then
-        try
-          Log.debug (fun m -> m "Found %s file %s" pp_ext x);
-          let base = Filename.chop_suffix x ext in
-          let hash =
-            String.split_on_char '-' base
-            |> List.ft
-            |> StorageCache.hash_from_string
-          in
-          StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
-        with
-          exn ->
-            Log.err
-              (fun m ->
-                m
-                  "%a"
-                  (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
-                  ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ())));
-            exit 7)
+    (
+      fun x ->
+        if Filename.check_suffix x ext then
+          try
+            Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+            let base = Filename.chop_suffix x ext in
+            let hash =
+              String.split_on_char '-' base
+              |> List.ft
+              |> StorageCache.hash_from_string
+            in
+            StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
+          with
+            exn ->
+              Log.err
+                (
+                  fun m ->
+                    m
+                      "%a"
+                      (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
+                      ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
+                );
+              exit 7
+    )
     files
 
 module Pdf = struct

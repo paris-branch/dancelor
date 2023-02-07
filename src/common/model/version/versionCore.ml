@@ -37,18 +37,20 @@ let make
     Lwt.return_some arranger
   in
   Lwt.return
-    (make
-      ~slug
-      ?status
-      ~tune
-      ~bars
-      ~key
-      ~structure
-      ~arranger
-      ?remark
-      ?disambiguation
-      ?broken
-      ())
+    (
+      make
+        ~slug
+        ?status
+        ~tune
+        ~bars
+        ~key
+        ~structure
+        ~arranger
+        ?remark
+        ?disambiguation
+        ?broken
+        ()
+    )
 
 let slug t = Lwt.return t.slug
 let status t = Lwt.return t.status

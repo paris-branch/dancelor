@@ -51,22 +51,28 @@ let update t =
   let input = Inputs.Text.contents t.bar in
   match AnyFilter.from_string input with
   | Ok filter ->
-    (t.table_wrapper##.style##.display := js "block";
-    t.error_wrapper##.style##.display := js "none";
-    Lwt.on_success (Any.count filter) (PageNav.set_entries t.page_nav);
-    update_table t)
+    (
+      t.table_wrapper##.style##.display := js "block";
+      t.error_wrapper##.style##.display := js "none";
+      Lwt.on_success (Any.count filter) (PageNav.set_entries t.page_nav);
+      update_table t
+    )
   | Error msgs ->
-    (t.table_wrapper##.style##.display := js "none";
-    t.error_wrapper##.style##.display := js "block";
-    JsHelpers.clear_children t.error;
-    let ul = Html.createUl (Page.document t.page) in
-    List.iter
-      (fun msg ->
-        let li = Html.createLi (Page.document t.page) in
-        li##.textContent := Js.some (js msg);
-        Dom.appendChild ul li)
-      msgs;
-    Dom.appendChild t.error ul)
+    (
+      t.table_wrapper##.style##.display := js "none";
+      t.error_wrapper##.style##.display := js "block";
+      JsHelpers.clear_children t.error;
+      let ul = Html.createUl (Page.document t.page) in
+      List.iter
+        (
+          fun msg ->
+            let li = Html.createLi (Page.document t.page) in
+            li##.textContent := Js.some (js msg);
+            Dom.appendChild ul li
+        )
+        msgs;
+      Dom.appendChild t.error ul
+    )
 
 let create input page =
   let document = Page.document page in
@@ -116,10 +122,12 @@ let create input page =
   Dom.appendChild content error_wrapper;
   PageNav.connect_on_page_change
     page_nav
-    (fun _ ->
-      PageNav.rebuild page_nav;
-      update_table t;
-      (Inputs.Text.root t.bar)##focus);
+    (
+      fun _ ->
+        PageNav.rebuild page_nav;
+        update_table t;
+        (Inputs.Text.root t.bar)##focus
+    );
   update t;
   t
 

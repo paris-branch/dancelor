@@ -131,8 +131,10 @@ let submit t =
   let%lwt persons =
     fold
       t
-      (fun _ person acc ->
-        Lwt.map (fun p -> p :: acc) (save_and_get_person person))
+      (
+        fun _ person acc ->
+          Lwt.map (fun p -> p :: acc) (save_and_get_person person)
+      )
       []
   in
   (* The fact that the string is an integer will have been checked in the form *)

@@ -16,9 +16,10 @@ let accepts filter tune =
     Lwt.return (String.inclusion_proximity ~char_equal ~needle: string name)
   | Author afilter ->
     (
-    match%lwt TuneLifted.author tune with
-    | None -> Formula.interpret_false |> Lwt.return
-    | Some author -> CreditFilter.accepts afilter author)
+      match%lwt TuneLifted.author tune with
+      | None -> Formula.interpret_false |> Lwt.return
+      | Some author -> CreditFilter.accepts afilter author
+    )
   | Kind kfilter ->
     let%lwt kind = TuneLifted.kind tune in
     KindFilter.Base.accepts kfilter kind

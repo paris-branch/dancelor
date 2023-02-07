@@ -39,26 +39,34 @@ let create () =
   Dom.appendChild body header;
   let t = { document; body; header; content = None; modals; on_refresh = (fun () -> ()) } in
   Lwt.async
-    (fun () ->
-      Lwt_js_events.clicks
-        ~use_capture: true
-        document
-        (fun ev _ ->
-          Js.Opt.case
-            ev##.target
-            (fun () -> ())
-            (fun trg ->
-              List.map
-                (fun modal ->
-                  (
-                    modal,
-                    List.for_all
-                      (fun modal_trg -> not (JsHelpers.is_child_of trg modal_trg))
-                      modal.targets
-                  ))
-                t.modals
-              |> List.iter (fun (modal, unfocus) -> if unfocus then modal.on_unfocus ()));
-          Lwt.return ()));
+    (
+      fun () ->
+        Lwt_js_events.clicks
+          ~use_capture: true
+          document
+          (
+            fun ev _ ->
+              Js.Opt.case
+                ev##.target
+                (fun () -> ())
+                (
+                  fun trg ->
+                    List.map
+                      (
+                        fun modal ->
+                          (
+                            modal,
+                            List.for_all
+                              (fun modal_trg -> not (JsHelpers.is_child_of trg modal_trg))
+                              modal.targets
+                          )
+                      )
+                      t.modals
+                    |> List.iter (fun (modal, unfocus) -> if unfocus then modal.on_unfocus ())
+                );
+              Lwt.return ()
+          )
+    );
   t
 
 let document t =

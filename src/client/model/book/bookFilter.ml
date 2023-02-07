@@ -26,9 +26,11 @@ let accepts filter book =
     let%lwt content = contents book in
     let%lwt versions =
       Lwt_list.filter_map_s
-        (function
-        | Version (v, _p) -> Lwt.return_some v
-        | _ -> Lwt.return_none)
+        (
+          function
+          | Version (v, _p) -> Lwt.return_some v
+          | _ -> Lwt.return_none
+        )
         content
     in
     Formula.interpret_exists (VersionFilter.accepts vfilter) versions
@@ -36,9 +38,11 @@ let accepts filter book =
     let%lwt content = contents book in
     let%lwt sets =
       Lwt_list.filter_map_s
-        (function
-        | Set (s, _p) -> Lwt.return_some s
-        | _ -> Lwt.return_none)
+        (
+          function
+          | Set (s, _p) -> Lwt.return_some s
+          | _ -> Lwt.return_none
+        )
         content
     in
     Formula.interpret_exists (SetFilter.accepts sfilter) sets
@@ -46,9 +50,11 @@ let accepts filter book =
     let%lwt content = contents book in
     let%lwt isets =
       Lwt_list.filter_map_s
-        (function
-        | InlineSet (s, _p) -> Lwt.return_some s
-        | _ -> Lwt.return_none)
+        (
+          function
+          | InlineSet (s, _p) -> Lwt.return_some s
+          | _ -> Lwt.return_none
+        )
         content
     in
     Formula.interpret_exists (SetFilter.accepts sfilter) isets

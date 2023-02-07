@@ -39,9 +39,10 @@ module Tune = Table.Make(struct
     let%lwt author = author tune in
     List.map (Table.make_slug_and_table (module Dance)) dances
     |> (
-    match author with
-    | None -> Fun.id
-    | Some author -> List.cons (Table.make_slug_and_table (module Credit) author))
+      match author with
+      | None -> Fun.id
+      | Some author -> List.cons (Table.make_slug_and_table (module Credit) author)
+    )
     |> Lwt.return
 
   let standalone = false
@@ -55,9 +56,10 @@ module Version = Table.Make(struct
     let%lwt arranger = arranger version in
     []
     |> (
-    match arranger with
-    | None -> Fun.id
-    | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
+      match arranger with
+      | None -> Fun.id
+      | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger)
+    )
     |> List.cons (Table.make_slug_and_table (module Tune) tune)
     |> Lwt.return
 
@@ -73,9 +75,10 @@ module SetModel = struct
     let versions = List.map fst versions_and_parameters in
     List.map (Table.make_slug_and_table (module Version)) versions
     |> (
-    match deviser with
-    | None -> Fun.id
-    | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
+      match deviser with
+      | None -> Fun.id
+      | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser)
+    )
     |> Lwt.return
 
   let standalone = true
@@ -90,29 +93,37 @@ module Book = Table.Make(struct
     let%lwt contents = contents book in
     let%lwt dependencies =
       Lwt_list.map_p
-        (function
-        | PageCore.Version (version, parameters) ->
-          Lwt.return
-            ([Table.make_slug_and_table (module Version) version]
-            @
-            match Model.VersionParameters.for_dance parameters with
-            | None -> []
-            | Some dance -> [Table.make_slug_and_table (module Dance) dance])
-        | PageCore.Set (set, parameters) ->
-          Lwt.return
-            ([Table.make_slug_and_table (module Set) set]
-            @
-            match Model.SetParameters.for_dance parameters with
-            | None -> []
-            | Some dance -> [Table.make_slug_and_table (module Dance) dance])
-        | PageCore.InlineSet (set, parameters) ->
-          let%lwt set_dependencies = SetModel.dependencies set in
-          Lwt.return
-            (set_dependencies
-            @
-            match Model.SetParameters.for_dance parameters with
-            | None -> []
-            | Some dance -> [Table.make_slug_and_table (module Dance) dance]))
+        (
+          function
+          | PageCore.Version (version, parameters) ->
+            Lwt.return
+              (
+                [Table.make_slug_and_table (module Version) version]
+                @
+                match Model.VersionParameters.for_dance parameters with
+                | None -> []
+                | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+              )
+          | PageCore.Set (set, parameters) ->
+            Lwt.return
+              (
+                [Table.make_slug_and_table (module Set) set]
+                @
+                match Model.SetParameters.for_dance parameters with
+                | None -> []
+                | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+              )
+          | PageCore.InlineSet (set, parameters) ->
+            let%lwt set_dependencies = SetModel.dependencies set in
+            Lwt.return
+              (
+                set_dependencies
+                @
+                match Model.SetParameters.for_dance parameters with
+                | None -> []
+                | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+              )
+        )
         contents
     in
     Lwt.return (List.flatten dependencies)
@@ -165,20 +176,24 @@ module Initialise = struct
     Log.info (fun m -> m "Checking for dependency problems");
     let%lwt found_problem =
       Lwt_list.fold_left_s
-        (fun found_problem (module Table: Table.S) ->
-          let%lwt problems = Table.list_dependency_problems ~version in
-          (problems
-          |> List.iter
-          @@ function
-          | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
-            Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
-          | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
-            Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
-          | _ -> ());
-          match found_problem, problems with
-          | Some found_problem, _ -> Lwt.return_some found_problem
-          | _, problem :: _ -> Lwt.return_some problem
-          | _ -> Lwt.return_none)
+        (
+          fun found_problem (module Table: Table.S) ->
+            let%lwt problems = Table.list_dependency_problems ~version in
+            (
+              problems
+              |> List.iter
+              @@ function
+              | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
+                Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
+              | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
+                Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
+              | _ -> ()
+            );
+            match found_problem, problems with
+            | Some found_problem, _ -> Lwt.return_some found_problem
+            | _, problem :: _ -> Lwt.return_some problem
+            | _ -> Lwt.return_none
+        )
         None
         tables
     in
@@ -189,9 +204,11 @@ module Initialise = struct
   let report_without_accesses version =
     Log.info (fun m -> m "Checking for unaccessible entries");
     List.iter
-      (fun (module Table: Table.S) ->
-        if not Table.standalone then
-          Table.report_without_accesses ~version)
+      (
+        fun (module Table: Table.S) ->
+          if not Table.standalone then
+            Table.report_without_accesses ~version
+      )
       tables;
     Lwt.return ()
 

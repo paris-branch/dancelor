@@ -10,22 +10,28 @@ let add_field key value = function
 
 let add_fields fields json =
   List.fold_left
-    (fun json (field, value) ->
-      add_field field value json)
+    (
+      fun json (field, value) ->
+        add_field field value json
+    )
     json
     fields
 
 let map_field key fun_ = function
   | `Assoc fields when List.mem_assoc key fields ->
     `Assoc
-      (List.map
-        (fun (key', value) ->
+      (
+        List.map
           (
-            key',
-            if key = key' then fun_ value
-            else value
-          ))
-        fields)
+            fun (key', value) ->
+              (
+                key',
+                if key = key' then fun_ value
+                else value
+              )
+          )
+          fields
+      )
   | _ -> failwith "NesJson.map_field"
 
 let remove_field key = function

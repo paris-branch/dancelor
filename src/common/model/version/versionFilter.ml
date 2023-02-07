@@ -40,16 +40,20 @@ let unary_text_predicates =
     "key", raw_only ~convert: (fun s -> match Music.key_of_string_opt s with Some k -> Ok k | None -> Error "not a valid key") key;
     "kind", (kind @@@@ KindFilter.Version.from_text_formula);
   ]
-  @ (List.map
-    (fun (name, pred) ->
+  @ (
+    List.map
       (
-        name,
-        fun x ->
-          match pred x with
-          | Ok tfilter -> Ok (tune tfilter)
-          | Error err -> Error err
-      ))
-    TuneFilter.unary_text_predicates)
+        fun (name, pred) ->
+          (
+            name,
+            fun x ->
+              match pred x with
+              | Ok tfilter -> Ok (tune tfilter)
+              | Error err -> Error err
+          )
+      )
+      TuneFilter.unary_text_predicates
+  )
 
 let from_text_formula =
   TextFormula.make_to_formula

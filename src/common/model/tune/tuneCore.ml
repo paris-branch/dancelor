@@ -25,9 +25,11 @@ let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?s
     let%olwt dances = Lwt.return dances in
     let%lwt dances =
       Lwt_list.map_s
-        (fun dance ->
-          let%lwt dance = DanceCore.slug dance in
-          Lwt.return dance)
+        (
+          fun dance ->
+            let%lwt dance = DanceCore.slug dance in
+            Lwt.return dance
+        )
         dances
     in
     Lwt.return_some dances
@@ -46,8 +48,10 @@ let scddb_id tune = Lwt.return tune.scddb_id
 
 let compare =
   Slug.compare_slugs_or
-    ~fallback: (fun tune1 tune2 ->
-      Lwt.return (Stdlib.compare tune1 tune2))
+    ~fallback: (
+      fun tune1 tune2 ->
+        Lwt.return (Stdlib.compare tune1 tune2)
+    )
     slug
 
 let equal = equal_from_compare compare

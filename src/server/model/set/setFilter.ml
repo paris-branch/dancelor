@@ -15,14 +15,17 @@ let accepts filter set =
     Lwt.return (String.inclusion_proximity ~char_equal ~needle: string name)
   | Deviser dfilter ->
     (
-    match%lwt SetLifted.deviser set with
-    | None -> Lwt.return Formula.interpret_false
-    | Some deviser -> CreditFilter.accepts dfilter deviser)
+      match%lwt SetLifted.deviser set with
+      | None -> Lwt.return Formula.interpret_false
+      | Some deviser -> CreditFilter.accepts dfilter deviser
+    )
   | ExistsVersion vfilter ->
     let%lwt versions_and_parameters = SetLifted.versions_and_parameters set in
     Formula.interpret_exists
-      (fun (version, _) ->
-        VersionFilter.accepts vfilter version)
+      (
+        fun (version, _) ->
+          VersionFilter.accepts vfilter version
+      )
       versions_and_parameters
   | Kind kfilter ->
     let%lwt kind = SetLifted.kind set in

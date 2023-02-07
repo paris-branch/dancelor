@@ -12,14 +12,18 @@ let bind e f =
   Lwt.backtrace_bind
     (fun exn -> try Reraise.reraise exn with exn -> exn)
     e
-    (function
-    | Ok x -> f x
-    | Error y -> Lwt.return_error y)
+    (
+      function
+      | Ok x -> f x
+      | Error y -> Lwt.return_error y
+    )
 
 let catch e f =
   Lwt.backtrace_bind
     (fun exn -> try Reraise.reraise exn with exn -> exn)
     e
-    (function
-    | Ok x -> Lwt.return_ok x
-    | Error y -> f y)
+    (
+      function
+      | Ok x -> Lwt.return_ok x
+      | Error y -> f y
+    )

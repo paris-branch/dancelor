@@ -83,21 +83,24 @@ let to_formula predicate_to_formula formula =
     | True -> Ok True
     | Not formula ->
       (
-      match to_formula formula with
-      | Ok formula -> Ok (Not formula)
-      | Error err -> Error err) (* FIXME: ppx_syntext *)
+        match to_formula formula with
+        | Ok formula -> Ok (Not formula)
+        | Error err -> Error err
+      ) (* FIXME: ppx_syntext *)
     | And (formula1, formula2) ->
       (
-      match to_formula formula1,
-      to_formula formula2 with
-      | Ok formula1, Ok formula2 -> Ok (And (formula1, formula2))
-      | Error err, _ | _, Error err -> Error err)
+        match to_formula formula1,
+        to_formula formula2 with
+        | Ok formula1, Ok formula2 -> Ok (And (formula1, formula2))
+        | Error err, _ | _, Error err -> Error err
+      )
     | Or (formula1, formula2) ->
       (
-      match to_formula formula1,
-      to_formula formula2 with
-      | Ok formula1, Ok formula2 -> Ok (Or (formula1, formula2))
-      | Error err, _ | _, Error err -> Error err)
+        match to_formula formula1,
+        to_formula formula2 with
+        | Ok formula1, Ok formula2 -> Ok (Or (formula1, formula2))
+        | Error err, _ | _, Error err -> Error err
+      )
     | Pred pred ->
       predicate_to_formula pred
   in
@@ -112,14 +115,16 @@ let make_predicate_to_formula
     raw_builder string
   | Nullary pred ->
     (
-    match List.assoc_opt pred nullary_text_predicates with
-    | None -> error_fmt "the nullary predicate \":%s\" does not exist" pred
-    | Some pred -> Ok pred)
+      match List.assoc_opt pred nullary_text_predicates with
+      | None -> error_fmt "the nullary predicate \":%s\" does not exist" pred
+      | Some pred -> Ok pred
+    )
   | Unary (pred, sub_formula) ->
     (
-    match List.assoc_opt pred unary_text_predicates with
-    | None -> error_fmt "the unary predicate \"%s:\" does not exist" pred
-    | Some mk_pred -> mk_pred sub_formula)
+      match List.assoc_opt pred unary_text_predicates with
+      | None -> error_fmt "the unary predicate \"%s:\" does not exist" pred
+      | Some mk_pred -> mk_pred sub_formula
+    )
 
 let make_to_formula
     (raw_builder : 'a raw_builder)
@@ -144,9 +149,10 @@ let raw_only
   = function
   | Pred (Raw s) ->
     (
-    match convert s with
-    | Ok s -> Ok (mk s)
-    | Error err -> Error err)
+      match convert s with
+      | Ok s -> Ok (mk s)
+      | Error err -> Error err
+    )
   | _ -> Error "this predicate only accepts raw arguments"
 
 let no_convert x = Ok x

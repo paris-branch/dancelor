@@ -105,9 +105,11 @@ let with_lock(type a) (f : unit -> a Lwt.t) : a Lwt.t =
   let%lwt a =
     Lwt_mutex.with_lock
       lock
-      (fun () ->
-        Log.debug (fun m -> m "Got lock[%x] on storage" id);
-        f ())
+      (
+        fun () ->
+          Log.debug (fun m -> m "Got lock[%x] on storage" id);
+          f ()
+      )
   in
   Log.debug (fun m -> m "Released lock[%x] on storage" id);
   Lwt.return a
@@ -119,10 +121,12 @@ let check_ro_lock () =
     Lwt.return_unit
 
 let with_read_only f =
-  (with_lock
-  @@ fun () ->
-    Log.debug (fun m -> m "Setting storage as read-only");
-    Lwt_mutex.lock ro_lock);%lwt
+  (
+    with_lock
+    @@ fun () ->
+      Log.debug (fun m -> m "Setting storage as read-only");
+      Lwt_mutex.lock ro_lock
+  );%lwt
   let%lwt y = f () in
   Log.debug (fun m -> m "Freeing the read-only lock");
   Lwt_mutex.unlock ro_lock;
@@ -172,10 +176,12 @@ let write_entry_file table entry file content =
   @@ fun () ->
     Log.debug (fun m -> m "Writing %s / %s / %s" table entry file);
     if !Dancelor_server_config.write_storage then
-      ( let path = Filename.concat_l [!prefix; table; entry] in
-      Filesystem.create_directory ~fail_if_exists: false path;
-      let path = Filename.concat path file in
-      Filesystem.write_file path content);
+      (
+        let path = Filename.concat_l [!prefix; table; entry] in
+        Filesystem.create_directory ~fail_if_exists: false path;
+        let path = Filename.concat path file in
+        Filesystem.write_file path content
+      );
     Lwt.return ()
 
 let write_entry_yaml table entry file content =
@@ -188,10 +194,12 @@ let delete_entry table entry =
   @@ fun () ->
     Log.debug (fun m -> m "Deleting %s / %s" table entry);
     if !Dancelor_server_config.write_storage then
-      ( let path = Filename.concat_l [!prefix; table; entry] in
-      Filesystem.read_directory path
-      |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
-      Filesystem.remove_directory path);
+      (
+        let path = Filename.concat_l [!prefix; table; entry] in
+        Filesystem.read_directory path
+        |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
+        Filesystem.remove_directory path
+      );
     Lwt.return_unit
 
 let save_changes_on_entry ~msg table entry =
@@ -200,11 +208,12 @@ let save_changes_on_entry ~msg table entry =
     Log.debug (fun m -> m "Saving %s / %s" table entry);
     if !Dancelor_server_config.write_storage then
       (
-      (* no prefix for git! *)
-      let path = Filename.concat_l [ (*!prefix;*) table; entry] in
-      Git.add path;%lwt
-      Git.commit ~msg;%lwt
-      Lwt.return_unit)
+        (* no prefix for git! *)
+        let path = Filename.concat_l [ (*!prefix;*) table; entry] in
+        Git.add path;%lwt
+        Git.commit ~msg;%lwt
+        Lwt.return_unit
+      )
     else
       Lwt.return_unit
 
@@ -213,8 +222,10 @@ let sync_changes () =
   @@ fun () ->
     Log.debug (fun m -> m "Syncing");
     if !Dancelor_server_config.sync_storage then
-      (Git.pull_rebase ();%lwt
-      Git.push ();%lwt
-      Lwt.return_unit)
+      (
+        Git.pull_rebase ();%lwt
+        Git.push ();%lwt
+        Lwt.return_unit
+      )
     else
       Lwt.return_unit

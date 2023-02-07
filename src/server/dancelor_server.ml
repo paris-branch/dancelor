@@ -49,12 +49,16 @@ let apply_controller path =
     "/version/", ".pdf", C Version.Pdf.get;
   ]
   |> List.map
-    (fun (prefix, suffix, controller) ->
-      remove_prefix_suffix prefix suffix path, controller)
+    (
+      fun (prefix, suffix, controller) ->
+        remove_prefix_suffix prefix suffix path, controller
+    )
   |> List.find
     (fun (slug, _) -> slug <> None)
-  |> (fun (slug, C controller) ->
-    controller (Slug.unsafe_of_string (Option.unwrap slug)))
+  |> (
+    fun (slug, C controller) ->
+      controller (Slug.unsafe_of_string (Option.unwrap slug))
+  )
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
@@ -94,28 +98,38 @@ let callback _ request body =
     let full_path = Filename.concat_l [!Dancelor_server_config.share; "static"; path] in
     Log.debug (fun m -> m "Looking for %s" full_path);
     if Sys.file_exists full_path && not (Sys.is_directory full_path) then
-      (Log.debug (fun m -> m "Serving static file.");
-      Server.respond_file ~fname: full_path ())
+      (
+        Log.debug (fun m -> m "Serving static file.");
+        Server.respond_file ~fname: full_path ()
+      )
     else
-      (Log.debug (fun m -> m "Asking Madge for %s." path);
-      match%lwt Madge_server.handle meth path (QueryParameters.to_list query_parameters) with
-      | Some response -> Lwt.return response
-      | None ->
-        if String.length path >= 5 && String.sub path 0 5 = "/" ^ Constant.api_prefix ^ "/" then
-          ( let path = String.sub path 4 (String.length path - 4) in
-          Log.debug (fun m -> m "Looking for an API controller for %s." path);
-          apply_controller path query_parameters)
-        else
-          (Log.debug (fun m -> m "Serving main file.");
-          Server.respond_file ~fname: Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()))
+      (
+        Log.debug (fun m -> m "Asking Madge for %s." path);
+        match%lwt Madge_server.handle meth path (QueryParameters.to_list query_parameters) with
+        | Some response -> Lwt.return response
+        | None ->
+          if String.length path >= 5 && String.sub path 0 5 = "/" ^ Constant.api_prefix ^ "/" then
+            (
+              let path = String.sub path 4 (String.length path - 4) in
+              Log.debug (fun m -> m "Looking for an API controller for %s." path);
+              apply_controller path query_parameters
+            )
+          else
+            (
+              Log.debug (fun m -> m "Serving main file.");
+              Server.respond_file ~fname: Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
+            )
+      )
 
 let () =
   Lwt.async_exception_hook
-  := (function
-  | Unix.Unix_error (Unix.EPIPE, _, _) ->
-    Log.warn (fun m -> m "Connection closed by the client")
-  | exn ->
-    log_exn ~msg: "Uncaught asynchronous exception" exn)
+  := (
+    function
+    | Unix.Unix_error (Unix.EPIPE, _, _) ->
+      Log.warn (fun m -> m "Connection closed by the client")
+    | exn ->
+      log_exn ~msg: "Uncaught asynchronous exception" exn
+  )
 
 let read_configuration () =
   Log.info (fun m -> m "Reading configuration");
@@ -137,13 +151,17 @@ let initialise_database () =
 
 let check_init_only () =
   if !Dancelor_server_config.init_only then
-    (Log.info (fun m -> m "Init only mode. Stopping now.");
-    log_exit 0)
+    (
+      Log.info (fun m -> m "Init only mode. Stopping now.");
+      log_exit 0
+    )
 
 let start_routines () =
   if !Dancelor_server_config.routines then
-    (Log.info (fun m -> m "Starting routines");
-    Routine.initialise ())
+    (
+      Log.info (fun m -> m "Starting routines");
+      Routine.initialise ()
+    )
   else
     Log.info (fun m -> m "Not starting routines")
 

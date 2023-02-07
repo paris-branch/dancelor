@@ -40,9 +40,11 @@ let make
 let make_instrument pitch =
   make
     ~instruments: (Music.pitch_to_pretty_string pitch ^ " instruments")
-    ~every_version: (VersionParameters.make
-      ~transposition: (Transposition.relative pitch Music.pitch_c)
-      ())
+    ~every_version: (
+      VersionParameters.make
+        ~transposition: (Transposition.relative pitch Music.pitch_c)
+        ()
+    )
     ()
 
 let instruments p = Option.unwrap p.instruments

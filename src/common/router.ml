@@ -37,45 +37,56 @@ type route = (meth: Cohttp.Code.meth -> path: string -> controller option)
 let direct ~meth ~path controller =
   let meth_to_match = meth in
   let path_to_match = path in
-  (fun ~meth ~path ->
-    if meth = meth_to_match && path = path_to_match then
-      Some controller
-    else
-      None),
-  (fun controller' ->
-    if controller' = controller then
-      Some (meth_to_match, path_to_match)
-    else
-      None)
+  (
+    fun ~meth ~path ->
+      if meth = meth_to_match && path = path_to_match then
+        Some controller
+      else
+        None
+  ),
+  (
+    fun controller' ->
+      if controller' = controller then
+        Some (meth_to_match, path_to_match)
+      else
+        None
+  )
 
 let with_slug ~meth ~prefix ?ext slug_to_controller controller_to_slug =
   let meth_to_match = meth in
   let prefix_to_match = prefix in
-  (fun ~meth ~path ->
-    if meth = meth_to_match then
-      (
-      match String.rindex_opt path '/' with
-      | None -> None
-      | Some i ->
-        let prefix = String.sub path 0 i in
-        if prefix = prefix_to_match then
-          ( let suffix = String.sub path (i + 1) (String.length path - i - 1) in
-          match ext with
-          | None -> slug_to_controller (Slug.unsafe_of_string suffix)
-          | Some ext ->
-            let ext = "." ^ ext in
-            if Filename.check_suffix suffix ext then
-              (slug_to_controller (Slug.unsafe_of_string (Filename.chop_suffix suffix ext)))
+  (
+    fun ~meth ~path ->
+      if meth = meth_to_match then
+        (
+          match String.rindex_opt path '/' with
+          | None -> None
+          | Some i ->
+            let prefix = String.sub path 0 i in
+            if prefix = prefix_to_match then
+              (
+                let suffix = String.sub path (i + 1) (String.length path - i - 1) in
+                match ext with
+                | None -> slug_to_controller (Slug.unsafe_of_string suffix)
+                | Some ext ->
+                  let ext = "." ^ ext in
+                  if Filename.check_suffix suffix ext then
+                    (slug_to_controller (Slug.unsafe_of_string (Filename.chop_suffix suffix ext)))
+                  else
+                    None
+              )
             else
-              None)
-        else
-          None)
-    else
-      None),
-  (controller_to_slug
-  >=>? fun slug ->
-    let slug = Slug.to_string slug in
-    Some (meth_to_match, prefix ^ "/" ^ slug ^ ( match ext with None -> "" | Some ext -> "." ^ ext)))
+              None
+        )
+      else
+        None
+  ),
+  (
+    controller_to_slug
+    >=>? fun slug ->
+      let slug = Slug.to_string slug in
+      Some (meth_to_match, prefix ^ "/" ^ slug ^ ( match ext with None -> "" | Some ext -> "." ^ ext))
+  )
 
 let routes : route list =
   [
@@ -222,8 +233,10 @@ let path_to_controller ~meth ~path =
   >>=? fun x -> x
 
 let path_of_controller controller =
-  (routes
-  |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
-  |> List.find_opt (( <> ) None)
-  >>=? fun x -> x)
+  (
+    routes
+    |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
+    |> List.find_opt (( <> ) None)
+    >>=? fun x -> x
+  )
   |> Option.unwrap

@@ -17,9 +17,11 @@ let value s = s.value
 
 let lwt_map_from_list score =
   Lwt_list.map_s
-    (fun value ->
-      let%lwt score = score value in
-      Lwt.return { score; value } )
+    (
+      fun value ->
+        let%lwt score = score value in
+        Lwt.return { score; value }
+    )
 
 let list_from_values s = List.map from_value s
 
@@ -38,8 +40,10 @@ let decreasing = Lwt_list.decreasing
 let list_proj_sort_decreasing compares l =
   let compares =
     List.map
-      (fun compare ->
-        fun x y -> compare x.value y.value)
+      (
+        fun compare ->
+          fun x y -> compare x.value y.value
+      )
       compares
   in
   let compares =
@@ -54,32 +58,40 @@ let list_map f =
 
 let list_map_lwt_s f =
   Lwt_list.map_s
-    (fun score ->
-      let%lwt value = f score.value in
-      Lwt.return { score with value } )
+    (
+      fun score ->
+        let%lwt value = f score.value in
+        Lwt.return { score with value }
+    )
 
 let list_map_lwt_p f =
   Lwt_list.map_p
-    (fun score ->
-      let%lwt value = f score.value in
-      Lwt.return { score with value } )
+    (
+      fun score ->
+        let%lwt value = f score.value in
+        Lwt.return { score with value }
+    )
 
 let list_map_filter f =
   List.map_filter
-    (fun score ->
-      f score.value
-      >>=? fun value ->
-        Some { score with value } )
+    (
+      fun score ->
+        f score.value
+        >>=? fun value ->
+          Some { score with value }
+    )
 
 let list_map_score f (l : 'a t list) : 'a t list Lwt.t =
   Lwt_list.map_s
-    (fun (score : 'a t) ->
-      let%lwt new_score = f score.value in
-      Lwt.return
-        {
-          score = score.score *. new_score;
-          value = score.value
-        } )
+    (
+      fun (score : 'a t) ->
+        let%lwt new_score = f score.value in
+        Lwt.return
+          {
+            score = score.score *. new_score;
+            value = score.value
+          }
+    )
     l
 
 let list_erase l =

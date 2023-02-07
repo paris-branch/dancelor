@@ -34,9 +34,11 @@ let create page =
         page
     in
     SearchBar.create
-      ~on_enter: (fun input ->
-        Dom_html.window##.location##.href := js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)));
-        Lwt.return_unit)
+      ~on_enter: (
+        fun input ->
+          Dom_html.window##.location##.href := js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)));
+          Lwt.return_unit
+      )
       ~placeholder: "Search for anything (it's magic!)"
       ~sections: [main_section]
       page

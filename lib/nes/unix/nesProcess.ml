@@ -67,16 +67,20 @@ let check_output
   (* Keep only the checks that went wrong. *)
   let checks =
     List.map_filter
-      (fun (ok, on_error, msg) ->
-        match on_error with
-        | Some loglevel when not ok -> Some (loglevel, msg)
-        | _ -> None)
+      (
+        fun (ok, on_error, msg) ->
+          match on_error with
+          | Some loglevel when not ok -> Some (loglevel, msg)
+          | _ -> None
+      )
       checks
   in
   (* Log all things that went wrong *)
   List.iter
-    (fun (loglevel, msg) ->
-      Log.msg loglevel (fun m -> m "The command %s" msg))
+    (
+      fun (loglevel, msg) ->
+        Log.msg loglevel (fun m -> m "The command %s" msg)
+    )
     checks;
   (* Find the highest loglevel among the things that went wrong. *)
   let loglevel =
@@ -89,17 +93,19 @@ let check_output
   in
   (* Log everything with this loglevel now. *)
   (
-  match command with
-  | Some command -> Log.msg loglevel (fun m -> m "Command: %s" command)
-  | None -> ());
+    match command with
+    | Some command -> Log.msg loglevel (fun m -> m "Command: %s" command)
+    | None -> ()
+  );
   Log.msg loglevel (fun m -> m "Status: %a" pp_process_status out.status);
   Log.msg loglevel (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") out.stdout);
   Log.msg loglevel (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") out.stderr);
   (* If at least one check failed, fail. *)
   (
-  match checks with
-  | [] -> ()
-  | _ -> failwith "NesProcess.run")
+    match checks with
+    | [] -> ()
+    | _ -> failwith "NesProcess.run"
+  )
 
 let run
     ?timeout

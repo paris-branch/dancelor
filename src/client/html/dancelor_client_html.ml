@@ -23,8 +23,10 @@ let text_lwt str_lwt (document : document) =
   let text = document##createTextNode (Js.string "") in
   Lwt.on_success
     str_lwt
-    (fun str ->
-      text##.data := Js.string str);
+    (
+      fun str ->
+        text##.data := Js.string str
+    );
   (text :> dom_node)
 
 let text str document =
@@ -40,8 +42,10 @@ let gen_node_lwt create ?(classes = []) children_lwt document =
   List.iter (fun class_ -> elt##.classList##add (Js.string class_)) classes;
   Lwt.on_success
     children_lwt
-    (fun children ->
-      append_nodes elt document children);
+    (
+      fun children ->
+        append_nodes elt document children
+    );
   elt
 
 let node_lwt create ?classes children_lwt document =
@@ -92,21 +96,25 @@ let a_lwt ?href ?href_lwt ?target ?classes children_lwt document =
   let a = gen_node_lwt Dom_html.createA ?classes children_lwt document in
   Lwt.on_success
     href_lwt
-    (fun href ->
-      a##.href := Js.string href);
+    (
+      fun href ->
+        a##.href := Js.string href
+    );
   (
-  match target with
-  | None -> ()
-  | Some target ->
-    a##.target
-    := Js.string
-      (
-      match target with
-      | Blank -> "_blank"
-      | Self -> "_self"
-      | Parent -> "_parent"
-      | Top -> "_top"
-      | Frame name -> name));
+    match target with
+    | None -> ()
+    | Some target ->
+      a##.target
+      := Js.string
+        (
+          match target with
+          | Blank -> "_blank"
+          | Self -> "_self"
+          | Parent -> "_parent"
+          | Top -> "_top"
+          | Frame name -> name
+        )
+  );
   (a :> dom_node)
 
 let a ?href ?href_lwt ?target ?classes children document =
@@ -186,8 +194,10 @@ let img ?src ?src_lwt ?classes () document =
   let img = gen_node_lwt Dom_html.createImg ?classes Lwt.return_nil document in
   Lwt.on_success
     src_lwt
-    (fun src ->
-      img##.src := Js.string src);
+    (
+      fun src ->
+        img##.src := Js.string src
+    );
   (img :> dom_node)
 
 let object_lwt ~type_ ?data ?data_lwt ?classes children_lwt document =
@@ -201,8 +211,10 @@ let object_lwt ~type_ ?data ?data_lwt ?classes children_lwt document =
   object_##._type := Js.string type_;
   Lwt.on_success
     data_lwt
-    (fun data ->
-      object_##.data := Js.string data);
+    (
+      fun data ->
+        object_##.data := Js.string data
+    );
   (object_ :> dom_node)
 
 let object_ ~type_ ?data ?data_lwt ?classes children document =
@@ -219,6 +231,8 @@ let audio ?src ?src_lwt ?(controls = false) ?classes () document =
   audio##.controls := Js.bool controls;
   Lwt.on_success
     src_lwt
-    (fun src ->
-      audio##.src := Js.string src);
+    (
+      fun src ->
+        audio##.src := Js.string src
+    );
   (audio :> dom_node)

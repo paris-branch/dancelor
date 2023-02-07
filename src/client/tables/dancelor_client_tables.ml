@@ -7,10 +7,14 @@ module Formatters = Dancelor_client_formatters
 let clickable_row ?href ?href_lwt cells =
   tr
     ~classes: ["clickable"]
-    (List.map
-      (fun cell_lwt ->
-        td [a_lwt ~classes: ["fill"] ?href ?href_lwt cell_lwt])
-      cells)
+    (
+      List.map
+        (
+          fun cell_lwt ->
+            td [a_lwt ~classes: ["fill"] ?href ?href_lwt cell_lwt]
+        )
+        cells
+    )
 
 let map_table ~header list fun_ =
   table
@@ -34,11 +38,13 @@ let books books =
         Lwt.return
           [
             text_lwt
-              ( let open Lwt in
-              Book.date book
-              >|= function
-              | None -> ""
-              | Some date -> NesPartialDate.to_pretty_string date);
+              (
+                let open Lwt in
+                Book.date book
+                >|= function
+                | None -> ""
+                | Some date -> NesPartialDate.to_pretty_string date
+              );
           ];
       ]
 

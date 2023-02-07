@@ -125,14 +125,16 @@ module Dance = struct
       Lwt.return (Formula.interpret_bool (kind = kind'))
     | Simple ->
       (
-      match kind with
-      | _, [_] -> Lwt.return Formula.interpret_true
-      | _ -> Lwt.return Formula.interpret_false)
+        match kind with
+        | _, [_] -> Lwt.return Formula.interpret_true
+        | _ -> Lwt.return Formula.interpret_false
+      )
     | Version vfilter ->
       (
-      match kind with
-      | _, [vkind] -> Version.accepts vfilter vkind
-      | _ -> Lwt.return Formula.interpret_false)
+        match kind with
+        | _, [vkind] -> Version.accepts vfilter vkind
+        | _ -> Lwt.return Formula.interpret_false
+      )
 
   let raw string =
     match Kind.base_of_string_opt string with
@@ -150,14 +152,18 @@ module Dance = struct
   (* Unary text_predicates lifted from Versions. *)
   let unary_text_predicates =
     List.map
-      (fun (name, builder) ->
-        (
-          name,
-          (fun formula ->
-            match builder formula with
-            | Ok formula -> Ok (version formula)
-            | Error err -> Error err)
-        ))
+      (
+        fun (name, builder) ->
+          (
+            name,
+            (
+              fun formula ->
+                match builder formula with
+                | Ok formula -> Ok (version formula)
+                | Error err -> Error err
+            )
+          )
+      )
       Version.unary_text_predicates
 
   let from_text_formula =

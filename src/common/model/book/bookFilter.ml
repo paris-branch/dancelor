@@ -50,11 +50,13 @@ let memTuneDeep tune = existsTuneDeep (TuneFilter.is tune)
 
 let raw string =
   Ok
-    (Formula.or_l
-      [
-        titleMatches string;
-        subtitleMatches string;
-      ])
+    (
+      Formula.or_l
+        [
+          titleMatches string;
+          subtitleMatches string;
+        ]
+    )
 
 let nullary_text_predicates =
   [
