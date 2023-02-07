@@ -395,15 +395,16 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1675169698,
-        "narHash": "sha256-C1wFiyJ+4SRvIsFkdMIN1Fa+58APmyTGKWpX9EKOehM=",
-        "owner": "cachix",
+        "lastModified": 1675518063,
+        "narHash": "sha256-MQHDGQfYCDtgSxB541TC/+krLaUuibcLmF03vO37XAk=",
+        "owner": "niols",
         "repo": "pre-commit-hooks.nix",
-        "rev": "ce4efeec34c6eb35ba07b8fceaae87d6b46c1c5f",
+        "rev": "dc1c60138d190fecb08e306dda19ae1851194ba0",
         "type": "github"
       },
       "original": {
-        "owner": "cachix",
+        "owner": "niols",
+        "ref": "add-various-ocaml-hooks",
         "repo": "pre-commit-hooks.nix",
         "type": "github"
       }
