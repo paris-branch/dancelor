@@ -5,6 +5,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     timidity.url = "github:niols/nixpkg-timidity";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    topiary.url = "github:tweag/topiary/niols/pre-commit-hook.nix";
   };
 
   outputs = inputs@{ flake-parts, ... }:
@@ -18,7 +19,6 @@
         ./.nix/perinput-lib.nix
         ./.nix/pre-commit-settings.nix
         ./.nix/pre-commit-settings-dune-opam-sync.nix
-        ./.nix/pre-commit-settings-ocp-indent.nix
         ./.nix/pre-commit-settings-opam-lint.nix
         ./.nix/systems.nix
         ./.nix/timidity-overlay.nix
