@@ -4,17 +4,18 @@ module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-  ?status
-  ~tune
-  ~bars
-  ~key
-  ~structure
-  ?arranger
-  ?remark
-  ?disambiguation
-  ?broken
-  ~content
-  () =
+    ?status
+    ~tune
+    ~bars
+    ~key
+    ~structure
+    ?arranger
+    ?remark
+    ?disambiguation
+    ?broken
+    ~content
+    ()
+  =
   Madge_client.(call ~endpoint: E.make_and_save
   @@ fun { a } { o } ->
     o A.status status;

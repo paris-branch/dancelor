@@ -104,9 +104,10 @@ let to_formula predicate_to_formula formula =
   to_formula formula
 
 let make_predicate_to_formula
-  (raw_builder : 'a raw_builder)
-  (nullary_text_predicates : 'a nullary_text_predicates)
-  (unary_text_predicates : 'a unary_text_predicates) = function
+    (raw_builder : 'a raw_builder)
+    (nullary_text_predicates : 'a nullary_text_predicates)
+    (unary_text_predicates : 'a unary_text_predicates)
+  = function
   | Raw string ->
     raw_builder string
   | Nullary pred ->
@@ -121,11 +122,12 @@ let make_predicate_to_formula
     | Some mk_pred -> mk_pred sub_formula)
 
 let make_to_formula
-  (raw_builder : 'a raw_builder)
-  (nullary_text_predicates : 'a nullary_text_predicates)
-  (unary_text_predicates : 'a unary_text_predicates)
-  (formula : t) :
-  'a Formula.t or_error =
+    (raw_builder : 'a raw_builder)
+    (nullary_text_predicates : 'a nullary_text_predicates)
+    (unary_text_predicates : 'a unary_text_predicates)
+    (formula : t)
+    : 'a Formula.t or_error
+  =
   let predicate_to_formula =
     make_predicate_to_formula
       raw_builder
@@ -136,9 +138,10 @@ let make_to_formula
 
 (** Helper to build a unary predicate whose argument must be raw only. *)
 let raw_only
-  ~(convert : string -> ('a , string ) result)
-  (mk : 'a -> 'b Formula.t) :
-  t -> ( 'b Formula.t , string ) result = function
+    ~(convert : string -> ('a , string ) result)
+    (mk : 'a -> 'b Formula.t)
+    : t -> ( 'b Formula.t , string ) result
+  = function
   | Pred (Raw s) ->
     (
     match convert s with

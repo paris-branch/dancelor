@@ -4,11 +4,12 @@ module E = Dancelor_common_model.BookEndpoints
 module A = E.Arguments
 
 let make_and_save
-  ?status
-  ~title
-  ?date
-  ?contents_and_parameters
-  () =
+    ?status
+    ~title
+    ?date
+    ?contents_and_parameters
+    ()
+  =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
     let%lwt contents = Lwt_list.map_s page_to_page_core contents in
@@ -29,12 +30,13 @@ let search ?pagination ?threshold filter =
     a A.filter filter; )
 
 let update
-  ?status
-  ~slug
-  ~title
-  ?date
-  ?contents_and_parameters
-  () =
+    ?status
+    ~slug
+    ~title
+    ?date
+    ?contents_and_parameters
+    ()
+  =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
     let%lwt contents = Lwt_list.map_s page_to_page_core contents in

@@ -50,12 +50,13 @@ let compare_loglevel l1 l2 =
     | _ -> assert false
 
 let check_output
-  ?on_wrong_status
-  ?on_nonempty_stdout
-  ?on_nonempty_stderr
-  ?(on_ok = Logs.Debug)
-  ?command
-  out =
+    ?on_wrong_status
+    ?on_nonempty_stdout
+    ?on_nonempty_stderr
+    ?(on_ok = Logs.Debug)
+    ?command
+    out
+  =
   let checks =
     [
       out.status = Unix.WEXITED 0, on_wrong_status, "did not exit successfully";
@@ -101,15 +102,16 @@ let check_output
   | _ -> failwith "NesProcess.run")
 
 let run
-  ?timeout
-  ?env
-  ?cwd
-  ?(stdin = "")
-  ?on_wrong_status
-  ?on_nonempty_stdout
-  ?on_nonempty_stderr
-  ?on_ok
-  cmd =
+    ?timeout
+    ?env
+    ?cwd
+    ?(stdin = "")
+    ?on_wrong_status
+    ?on_nonempty_stdout
+    ?on_nonempty_stderr
+    ?on_ok
+    cmd
+  =
   let strcmd =
     let pre, post =
       match cwd with
@@ -137,15 +139,16 @@ let run
     Lwt.return output
 
 let run_ignore
-  ?timeout
-  ?env
-  ?cwd
-  ?stdin
-  ?on_wrong_status
-  ?on_nonempty_stdout
-  ?on_nonempty_stderr
-  ?on_ok
-  cmd =
+    ?timeout
+    ?env
+    ?cwd
+    ?stdin
+    ?on_wrong_status
+    ?on_nonempty_stdout
+    ?on_nonempty_stderr
+    ?on_ok
+    cmd
+  =
   let%lwt _ =
     run
       ?timeout

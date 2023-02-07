@@ -5,15 +5,16 @@ module E = Dancelor_common_model.TuneEndpoints
 module A = E.Arguments
 
 let make_and_save
-  ?status
-  ~name
-  ?alternative_names
-  ~kind
-  ?author
-  ?dances
-  ?remark
-  ?scddb_id
-  () =
+    ?status
+    ~name
+    ?alternative_names
+    ~kind
+    ?author
+    ?dances
+    ?remark
+    ?scddb_id
+    ()
+  =
   Dancelor_server_database.Tune.save ~slug_hint: name
   @@ fun slug ->
     make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id ()

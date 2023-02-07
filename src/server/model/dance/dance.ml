@@ -5,13 +5,14 @@ module E = Dancelor_common_model.DanceEndpoints
 module A = E.Arguments
 
 let make_and_save
-  ?status
-  ~name
-  ~kind
-  ?deviser
-  ~two_chords
-  ?scddb_id
-  () =
+    ?status
+    ~name
+    ~kind
+    ?deviser
+    ~two_chords
+    ?scddb_id
+    ()
+  =
   Dancelor_server_database.Dance.save ~slug_hint: name
   @@ fun slug ->
     make ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id ()

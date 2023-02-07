@@ -18,14 +18,15 @@ include Self
 
 (* FIXME: see remark in VersionParameters *)
 let make
-  ?instruments
-  ?forced_pages
-  ?show_deviser
-  ?show_order
-  ?display_name
-  ?for_dance
-  ?every_version
-  () =
+    ?instruments
+    ?forced_pages
+    ?show_deviser
+    ?show_order
+    ?display_name
+    ?for_dance
+    ?every_version
+    ()
+  =
   make
     ~instruments
     ~forced_pages

@@ -5,17 +5,18 @@ module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-  ?status
-  ~tune
-  ~bars
-  ~key
-  ~structure
-  ?arranger
-  ?remark
-  ?disambiguation
-  ?broken
-  ~content
-  () =
+    ?status
+    ~tune
+    ~bars
+    ~key
+    ~structure
+    ?arranger
+    ?remark
+    ?disambiguation
+    ?broken
+    ~content
+    ()
+  =
   let%lwt name = Tune.name tune in
   let%lwt version =
     Dancelor_server_database.Version.save ~slug_hint: name

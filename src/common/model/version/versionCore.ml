@@ -18,17 +18,18 @@ type t = {
 [@@deriving make, yojson]
 
 let make
-  ~slug
-  ?status
-  ~tune
-  ~bars
-  ~key
-  ~structure
-  ?arranger
-  ?remark
-  ?disambiguation
-  ?broken
-  () =
+    ~slug
+    ?status
+    ~tune
+    ~bars
+    ~key
+    ~structure
+    ?arranger
+    ?remark
+    ?disambiguation
+    ?broken
+    ()
+  =
   let%lwt tune = TuneCore.slug tune in
   let%lwt arranger =
     let%olwt arranger = Lwt.return arranger in
