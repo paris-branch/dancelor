@@ -13,6 +13,7 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.pre-commit-hooks.flakeModule
+        ./.nix/app-topiarise.nix
         ./.nix/devshell-default.nix
         ./.nix/formatter.nix
         ./.nix/package-dancelor.nix
