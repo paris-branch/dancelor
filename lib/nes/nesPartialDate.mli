@@ -28,5 +28,5 @@ val compare : t -> t -> int
 
     Do not use them except in there. *)
 
-val internal__to_full : t -> (int * int * int ) option
+val internal__to_full : t -> (int * int * int) option
 val internal__from_full : int * int * int -> t

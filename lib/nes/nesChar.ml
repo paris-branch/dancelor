@@ -11,7 +11,8 @@ let is_space c = c = ' '
 let is_symbol c =
   ('!' <= c && c <= '/')
   || (':' <= c && c <= '@')
-  || ('[' <= c && c <= '`') || ('{' <= c && c <= '~')
+  || ('[' <= c && c <= '`')
+  || ('{' <= c && c <= '~')
 
 type kind = Letter | Digit | Space | Symbol | Other
 

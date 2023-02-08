@@ -64,7 +64,7 @@ let compare book1 book2 =
 type warning =
   | Empty
   | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of TuneCore.t * (SetCore.t option * int ) list
+  | DuplicateVersion of TuneCore.t * (SetCore.t option * int) list
   (* DuplicateVersion contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
   | SetDanceMismatch of SetCore.t * DanceCore.t

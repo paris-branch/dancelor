@@ -133,7 +133,7 @@ end)
 
 module Storage = Storage
 
-let tables : (module Table.S) list =
+let tables : (module Table.S)list =
   [
     (module Person);
     (module Credit);
@@ -223,12 +223,16 @@ module Initialise = struct
     Log.info (fun m -> m "New version is in place")
 
   let initialise () =
-    sync_db ();%lwt
+    sync_db ();
+    %lwt
     let version = create_new_db_version () in
     create_tables version;
-    load_tables version;%lwt
-    check_dependency_problems version;%lwt
-    report_without_accesses version;%lwt
+    load_tables version;
+    %lwt
+    check_dependency_problems version;
+    %lwt
+    report_without_accesses version;
+    %lwt
     establish_version version;
     Lwt.return_unit
 end

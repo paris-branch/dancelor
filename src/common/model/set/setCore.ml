@@ -8,7 +8,7 @@ type t = {
   name: string;
   deviser: CreditCore.t Slug.t option [@default None];
   kind: Kind.dance;
-  versions_and_parameters: (VersionCore.t Slug.t * VersionParameters.t ) list [@key "versions-and-parameters"] [@default []];
+  versions_and_parameters: (VersionCore.t Slug.t * VersionParameters.t) list [@key "versions-and-parameters"] [@default []];
   order: SetOrder.t;
   instructions: string [@default ""];
   dances: DanceCore.t Slug.t list [@default []];

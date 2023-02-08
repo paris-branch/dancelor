@@ -1,6 +1,6 @@
 type serialised = Yojson.Safe.t
 type 'a serialiser = 'a -> serialised
-type 'a unserialiser = serialised -> ('a , string ) result
+type 'a unserialiser = serialised -> ('a, string) result
 
 module type SERIALISABLE = sig
   type t
@@ -11,7 +11,7 @@ module type SERIALISABLE = sig
   val of_yojson : t unserialiser
 end
 
-type ('a , 'optional )arg = (module SERIALISABLE with type t = 'a)
+type ('a, 'optional) arg = (module SERIALISABLE with type t = 'a)
 
 type mandatory
 type optional
@@ -19,7 +19,7 @@ type optional
 (* FIXME: check either through typing or dynamically that optional arguments
    are indeed used optionally. *)
 
-let arg(type s) ?key (module M: SERIALISABLE with type t = s) : (s , mandatory ) arg =
+let arg (type s) ?key (module M: SERIALISABLE with type t = s) : (s, mandatory) arg =
   (module struct
     type t = M.t
     let _key = match key with Some key -> key | None -> M._key
@@ -27,7 +27,7 @@ let arg(type s) ?key (module M: SERIALISABLE with type t = s) : (s , mandatory )
     let of_yojson = M.of_yojson
   end)
 
-let optarg(type s) ?key (module M: SERIALISABLE with type t = s) : (s , optional ) arg =
+let optarg (type s) ?key (module M: SERIALISABLE with type t = s) : (s, optional) arg =
   (module struct
     type t = M.t
     let _key = match key with Some key -> key | None -> M._key
@@ -35,9 +35,9 @@ let optarg(type s) ?key (module M: SERIALISABLE with type t = s) : (s , optional
     let of_yojson = M.of_yojson
   end)
 
-let arg_key(type s) (module M: SERIALISABLE with type t = s) = M._key
-let arg_serialiser(type s) (module M: SERIALISABLE with type t = s) : s serialiser = M.to_yojson
-let arg_unserialiser(type s) (module M: SERIALISABLE with type t = s) : s unserialiser = M.of_yojson
+let arg_key (type s) (module M: SERIALISABLE with type t = s) = M._key
+let arg_serialiser (type s) (module M: SERIALISABLE with type t = s) : s serialiser = M.to_yojson
+let arg_unserialiser (type s) (module M: SERIALISABLE with type t = s) : s unserialiser = M.of_yojson
 
 type 'a endpoint = {
   meth: Cohttp.Code.meth;
@@ -51,11 +51,11 @@ let endpoint ?(meth = `POST) ~path returns =
 let endpoint_meth endpoint = endpoint.meth
 let endpoint_path endpoint = endpoint.path
 
-let endpoint_serialiser(type s) endpoint =
+let endpoint_serialiser (type s) endpoint =
   let (module M: SERIALISABLE with type t = s) = endpoint.returns in
   M.to_yojson
 
-let endpoint_unserialiser(type s) endpoint =
+let endpoint_unserialiser (type s) endpoint =
   let (module M: SERIALISABLE with type t = s) = endpoint.returns in
   M.of_yojson
 

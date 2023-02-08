@@ -1,4 +1,4 @@
-type ('a , 'b )t = ('a , 'b ) Hashtbl.t
+type ('a, 'b) t = ('a, 'b) Hashtbl.t
 
 (* FIXME: support lifetime; to be given on creation and cleaned up lazily on use
    and with an extra endpoint *)

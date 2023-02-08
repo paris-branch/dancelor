@@ -34,7 +34,8 @@ let make_and_save
         ?broken
         ()
   in
-  Dancelor_server_database.Version.write_content version content;%lwt
+  Dancelor_server_database.Version.write_content version content;
+  %lwt
   Lwt.return version
 
 let () =

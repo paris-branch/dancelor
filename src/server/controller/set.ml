@@ -4,7 +4,7 @@ open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.set": Logs.LOG)
 
 module Ly = struct
-  let cache : ([`Ly] * Set.t * SetParameters.t * string , string Lwt.t ) StorageCache.t = StorageCache.create ()
+  let cache : ([`Ly] * Set.t * SetParameters.t * string, string Lwt.t) StorageCache.t = StorageCache.create ()
 
   let render ?(parameters = SetParameters.none) set =
     let%lwt body = Set.lilypond_content_cache_key set in
@@ -83,7 +83,8 @@ module Ly = struct
             )
             versions_and_parameters
       in
-      prom;%lwt
+      prom;
+      %lwt
       Lwt.return res
 
   let get set query_parameters =
@@ -131,7 +132,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Set.t * SetParameters.t option * string , string Lwt.t ) StorageCache.t =
+  let cache : ([`Pdf] * Set.t * SetParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -151,9 +152,11 @@ module Pdf = struct
       Lwt_io.with_file
         ~mode: Output
         (Filename.concat path fname_ly)
-        (fun ochan -> Lwt_io.write ochan lilypond);%lwt
+        (fun ochan -> Lwt_io.write ochan lilypond);
+      %lwt
       Log.debug (fun m -> m "Processing with LilyPond");
-      LilyPond.run ~exec_path: path fname_ly;%lwt
+      LilyPond.run ~exec_path: path fname_ly;
+      %lwt
       let path_pdf = Filename.concat path fname_pdf in
       Lwt.return path_pdf
 

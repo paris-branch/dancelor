@@ -15,7 +15,7 @@ module type PAGE = sig
   val refresh : t -> unit
 end
 
-let pack(type s) (module M: PAGE with type t = s) (create : Page.t -> s) =
+let pack (type s) (module M: PAGE with type t = s) (create : Page.t -> s) =
   (module struct
     type t = M.t
     let create = create

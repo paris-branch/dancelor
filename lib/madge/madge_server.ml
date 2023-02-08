@@ -1,11 +1,11 @@
 open Madge_common
 
-type handler = body: (string * Yojson.Safe.t ) list -> serialised Lwt.t
+type handler = body: (string * Yojson.Safe.t) list -> serialised Lwt.t
 
-let handlers : (Cohttp.Code.meth * string , handler ) Hashtbl.t = Hashtbl.create 8
+let handlers : (Cohttp.Code.meth * string, handler) Hashtbl.t = Hashtbl.create 8
 
-type get_arg = { a: 'a.('a , mandatory ) arg -> 'a; }
-type get_opt_arg = { o: 'a.('a , optional ) arg -> 'a option; }
+type get_arg = { a: 'a. ('a, mandatory) arg -> 'a; }
+type get_opt_arg = { o: 'a. ('a, optional) arg -> 'a option; }
 
 let get_opt_arg query : get_opt_arg =
   let o arg =

@@ -68,14 +68,14 @@ let pp = Printer.pp
 (******************************************************************************)
 (* To help convert from text_formula to filter. *)
 
-type 'a or_error = ('a , string ) result
+type 'a or_error = ('a, string) result
 let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
 
 type 'a raw_builder = string -> 'a Formula.t or_error
 type 'a nullary_builder = 'a Formula.t
-type 'a nullary_text_predicates = (string * 'a nullary_builder ) list
+type 'a nullary_text_predicates = (string * 'a nullary_builder) list
 type 'a unary_builder = t -> 'a Formula.t or_error
-type 'a unary_text_predicates = (string * 'a unary_builder ) list
+type 'a unary_text_predicates = (string * 'a unary_builder) list
 
 let to_formula predicate_to_formula formula =
   let rec to_formula = function
@@ -143,9 +143,9 @@ let make_to_formula
 
 (** Helper to build a unary predicate whose argument must be raw only. *)
 let raw_only
-    ~(convert : string -> ('a , string ) result)
+    ~(convert : string -> ('a, string) result)
     (mk : 'a -> 'b Formula.t)
-    : t -> ( 'b Formula.t , string ) result
+    : t -> ('b Formula.t, string) result
   = function
   | Pred (Raw s) ->
     (

@@ -5,7 +5,7 @@ open Dancelor_client_model
 type t = {
   mutable name: string;
   mutable kind: string;
-  mutable deviser: (Credit.t Slug.t * Credit.t ) option;
+  mutable deviser: (Credit.t Slug.t * Credit.t) option;
   mutable two_chords: bool;
   mutable scddb_id: string;
 }

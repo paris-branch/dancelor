@@ -8,7 +8,7 @@ type 'a t = 'a Option.t Lwt.t
 
 val return : 'a -> 'a t
 
-val bind : 'a t -> ( 'a -> 'b t) -> 'b t
+val bind : 'a t -> ('a -> 'b t) -> 'b t
 
 (** {3 Error Part of the Monad} *)
 

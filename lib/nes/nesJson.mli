@@ -1,7 +1,7 @@
 type t = Yojson.Safe.t
 
 val add_field : string -> t -> t -> t
-val add_fields : (string * t ) list -> t -> t
+val add_fields : (string * t) list -> t -> t
 
 val remove_field : string -> t -> t
 

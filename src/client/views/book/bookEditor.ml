@@ -4,7 +4,7 @@ open Dancelor_client_model
 type t = {
   mutable title: string;
   mutable date: string;
-  mutable sets: (Set.t Slug.t * Set.t ) option array;
+  mutable sets: (Set.t Slug.t * Set.t) option array;
   mutable count: int;
 }
 

@@ -6,8 +6,8 @@ type t = {
   mutable name: string;
   mutable alternative: string;
   mutable kind: string;
-  mutable author: (Credit.t Slug.t * Credit.t ) option;
-  mutable dances: (Dance.t Slug.t * Dance.t ) option array;
+  mutable author: (Credit.t Slug.t * Credit.t) option;
+  mutable dances: (Dance.t Slug.t * Dance.t) option array;
   mutable remark: string;
   mutable scddb_id: string;
   mutable count: int;

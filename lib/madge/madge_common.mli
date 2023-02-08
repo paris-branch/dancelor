@@ -1,6 +1,6 @@
 type serialised = Yojson.Safe.t
 type 'a serialiser = 'a -> serialised
-type 'a unserialiser = serialised -> ('a , string ) result
+type 'a unserialiser = serialised -> ('a, string) result
 
 module type SERIALISABLE = sig
   type t
@@ -11,17 +11,17 @@ module type SERIALISABLE = sig
   val of_yojson : t unserialiser
 end
 
-type ('a , 'optional )arg
+type ('a, 'optional) arg
 
 type mandatory
 type optional
 
-val arg : ?key: string -> (module SERIALISABLE with type t = 'a) -> ('a , mandatory ) arg
-val optarg : ?key: string -> (module SERIALISABLE with type t = 'a) -> ('a , optional ) arg
+val arg : ?key: string -> (module SERIALISABLE with type t = 'a) -> ('a, mandatory) arg
+val optarg : ?key: string -> (module SERIALISABLE with type t = 'a) -> ('a, optional) arg
 
-val arg_key : ('a , 'optional ) arg -> string
-val arg_serialiser : ('a , 'optional ) arg -> 'a serialiser
-val arg_unserialiser : ('a , 'optional ) arg -> 'a unserialiser
+val arg_key : ('a, 'optional) arg -> string
+val arg_serialiser : ('a, 'optional) arg -> 'a serialiser
+val arg_unserialiser : ('a, 'optional) arg -> 'a unserialiser
 
 type 'a endpoint
 

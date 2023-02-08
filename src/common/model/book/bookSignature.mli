@@ -49,7 +49,7 @@ val sets_from_contents : t -> SetCore.t list Lwt.t
 val unique_sets_from_contents : t -> SetCore.t list Lwt.t
 (** Same as {!sets_from_contents} but without duplicate sets. *)
 
-val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t ) list Lwt.t
+val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t) list Lwt.t
 (** Same as {!sets_from_contents} but also includes parameters. *)
 
 (** {2 Utilities} *)
@@ -67,7 +67,7 @@ val lilypond_contents_cache_key : t -> string Lwt.t
 type warning = BookCore.warning =
   | Empty
   | DuplicateSet of SetCore.t
-  | DuplicateVersion of TuneCore.t * (SetCore.t option * int ) list
+  | DuplicateVersion of TuneCore.t * (SetCore.t option * int) list
   | SetDanceMismatch of SetCore.t * DanceCore.t
 (* FIXME: a more specific type for (SetCore.t option * int) list. Maybe
        “occurrences”? And maybe with a record so that this “int” has a name? *)

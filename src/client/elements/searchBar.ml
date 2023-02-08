@@ -10,7 +10,7 @@ module Section = struct
 
   type 'a t = {
     page: Page.t;
-    search: string -> (( 'a Score.t ) list , string list ) result Lwt.t;
+    search: string -> (('a Score.t) list, string list) result Lwt.t;
     section: Table.Section.t;
     default: Table.Row.t option;
     empty: Table.Row.t;

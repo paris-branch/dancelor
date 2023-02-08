@@ -9,7 +9,7 @@ val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val deviser : t -> CreditCore.t option Lwt.t
 val kind : t -> Kind.dance Lwt.t
-val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t ) list Lwt.t
+val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
 val order : t -> SetOrder.t Lwt.t
 val instructions : t -> string Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
@@ -43,7 +43,7 @@ val make_temp :
   name: string ->
   ?deviser: CreditCore.t ->
   kind: Kind.dance ->
-  ?versions_and_parameters: (VersionCore.t * VersionParameters.t ) list ->
+  ?versions_and_parameters: (VersionCore.t * VersionParameters.t) list ->
   order: SetOrder.t ->
   ?dances: DanceCore.t list ->
   unit ->
@@ -54,7 +54,7 @@ val make_and_save :
   name: string ->
   ?deviser: CreditCore.t ->
   kind: Kind.dance ->
-  ?versions_and_parameters: (VersionCore.t * VersionParameters.t ) list ->
+  ?versions_and_parameters: (VersionCore.t * VersionParameters.t) list ->
   order: SetOrder.t ->
   ?dances: DanceCore.t list ->
   unit ->

@@ -1,5 +1,5 @@
 type key = string
-type t = (key * Yojson.Safe.t ) list
+type t = (key * Yojson.Safe.t) list
 
 let get = List.assoc_opt
 

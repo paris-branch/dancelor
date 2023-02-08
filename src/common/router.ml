@@ -32,7 +32,7 @@ type controller =
   | Victor
 
 type route = (meth: Cohttp.Code.meth -> path: string -> controller option)
-* (controller -> (Cohttp.Code.meth * string ) option)
+* (controller -> (Cohttp.Code.meth * string) option)
 
 let direct ~meth ~path controller =
   let meth_to_match = meth in

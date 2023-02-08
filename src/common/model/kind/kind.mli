@@ -18,7 +18,7 @@ val base_to_pretty_string : ?capitalised: bool -> base -> string
     (default: false). *)
 
 val base_to_yojson : base -> Json.t
-val base_of_yojson : Json.t -> (base , string ) result
+val base_of_yojson : Json.t -> (base, string) result
 
 val base_tempo : base -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
@@ -39,7 +39,7 @@ val version_to_pretty_string : version -> string
 (** Pretty version *)
 
 val version_to_yojson : version -> Json.t
-val version_of_yojson : Json.t -> (version , string ) result
+val version_of_yojson : Json.t -> (version, string) result
 
 module Version: Madge_common.SERIALISABLE with type t = version
 
@@ -58,6 +58,6 @@ val dance_to_pretty_string : dance -> string
 val check_dance : string -> bool
 
 val dance_to_yojson : dance -> Json.t
-val dance_of_yojson : Json.t -> (dance , string ) result
+val dance_of_yojson : Json.t -> (dance, string) result
 
 module Dance: Madge_common.SERIALISABLE with type t = dance

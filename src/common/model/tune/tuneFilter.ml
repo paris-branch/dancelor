@@ -24,24 +24,26 @@ let existsDance dfilter = Formula.pred (ExistsDance dfilter)
 
 let raw string = Ok (nameMatches string)
 
-let nullary_text_predicates = [
-  "reel",       (kind KindFilter.(Base.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
-  "jig",        (kind KindFilter.(Base.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
-  "strathspey", (kind KindFilter.(Base.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
-  "waltz",      (kind KindFilter.(Base.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
-]
+let nullary_text_predicates =
+  [
+    "reel", (kind KindFilter.(Base.is Reel)); (* alias for kind:reel       FIXME: make this clearer *)
+    "jig", (kind KindFilter.(Base.is Jig)); (* alias for kind:jig        FIXME: make this clearer *)
+    "strathspey", (kind KindFilter.(Base.is Strathspey)); (* alias for kind:strathspey FIXME: make this clearer *)
+    "waltz", (kind KindFilter.(Base.is Waltz)); (* alias for kind:waltz      FIXME: make this clearer *)
+  ]
 
 let unary_text_predicates =
   TextFormula.[
-    "name",         raw_only ~convert:no_convert name;
-    "name-matches", raw_only ~convert:no_convert nameMatches;
-    "author",       (author @@@@ CreditFilter.from_text_formula);
-    "by",           (author @@@@ CreditFilter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-    "kind",         (kind @@@@ KindFilter.Base.from_text_formula);
+    "name", raw_only ~convert: no_convert name;
+    "name-matches", raw_only ~convert: no_convert nameMatches;
+    "author", (author @@@@ CreditFilter.from_text_formula);
+    "by", (author @@@@ CreditFilter.from_text_formula); (* alias for author; FIXME: make this clearer *)
+    "kind", (kind @@@@ KindFilter.Base.from_text_formula);
     "exists-dance", (existsDance @@@@ DanceFilter.from_text_formula);
   ]
 
 let from_text_formula =
-  TextFormula.make_to_formula raw
+  TextFormula.make_to_formula
+    raw
     nullary_text_predicates
     unary_text_predicates

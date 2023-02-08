@@ -4,7 +4,7 @@ open Dancelor_server_controller
 open Cohttp_lwt_unix
 module Log = (val Dancelor_server_logs.create "main": Logs.LOG)
 
-type query = (string * string list ) list
+type query = (string * string list) list
 [@@deriving show]
 
 let log_exn ~msg exn =
@@ -29,9 +29,9 @@ let remove_prefix_suffix prefix suffix string =
 
 type controller =
   | C :
-    ( 'any Slug.t ->
+    ('any Slug.t ->
     QueryParameters.t ->
-    (Cohttp.Response.t * Cohttp_lwt.Body.t ) Lwt.t) ->
+    (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) ->
       controller
 
 let apply_controller path =
@@ -139,10 +139,14 @@ let initialise_logs () =
   Dancelor_server_logs.initialise !Dancelor_server_config.loglevel
 
 let populate_caches () =
-  Dancelor_server_controller.Version.Svg.populate_cache ();%lwt
-  Dancelor_server_controller.Version.Pdf.populate_cache ();%lwt
-  Dancelor_server_controller.Version.Ogg.populate_cache ();%lwt
-  Dancelor_server_controller.Set.Pdf.populate_cache ();%lwt
+  Dancelor_server_controller.Version.Svg.populate_cache ();
+  %lwt
+  Dancelor_server_controller.Version.Pdf.populate_cache ();
+  %lwt
+  Dancelor_server_controller.Version.Ogg.populate_cache ();
+  %lwt
+  Dancelor_server_controller.Set.Pdf.populate_cache ();
+  %lwt
   Dancelor_server_controller.Book.Pdf.populate_cache ()
 
 let initialise_database () =
@@ -186,8 +190,10 @@ let main =
   @@ fun () ->
     read_configuration ();
     initialise_logs ();
-    populate_caches ();%lwt
-    initialise_database ();%lwt
+    populate_caches ();
+    %lwt
+    initialise_database ();
+    %lwt
     check_init_only ();
     start_routines ();
     run_server ()

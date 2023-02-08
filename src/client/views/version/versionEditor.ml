@@ -2,11 +2,11 @@ open Nes
 open Dancelor_client_model
 
 type t = {
-  mutable tune: (Tune.t Slug.t * Tune.t ) option;
+  mutable tune: (Tune.t Slug.t * Tune.t) option;
   mutable bars: string;
   mutable key: string;
   mutable structure: string;
-  mutable arranger: (Credit.t Slug.t * Credit.t ) option;
+  mutable arranger: (Credit.t Slug.t * Credit.t) option;
   mutable remark: string;
   mutable disambiguation: string;
   mutable content: string;

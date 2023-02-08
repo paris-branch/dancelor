@@ -1,1 +1,1 @@
-type 'a t = (string * string list ) list -> 'a Lwt.t
+type 'a t = (string * string list) list -> 'a Lwt.t

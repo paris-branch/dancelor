@@ -41,7 +41,7 @@ module Ly = struct
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
-  let cache : ([`Ly] * Book.t * BookParameters.t * string , string Lwt.t ) StorageCache.t =
+  let cache : ([`Ly] * Book.t * BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let render ?(parameters = BookParameters.none) book =
@@ -241,7 +241,8 @@ module Ly = struct
           fpf fmt [%blob "template/book/book_end.ly"];
           Lwt.return ()
       in
-      prom;%lwt
+      prom;
+      %lwt
       Lwt.return res
 end
 
@@ -277,7 +278,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Book.t * BookParameters.t option * string , string Lwt.t ) StorageCache.t =
+  let cache : ([`Pdf] * Book.t * BookParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -297,9 +298,11 @@ module Pdf = struct
       Lwt_io.with_file
         ~mode: Output
         (Filename.concat path fname_ly)
-        (fun ochan -> Lwt_io.write ochan lilypond);%lwt
+        (fun ochan -> Lwt_io.write ochan lilypond);
+      %lwt
       Log.debug (fun m -> m "Processing with LilyPond");
-      LilyPond.run ~exec_path: path fname_ly;%lwt
+      LilyPond.run ~exec_path: path fname_ly;
+      %lwt
       let path_pdf = Filename.concat path fname_pdf in
       Lwt.return path_pdf
 

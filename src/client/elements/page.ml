@@ -8,7 +8,7 @@ let js = Js.string
 type modal = {
   element: Html.element Js.t;
   on_unfocus: (unit -> unit);
-  targets: (Html.element Js.t ) list;
+  targets: (Html.element Js.t) list;
   on_refresh: (unit -> unit);
 }
 
@@ -16,7 +16,7 @@ type t = {
   document: Html.document Js.t;
   body: Html.bodyElement Js.t;
   header: Html.element Js.t;
-  mutable content: (Html.divElement Js.t ) option;
+  mutable content: (Html.divElement Js.t) option;
   mutable modals: modal list;
   mutable on_refresh: (unit -> unit);
 }
@@ -76,7 +76,7 @@ let set_header t contents =
   JsHelpers.clear_children t.header;
   Dom.appendChild t.header contents
 
-let set_contents(type s) (module M: CONTENTS with type t = s) t contents =
+let set_contents (type s) (module M: CONTENTS with type t = s) t contents =
   begin
     match t.content with
     | None -> Dom.appendChild t.body (M.contents contents)

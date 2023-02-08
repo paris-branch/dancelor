@@ -105,7 +105,8 @@ let prepare_ly_file ?(parameters = VersionParameters.none) ?(show_meta = false) 
   Lwt_io.with_file
     ~mode: Output
     fname
-    (fun ochan -> Lwt_io.write ochan lilypond);%lwt
+    (fun ochan -> Lwt_io.write ochan lilypond);
+  %lwt
   Lwt_io.with_file
     ~mode: Output
     fname_scm
@@ -143,7 +144,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Svg = struct
-  let cache : ([`Svg] * Version.t * VersionParameters.t option * string , string Lwt.t ) StorageCache.t =
+  let cache : ([`Svg] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -163,9 +164,11 @@ module Svg = struct
       Log.debug (fun m -> m "SVG file name: %s" fname_svg);
       let path = Filename.concat !Dancelor_server_config.cache "version" in
       Log.debug (fun m -> m "Preparing lilypond file");
-      prepare_ly_file ?parameters ~show_meta: false ~fname: (Filename.concat path fname_ly) version;%lwt
+      prepare_ly_file ?parameters ~show_meta: false ~fname: (Filename.concat path fname_ly) version;
+      %lwt
       Log.debug (fun m -> m "Generate score and crop");
-      LilyPond.cropped_svg ~exec_path: path fname_ly;%lwt
+      LilyPond.cropped_svg ~exec_path: path fname_ly;
+      %lwt
       Log.debug (fun m -> m "done!");
       Lwt.return (Filename.concat path fname_svg)
 
@@ -184,7 +187,7 @@ module Svg = struct
 end
 
 module Pdf = struct
-  let cache : ([`Pdf] * Version.t * VersionParameters.t option * string , string Lwt.t ) StorageCache.t =
+  let cache : ([`Pdf] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -205,9 +208,11 @@ module Pdf = struct
         ~show_meta: true
         ~meta_in_title: true
         ~fname: (Filename.concat path fname_ly)
-        version;%lwt
+        version;
+      %lwt
       Log.debug (fun m -> m "Processing with LilyPond");
-      LilyPond.run ~exec_path: path fname_ly;%lwt
+      LilyPond.run ~exec_path: path fname_ly;
+      %lwt
       Lwt.return (Filename.concat path fname_pdf)
 
   let get version query_parameters =
@@ -225,7 +230,7 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : ([`Ogg] * Version.t * VersionParameters.t option * string , string Lwt.t ) StorageCache.t =
+  let cache : ([`Ogg] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -241,9 +246,11 @@ module Ogg = struct
         Lwt.return (fname ^ ".ly", fname ^ ".ogg")
       in
       let path = Filename.concat !Dancelor_server_config.cache "version" in
-      prepare_ly_file ~fname: (Filename.concat path fname_ly) version;%lwt
+      prepare_ly_file ~fname: (Filename.concat path fname_ly) version;
+      %lwt
       Log.debug (fun m -> m "Processing with LilyPond");
-      LilyPond.ogg ~exec_path: path fname_ly;%lwt
+      LilyPond.ogg ~exec_path: path fname_ly;
+      %lwt
       Lwt.return (Filename.concat path fname_ogg)
 
   let get version _ =
