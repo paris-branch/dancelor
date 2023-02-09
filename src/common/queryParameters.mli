@@ -26,4 +26,4 @@ val from_body : Cohttp_lwt.Body.t -> t Lwt.t
 
 (** Append query parameters together. The resulting query parameters are taken
     from the input ones with priority [high] and [low]. *)
-val append : high:t -> low:t -> t
+val append : high: t -> low: t -> t

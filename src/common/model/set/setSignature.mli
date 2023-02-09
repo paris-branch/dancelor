@@ -40,31 +40,33 @@ val warnings : t -> warnings Lwt.t
 val get : t Slug.t -> t Lwt.t
 
 val make_temp :
-  name:string ->
-  ?deviser:CreditCore.t ->
-  kind:Kind.dance ->
-  ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
-  order:SetOrder.t ->
-  ?dances:DanceCore.t list ->
-  unit -> t Lwt.t
+  name: string ->
+  ?deviser: CreditCore.t ->
+  kind: Kind.dance ->
+  ?versions_and_parameters: (VersionCore.t * VersionParameters.t) list ->
+  order: SetOrder.t ->
+  ?dances: DanceCore.t list ->
+  unit ->
+  t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
-  ?deviser:CreditCore.t ->
-  kind:Kind.dance ->
-  ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
-  order:SetOrder.t ->
-  ?dances:DanceCore.t list ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  name: string ->
+  ?deviser: CreditCore.t ->
+  kind: Kind.dance ->
+  ?versions_and_parameters: (VersionCore.t * VersionParameters.t) list ->
+  order: SetOrder.t ->
+  ?dances: DanceCore.t list ->
+  unit ->
+  t Lwt.t
 
 val delete : t -> unit Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   SetFilter.t ->
   t Score.t list Lwt.t
 
-val count: SetFilter.t -> int Lwt.t
+val count : SetFilter.t -> int Lwt.t
 (** Number of sets in the database. *)

@@ -2,12 +2,13 @@ open Nes
 
 let _key = "credit"
 
-type t =
-  { slug : t Slug.t ;
-    status : Status.t [@default Status.bot] ;
-    line : string ;
-    persons : PersonCore.t Slug.t list [@default []];
-    scddb_id : int option [@default None] [@key "scddb-id"] }
+type t = {
+  slug: t Slug.t;
+  status: Status.t [@default Status.bot];
+  line: string;
+  persons: PersonCore.t Slug.t list [@default []];
+  scddb_id: int option [@default None] [@key "scddb-id"];
+}
 [@@deriving yojson, make]
 
 let slug c = Lwt.return c.slug

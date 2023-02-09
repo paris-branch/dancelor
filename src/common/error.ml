@@ -18,10 +18,10 @@ let status = function
   | Unexpected -> `Internal_server_error
 
 let dependency_does_not_exist ~source ~dependency =
-  DependencyDoesNotExist(source, dependency)
+  DependencyDoesNotExist (source, dependency)
 
 let dependency_violates_status ~source ~dependency =
-  DependencyViolatesStatus(source, dependency)
+  DependencyViolatesStatus (source, dependency)
 
 let fail e = raise (Exn e)
 let lwt_fail e = Lwt.fail (Exn e)

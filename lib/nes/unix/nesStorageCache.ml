@@ -1,4 +1,4 @@
-module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache") : Logs.LOG)
+module Log = (val Logs.src_log (Logs.Src.create "nes.unix.storage-cache"): Logs.LOG)
 
 type hash = int
 

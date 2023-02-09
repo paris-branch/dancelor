@@ -2,16 +2,17 @@ open Nes
 
 let _key = "tune"
 
-type t =
-  { slug : t Slug.t ;
-    status : Status.t                   [@default Status.bot] ;
-    name : string ;
-    alternative_names : string list     [@key "alternative-names"] [@default []] ;
-    kind : Kind.base ;
-    author : CreditCore.t Slug.t option [@default None] ;
-    dances : DanceCore.t Slug.t list    [@default []] ;
-    remark : string                     [@default ""] ;
-    scddb_id : int option               [@default None] [@key "scddb-id"] }
+type t = {
+  slug: t Slug.t;
+  status: Status.t [@default Status.bot];
+  name: string;
+  alternative_names: string list [@key "alternative-names"] [@default []];
+  kind: Kind.base;
+  author: CreditCore.t Slug.t option [@default None];
+  dances: DanceCore.t Slug.t list [@default []];
+  remark: string [@default ""];
+  scddb_id: int option [@default None] [@key "scddb-id"];
+}
 [@@deriving make, yojson]
 
 let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id () =
@@ -24,9 +25,11 @@ let make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?s
     let%olwt dances = Lwt.return dances in
     let%lwt dances =
       Lwt_list.map_s
-        (fun dance ->
-           let%lwt dance = DanceCore.slug dance in
-           Lwt.return dance)
+        (
+          fun dance ->
+            let%lwt dance = DanceCore.slug dance in
+            Lwt.return dance
+        )
         dances
     in
     Lwt.return_some dances
@@ -45,8 +48,10 @@ let scddb_id tune = Lwt.return tune.scddb_id
 
 let compare =
   Slug.compare_slugs_or
-    ~fallback:(fun tune1 tune2 ->
-        Lwt.return (Stdlib.compare tune1 tune2))
+    ~fallback: (
+      fun tune1 tune2 ->
+        Lwt.return (Stdlib.compare tune1 tune2)
+    )
     slug
 
 let equal = equal_from_compare compare

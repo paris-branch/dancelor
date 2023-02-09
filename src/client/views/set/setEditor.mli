@@ -2,9 +2,9 @@ open Nes
 open Dancelor_client_model
 
 type cached_version = {
-  slug : Version.t Slug.t;
-  version : Version.t;
-  tune : Tune.t
+  slug: Version.t Slug.t;
+  version: Version.t;
+  tune: Tune.t;
 }
 
 type t

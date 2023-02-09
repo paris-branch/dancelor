@@ -29,24 +29,32 @@ let base_to_string b =
   String.make 1 (base_to_char b)
 
 let base_of_string s =
-  try base_of_char s.[0]
-  with Invalid_argument _ | Failure _ ->
-    invalid_arg "Dancelor_common_model.Kind.base_of_string"
+  try
+    base_of_char s.[0]
+  with
+    Invalid_argument _ | Failure _ ->
+      invalid_arg "Dancelor_common_model.Kind.base_of_string"
 
 let base_of_string_opt s =
-  try Some (base_of_string s)
-  with Invalid_argument _ -> None
+  try
+    Some (base_of_string s)
+  with
+    Invalid_argument _ -> None
 
 let base_to_yojson b =
   `String (base_to_string b)
 
 let base_of_yojson = function
   | `String s ->
-    (try Ok (base_of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind")
+    (
+      try
+        Ok (base_of_string s)
+      with
+        _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
 
-let base_to_pretty_string ?(capitalised=false) base =
+let base_to_pretty_string ?(capitalised = false) base =
   (
     match base with
     | Jig -> "jig"
@@ -80,16 +88,20 @@ let version_to_string (repeats, base) =
 let version_of_string s =
   let s = NesString.remove_char ' ' s in
   try
-    ssf s "%d%[a-zA-Z]"
+    ssf
+      s
+      "%d%[a-zA-Z]"
       (fun repeats base -> (repeats, base_of_string base))
   with
-  | End_of_file | Scanf.Scan_failure _ ->
-    try
-      ssf s "%[a-zA-Z]%d"
-        (fun base repeats -> (repeats, base_of_string base))
-    with
     | End_of_file | Scanf.Scan_failure _ ->
-      invalid_arg "Dancelor_common_model.Kind.version_of_string"
+      try
+        ssf
+          s
+          "%[a-zA-Z]%d"
+          (fun base repeats -> (repeats, base_of_string base))
+      with
+        | End_of_file | Scanf.Scan_failure _ ->
+          invalid_arg "Dancelor_common_model.Kind.version_of_string"
 
 let%test _ = version_to_string (32, Waltz) = "32 W"
 let%test _ = version_to_string (64, Reel) = "64 R"
@@ -102,27 +114,37 @@ let%test _ = version_of_string "JIG 24" = (24, Jig)
 let%test _ = version_of_string "48 sTrathPEY" = (48, Strathspey)
 
 let%test _ =
-  try ignore (version_of_string "R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (version_of_string "R"); false
+  with
+    Invalid_argument _ -> true
 let%test _ =
-  try ignore (version_of_string "8x32R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (version_of_string "8x32R"); false
+  with
+    Invalid_argument _ -> true
 
 let version_of_string_opt string =
-  try Some (version_of_string string)
-  with Invalid_argument _ -> None
+  try
+    Some (version_of_string string)
+  with
+    Invalid_argument _ -> None
 
 let version_to_yojson t =
   `String (version_to_string t)
 
 let version_of_yojson = function
   | `String s ->
-    (try Ok (version_of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind")
+    (
+      try
+        Ok (version_of_string s)
+      with
+        _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
 let version_to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (base_to_pretty_string ~capitalised:true base)
+  spf "%d %s" repeats (base_to_pretty_string ~capitalised: true base)
 
 module Version = struct
   type t = version
@@ -133,8 +155,7 @@ end
 
 (* ============================= [ Dance Kind ] ============================= *)
 
-type dance =
-  int * version list
+type dance = int * version list
 
 let dance_to_string (repeats, versions) =
   List.map version_to_string versions
@@ -145,12 +166,16 @@ let dance_to_string (repeats, versions) =
 let dance_of_string s =
   let s = String.remove_char ' ' s in
   let (repeats, s) =
-    try ssf s "%dx%n" (fun repeats n -> (repeats, snd (String.split n s)))
-    with Scanf.Scan_failure _ -> (1, s)
+    try
+      ssf s "%dx%n" (fun repeats n -> (repeats, snd (String.split n s)))
+    with
+      Scanf.Scan_failure _ -> (1, s)
   in
   let s =
-    try ssf s "(%[^)])%!" id
-    with Scanf.Scan_failure _ -> s
+    try
+      ssf s "(%[^)])%!" id
+    with
+      Scanf.Scan_failure _ -> s
   in
   (repeats, List.map version_of_string (String.split_on_char '+' s))
 
@@ -170,20 +195,28 @@ let%test _ = dance_of_string "(32W + 64R)" = (1, [(32, Waltz); (64, Reel)])
 let%test _ = dance_of_string "3x40J" = (3, [40, Jig])
 let%test _ = dance_of_string "32R" = (1, [32, Reel])
 let%test _ =
-  try ignore (dance_of_string "R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (dance_of_string "R"); false
+  with
+    Invalid_argument _ -> true
 
 let dance_of_string_opt s =
-  try Some (dance_of_string s)
-  with Invalid_argument _ -> None
+  try
+    Some (dance_of_string s)
+  with
+    Invalid_argument _ -> None
 
 let dance_to_yojson d =
   `String (dance_to_string d)
 
 let dance_of_yojson = function
   | `String s ->
-    (try Ok (dance_of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a valid dance kind")
+    (
+      try
+        Ok (dance_of_string s)
+      with
+        _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a valid dance kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.dance_of_yojson: not a JSON string"
 
 let dance_to_pretty_string (repeats, versions) =

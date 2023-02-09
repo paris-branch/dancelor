@@ -1,5 +1,5 @@
 let unit = function
-  | `Assoc [] -> Ok ()
+  | `Assoc[] -> Ok ()
   | _ -> Error "not unit"
 
 let list unserializer = function
@@ -7,13 +7,14 @@ let list unserializer = function
     (
       let l =
         List.fold_left
-          (fun l e ->
-             match l with
-             | Error s -> Error s
-             | Ok l ->
-               match unserializer e with
-               | Error s -> Error s
-               | Ok e -> Ok (e :: l)
+          (
+            fun l e ->
+              match l with
+              | Error s -> Error s
+              | Ok l ->
+                match unserializer e with
+                | Error s -> Error s
+                | Ok e -> Ok (e :: l)
           )
           (Ok [])
           l

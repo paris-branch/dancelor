@@ -58,15 +58,31 @@ let to_yojson date =
 
 let of_yojson = function
   | `String s ->
-    (try Ok (from_string s)
-     with _ -> Error "NesDate.Partialof_yojson: not a valid date")
+    (
+      try
+        Ok (from_string s)
+      with
+        _ -> Error "NesDate.Partialof_yojson: not a valid date"
+    )
   | _ -> Error "NesDate.Partialof_yojson: not a JSON string"
 
 let month_to_pretty_string month =
-  [| "January"; "February"; "March"; "April"; "May"; "June"; "July";
-     "August"; "September"; "October"; "November"; "December" |].(month - 1)
+  [|
+    "January";
+    "February";
+    "March";
+    "April";
+    "May";
+    "June";
+    "July";
+    "August";
+    "September";
+    "October";
+    "November";
+    "December";
+  |].(month - 1)
 
-let to_pretty_string ?(at=false) = function
+let to_pretty_string ?(at = false) = function
   | Year year -> spf "%s%d" (if at then "in " else "") year
   | YearMonth (year, month) -> spf "%s%s %d" (if at then "in " else "") (month_to_pretty_string month) year
   | YearMonthDay (year, month, day) -> spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string month) year

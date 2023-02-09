@@ -3,7 +3,7 @@ open Dancelor_client_html
 module M = Dancelor_client_model
 module Router = Dancelor_common.Router
 
-let line ?(link=true) credit =
+let line ?(link = true) credit =
   match credit with
   | None -> Lwt.return_nil
   | Some credit ->

@@ -24,7 +24,7 @@ let description ?link version =
   in
   Lwt.return ([text shape] @ arranger_block @ disambiguation_block)
 
-let name ?(link=true) version =
+let name ?(link = true) version =
   let name_text = [text_lwt (M.Version.tune version >>=| M.Tune.name)] in
   if link then
     let href_lwt =
@@ -40,10 +40,16 @@ let name_and_dance ?link ?dance_link version parameters =
   let%lwt dance =
     match%lwt M.VersionParameters.for_dance parameters with
     | None -> Lwt.return_nil
-    | Some dance -> Lwt.return [
-        span ~classes:["dim"; "details"] [
-          text "For dance: "; span_lwt (Dance.name ?link:dance_link dance)
-        ]]
+    | Some dance ->
+      Lwt.return
+        [
+          span
+            ~classes: ["dim"; "details"]
+            [
+              text "For dance: ";
+              span_lwt (Dance.name ?link: dance_link dance);
+            ];
+        ]
   in
   Lwt.return (name @ dance)
 
@@ -52,18 +58,19 @@ let name_and_disambiguation ?link version =
   let%lwt disambiguation_block =
     match%lwt M.Version.disambiguation version with
     | "" -> Lwt.return_nil
-    | disambiguation -> Lwt.return [
-        span ~classes:["dim"] [text (spf " (%s)" disambiguation)]
-      ]
+    | disambiguation ->
+      Lwt.return
+        [
+          span ~classes: ["dim"] [text (spf " (%s)" disambiguation)];
+        ]
   in
   Lwt.return (name_block @ disambiguation_block)
 
 let name_disambiguation_and_sources ?link version =
   let sources_lwt =
     let%lwt sources =
-      let filter = M.BookFilter.(
-          M.Formula.and_ (memVersionDeep version) isSource
-        )
+      let filter =
+        M.BookFilter.(M.Formula.and_ (memVersionDeep version) isSource)
       in
       M.Book.search filter
       >|=| M.Score.list_erase
@@ -79,17 +86,17 @@ let name_disambiguation_and_sources ?link version =
       |> Lwt.return
   in
   let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
-  Lwt.return (
-    name_and_disambiguation
-    @ [span_lwt ~classes:["dim"; "details"] sources_lwt]
-  )
+  Lwt.return
+    (
+      name_and_disambiguation
+      @ [span_lwt ~classes: ["dim"; "details"] sources_lwt]
+    )
 
 let disambiguation_and_sources version =
   let sources_lwt =
     let%lwt sources =
-      let filter = M.BookFilter.(
-          M.Formula.and_ (memVersionDeep version) isSource
-        )
+      let filter =
+        M.BookFilter.(M.Formula.and_ (memVersionDeep version) isSource)
       in
       M.Book.search filter
       >|=| M.Score.list_erase
@@ -104,12 +111,13 @@ let disambiguation_and_sources version =
       |> List.cons (text "Sources: ")
       |> Lwt.return
   in
-  Lwt.return [
-    text_lwt (M.Version.disambiguation version);
-    span_lwt ~classes:["dim"; "details"] sources_lwt
-  ]
+  Lwt.return
+    [
+      text_lwt (M.Version.disambiguation version);
+      span_lwt ~classes: ["dim"; "details"] sources_lwt;
+    ]
 
-let author_and_arranger ?(short=true) ?link version =
+let author_and_arranger ?(short = true) ?link version =
   let%lwt author_block =
     let%lwt tune = M.Version.tune version in
     match%lwt M.Tune.author tune with
@@ -129,8 +137,9 @@ let author_and_arranger ?(short=true) ?link version =
       let%lwt comma = if%lwt has_author then Lwt.return ", " else Lwt.return "" in
       let arr = if short then "arr." else "arranged by" in
       let%lwt arranger_block = Credit.line ?link (Some arranger) in
-      Lwt.return [
-        span ~classes:["dim"] (text (spf "%s%s " comma arr) :: arranger_block)
-      ]
+      Lwt.return
+        [
+          span ~classes: ["dim"] (text (spf "%s%s " comma arr) :: arranger_block);
+        ]
   in
   Lwt.return (author_block @ arranger_block)

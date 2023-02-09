@@ -2,14 +2,15 @@ open Nes
 open Dancelor_client_model
 
 type t = {
-  mutable title : string;
-  mutable date : string;
-  mutable sets : (Set.t Slug.t * Set.t) option array;
-  mutable count : int;
+  mutable title: string;
+  mutable date: string;
+  mutable sets: (Set.t Slug.t * Set.t) option array;
+  mutable count: int;
 }
 
 let create () =
-  { title = "";
+  {
+    title = "";
     date = "";
     sets = Array.make 2 None;
     count = 0;
@@ -28,13 +29,14 @@ let set_date t date =
   t.date <- date
 
 let insert t slug i =
-  if Array.length t.sets = t.count then begin
-    let new_sets = Array.make (t.count * 2) None in
-    Array.blit t.sets 0 new_sets 0 t.count;
-    t.sets <- new_sets;
-  end;
-  for idx = t.count-1 downto i do
-    t.sets.(idx+1) <- t.sets.(idx)
+  if Array.length t.sets = t.count then
+    begin
+      let new_sets = Array.make (t.count * 2) None in
+      Array.blit t.sets 0 new_sets 0 t.count;
+      t.sets <- new_sets;
+    end;
+  for idx = t.count - 1 downto i do
+    t.sets.(idx + 1) <- t.sets.(idx)
   done;
   t.count <- t.count + 1;
   let%lwt set = Set.get slug in
@@ -45,24 +47,26 @@ let add t slug =
   insert t slug t.count
 
 let remove t i =
-  if i >= 0 && i < t.count then begin
-    t.sets.(i) <- None;
-    for j = i + 1 to t.count - 1 do
-      t.sets.(j-1) <- t.sets.(j)
-    done;
-    t.sets.(t.count - 1) <- None;
-    t.count <- t.count - 1
-  end
+  if i >= 0 && i < t.count then
+    begin
+      t.sets.(i) <- None;
+      for j = i + 1 to t.count - 1 do
+        t.sets.(j - 1) <- t.sets.(j)
+      done;
+      t.sets.(t.count - 1) <- None;
+      t.count <- t.count - 1
+    end
 
 let move_up t i =
-  if i > 0 && i < t.count then begin
-    let tmp = t.sets.(i-1) in
-    t.sets.(i-1) <- t.sets.(i);
-    t.sets.(i) <- tmp
-  end
+  if i > 0 && i < t.count then
+    begin
+      let tmp = t.sets.(i - 1) in
+      t.sets.(i - 1) <- t.sets.(i);
+      t.sets.(i) <- tmp
+    end
 
 let move_down t i =
-  move_up t (i+1)
+  move_up t (i + 1)
 
 let iter t f =
   for i = 0 to t.count - 1 do

@@ -10,14 +10,14 @@ module Toggle = struct
   type root = Html.labelElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
-    box : Html.inputElement Js.t
+    page: Page.t;
+    root: root Js.t;
+    box: Html.inputElement Js.t;
   }
 
   let create ~text ~id ~on_change page =
     let root = Html.createLabel (Page.document page) in
-    let box = Html.createInput ~_type:(js "checkbox") (Page.document page) in
+    let box = Html.createInput ~_type: (js "checkbox") (Page.document page) in
     box##.id := js id;
     root##.textContent := Js.some (js text);
     Dom.appendChild root box;
@@ -26,20 +26,29 @@ module Toggle = struct
     root##.classList##add (js "clickable");
     root##.classList##add (js "no-selection");
     root##.classList##add (js "unchecked");
-    Lwt.async (fun () ->
-        Lwt_js_events.changes box
-          (fun _ev _ ->
-             if Js.to_bool box##.checked then begin
-               root##.classList##add (js "checked");
-               root##.classList##remove (js "unchecked");
-               on_change true
-             end else begin
-               root##.classList##add (js "unchecked");
-               root##.classList##remove (js "checked");
-               on_change false
-             end;
-             Lwt.return ()));
-    {page; root; box}
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.changes
+            box
+            (
+              fun _ev _ ->
+                if Js.to_bool box##.checked then
+                  begin
+                    root##.classList##add (js "checked");
+                    root##.classList##remove (js "unchecked");
+                    on_change true
+                  end
+                else
+                  begin
+                    root##.classList##add (js "unchecked");
+                    root##.classList##remove (js "checked");
+                    on_change false
+                  end;
+                Lwt.return ()
+            )
+      );
+    { page; root; box }
 
   let disable t =
     t.box##.disabled := Js._true
@@ -52,19 +61,18 @@ module Toggle = struct
 
   let root t =
     t.root
-
 end
 
 module Switch = struct
   type root = Html.labelElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
-    input : Html.inputElement Js.t
+    page: Page.t;
+    root: root Js.t;
+    input: Html.inputElement Js.t;
   }
 
-  let create ?(text_before="") ?(text_after="") ~id ~on_change page =
+  let create ?(text_before = "") ?(text_after = "") ~id ~on_change page =
     let root = Html.createLabel (Page.document page) in
     root##.classList##add (js "switch");
     root##.htmlFor := js id;
@@ -75,17 +83,21 @@ module Switch = struct
     Dom.appendChild root text_before;
     Dom.appendChild root box;
     Dom.appendChild root text_after;
-    let input = Html.createInput ~_type:(js "checkbox") (Page.document page) in
+    let input = Html.createInput ~_type: (js "checkbox") (Page.document page) in
     input##.id := js id;
     let slider = Html.createSpan (Page.document page) in
     slider##.classList##add (js "slider");
     Dom.appendChild box input;
     Dom.appendChild box slider;
-    Lwt.async (fun () ->
-        Lwt_js_events.changes box @@ fun _ev _ ->
-        on_change (Js.to_bool input##.checked);
-        Lwt.return_unit);
-    {page; root; input}
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.changes box
+          @@ fun _ev _ ->
+            on_change (Js.to_bool input##.checked);
+            Lwt.return_unit
+      );
+    { page; root; input }
 
   let disable t = t.input##.checked := Js._false
   let enable t = t.input##.checked := Js._true
@@ -98,8 +110,8 @@ module Text = struct
   type root = Html.inputElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
+    page: Page.t;
+    root: root Js.t;
   }
 
   let set_valid t b =
@@ -107,42 +119,78 @@ module Text = struct
     else t.root##.classList##add (js "invalid")
 
   let create ?placeholder ?default ?on_change ?on_focus page =
-    let root = Html.createInput ~_type:(js "text") (Page.document page) in
+    let root = Html.createInput ~_type: (js "text") (Page.document page) in
     NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
     NesOption.ifsome (fun t -> root##.value := js t) default;
-    NesOption.ifsome (fun cb ->
-        Lwt.async (fun () ->
-            Lwt_js_events.inputs root
-              (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
+    NesOption.ifsome
+      (
+        fun cb ->
+          Lwt.async
+            (
+              fun () ->
+                Lwt_js_events.inputs
+                  root
+                  (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())
+            )
+      )
       on_change;
-    Lwt.async (fun () ->
-        Lwt_js_events.inputs root
-          (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ()));
-    NesOption.ifsome (fun cb ->
-        Lwt.async (fun () ->
-            Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ()));
-        Lwt.async (fun () ->
-            Lwt_js_events.blurs root (fun _ev _ -> cb false; Lwt.return ())))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.inputs
+            root
+            (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ())
+      );
+    NesOption.ifsome
+      (
+        fun cb ->
+          Lwt.async
+            (
+              fun () ->
+                Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ())
+            );
+          Lwt.async
+            (
+              fun () ->
+                Lwt_js_events.blurs root (fun _ev _ -> cb false; Lwt.return ())
+            )
+      )
       on_focus;
-    {page; root}
+    { page; root }
 
   let on_change t cb =
-    Lwt.async (fun () ->
-        Lwt_js_events.inputs t.root
-          (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.inputs
+            t.root
+            (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ())
+      )
 
   let on_enter t cb =
-    Lwt.async (fun () ->
-        Lwt_js_events.keydowns t.root
-          (fun ev _ ->
-             if Js.Optdef.to_option ev##.key = Some (js "Enter")
-             then cb (Js.to_string t.root##.value) else Lwt.return_unit))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.keydowns
+            t.root
+            (
+              fun ev _ ->
+                if Js.Optdef.to_option ev##.key = Some (js "Enter") then cb (Js.to_string t.root##.value)
+                else Lwt.return_unit
+            )
+      )
 
   let on_focus t cb =
-    Lwt.async (fun () ->
-        Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ()));
-    Lwt.async (fun () ->
-        Lwt_js_events.blurs t.root (fun _ev _ -> cb false; Lwt.return ()))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ())
+      );
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.blurs t.root (fun _ev _ -> cb false; Lwt.return ())
+      )
 
   let set_contents t c =
     t.root##.value := js c
@@ -160,7 +208,6 @@ module Text = struct
 
   let root t =
     t.root
-
 end
 
 module Textarea = struct
@@ -168,8 +215,8 @@ module Textarea = struct
   type root = Html.textAreaElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
+    page: Page.t;
+    root: root Js.t;
   }
 
   let set_valid t b =
@@ -180,39 +227,75 @@ module Textarea = struct
     let root = Html.createTextarea (Page.document page) in
     NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
     NesOption.ifsome (fun t -> root##.value := js t) default;
-    NesOption.ifsome (fun cb ->
-        Lwt.async (fun () ->
-            Lwt_js_events.inputs root
-              (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
+    NesOption.ifsome
+      (
+        fun cb ->
+          Lwt.async
+            (
+              fun () ->
+                Lwt_js_events.inputs
+                  root
+                  (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())
+            )
+      )
       on_change;
-    Lwt.async (fun () ->
-        Lwt_js_events.inputs root
-          (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ()));
-    NesOption.ifsome (fun cb ->
-        Lwt.async (fun () ->
-            Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ()));
-        Lwt.async (fun () ->
-            Lwt_js_events.blurs root (fun _ev _ -> cb false; Lwt.return ())))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.inputs
+            root
+            (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ())
+      );
+    NesOption.ifsome
+      (
+        fun cb ->
+          Lwt.async
+            (
+              fun () ->
+                Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ())
+            );
+          Lwt.async
+            (
+              fun () ->
+                Lwt_js_events.blurs root (fun _ev _ -> cb false; Lwt.return ())
+            )
+      )
       on_focus;
-    {page; root}
+    { page; root }
 
   let on_change t cb =
-    Lwt.async (fun () ->
-        Lwt_js_events.inputs t.root
-          (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ()))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.inputs
+            t.root
+            (fun _ev _ -> cb (Js.to_string t.root##.value); Lwt.return ())
+      )
 
   let on_enter t cb =
-    Lwt.async (fun () ->
-        Lwt_js_events.keydowns t.root
-          (fun ev _ ->
-             if Js.Optdef.to_option ev##.key = Some (js "Enter")
-             then cb (Js.to_string t.root##.value) else Lwt.return_unit))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.keydowns
+            t.root
+            (
+              fun ev _ ->
+                if Js.Optdef.to_option ev##.key = Some (js "Enter") then cb (Js.to_string t.root##.value)
+                else Lwt.return_unit
+            )
+      )
 
   let on_focus t cb =
-    Lwt.async (fun () ->
-        Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ()));
-    Lwt.async (fun () ->
-        Lwt_js_events.blurs t.root (fun _ev _ -> cb false; Lwt.return ()))
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.focuses t.root (fun _ev _ -> cb true; Lwt.return ())
+      );
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.blurs t.root (fun _ev _ -> cb false; Lwt.return ())
+      )
 
   let set_contents t c =
     t.root##.value := js c
@@ -230,7 +313,6 @@ module Textarea = struct
 
   let root t =
     t.root
-
 end
 
 module Button = struct
@@ -244,42 +326,49 @@ module Button = struct
     let to_class = function
       | Danger -> "btn-danger"
       | Success -> "btn-success"
-
   end
 
   type root = Html.buttonElement
 
   type t = {
-    page : Page.t;
-    root : root Js.t;
+    page: Page.t;
+    root: root Js.t;
   }
 
-  let create ?(on_click=fun () -> ()) ?href ?kind ?text ?icon page =
-    let root = Html.createButton ~_type:(js "button") (Page.document page) in
-    Lwt.async (fun () ->
-        Lwt_js_events.clicks root
-          (fun _ev _ ->
-             on_click ();
-             match href with
-             | None -> Lwt.return ()
-             | Some href -> Lwt.map (fun href -> Html.window##.location##.href := js href) href));
+  let create ?(on_click = fun () -> ()) ?href ?kind ?text ?icon page =
+    let root = Html.createButton ~_type: (js "button") (Page.document page) in
+    Lwt.async
+      (
+        fun () ->
+          Lwt_js_events.clicks
+            root
+            (
+              fun _ev _ ->
+                on_click ();
+                match href with
+                | None -> Lwt.return ()
+                | Some href -> Lwt.map (fun href -> Html.window##.location##.href := js href) href
+            )
+      );
     NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
     NesOption.ifsome (fun icon -> Dom.appendChild root (Fa.i icon page)) icon;
     NesOption.ifsome (fun text -> Dom.appendChild root ((Page.document page)##createTextNode (js (" " ^ text)))) text;
     root##.classList##add (js "no-selection");
     root##.classList##add (js "clickable");
-    {page; root}
+    { page; root }
 
   let set_enabled t b =
-    if b then begin
-      t.root##.classList##remove (js "disabled");
-      t.root##.classList##add (js "clickable")
-    end else begin
-      t.root##.classList##add (js "disabled");
-      t.root##.classList##remove (js "clickable")
-    end
+    if b then
+      begin
+        t.root##.classList##remove (js "disabled");
+        t.root##.classList##add (js "clickable")
+      end
+    else
+      begin
+        t.root##.classList##add (js "disabled");
+        t.root##.classList##remove (js "clickable")
+      end
 
   let root t =
     t.root
-
 end

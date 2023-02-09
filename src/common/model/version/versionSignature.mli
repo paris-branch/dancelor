@@ -20,26 +20,27 @@ val content : t -> string Lwt.t
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  tune:TuneCore.t ->
-  bars:int ->
-  key:Music.key ->
-  structure:string ->
-  ?arranger:CreditCore.t ->
-  ?remark:string ->
-  ?disambiguation:string ->
-  ?broken:bool ->
-  content:string ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  tune: TuneCore.t ->
+  bars: int ->
+  key: Music.key ->
+  structure: string ->
+  ?arranger: CreditCore.t ->
+  ?remark: string ->
+  ?disambiguation: string ->
+  ?broken: bool ->
+  content: string ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   VersionFilter.t ->
   t Score.t list Lwt.t
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   VersionFilter.t ->
   int Lwt.t
 

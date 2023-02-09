@@ -2,7 +2,7 @@ type 'a t = string option
 
 let none = None
 
-let is_none = (=) None
+let is_none = ( = ) None
 
 let to_yojson _ = function
   | Some s -> `String s

@@ -19,8 +19,9 @@ module Parser = struct
   exception ParseError of Lexing.position * Lexing.position * string
 
   let parse_error_fmt start end_ =
-    Format.kasprintf @@ fun msg ->
-    raise (ParseError (start, end_, msg))
+    Format.kasprintf
+    @@ fun msg ->
+      raise (ParseError (start, end_, msg))
 
   let parse_error start end_ msg =
     parse_error_fmt start end_ "%s" msg
@@ -48,7 +49,7 @@ module Parser = struct
     let indication = E.show (show text) buffer in
     Error (start, end_, indication)
 
-  let from_string ?(filename="-") text =
+  let from_string ?(filename = "-") text =
     let lexbuf = L.init filename (Lexing.from_string text) in
     let supplier = I.lexer_lexbuf_to_supplier Lexer.token lexbuf in
     let (buffer, supplier) = E.wrap_supplier supplier in
@@ -81,19 +82,25 @@ let to_formula predicate_to_formula formula =
     | False -> Ok False
     | True -> Ok True
     | Not formula ->
-      (match to_formula formula with
-       | Ok formula -> Ok (Not formula)
-       | Error err -> Error err) (* FIXME: ppx_syntext *)
+      (
+        match to_formula formula with
+        | Ok formula -> Ok (Not formula)
+        | Error err -> Error err
+      ) (* FIXME: ppx_syntext *)
     | And (formula1, formula2) ->
-      (match to_formula formula1,
-             to_formula formula2 with
-      | Ok formula1, Ok formula2 -> Ok (And (formula1, formula2))
-      | Error err, _ | _, Error err -> Error err)
+      (
+        match to_formula formula1,
+        to_formula formula2 with
+        | Ok formula1, Ok formula2 -> Ok (And (formula1, formula2))
+        | Error err, _ | _, Error err -> Error err
+      )
     | Or (formula1, formula2) ->
-      (match to_formula formula1,
-             to_formula formula2 with
-      | Ok formula1, Ok formula2 -> Ok (Or (formula1, formula2))
-      | Error err, _ | _, Error err -> Error err)
+      (
+        match to_formula formula1,
+        to_formula formula2 with
+        | Ok formula1, Ok formula2 -> Ok (Or (formula1, formula2))
+        | Error err, _ | _, Error err -> Error err
+      )
     | Pred pred ->
       predicate_to_formula pred
   in
@@ -103,25 +110,28 @@ let make_predicate_to_formula
     (raw_builder : 'a raw_builder)
     (nullary_text_predicates : 'a nullary_text_predicates)
     (unary_text_predicates : 'a unary_text_predicates)
-  =
-  function
+  = function
   | Raw string ->
     raw_builder string
   | Nullary pred ->
-    (match List.assoc_opt pred nullary_text_predicates with
-     | None -> error_fmt "the nullary predicate \":%s\" does not exist" pred
-     | Some pred -> Ok pred)
+    (
+      match List.assoc_opt pred nullary_text_predicates with
+      | None -> error_fmt "the nullary predicate \":%s\" does not exist" pred
+      | Some pred -> Ok pred
+    )
   | Unary (pred, sub_formula) ->
-    (match List.assoc_opt pred unary_text_predicates with
-     | None -> error_fmt "the unary predicate \"%s:\" does not exist" pred
-     | Some mk_pred -> mk_pred sub_formula)
+    (
+      match List.assoc_opt pred unary_text_predicates with
+      | None -> error_fmt "the unary predicate \"%s:\" does not exist" pred
+      | Some mk_pred -> mk_pred sub_formula
+    )
 
 let make_to_formula
     (raw_builder : 'a raw_builder)
     (nullary_text_predicates : 'a nullary_text_predicates)
     (unary_text_predicates : 'a unary_text_predicates)
     (formula : t)
-  : 'a Formula.t or_error
+    : 'a Formula.t or_error
   =
   let predicate_to_formula =
     make_predicate_to_formula
@@ -135,13 +145,14 @@ let make_to_formula
 let raw_only
     ~(convert : string -> ('a, string) result)
     (mk : 'a -> 'b Formula.t)
-  : t -> ('b Formula.t, string) result
-  =
-  function
+    : t -> ('b Formula.t, string) result
+  = function
   | Pred (Raw s) ->
-    (match convert s with
-     | Ok s -> Ok (mk s)
-     | Error err -> Error err)
+    (
+      match convert s with
+      | Ok s -> Ok (mk s)
+      | Error err -> Error err
+    )
   | _ -> Error "this predicate only accepts raw arguments"
 
 let no_convert x = Ok x
@@ -165,11 +176,13 @@ let rec predicates from_predicate = function
     | Some string -> String.Set.singleton string
 
 let nullary_predicates =
-  predicates @@ function
+  predicates
+  @@ function
   | Nullary string -> Some string
   | _ -> None
 
 let unary_predicates =
-  predicates @@ function
+  predicates
+  @@ function
   | Unary (string, _) -> Some string
   | _ -> None

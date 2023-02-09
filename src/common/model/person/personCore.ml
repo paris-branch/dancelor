@@ -2,10 +2,11 @@ open Nes
 
 let _key = "person"
 
-type t =
-  { slug : t Slug.t ;
-    status : Status.t [@default Status.bot] ;
-    name : string }
+type t = {
+  slug: t Slug.t;
+  status: Status.t [@default Status.bot];
+  name: string;
+}
 [@@deriving yojson, make]
 
 let slug p = Lwt.return p.slug

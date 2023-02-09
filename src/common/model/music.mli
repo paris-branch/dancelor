@@ -33,15 +33,15 @@ type key [@@deriving yojson]
 val make_key : pitch -> mode -> key
 val key_pitch : key -> pitch
 
-val key_to_string : key -> string          (** eg. C  D#m   Eb *)
-val key_to_pretty_string : key -> string   (** eg. C  D♯m   E♭ *)
+val key_to_string : key -> string (** eg. C  D#m   Eb *)
+val key_to_pretty_string : key -> string (** eg. C  D♯m   E♭ *)
 val key_to_lilypond_string : key -> string (** eg. c dis:m ees *)
-val key_to_safe_string : key -> string     (** eg. c  dism ees *)
+val key_to_safe_string : key -> string (** eg. c  dism ees *)
 
 val key_of_string : string -> key
 val key_of_string_opt : string -> key option
 
-module Key : Madge_common.SERIALISABLE with type t = key
+module Key: Madge_common.SERIALISABLE with type t = key
 
 (** {2 Clef} *)
 

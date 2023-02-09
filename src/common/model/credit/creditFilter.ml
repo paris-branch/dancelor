@@ -25,12 +25,13 @@ let nullary_text_predicates = []
 
 let unary_text_predicates =
   TextFormula.[
-    "line",          raw_only ~convert:no_convert line;
-    "line-matches",  raw_only ~convert:no_convert lineMatches;
-    "exists-person", (existsPerson @@@@ PersonFilter.from_text_formula) (* FIXME *)
+    "line", raw_only ~convert: no_convert line;
+    "line-matches", raw_only ~convert: no_convert lineMatches;
+    "exists-person", (existsPerson @@@@ PersonFilter.from_text_formula) (* FIXME *);
   ]
 
 let from_text_formula =
-  TextFormula.make_to_formula raw
+  TextFormula.make_to_formula
+    raw
     nullary_text_predicates
     unary_text_predicates
