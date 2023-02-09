@@ -83,8 +83,7 @@ module Ly = struct
             )
             versions_and_parameters
       in
-      prom;
-      %lwt
+      prom;%lwt
       Lwt.return res
 
   let get set query_parameters =
@@ -152,8 +151,7 @@ module Pdf = struct
       Lwt_io.with_file
         ~mode: Output
         (Filename.concat path fname_ly)
-        (fun ochan -> Lwt_io.write ochan lilypond);
-      %lwt
+        (fun ochan -> Lwt_io.write ochan lilypond);%lwt
       Log.debug (fun m -> m "Processing with LilyPond");
       LilyPond.run ~exec_path: path fname_ly;
       %lwt

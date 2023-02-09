@@ -1,6 +1,7 @@
 open Nes
 
-type where = Beginning | End | Nowhere
+type where =
+  Beginning | End | Nowhere
 [@@deriving yojson]
 
 module Self = struct

@@ -208,8 +208,7 @@ module Pdf = struct
         ~show_meta: true
         ~meta_in_title: true
         ~fname: (Filename.concat path fname_ly)
-        version;
-      %lwt
+        version;%lwt
       Log.debug (fun m -> m "Processing with LilyPond");
       LilyPond.run ~exec_path: path fname_ly;
       %lwt
@@ -246,8 +245,7 @@ module Ogg = struct
         Lwt.return (fname ^ ".ly", fname ^ ".ogg")
       in
       let path = Filename.concat !Dancelor_server_config.cache "version" in
-      prepare_ly_file ~fname: (Filename.concat path fname_ly) version;
-      %lwt
+      prepare_ly_file ~fname: (Filename.concat path fname_ly) version;%lwt
       Log.debug (fun m -> m "Processing with LilyPond");
       LilyPond.ogg ~exec_path: path fname_ly;
       %lwt

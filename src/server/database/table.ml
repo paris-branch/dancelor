@@ -275,13 +275,11 @@ module Make (Model: Model) : S with type value = Model.t = struct
     let%lwt model = with_slug slug in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;
-    %lwt
+    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "save %s / %s" Model._key (Slug.to_string slug))
       Model._key
-      (Slug.to_string slug);
-    %lwt
+      (Slug.to_string slug);%lwt
     Hashtbl.add table slug (Stats.empty (), model);
     (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
@@ -291,26 +289,22 @@ module Make (Model: Model) : S with type value = Model.t = struct
     let%lwt slug = Model.slug model in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
-    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;
-    %lwt
+    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "update %s / %s" Model._key (Slug.to_string slug))
       Model._key
-      (Slug.to_string slug);
-    %lwt
+      (Slug.to_string slug);%lwt
     (* FIXME: Make more robust and maybe update stats*)
     Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
     Lwt.return_unit
 
   let delete slug =
     let table = get_table () in
-    Storage.delete_entry Model._key (Slug.to_string slug);
-    %lwt
+    Storage.delete_entry Model._key (Slug.to_string slug);%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "delete %s / %s" Model._key (Slug.to_string slug))
       Model._key
-      (Slug.to_string slug);
-    %lwt
+      (Slug.to_string slug);%lwt
     Hashtbl.remove table slug;
     Lwt.return_unit
 
@@ -320,8 +314,7 @@ module Make (Model: Model) : S with type value = Model.t = struct
 
   let write_separated_file model file content =
     let%lwt slug = Model.slug model in
-    Storage.write_entry_file Model._key (Slug.to_string slug) file content;
-    %lwt
+    Storage.write_entry_file Model._key (Slug.to_string slug) file content;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "save %s / %s" Model._key (Slug.to_string slug))
       Model._key

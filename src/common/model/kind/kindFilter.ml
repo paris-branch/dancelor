@@ -3,7 +3,8 @@ open Nes
 (* Base *)
 
 module Base = struct
-  type predicate = | Is of Kind.base
+  type predicate =
+    | Is of Kind.base
   [@@deriving yojson]
 
   type t = predicate Formula.t

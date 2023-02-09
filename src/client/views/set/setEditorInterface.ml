@@ -37,8 +37,7 @@ let get_duplicated_tunes t book =
         register_tune tune;
         Lwt.return ()
     )
-    standalone_versions;
-  %lwt
+    standalone_versions;%lwt
   (* Register tunes in sets *)
   Lwt_list.iter_s
     (
@@ -54,8 +53,7 @@ let get_duplicated_tunes t book =
           )
           versions
     )
-    sets;
-  %lwt
+    sets;%lwt
   let set_tunes = SetEditor.list_tunes t.composer in
   Lwt.return
     (

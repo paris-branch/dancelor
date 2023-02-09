@@ -19,7 +19,7 @@ let hd_opt s =
 let rec iter_lwt f s =
   match s () with
   | Nil -> Lwt.return_unit
-  | Cons (x, s) -> f x; %lwt iter_lwt f s
+  | Cons (x, s) -> f x;%lwt iter_lwt f s
 
 let rec for_all p s =
   match s () with

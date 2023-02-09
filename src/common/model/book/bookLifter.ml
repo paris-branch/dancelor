@@ -127,8 +127,7 @@ module Lift
             register_tune_to_set tune None;
             Lwt.return ()
         )
-        standalone_versions;
-      %lwt
+        standalone_versions;%lwt
       (* register tunes in sets *)
       Lwt_list.iter_s
         (
@@ -144,8 +143,7 @@ module Lift
               )
               versions
         )
-        sets;
-      %lwt
+        sets;%lwt
       (* crawl all registered tunes and see if they appear several times. if that is
          the case, add a warning accordingly *)
       Hashtbl.to_seq tunes_to_sets
