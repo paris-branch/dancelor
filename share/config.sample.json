@@ -1,10 +1,10 @@
 {
-    "port": 8080,
-    "lilypond": "lilypond",
-    "cache": "cache",
-    "database": "database",
-    "views": "views",
-    "loglevel": "debug",
-    "routines": "true",
-    "heavy_routines": "false"
+  "port": 8080,
+  "lilypond": "lilypond",
+  "cache": "cache",
+  "database": "database",
+  "views": "views",
+  "loglevel": "debug",
+  "routines": "true",
+  "heavy_routines": "false"
 }

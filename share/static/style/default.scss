@@ -8,42 +8,49 @@ body {
 }
 
 textarea {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 }
 
 * {
   max-width: 100%;
 }
 
-a, .clickable {
+a,
+.clickable {
   cursor: pointer;
   text-decoration: none;
 }
 
-a:hover, a:focus, .clickable:hover, .clickable:focus {
+a:hover,
+a:focus,
+.clickable:hover,
+.clickable:focus {
 }
 
 .no-selection {
-    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-    -moz-user-select: none; /* mozilla browsers */
-    -khtml-user-select: none; /* webkit (konqueror) browsers */
-    -ms-user-select: none; /* IE10+ */
+  -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+  -moz-user-select: none; /* mozilla browsers */
+  -khtml-user-select: none; /* webkit (konqueror) browsers */
+  -ms-user-select: none; /* IE10+ */
 }
 
-img, object {
+img,
+object {
   max-width: 100%;
 }
 
 b {
   display: inline-block;
   font-weight: bold;
-  margin-bottom: .3rem; /* Probably not the right place. */
+  margin-bottom: 0.3rem; /* Probably not the right place. */
 }
 
 @media only screen and (max-width: 767px) {
-  .content > h1, .content > hr, .content > div {
-    margin-left: .5rem;
-    margin-right: .5rem;
+  .content > h1,
+  .content > hr,
+  .content > div {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
   }
 }
 

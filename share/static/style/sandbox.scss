@@ -8,24 +8,26 @@ form {
   position: relative;
 }
 
-input[type=text], textarea {
+input[type="text"],
+textarea {
   width: 100%;
   border-radius: 4px;
   border: 1px solid #ced4da;
   box-sizing: border-box;
   display: block;
   font-size: 1rem;
-  padding: .375rem .75rem;
+  padding: 0.375rem 0.75rem;
   line-height: 1.5;
 }
 
-input[type=text].invalid, textarea.invalid {
+input[type="text"].invalid,
+textarea.invalid {
   box-shadow: 0px 0px 4px 2px #e03333;
 }
 
 button {
   box-sizing: border-box;
-  padding: .375rem .75rem;
+  padding: 0.375rem 0.75rem;
   background-color: #ffffff;
   color: #960010;
   border: 1px solid #c0c0c9;
