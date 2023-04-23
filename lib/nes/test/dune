@@ -1,4 +1,5 @@
 (test
  (name nesListTest)
  (libraries nes yojson ppx_deriving_yojson.runtime unix lwt lwt.unix)
- (preprocess (pps ppx_inline_test ppx_deriving_yojson lwt_ppx)))
+ (preprocess
+  (pps ppx_inline_test ppx_deriving_yojson lwt_ppx)))

@@ -1,10 +1,7 @@
 (library
  (name dancelor_server_database)
  (public_name dancelor.server.database)
- (libraries
-  yaml
-  dancelor.nes.unix
-  dancelor.common
-  dancelor.server.logs
-  dancelor.server.config)
- (preprocess (pps lwt_ppx)))
+ (libraries yaml dancelor.nes.unix dancelor.common dancelor.server.logs
+   dancelor.server.config)
+ (preprocess
+  (pps lwt_ppx)))

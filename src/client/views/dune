@@ -3,21 +3,8 @@
 (library
  (name dancelor_client_views)
  (public_name dancelor.client.views)
- (libraries
-   js_of_ocaml-lwt
-   cohttp-lwt-jsoo
-   dancelor.client.html
-   dancelor.client.elements
-   dancelor.client.tables
-   dancelor.client.formatters
-   dancelor.client.utils
-   dancelor.client.model
-   dancelor.nes
-   dancelor.common)
+ (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.client.html
+   dancelor.client.elements dancelor.client.tables dancelor.client.formatters
+   dancelor.client.utils dancelor.client.model dancelor.nes dancelor.common)
  (preprocess
-  (pps
-    lwt_ppx
-    js_of_ocaml-ppx
-    ppx_monad
-    ppx_monad_olwt
-    ppx_monad_rlwt)))
+  (pps lwt_ppx js_of_ocaml-ppx ppx_monad ppx_monad_olwt ppx_monad_rlwt)))

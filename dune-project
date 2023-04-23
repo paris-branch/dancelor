@@ -40,3 +40,4 @@
 (using menhir 2.1)
 (generate_opam_files)
 (allow_approximate_merlin)
+(formatting (enabled_for dune))

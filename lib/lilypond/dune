@@ -1,8 +1,6 @@
 (library
  (name lilyPond)
  (public_name dancelor.lilypond)
- (libraries
-  dancelor.nes.unix
-  logs
-  lwt.unix)
- (preprocess (pps lwt_ppx)))
+ (libraries dancelor.nes.unix logs lwt.unix)
+ (preprocess
+  (pps lwt_ppx)))

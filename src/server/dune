@@ -1,29 +1,19 @@
 (executable
  (name dancelor_server)
  (public_name dancelor-server)
- (libraries
-  dancelor.server.controller
-  dancelor.common
-  cohttp-lwt-unix
-  str)
+ (libraries dancelor.server.controller dancelor.common cohttp-lwt-unix str)
  (preprocess
-  (pps
-   lwt_ppx
-   ppx_deriving.std))
+  (pps lwt_ppx ppx_deriving.std))
  (modules :standard \ dancelor_server_logs dancelor_server_config))
 
 (library
  (name dancelor_server_config)
  (modules dancelor_server_config)
  (public_name dancelor.server.config)
- (libraries
-  dancelor.nes
-  dancelor.server.logs
-  logs
-  str))
+ (libraries dancelor.nes dancelor.server.logs logs str))
 
- (library
-  (name dancelor_server_logs)
-  (modules dancelor_server_logs)
-  (public_name dancelor.server.logs)
-  (libraries dancelor.nes logs.lwt))
+(library
+ (name dancelor_server_logs)
+ (modules dancelor_server_logs)
+ (public_name dancelor.server.logs)
+ (libraries dancelor.nes logs.lwt))
