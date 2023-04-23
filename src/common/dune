@@ -3,6 +3,7 @@
  (public_name dancelor.common)
  (libraries
   dancelor.nes
+  dancelor.madge.router
   dancelor.common.model
   cohttp cohttp-lwt logs
   yojson ppx_deriving_yojson.runtime)

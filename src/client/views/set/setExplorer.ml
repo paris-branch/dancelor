@@ -2,8 +2,8 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
-open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -25,7 +25,7 @@ let update_table t =
          (fun set ->
             let href =
               let%lwt slug = Set.slug set in
-              Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+              Lwt.return Router.(path (Set slug))
             in
             let cells =
               let open Lwt in [

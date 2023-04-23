@@ -1,7 +1,7 @@
 open Nes
-open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_html
+module Router = Dancelor_client_router
 module Formatters = Dancelor_client_formatters
 
 let clickable_row ?href ?href_lwt cells =
@@ -22,7 +22,7 @@ let books books =
   map_table ~header:[ "Book"; "Date" ] books @@ fun book ->
   let href_lwt =
     let%lwt slug = Book.slug book in
-    Lwt.return (Router.path_of_controller (Router.Book slug) |> snd)
+    Lwt.return Router.(path (Router.Book slug))
   in
   clickable_row ~href_lwt [
     Formatters.Book.title_and_subtitle book;
@@ -38,7 +38,7 @@ let sets sets =
   map_table ~header:[ "Name"; "Deviser"; "Kind" ] sets @@ fun set ->
   let href_lwt =
     let%lwt slug = Set.slug set in
-    Lwt.return (Router.path_of_controller (Router.Set slug) |> snd)
+    Lwt.return Router.(path (Set slug))
   in
   clickable_row ~href_lwt [
     (Formatters.Set.name_and_tunes ~link:false set);
@@ -50,7 +50,7 @@ let dances dances =
   map_table ~header:[ "Name"; "Deviser"; "Kind" ] dances @@ fun dance ->
   let href_lwt =
     let%lwt slug = Dance.slug dance in
-    Lwt.return (Router.path_of_controller (Router.Dance slug) |> snd)
+    Lwt.return Router.(path (Dance slug))
   in
   clickable_row ~href_lwt [
     Lwt.return [ text_lwt (Dance.name dance) ];
@@ -62,7 +62,7 @@ let tunes tunes =
   map_table ~header:[ "Name"; "Kind"; "Author" ] tunes @@ fun tune ->
   let href_lwt =
     let%lwt slug = Tune.slug tune in
-    Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+    Lwt.return Router.(path (Tune slug))
   in
   clickable_row ~href_lwt [
     Lwt.return [ text_lwt (Tune.name tune) ];
@@ -76,7 +76,7 @@ let versions versions =
   let tune_lwt = Version.tune version in
   let href_lwt =
     let%lwt slug = Version.slug version in
-    Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+    Lwt.return Router.(path (Version slug))
   in
   clickable_row ~href_lwt [
     (Formatters.Version.disambiguation_and_sources version);
@@ -92,7 +92,7 @@ let versions_with_names versions =
   let tune_lwt = Version.tune version in
   let href_lwt =
     let%lwt slug = Version.slug version in
-    Lwt.return (Router.path_of_controller (Router.Version slug) |> snd)
+    Lwt.return Router.(path (Version slug))
   in
   clickable_row ~href_lwt [
     Lwt.return [ text_lwt (tune_lwt >>=| Tune.name) ];

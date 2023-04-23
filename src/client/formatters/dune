@@ -11,4 +11,5 @@
     dancelor.client.model
     dancelor.client.elements
     dancelor.client.html
+    dancelor.client.router
     dancelor.nes))

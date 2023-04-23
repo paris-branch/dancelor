@@ -1,8 +1,8 @@
 open Lwt
 open Js_of_ocaml
-open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
+module Router = Dancelor_client_router
 module Formatters = Dancelor_client_formatters
 
 module Html = Dom_html
@@ -11,7 +11,7 @@ let js = Js.string
 
 let make_credit_result ~prefix page credit =
   let%lwt slug = Credit.slug credit in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Credit slug) ()) in
+  let href = Lwt.return Router.(path (Credit slug)) in
   let cells =
     prefix @ [
       Table.Cell.text ~colspan:3 ~text:(Credit.line credit) page
@@ -21,7 +21,7 @@ let make_credit_result ~prefix page credit =
 
 let make_dance_result ~prefix page dance =
   let%lwt slug = Dance.slug dance in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Dance slug) ()) in
+  let href = Lwt.return Router.(path (Dance slug)) in
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Dance.name dance) page ;
@@ -37,7 +37,7 @@ let make_dance_result ~prefix page dance =
 
 let make_person_result ~prefix page person =
   let%lwt slug = Person.slug person in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Person slug) ()) in
+  let href = Lwt.return Router.(path (Person slug)) in
   let cells =
     prefix @ [
       Table.Cell.text ~colspan:3 ~text:(Person.name person) page
@@ -47,7 +47,7 @@ let make_person_result ~prefix page person =
 
 let make_book_result ~prefix page book =
   let%lwt slug = Book.slug book in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Book slug) ()) in
+  let href = Lwt.return Router.(path (Book slug)) in
   let cells =
     prefix @ [
       Table.Cell.create ~colspan:3 ~content:(
@@ -60,7 +60,7 @@ let make_book_result ~prefix page book =
 
 let make_set_result ~prefix page set =
   let%lwt slug = Set.slug set in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Set slug) ()) in
+  let href = Lwt.return Router.(path (Set slug)) in
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Set.name set) page;
@@ -76,7 +76,7 @@ let make_set_result ~prefix page set =
 
 let make_tune_result ~prefix page tune =
   let%lwt slug = Tune.slug tune in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Tune slug) ()) in
+  let href = Lwt.return Router.(path (Tune slug)) in
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Tune.name tune) page ;
@@ -92,7 +92,7 @@ let make_tune_result ~prefix page tune =
 
 let make_version_result ~prefix page version =
   let%lwt slug = Version.slug version in
-  let href = Lwt.return (Helpers.build_path ~route:(Router.Version slug) ()) in
+  let href = Lwt.return Router.(path (Version slug)) in
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [

@@ -1,9 +1,8 @@
 open NesUnix
-open Dancelor_common
 open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.version" : Logs.LOG)
 
-let get_ly version _ =
+let get_ly version =
   let%lwt version = Version.get version in
   let%lwt body = Version.content version in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
@@ -158,16 +157,9 @@ module Svg = struct
     Log.debug (fun m -> m "done!");
     Lwt.return (Filename.concat path fname_svg)
 
-  let get version query_parameters =
+  let get version parameters =
     Log.debug (fun m -> m "Version.Svg.get %a" Slug.pp version);
     let%lwt version = Version.get version in
-    let%lwt parameters =
-      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
-      parameters
-      |> VersionParameters.of_yojson
-      |> Result.get_ok
-      |> Lwt.return_some
-    in
     let%lwt path_svg = render ?parameters version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
 end
@@ -194,16 +186,9 @@ module Pdf = struct
     LilyPond.run ~exec_path:path fname_ly;%lwt
     Lwt.return (Filename.concat path fname_pdf)
 
-  let get version query_parameters =
+  let get version parameters =
     Log.debug (fun m -> m "Version.pdf.get %a" Slug.pp version);
     let%lwt version = Version.get version in
-    let%lwt parameters =
-      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
-      parameters
-      |> VersionParameters.of_yojson
-      |> Result.get_ok
-      |> Lwt.return_some
-    in
     let%lwt path_pdf = render ?parameters version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
@@ -229,7 +214,7 @@ module Ogg = struct
     LilyPond.ogg ~exec_path:path fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 
-  let get version _ =
+  let get version =
     Log.debug (fun m -> m "Version.Ogg.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt path_ogg = render version in

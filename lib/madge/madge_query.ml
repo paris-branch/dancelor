@@ -1,10 +1,14 @@
+open Nes
+
 type key = string
 type t = (key * Yojson.Safe.t) list
+
+let empty = []
 
 let get = List.assoc_opt
 
 exception WrongType of string * string
-let wrong_type expected provided =
+let wrong_type ~expected provided =
   let provided =
     match provided with
     | `Null -> "null"
@@ -20,12 +24,21 @@ let wrong_type expected provided =
   in
   raise (WrongType (expected, provided))
 
+let get_ key cast qp =
+  Option.map (Result.get_ok % cast) @@ get key qp (* FIXME: handle cast errors *)
+
 let get_string k p =
-  match%opt get k p with
-  | `String s -> Some s
-  | j -> wrong_type "string" j
+  match get k p with
+  | None -> None
+  | Some (`String s) -> Some s
+  | Some j -> wrong_type ~expected:"string" j
+
+let singleton key value = [key, value]
 
 let to_list = Fun.id
+
+let to_strings =
+  List.map (fun (key, value) -> (key, [Yojson.Safe.to_string value]))
 
 let from_uri uri =
   List.map

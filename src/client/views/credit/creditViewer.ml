@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
 open Dancelor_common
+module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -54,7 +55,7 @@ let create slug page =
             let slug = Person.slug person in
             let href_lwt =
               let%lwt slug = slug in
-              Lwt.return (Router.path_of_controller (Router.Person slug) |> snd)
+              Lwt.return Router.(path (Person slug))
             in
             a ~href_lwt [ text_lwt (Person.name person) ]
           in

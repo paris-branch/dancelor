@@ -1,6 +1,5 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_views
 
@@ -25,49 +24,40 @@ let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
   end : Page.CONTENTS)
 
 let dispatch url =
-  let path =
-    let rec trim = function
-      | "" :: l -> trim l
-      | l -> l
-    in
-    Uri.path url |> String.split_on_char '/' |> trim
-  in
-  let query_parameters = QueryParameters.from_uri url in
-  match path with
-  | ["search"] ->
-    let q = QueryParameters.get_string "q" query_parameters in
-    pack (module Search) (Search.create q)
-  | ["version"; "add"] ->
-    pack (module VersionEditorInterface) VersionEditorInterface.create
-  | ["version"; "all"] ->
-    pack (module VersionExplorer) VersionExplorer.create
-  | ["version"; "broken"] ->
-    pack (module VersionBrokenExplorer) VersionBrokenExplorer.create
-  | ["version"; slug] ->
-    pack (module VersionViewer) (VersionViewer.create (Slug.unsafe_of_string slug))
-  | ["tune"; slug] ->
-    pack (module TuneViewer) (TuneViewer.create (Slug.unsafe_of_string slug))
-  | ["set"; "all"] ->
-    pack (module SetExplorer) SetExplorer.create
-  | ["set"; "compose"] ->
-    pack (module SetEditorInterface) SetEditorInterface.create
-  | ["set"; slug] ->
-    pack (module SetViewer) (SetViewer.create (Slug.unsafe_of_string slug))
-  | ["book"; "all"] ->
-    pack (module BookExplorer) BookExplorer.create
-  | ["book"; "compose"] ->
-    pack (module BookEditorInterface) BookEditorInterface.create
-  | ["book"; slug] ->
-    pack (module BookViewer) (BookViewer.create (Slug.unsafe_of_string slug))
-  | ["credit"; "add"] ->
-    pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
-  | ["credit"; slug] ->
-    pack (module CreditViewer) (CreditViewer.create (Slug.unsafe_of_string slug))
-  | ["person"; slug] ->
-    pack (module PersonViewer) (PersonViewer.create (Slug.unsafe_of_string slug))
-  | ["dance"; slug] ->
-    pack (module DanceViewer) (DanceViewer.create (Slug.unsafe_of_string slug))
-  | [] ->
+  let request = Madge_router.{ method_ = `GET ; path = Uri.path url ; query = Madge_query.from_uri url } in
+  let page = Madge_router.request_to_resource request Dancelor_client_router.routes in
+  match Option.get page with
+  | Dancelor_client_router.Index ->
     pack (module Index) Index.create
-  | _ ->
-    pack (module UnknownPage) UnknownPage.create
+  | Search q ->
+    pack (module Search) (Search.create q)
+  | VersionAdd ->
+    pack (module VersionEditorInterface) VersionEditorInterface.create
+  | VersionAll ->
+    pack (module VersionExplorer) VersionExplorer.create
+  | VersionBroken ->
+    pack (module VersionBrokenExplorer) VersionBrokenExplorer.create
+  | Version slug ->
+    pack (module VersionViewer) (VersionViewer.create slug)
+  | Tune slug ->
+    pack (module TuneViewer) (TuneViewer.create slug)
+  | SetAll ->
+    pack (module SetExplorer) SetExplorer.create
+  | SetCompose ->
+    pack (module SetEditorInterface) SetEditorInterface.create
+  | Set slug ->
+    pack (module SetViewer) (SetViewer.create slug)
+  | BookAll ->
+    pack (module BookExplorer) BookExplorer.create
+  | BookCompose ->
+    pack (module BookEditorInterface) BookEditorInterface.create
+  | Book slug ->
+    pack (module BookViewer) (BookViewer.create slug)
+  | CreditAdd ->
+    pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
+  | Credit slug ->
+    pack (module CreditViewer) (CreditViewer.create slug)
+  | Person slug ->
+    pack (module PersonViewer) (PersonViewer.create slug)
+  | Dance slug ->
+    pack (module DanceViewer) (DanceViewer.create slug)
