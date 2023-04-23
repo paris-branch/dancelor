@@ -18,6 +18,7 @@
         ./.nix/perinput-lib.nix
         ./.nix/pre-commit-settings.nix
         ./.nix/pre-commit-settings-dune-opam-sync.nix
+        ./.nix/pre-commit-settings-dune-fmt.nix
         ./.nix/pre-commit-settings-ocp-indent.nix
         ./.nix/pre-commit-settings-opam-lint.nix
         ./.nix/systems.nix
