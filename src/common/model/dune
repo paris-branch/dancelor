@@ -3,22 +3,12 @@
 (library
  (name dancelor_common_model)
  (public_name dancelor.common.model)
- (libraries
-  str
-  lwt
-  dancelor.nes
-  dancelor.madge.common
-  menhirLib yojson ppx_deriving_yojson.runtime)
+ (libraries str lwt dancelor.nes dancelor.madge.common menhirLib yojson
+   ppx_deriving_yojson.runtime)
  (preprocess
-  (pps
-   lwt_ppx
-   ppx_inline_test
-   ppx_deriving_yojson
-   ppx_deriving.std
-   ppx_monad
-   ppx_monad_olwt
-   ppx_monad_rlwt))
- (modules_without_implementation
-   personSignature creditSignature danceSignature bookSignature
-   anySignature setSignature tuneSignature versionSignature)
+  (pps lwt_ppx ppx_inline_test ppx_deriving_yojson ppx_deriving.std ppx_monad
+    ppx_monad_olwt ppx_monad_rlwt))
+ (modules_without_implementation personSignature creditSignature
+   danceSignature bookSignature anySignature setSignature tuneSignature
+   versionSignature)
  (inline_tests))

@@ -5,8 +5,4 @@
  (public_name dancelor.client.model)
  (libraries dancelor.common.model dancelor.madge.client)
  (preprocess
-  (pps
-    lwt_ppx
-    ppx_monad
-    ppx_monad_olwt
-    ppx_monad_rlwt)))
+  (pps lwt_ppx ppx_monad ppx_monad_olwt ppx_monad_rlwt)))
