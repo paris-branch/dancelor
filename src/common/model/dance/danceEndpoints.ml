@@ -9,8 +9,11 @@ module Arguments = struct
   let name = arg ~key:"name" (module MString)
   let kind = arg ~key:"kind" (module Kind.Dance)
   let deviser = optarg ~key:"deviser" (module CreditCore)
+  let disambiguation = optarg ~key:"disambiguation" (module MString)
   let two_chords = arg ~key:"two-chords" (module MBool)
   let scddb_id = optarg ~key:"scddb-id" (module MInteger)
+  let modified_at = arg ~key:"modified-at" (module NesDatetime)
+  let created_at = arg ~key:"created-at" (module NesDatetime)
 end
 
 let get = endpoint ~path:"/dance" (module DanceCore)

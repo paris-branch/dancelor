@@ -22,7 +22,9 @@ type t =
     contents    : PageCore.t list ;
     source      : bool       [@default false] ;
     remark      : string     [@default ""] ;
-    scddb_id    : int option [@default None] [@key "scddb-id"] }
+    scddb_id    : int option [@default None] [@key "scddb-id"] ;
+    modified_at : Datetime.t [@key "modified-at"] ;
+    created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
 let slug book = Lwt.return book.slug
@@ -35,6 +37,8 @@ let contents book = Lwt.return book.contents
 let source book = Lwt.return book.source (* FIXME: Should be removed *)
 let remark book = Lwt.return book.remark
 let scddb_id book = Lwt.return book.scddb_id
+let modified_at book = Lwt.return book.modified_at
+let created_at book = Lwt.return book.created_at
 
 let equal book1 book2 =
   let%lwt slug1 = slug book1 in
@@ -87,10 +91,13 @@ let page_to_page_core = function
   | (InlineSet (set, params) : page) ->
     Lwt.return @@ PageCore.InlineSet (set, params)
 
-let make ?status ~slug ~title ?date ?contents_and_parameters () =
+let make ?status ~slug ~title ?date ?contents_and_parameters ~modified_at ~created_at () =
   let%lwt contents_and_parameters =
     let%olwt contents = Lwt.return contents_and_parameters in
     let%lwt contents = Lwt_list.map_s page_to_page_core contents in
     Lwt.return_some contents
   in
-  Lwt.return (make ?status ~slug ~title ?date ?contents:contents_and_parameters ())
+  Lwt.return (make
+                ?status ~slug ~title ?date
+                ?contents:contents_and_parameters ~modified_at ~created_at
+                ())

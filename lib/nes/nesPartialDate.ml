@@ -23,30 +23,15 @@ let check = function
   | Year _year -> true
 
 let from_string s =
-  try
-    let date =
-      let repr = String.split_on_char '-' s in
-      assert (repr <> []);
-      let year, repr = List.(hd repr, tl repr) in
-      assert (String.length year = 4);
-      let year = int_of_string year in
-      match repr with
-      | [] -> Year year
-      | month :: repr ->
-        assert (String.length month = 2);
-        let month = int_of_string month in
-        match repr with
-        | [] -> YearMonth (year, month)
-        | day :: repr ->
-          assert (repr = []);
-          assert (String.length day = 2);
-          let day = int_of_string day in
-          YearMonthDay (year, month, day)
-    in
-    assert (check date);
-    date
-  with
-    Assert_failure _ | Failure _ -> failwith "NesPartialDate.from_string"
+  let date =
+    match String.split_on_char '-' s |> List.map int_of_string_opt with
+    | [Some year] -> Year year
+    | [Some year; Some month] -> YearMonth (year, month)
+    | [Some year; Some month; Some day] -> YearMonthDay (year, month, day)
+    | _ -> failwith "NesPartialDate.from_string"
+  in
+  if not (check date) then failwith "NesPartialDate.from_string";
+  date
 
 let to_string = function
   | Year year -> spf "%04d" year
@@ -59,8 +44,8 @@ let to_yojson date =
 let of_yojson = function
   | `String s ->
     (try Ok (from_string s)
-     with _ -> Error "NesDate.Partialof_yojson: not a valid date")
-  | _ -> Error "NesDate.Partialof_yojson: not a JSON string"
+     with _ -> Error "NesPartialDate.of_yojson: not a valid date")
+  | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
 
 let month_to_pretty_string month =
   [| "January"; "February"; "March"; "April"; "May"; "June"; "July";

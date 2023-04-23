@@ -4,15 +4,17 @@ include PersonLifted
 module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
 
-let make_and_save ?status ~name () =
+let make_and_save ?status ~name ~modified_at ~created_at () =
   Dancelor_server_database.Person.save ~slug_hint:name @@ fun slug ->
-  Lwt.return (make ?status ~slug ~name ()) (* status should probably go in save *)
+  Lwt.return (make ?status ~slug ~name ~modified_at ~created_at ()) (* status should probably go in save *)
 
 let () =
   Madge_server.(
     register ~endpoint:E.make_and_save @@ fun {a} _ ->
     make_and_save
       ~name:(a A.name)
+      ~modified_at:(a A.modified_at)
+      ~created_at:(a A.created_at)
       ()
   )
 

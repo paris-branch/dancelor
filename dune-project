@@ -22,6 +22,7 @@
   (cohttp-lwt-unix     (>= 4.0.0))
    dates_calc
   (dune                 :build)
+   ISO8601
    js_of_ocaml
    js_of_ocaml-lwt
   (js_of_ocaml-ppx      :build)

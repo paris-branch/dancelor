@@ -5,14 +5,17 @@ module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~tune ~bars ~key ~structure ?arranger
-    ?remark ?disambiguation ?broken ~content ()
+    ?status ~tune ~bars ~key ~structure ?arranger ?remark
+    ?disambiguation ?broken ~content ~modified_at ~created_at
+    ()
   =
   let%lwt name = Tune.name tune in
   let%lwt version =
     Dancelor_server_database.Version.save ~slug_hint:name @@ fun slug ->
-    make ~slug ?status ~tune ~bars ~key ~structure
-      ?arranger ?remark ?disambiguation ?broken ()
+    make
+      ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
+      ?disambiguation ?broken ~modified_at ~created_at
+      ()
   in
   Dancelor_server_database.Version.write_content version content;%lwt
   Lwt.return version
@@ -31,6 +34,8 @@ let () =
       ?disambiguation:(o A.disambiguation)
       ?broken:   (o A.broken)
       ~content:  (a A.content)
+      ~modified_at:(a A.modified_at)
+      ~created_at:(a A.created_at)
       ()
   )
 

@@ -4,9 +4,15 @@ include SetLifted
 module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
-let make_and_save ?status ~name ?deviser ~kind ?versions_and_parameters ~order ?dances () =
+let make_and_save
+    ?status ~name ?deviser ~kind ?versions_and_parameters
+    ~order ?dances ~modified_at ~created_at
+    ()
+  =
   Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?deviser ~kind ?versions_and_parameters ~order ?dances ()
+  make
+    ?status ~slug ~name ?deviser ~kind ?versions_and_parameters
+    ~order ?dances ~modified_at ~created_at ()
 
 let () =
   Madge_server.(
@@ -19,6 +25,8 @@ let () =
       ?versions_and_parameters:(o A.versions_and_parameters)
       ~order:  (a A.order)
       ?dances: (o A.dances)
+      ~modified_at: (a A.modified_at)
+      ~created_at:  (a A.created_at)
       ()
   )
 
