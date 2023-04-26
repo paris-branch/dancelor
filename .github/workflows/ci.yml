@@ -1,4 +1,4 @@
-name: Nix
+name: CI
 
 on:
   push:
@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Build and test
+  build-and-test-with-nix:
+    name: Build and test with Nix
     runs-on: ubuntu-latest
 
     steps:
@@ -48,10 +48,35 @@ jobs:
         with:
           path: doc/
 
+  build-and-test-with-opam:
+    name: Build and test with OPAM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: 4.14.x
+
+      - name: Install OPAM dependencies
+        run: opam install . --deps-only --with-doc --with-test
+
+      - name: Build Dancelor
+        run: opam exec -- make
+
+      - name: Build documentation
+        run: opam exec -- make doc
+
+      - name: Run tests
+        run: opam exec -- make test
+
   deploy-documentation:
     name: Deploy documentation
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: build-and-test-with-nix
 
     ## Grant GITHUB_TOKEN the permissions required to make a Pages deployment.
     ## It needs to be able to deploy to pages and to verify that the deployment
@@ -64,8 +89,8 @@ jobs:
       - name: Deploy to GitHub pages
         uses: actions/deploy-pages@v2
 
-  flake-checks:
-    name: Flake checks
+  run-nix-flake-checks:
+    name: Run Nix flake checks
     runs-on: ubuntu-latest
 
     steps:
