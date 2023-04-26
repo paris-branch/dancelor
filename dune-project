@@ -21,7 +21,7 @@
   (cohttp-lwt-jsoo     (>= 4.0.0))
   (cohttp-lwt-unix     (>= 4.0.0))
    dates_calc
-  (dune                 :build)
+  (dune                (and :build (< 3.7.0)))
    js_of_ocaml
    js_of_ocaml-lwt
   (js_of_ocaml-ppx      :build)
