@@ -1,0 +1,34 @@
+name: OPAM
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+
+jobs:
+
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v2
+
+      - name: Install OPAM dependencies
+        run: opam install . --deps-only --with-doc --with-test
+
+      - name: Build Dancelor
+        run: opam exec -- make
+
+      - name: Build documentation
+        run: opam exec -- make doc
+
+      - name: Run tests
+        run: opam exec -- make test
