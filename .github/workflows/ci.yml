@@ -61,7 +61,15 @@ jobs:
         with:
           ocaml-compiler: 4.14.x
 
-      - name: Install OPAM dependencies
+      - name: Install system dependencies
+        ## FIXME: There should be an automated way to install system
+        ## dependencies since they are declared via OPAM -- either `opam depext`
+        ## or `opam install --depext`. However, this does not seem to work, so
+        ## we do things manually for now. This also means that CI does not check
+        ## that the system dependencies declared by OPAM are up-to-date.
+        run: sudo apt install --yes timidity freepats inkscape lilypond sassc xvfb
+
+      - name: Install OCaml dependencies
         run: opam install . --deps-only --with-doc --with-test
 
       - name: Build Dancelor
