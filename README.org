@@ -1,9 +1,0 @@
-#+TITLE: Dancelor
-
-A chancelor for RSCDS musicians.
-
-* FAQ
-** The fonts in the PDF seem weird
-Dancelor uses the /Trebuchet MS/ font in PDF files. Make sure it is installed on
-the machine on which Dancelor runs. This usually goes by copying the fonts from
-the =assets= directory to =~/.local/share/fonts=.
