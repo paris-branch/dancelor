@@ -19,6 +19,8 @@ val make_and_save :
   line:string ->
   ?persons:PersonCore.t list ->
   ?scddb_id:int ->
+  modified_at:Datetime.t ->
+  created_at:Datetime.t ->
   unit -> t Lwt.t
 
 val search :

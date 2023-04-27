@@ -5,11 +5,15 @@ module E = Dancelor_common_model.TuneEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?alternative_names
-    ~kind ?author ?dances ?remark ?scddb_id ()
+    ?status ~name ?alternative_names ~kind ?author
+    ?dances ?remark ?scddb_id ~modified_at ~created_at
+    ()
   =
   Dancelor_server_database.Tune.save ~slug_hint:name @@ fun slug ->
-  make ?status ~slug ~name ?alternative_names ~kind ?author ?dances ?remark ?scddb_id ()
+  make
+    ?status ~slug ~name ?alternative_names ~kind ?author
+    ?dances ?remark ?scddb_id ~modified_at ~created_at
+    ()
 
 let () =
   Madge_server.(
@@ -23,6 +27,8 @@ let () =
       ?dances:  (o A.dances)
       ?remark:  (o A.remark)
       ?scddb_id:(o A.scddb_id)
+      ~modified_at:(a A.modified_at)
+      ~created_at:(a A.created_at)
       ()
   )
 

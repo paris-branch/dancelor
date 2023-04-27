@@ -30,6 +30,8 @@ val make_and_save :
   ?disambiguation:string ->
   ?broken:bool ->
   content:string ->
+  modified_at:Datetime.t ->
+  created_at:Datetime.t ->
   unit -> t Lwt.t
 
 val search :

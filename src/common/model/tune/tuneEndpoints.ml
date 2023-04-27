@@ -13,6 +13,8 @@ module Arguments = struct
   let dances = optarg ~key:"dances" (module MList(DanceCore))
   let remark = optarg ~key:"remark" (module MString)
   let scddb_id = optarg ~key:"scddb-id" (module MInteger)
+  let modified_at = arg ~key:"modified-at" (module NesDatetime)
+  let created_at = arg ~key:"created-at" (module NesDatetime)
 end
 
 let get = endpoint ~path:"/tune" (module TuneCore)
