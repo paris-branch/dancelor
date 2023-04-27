@@ -8,8 +8,8 @@ authors: [
   "Victor Lanvin <victor.lanvin2@gmail.com>"
 ]
 license: "GPL-3.0-or-later"
-homepage: "https://gitlab.vlanvin.fr/paris-band/dancelor"
-bug-reports: "https://gitlab.vlanvin.fr/paris-band/dancelor/issues"
+homepage: "https://github.com/paris-branch/dancelor"
+bug-reports: "https://github.com/paris-branch/dancelor/issues"
 depends: [
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
@@ -44,7 +44,7 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git"
+dev-repo: "git+https://github.com/paris-branch/dancelor.git"
 depexts: [
   [ "timidity++" "freepats-general-midi" "inkscape" "lilypond" "sassc" "xorg-server-xvfb" ]
     { os-distribution = "archlinux" }

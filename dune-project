@@ -1,8 +1,6 @@
 (lang dune 2.5)
 
-(homepage https://gitlab.vlanvin.fr/paris-band/dancelor)
-(source (uri git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git))
-(bug_reports https://gitlab.vlanvin.fr/paris-band/dancelor/issues)
+(source (github paris-branch/dancelor))
 
 (authors
   "Nicolas “Niols” Jeannerod <niols@niols.fr>"
