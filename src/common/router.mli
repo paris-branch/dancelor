@@ -22,6 +22,7 @@ type controller =
 
   | BookAll
   | BookCompose
+  | BookEdit of BookCore.t Slug.t
   | BookPdf of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
 

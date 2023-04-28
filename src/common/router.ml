@@ -15,6 +15,7 @@ type controller =
 
   | BookAll
   | BookCompose
+  | BookEdit of BookCore.t Slug.t
   | BookPdf of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
 
@@ -147,6 +148,12 @@ let routes : route list =
       ~meth:`GET
       ~path:"/book/compose"
       BookCompose ;
+
+    with_slug
+      ~meth:`GET
+      ~prefix:"/book/edit"
+      (fun book -> Some (BookEdit book))
+      (function BookEdit book -> Some book | _ -> None) ;
 
     with_slug
       ~meth:`GET
