@@ -295,7 +295,12 @@ let create slug page =
         h3 [ text "Contents" ];
 
         node_of_dom_node (Table.root ttable :> dom_node)
-      ]
+      ];
+
+      div ~classes:["buttons"] (
+        let href = Helpers.build_path ~api:true ~route:(Router.BookPdf slug) () in
+        [ a ~classes:["button"] ~href [text ("Edit book")] ]
+      )
     ]);
 
   let t = {page; content; table=ttable} in
