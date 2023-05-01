@@ -236,14 +236,13 @@ let update slug ?on_save page =
 
           in
           if b1 && b2 then (
-            Lwt.on_success (BookEditor.submit editor) (fun book ->
-                Lwt.on_success (Book.slug book) (fun slug ->
+            Lwt.on_success (BookEditor.update_submit editor slug) (fun _ ->
                     begin match on_save with
                       | None ->
                         let href = Router.path_of_controller (Router.Book slug) |> snd in
                         Html.window##.location##.href := js href
                       | Some cb -> cb slug
-                    end))))
+                    end)))
       page
   in
 
