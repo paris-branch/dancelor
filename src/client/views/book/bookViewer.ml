@@ -298,7 +298,7 @@ let create slug page =
       ];
 
       div ~classes:["buttons"] (
-        let href = Helpers.build_path ~api:true ~route:(Router.BookEdit slug) () in
+        let href = Helpers.build_path ~api:false ~route:(Router.BookEdit slug) () in
         [ a ~classes:["button"] ~href [text ("Edit book")] ]
       )
     ]);
