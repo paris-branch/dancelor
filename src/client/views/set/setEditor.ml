@@ -239,16 +239,23 @@ let submit_updated_book set opt_book =
     let%lwt date = Book.date book in
     let%lwt contents = Book.contents book in
     let%lwt set = set in
-    let contents_and_parameters = contents@[Set (set, SetParameters.none)] in
-    Book.update ~slug ~title ?date ~contents_and_parameters ()
+    let contents_and_parameters = contents @ [Set (set, SetParameters.none)] in
+    let modified_at = Datetime.now () in
+    let%lwt created_at = Book.created_at book in
+    Book.update ~slug ~title ?date ~contents_and_parameters ~modified_at ~created_at ()
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
   let versions_and_parameters = List.map (fun version -> (version, VersionParameters.none)) versions in
   let kind = Kind.dance_of_string t.kind in
   let order = SetOrder.of_string t.order in
-  let answer = Set.make_and_save ~kind ~name:t.name ~versions_and_parameters ~order ?deviser:(deviser t) () in
-  Lwt.on_success answer (fun _ -> erase_storage t;
-                          Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ())
-                        );
+  let modified_at = Datetime.now () in
+  let created_at = Datetime.now () in
+  let answer =
+    Set.make_and_save ~kind ~name:t.name ~versions_and_parameters
+      ~order ?deviser:(deviser t) ~modified_at ~created_at ()
+  in
+  Lwt.on_success answer
+    (fun _ -> erase_storage t;
+      Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ()));
   answer

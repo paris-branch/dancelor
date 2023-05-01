@@ -35,6 +35,8 @@ val contents : t -> page list Lwt.t
 val source : t -> bool Lwt.t (* FIXME: Should be removed *)
 val remark : t -> string Lwt.t
 val scddb_id : t -> int option Lwt.t
+val modified_at : t -> Datetime.t Lwt.t
+val created_at : t -> Datetime.t Lwt.t
 
 (** {2 Advanced Field Getters} *)
 
@@ -85,6 +87,8 @@ val make_and_save :
   title:string ->
   ?date:PartialDate.t ->
   ?contents_and_parameters:page list ->
+  modified_at:Datetime.t ->
+  created_at:Datetime.t ->
   unit -> t Lwt.t
 
 val search :
@@ -99,4 +103,6 @@ val update :
   title:string ->
   ?date:PartialDate.t ->
   ?contents_and_parameters:page list ->
+  modified_at:Datetime.t ->
+  created_at:Datetime.t ->
   unit -> unit Lwt.t

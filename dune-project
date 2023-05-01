@@ -1,8 +1,6 @@
 (lang dune 2.5)
 
-(homepage https://gitlab.vlanvin.fr/paris-band/dancelor)
-(source (uri git+ssh://git@gitlab.vlanvin.fr:2022/paris-band/dancelor.git))
-(bug_reports https://gitlab.vlanvin.fr/paris-band/dancelor/issues)
+(source (github paris-branch/dancelor))
 
 (authors
   "Nicolas “Niols” Jeannerod <niols@niols.fr>"
@@ -21,7 +19,8 @@
   (cohttp-lwt-jsoo     (>= 4.0.0))
   (cohttp-lwt-unix     (>= 4.0.0))
    dates_calc
-  (dune                 :build)
+  (dune                (and :build (< 3.7.0)))
+   ISO8601
    js_of_ocaml
    js_of_ocaml-lwt
   (js_of_ocaml-ppx      :build)

@@ -120,7 +120,9 @@ let clear t =
 let submit t =
   let save_and_get_person = function
     | `Edit name ->
-      Person.make_and_save ~name ()
+      let modified_at = Datetime.now () in
+      let created_at = Datetime.now () in
+      Person.make_and_save ~name ~modified_at ~created_at ()
     | `Person p ->
       Lwt.return p.person
   in
@@ -141,4 +143,6 @@ let submit t =
         | Ok scddb_id -> Some scddb_id
         | Error _ -> None
   in
-  Credit.make_and_save ~line:t.name ~persons ?scddb_id ()
+  let modified_at = Datetime.now () in
+  let created_at = Datetime.now () in
+  Credit.make_and_save ~line:t.name ~persons ?scddb_id ~modified_at ~created_at ()

@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+
+## We specify a concurrency group with automated cancellation. This means that
+## other pushes on the same `github.ref` (eg. other pushes to the same pull
+## request) cancel previous occurrences of the CI.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test-with-nix:
+    name: Build and test with Nix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v20
+        with:
+          extra_nix_config: |
+            ## Access token to avoid triggering GitHub's rate limiting.
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Nix environment
+        run: nix develop --command true
+
+      - name: Build Dancelor
+        run: nix develop --command make
+
+      - name: Build documentation
+        run: nix develop --command make doc
+
+      - name: Run tests
+        run: nix develop --command make test
+
+      - name: Upload GitHub pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: doc/
+
+  build-and-test-with-opam:
+    name: Build and test with OPAM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Set up OCaml
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: 4.14.x
+
+      - name: Install system dependencies
+        ## FIXME: There should be an automated way to install system
+        ## dependencies since they are declared via OPAM -- either `opam depext`
+        ## or `opam install --depext`. However, this does not seem to work, so
+        ## we do things manually for now. This also means that CI does not check
+        ## that the system dependencies declared by OPAM are up-to-date.
+        run: sudo apt install --yes timidity freepats inkscape lilypond sassc xvfb
+
+      - name: Install OCaml dependencies
+        run: opam install . --deps-only --with-doc --with-test
+
+      - name: Build Dancelor
+        run: opam exec -- make
+
+      - name: Build documentation
+        run: opam exec -- make doc
+
+      - name: Run tests
+        run: opam exec -- make test
+
+  deploy-documentation:
+    name: Deploy documentation
+    runs-on: ubuntu-latest
+    needs: build-and-test-with-nix
+    if: github.ref == 'refs/heads/main'
+
+    ## Grant GITHUB_TOKEN the permissions required to make a Pages deployment.
+    ## It needs to be able to deploy to pages and to verify that the deployment
+    ## originates from an appropriate source.
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub pages
+        uses: actions/deploy-pages@v2
+
+  run-nix-flake-checks:
+    name: Run Nix flake checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v20
+        with:
+          extra_nix_config: |
+            ## Access token to avoid triggering GitHub's rate limiting.
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run flake checks
+        run: nix flake check --print-build-logs

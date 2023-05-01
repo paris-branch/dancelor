@@ -17,6 +17,7 @@ module Option = NesOption
 
 module Cache = NesCache
 module Date = NesDate
+module Datetime = NesDatetime
 module PartialDate = NesPartialDate
 module Filesystem = NesFilesystem
 module Json = NesJson
