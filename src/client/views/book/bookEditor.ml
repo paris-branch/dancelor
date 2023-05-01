@@ -44,6 +44,30 @@ let insert t slug i =
 let add t slug =
   insert t slug t.count
 
+let prefill t slug =
+  let%lwt cur = Book.get slug in
+  let%lwt title = Book.title cur in
+  let%lwt date = Book.date cur in
+  let%lwt contents = Book.contents cur in
+  let contents = List.filter_map
+    (function
+           Book.Version _ | Book.InlineSet _ -> None
+         | Book.Set (set, _) -> Some set)
+    contents in
+  let%lwt contents = Lwt_list.map_p
+    (fun s -> let%lwt slug = Set.slug s in
+              Lwt.return (Some (slug, s)))
+    contents in
+  t.count <- List.length contents;
+  t.sets <- Array.of_list contents;
+
+  set_title t title;
+  match date with
+  | None -> Lwt.return ()
+  | Some d -> set_date t (NesPartialDate.to_string d)
+  ;
+  Lwt.return () 
+
 let remove t i =
   if i >= 0 && i < t.count then begin
     t.sets.(i) <- None;
