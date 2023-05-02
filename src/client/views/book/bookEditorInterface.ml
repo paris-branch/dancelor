@@ -187,7 +187,7 @@ let update slug ?on_save page =
   Lwt.on_success (BookEditor.prefill editor slug) (fun () -> Page.refresh page);
   let content = Html.createDiv (Page.document page) in
   let title = Text.Heading.h2_static
-    ~text:(Lwt.return "Edit book") page in
+      ~text:(Lwt.return "Edit book") page in
   let form = Html.createForm (Page.document page) in
   let input_title = Inputs.Text.create
       ~placeholder:(BookEditor.title editor)
@@ -237,12 +237,12 @@ let update slug ?on_save page =
           in
           if b1 && b2 then (
             Lwt.on_success (BookEditor.update_submit editor slug) (fun _ ->
-                    begin match on_save with
-                      | None ->
-                        let href = Router.path_of_controller (Router.Book slug) |> snd in
-                        Html.window##.location##.href := js href
-                      | Some cb -> cb slug
-                    end)))
+                begin match on_save with
+                  | None ->
+                    let href = Router.path_of_controller (Router.Book slug) |> snd in
+                    Html.window##.location##.href := js href
+                  | Some cb -> cb slug
+                end)))
       page
   in
 
