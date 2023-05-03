@@ -1,8 +1,8 @@
 open Nes
 open Dancelor_common_model
 
-(** Existing resources in Dancelor. *)
-type resource =
+(** Existing endpoints in Dancelor's API. *)
+type endpoint =
   | Index
   | MagicSearch (* FIXME: argument *)
 
@@ -77,7 +77,7 @@ let unVersion = function Version slug -> Some slug | _ -> None
 
 (** {2 Routes} *)
 
-let routes : resource Madge_router.route list = let open Madge_router in
+let routes : endpoint Madge_router.route list = let open Madge_router in
   [
     direct      `GET  "/"                    Index ;
     direct      `GET  "/search"              MagicSearch ;
@@ -109,19 +109,19 @@ let routes : resource Madge_router.route list = let open Madge_router in
     direct      `GET  "/victor"              Victor ;
   ]
 
-let path_to_resource ~meth ~path = Madge_router.path_to_resource meth path routes
+let path_to_endpoint ~meth ~path = Madge_router.path_to_resource meth path routes
 
-let path_of_resource ~api_prefix resource =
+let path_of_endpoint ~api_prefix resource =
   let (method_, path) = Madge_router.resource_to_path resource routes in
   if api_prefix
   then (method_, Constant.api_prefix ^ "/" ^ path)
   else (method_, path)
 
-let path_of_get_resource ~api_prefix resource =
-  let (meth, path) = path_of_resource ~api_prefix resource in
+let path_of_get_endpoint ~api_prefix resource =
+  let (meth, path) = path_of_endpoint ~api_prefix resource in
   if not (meth = `GET) then
     failwith "path_of_get_resource";
   path
 
 let gpath ~api resource =
-  path_of_get_resource ~api_prefix:api resource
+  path_of_get_endpoint ~api_prefix:api resource
