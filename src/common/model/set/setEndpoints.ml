@@ -37,14 +37,14 @@ type t =
 
 let routes : t route list =
   [
-    with_slug_and_query `GET  "/set" ~ext:"ly"
+    with_slug_and_query `GET "/" ~ext:"ly"
       (fun slug query -> Ly (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
       (function
         | Ly (slug, None) -> Some (slug, MQ.empty)
         | Ly (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params)
         | _ -> None) ;
 
-    with_slug_and_query `GET  "/set" ~ext:"pdf"
+    with_slug_and_query `GET "/" ~ext:"pdf"
       (fun slug query -> Pdf (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
       (function
         | Pdf (slug, None) -> Some (slug, MQ.empty)

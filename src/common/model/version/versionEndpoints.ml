@@ -45,22 +45,22 @@ type t =
 
 let routes : t route list =
   [
-    with_slug `GET  "/version" ~ext:"ly"
+    with_slug `GET "/" ~ext:"ly"
       ((fun slug -> Ly slug),
        (function Ly slug -> Some slug | _ -> None)) ;
 
-    with_slug_and_query `GET "/version" ~ext:"svg"
+    with_slug_and_query `GET "/" ~ext:"svg"
       (fun slug query -> Svg (slug, MQ.get_ "parameters" VersionParameters.of_yojson query))
       (function
         | Svg (slug, None) -> Some (slug, MQ.empty)
         | Svg (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ VersionParameters.to_yojson params)
         | _ -> None) ;
 
-    with_slug `GET  "/version" ~ext:"ogg"
+    with_slug `GET "/" ~ext:"ogg"
       ((fun slug -> Ogg slug),
        (function Ogg slug -> Some slug | _ -> None)) ;
 
-    with_slug_and_query `GET "/version" ~ext:"pdf"
+    with_slug_and_query `GET "/" ~ext:"pdf"
       (fun slug query -> Pdf (slug, MQ.get_ "parameters" VersionParameters.of_yojson query))
       (function
         | Pdf (slug, None) -> Some (slug, MQ.empty)
