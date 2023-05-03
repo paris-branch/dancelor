@@ -118,7 +118,7 @@ let create slug page =
 
         div ~classes:["image-container"] [
           object_ ~type_:"image/svg+xml"
-            ~data_lwt:ApiRouter.(path (versionSvg slug None)) ();
+            ~data:ApiRouter.(path (versionSvg slug None)) [];
         ]
       ];
 
