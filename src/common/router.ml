@@ -269,7 +269,7 @@ let path_to_controller ~meth ~path =
   |> List.find_opt ((<>) None)
   >>=? fun x -> x
 
-let path_of_controller ?(api_prefix=true) controller =
+let path_of_controller ~api_prefix controller =
   let first_matching_route =
     routes
     |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
@@ -286,11 +286,11 @@ let path_of_controller ?(api_prefix=true) controller =
     in
     (meth, path)
 
-let path_of_get_controller ?api_prefix controller =
-  let (meth, path) = path_of_controller ?api_prefix controller in
+let path_of_get_controller ~api_prefix controller =
+  let (meth, path) = path_of_controller ~api_prefix controller in
   if not (meth = `GET) then
     failwith "path_of_get_controller";
   path
 
-let gpath ?api controller =
-  path_of_get_controller ?api_prefix:api controller
+let gpath ~api controller =
+  path_of_get_controller ~api_prefix:api controller
