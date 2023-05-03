@@ -269,11 +269,19 @@ let path_to_controller ~meth ~path =
   |> List.find_opt ((<>) None)
   >>=? fun x -> x
 
-let path_of_controller controller =
-  (
+let path_of_controller ?(api_prefix=true) controller =
+  let first_matching_route =
     routes
     |> List.map (fun (_, path_of_controller) -> path_of_controller controller)
     |> List.find_opt ((<>) None)
-    >>=? fun x -> x
-  )
-  |> Option.unwrap
+  in
+  match first_matching_route with
+  | None -> failwith "path_of_controller"
+  | Some None -> assert false
+  | Some (Some (meth, path)) ->
+    let path =
+      if api_prefix
+      then Constant.api_prefix ^ "/" ^ path
+      else path
+    in
+    (meth, path)
