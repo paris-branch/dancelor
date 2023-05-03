@@ -3,7 +3,7 @@ open Dancelor_common
 open Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.version" : Logs.LOG)
 
-let get_ly version _ =
+let get_ly version =
   let%lwt version = Version.get version in
   let%lwt body = Version.content version in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
@@ -215,7 +215,7 @@ module Ogg = struct
     LilyPond.ogg ~exec_path:path fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 
-  let get version _ =
+  let get version =
     Log.debug (fun m -> m "Version.Ogg.get %a" Slug.pp version);
     let%lwt version = Version.get version in
     let%lwt path_ogg = render version in

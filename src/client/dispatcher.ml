@@ -1,6 +1,5 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_views
 
@@ -25,13 +24,12 @@ let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
   end : Page.CONTENTS)
 
 let dispatch url =
-  let page = Madge_router.path_to_resource `GET (Uri.path path) Dancelor_client_router.routes in
-  let query_parameters = QueryParameters.from_uri url in
-  match page with
+  let request = Madge_router.{ method_ = `GET ; path = Uri.path url ; query = Madge_query.from_uri url } in
+  let page = Madge_router.request_to_resource request Dancelor_client_router.routes in
+  match Option.get page with
   | Dancelor_client_router.Index ->
     pack (module Index) Index.create
-  | Search ->
-    let q = QueryParameters.get_string "q" query_parameters in
+  | Search q ->
     pack (module Search) (Search.create q)
   | VersionAdd ->
     pack (module VersionEditorInterface) VersionEditorInterface.create

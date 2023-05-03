@@ -37,6 +37,9 @@ let singleton key value = [key, value]
 
 let to_list = Fun.id
 
+let to_strings =
+  List.map (fun (key, value) -> (key, [Yojson.Safe.to_string value]))
+
 let from_uri uri =
   List.map
     (fun (k, vs) ->

@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
-open Dancelor_client_utils
 open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
@@ -228,14 +227,14 @@ let create slug page =
 
         let c_pdf_href,         b_pdf_href,         e_pdf_href,         bass_pdf_href,
             c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
-          ApiRouter.(path @@ bookPdf slug @@ none),
-          ApiRouter.(path @@ bookPdf slug @@ some @@            b_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ some @@            e_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ some @@         bass_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ some @@                         booklet_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ some @@ compose    b_parameters booklet_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ some @@ compose    e_parameters booklet_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ some @@ compose bass_parameters booklet_parameters)
+          ApiRouter.(path @@ bookPdf slug @@ Option.none),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           b_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           e_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                        bass_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                                        booklet_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    b_parameters booklet_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    e_parameters booklet_parameters),
+          ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose bass_parameters booklet_parameters)
         in
 
         let pdf_button href txt =

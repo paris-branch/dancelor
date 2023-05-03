@@ -13,6 +13,9 @@ type 'resource route =
 
 (** {2 Builders} *)
 
+(** FIXME: Those builders are disgusting. There is a nice DSL for building
+    queries hiding somewhere behind. *)
+
 let direct method_ path resource =
   let request_to_resource req' =
     if req'.method_ = method_ && req'.path = path
@@ -23,6 +26,17 @@ let direct method_ path resource =
     if resource = resource'
     then Some { method_; path; query=Madge_query.empty }
     else None
+  in
+  { request_to_resource; resource_to_request }
+
+let with_query method_ path makeResource unResource =
+  let request_to_resource req' =
+    if req'.method_ = method_ && req'.path = path
+    then Option.some @@ makeResource req'.query
+    else None
+  in
+  let resource_to_request resource' =
+    Option.map (fun query -> { method_; path; query }) @@ unResource resource'
   in
   { request_to_resource; resource_to_request }
 

@@ -1,10 +1,10 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
-open Dancelor_client_utils
 open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -79,10 +79,10 @@ let create slug page =
         in
 
         let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href, ly_href =
-          ApiRouter.(path @@ versionPdf slug @@ none),
-          ApiRouter.(path @@ versionPdf slug @@ some    b_parameters),
-          ApiRouter.(path @@ versionPdf slug @@ some    e_parameters),
-          ApiRouter.(path @@ versionPdf slug @@ some bass_parameters),
+          ApiRouter.(path @@ versionPdf slug @@ Option.none),
+          ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
+          ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
+          ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters),
           ApiRouter.(path @@ versionLy slug)
         in
 
@@ -118,7 +118,7 @@ let create slug page =
 
         div ~classes:["image-container"] [
           object_ ~type_:"image/svg+xml"
-            ~data_lwt:ApiRouter.(path (VersionSvg slug)) ();
+            ~data_lwt:ApiRouter.(path (versionSvg slug None)) ();
         ]
       ];
 

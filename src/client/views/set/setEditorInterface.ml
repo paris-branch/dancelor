@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_model
-open Dancelor_client_utils
 open Dancelor_client_elements
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
@@ -125,7 +124,7 @@ let make_version_subwindow t index version =
   Dom.appendChild buttons delli;
   Dom.appendChild toolbar buttons;
   Dom.appendChild subwin toolbar;
-  let source = Lwt.return ApiRouter.(path (VersionSvg version.SetEditor.slug)) in
+  let source = Lwt.return ApiRouter.(path (versionSvg version.SetEditor.slug None)) in
   let img = Image.create ~source t.page in
   Dom.appendChild subwin (Image.root img);
   subwin
@@ -148,12 +147,12 @@ let refresh t =
       Lwt.on_success title (fun title ->
           Inputs.Text.set_contents (SearchBar.bar t.book_search) title)
   end;
-  Helpers.clear_children t.versions_area;
+  JsHelpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
       let subwin = make_version_subwindow t i version in
       Dom.appendChild t.versions_area (Html.createBr (Page.document t.page));
       Dom.appendChild t.versions_area subwin);
-  Helpers.clear_children t.warnings_area;
+  JsHelpers.clear_children t.warnings_area;
   Dom.appendChild t.warnings_area
     Dancelor_client_html.(node_to_dom_node (Page.document t.page) (div_lwt (display_warnings t)))
 
@@ -366,7 +365,7 @@ let create page =
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (SetEditor.submit composer) (fun set ->
                 Lwt.on_success (Set.slug set) (fun slug ->
-                    let href = Router.path_of_controller (Router.Set slug) |> snd in
+                    let href = Router.(path (Set slug)) in
                     Html.window##.location##.href := js href))))
       page
   in

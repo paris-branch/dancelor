@@ -15,14 +15,13 @@ let log_exn ~msg exn =
 let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
-let apply_controller path queryParameters =
-  let open ApiRouter in
-  match endpoint path queryParameters with
-  | BookPdf (slug, params) -> Book.Pdf.get slug params
-  | SetLy slug -> Set.Ly.get slug
+let apply_controller path query =
+  match Option.get @@ ApiRouter.endpoint `GET path query with (* FIXME: not necessarily `GET *)
+  | ApiRouter.BookPdf (slug, params) -> Book.Pdf.get slug params
+  | SetLy (slug, params) -> Set.Ly.get slug params
   | SetPdf (slug, params) -> Set.Pdf.get slug params
   | VersionLy slug -> Version.get_ly slug
-  | VersionSvg slug -> Version.Svg.get slug
+  | VersionSvg (slug, params) -> Version.Svg.get slug params
   | VersionOgg slug -> Version.Ogg.get slug
   | VersionPdf (slug, params) -> Version.Pdf.get slug params
   | Victor  -> log_exit 101
@@ -31,10 +30,10 @@ let apply_controller path queryParameters =
   | Victor4 -> log_exit 104
 
 (** Consider the query and the body to build a consolidated query. *)
-let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
-  let%lwt high = QueryParameters.from_body body in
-  let low = QueryParameters.from_uri uri in
-  Lwt.return (QueryParameters.append ~high ~low)
+let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
+  let%lwt high = Madge_query.from_body body in
+  let low = Madge_query.from_uri uri in
+  Lwt.return (Madge_query.append ~high ~low)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function
@@ -75,7 +74,7 @@ let callback _ request body =
   else
     (
       Log.debug (fun m -> m "Asking Madge for %s." path);
-      match%lwt Madge_server.handle meth path (QueryParameters.to_list query_parameters) with
+      match%lwt Madge_server.handle meth path (Madge_query.to_list query_parameters) with
       | Some response -> Lwt.return response
       | None ->
         if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
