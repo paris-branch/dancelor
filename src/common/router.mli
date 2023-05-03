@@ -56,5 +56,5 @@ val path_of_get_controller : ?api_prefix:bool -> controller -> string
 (** Same as {!path_of_controller} but assumes a [GET] controller and fails
     otherwise. *)
 
-val gpath : controller -> string
-(** [gpath con] is the same as [path_of_get_controller ~api_prefix:true con]. *)
+val gpath : ?api:bool -> controller -> string
+(** [gpath ?api con] is the same as [path_of_get_controller ?api_prefix:?api con]. *)
