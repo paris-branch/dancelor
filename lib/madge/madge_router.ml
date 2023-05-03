@@ -102,14 +102,26 @@ let resource_to_request resource routes =
   | Some None -> assert false
   | Some (Some request) -> request
 
-let wrap_route ~wrap ~unwrap route =
+let wrap_route ?(prefix="") ~wrap ~unwrap route =
+  let remove_prefix path =
+    if String.starts_with ~needle:prefix path then
+      Some String.(sub path (length prefix) (length path - length prefix))
+    else
+      None
+  in
   let request_to_resource request =
-    Option.map wrap @@ route.request_to_resource request
+    let%opt path = remove_prefix request.path in
+    let request = { request with path } in
+    let%opt resource = route.request_to_resource request in
+    Some (wrap resource)
   in
   let resource_to_request wresource =
-    Option.bind (unwrap wresource) route.resource_to_request
+    let%opt resource = unwrap wresource in
+    let%opt request = route.resource_to_request resource in
+    let path = prefix ^ request.path in
+    Some { request with path }
   in
   { request_to_resource; resource_to_request }
 
-let wrap_routes ~wrap ~unwrap =
-  List.map (wrap_route ~wrap ~unwrap)
+let wrap_routes ?prefix ~wrap ~unwrap =
+  List.map (wrap_route ?prefix ~wrap ~unwrap)

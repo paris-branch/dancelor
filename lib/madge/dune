@@ -28,7 +28,7 @@
  (public_name dancelor.madge.router)
  (libraries dancelor.nes cohttp dancelor.madge.query)
  (preprocess
-  (pps ppx_deriving_yojson lwt_ppx)))
+  (pps ppx_deriving_yojson lwt_ppx dancelor.ppx_monad_olwt)))
 
 (library
  (name madge_query)
