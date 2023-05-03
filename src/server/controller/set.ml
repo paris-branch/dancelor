@@ -75,15 +75,8 @@ module Ly = struct
     prom;%lwt
     Lwt.return res
 
-  let get set query_parameters =
+  let get set parameters =
     let%lwt set = Set.get set in
-    let%lwt parameters =
-      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
-      parameters
-      |> SetParameters.of_yojson
-      |> Result.get_ok
-      |> Lwt.return_some
-    in
     let%lwt lilypond = render ?parameters set in
     Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
@@ -136,15 +129,8 @@ module Pdf = struct
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf
 
-  let get set query_parameters =
+  let get set parameters =
     let%lwt set = Set.get set in
-    let%lwt parameters =
-      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
-      parameters
-      |> SetParameters.of_yojson
-      |> Result.get_ok
-      |> Lwt.return_some
-    in
     let%lwt path_pdf = render ?parameters set in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

@@ -261,15 +261,8 @@ module Pdf = struct
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf
 
-  let get book query_parameters =
+  let get book parameters =
     let%lwt book = Book.get book in
-    let%lwt parameters =
-      let%olwt parameters = Lwt.return (QueryParameters.get "parameters" query_parameters) in
-      parameters
-      |> BookParameters.of_yojson
-      |> Result.get_ok
-      |> Lwt.return_some
-    in
     let%lwt path_pdf = render ?parameters book in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
