@@ -1,7 +1,7 @@
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module R = Dancelor_client_router
+module Router = Dancelor_client_router
 
 let line ?(link=true) credit =
   match credit with
@@ -11,7 +11,7 @@ let line ?(link=true) credit =
     if link then
       let href_lwt =
         let%lwt slug = M.Credit.slug credit in
-        Lwt.return R.(path (Credit slug))
+        Lwt.return Router.(path (Credit slug))
       in
       Lwt.return [a ~href_lwt line_text]
     else

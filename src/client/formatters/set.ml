@@ -2,7 +2,7 @@ open Nes
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module R = Dancelor_client_router
+module Router = Dancelor_client_router
 
 let works set =
   match%lwt M.Set.dances set with
@@ -19,7 +19,7 @@ let name ?(link=true) set =
   if link && not is_inline then
     let href_lwt =
       let%lwt slug = M.Set.slug set in
-      Lwt.return R.(path (Set slug))
+      Lwt.return Router.(path (Set slug))
     in
     Lwt.return [a ~href_lwt name_text]
   else
