@@ -86,10 +86,11 @@ let routes : endpoint route list =
     direct      `GET  "/victor4"             Victor4 ;
   ]
 
-let path endpoint =
+let path ?(api_prefix=true) endpoint =
   let request = Madge_router.resource_to_request endpoint routes in
   assert (request.method_ = `GET);
-  Uri.(to_string @@ make ~path:request.path ~query:(MQ.to_strings request.query) ())
+  let path = Uri.(to_string @@ make ~path:request.path ~query:(MQ.to_strings request.query) ()) in
+  if api_prefix then "/" ^ Constant.api_prefix ^ path else path
   (* FIXME: a bit stupid to convert it to string, we should just carry [Uri.t] around! *)
 
 let endpoint method_ path query =
