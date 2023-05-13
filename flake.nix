@@ -13,6 +13,8 @@
         inputs.pre-commit-hooks.flakeModule
         ./.nix/devshell-default.nix
         ./.nix/formatter.nix
+        ./.nix/app-dancelor.nix
+        ./.nix/app-default.nix
         ./.nix/package-dancelor.nix
         ./.nix/package-default.nix
         ./.nix/perinput-lib.nix
