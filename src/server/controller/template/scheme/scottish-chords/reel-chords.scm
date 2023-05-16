@@ -17,25 +17,22 @@
     (if (ly:moment<? duration fourth)
         (if (ly:moment-is-zero? duration) '() (list chord-with-bass-and-original-duration))
 
-        ;; Otherwise, there is room to do something with it.
-        (begin
+        (let* ((duration      (ly:moment-sub duration fourth))
+               (next-position (ly:moment-add position fourth))
+               (other-chords  (rewrite-reel-chord-aux bass #f fifth notes duration next-position)))
 
-          (let* ((duration      (ly:moment-sub duration fourth))
-                 (next-position (ly:moment-add position fourth))
-                 (other-chords  (rewrite-reel-chord-aux bass #f fifth notes duration next-position)))
+          ;; If beginning of the bar, then just bass.
+          (if (ly:moment-is-zero? position)
+              (cons bass-chord other-chords)
 
-            ;; If beginning of the bar, then just bass.
-            (if (ly:moment-is-zero? position)
-                (cons bass-chord other-chords)
+              ;; If third beat, then fifth, except when that's the first
+              ;; occurrence of the chord, in which case we put the bass.
+              (if (ly:moment=? position (ly:make-moment 1 2))
+                  (cons (if first? bass-chord fifth-chord) other-chords)
 
-                ;; If third beat, then fifth, except when that's the first
-                ;; occurrence of the chord, in which case we put the bass.
-                (if (ly:moment=? position (ly:make-moment 1 2))
-                    (cons (if first? bass-chord fifth-chord) other-chords)
-
-                    ;; Otherwise, chord. When that's the first occurrence of the
-                    ;; chord, we also add the bass to it.
-                    (cons (if first? chord-with-bass chord) other-chords))))))))
+                  ;; Otherwise, chord. When that's the first occurrence of the
+                  ;; chord, we also add the bass to it.
+                  (cons (if first? chord-with-bass chord) other-chords)))))))
 
 (define (rewrite-reel-chord chord position)
   (let* ((bass-fifth-and-notes (rewrite-chord-bass-fifth-and-notes chord))
