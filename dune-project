@@ -1,5 +1,7 @@
 (lang dune 2.5)
 
+(name dancelor)
+(version 0.1)
 (source (github paris-branch/dancelor))
 
 (authors
@@ -13,7 +15,6 @@
 
 (package
  (name dancelor)
- (version 0.1)
  (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
