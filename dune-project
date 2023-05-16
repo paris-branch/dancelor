@@ -4,7 +4,8 @@
 
 (authors
   "Nicolas “Niols” Jeannerod <niols@niols.fr>"
-  "Victor Lanvin <victor.lanvin2@gmail.com>")
+  "Victor Lanvin <victor.lanvin2@gmail.com>"
+  "Aymeric Fromherz <aymeric.fr@hotmail.com>")
 (maintainers
   "Nicolas “Niols” Jeannerod <niols@niols.fr>")
 

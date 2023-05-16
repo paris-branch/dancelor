@@ -6,6 +6,7 @@ maintainer: ["Nicolas “Niols” Jeannerod <niols@niols.fr>"]
 authors: [
   "Nicolas “Niols” Jeannerod <niols@niols.fr>"
   "Victor Lanvin <victor.lanvin2@gmail.com>"
+  "Aymeric Fromherz <aymeric.fr@hotmail.com>"
 ]
 license: "GPL-3.0-or-later"
 homepage: "https://github.com/paris-branch/dancelor"
