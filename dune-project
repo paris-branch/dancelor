@@ -14,7 +14,7 @@
 (package
  (name dancelor)
  (version 0.1)
- (synopsis "A chancelor for RSCDS musicians")
+ (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
   (cohttp-lwt-jsoo     (>= 4.0.0))
