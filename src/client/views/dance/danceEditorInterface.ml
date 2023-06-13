@@ -153,7 +153,7 @@ let create ?on_save page =
                   match int_of_string_opt str with
                   | Some _ -> true
                   | None ->
-                    match SCDDB.tune_from_uri str with
+                    match SCDDB.dance_from_uri str with
                     | Ok _ -> true
                     | Error _ -> false
               )
