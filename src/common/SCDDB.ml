@@ -68,6 +68,7 @@ let entry_from_uri uri =
 let%test _ = entry_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok (Person, 11781)
 let%test _ = entry_from_uri "https://my.strathspey.org/dd/tune/14452/" = Ok (Tune, 14452)
 let%test _ = Result.is_error @@ entry_from_uri "https://my.strathspey.org/choucroute/"
+let%test _ = entry_from_uri "https://my.strathspey.org/dd/dance/1337/" = Ok (Dance, 1337)
 
 let specific_entry_from_uri type_ uri =
   match entry_from_uri uri with
