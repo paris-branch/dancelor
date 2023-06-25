@@ -1,9 +1,8 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-open Dancelor_client_utils
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -67,7 +66,7 @@ let make_set_subwindow t index set =
 let refresh t =
   Inputs.Text.set_contents t.input_title (BookEditor.title t.editor);
   Inputs.Text.set_contents t.input_date (BookEditor.date t.editor);
-  Helpers.clear_children t.sets_area;
+  JsHelpers.clear_children t.sets_area;
   BookEditor.iter t.editor (fun i set ->
       let subwin = make_set_subwindow t i set in
       Dom.appendChild t.sets_area (Html.createBr (Page.document t.page));
@@ -143,9 +142,7 @@ let create ?on_save page =
             Lwt.on_success (BookEditor.submit editor) (fun book ->
                 Lwt.on_success (Book.slug book) (fun slug ->
                     begin match on_save with
-                      | None ->
-                        let href = Router.path_of_controller (Router.Book slug) |> snd in
-                        Html.window##.location##.href := js href
+                      | None -> Html.window##.location##.href := js Router.(path (Book slug))
                       | Some cb -> cb slug
                     end))))
       page
