@@ -23,6 +23,7 @@ let make
     ~order ?dances ~modified_at ~created_at
     ()
   =
+  let name = String.remove_duplicates ~char:' ' name in
   let%lwt deviser =
     let%olwt deviser = Lwt.return deviser in
     let%lwt deviser = CreditCore.slug deviser in

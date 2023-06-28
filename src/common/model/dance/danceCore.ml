@@ -20,6 +20,8 @@ let make
     ?disambiguation ~modified_at ~created_at
     ()
   =
+  let name = String.remove_duplicates ~char:' ' name in
+  let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
   let%lwt deviser =
     match deviser with
     | None -> Lwt.return_none
