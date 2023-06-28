@@ -10,6 +10,13 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving yojson, make]
 
+let make
+    ~slug ?status ~name ~modified_at ~created_at
+    ()
+  =
+  let name = String.remove_duplicates ~char:' ' name in
+  make ~slug ?status ~name ~modified_at ~created_at ()
+
 let slug p = Lwt.return p.slug
 let status p = Lwt.return p.status
 let name p = Lwt.return p.name
