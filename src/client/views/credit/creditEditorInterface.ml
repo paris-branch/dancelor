@@ -1,8 +1,8 @@
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
-open Dancelor_client_utils
 open Dancelor_client_model
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -70,15 +70,12 @@ let make_person_subdiv t index person =
       Inputs.Text.set_contents input_name name;
       Style.set ~margin:"0 0 0 5pt" (Inputs.Text.root input_name);
       Dom.appendChild root (Inputs.Text.root input_name)
-    | `Person person ->
-      let href =
-        Helpers.build_path ~route:(Router.Person person.CreditEditor.slug) ()
-        |> Lwt.return
-      in
+    | `Person person_ ->
+      let href = Lwt.return Router.(path (Person person_.CreditEditor.slug)) in
       let link =
         Text.Link.create
           ~href
-          ~text:(Person.name person.CreditEditor.person) t.page
+          ~text:(Person.name person_.CreditEditor.person) t.page
       in
       Style.set ~margin:"0 0 0 5pt" (Text.Link.root link);
       Dom.appendChild root (Text.Link.root link)
@@ -88,7 +85,7 @@ let make_person_subdiv t index person =
 let refresh t =
   Inputs.Text.set_contents t.input_name (CreditEditor.name t.editor);
   Inputs.Text.set_contents t.input_scddb_id (CreditEditor.scddb_id t.editor);
-  Helpers.clear_children t.persons_area;
+  JsHelpers.clear_children t.persons_area;
   t.persons_inputs <- [];
   CreditEditor.iter t.editor (fun i person ->
       let subwin = make_person_subdiv t i person in
@@ -182,9 +179,7 @@ let create ?on_save page =
             Lwt.on_success (CreditEditor.submit editor) (fun credit ->
                 Lwt.on_success (Credit.slug credit) (fun slug ->
                     begin match on_save with
-                      | None ->
-                        let href = Router.path_of_controller (Router.Credit slug) |> snd in
-                        Html.window##.location##.href := js href
+                      | None -> Html.window##.location##.href := js Router.(path (Credit slug))
                       | Some cb -> cb slug
                     end))))
       page

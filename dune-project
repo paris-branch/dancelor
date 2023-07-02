@@ -1,10 +1,13 @@
 (lang dune 2.5)
 
+(name dancelor)
+(version 0.1)
 (source (github paris-branch/dancelor))
 
 (authors
   "Nicolas “Niols” Jeannerod <niols@niols.fr>"
-  "Victor Lanvin <victor.lanvin2@gmail.com>")
+  "Victor Lanvin <victor.lanvin2@gmail.com>"
+  "Aymeric Fromherz <aymeric.fr@hotmail.com>")
 (maintainers
   "Nicolas “Niols” Jeannerod <niols@niols.fr>")
 
@@ -12,8 +15,7 @@
 
 (package
  (name dancelor)
- (version 0.1)
- (synopsis "A chancelor for RSCDS musicians")
+ (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
   (cohttp-lwt-jsoo     (>= 4.0.0))

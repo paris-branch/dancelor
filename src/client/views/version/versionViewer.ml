@@ -1,10 +1,10 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
-open Dancelor_client_utils
 open Dancelor_client_model
 open Dancelor_common
 module Formatters = Dancelor_client_formatters
+module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -79,23 +79,11 @@ let create slug page =
         in
 
         let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href, ly_href =
-          Helpers.build_path ~api:true ~route:(Router.VersionPdf slug) (),
-          Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
-            ~query:["parameters", [
-                b_parameters
-                |> VersionParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
-            ~query:["parameters", [
-                e_parameters
-                |> VersionParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.VersionPdf slug)
-            ~query:["parameters", [
-                bass_parameters
-                |> VersionParameters.to_yojson |> Yojson.Safe.to_string
-              ]] (),
-          Helpers.build_path ~api:true ~route:(Router.VersionLy slug) ()
+          ApiRouter.(path @@ versionPdf slug @@ Option.none),
+          ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
+          ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
+          ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters),
+          ApiRouter.(path @@ versionLy slug)
         in
 
         let pdf_button href txt =
@@ -109,7 +97,7 @@ let create slug page =
           Inputs.Button.create
             ~on_click:(fun () ->
                 SetEditor.add_to_storage slug;
-                let href = Router.path_of_controller (Router.SetCompose) |> snd in
+                let href = Router.(path SetCompose) in
                 Dom_html.window##.location##.href := js href)
             ~text:("Add to current set") page
         in
@@ -129,24 +117,13 @@ let create slug page =
         h3 [ text "Previsualisation" ];
 
         div ~classes:["image-container"] [
-          let data_lwt =
-            spf "/%s%s"
-              Constant.api_prefix
-              (Router.path_of_controller (Router.VersionSvg slug) |> snd)
-            |> Lwt.return
-          in
-          object_ ~type_:"image/svg+xml" ~data_lwt [];
+          object_ ~type_:"image/svg+xml"
+            ~data:ApiRouter.(path (versionSvg slug None)) [];
         ]
       ];
 
       div ~classes:["audio-container"] [
-        let src_lwt =
-          spf "/%s%s"
-            Constant.api_prefix
-            (Router.path_of_controller (Router.VersionOgg slug) |> snd)
-          |> Lwt.return
-        in
-        audio ~src_lwt ~controls:true ()
+        audio ~src:ApiRouter.(path (VersionOgg slug)) ~controls:true ()
       ];
 
       div_lwt ~classes:["buttons"] (
@@ -181,7 +158,7 @@ let create slug page =
                 let href_lwt =
                   let%lwt tune = tune_lwt in
                   let%lwt slug = Tune.slug tune in
-                  Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+                  Lwt.return Router.(path (Tune slug))
                 in
                 p [
                   text "You can also go to the ";
@@ -241,7 +218,7 @@ let create slug page =
               let href_lwt =
                 let%lwt tune = tune_lwt in
                 let%lwt slug = Tune.slug tune in
-                Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+                Lwt.return Router.(path (Tune slug))
               in
               p [
                 text "If you want to see the sets in which this version or ";
@@ -279,7 +256,7 @@ let create slug page =
               let href_lwt =
                 let%lwt tune = tune_lwt in
                 let%lwt slug = Tune.slug tune in
-                Lwt.return (Router.path_of_controller (Router.Tune slug) |> snd)
+                Lwt.return Router.(path (Tune slug))
               in
               p [
                 text "If you want to see the books in which this version or ";

@@ -1,7 +1,7 @@
 open Js_of_ocaml
 open Dancelor_client_model
 open Dancelor_client_elements
-open Dancelor_common
+module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -244,7 +244,7 @@ let create page =
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (VersionEditor.submit editor) (fun version ->
                 Lwt.on_success (Version.slug version) (fun slug ->
-                    let href = Router.path_of_controller (Router.Version slug) |> snd in
+                    let href = Router.(path (Version slug)) in
                     Html.window##.location##.href := js href))))
       page
   in

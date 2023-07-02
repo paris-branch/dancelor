@@ -15,43 +15,25 @@ let log_exn ~msg exn =
 let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
-let remove_prefix_suffix prefix suffix string =
-  Option.assert_ (String.starts_with ~needle:prefix string) >>=? fun () ->
-  String.remove_prefix ~needle:prefix string >>=? fun string ->
-  Option.assert_ (String.ends_with ~needle:suffix string) >>=? fun () ->
-  String.remove_suffix ~needle:suffix string
-
-type controller =
-  | C : ('any Slug.t ->
-         QueryParameters.t ->
-         (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t)
-      -> controller
-
-let apply_controller path =
-  if path = "/victor"  then log_exit 101;
-  if path = "/victor2" then log_exit 102;
-  if path = "/victor3" then log_exit 103;
-  if path = "/victor4" then log_exit 104;
-  [ "/book/",       ".pdf", C Book.Pdf.get ;
-    "/set/",        ".ly",  C Set.Ly.get ;
-    "/set/",        ".pdf", C Set.Pdf.get ;
-    "/version/",    ".ly",  C Version.get_ly ;
-    "/version/",    ".svg", C Version.Svg.get ;
-    "/version/",    ".ogg", C Version.Ogg.get ;
-    "/version/",    ".pdf", C Version.Pdf.get ]
-  |> List.map
-    (fun (prefix, suffix, controller) ->
-       remove_prefix_suffix prefix suffix path, controller)
-  |> List.find
-    (fun (slug, _) -> slug <> None)
-  |> (fun (slug, C controller) ->
-      controller (Slug.unsafe_of_string (Option.unwrap slug)))
+let apply_controller path query =
+  match Option.get @@ ApiRouter.endpoint `GET path query with (* FIXME: not necessarily `GET *)
+  | ApiRouter.BookPdf (slug, params) -> Book.Pdf.get slug params
+  | SetLy (slug, params) -> Set.Ly.get slug params
+  | SetPdf (slug, params) -> Set.Pdf.get slug params
+  | VersionLy slug -> Version.get_ly slug
+  | VersionSvg (slug, params) -> Version.Svg.get slug params
+  | VersionOgg slug -> Version.Ogg.get slug
+  | VersionPdf (slug, params) -> Version.Pdf.get slug params
+  | Victor  -> log_exit 101
+  | Victor2 -> log_exit 102
+  | Victor3 -> log_exit 103
+  | Victor4 -> log_exit 104
 
 (** Consider the query and the body to build a consolidated query. *)
-let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : QueryParameters.t Lwt.t =
-  let%lwt high = QueryParameters.from_body body in
-  let low = QueryParameters.from_uri uri in
-  Lwt.return (QueryParameters.append ~high ~low)
+let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
+  let%lwt high = Madge_query.from_body body in
+  let low = Madge_query.from_uri uri in
+  Lwt.return (Madge_query.append ~high ~low)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function
@@ -92,7 +74,7 @@ let callback _ request body =
   else
     (
       Log.debug (fun m -> m "Asking Madge for %s." path);
-      match%lwt Madge_server.handle meth path (QueryParameters.to_list query_parameters) with
+      match%lwt Madge_server.handle meth path (Madge_query.to_list query_parameters) with
       | Some response -> Lwt.return response
       | None ->
         if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
