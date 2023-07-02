@@ -8,6 +8,7 @@ type page =
   | Index
   | BookAll
   | BookCompose
+  | BookEdit of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
   | CreditAdd
   | Credit of CreditCore.t Slug.t
@@ -51,6 +52,7 @@ let routes =
     direct    `GET "/"                Index ;
     direct    `GET "/book/all"        BookAll ;
     direct    `GET "/book/compose"    BookCompose ;
+    with_slug `GET "/book/edit"      (book, unBook) ;
     with_slug `GET "/book"           (book, unBook) ;
     direct    `GET "/credit/add"      CreditAdd ;
     with_slug `GET "/credit"         (credit, unCredit) ;
