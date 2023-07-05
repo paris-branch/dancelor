@@ -123,7 +123,7 @@ let create slug page =
       ];
 
       div ~classes:["audio-container"] [
-        audio ~src:ApiRouter.(path (VersionOgg slug)) ~controls:true ()
+        audio ~src:ApiRouter.(path (versionOgg slug)) ~controls:true ()
       ];
 
       div_lwt ~classes:["buttons"] (

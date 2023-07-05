@@ -16,18 +16,19 @@ let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
 let apply_controller path query =
-  match Option.get @@ ApiRouter.endpoint `GET path query with (* FIXME: not necessarily `GET *)
-  | ApiRouter.BookPdf (slug, params) -> Book.Pdf.get slug params
-  | SetLy (slug, params) -> Set.Ly.get slug params
-  | SetPdf (slug, params) -> Set.Pdf.get slug params
-  | VersionLy slug -> Version.get_ly slug
-  | VersionSvg (slug, params) -> Version.Svg.get slug params
-  | VersionOgg slug -> Version.Ogg.get slug
-  | VersionPdf (slug, params) -> Version.Pdf.get slug params
-  | Victor  -> log_exit 101
-  | Victor2 -> log_exit 102
-  | Victor3 -> log_exit 103
-  | Victor4 -> log_exit 104
+  (* FIXME: not necessarily `GET *)
+  match Option.get @@ ApiRouter.endpoint `GET path query with
+  | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
+  | Set (Ly (slug, params)) -> Set.Ly.get slug params
+  | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
+  | Version (Ly slug) -> Version.get_ly slug
+  | Version (Svg (slug, params)) -> Version.Svg.get slug params
+  | Version (Ogg slug) -> Version.Ogg.get slug
+  | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
+  | Victor One   -> log_exit 101
+  | Victor Two   -> log_exit 102
+  | Victor Three -> log_exit 103
+  | Victor Four  -> log_exit 104
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
