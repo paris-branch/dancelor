@@ -23,6 +23,8 @@ let make
     ?disambiguation ?broken ~modified_at ~created_at
     ()
   =
+  let structure = String.remove_duplicates ~char:' ' structure in
+  let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
   let%lwt tune = TuneCore.slug tune in
   let%lwt arranger =
     let%olwt arranger = Lwt.return arranger in

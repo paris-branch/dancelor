@@ -21,6 +21,8 @@ let make
     ?remark ?scddb_id ~modified_at ~created_at
     ()
   =
+  let name = String.remove_duplicates ~char:' ' name in
+  let alternative_names = Option.map (List.map (String.remove_duplicates ~char:' ')) alternative_names in
   let%lwt author =
     let%olwt author = Lwt.return author in
     let%lwt author_slug = CreditCore.slug author in
