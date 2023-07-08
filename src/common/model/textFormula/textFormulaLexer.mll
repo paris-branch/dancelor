@@ -48,7 +48,7 @@ rule token = parse
       LITERAL lit
     }
 
-    | _ as c { raise (UnexpectedCharacter c) }
+  | _ as c { raise (UnexpectedCharacter c) }
 
   | eof { EOF }
 
