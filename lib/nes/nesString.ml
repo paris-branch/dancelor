@@ -307,4 +307,4 @@ let remove_duplicates ?(char_equal=Char.equal) ?(char=' ') input =
       (last_was_char := false;
        Buffer.add_char output input.[i])
   done;
-  trim ~char (Buffer.contents output)
+  trim ~char_equal ~char (Buffer.contents output)
