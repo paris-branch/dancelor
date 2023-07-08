@@ -44,7 +44,8 @@ rule token = parse
       LITERAL (string buf lexbuf)
     }
 
-  | (identifier as lit) {
+  (* The following pattern must exclude all the characters matched above. *)
+  | [^ ' ' '(' ')' ':' '!' '&' '|' '"']+ as lit {
       LITERAL lit
     }
 
