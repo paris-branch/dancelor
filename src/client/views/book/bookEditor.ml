@@ -64,8 +64,8 @@ let prefill t slug =
   set_title t title;
   match date with
   | None -> Lwt.return ()
-  | Some d -> set_date t (NesPartialDate.to_string d)
-    ;
+  | Some d -> 
+    set_date t (NesPartialDate.to_string d);
     Lwt.return () 
 
 let remove t i =
