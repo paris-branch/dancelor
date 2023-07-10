@@ -19,18 +19,34 @@ let hd_opt = function
   | [] -> None
   | h :: _ -> Some h
 
-let bd l =
-  let rec bd acc = function
-    | [] -> failwith "bd"
-    | [_] -> List.rev acc
-    | h::q -> bd (h::acc) q
-  in
-  bd [] l
+(* Bodies and feet. *)
 
-let rec ft = function
-  | [] -> failwith "ft"
-  | [e] -> e
-  | _::q -> ft q
+let bd_ft_opt xs =
+  let rec bd_ft_opt acc = function
+    | [] -> None
+    | [x] -> Some (List.rev acc, x)
+    | x::xs -> bd_ft_opt (x :: acc) xs
+  in
+  bd_ft_opt [] xs
+
+let bd_ft xs =
+  match bd_ft_opt xs with
+  | Some result -> result
+  | None -> failwith "bd_ft"
+
+let bd_opt l = Option.map fst (bd_ft_opt l)
+
+let bd l =
+  match bd_opt l with
+  | Some l -> l
+  | _ -> failwith "bd"
+
+let ft_opt l = Option.map snd (bd_ft_opt l)
+
+let ft l =
+  match ft_opt l with
+  | Some x -> x
+  | _ -> failwith "ft"
 
 let intertwine f l =
   let rec intertwine i = function
