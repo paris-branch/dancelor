@@ -37,12 +37,34 @@ val sub : int -> 'a t -> 'a t
 val hd_opt : 'a t -> 'a option
 (** Return the first element of the given list or [None] if the list is empty. *)
 
+(** {4 Bodies and feet} *)
+
 val bd : 'a t -> 'a list
-(** Return the given list without its last element.
+(** Return the body of the given list, that is the list without its last
+    element.
     @raise Failure if the list is empty. *)
 
+val bd_opt : 'a t -> 'a list option
+(** Return the body of the given list, that is the list without its last
+    element, or [None] if the list is empty. *)
+
 val ft : 'a t -> 'a
-(** Return the last element of the given list.
+(** Return the foot of the given list, that is the last element of the list.
+    @raise Failure if the list is empty. *)
+
+val ft_opt : 'a t -> 'a option
+(** Return the foot of the given list, that is the last element of the list, or
+    [None] if the list is empty. *)
+
+val bd_ft : 'a t -> 'a list * 'a
+(** Return the pair of the body and the foot of the given list, that is the list
+    without its last element and the last element.
+    @raise Failure if the list is empty. *)
+
+val bd_ft_opt : 'a t -> ('a list * 'a) option
+(** Return the pair of the body and the foot of the given list, that is the list
+    without its last element and the last element, or [None] if the list is
+    empty.
     @raise Failure if the list is empty. *)
 
 val intertwine : (int -> 'a) -> 'a t -> 'a t
