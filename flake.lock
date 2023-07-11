@@ -216,7 +216,9 @@
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "mirage-opam-overlays": "mirage-opam-overlays",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "opam-overlays": "opam-overlays",
         "opam-repository": "opam-repository",
         "opam2json": "opam2json"
@@ -313,10 +315,7 @@
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
-        "nixpkgs": [
-          "opam-nix",
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs",
         "opam-nix": "opam-nix",
         "pre-commit-hooks": "pre-commit-hooks",
         "timidity": "timidity"

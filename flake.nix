@@ -1,7 +1,12 @@
 {
   inputs = {
-    opam-nix.url = "github:tweag/opam-nix";
-    nixpkgs.follows = "opam-nix/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    opam-nix = {
+      url = "github:tweag/opam-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     flake-parts.url = "github:hercules-ci/flake-parts";
     timidity.url = "github:niols/nixpkg-timidity";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
