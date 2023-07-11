@@ -14,8 +14,15 @@
       inputs.opam-repository.follows = "opam-repository";
     };
 
-    timidity.url = "github:niols/nixpkg-timidity";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    timidity = {
+      url = "github:niols/nixpkg-timidity";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pre-commit-hooks = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ flake-parts, ... }:
