@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
 
     opam-repository = {
       url = "github:ocaml/opam-repository";
@@ -13,7 +14,6 @@
       inputs.opam-repository.follows = "opam-repository";
     };
 
-    flake-parts.url = "github:hercules-ci/flake-parts";
     timidity.url = "github:niols/nixpkg-timidity";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
