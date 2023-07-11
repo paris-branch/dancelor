@@ -2,9 +2,15 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    opam-repository = {
+      url = "github:ocaml/opam-repository";
+      flake = false;
+    };
+
     opam-nix = {
       url = "github:tweag/opam-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.opam-repository.follows = "opam-repository";
     };
 
     flake-parts.url = "github:hercules-ci/flake-parts";

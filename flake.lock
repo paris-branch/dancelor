@@ -220,7 +220,9 @@
           "nixpkgs"
         ],
         "opam-overlays": "opam-overlays",
-        "opam-repository": "opam-repository",
+        "opam-repository": [
+          "opam-repository"
+        ],
         "opam2json": "opam2json"
       },
       "locked": {
@@ -317,6 +319,7 @@
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
         "opam-nix": "opam-nix",
+        "opam-repository": "opam-repository",
         "pre-commit-hooks": "pre-commit-hooks",
         "timidity": "timidity"
       }
