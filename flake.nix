@@ -1,10 +1,28 @@
 {
   inputs = {
-    opam-nix.url = "github:tweag/opam-nix";
-    nixpkgs.follows = "opam-nix/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    timidity.url = "github:niols/nixpkg-timidity";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+
+    opam-repository = {
+      url = "github:ocaml/opam-repository";
+      flake = false;
+    };
+
+    opam-nix = {
+      url = "github:tweag/opam-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.opam-repository.follows = "opam-repository";
+    };
+
+    timidity = {
+      url = "github:niols/nixpkg-timidity";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pre-commit-hooks = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ flake-parts, ... }:
