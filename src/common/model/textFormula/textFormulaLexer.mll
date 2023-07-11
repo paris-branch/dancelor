@@ -31,10 +31,6 @@ rule token = parse
       | _ -> NULLARY_PREDICATE id
     }
 
-  | '!'  { NOT }
-  | "&&" { AND }
-  | "||" { OR }
-
   | (identifier as id) ":" {
       PREDICATE id
     }
@@ -44,11 +40,12 @@ rule token = parse
       LITERAL (string buf lexbuf)
     }
 
-  | (identifier as lit) {
+  (* The following pattern must exclude all the special characters matched above. *)
+  | [^ ' ' '(' ')' ':' '"']+ as lit {
       LITERAL lit
     }
 
-    | _ as c { raise (UnexpectedCharacter c) }
+  | _ as c { raise (UnexpectedCharacter c) }
 
   | eof { EOF }
 

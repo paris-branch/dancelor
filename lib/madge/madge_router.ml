@@ -11,6 +11,15 @@ type 'resource route =
   { request_to_resource : request -> 'resource option ;
     resource_to_request : 'resource -> request option }
 
+(* Helpers *)
+
+(** Helper that splits a path on slashes. This allows to compare paths in a more
+    robust way. *)
+let filename_explode path =
+  path
+  |> String.split_on_char '/'
+  |> List.filter ((<>) "")
+
 (** {2 Builders} *)
 
 (** FIXME: Those builders are disgusting. There is a nice DSL for building
@@ -44,13 +53,11 @@ let with_slug_and_query method_ prefix ?ext makeResource unResource =
   let request_to_resource req' =
     if req'.method_ = method_ then
       (
-        match String.rindex_opt req'.path '/' with
+        match List.bd_ft_opt (filename_explode req'.path) with
         | None -> None
-        | Some i ->
-          let prefix' = String.sub req'.path 0 i in
-          if prefix' = prefix then
+        | Some (prefix', suffix') ->
+          if prefix' = filename_explode prefix then
             (
-              let suffix' = String.sub req'.path (i+1) (String.length req'.path - i-1) in
               match ext with
               | None -> Option.some @@ makeResource (Slug.unsafe_of_string suffix') req'.query
               | Some ext ->

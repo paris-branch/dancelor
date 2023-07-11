@@ -44,7 +44,7 @@ jobs:
         run: nix develop --command make test
 
       - name: Upload GitHub pages artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
         with:
           path: doc/
 
