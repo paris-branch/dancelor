@@ -5,8 +5,9 @@ let accepts filter set =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
 
-  | Is set' ->
-    Set.equal set set' >|=| Formula.interpret_bool
+  | Slug set' ->
+    let%lwt set = Dancelor_common_model.SetCore.slug set in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal set set'
 
   | Name string ->
     let%lwt name = Set.name set in

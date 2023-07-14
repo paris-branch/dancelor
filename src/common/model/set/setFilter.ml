@@ -3,7 +3,7 @@ open Nes
 let _key = "set-filter"
 
 type predicate =
-  | Is of SetCore.t
+  | Slug of SetCore.t Slug.t
   | Name of string
   | NameMatches of string
   | Deviser of CreditFilter.t (** deviser is defined and passes the filter *)
@@ -14,7 +14,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is set = Formula.pred (Is set)
+let slug set = Formula.pred (Slug set)
+let is set = slug set.SetCore.slug
 let name name = Formula.pred (Name name)
 let nameMatches name = Formula.pred (NameMatches name)
 let deviser cfilter = Formula.pred (Deviser cfilter)
