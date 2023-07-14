@@ -2,7 +2,7 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 
 let js = Js.string
 

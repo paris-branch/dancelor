@@ -1,15 +1,8 @@
 (include_subdirs no)
 
-(library
- (name dancelor_client_router)
- (modules dancelor_client_router)
- (public_name dancelor.client.router)
- (libraries dancelor.nes dancelor.madge.router dancelor.common.model))
-
 (executables
  (names main)
  (modes js)
- (modules :standard \ dancelor_client_router)
  (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.client.html
    dancelor.client.elements dancelor.client.tables dancelor.client.formatters
    dancelor.client.model dancelor.client.views dancelor.client.utils

@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_client_model
 open Dancelor_client_html
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 module Formatters = Dancelor_client_formatters
 
 let clickable_row ?href ?href_lwt cells =

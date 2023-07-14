@@ -25,9 +25,9 @@ let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
 
 let dispatch url =
   let request = Madge_router.{ method_ = `GET ; path = Uri.path url ; query = Madge_query.from_uri url } in
-  let page = Madge_router.request_to_resource request Dancelor_client_router.routes in
+  let page = Madge_router.request_to_resource request Dancelor_common.PageRouter.routes in
   match Option.get page with
-  | Dancelor_client_router.Index ->
+  | Dancelor_common.PageRouter.Index ->
     pack (module Index) Index.create
   | Search q ->
     pack (module Search) (Search.create q)

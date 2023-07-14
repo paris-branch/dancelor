@@ -2,7 +2,7 @@ open Nes
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 
 let works set =
   match%lwt M.Set.dances set with
