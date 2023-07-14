@@ -3,7 +3,7 @@ open Nes
 let _key = "tune-filter"
 
 type predicate =
-  | Is of TuneCore.t
+  | Slug of TuneCore.t Slug.t
   | Name of string
   | NameMatches of string
   | Author of CreditFilter.t (** author is defined and passes the filter *)
@@ -14,7 +14,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is tune = Formula.pred (Is tune)
+let slug tune = Formula.pred (Slug tune)
+let is tune = slug tune.TuneCore.slug
 let name string = Formula.pred (Name string)
 let nameMatches string = Formula.pred (NameMatches string)
 let author cfilter = Formula.pred (Author cfilter)

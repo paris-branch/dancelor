@@ -1,13 +1,13 @@
 open Nes
-open TuneLifted
 include Dancelor_common_model.TuneFilter
 
 let accepts filter tune =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
 
-  | Is tune' ->
-    equal tune tune' >|=| Formula.interpret_bool
+  | Slug tune' ->
+    let%lwt tune = Dancelor_common_model.TuneCore.slug tune in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal tune tune'
 
   | Name string ->
     let%lwt name = TuneLifted.name tune in
