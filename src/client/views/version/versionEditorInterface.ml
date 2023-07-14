@@ -1,7 +1,7 @@
 open Js_of_ocaml
 open Dancelor_client_model
 open Dancelor_client_elements
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 
 module Html = Dom_html
 

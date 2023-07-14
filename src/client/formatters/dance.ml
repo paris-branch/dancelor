@@ -1,7 +1,7 @@
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 
 let name ?(link=true) dance =
   let name_lwt = M.Dance.name dance in

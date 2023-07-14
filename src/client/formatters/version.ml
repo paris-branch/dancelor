@@ -2,7 +2,7 @@ open Nes
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 
 let description ?link version =
   let%lwt bars = M.Version.bars version in

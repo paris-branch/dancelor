@@ -2,7 +2,7 @@ open Lwt
 open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 module Formatters = Dancelor_client_formatters
 
 module Html = Dom_html

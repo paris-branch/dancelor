@@ -1,7 +1,7 @@
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_client_router
+module Router = Dancelor_common.PageRouter
 
 let title_and_subtitle ?(link=true) book =
   let title_text = [text_lwt (M.Book.title book)] in
