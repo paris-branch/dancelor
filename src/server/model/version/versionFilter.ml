@@ -5,8 +5,9 @@ include Dancelor_common_model.VersionFilter
 let accepts filter version =
   Formula.interpret filter @@ function
 
-  | Is version' ->
-    equal version version' >|=| Formula.interpret_bool
+  | Slug version' ->
+    let%lwt version = Dancelor_common_model.VersionCore.slug version in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal version version'
 
   | Tune tfilter ->
     let%lwt tune = VersionLifted.tune version in

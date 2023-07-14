@@ -3,7 +3,7 @@ open Nes
 let _key = "version-filter"
 
 type predicate =
-  | Is of VersionCore.t
+  | Slug of VersionCore.t Slug.t
   | Tune of TuneFilter.t
   | Key of Music.key
   | Kind of KindFilter.Version.t
@@ -13,7 +13,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is version = Formula.pred (Is version)
+let slug version = Formula.pred (Slug version)
+let is version = slug version.VersionCore.slug
 let tune tfilter = Formula.pred (Tune tfilter)
 let tuneIs tune_ = tune (TuneFilter.is tune_)
 let key key_ = Formula.pred (Key key_)
