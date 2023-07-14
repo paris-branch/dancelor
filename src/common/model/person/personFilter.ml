@@ -3,7 +3,7 @@ open Nes
 let _key = "person-filter"
 
 type predicate =
-  | Is of PersonCore.t
+  | Slug of PersonCore.t Slug.t
   | Name of string
   | NameMatches of string
 [@@deriving yojson]
@@ -11,7 +11,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is person = Formula.pred (Is person)
+let slug person = Formula.pred (Slug person)
+let is person = slug person.PersonCore.slug
 let name name = Formula.pred (Name name)
 let nameMatches name = Formula.pred (NameMatches name)
 
@@ -21,8 +22,9 @@ let accepts filter person =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
 
-  | Is person' ->
-    PersonCore.equal person person' >|=| Formula.interpret_bool
+  | Slug person' ->
+    let%lwt person = PersonCore.slug person in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal person person'
 
   | Name string ->
     let%lwt name = PersonCore.name person in
