@@ -6,8 +6,9 @@ let accepts filter book =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
 
-  | Is book' ->
-    equal book book' >|=| Formula.interpret_bool
+  | Slug book' ->
+    let%lwt book = Dancelor_common_model.BookCore.slug book in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal book book'
 
   | Title string ->
     let%lwt title = BookLifted.title book in

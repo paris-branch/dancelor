@@ -3,7 +3,7 @@ open Nes
 let _key = "book-filter"
 
 type predicate =
-  | Is of BookCore.t
+  | Slug of BookCore.t Slug.t
   | IsSource
   | Title of string
   | TitleMatches of string
@@ -17,7 +17,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is book = Formula.pred (Is book)
+let slug book = Formula.pred (Slug book)
+let is book = slug book.BookCore.slug
 let title string = Formula.pred (Title string)
 let titleMatches string = Formula.pred (TitleMatches string)
 let subtitle string = Formula.pred (Subtitle string)
