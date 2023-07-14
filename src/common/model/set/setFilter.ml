@@ -45,3 +45,6 @@ let from_text_formula =
   TextFormula.make_to_formula raw
     nullary_text_predicates
     unary_text_predicates
+
+let from_string ?filename input =
+  from_text_formula (TextFormula.from_string ?filename input)
