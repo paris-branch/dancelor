@@ -6,8 +6,9 @@ let accepts filter credit =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
 
-  | Is credit' ->
-    equal credit credit' >|=| Formula.interpret_bool
+  | Slug credit' ->
+    let%lwt credit = Dancelor_common_model.CreditCore.slug credit in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal credit credit'
 
   | Line string ->
     let%lwt line = CreditLifted.line credit in

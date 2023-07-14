@@ -3,7 +3,7 @@ open Nes
 let _key = "credit-filter"
 
 type predicate =
-  | Is of CreditCore.t
+  | Slug of CreditCore.t Slug.t
   | Line of string
   | LineMatches of string
   | ExistsPerson of PersonFilter.t
@@ -12,7 +12,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is credit = Formula.pred (Is credit)
+let slug credit = Formula.pred (Slug credit)
+let is credit = slug credit.CreditCore.slug
 let line line = Formula.pred (Line line)
 let lineMatches line = Formula.pred (LineMatches line)
 let existsPerson pfilter = Formula.pred (ExistsPerson pfilter)
