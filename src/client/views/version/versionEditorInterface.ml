@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_client_model
 open Dancelor_client_elements
@@ -169,7 +170,7 @@ let create page =
                       Table.Cell.text ~text:(Lwt.return "Create a new associated tune") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return (TuneFilter.raw input) in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ TuneFilter.from_string input in
             let%lwt results =
               Tune.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
@@ -200,7 +201,7 @@ let create page =
                       Table.Cell.text ~text:(Lwt.return "Create a new arranger") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return (CreditFilter.raw input) in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ CreditFilter.from_string input in
             let%lwt results =
               Credit.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
