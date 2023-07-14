@@ -3,7 +3,7 @@ open Nes
 let _key = "dance-filter"
 
 type predicate =
-  | Is of DanceCore.t
+  | Slug of DanceCore.t Slug.t
   | Name of string
   | NameMatches of string
   | Kind of KindFilter.Dance.t
@@ -13,7 +13,8 @@ type predicate =
 type t = predicate Formula.t
 [@@deriving yojson]
 
-let is dance = Formula.pred (Is dance)
+let slug dance = Formula.pred (Slug dance)
+let is dance = slug dance.DanceCore.slug
 let name name = Formula.pred (Name name)
 let nameMatches name = Formula.pred (NameMatches name)
 let kind kfilter = Formula.pred (Kind kfilter)

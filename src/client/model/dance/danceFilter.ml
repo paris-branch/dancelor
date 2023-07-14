@@ -5,8 +5,9 @@ let accepts filter dance =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
 
-  | Is dance' ->
-    DanceLifted.equal dance dance' >|=| Formula.interpret_bool
+  | Slug dance' ->
+    let%lwt dance = Dancelor_common_model.DanceCore.slug dance in
+    Lwt.return @@ Formula.interpret_bool @@ Slug.equal dance dance'
 
   | Name string ->
     let%lwt name = DanceLifted.name dance in
