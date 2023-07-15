@@ -49,12 +49,10 @@ module Lift
       ~order ?dances ~modified_at ~created_at
       ()
 
-  let slug s = Lwt.return s.slug
   let is_slug_none s =
     let%lwt slug = slug s in
     Lwt.return (Slug.is_none slug)
 
-  let status s = Lwt.return s.status
   let name s = Lwt.return s.name
   let deviser set = Olwt.flip @@ Option.map Credit.get set.deviser
   let kind s = Lwt.return s.kind

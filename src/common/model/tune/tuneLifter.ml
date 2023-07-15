@@ -34,8 +34,6 @@ module Lift
                   ?remark ~scddb_id ~modified_at ~created_at
                   ())
 
-  let slug tune = Lwt.return tune.slug
-  let status tune = Lwt.return tune.status
   let name tune = Lwt.return tune.name
   let alternative_names tune = Lwt.return tune.alternative_names
   let kind tune = Lwt.return tune.kind

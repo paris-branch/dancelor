@@ -24,8 +24,6 @@ module Lift
                   ?disambiguation ?broken ~modified_at ~created_at
                   ())
 
-  let slug t = Lwt.return t.slug
-  let status t = Lwt.return t.status
   let tune version = Tune.get version.tune
   let bars t = Lwt.return t.bars
   let key t = Lwt.return t.key

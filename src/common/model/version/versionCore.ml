@@ -18,6 +18,11 @@ type t =
     created_at  : Datetime.t          [@key "created-at"] }
 [@@deriving make, yojson]
 
+let slug version = Lwt.return version.slug
+let status version = Lwt.return version.status
+let tune version = Lwt.return version.tune
+let arranger version = Lwt.return version.arranger
+
 module Filter = struct
   let _key = "version-filter"
 

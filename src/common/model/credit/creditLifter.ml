@@ -12,8 +12,6 @@ module Lift
     let line = String.remove_duplicates ~char:' ' line in
     make ~slug ?status ~line ?persons ?scddb_id ~modified_at ~created_at ()
 
-  let slug c = Lwt.return c.slug
-  let status c = Lwt.return c.status
   let line c = Lwt.return c.line
   let persons credit = Lwt_list.map_p Person.get credit.persons
   let scddb_id c = Lwt.return c.scddb_id

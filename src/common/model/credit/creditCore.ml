@@ -12,6 +12,10 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving yojson, make]
 
+let slug c = Lwt.return c.slug
+let status c = Lwt.return c.status
+let persons c = Lwt.return c.persons
+
 module Filter = struct
   let _key = "credit-filter"
 

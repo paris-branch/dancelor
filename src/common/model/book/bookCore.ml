@@ -27,6 +27,17 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
+let slug book = Lwt.return book.slug
+let status book = Lwt.return book.status
+let contents book = Lwt.return book.contents
+
+let contains_set set1 book =
+  List.exists
+    (function
+      | PageCore.Set (set2, _) -> Slug.equal set1 set2
+      | _ -> false)
+    book.contents
+
 type warning =
   | Empty
   | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)

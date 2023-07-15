@@ -8,8 +8,6 @@ module Lift
 = struct
   include BookCore
 
-  let slug book = Lwt.return book.slug
-  let status book = Lwt.return book.status
   let title book = Lwt.return book.title
   let subtitle book = Lwt.return book.subtitle
   let short_title book = if book.short_title = "" then title book else Lwt.return book.short_title
@@ -27,13 +25,6 @@ module Lift
     Lwt.return (Slug.equal slug1 slug2)
 
   let is_source book = source book
-
-  let contains_set set1 book =
-    List.exists
-      (function
-        | PageCore.Set (set2, _) -> Slug.equal set1 set2
-        | _ -> false)
-      book.contents
 
   let compare book1 book2 =
     (* Compare first by date *)

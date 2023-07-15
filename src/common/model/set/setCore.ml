@@ -18,6 +18,12 @@ type t =
     created_at  : Datetime.t      [@key "created-at"] }
 [@@deriving make, yojson]
 
+let slug set = Lwt.return set.slug
+let status set = Lwt.return set.status
+let dances set = Lwt.return set.dances
+let deviser set = Lwt.return set.deviser
+let versions_and_parameters set = Lwt.return set.versions_and_parameters
+
 type warning =
   | Empty
   | WrongKind

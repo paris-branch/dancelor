@@ -24,8 +24,6 @@ module Lift
                   ?disambiguation ~modified_at ~created_at
                   ())
 
-  let slug d = Lwt.return d.slug
-  let status d = Lwt.return d.status
   let name d = Lwt.return d.name
   let kind d = Lwt.return d.kind
   let deviser dance = Olwt.flip @@ Option.map Credit.get dance.deviser
