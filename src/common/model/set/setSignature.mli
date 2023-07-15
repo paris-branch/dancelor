@@ -42,6 +42,8 @@ val warnings : t -> warnings Lwt.t
 module Filter : sig
   type t = SetCore.Filter.t
 
+  val accepts : t -> SetCore.t -> float Lwt.t
+
   val is : SetCore.t -> t
   val existsVersion : VersionCore.Filter.t -> t
 

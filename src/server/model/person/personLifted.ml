@@ -1,4 +1,4 @@
-include Dancelor_common_model.PersonCore
+include Dancelor_common_model.PersonLifter.Lift()
 
 module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
