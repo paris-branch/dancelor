@@ -2,7 +2,9 @@ open Nes
 
 type t = AnyCore.t
 
-module Type = AnyCore.Type
+module Type : sig
+  type t = AnyCore.Type.t
+end
 
 val type_of : t -> Type.t
 

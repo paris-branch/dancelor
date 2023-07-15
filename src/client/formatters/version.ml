@@ -61,7 +61,7 @@ let name_and_disambiguation ?link version =
 let name_disambiguation_and_sources ?link version =
   let sources_lwt =
     let%lwt sources =
-      let filter = M.BookFilter.(
+      let filter = M.Book.Filter.(
           M.Formula.and_ (memVersionDeep version) isSource
         )
       in
