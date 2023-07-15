@@ -11,6 +11,12 @@ val two_chords : t -> bool Lwt.t
 val scddb_id : t -> int option Lwt.t
 val disambiguation : t -> string Lwt.t
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -30,5 +36,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  DanceFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t
