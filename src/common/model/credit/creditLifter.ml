@@ -29,6 +29,25 @@ module Lift
   module Filter = struct
     include CreditCore.Filter
 
+    let accepts filter credit =
+      let char_equal = Char.Sensible.equal in
+      Formula.interpret filter @@ function
+
+      | Is credit' ->
+        equal credit credit' >|=| Formula.interpret_bool
+
+      | Line string ->
+        let%lwt line = line credit in
+        Lwt.return (String.proximity ~char_equal string line)
+
+      | LineMatches string ->
+        let%lwt line = line credit in
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string line)
+
+      | ExistsPerson pfilter ->
+        persons credit
+        >>=| Formula.interpret_exists (Person.Filter.accepts pfilter)
+
     let is credit = Formula.pred (Is credit)
     let line line = Formula.pred (Line line)
     let lineMatches line = Formula.pred (LineMatches line)

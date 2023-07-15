@@ -30,7 +30,7 @@ module Lift
   let bars t = Lwt.return t.bars
   let key t = Lwt.return t.key
   let structure t = Lwt.return t.structure
-  let arranger tune = Option.map Credit.get tune.arranger
+  let arranger tune = Olwt.flip @@ Option.map Credit.get tune.arranger
   let remark t = Lwt.return t.remark
   let disambiguation t = Lwt.return t.disambiguation
   let broken t = Lwt.return t.broken
@@ -44,6 +44,29 @@ module Lift
 
   module Filter = struct
     include VersionCore.Filter
+
+    let accepts filter version =
+      Formula.interpret filter @@ function
+
+      | Is version' ->
+        equal version version' >|=| Formula.interpret_bool
+
+      | Tune tfilter ->
+        let%lwt tune = tune version in
+        Tune.Filter.accepts tfilter tune
+
+      | Key key' ->
+        let%lwt key = key version in
+        Lwt.return (Formula.interpret_bool (key = key'))
+
+      | Kind kfilter ->
+        let%lwt tune = tune version in
+        let%lwt kind = Tune.kind tune in
+        let%lwt bars = bars version in
+        KindFilter.Version.accepts kfilter (bars, kind)
+
+      | Broken ->
+        broken version >|=| Formula.interpret_bool
 
     let is version = Formula.pred (Is version)
     let tune tfilter = Formula.pred (Tune tfilter)

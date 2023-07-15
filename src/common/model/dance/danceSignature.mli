@@ -18,6 +18,8 @@ val equal : t -> t -> bool Lwt.t
 module Filter : sig
   type t = DanceCore.Filter.t
 
+  val accepts : t -> DanceCore.t -> float Lwt.t
+
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list

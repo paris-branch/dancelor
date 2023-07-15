@@ -56,7 +56,7 @@ module Lift
 
   let status s = Lwt.return s.status
   let name s = Lwt.return s.name
-  let deviser set = Option.map Credit.get set.deviser
+  let deviser set = Olwt.flip @@ Option.map Credit.get set.deviser
   let kind s = Lwt.return s.kind
   let order s = Lwt.return s.order
   let instructions s = Lwt.return s.instructions
@@ -145,6 +145,37 @@ module Lift
 
   module Filter = struct
     include SetCore.Filter
+
+    let accepts filter set =
+      let char_equal = Char.Sensible.equal in
+      Formula.interpret filter @@ function
+
+      | Is set' ->
+        equal set set' >|=| Formula.interpret_bool
+
+      | Name string ->
+        let%lwt name = name set in
+        Lwt.return (String.proximity ~char_equal string name)
+
+      | NameMatches string ->
+        let%lwt name = name set in
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+
+      | Deviser dfilter ->
+        (match%lwt deviser set with
+         | None -> Lwt.return Formula.interpret_false
+         | Some deviser -> Credit.Filter.accepts dfilter deviser)
+
+      | ExistsVersion vfilter ->
+        let%lwt versions_and_parameters = versions_and_parameters set in
+        Formula.interpret_exists
+          (fun (version, _) ->
+             Version.Filter.accepts vfilter version)
+          versions_and_parameters
+
+      | Kind kfilter ->
+        let%lwt kind = kind set in
+        KindFilter.Dance.accepts kfilter kind
 
     let is set = Formula.pred (Is set)
     let name name = Formula.pred (Name name)

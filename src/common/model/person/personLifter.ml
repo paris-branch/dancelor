@@ -1,6 +1,6 @@
 open Nes
 
-module Make () = struct
+module Lift () = struct
   include PersonCore
 
   let make

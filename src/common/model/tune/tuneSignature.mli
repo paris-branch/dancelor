@@ -20,6 +20,12 @@ val equal : t -> t -> bool Lwt.t
 module Filter : sig
   type t = TuneCore.Filter.t
 
+  val accepts : t -> TuneCore.t -> float Lwt.t
+  (** The main function for filters: given a filter and a tune, [accepts]
+      returns a float between [0.] and [1.] representing how much the filter
+      accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
+      meaning that the tune is fully rejected. *)
+
   val is : TuneCore.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 

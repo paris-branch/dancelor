@@ -13,6 +13,8 @@ val equal : t -> t -> bool Lwt.t
 module Filter : sig
   type t = PersonCore.Filter.t
 
+  val accepts : t -> PersonCore.t -> float Lwt.t
+
   val is : PersonCore.t -> t
 
   val raw : string -> t TextFormula.or_error

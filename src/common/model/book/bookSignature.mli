@@ -83,6 +83,8 @@ val warnings : t -> warnings Lwt.t
 module Filter : sig
   type t = BookCore.Filter.t
 
+  val accepts : t -> BookCore.t -> float Lwt.t
+
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list

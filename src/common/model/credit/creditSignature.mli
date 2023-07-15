@@ -17,6 +17,8 @@ val equal : t -> t -> bool Lwt.t
 module Filter : sig
   type t = CreditCore.Filter.t
 
+  val accepts : t -> CreditCore.t -> float Lwt.t
+
   val is : CreditCore.t -> t
 
   val raw : string -> t TextFormula.or_error

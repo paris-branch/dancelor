@@ -22,6 +22,8 @@ val equal : t -> t -> bool Lwt.t
 module Filter : sig
   type t = VersionCore.Filter.t
 
+  val accepts : t -> VersionCore.t -> float Lwt.t
+
   val is : VersionCore.t -> t
 
   val tune : TuneCore.Filter.t -> t

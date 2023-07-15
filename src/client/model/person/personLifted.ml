@@ -1,5 +1,5 @@
 open Dancelor_common_model
-include PersonCore
+include PersonLifter.Lift()
 
 module E = PersonEndpoints
 module A = E.Arguments

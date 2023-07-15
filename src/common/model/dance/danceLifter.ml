@@ -28,7 +28,7 @@ module Lift
   let status d = Lwt.return d.status
   let name d = Lwt.return d.name
   let kind d = Lwt.return d.kind
-  let deviser dance = Lwt.return @@ Option.map Credit.get dance.deviser
+  let deviser dance = Olwt.flip @@ Option.map Credit.get dance.deviser
   let two_chords d = Lwt.return d.two_chords
   let scddb_id d = Lwt.return d.scddb_id
   let disambiguation d = Lwt.return d.disambiguation
@@ -40,6 +40,30 @@ module Lift
 
   module Filter = struct
     include DanceCore.Filter
+
+    let accepts filter dance =
+      let char_equal = Char.Sensible.equal in
+      Formula.interpret filter @@ function
+
+      | Is dance' ->
+        equal dance dance' >|=| Formula.interpret_bool
+
+      | Name string ->
+        let%lwt name = name dance in
+        Lwt.return (String.proximity ~char_equal string name)
+
+      | NameMatches string ->
+        let%lwt name = name dance in
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+
+      | Kind kfilter ->
+        let%lwt kind = kind dance in
+        KindFilter.Dance.accepts kfilter kind
+
+      | Deviser cfilter ->
+        (match%lwt deviser dance with
+         | None -> Lwt.return Formula.interpret_false
+         | Some deviser -> Credit.Filter.accepts cfilter deviser)
 
     let is dance = Formula.pred (Is dance)
     let name name = Formula.pred (Name name)
