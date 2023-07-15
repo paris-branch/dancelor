@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
@@ -183,14 +184,12 @@ let create ?on_save page =
                       Table.Cell.text ~text:(Lwt.return "Create a new dance") page]
                     page)
         ~search:(fun input ->
-            match DanceFilter.raw input with
-            | Ok formula ->
-              let%lwt results =
-                Dance.search ~threshold:0.4
-                  ~pagination:Pagination.{start = 0; end_ = 10} formula
-              in
-              Lwt.return_ok results
-            | Error err -> Lwt.return_error err)
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Dance.Filter.raw input in
+            let%lwt results =
+              Dance.search ~threshold:0.4
+                ~pagination:Pagination.{start = 0; end_ = 10} formula
+            in
+            Lwt.return_ok results)
         ~make_result:(fun score -> make_dance_search_result editor page score)
         page
     in
@@ -210,7 +209,7 @@ let create ?on_save page =
                       Table.Cell.text ~text:(Lwt.return "Create a new author") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return (CreditFilter.raw input) in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.raw input in
             let%lwt results =
               Credit.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
