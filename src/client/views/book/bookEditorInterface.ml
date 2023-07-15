@@ -1,8 +1,8 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -142,7 +142,7 @@ let create ?on_save page =
             Lwt.on_success (BookEditor.submit editor) (fun book ->
                 Lwt.on_success (Book.slug book) (fun slug ->
                     begin match on_save with
-                      | None -> Html.window##.location##.href := js Router.(path (Book slug))
+                      | None -> Html.window##.location##.href := js PageRouter.(path (Book slug))
                       | Some cb -> cb slug
                     end))))
       page
