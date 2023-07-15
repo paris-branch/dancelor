@@ -14,6 +14,9 @@ val is_trad : t -> bool
 
 module Filter : sig
   type t = CreditCore.Filter.t
+
+  val is : CreditCore.t -> t
+
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end
 

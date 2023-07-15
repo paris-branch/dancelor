@@ -14,7 +14,8 @@ val disambiguation : t -> string Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type t
+  type t = DanceCore.Filter.t
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end
 
 (** {2 Getters and setters} *)
