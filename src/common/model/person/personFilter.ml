@@ -18,22 +18,6 @@ let nameMatches name = Formula.pred (NameMatches name)
 
 let raw string = Ok (nameMatches string)
 
-let accepts filter person =
-  let char_equal = Char.Sensible.equal in
-  Formula.interpret filter @@ function
-
-  | Slug person' ->
-    let%lwt person = PersonCore.slug person in
-    Lwt.return @@ Formula.interpret_bool @@ Slug.equal person person'
-
-  | Name string ->
-    let%lwt name = PersonCore.name person in
-    Lwt.return (String.proximity ~char_equal string name)
-
-  | NameMatches string ->
-    let%lwt name = PersonCore.name person in
-    Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
-
 let nullary_text_predicates = []
 
 let unary_text_predicates =
