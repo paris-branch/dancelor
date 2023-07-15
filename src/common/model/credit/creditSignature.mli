@@ -10,6 +10,13 @@ val scddb_id : t -> int option Lwt.t
 
 val is_trad : t -> bool
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = CreditCore.Filter.t
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -26,5 +33,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  CreditFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t
