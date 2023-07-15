@@ -84,6 +84,8 @@ module Filter : sig
   type t = BookCore.Filter.t
 
   val raw : string -> t TextFormula.or_error
+  val nullary_text_predicates : (string * t) list
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end

@@ -43,20 +43,13 @@ module Filter : sig
   type t = SetCore.Filter.t
 
   val is : SetCore.t -> t
-  (** [is set] is a filter that matches exactly [set] and only [set]. *)
-
   val existsVersion : VersionCore.Filter.t -> t
-  (** Filter that matches sets that contain at least one version the passes the
-      version filter. *)
 
   val raw : string -> t TextFormula.or_error
-  (** Build a filter appropriate to match raw strings, or fail. *)
-
+  val nullary_text_predicates : (string * t) list
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
-  (** Association list of unary text predicates over sets. *)
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  (** Build a filter from a text formula, or fail. *)
 end
 
 (** {2 Getters and setters} *)

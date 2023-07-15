@@ -26,6 +26,9 @@ module Filter : sig
   val raw : string -> t TextFormula.or_error
   (** Build a filter appropriate to match raw strings, or fail. *)
 
+  val nullary_text_predicates : (string * t) list
+  (** Association list of nullary text predicates over sets. *)
+
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
   (** Association list of unary text predicates over tunes. *)
 
