@@ -10,12 +10,16 @@ val scddb_id : t -> int option Lwt.t
 
 val is_trad : t -> bool
 
+val equal : t -> t -> bool Lwt.t
+
 (** {2 Filters} *)
 
 module Filter : sig
   type t = CreditCore.Filter.t
 
   val is : CreditCore.t -> t
+
+  val raw : string -> t TextFormula.or_error
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end

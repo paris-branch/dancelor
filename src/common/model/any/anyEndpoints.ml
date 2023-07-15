@@ -1,7 +1,7 @@
 open Madge_common
 
 module Arguments = struct
-  let filter = arg (module AnyFilter)
+  let filter = arg (module AnyCore.Filter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
 end

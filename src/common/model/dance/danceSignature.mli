@@ -11,10 +11,15 @@ val two_chords : t -> bool Lwt.t
 val scddb_id : t -> int option Lwt.t
 val disambiguation : t -> string Lwt.t
 
+val equal : t -> t -> bool Lwt.t
+
 (** {2 Filters} *)
 
 module Filter : sig
   type t = DanceCore.Filter.t
+
+  val raw : string -> t TextFormula.or_error
+
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end
 

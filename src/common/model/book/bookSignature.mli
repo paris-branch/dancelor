@@ -82,6 +82,10 @@ val warnings : t -> warnings Lwt.t
 
 module Filter : sig
   type t = BookCore.Filter.t
+
+  val raw : string -> t TextFormula.or_error
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end
 
 (** {2 API Getters & Setters} *)

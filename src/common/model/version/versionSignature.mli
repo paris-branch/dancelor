@@ -15,6 +15,8 @@ val broken : t -> bool Lwt.t
 
 val content : t -> string Lwt.t
 
+val equal : t -> t -> bool Lwt.t
+
 (** {2 Filters} *)
 
 module Filter : sig
@@ -23,6 +25,8 @@ module Filter : sig
   val is : VersionCore.t -> t
 
   val tune : TuneCore.Filter.t -> t
+
+  val raw : string -> t TextFormula.or_error
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end

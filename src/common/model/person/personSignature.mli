@@ -6,12 +6,16 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 
+val equal : t -> t -> bool Lwt.t
+
 (** {2 Filters} *)
 
 module Filter : sig
   type t = PersonCore.Filter.t
 
   val is : PersonCore.t -> t
+
+  val raw : string -> t TextFormula.or_error
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end
