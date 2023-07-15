@@ -25,8 +25,11 @@ module Filter : sig
   val accepts : t -> VersionCore.t -> float Lwt.t
 
   val is : VersionCore.t -> t
-
+  val tuneIs : TuneCore.t -> t
   val tune : TuneCore.Filter.t -> t
+  val broken : t
+  val kind : KindFilter.Version.t -> t
+  val key : Music.Key.t -> t
 
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list

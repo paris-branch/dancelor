@@ -46,6 +46,8 @@ module Filter : sig
 
   val is : SetCore.t -> t
   val existsVersion : VersionCore.Filter.t -> t
+  val deviser : CreditCore.Filter.t -> t
+  val memVersion : VersionCore.t -> t
 
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list

@@ -20,6 +20,7 @@ module Filter : sig
   val accepts : t -> CreditCore.t -> float Lwt.t
 
   val is : CreditCore.t -> t
+  val memPerson : PersonCore.t -> t
 
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list

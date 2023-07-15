@@ -101,7 +101,7 @@ let create slug page =
         div_lwt (
           let%lwt tunes =
             let%lwt credit = credit_lwt in
-            let filter = TuneFilter.authorIs credit in
+            let filter = Tune.Filter.authorIs credit in
             Tune.search filter >|=| Score.list_erase
           in
 
@@ -120,7 +120,7 @@ let create slug page =
         div_lwt (
           let%lwt sets =
             let%lwt credit = credit_lwt in
-            let filter = SetFilter.deviser (CreditFilter.is credit) in
+            let filter = Set.Filter.deviser (Credit.Filter.is credit) in
             Set.search filter
             >|=| Score.list_erase
           in
@@ -140,7 +140,7 @@ let create slug page =
         div_lwt (
           let%lwt dances =
             let%lwt credit = credit_lwt in
-            let filter = DanceFilter.deviser (CreditFilter.is credit) in
+            let filter = Dance.Filter.deviser (Credit.Filter.is credit) in
             Dance.search filter >|=| Score.list_erase
           in
 

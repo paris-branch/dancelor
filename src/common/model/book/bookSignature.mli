@@ -85,6 +85,11 @@ module Filter : sig
 
   val accepts : t -> BookCore.t -> float Lwt.t
 
+  val isSource : t
+  val memSet : SetCore.t -> t
+  val memTuneDeep : TuneCore.t -> t
+  val memVersionDeep : VersionCore.t -> t
+
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list

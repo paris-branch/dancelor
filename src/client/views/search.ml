@@ -25,7 +25,7 @@ let update_table t =
   let pagination = PageNav.pagination t.page_nav in
   let input = Inputs.Text.contents t.bar in
   (* we can afford the exception because we'll have checked before *)
-  let filter = AnyFilter.from_string_exn input in
+  let filter = Any.Filter.from_string_exn input in
   let rows =
     let%lwt results = Any.search ~pagination filter in
     Lwt_list.map_s (AnyResult.make_result t.page) results
@@ -48,7 +48,7 @@ let update_title_and_uri t =
 let update t =
   update_title_and_uri t;
   let input = Inputs.Text.contents t.bar in
-  match AnyFilter.from_string input with
+  match Any.Filter.from_string input with
   | Ok filter ->
     (
       t.table_wrapper##.style##.display := js "block";

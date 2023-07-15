@@ -29,6 +29,10 @@ module Filter : sig
   val is : TuneCore.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
+  val author : CreditCore.Filter.t -> t
+  val authorIs : CreditCore.t -> t
+  val existsDance : DanceCore.Filter.t -> t
+
   val raw : string -> t TextFormula.or_error
   (** Build a filter appropriate to match raw strings, or fail. *)
 
