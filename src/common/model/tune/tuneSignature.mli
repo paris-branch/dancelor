@@ -18,7 +18,19 @@ val equal : t -> t -> bool Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type t
+  type t = TuneCore.Filter.t
+
+  val is : TuneCore.t -> t
+  (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
+
+  val raw : string -> t TextFormula.or_error
+  (** Build a filter appropriate to match raw strings, or fail. *)
+
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+  (** Association list of unary text predicates over tunes. *)
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  (** Build a filter from a text formula, or fail. *)
 end
 
 (** {2 Getters and setters} *)

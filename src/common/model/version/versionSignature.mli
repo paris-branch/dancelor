@@ -15,6 +15,16 @@ val broken : t -> bool Lwt.t
 
 val content : t -> string Lwt.t
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = VersionCore.Filter.t
+
+  val is : VersionCore.t -> t
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -37,12 +47,12 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  VersionFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t
 
 val count :
   ?threshold:float ->
-  VersionFilter.t ->
+  Filter.t ->
   int Lwt.t
 
 val mark_broken : t -> unit Lwt.t

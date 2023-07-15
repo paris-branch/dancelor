@@ -18,38 +18,17 @@ type t =
     created_at  : Datetime.t          [@key "created-at"] }
 [@@deriving make, yojson]
 
-let make
-    ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
-    ?disambiguation ?broken ~modified_at ~created_at
-    ()
-  =
-  let structure = String.remove_duplicates ~char:' ' structure in
-  let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
-  let%lwt tune = TuneCore.slug tune in
-  let%lwt arranger =
-    let%olwt arranger = Lwt.return arranger in
-    let%lwt arranger = CreditCore.slug arranger in
-    Lwt.return_some arranger
-  in
-  Lwt.return (make
-                ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
-                ?disambiguation ?broken ~modified_at ~created_at
-                ())
+module Filter = struct
+  let _key = "version-filter"
 
-let slug t = Lwt.return t.slug
-let status t = Lwt.return t.status
-let tune t = Lwt.return t.tune
-let bars t = Lwt.return t.bars
-let key t = Lwt.return t.key
-let structure t = Lwt.return t.structure
-let arranger t = Lwt.return t.arranger
-let remark t = Lwt.return t.remark
-let disambiguation t = Lwt.return t.disambiguation
-let broken t = Lwt.return t.broken
+  type predicate =
+    | Is of t
+    | Tune of TuneCore.Filter.t
+    | Key of Music.key
+    | Kind of KindFilter.Version.t
+    | Broken
+  [@@deriving yojson]
 
-let set_broken t broken = Lwt.return {t with broken}
-
-let equal version1 version2 =
-  let%lwt slug1 = slug version1 in
-  let%lwt slug2 = slug version2 in
-  Lwt.return (Slug.equal slug1 slug2)
+  type t = predicate Formula.t
+  [@@deriving yojson]
+end
