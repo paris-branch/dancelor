@@ -6,6 +6,16 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = PersonCore.Filter.t
+
+  val is : PersonCore.t -> t
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -20,5 +30,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  PersonFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t

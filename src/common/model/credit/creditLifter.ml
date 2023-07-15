@@ -33,7 +33,7 @@ module Lift
     let line line = Formula.pred (Line line)
     let lineMatches line = Formula.pred (LineMatches line)
     let existsPerson pfilter = Formula.pred (ExistsPerson pfilter)
-    let memPerson person = existsPerson (PersonFilter.is person)
+    let memPerson person = existsPerson (Person.Filter.is person)
     let forallPersons pfilter = Formula.(not_ (existsPerson (not_ pfilter)))
 
     let raw string = Ok (lineMatches string)
@@ -44,7 +44,7 @@ module Lift
       TextFormula.[
         "line",          raw_only ~convert:no_convert line;
         "line-matches",  raw_only ~convert:no_convert lineMatches;
-        "exists-person", (existsPerson @@@@ PersonFilter.from_text_formula) (* FIXME *)
+        "exists-person", (existsPerson @@@@ Person.Filter.from_text_formula) (* FIXME *)
       ]
 
     let from_text_formula =

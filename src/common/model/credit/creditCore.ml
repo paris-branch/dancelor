@@ -19,7 +19,7 @@ module Filter = struct
     | Is of t
     | Line of string
     | LineMatches of string
-    | ExistsPerson of PersonFilter.t
+    | ExistsPerson of PersonCore.Filter.t
   [@@deriving yojson]
 
   type t = predicate Formula.t
