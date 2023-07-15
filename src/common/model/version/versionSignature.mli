@@ -22,6 +22,8 @@ module Filter : sig
 
   val is : VersionCore.t -> t
 
+  val tune : TuneCore.Filter.t -> t
+
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
 end
 

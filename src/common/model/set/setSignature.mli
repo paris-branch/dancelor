@@ -45,6 +45,10 @@ module Filter : sig
   val is : SetCore.t -> t
   (** [is set] is a filter that matches exactly [set] and only [set]. *)
 
+  val existsVersion : VersionCore.Filter.t -> t
+  (** Filter that matches sets that contain at least one version the passes the
+      version filter. *)
+
   val raw : string -> t TextFormula.or_error
   (** Build a filter appropriate to match raw strings, or fail. *)
 

@@ -78,6 +78,12 @@ type warnings = warning list
 
 val warnings : t -> warnings Lwt.t
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = BookCore.Filter.t
+end
+
 (** {2 API Getters & Setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -94,7 +100,7 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  BookFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t
 
 val update :
