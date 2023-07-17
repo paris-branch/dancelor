@@ -79,10 +79,10 @@ module Lift
       | Error err -> Error err (* FIXME: syntext *)
 
     let nullary_text_predicates = [
-      "reel",       (kind KindFilter.(Version.base (Base.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
-      "jig",        (kind KindFilter.(Version.base (Base.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
-      "strathspey", (kind KindFilter.(Version.base (Base.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
-      "waltz",      (kind KindFilter.(Version.base (Base.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
+      "reel",       (kind KindFilter.(Version.base Kind.Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
+      "jig",        (kind KindFilter.(Version.base Kind.Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
+      "strathspey", (kind KindFilter.(Version.base Kind.Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
+      "waltz",      (kind KindFilter.(Version.base Kind.Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
       "broken",      broken;
     ]
 

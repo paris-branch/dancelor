@@ -29,7 +29,7 @@ module Filter = struct
     | Name of string
     | NameMatches of string
     | Author of CreditCore.Filter.t (** author is defined and passes the filter *)
-    | Kind of KindFilter.Base.t
+    | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
   [@@deriving yojson]
 

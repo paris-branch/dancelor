@@ -75,7 +75,7 @@ module Lift
 
       | Kind kfilter ->
         let%lwt kind = kind tune in
-        KindFilter.Base.accepts kfilter kind
+        Kind.Base.Filter.accepts kfilter kind
 
       | ExistsDance dfilter ->
         let%lwt dances = dances tune in
@@ -93,10 +93,10 @@ module Lift
     let raw string = Ok (nameMatches string)
 
     let nullary_text_predicates = [
-      "reel",       (kind KindFilter.(Base.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind KindFilter.(Base.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind KindFilter.(Base.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind KindFilter.(Base.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
+      "reel",       (kind Kind.Base.(Filter.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
+      "jig",        (kind Kind.Base.(Filter.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
+      "strathspey", (kind Kind.Base.(Filter.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
+      "waltz",      (kind Kind.Base.(Filter.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
     ]
 
     let unary_text_predicates =
@@ -105,7 +105,7 @@ module Lift
         "name-matches", raw_only ~convert:no_convert nameMatches;
         "author",       (author @@@@ Credit.Filter.from_text_formula);
         "by",           (author @@@@ Credit.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-        "kind",         (kind @@@@ KindFilter.Base.from_text_formula);
+        "kind",         (kind @@@@ Kind.Base.Filter.from_text_formula);
         "exists-dance", (existsDance @@@@ Dance.Filter.from_text_formula);
       ]
 

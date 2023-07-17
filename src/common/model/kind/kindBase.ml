@@ -62,3 +62,36 @@ let tempo = function
   | Polka | Reel -> ("2", 108)
   | Strathspey -> ("2", 60)
   | Waltz -> ("2.", 60)
+
+type base_kind = t (* needed for the interface of filters *)
+
+module Filter = struct
+  type predicate =
+    | Is of t
+  [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is kind = Formula.pred (Is kind)
+
+  let accepts filter kind =
+    Formula.interpret filter @@ function
+
+    | Is kind' ->
+      Lwt.return (Formula.interpret_bool (kind = kind'))
+
+  let raw string =
+    match of_string_opt string with
+    | Some kind -> Ok (is kind)
+    | None -> error_fmt "could not interpret \"%s\" as a base kind" string
+
+  let nullary_text_predicates = []
+
+  let unary_text_predicates = []
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
+end

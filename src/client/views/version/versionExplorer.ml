@@ -59,7 +59,7 @@ let filter_to_versionfilter filter =
 
   let tune_kinds =
     filter.tune_kind
-    |> List.map (fun kind -> Version.Filter.kind KindFilter.(Version.base (Base.is kind)))
+    |> List.map (fun kind -> Version.Filter.kind KindFilter.(Version.base (Kind.Base.Filter.is kind)))
     |> or_if_not_empty
   in
 

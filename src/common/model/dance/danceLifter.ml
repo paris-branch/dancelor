@@ -72,10 +72,10 @@ module Lift
     let raw string = Ok (nameMatches string)
 
     let nullary_text_predicates = [
-      "reel",       (kind KindFilter.(Dance.base (Base.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind KindFilter.(Dance.base (Base.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind KindFilter.(Dance.base (Base.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind KindFilter.(Dance.base (Base.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
+      "reel",       (kind KindFilter.(Dance.base Kind.Base.(Filter.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
+      "jig",        (kind KindFilter.(Dance.base Kind.Base.(Filter.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
+      "strathspey", (kind KindFilter.(Dance.base Kind.Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
+      "waltz",      (kind KindFilter.(Dance.base Kind.Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
     ]
 
     let unary_text_predicates =

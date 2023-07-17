@@ -1,45 +1,12 @@
 open Nes
 
-(* Base *)
-
-module Base = struct
-  type predicate =
-    | Is of KindBase.t
-  [@@deriving yojson]
-
-  type t = predicate Formula.t
-  [@@deriving yojson]
-
-  let is kind = Formula.pred (Is kind)
-
-  let accepts filter kind =
-    Formula.interpret filter @@ function
-
-    | Is kind' ->
-      Lwt.return (Formula.interpret_bool (kind = kind'))
-
-  let raw string =
-    match KindBase.of_string_opt string with
-    | Some kind -> Ok (is kind)
-    | None -> error_fmt "could not interpret \"%s\" as a base kind" string
-
-  let nullary_text_predicates = []
-
-  let unary_text_predicates = []
-
-  let from_text_formula =
-    TextFormula.make_to_formula raw
-      nullary_text_predicates
-      unary_text_predicates
-end
-
 (* Version *)
 
 module Version = struct
   type predicate =
     | Is of KindVersion.t
     | BarsEq of int | BarsGt of int | BarsLt of int
-    | Base of Base.t
+    | Base of KindBase.Filter.t
   [@@deriving yojson]
 
   type t = predicate Formula.t
@@ -75,11 +42,11 @@ module Version = struct
 
     | Base bfilter ->
       let (_bars, bkind) = kind in
-      Base.accepts bfilter bkind
+      KindBase.Filter.accepts bfilter bkind
 
   let raw string =
     match KindBase.of_string_opt string with
-    | Some bkind -> Ok (base (Base.is bkind))
+    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
     | None ->
       match KindVersion.of_string_opt string with
       | Some vkind -> Ok (is vkind)
@@ -137,7 +104,7 @@ module Dance = struct
 
   let raw string =
     match KindBase.of_string_opt string with
-    | Some bkind -> Ok (base (Base.is bkind))
+    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
     | None ->
       match KindVersion.of_string_opt string with
       | Some vkind -> Ok (version (Version.is vkind))
