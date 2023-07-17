@@ -53,3 +53,75 @@ let of_yojson = function
 
 let to_pretty_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised:true base)
+
+(* Filters  *)
+
+type version_kind = t (* needed for the inferface of filters *)
+
+module Filter = struct
+  type predicate =
+    | Is of t
+    | BarsEq of int | BarsGt of int | BarsLt of int
+    | Base of KindBase.Filter.t
+  [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+
+  let is kind = Formula.pred (Is kind)
+  let barsEq int = Formula.pred (BarsEq int)
+  let barsNe int = Formula.not_ (barsEq int)
+  let barsGt int = Formula.pred (BarsGt int)
+  let barsGe int = Formula.or_l [ barsEq int; barsGt int ]
+  let barsLt int = Formula.pred (BarsLt int)
+  let barsLe int = Formula.or_l [ barsEq int; barsLt int ]
+
+  let base bfilter = Formula.pred (Base bfilter)
+
+  let accepts filter kind =
+    Formula.interpret filter @@ function
+
+    | Is kind' ->
+      Lwt.return (Formula.interpret_bool (kind = kind'))
+
+    | BarsEq bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars = bars'))
+
+    | BarsGt bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars > bars'))
+
+    | BarsLt bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars < bars'))
+
+    | Base bfilter ->
+      let (_bars, bkind) = kind in
+      KindBase.Filter.accepts bfilter bkind
+
+  let raw string =
+    match KindBase.of_string_opt string with
+    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
+    | None ->
+      match of_string_opt string with
+      | Some vkind -> Ok (is vkind)
+      | None -> error_fmt "could not interpret \"%s\" as a kind for versions" string
+
+  let nullary_text_predicates = []
+
+  let unary_text_predicates =
+    TextFormula.[
+      "bars-eq", raw_only ~convert:convert_int barsEq;
+      "bars-ne", raw_only ~convert:convert_int barsNe;
+      "bars-gt", raw_only ~convert:convert_int barsGt;
+      "bars-ge", raw_only ~convert:convert_int barsGe;
+      "bars-lt", raw_only ~convert:convert_int barsLt;
+      "bars-le", raw_only ~convert:convert_int barsLe;
+    ]
+
+  let from_text_formula =
+    TextFormula.make_to_formula raw
+      nullary_text_predicates
+      unary_text_predicates
+end

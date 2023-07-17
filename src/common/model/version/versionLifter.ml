@@ -61,7 +61,7 @@ module Lift
         let%lwt tune = tune version in
         let%lwt kind = Tune.kind tune in
         let%lwt bars = bars version in
-        KindFilter.Version.accepts kfilter (bars, kind)
+        KindVersion.Filter.accepts kfilter (bars, kind)
 
       | Broken ->
         broken version >|=| Formula.interpret_bool
@@ -79,10 +79,10 @@ module Lift
       | Error err -> Error err (* FIXME: syntext *)
 
     let nullary_text_predicates = [
-      "reel",       (kind KindFilter.(Version.base Kind.Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
-      "jig",        (kind KindFilter.(Version.base Kind.Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
-      "strathspey", (kind KindFilter.(Version.base Kind.Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
-      "waltz",      (kind KindFilter.(Version.base Kind.Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
+      "reel",       (kind Kind.(Version.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
+      "jig",        (kind Kind.(Version.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
+      "strathspey", (kind Kind.(Version.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
+      "waltz",      (kind Kind.(Version.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
       "broken",      broken;
     ]
 
@@ -90,7 +90,7 @@ module Lift
       TextFormula.[
         "tune",    (tune @@@@ Tune.Filter.from_text_formula);
         "key",     raw_only ~convert:(fun s -> match Music.key_of_string_opt s with Some k -> Ok k | None -> Error "not a valid key") key;
-        "kind",    (kind @@@@ KindFilter.Version.from_text_formula);
+        "kind",    (kind @@@@ KindVersion.Filter.from_text_formula);
       ]
       @ (List.map
            (fun (name, pred) ->
