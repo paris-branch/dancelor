@@ -8,6 +8,7 @@ type page =
   | Index
   | BookAll
   | BookCompose
+  | BookEdit of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
   | CreditAdd
   | Credit of CreditCore.t Slug.t
@@ -24,6 +25,7 @@ type page =
   | Version of VersionCore.t Slug.t
 
 let book slug = Book slug
+let bookEdit slug = BookEdit slug
 let credit slug = Credit slug
 let dance slug = Dance slug
 let person slug = Person slug
@@ -33,6 +35,7 @@ let tune slug = Tune slug
 let version slug = Version slug
 
 let unBook = function Book slug -> Some slug | _ -> None
+let unBookEdit = function BookEdit slug -> Some slug | _ -> None
 let unCredit = function Credit slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
 let unPerson = function Person slug -> Some slug | _ -> None
@@ -51,6 +54,7 @@ let routes =
     direct    `GET "/"                Index ;
     direct    `GET "/book/all"        BookAll ;
     direct    `GET "/book/compose"    BookCompose ;
+    with_slug `GET "/book/edit"      (bookEdit, unBookEdit) ;
     with_slug `GET "/book"           (book, unBook) ;
     direct    `GET "/credit/add"      CreditAdd ;
     with_slug `GET "/credit"         (credit, unCredit) ;
