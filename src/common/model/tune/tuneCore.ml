@@ -7,7 +7,7 @@ type t =
     status : Status.t                   [@default Status.bot] ;
     name : string ;
     alternative_names : string list     [@key "alternative-names"] [@default []] ;
-    kind : Kind.base ;
+    kind : Kind.Base.t ;
     author : CreditCore.t Slug.t option [@default None] ;
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;

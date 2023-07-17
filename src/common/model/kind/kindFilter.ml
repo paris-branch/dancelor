@@ -4,7 +4,7 @@ open Nes
 
 module Base = struct
   type predicate =
-    | Is of Kind.base
+    | Is of KindBase.t
   [@@deriving yojson]
 
   type t = predicate Formula.t
@@ -19,7 +19,7 @@ module Base = struct
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
   let raw string =
-    match Kind.base_of_string_opt string with
+    match KindBase.of_string_opt string with
     | Some kind -> Ok (is kind)
     | None -> error_fmt "could not interpret \"%s\" as a base kind" string
 
@@ -78,7 +78,7 @@ module Version = struct
       Base.accepts bfilter bkind
 
   let raw string =
-    match Kind.base_of_string_opt string with
+    match KindBase.of_string_opt string with
     | Some bkind -> Ok (base (Base.is bkind))
     | None ->
       match Kind.version_of_string_opt string with
@@ -136,7 +136,7 @@ module Dance = struct
        | _ -> Lwt.return Formula.interpret_false)
 
   let raw string =
-    match Kind.base_of_string_opt string with
+    match KindBase.of_string_opt string with
     | Some bkind -> Ok (base (Base.is bkind))
     | None ->
       match Kind.version_of_string_opt string with

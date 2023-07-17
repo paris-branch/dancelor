@@ -43,7 +43,7 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
       "", ""
   in
   let%lwt kind = Tune.kind tune in
-  let (tempo_unit, tempo_value) = Kind.base_tempo kind in
+  let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
   let%lwt content = Version.content version in
 
@@ -82,7 +82,7 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     fpf fmt [%blob "template/header.ly"] title subtitle;
 
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.base_to_pretty_string ~capitalised:false kind) source target content
+    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.Base.to_pretty_string ~capitalised:false kind) source target content
   in
   let scheme =
     Format.with_formatter_to_string @@ fun fmt ->

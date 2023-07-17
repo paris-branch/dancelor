@@ -80,7 +80,7 @@ let make_tune_result ~prefix page tune =
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Tune.name tune) page ;
-      Table.Cell.text ~text:(Tune.kind tune >|= Kind.base_to_pretty_string ~capitalised:true) page ;
+      Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
         let%lwt author = Tune.author tune in
         let%lwt content = Formatters.Credit.line author in

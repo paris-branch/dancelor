@@ -134,7 +134,7 @@ let clear t =
 let submit t =
   let name = t.name in
   let alternative_names = if t.alternative = "" then [] else [t.alternative] in
-  let kind = Kind.base_of_string t.kind in
+  let kind = Kind.Base.of_string t.kind in
   let dances = list_dances t in
   let remark = if t.remark = "" then None else Some t.remark in
   let scddb_id =

@@ -99,7 +99,7 @@ module Lift
       match%lwt kind s with
       | (_, []) ->
         add_warning WrongKind;
-        Lwt.return (32, Kind.Reel) (* FIXME *)
+        Lwt.return (32, Kind.Base.Reel) (* FIXME *)
       | (_, [(bars, kind)]) ->
         Lwt.return (bars, kind)
       | (_, (bars, kind) :: _) ->

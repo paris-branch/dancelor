@@ -1,92 +1,24 @@
 open Nes
 
-(* ============================= [ Basic Kind ] ============================= *)
-
-type base =
-  | Jig
-  | Polka
-  | Reel
-  | Strathspey
-  | Waltz
-
-let base_to_char = function
-  | Jig -> 'J'
-  | Polka -> 'P'
-  | Reel -> 'R'
-  | Strathspey -> 'S'
-  | Waltz -> 'W'
-
-let base_of_char c =
-  match Char.uppercase_ascii c with
-  | 'J' -> Jig
-  | 'P' -> Polka
-  | 'R' -> Reel
-  | 'S' -> Strathspey
-  | 'W' -> Waltz
-  | _ -> invalid_arg "Dancelor_common_model.Kind.base_of_char"
-
-let base_to_string b =
-  String.make 1 (base_to_char b)
-
-let base_of_string s =
-  try base_of_char s.[0]
-  with Invalid_argument _ | Failure _ ->
-    invalid_arg "Dancelor_common_model.Kind.base_of_string"
-
-let base_of_string_opt s =
-  try Some (base_of_string s)
-  with Invalid_argument _ -> None
-
-let base_to_yojson b =
-  `String (base_to_string b)
-
-let base_of_yojson = function
-  | `String s ->
-    (try Ok (base_of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind")
-  | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
-
-let base_to_pretty_string ?(capitalised=false) base =
-  (
-    match base with
-    | Jig -> "jig"
-    | Polka -> "polka"
-    | Reel -> "reel"
-    | Strathspey -> "strathspey"
-    | Waltz -> "waltz"
-  )
-  |> if capitalised then String.capitalize_ascii else Fun.id
-
-let base_tempo = function
-  | Jig -> ("4.", 108)
-  | Polka | Reel -> ("2", 108)
-  | Strathspey -> ("2", 60)
-  | Waltz -> ("2.", 60)
-
-module Base = struct
-  type t = base
-  let _key = "kind-base"
-  let to_yojson = base_to_yojson
-  let of_yojson = base_of_yojson
-end
+module Base = KindBase
 
 (* ============================= [ Version Kind ] ============================== *)
 
-type version = int * base
+type version = int * KindBase.t
 
 let version_to_string (repeats, base) =
-  spf "%d %s" repeats (base_to_string base)
+  spf "%d %s" repeats (KindBase.to_string base)
 
 let version_of_string s =
   let s = NesString.remove_char ' ' s in
   try
     ssf s "%d%[a-zA-Z]"
-      (fun repeats base -> (repeats, base_of_string base))
+      (fun repeats base -> (repeats, KindBase.of_string base))
   with
   | End_of_file | Scanf.Scan_failure _ ->
     try
       ssf s "%[a-zA-Z]%d"
-        (fun base repeats -> (repeats, base_of_string base))
+        (fun base repeats -> (repeats, KindBase.of_string base))
     with
     | End_of_file | Scanf.Scan_failure _ ->
       invalid_arg "Dancelor_common_model.Kind.version_of_string"
@@ -122,7 +54,7 @@ let version_of_yojson = function
   | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
 let version_to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (base_to_pretty_string ~capitalised:true base)
+  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised:true base)
 
 module Version = struct
   type t = version

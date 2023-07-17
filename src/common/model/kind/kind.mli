@@ -2,33 +2,11 @@ open Nes
 
 (** {1 Kind} *)
 
-(** {2 Base Kind} *)
-
-type base = Jig | Polka | Reel | Strathspey | Waltz
-
-val base_to_char : base -> char
-val base_of_char : char -> base
-
-val base_to_string : base -> string
-val base_of_string : string -> base
-val base_of_string_opt : string -> base option
-
-val base_to_pretty_string : ?capitalised:bool -> base -> string
-(** Pretty version. Capitalised if the corresponding boolean is set to true
-    (default: false). *)
-
-val base_to_yojson : base -> Json.t
-val base_of_yojson : Json.t -> (base, string) result
-
-val base_tempo : base -> string * int
-(** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
-    for reels. *)
-
-module Base : Madge_common.SERIALISABLE with type t = base
+module Base = KindBase
 
 (** {2 Version Kind} *)
 
-type version = int * base
+type version = int * Base.t
 (** The kind of a version. For instance, [32R]. *)
 
 val version_to_string : version -> string

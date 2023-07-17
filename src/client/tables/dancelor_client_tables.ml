@@ -66,7 +66,7 @@ let tunes tunes =
   in
   clickable_row ~href_lwt [
     Lwt.return [ text_lwt (Tune.name tune) ];
-    Lwt.return [ text_lwt (Tune.kind tune >|=| Kind.base_to_pretty_string ~capitalised:true) ];
+    Lwt.return [ text_lwt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true) ];
     (Tune.author tune >>=| Formatters.Credit.line);
   ]
 

@@ -178,7 +178,7 @@ let make_version_search_result composer page score =
           >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
         ) page;
         Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
-        Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
+        Table.Cell.text ~text:(Lwt.return (Kind.Base.to_pretty_string ~capitalised:true kind)) page;
         Table.Cell.text ~text:(Lwt.return structure) page]
       page
   in

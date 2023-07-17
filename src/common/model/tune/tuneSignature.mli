@@ -6,7 +6,7 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val alternative_names : t -> string list Lwt.t
-val kind : t -> Kind.base Lwt.t
+val kind : t -> Kind.Base.t Lwt.t
 val author : t -> CreditCore.t option Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string Lwt.t
@@ -54,7 +54,7 @@ val make_and_save :
   ?status:Status.t ->
   name:string ->
   ?alternative_names:string list ->
-  kind:Kind.base ->
+  kind:Kind.Base.t ->
   ?author:CreditCore.t ->
   ?dances:DanceCore.t list ->
   ?remark:string ->
