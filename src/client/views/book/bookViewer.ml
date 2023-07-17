@@ -259,7 +259,12 @@ let create slug page =
         h3 [ text "Contents" ];
 
         node_of_dom_node (Table.root ttable :> dom_node)
-      ]
+      ];
+
+      div ~classes:["buttons"] (
+        let href = PageRouter.(path (BookEdit slug)) in
+        [ a ~classes:["button"] ~href [text ("Edit book")] ]
+      )
     ]);
 
   let t = {page; content; table=ttable} in

@@ -52,6 +52,8 @@ let dispatch url =
     pack (module BookExplorer) BookExplorer.create
   | BookCompose ->
     pack (module BookEditorInterface) BookEditorInterface.create
+  | BookEdit slug ->
+    pack (module BookEditorInterface) (BookEditorInterface.update slug)
   | Book slug ->
     pack (module BookViewer) (BookViewer.create slug)
   | CreditAdd ->
