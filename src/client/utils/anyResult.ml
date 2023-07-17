@@ -25,7 +25,7 @@ let make_dance_result ~prefix page dance =
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Dance.name dance) page ;
-      Table.Cell.text ~text:(Dance.kind dance >|= Kind.dance_to_string) page ;
+      Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         let%lwt deviser = Dance.deviser dance in
         let%lwt content = Formatters.Credit.line deviser in
@@ -64,7 +64,7 @@ let make_set_result ~prefix page set =
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Set.name set) page;
-      Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page ;
+      Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         let%lwt deviser = Set.deviser set in
         let%lwt content = Formatters.Credit.line deviser in

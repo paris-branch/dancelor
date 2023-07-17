@@ -84,7 +84,7 @@ let display_contents t contents =
                   let%lwt content = Formatters.Set.name_tunes_and_dance ~link:false set parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
-                Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
+                Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) t.page
               ]
             in
             Table.Row.create ~href ~cells t.page
@@ -99,7 +99,7 @@ let display_contents t contents =
                   let%lwt content = Formatters.Set.name_tunes_and_dance ~link:false set parameters in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
-                Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page
+                Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) t.page
               ]
             in
             Table.Row.create ~cells t.page

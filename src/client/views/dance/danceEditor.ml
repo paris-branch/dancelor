@@ -65,7 +65,7 @@ let clear t =
 
 let submit t =
   let name = t.name in
-  let kind = Kind.dance_of_string t.kind in
+  let kind = Kind.Dance.of_string t.kind in
   let two_chords = t.two_chords in
   let scddb_id =
     if t.scddb_id = "" then

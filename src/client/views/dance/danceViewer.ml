@@ -32,7 +32,7 @@ let create slug page =
       ];
       h3_lwt ~classes:["title"] (
         let kind = [
-          text_lwt (dance_lwt >>=| Dance.kind >|=| Kind.dance_to_pretty_string)
+          text_lwt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
         ] in
         let%lwt by =
           match%lwt dance_lwt >>=| Dance.deviser with

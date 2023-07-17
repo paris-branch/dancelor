@@ -10,7 +10,7 @@ module Ly = struct
       | None -> Set.kind set
       | Some dance -> Dance.kind dance
     in
-    Lwt.return (Kind.dance_to_pretty_string kind)
+    Lwt.return (Kind.Dance.to_pretty_string kind)
 
   let details_line set set_parameters =
     let%lwt dance =

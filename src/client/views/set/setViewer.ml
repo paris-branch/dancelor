@@ -30,7 +30,7 @@ let create slug page =
       h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
       h3_lwt ~classes:["title"] (set_lwt >>=| Formatters.Set.works);
       h3 ~classes:["title"] [
-        text_lwt (set_lwt >>=| Set.kind >|=| Kind.dance_to_pretty_string);
+        text_lwt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
         text " — Play ";
         text_lwt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string)
       ];
