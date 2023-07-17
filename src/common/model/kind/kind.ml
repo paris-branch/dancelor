@@ -1,75 +1,14 @@
 open Nes
 
 module Base = KindBase
-
-(* ============================= [ Version Kind ] ============================== *)
-
-type version = int * KindBase.t
-
-let version_to_string (repeats, base) =
-  spf "%d %s" repeats (KindBase.to_string base)
-
-let version_of_string s =
-  let s = NesString.remove_char ' ' s in
-  try
-    ssf s "%d%[a-zA-Z]"
-      (fun repeats base -> (repeats, KindBase.of_string base))
-  with
-  | End_of_file | Scanf.Scan_failure _ ->
-    try
-      ssf s "%[a-zA-Z]%d"
-        (fun base repeats -> (repeats, KindBase.of_string base))
-    with
-    | End_of_file | Scanf.Scan_failure _ ->
-      invalid_arg "Dancelor_common_model.Kind.version_of_string"
-
-let%test _ = version_to_string (32, Waltz) = "32 W"
-let%test _ = version_to_string (64, Reel) = "64 R"
-let%test _ = version_to_string (24, Jig) = "24 J"
-let%test _ = version_to_string (48, Strathspey) = "48 S"
-
-let%test _ = version_of_string "W 32" = (32, Waltz)
-let%test _ = version_of_string "64 Reel" = (64, Reel)
-let%test _ = version_of_string "JIG 24" = (24, Jig)
-let%test _ = version_of_string "48 sTrathPEY" = (48, Strathspey)
-
-let%test _ =
-  try ignore (version_of_string "R"); false
-  with Invalid_argument _ -> true
-let%test _ =
-  try ignore (version_of_string "8x32R"); false
-  with Invalid_argument _ -> true
-
-let version_of_string_opt string =
-  try Some (version_of_string string)
-  with Invalid_argument _ -> None
-
-let version_to_yojson t =
-  `String (version_to_string t)
-
-let version_of_yojson = function
-  | `String s ->
-    (try Ok (version_of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind")
-  | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
-
-let version_to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised:true base)
-
-module Version = struct
-  type t = version
-  let _key = "kind-version"
-  let to_yojson = version_to_yojson
-  let of_yojson = version_of_yojson
-end
+module Version = KindVersion
 
 (* ============================= [ Dance Kind ] ============================= *)
 
-type dance =
-  int * version list
+type dance = int * KindVersion.t list
 
 let dance_to_string (repeats, versions) =
-  List.map version_to_string versions
+  List.map KindVersion.to_string versions
   |> String.concat " + "
   |> (if repeats = 1 || List.length versions = 1 then id else spf "(%s)")
   |> (if repeats = 1 then id else spf "%d x %s" repeats)
@@ -84,7 +23,7 @@ let dance_of_string s =
     try ssf s "(%[^)])%!" id
     with Scanf.Scan_failure _ -> s
   in
-  (repeats, List.map version_of_string (String.split_on_char '+' s))
+  (repeats, List.map KindVersion.of_string (String.split_on_char '+' s))
 
 let check_dance s =
   match dance_of_string s with
@@ -120,7 +59,7 @@ let dance_of_yojson = function
 
 let dance_to_pretty_string (repeats, versions) =
   versions
-  |> List.map version_to_pretty_string
+  |> List.map KindVersion.to_pretty_string
   |> String.concat " + "
   |> (if repeats = 1 || List.length versions = 1 then Fun.id else spf "(%s)")
   |> (if repeats = 1 then Fun.id else spf "%d x %s" repeats)

@@ -104,7 +104,7 @@ let make_version_result ~prefix page version =
         let%lwt bars = Version.bars version in
         let%lwt kind = Tune.kind tune in
         let%lwt structure = Version.structure version in
-        Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
+        Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
       Table.Cell.create ~content:(
         let%lwt content = Formatters.Version.author_and_arranger version in

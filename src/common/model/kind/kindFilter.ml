@@ -37,7 +37,7 @@ end
 
 module Version = struct
   type predicate =
-    | Is of Kind.version
+    | Is of KindVersion.t
     | BarsEq of int | BarsGt of int | BarsLt of int
     | Base of Base.t
   [@@deriving yojson]
@@ -81,7 +81,7 @@ module Version = struct
     match KindBase.of_string_opt string with
     | Some bkind -> Ok (base (Base.is bkind))
     | None ->
-      match Kind.version_of_string_opt string with
+      match KindVersion.of_string_opt string with
       | Some vkind -> Ok (is vkind)
       | None -> error_fmt "could not interpret \"%s\" as a kind for versions" string
 
@@ -139,7 +139,7 @@ module Dance = struct
     match KindBase.of_string_opt string with
     | Some bkind -> Ok (base (Base.is bkind))
     | None ->
-      match Kind.version_of_string_opt string with
+      match KindVersion.of_string_opt string with
       | Some vkind -> Ok (version (Version.is vkind))
       | None ->
         match Kind.dance_of_string_opt string with

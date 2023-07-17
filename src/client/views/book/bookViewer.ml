@@ -123,7 +123,7 @@ let display_contents t contents =
                 let%lwt kind = Tune.kind tune in
                 let%lwt bars = Version.bars version in
                 let kind = (bars, kind) in
-                Lwt.return (Kind.version_to_string kind)
+                Lwt.return (Kind.Version.to_string kind)
               ) t.page
             ]
             in
