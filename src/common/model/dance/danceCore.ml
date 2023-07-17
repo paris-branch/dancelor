@@ -26,7 +26,7 @@ module Filter = struct
     | Is of t
     | Name of string
     | NameMatches of string
-    | Kind of KindFilter.Dance.t
+    | Kind of Kind.Dance.Filter.t
     | Deviser of CreditCore.Filter.t (** deviser is defined and passes the filter *)
   [@@deriving yojson]
 

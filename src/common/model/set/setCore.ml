@@ -44,7 +44,7 @@ module Filter = struct
     | NameMatches of string
     | Deviser of CreditCore.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
-    | Kind of KindFilter.Dance.t
+    | Kind of KindDance.Filter.t
   [@@deriving yojson]
 
   type t = predicate Formula.t

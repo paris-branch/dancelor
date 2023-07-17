@@ -18,3 +18,23 @@ val check : string -> bool
 
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
+
+(** {2 Filters} *)
+
+type dance_kind = t
+(** Alias for {!t} needed for the type interface of {!Filter}. *)
+
+module Filter : sig
+  type t [@@deriving yojson]
+
+  val accepts : t -> dance_kind -> float Lwt.t
+
+  val is : dance_kind -> t
+  val base : KindBase.Filter.t -> t
+
+  val raw : string -> t TextFormula.or_error
+  val nullary_text_predicates : (string * t) list
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+end
