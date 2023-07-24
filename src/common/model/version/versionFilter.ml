@@ -21,9 +21,7 @@ let kind kfilter = Formula.pred (Kind kfilter)
 let broken = Formula.pred Broken
 
 let raw string =
-  match TuneFilter.raw string with
-  | Ok tfilter -> Ok (tune tfilter)
-  | Error err -> Error err (* FIXME: syntext *)
+  Result.map tune @@ TuneFilter.raw string
 
 let nullary_text_predicates = [
   "reel",       (kind KindFilter.(Version.base (Base.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
@@ -51,3 +49,6 @@ let from_text_formula =
   TextFormula.make_to_formula raw
     nullary_text_predicates
     unary_text_predicates
+
+let from_string ?filename input =
+  from_text_formula (TextFormula.from_string ?filename input)
