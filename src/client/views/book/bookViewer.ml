@@ -1,10 +1,9 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-open Dancelor_common
 module Formatters = Dancelor_client_formatters
-module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -74,7 +73,7 @@ let display_contents t contents =
             let slug = Set.slug set in
             let href =
               let%lwt slug = slug in
-              Lwt.return Router.(path (Set slug))
+              Lwt.return PageRouter.(path (Set slug))
             in
             let cells =
               let open Lwt in
@@ -110,7 +109,7 @@ let display_contents t contents =
             let slug = Version.slug version in
             let href =
               let%lwt slug = slug in
-              Lwt.return Router.(path (Version slug))
+              Lwt.return PageRouter.(path (Version slug))
             in
             let cells = [
               Table.Cell.text ~text:(Lwt.return "Tune") t.page;
@@ -263,7 +262,7 @@ let create slug page =
       ];
 
       div ~classes:["buttons"] (
-        let href = Router.(path (BookEdit slug)) in
+        let href = PageRouter.(path (BookEdit slug)) in
         [ a ~classes:["button"] ~href [text ("Edit book")] ]
       )
     ]);

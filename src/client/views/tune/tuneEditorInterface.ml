@@ -3,7 +3,6 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -256,7 +255,7 @@ let create ?on_save page =
             Lwt.on_success (TuneEditor.submit editor) (fun tune ->
                 Lwt.on_success (Tune.slug tune) (fun slug ->
                     begin match on_save with
-                      | None -> Html.window##.location##.href := js Router.(path (Tune slug))
+                      | None -> Html.window##.location##.href := js PageRouter.(path (Tune slug))
                       | Some cb -> cb slug
                     end))))
       page

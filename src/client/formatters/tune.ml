@@ -1,15 +1,15 @@
 open Nes
+open Dancelor_common
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_client_router
 
 let name ?(link=true) tune =
   let name_text = [text_lwt (M.Tune.name tune)] in
   if link then
     let href_lwt =
       let%lwt slug = M.Tune.slug tune in
-      Lwt.return Router.(path (Tune slug))
+      Lwt.return PageRouter.(path (Tune slug))
     in
     Lwt.return [a ~href_lwt name_text]
   else

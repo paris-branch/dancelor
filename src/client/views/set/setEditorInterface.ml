@@ -1,10 +1,9 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_elements
-open Dancelor_common
 module Formatters = Dancelor_client_formatters
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -365,7 +364,7 @@ let create page =
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (SetEditor.submit composer) (fun set ->
                 Lwt.on_success (Set.slug set) (fun slug ->
-                    let href = Router.(path (Set slug)) in
+                    let href = PageRouter.(path (Set slug)) in
                     Html.window##.location##.href := js href))))
       page
   in

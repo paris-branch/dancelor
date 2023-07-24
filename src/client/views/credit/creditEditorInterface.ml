@@ -3,7 +3,6 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -72,7 +71,7 @@ let make_person_subdiv t index person =
       Style.set ~margin:"0 0 0 5pt" (Inputs.Text.root input_name);
       Dom.appendChild root (Inputs.Text.root input_name)
     | `Person person_ ->
-      let href = Lwt.return Router.(path (Person person_.CreditEditor.slug)) in
+      let href = Lwt.return PageRouter.(path (Person person_.CreditEditor.slug)) in
       let link =
         Text.Link.create
           ~href
@@ -180,7 +179,7 @@ let create ?on_save page =
             Lwt.on_success (CreditEditor.submit editor) (fun credit ->
                 Lwt.on_success (Credit.slug credit) (fun slug ->
                     begin match on_save with
-                      | None -> Html.window##.location##.href := js Router.(path (Credit slug))
+                      | None -> Html.window##.location##.href := js PageRouter.(path (Credit slug))
                       | Some cb -> cb slug
                     end))))
       page

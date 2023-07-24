@@ -1,10 +1,9 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-open Dancelor_common
 module Formatters = Dancelor_client_formatters
-module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -62,7 +61,7 @@ let create slug page =
               Lwt.async @@ fun () ->
               let%lwt href =
                 let%lwt slug = Version.slug (List.hd versions) in
-                Lwt.return Router.(path (Version slug))
+                Lwt.return PageRouter.(path (Version slug))
               in
               Dom_html.window##.location##.href := js href;
               Lwt.return_unit
