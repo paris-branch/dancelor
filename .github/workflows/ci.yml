@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Nix
         uses: cachix/install-nix-action@v23
@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up OCaml
         uses: ocaml/setup-ocaml@v2
@@ -104,7 +104,7 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Nix
         uses: cachix/install-nix-action@v23
