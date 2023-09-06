@@ -3,7 +3,6 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -112,11 +111,8 @@ let create ?on_save page =
                       Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.raw input in
-            let%lwt results =
-              Credit.search ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
-            in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.from_string input in
+            let%lwt results = Credit.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
             Lwt.return_ok results)
         ~make_result:(fun score -> make_deviser_search_result editor page score)
         page
@@ -162,7 +158,7 @@ let create ?on_save page =
             Lwt.on_success (DanceEditor.submit editor) (fun dance ->
                 Lwt.on_success (Dance.slug dance) (fun slug ->
                     begin match on_save with
-                      | None -> Html.window##.location##.href := js Router.(path (Dance slug))
+                      | None -> Html.window##.location##.href := js PageRouter.(path (Dance slug))
                       | Some cb -> cb slug
                     end))))
       page

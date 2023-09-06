@@ -7,4 +7,4 @@
   (pps lwt_ppx js_of_ocaml-ppx))
  (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.common
    dancelor.client.model dancelor.client.elements dancelor.client.html
-   dancelor.client.router dancelor.nes))
+   dancelor.nes))

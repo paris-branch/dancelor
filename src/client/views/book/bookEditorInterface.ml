@@ -1,8 +1,8 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -112,7 +112,7 @@ let create ?on_save page =
     let main_section =
       SearchBar.Section.create
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Set.Filter.raw input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Set.Filter.from_string input in
             let%lwt results =
               Set.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
@@ -142,7 +142,7 @@ let create ?on_save page =
             Lwt.on_success (BookEditor.submit editor) (fun book ->
                 Lwt.on_success (Book.slug book) (fun slug ->
                     begin match on_save with
-                      | None -> Html.window##.location##.href := js Router.(path (Book slug))
+                      | None -> Html.window##.location##.href := js PageRouter.(path (Book slug))
                       | Some cb -> cb slug
                     end))))
       page
@@ -236,7 +236,7 @@ let update slug ?on_save page =
             Lwt.on_success (BookEditor.update_submit editor slug) (fun _ ->
                 begin match on_save with
                   | None ->
-                    let href = Router.(path (Book slug)) in
+                    let href = PageRouter.(path (Book slug)) in
                     Html.window##.location##.href := js href
                   | Some cb -> cb slug
                 end)))

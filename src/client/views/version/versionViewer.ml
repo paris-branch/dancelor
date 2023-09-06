@@ -1,10 +1,9 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-open Dancelor_common
 module Formatters = Dancelor_client_formatters
-module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -97,7 +96,7 @@ let create slug page =
           Inputs.Button.create
             ~on_click:(fun () ->
                 SetEditor.add_to_storage slug;
-                let href = Router.(path SetCompose) in
+                let href = PageRouter.(path SetCompose) in
                 Dom_html.window##.location##.href := js href)
             ~text:("Add to current set") page
         in
@@ -158,7 +157,7 @@ let create slug page =
                 let href_lwt =
                   let%lwt tune = tune_lwt in
                   let%lwt slug = Tune.slug tune in
-                  Lwt.return Router.(path (Tune slug))
+                  Lwt.return PageRouter.(path (Tune slug))
                 in
                 p [
                   text "You can also go to the ";
@@ -218,7 +217,7 @@ let create slug page =
               let href_lwt =
                 let%lwt tune = tune_lwt in
                 let%lwt slug = Tune.slug tune in
-                Lwt.return Router.(path (Tune slug))
+                Lwt.return PageRouter.(path (Tune slug))
               in
               p [
                 text "If you want to see the sets in which this version or ";
@@ -256,7 +255,7 @@ let create slug page =
               let href_lwt =
                 let%lwt tune = tune_lwt in
                 let%lwt slug = Tune.slug tune in
-                Lwt.return Router.(path (Tune slug))
+                Lwt.return PageRouter.(path (Tune slug))
               in
               p [
                 text "If you want to see the books in which this version or ";

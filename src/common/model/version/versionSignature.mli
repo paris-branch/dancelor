@@ -36,6 +36,7 @@ module Filter : sig
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> t TextFormula.or_error
 end
 
 (** {2 Getters and setters} *)

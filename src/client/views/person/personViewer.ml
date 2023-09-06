@@ -1,8 +1,8 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_model
-module Router = Dancelor_client_router
 
 let js = Js.string
 
@@ -46,7 +46,7 @@ let create slug page =
             let slug_lwt = Credit.slug credit in
             let href_lwt =
               let%lwt slug = slug_lwt in
-              Lwt.return Router.(path (Credit slug))
+              Lwt.return PageRouter.(path (Credit slug))
             in
             a ~href_lwt [ text_lwt (Credit.line credit) ]
           in
