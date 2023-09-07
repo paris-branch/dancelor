@@ -26,8 +26,8 @@ let unwrap_map_or ~default f = function
 
 let wrap x = Some x
 
-let wrap_fun f =
-  fun x -> Some (f x)
+let wrap_fun f = fun x ->
+  Some (f x)
 
 let ifsome f = function
   | None -> ()

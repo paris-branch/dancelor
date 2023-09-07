@@ -22,7 +22,7 @@ val of_yojson : Json.t -> (t, string) result
 type version_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
-module Filter : sig
+module Filter: sig
   type t [@@deriving yojson]
 
   val accepts : t -> version_kind -> float Lwt.t

@@ -4,27 +4,28 @@ module PageCore = struct
   let _key = "book-page"
 
   type t =
-    | Version       of VersionCore.t Slug.t * VersionParameters.t
-    | Set           of     SetCore.t Slug.t * SetParameters.t
-    | InlineSet     of     SetCore.t        * SetParameters.t
+    | Version of VersionCore.t Slug.t * VersionParameters.t
+    | Set of SetCore.t Slug.t * SetParameters.t
+    | InlineSet of SetCore.t * SetParameters.t
   [@@deriving yojson]
 end
 
 let _key = "book"
 
-type t =
-  { slug        : t Slug.t ;
-    status      : Status.t   [@default Status.bot] ;
-    title       : string ;
-    subtitle    : string     [@default ""] ;
-    short_title : string     [@default ""] [@key "short-title"] ;
-    date        : PartialDate.t option [@default None] ;
-    contents    : PageCore.t list ;
-    source      : bool       [@default false] ;
-    remark      : string     [@default ""] ;
-    scddb_id    : int option [@default None] [@key "scddb-id"] ;
-    modified_at : Datetime.t [@key "modified-at"] ;
-    created_at  : Datetime.t [@key "created-at"] }
+type t = {
+  slug: t Slug.t;
+  status: Status.t; [@default Status.bot]
+  title: string;
+  subtitle: string; [@default ""]
+  short_title: string; [@default ""] [@key "short-title"]
+  date: PartialDate.t option; [@default None]
+  contents: PageCore.t list;
+  source: bool; [@default false]
+  remark: string; [@default ""]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+  modified_at: Datetime.t; [@key "modified-at"]
+  created_at: Datetime.t [@key "created-at"]
+}
 [@@deriving make, yojson]
 
 let slug book = Lwt.return book.slug
@@ -33,9 +34,11 @@ let contents book = Lwt.return book.contents
 
 let contains_set set1 book =
   List.exists
-    (function
+    (
+      function
       | PageCore.Set (set2, _) -> Slug.equal set1 set2
-      | _ -> false)
+      | _ -> false
+    )
     book.contents
 
 type warning =
@@ -53,9 +56,9 @@ type warnings = warning list
 [@@deriving yojson]
 
 type page =
-  | Version   of VersionCore.t * VersionParameters.t
-  | Set       of     SetCore.t * SetParameters.t
-  | InlineSet of     SetCore.t * SetParameters.t
+  | Version of VersionCore.t * VersionParameters.t
+  | Set of SetCore.t * SetParameters.t
+  | InlineSet of SetCore.t * SetParameters.t
 
 module Filter = struct
   let _key = "book-filter"

@@ -1,9 +1,9 @@
 let foi = float_of_int
 
-let   pf = Format.printf
-let  epf = Format.eprintf
-let  fpf = Format.fprintf
-let  spf = Format.sprintf
+let pf = Format.printf
+let epf = Format.eprintf
+let fpf = Format.fprintf
+let spf = Format.sprintf
 let aspf = Format.asprintf
 
 let ssf = Scanf.sscanf
@@ -42,12 +42,12 @@ let max_l = function
 let pmod a b = ((a mod b) + b) mod b
 let pdiv a b = (a - pmod a b) / b
 
-let%test _ = (pmod (-27)  12 ) + (pdiv (-27)  12 ) *  12 = -27
-let%test _ = (pmod   27 (-12)) + (pdiv   27 (-12)) * -12 =  27
-let%test _ = (pmod    7    7 ) + (pdiv    7    7 ) *   7 =   7
-let%test _ = (pmod  (-4)  67 ) + (pdiv  (-4)  67 ) *  67 =  -4
-let%test _ = (pmod (-67)   4 ) + (pdiv (-67)   4 ) *   4 = -67
-let%test _ = (pmod (-67) (-4)) + (pdiv (-67) (-4)) *  -4 = -67
+let%test _ = (pmod (-27) 12) + (pdiv (-27) 12) * 12 = -27
+let%test _ = (pmod 27 (-12)) + (pdiv 27 (-12)) * -12 = 27
+let%test _ = (pmod 7 7) + (pdiv 7 7) * 7 = 7
+let%test _ = (pmod (-4) 67) + (pdiv (-4) 67) * 67 = -4
+let%test _ = (pmod (-67) 4) + (pdiv (-67) 4) * 4 = -67
+let%test _ = (pmod (-67) (-4)) + (pdiv (-67) (-4)) * -4 = -67
 
 let compare_or cmp1 cmp2 =
   if cmp1 <> 0 then cmp1 else cmp2 ()
@@ -59,12 +59,12 @@ let equal_from_compare cmp x y =
   let%lwt c = cmp x y in
   Lwt.return (c = 0)
 
-let rec first_non_zero ?(or_=0) = function
+let rec first_non_zero ?(or_ = 0) = function
   | [] -> or_
   | first :: rest ->
     match first () with
     | 0 -> first_non_zero ~or_ rest
     | n -> n
 
-let (%) f g = fun x -> f (g x)
-let (%>) f g = fun x -> f x |> g
+let ( % ) f g = fun x -> f (g x)
+let ( %> ) f g = fun x -> f x |> g

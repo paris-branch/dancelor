@@ -10,21 +10,28 @@ let add_field key value = function
 
 let add_fields fields json =
   List.fold_left
-    (fun json (field, value) ->
-       add_field field value json)
+    (
+      fun json (field, value) ->
+        add_field field value json
+    )
     json
     fields
 
 let map_field key fun_ = function
   | `Assoc fields when List.mem_assoc key fields ->
     `Assoc
-      (List.map
-         (fun (key', value) ->
-            (key',
-             if key = key'
-             then fun_ value
-             else value))
-         fields)
+      (
+        List.map
+          (
+            fun (key', value) ->
+              (
+                key',
+                if key = key' then fun_ value
+                else value
+              )
+          )
+          fields
+      )
   | _ -> failwith "NesJson.map_field"
 
 let remove_field key = function
@@ -34,7 +41,7 @@ let remove_field key = function
     failwith "NesJson.remove_field"
 
 let from_string str = Yojson.Safe.from_string str
-let to_string json = Yojson.Safe.pretty_to_string ~std:true json
+let to_string json = Yojson.Safe.pretty_to_string ~std: true json
 
 let rec find_opt path json =
   match path, json with
@@ -49,7 +56,8 @@ let find path json =
   | Some json -> json
 
 let get_opt ~k path json =
-  find_opt path json >>=? fun value ->
+  find_opt path json
+  >>=? fun value ->
   k value
 
 let get ~k path json =
@@ -71,15 +79,17 @@ let int = function
   | _ -> None
 
 let slug json =
-  string json >>=? fun value ->
+  string json
+  >>=? fun value ->
   Some (NesSlug.from_string value)
 
-let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option =
-  function
+let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option = function
   | [] -> Some []
   | x :: l ->
-    f x >>=? fun x' ->
-    list_map_opt f l >>=? fun l' ->
+    f x
+    >>=? fun x' ->
+    list_map_opt f l
+    >>=? fun l' ->
     Some (x' :: l')
 
 let strings = function

@@ -13,12 +13,16 @@ let to_string (repeats, versions) =
 let of_string s =
   let s = String.remove_char ' ' s in
   let (repeats, s) =
-    try ssf s "%dx%n" (fun repeats n -> (repeats, snd (String.split n s)))
-    with Scanf.Scan_failure _ -> (1, s)
+    try
+      ssf s "%dx%n" (fun repeats n -> (repeats, snd (String.split n s)))
+    with
+    | Scanf.Scan_failure _ -> (1, s)
   in
   let s =
-    try ssf s "(%[^)])%!" id
-    with Scanf.Scan_failure _ -> s
+    try
+      ssf s "(%[^)])%!" id
+    with
+    | Scanf.Scan_failure _ -> s
   in
   (repeats, List.map KindVersion.of_string (String.split_on_char '+' s))
 
@@ -38,20 +42,28 @@ let%test _ = of_string "(32W + 64R)" = (1, [(32, Waltz); (64, Reel)])
 let%test _ = of_string "3x40J" = (3, [40, Jig])
 let%test _ = of_string "32R" = (1, [32, Reel])
 let%test _ =
-  try ignore (of_string "R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (of_string "R"); false
+  with
+  | Invalid_argument _ -> true
 
 let of_string_opt s =
-  try Some (of_string s)
-  with Invalid_argument _ -> None
+  try
+    Some (of_string s)
+  with
+  | Invalid_argument _ -> None
 
 let to_yojson d =
   `String (to_string d)
 
 let of_yojson = function
   | `String s ->
-    (try Ok (of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.of_yojson: not a valid dance kind")
+    (
+      try
+        Ok (of_string s)
+      with
+      | _ -> Error "Dancelor_common_model.Kind.of_yojson: not a valid dance kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.of_yojson: not a JSON string"
 
 let to_pretty_string (repeats, versions) =
@@ -80,20 +92,22 @@ module Filter = struct
   let base bfilter = version (KindVersion.Filter.base bfilter)
 
   let accepts filter kind =
-    Formula.interpret filter @@ function
-
+    Formula.interpret filter @@
+    function
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
-
     | Simple ->
-      (match kind with
-       | _, [_] -> Lwt.return Formula.interpret_true
-       | _ -> Lwt.return Formula.interpret_false)
-
+      (
+        match kind with
+        | _, [_] -> Lwt.return Formula.interpret_true
+        | _ -> Lwt.return Formula.interpret_false
+      )
     | Version vfilter ->
-      (match kind with
-       | _, [vkind] -> KindVersion.Filter.accepts vfilter vkind
-       | _ -> Lwt.return Formula.interpret_false)
+      (
+        match kind with
+        | _, [vkind] -> KindVersion.Filter.accepts vfilter vkind
+        | _ -> Lwt.return Formula.interpret_false
+      )
 
   let raw string =
     match KindBase.of_string_opt string with
@@ -111,16 +125,23 @@ module Filter = struct
   (* Unary text_predicates lifted from Versions. *)
   let unary_text_predicates =
     List.map
-      (fun (name, builder) ->
-         (name,
-          (fun formula ->
-             match builder formula with
-             | Ok formula -> Ok (version formula)
-             | Error err -> Error err)))
+      (
+        fun (name, builder) ->
+          (
+            name,
+            (
+              fun formula ->
+                match builder formula with
+                | Ok formula -> Ok (version formula)
+                | Error err -> Error err
+            )
+          )
+      )
       KindVersion.Filter.unary_text_predicates
 
   let from_text_formula =
-    TextFormula.make_to_formula raw
+    TextFormula.make_to_formula
+      raw
       nullary_text_predicates
       unary_text_predicates
 end

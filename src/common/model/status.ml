@@ -12,7 +12,7 @@ type t =
 let bot = Unlocked
 let top = Locked
 
-let eq = (=)
+let eq = ( = )
 
 let gt a b =
   match a, b with
@@ -45,6 +45,10 @@ let from_string = function
 
 let of_yojson = function
   | `String string ->
-    (try Ok (from_string string)
-     with _ -> Error "Dancelor_common_model.Status.of_yojson: not a valid status")
+    (
+      try
+        Ok (from_string string)
+      with
+      | _ -> Error "Dancelor_common_model.Status.of_yojson: not a valid status"
+    )
   | _ -> Error "Dancelor_common_model.Status.of_yojson: not a JSON string"

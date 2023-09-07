@@ -3,15 +3,15 @@ open Dancelor_common
 open Dancelor_client_model
 
 type cached_person = {
-  person : Person.t;
-  slug : Person.t Slug.t
+  person: Person.t;
+  slug: Person.t Slug.t
 }
 
 type t = {
-  mutable name : string;
-  mutable persons : [`Edit of string | `Person of cached_person] option array;
-  mutable count : int;
-  mutable scddb_id : string;
+  mutable name: string;
+  mutable persons: [`Edit of string | `Person of cached_person] option array;
+  mutable count: int;
+  mutable scddb_id: string;
 }
 
 let create () =
@@ -43,19 +43,20 @@ let set_field t i v =
   | _ -> assert false
 
 let insert t data i =
-  if Array.length t.persons = t.count then begin
-    let new_persons = Array.make (t.count * 2) None in
-    Array.blit t.persons 0 new_persons 0 t.count;
-    t.persons <- new_persons ;
-  end;
-  for idx = t.count-1 downto i do
-    t.persons.(idx+1) <- t.persons.(idx)
+  if Array.length t.persons = t.count then
+    (
+      let new_persons = Array.make (t.count * 2) None in
+      Array.blit t.persons 0 new_persons 0 t.count;
+      t.persons <- new_persons;
+    );
+  for idx = t.count - 1 downto i do
+    t.persons.(idx + 1) <- t.persons.(idx)
   done;
   t.count <- t.count + 1;
   match data with
   | `Slug slug ->
     let%lwt person = Person.get slug in
-    t.persons.(min t.count i) <- Some (`Person {person; slug});
+    t.persons.(min t.count i) <- Some (`Person { person; slug });
     Lwt.return ()
   | `New str ->
     t.persons.(min t.count i) <- Some (`Edit str);
@@ -71,34 +72,36 @@ let get t i =
     t.persons.(i)
 
 let remove t i =
-  if i >= 0 && i < t.count then begin
-    t.persons.(i) <- None;
-    for j = i + 1 to t.count - 1 do
-      t.persons.(j-1) <- t.persons.(j);
-      t.persons.(j) <- None;
-    done;
-    t.count <- t.count - 1
-  end
+  if i >= 0 && i < t.count then
+    (
+      t.persons.(i) <- None;
+      for j = i + 1 to t.count - 1 do
+        t.persons.(j - 1) <- t.persons.(j);
+        t.persons.(j) <- None;
+      done;
+      t.count <- t.count - 1
+    )
 
 let move_up t i =
-  if i > 0 && i < t.count then begin
-    let tmp = t.persons.(i-1) in
-    t.persons.(i-1) <- t.persons.(i);
-    t.persons.(i) <- tmp
-  end
+  if i > 0 && i < t.count then
+    (
+      let tmp = t.persons.(i - 1) in
+      t.persons.(i - 1) <- t.persons.(i);
+      t.persons.(i) <- tmp
+    )
 
 let move_down t i =
-  move_up t (i+1)
+  move_up t (i + 1)
 
 let fold t f acc =
   let rec aux acc i =
-    if i < 0 then Lwt.return acc
-    else begin
+    if i < 0 then
+      Lwt.return acc
+    else
       match t.persons.(i) with
-      | None -> aux acc (i-1)
+      | None -> aux acc (i - 1)
       | Some person ->
-        Lwt.bind (f i person acc) (fun acc' -> aux acc' (i-1))
-    end
+        Lwt.bind (f i person acc) (fun acc' -> aux acc' (i - 1))
   in
   aux acc (t.count - 1)
 
@@ -110,7 +113,7 @@ let iter t f =
   done
 
 let list_persons t =
-  fold t (fun _ person acc -> Lwt.return (person::acc)) []
+  fold t (fun _ person acc -> Lwt.return (person :: acc)) []
 
 let clear t =
   t.name <- "";
@@ -127,8 +130,12 @@ let submit t =
       Lwt.return p.person
   in
   let%lwt persons =
-    fold t (fun _ person acc ->
-        Lwt.map (fun p -> p :: acc) (save_and_get_person person))
+    fold
+      t
+      (
+        fun _ person acc ->
+          Lwt.map (fun p -> p :: acc) (save_and_get_person person)
+      )
       []
   in
   (* The fact that the string is an integer will have been checked in the form *)
@@ -145,4 +152,4 @@ let submit t =
   in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
-  Credit.make_and_save ~line:t.name ~persons ?scddb_id ~modified_at ~created_at ()
+  Credit.make_and_save ~line: t.name ~persons ?scddb_id ~modified_at ~created_at ()

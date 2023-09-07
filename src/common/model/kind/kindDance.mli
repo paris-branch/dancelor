@@ -24,7 +24,7 @@ val of_yojson : Json.t -> (t, string) result
 type dance_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
-module Filter : sig
+module Filter: sig
   type t [@@deriving yojson]
 
   val accepts : t -> dance_kind -> float Lwt.t

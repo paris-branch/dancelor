@@ -3,8 +3,8 @@ open Madge_common
 module Arguments = struct
   let filter = arg (module AnyCore.Filter)
   let pagination = optarg (module Pagination)
-  let threshold = optarg ~key:"threshold" (module MFloat)
+  let threshold = optarg ~key: "threshold" (module MFloat)
 end
 
-let search = endpoint ~path:"/any/search" (module MList (Score.Make_Serialisable (AnyCore)))
-let count = endpoint ~path:"/any/count" (module MInteger)
+let search = endpoint ~path: "/any/search" (module MList(Score.Make_Serialisable(AnyCore)))
+let count = endpoint ~path: "/any/count" (module MInteger)

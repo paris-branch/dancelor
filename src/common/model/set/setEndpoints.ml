@@ -5,26 +5,26 @@ open Madge_common
 (* FIXME: to be converted into new-style ones. *)
 
 module Arguments = struct
-  let slug = arg ~key:"slug" (module MSlug(SetCore))
+  let slug = arg ~key: "slug" (module MSlug(SetCore))
   let status = optarg (module Status)
-  let name = arg ~key:"name" (module MString)
-  let deviser = optarg ~key:"deviser" (module CreditCore)
-  let kind = arg ~key:"kind" (module Kind.Dance)
-  let versions_and_parameters = optarg ~key:"versions-and-parameters" (module MList(MPair(VersionCore)(VersionParameters)))
+  let name = arg ~key: "name" (module MString)
+  let deviser = optarg ~key: "deviser" (module CreditCore)
+  let kind = arg ~key: "kind" (module Kind.Dance)
+  let versions_and_parameters = optarg ~key: "versions-and-parameters" (module MList(MPair(VersionCore)(VersionParameters)))
   let order = arg (module SetOrder)
-  let dances = optarg ~key:"dances" (module MList(DanceCore))
+  let dances = optarg ~key: "dances" (module MList(DanceCore))
   let filter = arg (module SetCore.Filter)
   let pagination = optarg (module Pagination)
-  let threshold = optarg ~key:"threshold" (module MFloat)
-  let modified_at = arg ~key:"modified-at" (module NesDatetime)
-  let created_at = arg ~key:"created-at" (module NesDatetime)
+  let threshold = optarg ~key: "threshold" (module MFloat)
+  let modified_at = arg ~key: "modified-at" (module NesDatetime)
+  let created_at = arg ~key: "created-at" (module NesDatetime)
 end
 
-let get = endpoint ~path:"/set" (module SetCore)
-let make_and_save = endpoint ~path:"/set/save" (module SetCore)
-let delete = endpoint ~path:"/set/delete" (module MUnit)
-let search = endpoint ~path:"/set/search" (module MList(Score.Make_Serialisable(SetCore)))
-let count = endpoint ~path:"/set/count" (module MInteger)
+let get = endpoint ~path: "/set" (module SetCore)
+let make_and_save = endpoint ~path: "/set/save" (module SetCore)
+let delete = endpoint ~path: "/set/delete" (module MUnit)
+let search = endpoint ~path: "/set/search" (module MList(Score.Make_Serialisable(SetCore)))
+let count = endpoint ~path: "/set/count" (module MInteger)
 
 (* New-style Endpoints *)
 
@@ -37,17 +37,26 @@ type t =
 
 let routes : t route list =
   [
-    with_slug_and_query `GET "/" ~ext:"ly"
+    with_slug_and_query
+      `GET
+      "/"
+      ~ext: "ly"
       (fun slug query -> Ly (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
-      (function
+      (
+        function
         | Ly (slug, None) -> Some (slug, MQ.empty)
         | Ly (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params)
-        | _ -> None) ;
-
-    with_slug_and_query `GET "/" ~ext:"pdf"
+        | _ -> None
+      );
+    with_slug_and_query
+      `GET
+      "/"
+      ~ext: "pdf"
       (fun slug query -> Pdf (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
-      (function
+      (
+        function
         | Pdf (slug, None) -> Some (slug, MQ.empty)
         | Pdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params)
-        | _ -> None) ;
+        | _ -> None
+      );
   ]

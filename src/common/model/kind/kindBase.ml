@@ -29,24 +29,32 @@ let to_string b =
   String.make 1 (to_char b)
 
 let of_string s =
-  try of_char s.[0]
-  with Invalid_argument _ | Failure _ ->
+  try
+    of_char s.[0]
+  with
+  | Invalid_argument _ | Failure _ ->
     invalid_arg "Dancelor_common_model.Kind.base_of_string"
 
 let of_string_opt s =
-  try Some (of_string s)
-  with Invalid_argument _ -> None
+  try
+    Some (of_string s)
+  with
+  | Invalid_argument _ -> None
 
 let to_yojson b =
   `String (to_string b)
 
 let of_yojson = function
   | `String s ->
-    (try Ok (of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind")
+    (
+      try
+        Ok (of_string s)
+      with
+      | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
 
-let to_pretty_string ?(capitalised=false) base =
+let to_pretty_string ?(capitalised = false) base =
   (
     match base with
     | Jig -> "jig"
@@ -76,8 +84,8 @@ module Filter = struct
   let is kind = Formula.pred (Is kind)
 
   let accepts filter kind =
-    Formula.interpret filter @@ function
-
+    Formula.interpret filter @@
+    function
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
@@ -91,7 +99,8 @@ module Filter = struct
   let unary_text_predicates = []
 
   let from_text_formula =
-    TextFormula.make_to_formula raw
+    TextFormula.make_to_formula
+      raw
       nullary_text_predicates
       unary_text_predicates
 end

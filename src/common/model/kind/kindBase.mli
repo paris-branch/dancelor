@@ -13,7 +13,7 @@ val to_string : t -> string
 val of_string : string -> t
 val of_string_opt : string -> t option
 
-val to_pretty_string : ?capitalised:bool -> t -> string
+val to_pretty_string : ?capitalised: bool -> t -> string
 (** Pretty version. Capitalised if the corresponding boolean is set to true
     (default: false). *)
 
@@ -29,7 +29,7 @@ val tempo : t -> string * int
 type base_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
-module Filter : sig
+module Filter: sig
   type t [@@deriving yojson]
 
   val accepts : t -> base_kind -> float Lwt.t

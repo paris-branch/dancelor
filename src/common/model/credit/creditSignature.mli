@@ -14,7 +14,7 @@ val equal : t -> t -> bool Lwt.t
 
 (** {2 Filters} *)
 
-module Filter : sig
+module Filter: sig
   type t = CreditCore.Filter.t
 
   val accepts : t -> CreditCore.t -> float Lwt.t
@@ -27,7 +27,7 @@ module Filter : sig
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_string : ?filename: string -> string -> t TextFormula.or_error
 end
 
 (** {2 Getters and setters} *)
@@ -35,16 +35,17 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  line:string ->
-  ?persons:PersonCore.t list ->
-  ?scddb_id:int ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  line: string ->
+  ?persons: PersonCore.t list ->
+  ?scddb_id: int ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   Filter.t ->
   t Score.t list Lwt.t

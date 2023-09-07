@@ -11,16 +11,22 @@ let on_load _ev =
   let page = Page.create () in
   let header = Header.create page in
   Header.add_menu_entry header "Search" PageRouter.(path (Search None));
-  Header.add_dropdown_menu_entry header "Explore" [
-    "Tunes", PageRouter.(path VersionAll);
-    "Sets",  PageRouter.(path SetAll);
-    "Books", PageRouter.(path BookAll);
-  ];
-  Header.add_dropdown_menu_entry header "Add" [
-    "Tune", PageRouter.(path VersionAdd);
-    "Set",  PageRouter.(path SetCompose);
-    "Book",  PageRouter.(path BookCompose);
-  ];
+  Header.add_dropdown_menu_entry
+    header
+    "Explore"
+    [
+      "Tunes", PageRouter.(path VersionAll);
+      "Sets", PageRouter.(path SetAll);
+      "Books", PageRouter.(path BookAll);
+    ];
+  Header.add_dropdown_menu_entry
+    header
+    "Add"
+    [
+      "Tune", PageRouter.(path VersionAdd);
+      "Set", PageRouter.(path SetCompose);
+      "Book", PageRouter.(path BookCompose);
+    ];
   Page.set_header page (Header.contents header);
   let url =
     Html.window##.location##.href

@@ -10,12 +10,16 @@ let to_string (repeats, base) =
 let of_string s =
   let s = NesString.remove_char ' ' s in
   try
-    ssf s "%d%[a-zA-Z]"
+    ssf
+      s
+      "%d%[a-zA-Z]"
       (fun repeats base -> (repeats, KindBase.of_string base))
   with
   | End_of_file | Scanf.Scan_failure _ ->
     try
-      ssf s "%[a-zA-Z]%d"
+      ssf
+        s
+        "%[a-zA-Z]%d"
         (fun base repeats -> (repeats, KindBase.of_string base))
     with
     | End_of_file | Scanf.Scan_failure _ ->
@@ -32,27 +36,37 @@ let%test _ = of_string "JIG 24" = (24, Jig)
 let%test _ = of_string "48 sTrathPEY" = (48, Strathspey)
 
 let%test _ =
-  try ignore (of_string "R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (of_string "R"); false
+  with
+  | Invalid_argument _ -> true
 let%test _ =
-  try ignore (of_string "8x32R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (of_string "8x32R"); false
+  with
+  | Invalid_argument _ -> true
 
 let of_string_opt string =
-  try Some (of_string string)
-  with Invalid_argument _ -> None
+  try
+    Some (of_string string)
+  with
+  | Invalid_argument _ -> None
 
 let to_yojson t =
   `String (to_string t)
 
 let of_yojson = function
   | `String s ->
-    (try Ok (of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind")
+    (
+      try
+        Ok (of_string s)
+      with
+      | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
 let to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised:true base)
+  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised: true base)
 
 (* Filters  *)
 
@@ -61,7 +75,9 @@ type version_kind = t (* needed for the inferface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-    | BarsEq of int | BarsGt of int | BarsLt of int
+    | BarsEq of int
+    | BarsGt of int
+    | BarsLt of int
     | Base of KindBase.Filter.t
   [@@deriving yojson]
 
@@ -72,30 +88,26 @@ module Filter = struct
   let barsEq int = Formula.pred (BarsEq int)
   let barsNe int = Formula.not_ (barsEq int)
   let barsGt int = Formula.pred (BarsGt int)
-  let barsGe int = Formula.or_l [ barsEq int; barsGt int ]
+  let barsGe int = Formula.or_l [barsEq int; barsGt int]
   let barsLt int = Formula.pred (BarsLt int)
-  let barsLe int = Formula.or_l [ barsEq int; barsLt int ]
+  let barsLe int = Formula.or_l [barsEq int; barsLt int]
 
   let base bfilter = Formula.pred (Base bfilter)
 
   let accepts filter kind =
-    Formula.interpret filter @@ function
-
+    Formula.interpret filter @@
+    function
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
-
     | BarsEq bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars = bars'))
-
     | BarsGt bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars > bars'))
-
     | BarsLt bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars < bars'))
-
     | Base bfilter ->
       let (_bars, bkind) = kind in
       KindBase.Filter.accepts bfilter bkind
@@ -112,16 +124,17 @@ module Filter = struct
 
   let unary_text_predicates =
     TextFormula.[
-      "bars-eq", raw_only ~convert:convert_int barsEq;
-      "bars-ne", raw_only ~convert:convert_int barsNe;
-      "bars-gt", raw_only ~convert:convert_int barsGt;
-      "bars-ge", raw_only ~convert:convert_int barsGe;
-      "bars-lt", raw_only ~convert:convert_int barsLt;
-      "bars-le", raw_only ~convert:convert_int barsLe;
+      "bars-eq", raw_only ~convert: convert_int barsEq;
+      "bars-ne", raw_only ~convert: convert_int barsNe;
+      "bars-gt", raw_only ~convert: convert_int barsGt;
+      "bars-ge", raw_only ~convert: convert_int barsGe;
+      "bars-lt", raw_only ~convert: convert_int barsLt;
+      "bars-le", raw_only ~convert: convert_int barsLe;
     ]
 
   let from_text_formula =
-    TextFormula.make_to_formula raw
+    TextFormula.make_to_formula
+      raw
       nullary_text_predicates
       unary_text_predicates
 end

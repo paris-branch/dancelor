@@ -1,15 +1,21 @@
 open Nes
 
 module Lift
-    (Person : module type of PersonSignature)
+    (Person: module type of PersonSignature)
 = struct
   include CreditCore
 
   let make
-      ~slug ?status ~line ?persons ?scddb_id ~modified_at ~created_at
+      ~slug
+      ?status
+      ~line
+      ?persons
+      ?scddb_id
+      ~modified_at
+      ~created_at
       ()
     =
-    let line = String.remove_duplicates ~char:' ' line in
+    let line = String.remove_duplicates ~char: ' ' line in
     make ~slug ?status ~line ?persons ?scddb_id ~modified_at ~created_at ()
 
   let line c = Lwt.return c.line
@@ -29,19 +35,16 @@ module Lift
 
     let accepts filter credit =
       let char_equal = Char.Sensible.equal in
-      Formula.interpret filter @@ function
-
+      Formula.interpret filter @@
+      function
       | Is credit' ->
         equal credit credit' >|=| Formula.interpret_bool
-
       | Line string ->
         let%lwt line = line credit in
         Lwt.return (String.proximity ~char_equal string line)
-
       | LineMatches string ->
         let%lwt line = line credit in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string line)
-
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle: string line)
       | ExistsPerson pfilter ->
         persons credit
         >>=| Formula.interpret_exists (Person.Filter.accepts pfilter)
@@ -59,13 +62,14 @@ module Lift
 
     let unary_text_predicates =
       TextFormula.[
-        "line",          raw_only ~convert:no_convert line;
-        "line-matches",  raw_only ~convert:no_convert lineMatches;
+        "line", raw_only ~convert: no_convert line;
+        "line-matches", raw_only ~convert: no_convert lineMatches;
         "exists-person", (existsPerson @@@@ Person.Filter.from_text_formula) (* FIXME *)
       ]
 
     let from_text_formula =
-      TextFormula.make_to_formula raw
+      TextFormula.make_to_formula
+        raw
         nullary_text_predicates
         unary_text_predicates
 

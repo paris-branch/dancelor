@@ -51,31 +51,33 @@ let routes =
      ones. For instance, the [with_slug] corresponding to "/book/{slug}" should
      come after "/book/all", so as to avoid matching "all" as a slug. *)
   [
-    direct    `GET "/"                Index ;
-    direct    `GET "/book/all"        BookAll ;
-    direct    `GET "/book/compose"    BookCompose ;
-    with_slug `GET "/book/edit"      (bookEdit, unBookEdit) ;
-    with_slug `GET "/book"           (book, unBook) ;
-    direct    `GET "/credit/add"      CreditAdd ;
-    with_slug `GET "/credit"         (credit, unCredit) ;
-    with_slug `GET "/dance"          (dance, unDance) ;
-    with_slug `GET "/person"         (person, unPerson) ;
-
-    with_query `GET "/search"
+    direct `GET "/" Index;
+    direct `GET "/book/all" BookAll;
+    direct `GET "/book/compose" BookCompose;
+    with_slug `GET "/book/edit" (bookEdit, unBookEdit);
+    with_slug `GET "/book" (book, unBook);
+    direct `GET "/credit/add" CreditAdd;
+    with_slug `GET "/credit" (credit, unCredit);
+    with_slug `GET "/dance" (dance, unDance);
+    with_slug `GET "/person" (person, unPerson);
+    with_query
+      `GET
+      "/search"
       (fun query -> search @@ MQ.get_string "q" query)
-      (function
+      (
+        function
         | Search None -> Some MQ.empty
         | Search (Some q) -> Option.some @@ MQ.singleton "q" (`String q)
-        | _ -> None) ;
-
-    direct    `GET "/set/all"         SetAll ;
-    direct    `GET "/set/compose"     SetCompose ;
-    with_slug `GET "/set"            (set, unSet) ;
-    with_slug `GET "/tune"           (tune, unTune) ;
-    direct    `GET "/version/add"     VersionAdd ;
-    direct    `GET "/version/all"     VersionAll ;
-    direct    `GET "/version/broken"  VersionBroken ;
-    with_slug `GET "/version"        (version, unVersion) ;
+        | _ -> None
+      );
+    direct `GET "/set/all" SetAll;
+    direct `GET "/set/compose" SetCompose;
+    with_slug `GET "/set" (set, unSet);
+    with_slug `GET "/tune" (tune, unTune);
+    direct `GET "/version/add" VersionAdd;
+    direct `GET "/version/all" VersionAll;
+    direct `GET "/version/broken" VersionBroken;
+    with_slug `GET "/version" (version, unVersion);
   ]
 
 let path page = Madge_router.((resource_to_request page routes).path)

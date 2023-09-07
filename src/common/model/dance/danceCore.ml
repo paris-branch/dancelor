@@ -2,17 +2,18 @@ open Nes
 
 let _key = "dance"
 
-type t =
-  { slug : t Slug.t ;
-    status : Status.t [@default Status.bot] ;
-    name : string ;
-    kind : Kind.Dance.t ;
-    deviser : CreditCore.t Slug.t option [@default None] ;
-    two_chords : bool [@default false] [@key "two-chords"] ;
-    scddb_id : int option [@default None] [@key "scddb-id"] ;
-    disambiguation : string [@default ""] ;
-    modified_at : Datetime.t [@key "modified-at"] ;
-    created_at  : Datetime.t [@key "created-at"] }
+type t = {
+  slug: t Slug.t;
+  status: Status.t; [@default Status.bot]
+  name: string;
+  kind: Kind.Dance.t;
+  deviser: CreditCore.t Slug.t option; [@default None]
+  two_chords: bool; [@default false] [@key "two-chords"]
+  scddb_id: int option; [@default None] [@key "scddb-id"]
+  disambiguation: string; [@default ""]
+  modified_at: Datetime.t; [@key "modified-at"]
+  created_at: Datetime.t [@key "created-at"]
+}
 [@@deriving make, yojson]
 
 let slug d = Lwt.return d.slug

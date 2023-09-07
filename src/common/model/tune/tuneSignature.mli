@@ -17,7 +17,7 @@ val equal : t -> t -> bool Lwt.t
 
 (** {2 Filters} *)
 
-module Filter : sig
+module Filter: sig
   type t = TuneCore.Filter.t
 
   val accepts : t -> TuneCore.t -> float Lwt.t
@@ -45,7 +45,7 @@ module Filter : sig
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
   (** Build a filter from a text formula, or fail. *)
 
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_string : ?filename: string -> string -> t TextFormula.or_error
   (** Build a fliter from a string, or fail. *)
 end
 
@@ -54,20 +54,21 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
-  ?alternative_names:string list ->
-  kind:Kind.Base.t ->
-  ?author:CreditCore.t ->
-  ?dances:DanceCore.t list ->
-  ?remark:string ->
-  ?scddb_id:int ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  name: string ->
+  ?alternative_names: string list ->
+  kind: Kind.Base.t ->
+  ?author: CreditCore.t ->
+  ?dances: DanceCore.t list ->
+  ?remark: string ->
+  ?scddb_id: int ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   Filter.t ->
   t Score.t list Lwt.t

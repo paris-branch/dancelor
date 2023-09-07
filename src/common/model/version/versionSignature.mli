@@ -19,7 +19,7 @@ val equal : t -> t -> bool Lwt.t
 
 (** {2 Filters} *)
 
-module Filter : sig
+module Filter: sig
   type t = VersionCore.Filter.t
 
   val accepts : t -> VersionCore.t -> float Lwt.t
@@ -36,7 +36,7 @@ module Filter : sig
   val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_string : ?filename: string -> string -> t TextFormula.or_error
 end
 
 (** {2 Getters and setters} *)
@@ -44,28 +44,29 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  tune:TuneCore.t ->
-  bars:int ->
-  key:Music.key ->
-  structure:string ->
-  ?arranger:CreditCore.t ->
-  ?remark:string ->
-  ?disambiguation:string ->
-  ?broken:bool ->
-  content:string ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  tune: TuneCore.t ->
+  bars: int ->
+  key: Music.key ->
+  structure: string ->
+  ?arranger: CreditCore.t ->
+  ?remark: string ->
+  ?disambiguation: string ->
+  ?broken: bool ->
+  content: string ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val search :
-  ?pagination:Pagination.t ->
-  ?threshold:float ->
+  ?pagination: Pagination.t ->
+  ?threshold: float ->
   Filter.t ->
   t Score.t list Lwt.t
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 

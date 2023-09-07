@@ -1,17 +1,25 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
+    (Credit: module type of CreditSignature)
 = struct
   include DanceCore
 
   let make
-      ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id
-      ?disambiguation ~modified_at ~created_at
+      ?status
+      ~slug
+      ~name
+      ~kind
+      ?deviser
+      ~two_chords
+      ?scddb_id
+      ?disambiguation
+      ~modified_at
+      ~created_at
       ()
     =
-    let name = String.remove_duplicates ~char:' ' name in
-    let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
+    let name = String.remove_duplicates ~char: ' ' name in
+    let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
     let%lwt deviser =
       match deviser with
       | None -> Lwt.return_none
@@ -19,10 +27,21 @@ module Lift
         let%lwt deviser = Credit.slug deviser in
         Lwt.return_some deviser
     in
-    Lwt.return (make
-                  ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id
-                  ?disambiguation ~modified_at ~created_at
-                  ())
+    Lwt.return
+      (
+        make
+          ?status
+          ~slug
+          ~name
+          ~kind
+          ~deviser
+          ~two_chords
+          ~scddb_id
+          ?disambiguation
+          ~modified_at
+          ~created_at
+          ()
+      )
 
   let name d = Lwt.return d.name
   let kind d = Lwt.return d.kind
@@ -41,27 +60,25 @@ module Lift
 
     let accepts filter dance =
       let char_equal = Char.Sensible.equal in
-      Formula.interpret filter @@ function
-
+      Formula.interpret filter @@
+      function
       | Is dance' ->
         equal dance dance' >|=| Formula.interpret_bool
-
       | Name string ->
         let%lwt name = name dance in
         Lwt.return (String.proximity ~char_equal string name)
-
       | NameMatches string ->
         let%lwt name = name dance in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
-
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle: string name)
       | Kind kfilter ->
         let%lwt kind = kind dance in
         Kind.Dance.Filter.accepts kfilter kind
-
       | Deviser cfilter ->
-        (match%lwt deviser dance with
-         | None -> Lwt.return Formula.interpret_false
-         | Some deviser -> Credit.Filter.accepts cfilter deviser)
+        (
+          match%lwt deviser dance with
+          | None -> Lwt.return Formula.interpret_false
+          | Some deviser -> Credit.Filter.accepts cfilter deviser
+        )
 
     let is dance = Formula.pred (Is dance)
     let name name = Formula.pred (Name name)
@@ -71,24 +88,26 @@ module Lift
 
     let raw string = Ok (nameMatches string)
 
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.(Dance.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind Kind.(Dance.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
-    ]
+    let nullary_text_predicates =
+      [
+        "reel", (kind Kind.(Dance.Filter.base Base.(Filter.is Reel))); (* alias for kind:reel       FIXNE: make this clearer *)
+        "jig", (kind Kind.(Dance.Filter.base Base.(Filter.is Jig))); (* alias for kind:jig        FIXNE: make this clearer *)
+        "strathspey", (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
+        "waltz", (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz))); (* alias for kind:waltz      FIXNE: make this clearer *)
+      ]
 
     let unary_text_predicates =
       TextFormula.[
-        "name",         raw_only ~convert:no_convert name;
-        "name-matches", raw_only ~convert:no_convert nameMatches;
-        "kind",         (kind @@@@ Kind.Dance.Filter.from_text_formula);
-        "deviser",      (deviser @@@@ Credit.Filter.from_text_formula);
-        "by",           (deviser @@@@ Credit.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+        "name", raw_only ~convert: no_convert name;
+        "name-matches", raw_only ~convert: no_convert nameMatches;
+        "kind", (kind @@@@ Kind.Dance.Filter.from_text_formula);
+        "deviser", (deviser @@@@ Credit.Filter.from_text_formula);
+        "by", (deviser @@@@ Credit.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
       ]
 
     let from_text_formula =
-      TextFormula.make_to_formula raw
+      TextFormula.make_to_formula
+        raw
         nullary_text_predicates
         unary_text_predicates
 

@@ -4,10 +4,14 @@ module Lift () = struct
   include PersonCore
 
   let make
-      ~slug ?status ~name ~modified_at ~created_at
+      ~slug
+      ?status
+      ~name
+      ~modified_at
+      ~created_at
       ()
     =
-    let name = String.remove_duplicates ~char:' ' name in
+    let name = String.remove_duplicates ~char: ' ' name in
     make ~slug ?status ~name ~modified_at ~created_at ()
 
   let name p = Lwt.return p.name
@@ -22,18 +26,16 @@ module Lift () = struct
 
     let accepts filter person =
       let char_equal = Char.Sensible.equal in
-      Formula.interpret filter @@ function
-
+      Formula.interpret filter @@
+      function
       | Is person' ->
         equal person person' >|=| Formula.interpret_bool
-
       | Name string ->
         let%lwt name = name person in
         Lwt.return (String.proximity ~char_equal string name)
-
       | NameMatches string ->
         let%lwt name = name person in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle: string name)
 
     let is person = Formula.pred (Is person)
     let name name = Formula.pred (Name name)
@@ -45,12 +47,13 @@ module Lift () = struct
 
     let unary_text_predicates =
       TextFormula.[
-        "name",         raw_only ~convert:no_convert name;
-        "name-matches", raw_only ~convert:no_convert nameMatches
+        "name", raw_only ~convert: no_convert name;
+        "name-matches", raw_only ~convert: no_convert nameMatches
       ]
 
     let from_text_formula =
-      TextFormula.make_to_formula raw
+      TextFormula.make_to_formula
+        raw
         nullary_text_predicates
         unary_text_predicates
 
