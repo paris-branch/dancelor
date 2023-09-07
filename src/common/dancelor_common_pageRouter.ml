@@ -13,7 +13,6 @@ type page =
   | CreditAdd
   | Credit of CreditCore.t Slug.t
   | Dance of DanceCore.t Slug.t
-  | Person of PersonCore.t Slug.t
   | Search of string option
   | SetAll
   | SetCompose
@@ -28,7 +27,6 @@ let book slug = Book slug
 let bookEdit slug = BookEdit slug
 let credit slug = Credit slug
 let dance slug = Dance slug
-let person slug = Person slug
 let search q = Search q
 let set slug = Set slug
 let tune slug = Tune slug
@@ -38,7 +36,6 @@ let unBook = function Book slug -> Some slug | _ -> None
 let unBookEdit = function BookEdit slug -> Some slug | _ -> None
 let unCredit = function Credit slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
-let unPerson = function Person slug -> Some slug | _ -> None
 let unSet = function Set slug -> Some slug | _ -> None
 let unTune = function Tune slug -> Some slug | _ -> None
 let unVersion = function Version slug -> Some slug | _ -> None
@@ -59,7 +56,6 @@ let routes =
     direct    `GET "/credit/add"      CreditAdd ;
     with_slug `GET "/credit"         (credit, unCredit) ;
     with_slug `GET "/dance"          (dance, unDance) ;
-    with_slug `GET "/person"         (person, unPerson) ;
 
     with_query `GET "/search"
       (fun query -> search @@ MQ.get_string "q" query)

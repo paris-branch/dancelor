@@ -4,7 +4,6 @@ module Arguments = struct
   let slug = arg ~key:"slug" (module MSlug(CreditCore))
   let status = optarg (module Status)
   let line = arg ~key:"line" (module MString)
-  let persons = optarg ~key:"persons" (module MList(PersonCore))
   let scddb_id = optarg ~key:"scddb_id" (module MInteger)
   let pagination = optarg (module Pagination)
   let filter = arg (module CreditCore.Filter)

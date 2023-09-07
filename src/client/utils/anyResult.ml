@@ -35,16 +35,6 @@ let make_dance_result ~prefix page dance =
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
-let make_person_result ~prefix page person =
-  let%lwt slug = Person.slug person in
-  let href = Lwt.return PageRouter.(path (Person slug)) in
-  let cells =
-    prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Person.name person) page
-    ]
-  in
-  Lwt.return (Table.Row.create ~href ~cells page)
-
 let make_book_result ~prefix page book =
   let%lwt slug = Book.slug book in
   let href = Lwt.return PageRouter.(path (Book slug)) in
@@ -124,7 +114,6 @@ let make_result page score =
   match any with
   | Credit credit   -> make_credit_result  ~prefix page credit
   | Dance dance     -> make_dance_result   ~prefix page dance
-  | Person person   -> make_person_result  ~prefix page person
   | Book book       -> make_book_result    ~prefix page book
   | Set set         -> make_set_result     ~prefix page set
   | Tune tune       -> make_tune_result    ~prefix page tune
