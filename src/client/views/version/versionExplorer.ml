@@ -47,31 +47,31 @@ let filter_to_versionfilter filter =
 
   let tunes =
     tunes
-    |> List.map VersionFilter.tuneIs
+    |> List.map Version.Filter.tuneIs
     |> or_if_not_empty
   in
 
   let tune_authors =
     tune_authors
-    |> List.map (fun author -> VersionFilter.tune (TuneFilter.authorIs author))
+    |> List.map (fun author -> Version.Filter.tune (Tune.Filter.authorIs author))
     |> or_if_not_empty
   in
 
   let tune_kinds =
     filter.tune_kind
-    |> List.map (fun kind -> VersionFilter.kind KindFilter.(Version.base (Base.is kind)))
+    |> List.map (fun kind -> Version.Filter.kind KindFilter.(Version.base (Base.is kind)))
     |> or_if_not_empty
   in
 
   let key =
     filter.key
-    |> List.map (fun key -> VersionFilter.key key)
+    |> List.map (fun key -> Version.Filter.key key)
     |> or_if_not_empty
   in
 
   let bars =
     filter.bars
-    |> List.map (fun bars -> VersionFilter.kind (KindFilter.Version.barsEq bars))
+    |> List.map (fun bars -> Version.Filter.kind (KindFilter.Version.barsEq bars))
     |> or_if_not_empty
   in
 

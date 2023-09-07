@@ -78,6 +78,26 @@ type warnings = warning list
 
 val warnings : t -> warnings Lwt.t
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = BookCore.Filter.t
+
+  val accepts : t -> BookCore.t -> float Lwt.t
+
+  val isSource : t
+  val memSet : SetCore.t -> t
+  val memTuneDeep : TuneCore.t -> t
+  val memVersionDeep : VersionCore.t -> t
+
+  val raw : string -> t TextFormula.or_error
+  val nullary_text_predicates : (string * t) list
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> t TextFormula.or_error
+end
+
 (** {2 API Getters & Setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -94,7 +114,7 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  BookFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t
 
 val update :

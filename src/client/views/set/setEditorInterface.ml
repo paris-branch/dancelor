@@ -270,7 +270,7 @@ let create page =
                       Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ CreditFilter.from_string input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.from_string input in
             let%lwt results =
               Credit.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
@@ -288,7 +288,7 @@ let create page =
     let main_section =
       SearchBar.Section.create
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ BookFilter.from_string input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Book.Filter.from_string input in
             let%lwt results =
               Book.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
@@ -307,7 +307,7 @@ let create page =
     let main_section =
       SearchBar.Section.create
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ VersionFilter.from_string input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Version.Filter.from_string input in
             let%lwt results =
               Version.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula

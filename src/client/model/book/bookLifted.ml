@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include BookLifter.Lift(Dance)(Set)(Version)
+include BookLifter.Lift(Dance)(Set)(Tune)(Version)
 
 let get the_slug =
   let open BookEndpoints in

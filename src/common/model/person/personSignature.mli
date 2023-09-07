@@ -6,6 +6,25 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 
+val equal : t -> t -> bool Lwt.t
+
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = PersonCore.Filter.t
+
+  val accepts : t -> PersonCore.t -> float Lwt.t
+
+  val is : PersonCore.t -> t
+
+  val raw : string -> t TextFormula.or_error
+  val nullary_text_predicates : (string * t) list
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> t TextFormula.or_error
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -20,5 +39,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  PersonFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t

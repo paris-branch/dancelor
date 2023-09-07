@@ -113,7 +113,7 @@ let create ?on_save page =
     let main_section =
       SearchBar.Section.create
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ PersonFilter.from_string input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Person.Filter.from_string input in
             let%lwt results =
               Person.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula

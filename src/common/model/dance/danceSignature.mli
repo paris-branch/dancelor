@@ -11,6 +11,26 @@ val two_chords : t -> bool Lwt.t
 val scddb_id : t -> int option Lwt.t
 val disambiguation : t -> string Lwt.t
 
+val equal : t -> t -> bool Lwt.t
+
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = DanceCore.Filter.t
+
+  val accepts : t -> DanceCore.t -> float Lwt.t
+
+  val is : DanceCore.t -> t
+  val deviser : CreditCore.Filter.t -> t
+
+  val raw : string -> t TextFormula.or_error
+  val nullary_text_predicates : (string * t) list
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> t TextFormula.or_error
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -30,5 +50,5 @@ val make_and_save :
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  DanceFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t

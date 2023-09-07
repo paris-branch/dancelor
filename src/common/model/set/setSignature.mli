@@ -37,6 +37,26 @@ type warnings = warning list
 
 val warnings : t -> warnings Lwt.t
 
+(** {2 Filters} *)
+
+module Filter : sig
+  type t = SetCore.Filter.t
+
+  val accepts : t -> SetCore.t -> float Lwt.t
+
+  val is : SetCore.t -> t
+  val existsVersion : VersionCore.Filter.t -> t
+  val deviser : CreditCore.Filter.t -> t
+  val memVersion : VersionCore.t -> t
+
+  val raw : string -> t TextFormula.or_error
+  val nullary_text_predicates : (string * t) list
+  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+
+  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> t TextFormula.or_error
+end
+
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
@@ -69,8 +89,8 @@ val delete : t -> unit Lwt.t
 val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
-  SetFilter.t ->
+  Filter.t ->
   t Score.t list Lwt.t
 
-val count: SetFilter.t -> int Lwt.t
+val count: Filter.t -> int Lwt.t
 (** Number of sets in the database. *)

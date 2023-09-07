@@ -31,8 +31,8 @@ let create slug page =
     let%lwt version = version_lwt in
     let filter =
       Formula.(and_l [
-          VersionFilter.tuneIs tune;
-          not_ (VersionFilter.is version);
+          Version.Filter.tuneIs tune;
+          not_ (Version.Filter.is version);
         ])
     in
     Version.search filter
@@ -196,7 +196,7 @@ let create slug page =
         div_lwt (
           let sets_lwt =
             let%lwt version = version_lwt in
-            let filter = SetFilter.memVersion version in
+            let filter = Set.Filter.memVersion version in
             Set.search filter
             >|=| Score.list_erase
           in
@@ -235,7 +235,7 @@ let create slug page =
         div_lwt (
           let%lwt books =
             let%lwt version = version_lwt in
-            let filter = BookFilter.memVersionDeep version in
+            let filter = Book.Filter.memVersionDeep version in
             Book.search filter
             >|=| Score.list_erase
           in

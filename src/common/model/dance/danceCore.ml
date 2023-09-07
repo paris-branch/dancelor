@@ -15,35 +15,21 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
-let make
-    ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id
-    ?disambiguation ~modified_at ~created_at
-    ()
-  =
-  let name = String.remove_duplicates ~char:' ' name in
-  let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
-  let%lwt deviser =
-    match deviser with
-    | None -> Lwt.return_none
-    | Some deviser ->
-      let%lwt deviser = CreditCore.slug deviser in
-      Lwt.return_some deviser
-  in
-  Lwt.return (make
-                ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id
-                ?disambiguation ~modified_at ~created_at
-                ())
-
 let slug d = Lwt.return d.slug
 let status d = Lwt.return d.status
-let name d = Lwt.return d.name
-let kind d = Lwt.return d.kind
 let deviser d = Lwt.return d.deviser
-let two_chords d = Lwt.return d.two_chords
-let scddb_id d = Lwt.return d.scddb_id
-let disambiguation d = Lwt.return d.disambiguation
 
-let equal dance1 dance2 =
-  let%lwt slug1 = slug dance1 in
-  let%lwt slug2 = slug dance2 in
-  Lwt.return (Slug.equal slug1 slug2)
+module Filter = struct
+  let _key = "dance-filter"
+
+  type predicate =
+    | Is of t
+    | Name of string
+    | NameMatches of string
+    | Kind of KindFilter.Dance.t
+    | Deviser of CreditCore.Filter.t (** deviser is defined and passes the filter *)
+  [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+end

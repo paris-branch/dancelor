@@ -3,7 +3,7 @@ open Madge_common
 module Arguments = struct
   let slug = arg ~key:"slug" (module MSlug(TuneCore))
   let status = optarg (module Status)
-  let filter = arg (module TuneFilter)
+  let filter = arg (module TuneCore.Filter)
   let pagination = optarg (module Pagination)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let name = arg ~key:"name" (module MString)

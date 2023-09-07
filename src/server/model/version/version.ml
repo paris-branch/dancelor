@@ -67,7 +67,7 @@ let score_list_vs_list words needles =
 
 let search ?pagination ?(threshold=Float.min_float) filter =
   Dancelor_server_database.Version.get_all ()
-  >>=| Score.lwt_map_from_list (VersionFilter.accepts filter)
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
       increasing (tune >=>| Tune.name) String.Sensible.compare

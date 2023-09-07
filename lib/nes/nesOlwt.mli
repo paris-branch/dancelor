@@ -15,3 +15,7 @@ val bind : 'a t -> ('a -> 'b t) -> 'b t
 val fail : unit -> 'a t
 
 val catch : 'a t -> (unit -> 'a t) -> 'a t
+
+(** {2 Utilities} *)
+
+val flip : 'a Lwt.t Option.t -> 'a t

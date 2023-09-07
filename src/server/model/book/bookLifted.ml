@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include BookLifter.Lift(Dance)(Set)(Version)
+include BookLifter.Lift(Dance)(Set)(Tune)(Version)
 
 module E = BookEndpoints
 module A = E.Arguments

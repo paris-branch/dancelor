@@ -34,7 +34,7 @@ let () =
 
 let search ?pagination ?(threshold=Float.min_float) filter =
   Dancelor_server_database.Tune.get_all ()
-  >>=| Score.lwt_map_from_list (TuneFilter.accepts filter)
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
       increasing name String.Sensible.compare;

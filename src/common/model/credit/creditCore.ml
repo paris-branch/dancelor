@@ -12,23 +12,20 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving yojson, make]
 
-let make
-    ~slug ?status ~line ?persons ?scddb_id ~modified_at ~created_at
-    ()
-  =
-  let line = String.remove_duplicates ~char:' ' line in
-  make ~slug ?status ~line ?persons ?scddb_id ~modified_at ~created_at ()
-
 let slug c = Lwt.return c.slug
 let status c = Lwt.return c.status
-let line c = Lwt.return c.line
 let persons c = Lwt.return c.persons
-let scddb_id c = Lwt.return c.scddb_id
 
-let trad_slug = Slug.unsafe_of_string "traditional"
-let is_trad c = Slug.equal c.slug trad_slug
+module Filter = struct
+  let _key = "credit-filter"
 
-let equal credit1 credit2 =
-  let%lwt slug1 = slug credit1 in
-  let%lwt slug2 = slug credit2 in
-  Lwt.return (Slug.equal slug1 slug2)
+  type predicate =
+    | Is of t
+    | Line of string
+    | LineMatches of string
+    | ExistsPerson of PersonCore.Filter.t
+  [@@deriving yojson]
+
+  type t = predicate Formula.t
+  [@@deriving yojson]
+end

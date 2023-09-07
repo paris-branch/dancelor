@@ -13,7 +13,7 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   let%lwt tunes    = Dancelor_server_database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
   let%lwt versions = Dancelor_server_database.Version.get_all () >|=| List.map (fun v -> Version v) in
   (Lwt.return (credits @ dances @ persons @ books @ sets @ tunes @ versions))
-  >>=| Score.lwt_map_from_list (AnyFilter.accepts filter)
+  >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [])
   >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
