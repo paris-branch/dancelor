@@ -25,7 +25,7 @@ let make_dance_result ~prefix page dance =
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Dance.name dance) page ;
-      Table.Cell.text ~text:(Dance.kind dance >|= Kind.dance_to_string) page ;
+      Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         let%lwt deviser = Dance.deviser dance in
         let%lwt content = Formatters.Credit.line deviser in
@@ -64,7 +64,7 @@ let make_set_result ~prefix page set =
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Set.name set) page;
-      Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) page ;
+      Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         let%lwt deviser = Set.deviser set in
         let%lwt content = Formatters.Credit.line deviser in
@@ -80,7 +80,7 @@ let make_tune_result ~prefix page tune =
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Tune.name tune) page ;
-      Table.Cell.text ~text:(Tune.kind tune >|= Kind.base_to_pretty_string ~capitalised:true) page ;
+      Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
         let%lwt author = Tune.author tune in
         let%lwt content = Formatters.Credit.line author in
@@ -104,7 +104,7 @@ let make_version_result ~prefix page version =
         let%lwt bars = Version.bars version in
         let%lwt kind = Tune.kind tune in
         let%lwt structure = Version.structure version in
-        Lwt.return (Kind.version_to_string (bars, kind) ^ " (" ^ structure ^ ")")
+        Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
       Table.Cell.create ~content:(
         let%lwt content = Formatters.Version.author_and_arranger version in

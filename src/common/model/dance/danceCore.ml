@@ -6,7 +6,7 @@ type t =
   { slug : t Slug.t ;
     status : Status.t [@default Status.bot] ;
     name : string ;
-    kind : Kind.dance ;
+    kind : Kind.Dance.t ;
     deviser : CreditCore.t Slug.t option [@default None] ;
     two_chords : bool [@default false] [@key "two-chords"] ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
@@ -26,7 +26,7 @@ module Filter = struct
     | Is of t
     | Name of string
     | NameMatches of string
-    | Kind of KindFilter.Dance.t
+    | Kind of Kind.Dance.Filter.t
     | Deviser of CreditCore.Filter.t (** deviser is defined and passes the filter *)
   [@@deriving yojson]
 

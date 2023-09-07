@@ -23,7 +23,7 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/set/header.ly"]
-        title (Kind.dance_to_string kind)
+        title (Kind.Dance.to_string kind)
         (SetParameters.instruments parameters);
       Lwt_list.iter_s
         (fun (version, version_parameters) ->

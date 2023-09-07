@@ -9,7 +9,6 @@ module Formula = Formula
 module TextFormula = TextFormula
 
 module Kind                               = Kind
-module KindFilter                         = KindFilter
 
 module Person            : Common.PERSON  = Person
 module Credit            : Common.CREDIT  = Credit

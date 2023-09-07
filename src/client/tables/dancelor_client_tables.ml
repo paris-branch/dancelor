@@ -43,7 +43,7 @@ let sets sets =
   clickable_row ~href_lwt [
     (Formatters.Set.name_and_tunes ~link:false set);
     (Set.deviser set >>=| Formatters.Credit.line);
-    Lwt.return [ text_lwt (Set.kind set >|=| Kind.dance_to_string) ];
+    Lwt.return [ text_lwt (Set.kind set >|=| Kind.Dance.to_string) ];
   ]
 
 let dances dances =
@@ -55,7 +55,7 @@ let dances dances =
   clickable_row ~href_lwt [
     Lwt.return [ text_lwt (Dance.name dance) ];
     (Dance.deviser dance >>=| Formatters.Credit.line);
-    Lwt.return [ text_lwt (Dance.kind dance >|=| Kind.dance_to_string) ];
+    Lwt.return [ text_lwt (Dance.kind dance >|=| Kind.Dance.to_string) ];
   ]
 
 let tunes tunes =
@@ -66,7 +66,7 @@ let tunes tunes =
   in
   clickable_row ~href_lwt [
     Lwt.return [ text_lwt (Tune.name tune) ];
-    Lwt.return [ text_lwt (Tune.kind tune >|=| Kind.base_to_pretty_string ~capitalised:true) ];
+    Lwt.return [ text_lwt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true) ];
     (Tune.author tune >>=| Formatters.Credit.line);
   ]
 

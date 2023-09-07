@@ -238,7 +238,7 @@ let create ?on_save page =
       ~on_click:(fun () ->
           let b1, b2, b3 =
             Inputs.Text.check input_name (fun str -> str <> ""),
-            Inputs.Text.check input_kind (fun str -> try Kind.base_of_string str |> ignore; true with _ -> false),
+            Inputs.Text.check input_kind (fun str -> try Kind.Base.of_string str |> ignore; true with _ -> false),
             Inputs.Text.check input_scddb_id (fun str ->
                 if str = "" then
                   true

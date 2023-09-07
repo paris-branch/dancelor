@@ -30,7 +30,7 @@ module Filter = struct
     | Is of t
     | Tune of TuneCore.Filter.t
     | Key of Music.key
-    | Kind of KindFilter.Version.t
+    | Kind of Kind.Version.Filter.t
     | Broken
   [@@deriving yojson]
 

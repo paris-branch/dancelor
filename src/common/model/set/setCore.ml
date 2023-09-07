@@ -7,7 +7,7 @@ type t =
     status : Status.t                [@default Status.bot] ;
     name : string ;
     deviser : CreditCore.t Slug.t option [@default None] ;
-    kind : Kind.dance ;
+    kind : Kind.Dance.t ;
     versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list
                               [@key "versions-and-parameters"] [@default []] ;
     order : SetOrder.t ;
@@ -44,7 +44,7 @@ module Filter = struct
     | NameMatches of string
     | Deviser of CreditCore.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
-    | Kind of KindFilter.Dance.t
+    | Kind of Kind.Dance.Filter.t
   [@@deriving yojson]
 
   type t = predicate Formula.t

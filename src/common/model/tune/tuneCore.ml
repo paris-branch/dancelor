@@ -7,7 +7,7 @@ type t =
     status : Status.t                   [@default Status.bot] ;
     name : string ;
     alternative_names : string list     [@key "alternative-names"] [@default []] ;
-    kind : Kind.base ;
+    kind : Kind.Base.t ;
     author : CreditCore.t Slug.t option [@default None] ;
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;
@@ -29,7 +29,7 @@ module Filter = struct
     | Name of string
     | NameMatches of string
     | Author of CreditCore.Filter.t (** author is defined and passes the filter *)
-    | Kind of KindFilter.Base.t
+    | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
   [@@deriving yojson]
 

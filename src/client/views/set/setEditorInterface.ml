@@ -177,7 +177,7 @@ let make_version_search_result composer page score =
           >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
         ) page;
         Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
-        Table.Cell.text ~text:(Lwt.return (Kind.base_to_pretty_string ~capitalised:true kind)) page;
+        Table.Cell.text ~text:(Lwt.return (Kind.Base.to_pretty_string ~capitalised:true kind)) page;
         Table.Cell.text ~text:(Lwt.return structure) page]
       page
   in
@@ -352,7 +352,7 @@ let create page =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
           let b1, b2, b3, b4, b5 =
-            Inputs.Text.check t.input_kind Kind.check_dance,
+            Inputs.Text.check t.input_kind Kind.Dance.check,
             Inputs.Text.check t.input_name (fun str -> str <> ""),
             Inputs.Text.check (SearchBar.bar t.version_search)
               (fun _ -> SetEditor.count t.composer > 0),

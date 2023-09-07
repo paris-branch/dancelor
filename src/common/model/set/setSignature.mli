@@ -8,7 +8,7 @@ val is_slug_none : t -> bool Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val deviser : t -> CreditCore.t option Lwt.t
-val kind : t -> Kind.dance Lwt.t
+val kind : t -> Kind.Dance.t Lwt.t
 val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
 val order : t -> SetOrder.t Lwt.t
 val instructions : t -> string Lwt.t
@@ -64,7 +64,7 @@ val get : t Slug.t -> t Lwt.t
 val make_temp :
   name:string ->
   ?deviser:CreditCore.t ->
-  kind:Kind.dance ->
+  kind:Kind.Dance.t ->
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
   ?dances:DanceCore.t list ->
@@ -76,7 +76,7 @@ val make_and_save :
   ?status:Status.t ->
   name:string ->
   ?deviser:CreditCore.t ->
-  kind:Kind.dance ->
+  kind:Kind.Dance.t ->
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
   ?dances:DanceCore.t list ->

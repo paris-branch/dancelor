@@ -38,7 +38,7 @@ let update_table t =
                   let%lwt content = Formatters.Credit.line deviser in
                   Lwt.return (Dancelor_client_html.nodes_to_dom_nodes (Page.document t.page) content)
                 ) t.page;
-                Table.Cell.text ~text:(Set.kind set >|= Kind.dance_to_string) t.page;
+                Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) t.page;
                 Table.Cell.text ~text:(Lwt.return "") t.page
               ]
             in

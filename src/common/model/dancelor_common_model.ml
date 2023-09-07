@@ -57,7 +57,6 @@ module Score = Score
 module Transposition = Transposition
 
 module Kind = Kind
-module KindFilter = KindFilter
 
 module PersonCore = PersonCore
 module type PERSON = module type of PersonSignature

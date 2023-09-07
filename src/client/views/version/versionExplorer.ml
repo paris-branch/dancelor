@@ -12,7 +12,7 @@ let js = Js.string
 type filter =
   { tune : Tune.t Slug.t list ;
     tune_author : Credit.t Slug.t list ;
-    tune_kind : Kind.base list ;
+    tune_kind : Kind.Base.t list ;
     key : Music.key list ;
     bars : int list }
 
@@ -59,7 +59,7 @@ let filter_to_versionfilter filter =
 
   let tune_kinds =
     filter.tune_kind
-    |> List.map (fun kind -> Version.Filter.kind KindFilter.(Version.base (Base.is kind)))
+    |> List.map (fun kind -> Version.Filter.kind Kind.(Version.Filter.base (Base.Filter.is kind)))
     |> or_if_not_empty
   in
 
@@ -71,7 +71,7 @@ let filter_to_versionfilter filter =
 
   let bars =
     filter.bars
-    |> List.map (fun bars -> Version.Filter.kind (KindFilter.Version.barsEq bars))
+    |> List.map (fun bars -> Version.Filter.kind (Kind.Version.Filter.barsEq bars))
     |> or_if_not_empty
   in
 
@@ -121,7 +121,7 @@ let minor_keys = Music.[
     make_pitch B   Flat  0 ;
   ]
 
-let kinds = Kind.[
+let kinds = Kind.Base.[
     Reel;
     Strathspey;
     Jig;
@@ -215,7 +215,7 @@ let fill_search t =
   Dom.appendChild t.search_div kind_section_header;
   let kinds_div = Html.createDiv document in
   List.iter (fun kind ->
-      let text = Kind.base_to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
+      let text = Kind.Base.to_pretty_string kind in (** FIXME: really, a pretty string in an id? *)
       let id = spf "button_%s" text in
       let on_change active =
         if active then update_filter t (filter_add_kind kind)

@@ -17,7 +17,7 @@ let name ?(link=true) tune =
 
 let description tune =
   let%lwt kind = M.Tune.kind tune in
-  let kind = M.Kind.base_to_pretty_string kind in
+  let kind = M.Kind.Base.to_pretty_string kind in
   let%lwt author = M.Tune.author tune in
   match author with
   | None ->

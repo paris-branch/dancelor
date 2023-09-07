@@ -28,7 +28,7 @@ module Filter : sig
   val tuneIs : TuneCore.t -> t
   val tune : TuneCore.Filter.t -> t
   val broken : t
-  val kind : KindFilter.Version.t -> t
+  val kind : Kind.Version.Filter.t -> t
   val key : Music.Key.t -> t
 
   val raw : string -> t TextFormula.or_error
