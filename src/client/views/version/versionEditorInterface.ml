@@ -1,8 +1,8 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_elements
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -170,7 +170,7 @@ let create page =
                       Table.Cell.text ~text:(Lwt.return "Create a new associated tune") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Tune.Filter.raw input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Tune.Filter.from_string input in
             let%lwt results =
               Tune.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
@@ -201,7 +201,7 @@ let create page =
                       Table.Cell.text ~text:(Lwt.return "Create a new arranger") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.raw input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.from_string input in
             let%lwt results =
               Credit.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
@@ -245,7 +245,7 @@ let create page =
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (VersionEditor.submit editor) (fun version ->
                 Lwt.on_success (Version.slug version) (fun slug ->
-                    let href = Router.(path (Version slug)) in
+                    let href = PageRouter.(path (Version slug)) in
                     Html.window##.location##.href := js href))))
       page
   in

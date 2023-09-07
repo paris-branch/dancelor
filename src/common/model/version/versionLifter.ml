@@ -61,7 +61,7 @@ module Lift
         let%lwt tune = tune version in
         let%lwt kind = Tune.kind tune in
         let%lwt bars = bars version in
-        KindVersion.Filter.accepts kfilter (bars, kind)
+        Kind.Version.Filter.accepts kfilter (bars, kind)
 
       | Broken ->
         broken version >|=| Formula.interpret_bool
@@ -90,7 +90,7 @@ module Lift
       TextFormula.[
         "tune",    (tune @@@@ Tune.Filter.from_text_formula);
         "key",     raw_only ~convert:(fun s -> match Music.key_of_string_opt s with Some k -> Ok k | None -> Error "not a valid key") key;
-        "kind",    (kind @@@@ KindVersion.Filter.from_text_formula);
+        "kind",    (kind @@@@ Kind.Version.Filter.from_text_formula);
       ]
       @ (List.map
            (fun (name, pred) ->
@@ -104,5 +104,8 @@ module Lift
       TextFormula.make_to_formula raw
         nullary_text_predicates
         unary_text_predicates
+
+    let from_string ?filename input =
+      from_text_formula (TextFormula.from_string ?filename input)
   end
 end

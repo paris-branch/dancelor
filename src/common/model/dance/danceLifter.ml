@@ -56,7 +56,7 @@ module Lift
 
       | Kind kfilter ->
         let%lwt kind = kind dance in
-        KindDance.Filter.accepts kfilter kind
+        Kind.Dance.Filter.accepts kfilter kind
 
       | Deviser cfilter ->
         (match%lwt deviser dance with
@@ -82,7 +82,7 @@ module Lift
       TextFormula.[
         "name",         raw_only ~convert:no_convert name;
         "name-matches", raw_only ~convert:no_convert nameMatches;
-        "kind",         (kind @@@@ KindDance.Filter.from_text_formula);
+        "kind",         (kind @@@@ Kind.Dance.Filter.from_text_formula);
         "deviser",      (deviser @@@@ Credit.Filter.from_text_formula);
         "by",           (deviser @@@@ Credit.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
       ]
@@ -91,5 +91,8 @@ module Lift
       TextFormula.make_to_formula raw
         nullary_text_predicates
         unary_text_predicates
+
+    let from_string ?filename input =
+      from_text_formula (TextFormula.from_string ?filename input)
   end
 end

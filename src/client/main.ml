@@ -1,7 +1,7 @@
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_views
-module Router = Dancelor_client_router
 
 module Html = Dom_html
 
@@ -10,16 +10,16 @@ let js = Js.string
 let on_load _ev =
   let page = Page.create () in
   let header = Header.create page in
-  Header.add_menu_entry header "Search" Router.(path (Search None));
+  Header.add_menu_entry header "Search" PageRouter.(path (Search None));
   Header.add_dropdown_menu_entry header "Explore" [
-    "Tunes", Router.(path VersionAll);
-    "Sets",  Router.(path SetAll);
-    "Books", Router.(path BookAll);
+    "Tunes", PageRouter.(path VersionAll);
+    "Sets",  PageRouter.(path SetAll);
+    "Books", PageRouter.(path BookAll);
   ];
   Header.add_dropdown_menu_entry header "Add" [
-    "Tune", Router.(path VersionAdd);
-    "Set",  Router.(path SetCompose);
-    "Book",  Router.(path BookCompose);
+    "Tune", PageRouter.(path VersionAdd);
+    "Set",  PageRouter.(path SetCompose);
+    "Book",  PageRouter.(path BookCompose);
   ];
   Page.set_header page (Header.contents header);
   let url =

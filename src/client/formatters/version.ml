@@ -1,8 +1,8 @@
 open Nes
+open Dancelor_common
 open Dancelor_client_html
 
 module M = Dancelor_client_model
-module Router = Dancelor_client_router
 
 let description ?link version =
   let%lwt bars = M.Version.bars version in
@@ -29,7 +29,7 @@ let name ?(link=true) version =
   if link then
     let href_lwt =
       let%lwt slug = M.Version.slug version in
-      Lwt.return Router.(path (Version slug))
+      Lwt.return PageRouter.(path (Version slug))
     in
     Lwt.return [a ~href_lwt name_text]
   else

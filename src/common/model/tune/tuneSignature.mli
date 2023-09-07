@@ -44,6 +44,9 @@ module Filter : sig
 
   val from_text_formula : TextFormula.t -> t TextFormula.or_error
   (** Build a filter from a text formula, or fail. *)
+
+  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  (** Build a fliter from a string, or fail. *)
 end
 
 (** {2 Getters and setters} *)

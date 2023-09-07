@@ -173,7 +173,7 @@ module Lift
 
       | Kind kfilter ->
         let%lwt kind = kind set in
-        KindDance.Filter.accepts kfilter kind
+        Kind.Dance.Filter.accepts kfilter kind
 
     let is set = Formula.pred (Is set)
     let name name = Formula.pred (Name name)
@@ -199,12 +199,15 @@ module Lift
         "deviser",        (deviser @@@@ Credit.Filter.from_text_formula);
         "by",             (deviser @@@@ Credit.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
         "exists-version", (existsVersion @@@@ Version.Filter.from_text_formula);
-        "kind",           (kind @@@@ KindDance.Filter.from_text_formula);
+        "kind",           (kind @@@@ Kind.Dance.Filter.from_text_formula);
       ]
 
     let from_text_formula =
       TextFormula.make_to_formula raw
         nullary_text_predicates
         unary_text_predicates
+
+    let from_string ?filename input =
+      from_text_formula (TextFormula.from_string ?filename input)
   end
 end
