@@ -3,7 +3,6 @@ open Nes
 module Lift
     (Credit : module type of CreditSignature)
     (Dance : module type of DanceSignature)
-    (Person : module type of PersonSignature)
     (Book : module type of BookSignature)
     (Set : module type of SetSignature)
     (Tune : module type of TuneSignature)
@@ -15,7 +14,6 @@ module Lift
     match any1, any2 with
     |  Credit c1,  Credit c2 ->  Credit.equal c1 c2
     |   Dance d1,   Dance d2 ->   Dance.equal d1 d2
-    |  Person p1,  Person p2 ->  Person.equal p1 p2
     |    Book b1,    Book b2 ->    Book.equal b1 b2
     |     Set s1,     Set s2 ->     Set.equal s1 s2
     |    Tune t1,    Tune t2 ->    Tune.equal t1 t2
@@ -30,14 +28,13 @@ module Lift
         let compare = compare
       end)
 
-    let all = Set.of_list [ Credit; Dance; Person; Book; Set; Tune; Version ]
+    let all = Set.of_list [ Credit; Dance; Book; Set; Tune; Version ]
 
     let equal = (=)
 
     let to_string = function
       | Credit  -> "Credit"
       | Dance   -> "Dance"
-      | Person  -> "Person"
       | Book    -> "Book"
       | Set     -> "Set"
       | Tune    -> "Tune"
@@ -49,7 +46,6 @@ module Lift
       match String.lowercase_ascii str with
       | "credit"  -> Credit
       | "dance"   -> Dance
-      | "person"  -> Person
       | "book"    -> Book
       | "set"     -> Set
       | "tune"    -> Tune
@@ -64,7 +60,6 @@ module Lift
   let type_of = function
     |  Credit _ -> Type.Credit
     |   Dance _ -> Type.Dance
-    |  Person _ -> Type.Person
     |    Book _ -> Type.Book
     |     Set _ -> Type.Set
     |    Tune _ -> Type.Tune
@@ -88,11 +83,6 @@ module Lift
       | AsDance dfilter ->
         (match any with
          | Dance dance -> Dance.Filter.accepts dfilter dance
-         | _ -> Lwt.return Formula.interpret_false)
-
-      | AsPerson pfilter ->
-        (match any with
-         | Person person -> Person.Filter.accepts pfilter person
          | _ -> Lwt.return Formula.interpret_false)
 
       | AsBook bfilter ->
@@ -119,7 +109,6 @@ module Lift
 
     let asCredit  filter = Formula.pred (AsCredit  filter)
     let asDance   filter = Formula.pred (AsDance   filter)
-    let asPerson  filter = Formula.pred (AsPerson  filter)
     let asBook    filter = Formula.pred (AsBook    filter)
     let asSet     filter = Formula.pred (AsSet     filter)
     let asTune    filter = Formula.pred (AsTune    filter)
@@ -129,7 +118,6 @@ module Lift
       let filters = [
         (match  Credit.Filter.raw str with Ok cfilter -> Ok ( asCredit cfilter) | Error err -> error_fmt "- for credits, %s"  err);
         (match   Dance.Filter.raw str with Ok dfilter -> Ok (  asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
-        (match  Person.Filter.raw str with Ok pfilter -> Ok ( asPerson pfilter) | Error err -> error_fmt "- for persons, %s"  err);
         (match    Book.Filter.raw str with Ok bfilter -> Ok (   asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
         (match     Set.Filter.raw str with Ok sfilter -> Ok (    asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
         (match    Tune.Filter.raw str with Ok tfilter -> Ok (   asTune tfilter) | Error err -> error_fmt "- for tunes, %s"    err);
@@ -150,7 +138,6 @@ module Lift
     let nullary_text_predicates = [
       "credit",  type_ Type.Credit;  (* alias for type:Credit *)
       "dance",   type_ Type.Dance;   (* alias for type:Dance *)
-      "person",  type_ Type.Person;  (* alias for type:Person *)
       "book",    type_ Type.Book;    (* alias for type:Book *)
       "set",     type_ Type.Set;     (* alias for type:Set *)
       "tune",    type_ Type.Tune;    (* alias for type:Tune *)
@@ -173,7 +160,6 @@ module Lift
             nullary_text_predicates unary_text_predicates pred;
           (match  Credit.Filter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asCredit cfilter) | Error err -> error_fmt "- for credits, %s"  err);
           (match   Dance.Filter.from_text_formula (Pred pred) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
-          (match  Person.Filter.from_text_formula (Pred pred) with Ok pfilter -> Ok  (asPerson pfilter) | Error err -> error_fmt "- for persons, %s"  err);
           (match    Book.Filter.from_text_formula (Pred pred) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
           (match     Set.Filter.from_text_formula (Pred pred) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
           (match    Tune.Filter.from_text_formula (Pred pred) with Ok tfilter -> Ok    (asTune tfilter) | Error err -> error_fmt "- for tunes, %s"    err);
@@ -214,7 +200,6 @@ module Lift
         | Type type_  -> Type.Set.singleton type_
         | AsCredit  _ -> Type.Set.singleton Credit
         | AsDance   _ -> Type.Set.singleton Dance
-        | AsPerson  _ -> Type.Set.singleton Person
         | AsBook    _ -> Type.Set.singleton Book
         | AsSet     _ -> Type.Set.singleton Set
         | AsTune    _ -> Type.Set.singleton Tune
@@ -225,7 +210,6 @@ module Lift
         (match type_ with
          | Type.Credit  -> List.map fst  Credit.Filter.nullary_text_predicates
          | Type.Dance   -> List.map fst   Dance.Filter.nullary_text_predicates
-         | Type.Person  -> List.map fst  Person.Filter.nullary_text_predicates
          | Type.Book    -> List.map fst    Book.Filter.nullary_text_predicates
          | Type.Set     -> List.map fst     Set.Filter.nullary_text_predicates
          | Type.Tune    -> List.map fst    Tune.Filter.nullary_text_predicates
@@ -241,7 +225,6 @@ module Lift
         (match type_ with
          | Type.Credit  -> List.map fst  Credit.Filter.unary_text_predicates
          | Type.Dance   -> List.map fst   Dance.Filter.unary_text_predicates
-         | Type.Person  -> List.map fst  Person.Filter.unary_text_predicates
          | Type.Book    -> List.map fst    Book.Filter.unary_text_predicates
          | Type.Set     -> List.map fst     Set.Filter.unary_text_predicates
          | Type.Tune    -> List.map fst    Tune.Filter.unary_text_predicates

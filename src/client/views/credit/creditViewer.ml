@@ -27,8 +27,7 @@ let create slug page =
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
 
       h2 ~classes:["title"] [
-        text_lwt (credit_lwt >>=| Credit.line);
-        text " (Credit)"
+        text_lwt (credit_lwt >>=| Credit.line)
       ];
 
       div_lwt ~classes:["section"] (
@@ -44,55 +43,6 @@ let create slug page =
             ]
           ]
       );
-
-      div ~classes:["section"] [
-        p_lwt (
-          let%lwt credit = credit_lwt in
-          let%lwt persons = Credit.persons credit in
-
-          let link_of_person person =
-            let slug = Person.slug person in
-            let href_lwt =
-              let%lwt slug = slug in
-              Lwt.return PageRouter.(path (Person slug))
-            in
-            a ~href_lwt [ text_lwt (Person.name person) ]
-          in
-
-          Lwt.return (
-            (text "This is the page of a credit containing ")
-
-            :: match persons with
-
-            | [] ->
-              [text "no persons."]
-
-            | [person] ->
-              let person = link_of_person person in
-              [
-                text "only the person ";
-                person;
-                text ". This page and the specific page of ";
-                person;
-                text " are different: the latter will contain all the work ";
-                person;
-                text " is involved in, while the former will contain only the work ";
-                person;
-                text " is involved in as this particular credit."
-              ]
-
-            | first_person :: persons ->
-              let last_person = List.ft persons in
-              let persons = List.bd persons in
-
-              [ link_of_person first_person ]
-              @ List.concat_map (fun person -> [ text ", "; link_of_person person ]) persons
-              @ [ text " and "; link_of_person last_person; text ".";
-                  text " Visit the specific pages of the individual persons to";
-                  text " see their personal work." ]
-          )
-        );
-      ];
 
       div ~classes:["section"] [
         h3 [ text "Tunes Composed" ];

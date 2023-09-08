@@ -58,11 +58,6 @@ module Transposition = Transposition
 
 module Kind = Kind
 
-module PersonCore = PersonCore
-module type PERSON = module type of PersonSignature
-module PersonLifter = PersonLifter
-module PersonEndpoints = PersonEndpoints
-
 module CreditCore = CreditCore
 module type CREDIT = module type of CreditSignature
 module CreditLifter = CreditLifter

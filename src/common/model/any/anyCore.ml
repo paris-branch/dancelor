@@ -3,7 +3,6 @@ let _key = "any"
 type t =
   | Credit  of  CreditCore.t
   | Dance   of   DanceCore.t
-  | Person  of  PersonCore.t
   | Book    of    BookCore.t
   | Set     of     SetCore.t
   | Tune    of    TuneCore.t
@@ -16,7 +15,6 @@ module Type = struct
   type t =
     | Credit
     | Dance
-    | Person
     | Book
     | Set
     | Tune
@@ -32,7 +30,6 @@ module Filter = struct
     (* lifting predicates: *)
     | AsCredit  of  CreditCore.Filter.t
     | AsDance   of   DanceCore.Filter.t
-    | AsPerson  of  PersonCore.Filter.t
     | AsBook    of    BookCore.Filter.t
     | AsSet     of     SetCore.Filter.t
     | AsTune    of    TuneCore.Filter.t

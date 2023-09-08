@@ -2,21 +2,10 @@ open Nes
 
 module Model = Dancelor_common_model
 
-module Person = Table.Make (struct
-    include Model.PersonCore
-
-    let dependencies _ = Lwt.return []
-    let standalone = false
-  end)
-
 module Credit = Table.Make (struct
     include Model.CreditCore
 
-    let dependencies credit =
-      let%lwt persons = persons credit in
-      List.map (Table.make_slug_and_table (module Person)) persons
-      |> Lwt.return
-
+    let dependencies _ = Lwt.return []
     let standalone = false
   end)
 
@@ -123,7 +112,6 @@ module Book = Table.Make (struct
 module Storage = Storage
 
 let tables : (module Table.S) list = [
-  (module Person) ;
   (module Credit) ;
   (module Dance) ;
   (module Version) ;

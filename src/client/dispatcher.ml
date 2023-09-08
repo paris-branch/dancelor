@@ -60,7 +60,5 @@ let dispatch url =
     pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
   | Credit slug ->
     pack (module CreditViewer) (CreditViewer.create slug)
-  | Person slug ->
-    pack (module PersonViewer) (PersonViewer.create slug)
   | Dance slug ->
     pack (module DanceViewer) (DanceViewer.create slug)
