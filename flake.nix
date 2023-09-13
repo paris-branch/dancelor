@@ -45,4 +45,13 @@
         ./.nix/timidity-overlay.nix
       ];
     };
+
+  nixConfig = {
+    extra-trusted-substituters =
+      [ "https://dancelor.cachix.org/" "https://pre-commit-hooks.cachix.org/" ];
+    extra-trusted-public-keys = [
+      "dancelor.cachix.org-1:Q2pAI0MA6jIccQQeT8JEsY+Wfwb/751zmoUHddZmDyY="
+      "pre-commit-hooks.cachix.org-1:Pkk3Panw5AW24TOv6kz3PvLhlH8puAsJTBbOPmBo7Rc="
+    ];
+  };
 }
