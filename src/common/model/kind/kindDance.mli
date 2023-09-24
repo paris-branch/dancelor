@@ -17,6 +17,10 @@ val to_pretty_string : t -> string
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
 
+val version_kinds : t -> KindVersion.t list
+(** Returns the version kinds contained in the dance kind. For instance, for
+    [2x32R + 8x(40R + 64J)], {!version_kinds} returns [\[32R; 40R; 64J\]]. *)
+
 (** {2 Filters} *)
 
 module Filter : sig

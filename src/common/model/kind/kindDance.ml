@@ -48,6 +48,11 @@ let rec to_pretty_string = function
     (match kind with Add _ -> spf "%d x (%s)" | _ -> spf "%d x %s")
       n (to_pretty_string kind)
 
+let rec version_kinds = function
+  | Version vkind -> [vkind]
+  | Add (kind1, kind2) -> version_kinds kind1 @ version_kinds kind2
+  | Mul (_n, kind) -> version_kinds kind
+
 (* Filters *)
 
 module Filter = struct
