@@ -356,8 +356,8 @@ let create page =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
           let b1, b2, b3, b4, b5 =
-            Inputs.Text.check t.input_kind Kind.Dance.check,
-            Inputs.Text.check t.input_name (fun str -> str <> ""),
+            Inputs.Text.check t.input_kind (Option.is_some % Kind.Dance.of_string_opt),
+            Inputs.Text.check t.input_name ((<>) ""),
             Inputs.Text.check (SearchBar.bar t.version_search)
               (fun _ -> SetEditor.count t.composer > 0),
             Inputs.Text.check (SearchBar.bar t.deviser_search)
