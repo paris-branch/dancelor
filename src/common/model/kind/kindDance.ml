@@ -50,8 +50,6 @@ let rec to_pretty_string = function
 
 (* Filters *)
 
-type dance_kind = t (* needed for signature of filters *)
-
 module Filter = struct
   type predicate =
     | Is of t

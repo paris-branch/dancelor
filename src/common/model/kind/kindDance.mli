@@ -19,15 +19,12 @@ val of_yojson : Json.t -> (t, string) result
 
 (** {2 Filters} *)
 
-type dance_kind = t
-(** Alias for {!t} needed for the type interface of {!Filter}. *)
-
 module Filter : sig
   type t [@@deriving yojson]
 
-  val accepts : t -> dance_kind -> float Lwt.t
+  val accepts : t -> KindDanceType.t -> float Lwt.t
 
-  val is : dance_kind -> t
+  val is : KindDanceType.t -> t
   val base : KindBase.Filter.t -> t
 
   val raw : string -> t TextFormula.or_error
