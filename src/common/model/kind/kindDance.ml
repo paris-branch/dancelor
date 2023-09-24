@@ -81,9 +81,11 @@ module Filter = struct
        | _ -> Lwt.return Formula.interpret_false)
 
     | Version vfilter ->
-      (match kind with
-       | Mul (_, Version vkind) -> KindVersion.Filter.accepts vfilter vkind
-       | _ -> Lwt.return Formula.interpret_false)
+      Lwt.map
+        Formula.interpet_and_l
+        (Lwt_list.map_s
+           (KindVersion.Filter.accepts vfilter)
+           (version_kinds kind))
 
   let raw string =
     match KindBase.of_string_opt string with
