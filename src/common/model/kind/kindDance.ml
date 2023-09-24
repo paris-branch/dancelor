@@ -10,17 +10,6 @@ let to_string (repeats, versions) =
   |> (if repeats = 1 || List.length versions = 1 then id else spf "(%s)")
   |> (if repeats = 1 then id else spf "%d x %s" repeats)
 
-let of_string s =
-  let s = String.remove_char ' ' s in
-  let (repeats, s) =
-    try ssf s "%dx%n" (fun repeats n -> (repeats, snd (String.split n s)))
-    with Scanf.Scan_failure _ -> (1, s)
-  in
-  let s =
-    try ssf s "(%[^)])%!" id
-    with Scanf.Scan_failure _ -> s
-  in
-  (repeats, List.map KindVersion.of_string (String.split_on_char '+' s))
 
 let check s =
   match of_string s with
@@ -42,8 +31,11 @@ let%test _ =
   with Invalid_argument _ -> true
 
 let of_string_opt s =
-  try Some (of_string s)
-  with Invalid_argument _ -> None
+  try Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
+  with KindDanceParser.Error -> None
+
+let of_string s =
+  match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
 
 let to_yojson d =
   `String (to_string d)
