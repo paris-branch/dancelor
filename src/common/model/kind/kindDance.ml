@@ -4,11 +4,12 @@ let _key = "kind-dance"
 
 include KindDanceType
 
-let to_string (repeats, versions) =
-  List.map KindVersion.to_string versions
-  |> String.concat " + "
-  |> (if repeats = 1 || List.length versions = 1 then id else spf "(%s)")
-  |> (if repeats = 1 then id else spf "%d x %s" repeats)
+let rec pp ppf = function
+  | Version version_kind -> fpf ppf "%s" (KindVersion.to_string version_kind)
+  | Add (kind1, kind2) -> fpf ppf "%a + %a" pp kind1 pp kind2
+  | Mul (n, kind) ->
+    (match kind with Add _ -> fpf ppf "%d x (%a)" | _ -> fpf ppf "%d x %a")
+      n pp kind
 
 
 let check s =
@@ -29,6 +30,8 @@ let%test _ = of_string "32R" = (1, [32, Reel])
 let%test _ =
   try ignore (of_string "R"); false
   with Invalid_argument _ -> true
+let to_string kind =
+  Format.with_formatter_to_string (fun ppf -> pp ppf kind)
 
 let of_string_opt s =
   try Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
@@ -36,6 +39,7 @@ let of_string_opt s =
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
+
 
 let to_yojson d =
   `String (to_string d)
