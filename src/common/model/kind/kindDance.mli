@@ -4,8 +4,8 @@ open Nes
 
 val _key : string
 
-type t = int * KindVersion.t list
-(** The kind of a dance. For instance, [7x(32R + 64S + 128J)]. *)
+include module type of KindDanceType
+(** The kind of a dance. For instance, [7x(32R + 2x64S + 128J)]. *)
 
 val to_string : t -> string
 val of_string : string -> t

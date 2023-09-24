@@ -2,7 +2,7 @@ open Nes
 
 let _key = "kind-dance"
 
-type t = int * KindVersion.t list
+include KindDanceType
 
 let to_string (repeats, versions) =
   List.map KindVersion.to_string versions
