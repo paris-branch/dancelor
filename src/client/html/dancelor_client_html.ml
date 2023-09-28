@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 
 type dom_node = Dom.node Js.t
@@ -20,68 +21,60 @@ let append_node (parent : #Dom.node Js.t) (document : document) (node : node) =
 let append_nodes (parent : #Dom.node Js.t) (document : document) (nodes : node list) =
   List.iter (append_node parent document) nodes
 
-let text_lwt str_lwt (document : document) =
+type 'a provider =
+  | Const of 'a
+  | Lwt of 'a Lwt.t
+
+type ('input, 'output) kind = 'input -> 'output provider
+
+let const x = Const x
+let lwt x = Lwt x
+
+let text kind data (document : document) =
   let text = document##createTextNode (Js.string "") in
-  Lwt.on_success str_lwt (fun str ->
-      text##.data := Js.string str);
+  (
+    match kind data with
+    | Const data ->  text##.data := Js.string data
+    | Lwt data -> Lwt.on_success data (fun data -> text##.data := Js.string data)
+  );
   (text :> dom_node)
 
-let text str document =
-  text_lwt (Lwt.return str) document
+let make_node create ?(classes=[]) kind children document =
+  let (element : 'element Js.t) = create document in
+  List.iter (fun class_ -> element##.classList##add (Js.string class_)) classes;
+  (
+    match kind children with
+    | Const children -> append_nodes element document children
+    | Lwt children -> Lwt.on_success children (append_nodes element document)
+  );
+  element
 
-let gen_node_lwt create ?(classes=[]) children_lwt document =
-  let (elt : 'element Js.t) = create document in
-  List.iter (fun class_ -> elt##.classList##add (Js.string class_)) classes;
-  Lwt.on_success children_lwt (fun children ->
-      append_nodes elt document children);
-  elt
+let node create ?classes provide children document =
+  (make_node create ?classes provide children document :> dom_node)
 
-let node_lwt create ?classes children_lwt document =
-  (gen_node_lwt create ?classes children_lwt document :> dom_node)
+let h1 ?classes kind children = node Dom_html.createH1 ?classes kind children
+let h2 ?classes kind children = node Dom_html.createH2 ?classes kind children
+let h3 ?classes kind children = node Dom_html.createH3 ?classes kind children
+let h4 ?classes kind children = node Dom_html.createH4 ?classes kind children
+let h5 ?classes kind children = node Dom_html.createH5 ?classes kind children
+let h6 ?classes kind children = node Dom_html.createH6 ?classes kind children
 
-let node create ?classes children document =
-  node_lwt create ?classes (Lwt.return children) document
+let div ?classes kind children = node Dom_html.createDiv ?classes kind children
+let span ?classes kind children = node Dom_html.createSpan ?classes kind children
 
-let h1_lwt = node_lwt Dom_html.createH1
-let h1     = node     Dom_html.createH1
-
-let h2_lwt = node_lwt Dom_html.createH2
-let h2     = node     Dom_html.createH2
-
-let h3_lwt = node_lwt Dom_html.createH3
-let h3     = node     Dom_html.createH3
-
-let h4_lwt = node_lwt Dom_html.createH4
-let h4     = node     Dom_html.createH4
-
-let h5_lwt = node_lwt Dom_html.createH5
-let h5     = node     Dom_html.createH5
-
-let h6_lwt = node_lwt Dom_html.createH6
-let h6     = node     Dom_html.createH6
-
-let p_lwt = node_lwt Dom_html.createP
-let p     = node     Dom_html.createP
-
-let div_lwt = node_lwt Dom_html.createDiv
-let div     = node     Dom_html.createDiv
-
-let span_lwt = node_lwt Dom_html.createSpan
-let span     = node     Dom_html.createSpan
-
-let i_lwt = node_lwt Dom_html.createI
-let i     = node     Dom_html.createI
+let p ?classes kind children = node Dom_html.createP ?classes kind children
+let i ?classes kind children = node Dom_html.createI ?classes kind children
 
 type target = Blank | Self | Parent | Top | Frame of string
 
-let a_lwt ?href ?href_lwt ?target ?classes children_lwt document =
+let a ?href ?href_lwt ?target ?classes kind children document =
   let href_lwt =
     match href, href_lwt with
     | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.a"
     | Some href, None -> Lwt.return href
     | None, Some href_lwt -> href_lwt
   in
-  let a = gen_node_lwt Dom_html.createA ?classes children_lwt document in
+  let a = make_node Dom_html.createA ?classes kind children document in
   Lwt.on_success href_lwt (fun href ->
       a##.href := Js.string href);
   (match target with
@@ -96,53 +89,29 @@ let a_lwt ?href ?href_lwt ?target ?classes children_lwt document =
           | Frame name -> name));
   (a :> dom_node)
 
-let a ?href ?href_lwt ?target ?classes children document =
-  a_lwt ?href ?href_lwt ?target ?classes (Lwt.return children) document
+let table ?classes kind children = node Dom_html.createTable ?classes kind children
+let thead ?classes kind children = node Dom_html.createThead ?classes kind children
+let tbody ?classes kind children = node Dom_html.createTbody ?classes kind children
+let tfoot ?classes kind children = node Dom_html.createTfoot ?classes kind children
+let tr ?classes kind children = node Dom_html.createTr ?classes kind children
 
-let table_lwt = node_lwt Dom_html.createTable
-let table     = node     Dom_html.createTable
-
-let thead_lwt = node_lwt Dom_html.createThead
-let thead     = node     Dom_html.createThead
-
-let tbody_lwt = node_lwt Dom_html.createTbody
-let tbody     = node     Dom_html.createTbody
-
-let tfoot_lwt = node_lwt Dom_html.createTfoot
-let tfoot     = node     Dom_html.createTfoot
-
-let tr_lwt = node_lwt Dom_html.createTr
-let tr     = node     Dom_html.createTr
-
-let td_lwt ?colspan ?rowspan ?classes children_lwt document =
-  let td = gen_node_lwt Dom_html.createTd ?classes children_lwt document in
+let td ?colspan ?rowspan ?classes kind children document =
+  let td = make_node Dom_html.createTd ?classes kind children document in
   (match colspan with None -> () | Some colspan -> td##.colSpan := colspan);
   (match rowspan with None -> () | Some rowspan -> td##.rowSpan := rowspan);
   (td :> dom_node)
 
-let td ?colspan ?rowspan ?classes children document =
-  td_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
-
-let th_lwt ?colspan ?rowspan ?classes children_lwt document =
-  let th = gen_node_lwt Dom_html.createTh ?classes children_lwt document in
+let th ?colspan ?rowspan ?classes kind children document =
+  let th = make_node Dom_html.createTh ?classes kind children document in
   (match colspan with None -> () | Some colspan -> th##.colSpan := colspan);
   (match rowspan with None -> () | Some rowspan -> th##.rowSpan := rowspan);
   (th :> dom_node)
 
-let th ?colspan ?rowspan ?classes children document =
-  th_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
+let ol ?classes kind children = node Dom_html.createOl ?classes kind children
+let ul ?classes kind children = node Dom_html.createUl ?classes kind children
+let li ?classes kind children = node Dom_html.createLi ?classes kind children
 
-let ol = node Dom_html.createOl
-let ol_lwt = node_lwt Dom_html.createOl
-
-let ul = node Dom_html.createUl
-let ul_lwt = node_lwt Dom_html.createUl
-
-let li = node Dom_html.createLi
-let li_lwt = node_lwt Dom_html.createLi
-
-let label = node Dom_html.createLabel
-let label_lwt = node_lwt Dom_html.createLabel
+let label ?classes kind children = node Dom_html.createLabel ?classes kind children
 
 type type_ = Checkbox
 
@@ -151,9 +120,12 @@ let input ~type_ ?classes () document =
     | Checkbox -> "checkbox"
   in
   let input =
-    gen_node_lwt
+    make_node
       (Dom_html.createInput ~_type:(Js.string type_))
-      ?classes Lwt.return_nil document
+      ?classes
+      const
+      []
+      document
   in
   (input :> dom_node)
 
@@ -166,25 +138,22 @@ let img ?src ?src_lwt ?classes () document =
     | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.img"
     | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
   in
-  let img = gen_node_lwt Dom_html.createImg ?classes Lwt.return_nil document in
+  let img = make_node Dom_html.createImg ?classes const [] document in
   Lwt.on_success src_lwt (fun src ->
       img##.src := Js.string src);
   (img :> dom_node)
 
-let object_lwt ~type_ ?data ?data_lwt ?classes children_lwt document =
+let object_ ~type_ ?data ?data_lwt ?classes kind children document =
   let data_lwt =
     match data, data_lwt with
     | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.object_"
     | Some data, _ -> Lwt.return data | _, Some data_lwt -> data_lwt
   in
-  let object_ = gen_node_lwt Dom_html.createObject ?classes children_lwt document in
+  let object_ = make_node Dom_html.createObject ?classes kind children document in
   object_##._type := Js.string type_;
   Lwt.on_success data_lwt (fun data ->
       object_##.data := Js.string data);
   (object_ :> dom_node)
-
-let object_ ~type_ ?data ?data_lwt ?classes children document =
-  object_lwt ~type_ ?data ?data_lwt ?classes (Lwt.return children) document
 
 let audio ?src ?src_lwt ?(controls=false) ?classes () document =
   let src_lwt =
@@ -192,7 +161,7 @@ let audio ?src ?src_lwt ?(controls=false) ?classes () document =
     | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.audio"
     | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
   in
-  let audio = gen_node_lwt Dom_html.createAudio ?classes Lwt.return_nil document in
+  let audio = make_node Dom_html.createAudio ?classes const [] document in
   audio##.controls := Js.bool controls;
   Lwt.on_success src_lwt (fun src ->
       audio##.src := Js.string src);
