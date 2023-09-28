@@ -22,6 +22,7 @@ module PartialDate = NesPartialDate
 module Filesystem = NesFilesystem
 module Json = NesJson
 module Slug = NesSlug
+module Lwt_bchan = NesLwt_bchan
 
 (* Monads *)
 
