@@ -111,11 +111,14 @@ let li ?classes kind children = node Dom_html.createLi ?classes kind children
 
 let label ?classes kind children = node Dom_html.createLabel ?classes kind children
 
-type type_ = Checkbox
+type type_ =
+  | Checkbox
+  | Text
 
-let input ~type_ ?classes () document =
+let input ~type_ ?classes ?placeholder ?on_input () document =
   let type_ = match type_ with
     | Checkbox -> "checkbox"
+    | Text -> "text"
   in
   let input =
     make_node
@@ -125,6 +128,13 @@ let input ~type_ ?classes () document =
       []
       document
   in
+  Option.ifsome (fun t -> input##.placeholder := Js.string t) placeholder;
+  Option.ifsome
+    (fun on_input ->
+       input##.oninput := Dom.handler @@ fun _ ->
+         on_input (Js.to_string input##.value);
+         Js.bool false)
+    on_input;
   (input :> dom_node)
 
 let br document = (Dom_html.createBr document :> dom_node)

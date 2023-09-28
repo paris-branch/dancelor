@@ -110,9 +110,9 @@ val a : ?href:string provider -> ?target:target -> ?classes:string list -> ('nod
 
 val label : ?classes:string list -> ('node_list, node list) kind -> 'node_list-> node
 
-type type_ = Checkbox
+type type_ = Checkbox | Text
 
-val input : type_:type_ -> ?classes:string list -> unit -> node
+val input : type_:type_ -> ?classes:string list -> ?placeholder:string -> ?on_input:(string -> unit) -> unit -> node
 
 (** {3 Elements With No Children} *)
 
