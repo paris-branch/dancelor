@@ -15,24 +15,30 @@ let node_to_dom_node document node =
 let nodes_to_dom_nodes document nodes =
   List.map (node_to_dom_node document) nodes
 
-let append_node (parent : #Dom.node Js.t) (document : document) (node : node) =
-  Dom.appendChild parent (node_to_dom_node document node)
-
 let append_nodes (parent : #Dom.node Js.t) (document : document) (nodes : node list) =
-  List.iter (append_node parent document) nodes
+  List.iter (Dom.appendChild parent % node_to_dom_node document) nodes
+
+let set_nodes (parent : #Dom.node Js.t) (document : document) (nodes : node list) =
+  List.iter (Dom.removeChild parent) (Dom.list_of_nodeList parent##.childNodes);
+  List.iter (Dom.appendChild parent % node_to_dom_node document) nodes
 
 type 'a provider =
   | Const of 'a
   | Lwt of 'a Lwt.t
+  | Loop of (unit -> 'a Lwt.t)
 
 type ('input, 'output) kind = 'input -> 'output provider
 
 let const x = Const x
 let lwt x = Lwt x
+let loop x = Loop x
 
 let on_provided f = function
   | Const y -> f y
   | Lwt y -> Lwt.on_success y f
+  | Loop y ->
+    let rec loop () = Lwt.bind (y ()) (fun y -> f y; loop ()) in
+    Lwt.async loop
 
 let on_provided_kind k x f = on_provided f (k x)
 let on_provided_option x f = Option.ifsome (on_provided f) x
@@ -45,7 +51,7 @@ let text kind data (document : document) =
 let make_node create ?(classes=[]) kind children document =
   let (element : 'element Js.t) = create document in
   List.iter (fun class_ -> element##.classList##add (Js.string class_)) classes;
-  on_provided_kind kind children (append_nodes element document);
+  on_provided_kind kind children (set_nodes element document);
   element
 
 let node create ?classes provide children document =

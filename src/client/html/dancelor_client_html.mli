@@ -13,8 +13,8 @@ val node_of_dom_node : dom_node -> node
 val node_to_dom_node : document -> node -> dom_node
 val nodes_to_dom_nodes : document -> node list -> dom_node list
 
-val append_node : dom_node -> document -> node -> unit
 val append_nodes : dom_node -> document -> node list -> unit
+val set_nodes : dom_node -> document -> node list -> unit
 
 (** {2 Elements Builders} *)
 
@@ -30,10 +30,15 @@ val const : ('a, 'a) kind
 
 val lwt : ('a Lwt.t, 'a) kind
 (** Label for children computed once from an Lwt promise. The node will still be
-    returned immediately. Its children will be populated when the promises
+    returned immediately. Its children will be populated when the promise
     resolves. *)
 
-(* FIXME: Add a label for loops. *)
+val loop : (unit -> 'a Lwt.t, 'a) kind
+(** Label for children computed on a loop from an Lwt promise. The node will
+    still be returned immediately. Its children will be populated each time the
+    promises resolve. The function in the loop should depend on something to
+    make it not return instantly, for instance an {!Lwt_mvar} or an
+    {!NesLwt_bchan}. *)
 
 (** {3 Raw Text}
 
