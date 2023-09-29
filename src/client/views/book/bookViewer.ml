@@ -170,10 +170,12 @@ let create slug page =
         match%lwt book_lwt >>=| Book.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.list_uri scddb_id in
+          let href = const @@ SCDDB.list_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] const [
-              a ~href ~target:Blank const [text const "Link to the Strathspey Database"]
+              a ~href ~target:Blank const [
+                text const "Link to the Strathspey Database"
+              ]
             ]
           ]
       );
@@ -228,14 +230,14 @@ let create slug page =
 
         let c_pdf_href,         b_pdf_href,         e_pdf_href,         bass_pdf_href,
             c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
-          ApiRouter.(path @@ bookPdf slug @@ Option.none),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           b_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           e_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                        bass_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@                                        booklet_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    b_parameters booklet_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    e_parameters booklet_parameters),
-          ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose bass_parameters booklet_parameters)
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.none),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           b_parameters),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           e_parameters),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@                        bass_parameters),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@                                        booklet_parameters),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    b_parameters booklet_parameters),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    e_parameters booklet_parameters),
+          const @@ ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose bass_parameters booklet_parameters)
         in
 
         let pdf_button href txt =
@@ -264,7 +266,7 @@ let create slug page =
       ];
 
       div ~classes:["buttons"] const (
-        let href = PageRouter.(path (BookEdit slug)) in
+        let href = const @@ PageRouter.(path (BookEdit slug)) in
         [a ~classes:["button"] ~href const [text const ("Edit book")]]
       )
     ]);

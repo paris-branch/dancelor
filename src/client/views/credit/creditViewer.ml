@@ -34,11 +34,13 @@ let create slug page =
         match%lwt credit_lwt >>=| Credit.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.person_uri scddb_id in
+          let href = const @@ SCDDB.person_uri scddb_id in
           Lwt.return [
             p const [
               text const "You can ";
-              a ~href ~target:Blank const [text const "see this credit on the Strathspey Database"];
+              a ~href ~target:Blank const [
+                text const "see this credit on the Strathspey Database"
+              ];
               text const "."
             ]
           ]

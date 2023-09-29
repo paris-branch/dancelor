@@ -21,7 +21,7 @@ let name ?(link=true) set =
       let%lwt slug = M.Set.slug set in
       Lwt.return PageRouter.(path (Set slug))
     in
-    Lwt.return [a ~href_lwt const name_text]
+    Lwt.return [a ~href:(lwt href_lwt) const name_text]
   else
     Lwt.return name_text
 

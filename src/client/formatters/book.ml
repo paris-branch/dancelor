@@ -24,6 +24,6 @@ let short_title ?(link=true) book =
       let%lwt slug = M.Book.slug book in
       Lwt.return PageRouter.(path (Book slug))
     in
-    Lwt.return [a ~href_lwt const short_title_text]
+    Lwt.return [a ~href:(lwt href_lwt) const short_title_text]
   else
     Lwt.return short_title_text

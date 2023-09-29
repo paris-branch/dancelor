@@ -48,10 +48,12 @@ let create slug page =
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.tune_uri scddb_id in
+          let href = const @@ SCDDB.tune_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] const [
-              a ~href ~target:Blank const [text const "Link to the Strathspey Database"]
+              a ~href ~target:Blank const [
+                text const "Link to the Strathspey Database"
+              ]
             ]
           ]
       );
@@ -78,11 +80,11 @@ let create slug page =
         in
 
         let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href, ly_href =
-          ApiRouter.(path @@ versionPdf slug @@ Option.none),
-          ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
-          ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
-          ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters),
-          ApiRouter.(path @@ versionLy slug)
+          const @@ ApiRouter.(path @@ versionPdf slug @@ Option.none),
+          const @@ ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
+          const @@ ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
+          const @@ ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters),
+          const @@ ApiRouter.(path @@ versionLy slug)
         in
 
         let pdf_button href txt =
@@ -159,14 +161,15 @@ let create slug page =
               [
                 Dancelor_client_tables.versions other_versions;
 
-                let href_lwt =
+                let href =
+                  lwt @@
                   let%lwt tune = tune_lwt in
                   let%lwt slug = Tune.slug tune in
                   Lwt.return PageRouter.(path (Tune slug))
                 in
                 p const [
                   text const "You can also go to the ";
-                  a ~href_lwt const [text const "page of the tune"];
+                  a ~href const [text const "page of the tune"];
                   text const "."
                 ]
               ]
@@ -219,7 +222,8 @@ let create slug page =
           match%lwt other_versions_lwt with
           | [] -> Lwt.return_nil
           | _ -> Lwt.return [
-              let href_lwt =
+              let href =
+                lwt @@
                 let%lwt tune = tune_lwt in
                 let%lwt slug = Tune.slug tune in
                 Lwt.return PageRouter.(path (Tune slug))
@@ -227,7 +231,7 @@ let create slug page =
               p const [
                 text const "If you want to see the sets in which this version or ";
                 text const "any other appear, go to the ";
-                a ~href_lwt const [text const "page of the tune"];
+                a ~href const [text const "page of the tune"];
                 text const "."
               ]
             ]
@@ -257,7 +261,8 @@ let create slug page =
           match%lwt other_versions_lwt with
           | [] -> Lwt.return_nil
           | _ -> Lwt.return [
-              let href_lwt =
+              let href =
+                lwt @@
                 let%lwt tune = tune_lwt in
                 let%lwt slug = Tune.slug tune in
                 Lwt.return PageRouter.(path (Tune slug))
@@ -265,7 +270,7 @@ let create slug page =
               p const [
                 text const "If you want to see the books in which this version or ";
                 text const "any other appear, go to the ";
-                a ~href_lwt const [text const "page of the tune" ];
+                a ~href const [text const "page of the tune" ];
                 text const "."
               ]
             ]

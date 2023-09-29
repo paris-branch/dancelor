@@ -20,7 +20,9 @@ val append_nodes : dom_node -> document -> node list -> unit
 
 (** {3 Children provider} *)
 
-type ('input, 'output) kind
+type 'a provider
+
+type ('input, 'output) kind = 'input -> 'output provider
 (** Label for the generic way to provide node children. *)
 
 val const : ('a, 'a) kind
@@ -98,10 +100,8 @@ val i : ?classes:string list -> ('node_list, node list) kind -> 'node_list -> no
 
 type target = Blank | Self | Parent | Top | Frame of string
 
-val a : ?href:string -> ?href_lwt:string Lwt.t -> ?target:target -> ?classes:string list -> ('node_list, node list) kind -> 'node_list -> node
-(** Create an anchor element [<a></a>].
-
-    @raise Invalid_argument if none or both [?href] and [?href_lwt] are set. *)
+val a : ?href:string provider -> ?target:target -> ?classes:string list -> ('node_list, node list) kind -> 'node_list -> node
+(** Create an anchor element [<a></a>]. *)
 
 val label : ?classes:string list -> ('node_list, node list) kind -> 'node_list-> node
 

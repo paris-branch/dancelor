@@ -13,6 +13,6 @@ let line ?(link=true) credit =
         let%lwt slug = M.Credit.slug credit in
         Lwt.return PageRouter.(path (Credit slug))
       in
-      Lwt.return [a ~href_lwt const line_text]
+      Lwt.return [a ~href:(lwt href_lwt) const line_text]
     else
       Lwt.return line_text

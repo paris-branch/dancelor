@@ -11,7 +11,7 @@ let name ?(link=true) tune =
       let%lwt slug = M.Tune.slug tune in
       Lwt.return PageRouter.(path (Tune slug))
     in
-    Lwt.return [a ~href_lwt const name_text]
+    Lwt.return [a ~href:(lwt href_lwt) const name_text]
   else
     Lwt.return name_text
 

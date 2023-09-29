@@ -67,16 +67,15 @@ let i ?classes kind children = node Dom_html.createI ?classes kind children
 
 type target = Blank | Self | Parent | Top | Frame of string
 
-let a ?href ?href_lwt ?target ?classes kind children document =
-  let href_lwt =
-    match href, href_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.a"
-    | Some href, None -> Lwt.return href
-    | None, Some href_lwt -> href_lwt
-  in
+let a ?href ?target ?classes kind children document =
   let a = make_node Dom_html.createA ?classes kind children document in
-  Lwt.on_success href_lwt (fun href ->
-      a##.href := Js.string href);
+  (
+    Option.ifsome
+      (function
+        | Const href -> a##.href := Js.string href
+        | Lwt href -> Lwt.on_success href (fun href -> a##.href := Js.string href))
+      href
+  );
   (match target with
    | None -> ()
    | Some target ->

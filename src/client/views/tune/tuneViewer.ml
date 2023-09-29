@@ -33,10 +33,12 @@ let create slug page =
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.tune_uri scddb_id in
+          let href = const @@ SCDDB.tune_uri scddb_id in
           Lwt.return [
             h3 ~classes:["title"] const [
-              a ~href ~target:Blank const [text const "Link to the Strathspey Database"]
+              a ~href ~target:Blank const [
+                text const "Link to the Strathspey Database"
+              ]
             ]
           ]
       );

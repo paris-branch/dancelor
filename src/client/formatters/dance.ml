@@ -10,6 +10,6 @@ let name ?(link=true) dance =
       let%lwt slug = M.Dance.slug dance in
       Lwt.return PageRouter.(path (Dance slug))
     in
-    Lwt.return [a ~href_lwt const [text lwt name_lwt]]
+    Lwt.return [a ~href:(lwt href_lwt) const [text lwt name_lwt]]
   else
     Lwt.return [text lwt name_lwt]

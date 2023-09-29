@@ -31,7 +31,7 @@ let name ?(link=true) version =
       let%lwt slug = M.Version.slug version in
       Lwt.return PageRouter.(path (Version slug))
     in
-    Lwt.return [a ~href_lwt const name_text]
+    Lwt.return [a ~href:(lwt href_lwt) const name_text]
   else
     Lwt.return name_text
 
