@@ -30,23 +30,22 @@ type ('input, 'output) kind = 'input -> 'output provider
 let const x = Const x
 let lwt x = Lwt x
 
+let on_provided f = function
+  | Const y -> f y
+  | Lwt y -> Lwt.on_success y f
+
+let on_provided_kind k x f = on_provided f (k x)
+let on_provided_option x f = Option.ifsome (on_provided f) x
+
 let text kind data (document : document) =
   let text = document##createTextNode (Js.string "") in
-  (
-    match kind data with
-    | Const data ->  text##.data := Js.string data
-    | Lwt data -> Lwt.on_success data (fun data -> text##.data := Js.string data)
-  );
+  on_provided_kind kind data (fun data -> text##.data := Js.string data);
   (text :> dom_node)
 
 let make_node create ?(classes=[]) kind children document =
   let (element : 'element Js.t) = create document in
   List.iter (fun class_ -> element##.classList##add (Js.string class_)) classes;
-  (
-    match kind children with
-    | Const children -> append_nodes element document children
-    | Lwt children -> Lwt.on_success children (append_nodes element document)
-  );
+  on_provided_kind kind children (append_nodes element document);
   element
 
 let node create ?classes provide children document =
@@ -69,13 +68,7 @@ type target = Blank | Self | Parent | Top | Frame of string
 
 let a ?href ?target ?classes kind children document =
   let a = make_node Dom_html.createA ?classes kind children document in
-  (
-    Option.ifsome
-      (function
-        | Const href -> a##.href := Js.string href
-        | Lwt href -> Lwt.on_success href (fun href -> a##.href := Js.string href))
-      href
-  );
+  on_provided_option href (fun href -> a##.href := Js.string href);
   (match target with
    | None -> ()
    | Some target ->
@@ -133,35 +126,17 @@ let hr document = (Dom_html.createHr document :> dom_node)
 
 let img ?src ?classes () document =
   let img = make_node Dom_html.createImg ?classes const [] document in
-  (
-    Option.ifsome
-      (function
-        | Const src -> img##.src := Js.string src
-        | Lwt src -> Lwt.on_success src (fun src -> img##.src := Js.string src))
-      src
-  );
+  on_provided_option src (fun src -> img##.src := Js.string src);
   (img :> dom_node)
 
 let object_ ~type_ ?data ?classes kind children document =
   let object_ = make_node Dom_html.createObject ?classes kind children document in
   object_##._type := Js.string type_;
-  (
-    Option.ifsome
-      (function
-        | Const data -> object_##.data := Js.string data
-        | Lwt data -> Lwt.on_success data (fun data -> object_##.data := Js.string data))
-      data
-  );
+  on_provided_option data (fun data -> object_##.data := Js.string data);
   (object_ :> dom_node)
 
 let audio ?src ?(controls=false) ?classes () document =
   let audio = make_node Dom_html.createAudio ?classes const [] document in
   audio##.controls := Js.bool controls;
-  (
-    Option.ifsome
-      (function
-        | Const src -> audio##.src := Js.string src
-        | Lwt src -> Lwt.on_success src (fun src -> audio##.src := Js.string src))
-      src
-  );
+  on_provided_option src (fun src -> audio##.src := Js.string src);
   (audio :> dom_node)
