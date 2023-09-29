@@ -40,58 +40,60 @@ let create page =
           ~on_input:(Lwt_bchan.put search_text)
           ();
 
-        table ~classes:["dropdown-table"; "visible"] loop (
-          let search_text = Lwt_bchan.create_port search_text in
-          fun () ->
-            let%lwt search_text = Lwt_bchan.take search_text in
-            if String.length search_text < 3 then
-              (
-                let help_message =
-                  if search_text = "" then "Start typing to search."
-                  else "Type at least three characters."
-                in
-                Lwt.return [
-                  tr const [
-                    td const [text const "👉"];
-                    td const [text const help_message];
-                  ]
-                ]
-              )
-            else
-              (
-                match%lwt search search_text with
-
-                | Ok [] ->
+        table ~classes:["dropdown-table"; "visible"] const [
+          tbody loop (
+            let search_text = Lwt_bchan.create_port search_text in
+            fun () ->
+              let%lwt search_text = Lwt_bchan.take search_text in
+              if String.length search_text < 3 then
+                (
+                  let help_message =
+                    if search_text = "" then "Start typing to search."
+                    else "Type at least three characters."
+                  in
                   Lwt.return [
                     tr const [
-                      td const [text const "⚠️"];
-                      td const [text const "Your search returned no results."];
-                    ];
-                  ]
-
-                | Ok results ->
-                  let%lwt lines = Lwt_list.map_s AnyResultHtml.make_result results in
-                  Lwt.return (
-                    lines @ [
-                      tr const [
-                        td const [text const "👉"];
-                        td const [text const "Press enter for more results."];
-                      ]
+                      td const [text const "👉"];
+                      td const [text const help_message];
                     ]
-                  )
+                  ]
+                )
+              else
+                (
+                  match%lwt search search_text with
 
-                | Error messages ->
-                  Lwt.return (
-                    List.map
-                      (fun message ->
-                         tr const [
-                           td const [text const "❌"];
-                           td const [text const message];
-                         ])
-                      messages
-                  )
-              )
-        )
+                  | Ok [] ->
+                    Lwt.return [
+                      tr const [
+                        td const [text const "⚠️"];
+                        td ~colspan:4 const [text const "Your search returned no results."];
+                      ];
+                    ]
+
+                  | Ok results ->
+                    let%lwt lines = Lwt_list.map_s AnyResultHtml.make_result results in
+                    Lwt.return (
+                      lines @ [
+                        tr const [
+                          td const [text const "👉"];
+                          td ~colspan:4 const [text const "Press enter for more results."];
+                        ]
+                      ]
+                    )
+
+                  | Error messages ->
+                    Lwt.return (
+                      List.map
+                        (fun message ->
+                           tr const [
+                             td const [text const "❌"];
+                             td ~colspan:4 const [text const message];
+                           ])
+                        messages
+                    )
+                )
+          )
+        ]
       ]
     ]);
 
