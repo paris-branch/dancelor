@@ -108,7 +108,7 @@ let create slug page =
                    (let href = const PageRouter.(path (Version slug)) in
                     h4 const [a ~href const [text lwt (Tune.name tune)]]);
 
-                   (let data = ApiRouter.(path (versionSvg slug None)) in
+                   (let data = const ApiRouter.(path (versionSvg slug None)) in
                     object_ ~type_:"image/svg+xml" ~data const [])
                  ])
             )

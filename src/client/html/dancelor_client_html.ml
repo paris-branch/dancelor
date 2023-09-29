@@ -131,37 +131,37 @@ let input ~type_ ?classes () document =
 let br document = (Dom_html.createBr document :> dom_node)
 let hr document = (Dom_html.createHr document :> dom_node)
 
-let img ?src ?src_lwt ?classes () document =
-  let src_lwt =
-    match src, src_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.img"
-    | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
-  in
+let img ?src ?classes () document =
   let img = make_node Dom_html.createImg ?classes const [] document in
-  Lwt.on_success src_lwt (fun src ->
-      img##.src := Js.string src);
+  (
+    Option.ifsome
+      (function
+        | Const src -> img##.src := Js.string src
+        | Lwt src -> Lwt.on_success src (fun src -> img##.src := Js.string src))
+      src
+  );
   (img :> dom_node)
 
-let object_ ~type_ ?data ?data_lwt ?classes kind children document =
-  let data_lwt =
-    match data, data_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.object_"
-    | Some data, _ -> Lwt.return data | _, Some data_lwt -> data_lwt
-  in
+let object_ ~type_ ?data ?classes kind children document =
   let object_ = make_node Dom_html.createObject ?classes kind children document in
   object_##._type := Js.string type_;
-  Lwt.on_success data_lwt (fun data ->
-      object_##.data := Js.string data);
+  (
+    Option.ifsome
+      (function
+        | Const data -> object_##.data := Js.string data
+        | Lwt data -> Lwt.on_success data (fun data -> object_##.data := Js.string data))
+      data
+  );
   (object_ :> dom_node)
 
-let audio ?src ?src_lwt ?(controls=false) ?classes () document =
-  let src_lwt =
-    match src, src_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.audio"
-    | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
-  in
+let audio ?src ?(controls=false) ?classes () document =
   let audio = make_node Dom_html.createAudio ?classes const [] document in
   audio##.controls := Js.bool controls;
-  Lwt.on_success src_lwt (fun src ->
-      audio##.src := Js.string src);
+  (
+    Option.ifsome
+      (function
+        | Const src -> audio##.src := Js.string src
+        | Lwt src -> Lwt.on_success src (fun src -> audio##.src := Js.string src))
+      src
+  );
   (audio :> dom_node)

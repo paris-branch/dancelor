@@ -114,17 +114,11 @@ val input : type_:type_ -> ?classes:string list -> unit -> node
 val hr : node
 val br : node
 
-val img : ?src:string -> ?src_lwt:string Lwt.t -> ?classes:string list -> unit -> node
-(** Create an image element [<img/>].
+val img : ?src:string provider -> ?classes:string list -> unit -> node
+(** Create an image element [<img/>]. *)
 
-    @raise Invalid_argument if none or both [?src] and [?src_lwt] are set. *)
+val object_ : type_:string -> ?data:string provider -> ?classes:string list -> ('node_list, node list) kind -> 'node_list -> node
+(** Create an object element [<object/>]. *)
 
-val object_ : type_:string -> ?data:string -> ?data_lwt:string Lwt.t -> ?classes:string list -> ('node_list, node list) kind -> 'node_list -> node
-(** Create an object element [<object/>].
-
-    @raise Invalid_argument if none or both [?data] and [?data_lwt] are set. *)
-
-val audio : ?src:string -> ?src_lwt:string Lwt.t -> ?controls:bool -> ?classes:string list -> unit -> node
-(** Create an audio element [<audio/>].
-
-    @raise Invalid_argument if none or both [?src] and [?src_lwt] are set. *)
+val audio : ?src:string provider -> ?controls:bool -> ?classes:string list -> unit -> node
+(** Create an audio element [<audio/>]. *)

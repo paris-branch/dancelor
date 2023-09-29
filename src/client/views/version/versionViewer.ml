@@ -123,14 +123,14 @@ let create slug page =
         div ~classes:["image-container"] const [
           object_
             ~type_:"image/svg+xml"
-            ~data:ApiRouter.(path (versionSvg slug None))
+            ~data:(const ApiRouter.(path (versionSvg slug None)))
             const
             [];
         ]
       ];
 
       div ~classes:["audio-container"] const [
-        audio ~src:ApiRouter.(path (versionOgg slug)) ~controls:true ()
+        audio ~src:(const ApiRouter.(path (versionOgg slug))) ~controls:true ()
       ];
 
       div ~classes:["buttons"] lwt (
