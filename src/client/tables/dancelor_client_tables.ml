@@ -5,17 +5,17 @@ open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
 
 let clickable_row ?href ?href_lwt cells =
-  tr ~classes:["clickable"] (
+  tr ~classes:["clickable"] const (
     List.map
       (fun cell_lwt ->
-         td [ a_lwt ~classes:["fill"] ?href ?href_lwt cell_lwt ])
+         td const [a ~classes:["fill"] ?href ?href_lwt lwt cell_lwt])
       cells
   )
 
 let map_table ~header list fun_ =
-  table ~classes:["separated-table"; "visible"] [
-    thead [ tr (List.map (fun str -> th [ text str ]) header) ];
-    tbody (List.map fun_ list)
+  table ~classes:["separated-table"; "visible"] const [
+    thead const [tr const (List.map (fun str -> th const [text const str]) header) ];
+    tbody const (List.map fun_ list)
   ]
 
 let books books =
@@ -26,12 +26,12 @@ let books books =
   in
   clickable_row ~href_lwt [
     Formatters.Book.title_and_subtitle book;
-    Lwt.return [ text_lwt (
+    Lwt.return [text lwt (
         let open Lwt in
         Book.date book >|= function
         | None -> ""
         | Some date -> NesPartialDate.to_pretty_string date
-      ) ]
+      )]
   ]
 
 let sets sets =
@@ -43,7 +43,7 @@ let sets sets =
   clickable_row ~href_lwt [
     (Formatters.Set.name_and_tunes ~link:false set);
     (Set.deviser set >>=| Formatters.Credit.line);
-    Lwt.return [ text_lwt (Set.kind set >|=| Kind.Dance.to_string) ];
+    Lwt.return [text lwt (Set.kind set >|=| Kind.Dance.to_string)];
   ]
 
 let dances dances =
@@ -53,9 +53,9 @@ let dances dances =
     Lwt.return PageRouter.(path (Dance slug))
   in
   clickable_row ~href_lwt [
-    Lwt.return [ text_lwt (Dance.name dance) ];
+    Lwt.return [text lwt (Dance.name dance)];
     (Dance.deviser dance >>=| Formatters.Credit.line);
-    Lwt.return [ text_lwt (Dance.kind dance >|=| Kind.Dance.to_string) ];
+    Lwt.return [text lwt (Dance.kind dance >|=| Kind.Dance.to_string)];
   ]
 
 let tunes tunes =
@@ -65,8 +65,8 @@ let tunes tunes =
     Lwt.return PageRouter.(path (Tune slug))
   in
   clickable_row ~href_lwt [
-    Lwt.return [ text_lwt (Tune.name tune) ];
-    Lwt.return [ text_lwt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true) ];
+    Lwt.return [text lwt (Tune.name tune)];
+    Lwt.return [text lwt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
     (Tune.author tune >>=| Formatters.Credit.line);
   ]
 
@@ -82,8 +82,8 @@ let versions versions =
     (Formatters.Version.disambiguation_and_sources version);
     (Version.arranger version >>=| Formatters.Credit.line);
     (tune_lwt >>=| Formatters.Kind.full_string version);
-    Lwt.return [ text_lwt (Version.key version >|=| Music.key_to_pretty_string) ];
-    Lwt.return [ text_lwt (Version.structure version) ];
+    Lwt.return [text lwt (Version.key version >|=| Music.key_to_pretty_string)];
+    Lwt.return [text lwt (Version.structure version)];
   ]
 
 let versions_with_names versions =
@@ -95,9 +95,9 @@ let versions_with_names versions =
     Lwt.return PageRouter.(path (Version slug))
   in
   clickable_row ~href_lwt [
-    Lwt.return [ text_lwt (tune_lwt >>=| Tune.name) ];
+    Lwt.return [text lwt (tune_lwt >>=| Tune.name)];
     (tune_lwt >>=| Formatters.Kind.full_string version);
-    Lwt.return [ text_lwt (Version.key version >|=| Music.key_to_pretty_string) ];
-    Lwt.return [ text_lwt (Version.structure version) ];
+    Lwt.return [text lwt (Version.key version >|=| Music.key_to_pretty_string)];
+    Lwt.return [text lwt (Version.structure version)];
   ]
 

@@ -26,28 +26,28 @@ let create slug page =
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
 
-      h2 ~classes:["title"] [
-        text_lwt (credit_lwt >>=| Credit.line)
+      h2 ~classes:["title"] const [
+        text lwt (credit_lwt >>=| Credit.line)
       ];
 
-      div_lwt ~classes:["section"] (
+      div ~classes:["section"] lwt (
         match%lwt credit_lwt >>=| Credit.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.person_uri scddb_id in
           Lwt.return [
-            p [
-              text "You can ";
-              a ~href ~target:Blank [ text "see this credit on the Strathspey Database" ];
-              text "."
+            p const [
+              text const "You can ";
+              a ~href ~target:Blank const [text const "see this credit on the Strathspey Database"];
+              text const "."
             ]
           ]
       );
 
-      div ~classes:["section"] [
-        h3 [ text "Tunes Composed" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Tunes Composed"];
 
-        div_lwt (
+        div lwt (
           let%lwt tunes =
             let%lwt credit = credit_lwt in
             let filter = Tune.Filter.authorIs credit in
@@ -56,17 +56,17 @@ let create slug page =
 
           Lwt.return [
             if tunes = [] then
-              text "There are no tunes composed by this credit."
+              text const "There are no tunes composed by this credit."
             else
               Dancelor_client_tables.tunes tunes
           ]
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Sets Devised" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Sets Devised"];
 
-        div_lwt (
+        div lwt (
           let%lwt sets =
             let%lwt credit = credit_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.is credit) in
@@ -76,17 +76,17 @@ let create slug page =
 
           Lwt.return [
             if sets = [] then
-              text "There are no sets devised by this credit."
+              text const "There are no sets devised by this credit."
             else
               Dancelor_client_tables.sets sets
           ]
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Dances Devised" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Dances Devised"];
 
-        div_lwt (
+        div lwt (
           let%lwt dances =
             let%lwt credit = credit_lwt in
             let filter = Dance.Filter.deviser (Credit.Filter.is credit) in
@@ -95,7 +95,7 @@ let create slug page =
 
           Lwt.return [
             if dances = [] then
-              text "There are no dances devised by this credit."
+              text const "There are no dances devised by this credit."
             else
               Dancelor_client_tables.dances dances
           ]

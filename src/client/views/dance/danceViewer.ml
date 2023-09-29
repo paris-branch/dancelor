@@ -27,44 +27,44 @@ let create slug page =
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
 
-      h2 ~classes:["title"] [
-        text_lwt (dance_lwt >>=| Dance.name);
+      h2 ~classes:["title"] const [
+        text lwt (dance_lwt >>=| Dance.name);
       ];
-      h3_lwt ~classes:["title"] (
+      h3 ~classes:["title"] lwt (
         let kind = [
-          text_lwt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
+          text lwt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
         ] in
         let%lwt by =
           match%lwt dance_lwt >>=| Dance.deviser with
           | None -> Lwt.return_nil
           | Some deviser ->
             let%lwt line = Formatters.Credit.line ~link:true (Some deviser) in
-            Lwt.return (text " by " :: line)
+            Lwt.return (text const " by " :: line)
         in
         Lwt.return (kind @ by)
       );
-      div_lwt (
+      div lwt (
         let%lwt dance = dance_lwt in
         match%lwt Dance.two_chords dance with
         | false -> Lwt.return_nil
-        | true -> Lwt.return [ h3 ~classes:["title"] [ text "Two Chords" ] ]
+        | true -> Lwt.return [h3 ~classes:["title"] const [text const "Two Chords"]]
       );
-      div_lwt (
+      div lwt (
         match%lwt dance_lwt >>=| Dance.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.dance_uri scddb_id in
           Lwt.return [
-            h3 ~classes:["title"] [
-              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            h3 ~classes:["title"] const [
+              a ~href ~target:Blank const [text const "Link to the Strathspey Database"]
             ]
           ]
       );
 
-      div ~classes:["section"] [
-        h3 [ text "Recommended Tunes" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Recommended Tunes"];
 
-        div_lwt (
+        div lwt (
           let tunes_lwt =
             let%lwt dance = dance_lwt in
             let filter = Tune.Filter.existsDance (Dance.Filter.is dance) in
@@ -75,9 +75,11 @@ let create slug page =
 
           Lwt.return [
             if tunes = [] then
-              text ("There are no recommended tunes for this dance. "
-                    ^ "Dancelor is not all-knowing: go check the Strathspey Database! "
-                    ^ "And if you find something that is not known here, report it to someone.")
+              text const (
+                "There are no recommended tunes for this dance. "
+                ^ "Dancelor is not all-knowing: go check the Strathspey Database! "
+                ^ "And if you find something that is not known here, report it to someone."
+              )
             else
               Dancelor_client_tables.tunes tunes
           ]

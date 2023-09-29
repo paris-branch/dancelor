@@ -26,25 +26,25 @@ let create slug page =
     );
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-      h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
-      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
-      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
-      div_lwt (
+      h2 ~classes:["title"] const [text lwt (tune_lwt >>=| Tune.name)];
+      h3 ~classes:["title"] lwt (tune_lwt >>=| Formatters.Tune.aka);
+      h3 ~classes:["title"] lwt (tune_lwt >>=| Formatters.Tune.description);
+      div lwt (
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.tune_uri scddb_id in
           Lwt.return [
-            h3 ~classes:["title"] [
-              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            h3 ~classes:["title"] const [
+              a ~href ~target:Blank const [text const "Link to the Strathspey Database"]
             ]
           ]
       );
 
-      div ~classes:["section"] [
-        h3 [ text "Versions of This Tune" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Versions of This Tune"];
 
-        div_lwt (
+        div lwt (
           let versions_lwt =
             let%lwt filter =
               let%lwt tune = tune_lwt in
@@ -67,14 +67,14 @@ let create slug page =
               Lwt.return_unit
             );
 
-          Lwt.return [ Dancelor_client_tables.versions versions ]
+          Lwt.return [Dancelor_client_tables.versions versions]
         )
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Dances That Recommend This Tune" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Dances That Recommend This Tune"];
 
-        div_lwt (
+        div lwt (
           let none = (Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
@@ -85,17 +85,17 @@ let create slug page =
 
           Lwt.return [
             if dances = [] then
-              text "There are no dances that recommend this tune."
+              text const "There are no dances that recommend this tune."
             else
               Dancelor_client_tables.dances dances
           ]
         )
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Sets in Which This Tune Appears" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Sets in Which This Tune Appears"];
 
-        div_lwt (
+        div lwt (
           let none = (Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
@@ -111,17 +111,17 @@ let create slug page =
 
           Lwt.return [
             if sets = [] then
-              text "There are no sets containing this tune."
+              text const "There are no sets containing this tune."
             else
               Dancelor_client_tables.sets sets
           ]
         )
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Books in Which This Tune Appears" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Books in Which This Tune Appears"];
 
-        div_lwt (
+        div lwt (
           let%lwt books =
             let%lwt tune = tune_lwt in
             let filter = Book.Filter.memTuneDeep tune in
@@ -131,7 +131,7 @@ let create slug page =
 
           Lwt.return [
             if books = [] then
-              text "There are no books containing this tune."
+              text const "There are no books containing this tune."
             else
               Dancelor_client_tables.books books
           ]

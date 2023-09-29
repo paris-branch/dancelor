@@ -10,18 +10,18 @@ let works set =
   | dances ->
     let%lwt dance_names = Lwt_list.map_p M.Dance.name dances in
     Lwt.return [
-      text (spf "Works for %s" (String.concat ", " dance_names))
+      text const (spf "Works for %s" (String.concat ", " dance_names))
     ]
 
 let name ?(link=true) set =
-  let name_text = [text_lwt (M.Set.name set)] in
+  let name_text = [text lwt (M.Set.name set)] in
   let%lwt is_inline = M.Set.is_slug_none set in
   if link && not is_inline then
     let href_lwt =
       let%lwt slug = M.Set.slug set in
       Lwt.return PageRouter.(path (Set slug))
     in
-    Lwt.return [a ~href_lwt name_text]
+    Lwt.return [a ~href_lwt const name_text]
   else
     Lwt.return name_text
 
@@ -35,10 +35,10 @@ let name_and_tunes ?link ?tunes_link set =
         versions_and_parameters
     in
     versions
-    |> List.intertwine (fun _ -> [text " - "])
+    |> List.intertwine (fun _ -> [text const " - "])
     |> List.flatten
-    |> List.cons (text "Tunes: ")
-    |> span ~classes:["dim"; "details"]
+    |> List.cons (text const "Tunes: ")
+    |> span ~classes:["dim"; "details"] const
     |> List.singleton
     |> Lwt.return
   in
@@ -50,8 +50,9 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
     match%lwt M.SetParameters.for_dance parameters with
     | None -> Lwt.return_nil
     | Some dance -> Lwt.return [
-        span ~classes:["dim"; "details"] [
-          text "For dance: "; span_lwt (Dance.name ?link:dance_link dance)
+        span ~classes:["dim"; "details"] const [
+          text const "For dance: ";
+          span lwt (Dance.name ?link:dance_link dance)
         ]]
   in
   Lwt.return (name_and_tunes @ dance)

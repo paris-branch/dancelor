@@ -26,22 +26,22 @@ let create slug page =
     );
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-      h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
-      h3_lwt ~classes:["title"] (set_lwt >>=| Formatters.Set.works);
-      h3 ~classes:["title"] [
-        text_lwt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
-        text " — Play ";
-        text_lwt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string)
+      h2 ~classes:["title"] const [text lwt (set_lwt >>=| Set.name)];
+      h3 ~classes:["title"] lwt (set_lwt >>=| Formatters.Set.works);
+      h3 ~classes:["title"] const [
+        text lwt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
+        text const " — Play ";
+        text lwt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string)
       ];
-      h3_lwt ~classes:["title"] (
+      h3 ~classes:["title"] lwt (
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
         | Some deviser ->
           let%lwt line_block = Formatters.Credit.line ~link:true (Some deviser) in
-          Lwt.return (text "Set devised by " :: line_block)
+          Lwt.return (text const "Set devised by " :: line_block)
       );
 
-      div ~classes:["buttons"] (
+      div ~classes:["buttons"] const (
         let bass_parameters =
           SetParameters.(
             make ~every_version:VersionParameters.(
@@ -67,9 +67,9 @@ let create slug page =
         in
 
         let pdf_button href txt =
-          a ~classes:["button"] ~href ~target:Blank [
-            i ~classes:["fas"; "fa-file-pdf"] [];
-            text (" "^txt)
+          a ~classes:["button"] ~href ~target:Blank const [
+            i ~classes:["fas"; "fa-file-pdf"] const [];
+            text const (" " ^ txt)
           ]
         in
         [
@@ -78,19 +78,23 @@ let create slug page =
           pdf_button e_pdf_href    "PDF (E♭)";
           pdf_button bass_pdf_href "PDF (𝄢)";
           br;
-          a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
+          a ~classes:["button"] ~href:ly_href const [
+            i ~classes:["fas"; "fa-file-alt"] const [];
+            text const " LilyPond"
+          ];
         ]
       );
 
-      p [ text_lwt (
+      p const [text lwt (
           match%lwt set_lwt >>=| Set.instructions with
           | "" -> Lwt.return ""
-          | instructions -> Lwt.return ("Instructions: " ^ instructions)) ];
+          | instructions -> Lwt.return ("Instructions: " ^ instructions)
+        )];
 
-      div ~classes:["section"] [
-        h3 [ text "Previsualisation" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Previsualisation"];
 
-        div_lwt (
+        div lwt (
           let%lwt set = set_lwt in
           let%lwt versions_and_parameters = Set.versions_and_parameters set in
 
@@ -100,22 +104,22 @@ let create slug page =
                let%lwt tune = Version.tune version in
                let%lwt slug = Version.slug version in
 
-               Lwt.return (div ~classes:["image-container"] [
+               Lwt.return (div ~classes:["image-container"] const [
                    (let href = PageRouter.(path (Version slug)) in
-                    h4 [ a ~href [ text_lwt (Tune.name tune) ] ]);
+                    h4 const [a ~href const [text lwt (Tune.name tune)]]);
 
                    (let data = ApiRouter.(path (versionSvg slug None)) in
-                    object_ ~type_:"image/svg+xml" ~data [])
+                    object_ ~type_:"image/svg+xml" ~data const [])
                  ])
             )
             versions_and_parameters
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Books in Which This Set Appears" ];
+      div ~classes:["section"] const [
+        h3 const [text const "Books in Which This Set Appears"];
 
-        div_lwt (
+        div lwt (
           let books_lwt =
             let%lwt set = set_lwt in
             let filter = Book.Filter.memSet set in
@@ -126,7 +130,7 @@ let create slug page =
 
           Lwt.return [
             if books = [] then
-              p [ text "There are no books containing this set." ]
+              p const [text const "There are no books containing this set."]
             else
               Dancelor_client_tables.books books
           ]

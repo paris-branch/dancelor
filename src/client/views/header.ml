@@ -50,14 +50,14 @@ let contents t =
 
 let add_menu_entry t name href =
   Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
-      li [a ~href [text name]]
+      li const [a ~href const [text const name]]
     ])
 
 let add_dropdown_menu_entry t name subentries =
   Dancelor_client_html.(append_nodes (t.menu :> dom_node) (Page.document t.page) [
-      li [
-        text (name ^ " ▾");
-        ul ~classes:["subnav"]
-          (List.map (fun (name, href) -> li [a ~href [text name]]) subentries)
+      li const [
+        text const (name ^ " ▾");
+        ul ~classes:["subnav"] const
+          (List.map (fun (name, href) -> li const [a ~href const [text const name]]) subentries)
       ]
     ])

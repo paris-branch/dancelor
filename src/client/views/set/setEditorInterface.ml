@@ -68,15 +68,19 @@ let display_warnings t =
     | [] -> Lwt.return []
     | duplicated_tunes ->
       let display_duplicated_warning tune =
-        li [
-          text "Tune “";
-          span_lwt (Formatters.Tune.name tune);
-          text "” already appears in book ";
-          span_lwt (Formatters.Book.short_title bk);
+        li const [
+          text const "Tune “";
+          span lwt (Formatters.Tune.name tune);
+          text const "” already appears in book ";
+          span lwt (Formatters.Book.short_title bk);
         ]
       in
-      Lwt.return [div ~classes:["warning"]
-                    [ul (List.map display_duplicated_warning duplicated_tunes)]; br]
+      Lwt.return [
+        div ~classes:["warning"] const [
+          ul const (List.map display_duplicated_warning duplicated_tunes)
+        ];
+        br
+      ]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -153,7 +157,7 @@ let refresh t =
       Dom.appendChild t.versions_area subwin);
   JsHelpers.clear_children t.warnings_area;
   Dom.appendChild t.warnings_area
-    Dancelor_client_html.(node_to_dom_node (Page.document t.page) (div_lwt (display_warnings t)))
+    Dancelor_client_html.(node_to_dom_node (Page.document t.page) (div lwt (display_warnings t)))
 
 let make_version_search_result composer page score =
   let version = Score.value score in

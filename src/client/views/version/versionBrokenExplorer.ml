@@ -18,16 +18,16 @@ let create page =
   document##.title := js "Broken Versions | Dancelor";
 
   Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-      h2 ~classes:["title"] [text "List of Broken Versions"];
+      h2 ~classes:["title"] const [text const "List of Broken Versions"];
 
-      div_lwt (
+      div lwt (
         let%lwt versions = Version.search Version.Filter.broken >|=| Score.list_erase in
 
         (* If there is no broken version, no need to print the table *)
         if List.length versions = 0 then
-          Lwt.return [ text "No broken version" ]
+          Lwt.return [text const "No broken version"]
         else
-          Lwt.return [ Dancelor_client_tables.versions_with_names versions ]
+          Lwt.return [Dancelor_client_tables.versions_with_names versions]
       )
     ]);
 
