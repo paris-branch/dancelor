@@ -24,30 +24,35 @@ let create slug page =
       Lwt.return ()
     );
 
-  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-
-      h2 ~classes:["title"] [
-        text_lwt (credit_lwt >>=| Credit.line)
+  (
+    let open Dancelor_client_html.NewAPI in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [
+        R.txt (S.from' ~placeholder:"" (credit_lwt >>=| Credit.line));
       ];
 
-      div_lwt ~classes:["section"] (
+      R.div ~a:[a_class ["section"]] (
+        RList.from_signal @@ S.from' ~placeholder:[] @@
         match%lwt credit_lwt >>=| Credit.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.person_uri scddb_id in
           Lwt.return [
             p [
-              text "You can ";
-              a ~href ~target:Blank [ text "see this credit on the Strathspey Database" ];
-              text "."
+              txt "You can ";
+              a ~a:[a_href href; a_target "blank"] [
+                txt "see this credit on the Strathspey Database"
+              ];
+              txt "."
             ]
           ]
       );
 
-      div ~classes:["section"] [
-        h3 [ text "Tunes Composed" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Tunes Composed"];
 
-        div_lwt (
+        R.div (
+          RList.from_signal @@ S.from' ~placeholder:[] @@
           let%lwt tunes =
             let%lwt credit = credit_lwt in
             let filter = Tune.Filter.authorIs credit in
@@ -56,17 +61,18 @@ let create slug page =
 
           Lwt.return [
             if tunes = [] then
-              text "There are no tunes composed by this credit."
+              txt "There are no tunes composed by this credit."
             else
-              Dancelor_client_tables.tunes tunes
+              Dancelor_client_tables.TheNewAPI.tunes tunes
           ]
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Sets Devised" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Sets Devised"];
 
-        div_lwt (
+        R.div (
+          RList.from_signal @@ S.from' ~placeholder:[] @@
           let%lwt sets =
             let%lwt credit = credit_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.is credit) in
@@ -76,17 +82,18 @@ let create slug page =
 
           Lwt.return [
             if sets = [] then
-              text "There are no sets devised by this credit."
+              txt "There are no sets devised by this credit."
             else
-              Dancelor_client_tables.sets sets
+              Dancelor_client_tables.TheNewAPI.sets sets
           ]
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Dances Devised" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Dances Devised"];
 
-        div_lwt (
+        R.div (
+          RList.from_signal @@ S.from' ~placeholder:[] @@
           let%lwt dances =
             let%lwt credit = credit_lwt in
             let filter = Dance.Filter.deviser (Credit.Filter.is credit) in
@@ -95,12 +102,14 @@ let create slug page =
 
           Lwt.return [
             if dances = [] then
-              text "There are no dances devised by this credit."
+              txt "There are no dances devised by this credit."
             else
-              Dancelor_client_tables.dances dances
+              Dancelor_client_tables.TheNewAPI.dances dances
           ]
         );
-      ]]);
+      ]
+    ]
+  );
 
   {page; content}
 
