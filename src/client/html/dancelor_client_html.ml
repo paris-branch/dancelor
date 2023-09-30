@@ -1,3 +1,5 @@
+module NewAPI = NewAPI
+
 open Js_of_ocaml
 
 type dom_node = Dom.node Js.t

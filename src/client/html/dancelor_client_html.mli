@@ -1,5 +1,7 @@
 (** {1 HTML} *)
 
+module NewAPI = NewAPI
+
 open Js_of_ocaml
 
 (** {2 Generic Types and Functions} *)
