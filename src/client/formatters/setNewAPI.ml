@@ -4,14 +4,14 @@ open Dancelor_client_html.NewAPI
 module M = Dancelor_client_model
 
 let name ?(link=true) set =
-  let name_text = [R.txt @@ S.from' ~placeholder:"" @@ M.Set.name set] in
+  let name_text = [R.txt @@ S.from' "" @@ M.Set.name set] in
   let%lwt is_inline = M.Set.is_slug_none set in
   if link && not is_inline then
     let href =
       let%lwt slug = M.Set.slug set in
       Lwt.return PageRouter.(path (Set slug))
     in
-    Lwt.return [a ~a:[R.a_href @@ S.from' ~placeholder:"" href] name_text]
+    Lwt.return [a ~a:[R.a_href @@ S.from' "" href] name_text]
   else
     Lwt.return name_text
 

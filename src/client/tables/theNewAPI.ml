@@ -19,7 +19,7 @@ let clickable_row ~href cells =
     (
       List.map
         (fun cell ->
-           R.td (RList.from_signal @@ S.from' ~placeholder:[] cell)
+           R.td (RList.from_lwt' [] cell)
         )
         cells
     )
@@ -38,7 +38,7 @@ let sets sets =
   clickable_row ~href [
     (Formatters.SetNewAPI.name_and_tunes ~link:true set);
     (Set.deviser set >>=| Formatters.CreditNewAPI.line);
-    Lwt.return [R.txt @@ S.from' ~placeholder:"" (Set.kind set >|=| Kind.Dance.to_string)];
+    Lwt.return [R.txt @@ S.from' "" (Set.kind set >|=| Kind.Dance.to_string)];
   ]
 
 let dances dances =
@@ -50,7 +50,7 @@ let dances dances =
   clickable_row ~href [
     (Formatters.DanceNewAPI.name dance);
     (Dance.deviser dance >>=| Formatters.CreditNewAPI.line);
-    Lwt.return [R.txt @@ S.from' ~placeholder:"" (Dance.kind dance >|=| Kind.Dance.to_string)];
+    Lwt.return [R.txt @@ S.from' "" (Dance.kind dance >|=| Kind.Dance.to_string)];
   ]
 
 let tunes tunes =
@@ -61,6 +61,6 @@ let tunes tunes =
   in
   clickable_row ~href [
     (Formatters.TuneNewAPI.name tune);
-    Lwt.return [R.txt @@ S.from' ~placeholder:"" (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
+    Lwt.return [R.txt @@ S.from' "" (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
     (Tune.author tune >>=| Formatters.CreditNewAPI.line);
   ]

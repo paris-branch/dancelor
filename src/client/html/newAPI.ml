@@ -23,11 +23,21 @@ module S = struct
 
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves. *)
-  let from' ~(placeholder: 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
+  let from' (placeholder: 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
     let result, send_result = create placeholder in
     Lwt.on_success promise send_result;
     result
 end
 
 (** Reactive lists. *)
-module RList = ReactiveData.RList
+module RList = struct
+  include ReactiveData.RList
+
+  (** [from_lwt' placeholder promise] is a container whose initial value is
+      [placeholder], and which gets updated once [promise] resolves. When that
+      happens we detect the differences between [placeholder] and [promise]'s
+      result, and perform downstream computation (e.g., for [map]) only on the
+      new and modified elements. *)
+  let from_lwt' placeholder promise =
+    from_signal @@ S.from' placeholder promise
+end
