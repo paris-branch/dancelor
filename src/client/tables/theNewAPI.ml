@@ -29,6 +29,23 @@ let map_table ~header list fun_ =
     ~thead:(thead [tr (List.map (fun str -> th [txt str]) header)])
     [tbody (List.map fun_ list)]
 
+let books books =
+  map_table ~header:[ "Book"; "Date" ] books @@ fun book ->
+  let href =
+    let%lwt slug = Book.slug book in
+    Lwt.return PageRouter.(path (Book slug))
+  in
+  clickable_row ~href [
+    Formatters.BookNewAPI.title_and_subtitle book;
+    Lwt.return [
+      R.txt @@ S.from' "" @@
+      let open Lwt in
+      Book.date book >|= function
+      | None -> ""
+      | Some date -> NesPartialDate.to_pretty_string date
+    ]
+  ]
+
 let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
   let href =
@@ -63,4 +80,20 @@ let tunes tunes =
     (Formatters.TuneNewAPI.name tune);
     Lwt.return [R.txt @@ S.from' "" (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
     (Tune.author tune >>=| Formatters.CreditNewAPI.line);
+  ]
+
+let versions versions =
+  map_table ~header:[ "Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure" ]
+    versions @@ fun version ->
+  let tune_lwt = Version.tune version in
+  let href =
+    let%lwt slug = Version.slug version in
+    Lwt.return PageRouter.(path (Version slug))
+  in
+  clickable_row ~href [
+    (Formatters.VersionNewAPI.disambiguation_and_sources version);
+    (Version.arranger version >>=| Formatters.CreditNewAPI.line);
+    (tune_lwt >>=| Formatters.KindNewAPI.full_string version);
+    Lwt.return [R.txt @@ S.from' "" (Version.key version >|=| Music.key_to_pretty_string) ];
+    Lwt.return [R.txt @@ S.from' "" (Version.structure version) ];
   ]
