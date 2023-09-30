@@ -3,6 +3,15 @@ open Dancelor_common
 open Dancelor_client_html.NewAPI
 module M = Dancelor_client_model
 
+let works set =
+  match%lwt M.Set.dances set with
+  | [] -> Lwt.return_nil
+  | dances ->
+    let%lwt dance_names = Lwt_list.map_p M.Dance.name dances in
+    Lwt.return [
+      txt (spf "Works for %s" (String.concat ", " dance_names))
+    ]
+
 let name ?(link=true) set =
   let name_text = [R.txt @@ S.from' "" @@ M.Set.name set] in
   let%lwt is_inline = M.Set.is_slug_none set in
