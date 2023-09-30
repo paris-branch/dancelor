@@ -29,15 +29,14 @@ let create slug page =
   (
     let open Dancelor_client_html.NewAPI in
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [R.txt @@ S.from' "" (set_lwt >>=| Set.name)];
-      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (set_lwt >>=| Formatters.SetNewAPI.works));
+      h2 ~a:[a_class ["title"]] [L.txt (set_lwt >>=| Set.name)];
+      L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.SetNewAPI.works);
       h3 ~a:[a_class ["title"]] [
-        R.txt (S.from' "" (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string));
+        L.txt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
         txt " — Play ";
-        R.txt (S.from' "" (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string));
+        L.txt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string);
       ];
-      R.h3 ~a:[a_class ["title"]] (
-        RList.from_lwt' [] @@
+      L.h3 ~a:[a_class ["title"]] (
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
         | Some deviser ->
@@ -89,8 +88,7 @@ let create slug page =
         ]
       );
 
-      p [ R.txt (
-          S.from' "" @@
+      p [ L.txt (
           match%lwt set_lwt >>=| Set.instructions with
           | "" -> Lwt.return ""
           | instructions -> Lwt.return ("Instructions: " ^ instructions)) ];
@@ -98,8 +96,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Previsualisation"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt set = set_lwt in
           let%lwt versions_and_parameters = Set.versions_and_parameters set in
 
@@ -112,7 +109,7 @@ let create slug page =
                Lwt.return (
                  div ~a:[a_class ["image-container"]]
                    [
-                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [R.txt @@ S.from' "" @@ Tune.name tune]];
+                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [L.txt (Tune.name tune)]];
 
                      object_ ~a:[
                        a_mime_type "image/svg+xml";
@@ -128,8 +125,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Books in Which This Set Appears"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let books_lwt =
             let%lwt set = set_lwt in
             let filter = Book.Filter.memSet set in

@@ -3,7 +3,7 @@ open Dancelor_client_html.NewAPI
 module M = Dancelor_client_model
 
 let title_and_subtitle ?(link=true) book =
-  let title_text = [R.txt @@ S.from' "" @@ M.Book.title book] in
+  let title_text = [L.txt (M.Book.title book)] in
   if link then
     let%lwt subtitle_block =
       match%lwt M.Book.subtitle book with
@@ -17,12 +17,12 @@ let title_and_subtitle ?(link=true) book =
     Lwt.return title_text
 
 let short_title ?(link=true) book =
-  let short_title_text = [R.txt @@ S.from' "" @@ M.Book.short_title book] in
+  let short_title_text = [L.txt (M.Book.short_title book)] in
   if link then
     let href =
       let%lwt slug = M.Book.slug book in
       Lwt.return PageRouter.(path (Book slug))
     in
-    Lwt.return [a ~a:[R.a_href @@ S.from' "" href] short_title_text]
+    Lwt.return [a ~a:[L.a_href href] short_title_text]
   else
     Lwt.return short_title_text

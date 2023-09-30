@@ -28,11 +28,10 @@ let create slug page =
   (
     let open Dancelor_client_html.NewAPI in
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [R.txt @@ S.from' "" (tune_lwt >>=| Tune.name)];
-      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (tune_lwt >>=| Formatters.TuneNewAPI.aka));
-      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (tune_lwt >>=| Formatters.TuneNewAPI.description));
-      R.div (
-        RList.from_lwt' [] @@
+      h2 ~a:[a_class ["title"]] [L.txt (tune_lwt >>=| Tune.name)];
+      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.TuneNewAPI.aka);
+      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.TuneNewAPI.description);
+      L.div (
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
@@ -49,8 +48,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Versions of This Tune"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let versions_lwt =
             let%lwt filter =
               let%lwt tune = tune_lwt in
@@ -80,8 +78,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Dances That Recommend This Tune"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let none = (Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
@@ -102,8 +99,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Sets in Which This Tune Appears"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let none = (Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
@@ -129,8 +125,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Books in Which This Tune Appears"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt books =
             let%lwt tune = tune_lwt in
             let filter = Book.Filter.memTuneDeep tune in

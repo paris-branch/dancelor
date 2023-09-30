@@ -28,11 +28,10 @@ let create slug page =
     let open Dancelor_client_html.NewAPI in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [
-        R.txt (S.from' "" (credit_lwt >>=| Credit.line));
+        L.txt (credit_lwt >>=| Credit.line);
       ];
 
-      R.div ~a:[a_class ["section"]] (
-        RList.from_lwt' [] @@
+      L.div ~a:[a_class ["section"]] (
         match%lwt credit_lwt >>=| Credit.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
@@ -51,8 +50,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Tunes Composed"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt tunes =
             let%lwt credit = credit_lwt in
             let filter = Tune.Filter.authorIs credit in
@@ -71,8 +69,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Sets Devised"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt sets =
             let%lwt credit = credit_lwt in
             let filter = Set.Filter.deviser (Credit.Filter.is credit) in
@@ -92,8 +89,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Dances Devised"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt dances =
             let%lwt credit = credit_lwt in
             let filter = Dance.Filter.deviser (Credit.Filter.is credit) in

@@ -17,11 +17,7 @@ let clickable_row ~href cells =
         );
     ]
     (
-      List.map
-        (fun cell ->
-           R.td (RList.from_lwt' [] cell)
-        )
-        cells
+      List.map L.td cells
     )
 
 let map_table ~header list fun_ =
@@ -38,7 +34,7 @@ let books books =
   clickable_row ~href [
     Formatters.BookNewAPI.title_and_subtitle book;
     Lwt.return [
-      R.txt @@ S.from' "" @@
+      L.txt @@
       let open Lwt in
       Book.date book >|= function
       | None -> ""
@@ -55,7 +51,7 @@ let sets sets =
   clickable_row ~href [
     (Formatters.SetNewAPI.name_and_tunes ~link:true set);
     (Set.deviser set >>=| Formatters.CreditNewAPI.line);
-    Lwt.return [R.txt @@ S.from' "" (Set.kind set >|=| Kind.Dance.to_string)];
+    Lwt.return [L.txt (Set.kind set >|=| Kind.Dance.to_string)];
   ]
 
 let dances dances =
@@ -67,7 +63,7 @@ let dances dances =
   clickable_row ~href [
     (Formatters.DanceNewAPI.name dance);
     (Dance.deviser dance >>=| Formatters.CreditNewAPI.line);
-    Lwt.return [R.txt @@ S.from' "" (Dance.kind dance >|=| Kind.Dance.to_string)];
+    Lwt.return [L.txt (Dance.kind dance >|=| Kind.Dance.to_string)];
   ]
 
 let tunes tunes =
@@ -78,7 +74,7 @@ let tunes tunes =
   in
   clickable_row ~href [
     (Formatters.TuneNewAPI.name tune);
-    Lwt.return [R.txt @@ S.from' "" (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
+    Lwt.return [L.txt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
     (Tune.author tune >>=| Formatters.CreditNewAPI.line);
   ]
 
@@ -94,6 +90,6 @@ let versions versions =
     (Formatters.VersionNewAPI.disambiguation_and_sources version);
     (Version.arranger version >>=| Formatters.CreditNewAPI.line);
     (tune_lwt >>=| Formatters.KindNewAPI.full_string version);
-    Lwt.return [R.txt @@ S.from' "" (Version.key version >|=| Music.key_to_pretty_string) ];
-    Lwt.return [R.txt @@ S.from' "" (Version.structure version) ];
+    Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
+    Lwt.return [L.txt (Version.structure version)];
   ]

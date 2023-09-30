@@ -26,7 +26,7 @@ let display_warnings warnings =
       :: display_sets tl
     | (Some set, n) :: tl ->
       ([txt "in “";
-        R.span (RList.from_lwt' [] @@ Formatters.SetNewAPI.name set);
+        L.span (Formatters.SetNewAPI.name set);
         txt "”"] @ display_times n)
       :: display_sets tl
   in
@@ -44,22 +44,22 @@ let display_warnings warnings =
     | Book.DuplicateSet set ->
       li [
         txt "Set “";
-        R.span (RList.from_lwt' [] (Formatters.SetNewAPI.name set));
+        L.span (Formatters.SetNewAPI.name set);
         txt "” appears several times in this book."
       ]
     | Book.DuplicateVersion (tune, sets_opt) ->
       li (
         txt "Tune “"
-        :: R.span (RList.from_lwt' [] @@ Formatters.TuneNewAPI.name tune)
+        :: L.span (Formatters.TuneNewAPI.name tune)
         :: txt "” appears several times: "
         :: (display_sets sets_opt |> format_set_list)
       )
     | Book.SetDanceMismatch (set, dance) ->
       li [
         txt "Set “";
-        R.span (RList.from_lwt' [] (Formatters.SetNewAPI.name set));
+        L.span (Formatters.SetNewAPI.name set);
         txt "” does not have the same kind as its associated dance “";
-        R.span (RList.from_lwt' [] (Formatters.DanceNewAPI.name dance));
+        L.span (Formatters.DanceNewAPI.name dance);
         txt "”."
       ]
   in
@@ -79,8 +79,7 @@ let table_contents contents =
       ]
     )
     [
-      R.tbody (
-        RList.from_lwt' [] @@
+      L.tbody (
         let%lwt contents = contents in
         List.map
           (function
@@ -95,7 +94,7 @@ let table_contents contents =
                 Dancelor_client_tables.TheNewAPI.clickable_row ~href [
                   Lwt.return [txt "Set"];
                   (Formatters.SetNewAPI.name_tunes_and_dance ~link:false set parameters);
-                  Lwt.return [R.txt @@ S.from' "" (Set.kind set >|= Kind.Dance.to_string)]
+                  Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)]
                 ]
               )
 
@@ -104,8 +103,8 @@ let table_contents contents =
                 let open Lwt in
                 tr [
                   td [txt "Set (inline)"];
-                  R.td (RList.from_lwt' [] @@ Formatters.SetNewAPI.name_tunes_and_dance ~link:false set parameters);
-                  td [R.txt @@ S.from' "" (Set.kind set >|= Kind.Dance.to_string)];
+                  L.td (Formatters.SetNewAPI.name_tunes_and_dance ~link:false set parameters);
+                  td [L.txt (Set.kind set >|= Kind.Dance.to_string)];
                 ]
               )
 
@@ -119,8 +118,7 @@ let table_contents contents =
                 Dancelor_client_tables.TheNewAPI.clickable_row ~href [
                   Lwt.return [txt "Tune"];
                   (Formatters.VersionNewAPI.name_and_dance ~link:false version parameters);
-                  Lwt.return [R.txt (
-                      S.from' "" @@
+                  Lwt.return [L.txt (
                       let%lwt tune = Version.tune version in
                       let%lwt kind = Tune.kind tune in
                       let%lwt bars = Version.bars version in
@@ -150,10 +148,9 @@ let create slug page =
   (
     let open Dancelor_client_html.NewAPI in
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [R.txt @@ S.from' "" (book_lwt >>=| Book.title)];
-      h3 ~a:[a_class ["title"]] [R.txt @@ S.from' "" (book_lwt >>=| Book.subtitle)];
-      R.div (
-        RList.from_lwt' [] @@
+      h2 ~a:[a_class ["title"]] [L.txt (book_lwt >>=| Book.title)];
+      h3 ~a:[a_class ["title"]] [L.txt (book_lwt >>=| Book.subtitle)];
+      L.div (
         match%lwt book_lwt >>=| Book.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
@@ -167,16 +164,14 @@ let create slug page =
           ]
       );
 
-      R.div (
-        RList.from_lwt' [] @@
+      L.div (
         match%lwt book_lwt >>=| Book.warnings with
         | [] -> Lwt.return []
         | warnings -> Lwt.return [div ~a:[a_class ["warning"]] [ul (display_warnings warnings)]]
       );
 
       p [
-        R.txt (
-          S.from' "" @@
+        L.txt (
           let%lwt book = book_lwt in
           let%lwt date = Book.date book in
           match date with

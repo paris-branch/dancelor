@@ -55,11 +55,25 @@ module C = Js_of_ocaml_tyxml.Tyxml_js.Html
 include C
 (** Constant HTML nodes. *)
 
-module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
-(** Reactive HTML nodes. *)
+(** Lwt HTML nodes. *)
+module L = struct
+  module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
 
-(* FIXME: add a module for “Lwt” HTML nodes. In the meantime, one can simply use
-   [R] and the function [S.from'] below. *)
+  let txt str = R.txt (S.from' "" str)
+
+  let a_href uri = R.a_href (S.from' "" uri)
+
+  let div ?a elts = R.div ?a (RList.from_lwt' [] elts)
+  let h1 ?a elts = R.h1 ?a (RList.from_lwt' [] elts)
+  let h2 ?a elts = R.h2 ?a (RList.from_lwt' [] elts)
+  let h3 ?a elts = R.h3 ?a (RList.from_lwt' [] elts)
+  let h4 ?a elts = R.h4 ?a (RList.from_lwt' [] elts)
+  let h5 ?a elts = R.h5 ?a (RList.from_lwt' [] elts)
+  let h6 ?a elts = R.h6 ?a (RList.from_lwt' [] elts)
+  let span ?a elts = R.span ?a (RList.from_lwt' [] elts)
+  let tbody ?a elts = R.tbody ?a (RList.from_lwt' [] elts)
+  let td ?a elts = R.td ?a (RList.from_lwt' [] elts)
+end
 
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Conversion from TyXML nodes to Dom ones. *)

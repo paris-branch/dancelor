@@ -24,13 +24,13 @@ let description ?link version =
   Lwt.return ([txt shape] @ arranger_block @ disambiguation_block)
 
 let name ?(link=true) version =
-  let name_text = [R.txt @@ S.from' "" (M.Version.tune version >>=| M.Tune.name)] in
+  let name_text = [L.txt (M.Version.tune version >>=| M.Tune.name)] in
   if link then
     let href =
       let%lwt slug = M.Version.slug version in
       Lwt.return PageRouter.(path (Version slug))
     in
-    Lwt.return [a ~a:[R.a_href @@ S.from' "" href] name_text]
+    Lwt.return [a ~a:[L.a_href href] name_text]
   else
     Lwt.return name_text
 
@@ -42,7 +42,7 @@ let name_and_dance ?link ?dance_link version parameters =
     | Some dance -> Lwt.return [
         span ~a:[a_class ["dim"; "details"]] [
           txt "For dance: ";
-          R.span @@ RList.from_lwt' [] (DanceNewAPI.name ?link:dance_link dance);
+          L.span (DanceNewAPI.name ?link:dance_link dance);
         ]]
   in
   Lwt.return (name @ dance)
@@ -68,6 +68,6 @@ let disambiguation_and_sources version =
       |> Lwt.return
   in
   Lwt.return [
-    R.txt @@ S.from' "" (M.Version.disambiguation version);
-    R.span ~a:[a_class ["dim"; "details"]] @@ RList.from_lwt' [] sources_lwt
+    L.txt (M.Version.disambiguation version);
+    L.span ~a:[a_class ["dim"; "details"]] sources_lwt;
   ]

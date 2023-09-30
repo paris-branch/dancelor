@@ -29,12 +29,11 @@ let create slug page =
     let open Dancelor_client_html.NewAPI in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [
-        R.txt @@ S.from' "" (dance_lwt >>=| Dance.name);
+        L.txt (dance_lwt >>=| Dance.name);
       ];
-      R.h3 ~a:[a_class ["title"]] (
-        RList.from_lwt' [] @@
+      L.h3 ~a:[a_class ["title"]] (
         let kind = [
-          R.txt @@ S.from' "" (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
+          L.txt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
         ] in
         let%lwt by =
           match%lwt dance_lwt >>=| Dance.deviser with
@@ -45,15 +44,13 @@ let create slug page =
         in
         Lwt.return (kind @ by)
       );
-      R.div (
-        RList.from_lwt' [] @@
+      L.div (
         let%lwt dance = dance_lwt in
         match%lwt Dance.two_chords dance with
         | false -> Lwt.return_nil
         | true -> Lwt.return [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
       );
-      R.div (
-        RList.from_lwt' [] @@
+      L.div (
         match%lwt dance_lwt >>=| Dance.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
@@ -70,8 +67,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Recommended Tunes"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let tunes_lwt =
             let%lwt dance = dance_lwt in
             let filter = Tune.Filter.existsDance (Dance.Filter.is dance) in

@@ -42,12 +42,11 @@ let create slug page =
   (
     let open Dancelor_client_html.NewAPI in
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [R.txt @@ S.from' "" (tune_lwt >>=| Tune.name)];
-      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (tune_lwt >>=| Formatters.TuneNewAPI.aka));
-      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (tune_lwt >>=| Formatters.TuneNewAPI.description));
-      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (version_lwt >>=| Formatters.VersionNewAPI.description ~link:true));
-      R.div (
-        RList.from_lwt' [] @@
+      h2 ~a:[a_class ["title"]] [L.txt (tune_lwt >>=| Tune.name)];
+      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.TuneNewAPI.aka);
+      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.TuneNewAPI.description);
+      L.h3 ~a:[a_class ["title"]] (version_lwt >>=| Formatters.VersionNewAPI.description ~link:true);
+      L.div (
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
@@ -142,8 +141,7 @@ let create slug page =
           []
       ];
 
-      R.div ~a:[a_class ["buttons"]] (
-        RList.from_lwt' [] @@
+      L.div ~a:[a_class ["buttons"]] (
         let%lwt is_broken = version_lwt >>=| Version.broken in
 
         Lwt.return [
@@ -166,8 +164,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Other Versions"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt other_versions = other_versions_lwt in
 
           Lwt.return (
@@ -184,7 +181,7 @@ let create slug page =
                 in
                 p [
                   txt "You can also go to the ";
-                  a ~a:[R.a_href @@ S.from' "" href_lwt] [
+                  a ~a:[L.a_href href_lwt] [
                     txt "page of the tune"
                   ];
                   txt "."
@@ -197,8 +194,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Dances That Recommend This Tune"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let none = (Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
@@ -219,8 +215,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Sets in Which This Version Appears"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let sets_lwt =
             let%lwt version = version_lwt in
             let filter = Set.Filter.memVersion version in
@@ -237,8 +232,7 @@ let create slug page =
           ]
         );
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           match%lwt other_versions_lwt with
           | [] -> Lwt.return_nil
           | _ -> Lwt.return [
@@ -250,7 +244,7 @@ let create slug page =
               p [
                 txt "If you want to see the sets in which this version or ";
                 txt "any other appear, go to the ";
-                a ~a:[R.a_href @@ S.from' "" href_lwt] [txt "page of the tune"];
+                a ~a:[L.a_href href_lwt] [txt "page of the tune"];
                 txt "."
               ]
             ]
@@ -260,8 +254,7 @@ let create slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Books in Which This Version Appears"];
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           let%lwt books =
             let%lwt version = version_lwt in
             let filter = Book.Filter.memVersionDeep version in
@@ -277,8 +270,7 @@ let create slug page =
           ]
         );
 
-        R.div (
-          RList.from_lwt' [] @@
+        L.div (
           match%lwt other_versions_lwt with
           | [] -> Lwt.return_nil
           | _ -> Lwt.return [
@@ -290,7 +282,7 @@ let create slug page =
               p [
                 txt "If you want to see the books in which this version or ";
                 txt "any other appear, go to the ";
-                a ~a:[R.a_href @@ S.from' "" href_lwt] [
+                a ~a:[L.a_href href_lwt] [
                   txt "page of the tune"
                 ];
                 txt "."

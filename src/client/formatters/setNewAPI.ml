@@ -13,14 +13,14 @@ let works set =
     ]
 
 let name ?(link=true) set =
-  let name_text = [R.txt @@ S.from' "" @@ M.Set.name set] in
+  let name_text = [L.txt (M.Set.name set)] in
   let%lwt is_inline = M.Set.is_slug_none set in
   if link && not is_inline then
     let href =
       let%lwt slug = M.Set.slug set in
       Lwt.return PageRouter.(path (Set slug))
     in
-    Lwt.return [a ~a:[R.a_href @@ S.from' "" href] name_text]
+    Lwt.return [a ~a:[L.a_href href] name_text]
   else
     Lwt.return name_text
 
@@ -51,7 +51,7 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
     | Some dance -> Lwt.return [
         span ~a:[a_class ["dim"; "details"]] [
           txt "For dance: ";
-          R.span (RList.from_lwt' [] @@ DanceNewAPI.name ?link:dance_link dance)
+          L.span (DanceNewAPI.name ?link:dance_link dance)
         ]
       ]
   in
