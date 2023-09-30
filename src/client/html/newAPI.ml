@@ -57,7 +57,14 @@ include C
 
 (** Lwt HTML nodes. *)
 module L = struct
+  (* NOTE: The following relies on [Tyxml_js]'s React-based HTML builders but
+     wraps them to make Lwt-based builders. The cleaner version would be to rely
+     on [Tyxml]'s functorial interface, but we could not manage to use it while
+     also keeping the right type equalities with other HTML builder modules. *)
+
   module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
+
+  (* NOTE: To be filled on demand. *)
 
   let txt str = R.txt (S.from' "" str)
 
@@ -74,6 +81,8 @@ module L = struct
   let tbody ?a elts = R.tbody ?a (RList.from_lwt' [] elts)
   let td ?a elts = R.td ?a (RList.from_lwt' [] elts)
 end
+
+(* FIXME: Add an [LL] module for Lwt-loop-based builders. *)
 
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Conversion from TyXML nodes to Dom ones. *)
