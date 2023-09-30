@@ -34,6 +34,19 @@ let name ?(link=true) version =
   else
     Lwt.return name_text
 
+let name_and_dance ?link ?dance_link version parameters =
+  let%lwt name = name ?link version in
+  let%lwt dance =
+    match%lwt M.VersionParameters.for_dance parameters with
+    | None -> Lwt.return_nil
+    | Some dance -> Lwt.return [
+        span ~a:[a_class ["dim"; "details"]] [
+          txt "For dance: ";
+          R.span @@ RList.from_lwt' [] (DanceNewAPI.name ?link:dance_link dance);
+        ]]
+  in
+  Lwt.return (name @ dance)
+
 let disambiguation_and_sources version =
   let sources_lwt =
     let%lwt sources =

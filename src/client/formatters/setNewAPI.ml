@@ -33,3 +33,17 @@ let name_and_tunes ?link ?tunes_link set =
     |> Lwt.return
   in
   Lwt.return (name @ versions)
+
+let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
+  let%lwt name_and_tunes = name_and_tunes ?link ?tunes_link set in
+  let%lwt dance =
+    match%lwt M.SetParameters.for_dance parameters with
+    | None -> Lwt.return_nil
+    | Some dance -> Lwt.return [
+        span ~a:[a_class ["dim"; "details"]] [
+          txt "For dance: ";
+          R.span (RList.from_lwt' [] @@ DanceNewAPI.name ?link:dance_link dance)
+        ]
+      ]
+  in
+  Lwt.return (name_and_tunes @ dance)
