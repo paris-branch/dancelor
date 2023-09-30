@@ -39,24 +39,29 @@ let create slug page =
     >|=| Score.list_erase
   in
 
-  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-      h2 ~classes:["title"] [ text_lwt (tune_lwt >>=| Tune.name) ];
-      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.aka);
-      h3_lwt ~classes:["title"] (tune_lwt >>=| Formatters.Tune.description);
-      h3_lwt ~classes:["title"] (version_lwt >>=| Formatters.Version.description ~link:true);
-      div_lwt (
+  (
+    let open Dancelor_client_html.NewAPI in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [R.txt @@ S.from' "" (tune_lwt >>=| Tune.name)];
+      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (tune_lwt >>=| Formatters.TuneNewAPI.aka));
+      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (tune_lwt >>=| Formatters.TuneNewAPI.description));
+      R.h3 ~a:[a_class ["title"]] (RList.from_lwt' [] (version_lwt >>=| Formatters.VersionNewAPI.description ~link:true));
+      R.div (
+        RList.from_lwt' [] @@
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.tune_uri scddb_id in
           Lwt.return [
-            h3 ~classes:["title"] [
-              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            h3 ~a:[a_class ["title"]] [
+              a ~a:[a_href href; a_target "blank"] [
+                txt "Link to the Strathspey Database"
+              ]
             ]
           ]
       );
 
-      div ~classes:["buttons"] (
+      div ~a:[a_class ["buttons"]] (
         let bass_parameters =
           VersionParameters.(
             make ~clef:Music.Bass
@@ -85,74 +90,92 @@ let create slug page =
           ApiRouter.(path @@ versionLy slug)
         in
 
-        let pdf_button href txt =
-          a ~classes:["button"] ~href ~target:Blank [
-            i ~classes:["fas"; "fa-file-pdf"] [];
-            text (" "^txt)
+        let pdf_button href text =
+          a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
+            i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+            txt (" " ^ text)
           ]
         in
 
-        let add_to_set_button =
-          Inputs.Button.create
-            ~on_click:(fun () ->
-                SetEditor.add_to_storage slug;
-                let href = PageRouter.(path SetCompose) in
-                Dom_html.window##.location##.href := js href)
-            ~text:("Add to current set") page
-        in
         [
           pdf_button c_pdf_href    "PDF";
           pdf_button b_pdf_href    "PDF (B♭)";
           pdf_button e_pdf_href    "PDF (E♭)";
           pdf_button bass_pdf_href "PDF (𝄢)";
-          br;
-          a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
-          br;
-          node_of_dom_node (Inputs.Button.root add_to_set_button :> dom_node)
+          br ();
+          a ~a:[a_class ["button"]; a_href ly_href] [
+            i ~a:[a_class ["fas"; "fa-file-alt"]] [];
+            txt " LilyPond"
+          ];
+          br ();
+          (
+            button ~a:[
+              a_button_type `Button;
+              a_onclick
+                (fun _ ->
+                   SetEditor.add_to_storage slug;
+                   let href = PageRouter.(path SetCompose) in
+                   Dom_html.window##.location##.href := js href;
+                   false
+                )
+            ] [
+              txt "Add to current set"
+            ]
+          )
         ]
       );
 
-      div ~classes:["section"] [
-        h3 [ text "Previsualisation" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Previsualisation"];
 
-        div ~classes:["image-container"] [
-          object_ ~type_:"image/svg+xml"
-            ~data:ApiRouter.(path (versionSvg slug None)) [];
+        div ~a:[a_class ["image-container"]] [
+          object_ ~a:[
+            a_mime_type "image/svg+xml";
+            a_data ApiRouter.(path (versionSvg slug None))
+          ] [];
         ]
       ];
 
-      div ~classes:["audio-container"] [
-        audio ~src:ApiRouter.(path (versionOgg slug)) ~controls:true ()
+      div ~a:[a_class ["audio-container"]] [
+        audio ~a:[a_controls ()]
+          ~src:ApiRouter.(path (versionOgg slug))
+          []
       ];
 
-      div_lwt ~classes:["buttons"] (
+      R.div ~a:[a_class ["buttons"]] (
+        RList.from_lwt' [] @@
         let%lwt is_broken = version_lwt >>=| Version.broken in
 
-        let broken =
-          Inputs.Button.create
-            ~on_click:(fun () -> Lwt.async (fun () ->
-                if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken;%lwt
-                Dom_html.window##.location##reload ;
-                Lwt.return_unit ))
-            ~text:(if is_broken then "Mark fixed" else "Mark broken") page
-        in
-
-        Lwt.return [ node_of_dom_node (Inputs.Button.root broken :> dom_node) ]
+        Lwt.return [
+          button ~a:[
+            a_button_type `Button;
+            a_onclick
+              (fun _ ->
+                 Lwt.async
+                   (fun () ->
+                      if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken;%lwt
+                      Dom_html.window##.location##reload ;
+                      Lwt.return_unit);
+                 false)
+          ] [
+            txt (if is_broken then "Mark fixed" else "Mark broken");
+          ]
+        ]
       );
 
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Other Versions"];
 
-      div ~classes:["section"] [
-        h3 [ text "Other Versions" ];
-
-        div_lwt (
+        R.div (
+          RList.from_lwt' [] @@
           let%lwt other_versions = other_versions_lwt in
 
           Lwt.return (
             if other_versions = [] then
-              [ p [ text "There are no other versions available for this tune." ] ]
+              [p [txt "There are no other versions available for this tune."]]
             else
               [
-                Dancelor_client_tables.versions other_versions;
+                Dancelor_client_tables.TheNewAPI.versions other_versions;
 
                 let href_lwt =
                   let%lwt tune = tune_lwt in
@@ -160,19 +183,22 @@ let create slug page =
                   Lwt.return PageRouter.(path (Tune slug))
                 in
                 p [
-                  text "You can also go to the ";
-                  a ~href_lwt [ text "page of the tune" ];
-                  text "."
+                  txt "You can also go to the ";
+                  a ~a:[R.a_href @@ S.from' "" href_lwt] [
+                    txt "page of the tune"
+                  ];
+                  txt "."
                 ]
               ]
           )
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Dances That Recommend This Tune" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Dances That Recommend This Tune"];
 
-        div_lwt (
+        R.div (
+          RList.from_lwt' [] @@
           let none = (Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
@@ -183,17 +209,18 @@ let create slug page =
 
           Lwt.return [
             if dances = [] then
-              text "There are no dances that recommend this tune."
+              txt "There are no dances that recommend this tune."
             else
-              Dancelor_client_tables.dances dances
+              Dancelor_client_tables.TheNewAPI.dances dances
           ]
         )
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Sets in Which This Version Appears" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Sets in Which This Version Appears"];
 
-        div_lwt (
+        R.div (
+          RList.from_lwt' [] @@
           let sets_lwt =
             let%lwt version = version_lwt in
             let filter = Set.Filter.memVersion version in
@@ -204,13 +231,14 @@ let create slug page =
 
           Lwt.return [
             if sets = [] then
-              text "There are no sets containing this version."
+              txt "There are no sets containing this version."
             else
-              Dancelor_client_tables.sets sets
+              Dancelor_client_tables.TheNewAPI.sets sets
           ]
         );
 
-        div_lwt (
+        R.div (
+          RList.from_lwt' [] @@
           match%lwt other_versions_lwt with
           | [] -> Lwt.return_nil
           | _ -> Lwt.return [
@@ -220,19 +248,20 @@ let create slug page =
                 Lwt.return PageRouter.(path (Tune slug))
               in
               p [
-                text "If you want to see the sets in which this version or ";
-                text "any other appear, go to the ";
-                a ~href_lwt [ text "page of the tune" ];
-                text "."
+                txt "If you want to see the sets in which this version or ";
+                txt "any other appear, go to the ";
+                a ~a:[R.a_href @@ S.from' "" href_lwt] [txt "page of the tune"];
+                txt "."
               ]
             ]
         )
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Books in Which This Version Appears" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Books in Which This Version Appears"];
 
-        div_lwt (
+        R.div (
+          RList.from_lwt' [] @@
           let%lwt books =
             let%lwt version = version_lwt in
             let filter = Book.Filter.memVersionDeep version in
@@ -242,13 +271,14 @@ let create slug page =
 
           Lwt.return [
             if books = [] then
-              text "There are no books containing this version."
+              txt "There are no books containing this version."
             else
-              Dancelor_client_tables.books books
+              Dancelor_client_tables.TheNewAPI.books books
           ]
         );
 
-        div_lwt (
+        R.div (
+          RList.from_lwt' [] @@
           match%lwt other_versions_lwt with
           | [] -> Lwt.return_nil
           | _ -> Lwt.return [
@@ -258,10 +288,12 @@ let create slug page =
                 Lwt.return PageRouter.(path (Tune slug))
               in
               p [
-                text "If you want to see the books in which this version or ";
-                text "any other appear, go to the ";
-                a ~href_lwt [ text "page of the tune" ];
-                text "."
+                txt "If you want to see the books in which this version or ";
+                txt "any other appear, go to the ";
+                a ~a:[R.a_href @@ S.from' "" href_lwt] [
+                  txt "page of the tune"
+                ];
+                txt "."
               ]
             ]
         );
