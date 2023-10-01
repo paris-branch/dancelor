@@ -58,7 +58,7 @@ let get_duplicated_tunes t book =
 
 
 let display_warnings t =
-  let open Dancelor_client_html in
+  let open Dancelor_client_html.NewAPI in
   (* Only open a warnings div if there are warnings *)
   match SetEditor.for_book t.composer with
   | None -> Lwt.return []
@@ -69,14 +69,18 @@ let display_warnings t =
     | duplicated_tunes ->
       let display_duplicated_warning tune =
         li [
-          text "Tune “";
-          span_lwt (Formatters.Tune.name tune);
-          text "” already appears in book ";
-          span_lwt (Formatters.Book.short_title bk);
+          txt "Tune “";
+          L.span (Formatters.TuneNewAPI.name tune);
+          txt "” already appears in book ";
+          L.span (Formatters.BookNewAPI.short_title bk);
         ]
       in
-      Lwt.return [div ~classes:["warning"]
-                    [ul (List.map display_duplicated_warning duplicated_tunes)]; br]
+      Lwt.return [
+        div ~a:[a_class ["warning"]] [
+          ul (List.map display_duplicated_warning duplicated_tunes)
+        ];
+        br ();
+      ]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -153,7 +157,7 @@ let refresh t =
       Dom.appendChild t.versions_area subwin);
   JsHelpers.clear_children t.warnings_area;
   Dom.appendChild t.warnings_area
-    Dancelor_client_html.(node_to_dom_node (Page.document t.page) (div_lwt (display_warnings t)))
+    Dancelor_client_html.NewAPI.(To_dom.of_div (L.div (display_warnings t)))
 
 let make_version_search_result composer page score =
   let version = Score.value score in
