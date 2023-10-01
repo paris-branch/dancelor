@@ -23,7 +23,7 @@ let create page =
 
   let pagination =
     PageNavNewAPI.create
-      (* ~entries: (Set.count Formula.true_) *)
+      ~number_of_entries: (Set.count Formula.true_)
       ~entries_per_page: 25
   in
 
