@@ -73,11 +73,18 @@ let button page text pagination =
 let button_list pagination =
   S.bind pagination.signal @@ fun state ->
   S.const (
+    [
+      button 0 "First" pagination
+    ]
+    @
     List.init
       (number_of_pages state)
       (fun page -> button page (string_of_int (1 + page)) pagination)
+    @
+    [
+      button (number_of_pages state - 1) "Last" pagination
+    ]
   )
-
 
 let render pagination =
   div ~a:[a_id "page_nav"] [
