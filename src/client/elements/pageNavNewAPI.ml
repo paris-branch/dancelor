@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_model
 open Dancelor_client_html.NewAPI
 
 type state = {
@@ -14,7 +15,7 @@ let number_of_pages state =
   / state.entries_per_page
 
 let current_pagination state =
-  Dancelor_common_model.Pagination.{
+  Pagination.{
     start = state.current_page * state.entries_per_page;
     end_ = (state.current_page + 1) * state.entries_per_page;
   }
@@ -38,26 +39,42 @@ let create ~number_of_entries ~entries_per_page =
       updater (fun state -> { state with number_of_entries }));
   { signal; setter; updater }
 
-let button page _pagination =
+let button page pagination =
   li
-    ~a:[a_class ["active"]]
+    ~a:[
+      R.a_class (
+        S.bind pagination.signal @@ fun state ->
+        S.const @@ if page = state.current_page then ["active"] else []
+      )
+    ]
     [
       button ~a: [
         a_button_type `Button;
       ] [
-        txt (string_of_int page)
+        txt (string_of_int (1 + page))
       ]
     ]
 
-let status_text _pagination =
-  S.const @@ "In progress"
+let status_text pagination =
+  S.bind pagination.signal @@ fun state ->
+  S.const @@
+  if state.current_page = 0 then
+    "Loading entries..."
+  else if state.number_of_entries = 0 then
+    "No entries"
+  else
+    let pagination = current_pagination state in
+    spf "Showing %i to %i of %i entries"
+      (Pagination.start pagination + 1)
+      (Pagination.end_ pagination)
+      state.number_of_entries
 
 let button_list pagination =
   S.bind pagination.signal @@ fun state ->
   S.const (
     List.init
       (number_of_pages state)
-      (fun page -> button (1 + page) pagination)
+      (fun page -> button page pagination)
   )
 
 let render pagination =
