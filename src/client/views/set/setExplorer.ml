@@ -62,7 +62,7 @@ let create page =
                       Lwt.return PageRouter.(path (Set slug))
                     in
                     let open Lwt in
-                    Dancelor_client_tables.TheNewAPI.clickable_row ~href [
+                    Dancelor_client_tables.clickable_row ~href [
                       (Formatters.SetNewAPI.name_and_tunes ~link:false set);
                       (Set.deviser set >>= Formatters.CreditNewAPI.line);
                       Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)];

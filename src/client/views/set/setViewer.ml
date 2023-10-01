@@ -138,7 +138,7 @@ let create slug page =
             if books = [] then
               p [txt "There are no books containing this set."]
             else
-              Dancelor_client_tables.TheNewAPI.books books
+              Dancelor_client_tables.books books
           ]
         )
       ]

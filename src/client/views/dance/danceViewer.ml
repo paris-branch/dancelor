@@ -82,7 +82,7 @@ let create slug page =
                    ^ "Dancelor is not all-knowing: go check the Strathspey Database! "
                    ^ "And if you find something that is not known here, report it to someone.")
             else
-              Dancelor_client_tables.TheNewAPI.tunes tunes
+              Dancelor_client_tables.tunes tunes
           ]
         )
       ];

@@ -49,7 +49,7 @@ let create page =
                       let%lwt slug = Book.slug book in
                       Lwt.return PageRouter.(path (Book slug))
                     in
-                    Dancelor_client_tables.TheNewAPI.clickable_row ~href [
+                    Dancelor_client_tables.clickable_row ~href [
                       (Formatters.BookNewAPI.title_and_subtitle book);
                       (Lwt.map
                          (List.singleton % txt % Option.fold ~none:"" ~some:NesPartialDate.to_pretty_string)

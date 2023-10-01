@@ -61,7 +61,7 @@ let create slug page =
             if tunes = [] then
               txt "There are no tunes composed by this credit."
             else
-              Dancelor_client_tables.TheNewAPI.tunes tunes
+              Dancelor_client_tables.tunes tunes
           ]
         );
       ];
@@ -81,7 +81,7 @@ let create slug page =
             if sets = [] then
               txt "There are no sets devised by this credit."
             else
-              Dancelor_client_tables.TheNewAPI.sets sets
+              Dancelor_client_tables.sets sets
           ]
         );
       ];
@@ -100,7 +100,7 @@ let create slug page =
             if dances = [] then
               txt "There are no dances devised by this credit."
             else
-              Dancelor_client_tables.TheNewAPI.dances dances
+              Dancelor_client_tables.dances dances
           ]
         );
       ]

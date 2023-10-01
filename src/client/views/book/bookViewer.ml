@@ -91,7 +91,7 @@ let table_contents contents =
                   Lwt.return PageRouter.(path (Set slug))
                 in
                 let open Lwt in
-                Dancelor_client_tables.TheNewAPI.clickable_row ~href [
+                Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Set"];
                   (Formatters.SetNewAPI.name_tunes_and_dance ~link:false set parameters);
                   Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)]
@@ -115,7 +115,7 @@ let table_contents contents =
                   let%lwt slug = slug in
                   Lwt.return PageRouter.(path (Version slug))
                 in
-                Dancelor_client_tables.TheNewAPI.clickable_row ~href [
+                Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Tune"];
                   (Formatters.VersionNewAPI.name_and_dance ~link:false version parameters);
                   Lwt.return [L.txt (

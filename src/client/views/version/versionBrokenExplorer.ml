@@ -29,7 +29,7 @@ let create page =
         if List.length versions = 0 then
           Lwt.return [txt "No broken version"]
         else
-          Lwt.return [Dancelor_client_tables.TheNewAPI.versions_with_names versions]
+          Lwt.return [Dancelor_client_tables.versions_with_names versions]
       )
     ]
   );
