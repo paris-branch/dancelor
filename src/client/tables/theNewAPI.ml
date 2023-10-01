@@ -93,3 +93,18 @@ let versions versions =
     Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
     Lwt.return [L.txt (Version.structure version)];
   ]
+
+let versions_with_names versions =
+  map_table ~header:[ "Name"; "Kind"; "Key"; "Structure" ]
+    versions @@ fun version ->
+  let tune_lwt = Version.tune version in
+  let href =
+    let%lwt slug = Version.slug version in
+    Lwt.return PageRouter.(path (Version slug))
+  in
+  clickable_row ~href [
+    Lwt.return [L.txt (tune_lwt >>=| Tune.name)];
+    (tune_lwt >>=| Formatters.KindNewAPI.full_string version);
+    Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
+    Lwt.return [L.txt (Version.structure version)];
+  ]
