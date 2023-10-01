@@ -19,7 +19,7 @@ let create page =
   let document = Page.document page in
   let content = Html.createDiv document in
 
-  document##.title := js "All Sets | Dancelor";
+  document##.title := js "All sets | Dancelor";
 
   let pagination =
     PageNavNewAPI.create
@@ -35,11 +35,14 @@ let create page =
       PageNavNewAPI.render pagination;
 
       tablex
-        ~a:[a_class ["FIXME-separated-table"]]
+        ~a:[a_class ["separated-table"]]
         ~thead:(
           thead [
             tr [
-              th [txt "Name"]; (* FIXME: alt text “Sets” when collapsed *)
+              th [
+                span ~a:[a_class ["full-content"]] [txt "Name"];
+                span ~a:[a_class ["collapse-content"]] [txt "Sets"];
+              ];
               th [txt "Deviser"];
               th [txt "Kind"];
               th [txt "Actions"];
@@ -49,7 +52,9 @@ let create page =
         [
           R.tbody (
             S.bind pagination.signal @@ fun pagination ->
-            S.from' [] @@ Lwt.map
+            S.from' [] @@
+            flip Lwt.map
+              (Set.search ~pagination:(PageNavNewAPI.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun set ->
                     let href =
@@ -63,8 +68,8 @@ let create page =
                       Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)];
                       Lwt.return [txt ""];
                     ]
-                 ))
-              (Set.search ~pagination:(PageNavNewAPI.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
+                 )
+              )
           )
         ];
 
