@@ -12,7 +12,7 @@ let description ?link version =
     match%lwt M.Version.arranger version with
     | None -> Lwt.return_nil
     | Some arranger ->
-      let%lwt line_block = CreditNewAPI.line ?link (Some arranger) in
+      let%lwt line_block = Credit.line ?link (Some arranger) in
       Lwt.return ([txt " arranged by "] @ line_block)
   in
   let%lwt disambiguation_block =
@@ -42,7 +42,7 @@ let name_and_dance ?link ?dance_link version parameters =
     | Some dance -> Lwt.return [
         span ~a:[a_class ["dim"; "details"]] [
           txt "For dance: ";
-          L.span (DanceNewAPI.name ?link:dance_link dance);
+          L.span (Dance.name ?link:dance_link dance);
         ]]
   in
   Lwt.return (name @ dance)
@@ -68,7 +68,7 @@ let name_disambiguation_and_sources ?link version =
       M.Book.search filter
       >|=| M.Score.list_erase
     in
-    match%lwt Lwt_list.map_p BookNewAPI.short_title sources with
+    match%lwt Lwt_list.map_p Book.short_title sources with
     | [] -> Lwt.return_nil
     | [title] -> Lwt.return (txt "Source: " :: title)
     | titles ->
@@ -94,7 +94,7 @@ let disambiguation_and_sources version =
       M.Book.search filter
       >|=| M.Score.list_erase
     in
-    match%lwt Lwt_list.map_p BookNewAPI.short_title sources with
+    match%lwt Lwt_list.map_p Book.short_title sources with
     | [] -> Lwt.return_nil
     | [title] -> Lwt.return (txt "Source: " :: title)
     | titles ->
@@ -114,7 +114,7 @@ let author_and_arranger ?(short=true) ?link version =
     let%lwt tune = M.Version.tune version in
     match%lwt M.Tune.author tune with
     | None -> Lwt.return_nil
-    | Some author -> CreditNewAPI.line ?link (Some author)
+    | Some author -> Credit.line ?link (Some author)
   in
   let has_author =
     let%lwt tune = M.Version.tune version in
@@ -128,7 +128,7 @@ let author_and_arranger ?(short=true) ?link version =
     | Some arranger ->
       let%lwt comma = if%lwt has_author then Lwt.return ", " else Lwt.return "" in
       let arr = if short then "arr." else "arranged by" in
-      let%lwt arranger_block = CreditNewAPI.line ?link (Some arranger) in
+      let%lwt arranger_block = Credit.line ?link (Some arranger) in
       Lwt.return [
         span ~a:[a_class ["dim"]] (txt (spf "%s%s " comma arr) :: arranger_block)
       ]

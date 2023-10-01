@@ -28,7 +28,7 @@ let description tune =
       txt ("Traditional " ^ kind)
     ]
   | Some author ->
-    let%lwt line_block = CreditNewAPI.line ~link:true (Some author) in
+    let%lwt line_block = Credit.line ~link:true (Some author) in
     Lwt.return (
       [txt (String.capitalize_ascii kind ^ " by ")]
       @ line_block

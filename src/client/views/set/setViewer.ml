@@ -30,7 +30,7 @@ let create slug page =
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [L.txt (set_lwt >>=| Set.name)];
-      L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.SetNewAPI.works);
+      L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3 ~a:[a_class ["title"]] [
         L.txt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
         txt " — Play ";
@@ -40,7 +40,7 @@ let create slug page =
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
         | Some deviser ->
-          let%lwt line_block = Formatters.CreditNewAPI.line ~link:true (Some deviser) in
+          let%lwt line_block = Formatters.Credit.line ~link:true (Some deviser) in
           Lwt.return (txt "Set devised by " :: line_block)
       );
 

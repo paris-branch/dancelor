@@ -30,7 +30,7 @@ let name_and_tunes ?link ?tunes_link set =
     let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
     let%lwt versions =
       Lwt_list.map_p
-        (fun (version, _) -> VersionNewAPI.name ?link:tunes_link version)
+        (fun (version, _) -> Version.name ?link:tunes_link version)
         versions_and_parameters
     in
     versions
@@ -51,7 +51,7 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
     | Some dance -> Lwt.return [
         span ~a:[a_class ["dim"; "details"]] [
           txt "For dance: ";
-          L.span (DanceNewAPI.name ?link:dance_link dance)
+          L.span (Dance.name ?link:dance_link dance)
         ]
       ]
   in

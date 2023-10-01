@@ -26,7 +26,7 @@ let display_warnings warnings =
       :: display_sets tl
     | (Some set, n) :: tl ->
       ([txt "in “";
-        L.span (Formatters.SetNewAPI.name set);
+        L.span (Formatters.Set.name set);
         txt "”"] @ display_times n)
       :: display_sets tl
   in
@@ -44,22 +44,22 @@ let display_warnings warnings =
     | Book.DuplicateSet set ->
       li [
         txt "Set “";
-        L.span (Formatters.SetNewAPI.name set);
+        L.span (Formatters.Set.name set);
         txt "” appears several times in this book."
       ]
     | Book.DuplicateVersion (tune, sets_opt) ->
       li (
         txt "Tune “"
-        :: L.span (Formatters.TuneNewAPI.name tune)
+        :: L.span (Formatters.Tune.name tune)
         :: txt "” appears several times: "
         :: (display_sets sets_opt |> format_set_list)
       )
     | Book.SetDanceMismatch (set, dance) ->
       li [
         txt "Set “";
-        L.span (Formatters.SetNewAPI.name set);
+        L.span (Formatters.Set.name set);
         txt "” does not have the same kind as its associated dance “";
-        L.span (Formatters.DanceNewAPI.name dance);
+        L.span (Formatters.Dance.name dance);
         txt "”."
       ]
   in
@@ -93,7 +93,7 @@ let table_contents contents =
                 let open Lwt in
                 Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Set"];
-                  (Formatters.SetNewAPI.name_tunes_and_dance ~link:false set parameters);
+                  (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
                   Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)]
                 ]
               )
@@ -103,7 +103,7 @@ let table_contents contents =
                 let open Lwt in
                 tr [
                   td [txt "Set (inline)"];
-                  L.td (Formatters.SetNewAPI.name_tunes_and_dance ~link:false set parameters);
+                  L.td (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
                   td [L.txt (Set.kind set >|= Kind.Dance.to_string)];
                 ]
               )
@@ -117,7 +117,7 @@ let table_contents contents =
                 in
                 Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Tune"];
-                  (Formatters.VersionNewAPI.name_and_dance ~link:false version parameters);
+                  (Formatters.Version.name_and_dance ~link:false version parameters);
                   Lwt.return [L.txt (
                       let%lwt tune = Version.tune version in
                       let%lwt kind = Tune.kind tune in

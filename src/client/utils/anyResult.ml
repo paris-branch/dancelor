@@ -28,7 +28,7 @@ let make_dance_result ~prefix page dance =
       Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Dance.deviser dance >>= Formatters.CreditNewAPI.line)
+          (Dance.deviser dance >>= Formatters.Credit.line)
       ) page ;
     ]
   in
@@ -41,7 +41,7 @@ let make_book_result ~prefix page book =
     prefix @ [
       Table.Cell.create ~colspan:3 ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.BookNewAPI.title_and_subtitle book)
+          (Formatters.Book.title_and_subtitle book)
       ) page
     ]
   in
@@ -56,7 +56,7 @@ let make_set_result ~prefix page set =
       Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Set.deviser set >>= Formatters.CreditNewAPI.line)
+          (Set.deviser set >>= Formatters.Credit.line)
       ) page;
     ]
   in
@@ -71,7 +71,7 @@ let make_tune_result ~prefix page tune =
       Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Tune.author tune >>= Formatters.CreditNewAPI.line)
+          (Tune.author tune >>= Formatters.Credit.line)
       ) page ;
     ]
   in
@@ -85,7 +85,7 @@ let make_version_result ~prefix page version =
     prefix @ [
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.VersionNewAPI.name_and_disambiguation ~link:false version)
+          (Formatters.Version.name_and_disambiguation ~link:false version)
       ) page;
       Table.Cell.text ~text:(
         let%lwt bars = Version.bars version in
@@ -95,7 +95,7 @@ let make_version_result ~prefix page version =
       ) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.VersionNewAPI.author_and_arranger version)
+          (Formatters.Version.author_and_arranger version)
       ) page;
     ]
   in
