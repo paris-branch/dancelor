@@ -151,15 +151,15 @@ let update_table t =
           let tune = Version.tune version in
           let open Lwt in [
             Table.Cell.create ~content:(
-              Dancelor_client_html.NewAPI.to_old_style (Formatters.VersionNewAPI.name_and_disambiguation version)
+              Dancelor_client_html.to_old_style (Formatters.VersionNewAPI.name_and_disambiguation version)
             ) t.page;
             Table.Cell.create ~content:(
-              Dancelor_client_html.NewAPI.to_old_style (tune >>= Formatters.KindNewAPI.full_string version)
+              Dancelor_client_html.to_old_style (tune >>= Formatters.KindNewAPI.full_string version)
             ) t.page;
             Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;
             Table.Cell.text ~text:(Version.structure version) t.page;
             Table.Cell.create ~content:(
-              Dancelor_client_html.NewAPI.to_old_style (Formatters.VersionNewAPI.author_and_arranger version)
+              Dancelor_client_html.to_old_style (Formatters.VersionNewAPI.author_and_arranger version)
             ) t.page; ]
         in
         Table.Row.create ~href ~cells t.page) versions)

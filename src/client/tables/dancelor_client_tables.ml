@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 open Dancelor_client_model
-open Dancelor_client_html.NewAPI
+open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
 
 let clickable_row ~href cells =

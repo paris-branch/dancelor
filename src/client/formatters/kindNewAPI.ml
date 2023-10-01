@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_client_html.NewAPI
+open Dancelor_client_html
 module M = Dancelor_client_model
 
 let full_string version tune =

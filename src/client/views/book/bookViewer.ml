@@ -14,7 +14,7 @@ type t =
   }
 
 let display_warnings warnings =
-  let open Dancelor_client_html.NewAPI in
+  let open Dancelor_client_html in
   let display_times n =
     if n = 1 then []
     else [txt " ("; txt (Int.to_english_string_times n); txt ")"]
@@ -66,7 +66,7 @@ let display_warnings warnings =
   List.map display_warning warnings
 
 let table_contents contents =
-  let open Dancelor_client_html.NewAPI in
+  let open Dancelor_client_html in
   tablex
     ~a:[a_class ["separated-table"]]
     ~thead:(
@@ -146,7 +146,7 @@ let create slug page =
     );
 
   (
-    let open Dancelor_client_html.NewAPI in
+    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [L.txt (book_lwt >>=| Book.title)];
       h3 ~a:[a_class ["title"]] [L.txt (book_lwt >>=| Book.subtitle)];

@@ -58,7 +58,7 @@ let get_duplicated_tunes t book =
 
 
 let display_warnings t =
-  let open Dancelor_client_html.NewAPI in
+  let open Dancelor_client_html in
   (* Only open a warnings div if there are warnings *)
   match SetEditor.for_book t.composer with
   | None -> Lwt.return []
@@ -157,7 +157,7 @@ let refresh t =
       Dom.appendChild t.versions_area subwin);
   JsHelpers.clear_children t.warnings_area;
   Dom.appendChild t.warnings_area
-    Dancelor_client_html.NewAPI.(To_dom.of_div (L.div (display_warnings t)))
+    Dancelor_client_html.(To_dom.of_div (L.div (display_warnings t)))
 
 let make_version_search_result composer page score =
   let version = Score.value score in
@@ -173,11 +173,11 @@ let make_version_search_result composer page score =
       ~cells:[
         Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.create ~content:(
-          Dancelor_client_html.NewAPI.to_old_style
+          Dancelor_client_html.to_old_style
             (Dancelor_client_formatters.VersionNewAPI.name_disambiguation_and_sources ~link:false version)
         ) page;
         Table.Cell.create ~content:(
-          Dancelor_client_html.NewAPI.to_old_style
+          Dancelor_client_html.to_old_style
             (Dancelor_client_formatters.VersionNewAPI.author_and_arranger ~link:false version)
         ) page;
         Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;

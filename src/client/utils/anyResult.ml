@@ -27,7 +27,7 @@ let make_dance_result ~prefix page dance =
       Table.Cell.text ~text:(Dance.name dance) page ;
       Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
-        Dancelor_client_html.NewAPI.to_old_style
+        Dancelor_client_html.to_old_style
           (Dance.deviser dance >>= Formatters.CreditNewAPI.line)
       ) page ;
     ]
@@ -40,7 +40,7 @@ let make_book_result ~prefix page book =
   let cells =
     prefix @ [
       Table.Cell.create ~colspan:3 ~content:(
-        Dancelor_client_html.NewAPI.to_old_style
+        Dancelor_client_html.to_old_style
           (Formatters.BookNewAPI.title_and_subtitle book)
       ) page
     ]
@@ -55,7 +55,7 @@ let make_set_result ~prefix page set =
       Table.Cell.text ~text:(Set.name set) page;
       Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
-        Dancelor_client_html.NewAPI.to_old_style
+        Dancelor_client_html.to_old_style
           (Set.deviser set >>= Formatters.CreditNewAPI.line)
       ) page;
     ]
@@ -70,7 +70,7 @@ let make_tune_result ~prefix page tune =
       Table.Cell.text ~text:(Tune.name tune) page ;
       Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
-        Dancelor_client_html.NewAPI.to_old_style
+        Dancelor_client_html.to_old_style
           (Tune.author tune >>= Formatters.CreditNewAPI.line)
       ) page ;
     ]
@@ -84,7 +84,7 @@ let make_version_result ~prefix page version =
   let cells =
     prefix @ [
       Table.Cell.create ~content:(
-        Dancelor_client_html.NewAPI.to_old_style
+        Dancelor_client_html.to_old_style
           (Formatters.VersionNewAPI.name_and_disambiguation ~link:false version)
       ) page;
       Table.Cell.text ~text:(
@@ -94,7 +94,7 @@ let make_version_result ~prefix page version =
         Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
       ) page ;
       Table.Cell.create ~content:(
-        Dancelor_client_html.NewAPI.to_old_style
+        Dancelor_client_html.to_old_style
           (Formatters.VersionNewAPI.author_and_arranger version)
       ) page;
     ]

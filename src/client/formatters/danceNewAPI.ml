@@ -1,5 +1,5 @@
 open Dancelor_common
-open Dancelor_client_html.NewAPI
+open Dancelor_client_html
 module M = Dancelor_client_model
 
 let name ?(link=true) dance =

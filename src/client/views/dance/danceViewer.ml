@@ -26,7 +26,7 @@ let create slug page =
     );
 
   (
-    let open Dancelor_client_html.NewAPI in
+    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [
         L.txt (dance_lwt >>=| Dance.name);

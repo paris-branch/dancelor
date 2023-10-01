@@ -18,7 +18,7 @@ let create page =
   document##.title := js "Broken versions | Dancelor";
 
   (
-    let open Dancelor_client_html.NewAPI in
+    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [txt "List of broken versions"];
 
