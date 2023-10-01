@@ -1,3 +1,4 @@
+(** Start is inclusive; end is non-inclusive. *)
 type t =
   { start : int ;
     end_ : int }

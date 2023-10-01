@@ -2,11 +2,22 @@ open Nes
 open Dancelor_client_html.NewAPI
 
 type state = {
-  current_page : int;
+  current_page : int; (* first page is [0] *)
   entries_per_page : int;
   number_of_entries : int;
-  number_of_pages : int;
 }
+
+let number_of_pages state =
+  (state.number_of_entries
+   + state.entries_per_page
+   - 1)
+  / state.entries_per_page
+
+let current_pagination state =
+  Dancelor_common_model.Pagination.{
+    start = state.current_page * state.entries_per_page;
+    end_ = (state.current_page + 1) * state.entries_per_page;
+  }
 
 type t = {
   signal : state React.signal;
@@ -19,7 +30,6 @@ let create ~entries_per_page =
     current_page = 0;
     entries_per_page;
     number_of_entries = 0;
-    number_of_pages = 0;
   }
   in
   let (signal, setter) = S.create initial in
@@ -37,16 +47,19 @@ let button page _pagination =
       ]
     ]
 
+let status_text _pagination =
+  S.const @@ "In progress"
+
 let button_list pagination =
   S.bind pagination.signal @@ fun state ->
   S.const (
-    List.init state.number_of_pages (fun page ->
-        button (1 + page) pagination
-      )
+    List.init
+      (number_of_pages state)
+      (fun page -> button (1 + page) pagination)
   )
 
 let render pagination =
-  div ~a:[a_id "page_nav"] [
-    div [txt "In progress"]; (* info *)
+  div [
+    div [R.txt (status_text pagination)];
     R.ul (button_list pagination);
   ]

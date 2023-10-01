@@ -59,6 +59,9 @@ include C
 module R = struct
   module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
 
+  let txt str = R.txt str
+
+  let div ?a elts = R.div ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
   let ul ?a elts = R.ul ?a (RList.from_signal elts)
 end

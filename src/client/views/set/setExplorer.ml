@@ -32,6 +32,8 @@ let create page =
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [txt "All sets"];
 
+      PageNavNewAPI.render pagination;
+
       tablex
         ~a:[a_class ["FIXME-separated-table"]]
         ~thead:(
@@ -46,7 +48,7 @@ let create page =
         )
         [
           R.tbody (
-            S.bind pagination.signal @@ fun _pagination ->
+            S.bind pagination.signal @@ fun pagination ->
             S.from' [] @@ Lwt.map
               (List.map
                  (fun set ->
@@ -62,8 +64,7 @@ let create page =
                       Lwt.return [txt ""];
                     ]
                  ))
-              (* (Set.search ~pagination Formula.true_ >|=| Score.list_erase) *)
-              (Set.search Formula.true_ >|=| Score.list_erase)
+              (Set.search ~pagination:(PageNavNewAPI.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
           )
         ];
 
