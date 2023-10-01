@@ -62,6 +62,7 @@ module R = struct
   let txt = R.txt
 
   let a_class elts = R.a_class elts
+  let a_style elts = R.a_style elts
 
   let div ?a elts = R.div ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
