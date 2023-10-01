@@ -6,4 +6,5 @@
  (preprocess
   (pps lwt_ppx js_of_ocaml-ppx))
  (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.nes
-   dancelor.client.formatters dancelor.client.elements dancelor.common))
+   dancelor.client.formatters dancelor.client.elements dancelor.common
+   dancelor.client.tables))
