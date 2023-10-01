@@ -50,17 +50,18 @@ let button page pagination =
     [
       button ~a: [
         a_button_type `Button;
-      ] [
-        txt (string_of_int (1 + page))
+        a_onclick
+          (fun _ ->
+             pagination.updater (fun state -> { state with current_page = page });
+             false)
       ]
+        [txt (string_of_int (1 + page))]
     ]
 
 let status_text pagination =
   S.bind pagination.signal @@ fun state ->
   S.const @@
-  if state.current_page = 0 then
-    "Loading entries..."
-  else if state.number_of_entries = 0 then
+  if state.number_of_entries = 0 then
     "No entries"
   else
     let pagination = current_pagination state in
