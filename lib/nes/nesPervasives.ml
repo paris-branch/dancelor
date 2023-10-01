@@ -68,3 +68,5 @@ let rec first_non_zero ?(or_=0) = function
 
 let (%) f g = fun x -> f (g x)
 let (%>) f g = fun x -> f x |> g
+
+let flip f = fun x y -> f y x

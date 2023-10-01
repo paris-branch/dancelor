@@ -40,8 +40,7 @@ let create ~number_of_entries ~entries_per_page =
   { signal; setter; updater }
 
 let status_text pagination =
-  S.bind pagination.signal @@ fun state ->
-  S.const @@
+  flip S.map pagination.signal @@ fun state ->
   if state.number_of_entries = 0 then
     "No entries"
   else
@@ -55,8 +54,8 @@ let button page text pagination =
   li
     ~a:[
       R.a_class (
-        S.bind pagination.signal @@ fun state ->
-        S.const @@ if page = state.current_page then ["active"] else []
+        flip S.map pagination.signal @@ fun state ->
+        if page = state.current_page then ["active"] else []
       )
     ]
     [
@@ -71,20 +70,18 @@ let button page text pagination =
     ]
 
 let button_list pagination =
-  S.bind pagination.signal @@ fun state ->
-  S.const (
-    [
-      button 0 "First" pagination
-    ]
-    @
-    List.init
-      (number_of_pages state)
-      (fun page -> button page (string_of_int (1 + page)) pagination)
-    @
-    [
-      button (number_of_pages state - 1) "Last" pagination
-    ]
-  )
+  flip S.map pagination.signal @@ fun state ->
+  [
+    button 0 "First" pagination
+  ]
+  @
+  List.init
+    (number_of_pages state)
+    (fun page -> button page (string_of_int (1 + page)) pagination)
+  @
+  [
+    button (number_of_pages state - 1) "Last" pagination
+  ]
 
 let render pagination =
   div ~a:[a_id "page_nav"] [
