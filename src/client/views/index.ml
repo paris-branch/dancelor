@@ -44,6 +44,7 @@ let create page =
   let content = Html.createDiv document in
 
   let (search_text, set_search_text) = S.create "" in
+  let (table_visible, set_table_visible) = S.create false in
 
   (
     let open Dancelor_client_html in
@@ -61,13 +62,20 @@ let create page =
               );
               false
             );
-          (* FIXME: onfocus make table visible. *)
+          a_onfocus (fun _ -> set_table_visible true; false);
+          a_onblur (fun _ -> set_table_visible false; false);
           (* FIXME: on enter redirect to search. *)
           (* FIXME: make focused at the beginning. *)
         ] ();
 
         tablex
-          ~a:[a_class ["dropdown-table"; "visible"]]
+          ~a:[
+            R.a_class (
+              flip S.map table_visible @@ function
+              | false -> ["dropdown-table"]
+              | true -> ["dropdown-table"; "visible"]
+            );
+          ]
           [
             R.tbody (
               S.bind search_text @@ fun search_text ->
