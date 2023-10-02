@@ -1,5 +1,6 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_utils
 open Dancelor_client_model
@@ -69,8 +70,8 @@ let create page =
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  let query = Yojson.Safe.to_string (`String (Js.to_string input##.value)) in
-                  Dom_html.window##.location##.href := js (spf "/search?q=%s" query);
+                  let search_text = Js.to_string input##.value in
+                  Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text)))
                 );
               true
             );
