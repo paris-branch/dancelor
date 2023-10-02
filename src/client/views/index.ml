@@ -64,7 +64,16 @@ let create page =
             );
           a_onfocus (fun _ -> set_table_visible true; false);
           a_onblur (fun _ -> set_table_visible false; false);
-          (* FIXME: on enter redirect to search. *)
+          a_onkeyup (fun event ->
+              if Js.Optdef.to_option event##.key = Some (js "Enter") then
+                (
+                  Js.Opt.iter event##.target @@ fun elt ->
+                  Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                  let query = Yojson.Safe.to_string (`String (Js.to_string input##.value)) in
+                  Dom_html.window##.location##.href := js (spf "/search?q=%s" query);
+                );
+              true
+            );
           (* FIXME: make focused at the beginning. *)
         ] ();
 
