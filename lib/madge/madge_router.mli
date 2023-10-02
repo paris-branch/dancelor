@@ -8,6 +8,7 @@ type request =
   { method_ : Cohttp.Code.meth ;
     path : string ;
     query : Madge_query.t }
+(* FIXME: should be made abstract *)
 
 val request_to_uri : request -> Uri.t
 
