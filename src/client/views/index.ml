@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_client_elements
 open Dancelor_client_utils
 open Dancelor_client_model
+open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
 
 module Html = Dom_html
@@ -14,7 +15,6 @@ type t =
     page : Page.t;
     document : Html.document Js.t;
     content : Html.divElement Js.t;
-    search : SearchBar.t;
   }
 
 let search input =
@@ -24,27 +24,82 @@ let search input =
   let%lwt results = Any.search ~threshold ~pagination filter in
   Lwt.return_ok results
 
+(** Row for when the search returned no results. *)
+let no_results_row =
+  tr [
+    td [txt "⚠️"];
+    td [txt "Your search returned no results."];
+  ]
+
+(** Rows for when the search returned error messages. *)
+let error_rows messages =
+  flip List.map messages @@ fun message ->
+  tr [
+    td [txt "❌"];
+    td [txt message];
+  ]
+
 let create page =
   let document = Html.window##.document in
   let content = Html.createDiv document in
 
-  let search =
-    let main_section =
-      SearchBar.Section.create
-        ~search ~make_result:(AnyResult.make_result page)
-        page
-    in
-    SearchBar.create
-      ~on_enter:(fun input ->
-          Dom_html.window##.location##.href := js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)));
-          Lwt.return_unit)
-      ~placeholder:"Search for anything (it's magic!)"
-      ~sections:[main_section]
-      page
-  in
+  let (search_text, set_search_text) = S.create "" in
 
-  Dom.appendChild content (SearchBar.root search);
-  {page; document; content; search}
+  (
+    let open Dancelor_client_html in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+
+      div [
+        input ~a:[
+          a_input_type `Text;
+          a_placeholder "Search for anything (it's magic!)";
+          a_oninput (fun event ->
+              (
+                Js.Opt.iter event##.target @@ fun elt ->
+                Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                set_search_text (Js.to_string input##.value)
+              );
+              false
+            );
+          (* FIXME: onfocus make table visible. *)
+          (* FIXME: on enter redirect to search. *)
+          (* FIXME: make focused at the beginning. *)
+        ] ();
+
+        tablex
+          ~a:[a_class ["dropdown-table"; "visible"]]
+          [
+            R.tbody (
+              S.bind search_text @@ fun search_text ->
+              S.from' [] @@
+              if String.length search_text < 3 then
+                (
+                  let message =
+                    if search_text = ""
+                    then "Start typing to search."
+                    else "Type at least three characters."
+                  in
+                  Lwt.return [
+                    tr [
+                      td [txt "👉"];
+                      td [txt message];
+                    ]
+                  ]
+                )
+              else
+                flip Lwt.map (search search_text) @@ function
+                | Error messages -> error_rows messages
+                | Ok [] -> [no_results_row]
+                | Ok results ->
+                  List.map AnyResultNewAPI.make_result (List.sub 10 results)
+                  @ [tr [td [txt "👉"]; td ~a:[a_colspan 4] [txt "Press enter for more results."]]]
+            );
+          ]
+      ]
+    ]
+  );
+
+  {page; document; content}
 
 let contents t =
   t.content
@@ -53,4 +108,4 @@ let refresh t =
   ignore t
 
 let init t =
-  SearchBar.focus t.search
+  ignore t
