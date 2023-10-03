@@ -63,6 +63,7 @@ let create page =
               );
               false
             );
+          a_autofocus ();
           a_onfocus (fun _ -> set_table_visible true; false);
           a_onblur (fun _ -> set_table_visible false; false);
           a_onkeyup (fun event ->
@@ -75,7 +76,6 @@ let create page =
                 );
               true
             );
-          (* FIXME: make focused at the beginning. *)
         ] ();
 
         tablex
