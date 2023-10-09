@@ -25,23 +25,26 @@ let create slug page =
       Lwt.return ()
     );
 
-  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-      h2 ~classes:["title"] [ text_lwt (set_lwt >>=| Set.name) ];
-      h3_lwt ~classes:["title"] (set_lwt >>=| Formatters.Set.works);
-      h3 ~classes:["title"] [
-        text_lwt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
-        text " — Play ";
-        text_lwt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string)
+
+  (
+    let open Dancelor_client_html.NewAPI in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [L.txt (set_lwt >>=| Set.name)];
+      L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.SetNewAPI.works);
+      h3 ~a:[a_class ["title"]] [
+        L.txt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
+        txt " — Play ";
+        L.txt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string);
       ];
-      h3_lwt ~classes:["title"] (
+      L.h3 ~a:[a_class ["title"]] (
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
         | Some deviser ->
-          let%lwt line_block = Formatters.Credit.line ~link:true (Some deviser) in
-          Lwt.return (text "Set devised by " :: line_block)
+          let%lwt line_block = Formatters.CreditNewAPI.line ~link:true (Some deviser) in
+          Lwt.return (txt "Set devised by " :: line_block)
       );
 
-      div ~classes:["buttons"] (
+      div ~a:[a_class ["buttons"]] (
         let bass_parameters =
           SetParameters.(
             make ~every_version:VersionParameters.(
@@ -66,10 +69,10 @@ let create slug page =
           ApiRouter.(path @@ setLy  slug @@ Option.none)
         in
 
-        let pdf_button href txt =
-          a ~classes:["button"] ~href ~target:Blank [
-            i ~classes:["fas"; "fa-file-pdf"] [];
-            text (" "^txt)
+        let pdf_button href text =
+          a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
+            i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+            txt (" " ^ text)
           ]
         in
         [
@@ -77,20 +80,23 @@ let create slug page =
           pdf_button b_pdf_href    "PDF (B♭)";
           pdf_button e_pdf_href    "PDF (E♭)";
           pdf_button bass_pdf_href "PDF (𝄢)";
-          br;
-          a ~classes:["button"] ~href:ly_href       [ i ~classes:["fas"; "fa-file-alt"] []; text " LilyPond" ];
+          br ();
+          a ~a:[a_class ["button"]; a_href ly_href] [
+            i ~a:[a_class ["fas"; "fa-file-alt"]] [];
+            txt " LilyPond";
+          ];
         ]
       );
 
-      p [ text_lwt (
+      p [ L.txt (
           match%lwt set_lwt >>=| Set.instructions with
           | "" -> Lwt.return ""
           | instructions -> Lwt.return ("Instructions: " ^ instructions)) ];
 
-      div ~classes:["section"] [
-        h3 [ text "Previsualisation" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Previsualisation"];
 
-        div_lwt (
+        L.div (
           let%lwt set = set_lwt in
           let%lwt versions_and_parameters = Set.versions_and_parameters set in
 
@@ -100,22 +106,26 @@ let create slug page =
                let%lwt tune = Version.tune version in
                let%lwt slug = Version.slug version in
 
-               Lwt.return (div ~classes:["image-container"] [
-                   (let href = PageRouter.(path (Version slug)) in
-                    h4 [ a ~href [ text_lwt (Tune.name tune) ] ]);
+               Lwt.return (
+                 div ~a:[a_class ["image-container"]]
+                   [
+                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [L.txt (Tune.name tune)]];
 
-                   (let data = ApiRouter.(path (versionSvg slug None)) in
-                    object_ ~type_:"image/svg+xml" ~data [])
-                 ])
+                     object_ ~a:[
+                       a_mime_type "image/svg+xml";
+                       a_data ApiRouter.(path (versionSvg slug None));
+                     ] [];
+                   ]
+               )
             )
             versions_and_parameters
         );
       ];
 
-      div ~classes:["section"] [
-        h3 [ text "Books in Which This Set Appears" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Books in Which This Set Appears"];
 
-        div_lwt (
+        L.div (
           let books_lwt =
             let%lwt set = set_lwt in
             let filter = Book.Filter.memSet set in
@@ -126,9 +136,9 @@ let create slug page =
 
           Lwt.return [
             if books = [] then
-              p [ text "There are no books containing this set." ]
+              p [txt "There are no books containing this set."]
             else
-              Dancelor_client_tables.books books
+              Dancelor_client_tables.TheNewAPI.books books
           ]
         )
       ]

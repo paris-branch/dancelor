@@ -25,46 +25,49 @@ let create slug page =
       Lwt.return ()
     );
 
-  Dancelor_client_html.(append_nodes (content :> dom_node) (Page.document page) [
-
-      h2 ~classes:["title"] [
-        text_lwt (dance_lwt >>=| Dance.name);
+  (
+    let open Dancelor_client_html.NewAPI in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [
+        L.txt (dance_lwt >>=| Dance.name);
       ];
-      h3_lwt ~classes:["title"] (
+      L.h3 ~a:[a_class ["title"]] (
         let kind = [
-          text_lwt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
+          L.txt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
         ] in
         let%lwt by =
           match%lwt dance_lwt >>=| Dance.deviser with
           | None -> Lwt.return_nil
           | Some deviser ->
-            let%lwt line = Formatters.Credit.line ~link:true (Some deviser) in
-            Lwt.return (text " by " :: line)
+            let%lwt line = Formatters.CreditNewAPI.line ~link:true (Some deviser) in
+            Lwt.return (txt " by " :: line)
         in
         Lwt.return (kind @ by)
       );
-      div_lwt (
+      L.div (
         let%lwt dance = dance_lwt in
         match%lwt Dance.two_chords dance with
         | false -> Lwt.return_nil
-        | true -> Lwt.return [ h3 ~classes:["title"] [ text "Two Chords" ] ]
+        | true -> Lwt.return [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
       );
-      div_lwt (
+      L.div (
         match%lwt dance_lwt >>=| Dance.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.dance_uri scddb_id in
           Lwt.return [
-            h3 ~classes:["title"] [
-              a ~href ~target:Blank [ text "Link to the Strathspey Database" ]
+            h3 ~a:[a_class ["title"]] [
+              a ~a:[a_href href; a_target "blank"] [
+                txt "Link to the Strathspey Database"
+              ]
             ]
           ]
       );
 
-      div ~classes:["section"] [
-        h3 [ text "Recommended Tunes" ];
+      div ~a:[a_class ["section"]] [
+        h3 [txt "Recommended Tunes"];
 
-        div_lwt (
+        L.div (
           let tunes_lwt =
             let%lwt dance = dance_lwt in
             let filter = Tune.Filter.existsDance (Dance.Filter.is dance) in
@@ -75,11 +78,11 @@ let create slug page =
 
           Lwt.return [
             if tunes = [] then
-              text ("There are no recommended tunes for this dance. "
-                    ^ "Dancelor is not all-knowing: go check the Strathspey Database! "
-                    ^ "And if you find something that is not known here, report it to someone.")
+              txt ("There are no recommended tunes for this dance. "
+                   ^ "Dancelor is not all-knowing: go check the Strathspey Database! "
+                   ^ "And if you find something that is not known here, report it to someone.")
             else
-              Dancelor_client_tables.tunes tunes
+              Dancelor_client_tables.TheNewAPI.tunes tunes
           ]
         )
       ];

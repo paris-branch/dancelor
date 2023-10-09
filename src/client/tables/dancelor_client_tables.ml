@@ -3,6 +3,7 @@ open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
+module TheNewAPI = TheNewAPI
 
 let clickable_row ?href ?href_lwt cells =
   tr ~classes:["clickable"] (

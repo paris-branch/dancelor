@@ -26,7 +26,9 @@
    js_of_ocaml
    js_of_ocaml-lwt
   (js_of_ocaml-ppx      :build)
+   js_of_ocaml-tyxml
   (lwt_ppx              :build)
+   lwt_react
   (ocaml               (and :build (>= 4.08.0)))
   (odoc                 :with-doc)
   (ppx_blob             :build)
