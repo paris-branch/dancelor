@@ -53,7 +53,7 @@ let create page =
           R.tbody (
             S.bind pagination.signal @@ fun pagination ->
             S.from' [] @@
-            flip Lwt.map
+            Fun.flip Lwt.map
               (Set.search ~pagination:(PageNavNewAPI.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun set ->

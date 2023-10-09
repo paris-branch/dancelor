@@ -41,7 +41,7 @@ let create ~number_of_entries ~entries_per_page =
   { signal; setter; updater }
 
 let status_text pagination =
-  flip S.map pagination.signal @@ fun state ->
+  Fun.flip S.map pagination.signal @@ fun state ->
   if state.number_of_entries = 0 then
     "No entries"
   else
@@ -62,7 +62,7 @@ module Button = struct
     li
       ~a:[
         R.a_class (
-          flip S.map pagination.signal @@ fun state ->
+          Fun.flip S.map pagination.signal @@ fun state ->
           if active state then ["active"] else []
         )
       ]
@@ -70,7 +70,7 @@ module Button = struct
         button ~a: [
           a_button_type `Button;
           R.a_class (
-            flip S.map pagination.signal @@ fun state ->
+            Fun.flip S.map pagination.signal @@ fun state ->
             if enabled state then ["clickable"] else ["disabled"]
           );
           a_onclick
@@ -120,14 +120,14 @@ module Button = struct
 end
 
 let button_list pagination =
-  flip S.map pagination.signal @@ fun state ->
+  Fun.flip S.map pagination.signal @@ fun state ->
   let number_of_pages = number_of_pages state
   and current_page = state.current_page
   in
   (* Select the page numbers to show. *)
   let relevant_page_numbers =
     number_of_pages
-    |> flip List.init ((+) 1)
+    |> Fun.flip List.init ((+) 1)
     |> List.filter
       (fun i ->
          i = 1
