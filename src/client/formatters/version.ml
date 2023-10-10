@@ -1,7 +1,6 @@
 open Nes
 open Dancelor_common
 open Dancelor_client_html
-
 module M = Dancelor_client_model
 
 let description ?link version =
@@ -14,24 +13,24 @@ let description ?link version =
     | None -> Lwt.return_nil
     | Some arranger ->
       let%lwt line_block = Credit.line ?link (Some arranger) in
-      Lwt.return ([text " arranged by "] @ line_block)
+      Lwt.return ([txt " arranged by "] @ line_block)
   in
   let%lwt disambiguation_block =
     match%lwt M.Version.disambiguation version with
     | "" -> Lwt.return_nil
     | disambiguation ->
-      Lwt.return [text (spf " (%s)" disambiguation)]
+      Lwt.return [txt (spf " (%s)" disambiguation)]
   in
-  Lwt.return ([text shape] @ arranger_block @ disambiguation_block)
+  Lwt.return ([txt shape] @ arranger_block @ disambiguation_block)
 
 let name ?(link=true) version =
-  let name_text = [text_lwt (M.Version.tune version >>=| M.Tune.name)] in
+  let name_text = [L.txt (M.Version.tune version >>=| M.Tune.name)] in
   if link then
-    let href_lwt =
+    let href =
       let%lwt slug = M.Version.slug version in
       Lwt.return PageRouter.(path (Version slug))
     in
-    Lwt.return [a ~href_lwt name_text]
+    Lwt.return [a ~a:[L.a_href href] name_text]
   else
     Lwt.return name_text
 
@@ -41,8 +40,9 @@ let name_and_dance ?link ?dance_link version parameters =
     match%lwt M.VersionParameters.for_dance parameters with
     | None -> Lwt.return_nil
     | Some dance -> Lwt.return [
-        span ~classes:["dim"; "details"] [
-          text "For dance: "; span_lwt (Dance.name ?link:dance_link dance)
+        span ~a:[a_class ["dim"; "details"]] [
+          txt "For dance: ";
+          L.span (Dance.name ?link:dance_link dance);
         ]]
   in
   Lwt.return (name @ dance)
@@ -53,7 +53,7 @@ let name_and_disambiguation ?link version =
     match%lwt M.Version.disambiguation version with
     | "" -> Lwt.return_nil
     | disambiguation -> Lwt.return [
-        span ~classes:["dim"] [text (spf " (%s)" disambiguation)]
+        span ~a:[a_class ["dim"]] [txt (spf " (%s)" disambiguation)]
       ]
   in
   Lwt.return (name_block @ disambiguation_block)
@@ -70,18 +70,18 @@ let name_disambiguation_and_sources ?link version =
     in
     match%lwt Lwt_list.map_p Book.short_title sources with
     | [] -> Lwt.return_nil
-    | [title] -> Lwt.return (text "Source: " :: title)
+    | [title] -> Lwt.return (txt "Source: " :: title)
     | titles ->
       titles
-      |> List.intertwine (fun _ -> [text " - "])
+      |> List.intertwine (fun _ -> [txt " - "])
       |> List.flatten
-      |> List.cons (text "Sources: ")
+      |> List.cons (txt "Sources: ")
       |> Lwt.return
   in
   let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
   Lwt.return (
     name_and_disambiguation
-    @ [span_lwt ~classes:["dim"; "details"] sources_lwt]
+    @ [L.span ~a:[a_class ["dim"; "details"]] sources_lwt]
   )
 
 let disambiguation_and_sources version =
@@ -96,17 +96,17 @@ let disambiguation_and_sources version =
     in
     match%lwt Lwt_list.map_p Book.short_title sources with
     | [] -> Lwt.return_nil
-    | [title] -> Lwt.return (text "Source: " :: title)
+    | [title] -> Lwt.return (txt "Source: " :: title)
     | titles ->
       titles
-      |> List.intertwine (fun _ -> [text " - "])
+      |> List.intertwine (fun _ -> [txt " - "])
       |> List.flatten
-      |> List.cons (text "Sources: ")
+      |> List.cons (txt "Sources: ")
       |> Lwt.return
   in
   Lwt.return [
-    text_lwt (M.Version.disambiguation version);
-    span_lwt ~classes:["dim"; "details"] sources_lwt
+    L.txt (M.Version.disambiguation version);
+    L.span ~a:[a_class ["dim"; "details"]] sources_lwt;
   ]
 
 let author_and_arranger ?(short=true) ?link version =
@@ -130,7 +130,7 @@ let author_and_arranger ?(short=true) ?link version =
       let arr = if short then "arr." else "arranged by" in
       let%lwt arranger_block = Credit.line ?link (Some arranger) in
       Lwt.return [
-        span ~classes:["dim"] (text (spf "%s%s " comma arr) :: arranger_block)
+        span ~a:[a_class ["dim"]] (txt (spf "%s%s " comma arr) :: arranger_block)
       ]
   in
   Lwt.return (author_block @ arranger_block)

@@ -1,6 +1,6 @@
 open Nes
 open Dancelor_common_model
-open Dancelor_client_html.NewAPI
+open Dancelor_client_html
 
 type state = {
   current_page : int; (* first page is [1] *)

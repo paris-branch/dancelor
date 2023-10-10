@@ -22,7 +22,7 @@ let create page =
   document##.title := js "All books | Dancelor";
 
   (
-    let open Dancelor_client_html.NewAPI in
+    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [txt "All books"];
 
@@ -50,7 +50,7 @@ let create page =
                       Lwt.return PageRouter.(path (Book slug))
                     in
                     Dancelor_client_tables.clickable_row ~href [
-                      (Formatters.BookNewAPI.title_and_subtitle book);
+                      (Formatters.Book.title_and_subtitle book);
                       (Lwt.map
                          (List.singleton % txt % Option.fold ~none:"" ~some:NesPartialDate.to_pretty_string)
                          (Book.date book));

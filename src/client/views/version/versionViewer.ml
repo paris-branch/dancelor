@@ -40,12 +40,12 @@ let create slug page =
   in
 
   (
-    let open Dancelor_client_html.NewAPI in
+    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [L.txt (tune_lwt >>=| Tune.name)];
-      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.TuneNewAPI.aka);
-      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.TuneNewAPI.description);
-      L.h3 ~a:[a_class ["title"]] (version_lwt >>=| Formatters.VersionNewAPI.description ~link:true);
+      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.aka);
+      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
+      L.h3 ~a:[a_class ["title"]] (version_lwt >>=| Formatters.Version.description ~link:true);
       L.div (
         match%lwt tune_lwt >>=| Tune.scddb_id with
         | None -> Lwt.return_nil

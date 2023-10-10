@@ -69,14 +69,18 @@ let display_warnings t =
     | duplicated_tunes ->
       let display_duplicated_warning tune =
         li [
-          text "Tune “";
-          span_lwt (Formatters.Tune.name tune);
-          text "” already appears in book ";
-          span_lwt (Formatters.Book.short_title bk);
+          txt "Tune “";
+          L.span (Formatters.Tune.name tune);
+          txt "” already appears in book ";
+          L.span (Formatters.Book.short_title bk);
         ]
       in
-      Lwt.return [div ~classes:["warning"]
-                    [ul (List.map display_duplicated_warning duplicated_tunes)]; br]
+      Lwt.return [
+        div ~a:[a_class ["warning"]] [
+          ul (List.map display_duplicated_warning duplicated_tunes)
+        ];
+        br ();
+      ]
 
 let make_version_subwindow t index version =
   let subwin = Html.createDiv (Page.document t.page) in
@@ -153,7 +157,7 @@ let refresh t =
       Dom.appendChild t.versions_area subwin);
   JsHelpers.clear_children t.warnings_area;
   Dom.appendChild t.warnings_area
-    Dancelor_client_html.(node_to_dom_node (Page.document t.page) (div_lwt (display_warnings t)))
+    Dancelor_client_html.(To_dom.of_div (L.div (display_warnings t)))
 
 let make_version_search_result composer page score =
   let version = Score.value score in
@@ -169,12 +173,12 @@ let make_version_search_result composer page score =
       ~cells:[
         Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.create ~content:(
-          Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version
-          >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
+          Dancelor_client_html.to_old_style
+            (Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version)
         ) page;
         Table.Cell.create ~content:(
-          Dancelor_client_formatters.Version.author_and_arranger ~link:false version
-          >|=| Dancelor_client_html.nodes_to_dom_nodes (Page.document page)
+          Dancelor_client_html.to_old_style
+            (Dancelor_client_formatters.Version.author_and_arranger ~link:false version)
         ) page;
         Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
         Table.Cell.text ~text:(Lwt.return (Kind.Base.to_pretty_string ~capitalised:true kind)) page;

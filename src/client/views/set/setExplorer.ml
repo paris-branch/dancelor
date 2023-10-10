@@ -28,7 +28,7 @@ let create page =
   in
 
   (
-    let open Dancelor_client_html.NewAPI in
+    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [txt "All sets"];
 
@@ -63,8 +63,8 @@ let create page =
                     in
                     let open Lwt in
                     Dancelor_client_tables.clickable_row ~href [
-                      (Formatters.SetNewAPI.name_and_tunes ~link:false set);
-                      (Set.deviser set >>= Formatters.CreditNewAPI.line);
+                      (Formatters.Set.name_and_tunes ~link:false set);
+                      (Set.deviser set >>= Formatters.Credit.line);
                       Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)];
                       Lwt.return [txt ""];
                     ]

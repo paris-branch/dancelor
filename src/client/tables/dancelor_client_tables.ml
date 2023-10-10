@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 open Dancelor_client_model
-open Dancelor_client_html.NewAPI
+open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
 
 let clickable_row ~href cells =
@@ -32,7 +32,7 @@ let books books =
     Lwt.return PageRouter.(path (Book slug))
   in
   clickable_row ~href [
-    Formatters.BookNewAPI.title_and_subtitle book;
+    Formatters.Book.title_and_subtitle book;
     Lwt.return [
       L.txt @@
       let open Lwt in
@@ -49,8 +49,8 @@ let sets sets =
     Lwt.return PageRouter.(path (Set slug))
   in
   clickable_row ~href [
-    (Formatters.SetNewAPI.name_and_tunes ~link:true set);
-    (Set.deviser set >>=| Formatters.CreditNewAPI.line);
+    (Formatters.Set.name_and_tunes ~link:true set);
+    (Set.deviser set >>=| Formatters.Credit.line);
     Lwt.return [L.txt (Set.kind set >|=| Kind.Dance.to_string)];
   ]
 
@@ -61,8 +61,8 @@ let dances dances =
     Lwt.return PageRouter.(path (Dance slug))
   in
   clickable_row ~href [
-    (Formatters.DanceNewAPI.name dance);
-    (Dance.deviser dance >>=| Formatters.CreditNewAPI.line);
+    (Formatters.Dance.name dance);
+    (Dance.deviser dance >>=| Formatters.Credit.line);
     Lwt.return [L.txt (Dance.kind dance >|=| Kind.Dance.to_string)];
   ]
 
@@ -73,9 +73,9 @@ let tunes tunes =
     Lwt.return PageRouter.(path (Tune slug))
   in
   clickable_row ~href [
-    (Formatters.TuneNewAPI.name tune);
+    (Formatters.Tune.name tune);
     Lwt.return [L.txt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
-    (Tune.author tune >>=| Formatters.CreditNewAPI.line);
+    (Tune.author tune >>=| Formatters.Credit.line);
   ]
 
 let versions versions =
@@ -87,9 +87,9 @@ let versions versions =
     Lwt.return PageRouter.(path (Version slug))
   in
   clickable_row ~href [
-    (Formatters.VersionNewAPI.disambiguation_and_sources version);
-    (Version.arranger version >>=| Formatters.CreditNewAPI.line);
-    (tune_lwt >>=| Formatters.KindNewAPI.full_string version);
+    (Formatters.Version.disambiguation_and_sources version);
+    (Version.arranger version >>=| Formatters.Credit.line);
+    (tune_lwt >>=| Formatters.Kind.full_string version);
     Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
     Lwt.return [L.txt (Version.structure version)];
   ]
@@ -104,7 +104,7 @@ let versions_with_names versions =
   in
   clickable_row ~href [
     Lwt.return [L.txt (tune_lwt >>=| Tune.name)];
-    (tune_lwt >>=| Formatters.KindNewAPI.full_string version);
+    (tune_lwt >>=| Formatters.Kind.full_string version);
     Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
     Lwt.return [L.txt (Version.structure version)];
   ]

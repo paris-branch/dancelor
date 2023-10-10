@@ -1,206 +1,106 @@
-module NewAPI = NewAPI
+(** {1 HTML} *)
 
-open Js_of_ocaml
+(** {2 React aliases} *)
 
-type dom_node = Dom.node Js.t
-type document = Dom_html.document Js.t
+(** Reactive signals. *)
+module S = struct
+  include Lwt_react.S
 
-type node = document -> dom_node
+  (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
+      until the [promise] resolves, and changes every time [promise] resolves
+      again after that. *)
+  let from (placeholder: 'a) (promise : unit -> 'a Lwt.t) : 'a Lwt_react.signal =
+    let result, send_result = create placeholder in
+    let rec loop () =
+      Lwt.bind (promise ()) @@ fun result ->
+      send_result result;
+      loop ()
+    in
+    Lwt.async loop;
+    result
 
-let node_of_dom_node dom_node =
-  fun _document -> dom_node (* FIXME: assert that document is the same *)
+  (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
+      until the [promise] resolves. This is similar to {!from} except it does
+      only one update. *)
+  let from' (placeholder: 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
+    let result, send_result = create placeholder in
+    Lwt.on_success promise send_result;
+    result
+end
 
-let node_to_dom_node document node =
-  node document
+(** Reactive lists. *)
+module RList = struct
+  include ReactiveData.RList
 
-let nodes_to_dom_nodes document nodes =
-  List.map (node_to_dom_node document) nodes
+  (** [from_lwt placeholder promise] is a container whose initial value is
+      [placeholder], and which gets updated every time [promise] resolves. When
+      that happens we detect the differences between the previous value and
+      [promise]'s result, and perform downstream computation (e.g., for [map])
+      only on the new and modified elements. *)
+  let from_lwt placeholder promise =
+    from_signal @@ S.from placeholder promise
 
-let append_node (parent : #Dom.node Js.t) (document : document) (node : node) =
-  Dom.appendChild parent (node_to_dom_node document node)
+  (** [from_lwt' placeholder promise] is a container whose initial value is
+      [placeholder], and which gets updated once [promise] resolves. When that
+      happens we detect the differences between [placeholder] and [promise]'s
+      result, and perform downstream computation (e.g., for [map]) only on the
+      new and modified elements. *)
+  let from_lwt' placeholder promise =
+    from_signal @@ S.from' placeholder promise
+end
 
-let append_nodes (parent : #Dom.node Js.t) (document : document) (nodes : node list) =
-  List.iter (append_node parent document) nodes
+(** {2 TyXML aliases} *)
 
-let text_lwt str_lwt (document : document) =
-  let text = document##createTextNode (Js.string "") in
-  Lwt.on_success str_lwt (fun str ->
-      text##.data := Js.string str);
-  (text :> dom_node)
+module C = Js_of_ocaml_tyxml.Tyxml_js.Html
+include C
+(** Constant HTML nodes. *)
 
-let text str document =
-  text_lwt (Lwt.return str) document
+(** Reactive HTML nodes, based on {!React}'s signals. *)
+module R = struct
+  module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
 
-type 'children node_maker = ?classes:string list -> 'children -> node
+  let txt = R.txt
 
-type std_node_maker_lwt = node list Lwt.t node_maker
-type std_node_maker     = node list       node_maker
+  let a_class elts = R.a_class elts
+  let a_style elts = R.a_style elts
 
-let gen_node_lwt create ?(classes=[]) children_lwt document =
-  let (elt : 'element Js.t) = create document in
-  List.iter (fun class_ -> elt##.classList##add (Js.string class_)) classes;
-  Lwt.on_success children_lwt (fun children ->
-      append_nodes elt document children);
-  elt
+  let div ?a elts = R.div ?a (RList.from_signal elts)
+  let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
+  let ul ?a elts = R.ul ?a (RList.from_signal elts)
+end
 
-let node_lwt create ?classes children_lwt document =
-  (gen_node_lwt create ?classes children_lwt document :> dom_node)
+(** Lwt HTML nodes. *)
+module L = struct
+  (* NOTE: The following relies on [Tyxml_js]'s React-based HTML builders but
+     wraps them to make Lwt-based builders. The cleaner version would be to rely
+     on [Tyxml]'s functorial interface, but we could not manage to use it while
+     also keeping the right type equalities with other HTML builder modules. *)
 
-let node create ?classes children document =
-  node_lwt create ?classes (Lwt.return children) document
+  module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
 
-let h1_lwt = node_lwt Dom_html.createH1
-let h1     = node     Dom_html.createH1
+  (* NOTE: To be filled on demand. *)
 
-let h2_lwt = node_lwt Dom_html.createH2
-let h2     = node     Dom_html.createH2
+  let txt str = R.txt (S.from' "" str)
 
-let h3_lwt = node_lwt Dom_html.createH3
-let h3     = node     Dom_html.createH3
+  let a_href uri = R.a_href (S.from' "" uri)
 
-let h4_lwt = node_lwt Dom_html.createH4
-let h4     = node     Dom_html.createH4
+  let div ?a elts = R.div ?a (RList.from_lwt' [] elts)
+  let h1 ?a elts = R.h1 ?a (RList.from_lwt' [] elts)
+  let h2 ?a elts = R.h2 ?a (RList.from_lwt' [] elts)
+  let h3 ?a elts = R.h3 ?a (RList.from_lwt' [] elts)
+  let h4 ?a elts = R.h4 ?a (RList.from_lwt' [] elts)
+  let h5 ?a elts = R.h5 ?a (RList.from_lwt' [] elts)
+  let h6 ?a elts = R.h6 ?a (RList.from_lwt' [] elts)
+  let span ?a elts = R.span ?a (RList.from_lwt' [] elts)
+  let tbody ?a elts = R.tbody ?a (RList.from_lwt' [] elts)
+  let td ?a elts = R.td ?a (RList.from_lwt' [] elts)
+end
 
-let h5_lwt = node_lwt Dom_html.createH5
-let h5     = node     Dom_html.createH5
+(* FIXME: Add an [LL] module for Lwt-loop-based builders. *)
 
-let h6_lwt = node_lwt Dom_html.createH6
-let h6     = node     Dom_html.createH6
+module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
+(** Conversion from TyXML nodes to Dom ones. *)
 
-let p_lwt = node_lwt Dom_html.createP
-let p     = node     Dom_html.createP
-
-let div_lwt = node_lwt Dom_html.createDiv
-let div     = node     Dom_html.createDiv
-
-let span_lwt = node_lwt Dom_html.createSpan
-let span     = node     Dom_html.createSpan
-
-let i_lwt = node_lwt Dom_html.createI
-let i     = node     Dom_html.createI
-
-type target = Blank | Self | Parent | Top | Frame of string
-
-let a_lwt ?href ?href_lwt ?target ?classes children_lwt document =
-  let href_lwt =
-    match href, href_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.a"
-    | Some href, None -> Lwt.return href
-    | None, Some href_lwt -> href_lwt
-  in
-  let a = gen_node_lwt Dom_html.createA ?classes children_lwt document in
-  Lwt.on_success href_lwt (fun href ->
-      a##.href := Js.string href);
-  (match target with
-   | None -> ()
-   | Some target ->
-     a##.target := Js.string
-         (match target with
-          | Blank -> "_blank"
-          | Self -> "_self"
-          | Parent -> "_parent"
-          | Top -> "_top"
-          | Frame name -> name));
-  (a :> dom_node)
-
-let a ?href ?href_lwt ?target ?classes children document =
-  a_lwt ?href ?href_lwt ?target ?classes (Lwt.return children) document
-
-let table_lwt = node_lwt Dom_html.createTable
-let table     = node     Dom_html.createTable
-
-let thead_lwt = node_lwt Dom_html.createThead
-let thead     = node     Dom_html.createThead
-
-let tbody_lwt = node_lwt Dom_html.createTbody
-let tbody     = node     Dom_html.createTbody
-
-let tfoot_lwt = node_lwt Dom_html.createTfoot
-let tfoot     = node     Dom_html.createTfoot
-
-let tr_lwt = node_lwt Dom_html.createTr
-let tr     = node     Dom_html.createTr
-
-let td_lwt ?colspan ?rowspan ?classes children_lwt document =
-  let td = gen_node_lwt Dom_html.createTd ?classes children_lwt document in
-  (match colspan with None -> () | Some colspan -> td##.colSpan := colspan);
-  (match rowspan with None -> () | Some rowspan -> td##.rowSpan := rowspan);
-  (td :> dom_node)
-
-let td ?colspan ?rowspan ?classes children document =
-  td_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
-
-let th_lwt ?colspan ?rowspan ?classes children_lwt document =
-  let th = gen_node_lwt Dom_html.createTh ?classes children_lwt document in
-  (match colspan with None -> () | Some colspan -> th##.colSpan := colspan);
-  (match rowspan with None -> () | Some rowspan -> th##.rowSpan := rowspan);
-  (th :> dom_node)
-
-let th ?colspan ?rowspan ?classes children document =
-  th_lwt ?colspan ?rowspan ?classes (Lwt.return children) document
-
-let ol = node Dom_html.createOl
-let ol_lwt = node_lwt Dom_html.createOl
-
-let ul = node Dom_html.createUl
-let ul_lwt = node_lwt Dom_html.createUl
-
-let li = node Dom_html.createLi
-let li_lwt = node_lwt Dom_html.createLi
-
-let label = node Dom_html.createLabel
-let label_lwt = node_lwt Dom_html.createLabel
-
-type type_ = Checkbox
-
-let input ~type_ ?classes () document =
-  let type_ = match type_ with
-    | Checkbox -> "checkbox"
-  in
-  let input =
-    gen_node_lwt
-      (Dom_html.createInput ~_type:(Js.string type_))
-      ?classes Lwt.return_nil document
-  in
-  (input :> dom_node)
-
-let br document = (Dom_html.createBr document :> dom_node)
-let hr document = (Dom_html.createHr document :> dom_node)
-
-let img ?src ?src_lwt ?classes () document =
-  let src_lwt =
-    match src, src_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.img"
-    | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
-  in
-  let img = gen_node_lwt Dom_html.createImg ?classes Lwt.return_nil document in
-  Lwt.on_success src_lwt (fun src ->
-      img##.src := Js.string src);
-  (img :> dom_node)
-
-let object_lwt ~type_ ?data ?data_lwt ?classes children_lwt document =
-  let data_lwt =
-    match data, data_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.object_"
-    | Some data, _ -> Lwt.return data | _, Some data_lwt -> data_lwt
-  in
-  let object_ = gen_node_lwt Dom_html.createObject ?classes children_lwt document in
-  object_##._type := Js.string type_;
-  Lwt.on_success data_lwt (fun data ->
-      object_##.data := Js.string data);
-  (object_ :> dom_node)
-
-let object_ ~type_ ?data ?data_lwt ?classes children document =
-  object_lwt ~type_ ?data ?data_lwt ?classes (Lwt.return children) document
-
-let audio ?src ?src_lwt ?(controls=false) ?classes () document =
-  let src_lwt =
-    match src, src_lwt with
-    | None, None | Some _, Some _ -> invalid_arg "Dancelor_client_html.audio"
-    | Some src, _ -> Lwt.return src | _, Some src_lwt -> src_lwt
-  in
-  let audio = gen_node_lwt Dom_html.createAudio ?classes Lwt.return_nil document in
-  audio##.controls := Js.bool controls;
-  Lwt.on_success src_lwt (fun src ->
-      audio##.src := Js.string src);
-  (audio :> dom_node)
+(** Helper to inject the new API in old-style Dom manipulation. *)
+let to_old_style x = Lwt.return [To_dom.of_div (L.div x)]
+(* FIXME: get rid of this once only the new API remains. *)
