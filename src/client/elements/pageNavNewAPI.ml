@@ -86,12 +86,17 @@ module Button = struct
           [txt text]
       ]
 
+  (** A value that can be passed to [make]'s [~target] argument when the button
+      is never be enabled. *)
+  let no_target =
+    fun _ -> failwith "Dancelor_client.Eleents.PageNav.no_target"
+
   (** A button that is never enabled and shows three dots. *)
   let ellipsis =
     make
       ~active:(Fun.const false)
       ~enabled:(Fun.const false)
-      ~target:(fun _ -> assert false)
+      ~target:no_target
       ~text:"..."
 
   (** A button that is constantly linked to a page number. *)
