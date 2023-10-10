@@ -71,7 +71,7 @@ let create slug page =
               Lwt.return_unit
             );
 
-          Lwt.return [Dancelor_client_tables.TheNewAPI.versions versions]
+          Lwt.return [Dancelor_client_tables.versions versions]
         )
       ];
 
@@ -91,7 +91,7 @@ let create slug page =
             if dances = [] then
               txt "There are no dances that recommend this tune."
             else
-              Dancelor_client_tables.TheNewAPI.dances dances
+              Dancelor_client_tables.dances dances
           ]
         )
       ];
@@ -117,7 +117,7 @@ let create slug page =
             if sets = [] then
               txt "There are no sets containing this tune."
             else
-              Dancelor_client_tables.TheNewAPI.sets sets
+              Dancelor_client_tables.sets sets
           ]
         )
       ];
@@ -137,7 +137,7 @@ let create slug page =
             if books = [] then
               txt "There are no books containing this tune."
             else
-              Dancelor_client_tables.TheNewAPI.books books
+              Dancelor_client_tables.books books
           ]
         )
       ]

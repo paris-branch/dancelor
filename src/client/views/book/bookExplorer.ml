@@ -17,51 +17,51 @@ type t =
 
 let create page =
   let document = Page.document page in
-
-  document##.title := js "All Books | Dancelor";
-
   let content = Html.createDiv document in
-  let title = Html.createH2 document in
-  title##.textContent := Js.some (js "All Books");
-  Dom.appendChild content title;
-  Dom.appendChild content (Html.createHr document);
-  Dom.appendChild content (Html.createBr document);
-  let header =
-    Table.Row.create
-      ~cells:[
-        Table.Cell.header_text ~width:"45%" ~alt:(Lwt.return "Books") ~text:(Lwt.return "Book") page;
-        Table.Cell.header_text ~text:(Lwt.return "Date") page]
-      page
-  in
-  let rows =
-    let%lwt books = Book.search Formula.true_ >|=| Score.list_erase in
-    Lwt.return (List.map (fun book ->
-        let href =
-          let%lwt slug = Book.slug book in
-          Lwt.return PageRouter.(path (Book slug))
-        in
-        let cells =
-          let open Lwt in [
-            Table.Cell.create ~content:(
-              let%lwt content = Formatters.Book.title_and_subtitle book in
-              Lwt.return (Dancelor_client_html.nodes_to_dom_nodes document content)
-            ) page;
-            Table.Cell.text ~text:(Book.date book >|= function
-              | None -> ""
-              | Some date -> NesPartialDate.to_pretty_string date
-              ) page
+
+  document##.title := js "All books | Dancelor";
+
+  (
+    let open Dancelor_client_html.NewAPI in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [txt "All books"];
+
+      tablex
+        ~a:[a_class ["separated-table"]]
+        ~thead:(
+          thead [
+            tr [
+              th [
+                span ~a:[a_class ["full-content"]] [txt "Book"];
+                span ~a:[a_class ["collapse-content"]] [txt "Books"];
+              ];
+              th [txt "Date"];
+            ]
           ]
-        in
-        Table.Row.create ~href ~cells page) books)
-  in
-  let section = Table.Section.create ~rows page in
-  let table = Table.create
-      ~kind:Table.Kind.Separated
-      ~header
-      ~contents:(Lwt.return [section])
-      page
-  in
-  Dom.appendChild content (Table.root table);
+        )
+        [
+          L.tbody (
+            Fun.flip Lwt.map
+              (Book.search Formula.true_ >|=| Score.list_erase)
+              (List.map
+                 (fun book ->
+                    let href =
+                      let%lwt slug = Book.slug book in
+                      Lwt.return PageRouter.(path (Book slug))
+                    in
+                    Dancelor_client_tables.clickable_row ~href [
+                      (Formatters.BookNewAPI.title_and_subtitle book);
+                      (Lwt.map
+                         (List.singleton % txt % Option.fold ~none:"" ~some:NesPartialDate.to_pretty_string)
+                         (Book.date book));
+                    ]
+                 )
+              )
+          )
+        ];
+    ]
+  );
+
   {page; content}
 
 let contents t =

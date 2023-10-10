@@ -172,7 +172,7 @@ let create slug page =
               [p [txt "There are no other versions available for this tune."]]
             else
               [
-                Dancelor_client_tables.TheNewAPI.versions other_versions;
+                Dancelor_client_tables.versions other_versions;
 
                 let href_lwt =
                   let%lwt tune = tune_lwt in
@@ -207,7 +207,7 @@ let create slug page =
             if dances = [] then
               txt "There are no dances that recommend this tune."
             else
-              Dancelor_client_tables.TheNewAPI.dances dances
+              Dancelor_client_tables.dances dances
           ]
         )
       ];
@@ -228,7 +228,7 @@ let create slug page =
             if sets = [] then
               txt "There are no sets containing this version."
             else
-              Dancelor_client_tables.TheNewAPI.sets sets
+              Dancelor_client_tables.sets sets
           ]
         );
 
@@ -266,7 +266,7 @@ let create slug page =
             if books = [] then
               txt "There are no books containing this version."
             else
-              Dancelor_client_tables.TheNewAPI.books books
+              Dancelor_client_tables.books books
           ]
         );
 
