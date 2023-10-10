@@ -55,6 +55,19 @@ module C = Js_of_ocaml_tyxml.Tyxml_js.Html
 include C
 (** Constant HTML nodes. *)
 
+(** Reactive HTML nodes, based on {!React}'s signals. *)
+module R = struct
+  module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
+
+  let txt = R.txt
+
+  let a_class elts = R.a_class elts
+
+  let div ?a elts = R.div ?a (RList.from_signal elts)
+  let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
+  let ul ?a elts = R.ul ?a (RList.from_signal elts)
+end
+
 (** Lwt HTML nodes. *)
 module L = struct
   (* NOTE: The following relies on [Tyxml_js]'s React-based HTML builders but
