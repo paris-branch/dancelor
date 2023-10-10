@@ -27,7 +27,9 @@ type t = {
   updater : (state -> state) -> unit;
 }
 
-let create ~number_of_entries ~entries_per_page =
+(** Create a page navigation from a number of entries (as an {!Lwt} promise)
+    and a number of entries per page. *)
+let create ~(number_of_entries: int Lwt.t) ~(entries_per_page: int) : t =
   let initial = {
     current_page = 1;
     entries_per_page;
