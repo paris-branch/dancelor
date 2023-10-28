@@ -112,6 +112,9 @@ li:not(:first-child):not(:last-child) button {
   border-left: 0;
 }
 
+// REVIEW: Get rid of `.dropdown-table`, now renamed `quick-results` in the
+// `search-bar` component?
+
 .dropdown-table {
   width: 100%;
   border: 1px solid #ced4da;

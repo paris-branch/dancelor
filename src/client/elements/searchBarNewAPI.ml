@@ -21,7 +21,16 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
   let (search_text, set_search_text) = S.create "" in
   let (table_visible, set_table_visible) = S.create false in
 
-  div [
+  div ~a:[a_class ["search-bar"]] [
+    div ~a:[
+      R.a_class (
+        Fun.flip S.map table_visible @@ function
+        | false -> []
+        | true -> ["visible"]
+      );
+      a_onclick (fun _ -> set_table_visible false; false);
+    ] [];
+
     input ~a:[
       a_input_type `Text;
       a_placeholder placeholder;
@@ -35,7 +44,6 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
         );
       a_autofocus ();
       a_onfocus (fun _ -> set_table_visible true; false);
-      a_onblur (fun _ -> set_table_visible false; false);
       a_onkeyup (fun event ->
           if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
             (
