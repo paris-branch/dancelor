@@ -1,0 +1,39 @@
+.choices {
+  display: inline-block;
+
+  label {
+    display: inline-block;
+    padding: 0.8em 1.5em;
+    margin: 0.2em;
+    cursor: pointer;
+    border-radius: 0.25em;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+    transition: 0.3s;
+    user-select: none;
+    font-size: 1em;
+    &:hover {
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.32);
+    }
+    &:active {
+      transform: translateY(2px);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2),
+        inset 0px -1px 0 rgba(0, 0, 0, 0.22);
+    }
+  }
+
+  input:checked + label {
+    background: #960010;
+    color: white;
+    font-weight: bolder;
+    &:hover {
+      background: darken(#960010, 5%);
+      color: darken(white, 5%);
+    }
+  }
+
+  input {
+    display: none;
+  }
+}

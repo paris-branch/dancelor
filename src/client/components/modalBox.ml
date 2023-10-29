@@ -1,3 +1,5 @@
+(* REVIEW: Should we use the <dialog> HTML tag? *)
+
 let make content =
   let open Dancelor_client_html in
 
