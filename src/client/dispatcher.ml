@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_elements
 open Dancelor_client_views
 
 module Html = Dom_html
@@ -15,14 +14,14 @@ module type PAGE = sig
   val refresh : t -> unit
 end
 
-let pack (type s) (module M : PAGE with type t = s) (create : Page.t -> s) =
+let pack (type s) (module M : PAGE with type t = s) (create : Dancelor_client_elements.Page.t -> s) =
   (module struct
     type t = M.t
     let create = create
     let contents t = M.contents t
     let init t = M.init t
     let refresh t = M.refresh t
-  end : Page.CONTENTS)
+  end : Dancelor_client_elements.Page.CONTENTS)
 
 let dispatch url =
   let request = Madge_router.{ method_ = `GET ; path = Uri.path url ; query = Madge_query.from_uri url } in

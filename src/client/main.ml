@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_elements
 open Dancelor_client_html
 
 module Html = Dom_html
@@ -64,16 +63,16 @@ let header =
   ]
 
 let on_load _ev =
-  let page = Page.create () in
-  Page.set_header page (To_dom.of_div header);
+  let page = Dancelor_client_elements.Page.create () in
+  Dancelor_client_elements.Page.set_header page (To_dom.of_div header);
   let url =
     Html.window##.location##.href
     |> Js.to_string
     |> Uri.of_string
   in
-  let module M = (val (Dispatcher.dispatch url) : Page.CONTENTS) in
+  let module M = (val (Dispatcher.dispatch url) : Dancelor_client_elements.Page.CONTENTS) in
   let contents = M.create page in
-  Page.set_contents (module M) page contents;
+  Dancelor_client_elements.Page.set_contents (module M) page contents;
   M.init contents;
   Js._false
 

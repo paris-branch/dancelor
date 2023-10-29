@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_elements
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -11,12 +10,12 @@ let js = Js.string
 
 type t =
   {
-    page : Page.t;
+    page : Dancelor_client_elements.Page.t;
     content : Html.divElement Js.t;
   }
 
 let create page =
-  let document = Page.document page in
+  let document = Dancelor_client_elements.Page.document page in
   let content = Html.createDiv document in
 
   document##.title := js "All books | Dancelor";

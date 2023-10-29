@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_elements
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -9,12 +8,12 @@ let js = Js.string
 
 type t =
   {
-    page : Page.t;
+    page : Dancelor_client_elements.Page.t;
     content : Dom_html.divElement Js.t;
   }
 
 let create slug page =
-  let document = Page.document page in
+  let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let tune_lwt = Tune.get slug in
 
@@ -79,8 +78,8 @@ let create slug page =
         h3 [txt "Dances That Recommend This Tune"];
 
         L.div (
-          let none = (Page.document page)##createTextNode (js "") in
-          let none_maybe = Dom_html.createP (Page.document page) in
+          let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
+          let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
           Dom.appendChild none_maybe none;
           Dom.appendChild content none_maybe;
 
@@ -100,8 +99,8 @@ let create slug page =
         h3 [txt "Sets in Which This Tune Appears"];
 
         L.div (
-          let none = (Page.document page)##createTextNode (js "") in
-          let none_maybe = Dom_html.createP (Page.document page) in
+          let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
+          let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
           Dom.appendChild none_maybe none;
           Dom.appendChild content none_maybe;
 

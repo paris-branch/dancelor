@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_elements
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -9,12 +8,12 @@ let js = Js.string
 
 type t =
   {
-    page : Page.t;
+    page : Dancelor_client_elements.Page.t;
     content : Dom_html.divElement Js.t;
   }
 
 let create slug page =
-  let document = Page.document page in
+  let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let dance_lwt = Dance.get slug in
 
