@@ -26,7 +26,7 @@ let create slug page =
 
   let open Dancelor_client_html in
 
-  let (download_dialog, show_download_dialog) = SetDownloadDialog.create slug in
+  let (download_dialog, show_download_dialog) = SetDownloadDialog.create_and_render slug in
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
