@@ -1,7 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_elements
+open Dancelor_client_components
 open Dancelor_client_utils
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
@@ -12,7 +12,7 @@ let js = Js.string
 
 type t =
   {
-    page : Page.t;
+    page : Dancelor_client_elements.Page.t;
     document : Html.document Js.t;
     content : Html.divElement Js.t;
   }
@@ -32,7 +32,7 @@ let create page =
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
 
-      SearchBarNewAPI.make
+      SearchBar.make
         ~placeholder:"Search for anything (it's magic!)"
         ~search
         ~make_result:AnyResultNewAPI.make_result
