@@ -42,43 +42,52 @@ let create slug page =
   let open Dancelor_client_html in
 
   let (pdf_dialog, show_pdf_dialog) =
-    let bass_parameters =
-      VersionParameters.(
-        make ~clef:Music.Bass
-          ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-          ()
-      )
-    in
-    let b_pitch = Music.make_pitch B Flat (-1) in
-    let b_parameters = VersionParameters.(
-        make ~transposition:(Transposition.relative b_pitch Music.pitch_c)
-          ()
-      )
-    in
-    let e_pitch = Music.make_pitch E Flat 0 in
-    let e_parameters = VersionParameters.(
-        make ~transposition:(Transposition.relative e_pitch Music.pitch_c)
-          ()
-      )
-    in
-    let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href =
-      ApiRouter.(path @@ versionPdf slug @@ Option.none),
-      ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
-      ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
-      ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters)
-    in
-    let pdf_button href text =
-      a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
-        i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
-        txt (" " ^ text)
-      ]
-    in
     ModalBox.make [
       h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
-      pdf_button c_pdf_href    "PDF";
-      pdf_button b_pdf_href    "PDF (B♭)";
-      pdf_button e_pdf_href    "PDF (E♭)";
-      pdf_button bass_pdf_href "PDF (𝄢)";
+
+      let (key_choices, key_choices_signal) =
+        Choices.(make [
+            choice [txt "C"] ~checked:true;
+
+            choice [txt "B♭"]
+              ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) ());
+
+            choice [txt "E♭"]
+              ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) ());
+          ])
+      in
+
+      let (clef_choices, clef_choices_signal) =
+        Choices.(make [
+            choice [txt "𝄞"] ~checked:true;
+
+            choice [txt "𝄢"]
+              ~value:(VersionParameters.make ~clef:Music.Bass ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1))) ());
+          ])
+      in
+
+      form [
+        table [
+          tr [td [label [txt "Key:"]]; td [key_choices]];
+          tr [td [label [txt "Clef:"]]; td [clef_choices]];
+        ];
+
+        input
+          ~a:[
+            a_class ["button"];
+            a_input_type `Submit;
+            a_value "Download";
+            a_onclick (fun _event ->
+                let parameters = Option.concat_l VersionParameters.compose [
+                    S.value key_choices_signal;
+                    S.value clef_choices_signal;
+                  ] in
+                let href = ApiRouter.(path @@ versionPdf slug parameters) in
+                ignore (Dom_html.window##open_ (Js.string href) (Js.string "_blank") Js.null);
+                false
+              );
+          ] ();
+      ];
     ]
   in
 
