@@ -17,10 +17,10 @@ let create () =
         choice [txt "C"] ~checked:true;
 
         choice [txt "B♭"]
-          ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) ());
+          ~value:(VersionParameters.make_instrument (Music.make_pitch B Flat (-1)));
 
         choice [txt "E♭"]
-          ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) ());
+          ~value:(VersionParameters.make_instrument (Music.make_pitch E Flat 0));
       ])
   in
 

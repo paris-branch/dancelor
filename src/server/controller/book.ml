@@ -54,7 +54,7 @@ module Ly = struct
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/book/globals.ly"]
-        title (Option.unwrap_or ~default:"" parameters.instruments);
+        title (Option.unwrap_or ~default:"" (BookParameters.instruments parameters));
       fpf fmt [%blob "template/paper.ly"];
 
       fpf fmt [%blob "template/book/paper.ly"];
