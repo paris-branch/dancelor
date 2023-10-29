@@ -5,36 +5,56 @@ open Dancelor_client_html
 open Dancelor_client_components
 open Js_of_ocaml
 
-let create slug =
+type t =
+  {
+    choice_rows : Html_types.tr elt list;
+    parameters_signal : VersionParameters.t option React.signal;
+  }
+
+let create () =
+  let (key_choices, key_choices_signal) =
+    Choices.(make [
+        choice [txt "C"] ~checked:true;
+
+        choice [txt "B♭"]
+          ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) ());
+
+        choice [txt "E♭"]
+          ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) ());
+      ])
+  in
+
+  let (clef_choices, clef_choices_signal) =
+    Choices.(make [
+        choice [txt "𝄞"] ~checked:true;
+
+        choice [txt "𝄢"]
+          ~value:(VersionParameters.make ~clef:Music.Bass ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1))) ());
+      ])
+  in
+
+  (* A signal containing the composition of all the parameters. *)
+  let parameters_signal =
+    S.merge (Option.concat VersionParameters.compose) None [
+      key_choices_signal;
+      clef_choices_signal;
+    ]
+  in
+
+  {
+    choice_rows = [
+      tr [td [label [txt "Key:"]]; td [key_choices]];
+      tr [td [label [txt "Clef:"]]; td [clef_choices]];
+    ];
+    parameters_signal;
+  }
+
+let render slug dialog =
   ModalBox.make [
     h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
 
-    let (key_choices, key_choices_signal) =
-      Choices.(make [
-          choice [txt "C"] ~checked:true;
-
-          choice [txt "B♭"]
-            ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) ());
-
-          choice [txt "E♭"]
-            ~value:(VersionParameters.make ~transposition:(Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) ());
-        ])
-    in
-
-    let (clef_choices, clef_choices_signal) =
-      Choices.(make [
-          choice [txt "𝄞"] ~checked:true;
-
-          choice [txt "𝄢"]
-            ~value:(VersionParameters.make ~clef:Music.Bass ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1))) ());
-        ])
-    in
-
     form [
-      table [
-        tr [td [label [txt "Key:"]]; td [key_choices]];
-        tr [td [label [txt "Clef:"]]; td [clef_choices]];
-      ];
+      table dialog.choice_rows;
 
       input
         ~a:[
@@ -42,10 +62,7 @@ let create slug =
           a_input_type `Submit;
           a_value "Download";
           a_onclick (fun _event ->
-              let parameters = Option.concat_l VersionParameters.compose [
-                  S.value key_choices_signal;
-                  S.value clef_choices_signal;
-                ] in
+              let parameters = S.value dialog.parameters_signal in
               let href = ApiRouter.(path @@ versionPdf slug parameters) in
               ignore (Dom_html.window##open_ (Js.string href) (Js.string "_blank") Js.null);
               false
@@ -53,3 +70,5 @@ let create slug =
         ] ();
     ];
   ]
+
+let create_and_render slug = render slug (create ())

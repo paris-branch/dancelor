@@ -40,7 +40,7 @@ let create slug page =
 
   let open Dancelor_client_html in
 
-  let (download_dialog, show_download_dialog) = VersionDownloadDialog.create slug in
+  let (download_dialog, show_download_dialog) = VersionDownloadDialog.create_and_render slug in
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
