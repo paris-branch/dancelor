@@ -253,6 +253,16 @@ let create slug page =
           [
             i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
             txt " PDF";
+          ];
+
+        a
+          ~a:[
+            a_class ["button"];
+            a_href PageRouter.(path (BookEdit slug))
+          ]
+          [
+            i ~a:[a_class ["fas"; "fa-edit"]] [];
+            txt " Edit"
           ]
       ];
 
@@ -261,12 +271,6 @@ let create slug page =
 
         table_contents (Lwt.bind book_lwt Book.contents)
       ];
-
-      div ~a:[a_class ["buttons"]] [
-        a ~a:[a_class ["button"]; a_href PageRouter.(path (BookEdit slug))] [
-          txt "Edit book"
-        ]
-      ]
     ]);
 
   {page; content}
