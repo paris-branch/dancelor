@@ -15,6 +15,9 @@ val broken : t -> bool Lwt.t
 
 val content : t -> string Lwt.t
 
+val kind : t -> Kind.Version.t Lwt.t
+(** Convenient wrapper around {!bars} and {!Tune.kind}. *)
+
 val equal : t -> t -> bool Lwt.t
 
 (** {2 Filters} *)
