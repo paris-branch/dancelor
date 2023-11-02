@@ -45,6 +45,8 @@ module Lift
     let%lwt kind = tune version >>=| Tune.kind in
     Lwt.return (bars, kind)
 
+  let name version = tune version >>=| Tune.name
+
   module Filter = struct
     include VersionCore.Filter
 

@@ -18,6 +18,9 @@ val content : t -> string Lwt.t
 val kind : t -> Kind.Version.t Lwt.t
 (** Convenient wrapper around {!bars} and {!Tune.kind}. *)
 
+val name : t -> string Lwt.t
+(** Convenient wrapper around {!tune} and {!Tune.name}. *)
+
 val equal : t -> t -> bool Lwt.t
 
 (** {2 Filters} *)
