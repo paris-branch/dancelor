@@ -9,7 +9,7 @@ module Lift
   include SetCore
 
   let make
-      ?status ~slug ~name ?deviser ~kind ?versions_and_parameters
+      ?status ?(slug=Slug.none) ~name ?deviser ~kind ?versions_and_parameters
       ~order ?dances ~modified_at ~created_at
       ()
     =
@@ -38,16 +38,6 @@ module Lift
     Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters
                   ~order ?dances ~modified_at ~created_at
                   ())
-
-  let make_temp
-      ~name ?deviser ~kind ?versions_and_parameters
-      ~order ?dances ~modified_at ~created_at
-      ()
-    =
-    make
-      ~slug:Slug.none ~name ?deviser ~kind ?versions_and_parameters
-      ~order ?dances ~modified_at ~created_at
-      ()
 
   let is_slug_none s =
     let%lwt slug = slug s in

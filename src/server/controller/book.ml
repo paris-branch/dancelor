@@ -107,7 +107,9 @@ module Ly = struct
                 let%lwt kind = Model.Tune.kind tune in
                 let parameters = Model.VersionParameters.set_display_name trivia parameters in
                 let%lwt set =
-                  Model.Set.make_temp ~name ~kind:(Model.Kind.Dance.Version (bars, kind))
+                  Model.Set.make
+                    ~name
+                    ~kind:(Model.Kind.Dance.Version (bars, kind))
                     ~versions_and_parameters:[version, parameters]
                     ~order:[Internal 1]
                     ~modified_at:(NesDatetime.now ())
