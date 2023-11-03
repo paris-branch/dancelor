@@ -5,6 +5,7 @@
       deadnix.enable = true;
       prettier.enable = true;
       dune-fmt.enable = true;
+      dune-opam-sync.enable = true;
     };
   };
 }
