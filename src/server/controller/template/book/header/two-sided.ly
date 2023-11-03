@@ -1,12 +1,12 @@
 \paper {
   oddHeaderMarkup = \markup {
-    \on-the-fly \not-first-page \fill-line {
+    \unless \on-first-page \fill-line {
       \bold \fromproperty #'header:booktitle
       ""
     }
   }
   evenHeaderMarkup = \markup {
-    \on-the-fly \not-first-page \fill-line {
+    \unless \on-first-page \fill-line {
       ""
       \fromproperty #'header:title
     }

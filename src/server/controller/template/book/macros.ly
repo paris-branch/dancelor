@@ -1,7 +1,7 @@
-tocSet = #(define-music-function (parser location text) (markup?)
+tocSet = #(define-music-function (text) (markup?)
            (add-toc-item! 'tocSetMarkup text))
 
-tocVersion = #(define-music-function (parser location text) (markup?)
+tocVersion = #(define-music-function (text) (markup?)
             (add-toc-item! 'tocVersionMarkup text))
 
 #(define-markup-command (my-wordwrap-string layout props align strg)
