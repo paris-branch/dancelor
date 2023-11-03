@@ -97,14 +97,14 @@ module Lift
     (* Check that version kinds and bars correspond to set's kind. *)
     let%lwt (bars, kind) =
       match%lwt kind s with
-      | (_, []) ->
-        add_warning WrongKind;
-        Lwt.return (32, Kind.Base.Reel) (* FIXME *)
-      | (_, [(bars, kind)]) ->
-        Lwt.return (bars, kind)
-      | (_, (bars, kind) :: _) ->
-        (* FIXME: more complicated that it appears *)
-        Lwt.return (bars, kind)
+      | Mul (_, Version (bars, kind)) -> Lwt.return (bars, kind)
+      | _ ->
+        (* FIXME: more complicated that it appears: For sets that have a medley
+           kind, checking that “the version has a compatible kind” makes little
+           sense. I don't think there is a very good solution right now; ideally
+           later we should check that the versions “added” as per the set's
+           order sum up to the kind of the set, but that's more involved. *)
+        Lwt.return (32, KindBase.Reel)
     in
     let%lwt versions =
       let%lwt versions_and_parameters = versions_and_parameters s in

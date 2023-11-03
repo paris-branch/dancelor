@@ -1,0 +1,4 @@
+(ocamllex kindDanceLexer)
+
+(menhir
+ (modules kindDanceParser))
