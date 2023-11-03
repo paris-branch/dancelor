@@ -12,7 +12,7 @@
         ocaml-base-compiler = "*";
         ocaml-lsp-server = "*";
         ocp-indent = "*";
-        utop = "*";
+        # utop = "*";
       };
     in { packages.dancelor = scope.dancelor // { inherit scope; }; };
 }

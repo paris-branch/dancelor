@@ -5,7 +5,7 @@
         merlin
         ocaml-lsp-server
         ocp-indent
-        utop
+        # utop
       ];
       inputsFrom = [ self'.packages.dancelor ];
       shellHook = config.pre-commit.installationScript;
