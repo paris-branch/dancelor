@@ -4,6 +4,7 @@
       nixfmt.enable = true;
       deadnix.enable = true;
       prettier.enable = true;
+      dune-fmt.enable = true;
     };
   };
 }
