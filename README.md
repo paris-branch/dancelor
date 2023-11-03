@@ -2,6 +2,8 @@
 
 A chancelor for Scottish country dance musicians.
 
+[API documentation](https://paris-branch.github.io/dancelor/dancelor)
+
 ## Contributing
 
 ### Setting up a development environment
