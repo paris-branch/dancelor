@@ -99,8 +99,12 @@ module Lift
       match%lwt kind s with
       | Mul (_, Version (bars, kind)) -> Lwt.return (bars, kind)
       | _ ->
-        (* FIXME: more complicated that it appears *)
-        Lwt.return (32, KindBase.Reel) (* FIXME *)
+        (* FIXME: more complicated that it appears: For sets that have a medley
+           kind, checking that “the version has a compatible kind” makes little
+           sense. I don't think there is a very good solution right now; ideally
+           later we should check that the versions “added” as per the set's
+           order sum up to the kind of the set, but that's more involved. *)
+        Lwt.return (32, KindBase.Reel)
     in
     let%lwt versions =
       let%lwt versions_and_parameters = versions_and_parameters s in
