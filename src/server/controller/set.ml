@@ -12,6 +12,7 @@ module Ly = struct
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Set.name set in
+      let title = Option.value ~default:title @@ SetParameters.display_name parameters in
       let%lwt kind = Set.kind set in
       let%lwt versions_and_parameters = Set.versions_and_parameters set in
       fpf fmt [%blob "template/lyversion.ly"];
