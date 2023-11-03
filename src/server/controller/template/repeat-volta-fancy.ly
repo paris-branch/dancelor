@@ -4,8 +4,8 @@
   \context {
     \Score
 
-    startRepeatType = #"[|:-||"
-    endRepeatType = #":|]"
-    doubleRepeatType = #":|][|:"
+    startRepeatBarType = #"[|:-||"
+    endRepeatBarType = #":|]"
+    doubleRepeatBarType = #":|][|:"
   }
 }

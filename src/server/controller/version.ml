@@ -11,7 +11,13 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
   Log.debug (fun m -> m "Preparing Lilypond file");
   let parameters = VersionParameters.fill parameters in
 
-  let fname_scm = Filename.chop_extension fname ^ ".scm" in
+  (* the scheme filename needs to be absolute for LilyPond > 2.22 to find it *)
+  let fname_scm =
+    Filename.concat
+      (Unix.getcwd ())
+      (Filename.chop_extension fname ^ ".scm")
+  in
+
   let%lwt tune = Version.tune version in
   let%lwt key = Version.key version in
   let%lwt name = Tune.name tune in
@@ -70,7 +76,7 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
   let lilypond =
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/lyversion.ly"];
-    fpf fmt "#(load \"%s\")\n\n" (Filename.basename fname_scm);
+    fpf fmt "#(load \"%s\")\n\n" fname_scm;
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/repeat-volta-fancy.ly"];

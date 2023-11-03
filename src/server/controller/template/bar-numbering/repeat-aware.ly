@@ -137,7 +137,7 @@
       (context-spec-music-applied-to-score
        (lambda (context)
         (let ((barnum (partial-aware-bar-number context))
-              (start-repeat-type (ly:context-property context 'startRepeatType)))
+              (start-repeat-type (ly:context-property context 'startRepeatBarType)))
          (if (ly:context-property context 'firstRepeat)
           (begin
            (ly:context-set-property! context 'firstRepeat #f)
