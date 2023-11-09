@@ -82,7 +82,12 @@ module Ly = struct
             (if parameters |> Model.BookParameters.running_header then
                [%blob "template/book/header/two-sided.ly"]
              else
-               [%blob "template/book/header/none.ly"])
+               [%blob "template/book/header/none.ly"]);
+          fpf fmt
+            (if parameters |> Model.BookParameters.running_footer then
+               [%blob "template/book/footer/two-sided.ly"]
+             else
+               [%blob "template/book/footer/none.ly"])
         )
       else
         (
@@ -90,7 +95,12 @@ module Ly = struct
             (if parameters |> Model.BookParameters.running_header then
                [%blob "template/book/header/one-sided.ly"]
              else
-               [%blob "template/book/header/none.ly"])
+               [%blob "template/book/header/none.ly"]);
+          fpf fmt
+            (if parameters |> Model.BookParameters.running_footer then
+               [%blob "template/book/footer/one-sided.ly"]
+             else
+               [%blob "template/book/footer/none.ly"])
         );
       fpf fmt [%blob "template/repeat-volta-fancy.ly"];
       fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
