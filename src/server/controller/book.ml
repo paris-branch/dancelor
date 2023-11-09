@@ -40,6 +40,18 @@ module Ly = struct
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
+  (** Rearrange the content of a set. [Default] will leave the content as-is,
+      while [Unfolded] will duplicated the tunes depending on the set order. *)
+  let rearrange_set_content ?(order_type=Model.SetParameters.Default) ~order content =
+    let module P = Model.SetParameters in
+    let module O = Model.SetOrder in
+    match order_type with
+    | P.Default -> content
+    | P.Unfolded ->
+      order
+      |> List.map_filter (function O.Internal n -> Some n | _ -> None)
+      |> List.map (List.nth content % Fun.flip (-) 1)
+
   let cache : ([`Ly] * Model.Book.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
@@ -149,6 +161,13 @@ module Ly = struct
          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
         let%lwt () =
           let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
+          let%lwt order = Model.Set.order set in
+          let versions_and_parameters =
+            rearrange_set_content
+              ~order
+              ?order_type:(Model.SetParameters.order_type set_parameters)
+              versions_and_parameters
+          in
           Fun.flip Lwt_list.iter_s versions_and_parameters @@ fun (version, version_parameters) ->
           let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
           let%lwt content = Model.Version.content version in
