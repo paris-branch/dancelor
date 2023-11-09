@@ -171,6 +171,7 @@ module Pdf = struct
     let%lwt name = Model.Version.name version in
     let%lwt set_parameters =
       Model.SetParameters.make
+        ~show_order:false
         ?display_name:(Option.bind parameters Model.VersionParameters.display_name)
         ()
     in
