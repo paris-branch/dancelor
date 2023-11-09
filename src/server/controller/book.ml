@@ -66,7 +66,6 @@ module Ly = struct
                [%blob "template/book/header/two-sided.ly"]
              else
                [%blob "template/book/header/none.ly"])
-
         )
       else
         (
@@ -88,122 +87,116 @@ module Ly = struct
       let%lwt () =
         let%lwt sets_and_parameters =
           let%lwt contents = Model.Book.contents book in
-          Lwt_list.map_p
-            (function
-              | Model.Book.Version (version, parameters) ->
-                let%lwt tune = Model.Version.tune version in
-                let%lwt name = Model.Tune.name tune in
-                let name =
-                  parameters
-                  |> Model.VersionParameters.display_name
-                  |> Option.unwrap_or ~default:name
-                in
-                let trivia =
-                  parameters
-                  |> Model.VersionParameters.trivia
-                  |> Option.unwrap_or ~default:" "
-                in
-                let%lwt bars = Model.Version.bars version in
-                let%lwt kind = Model.Tune.kind tune in
-                let parameters = Model.VersionParameters.set_display_name trivia parameters in
-                let%lwt set =
-                  Model.Set.make
-                    ~name
-                    ~kind:(Model.Kind.Dance.Version (bars, kind))
-                    ~versions_and_parameters:[version, parameters]
-                    ~order:[Internal 1]
-                    ~modified_at:(NesDatetime.now ())
-                    ~created_at:(NesDatetime.now ())
-                    ()
-                in
-                let%lwt for_dance = Model.VersionParameters.for_dance parameters in
-                let%lwt set_parameters = Model.SetParameters.make
-                    ~display_name:name ?for_dance ~show_order:false () in
-                Lwt.return (set, set_parameters)
+          Fun.flip Lwt_list.map_p contents @@ function
+          | Model.Book.Version (version, parameters) ->
+            let%lwt tune = Model.Version.tune version in
+            let%lwt name = Model.Tune.name tune in
+            let name =
+              parameters
+              |> Model.VersionParameters.display_name
+              |> Option.unwrap_or ~default:name
+            in
+            let trivia =
+              parameters
+              |> Model.VersionParameters.trivia
+              |> Option.unwrap_or ~default:" "
+            in
+            let%lwt bars = Model.Version.bars version in
+            let%lwt kind = Model.Tune.kind tune in
+            let parameters = Model.VersionParameters.set_display_name trivia parameters in
+            let%lwt set =
+              Model.Set.make
+                ~name
+                ~kind:(Model.Kind.Dance.Version (bars, kind))
+                ~versions_and_parameters:[version, parameters]
+                ~order:[Internal 1]
+                ~modified_at:(NesDatetime.now ())
+                ~created_at:(NesDatetime.now ())
+                ()
+            in
+            let%lwt for_dance = Model.VersionParameters.for_dance parameters in
+            let%lwt set_parameters = Model.SetParameters.make
+                ~display_name:name ?for_dance ~show_order:false () in
+            Lwt.return (set, set_parameters)
 
-              | Set (set, parameters) | InlineSet (set, parameters) ->
-                Lwt.return (set, parameters))
-            contents
+          | Set (set, parameters) | InlineSet (set, parameters) ->
+            Lwt.return (set, parameters)
         in
-        Lwt_list.iter_s
-          (fun (set, set_parameters) ->
-             let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
-             let%lwt name = Model.Set.name set in
-             let name =
-               set_parameters
-               |> Model.SetParameters.display_name
-               |> Option.unwrap_or ~default:name
-             in
-             let%lwt deviser =
-               if not (set_parameters |> Model.SetParameters.show_deviser) then
-                 Lwt.return ""
-               else
-                 (match%lwt Model.Set.deviser set with
-                  | None -> Lwt.return ""
-                  | Some deviser ->
-                    let%lwt deviser = Model.Credit.line deviser in
-                    Lwt.return (spf "Set by %s" deviser))
-             in
-             let%lwt kind = kind set set_parameters in
-             let%lwt details_line = details_line set set_parameters in
-             fpf fmt [%blob "template/book/set_beginning.ly"]
-               name kind name deviser details_line;
-             (match set_parameters |> Model.SetParameters.forced_pages with
-              | 0 -> ()
-              | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
-             let%lwt () =
-               let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
-               Lwt_list.iter_s
-                 (fun (version, version_parameters) ->
-                    let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
-                    let%lwt content = Model.Version.content version in
-                    let content =
-                      match version_parameters |> Model.VersionParameters.clef with
-                      | None -> content
-                      | Some clef_parameter ->
-                        let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-                        Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_string clef_parameter) content
-                    in
-                    let%lwt tune = Model.Version.tune version in
-                    let%lwt key = Model.Version.key version in
-                    let%lwt name = Model.Tune.name tune in
-                    let name =
-                      version_parameters
-                      |> Model.VersionParameters.display_name
-                      |> Option.unwrap_or ~default:name
-                    in
-                    let%lwt author =
-                      match%lwt Model.Tune.author tune with
-                      | None -> Lwt.return ""
-                      | Some author -> Model.Credit.line author
-                    in
-                    let author =
-                      version_parameters
-                      |> Model.VersionParameters.display_author
-                      |> Option.unwrap_or ~default:author
-                    in
-                    let first_bar =
-                      version_parameters
-                      |> Model.VersionParameters.first_bar
-                    in
-                    let source, target =
-                      match version_parameters |> Model.VersionParameters.transposition with
-                      | Relative (source, target) -> (source, target)
-                      | Absolute target -> (key |> Model.Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
-                    in
-                    fpf fmt [%blob "template/book/version.ly"]
-                      name author
-                      first_bar
-                      name
-                      (Model.Music.pitch_to_lilypond_string source)
-                      (Model.Music.pitch_to_lilypond_string target)
-                      content;
-                    Lwt.return ())
-                 versions_and_parameters
-             in
-             fpf fmt [%blob "template/book/set_end.ly"];
-             Lwt.return ())
-          sets_and_parameters
+        Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
+        let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
+        let%lwt name = Model.Set.name set in
+        let name =
+          set_parameters
+          |> Model.SetParameters.display_name
+          |> Option.unwrap_or ~default:name
+        in
+        let%lwt deviser =
+          if not (set_parameters |> Model.SetParameters.show_deviser) then
+            Lwt.return ""
+          else
+            (match%lwt Model.Set.deviser set with
+             | None -> Lwt.return ""
+             | Some deviser ->
+               let%lwt deviser = Model.Credit.line deviser in
+               Lwt.return (spf "Set by %s" deviser))
+        in
+        let%lwt kind = kind set set_parameters in
+        let%lwt details_line = details_line set set_parameters in
+        fpf fmt [%blob "template/book/set_beginning.ly"]
+          name kind name deviser details_line;
+        (match set_parameters |> Model.SetParameters.forced_pages with
+         | 0 -> ()
+         | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
+        let%lwt () =
+          let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
+          Fun.flip Lwt_list.iter_s versions_and_parameters @@ fun (version, version_parameters) ->
+          let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
+          let%lwt content = Model.Version.content version in
+          let content =
+            match version_parameters |> Model.VersionParameters.clef with
+            | None -> content
+            | Some clef_parameter ->
+              let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
+              Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_string clef_parameter) content
+          in
+          let%lwt tune = Model.Version.tune version in
+          let%lwt key = Model.Version.key version in
+          let%lwt name = Model.Tune.name tune in
+          let name =
+            version_parameters
+            |> Model.VersionParameters.display_name
+            |> Option.unwrap_or ~default:name
+          in
+          let%lwt author =
+            match%lwt Model.Tune.author tune with
+            | None -> Lwt.return ""
+            | Some author -> Model.Credit.line author
+          in
+          let author =
+            version_parameters
+            |> Model.VersionParameters.display_author
+            |> Option.unwrap_or ~default:author
+          in
+          let first_bar =
+            version_parameters
+            |> Model.VersionParameters.first_bar
+          in
+          let source, target =
+            match version_parameters |> Model.VersionParameters.transposition with
+            | Relative (source, target) -> (source, target)
+            | Absolute target -> (key |> Model.Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
+          in
+          fpf fmt [%blob "template/book/version.ly"]
+            name author
+            first_bar
+            name
+            (Model.Music.pitch_to_lilypond_string source)
+            (Model.Music.pitch_to_lilypond_string target)
+            content;
+          Lwt.return ()
+        in
+        fpf fmt [%blob "template/book/set_end.ly"];
+        Lwt.return ()
       in
       if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.End then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
