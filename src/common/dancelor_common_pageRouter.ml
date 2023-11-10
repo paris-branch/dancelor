@@ -74,4 +74,7 @@ let routes =
     with_slug `GET "/version"        (version, unVersion) ;
   ]
 
-let path page = Madge_router.((resource_to_request page routes).path)
+let path page =
+  Madge_router.resource_to_request page routes
+  |> Madge_router.request_to_uri
+  |> Uri.to_string

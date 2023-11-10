@@ -7,6 +7,9 @@ type request =
     path : string ;
     query : Madge_query.t }
 
+let request_to_uri { path; query; _ } =
+  Uri.make ~path ~query:(Madge_query.to_strings query) ()
+
 type 'resource route =
   { request_to_resource : request -> 'resource option ;
     resource_to_request : 'resource -> request option }

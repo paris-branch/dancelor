@@ -1,5 +1,6 @@
 open Nes
 open Js_of_ocaml
+open Dancelor_common
 open Dancelor_client_elements
 open Dancelor_client_utils
 open Dancelor_client_model
@@ -14,7 +15,6 @@ type t =
     page : Page.t;
     document : Html.document Js.t;
     content : Html.divElement Js.t;
-    search : SearchBar.t;
   }
 
 let search input =
@@ -28,23 +28,22 @@ let create page =
   let document = Html.window##.document in
   let content = Html.createDiv document in
 
-  let search =
-    let main_section =
-      SearchBar.Section.create
-        ~search ~make_result:(AnyResult.make_result page)
-        page
-    in
-    SearchBar.create
-      ~on_enter:(fun input ->
-          Dom_html.window##.location##.href := js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)));
-          Lwt.return_unit)
-      ~placeholder:"Search for anything (it's magic!)"
-      ~sections:[main_section]
-      page
-  in
+  (
+    let open Dancelor_client_html in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
 
-  Dom.appendChild content (SearchBar.root search);
-  {page; document; content; search}
+      SearchBarNewAPI.make
+        ~placeholder:"Search for anything (it's magic!)"
+        ~search
+        ~make_result:AnyResultNewAPI.make_result
+        ~max_results:10
+        ~on_enter:(fun search_text ->
+            Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text)))
+          )
+    ]
+  );
+
+  {page; document; content}
 
 let contents t =
   t.content
@@ -53,4 +52,4 @@ let refresh t =
   ignore t
 
 let init t =
-  SearchBar.focus t.search
+  ignore t

@@ -2,14 +2,21 @@
 
 open Nes
 
+(** {2 Requests} *)
+
 type request =
   { method_ : Cohttp.Code.meth ;
     path : string ;
     query : Madge_query.t }
+(* FIXME: should be made abstract *)
+
+val request_to_uri : request -> Uri.t
+
+(** {2 Routes} *)
 
 type 'resource route
 
-(** {2 Building Routes} *)
+(** {3 Building Routes} *)
 
 val direct : Cohttp.Code.meth -> string -> 'resource -> 'resource route
 
@@ -30,13 +37,13 @@ val with_query :
   ('resource -> Madge_query.t option) ->
   'resource route
 
-(** {2 Using Routes} *)
+(** {3 Using Routes} *)
 
 val request_to_resource : request -> 'resource route list -> 'resource option
 
 val resource_to_request : 'resource -> 'resource route list -> request
 
-(** {2 Wrapping Routes} *)
+(** {3 Wrapping Routes} *)
 
 (* FIXME: support adding prefixes *)
 
