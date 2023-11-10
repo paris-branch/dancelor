@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
+open Dancelor_client_components
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -38,8 +39,50 @@ let create slug page =
     >|=| Score.list_erase
   in
 
+  let open Dancelor_client_html in
+
+  let (pdf_dialog, show_pdf_dialog) =
+    let bass_parameters =
+      VersionParameters.(
+        make ~clef:Music.Bass
+          ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
+          ()
+      )
+    in
+    let b_pitch = Music.make_pitch B Flat (-1) in
+    let b_parameters = VersionParameters.(
+        make ~transposition:(Transposition.relative b_pitch Music.pitch_c)
+          ()
+      )
+    in
+    let e_pitch = Music.make_pitch E Flat 0 in
+    let e_parameters = VersionParameters.(
+        make ~transposition:(Transposition.relative e_pitch Music.pitch_c)
+          ()
+      )
+    in
+    let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href =
+      ApiRouter.(path @@ versionPdf slug @@ Option.none),
+      ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
+      ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
+      ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters)
+    in
+    let pdf_button href text =
+      a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
+        i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+        txt (" " ^ text)
+      ]
+    in
+    ModalBox.make [
+      h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
+      pdf_button c_pdf_href    "PDF";
+      pdf_button b_pdf_href    "PDF (B♭)";
+      pdf_button e_pdf_href    "PDF (E♭)";
+      pdf_button bass_pdf_href "PDF (𝄢)";
+    ]
+  in
+
   (
-    let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [L.txt (tune_lwt >>=| Tune.name)];
       L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.aka);
@@ -59,55 +102,37 @@ let create slug page =
           ]
       );
 
+      pdf_dialog;
+
       div ~a:[a_class ["buttons"]] (
-        let bass_parameters =
-          VersionParameters.(
-            make ~clef:Music.Bass
-              ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-              ()
-          )
-        in
-        let b_pitch = Music.make_pitch B Flat (-1) in
-        let b_parameters = VersionParameters.(
-            make ~transposition:(Transposition.relative b_pitch Music.pitch_c)
-              ()
-          )
-        in
-        let e_pitch = Music.make_pitch E Flat 0 in
-        let e_parameters = VersionParameters.(
-            make ~transposition:(Transposition.relative e_pitch Music.pitch_c)
-              ()
-          )
+
+        let pdf_dialog_button =
+          a
+            ~a:[
+              a_class ["button"];
+              a_onclick (fun _ -> show_pdf_dialog (); false);
+            ]
+            [
+              i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+              txt " PDF";
+            ]
         in
 
-        let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href, ly_href =
-          ApiRouter.(path @@ versionPdf slug @@ Option.none),
-          ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
-          ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
-          ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters),
-          ApiRouter.(path @@ versionLy slug)
+        let ly_download_button =
+          a
+            ~a:[
+              a_class ["button"];
+              a_href ApiRouter.(path @@ versionLy slug);
+            ]
+            [
+              i ~a:[a_class ["fas"; "fa-file-alt"]] [];
+              txt " LilyPond"
+            ]
         in
 
-        let pdf_button href text =
-          a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
-            i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
-            txt (" " ^ text)
-          ]
-        in
-
-        [
-          pdf_button c_pdf_href    "PDF";
-          pdf_button b_pdf_href    "PDF (B♭)";
-          pdf_button e_pdf_href    "PDF (E♭)";
-          pdf_button bass_pdf_href "PDF (𝄢)";
-          br ();
-          a ~a:[a_class ["button"]; a_href ly_href] [
-            i ~a:[a_class ["fas"; "fa-file-alt"]] [];
-            txt " LilyPond"
-          ];
-          br ();
-          (
-            button ~a:[
+        let add_to_current_set_button =
+          button
+            ~a:[
               a_button_type `Button;
               a_onclick
                 (fun _ ->
@@ -115,11 +140,17 @@ let create slug page =
                    let href = PageRouter.(path SetCompose) in
                    Dom_html.window##.location##.href := js href;
                    false
-                )
-            ] [
+                );
+            ]
+            [
               txt "Add to current set"
             ]
-          )
+        in
+
+        [
+          pdf_dialog_button;
+          ly_download_button;
+          add_to_current_set_button;
         ]
       );
 
