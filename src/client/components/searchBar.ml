@@ -21,11 +21,15 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
   let (search_text, set_search_text) = S.create "" in
   let (table_visible, set_table_visible) = S.create false in
 
+  (** Minimum number of characters for the search to fire. *)
+  let min_characters = 3 in
+  let min_characters_text = "three" in
+
   (** A signal that provides a [search_bar_state] view based on
       [search_text]. *)
   let search_bar_state =
     S.bind_s' search_text StartTyping @@ fun search_text ->
-    if String.length search_text < 3 then
+    if String.length search_text < min_characters then
       (
         Lwt.return @@
         if search_text = "" then
@@ -86,7 +90,7 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
         R.tbody (
           Fun.flip S.map search_bar_state @@ function
           | StartTyping -> [emoji_row "👉" "Start typing to search."]
-          | ContinueTyping -> [emoji_row "👉" "Type at least three characters."]
+          | ContinueTyping -> [emoji_row "👉" (spf "Type at least %s characters." min_characters_text)]
           | NoResults -> [emoji_row "⚠️" "Your search returned no results."]
           | Results results -> List.map make_result results @ [emoji_row "👉" "Press enter for more results."]
           | Errors errors -> List.map (emoji_row "❌") errors
