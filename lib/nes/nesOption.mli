@@ -44,3 +44,9 @@ val assert_some : 'a t -> 'a t
 
 val assert_ : bool -> unit t
 (** [None] if [false], [Some ()] if [true]. *)
+
+val concat : ('a -> 'a -> 'a) -> 'a option -> 'a option -> 'a option
+(** Concatenation of the monoid given the concatenation of the embedded one. *)
+
+val concat_l : ('a -> 'a -> 'a) -> 'a option list -> 'a option
+(** Same as {!concat} but for a list of options. *)

@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_components
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -147,67 +146,7 @@ let create slug page =
 
   let open Dancelor_client_html in
 
-  let (pdf_dialog, show_pdf_dialog) =
-    let booklet_parameters =
-      BookParameters.(
-        make
-          ~front_page:true
-          ~table_of_contents:End
-          ~two_sided:true
-          ~every_set:SetParameters.(
-              make
-                ~forced_pages:2
-                ()
-            )
-          ()
-      )
-    in
-    let bass_parameters =
-      BookParameters.(
-        make ~every_set:SetParameters.(
-            make ~every_version:VersionParameters.(
-                make
-                  ~clef:Music.Bass
-                  ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-                  ()
-              )
-              ()
-          )
-          ()
-      )
-    in
-    let b_parameters = BookParameters.make_instrument (Music.make_pitch B Flat (-1)) in
-    let e_parameters = BookParameters.make_instrument (Music.make_pitch E Flat 0) in
-    let c_pdf_href,         b_pdf_href,         e_pdf_href,         bass_pdf_href,
-        c_booklet_pdf_href, b_booklet_pdf_href, e_booklet_pdf_href, bass_booklet_pdf_href =
-      ApiRouter.(path @@ bookPdf slug @@ Option.none),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           b_parameters),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@                           e_parameters),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@                        bass_parameters),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@                                        booklet_parameters),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    b_parameters booklet_parameters),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose    e_parameters booklet_parameters),
-      ApiRouter.(path @@ bookPdf slug @@ Option.some @@ BookParameters.compose bass_parameters booklet_parameters)
-    in
-    let pdf_button href text =
-      a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
-        i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
-        txt (" " ^ text)
-      ]
-    in
-    ModalBox.make [
-      h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
-      pdf_button c_pdf_href    "PDF";
-      pdf_button b_pdf_href    "PDF (B♭)";
-      pdf_button e_pdf_href    "PDF (E♭)";
-      pdf_button bass_pdf_href "PDF (𝄢)";
-      br ();
-      pdf_button c_booklet_pdf_href    "PDF (book)";
-      pdf_button b_booklet_pdf_href    "PDF (B♭, book)";
-      pdf_button e_booklet_pdf_href    "PDF (E♭, book)";
-      pdf_button bass_booklet_pdf_href "PDF (𝄢, book)";
-    ]
-  in
+  let (download_dialog, show_download_dialog) = BookDownloadDialog.create_and_render slug in
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
@@ -243,12 +182,13 @@ let create slug page =
         )
       ];
 
-      pdf_dialog;
+      download_dialog;
+
       div ~a:[a_class ["buttons"]] [
         a
           ~a:[
             a_class ["button"];
-            a_onclick (fun _ -> show_pdf_dialog (); false);
+            a_onclick (fun _ -> show_download_dialog (); false);
           ]
           [
             i ~a:[a_class ["fas"; "fa-file-pdf"]] [];

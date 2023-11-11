@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_components
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -41,46 +40,7 @@ let create slug page =
 
   let open Dancelor_client_html in
 
-  let (pdf_dialog, show_pdf_dialog) =
-    let bass_parameters =
-      VersionParameters.(
-        make ~clef:Music.Bass
-          ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-          ()
-      )
-    in
-    let b_pitch = Music.make_pitch B Flat (-1) in
-    let b_parameters = VersionParameters.(
-        make ~transposition:(Transposition.relative b_pitch Music.pitch_c)
-          ()
-      )
-    in
-    let e_pitch = Music.make_pitch E Flat 0 in
-    let e_parameters = VersionParameters.(
-        make ~transposition:(Transposition.relative e_pitch Music.pitch_c)
-          ()
-      )
-    in
-    let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href =
-      ApiRouter.(path @@ versionPdf slug @@ Option.none),
-      ApiRouter.(path @@ versionPdf slug @@ Option.some    b_parameters),
-      ApiRouter.(path @@ versionPdf slug @@ Option.some    e_parameters),
-      ApiRouter.(path @@ versionPdf slug @@ Option.some bass_parameters)
-    in
-    let pdf_button href text =
-      a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
-        i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
-        txt (" " ^ text)
-      ]
-    in
-    ModalBox.make [
-      h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
-      pdf_button c_pdf_href    "PDF";
-      pdf_button b_pdf_href    "PDF (B♭)";
-      pdf_button e_pdf_href    "PDF (E♭)";
-      pdf_button bass_pdf_href "PDF (𝄢)";
-    ]
-  in
+  let (download_dialog, show_download_dialog) = VersionDownloadDialog.create_and_render slug in
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
@@ -102,15 +62,15 @@ let create slug page =
           ]
       );
 
-      pdf_dialog;
+      download_dialog;
 
       div ~a:[a_class ["buttons"]] (
 
-        let pdf_dialog_button =
+        let download_dialog_button =
           a
             ~a:[
               a_class ["button"];
-              a_onclick (fun _ -> show_pdf_dialog (); false);
+              a_onclick (fun _ -> show_download_dialog (); false);
             ]
             [
               i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
@@ -148,7 +108,7 @@ let create slug page =
         in
 
         [
-          pdf_dialog_button;
+          download_dialog_button;
           ly_download_button;
           add_to_current_set_button;
         ]

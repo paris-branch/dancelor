@@ -58,3 +58,12 @@ let compare_lwt cmp o0 o1 =
   | None, None -> Lwt.return 0
   | None, Some _ -> Lwt.return (-1)
   | Some _, None -> Lwt.return 1
+
+let concat conc o1 o2 =
+  match (o1, o2) with
+  | (None, None) -> None
+  | (Some v1, None) -> Some v1
+  | (None, Some v2) -> Some v2
+  | (Some v1, Some v2) -> Some (conc v1 v2)
+
+let concat_l conc = List.fold_left (concat conc) None

@@ -25,7 +25,7 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/set/header.ly"]
         title (Kind.Dance.to_string kind)
-        (SetParameters.instruments parameters);
+        (Option.unwrap_or ~default:"" (SetParameters.instruments parameters));
       Lwt_list.iter_s
         (fun (version, version_parameters) ->
            let version_parameters = VersionParameters.compose (SetParameters.every_version parameters) version_parameters in

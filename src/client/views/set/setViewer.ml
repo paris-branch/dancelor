@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_common
-open Dancelor_client_components
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 
@@ -27,40 +26,7 @@ let create slug page =
 
   let open Dancelor_client_html in
 
-  let (pdf_dialog, show_pdf_dialog) =
-    let bass_parameters =
-      SetParameters.(
-        make ~every_version:VersionParameters.(
-            make
-              ~clef:Music.Bass
-              ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1)))
-              ()
-          )
-          ()
-      )
-    in
-    let b_parameters = SetParameters.make_instrument (Music.make_pitch B Flat (-1)) in
-    let e_parameters = SetParameters.make_instrument (Music.make_pitch E Flat 0) in
-    let c_pdf_href, b_pdf_href, e_pdf_href, bass_pdf_href =
-      ApiRouter.(path @@ setPdf slug @@ Option.none),
-      ApiRouter.(path @@ setPdf slug @@ Option.some    b_parameters),
-      ApiRouter.(path @@ setPdf slug @@ Option.some    e_parameters),
-      ApiRouter.(path @@ setPdf slug @@ Option.some bass_parameters)
-    in
-    let pdf_button href text =
-      a ~a:[a_class ["button"]; a_href href; a_target "blank"] [
-        i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
-        txt (" " ^ text)
-      ]
-    in
-    ModalBox.make [
-      h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
-      pdf_button c_pdf_href    "PDF";
-      pdf_button b_pdf_href    "PDF (B♭)";
-      pdf_button e_pdf_href    "PDF (E♭)";
-      pdf_button bass_pdf_href "PDF (𝄢)";
-    ]
-  in
+  let (download_dialog, show_download_dialog) = SetDownloadDialog.create_and_render slug in
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
@@ -79,7 +45,7 @@ let create slug page =
           Lwt.return (txt "Set devised by " :: line_block)
       );
 
-      pdf_dialog;
+      download_dialog;
 
       div ~a:[a_class ["buttons"]] (
 
@@ -87,7 +53,7 @@ let create slug page =
           a
             ~a:[
               a_class ["button"];
-              a_onclick (fun _ -> show_pdf_dialog (); false);
+              a_onclick (fun _ -> show_download_dialog (); false);
             ]
             [
               i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
