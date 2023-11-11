@@ -17,7 +17,7 @@ type 'a search_bar_state =
   | Results of 'a list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
   | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
 
-let make ~placeholder ~search ~make_result ~max_results ~on_enter () =
+let make ~placeholder ~search ~make_result ~max_results ?on_enter () =
   let (search_text, set_search_text_immediately) = S.create "" in
   let (table_visible, set_table_visible) = S.create false in
 
@@ -97,7 +97,7 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter () =
             (
               Js.Opt.iter event##.target @@ fun elt ->
               Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-              on_enter (Js.to_string input##.value)
+              Option.value ~default:ignore on_enter (Js.to_string input##.value)
             );
           true
         );
