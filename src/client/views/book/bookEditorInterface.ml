@@ -78,11 +78,11 @@ let clickable_row editor page set =
       a_class ["clickable"];
       a_onclick
         (fun _ ->
-          Lwt.on_success (
-            let%lwt slug = Set.slug set in
-            BookEditor.add editor slug)
-          (fun () -> Page.refresh page);
-          true
+           Lwt.on_success (
+             let%lwt slug = Set.slug set in
+             BookEditor.add editor slug)
+             (fun () -> Page.refresh page);
+           true
         );
     ]
 
@@ -90,7 +90,7 @@ let make_set_result editor page score =
   let open Lwt.Infix in
   let open Dancelor_client_html in
   let set = Score.value score in
-  (clickable_row
+  clickable_row
     editor page set
     (
       [
@@ -100,7 +100,6 @@ let make_set_result editor page score =
         L.td (Dancelor_client_formatters.Credit.line =<< Set.deviser set);
       ]
     )
-  )
 
 let search input =
   let threshold = 0.4 in
@@ -139,10 +138,10 @@ let create ?on_save page =
         ~make_result:(make_set_result editor page)
         ~max_results:10
         ~on_enter:(fun search_text ->
-          Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
+            Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
     ]
   in
-        
+
   let t = {page; editor; content; input_title; input_date; sets_area} in
 
   let save =
@@ -227,7 +226,7 @@ let update slug ?on_save page =
         ~make_result:(make_set_result editor page)
         ~max_results:10
         ~on_enter:(fun search_text ->
-          Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
+            Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
     ]
   in
 
