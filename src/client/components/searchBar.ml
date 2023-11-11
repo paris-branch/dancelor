@@ -32,9 +32,36 @@ let error_rows messages =
     td [txt message];
   ]
 
+(** Abstraction of the possible states of the search bar. *)
+type 'a search_bar_state =
+  | StartTyping (** when the user has not typed anything yet *)
+  | ContinueTyping (** when the user has not typed enough yet *)
+  | NoResults (** when the search returned no results *)
+  | Results of 'a list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
+  | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
+
 let make ~placeholder ~search ~make_result ~max_results ~on_enter =
   let (search_text, set_search_text) = S.create "" in
   let (table_visible, set_table_visible) = S.create false in
+
+  (** A signal that provides a [search_bar_state] view based on
+      [search_text]. *)
+  let search_bar_state =
+    S.bind_s' search_text StartTyping @@ fun search_text ->
+    if String.length search_text < 3 then
+      (
+        Lwt.return @@
+        if search_text = "" then
+          StartTyping
+        else
+          ContinueTyping
+      )
+    else
+      Fun.flip Lwt.map (search search_text) @@ function
+      | Error messages -> Errors messages
+      | Ok [] -> NoResults
+      | Ok results -> Results (List.sub max_results results)
+  in
 
   div ~a:[a_class ["search-bar"]] [
     div ~a:[
@@ -80,21 +107,12 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
       ]
       [
         R.tbody (
-          S.bind_s' search_text [] @@ fun search_text ->
-          if String.length search_text < 3 then
-            (
-              if search_text = "" then
-                Lwt.return [start_typing_row]
-              else
-                Lwt.return [continue_typing_row]
-            )
-          else
-            Fun.flip Lwt.map (search search_text) @@ function
-            | Error messages -> error_rows messages
-            | Ok [] -> [no_results_row]
-            | Ok results ->
-              List.map make_result (List.sub max_results results)
-              @ [tr [td [txt "👉"]; td ~a:[a_colspan 4] [txt "Press enter for more results."]]]
+          Fun.flip S.map search_bar_state @@ function
+          | StartTyping -> [start_typing_row]
+          | ContinueTyping -> [continue_typing_row]
+          | NoResults -> [no_results_row]
+          | Results results -> List.map make_result results @ [tr [td [txt "👉"]; td ~a:[a_colspan 4] [txt "Press enter for more results."]]]
+          | Errors errors -> error_rows errors
         );
       ]
   ]
