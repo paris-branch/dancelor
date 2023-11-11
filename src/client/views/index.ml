@@ -40,6 +40,7 @@ let create page =
         ~on_enter:(fun search_text ->
             Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text)))
           )
+        ()
     ]
   );
 

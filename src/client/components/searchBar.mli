@@ -8,6 +8,7 @@ val make :
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   max_results:int ->
   on_enter:(string -> unit) ->
+  unit ->
   [> Html_types.div] Html.elt
 (** Makes a search bar:
 
