@@ -2,34 +2,11 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_html
 
-(** Row for when the search returned no results. *)
-let no_results_row =
+(** Generic row showing an emoji on the left and a message on the right. *)
+let emoji_row emoji message =
   tr [
-    td [txt "⚠️"];
-    td [txt "Your search returned no results."];
-  ]
-
-(** Row for when the user has not even started typing. *)
-let start_typing_row =
-  tr [
-    td [txt "👉"];
-    td [txt "Start typing to search."];
-  ]
-
-(** Row for when the user started typing but did not give enough characters to
-    trigger a meaningful search. *)
-let continue_typing_row =
-  tr [
-    td [txt "👉"];
-    td [txt "Type at least three characters."];
-  ]
-
-(** Rows for when the search returned error messages. *)
-let error_rows messages =
-  Fun.flip List.map messages @@ fun message ->
-  tr [
-    td [txt "❌"];
-    td [txt message];
+    td [txt emoji];
+    td ~a:[a_colspan 4] [txt message];
   ]
 
 (** Abstraction of the possible states of the search bar. *)
@@ -108,11 +85,11 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
       [
         R.tbody (
           Fun.flip S.map search_bar_state @@ function
-          | StartTyping -> [start_typing_row]
-          | ContinueTyping -> [continue_typing_row]
-          | NoResults -> [no_results_row]
-          | Results results -> List.map make_result results @ [tr [td [txt "👉"]; td ~a:[a_colspan 4] [txt "Press enter for more results."]]]
-          | Errors errors -> error_rows errors
+          | StartTyping -> [emoji_row "👉" "Start typing to search."]
+          | ContinueTyping -> [emoji_row "👉" "Type at least three characters."]
+          | NoResults -> [emoji_row "⚠️" "Your search returned no results."]
+          | Results results -> List.map make_result results @ [emoji_row "👉" "Press enter for more results."]
+          | Errors errors -> List.map (emoji_row "❌") errors
         );
       ]
   ]
