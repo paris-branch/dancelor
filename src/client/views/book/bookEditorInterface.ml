@@ -71,11 +71,36 @@ let refresh t =
       Dom.appendChild t.sets_area (Html.createBr (Page.document t.page));
       Dom.appendChild t.sets_area subwin)
 
-let make_set_result score =
+let clickable_row editor page set =
+  let open Dancelor_client_html in
+  tr
+    ~a:[
+      a_class ["clickable"];
+      a_onclick
+        (fun _ ->
+          Lwt.on_success (
+            let%lwt slug = Set.slug set in
+            BookEditor.add editor slug)
+          (fun () -> Page.refresh page);
+          true
+        );
+    ]
+
+let make_set_result editor page score =
+  let open Lwt.Infix in
   let open Dancelor_client_html in
   let set = Score.value score in
-  let prefix = [td [txt (Score.score_to_string score)]] in
-  Dancelor_client_utils.AnyResultNewAPI.make_set_result ~prefix set
+  (clickable_row
+    editor page set
+    (
+      [
+        td [txt (Score.score_to_string score)];
+        td [L.txt (Set.name set)];
+        td [L.txt (Kind.Dance.to_string =|< Set.kind set)];
+        L.td (Dancelor_client_formatters.Credit.line =<< Set.deviser set);
+      ]
+    )
+  )
 
 let search input =
   let threshold = 0.4 in
@@ -111,7 +136,7 @@ let create ?on_save page =
       Dancelor_client_components.SearchBar.make
         ~placeholder:"Add set (Magic Search)"
         ~search
-        ~make_result:make_set_result
+        ~make_result:(make_set_result editor page)
         ~max_results:10
         ~on_enter:(fun search_text ->
           Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
@@ -199,7 +224,7 @@ let update slug ?on_save page =
       Dancelor_client_components.SearchBar.make
         ~placeholder:"Add set (Magic Search)"
         ~search
-        ~make_result:make_set_result
+        ~make_result:(make_set_result editor page)
         ~max_results:10
         ~on_enter:(fun search_text ->
           Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
