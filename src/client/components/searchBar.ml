@@ -17,7 +17,7 @@ type 'a search_bar_state =
   | Results of 'a list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
   | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
 
-let make ~placeholder ~search ~make_result ~max_results ?on_enter () =
+let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=false) () =
   let (search_text, set_search_text_immediately) = S.create "" in
   let (table_visible, set_table_visible) = S.create false in
 
@@ -93,7 +93,12 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter () =
                 false
               )
           );
-          Some (a_autofocus ());
+          (
+            if autofocus then
+              Some (a_autofocus ())
+            else
+              None
+          );
           Some (a_onfocus (fun _ -> set_table_visible true; false));
           (
             Fun.flip Option.map on_enter @@ fun on_enter ->

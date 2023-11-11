@@ -8,6 +8,7 @@ val make :
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   max_results:int ->
   ?on_enter:(string -> unit) ->
+  ?autofocus:bool ->
   unit ->
   [> Html_types.div] Html.elt
 (** Makes a search bar:
@@ -23,6 +24,9 @@ val make :
     - [max_results] is a threshold on the number of results to display;
 
     - [on_enter] is a function that triggers when the user presses Enter.
+
+    - [autofocus] is a boolean that indicates whether the search bar should grab
+      the focus when the page loads.
 
     A search bar is simply a <div> element.
 *)
