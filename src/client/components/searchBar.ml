@@ -79,29 +79,34 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter () =
       a_onclick (fun _ -> set_table_visible false; false);
     ] [];
 
-    input ~a:[
-      a_input_type `Text;
-      a_placeholder placeholder;
-      a_oninput (fun event ->
-          (
-            Js.Opt.iter event##.target @@ fun elt ->
-            Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-            set_search_text (Js.to_string input##.value)
+    input
+      ~a:(List.filter_map Fun.id [
+          Some (a_input_type `Text);
+          Some (a_placeholder placeholder);
+          Some (
+            a_oninput (fun event ->
+                (
+                  Js.Opt.iter event##.target @@ fun elt ->
+                  Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                  set_search_text (Js.to_string input##.value)
+                );
+                false
+              )
           );
-          false
-        );
-      a_autofocus ();
-      a_onfocus (fun _ -> set_table_visible true; false);
-      a_onkeyup (fun event ->
-          if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
-            (
-              Js.Opt.iter event##.target @@ fun elt ->
-              Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-              Option.value ~default:ignore on_enter (Js.to_string input##.value)
-            );
-          true
-        );
-    ] ();
+          Some (a_autofocus ());
+          Some (a_onfocus (fun _ -> set_table_visible true; false));
+          Some (
+            a_onkeyup (fun event ->
+                if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
+                  (
+                    Js.Opt.iter event##.target @@ fun elt ->
+                    Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                    Option.value ~default:ignore on_enter (Js.to_string input##.value)
+                  );
+                true
+              )
+          );
+        ]) ();
 
     tablex
       ~a:[
