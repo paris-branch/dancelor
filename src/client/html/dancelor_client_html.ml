@@ -24,7 +24,7 @@ module S = struct
       only one update. *)
   let from' (placeholder: 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
     let result, send_result = create placeholder in
-    Lwt.on_success promise send_result;
+    Lwt.on_success promise (fun value -> send_result value; stop result);
     result
 end
 
