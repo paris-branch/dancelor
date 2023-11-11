@@ -113,12 +113,15 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
       ]
       [
         R.tbody (
-          Fun.flip S.map search_bar_state @@ function
-          | StartTyping -> [emoji_row "👉" "Start typing to search."]
-          | ContinueTyping -> [emoji_row "👉" (spf "Type at least %s characters." min_characters_text)]
-          | NoResults -> [emoji_row "⚠️" "Your search returned no results."]
-          | Results results -> List.map make_result results @ [emoji_row "👉" "Press enter for more results."]
-          | Errors errors -> List.map (emoji_row "❌") errors
+          S.bind_s' search_bar_state [] @@ function
+          | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
+          | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." min_characters_text)]
+          | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
+          | Errors errors -> Lwt.return @@ List.map (emoji_row "❌") errors
+          | Results results ->
+            Lwt.map
+              (Fun.flip List.snoc (emoji_row "👉" "Press enter for more results."))
+              (Lwt_list.map_p make_result results)
         );
       ]
   ]
