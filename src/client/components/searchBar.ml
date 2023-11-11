@@ -119,9 +119,12 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter () =
           | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
           | Errors errors -> Lwt.return @@ List.map (emoji_row "❌") errors
           | Results results ->
-            Lwt.map
-              (Fun.flip List.snoc (emoji_row "👉" "Press enter for more results."))
-              (Lwt_list.map_p make_result results)
+            let%lwt results = Lwt_list.map_p make_result results in
+            Lwt.return @@
+            if on_enter = None then
+              results
+            else
+              results @ [emoji_row "👉" "Press enter for more results."]
         );
       ]
   ]
