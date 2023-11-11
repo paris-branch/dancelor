@@ -137,8 +137,7 @@ let create ?on_save page =
         ~search
         ~make_result:(make_set_result editor page)
         ~max_results:10
-        ~on_enter:(fun search_text ->
-            Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
+        ~on_enter:(fun _ -> ())
     ]
   in
 
@@ -225,8 +224,7 @@ let update slug ?on_save page =
         ~search
         ~make_result:(make_set_result editor page)
         ~max_results:10
-        ~on_enter:(fun search_text ->
-            Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
+        ~on_enter:(fun _ -> ())
     ]
   in
 
