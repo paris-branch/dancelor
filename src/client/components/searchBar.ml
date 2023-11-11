@@ -9,6 +9,21 @@ let no_results_row =
     td [txt "Your search returned no results."];
   ]
 
+(** Row for when the user has not even started typing. *)
+let start_typing_row =
+  tr [
+    td [txt "👉"];
+    td [txt "Start typing to search."];
+  ]
+
+(** Row for when the user started typing but did not give enough characters to
+    trigger a meaningful search. *)
+let continue_typing_row =
+  tr [
+    td [txt "👉"];
+    td [txt "Type at least three characters."];
+  ]
+
 (** Rows for when the search returned error messages. *)
 let error_rows messages =
   Fun.flip List.map messages @@ fun message ->
@@ -68,17 +83,10 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
           S.bind_s' search_text [] @@ fun search_text ->
           if String.length search_text < 3 then
             (
-              let message =
-                if search_text = ""
-                then "Start typing to search."
-                else "Type at least three characters."
-              in
-              Lwt.return [
-                tr [
-                  td [txt "👉"];
-                  td [txt message];
-                ]
-              ]
+              if search_text = "" then
+                Lwt.return [start_typing_row]
+              else
+                Lwt.return [continue_typing_row]
             )
           else
             Fun.flip Lwt.map (search search_text) @@ function
