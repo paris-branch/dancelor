@@ -1,5 +1,7 @@
 (** {1 HTML} *)
 
+open Nes
+
 (** {2 React aliases} *)
 
 (** Reactive signals. *)
@@ -26,6 +28,18 @@ module S = struct
     let result, send_result = create placeholder in
     Lwt.on_success promise (fun value -> send_result value; stop result);
     result
+
+  (** [bind_s' signal placeholder promise] is a signal that begins by holding
+      [placeholder]. For all the values held by [signal], [promise] is called
+      such that, upon resolution, the output signal gets a new value.
+
+      NOTE: Since [signal] holds a value at the beginning of times, the
+      computation starts right away but, because of Lwt, it might still take a
+      while before the first value is computed. For this reason, {!bind_s}
+      returns a ['b signal Lwt.t]. We prefer to return simply a signal and
+      therefore we choose the placeholder approach. *)
+  let bind_s' (signal: 'a Lwt_react.signal) (placeholder: 'b) (promise: 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
+    switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
 end
 
 (** Reactive lists. *)
