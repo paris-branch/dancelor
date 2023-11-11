@@ -16,7 +16,6 @@ type t =
     input_title : Inputs.Text.t;
     input_date : Inputs.Text.t;
     sets_area : Html.divElement Js.t;
-    sets_search : SearchBar.t;
   }
 
 let make_set_subwindow t index set =
@@ -72,20 +71,18 @@ let refresh t =
       Dom.appendChild t.sets_area (Html.createBr (Page.document t.page));
       Dom.appendChild t.sets_area subwin)
 
-let make_set_search_result editor page score =
+let make_set_result score =
+  let open Dancelor_client_html in
   let set = Score.value score in
-  let score = score.Score.score in
-  let%lwt slug = Set.slug set in
-  let%lwt name = Set.name set in
-  let row = Table.Row.create
-      ~on_click:(fun () ->
-          Lwt.on_success (BookEditor.add editor slug) (fun () -> Page.refresh page))
-      ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-        Table.Cell.text ~text:(Lwt.return name) page]
-      page
-  in
-  Lwt.return row
+  let prefix = [td [txt (Score.score_to_string score)]] in
+  Dancelor_client_utils.AnyResultNewAPI.make_set_result ~prefix set
+
+let search input =
+  let threshold = 0.4 in
+  let pagination = Pagination.{ start = 0; end_ = 15 } in
+  let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Set.Filter.from_string input in
+  let%lwt results = Set.search ~threshold ~pagination formula in
+  Lwt.return_ok results
 
 let create ?on_save page =
   let editor = BookEditor.create () in
@@ -109,25 +106,19 @@ let create ?on_save page =
 
   let sets_area = Html.createDiv (Page.document page) in
   let sets_search =
-    let main_section =
-      SearchBar.Section.create
-        ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Set.Filter.from_string input in
-            let%lwt results =
-              Set.search ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
-            in
-            Lwt.return_ok results)
-        ~make_result:(fun score -> make_set_search_result editor page score)
-        page
-    in
-    SearchBar.create
-      ~placeholder:"Add set (Magic Search)"
-      ~sections:[main_section]
-      page
+    let open Dancelor_client_html in
+    To_dom.of_div @@ div [
+      Dancelor_client_components.SearchBar.make
+        ~placeholder:"Add set (Magic Search)"
+        ~search
+        ~make_result:make_set_result
+        ~max_results:10
+        ~on_enter:(fun search_text ->
+          Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
+    ]
   in
-
-  let t = {page; editor; content; input_title; input_date; sets_area; sets_search} in
+        
+  let t = {page; editor; content; input_title; input_date; sets_area} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
@@ -169,7 +160,7 @@ let create ?on_save page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form sets_area;
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchBar.root sets_search);
+  Dom.appendChild form sets_search;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
 
@@ -201,27 +192,21 @@ let update slug ?on_save page =
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
 
-  let sets_area = Html.createDiv (Page.document page) in
+  let sets_area = Html.createDiv (Page.document page) in 
   let sets_search =
-    let main_section =
-      SearchBar.Section.create
-        ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Set.Filter.raw input in
-            let%lwt results =
-              Set.search ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
-            in
-            Lwt.return_ok results)
-        ~make_result:(fun score -> make_set_search_result editor page score)
-        page
-    in
-    SearchBar.create
-      ~placeholder:"Add set (Magic Search)"
-      ~sections:[main_section]
-      page
+    let open Dancelor_client_html in
+    To_dom.of_div @@ div [
+      Dancelor_client_components.SearchBar.make
+        ~placeholder:"Add set (Magic Search)"
+        ~search
+        ~make_result:make_set_result
+        ~max_results:10
+        ~on_enter:(fun search_text ->
+          Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text))))
+    ]
   in
 
-  let t = {page; editor; content; input_title; input_date; sets_area; sets_search} in
+  let t = {page; editor; content; input_title; input_date; sets_area} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
@@ -251,7 +236,7 @@ let update slug ?on_save page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form sets_area;
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchBar.root sets_search);
+  Dom.appendChild form sets_search;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form submit;
 
