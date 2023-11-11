@@ -95,13 +95,14 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter () =
           );
           Some (a_autofocus ());
           Some (a_onfocus (fun _ -> set_table_visible true; false));
-          Some (
+          (
+            Fun.flip Option.map on_enter @@ fun on_enter ->
             a_onkeyup (fun event ->
                 if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
                   (
                     Js.Opt.iter event##.target @@ fun elt ->
                     Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                    Option.value ~default:ignore on_enter (Js.to_string input##.value)
+                    on_enter (Js.to_string input##.value)
                   );
                 true
               )
