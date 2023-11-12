@@ -20,7 +20,6 @@ let unVersion = function Version e -> Some e | _ -> None
 (** Constructors that can be used as functions. FIXME: This is a job for a PPX
     and there is probably one that exists for that. *)
 let bookPdf slug params = Book (Pdf (slug, params))
-let setLy slug params = Set (Ly (slug, params))
 let setPdf slug params = Set (Pdf (slug, params))
 let versionLy slug = Version (Ly slug)
 let versionSvg slug params = Version (Svg (slug, params))

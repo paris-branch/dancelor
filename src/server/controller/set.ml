@@ -74,11 +74,6 @@ module Ly = struct
     in
     prom;%lwt
     Lwt.return res
-
-  let get set parameters =
-    let%lwt set = Set.get set in
-    let%lwt lilypond = render ?parameters set in
-    Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body:lilypond ()
 end
 
 let populate_cache ~cache ~ext ~pp_ext =

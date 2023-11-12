@@ -47,37 +47,17 @@ let create slug page =
 
       download_dialog;
 
-      div ~a:[a_class ["buttons"]] (
-
-        let pdf_dialog_button =
-          a
-            ~a:[
-              a_class ["button"];
-              a_onclick (fun _ -> show_download_dialog (); false);
-            ]
-            [
-              i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
-              txt " PDF";
-            ]
-        in
-
-        let ly_download_button =
-          a
-            ~a:[
-              a_class ["button"];
-              a_href ApiRouter.(path @@ setLy slug @@ Option.none);
-            ]
-            [
-              i ~a:[a_class ["fas"; "fa-file-alt"]] [];
-              txt " LilyPond"
-            ]
-        in
-
-        [
-          pdf_dialog_button;
-          ly_download_button;
-        ]
-      );
+      div ~a:[a_class ["buttons"]] [
+        a
+          ~a:[
+            a_class ["button"];
+            a_onclick (fun _ -> show_download_dialog (); false);
+          ]
+          [
+            i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+            txt " PDF";
+          ]
+      ];
 
       p [ L.txt (
           match%lwt set_lwt >>=| Set.instructions with

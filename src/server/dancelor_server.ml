@@ -19,7 +19,6 @@ let apply_controller path query =
   (* FIXME: not necessarily `GET *)
   match Option.get @@ ApiRouter.endpoint `GET path query with
   | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
-  | Set (Ly (slug, params)) -> Set.Ly.get slug params
   | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
   | Version (Ly slug) -> Version.get_ly slug
   | Version (Svg (slug, params)) -> Version.Svg.get slug params
