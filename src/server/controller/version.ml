@@ -165,31 +165,36 @@ module Svg = struct
 end
 
 module Pdf = struct
-  let cache : ([`Pdf] * Model.Version.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
-    StorageCache.create ()
-
-  let populate_cache () =
-    populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf"
-
   let render ?parameters version =
-    let%lwt body = Model.Version.content version in
-    StorageCache.use ~cache ~key:(`Pdf, version, parameters, body) @@ fun hash ->
-    let%lwt (fname_ly, fname_pdf) =
-      let%lwt slug = Model.Version.slug version in
-      let fname = aspf "%a-with-meta-%a" Slug.pp slug StorageCache.pp_hash hash in
-      Lwt.return (fname^".ly", fname^".pdf")
+    let%lwt kind = Model.Version.kind version in
+    let%lwt slug = Lwt.map Slug.unsafe_coerce @@ Model.Version.slug version in
+    let%lwt name = Model.Version.name version in
+    let%lwt set_parameters =
+      Model.SetParameters.make
+        ?display_name:(Option.bind parameters Model.VersionParameters.display_name)
+        ()
     in
-    let path = Filename.concat !Dancelor_server_config.cache "version" in
-    prepare_ly_file ?parameters ~show_meta:true ~meta_in_title:true
-      ~fname:(Filename.concat path fname_ly) version;%lwt
-    Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.run ~exec_path:path fname_ly;%lwt
-    Lwt.return (Filename.concat path fname_pdf)
+    let parameters =
+      parameters
+      |> Option.value ~default:Model.VersionParameters.none
+      |> Model.VersionParameters.set_display_name ""
+    in
+    let%lwt set =
+      Model.Set.make
+        ~slug
+        ~name
+        ~kind:(Model.Kind.Dance.Version kind)
+        ~versions_and_parameters:[(version, parameters)]
+        ~order:[Internal 1]
+        ~modified_at:(Datetime.now ())
+        ~created_at:(Datetime.now ())
+        ()
+    in
+    Set.Pdf.render set ~parameters:set_parameters
 
-  let get version parameters =
-    Log.debug (fun m -> m "Model.Version.pdf.get %a" Slug.pp version);
-    let%lwt version = Model.Version.get version in
-    let%lwt path_pdf = render ?parameters version in
+  let get version_slug parameters =
+    let%lwt version = Model.Version.get version_slug in
+    let%lwt path_pdf = render version ?parameters in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
 

@@ -2,17 +2,22 @@ open Nes
 module Model = Dancelor_server_model
 
 module Pdf = struct
-  let get set_slug parameters =
-    let%lwt set = Model.Set.get set_slug in
+  let render ?parameters set =
+    let%lwt slug = Lwt.map Slug.unsafe_coerce @@ Model.Set.slug set in
     let%lwt book =
       Model.Book.make
-        ~slug:(Slug.unsafe_coerce set_slug)
+        ~slug
         ~title:""
-        ~contents:[Set (set, Option.value ~default:Model.SetParameters.none parameters)]
+        ~contents:[InlineSet (set, Option.value ~default:Model.SetParameters.none parameters)]
         ~modified_at:(Datetime.now ())
         ~created_at:(Datetime.now ())
         ()
     in
-    let%lwt path_pdf = Book.Pdf.render book in
+    let parameters = Model.BookParameters.make ~running_header:true () in
+    Book.Pdf.render book ~parameters
+
+  let get set parameters =
+    let%lwt set = Model.Set.get set in
+    let%lwt path_pdf = render set ?parameters in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
