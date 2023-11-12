@@ -26,7 +26,7 @@ val make :
     - [on_enter] is a function that triggers when the user presses Enter.
 
     - [autofocus] is a boolean that indicates whether the search bar should grab
-      the focus when the page loads.
+      the focus when the page loads. It is [false] by default.
 
     A search bar is simply a <div> element.
 *)
