@@ -149,3 +149,5 @@ let sort_count_lwt compare l =
 let sort_uniq_lwt compare l =
   let%lwt l = sort_count_lwt compare l in
   Lwt.return (List.map fst l)
+
+let snoc l x = l @ [x]

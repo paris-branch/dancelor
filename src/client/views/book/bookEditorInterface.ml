@@ -135,9 +135,9 @@ let create ?on_save page =
       Dancelor_client_components.SearchBar.make
         ~placeholder:"Add set (Magic Search)"
         ~search
-        ~make_result:(make_set_result editor page)
+        ~make_result:(Lwt.return % make_set_result editor page)
         ~max_results:10
-        ~on_enter:(fun _ -> ())
+        ()
     ]
   in
 
@@ -222,9 +222,9 @@ let update slug ?on_save page =
       Dancelor_client_components.SearchBar.make
         ~placeholder:"Add set (Magic Search)"
         ~search
-        ~make_result:(make_set_result editor page)
+        ~make_result:(Lwt.return % make_set_result editor page)
         ~max_results:10
-        ~on_enter:(fun _ -> ())
+        ()
     ]
   in
 

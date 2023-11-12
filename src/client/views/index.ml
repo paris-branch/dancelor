@@ -35,11 +35,13 @@ let create page =
       SearchBar.make
         ~placeholder:"Search for anything (it's magic!)"
         ~search
-        ~make_result:AnyResultNewAPI.make_result
+        ~make_result:(Lwt.return % AnyResultNewAPI.make_result)
         ~max_results:10
+        ~autofocus:true
         ~on_enter:(fun search_text ->
             Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text)))
           )
+        ()
     ]
   );
 

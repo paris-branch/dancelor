@@ -74,3 +74,6 @@ val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
 
 val singleton : 'a -> 'a list
 (** [singleton x] is [[x]]. *)
+
+val snoc : 'a list -> 'a -> 'a list
+(** Append at the end. [snoc l x] is [l @ \[x\]]*)
