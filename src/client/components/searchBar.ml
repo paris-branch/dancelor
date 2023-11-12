@@ -48,7 +48,6 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
 
   (** Minimum number of characters for the search to fire. *)
   let min_characters = 3 in
-  let min_characters_text = "three" in
 
   (** A signal that provides a [search_bar_state] view based on
       [search_text]. *)
@@ -126,7 +125,7 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
         R.tbody (
           S.bind_s' search_bar_state [] @@ function
           | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
-          | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." min_characters_text)]
+          | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
           | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
           | Errors errors -> Lwt.return @@ List.map (emoji_row "❌") errors
           | Results results ->
