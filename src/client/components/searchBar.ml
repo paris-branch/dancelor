@@ -65,8 +65,7 @@ let make ~placeholder ~search ~make_result ~max_results ~on_enter =
       ]
       [
         R.tbody (
-          S.bind search_text @@ fun search_text ->
-          S.from' [] @@
+          S.bind_s' search_text [] @@ fun search_text ->
           if String.length search_text < 3 then
             (
               let message =
