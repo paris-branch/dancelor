@@ -109,7 +109,6 @@ let populate_caches () =
   Dancelor_server_controller.Version.Svg.populate_cache ();%lwt
   Dancelor_server_controller.Version.Pdf.populate_cache ();%lwt
   Dancelor_server_controller.Version.Ogg.populate_cache ();%lwt
-  Dancelor_server_controller.Set.Pdf.populate_cache ();%lwt
   Dancelor_server_controller.Book.Pdf.populate_cache ()
 
 let initialise_database () =
