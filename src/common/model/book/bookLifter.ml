@@ -97,16 +97,13 @@ module Lift
     | (InlineSet (set, params) : page) ->
       Lwt.return @@ PageCore.InlineSet (set, params)
 
-  let make ?status ~slug ~title ?date ?contents_and_parameters ~modified_at ~created_at () =
-    let%lwt contents_and_parameters =
-      let%olwt contents = Lwt.return contents_and_parameters in
+  let make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () =
+    let%lwt contents =
+      let%olwt contents = Lwt.return contents in
       let%lwt contents = Lwt_list.map_s page_to_page_core contents in
       Lwt.return_some contents
     in
-    Lwt.return (make
-                  ?status ~slug ~title ?date
-                  ?contents:contents_and_parameters ~modified_at ~created_at
-                  ())
+    Lwt.return @@ make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
 
   module Warnings = struct
     (* The following functions all have the name of a warning of
