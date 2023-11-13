@@ -19,8 +19,8 @@ end
 include Self
 
 (* FIXME: see remark in VersionParameters *)
-let make ?front_page ?table_of_contents ?two_sided ?every_set () =
-  make ~front_page ~table_of_contents ~two_sided ?every_set ()
+let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header () =
+  make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ()
 
 let front_page        p = Option.unwrap p.front_page
 let table_of_contents p = Option.unwrap p.table_of_contents

@@ -40,6 +40,13 @@ module Lift
     let%lwt slug2 = slug version2 in
     Lwt.return (Slug.equal slug1 slug2)
 
+  let kind version =
+    let%lwt bars = bars version in
+    let%lwt kind = tune version >>=| Tune.kind in
+    Lwt.return (bars, kind)
+
+  let name version = tune version >>=| Tune.name
+
   module Filter = struct
     include VersionCore.Filter
 

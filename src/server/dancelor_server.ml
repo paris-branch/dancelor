@@ -9,8 +9,12 @@ type query = (string * string list) list
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->
-  m "%a" (Format.pp_multiline_sensible msg)
-    ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
+  let repr = match exn with
+    | Error.Exn error ->
+      "Dancelor_common.Error." ^ Error.show error
+    | exn -> Printexc.to_string exn
+  in
+  m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))
 
 let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
@@ -19,7 +23,6 @@ let apply_controller path query =
   (* FIXME: not necessarily `GET *)
   match Option.get @@ ApiRouter.endpoint `GET path query with
   | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
-  | Set (Ly (slug, params)) -> Set.Ly.get slug params
   | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
   | Version (Ly slug) -> Version.get_ly slug
   | Version (Svg (slug, params)) -> Version.Svg.get slug params
@@ -108,9 +111,7 @@ let initialise_logs () =
 
 let populate_caches () =
   Dancelor_server_controller.Version.Svg.populate_cache ();%lwt
-  Dancelor_server_controller.Version.Pdf.populate_cache ();%lwt
   Dancelor_server_controller.Version.Ogg.populate_cache ();%lwt
-  Dancelor_server_controller.Set.Pdf.populate_cache ();%lwt
   Dancelor_server_controller.Book.Pdf.populate_cache ()
 
 let initialise_database () =

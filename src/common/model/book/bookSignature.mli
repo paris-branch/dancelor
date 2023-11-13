@@ -106,10 +106,21 @@ val make_and_save :
   ?status:Status.t ->
   title:string ->
   ?date:PartialDate.t ->
-  ?contents_and_parameters:page list ->
+  ?contents:page list ->
   modified_at:Datetime.t ->
   created_at:Datetime.t ->
   unit -> t Lwt.t
+
+val make :
+  ?status:Status.t ->
+  slug:t Slug.t ->
+  title:string ->
+  ?date:PartialDate.t ->
+  ?contents:page list ->
+  modified_at:Datetime.t ->
+  created_at:Datetime.t ->
+  unit -> t Lwt.t
+(** Low-level unsafe book creation. Prefer {!make_and_save} or {!update}. *)
 
 val search :
   ?pagination:Pagination.t ->
@@ -122,7 +133,7 @@ val update :
   slug:t Slug.t ->
   title:string ->
   ?date:PartialDate.t ->
-  ?contents_and_parameters:page list ->
+  ?contents:page list ->
   modified_at:Datetime.t ->
   created_at:Datetime.t ->
   unit -> unit Lwt.t

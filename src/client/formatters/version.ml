@@ -24,7 +24,7 @@ let description ?link version =
   Lwt.return ([txt shape] @ arranger_block @ disambiguation_block)
 
 let name ?(link=true) version =
-  let name_text = [L.txt (M.Version.tune version >>=| M.Tune.name)] in
+  let name_text = [L.txt (M.Version.name version)] in
   if link then
     let href =
       let%lwt slug = M.Version.slug version in

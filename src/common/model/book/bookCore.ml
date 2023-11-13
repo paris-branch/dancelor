@@ -27,6 +27,16 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
+let make
+    ~slug ?status ~title ?subtitle ?short_title ?date ?(contents=[]) ?source ?remark
+    ?scddb_id ~modified_at ~created_at
+    ()
+  =
+  make
+    ~slug ?status ~title ?subtitle ?short_title ~date ~contents ?source ?remark
+    ~scddb_id ~modified_at ~created_at
+    ()
+
 let slug book = Lwt.return book.slug
 let status book = Lwt.return book.status
 let contents book = Lwt.return book.contents

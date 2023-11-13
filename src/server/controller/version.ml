@@ -1,33 +1,33 @@
 open NesUnix
-open Dancelor_server_model
+module Model = Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.version" : Logs.LOG)
 
 let get_ly version =
-  let%lwt version = Version.get version in
-  let%lwt body = Version.content version in
+  let%lwt version = Model.Version.get version in
+  let%lwt body = Model.Version.content version in
   Cohttp_lwt_unix.Server.respond_string ~status:`OK ~body ()
 
-let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(meta_in_title=false) ~fname version =
+let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false) ?(meta_in_title=false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
-  let parameters = VersionParameters.fill parameters in
+  let parameters = Model.VersionParameters.fill parameters in
 
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
-  let%lwt tune = Version.tune version in
-  let%lwt key = Version.key version in
-  let%lwt name = Tune.name tune in
+  let%lwt tune = Model.Version.tune version in
+  let%lwt key = Model.Version.key version in
+  let%lwt name = Model.Tune.name tune in
   let name =
     parameters
-    |> VersionParameters.display_name
+    |> Model.VersionParameters.display_name
     |> Option.unwrap_or ~default:name
   in
   let%lwt author =
-    match%lwt Tune.author tune with
+    match%lwt Model.Tune.author tune with
     | None -> Lwt.return ""
-    | Some author -> Credit.line author
+    | Some author -> Model.Credit.line author
   in
   let author =
     parameters
-    |> VersionParameters.display_author
+    |> Model.VersionParameters.display_author
     |> Option.unwrap_or ~default:author
   in
   let title, piece =
@@ -42,28 +42,28 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     else
       "", ""
   in
-  let%lwt kind = Tune.kind tune in
-  let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
+  let%lwt kind = Model.Tune.kind tune in
+  let (tempo_unit, tempo_value) = Model.Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
-  let%lwt content = Version.content version in
+  let%lwt content = Model.Version.content version in
 
   (* Handle parameters *)
 
   let content =
-    match parameters |> VersionParameters.clef with
+    match parameters |> Model.VersionParameters.clef with
     | None -> content
     | Some clef_parameter ->
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-      Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
+      Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_lilypond_string clef_parameter) content
   in
   let source, target =
-    match parameters |> VersionParameters.transposition with
+    match parameters |> Model.VersionParameters.transposition with
     | Relative (source, target) -> (source, target)
-    | Absolute target -> (Music.key_pitch key, target)
+    | Absolute target -> (Model.Music.key_pitch key, target)
     (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
   in
-  let source = Music.pitch_to_lilypond_string source in
-  let target = Music.pitch_to_lilypond_string target in
+  let source = Model.Music.pitch_to_lilypond_string source in
+  let target = Model.Music.pitch_to_lilypond_string target in
 
   (* Create the Lilypond file *)
   Log.debug (fun m -> m "Generating Scheme & LilyPond string");
@@ -82,7 +82,7 @@ let prepare_ly_file ?(parameters=VersionParameters.none) ?(show_meta=false) ?(me
     fpf fmt [%blob "template/header.ly"] title subtitle;
 
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.Base.to_pretty_string ~capitalised:false kind) source target content
+    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Model.Kind.Base.to_pretty_string ~capitalised:false kind) source target content
   in
   let scheme =
     Format.with_formatter_to_string @@ fun fmt ->
@@ -132,18 +132,18 @@ let populate_cache ~cache ~ext ~pp_ext =
     ) files
 
 module Svg = struct
-  let cache : ([`Svg] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Svg] * Model.Version.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
     populate_cache ~cache ~ext:".cropped.svg" ~pp_ext:"svg"
 
   let render ?parameters version =
-    let%lwt body = Version.content version in
+    let%lwt body = Model.Version.content version in
     StorageCache.use ~cache ~key:(`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
-      let%lwt slug = Version.slug version in
+      let%lwt slug = Model.Version.slug version in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".cropped.svg")
     in
@@ -158,53 +158,59 @@ module Svg = struct
     Lwt.return (Filename.concat path fname_svg)
 
   let get version parameters =
-    Log.debug (fun m -> m "Version.Svg.get %a" Slug.pp version);
-    let%lwt version = Version.get version in
+    Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp version);
+    let%lwt version = Model.Version.get version in
     let%lwt path_svg = render ?parameters version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
 end
 
 module Pdf = struct
-  let cache : ([`Pdf] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
-    StorageCache.create ()
-
-  let populate_cache () =
-    populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf"
-
   let render ?parameters version =
-    let%lwt body = Version.content version in
-    StorageCache.use ~cache ~key:(`Pdf, version, parameters, body) @@ fun hash ->
-    let%lwt (fname_ly, fname_pdf) =
-      let%lwt slug = Version.slug version in
-      let fname = aspf "%a-with-meta-%a" Slug.pp slug StorageCache.pp_hash hash in
-      Lwt.return (fname^".ly", fname^".pdf")
+    let%lwt kind = Model.Version.kind version in
+    let%lwt slug = Lwt.map Slug.unsafe_coerce @@ Model.Version.slug version in
+    let%lwt name = Model.Version.name version in
+    let%lwt set_parameters =
+      Model.SetParameters.make
+        ~show_order:false
+        ?display_name:(Option.bind parameters Model.VersionParameters.display_name)
+        ()
     in
-    let path = Filename.concat !Dancelor_server_config.cache "version" in
-    prepare_ly_file ?parameters ~show_meta:true ~meta_in_title:true
-      ~fname:(Filename.concat path fname_ly) version;%lwt
-    Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.run ~exec_path:path fname_ly;%lwt
-    Lwt.return (Filename.concat path fname_pdf)
+    let parameters =
+      parameters
+      |> Option.value ~default:Model.VersionParameters.none
+      |> Model.VersionParameters.set_display_name ""
+    in
+    let%lwt set =
+      Model.Set.make
+        ~slug
+        ~name
+        ~kind:(Model.Kind.Dance.Version kind)
+        ~versions_and_parameters:[(version, parameters)]
+        ~order:[Internal 1]
+        ~modified_at:(Datetime.now ())
+        ~created_at:(Datetime.now ())
+        ()
+    in
+    Set.Pdf.render set ~parameters:set_parameters
 
-  let get version parameters =
-    Log.debug (fun m -> m "Version.pdf.get %a" Slug.pp version);
-    let%lwt version = Version.get version in
-    let%lwt path_pdf = render ?parameters version in
+  let get version_slug parameters =
+    let%lwt version = Model.Version.get version_slug in
+    let%lwt path_pdf = render version ?parameters in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end
 
 module Ogg = struct
-  let cache : ([`Ogg] * Version.t * VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ogg] * Model.Version.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
     populate_cache ~cache ~ext:".ogg" ~pp_ext:"ogg"
 
   let render ?parameters version =
-    let%lwt body = Version.content version in
+    let%lwt body = Model.Version.content version in
     StorageCache.use ~cache ~key:(`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
-      let%lwt slug = Version.slug version in
+      let%lwt slug = Model.Version.slug version in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".ogg")
     in
@@ -215,8 +221,8 @@ module Ogg = struct
     Lwt.return (Filename.concat path fname_ogg)
 
   let get version =
-    Log.debug (fun m -> m "Version.Ogg.get %a" Slug.pp version);
-    let%lwt version = Version.get version in
+    Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp version);
+    let%lwt version = Model.Version.get version in
     let%lwt path_ogg = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_ogg ()
 end

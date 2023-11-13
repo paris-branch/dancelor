@@ -61,7 +61,9 @@ end
 
 val get : t Slug.t -> t Lwt.t
 
-val make_temp :
+val make :
+  ?status:Status.t ->
+  ?slug:t Slug.t ->
   name:string ->
   ?deviser:CreditCore.t ->
   kind:Kind.Dance.t ->

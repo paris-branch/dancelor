@@ -1,38 +1,38 @@
 open NesUnix
-open Dancelor_server_model
+module Model = Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.book" : Logs.LOG)
 
 module Ly = struct
 
   let kind set set_parmeters =
     let%lwt kind =
-      match%lwt SetParameters.for_dance set_parmeters with
-      | None -> Set.kind set
-      | Some dance -> Dance.kind dance
+      match%lwt Model.SetParameters.for_dance set_parmeters with
+      | None -> Model.Set.kind set
+      | Some dance -> Model.Dance.kind dance
     in
-    Lwt.return (Kind.Dance.to_pretty_string kind)
+    Lwt.return (Model.Kind.Dance.to_pretty_string kind)
 
   let details_line set set_parameters =
     let%lwt dance =
-      match%lwt SetParameters.for_dance set_parameters with
+      match%lwt Model.SetParameters.for_dance set_parameters with
       | None -> Lwt.return_nil
       | Some dance ->
-        let%lwt name = Dance.name dance in
+        let%lwt name = Model.Dance.name dance in
         Lwt.return [spf "Dance: %s" name]
     in
     let%lwt kind = kind set set_parameters in
     let%lwt order =
-      if SetParameters.show_order set_parameters then
-        let%lwt order = Set.order set >|=| SetOrder.to_pretty_string in
+      if Model.SetParameters.show_order set_parameters then
+        let%lwt order = Model.Set.order set >|=| Model.SetOrder.to_pretty_string in
         Lwt.return [spf "Play %s" order]
       else
         Lwt.return_nil
     in
     let%lwt chords =
-      match%lwt SetParameters.for_dance set_parameters with
+      match%lwt Model.SetParameters.for_dance set_parameters with
       | None -> Lwt.return_nil
       | Some dance ->
-        let%lwt two_chords = Dance.two_chords dance in
+        let%lwt two_chords = Model.Dance.two_chords dance in
         if two_chords then
           Lwt.return ["Two Chords"]
         else
@@ -40,29 +40,29 @@ module Ly = struct
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
-  let cache : ([`Ly] * Book.t * BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ly] * Model.Book.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
-  let render ?(parameters=BookParameters.none) book =
-    let%lwt body = Book.lilypond_contents_cache_key book in
+  let render ?(parameters=Model.BookParameters.none) book =
+    let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key:(`Ly, book, parameters, body) @@ fun _hash ->
-    let parameters = BookParameters.fill parameters in
+    let parameters = Model.BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
-      let%lwt title = Book.title book in (** FIXME: subtitle *)
+      let%lwt title = Model.Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/book/globals.ly"]
-        title (Option.unwrap_or ~default:"" (BookParameters.instruments parameters));
+        title (Option.unwrap_or ~default:"" (Model.BookParameters.instruments parameters));
       fpf fmt [%blob "template/paper.ly"];
 
       fpf fmt [%blob "template/book/paper.ly"];
-      if parameters |> BookParameters.two_sided then
+      if parameters |> Model.BookParameters.two_sided then
         (
           fpf fmt [%blob "template/book/two-sided.ly"];
           fpf fmt
-            (if parameters |> BookParameters.running_header then
+            (if parameters |> Model.BookParameters.running_header then
                [%blob "template/book/header/two-sided.ly"]
              else
                [%blob "template/book/header/none.ly"])
@@ -71,7 +71,7 @@ module Ly = struct
       else
         (
           fpf fmt
-            (if parameters |> BookParameters.running_header then
+            (if parameters |> Model.BookParameters.running_header then
                [%blob "template/book/header/one-sided.ly"]
              else
                [%blob "template/book/header/none.ly"])
@@ -81,41 +81,43 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
-      if parameters |> BookParameters.front_page then
+      if parameters |> Model.BookParameters.front_page then
         fpf fmt [%blob "template/book/book_front_page.ly"];
-      if parameters |> BookParameters.table_of_contents |> (=) BookParameters.Beginning then
+      if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.Beginning then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       let%lwt () =
         let%lwt sets_and_parameters =
-          let%lwt contents = Book.contents book in
+          let%lwt contents = Model.Book.contents book in
           Lwt_list.map_p
             (function
-              | Book.Version (version, parameters) ->
-                let%lwt tune = Version.tune version in
-                let%lwt name = Tune.name tune in
+              | Model.Book.Version (version, parameters) ->
+                let%lwt tune = Model.Version.tune version in
+                let%lwt name = Model.Tune.name tune in
                 let name =
                   parameters
-                  |> VersionParameters.display_name
+                  |> Model.VersionParameters.display_name
                   |> Option.unwrap_or ~default:name
                 in
                 let trivia =
                   parameters
-                  |> VersionParameters.trivia
+                  |> Model.VersionParameters.trivia
                   |> Option.unwrap_or ~default:" "
                 in
-                let%lwt bars = Version.bars version in
-                let%lwt kind = Tune.kind tune in
-                let parameters = VersionParameters.set_display_name trivia parameters in
+                let%lwt bars = Model.Version.bars version in
+                let%lwt kind = Model.Tune.kind tune in
+                let parameters = Model.VersionParameters.set_display_name trivia parameters in
                 let%lwt set =
-                  Set.make_temp ~name ~kind:(Kind.Dance.Version (bars, kind))
+                  Model.Set.make
+                    ~name
+                    ~kind:(Model.Kind.Dance.Version (bars, kind))
                     ~versions_and_parameters:[version, parameters]
                     ~order:[Internal 1]
                     ~modified_at:(NesDatetime.now ())
                     ~created_at:(NesDatetime.now ())
                     ()
                 in
-                let%lwt for_dance = VersionParameters.for_dance parameters in
-                let%lwt set_parameters = SetParameters.make
+                let%lwt for_dance = Model.VersionParameters.for_dance parameters in
+                let%lwt set_parameters = Model.SetParameters.make
                     ~display_name:name ?for_dance ~show_order:false () in
                 Lwt.return (set, set_parameters)
 
@@ -125,76 +127,76 @@ module Ly = struct
         in
         Lwt_list.iter_s
           (fun (set, set_parameters) ->
-             let set_parameters = SetParameters.compose (BookParameters.every_set parameters) set_parameters in
-             let%lwt name = Set.name set in
+             let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
+             let%lwt name = Model.Set.name set in
              let name =
                set_parameters
-               |> SetParameters.display_name
+               |> Model.SetParameters.display_name
                |> Option.unwrap_or ~default:name
              in
              let%lwt deviser =
-               if not (set_parameters |> SetParameters.show_deviser) then
+               if not (set_parameters |> Model.SetParameters.show_deviser) then
                  Lwt.return ""
                else
-                 (match%lwt Set.deviser set with
+                 (match%lwt Model.Set.deviser set with
                   | None -> Lwt.return ""
                   | Some deviser ->
-                    let%lwt deviser = Credit.line deviser in
+                    let%lwt deviser = Model.Credit.line deviser in
                     Lwt.return (spf "Set by %s" deviser))
              in
              let%lwt kind = kind set set_parameters in
              let%lwt details_line = details_line set set_parameters in
              fpf fmt [%blob "template/book/set_beginning.ly"]
                name kind name deviser details_line;
-             (match set_parameters |> SetParameters.forced_pages with
+             (match set_parameters |> Model.SetParameters.forced_pages with
               | 0 -> ()
               | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
              let%lwt () =
-               let%lwt versions_and_parameters = Set.versions_and_parameters set in
+               let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
                Lwt_list.iter_s
                  (fun (version, version_parameters) ->
-                    let version_parameters = VersionParameters.compose (SetParameters.every_version set_parameters) version_parameters in
-                    let%lwt content = Version.content version in
+                    let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
+                    let%lwt content = Model.Version.content version in
                     let content =
-                      match version_parameters |> VersionParameters.clef with
+                      match version_parameters |> Model.VersionParameters.clef with
                       | None -> content
                       | Some clef_parameter ->
                         let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-                        Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
+                        Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_string clef_parameter) content
                     in
-                    let%lwt tune = Version.tune version in
-                    let%lwt key = Version.key version in
-                    let%lwt name = Tune.name tune in
+                    let%lwt tune = Model.Version.tune version in
+                    let%lwt key = Model.Version.key version in
+                    let%lwt name = Model.Tune.name tune in
                     let name =
                       version_parameters
-                      |> VersionParameters.display_name
+                      |> Model.VersionParameters.display_name
                       |> Option.unwrap_or ~default:name
                     in
                     let%lwt author =
-                      match%lwt Tune.author tune with
+                      match%lwt Model.Tune.author tune with
                       | None -> Lwt.return ""
-                      | Some author -> Credit.line author
+                      | Some author -> Model.Credit.line author
                     in
                     let author =
                       version_parameters
-                      |> VersionParameters.display_author
+                      |> Model.VersionParameters.display_author
                       |> Option.unwrap_or ~default:author
                     in
                     let first_bar =
                       version_parameters
-                      |> VersionParameters.first_bar
+                      |> Model.VersionParameters.first_bar
                     in
                     let source, target =
-                      match version_parameters |> VersionParameters.transposition with
+                      match version_parameters |> Model.VersionParameters.transposition with
                       | Relative (source, target) -> (source, target)
-                      | Absolute target -> (key |> Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
+                      | Absolute target -> (key |> Model.Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
                     in
                     fpf fmt [%blob "template/book/version.ly"]
                       name author
                       first_bar
                       name
-                      (Music.pitch_to_lilypond_string source)
-                      (Music.pitch_to_lilypond_string target)
+                      (Model.Music.pitch_to_lilypond_string source)
+                      (Model.Music.pitch_to_lilypond_string target)
                       content;
                     Lwt.return ())
                  versions_and_parameters
@@ -203,7 +205,7 @@ module Ly = struct
              Lwt.return ())
           sets_and_parameters
       in
-      if parameters |> BookParameters.table_of_contents |> (=) BookParameters.End then
+      if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.End then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       fpf fmt [%blob "template/book/book_end.ly"];
       Lwt.return ()
@@ -237,19 +239,19 @@ let populate_cache ~cache ~ext ~pp_ext =
     ) files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Book.t * BookParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Model.Book.t * Model.BookParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
     populate_cache ~cache ~ext:".pdf" ~pp_ext:"pdf"
 
   let render ?parameters book =
-    let%lwt body = Book.lilypond_contents_cache_key book in
+    let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key:(`Pdf, book, parameters, body) @@ fun hash ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
-      let%lwt slug = Book.slug book in
+      let%lwt slug = Model.Book.slug book in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
@@ -261,7 +263,7 @@ module Pdf = struct
     Lwt.return path_pdf
 
   let get book parameters =
-    let%lwt book = Book.get book in
+    let%lwt book = Model.Book.get book in
     let%lwt path_pdf = render ?parameters book in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
 end

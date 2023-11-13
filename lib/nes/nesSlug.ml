@@ -44,7 +44,8 @@ let to_string = function
 let pp fmt slug =
   Format.pp_print_string fmt (to_string slug)
 
-let unsafe_of_string str = Some str
+let unsafe_coerce = Fun.id
+let unsafe_of_string = Option.some
 
 let compare_slugs_or ~fallback slug x y =
   let%lwt slug_x = slug x in
