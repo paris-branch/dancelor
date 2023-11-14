@@ -19,9 +19,9 @@ val kind : t -> string
 
 val set_kind : t -> string -> unit
 
-val deviser : t -> Credit.t option
+val deviser : t -> Person.t option
 
-val set_deviser : t -> Credit.t Slug.t -> unit Lwt.t
+val set_deviser : t -> Person.t Slug.t -> unit Lwt.t
 
 val remove_deviser : t -> unit
 

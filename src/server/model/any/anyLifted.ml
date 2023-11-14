@@ -1,2 +1,2 @@
 open Dancelor_common_model
-include AnyLifter.Lift(Credit)(Dance)(Book)(Set)(Tune)(Version)
+include AnyLifter.Lift(Person)(Dance)(Book)(Set)(Tune)(Version)

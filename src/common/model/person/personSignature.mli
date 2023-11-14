@@ -1,10 +1,10 @@
 open Nes
 
-type t = CreditCore.t
+type t = PersonCore.t
 
 val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
-val line : t -> string Lwt.t
+val name : t -> string Lwt.t
 val scddb_id : t -> int option Lwt.t
 
 val is_trad : t -> bool
@@ -14,11 +14,11 @@ val equal : t -> t -> bool Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = CreditCore.Filter.t
+  type t = PersonCore.Filter.t
 
-  val accepts : t -> CreditCore.t -> float Lwt.t
+  val accepts : t -> PersonCore.t -> float Lwt.t
 
-  val is : CreditCore.t -> t
+  val is : PersonCore.t -> t
 
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list
@@ -34,7 +34,7 @@ val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
   ?status:Status.t ->
-  line:string ->
+  name:string ->
   ?scddb_id:int ->
   modified_at:Datetime.t ->
   created_at:Datetime.t ->

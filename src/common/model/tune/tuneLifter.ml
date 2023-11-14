@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
+    (Person : module type of PersonSignature)
     (Dance  : module type of  DanceSignature)
 = struct
   include TuneCore
@@ -15,7 +15,7 @@ module Lift
     let alternative_names = Option.map (List.map (String.remove_duplicates ~char:' ')) alternative_names in
     let%lwt author =
       let%olwt author = Lwt.return author in
-      let%lwt author_slug = Credit.slug author in
+      let%lwt author_slug = Person.slug author in
       Lwt.return_some author_slug
     in
     let%lwt dances =
@@ -37,7 +37,7 @@ module Lift
   let name tune = Lwt.return tune.name
   let alternative_names tune = Lwt.return tune.alternative_names
   let kind tune = Lwt.return tune.kind
-  let author tune = Olwt.flip @@ Option.map Credit.get tune.author
+  let author tune = Olwt.flip @@ Option.map Person.get tune.author
   let dances tune = Lwt_list.map_p Dance.get tune.dances
   let remark tune = Lwt.return tune.remark
   let scddb_id tune = Lwt.return tune.scddb_id
@@ -71,7 +71,7 @@ module Lift
       | Author afilter ->
         (match%lwt author tune with
          | None -> Formula.interpret_false |> Lwt.return
-         | Some author -> Credit.Filter.accepts afilter author)
+         | Some author -> Person.Filter.accepts afilter author)
 
       | Kind kfilter ->
         let%lwt kind = kind tune in
@@ -86,7 +86,7 @@ module Lift
     let name string = Formula.pred (Name string)
     let nameMatches string = Formula.pred (NameMatches string)
     let author cfilter = Formula.pred (Author cfilter)
-    let authorIs author_ = author (Credit.Filter.is author_)
+    let authorIs author_ = author (Person.Filter.is author_)
     let kind kfilter = Formula.pred (Kind kfilter)
     let existsDance dfilter = Formula.pred (ExistsDance dfilter)
 
@@ -103,8 +103,8 @@ module Lift
       TextFormula.[
         "name",         raw_only ~convert:no_convert name;
         "name-matches", raw_only ~convert:no_convert nameMatches;
-        "author",       (author @@@@ Credit.Filter.from_text_formula);
-        "by",           (author @@@@ Credit.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
+        "author",       (author @@@@ Person.Filter.from_text_formula);
+        "by",           (author @@@@ Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
         "kind",         (kind @@@@ Kind.Base.Filter.from_text_formula);
         "exists-dance", (existsDance @@@@ Dance.Filter.from_text_formula);
       ]

@@ -15,7 +15,7 @@ type cached_version = {
 type t = {
   mutable name : string;
   mutable kind : string;
-  mutable deviser : (Credit.t Slug.t * Credit.t) option;
+  mutable deviser : (Person.t Slug.t * Person.t) option;
   mutable for_book : (Book.t Slug.t * Book.t) option;
   mutable versions : cached_version option array;
   mutable order : string;
@@ -55,7 +55,7 @@ let deviser t =
   Some cr
 
 let set_deviser t slug =
-  let%lwt deviser = Credit.get slug in
+  let%lwt deviser = Person.get slug in
   t.deviser <- Some (slug, deviser);
   Lwt.return ()
 

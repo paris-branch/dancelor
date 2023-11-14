@@ -23,15 +23,15 @@ let description tune =
     Lwt.return [
       txt (String.capitalize_ascii kind)
     ]
-  | Some author when M.Credit.is_trad author ->
+  | Some author when M.Person.is_trad author ->
     Lwt.return [
       txt ("Traditional " ^ kind)
     ]
   | Some author ->
-    let%lwt line_block = Credit.line ~link:true (Some author) in
+    let%lwt name_block = Person.name ~link:true (Some author) in
     Lwt.return (
       [txt (String.capitalize_ascii kind ^ " by ")]
-      @ line_block
+      @ name_block
     )
 
 let aka tune =

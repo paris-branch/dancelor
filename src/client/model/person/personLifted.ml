@@ -1,8 +1,8 @@
 open Dancelor_common_model
 
-include CreditLifter.Lift()
+include PersonLifter.Lift()
 
-module E = CreditEndpoints
+module E = PersonEndpoints
 module A = E.Arguments
 
 let get slug =

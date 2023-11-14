@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include SetLifter.Lift(Credit)(Dance)(Tune)(Version)
+include SetLifter.Lift(Person)(Dance)(Tune)(Version)
 
 module E = SetEndpoints
 module A = E.Arguments

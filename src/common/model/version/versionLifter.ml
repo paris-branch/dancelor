@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
+    (Person : module type of PersonSignature)
     (Tune   : module type of   TuneSignature)
 = struct
   include VersionCore
@@ -16,7 +16,7 @@ module Lift
     let%lwt tune = Tune.slug tune in
     let%lwt arranger =
       let%olwt arranger = Lwt.return arranger in
-      let%lwt arranger = Credit.slug arranger in
+      let%lwt arranger = Person.slug arranger in
       Lwt.return_some arranger
     in
     Lwt.return (make
@@ -28,7 +28,7 @@ module Lift
   let bars t = Lwt.return t.bars
   let key t = Lwt.return t.key
   let structure t = Lwt.return t.structure
-  let arranger tune = Olwt.flip @@ Option.map Credit.get tune.arranger
+  let arranger tune = Olwt.flip @@ Option.map Person.get tune.arranger
   let remark t = Lwt.return t.remark
   let disambiguation t = Lwt.return t.disambiguation
   let broken t = Lwt.return t.broken

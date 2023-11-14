@@ -10,7 +10,7 @@ type t =
     key : Music.key ;
     structure : string ;
     sources : string list [@default []] ; (* FIXME: remove from DB *)
-    arranger : CreditCore.t Slug.t option [@default None] ;
+    arranger : PersonCore.t Slug.t option [@default None] ;
     remark : string                   [@default ""] ;
     disambiguation : string           [@default ""] ;
     broken : bool                     [@default false] ;

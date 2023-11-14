@@ -63,7 +63,7 @@ let create page =
                     let open Lwt in
                     Dancelor_client_tables.clickable_row ~href [
                       (Formatters.Set.name_and_tunes ~link:false set);
-                      (Set.deviser set >>= Formatters.Credit.line);
+                      (Set.deviser set >>= Formatters.Person.name);
                       Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)];
                       Lwt.return [txt ""];
                     ]

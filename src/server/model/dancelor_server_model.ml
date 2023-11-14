@@ -10,7 +10,7 @@ module TextFormula = TextFormula
 
 module Kind                               = Kind
 
-module Credit            : Common.CREDIT  = Credit
+module Person            : Common.PERSON  = Person
 module Dance             : Common.DANCE   = Dance
 module Tune              : Common.TUNE    = Tune
 

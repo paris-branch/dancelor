@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
+    (Person : module type of PersonSignature)
 = struct
   include DanceCore
 
@@ -16,7 +16,7 @@ module Lift
       match deviser with
       | None -> Lwt.return_none
       | Some deviser ->
-        let%lwt deviser = Credit.slug deviser in
+        let%lwt deviser = Person.slug deviser in
         Lwt.return_some deviser
     in
     Lwt.return (make
@@ -26,7 +26,7 @@ module Lift
 
   let name d = Lwt.return d.name
   let kind d = Lwt.return d.kind
-  let deviser dance = Olwt.flip @@ Option.map Credit.get dance.deviser
+  let deviser dance = Olwt.flip @@ Option.map Person.get dance.deviser
   let two_chords d = Lwt.return d.two_chords
   let scddb_id d = Lwt.return d.scddb_id
   let disambiguation d = Lwt.return d.disambiguation
@@ -61,7 +61,7 @@ module Lift
       | Deviser cfilter ->
         (match%lwt deviser dance with
          | None -> Lwt.return Formula.interpret_false
-         | Some deviser -> Credit.Filter.accepts cfilter deviser)
+         | Some deviser -> Person.Filter.accepts cfilter deviser)
 
     let is dance = Formula.pred (Is dance)
     let name name = Formula.pred (Name name)
@@ -83,8 +83,8 @@ module Lift
         "name",         raw_only ~convert:no_convert name;
         "name-matches", raw_only ~convert:no_convert nameMatches;
         "kind",         (kind @@@@ Kind.Dance.Filter.from_text_formula);
-        "deviser",      (deviser @@@@ Credit.Filter.from_text_formula);
-        "by",           (deviser @@@@ Credit.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+        "deviser",      (deviser @@@@ Person.Filter.from_text_formula);
+        "by",           (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
       ]
 
     let from_text_formula =

@@ -6,7 +6,7 @@ type t =
   { slug : t Slug.t                  [@default Slug.none] ;
     status : Status.t                [@default Status.bot] ;
     name : string ;
-    deviser : CreditCore.t Slug.t option [@default None] ;
+    deviser : PersonCore.t Slug.t option [@default None] ;
     kind : Kind.Dance.t ;
     versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list
                               [@key "versions-and-parameters"] [@default []] ;
@@ -42,7 +42,7 @@ module Filter = struct
     | Is of t
     | Name of string
     | NameMatches of string
-    | Deviser of CreditCore.Filter.t (** deviser is defined and passes the filter *)
+    | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
     | Kind of Kind.Dance.Filter.t
   [@@deriving yojson]

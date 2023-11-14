@@ -1,7 +1,7 @@
 let _key = "any"
 
 type t =
-  | Credit  of  CreditCore.t
+  | Person  of  PersonCore.t
   | Dance   of   DanceCore.t
   | Book    of    BookCore.t
   | Set     of     SetCore.t
@@ -13,7 +13,7 @@ module Type = struct
   let _key = "type"
 
   type t =
-    | Credit
+    | Person
     | Dance
     | Book
     | Set
@@ -28,7 +28,7 @@ module Filter = struct
   type predicate =
     | Type of Type.t
     (* lifting predicates: *)
-    | AsCredit  of  CreditCore.Filter.t
+    | AsPerson  of  PersonCore.Filter.t
     | AsDance   of   DanceCore.Filter.t
     | AsBook    of    BookCore.Filter.t
     | AsSet     of     SetCore.Filter.t

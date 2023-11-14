@@ -2,8 +2,8 @@ open Nes
 
 module Model = Dancelor_common_model
 
-module Credit = Table.Make (struct
-    include Model.CreditCore
+module Person = Table.Make (struct
+    include Model.PersonCore
 
     let dependencies _ = Lwt.return []
     let standalone = false
@@ -15,7 +15,7 @@ module Dance = Table.Make (struct
     let dependencies dance =
       match%lwt deviser dance with
       | None -> Lwt.return_nil
-      | Some deviser -> Lwt.return [Table.make_slug_and_table (module Credit) deviser]
+      | Some deviser -> Lwt.return [Table.make_slug_and_table (module Person) deviser]
 
     let standalone = false
   end)
@@ -29,7 +29,7 @@ module Tune = Table.Make (struct
       List.map (Table.make_slug_and_table (module Dance)) dances
       |> (match author with
           | None -> Fun.id
-          | Some author -> List.cons (Table.make_slug_and_table (module Credit) author))
+          | Some author -> List.cons (Table.make_slug_and_table (module Person) author))
       |> Lwt.return
 
     let standalone = false
@@ -44,7 +44,7 @@ module Version = Table.Make (struct
       []
       |> (match arranger with
           | None -> Fun.id
-          | Some arranger -> List.cons (Table.make_slug_and_table (module Credit) arranger))
+          | Some arranger -> List.cons (Table.make_slug_and_table (module Person) arranger))
       |> List.cons (Table.make_slug_and_table (module Tune) tune)
       |> Lwt.return
 
@@ -61,7 +61,7 @@ module SetModel = struct
     List.map (Table.make_slug_and_table (module Version)) versions
     |> (match deviser with
         | None -> Fun.id
-        | Some deviser -> List.cons (Table.make_slug_and_table (module Credit) deviser))
+        | Some deviser -> List.cons (Table.make_slug_and_table (module Person) deviser))
     |> Lwt.return
 
   let standalone = true
@@ -112,7 +112,7 @@ module Book = Table.Make (struct
 module Storage = Storage
 
 let tables : (module Table.S) list = [
-  (module Credit) ;
+  (module Person) ;
   (module Dance) ;
   (module Version) ;
   (module Tune) ;

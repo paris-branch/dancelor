@@ -139,7 +139,7 @@ let refresh t =
   begin match SetEditor.deviser t.composer with
     | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
     | Some cr ->
-      let name = Credit.line cr in
+      let name = Person.name cr in
       Lwt.on_success name (fun name ->
           Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
@@ -187,32 +187,32 @@ let make_version_search_result composer page score =
   in
   Lwt.return row
 
-let make_credit_modal composer content page =
+let make_person_modal composer content page =
   let modal_bg = Html.createDiv (Page.document page) in
-  let credits_modal = Html.createDiv (Page.document page) in
+  let persons_modal = Html.createDiv (Page.document page) in
   let interface =
-    CreditEditorInterface.create page
+    PersonEditorInterface.create page
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
           Lwt.on_success (SetEditor.set_deviser composer slug) (fun () -> Page.refresh page))
   in
-  Dom.appendChild credits_modal (CreditEditorInterface.contents interface);
-  credits_modal##.classList##add (js "modal-window");
+  Dom.appendChild persons_modal (PersonEditorInterface.contents interface);
+  persons_modal##.classList##add (js "modal-window");
   modal_bg##.classList##add (js "modal-background");
-  Dom.appendChild modal_bg credits_modal;
+  Dom.appendChild modal_bg persons_modal;
   Dom.appendChild content modal_bg;
   Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
-    ~on_refresh:(fun () -> CreditEditorInterface.refresh interface)
-    ~targets:[credits_modal]
+    ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
+    ~targets:[persons_modal]
 
 let make_deviser_search_result composer page score =
   let deviser = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Credit.line deviser in
-  let%lwt slug = Credit.slug deviser in
+  let%lwt name = Person.name deviser in
+  let%lwt slug = Person.slug deviser in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
@@ -268,15 +268,15 @@ let create page =
     let main_section =
       SearchBar.Section.create
         ~default:(Table.Row.create
-                    ~on_click:(fun () -> make_credit_modal composer content page)
+                    ~on_click:(fun () -> make_person_modal composer content page)
                     ~cells:[
                       Table.Cell.text ~text:(Lwt.return "  +") page;
                       Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.from_string input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Person.Filter.from_string input in
             let%lwt results =
-              Credit.search ~threshold:0.4
+              Person.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)

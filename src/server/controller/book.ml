@@ -164,7 +164,7 @@ module Ly = struct
             (match%lwt Model.Set.deviser set with
              | None -> Lwt.return ""
              | Some deviser ->
-               let%lwt deviser = Model.Credit.line deviser in
+               let%lwt deviser = Model.Person.name deviser in
                Lwt.return (spf "Set by %s" deviser))
         in
         let%lwt kind = kind set set_parameters in
@@ -204,7 +204,7 @@ module Ly = struct
           let%lwt author =
             match%lwt Model.Tune.author tune with
             | None -> Lwt.return ""
-            | Some author -> Model.Credit.line author
+            | Some author -> Model.Person.name author
           in
           let author =
             version_parameters

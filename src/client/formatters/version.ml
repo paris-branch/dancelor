@@ -12,8 +12,8 @@ let description ?link version =
     match%lwt M.Version.arranger version with
     | None -> Lwt.return_nil
     | Some arranger ->
-      let%lwt line_block = Credit.line ?link (Some arranger) in
-      Lwt.return ([txt " arranged by "] @ line_block)
+      let%lwt name_block = Person.name ?link (Some arranger) in
+      Lwt.return ([txt " arranged by "] @ name_block)
   in
   let%lwt disambiguation_block =
     match%lwt M.Version.disambiguation version with
@@ -114,7 +114,7 @@ let author_and_arranger ?(short=true) ?link version =
     let%lwt tune = M.Version.tune version in
     match%lwt M.Tune.author tune with
     | None -> Lwt.return_nil
-    | Some author -> Credit.line ?link (Some author)
+    | Some author -> Person.name ?link (Some author)
   in
   let has_author =
     let%lwt tune = M.Version.tune version in
@@ -128,7 +128,7 @@ let author_and_arranger ?(short=true) ?link version =
     | Some arranger ->
       let%lwt comma = if%lwt has_author then Lwt.return ", " else Lwt.return "" in
       let arr = if short then "arr." else "arranged by" in
-      let%lwt arranger_block = Credit.line ?link (Some arranger) in
+      let%lwt arranger_block = Person.name ?link (Some arranger) in
       Lwt.return [
         span ~a:[a_class ["dim"]] (txt (spf "%s%s " comma arr) :: arranger_block)
       ]

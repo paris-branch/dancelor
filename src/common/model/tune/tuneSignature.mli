@@ -7,7 +7,7 @@ val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val alternative_names : t -> string list Lwt.t
 val kind : t -> Kind.Base.t Lwt.t
-val author : t -> CreditCore.t option Lwt.t
+val author : t -> PersonCore.t option Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string Lwt.t
 val scddb_id : t -> int option Lwt.t
@@ -29,8 +29,8 @@ module Filter : sig
   val is : TuneCore.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
-  val author : CreditCore.Filter.t -> t
-  val authorIs : CreditCore.t -> t
+  val author : PersonCore.Filter.t -> t
+  val authorIs : PersonCore.t -> t
   val existsDance : DanceCore.Filter.t -> t
 
   val raw : string -> t TextFormula.or_error
@@ -58,7 +58,7 @@ val make_and_save :
   name:string ->
   ?alternative_names:string list ->
   kind:Kind.Base.t ->
-  ?author:CreditCore.t ->
+  ?author:PersonCore.t ->
   ?dances:DanceCore.t list ->
   ?remark:string ->
   ?scddb_id:int ->

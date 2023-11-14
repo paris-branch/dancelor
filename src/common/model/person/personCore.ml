@@ -1,11 +1,11 @@
 open Nes
 
-let _key = "credit"
+let _key = "person"
 
 type t =
   { slug : t Slug.t ;
     status : Status.t [@default Status.bot] ;
-    line : string ;
+    name : string ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
@@ -15,12 +15,12 @@ let slug c = Lwt.return c.slug
 let status c = Lwt.return c.status
 
 module Filter = struct
-  let _key = "credit-filter"
+  let _key = "person-filter"
 
   type predicate =
     | Is of t
-    | Line of string
-    | LineMatches of string
+    | Name of string
+    | NameMatches of string
   [@@deriving yojson]
 
   type t = predicate Formula.t

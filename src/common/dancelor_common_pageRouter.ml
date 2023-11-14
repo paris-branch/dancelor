@@ -10,8 +10,8 @@ type page =
   | BookCompose
   | BookEdit of BookCore.t Slug.t
   | Book of BookCore.t Slug.t
-  | CreditAdd
-  | Credit of CreditCore.t Slug.t
+  | PersonAdd
+  | Person of PersonCore.t Slug.t
   | Dance of DanceCore.t Slug.t
   | Search of string option
   | SetAll
@@ -25,7 +25,7 @@ type page =
 
 let book slug = Book slug
 let bookEdit slug = BookEdit slug
-let credit slug = Credit slug
+let person slug = Person slug
 let dance slug = Dance slug
 let search q = Search q
 let set slug = Set slug
@@ -34,7 +34,7 @@ let version slug = Version slug
 
 let unBook = function Book slug -> Some slug | _ -> None
 let unBookEdit = function BookEdit slug -> Some slug | _ -> None
-let unCredit = function Credit slug -> Some slug | _ -> None
+let unPerson = function Person slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
 let unSet = function Set slug -> Some slug | _ -> None
 let unTune = function Tune slug -> Some slug | _ -> None
@@ -53,8 +53,8 @@ let routes =
     direct    `GET "/book/compose"    BookCompose ;
     with_slug `GET "/book/edit"      (bookEdit, unBookEdit) ;
     with_slug `GET "/book"           (book, unBook) ;
-    direct    `GET "/credit/add"      CreditAdd ;
-    with_slug `GET "/credit"         (credit, unCredit) ;
+    direct    `GET "/person/add"      PersonAdd ;
+    with_slug `GET "/person"         (person, unPerson) ;
     with_slug `GET "/dance"          (dance, unDance) ;
 
     with_query `GET "/search"
