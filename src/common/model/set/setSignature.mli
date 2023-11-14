@@ -7,7 +7,7 @@ val is_slug_none : t -> bool Lwt.t
 
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
-val deviser : t -> CreditCore.t option Lwt.t
+val deviser : t -> PersonCore.t option Lwt.t
 val kind : t -> Kind.Dance.t Lwt.t
 val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
 val order : t -> SetOrder.t Lwt.t
@@ -46,7 +46,7 @@ module Filter : sig
 
   val is : SetCore.t -> t
   val existsVersion : VersionCore.Filter.t -> t
-  val deviser : CreditCore.Filter.t -> t
+  val deviser : PersonCore.Filter.t -> t
   val memVersion : VersionCore.t -> t
 
   val raw : string -> t TextFormula.or_error
@@ -65,7 +65,7 @@ val make :
   ?status:Status.t ->
   ?slug:t Slug.t ->
   name:string ->
-  ?deviser:CreditCore.t ->
+  ?deviser:PersonCore.t ->
   kind:Kind.Dance.t ->
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
@@ -77,7 +77,7 @@ val make :
 val make_and_save :
   ?status:Status.t ->
   name:string ->
-  ?deviser:CreditCore.t ->
+  ?deviser:PersonCore.t ->
   kind:Kind.Dance.t ->
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->

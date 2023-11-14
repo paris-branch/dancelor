@@ -8,6 +8,6 @@
  (preprocess
   (pps lwt_ppx ppx_inline_test ppx_deriving_yojson ppx_deriving.std ppx_monad
     ppx_monad_olwt ppx_monad_rlwt))
- (modules_without_implementation creditSignature danceSignature bookSignature
+ (modules_without_implementation personSignature danceSignature bookSignature
    anySignature setSignature tuneSignature versionSignature)
  (inline_tests))

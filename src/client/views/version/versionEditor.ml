@@ -6,7 +6,7 @@ type t = {
   mutable bars : string;
   mutable key : string;
   mutable structure : string;
-  mutable arranger : (Credit.t Slug.t * Credit.t) option;
+  mutable arranger : (Person.t Slug.t * Person.t) option;
   mutable remark : string;
   mutable disambiguation : string;
   mutable content : string;
@@ -40,7 +40,7 @@ let arranger t =
   Some cr
 
 let set_arranger t slug =
-  let%lwt arranger = Credit.get slug in
+  let%lwt arranger = Person.get slug in
   t.arranger <- Some (slug, arranger);
   Lwt.return ()
 

@@ -11,29 +11,29 @@ let js = Js.string
 type t =
   {
     page : Page.t;
-    editor : CreditEditor.t;
+    editor : PersonEditor.t;
     content : Html.divElement Js.t;
     input_name : Inputs.Text.t;
     input_scddb_id : Inputs.Text.t;
   }
 
 let refresh t =
-  Inputs.Text.set_contents t.input_name (CreditEditor.name t.editor);
-  Inputs.Text.set_contents t.input_scddb_id (CreditEditor.scddb_id t.editor)
+  Inputs.Text.set_contents t.input_name (PersonEditor.name t.editor);
+  Inputs.Text.set_contents t.input_scddb_id (PersonEditor.scddb_id t.editor)
 
 let create ?on_save page =
-  let editor = CreditEditor.create () in
+  let editor = PersonEditor.create () in
   let content = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h2_static ~text:(Lwt.return "Create a Credit") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Create a Person") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
       ~placeholder:"Display name"
-      ~on_change:(fun name -> CreditEditor.set_name editor name)
+      ~on_change:(fun name -> PersonEditor.set_name editor name)
       page
   in
   let input_scddb_id = Inputs.Text.create
       ~placeholder:"Strathspey Database link or id (optional)"
-      ~on_change:(fun id -> CreditEditor.set_scddb_id editor id)
+      ~on_change:(fun id -> PersonEditor.set_scddb_id editor id)
       page
   in
   let submit = Html.createDiv (Page.document page) in
@@ -58,10 +58,10 @@ let create ?on_save page =
               )
           in
           if b1 && b2 then (
-            Lwt.on_success (CreditEditor.submit editor) (fun credit ->
-                Lwt.on_success (Credit.slug credit) (fun slug ->
+            Lwt.on_success (PersonEditor.submit editor) (fun person ->
+                Lwt.on_success (Person.slug person) (fun slug ->
                     begin match on_save with
-                      | None -> Html.window##.location##.href := js PageRouter.(path (Credit slug))
+                      | None -> Html.window##.location##.href := js PageRouter.(path (Person slug))
                       | Some cb -> cb slug
                     end))))
       page
@@ -70,7 +70,7 @@ let create ?on_save page =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
       ~on_click:(fun () ->
           if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
-            CreditEditor.clear editor;
+            PersonEditor.clear editor;
             Page.refresh page;
             Inputs.Text.set_valid input_name true;
             Inputs.Text.set_valid input_scddb_id true

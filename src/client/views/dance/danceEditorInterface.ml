@@ -26,7 +26,7 @@ let refresh t =
   begin match DanceEditor.deviser t.editor with
     | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
     | Some cr ->
-      let name = Credit.line cr in
+      let name = Person.line cr in
       Lwt.on_success name (fun name ->
           Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
   end;
@@ -37,30 +37,30 @@ let refresh t =
 
 let make_deviser_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
-  let credit_modal = Html.createDiv (Page.document page) in
+  let person_modal = Html.createDiv (Page.document page) in
   let interface =
-    CreditEditorInterface.create page
+    PersonEditorInterface.create page
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
           Lwt.on_success (DanceEditor.set_deviser editor slug) (fun () -> Page.refresh page))
   in
-  Dom.appendChild credit_modal (CreditEditorInterface.contents interface);
-  credit_modal##.classList##add (js "modal-window");
+  Dom.appendChild person_modal (PersonEditorInterface.contents interface);
+  person_modal##.classList##add (js "modal-window");
   modal_bg##.classList##add (js "modal-background");
-  Dom.appendChild modal_bg credit_modal;
+  Dom.appendChild modal_bg person_modal;
   Dom.appendChild content modal_bg;
   Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
-    ~on_refresh:(fun () -> CreditEditorInterface.refresh interface)
-    ~targets:[credit_modal]
+    ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
+    ~targets:[person_modal]
 
 let make_deviser_search_result editor page score =
   let deviser = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Credit.line deviser in
-  let%lwt slug = Credit.slug deviser in
+  let%lwt name = Person.line deviser in
+  let%lwt slug = Person.slug deviser in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
@@ -111,8 +111,8 @@ let create ?on_save page =
                       Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.from_string input in
-            let%lwt results = Credit.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Person.Filter.from_string input in
+            let%lwt results = Person.search ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
             Lwt.return_ok results)
         ~make_result:(fun score -> make_deviser_search_result editor page score)
         page

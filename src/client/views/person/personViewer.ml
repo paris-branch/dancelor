@@ -14,12 +14,12 @@ type t =
 let create slug page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
-  let credit_lwt = Credit.get slug in
+  let person_lwt = Person.get slug in
 
   Lwt.async (fun () ->
-      let%lwt credit = credit_lwt in
-      let%lwt line = Credit.line credit in
-      document##.title := js (line ^ " | Credit | Dancelor");
+      let%lwt person = person_lwt in
+      let%lwt line = Person.line person in
+      document##.title := js (line ^ " | Person | Dancelor");
       Lwt.return ()
     );
 
@@ -27,11 +27,11 @@ let create slug page =
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [
-        L.txt (credit_lwt >>=| Credit.line);
+        L.txt (person_lwt >>=| Person.line);
       ];
 
       L.div ~a:[a_class ["section"]] (
-        match%lwt credit_lwt >>=| Credit.scddb_id with
+        match%lwt person_lwt >>=| Person.scddb_id with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.person_uri scddb_id in
@@ -39,7 +39,7 @@ let create slug page =
             p [
               txt "You can ";
               a ~a:[a_href href; a_target "blank"] [
-                txt "see this credit on the Strathspey Database"
+                txt "see this person on the Strathspey Database"
               ];
               txt "."
             ]
@@ -51,14 +51,14 @@ let create slug page =
 
         L.div (
           let%lwt tunes =
-            let%lwt credit = credit_lwt in
-            let filter = Tune.Filter.authorIs credit in
+            let%lwt person = person_lwt in
+            let filter = Tune.Filter.authorIs person in
             Tune.search filter >|=| Score.list_erase
           in
 
           Lwt.return [
             if tunes = [] then
-              txt "There are no tunes composed by this credit."
+              txt "There are no tunes composed by this person."
             else
               Dancelor_client_tables.tunes tunes
           ]
@@ -70,15 +70,15 @@ let create slug page =
 
         L.div (
           let%lwt sets =
-            let%lwt credit = credit_lwt in
-            let filter = Set.Filter.deviser (Credit.Filter.is credit) in
+            let%lwt person = person_lwt in
+            let filter = Set.Filter.deviser (Person.Filter.is person) in
             Set.search filter
             >|=| Score.list_erase
           in
 
           Lwt.return [
             if sets = [] then
-              txt "There are no sets devised by this credit."
+              txt "There are no sets devised by this person."
             else
               Dancelor_client_tables.sets sets
           ]
@@ -90,14 +90,14 @@ let create slug page =
 
         L.div (
           let%lwt dances =
-            let%lwt credit = credit_lwt in
-            let filter = Dance.Filter.deviser (Credit.Filter.is credit) in
+            let%lwt person = person_lwt in
+            let filter = Dance.Filter.deviser (Person.Filter.is person) in
             Dance.search filter >|=| Score.list_erase
           in
 
           Lwt.return [
             if dances = [] then
-              txt "There are no dances devised by this credit."
+              txt "There are no dances devised by this person."
             else
               Dancelor_client_tables.dances dances
           ]

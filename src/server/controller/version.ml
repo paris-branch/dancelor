@@ -23,7 +23,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   let%lwt author =
     match%lwt Model.Tune.author tune with
     | None -> Lwt.return ""
-    | Some author -> Model.Credit.line author
+    | Some author -> Model.Person.line author
   in
   let author =
     parameters

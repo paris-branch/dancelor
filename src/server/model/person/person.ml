@@ -1,8 +1,8 @@
 open Nes
-include CreditLifted
+include PersonLifted
 
 let make_and_save ?status ~line ?scddb_id ~modified_at ~created_at () =
-  Dancelor_server_database.Credit.save ~slug_hint:line @@ fun slug ->
+  Dancelor_server_database.Person.save ~slug_hint:line @@ fun slug ->
   Lwt.return (make ?status ~slug ~line ~scddb_id ~modified_at ~created_at ()) (* FIXME: status should probably go in save *)
 
 let () =
@@ -17,7 +17,7 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
-  Dancelor_server_database.Credit.get_all ()
+  Dancelor_server_database.Person.get_all ()
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [

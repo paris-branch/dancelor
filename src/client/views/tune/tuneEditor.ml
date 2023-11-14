@@ -6,7 +6,7 @@ type t = {
   mutable name : string;
   mutable alternative : string;
   mutable kind : string;
-  mutable author : (Credit.t Slug.t * Credit.t) option;
+  mutable author : (Person.t Slug.t * Person.t) option;
   mutable dances : (Dance.t Slug.t * Dance.t) option array;
   mutable remark : string;
   mutable scddb_id : string;
@@ -48,7 +48,7 @@ let author t =
   Some cr
 
 let set_author t slug =
-  let%lwt author = Credit.get slug in
+  let%lwt author = Person.get slug in
   t.author <- Some (slug, author);
   Lwt.return ()
 

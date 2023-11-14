@@ -2,15 +2,15 @@ open Dancelor_common
 open Dancelor_client_html
 module M = Dancelor_client_model
 
-let line ?(link=true) credit =
-  match credit with
+let line ?(link=true) person =
+  match person with
   | None -> Lwt.return_nil
-  | Some credit ->
-    let line_text = [L.txt (M.Credit.line credit)] in
+  | Some person ->
+    let line_text = [L.txt (M.Person.line person)] in
     if link then
       let href_lwt =
-        let%lwt slug = M.Credit.slug credit in
-        Lwt.return PageRouter.(path (Credit slug))
+        let%lwt slug = M.Person.slug person in
+        Lwt.return PageRouter.(path (Person slug))
       in
       Lwt.return [
         a

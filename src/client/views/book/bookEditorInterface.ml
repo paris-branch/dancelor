@@ -97,7 +97,7 @@ let make_set_result editor page score =
         td [txt (Score.score_to_string score)];
         td [L.txt (Set.name set)];
         td [L.txt (Kind.Dance.to_string =|< Set.kind set)];
-        L.td (Dancelor_client_formatters.Credit.line =<< Set.deviser set);
+        L.td (Dancelor_client_formatters.Person.line =<< Set.deviser set);
       ]
     )
 

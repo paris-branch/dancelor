@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Credit  : module type of  CreditSignature)
+    (Person  : module type of  PersonSignature)
     (Dance   : module type of   DanceSignature)
     (Tune    : module type of    TuneSignature)
     (Version : module type of VersionSignature)
@@ -16,7 +16,7 @@ module Lift
     let name = String.remove_duplicates ~char:' ' name in
     let%lwt deviser =
       let%olwt deviser = Lwt.return deviser in
-      let%lwt deviser = Credit.slug deviser in
+      let%lwt deviser = Person.slug deviser in
       Lwt.return_some deviser
     in
     let%lwt versions_and_parameters =
@@ -44,7 +44,7 @@ module Lift
     Lwt.return (Slug.is_none slug)
 
   let name s = Lwt.return s.name
-  let deviser set = Olwt.flip @@ Option.map Credit.get set.deviser
+  let deviser set = Olwt.flip @@ Option.map Person.get set.deviser
   let kind s = Lwt.return s.kind
   let order s = Lwt.return s.order
   let instructions s = Lwt.return s.instructions
@@ -152,7 +152,7 @@ module Lift
       | Deviser dfilter ->
         (match%lwt deviser set with
          | None -> Lwt.return Formula.interpret_false
-         | Some deviser -> Credit.Filter.accepts dfilter deviser)
+         | Some deviser -> Person.Filter.accepts dfilter deviser)
 
       | ExistsVersion vfilter ->
         let%lwt versions_and_parameters = versions_and_parameters set in
@@ -186,8 +186,8 @@ module Lift
       TextFormula.[
         "name",           raw_only ~convert:no_convert name;
         "name-matches",   raw_only ~convert:no_convert nameMatches;
-        "deviser",        (deviser @@@@ Credit.Filter.from_text_formula);
-        "by",             (deviser @@@@ Credit.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+        "deviser",        (deviser @@@@ Person.Filter.from_text_formula);
+        "by",             (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
         "exists-version", (existsVersion @@@@ Version.Filter.from_text_formula);
         "kind",           (kind @@@@ Kind.Dance.Filter.from_text_formula);
       ]

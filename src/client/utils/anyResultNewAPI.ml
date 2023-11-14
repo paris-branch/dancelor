@@ -22,12 +22,12 @@ let clickable_row ~href =
         );
     ]
 
-let make_credit_result ~prefix credit =
+let make_person_result ~prefix person =
   clickable_row
-    ~href:(Credit.slug credit >|= fun slug -> PageRouter.(path (Credit slug)))
+    ~href:(Person.slug person >|= fun slug -> PageRouter.(path (Person slug)))
     (
       prefix @ [
-        L.td ~a:[a_colspan 3] (Formatters.Credit.line (Some credit));
+        L.td ~a:[a_colspan 3] (Formatters.Person.line (Some person));
       ]
     )
 
@@ -38,7 +38,7 @@ let make_dance_result ~prefix dance =
       prefix @ [
         td [L.txt (Dance.name dance)];
         td [L.txt (Kind.Dance.to_string =|< Dance.kind dance)];
-        L.td (Formatters.Credit.line =<< Dance.deviser dance);
+        L.td (Formatters.Person.line =<< Dance.deviser dance);
       ]
     )
 
@@ -58,7 +58,7 @@ let make_set_result ~prefix set =
       prefix @ [
         td [L.txt (Set.name set)];
         td [L.txt (Kind.Dance.to_string =|< Set.kind set)];
-        L.td (Formatters.Credit.line =<< Set.deviser set);
+        L.td (Formatters.Person.line =<< Set.deviser set);
       ]
     )
 
@@ -69,7 +69,7 @@ let make_tune_result ~prefix tune =
       prefix @ [
         td [L.txt (Tune.name tune)];
         td [L.txt (Kind.Base.to_pretty_string ~capitalised:true =|< Tune.kind tune)];
-        L.td (Formatters.Credit.line =<< Tune.author tune);
+        L.td (Formatters.Person.line =<< Tune.author tune);
       ]
     )
 
@@ -99,7 +99,7 @@ let make_result score =
   ]
   in
   match any with
-  | Credit credit   -> make_credit_result  ~prefix credit
+  | Person person   -> make_person_result  ~prefix person
   | Dance dance     -> make_dance_result   ~prefix dance
   | Book book       -> make_book_result    ~prefix book
   | Set set         -> make_set_result     ~prefix set

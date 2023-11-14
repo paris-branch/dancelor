@@ -9,12 +9,12 @@ module Html = Dom_html
 
 let js = Js.string
 
-let make_credit_result ~prefix page credit =
-  let%lwt slug = Credit.slug credit in
-  let href = Lwt.return PageRouter.(path (Credit slug)) in
+let make_person_result ~prefix page person =
+  let%lwt slug = Person.slug person in
+  let href = Lwt.return PageRouter.(path (Person slug)) in
   let cells =
     prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Credit.line credit) page
+      Table.Cell.text ~colspan:3 ~text:(Person.line person) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
@@ -28,7 +28,7 @@ let make_dance_result ~prefix page dance =
       Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Dance.deviser dance >>= Formatters.Credit.line)
+          (Dance.deviser dance >>= Formatters.Person.line)
       ) page ;
     ]
   in
@@ -56,7 +56,7 @@ let make_set_result ~prefix page set =
       Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Set.deviser set >>= Formatters.Credit.line)
+          (Set.deviser set >>= Formatters.Person.line)
       ) page;
     ]
   in
@@ -71,7 +71,7 @@ let make_tune_result ~prefix page tune =
       Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Tune.author tune >>= Formatters.Credit.line)
+          (Tune.author tune >>= Formatters.Person.line)
       ) page ;
     ]
   in
@@ -109,7 +109,7 @@ let make_result page score =
   ]
   in
   match any with
-  | Credit credit   -> make_credit_result  ~prefix page credit
+  | Person person   -> make_person_result  ~prefix page person
   | Dance dance     -> make_dance_result   ~prefix page dance
   | Book book       -> make_book_result    ~prefix page book
   | Set set         -> make_set_result     ~prefix page set

@@ -41,7 +41,7 @@ let create slug page =
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
         | Some deviser ->
-          let%lwt line_block = Formatters.Credit.line ~link:true (Some deviser) in
+          let%lwt line_block = Formatters.Person.line ~link:true (Some deviser) in
           Lwt.return (txt "Set devised by " :: line_block)
       );
 

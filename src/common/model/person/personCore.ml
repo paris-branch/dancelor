@@ -1,6 +1,6 @@
 open Nes
 
-let _key = "credit"
+let _key = "person"
 
 type t =
   { slug : t Slug.t ;
@@ -15,7 +15,7 @@ let slug c = Lwt.return c.slug
 let status c = Lwt.return c.status
 
 module Filter = struct
-  let _key = "credit-filter"
+  let _key = "person-filter"
 
   type predicate =
     | Is of t

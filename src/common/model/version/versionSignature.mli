@@ -8,7 +8,7 @@ val tune : t -> TuneCore.t Lwt.t
 val bars : t -> int Lwt.t
 val key : t -> Music.key Lwt.t
 val structure : t -> string Lwt.t
-val arranger : t -> CreditCore.t option Lwt.t
+val arranger : t -> PersonCore.t option Lwt.t
 val remark : t -> string Lwt.t
 val disambiguation : t -> string Lwt.t
 val broken : t -> bool Lwt.t
@@ -55,7 +55,7 @@ val make_and_save :
   bars:int ->
   key:Music.key ->
   structure:string ->
-  ?arranger:CreditCore.t ->
+  ?arranger:PersonCore.t ->
   ?remark:string ->
   ?disambiguation:string ->
   ?broken:bool ->

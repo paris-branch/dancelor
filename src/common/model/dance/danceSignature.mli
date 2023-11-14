@@ -6,7 +6,7 @@ val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
 val name : t -> string Lwt.t
 val kind : t -> Kind.Dance.t Lwt.t
-val deviser : t -> CreditCore.t option Lwt.t
+val deviser : t -> PersonCore.t option Lwt.t
 val two_chords : t -> bool Lwt.t
 val scddb_id : t -> int option Lwt.t
 val disambiguation : t -> string Lwt.t
@@ -21,7 +21,7 @@ module Filter : sig
   val accepts : t -> DanceCore.t -> float Lwt.t
 
   val is : DanceCore.t -> t
-  val deviser : CreditCore.Filter.t -> t
+  val deviser : PersonCore.Filter.t -> t
 
   val raw : string -> t TextFormula.or_error
   val nullary_text_predicates : (string * t) list
@@ -39,7 +39,7 @@ val make_and_save :
   ?status:Status.t ->
   name:string ->
   kind:Kind.Dance.t ->
-  ?deviser:CreditCore.t ->
+  ?deviser:PersonCore.t ->
   two_chords:bool ->
   ?scddb_id:int ->
   ?disambiguation:string ->

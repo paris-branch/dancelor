@@ -1,7 +1,7 @@
 open Nes
 
 module Lift () = struct
-  include CreditCore
+  include PersonCore
 
   let make
       ~slug ?status ~line ?scddb_id ~modified_at ~created_at
@@ -16,30 +16,30 @@ module Lift () = struct
   let trad_slug = Slug.unsafe_of_string "traditional"
   let is_trad c = Slug.equal c.slug trad_slug
 
-  let equal credit1 credit2 =
-    let%lwt slug1 = slug credit1 in
-    let%lwt slug2 = slug credit2 in
+  let equal person1 person2 =
+    let%lwt slug1 = slug person1 in
+    let%lwt slug2 = slug person2 in
     Lwt.return (Slug.equal slug1 slug2)
 
   module Filter = struct
-    include CreditCore.Filter
+    include PersonCore.Filter
 
-    let accepts filter credit =
+    let accepts filter person =
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
 
-      | Is credit' ->
-        equal credit credit' >|=| Formula.interpret_bool
+      | Is person' ->
+        equal person person' >|=| Formula.interpret_bool
 
       | Line string ->
-        let%lwt line = line credit in
+        let%lwt line = line person in
         Lwt.return (String.proximity ~char_equal string line)
 
       | LineMatches string ->
-        let%lwt line = line credit in
+        let%lwt line = line person in
         Lwt.return (String.inclusion_proximity ~char_equal ~needle:string line)
 
-    let is credit = Formula.pred (Is credit)
+    let is person = Formula.pred (Is person)
     let line line = Formula.pred (Line line)
     let lineMatches line = Formula.pred (LineMatches line)
 

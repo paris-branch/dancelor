@@ -11,7 +11,7 @@ let js = Js.string
 
 type filter =
   { tune : Tune.t Slug.t list ;
-    tune_author : Credit.t Slug.t list ;
+    tune_author : Person.t Slug.t list ;
     tune_kind : Kind.Base.t list ;
     key : Music.key list ;
     bars : int list }
@@ -38,7 +38,7 @@ let filter_remove_kind k t =
 
 let filter_to_versionfilter filter =
   let%lwt tunes = Lwt_list.map_p Tune.get filter.tune in
-  let%lwt tune_authors = Lwt_list.map_p Credit.get filter.tune_author in
+  let%lwt tune_authors = Lwt_list.map_p Person.get filter.tune_author in
 
   let or_if_not_empty = function
     | [] -> Formula.true_

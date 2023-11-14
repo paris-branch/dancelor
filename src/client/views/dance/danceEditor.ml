@@ -5,7 +5,7 @@ open Dancelor_client_model
 type t = {
   mutable name : string;
   mutable kind : string;
-  mutable deviser : (Credit.t Slug.t * Credit.t) option;
+  mutable deviser : (Person.t Slug.t * Person.t) option;
   mutable two_chords : bool;
   mutable scddb_id : string;
 }
@@ -37,7 +37,7 @@ let deviser t =
   | Some (_, cr) -> Some cr
 
 let set_deviser t slug =
-  let%lwt deviser = Credit.get slug in
+  let%lwt deviser = Person.get slug in
   t.deviser <- Some (slug, deviser);
   Lwt.return ()
 

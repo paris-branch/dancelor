@@ -55,9 +55,9 @@ let dispatch url =
     pack (module BookEditorInterface) (BookEditorInterface.update slug)
   | Book slug ->
     pack (module BookViewer) (BookViewer.create slug)
-  | CreditAdd ->
-    pack (module CreditEditorInterface) (fun page -> CreditEditorInterface.create page)
-  | Credit slug ->
-    pack (module CreditViewer) (CreditViewer.create slug)
+  | PersonAdd ->
+    pack (module PersonEditorInterface) (fun page -> PersonEditorInterface.create page)
+  | Person slug ->
+    pack (module PersonViewer) (PersonViewer.create slug)
   | Dance slug ->
     pack (module DanceViewer) (DanceViewer.create slug)

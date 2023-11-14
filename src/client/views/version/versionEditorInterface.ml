@@ -34,7 +34,7 @@ let refresh t =
   begin match VersionEditor.arranger t.editor with
     | None -> Inputs.Text.set_contents (SearchBar.bar t.arranger_search) ""
     | Some arranger ->
-      let name = Credit.line arranger in
+      let name = Person.line arranger in
       Lwt.on_success name (fun name ->
           Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name)
   end;
@@ -87,13 +87,13 @@ let make_arranger_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let arranger_modal = Html.createDiv (Page.document page) in
   let interface =
-    CreditEditorInterface.create page
+    PersonEditorInterface.create page
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
           Lwt.on_success (VersionEditor.set_arranger editor slug) (fun () -> Page.refresh page))
   in
-  Dom.appendChild arranger_modal (CreditEditorInterface.contents interface);
+  Dom.appendChild arranger_modal (PersonEditorInterface.contents interface);
   arranger_modal##.classList##add (js "modal-window");
   modal_bg##.classList##add (js "modal-background");
   Dom.appendChild modal_bg arranger_modal;
@@ -101,14 +101,14 @@ let make_arranger_modal editor content page =
   Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
-    ~on_refresh:(fun () -> CreditEditorInterface.refresh interface)
+    ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[arranger_modal]
 
 let make_arranger_search_result editor page score =
   let arranger = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Credit.line arranger in
-  let%lwt slug = Credit.slug arranger in
+  let%lwt name = Person.line arranger in
+  let%lwt slug = Person.slug arranger in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
@@ -201,9 +201,9 @@ let create page =
                       Table.Cell.text ~text:(Lwt.return "Create a new arranger") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Credit.Filter.from_string input in
+            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Person.Filter.from_string input in
             let%lwt results =
-              Credit.search ~threshold:0.4
+              Person.search ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)

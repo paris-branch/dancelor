@@ -1,6 +1,6 @@
-include CreditLifted
+include PersonLifted
 
-module E = Dancelor_common_model.CreditEndpoints
+module E = Dancelor_common_model.PersonEndpoints
 module A = E.Arguments
 
 let make_and_save ?status ~line ?scddb_id ~modified_at ~created_at () =

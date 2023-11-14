@@ -1,6 +1,6 @@
 open Dancelor_common_model
 
-include DanceLifter.Lift(Credit)
+include DanceLifter.Lift(Person)
 
 module E = DanceEndpoints
 module A = E.Arguments

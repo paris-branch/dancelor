@@ -1,7 +1,7 @@
 open Nes
 
 module Lift
-    (Credit : module type of CreditSignature)
+    (Person : module type of PersonSignature)
     (Dance : module type of DanceSignature)
     (Book : module type of BookSignature)
     (Set : module type of SetSignature)
@@ -12,7 +12,7 @@ module Lift
 
   let equal any1 any2 =
     match any1, any2 with
-    |  Credit c1,  Credit c2 ->  Credit.equal c1 c2
+    |  Person c1,  Person c2 ->  Person.equal c1 c2
     |   Dance d1,   Dance d2 ->   Dance.equal d1 d2
     |    Book b1,    Book b2 ->    Book.equal b1 b2
     |     Set s1,     Set s2 ->     Set.equal s1 s2
@@ -28,12 +28,12 @@ module Lift
         let compare = compare
       end)
 
-    let all = Set.of_list [ Credit; Dance; Book; Set; Tune; Version ]
+    let all = Set.of_list [ Person; Dance; Book; Set; Tune; Version ]
 
     let equal = (=)
 
     let to_string = function
-      | Credit  -> "Credit"
+      | Person  -> "Person"
       | Dance   -> "Dance"
       | Book    -> "Book"
       | Set     -> "Set"
@@ -44,7 +44,7 @@ module Lift
 
     let of_string str =
       match String.lowercase_ascii str with
-      | "credit"  -> Credit
+      | "person"  -> Person
       | "dance"   -> Dance
       | "book"    -> Book
       | "set"     -> Set
@@ -58,7 +58,7 @@ module Lift
   end
 
   let type_of = function
-    |  Credit _ -> Type.Credit
+    |  Person _ -> Type.Person
     |   Dance _ -> Type.Dance
     |    Book _ -> Type.Book
     |     Set _ -> Type.Set
@@ -75,9 +75,9 @@ module Lift
         |> Formula.interpret_bool
         |> Lwt.return
 
-      | AsCredit cfilter ->
+      | AsPerson cfilter ->
         (match any with
-         | Credit credit -> Credit.Filter.accepts cfilter credit
+         | Person person -> Person.Filter.accepts cfilter person
          | _ -> Lwt.return Formula.interpret_false)
 
       | AsDance dfilter ->
@@ -107,7 +107,7 @@ module Lift
 
     let type_ type_ = Formula.pred (Type type_)
 
-    let asCredit  filter = Formula.pred (AsCredit  filter)
+    let asPerson  filter = Formula.pred (AsPerson  filter)
     let asDance   filter = Formula.pred (AsDance   filter)
     let asBook    filter = Formula.pred (AsBook    filter)
     let asSet     filter = Formula.pred (AsSet     filter)
@@ -116,7 +116,7 @@ module Lift
 
     let raw str =
       let filters = [
-        (match  Credit.Filter.raw str with Ok cfilter -> Ok ( asCredit cfilter) | Error err -> error_fmt "- for credits, %s"  err);
+        (match  Person.Filter.raw str with Ok cfilter -> Ok ( asPerson cfilter) | Error err -> error_fmt "- for persons, %s"  err);
         (match   Dance.Filter.raw str with Ok dfilter -> Ok (  asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
         (match    Book.Filter.raw str with Ok bfilter -> Ok (   asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
         (match     Set.Filter.raw str with Ok sfilter -> Ok (    asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
@@ -136,7 +136,7 @@ module Lift
         | err :: _ -> Error err (* FIXME: also show the others *)
 
     let nullary_text_predicates = [
-      "credit",  type_ Type.Credit;  (* alias for type:Credit *)
+      "person",  type_ Type.Person;  (* alias for type:Person *)
       "dance",   type_ Type.Dance;   (* alias for type:Dance *)
       "book",    type_ Type.Book;    (* alias for type:Book *)
       "set",     type_ Type.Set;     (* alias for type:Set *)
@@ -158,7 +158,7 @@ module Lift
         let filters = [
           TextFormula.make_predicate_to_formula raw
             nullary_text_predicates unary_text_predicates pred;
-          (match  Credit.Filter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asCredit cfilter) | Error err -> error_fmt "- for credits, %s"  err);
+          (match  Person.Filter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asPerson cfilter) | Error err -> error_fmt "- for persons, %s"  err);
           (match   Dance.Filter.from_text_formula (Pred pred) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
           (match    Book.Filter.from_text_formula (Pred pred) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
           (match     Set.Filter.from_text_formula (Pred pred) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
@@ -198,7 +198,7 @@ module Lift
            has a chance to return. That would eliminate some other types. *)
         match pred with
         | Type type_  -> Type.Set.singleton type_
-        | AsCredit  _ -> Type.Set.singleton Credit
+        | AsPerson  _ -> Type.Set.singleton Person
         | AsDance   _ -> Type.Set.singleton Dance
         | AsBook    _ -> Type.Set.singleton Book
         | AsSet     _ -> Type.Set.singleton Set
@@ -208,7 +208,7 @@ module Lift
     let nullary_text_predicates_of_type type_ =
       String.Set.of_list
         (match type_ with
-         | Type.Credit  -> List.map fst  Credit.Filter.nullary_text_predicates
+         | Type.Person  -> List.map fst  Person.Filter.nullary_text_predicates
          | Type.Dance   -> List.map fst   Dance.Filter.nullary_text_predicates
          | Type.Book    -> List.map fst    Book.Filter.nullary_text_predicates
          | Type.Set     -> List.map fst     Set.Filter.nullary_text_predicates
@@ -223,7 +223,7 @@ module Lift
     let unary_text_predicates_of_type type_ =
       String.Set.of_list
         (match type_ with
-         | Type.Credit  -> List.map fst  Credit.Filter.unary_text_predicates
+         | Type.Person  -> List.map fst  Person.Filter.unary_text_predicates
          | Type.Dance   -> List.map fst   Dance.Filter.unary_text_predicates
          | Type.Book    -> List.map fst    Book.Filter.unary_text_predicates
          | Type.Set     -> List.map fst     Set.Filter.unary_text_predicates

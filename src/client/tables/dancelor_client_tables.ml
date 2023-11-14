@@ -50,7 +50,7 @@ let sets sets =
   in
   clickable_row ~href [
     (Formatters.Set.name_and_tunes ~link:true set);
-    (Set.deviser set >>=| Formatters.Credit.line);
+    (Set.deviser set >>=| Formatters.Person.line);
     Lwt.return [L.txt (Set.kind set >|=| Kind.Dance.to_string)];
   ]
 
@@ -62,7 +62,7 @@ let dances dances =
   in
   clickable_row ~href [
     (Formatters.Dance.name dance);
-    (Dance.deviser dance >>=| Formatters.Credit.line);
+    (Dance.deviser dance >>=| Formatters.Person.line);
     Lwt.return [L.txt (Dance.kind dance >|=| Kind.Dance.to_string)];
   ]
 
@@ -75,7 +75,7 @@ let tunes tunes =
   clickable_row ~href [
     (Formatters.Tune.name tune);
     Lwt.return [L.txt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
-    (Tune.author tune >>=| Formatters.Credit.line);
+    (Tune.author tune >>=| Formatters.Person.line);
   ]
 
 let versions versions =
@@ -88,7 +88,7 @@ let versions versions =
   in
   clickable_row ~href [
     (Formatters.Version.disambiguation_and_sources version);
-    (Version.arranger version >>=| Formatters.Credit.line);
+    (Version.arranger version >>=| Formatters.Person.line);
     (tune_lwt >>=| Formatters.Kind.full_string version);
     Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
     Lwt.return [L.txt (Version.structure version)];
