@@ -63,6 +63,11 @@ module Ly = struct
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let%lwt title = Model.Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
+      (
+        match Model.BookParameters.paper_size parameters with
+        | A n -> fpf fmt [%blob "template/paper-size/a.ly"] n;
+        | Custom (width, height, unit) -> fpf fmt [%blob "template/paper-size/custom.ly"] width unit height unit;
+      );
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/book/globals.ly"]

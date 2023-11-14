@@ -13,7 +13,11 @@ module Pdf = struct
         ~created_at:(Datetime.now ())
         ()
     in
-    let parameters = Model.BookParameters.make ~running_header:true () in
+    let parameters =
+      Model.BookParameters.make
+        ?paper_size:(Option.bind parameters Model.SetParameters.paper_size_opt)
+        ()
+    in
     Book.Pdf.render book ~parameters
 
   let get set parameters =
