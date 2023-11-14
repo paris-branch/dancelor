@@ -14,6 +14,8 @@ module Pdf = struct
         ()
     in
     let parameters =
+      (* FIXME: the fact that we need to transfer this is just wrong. see
+         https://github.com/paris-branch/dancelor/issues/250 *)
       Model.BookParameters.make
         ?paper_size:(Option.bind parameters Model.SetParameters.paper_size_opt)
         ()
