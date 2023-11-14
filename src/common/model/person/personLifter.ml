@@ -4,13 +4,13 @@ module Lift () = struct
   include PersonCore
 
   let make
-      ~slug ?status ~line ?scddb_id ~modified_at ~created_at
+      ~slug ?status ~name ?scddb_id ~modified_at ~created_at
       ()
     =
-    let line = String.remove_duplicates ~char:' ' line in
-    make ~slug ?status ~line ?scddb_id ~modified_at ~created_at ()
+    let name = String.remove_duplicates ~char:' ' name in
+    make ~slug ?status ~name ?scddb_id ~modified_at ~created_at ()
 
-  let line c = Lwt.return c.line
+  let name c = Lwt.return c.name
   let scddb_id c = Lwt.return c.scddb_id
 
   let trad_slug = Slug.unsafe_of_string "traditional"
@@ -31,26 +31,26 @@ module Lift () = struct
       | Is person' ->
         equal person person' >|=| Formula.interpret_bool
 
-      | Line string ->
-        let%lwt line = line person in
-        Lwt.return (String.proximity ~char_equal string line)
+      | Name string ->
+        let%lwt name = name person in
+        Lwt.return (String.proximity ~char_equal string name)
 
-      | LineMatches string ->
-        let%lwt line = line person in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string line)
+      | NameMatches string ->
+        let%lwt name = name person in
+        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
 
     let is person = Formula.pred (Is person)
-    let line line = Formula.pred (Line line)
-    let lineMatches line = Formula.pred (LineMatches line)
+    let name name = Formula.pred (Name name)
+    let nameMatches name = Formula.pred (NameMatches name)
 
-    let raw string = Ok (lineMatches string)
+    let raw string = Ok (nameMatches string)
 
     let nullary_text_predicates = []
 
     let unary_text_predicates =
       TextFormula.[
-        "line",          raw_only ~convert:no_convert line;
-        "line-matches",  raw_only ~convert:no_convert lineMatches;
+        "name",          raw_only ~convert:no_convert name;
+        "name-matches",  raw_only ~convert:no_convert nameMatches;
       ]
 
     let from_text_formula =

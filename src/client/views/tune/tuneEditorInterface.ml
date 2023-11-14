@@ -54,7 +54,7 @@ let refresh t =
   begin match TuneEditor.author t.editor with
     | None -> Inputs.Text.set_contents (SearchBar.bar t.author_search) ""
     | Some cr ->
-      let name = Person.line cr in
+      let name = Person.name cr in
       Lwt.on_success name (fun name ->
           Inputs.Text.set_contents (SearchBar.bar t.author_search) name)
   end;
@@ -127,7 +127,7 @@ let make_author_modal editor content page =
 let make_author_search_result editor page score =
   let author = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Person.line author in
+  let%lwt name = Person.name author in
   let%lwt slug = Person.slug author in
   let row = Table.Row.create
       ~on_click:(fun () ->

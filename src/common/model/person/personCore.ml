@@ -5,7 +5,7 @@ let _key = "person"
 type t =
   { slug : t Slug.t ;
     status : Status.t [@default Status.bot] ;
-    line : string ;
+    name : string ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
@@ -19,8 +19,8 @@ module Filter = struct
 
   type predicate =
     | Is of t
-    | Line of string
-    | LineMatches of string
+    | Name of string
+    | NameMatches of string
   [@@deriving yojson]
 
   type t = predicate Formula.t

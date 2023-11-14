@@ -4,7 +4,7 @@ type t = PersonCore.t
 
 val slug : t -> t Slug.t Lwt.t
 val status : t -> Status.t Lwt.t
-val line : t -> string Lwt.t
+val name : t -> string Lwt.t
 val scddb_id : t -> int option Lwt.t
 
 val is_trad : t -> bool
@@ -34,7 +34,7 @@ val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
   ?status:Status.t ->
-  line:string ->
+  name:string ->
   ?scddb_id:int ->
   modified_at:Datetime.t ->
   created_at:Datetime.t ->

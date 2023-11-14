@@ -18,8 +18,8 @@ let create slug page =
 
   Lwt.async (fun () ->
       let%lwt person = person_lwt in
-      let%lwt line = Person.line person in
-      document##.title := js (line ^ " | Person | Dancelor");
+      let%lwt name = Person.name person in
+      document##.title := js (name ^ " | Person | Dancelor");
       Lwt.return ()
     );
 
@@ -27,7 +27,7 @@ let create slug page =
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [
-        L.txt (person_lwt >>=| Person.line);
+        L.txt (person_lwt >>=| Person.name);
       ];
 
       L.div ~a:[a_class ["section"]] (

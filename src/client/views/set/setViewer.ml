@@ -41,8 +41,8 @@ let create slug page =
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
         | Some deviser ->
-          let%lwt line_block = Formatters.Person.line ~link:true (Some deviser) in
-          Lwt.return (txt "Set devised by " :: line_block)
+          let%lwt name_block = Formatters.Person.name ~link:true (Some deviser) in
+          Lwt.return (txt "Set devised by " :: name_block)
       );
 
       download_dialog;

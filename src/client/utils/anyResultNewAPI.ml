@@ -27,7 +27,7 @@ let make_person_result ~prefix person =
     ~href:(Person.slug person >|= fun slug -> PageRouter.(path (Person slug)))
     (
       prefix @ [
-        L.td ~a:[a_colspan 3] (Formatters.Person.line (Some person));
+        L.td ~a:[a_colspan 3] (Formatters.Person.name (Some person));
       ]
     )
 
@@ -38,7 +38,7 @@ let make_dance_result ~prefix dance =
       prefix @ [
         td [L.txt (Dance.name dance)];
         td [L.txt (Kind.Dance.to_string =|< Dance.kind dance)];
-        L.td (Formatters.Person.line =<< Dance.deviser dance);
+        L.td (Formatters.Person.name =<< Dance.deviser dance);
       ]
     )
 
@@ -58,7 +58,7 @@ let make_set_result ~prefix set =
       prefix @ [
         td [L.txt (Set.name set)];
         td [L.txt (Kind.Dance.to_string =|< Set.kind set)];
-        L.td (Formatters.Person.line =<< Set.deviser set);
+        L.td (Formatters.Person.name =<< Set.deviser set);
       ]
     )
 
@@ -69,7 +69,7 @@ let make_tune_result ~prefix tune =
       prefix @ [
         td [L.txt (Tune.name tune)];
         td [L.txt (Kind.Base.to_pretty_string ~capitalised:true =|< Tune.kind tune)];
-        L.td (Formatters.Person.line =<< Tune.author tune);
+        L.td (Formatters.Person.name =<< Tune.author tune);
       ]
     )
 

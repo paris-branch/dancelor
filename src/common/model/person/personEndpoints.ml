@@ -3,7 +3,7 @@ open Madge_common
 module Arguments = struct
   let slug = arg ~key:"slug" (module MSlug(PersonCore))
   let status = optarg (module Status)
-  let line = arg ~key:"line" (module MString)
+  let name = arg ~key:"name" (module MString)
   let scddb_id = optarg ~key:"scddb_id" (module MInteger)
   let pagination = optarg (module Pagination)
   let filter = arg (module PersonCore.Filter)

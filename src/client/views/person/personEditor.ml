@@ -50,4 +50,4 @@ let submit t =
   in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
-  Person.make_and_save ~line:t.name ?scddb_id ~modified_at ~created_at ()
+  Person.make_and_save ~name:t.name ?scddb_id ~modified_at ~created_at ()

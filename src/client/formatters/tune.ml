@@ -28,10 +28,10 @@ let description tune =
       txt ("Traditional " ^ kind)
     ]
   | Some author ->
-    let%lwt line_block = Person.line ~link:true (Some author) in
+    let%lwt name_block = Person.name ~link:true (Some author) in
     Lwt.return (
       [txt (String.capitalize_ascii kind ^ " by ")]
-      @ line_block
+      @ name_block
     )
 
 let aka tune =
