@@ -8,7 +8,7 @@ module Ly = struct
     let%lwt kind =
       match%lwt Model.SetParameters.for_dance set_parmeters with
       | None -> Model.Set.kind set
-      | Some dance -> Model.Dance.kind dance
+      | Some dance -> Lwt.return @@ Model.Dance.kind dance
     in
     Lwt.return (Model.Kind.Dance.to_pretty_string kind)
 
@@ -16,9 +16,7 @@ module Ly = struct
     let%lwt dance =
       match%lwt Model.SetParameters.for_dance set_parameters with
       | None -> Lwt.return_nil
-      | Some dance ->
-        let%lwt name = Model.Dance.name dance in
-        Lwt.return [spf "Dance: %s" name]
+      | Some dance -> Lwt.return [spf "Dance: %s" (Model.Dance.name dance)]
     in
     let%lwt kind = kind set set_parameters in
     let%lwt order =
@@ -30,13 +28,8 @@ module Ly = struct
     in
     let%lwt chords =
       match%lwt Model.SetParameters.for_dance set_parameters with
-      | None -> Lwt.return_nil
-      | Some dance ->
-        let%lwt two_chords = Model.Dance.two_chords dance in
-        if two_chords then
-          Lwt.return ["Two Chords"]
-        else
-          Lwt.return_nil
+      | Some dance when Model.Dance.two_chords dance -> Lwt.return ["Two Chords"]
+      | _ -> Lwt.return_nil
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 

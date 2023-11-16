@@ -28,7 +28,7 @@ let make_dance_subwindow t index dance =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3_static ~text:(Dance.name (snd dance)) t.page in
+  let title = Text.Heading.h3_static ~text:(Lwt.return @@ Dance.name (snd dance)) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let del =
@@ -68,8 +68,8 @@ let refresh t =
 let make_dance_search_result editor page score =
   let dance = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Dance.name dance in
-  let%lwt slug = Dance.slug dance in
+  let name = Dance.name dance in
+  let slug = Dance.slug dance in
   let row = Table.Row.create
       ~on_click:(fun () -> Lwt.on_success
                     (TuneEditor.add editor slug)

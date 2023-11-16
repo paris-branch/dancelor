@@ -10,16 +10,18 @@ module Person = Table.Make (
       let standalone = false
     end))
 
-module Dance = Table.Make (struct
-    include Model.DanceCore
+module Dance = Table.Make (
+    Table.Lwtify (struct
+      include Model.DanceCore
 
-    let dependencies dance =
-      match%lwt deviser dance with
-      | None -> Lwt.return_nil
-      | Some deviser -> Lwt.return [Table.make_slug_and_table (module Person) deviser]
+      let dependencies dance =
+        Lwt.return @@
+        match deviser dance with
+        | None -> []
+        | Some deviser -> [Table.make_slug_and_table (module Person) deviser]
 
-    let standalone = false
-  end)
+      let standalone = false
+    end))
 
 module Tune = Table.Make (struct
     include Model.TuneCore

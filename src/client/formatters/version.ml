@@ -42,7 +42,7 @@ let name_and_dance ?link ?dance_link version parameters =
     | Some dance -> Lwt.return [
         span ~a:[a_class ["dim"; "details"]] [
           txt "For dance: ";
-          L.span (Dance.name ?link:dance_link dance);
+          span (Dance.name ?link:dance_link dance);
         ]]
   in
   Lwt.return (name @ dance)

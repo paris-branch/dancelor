@@ -56,14 +56,11 @@ let sets sets =
 
 let dances dances =
   map_table ~header:["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
-  let href =
-    let%lwt slug = Dance.slug dance in
-    Lwt.return PageRouter.(path (Dance slug))
-  in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Dance (Dance.slug dance) in
   clickable_row ~href [
-    (Formatters.Dance.name dance);
+    (Lwt.return @@ Formatters.Dance.name dance);
     (Lwt.map Formatters.Person.name (Dance.deviser dance));
-    Lwt.return [L.txt (Dance.kind dance >|=| Kind.Dance.to_string)];
+    Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind dance];
   ]
 
 let tunes tunes =

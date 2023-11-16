@@ -14,17 +14,7 @@ module Lift
     let name = String.remove_duplicates ~char:' ' name in
     let alternative_names = Option.map (List.map (String.remove_duplicates ~char:' ')) alternative_names in
     let author = Option.map Person.slug author in
-    let%lwt dances =
-      let%olwt dances = Lwt.return dances in
-      let%lwt dances =
-        Lwt_list.map_s
-          (fun dance ->
-             let%lwt dance = Dance.slug dance in
-             Lwt.return dance)
-          dances
-      in
-      Lwt.return_some dances
-    in
+    let dances = Option.map (List.map Dance.slug) dances in
     Lwt.return (make
                   ?status ~slug ~name ?alternative_names ~kind ~author ?dances
                   ?remark ~scddb_id ~modified_at ~created_at

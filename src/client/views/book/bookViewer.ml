@@ -58,7 +58,7 @@ let display_warnings warnings =
         txt "Set “";
         L.span (Formatters.Set.name set);
         txt "” does not have the same kind as its associated dance “";
-        L.span (Formatters.Dance.name dance);
+        span (Formatters.Dance.name dance);
         txt "”."
       ]
   in

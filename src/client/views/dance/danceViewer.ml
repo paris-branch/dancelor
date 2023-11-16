@@ -18,22 +18,18 @@ let create slug page =
   let dance_lwt = Dance.get slug in
 
   Lwt.async (fun () ->
-      let%lwt dance = dance_lwt in
-      let%lwt name = Dance.name dance in
-      document##.title := js (name ^ " | Dance | Dancelor");
-      Lwt.return ()
+      Fun.flip Lwt.map dance_lwt @@ fun dance ->
+      document##.title := js (Dance.name dance ^ " | Dance | Dancelor")
     );
 
   (
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [
-        L.txt (dance_lwt >>=| Dance.name);
+        L.txt (Lwt.map Dance.name dance_lwt);
       ];
       L.h3 ~a:[a_class ["title"]] (
-        let kind = [
-          L.txt (dance_lwt >>=| Dance.kind >|=| Kind.Dance.to_pretty_string)
-        ] in
+        let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind) dance_lwt] in
         let%lwt by =
           match%lwt dance_lwt >>=| Dance.deviser with
           | None -> Lwt.return_nil
@@ -42,13 +38,13 @@ let create slug page =
         Lwt.return (kind @ by)
       );
       L.div (
-        let%lwt dance = dance_lwt in
-        match%lwt Dance.two_chords dance with
-        | false -> Lwt.return_nil
-        | true -> Lwt.return [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
+        Fun.flip Lwt.map dance_lwt @@ fun dance ->
+        match Dance.two_chords dance with
+        | false -> []
+        | true -> [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
       );
       L.div (
-        match%lwt dance_lwt >>=| Dance.scddb_id with
+        match%lwt Lwt.map Dance.scddb_id dance_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.dance_uri scddb_id in

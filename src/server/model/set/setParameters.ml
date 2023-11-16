@@ -10,10 +10,6 @@ let make
     ?forced_pages ?show_deviser ?show_order
     ?display_name ?for_dance ?every_version ()
   =
-  let%lwt for_dance =
-    let%olwt dance = Lwt.return for_dance in
-    let%lwt dance = Dance.slug dance in
-    Lwt.return_some dance
-  in
+  let for_dance = Option.map Dance.slug for_dance in
   Lwt.return (make ?forced_pages ?show_deviser ?show_order
                 ?display_name ?for_dance ?every_version ())

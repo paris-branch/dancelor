@@ -15,9 +15,16 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
-let slug d = Lwt.return d.slug
-let status d = Lwt.return d.status
-let deviser d = Lwt.return d.deviser
+let slug dance = dance.slug
+let status dance = dance.status
+let name dance = dance.name
+let kind dance = dance.kind
+let deviser dance = dance.deviser
+let two_chords dance = dance.two_chords
+let scddb_id dance = dance.scddb_id
+let disambiguation dance = dance.disambiguation
+let modified_at dance = dance.modified_at
+let created_at dance = dance.created_at
 
 module Filter = struct
   let _key = "dance-filter"

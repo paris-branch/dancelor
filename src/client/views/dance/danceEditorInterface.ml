@@ -155,11 +155,11 @@ let create ?on_save page =
           in
           if b1 && b2 && b3 then (
             Lwt.on_success (DanceEditor.submit editor) (fun dance ->
-                Lwt.on_success (Dance.slug dance) (fun slug ->
-                    begin match on_save with
-                      | None -> Html.window##.location##.href := js PageRouter.(path (Dance slug))
-                      | Some cb -> cb slug
-                    end))))
+                let slug = Dance.slug dance in
+                match on_save with
+                | None -> Html.window##.location##.href := js PageRouter.(path (Dance slug))
+                | Some cb -> cb slug
+              )))
       page
   in
 

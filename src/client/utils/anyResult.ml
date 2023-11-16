@@ -20,12 +20,11 @@ let make_person_result ~prefix page person =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_dance_result ~prefix page dance =
-  let%lwt slug = Dance.slug dance in
-  let href = Lwt.return PageRouter.(path (Dance slug)) in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Dance (Dance.slug dance) in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(Dance.name dance) page ;
-      Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Dance.name dance) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Kind.Dance.to_string @@ Dance.kind dance) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
           (Lwt.map Formatters.Person.name (Dance.deviser dance))

@@ -6,11 +6,7 @@ module M = Dancelor_client_model
 let works set =
   match%lwt M.Set.dances set with
   | [] -> Lwt.return_nil
-  | dances ->
-    let%lwt dance_names = Lwt_list.map_p M.Dance.name dances in
-    Lwt.return [
-      txt (spf "Works for %s" (String.concat ", " dance_names))
-    ]
+  | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map M.Dance.name dances)]
 
 let name ?(link=true) set =
   let name_text = [L.txt (M.Set.name set)] in
@@ -51,7 +47,7 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
     | Some dance -> Lwt.return [
         span ~a:[a_class ["dim"; "details"]] [
           txt "For dance: ";
-          L.span (Dance.name ?link:dance_link dance)
+          span (Dance.name ?link:dance_link dance)
         ]
       ]
   in

@@ -1,17 +1,23 @@
+(** {1 Dance} *)
+
 open Nes
 
 type t = DanceCore.t
 
-val slug : t -> t Slug.t Lwt.t
-val status : t -> Status.t Lwt.t
-val name : t -> string Lwt.t
-val kind : t -> Kind.Dance.t Lwt.t
-val deviser : t -> PersonCore.t option Lwt.t
-val two_chords : t -> bool Lwt.t
-val scddb_id : t -> int option Lwt.t
-val disambiguation : t -> string Lwt.t
+(** {2 Field getters} *)
 
-val equal : t -> t -> bool Lwt.t
+val slug : t -> t Slug.t
+val status : t -> Status.t
+val name : t -> string
+val kind : t -> Kind.Dance.t
+val deviser : t -> PersonCore.t option Lwt.t
+val two_chords : t -> bool
+val scddb_id : t -> int option
+val disambiguation : t -> string
+val modified_at : t -> Datetime.t
+val created_at  : t -> Datetime.t
+
+val equal : t -> t -> bool
 
 (** {2 Filters} *)
 

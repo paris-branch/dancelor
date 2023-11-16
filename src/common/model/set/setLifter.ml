@@ -26,11 +26,7 @@ module Lift
       in
       Lwt.return_some versions_and_parameters
     in
-    let%lwt dances =
-      let%olwt dances = Lwt.return dances in
-      let%lwt dances = Lwt_list.map_p Dance.slug dances in
-      Lwt.return_some dances
-    in
+    let dances = Option.map (List.map Dance.slug) dances in
     Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters
                   ~order ?dances ~modified_at ~created_at
                   ())

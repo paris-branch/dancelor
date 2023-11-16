@@ -33,11 +33,11 @@ let make_person_result ~prefix person =
 
 let make_dance_result ~prefix dance =
   clickable_row
-    ~href:(Dance.slug dance >|= fun slug -> PageRouter.(path (Dance slug)))
+    ~href:(Lwt.return @@ PageRouter.path @@ PageRouter.Dance (Dance.slug dance))
     (
       prefix @ [
-        td [L.txt (Dance.name dance)];
-        td [L.txt (Kind.Dance.to_string =|< Dance.kind dance)];
+        td [txt (Dance.name dance)];
+        td [txt (Kind.Dance.to_string @@ Dance.kind dance)];
         L.td (Lwt.map Formatters.Person.name (Dance.deviser dance));
       ]
     )

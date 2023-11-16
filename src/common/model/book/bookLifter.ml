@@ -191,7 +191,7 @@ module Lift
            (* FIXME: SetParameters should be hidden behind the same kind of
               mechanism as the rest; and this step should not be necessary *)
            let%lwt dance = Dance.get dance_slug in
-           let%lwt dance_kind = Dance.kind dance in
+           let dance_kind = Dance.kind dance in
            let%lwt set_kind = Set.kind set in
            if set_kind = dance_kind then
              Lwt.return_none
