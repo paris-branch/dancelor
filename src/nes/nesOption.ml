@@ -3,10 +3,6 @@ include Option
 let compose f1 f2 x =
   bind (f1 x) f2
 
-let ifsome_lwt f = function
-  | None -> Lwt.return ()
-  | Some x -> f x
-
 let assert_some = function
   | None -> failwith "assert_some"
   | Some v -> Some v
