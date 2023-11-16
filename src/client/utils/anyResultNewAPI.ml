@@ -64,11 +64,11 @@ let make_set_result ~prefix set =
 
 let make_tune_result ~prefix tune =
   clickable_row
-    ~href:(Tune.slug tune >|= fun slug -> PageRouter.(path (Tune slug)))
+    ~href:(Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune))
     (
       prefix @ [
-        td [L.txt (Tune.name tune)];
-        td [L.txt (Kind.Base.to_pretty_string ~capitalised:true =|< Tune.kind tune)];
+        td [txt @@ Tune.name tune];
+        td [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
         L.td (Lwt.map Formatters.Person.name (Tune.author tune));
       ]
     )
@@ -82,7 +82,7 @@ let make_version_result ~prefix version =
         td [
           L.txt (
             let%lwt bars = Version.bars version in
-            let%lwt kind = Tune.kind =<< Version.tune version in
+            let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
             let%lwt structure = Version.structure version in
             Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
           )

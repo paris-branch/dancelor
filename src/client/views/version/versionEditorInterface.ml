@@ -24,19 +24,12 @@ type t =
   }
 
 let refresh t =
-  begin match VersionEditor.tune t.editor with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.tune_search) ""
-    | Some tune ->
-      let name = Tune.name tune in
-      Lwt.on_success name (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.tune_search) name)
-  end;
-  begin match VersionEditor.arranger t.editor with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.arranger_search) ""
-    | Some arranger ->
-      let name = Person.name arranger in
-      Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name
-  end;
+  Inputs.Text.set_contents
+    (SearchBar.bar t.tune_search)
+    (Option.fold ~none:"" ~some:Tune.name @@ VersionEditor.tune t.editor);
+  Inputs.Text.set_contents
+    (SearchBar.bar t.arranger_search)
+    (Option.fold ~none:"" ~some:Person.name @@ VersionEditor.arranger t.editor);
   Inputs.Text.set_contents t.input_bars (VersionEditor.bars t.editor);
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
   Inputs.Text.set_contents t.input_structure (VersionEditor.structure t.editor);
@@ -68,8 +61,8 @@ let make_tune_modal editor content page =
 let make_tune_search_result editor page score =
   let tune = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Tune.name tune in
-  let%lwt slug = Tune.slug tune in
+  let name = Tune.name tune in
+  let slug = Tune.slug tune in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success

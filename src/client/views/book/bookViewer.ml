@@ -49,7 +49,7 @@ let display_warnings warnings =
     | Book.DuplicateVersion (tune, sets_opt) ->
       li (
         txt "Tune “"
-        :: L.span (Formatters.Tune.name tune)
+        :: span (Formatters.Tune.name tune)
         :: txt "” appears several times: "
         :: (display_sets sets_opt |> format_set_list)
       )
@@ -119,9 +119,8 @@ let table_contents contents =
                   (Formatters.Version.name_and_dance ~link:false version parameters);
                   Lwt.return [L.txt (
                       let%lwt tune = Version.tune version in
-                      let%lwt kind = Tune.kind tune in
                       let%lwt bars = Version.bars version in
-                      let kind = (bars, kind) in
+                      let kind = (bars, Tune.kind tune) in
                       Lwt.return (Kind.Version.to_string kind)
                     )];
                 ]

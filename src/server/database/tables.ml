@@ -23,20 +23,21 @@ module Dance = Table.Make (
       let standalone = false
     end))
 
-module Tune = Table.Make (struct
-    include Model.TuneCore
+module Tune = Table.Make (
+    Table.Lwtify (struct
+      include Model.TuneCore
 
-    let dependencies tune =
-      let%lwt dances = dances tune in
-      let%lwt author = author tune in
-      List.map (Table.make_slug_and_table (module Dance)) dances
-      |> (match author with
-          | None -> Fun.id
-          | Some author -> List.cons (Table.make_slug_and_table (module Person) author))
-      |> Lwt.return
+      let dependencies tune =
+        let dances = dances tune in
+        let author = author tune in
+        List.map (Table.make_slug_and_table (module Dance)) dances
+        |> (match author with
+            | None -> Fun.id
+            | Some author -> List.cons (Table.make_slug_and_table (module Person) author))
+        |> Lwt.return
 
-    let standalone = false
-  end)
+      let standalone = false
+    end))
 
 module Version = Table.Make (struct
     include Model.VersionCore

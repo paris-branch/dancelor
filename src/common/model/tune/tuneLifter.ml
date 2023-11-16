@@ -20,21 +20,8 @@ module Lift
                   ?remark ~scddb_id ~modified_at ~created_at
                   ())
 
-  let name tune = Lwt.return tune.name
-  let alternative_names tune = Lwt.return tune.alternative_names
-  let kind tune = Lwt.return tune.kind
-  let author tune = Olwt.flip @@ Option.map Person.get tune.author
-  let dances tune = Lwt_list.map_p Dance.get tune.dances
-  let remark tune = Lwt.return tune.remark
-  let scddb_id tune = Lwt.return tune.scddb_id
-
-  let compare =
-    Slug.compare_slugs_or
-      ~fallback:(fun tune1 tune2 ->
-          Lwt.return (Stdlib.compare tune1 tune2))
-      slug
-
-  let equal = equal_from_compare compare
+  let author tune = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (author tune)
+  let dances tune = Lwt_list.map_p Dance.get (dances tune)
 
   module Filter = struct
     include TuneCore.Filter
@@ -44,15 +31,13 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is tune' ->
-        equal tune tune' >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ equal tune tune'
 
       | Name string ->
-        let%lwt name = name tune in
-        Lwt.return (String.proximity ~char_equal string name)
+        Lwt.return @@ String.proximity ~char_equal string @@ name tune
 
       | NameMatches string ->
-        let%lwt name = name tune in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name tune
 
       | Author afilter ->
         (match%lwt author tune with
@@ -60,8 +45,7 @@ module Lift
          | Some author -> Person.Filter.accepts afilter author)
 
       | Kind kfilter ->
-        let%lwt kind = kind tune in
-        Kind.Base.Filter.accepts kfilter kind
+        Kind.Base.Filter.accepts kfilter @@ kind tune
 
       | ExistsDance dfilter ->
         let%lwt dances = dances tune in

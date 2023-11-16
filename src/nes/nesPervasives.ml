@@ -55,6 +55,7 @@ let compare_or cmp1 cmp2 =
 let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
 let errors_fmt fmt = Format.kasprintf (fun s -> Error [s]) fmt
 
+(** FIXME: Get rid of this. *)
 let equal_from_compare cmp x y =
   let%lwt c = cmp x y in
   Lwt.return (c = 0)

@@ -70,7 +70,7 @@ let display_warnings t =
       let display_duplicated_warning tune =
         li [
           txt "Tune “";
-          L.span (Formatters.Tune.name tune);
+          span (Formatters.Tune.name tune);
           txt "” already appears in book ";
           L.span (Formatters.Book.short_title bk);
         ]
@@ -87,7 +87,7 @@ let make_version_subwindow t index version =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3_static ~text:(Tune.name version.SetEditor.tune) t.page in
+  let title = Text.Heading.h3_static ~text:(Lwt.return @@ Tune.name version.SetEditor.tune) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
@@ -165,7 +165,7 @@ let make_version_search_result composer page score =
   let%lwt bars = Version.bars version in
   let%lwt structure = Version.structure version in
   let%lwt tune = Version.tune version in
-  let%lwt kind = Tune.kind tune in
+  let kind = Tune.kind tune in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success (SetEditor.add composer slug) (fun () -> Page.refresh page; SetEditor.save composer))

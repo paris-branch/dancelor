@@ -37,8 +37,8 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
-      increasing name String.Sensible.compare;
-      increasing name String.compare_lengths;
+      increasing (Lwt.return % name) String.Sensible.compare;
+      increasing (Lwt.return % name) String.compare_lengths;
     ])
   >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
 

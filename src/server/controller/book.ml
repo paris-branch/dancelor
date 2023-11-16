@@ -110,11 +110,10 @@ module Ly = struct
           Fun.flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune version in
-            let%lwt name = Model.Tune.name tune in
             let name =
               parameters
               |> Model.VersionParameters.display_name
-              |> Option.value ~default:name
+              |> Option.value ~default:(Model.Tune.name tune)
             in
             let trivia =
               parameters
@@ -122,12 +121,11 @@ module Ly = struct
               |> Option.value ~default:" "
             in
             let%lwt bars = Model.Version.bars version in
-            let%lwt kind = Model.Tune.kind tune in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let%lwt set =
               Model.Set.make
                 ~name
-                ~kind:(Model.Kind.Dance.Version (bars, kind))
+                ~kind:(Model.Kind.Dance.Version (bars, Model.Tune.kind tune))
                 ~versions_and_parameters:[version, parameters]
                 ~order:[Internal 1]
                 ~modified_at:(NesDatetime.now ())
@@ -186,11 +184,10 @@ module Ly = struct
           in
           let%lwt tune = Model.Version.tune version in
           let%lwt key = Model.Version.key version in
-          let%lwt name = Model.Tune.name tune in
           let name =
             version_parameters
             |> Model.VersionParameters.display_name
-            |> Option.value ~default:name
+            |> Option.value ~default:(Model.Tune.name tune)
           in
           let%lwt author =
             Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.author tune)

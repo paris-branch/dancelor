@@ -65,13 +65,10 @@ let dances dances =
 
 let tunes tunes =
   map_table ~header:["Name"; "Kind"; "Author"] tunes @@ fun tune ->
-  let href =
-    let%lwt slug = Tune.slug tune in
-    Lwt.return PageRouter.(path (Tune slug))
-  in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune) in
   clickable_row ~href [
-    (Formatters.Tune.name tune);
-    Lwt.return [L.txt (Tune.kind tune >|=| Kind.Base.to_pretty_string ~capitalised:true)];
+    (Lwt.return @@ Formatters.Tune.name tune);
+    Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
     (Lwt.map Formatters.Person.name (Tune.author tune));
   ]
 
@@ -100,7 +97,7 @@ let versions_with_names versions =
     Lwt.return PageRouter.(path (Version slug))
   in
   clickable_row ~href [
-    Lwt.return [L.txt (tune_lwt >>=| Tune.name)];
+    Lwt.return [L.txt @@ Lwt.map Tune.name tune_lwt];
     (tune_lwt >>=| Formatters.Kind.full_string version);
     Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
     Lwt.return [L.txt (Version.structure version)];

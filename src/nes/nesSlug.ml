@@ -48,6 +48,14 @@ let unsafe_coerce = Fun.id
 let unsafe_of_string = Option.some
 
 let compare_slugs_or ~fallback slug x y =
+  let slug_x = slug x in
+  let slug_y = slug y in
+  if not (is_none slug_x) && not (is_none slug_y) then
+    compare slug_x slug_y
+  else
+    fallback x y
+
+let compare_slugs_or_lwt ~fallback slug x y =
   let%lwt slug_x = slug x in
   let%lwt slug_y = slug y in
   if not (is_none slug_x) && not (is_none slug_y) then

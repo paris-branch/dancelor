@@ -252,11 +252,11 @@ let create ?on_save page =
           in
           if b1 && b2 && b3 then (
             Lwt.on_success (TuneEditor.submit editor) (fun tune ->
-                Lwt.on_success (Tune.slug tune) (fun slug ->
-                    begin match on_save with
-                      | None -> Html.window##.location##.href := js PageRouter.(path (Tune slug))
-                      | Some cb -> cb slug
-                    end))))
+                let slug = Tune.slug tune in
+                match on_save with
+                | None -> Html.window##.location##.href := js PageRouter.(path (Tune slug))
+                | Some cb -> cb slug
+              )))
       page
   in
   let clear =

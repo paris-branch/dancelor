@@ -13,7 +13,7 @@ module Lift
     =
     let structure = String.remove_duplicates ~char:' ' structure in
     let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
-    let%lwt tune = Tune.slug tune in
+    let tune = Tune.slug tune in
     let arranger = Option.map Person.slug arranger in
     Lwt.return (make
                   ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
@@ -38,10 +38,10 @@ module Lift
 
   let kind version =
     let%lwt bars = bars version in
-    let%lwt kind = tune version >>=| Tune.kind in
+    let%lwt kind = Lwt.map Tune.kind (tune version) in
     Lwt.return (bars, kind)
 
-  let name version = tune version >>=| Tune.name
+  let name version = Lwt.map Tune.name (tune version)
 
   module Filter = struct
     include VersionCore.Filter
@@ -62,7 +62,7 @@ module Lift
 
       | Kind kfilter ->
         let%lwt tune = tune version in
-        let%lwt kind = Tune.kind tune in
+        let kind = Tune.kind tune in
         let%lwt bars = bars version in
         Kind.Version.Filter.accepts kfilter (bars, kind)
 

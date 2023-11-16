@@ -9,7 +9,7 @@ let preload_versions ?max_concurrency () =
       ?max_concurrency
       (fun version ->
          let%lwt tune = Dancelor_server_model.Version.tune version in
-         let%lwt name = Dancelor_server_model.Tune.name tune in
+         let name = Dancelor_server_model.Tune.name tune in
          Log.debug (fun m -> m "Prerendering %s" name);
          let%lwt _ = Dancelor_server_controller.Version.Svg.render version in
          let%lwt _ = Dancelor_server_controller.Version.Ogg.render version in

@@ -9,7 +9,7 @@ let make_and_save
     ?disambiguation ?broken ~content ~modified_at ~created_at
     ()
   =
-  let%lwt name = Tune.name tune in
+  let name = Tune.name tune in
   let%lwt version =
     Dancelor_server_database.Version.save ~slug_hint:name @@ fun slug ->
     make
@@ -70,7 +70,7 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
-      increasing (tune >=>| Tune.name) String.Sensible.compare
+      increasing (Lwt.map Tune.name % tune) String.Sensible.compare
     ])
   >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
 

@@ -53,7 +53,7 @@ module Lift
       set.versions_and_parameters
 
   let compare =
-    Slug.compare_slugs_or
+    Slug.compare_slugs_or_lwt
       ~fallback:(fun set1 set2 ->
           Lwt.return (Stdlib.compare set1 set2))
       slug
@@ -99,15 +99,14 @@ module Lift
            if version_bars <> bars then
              add_warning (WrongVersionBars version);
            let%lwt tune = Version.tune version in
-           let%lwt version_kind = Tune.kind tune in
-           if version_kind <> kind then
+           if Tune.kind tune <> kind then
              add_warning (WrongVersionKind tune);
            Lwt.return ())
         versions
     in
     (* Check that there are no duplicates. *)
     let%lwt tunes = Lwt_list.map_s Version.tune versions in
-    let%lwt tunes = List.sort_lwt Tune.compare tunes in
+    let tunes = List.sort Tune.compare tunes in
     (match tunes with
      | [] -> add_warning Empty
      | tune :: tunes ->

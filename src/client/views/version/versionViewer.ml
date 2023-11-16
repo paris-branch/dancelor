@@ -18,11 +18,8 @@ let create slug page =
   let version_lwt = Version.get slug in
   let tune_lwt = version_lwt >>=| Version.tune in
 
-  Lwt.async (fun () ->
-      let%lwt tune = tune_lwt in
-      let%lwt name = Tune.name tune in
-      document##.title := js (name ^ " | Tune | Dancelor");
-      Lwt.return ()
+  Lwt.on_success tune_lwt (fun tune ->
+      document##.title := js (Tune.name tune ^ " | Tune | Dancelor");
     );
 
   let other_versions_lwt =
@@ -44,12 +41,12 @@ let create slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [L.txt (tune_lwt >>=| Tune.name)];
-      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.aka);
+      h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Tune.name tune_lwt];
+      L.h3 ~a:[a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
       L.h3 ~a:[a_class ["title"]] (version_lwt >>=| Formatters.Version.description ~link:true);
       L.div (
-        match%lwt tune_lwt >>=| Tune.scddb_id with
+        match%lwt Lwt.map Tune.scddb_id tune_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.tune_uri scddb_id in
@@ -166,8 +163,7 @@ let create slug page =
 
                 let href_lwt =
                   let%lwt tune = tune_lwt in
-                  let%lwt slug = Tune.slug tune in
-                  Lwt.return PageRouter.(path (Tune slug))
+                  Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune)
                 in
                 p [
                   txt "You can also go to the ";
@@ -228,8 +224,7 @@ let create slug page =
           | _ -> Lwt.return [
               let href_lwt =
                 let%lwt tune = tune_lwt in
-                let%lwt slug = Tune.slug tune in
-                Lwt.return PageRouter.(path (Tune slug))
+                Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune)
               in
               p [
                 txt "If you want to see the sets in which this version or ";
@@ -266,8 +261,7 @@ let create slug page =
           | _ -> Lwt.return [
               let href_lwt =
                 let%lwt tune = tune_lwt in
-                let%lwt slug = Tune.slug tune in
-                Lwt.return PageRouter.(path (Tune slug))
+                Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune)
               in
               p [
                 txt "If you want to see the books in which this version or ";

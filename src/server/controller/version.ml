@@ -14,11 +14,10 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Model.Version.tune version in
   let%lwt key = Model.Version.key version in
-  let%lwt name = Model.Tune.name tune in
   let name =
     parameters
     |> Model.VersionParameters.display_name
-    |> Option.value ~default:name
+    |> Option.value ~default:(Model.Tune.name tune)
   in
   let%lwt author =
     match%lwt Model.Tune.author tune with
@@ -42,7 +41,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
     else
       "", ""
   in
-  let%lwt kind = Model.Tune.kind tune in
+  let kind = Model.Tune.kind tune in
   let (tempo_unit, tempo_value) = Model.Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
   let%lwt content = Model.Version.content version in

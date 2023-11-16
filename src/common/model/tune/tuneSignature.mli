@@ -1,19 +1,25 @@
+(** {1 Tune} *)
+
 open Nes
 
 type t = TuneCore.t
 
-val slug : t -> t Slug.t Lwt.t
-val status : t -> Status.t Lwt.t
-val name : t -> string Lwt.t
-val alternative_names : t -> string list Lwt.t
-val kind : t -> Kind.Base.t Lwt.t
+(** {2 Field getters} *)
+
+val slug : t -> t Slug.t
+val status : t -> Status.t
+val name : t -> string
+val alternative_names : t -> string list
+val kind : t -> Kind.Base.t
 val author : t -> PersonCore.t option Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
-val remark : t -> string Lwt.t
-val scddb_id : t -> int option Lwt.t
+val remark : t -> string
+val scddb_id : t -> int option
+val modified_at : t -> Datetime.t
+val created_at  : t -> Datetime.t
 
-val compare : t -> t -> int Lwt.t
-val equal : t -> t -> bool Lwt.t
+val compare : t -> t -> int
+val equal : t -> t -> bool
 
 (** {2 Filters} *)
 

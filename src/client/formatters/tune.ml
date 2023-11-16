@@ -4,19 +4,18 @@ open Dancelor_client_html
 module M = Dancelor_client_model
 
 let name ?(link=true) tune =
-  let name_text = [L.txt (M.Tune.name tune)] in
+  let name_text = [txt @@ M.Tune.name tune] in
   if link then
-    let href =
-      let%lwt slug = M.Tune.slug tune in
-      Lwt.return PageRouter.(path (Tune slug))
-    in
-    Lwt.return [a ~a:[L.a_href href] name_text]
+    [
+      a
+        ~a:[a_href (PageRouter.path @@ PageRouter.Tune (M.Tune.slug tune))]
+        name_text
+    ]
   else
-    Lwt.return name_text
+    name_text
 
 let description tune =
-  let%lwt kind = M.Tune.kind tune in
-  let kind = M.Kind.Base.to_pretty_string kind in
+  let kind = M.Kind.Base.to_pretty_string @@ M.Tune.kind tune in
   let%lwt author = M.Tune.author tune in
   match author with
   | None ->
@@ -35,9 +34,6 @@ let description tune =
     )
 
 let aka tune =
-  match%lwt M.Tune.alternative_names tune with
-  | [] -> Lwt.return_nil
-  | names ->
-    Lwt.return [
-      txt (spf "Also known as %s" (String.concat ", " names))
-    ]
+  match M.Tune.alternative_names tune with
+  | [] -> []
+  | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]

@@ -62,12 +62,11 @@ let make_set_result ~prefix page set =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_tune_result ~prefix page tune =
-  let%lwt slug = Tune.slug tune in
-  let href = Lwt.return PageRouter.(path (Tune slug)) in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune) in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(Tune.name tune) page ;
-      Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Tune.name tune) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
           (Lwt.map Formatters.Person.name (Tune.author tune))
@@ -88,9 +87,8 @@ let make_version_result ~prefix page version =
       ) page;
       Table.Cell.text ~text:(
         let%lwt bars = Version.bars version in
-        let%lwt kind = Tune.kind tune in
         let%lwt structure = Version.structure version in
-        Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
+        Lwt.return (Kind.Version.to_string (bars, Tune.kind tune) ^ " (" ^ structure ^ ")")
       ) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
