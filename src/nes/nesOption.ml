@@ -1,8 +1,5 @@
 include Option
 
-let compose f1 f2 x =
-  bind (f1 x) f2
-
 let choose ~tie first second =
   match first, second with
   | None, None -> None

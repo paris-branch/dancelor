@@ -8,7 +8,6 @@ let (@@@@) f g x =
   | Error err -> Error err
 
 let (>>=?) = NesOption.bind
-let (>=>?) = NesOption.compose
 
 let (>>=|) = NesLwt.bind
 let (>=>|) = NesLwt.compose
