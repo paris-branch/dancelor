@@ -21,8 +21,6 @@ val unwrap_or : default:'a -> 'a t -> 'a
 
 val unwrap_map_or : default:'b -> ('a -> 'b) -> 'a t -> 'b
 
-val wrap_fun : ('a -> 'b) -> ('a -> 'b t)
-
 val ifsome : ('a -> unit) -> ('a t -> unit)
 val ifsome_lwt : ('a -> unit Lwt.t) -> ('a t -> unit Lwt.t)
 
