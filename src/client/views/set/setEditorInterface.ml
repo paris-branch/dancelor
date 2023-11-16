@@ -140,8 +140,7 @@ let refresh t =
     | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
     | Some cr ->
       let name = Person.name cr in
-      Lwt.on_success name (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
+      Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name
   end;
   begin match SetEditor.for_book t.composer with
     | None -> Inputs.Text.set_contents (SearchBar.bar t.book_search) ""
@@ -211,8 +210,8 @@ let make_person_modal composer content page =
 let make_deviser_search_result composer page score =
   let deviser = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Person.name deviser in
-  let%lwt slug = Person.slug deviser in
+  let name = Person.name deviser in
+  let slug = Person.slug deviser in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success

@@ -1,15 +1,27 @@
+(** {1 Person}
+
+    This module represents a “person”, in the wide definition. A person can be
+    an actual human person (eg. “William Marshall”), a group of people (eg. “The
+    Craigellachie Band”) or an abstract notion (eg. “Traditional” or “RSCDS”).
+    This is a notion similar to that of the SCDDB. *)
+
 open Nes
 
 type t = PersonCore.t
+(** Abstract type for a person. *)
 
-val slug : t -> t Slug.t Lwt.t
-val status : t -> Status.t Lwt.t
-val name : t -> string Lwt.t
-val scddb_id : t -> int option Lwt.t
+(** {2 Field getters} *)
+
+val slug : t -> t Slug.t
+val status : t -> Status.t
+val name : t -> string
+val scddb_id : t -> int option
+val modified_at : t -> Datetime.t
+val created_at : t -> Datetime.t
 
 val is_trad : t -> bool
 
-val equal : t -> t -> bool Lwt.t
+val equal : t -> t -> bool
 
 (** {2 Filters} *)
 
@@ -31,6 +43,8 @@ end
 (** {2 Getters and setters} *)
 
 val get : t Slug.t -> t Lwt.t
+(** Look up a person in the database given its slug. On the client-side, this
+    involves an API call. *)
 
 val make_and_save :
   ?status:Status.t ->

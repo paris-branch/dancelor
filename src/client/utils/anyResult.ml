@@ -10,11 +10,11 @@ module Html = Dom_html
 let js = Js.string
 
 let make_person_result ~prefix page person =
-  let%lwt slug = Person.slug person in
+  let slug = Person.slug person in
   let href = Lwt.return PageRouter.(path (Person slug)) in
   let cells =
     prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Person.name person) page
+      Table.Cell.text ~colspan:3 ~text:(Lwt.return @@ Person.name person) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)

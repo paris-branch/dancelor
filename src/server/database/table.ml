@@ -101,6 +101,25 @@ module type Model = sig
   val _key : string
 end
 
+(** {2 Compatibility layer for non-Lwt models} *)
+
+module type NonLwtModel = sig
+  type t
+  val slug : t -> t Slug.t
+  val status : t -> Dancelor_common_model.Status.t
+  val dependencies : t -> slug_and_table list Lwt.t
+  val standalone : bool
+  val to_yojson : t -> Json.t
+  val of_yojson : Json.t -> (t, string) result
+  val _key : string
+end
+
+module Lwtify (Model : NonLwtModel) : Model with type t = Model.t = struct
+  include Model
+  let slug = Lwt.return % Model.slug
+  let status = Lwt.return % Model.status
+end
+
 (** {2 Database Functor} *)
 
 module Make (Model : Model) : S with type value = Model.t = struct

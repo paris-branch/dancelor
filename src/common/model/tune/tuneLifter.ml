@@ -13,11 +13,7 @@ module Lift
     =
     let name = String.remove_duplicates ~char:' ' name in
     let alternative_names = Option.map (List.map (String.remove_duplicates ~char:' ')) alternative_names in
-    let%lwt author =
-      let%olwt author = Lwt.return author in
-      let%lwt author_slug = Person.slug author in
-      Lwt.return_some author_slug
-    in
+    let author = Option.map Person.slug author in
     let%lwt dances =
       let%olwt dances = Lwt.return dances in
       let%lwt dances =

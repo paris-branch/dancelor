@@ -12,13 +12,7 @@ module Lift
     =
     let name = String.remove_duplicates ~char:' ' name in
     let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
-    let%lwt deviser =
-      match deviser with
-      | None -> Lwt.return_none
-      | Some deviser ->
-        let%lwt deviser = Person.slug deviser in
-        Lwt.return_some deviser
-    in
+    let deviser = Option.map Person.slug deviser in
     Lwt.return (make
                   ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id
                   ?disambiguation ~modified_at ~created_at

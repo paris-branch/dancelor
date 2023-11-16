@@ -35,8 +35,7 @@ let refresh t =
     | None -> Inputs.Text.set_contents (SearchBar.bar t.arranger_search) ""
     | Some arranger ->
       let name = Person.name arranger in
-      Lwt.on_success name (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name)
+      Inputs.Text.set_contents (SearchBar.bar t.arranger_search) name
   end;
   Inputs.Text.set_contents t.input_bars (VersionEditor.bars t.editor);
   Inputs.Text.set_contents t.input_key (VersionEditor.key t.editor);
@@ -107,8 +106,8 @@ let make_arranger_modal editor content page =
 let make_arranger_search_result editor page score =
   let arranger = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Person.name arranger in
-  let%lwt slug = Person.slug arranger in
+  let name = Person.name arranger in
+  let slug = Person.slug arranger in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success

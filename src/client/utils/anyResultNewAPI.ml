@@ -24,7 +24,7 @@ let clickable_row ~href =
 
 let make_person_result ~prefix person =
   clickable_row
-    ~href:(Person.slug person >|= fun slug -> PageRouter.(path (Person slug)))
+    ~href:(Lwt.return @@ PageRouter.path @@ PageRouter.Person (Person.slug person))
     (
       prefix @ [
         L.td ~a:[a_colspan 3] (Formatters.Person.name (Some person));

@@ -14,11 +14,7 @@ module Lift
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
-    let%lwt deviser =
-      let%olwt deviser = Lwt.return deviser in
-      let%lwt deviser = Person.slug deviser in
-      Lwt.return_some deviser
-    in
+    let deviser = Option.map Person.slug deviser in
     let%lwt versions_and_parameters =
       let%olwt versions_and_parameters = Lwt.return versions_and_parameters in
       let%lwt versions_and_parameters =

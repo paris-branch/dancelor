@@ -2,12 +2,13 @@ open Nes
 
 module Model = Dancelor_common_model
 
-module Person = Table.Make (struct
-    include Model.PersonCore
+module Person = Table.Make (
+    Table.Lwtify (struct
+      include Model.PersonCore
 
-    let dependencies _ = Lwt.return []
-    let standalone = false
-  end)
+      let dependencies _ = Lwt.return []
+      let standalone = false
+    end))
 
 module Dance = Table.Make (struct
     include Model.DanceCore

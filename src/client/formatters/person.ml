@@ -6,10 +6,10 @@ let name ?(link=true) person =
   match person with
   | None -> Lwt.return_nil
   | Some person ->
-    let name_text = [L.txt (M.Person.name person)] in
+    let name_text = [txt (M.Person.name person)] in
     if link then
       let href_lwt =
-        let%lwt slug = M.Person.slug person in
+        let slug = M.Person.slug person in
         Lwt.return PageRouter.(path (Person slug))
       in
       Lwt.return [
