@@ -16,7 +16,7 @@ module Cell = struct
 
   let create ?width ?colspan ~content page =
     let cell = Html.createTd (Page.document page) in
-    NesOption.ifsome (fun i -> cell##.colSpan := i) colspan;
+    Option.iter (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
     Lwt.on_success content @@ JsHelpers.add_children cell;
     {page; root = cell}
@@ -32,7 +32,7 @@ module Cell = struct
   let header_text ?width ?colspan ?alt ~text page =
     (* Cell, span & style *)
     let cell = Html.createTh (Page.document page) in
-    NesOption.ifsome (fun i -> cell##.colSpan := i) colspan;
+    Option.iter (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
     (* Content *)
     begin match alt with
@@ -131,7 +131,7 @@ module Section = struct
 
   let clear t =
     JsHelpers.clear_children t.root;
-    NesOption.ifsome (fun h -> add t h) t.header
+    Option.iter (fun h -> add t h) t.header
 
   let replace_rows t rows =
     Lwt.on_success rows (fun rows ->
@@ -205,9 +205,9 @@ let create ?(visible=true) ?header ?contents ?kind page =
   let head = Html.createThead (Page.document page) in
   let table = {page; root; head} in
   Dom.appendChild root head;
-  NesOption.ifsome (fun h -> Dom.appendChild head (Row.root h)) header;
-  NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
-  NesOption.ifsome (fun contents ->
+  Option.iter (fun h -> Dom.appendChild head (Row.root h)) header;
+  Option.iter (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
+  Option.iter (fun contents ->
       let colspan =
         match header with
         | Some h -> Row.size h

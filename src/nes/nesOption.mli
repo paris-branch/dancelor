@@ -14,7 +14,6 @@ val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
 
 val compose : ('a -> 'b t) -> ('b -> 'c t) -> ('a -> 'c t)
 
-val ifsome : ('a -> unit) -> ('a t -> unit)
 val ifsome_lwt : ('a -> unit Lwt.t) -> ('a t -> unit Lwt.t)
 
 val choose : tie:('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
