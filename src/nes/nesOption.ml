@@ -1,10 +1,5 @@
 include Option
 
-let bind x f =
-  match x with
-  | Some x -> f x
-  | None -> None
-
 let compose f1 f2 x =
   bind (f1 x) f2
 
