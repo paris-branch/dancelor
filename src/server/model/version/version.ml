@@ -72,7 +72,7 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   >>=| Score.(list_proj_sort_decreasing [
       increasing (tune >=>| Tune.name) String.Sensible.compare
     ])
-  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
+  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
 
 let () =
   Madge_server.(

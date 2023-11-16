@@ -39,7 +39,7 @@ let search ?pagination ?(threshold=Float.min_float) filter =
       increasing subtitle String.Sensible.compare ;
       increasing subtitle String.compare_lengths ;
     ])
-  >>=| Option.unwrap_map_or ~default:Lwt.return Pagination.apply pagination
+  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
 
 let () =
   Madge_server.(
