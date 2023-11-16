@@ -28,7 +28,7 @@ let make_dance_result ~prefix page dance =
       Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Dance.deviser dance >>= Formatters.Person.name)
+          (Lwt.map Formatters.Person.name (Dance.deviser dance))
       ) page ;
     ]
   in
@@ -56,7 +56,7 @@ let make_set_result ~prefix page set =
       Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Set.deviser set >>= Formatters.Person.name)
+          (Lwt.map Formatters.Person.name (Set.deviser set))
       ) page;
     ]
   in
@@ -71,7 +71,7 @@ let make_tune_result ~prefix page tune =
       Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Tune.author tune >>= Formatters.Person.name)
+          (Lwt.map Formatters.Person.name (Tune.author tune))
       ) page ;
     ]
   in

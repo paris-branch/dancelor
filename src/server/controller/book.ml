@@ -161,11 +161,9 @@ module Ly = struct
           if not (set_parameters |> Model.SetParameters.show_deviser) then
             Lwt.return ""
           else
-            (match%lwt Model.Set.deviser set with
-             | None -> Lwt.return ""
-             | Some deviser ->
-               let deviser = Model.Person.name deviser in
-               Lwt.return (spf "Set by %s" deviser))
+            Lwt.map
+              (Option.fold ~none:"" ~some:(spf "Set by %s" % Model.Person.name))
+              (Model.Set.deviser set)
         in
         let%lwt kind = kind set set_parameters in
         let%lwt details_line = details_line set set_parameters in
@@ -202,9 +200,7 @@ module Ly = struct
             |> Option.value ~default:name
           in
           let%lwt author =
-            match%lwt Model.Tune.author tune with
-            | None -> Lwt.return ""
-            | Some author -> Lwt.return @@ Model.Person.name author
+            Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.author tune)
           in
           let author =
             version_parameters

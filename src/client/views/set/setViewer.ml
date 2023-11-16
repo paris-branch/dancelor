@@ -40,9 +40,7 @@ let create slug page =
       L.h3 ~a:[a_class ["title"]] (
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
-        | Some deviser ->
-          let%lwt name_block = Formatters.Person.name ~link:true (Some deviser) in
-          Lwt.return (txt "Set devised by " :: name_block)
+        | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
       );
 
       download_dialog;

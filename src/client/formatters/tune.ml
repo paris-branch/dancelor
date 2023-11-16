@@ -28,7 +28,7 @@ let description tune =
       txt ("Traditional " ^ kind)
     ]
   | Some author ->
-    let%lwt name_block = Person.name ~link:true (Some author) in
+    let name_block = Person.name ~link:true (Some author) in
     Lwt.return (
       [txt (String.capitalize_ascii kind ^ " by ")]
       @ name_block

@@ -37,9 +37,7 @@ let create slug page =
         let%lwt by =
           match%lwt dance_lwt >>=| Dance.deviser with
           | None -> Lwt.return_nil
-          | Some deviser ->
-            let%lwt name = Formatters.Person.name ~link:true (Some deviser) in
-            Lwt.return (txt " by " :: name)
+          | Some deviser -> Lwt.return (txt " by " :: Formatters.Person.name ~link:true (Some deviser))
         in
         Lwt.return (kind @ by)
       );
