@@ -67,8 +67,9 @@ let list_map_lwt_p f =
 let list_map_filter f =
   List.map_filter
     (fun score ->
-       f score.value >>=? fun value ->
-       Some { score with value })
+       Option.bind
+         (f score.value)
+         (fun value -> Some { score with value }))
 
 let list_map_score f (l : 'a t list) : 'a t list Lwt.t =
   Lwt_list.map_s

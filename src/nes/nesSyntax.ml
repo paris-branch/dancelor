@@ -7,8 +7,6 @@ let (@@@@) f g x =
   | Ok y -> Ok (f y)
   | Error err -> Error err
 
-let (>>=?) = NesOption.bind
-
 let (>>=|) = NesLwt.bind
 let (>=>|) = NesLwt.compose
 let (>|=|) p f = NesLwt.map f p

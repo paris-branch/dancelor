@@ -1,5 +1,3 @@
-open NesSyntax
-
 type t = Yojson.Safe.t
 
 let add_field key value = function
@@ -49,8 +47,7 @@ let find path json =
   | Some json -> json
 
 let get_opt ~k path json =
-  find_opt path json >>=? fun value ->
-  k value
+  Option.bind (find_opt path json) k
 
 let get ~k path json =
   match get_opt ~k path json with
@@ -71,16 +68,18 @@ let int = function
   | _ -> None
 
 let slug json =
-  string json >>=? fun value ->
-  Some (NesSlug.from_string value)
+  Option.bind (string json) (fun value -> Some (NesSlug.from_string value))
 
 let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option =
   function
   | [] -> Some []
   | x :: l ->
-    f x >>=? fun x' ->
-    list_map_opt f l >>=? fun l' ->
-    Some (x' :: l')
+    Option.bind
+      (f x)
+      (fun x' ->
+         Option.bind
+           (list_map_opt f l)
+           (fun l' -> Some (x' :: l')))
 
 let strings = function
   | `List values -> list_map_opt string values

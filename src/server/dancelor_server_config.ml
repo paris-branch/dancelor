@@ -20,8 +20,9 @@ let loglevel_of_string = function
   | _ -> assert false
 
 let loglevel_of_json_string json =
-  Json.string json >>=? fun s ->
-  Some (loglevel_of_string s)
+  Option.bind
+    (Json.string json)
+    (Option.some % loglevel_of_string)
 
 let loglevel_to_string = function
   | Logs.Error -> "error"
