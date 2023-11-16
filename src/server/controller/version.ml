@@ -18,7 +18,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   let name =
     parameters
     |> Model.VersionParameters.display_name
-    |> Option.unwrap_or ~default:name
+    |> Option.value ~default:name
   in
   let%lwt author =
     match%lwt Model.Tune.author tune with
@@ -28,7 +28,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   let author =
     parameters
     |> Model.VersionParameters.display_author
-    |> Option.unwrap_or ~default:author
+    |> Option.value ~default:author
   in
   let title, piece =
     if show_meta then

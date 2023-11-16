@@ -8,10 +8,6 @@ let bind x f =
 let compose f1 f2 x =
   bind (f1 x) f2
 
-let unwrap_or ~default = function
-  | None -> default
-  | Some x -> x
-
 let unwrap_map_or ~default f = function
   | None -> default
   | Some x -> f x

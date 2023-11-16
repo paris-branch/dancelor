@@ -15,8 +15,6 @@ val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
 val bind : 'a t -> ('a -> 'b t) -> 'b t
 val compose : ('a -> 'b t) -> ('b -> 'c t) -> ('a -> 'c t)
 
-val unwrap_or : default:'a -> 'a t -> 'a
-
 val unwrap_map_or : default:'b -> ('a -> 'b) -> 'a t -> 'b
 
 val ifsome : ('a -> unit) -> ('a t -> unit)

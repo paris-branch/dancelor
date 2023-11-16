@@ -71,7 +71,7 @@ module Ly = struct
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/book/globals.ly"]
-        title (Option.unwrap_or ~default:"" (Model.BookParameters.instruments parameters));
+        title (Option.value ~default:"" (Model.BookParameters.instruments parameters));
       fpf fmt [%blob "template/paper.ly"];
 
       fpf fmt [%blob "template/book/paper.ly"];
@@ -121,12 +121,12 @@ module Ly = struct
             let name =
               parameters
               |> Model.VersionParameters.display_name
-              |> Option.unwrap_or ~default:name
+              |> Option.value ~default:name
             in
             let trivia =
               parameters
               |> Model.VersionParameters.trivia
-              |> Option.unwrap_or ~default:" "
+              |> Option.value ~default:" "
             in
             let%lwt bars = Model.Version.bars version in
             let%lwt kind = Model.Tune.kind tune in
@@ -155,7 +155,7 @@ module Ly = struct
         let name =
           set_parameters
           |> Model.SetParameters.display_name
-          |> Option.unwrap_or ~default:name
+          |> Option.value ~default:name
         in
         let%lwt deviser =
           if not (set_parameters |> Model.SetParameters.show_deviser) then
@@ -199,7 +199,7 @@ module Ly = struct
           let name =
             version_parameters
             |> Model.VersionParameters.display_name
-            |> Option.unwrap_or ~default:name
+            |> Option.value ~default:name
           in
           let%lwt author =
             match%lwt Model.Tune.author tune with
@@ -209,7 +209,7 @@ module Ly = struct
           let author =
             version_parameters
             |> Model.VersionParameters.display_author
-            |> Option.unwrap_or ~default:author
+            |> Option.value ~default:author
           in
           let first_bar =
             version_parameters
