@@ -24,8 +24,6 @@ let unwrap_map_or ~default f = function
   | None -> default
   | Some x -> f x
 
-let wrap x = Some x
-
 let wrap_fun f =
   fun x -> Some (f x)
 
