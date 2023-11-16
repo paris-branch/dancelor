@@ -16,7 +16,6 @@ val bind : 'a t -> ('a -> 'b t) -> 'b t
 val compose : ('a -> 'b t) -> ('b -> 'c t) -> ('a -> 'c t)
 val map : ('a -> 'b) -> ('a t -> 'b t)
 
-val unwrap : 'a t -> 'a
 val unwrap_or : default:'a -> 'a t -> 'a
 
 val unwrap_map_or : default:'b -> ('a -> 'b) -> 'a t -> 'b

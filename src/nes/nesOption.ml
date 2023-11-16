@@ -12,10 +12,6 @@ let map f = function
   | None -> None
   | Some x -> Some (f x)
 
-let unwrap = function
-  | Some x -> x
-  | None -> failwith "NesOption.unwrap"
-
 let unwrap_or ~default = function
   | None -> default
   | Some x -> x

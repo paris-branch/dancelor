@@ -40,13 +40,13 @@ let make
     ~forced_pages ~show_deviser ~show_order
     ~display_name ~for_dance ?every_version ()
 
-let forced_pages p = Option.unwrap p.forced_pages
+let forced_pages p = Option.get p.forced_pages
 let for_dance    p = p.for_dance
 let display_name p = p.display_name
-let show_deviser p = Option.unwrap p.show_deviser
-let show_order   p = Option.unwrap p.show_order
+let show_deviser p = Option.get p.show_deviser
+let show_order   p = Option.get p.show_order
 let order_type   p = p.order_type
-let paper_size   p = Option.unwrap p.paper_size
+let paper_size   p = Option.get p.paper_size
 let paper_size_opt p = p.paper_size
 
 let every_version p = p.every_version
