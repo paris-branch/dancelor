@@ -25,9 +25,6 @@ val fail : 'a -> 'a -> 'a
 val second : 'a -> 'a -> 'a
 (** For {!NesOption.choose}'s [tie] argument. Takes the second argument. *)
 
-val assert_ : bool -> unit t
-(** [None] if [false], [Some ()] if [true]. *)
-
 val concat : ('a -> 'a -> 'a) -> 'a option -> 'a option -> 'a option
 (** Concatenation of the monoid given the concatenation of the embedded one. *)
 

@@ -3,8 +3,6 @@ include Option
 let compose f1 f2 x =
   bind (f1 x) f2
 
-let assert_ b = if b then Some () else None
-
 let choose ~tie first second =
   match first, second with
   | None, None -> None
