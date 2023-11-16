@@ -25,9 +25,6 @@ val fail : 'a -> 'a -> 'a
 val second : 'a -> 'a -> 'a
 (** For {!NesOption.choose}'s [tie] argument. Takes the second argument. *)
 
-val assert_some : 'a t -> 'a t
-(** Fails when = None *)
-
 val assert_ : bool -> unit t
 (** [None] if [false], [Some ()] if [true]. *)
 
