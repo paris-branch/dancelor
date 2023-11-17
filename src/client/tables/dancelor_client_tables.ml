@@ -27,7 +27,7 @@ let map_table ~header list fun_ =
 
 let books books =
   map_table ~header:[ "Book"; "Date" ] books @@ fun book ->
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Book (Book.slug book) in
+  let href = Lwt.return @@ PageRouter.path_book @@ Book.slug book in
   clickable_row ~href [
     (Lwt.return @@ Formatters.Book.title_and_subtitle book);
     Lwt.return [txt @@ Option.fold ~none:"" ~some:PartialDate.to_pretty_string @@ Book.date book]
@@ -35,7 +35,7 @@ let books books =
 
 let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set) in
+  let href = Lwt.return @@ PageRouter.path_set @@ Set.slug set in
   clickable_row ~href [
     (Formatters.Set.name_and_tunes ~link:true set);
     (Lwt.map Formatters.Person.name (Set.deviser set));
@@ -44,7 +44,7 @@ let sets sets =
 
 let dances dances =
   map_table ~header:["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Dance (Dance.slug dance) in
+  let href = Lwt.return @@ PageRouter.path_dance @@ Dance.slug dance in
   clickable_row ~href [
     (Lwt.return @@ Formatters.Dance.name dance);
     (Lwt.map Formatters.Person.name (Dance.deviser dance));
@@ -53,7 +53,7 @@ let dances dances =
 
 let tunes tunes =
   map_table ~header:["Name"; "Kind"; "Author"] tunes @@ fun tune ->
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune) in
+  let href = Lwt.return @@ PageRouter.path_tune @@ Tune.slug tune in
   clickable_row ~href [
     (Lwt.return @@ Formatters.Tune.name tune);
     Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
@@ -64,7 +64,7 @@ let versions versions =
   map_table ~header:[ "Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure" ]
     versions @@ fun version ->
   let tune_lwt = Version.tune version in
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
+  let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in
   clickable_row ~href [
     (Formatters.Version.disambiguation_and_sources version);
     (Lwt.map Formatters.Person.name (Version.arranger version));
@@ -77,7 +77,7 @@ let versions_with_names versions =
   map_table ~header:[ "Name"; "Kind"; "Key"; "Structure" ]
     versions @@ fun version ->
   let tune_lwt = Version.tune version in
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
+  let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in
   clickable_row ~href [
     Lwt.return [L.txt @@ Lwt.map Tune.name tune_lwt];
     (tune_lwt >>=| Formatters.Kind.full_string version);

@@ -44,7 +44,7 @@ let create page =
               (Book.search Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun book ->
-                    let href = Lwt.return @@ PageRouter.path @@ PageRouter.Book (Book.slug book) in
+                    let href = Lwt.return @@ PageRouter.path_book @@ Book.slug book in
                     Dancelor_client_tables.clickable_row ~href [
                       (Lwt.return @@ Formatters.Book.title_and_subtitle book);
                       (Lwt.return @@ List.singleton @@ txt @@ Option.fold ~none:"" ~some:PartialDate.to_pretty_string (Book.date book));

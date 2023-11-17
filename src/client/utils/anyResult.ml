@@ -9,8 +9,7 @@ module Html = Dom_html
 let js = Js.string
 
 let make_person_result ~prefix page person =
-  let slug = Person.slug person in
-  let href = Lwt.return PageRouter.(path (Person slug)) in
+  let href = Lwt.return @@ PageRouter.path_person @@ Person.slug person in
   let cells =
     prefix @ [
       Table.Cell.text ~colspan:3 ~text:(Lwt.return @@ Person.name person) page
@@ -19,7 +18,7 @@ let make_person_result ~prefix page person =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_dance_result ~prefix page dance =
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Dance (Dance.slug dance) in
+  let href = Lwt.return @@ PageRouter.path_dance @@ Dance.slug dance in
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Lwt.return @@ Dance.name dance) page ;
@@ -33,7 +32,7 @@ let make_dance_result ~prefix page dance =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_book_result ~prefix page book =
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Book (Book.slug book) in
+  let href = Lwt.return @@ PageRouter.path_book @@ Book.slug book in
   let cells =
     prefix @ [
       Table.Cell.create ~colspan:3 ~content:(
@@ -45,7 +44,7 @@ let make_book_result ~prefix page book =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_set_result ~prefix page set =
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set) in
+  let href = Lwt.return @@ PageRouter.path_set @@ Set.slug set in
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Lwt.return @@ Set.name set) page;
@@ -59,7 +58,7 @@ let make_set_result ~prefix page set =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_tune_result ~prefix page tune =
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune) in
+  let href = Lwt.return @@ PageRouter.path_tune @@ Tune.slug tune in
   let cells =
     prefix @ [
       Table.Cell.text ~text:(Lwt.return @@ Tune.name tune) page ;
@@ -73,7 +72,7 @@ let make_tune_result ~prefix page tune =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_version_result ~prefix page version =
-  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
+  let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [

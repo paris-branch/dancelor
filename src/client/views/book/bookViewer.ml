@@ -84,7 +84,7 @@ let table_contents contents =
           (function
             | Book.Set (set, parameters) ->
               (
-                let href = Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set) in
+                let href = Lwt.return @@ PageRouter.path_set @@ Set.slug set in
                 Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Set"];
                   (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
@@ -103,7 +103,7 @@ let table_contents contents =
 
             | Version (version, parameters) ->
               (
-                let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
+                let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in
                 Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Tune"];
                   (Formatters.Version.name_and_dance ~link:false version parameters);

@@ -8,7 +8,7 @@ let name ?(link=true) tune =
   if link then
     [
       a
-        ~a:[a_href (PageRouter.path @@ PageRouter.Tune (M.Tune.slug tune))]
+        ~a:[a_href @@ PageRouter.path_tune @@ M.Tune.slug tune]
         name_text
     ]
   else

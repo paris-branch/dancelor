@@ -58,9 +58,7 @@ let create slug page =
           (* If there is only one version, redirect directly to it. *)
           (
             match versions with
-            | [version] ->
-              let href = PageRouter.path @@ PageRouter.Version (Version.slug version) in
-              Dom_html.window##.location##.href := js href;
+            | [version] -> Dom_html.window##.location##.href := js (PageRouter.path_version @@ Version.slug version);
             | _ -> ()
           );
 

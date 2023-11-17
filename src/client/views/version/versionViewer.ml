@@ -94,8 +94,7 @@ let create slug page =
               a_onclick
                 (fun _ ->
                    SetEditor.add_to_storage slug;
-                   let href = PageRouter.(path SetCompose) in
-                   Dom_html.window##.location##.href := js href;
+                   Dom_html.window##.location##.href := js PageRouter.(path SetCompose);
                    false
                 );
             ]
@@ -161,15 +160,10 @@ let create slug page =
               [
                 Dancelor_client_tables.versions other_versions;
 
-                let href_lwt =
-                  let%lwt tune = tune_lwt in
-                  Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune)
-                in
                 p [
                   txt "You can also go to the ";
-                  a ~a:[L.a_href href_lwt] [
-                    txt "page of the tune"
-                  ];
+                  a ~a:[L.a_href @@ Lwt.map (PageRouter.path_tune % Tune.slug) tune_lwt]
+                    [txt "page of the tune"];
                   txt "."
                 ]
               ]
@@ -219,17 +213,14 @@ let create slug page =
         );
 
         L.div (
-          match%lwt other_versions_lwt with
-          | [] -> Lwt.return_nil
-          | _ -> Lwt.return [
-              let href_lwt =
-                let%lwt tune = tune_lwt in
-                Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune)
-              in
+          Fun.flip Lwt.map other_versions_lwt @@ function
+          | [] -> []
+          | _ -> [
               p [
                 txt "If you want to see the sets in which this version or ";
                 txt "any other appear, go to the ";
-                a ~a:[L.a_href href_lwt] [txt "page of the tune"];
+                a ~a:[L.a_href @@ Lwt.map (PageRouter.path_tune % Tune.slug) tune_lwt]
+                  [txt "page of the tune"];
                 txt "."
               ]
             ]
@@ -256,19 +247,14 @@ let create slug page =
         );
 
         L.div (
-          match%lwt other_versions_lwt with
-          | [] -> Lwt.return_nil
-          | _ -> Lwt.return [
-              let href_lwt =
-                let%lwt tune = tune_lwt in
-                Lwt.return @@ PageRouter.path @@ PageRouter.Tune (Tune.slug tune)
-              in
+          Fun.flip Lwt.map other_versions_lwt @@ function
+          | [] -> []
+          | _ -> [
               p [
                 txt "If you want to see the books in which this version or ";
                 txt "any other appear, go to the ";
-                a ~a:[L.a_href href_lwt] [
-                  txt "page of the tune"
-                ];
+                a ~a:[L.a_href @@ Lwt.map (PageRouter.path_tune % Tune.slug) tune_lwt]
+                  [txt "page of the tune"];
                 txt "."
               ]
             ]

@@ -7,7 +7,7 @@ let name ?(link=true) dance =
   if link then
     [
       a
-        ~a:[a_href @@ PageRouter.path @@ PageRouter.Dance (M.Dance.slug dance)]
+        ~a:[a_href @@ PageRouter.path_dance @@ M.Dance.slug dance]
         name_text
     ]
   else

@@ -143,7 +143,7 @@ let update_table t =
       >|=| Score.list_erase
     in
     Lwt.return (List.map (fun version ->
-        let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
+        let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in
         let cells =
           let tune = Version.tune version in
           let open Lwt in [

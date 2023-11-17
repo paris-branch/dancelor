@@ -78,3 +78,14 @@ let path page =
   Madge_router.resource_to_request page routes
   |> Madge_router.request_to_uri
   |> Uri.to_string
+
+(* Shorter versions for when we want immediately a path, which is the case the
+   majority of the time. *)
+let path_book = path % book
+let path_bookEdit = path % bookEdit
+let path_person = path % person
+let path_dance = path % dance
+let path_search = path % search
+let path_set = path % set
+let path_tune = path % tune
+let path_version = path % version

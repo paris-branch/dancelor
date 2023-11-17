@@ -10,7 +10,7 @@ let name ?(link=true) person =
     if link then
       [
         a
-          ~a:[a_href (PageRouter.path (PageRouter.Person (M.Person.slug person)))]
+          ~a:[a_href @@ PageRouter.path_person @@ M.Person.slug person]
           name_text
       ]
     else
