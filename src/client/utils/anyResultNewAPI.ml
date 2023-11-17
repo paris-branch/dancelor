@@ -8,6 +8,9 @@ module Html = Dom_html
 
 let js = Js.string
 
+(* FIXME: this is very similar to [Dancelor_client_tables.clickable_row]; those
+   two should be merged in a common notion (probably that ot
+   [Dancelor_client_tables]). *)
 let clickable_row ~href =
   tr
     ~a:[
@@ -15,15 +18,14 @@ let clickable_row ~href =
       a_onclick
         (fun _ ->
            let open Js_of_ocaml in
-           Lwt.on_success href (fun href ->
-               Dom_html.window##.location##.href := Js.string href);
+           Dom_html.window##.location##.href := Js.string href;
            true
         );
     ]
 
 let make_person_result ~prefix person =
   clickable_row
-    ~href:(Lwt.return @@ PageRouter.path_person @@ Person.slug person)
+    ~href:(PageRouter.path_person @@ Person.slug person)
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name (Some person));
@@ -32,7 +34,7 @@ let make_person_result ~prefix person =
 
 let make_dance_result ~prefix dance =
   clickable_row
-    ~href:(Lwt.return @@ PageRouter.path_dance @@ Dance.slug dance)
+    ~href:(PageRouter.path_dance @@ Dance.slug dance)
     (
       prefix @ [
         td [txt (Dance.name dance)];
@@ -42,9 +44,8 @@ let make_dance_result ~prefix dance =
     )
 
 let make_book_result ~prefix book =
-  (* FIXME: clickable_row probably doesn't need an Lwt for the href anymore. *)
   clickable_row
-    ~href:(Lwt.return @@ PageRouter.path_book @@ Book.slug book)
+    ~href:(PageRouter.path_book @@ Book.slug book)
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Book.title_and_subtitle book);
@@ -53,7 +54,7 @@ let make_book_result ~prefix book =
 
 let make_set_result ~prefix set =
   clickable_row
-    ~href:(Lwt.return @@ PageRouter.path_set @@ Set.slug set)
+    ~href:(PageRouter.path_set @@ Set.slug set)
     (
       prefix @ [
         td [txt @@ Set.name set];
@@ -64,7 +65,7 @@ let make_set_result ~prefix set =
 
 let make_tune_result ~prefix tune =
   clickable_row
-    ~href:(Lwt.return @@ PageRouter.path_tune @@ Tune.slug tune)
+    ~href:(PageRouter.path_tune @@ Tune.slug tune)
     (
       prefix @ [
         td [txt @@ Tune.name tune];
@@ -75,7 +76,7 @@ let make_tune_result ~prefix tune =
 
 let make_version_result ~prefix version =
   clickable_row
-    ~href:(Lwt.return @@ PageRouter.path_version @@ Version.slug version)
+    ~href:(PageRouter.path_version @@ Version.slug version)
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);
