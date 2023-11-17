@@ -76,29 +76,23 @@ let versions versions =
   map_table ~header:[ "Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure" ]
     versions @@ fun version ->
   let tune_lwt = Version.tune version in
-  let href =
-    let%lwt slug = Version.slug version in
-    Lwt.return PageRouter.(path (Version slug))
-  in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
   clickable_row ~href [
     (Formatters.Version.disambiguation_and_sources version);
     (Lwt.map Formatters.Person.name (Version.arranger version));
     (tune_lwt >>=| Formatters.Kind.full_string version);
-    Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
-    Lwt.return [L.txt (Version.structure version)];
+    Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
+    Lwt.return [txt @@ Version.structure version];
   ]
 
 let versions_with_names versions =
   map_table ~header:[ "Name"; "Kind"; "Key"; "Structure" ]
     versions @@ fun version ->
   let tune_lwt = Version.tune version in
-  let href =
-    let%lwt slug = Version.slug version in
-    Lwt.return PageRouter.(path (Version slug))
-  in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
   clickable_row ~href [
     Lwt.return [L.txt @@ Lwt.map Tune.name tune_lwt];
     (tune_lwt >>=| Formatters.Kind.full_string version);
-    Lwt.return [L.txt (Version.key version >|=| Music.key_to_pretty_string)];
-    Lwt.return [L.txt (Version.structure version)];
+    Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
+    Lwt.return [txt @@ Version.structure version];
   ]

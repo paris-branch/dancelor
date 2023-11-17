@@ -24,8 +24,8 @@ let name_and_tunes ?link ?tunes_link set =
   let%lwt name = name ?link set in
   let%lwt versions =
     let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
-    let%lwt versions =
-      Lwt_list.map_p
+    let versions =
+      List.map
         (fun (version, _) -> Version.name ?link:tunes_link version)
         versions_and_parameters
     in

@@ -2,16 +2,21 @@ open Nes
 
 type t = VersionCore.t
 
-val slug : t -> t Slug.t Lwt.t
-val status : t -> Status.t Lwt.t
+
+
+val slug : t -> t Slug.t
+val status : t -> Status.t
 val tune : t -> TuneCore.t Lwt.t
-val bars : t -> int Lwt.t
-val key : t -> Music.key Lwt.t
-val structure : t -> string Lwt.t
+val bars : t -> int
+val key : t -> Music.key
+val structure : t -> string
+val sources : t -> string list
 val arranger : t -> PersonCore.t option Lwt.t
-val remark : t -> string Lwt.t
-val disambiguation : t -> string Lwt.t
-val broken : t -> bool Lwt.t
+val remark : t -> string
+val disambiguation : t -> string
+val broken : t -> bool
+val modified_at : t -> Datetime.t
+val created_at  : t -> Datetime.t
 
 val content : t -> string Lwt.t
 
@@ -21,7 +26,7 @@ val kind : t -> Kind.Version.t Lwt.t
 val name : t -> string Lwt.t
 (** Convenient wrapper around {!tune} and {!Tune.name}. *)
 
-val equal : t -> t -> bool Lwt.t
+val equal : t -> t -> bool
 
 (** {2 Filters} *)
 

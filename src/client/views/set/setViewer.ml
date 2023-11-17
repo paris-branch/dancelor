@@ -73,7 +73,7 @@ let create slug page =
             (fun (version, _parameters) ->
                (* FIXME: use parameters *)
                let%lwt tune = Version.tune version in
-               let%lwt slug = Version.slug version in
+               let slug = Version.slug version in
 
                Lwt.return (
                  div ~a:[a_class ["image-container"]]

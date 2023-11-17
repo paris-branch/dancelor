@@ -94,8 +94,7 @@ let () =
   )
 
 let mark_fixed version =
-  let%lwt version = set_broken version false in
-  Dancelor_server_database.Version.update version
+  Dancelor_server_database.Version.update (set_broken version false)
 
 let () =
   Madge_server.(
@@ -104,8 +103,7 @@ let () =
   )
 
 let mark_broken version =
-  let%lwt version = set_broken version true in
-  Dancelor_server_database.Version.update version
+  Dancelor_server_database.Version.update (set_broken version true)
 
 let () =
   Madge_server.(

@@ -120,12 +120,11 @@ module Ly = struct
               |> Model.VersionParameters.trivia
               |> Option.value ~default:" "
             in
-            let%lwt bars = Model.Version.bars version in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let%lwt set =
               Model.Set.make
                 ~name
-                ~kind:(Model.Kind.Dance.Version (bars, Model.Tune.kind tune))
+                ~kind:(Model.Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
                 ~versions_and_parameters:[version, parameters]
                 ~order:[Internal 1]
                 ~modified_at:(NesDatetime.now ())
@@ -183,7 +182,7 @@ module Ly = struct
               Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_string clef_parameter) content
           in
           let%lwt tune = Model.Version.tune version in
-          let%lwt key = Model.Version.key version in
+          let key = Model.Version.key version in
           let name =
             version_parameters
             |> Model.VersionParameters.display_name

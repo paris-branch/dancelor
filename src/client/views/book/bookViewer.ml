@@ -109,19 +109,13 @@ let table_contents contents =
 
             | Version (version, parameters) ->
               (
-                let slug = Version.slug version in
-                let href =
-                  let%lwt slug = slug in
-                  Lwt.return PageRouter.(path (Version slug))
-                in
+                let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
                 Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Tune"];
                   (Formatters.Version.name_and_dance ~link:false version parameters);
                   Lwt.return [L.txt (
                       let%lwt tune = Version.tune version in
-                      let%lwt bars = Version.bars version in
-                      let kind = (bars, Tune.kind tune) in
-                      Lwt.return (Kind.Version.to_string kind)
+                      Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
                     )];
                 ]
               )

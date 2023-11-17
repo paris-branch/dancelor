@@ -76,8 +76,7 @@ let make_tune_result ~prefix page tune =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_version_result ~prefix page version =
-  let%lwt slug = Version.slug version in
-  let href = Lwt.return PageRouter.(path (Version slug)) in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [
@@ -86,8 +85,8 @@ let make_version_result ~prefix page version =
           (Formatters.Version.name_and_disambiguation ~link:false version)
       ) page;
       Table.Cell.text ~text:(
-        let%lwt bars = Version.bars version in
-        let%lwt structure = Version.structure version in
+        let bars = Version.bars version in
+        let structure = Version.structure version in
         Lwt.return (Kind.Version.to_string (bars, Tune.kind tune) ^ " (" ^ structure ^ ")")
       ) page ;
       Table.Cell.create ~content:(

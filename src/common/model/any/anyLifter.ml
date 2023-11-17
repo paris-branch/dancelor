@@ -17,7 +17,7 @@ module Lift
     |    Book b1,    Book b2 ->    Book.equal b1 b2
     |     Set s1,     Set s2 ->     Set.equal s1 s2
     |    Tune t1,    Tune t2 -> Lwt.return @@ Tune.equal t1 t2
-    | Version v1, Version v2 -> Version.equal v1 v2
+    | Version v1, Version v2 -> Lwt.return @@ Version.equal v1 v2
     | _ -> Lwt.return_false
 
   module Type = struct

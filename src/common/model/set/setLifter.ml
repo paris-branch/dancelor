@@ -15,17 +15,7 @@ module Lift
     =
     let name = String.remove_duplicates ~char:' ' name in
     let deviser = Option.map Person.slug deviser in
-    let%lwt versions_and_parameters =
-      let%olwt versions_and_parameters = Lwt.return versions_and_parameters in
-      let%lwt versions_and_parameters =
-        Lwt_list.map_s
-          (fun (version, parameters) ->
-             let%lwt slug = Version.slug version in
-             Lwt.return (slug, parameters))
-          versions_and_parameters
-      in
-      Lwt.return_some versions_and_parameters
-    in
+    let versions_and_parameters = Option.map (List.map (fun (version, parameters) -> (Version.slug version, parameters))) versions_and_parameters in
     let dances = Option.map (List.map Dance.slug) dances in
     Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters
                   ~order ?dances ~modified_at ~created_at
@@ -95,8 +85,7 @@ module Lift
     let%lwt () =
       Lwt_list.iter_s
         (fun version ->
-           let%lwt version_bars = Version.bars version in
-           if version_bars <> bars then
+           if Version.bars version <> bars then
              add_warning (WrongVersionBars version);
            let%lwt tune = Version.tune version in
            if Tune.kind tune <> kind then

@@ -75,15 +75,15 @@ let make_tune_result ~prefix tune =
 
 let make_version_result ~prefix version =
   clickable_row
-    ~href:(Version.slug version >|= fun slug -> PageRouter.(path (Version slug)))
+    ~href:(Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version))
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);
         td [
           L.txt (
-            let%lwt bars = Version.bars version in
+            let bars = Version.bars version in
             let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
-            let%lwt structure = Version.structure version in
+            let structure = Version.structure version in
             Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
           )
         ];

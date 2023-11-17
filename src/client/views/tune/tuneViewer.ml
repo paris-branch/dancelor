@@ -56,16 +56,13 @@ let create slug page =
           let%lwt versions = versions_lwt in
 
           (* If there is only one version, redirect directly to it. *)
-          if List.length versions = 1 then
-            (
-              Lwt.async @@ fun () ->
-              let%lwt href =
-                let%lwt slug = Version.slug (List.hd versions) in
-                Lwt.return PageRouter.(path (Version slug))
-              in
+          (
+            match versions with
+            | [version] ->
+              let href = PageRouter.path @@ PageRouter.Version (Version.slug version) in
               Dom_html.window##.location##.href := js href;
-              Lwt.return_unit
-            );
+            | _ -> ()
+          );
 
           Lwt.return [Dancelor_client_tables.versions versions]
         )

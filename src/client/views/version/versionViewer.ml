@@ -129,7 +129,7 @@ let create slug page =
       ];
 
       L.div ~a:[a_class ["buttons"]] (
-        let%lwt is_broken = version_lwt >>=| Version.broken in
+        let%lwt is_broken = Lwt.map Version.broken version_lwt in
 
         Lwt.return [
           button ~a:[

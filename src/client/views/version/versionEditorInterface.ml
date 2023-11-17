@@ -236,9 +236,8 @@ let create page =
           in
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (VersionEditor.submit editor) (fun version ->
-                Lwt.on_success (Version.slug version) (fun slug ->
-                    let href = PageRouter.(path (Version slug)) in
-                    Html.window##.location##.href := js href))))
+                let href = PageRouter.path @@ PageRouter.Version (Version.slug version) in
+                Html.window##.location##.href := js href)))
       page
   in
   let clear =

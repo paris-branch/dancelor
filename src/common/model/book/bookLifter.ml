@@ -89,8 +89,7 @@ module Lift
 
   let page_to_page_core = function
     | (Version (version, params) : page) ->
-      let%lwt slug = Version.slug version in
-      Lwt.return @@ PageCore.Version (slug, params)
+      Lwt.return @@ PageCore.Version (Version.slug version, params)
     | (Set (set, params) : page) ->
       let%lwt slug = Set.slug set in
       Lwt.return @@ PageCore.Set (slug, params)

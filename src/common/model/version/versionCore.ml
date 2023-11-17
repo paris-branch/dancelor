@@ -18,10 +18,21 @@ type t =
     created_at  : Datetime.t          [@key "created-at"] }
 [@@deriving make, yojson]
 
-let slug version = Lwt.return version.slug
-let status version = Lwt.return version.status
-let tune version = Lwt.return version.tune
-let arranger version = Lwt.return version.arranger
+let slug version = version.slug
+let status version = version.status
+let tune version = version.tune
+let bars version = version.bars
+let key version = version.key
+let structure version = version.structure
+let sources version = version.sources
+let arranger version = version.arranger
+let remark version = version.remark
+let disambiguation version = version.disambiguation
+let broken version = version.broken
+let modified_at version = version.modified_at
+let created_at  version = version.created_at
+
+let equal version1 version2 = Slug.equal (slug version1) (slug version2)
 
 module Filter = struct
   let _key = "version-filter"

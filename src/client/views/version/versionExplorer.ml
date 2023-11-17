@@ -143,10 +143,7 @@ let update_table t =
       >|=| Score.list_erase
     in
     Lwt.return (List.map (fun version ->
-        let href =
-          let%lwt slug = Version.slug version in
-          Lwt.return PageRouter.(path (Version slug))
-        in
+        let href = Lwt.return @@ PageRouter.path @@ PageRouter.Version (Version.slug version) in
         let cells =
           let tune = Version.tune version in
           let open Lwt in [
@@ -156,8 +153,8 @@ let update_table t =
             Table.Cell.create ~content:(
               Dancelor_client_html.to_old_style (tune >>= Formatters.Kind.full_string version)
             ) t.page;
-            Table.Cell.text ~text:(Version.key version >|= Music.key_to_pretty_string) t.page;
-            Table.Cell.text ~text:(Version.structure version) t.page;
+            Table.Cell.text ~text:(Lwt.return @@ Music.key_to_pretty_string @@ Version.key version) t.page;
+            Table.Cell.text ~text:(Lwt.return @@ Version.structure version) t.page;
             Table.Cell.create ~content:(
               Dancelor_client_html.to_old_style (Formatters.Version.author_and_arranger version)
             ) t.page; ]

@@ -28,32 +28,24 @@ module Tune = Table.Make (
       include Model.TuneCore
 
       let dependencies tune =
-        let dances = dances tune in
-        let author = author tune in
-        List.map (Table.make_slug_and_table (module Dance)) dances
-        |> (match author with
-            | None -> Fun.id
-            | Some author -> List.cons (Table.make_slug_and_table (module Person) author))
+        List.map (Table.make_slug_and_table (module Dance)) (dances tune)
+        |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (author tune)
         |> Lwt.return
 
       let standalone = false
     end))
 
-module Version = Table.Make (struct
-    include Model.VersionCore
+module Version = Table.Make (
+    Table.Lwtify (struct
+      include Model.VersionCore
 
-    let dependencies version =
-      let%lwt tune = tune version in
-      let%lwt arranger = arranger version in
-      []
-      |> (match arranger with
-          | None -> Fun.id
-          | Some arranger -> List.cons (Table.make_slug_and_table (module Person) arranger))
-      |> List.cons (Table.make_slug_and_table (module Tune) tune)
-      |> Lwt.return
+      let dependencies version =
+        Option.fold ~none:[] ~some:(List.singleton % Table.make_slug_and_table (module Person)) (arranger version)
+        |> List.cons (Table.make_slug_and_table (module Tune) (tune version))
+        |> Lwt.return
 
-    let standalone = true
-  end)
+      let standalone = true
+    end))
 
 module SetModel = struct
   include Model.SetCore
