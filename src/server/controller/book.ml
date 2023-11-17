@@ -53,7 +53,7 @@ module Ly = struct
     let parameters = Model.BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
-      let%lwt title = Model.Book.title book in (** FIXME: subtitle *)
+      let title = Model.Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
       (
         match Model.BookParameters.paper_size parameters with
@@ -260,7 +260,7 @@ module Pdf = struct
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
-      let%lwt slug = Model.Book.slug book in
+      let slug = Model.Book.slug book in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in

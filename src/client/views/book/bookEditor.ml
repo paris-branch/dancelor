@@ -46,8 +46,8 @@ let add t slug =
 
 let prefill t slug =
   let%lwt cur = Book.get slug in
-  let%lwt title = Book.title cur in
-  let%lwt date = Book.date cur in
+  let title = Book.title cur in
+  let date = Book.date cur in
   let%lwt contents = Book.contents cur in
   let contents = List.filter_map
       (function
@@ -61,9 +61,9 @@ let prefill t slug =
   set_title t title;
   match date with
   | None -> Lwt.return ()
-  | Some d -> 
+  | Some d ->
     set_date t (NesPartialDate.to_string d);
-    Lwt.return () 
+    Lwt.return ()
 
 let remove t i =
   if i >= 0 && i < t.count then begin
@@ -122,5 +122,5 @@ let update_submit t slug =
   let contents = fold t (fun _ set acc -> snd set :: acc) [] in
   let contents = List.map (fun set -> Book.Set (set, SetParameters.none)) contents in
   let modified_at = Datetime.now () in
-  let%lwt created_at = Book.created_at book in 
+  let created_at = Book.created_at book in
   Book.update ~slug ~title ?date ~contents ~modified_at ~created_at ()

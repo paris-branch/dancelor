@@ -11,12 +11,9 @@ let get_books_that_contain (slug : Model.SetCore.t Slug.t) : Model.BookCore.t li
   Lwt.return (List.filter (Model.BookCore.contains_set slug) all)
 
 exception UsedInBook of Model.BookCore.t Slug.t
+let usedInBook book = UsedInBook book
 
 let delete (set : Model.SetCore.t Slug.t) =
-  let%lwt all = get_books_that_contain set in
-  match all with
-  | [] ->
-    delete set
-  | book :: _ ->
-    let%lwt slug = Model.BookCore.slug book in
-    Lwt.fail (UsedInBook slug)
+  match%lwt get_books_that_contain set with
+  | [] -> delete set
+  | book :: _ -> Lwt.fail @@ usedInBook @@ Model.BookCore.slug book

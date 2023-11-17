@@ -8,34 +8,25 @@ module Lift
 = struct
   include BookCore
 
-  let title book = Lwt.return book.title
-  let subtitle book = Lwt.return book.subtitle
-  let short_title book = if book.short_title = "" then title book else Lwt.return book.short_title
-  let date book = Lwt.return book.date
-  let contents book = Lwt.return book.contents
-  let source book = Lwt.return book.source (* FIXME: Should be removed *)
-  let remark book = Lwt.return book.remark
-  let scddb_id book = Lwt.return book.scddb_id
-  let modified_at book = Lwt.return book.modified_at
-  let created_at book = Lwt.return book.created_at
-
-  let equal book1 book2 =
-    let%lwt slug1 = slug book1 in
-    let%lwt slug2 = slug book2 in
-    Lwt.return (Slug.equal slug1 slug2)
+  let short_title book = if short_title book = "" then title book else short_title book
 
   let is_source book = source book
 
-  let compare book1 book2 =
-    (* Compare first by date *)
-    let c = compare book1.date book2.date in
-    if c = 0 then
-      compare book1 book2
-    else
-      c
+  let compare =
+    Slug.compare_slugs_or
+      ~fallback:
+        (fun book1 book2 ->
+           (* Compare first by date *)
+           let c = compare book1.date book2.date in
+           if c = 0 then
+             compare book1 book2
+           else
+             c)
+      slug
+
+  let equal book1 book2 = compare book1 book2 = 0
 
   let contents book =
-    let%lwt contents = contents book in
     Lwt_list.map_p
       (function
         | PageCore.Version (version, parameters) ->
@@ -46,7 +37,7 @@ module Lift
           Lwt.return (Set (set, parameters))
         | PageCore.InlineSet (set, parameters) ->
           Lwt.return (InlineSet (set, parameters)))
-      contents
+      (contents book)
 
   let versions_from_contents book =
     let%lwt contents = contents book in
@@ -220,26 +211,22 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is book' ->
-        equal book book' >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ equal book book'
 
       | Title string ->
-        let%lwt title = title book in
-        Lwt.return (String.proximity ~char_equal string title)
+        Lwt.return @@ String.proximity ~char_equal string @@ title book
 
       | TitleMatches string ->
-        let%lwt title = title book in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string title)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ title book
 
       | Subtitle string ->
-        let%lwt subtitle = subtitle book in
-        Lwt.return (String.proximity ~char_equal string subtitle)
+        Lwt.return @@ String.proximity ~char_equal string @@ subtitle book
 
       | SubtitleMatches string ->
-        let%lwt subtitle = subtitle book in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string subtitle)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ subtitle book
 
       | IsSource ->
-        is_source book >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ is_source book
 
       | ExistsVersion vfilter ->
         let%lwt content = contents book in

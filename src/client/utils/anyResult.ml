@@ -33,13 +33,12 @@ let make_dance_result ~prefix page dance =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_book_result ~prefix page book =
-  let%lwt slug = Book.slug book in
-  let href = Lwt.return PageRouter.(path (Book slug)) in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Book (Book.slug book) in
   let cells =
     prefix @ [
       Table.Cell.create ~colspan:3 ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.Book.title_and_subtitle book)
+          (Lwt.return @@ Formatters.Book.title_and_subtitle book)
       ) page
     ]
   in

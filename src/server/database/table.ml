@@ -87,8 +87,8 @@ let make_slug_and_table (type value) (module Table : S with type value = value) 
 
 module type Model = sig
   type t
-  val slug : t -> t Slug.t Lwt.t
-  val status : t -> Dancelor_common_model.Status.t Lwt.t
+  val slug : t -> t Slug.t
+  val status : t -> Dancelor_common_model.Status.t
 
   val dependencies : t -> slug_and_table list Lwt.t
 
@@ -99,25 +99,6 @@ module type Model = sig
   val of_yojson : Json.t -> (t, string) result
 
   val _key : string
-end
-
-(** {2 Compatibility layer for non-Lwt models} *)
-
-module type NonLwtModel = sig
-  type t
-  val slug : t -> t Slug.t
-  val status : t -> Dancelor_common_model.Status.t
-  val dependencies : t -> slug_and_table list Lwt.t
-  val standalone : bool
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> (t, string) result
-  val _key : string
-end
-
-module Lwtify (Model : NonLwtModel) : Model with type t = Model.t = struct
-  include Model
-  let slug = Lwt.return % Model.slug
-  let status = Lwt.return % Model.status
 end
 
 (** {2 Database Functor} *)
@@ -170,19 +151,16 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let load_version ~version =
     let table = get_table ~version () in
     let load entry =
-      let%lwt json = Storage.read_entry_yaml Model._key entry "meta.yaml" in
-      let json = Json.add_field "slug" (`String entry) json in
-      match Model.of_yojson json with
+      Fun.flip Lwt.map (Storage.read_entry_yaml Model._key entry "meta.yaml") @@ fun json ->
+      match Model.of_yojson @@ Json.add_field "slug" (`String entry) json with
       | Ok model ->
-        let%lwt slug = Model.slug model in
-        Hashtbl.add table slug (Stats.empty (), model);
-        Lwt.return ()
+        Hashtbl.add table (Model.slug model) (Stats.empty (), model);
       | Error msg ->
         Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.yaml" msg);
         exit 1
     in
     let%lwt entries = Storage.list_entries Model._key in
-    Lwt_list.iter_s load entries
+    Lwt_list.iter_p load entries
 
   let get_opt ?version slug =
     let table = get_table ?version () in
@@ -195,11 +173,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   let get_status ?version slug =
     match%lwt get_opt ?version slug with
-    | None ->
-      Lwt.return_none
-    | Some model ->
-      let%lwt status = Model.status model in
-      Lwt.return_some status
+    | None -> Lwt.return_none
+    | Some model -> Lwt.return_some @@ Model.status model
 
   let list_dependency_problems_for slug status ~version = function
     | Boxed (dep_slug, (module Dep_table)) ->
@@ -220,8 +195,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> List.of_seq
     |> Lwt_list.fold_left_s
       (fun problems (_, model) ->
-         let%lwt slug = Model.slug model in
-         let%lwt status = Model.status model in
+         let slug = Model.slug model in
+         let status = Model.status model in
          let%lwt deps = Model.dependencies model in
          let%lwt new_problems =
            deps
@@ -240,7 +215,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       (fun (stats, model) ->
          if Stats.get_accesses stats = 0 then
            Lwt.async (fun () ->
-               let%lwt slug = Model.slug model in
+               let slug = Model.slug model in
                Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp slug);
                Lwt.return ()))
 
@@ -292,9 +267,9 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Hashtbl.add table slug (Stats.empty (), model); (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
-  let update model =
+  let update model : unit Lwt.t =
     let table = get_table () in
-    let%lwt slug = Model.slug model in
+    let slug = Model.slug model in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
     Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
@@ -305,7 +280,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
     Lwt.return_unit
 
-  let delete slug =
+  let delete slug : unit Lwt.t =
     let table = get_table () in
     Storage.delete_entry Model._key (Slug.to_string slug);%lwt
     Storage.save_changes_on_entry
@@ -315,13 +290,11 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Lwt.return_unit
 
   let read_separated_file model file =
-    let%lwt slug = Model.slug model in
-    Storage.read_entry_file Model._key (Slug.to_string slug) file
+    let slug = Slug.to_string @@ Model.slug model in
+    Storage.read_entry_file Model._key slug file
 
   let write_separated_file model file content =
-    let%lwt slug = Model.slug model in
-    Storage.write_entry_file Model._key (Slug.to_string slug) file content;%lwt
-    Storage.save_changes_on_entry
-      ~msg:(spf "save %s / %s" Model._key (Slug.to_string slug))
-      Model._key (Slug.to_string slug)
+    let slug = Slug.to_string @@ Model.slug model in
+    Storage.write_entry_file Model._key slug file content;%lwt
+    Storage.save_changes_on_entry ~msg:(spf "save %s / %s" Model._key slug) Model._key slug
 end

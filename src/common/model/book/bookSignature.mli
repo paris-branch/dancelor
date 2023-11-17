@@ -25,22 +25,22 @@ type t = BookCore.t
 
 (** {2 Field Getters} *)
 
-val slug : t -> t Slug.t Lwt.t
-val status : t -> Status.t Lwt.t
-val title : t -> string Lwt.t
-val subtitle : t -> string Lwt.t
-val short_title : t -> string Lwt.t
-val date : t -> PartialDate.t option Lwt.t
-val contents : t -> page list Lwt.t
-val source : t -> bool Lwt.t (* FIXME: Should be removed *)
-val remark : t -> string Lwt.t
-val scddb_id : t -> int option Lwt.t
-val modified_at : t -> Datetime.t Lwt.t
-val created_at : t -> Datetime.t Lwt.t
+val slug        : t -> t Slug.t
+val status      : t -> Status.t
+val title       : t -> string
+val subtitle    : t -> string
+val short_title : t -> string
+val date        : t -> PartialDate.t option
+val contents    : t -> page list Lwt.t
+val source      : t -> bool
+val remark      : t -> string
+val scddb_id    : t -> int option
+val modified_at : t -> Datetime.t
+val created_at  : t -> Datetime.t
 
 (** {2 Advanced Field Getters} *)
 
-val is_source : t -> bool Lwt.t
+val is_source : t -> bool
 
 val versions_from_contents : t -> VersionCore.t list Lwt.t
 (** Extract only the versions from the book's contents. *)
@@ -57,10 +57,8 @@ val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t) list 
 (** {2 Utilities} *)
 
 val contains_set : SetCore.t Slug.t -> t -> bool
-val equal : t -> t -> bool Lwt.t
 val compare : t -> t -> int
-(* FIXME: this comparison function is a hack; a cleaner (more consistent with
-   the rest of Dancelor) version should check the slug and return a Lwt.t *)
+val equal : t -> t -> bool
 
 val lilypond_contents_cache_key : t -> string Lwt.t
 

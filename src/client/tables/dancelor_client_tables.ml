@@ -27,19 +27,10 @@ let map_table ~header list fun_ =
 
 let books books =
   map_table ~header:[ "Book"; "Date" ] books @@ fun book ->
-  let href =
-    let%lwt slug = Book.slug book in
-    Lwt.return PageRouter.(path (Book slug))
-  in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Book (Book.slug book) in
   clickable_row ~href [
-    Formatters.Book.title_and_subtitle book;
-    Lwt.return [
-      L.txt @@
-      let open Lwt in
-      Book.date book >|= function
-      | None -> ""
-      | Some date -> NesPartialDate.to_pretty_string date
-    ]
+    (Lwt.return @@ Formatters.Book.title_and_subtitle book);
+    Lwt.return [txt @@ Option.fold ~none:"" ~some:PartialDate.to_pretty_string @@ Book.date book]
   ]
 
 let sets sets =

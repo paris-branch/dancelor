@@ -3,26 +3,24 @@ open Dancelor_client_html
 module M = Dancelor_client_model
 
 let title_and_subtitle ?(link=true) book =
-  let title_text = [L.txt (M.Book.title book)] in
+  let title_text = [txt (M.Book.title book)] in
   if link then
-    let%lwt subtitle_block =
-      match%lwt M.Book.subtitle book with
-      | "" -> Lwt.return_nil
-      | subtitle -> Lwt.return [
-          span ~a:[a_class ["details"]] [txt subtitle]
-        ]
+    let subtitle_block =
+      match M.Book.subtitle book with
+      | "" -> []
+      | subtitle ->  [span ~a:[a_class ["details"]] [txt subtitle]]
     in
-    Lwt.return (title_text @ subtitle_block)
+    (title_text @ subtitle_block)
   else
-    Lwt.return title_text
+    title_text
 
 let short_title ?(link=true) book =
-  let short_title_text = [L.txt (M.Book.short_title book)] in
+  let short_title_text = [txt (M.Book.short_title book)] in
   if link then
-    let href =
-      let%lwt slug = M.Book.slug book in
-      Lwt.return PageRouter.(path (Book slug))
-    in
-    Lwt.return [a ~a:[L.a_href href] short_title_text]
+    [
+      a
+        ~a:[a_href @@ PageRouter.path @@ PageRouter.Book (M.Book.slug book)]
+        short_title_text
+    ]
   else
-    Lwt.return short_title_text
+    short_title_text

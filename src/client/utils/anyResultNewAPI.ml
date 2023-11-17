@@ -1,4 +1,3 @@
-open Lwt.Infix
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
@@ -43,11 +42,12 @@ let make_dance_result ~prefix dance =
     )
 
 let make_book_result ~prefix book =
+  (* FIXME: clickable_row probably doesn't need an Lwt for the href anymore. *)
   clickable_row
-    ~href:(Book.slug book >|= fun slug -> PageRouter.(path (Book slug)))
+    ~href:(Lwt.return @@ PageRouter.path @@ PageRouter.Book (Book.slug book))
     (
       prefix @ [
-        L.td ~a:[a_colspan 3] (Formatters.Book.title_and_subtitle book);
+        td ~a:[a_colspan 3] (Formatters.Book.title_and_subtitle book);
       ]
     )
 

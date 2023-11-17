@@ -63,15 +63,15 @@ let name_disambiguation_and_sources ?link version =
       M.Book.search filter
       >|=| M.Score.list_erase
     in
-    match%lwt Lwt_list.map_p Book.short_title sources with
-    | [] -> Lwt.return_nil
-    | [title] -> Lwt.return (txt "Source: " :: title)
+    Lwt.return @@
+    match List.map Book.short_title sources with
+    | [] -> []
+    | [title] -> txt "Source: " :: title
     | titles ->
       titles
       |> List.intertwine (fun _ -> [txt " - "])
       |> List.flatten
       |> List.cons (txt "Sources: ")
-      |> Lwt.return
   in
   let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
   Lwt.return (
@@ -89,15 +89,15 @@ let disambiguation_and_sources version =
       M.Book.search filter
       >|=| M.Score.list_erase
     in
-    match%lwt Lwt_list.map_p Book.short_title sources with
-    | [] -> Lwt.return_nil
-    | [title] -> Lwt.return (txt "Source: " :: title)
+    Lwt.return @@
+    match List.map Book.short_title sources with
+    | [] -> []
+    | [title] -> txt "Source: " :: title
     | titles ->
       titles
       |> List.intertwine (fun _ -> [txt " - "])
       |> List.flatten
       |> List.cons (txt "Sources: ")
-      |> Lwt.return
   in
   Lwt.return [
     txt (M.Version.disambiguation version);

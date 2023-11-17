@@ -2,50 +2,46 @@ open Nes
 
 module Model = Dancelor_common_model
 
-module Person = Table.Make (
-    Table.Lwtify (struct
-      include Model.PersonCore
+module Person = Table.Make (struct
+    include Model.PersonCore
 
-      let dependencies _ = Lwt.return []
-      let standalone = false
-    end))
+    let dependencies _ = Lwt.return []
+    let standalone = false
+  end)
 
-module Dance = Table.Make (
-    Table.Lwtify (struct
-      include Model.DanceCore
+module Dance = Table.Make (struct
+    include Model.DanceCore
 
-      let dependencies dance =
-        Lwt.return @@
-        match deviser dance with
-        | None -> []
-        | Some deviser -> [Table.make_slug_and_table (module Person) deviser]
+    let dependencies dance =
+      Lwt.return @@
+      match deviser dance with
+      | None -> []
+      | Some deviser -> [Table.make_slug_and_table (module Person) deviser]
 
-      let standalone = false
-    end))
+    let standalone = false
+  end)
 
-module Tune = Table.Make (
-    Table.Lwtify (struct
-      include Model.TuneCore
+module Tune = Table.Make (struct
+    include Model.TuneCore
 
-      let dependencies tune =
-        List.map (Table.make_slug_and_table (module Dance)) (dances tune)
-        |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (author tune)
-        |> Lwt.return
+    let dependencies tune =
+      List.map (Table.make_slug_and_table (module Dance)) (dances tune)
+      |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (author tune)
+      |> Lwt.return
 
-      let standalone = false
-    end))
+    let standalone = false
+  end)
 
-module Version = Table.Make (
-    Table.Lwtify (struct
-      include Model.VersionCore
+module Version = Table.Make (struct
+    include Model.VersionCore
 
-      let dependencies version =
-        Option.fold ~none:[] ~some:(List.singleton % Table.make_slug_and_table (module Person)) (arranger version)
-        |> List.cons (Table.make_slug_and_table (module Tune) (tune version))
-        |> Lwt.return
+    let dependencies version =
+      Option.fold ~none:[] ~some:(List.singleton % Table.make_slug_and_table (module Person)) (arranger version)
+      |> List.cons (Table.make_slug_and_table (module Tune) (tune version))
+      |> Lwt.return
 
-      let standalone = true
-    end))
+    let standalone = true
+  end)
 
 module SetModel = struct
   include Model.SetCore
@@ -58,13 +54,12 @@ module SetModel = struct
   let standalone = true
 end
 
-module Set = Table.Make (Table.Lwtify (SetModel))
+module Set = Table.Make (SetModel)
 
 module Book = Table.Make (struct
     include Model.BookCore
 
     let dependencies book =
-      let%lwt contents = contents book in
       let%lwt dependencies =
         Lwt_list.map_p
           (function
@@ -93,7 +88,7 @@ module Book = Table.Make (struct
                 | None -> []
                 | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               ))
-          contents
+          (contents book)
       in
       Lwt.return (List.flatten dependencies)
 

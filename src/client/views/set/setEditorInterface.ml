@@ -72,7 +72,7 @@ let display_warnings t =
           txt "Tune “";
           span (Formatters.Tune.name tune);
           txt "” already appears in book ";
-          L.span (Formatters.Book.short_title bk);
+          span (Formatters.Book.short_title bk);
         ]
       in
       Lwt.return [
@@ -136,19 +136,8 @@ let refresh t =
   Inputs.Text.set_contents t.input_name (SetEditor.name t.composer);
   Inputs.Text.set_contents t.input_kind (SetEditor.kind t.composer);
   Inputs.Text.set_contents t.input_order (SetEditor.order t.composer);
-  begin match SetEditor.deviser t.composer with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
-    | Some cr ->
-      let name = Person.name cr in
-      Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name
-  end;
-  begin match SetEditor.for_book t.composer with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.book_search) ""
-    | Some bk ->
-      let title = Book.title bk in
-      Lwt.on_success title (fun title ->
-          Inputs.Text.set_contents (SearchBar.bar t.book_search) title)
-  end;
+  Inputs.Text.set_contents (SearchBar.bar t.deviser_search) (Option.fold ~none:"" ~some:Person.name (SetEditor.deviser t.composer));
+  Inputs.Text.set_contents (SearchBar.bar t.book_search) (Option.fold ~none:"" ~some:Book.title (SetEditor.for_book t.composer));
   JsHelpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
       let subwin = make_version_subwindow t i version in
@@ -227,16 +216,14 @@ let make_deviser_search_result composer page score =
 let make_book_search_result composer page score =
   let book = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Book.title book in
-  let%lwt slug = Book.slug book in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
-            (SetEditor.set_for_book composer slug)
+            (SetEditor.set_for_book composer (Book.slug book))
             (fun () -> Page.refresh page; SetEditor.save composer))
       ~cells:[
         Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-        Table.Cell.text ~text:(Lwt.return name) page]
+        Table.Cell.text ~text:(Lwt.return @@ Book.title book) page]
       page
   in
   Lwt.return row

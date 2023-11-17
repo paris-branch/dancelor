@@ -33,13 +33,15 @@ let search ?pagination ?(threshold=Float.min_float) filter =
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
   >>=| Score.(list_proj_sort_decreasing [
-      decreasing     date (NesOption.compare NesPartialDate.compare) ;
-      increasing    title String.Sensible.compare ;
-      increasing    title String.compare_lengths ;
-      increasing subtitle String.Sensible.compare ;
-      increasing subtitle String.compare_lengths ;
+      decreasing (Lwt.return %     date) (NesOption.compare NesPartialDate.compare) ;
+      increasing (Lwt.return %    title) String.Sensible.compare ;
+      increasing (Lwt.return %    title) String.compare_lengths ;
+      increasing (Lwt.return % subtitle) String.Sensible.compare ;
+      increasing (Lwt.return % subtitle) String.compare_lengths ;
     ])
   >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+(* FIXME: Simplify [list_proj_sort_decreasing] and [decreasing] and
+   [increasing] because they probably don't need Lwt anymore. *)
 
 let () =
   Madge_server.(

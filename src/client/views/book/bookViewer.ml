@@ -124,11 +124,8 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
 
-  Lwt.async (fun () ->
-      let%lwt book = book_lwt in
-      let%lwt title = Book.title book in
-      document##.title := js (title ^ " | Book | Dancelor");
-      Lwt.return ()
+  Lwt.on_success book_lwt (fun book ->
+      document##.title := js (Book.title book ^ " | Book | Dancelor");
     );
 
   let open Dancelor_client_html in
@@ -137,10 +134,10 @@ let create slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [L.txt (book_lwt >>=| Book.title)];
-      h3 ~a:[a_class ["title"]] [L.txt (book_lwt >>=| Book.subtitle)];
+      h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.title book_lwt];
+      h3 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
       L.div (
-        match%lwt book_lwt >>=| Book.scddb_id with
+        match%lwt Lwt.map Book.scddb_id book_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.list_uri scddb_id in
@@ -161,9 +158,7 @@ let create slug page =
 
       p [
         L.txt (
-          let%lwt book = book_lwt in
-          let%lwt date = Book.date book in
-          match date with
+          match%lwt Lwt.map Book.date book_lwt with
           | None -> Lwt.return ""
           | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
         )
