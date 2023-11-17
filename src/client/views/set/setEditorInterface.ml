@@ -366,9 +366,8 @@ let create page =
           in
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (SetEditor.submit composer) (fun set ->
-                Lwt.on_success (Set.slug set) (fun slug ->
-                    let href = PageRouter.(path (Set slug)) in
-                    Html.window##.location##.href := js href))))
+                let href = PageRouter.path @@ PageRouter.Set (Set.slug set) in
+                Html.window##.location##.href := js href)))
       page
   in
   let clear =

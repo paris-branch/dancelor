@@ -53,11 +53,11 @@ let make_book_result ~prefix book =
 
 let make_set_result ~prefix set =
   clickable_row
-    ~href:(Set.slug set >|= fun slug -> PageRouter.(path (Set slug)))
+    ~href:(Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set))
     (
       prefix @ [
-        td [L.txt (Set.name set)];
-        td [L.txt (Kind.Dance.to_string =|< Set.kind set)];
+        td [txt @@ Set.name set];
+        td [txt @@ Kind.Dance.to_string @@ Set.kind set];
         L.td (Lwt.map Formatters.Person.name (Set.deviser set));
       ]
     )

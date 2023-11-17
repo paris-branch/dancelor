@@ -64,9 +64,8 @@ module Lift
         | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set)
       contents
 
-  let unique_sets_from_contents book =
-    let%lwt sets = sets_from_contents book in
-    List.sort_uniq_lwt Set.compare sets
+  let unique_sets_from_contents =
+    Lwt.map (List.sort_uniq Set.compare) % sets_from_contents
 
   let sets_and_parameters_from_contents book =
     let%lwt contents = contents book in
@@ -88,20 +87,12 @@ module Lift
     Lwt.return (String.concat "\n" contents)
 
   let page_to_page_core = function
-    | (Version (version, params) : page) ->
-      Lwt.return @@ PageCore.Version (Version.slug version, params)
-    | (Set (set, params) : page) ->
-      let%lwt slug = Set.slug set in
-      Lwt.return @@ PageCore.Set (slug, params)
-    | (InlineSet (set, params) : page) ->
-      Lwt.return @@ PageCore.InlineSet (set, params)
+    | (Version (version, params) : page) -> PageCore.Version (Version.slug version, params)
+    | (Set (set, params) : page) -> PageCore.Set (Set.slug set, params)
+    | (InlineSet (set, params) : page) -> PageCore.InlineSet (set, params)
 
   let make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () =
-    let%lwt contents =
-      let%olwt contents = Lwt.return contents in
-      let%lwt contents = Lwt_list.map_s page_to_page_core contents in
-      Lwt.return_some contents
-    in
+    let contents = Option.map (List.map page_to_page_core) contents in
     Lwt.return @@ make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
 
   module Warnings = struct
@@ -118,24 +109,24 @@ module Lift
         Lwt.return_nil
 
     let duplicateSet book =
-      let%lwt sets = sets_from_contents book in
-      match%lwt List.sort_lwt Set.compare sets with
-      | [] -> Lwt.return_nil
+      Fun.flip Lwt.map (sets_from_contents book) @@ fun sets ->
+      match List.sort Set.compare sets with
+      | [] -> []
       | first_set :: other_sets ->
-        let%lwt (_, warnings) =
-          Lwt_list.fold_left_s
+        let (_, warnings) =
+          List.fold_left
             (fun (previous_set, warnings) current_set ->
-               let%lwt warnings =
-                 if%lwt Set.equal current_set previous_set then
-                   Lwt.return ((DuplicateSet current_set) :: warnings)
+               let warnings =
+                 if Set.equal current_set previous_set then
+                   ((DuplicateSet current_set) :: warnings)
                  else
-                   Lwt.return warnings
+                   warnings
                in
-               Lwt.return (current_set, warnings))
+               (current_set, warnings))
             (first_set, [])
             other_sets
         in
-        Lwt.return warnings
+        warnings
 
     let duplicateVersion book =
       let%lwt sets = unique_sets_from_contents book in
@@ -173,14 +164,15 @@ module Lift
          the case, add a warning accordingly *)
       Hashtbl.to_seq tunes_to_sets
       |> List.of_seq
-      |> Lwt_list.fold_left_s
+      |> List.fold_left
         (fun warnings (tune, set_opts) ->
-           let%lwt set_opts = List.sort_count_lwt (Option.compare_lwt Set.compare) set_opts in
+           let set_opts = List.sort_count (Option.compare Set.compare) set_opts in
            if List.length set_opts > 1 then
-             Lwt.return ((DuplicateVersion (tune, set_opts)) :: warnings)
+             ((DuplicateVersion (tune, set_opts)) :: warnings)
            else
-             Lwt.return warnings)
+             warnings)
         []
+      |> Lwt.return
 
     let setDanceMismatch book =
       let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
@@ -190,9 +182,7 @@ module Lift
            (* FIXME: SetParameters should be hidden behind the same kind of
               mechanism as the rest; and this step should not be necessary *)
            let%lwt dance = Dance.get dance_slug in
-           let dance_kind = Dance.kind dance in
-           let%lwt set_kind = Set.kind set in
-           if set_kind = dance_kind then
+           if Set.kind set = Dance.kind dance then
              Lwt.return_none
            else
              Lwt.return_some (SetDanceMismatch (set, dance)))

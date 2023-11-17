@@ -51,19 +51,14 @@ module SetModel = struct
   include Model.SetCore
 
   let dependencies set =
-    let%lwt deviser = deviser set in
-    let%lwt versions_and_parameters = versions_and_parameters set in
-    let versions = List.map fst versions_and_parameters in
-    List.map (Table.make_slug_and_table (module Version)) versions
-    |> (match deviser with
-        | None -> Fun.id
-        | Some deviser -> List.cons (Table.make_slug_and_table (module Person) deviser))
+    List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
+    |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (deviser set)
     |> Lwt.return
 
   let standalone = true
 end
 
-module Set = Table.Make (SetModel)
+module Set = Table.Make (Table.Lwtify (SetModel))
 
 module Book = Table.Make (struct
     include Model.BookCore

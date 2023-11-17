@@ -56,15 +56,11 @@ let create page =
               (Set.search ~pagination:(PageNav.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun set ->
-                    let href =
-                      let%lwt slug = Set.slug set in
-                      Lwt.return PageRouter.(path (Set slug))
-                    in
-                    let open Lwt in
+                    let href = Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set) in
                     Dancelor_client_tables.clickable_row ~href [
                       (Formatters.Set.name_and_tunes ~link:false set);
                       (Lwt.map Formatters.Person.name (Set.deviser set));
-                      Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)];
+                      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set];
                       Lwt.return [txt ""];
                     ]
                  )

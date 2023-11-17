@@ -3,10 +3,9 @@ module Model = Dancelor_server_model
 
 module Pdf = struct
   let render ?parameters set =
-    let%lwt slug = Lwt.map Slug.unsafe_coerce @@ Model.Set.slug set in
     let%lwt book =
       Model.Book.make
-        ~slug
+        ~slug:(Slug.unsafe_coerce @@ Model.Set.slug set)
         ~title:""
         ~contents:[InlineSet (set, Option.value ~default:Model.SetParameters.none parameters)]
         ~modified_at:(Datetime.now ())

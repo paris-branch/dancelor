@@ -9,27 +9,20 @@ let works set =
   | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map M.Dance.name dances)]
 
 let name ?(link=true) set =
-  let name_text = [L.txt (M.Set.name set)] in
-  let%lwt is_inline = M.Set.is_slug_none set in
-  if link && not is_inline then
-    let href =
-      let%lwt slug = M.Set.slug set in
-      Lwt.return PageRouter.(path (Set slug))
-    in
-    Lwt.return [a ~a:[L.a_href href] name_text]
+  let name_text = [txt (M.Set.name set)] in
+  if link && not (M.Set.is_slug_none set) then
+    [
+      a
+        ~a:[a_href @@ PageRouter.path @@ PageRouter.Set (M.Set.slug set)]
+        name_text
+    ]
   else
-    Lwt.return name_text
+    name_text
 
 let name_and_tunes ?link ?tunes_link set =
-  let%lwt name = name ?link set in
   let%lwt versions =
     let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
-    let versions =
-      List.map
-        (fun (version, _) -> Version.name ?link:tunes_link version)
-        versions_and_parameters
-    in
-    versions
+    List.map (Version.name ?link:tunes_link % fst) versions_and_parameters
     |> List.intertwine (fun _ -> [txt " - "])
     |> List.flatten
     |> List.cons (txt "Tunes: ")
@@ -37,7 +30,7 @@ let name_and_tunes ?link ?tunes_link set =
     |> List.singleton
     |> Lwt.return
   in
-  Lwt.return (name @ versions)
+  Lwt.return (name ?link set @ versions)
 
 let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
   let%lwt name_and_tunes = name_and_tunes ?link ?tunes_link set in

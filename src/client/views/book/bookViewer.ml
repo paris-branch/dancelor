@@ -25,7 +25,7 @@ let display_warnings warnings =
       :: display_sets tl
     | (Some set, n) :: tl ->
       ([txt "in “";
-        L.span (Formatters.Set.name set);
+        span (Formatters.Set.name set);
         txt "”"] @ display_times n)
       :: display_sets tl
   in
@@ -43,7 +43,7 @@ let display_warnings warnings =
     | Book.DuplicateSet set ->
       li [
         txt "Set “";
-        L.span (Formatters.Set.name set);
+        span (Formatters.Set.name set);
         txt "” appears several times in this book."
       ]
     | Book.DuplicateVersion (tune, sets_opt) ->
@@ -56,7 +56,7 @@ let display_warnings warnings =
     | Book.SetDanceMismatch (set, dance) ->
       li [
         txt "Set “";
-        L.span (Formatters.Set.name set);
+        span (Formatters.Set.name set);
         txt "” does not have the same kind as its associated dance “";
         span (Formatters.Dance.name dance);
         txt "”."
@@ -84,26 +84,20 @@ let table_contents contents =
           (function
             | Book.Set (set, parameters) ->
               (
-                let slug = Set.slug set in
-                let href =
-                  let%lwt slug = slug in
-                  Lwt.return PageRouter.(path (Set slug))
-                in
-                let open Lwt in
+                let href = Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set) in
                 Dancelor_client_tables.clickable_row ~href [
                   Lwt.return [txt "Set"];
                   (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
-                  Lwt.return [L.txt (Set.kind set >|= Kind.Dance.to_string)]
+                  Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
                 ]
               )
 
             | InlineSet (set, parameters) ->
               (
-                let open Lwt in
                 tr [
                   td [txt "Set (inline)"];
                   L.td (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
-                  td [L.txt (Set.kind set >|= Kind.Dance.to_string)];
+                  td [txt @@ Kind.Dance.to_string @@ Set.kind set];
                 ]
               )
 

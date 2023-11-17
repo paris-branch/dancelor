@@ -18,11 +18,20 @@ type t =
     created_at  : Datetime.t      [@key "created-at"] }
 [@@deriving make, yojson]
 
-let slug set = Lwt.return set.slug
-let status set = Lwt.return set.status
-let dances set = Lwt.return set.dances
-let deviser set = Lwt.return set.deviser
-let versions_and_parameters set = Lwt.return set.versions_and_parameters
+(* FIXME: rename [versions_and_parameters] into [contents]. *)
+
+let slug set = set.slug
+let status set = set.status
+let name set = set.name
+let deviser set = set.deviser
+let kind set = set.kind
+let versions_and_parameters set = set.versions_and_parameters
+let order set = set.order
+let instructions set = set.instructions
+let dances set = set.dances
+let remark set = set.remark
+let modified_at set = set.modified_at
+let created_at set = set.created_at
 
 type warning =
   | Empty

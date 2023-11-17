@@ -54,10 +54,7 @@ let prefill t slug =
           Book.Version _ | Book.InlineSet _ -> None
         | Book.Set (set, _) -> Some set)
       contents in
-  let%lwt contents = Lwt_list.map_p
-      (fun s -> let%lwt slug = Set.slug s in
-        Lwt.return (Some (slug, s)))
-      contents in
+  let contents = List.map (fun s -> (Some (Set.slug s, s))) contents in
   t.count <- List.length contents;
   t.sets <- Array.of_list contents;
 

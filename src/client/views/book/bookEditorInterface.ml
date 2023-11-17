@@ -23,7 +23,7 @@ let make_set_subwindow t index set =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3_static ~text:(Set.name (snd set)) t.page in
+  let title = Text.Heading.h3_static ~text:(Lwt.return @@ Set.name (snd set)) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
@@ -78,16 +78,14 @@ let clickable_row editor page set =
       a_class ["clickable"];
       a_onclick
         (fun _ ->
-           Lwt.on_success (
-             let%lwt slug = Set.slug set in
-             BookEditor.add editor slug)
+           Lwt.on_success
+             (BookEditor.add editor @@ Set.slug set)
              (fun () -> Page.refresh page);
            true
         );
     ]
 
 let make_set_result editor page score =
-  let open Lwt.Infix in
   let open Dancelor_client_html in
   let set = Score.value score in
   clickable_row
@@ -95,8 +93,8 @@ let make_set_result editor page score =
     (
       [
         td [txt (Score.score_to_string score)];
-        td [L.txt (Set.name set)];
-        td [L.txt (Kind.Dance.to_string =|< Set.kind set)];
+        td [txt (Set.name set)];
+        td [txt @@ Kind.Dance.to_string @@ Set.kind set];
         L.td (Lwt.map Dancelor_client_formatters.Person.name (Set.deviser set));
       ]
     )

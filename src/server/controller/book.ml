@@ -7,7 +7,7 @@ module Ly = struct
   let kind set set_parmeters =
     let%lwt kind =
       match%lwt Model.SetParameters.for_dance set_parmeters with
-      | None -> Model.Set.kind set
+      | None -> Lwt.return @@ Model.Set.kind set
       | Some dance -> Lwt.return @@ Model.Dance.kind dance
     in
     Lwt.return (Model.Kind.Dance.to_pretty_string kind)
@@ -19,12 +19,11 @@ module Ly = struct
       | Some dance -> Lwt.return [spf "Dance: %s" (Model.Dance.name dance)]
     in
     let%lwt kind = kind set set_parameters in
-    let%lwt order =
+    let order =
       if Model.SetParameters.show_order set_parameters then
-        let%lwt order = Model.Set.order set >|=| Model.SetOrder.to_pretty_string in
-        Lwt.return [spf "Play %s" order]
+        [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order set]
       else
-        Lwt.return_nil
+        []
     in
     let%lwt chords =
       match%lwt Model.SetParameters.for_dance set_parameters with
@@ -141,11 +140,10 @@ module Ly = struct
         in
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
-        let%lwt name = Model.Set.name set in
         let name =
           set_parameters
           |> Model.SetParameters.display_name
-          |> Option.value ~default:name
+          |> Option.value ~default:(Model.Set.name set)
         in
         let%lwt deviser =
           if not (set_parameters |> Model.SetParameters.show_deviser) then
@@ -164,10 +162,9 @@ module Ly = struct
          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
         let%lwt () =
           let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
-          let%lwt order = Model.Set.order set in
           let versions_and_parameters =
             rearrange_set_content
-              ~order
+              ~order:(Model.Set.order set)
               ?order_type:(Model.SetParameters.order_type set_parameters)
               versions_and_parameters
           in

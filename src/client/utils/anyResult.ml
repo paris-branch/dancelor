@@ -1,4 +1,3 @@
-open Lwt
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
@@ -47,12 +46,11 @@ let make_book_result ~prefix page book =
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_set_result ~prefix page set =
-  let%lwt slug = Set.slug set in
-  let href = Lwt.return PageRouter.(path (Set slug)) in
+  let href = Lwt.return @@ PageRouter.path @@ PageRouter.Set (Set.slug set) in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(Set.name set) page;
-      Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Set.name set) page;
+      Table.Cell.text ~text:(Lwt.return @@ Kind.Dance.to_string @@ Set.kind set) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
           (Lwt.map Formatters.Person.name (Set.deviser set))
