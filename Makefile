@@ -6,16 +6,12 @@ DUNEJOBSARG := -j $(DUNEJOBS)
 endif
 
 build:
-	cd share/static/style && sassc style.scss ../style.css
 	dune build $(DUNEJOBSARG) @install
 	ln -sf _build/install/default/bin .
-	ln -sf ../../_build/install/default/share/dancelor share/static/
 
 release:
-	cd share/static/style && sassc style.scss ../style.css
 	dune build $(DUNEJOBSARG) --profile=release @install
 	ln -sf _build/install/default/bin .
-	ln -sf ../../_build/install/default/share/dancelor share/static/
 
 docker:
 	docker build --tag dancelor .

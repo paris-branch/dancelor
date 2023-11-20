@@ -7,7 +7,7 @@
 .direnv
 .envrc
 /.pre-commit-config.yaml
-result
+/result
 
 ## Dune
 /*.install
@@ -17,13 +17,6 @@ result
 ## Specific
 /bin
 /doc
-/db
 /cache
-/share/static/dancelor
 /assets/config.json
 /database
-
-## CSS
-*.css
-*.css.map
-.sass-cache

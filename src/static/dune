@@ -1,0 +1,10 @@
+(install
+ (section share)
+ (files android-chrome-192x192.png android-chrome-512x512.png
+   apple-touch-icon.png arrow.svg cross.svg cross_red_circle.svg download.svg
+   dune edit.svg favicon-16x16.png favicon-32x32.png favicon.ico index.html
+   plus.svg site.webmanifest))
+
+;; FIXME: With more recent version of Dune, the `(files)` stanza can take a
+;; directory name, or a `(glob_files *)` for instance, which would avoid having
+;; to list all the files explicitly.

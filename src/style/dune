@@ -1,0 +1,10 @@
+(rule
+ (target style.css)
+ (deps
+  (source_tree .))
+ (action
+  (run sassc style.scss style.css)))
+
+(install
+ (section share)
+ (files style.css))

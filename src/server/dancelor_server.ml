@@ -68,7 +68,7 @@ let callback _ request body =
   let path = Uri.path uri in
   Log.info (fun m -> m "Request for %s" path);
   let%lwt query_parameters = consolidate_query_parameters uri body in
-  let full_path = Filename.concat_l [ !Dancelor_server_config.share; "static"; path ] in
+  let full_path = Filename.concat !Dancelor_server_config.share path in
   Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
@@ -90,7 +90,7 @@ let callback _ request body =
         else
           (
             Log.debug (fun m -> m "Serving main file.");
-            Server.respond_file ~fname:Filename.(concat (concat !Dancelor_server_config.share "static") "index.html") ()
+            Server.respond_file ~fname:(Filename.concat !Dancelor_server_config.share "index.html") ()
           )
     )
 
