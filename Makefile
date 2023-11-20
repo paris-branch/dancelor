@@ -24,10 +24,10 @@ test:
 	dune test $(DUNEJOBSARG)
 
 dev: build
-	bin/dancelor-server --config assets/config.json --no-routines --no-sync-storage --no-write-storage
+	bin/dancelor --config assets/config.json --no-routines --no-sync-storage --no-write-storage
 
 local: build
-	bin/dancelor-server --config assets/config.json --no-routines --no-sync-storage
+	bin/dancelor --config assets/config.json --no-routines --no-sync-storage
 
 indent:
 	opam exec -- \

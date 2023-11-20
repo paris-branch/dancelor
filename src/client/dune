@@ -13,4 +13,4 @@
 (install
  (section share)
  (files
-  (main.bc.js as dancelor-client.js)))
+  (main.bc.js as client.js)))

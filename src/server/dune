@@ -1,6 +1,6 @@
 (executable
  (name dancelor_server)
- (public_name dancelor-server)
+ (public_name dancelor)
  (libraries dancelor.server.controller dancelor.common cohttp-lwt-unix str)
  (preprocess
   (pps lwt_ppx ppx_deriving.std))
