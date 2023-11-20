@@ -5,14 +5,7 @@
       program = let
         dancelor = pkgs.writeShellApplication {
           name = "dancelor";
-          runtimeInputs = with pkgs; [
-            timidity
-            freepats
-            inkscape
-            lilypond
-            sassc
-            xvfb-run
-          ];
+          runtimeInputs = with pkgs; [ timidity freepats lilypond sassc ];
           text = ''
             ${self'.packages.dancelor}/bin/dancelor-server "$@"
           '';
