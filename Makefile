@@ -38,19 +38,19 @@ test:
 	dune test $(DUNEJOBSARG)
 
 local: build
-	bin/dancelor-server --config share/config.json --no-routines --no-sync-storage --no-write-storage
+	bin/dancelor-server --config assets/config.json --no-routines --no-sync-storage --no-write-storage
 
 dev: build
-	bin/dancelor-server --config share/config.json --no-routines --no-sync-storage
+	bin/dancelor-server --config assets/config.json --no-routines --no-sync-storage
 
 serve: release
-	bin/dancelor-server --config share/config.json
+	bin/dancelor-server --config assets/config.json
 
 init-only: release
-	bin/dancelor-server --config share/config.json --init-only
+	bin/dancelor-server --config assets/config.json --init-only
 
 check-tunes: build
-	bin/dancelor-server --config share/config.json --heavy-routines --no-sync-storage --no-write-storage --loglevel info
+	bin/dancelor-server --config assets/config.json --heavy-routines --no-sync-storage --no-write-storage --loglevel info
 
 indent:
 	opam exec -- \

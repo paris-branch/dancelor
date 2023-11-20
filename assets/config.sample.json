@@ -2,8 +2,8 @@
   "port": 8080,
   "lilypond": "lilypond",
   "cache": "cache",
-  "database": "database",
-  "views": "views",
+  "database": "../dancelor-database",
+  "share": "_build/install/default/share/dancelor",
   "loglevel": "debug",
   "routines": "true",
   "heavy_routines": "false"
