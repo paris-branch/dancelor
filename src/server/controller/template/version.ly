@@ -22,3 +22,7 @@
     }
   }
 }
+
+%% The following is important for the cropped SVG output; otherwise the last
+%% line of chords causes troubles.
+\markup\null
