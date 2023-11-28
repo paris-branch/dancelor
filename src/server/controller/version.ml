@@ -73,6 +73,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
     fpf fmt "#(load \"%s\")\n\n" (Filename.basename fname_scm);
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
+    fpf fmt [%blob "template/cropped.ly"];
     fpf fmt [%blob "template/repeat-volta-fancy.ly"];
     fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
     fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
@@ -145,15 +146,15 @@ module Svg = struct
     let%lwt (fname_ly, fname_svg) =
       let%lwt slug = Model.Version.slug version in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
-      Lwt.return (fname^".ly", fname^".cropped.svg")
+      Lwt.return (fname^".ly", fname^".svg")
     in
     Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
     Log.debug (fun m -> m "SVG file name: %s" fname_svg);
     let path = Filename.concat !Dancelor_server_config.cache "version" in
     Log.debug (fun m -> m "Preparing lilypond file");
     prepare_ly_file ?parameters ~show_meta:false ~fname:(Filename.concat path fname_ly) version;%lwt
-    Log.debug (fun m -> m "Generate score and crop");
-    LilyPond.cropped_svg ~exec_path:path fname_ly;%lwt
+    Log.debug (fun m -> m "Generate score");
+    LilyPond.svg ~exec_path:path fname_ly;%lwt
     Log.debug (fun m -> m "done!");
     Lwt.return (Filename.concat path fname_svg)
 
