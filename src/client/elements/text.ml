@@ -55,7 +55,7 @@ module Paragraph = struct
 
   let create ?placeholder ~text page =
     let p = Html.createP (Page.document page) in
-    NesOption.ifsome (fun ph -> p##.textContent := Js.some (js ph)) placeholder;
+    Option.iter (fun ph -> p##.textContent := Js.some (js ph)) placeholder;
     Lwt.on_success text (fun text -> p##.textContent := Js.some (js text));
     {page; root = p}
 

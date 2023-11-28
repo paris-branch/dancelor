@@ -31,8 +31,8 @@ let make_instrument pitch =
     ~transposition:(Transposition.relative pitch Music.pitch_c)
     ()
 
-let transposition  p = Option.unwrap p.transposition
-let first_bar      p = Option.unwrap p.first_bar
+let transposition  p = Option.get p.transposition
+let first_bar      p = Option.get p.first_bar
 let instruments    p = p.instruments
 let for_dance      p = p.for_dance
 let clef           p = p.clef

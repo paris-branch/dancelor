@@ -29,12 +29,12 @@ include Self
 let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header ?paper_size () =
   make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ~paper_size ()
 
-let front_page        p = Option.unwrap p.front_page
-let table_of_contents p = Option.unwrap p.table_of_contents
-let two_sided         p = Option.unwrap p.two_sided
-let running_header    p = Option.unwrap p.running_header
-let running_footer    p = Option.unwrap p.running_footer
-let paper_size        p = Option.unwrap p.paper_size
+let front_page        p = Option.get p.front_page
+let table_of_contents p = Option.get p.table_of_contents
+let two_sided         p = Option.get p.two_sided
+let running_header    p = Option.get p.running_header
+let running_footer    p = Option.get p.running_footer
+let paper_size        p = Option.get p.paper_size
 
 let every_set         p = p.every_set
 let instruments = SetParameters.instruments % every_set

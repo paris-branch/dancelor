@@ -172,11 +172,11 @@ let create ~placeholder ~sections ?on_enter ?(hide_sections = false) page =
   Dom.appendChild root (Table.root table);
   let t = {page; root; bar; table; messages; sections; hide_sections} in
   List.iter (fun (Section.Wrapped section) ->
-      NesOption.ifsome
+      Option.iter
         (fun default -> Table.Row.on_click default (fun () -> reset t))
         section.Section.default) sections;
   Inputs.Text.on_change bar (fun _ -> update t);
-  NesOption.ifsome (fun on_enter ->
+  Option.iter (fun on_enter ->
       Inputs.Text.on_enter bar on_enter)
     on_enter;
   Page.register_modal page

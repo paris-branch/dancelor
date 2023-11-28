@@ -108,9 +108,9 @@ module Text = struct
 
   let create ?placeholder ?default ?on_change ?on_focus page =
     let root = Html.createInput ~_type:(js "text") (Page.document page) in
-    NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
-    NesOption.ifsome (fun t -> root##.value := js t) default;
-    NesOption.ifsome (fun cb ->
+    Option.iter (fun t -> root##.placeholder := js t) placeholder;
+    Option.iter (fun t -> root##.value := js t) default;
+    Option.iter (fun cb ->
         Lwt.async (fun () ->
             Lwt_js_events.inputs root
               (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
@@ -118,7 +118,7 @@ module Text = struct
     Lwt.async (fun () ->
         Lwt_js_events.inputs root
           (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ()));
-    NesOption.ifsome (fun cb ->
+    Option.iter (fun cb ->
         Lwt.async (fun () ->
             Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ()));
         Lwt.async (fun () ->
@@ -178,9 +178,9 @@ module Textarea = struct
 
   let create ?placeholder ?default ?on_change ?on_focus page =
     let root = Html.createTextarea (Page.document page) in
-    NesOption.ifsome (fun t -> root##.placeholder := js t) placeholder;
-    NesOption.ifsome (fun t -> root##.value := js t) default;
-    NesOption.ifsome (fun cb ->
+    Option.iter (fun t -> root##.placeholder := js t) placeholder;
+    Option.iter (fun t -> root##.value := js t) default;
+    Option.iter (fun cb ->
         Lwt.async (fun () ->
             Lwt_js_events.inputs root
               (fun _ev _ -> cb (Js.to_string root##.value); Lwt.return ())))
@@ -188,7 +188,7 @@ module Textarea = struct
     Lwt.async (fun () ->
         Lwt_js_events.inputs root
           (fun _ev _ -> root##.classList##remove (js "invalid"); Lwt.return ()));
-    NesOption.ifsome (fun cb ->
+    Option.iter (fun cb ->
         Lwt.async (fun () ->
             Lwt_js_events.focuses root (fun _ev _ -> cb true; Lwt.return ()));
         Lwt.async (fun () ->
@@ -263,9 +263,9 @@ module Button = struct
              match href with
              | None -> Lwt.return ()
              | Some href -> Lwt.map (fun href -> Html.window##.location##.href := js href) href));
-    NesOption.ifsome (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
-    NesOption.ifsome (fun icon -> Dom.appendChild root (Fa.i icon page)) icon;
-    NesOption.ifsome (fun text -> Dom.appendChild root ((Page.document page)##createTextNode (js (" " ^ text)))) text;
+    Option.iter (fun k -> root##.classList##add (js (Kind.to_class k))) kind;
+    Option.iter (fun icon -> Dom.appendChild root (Fa.i icon page)) icon;
+    Option.iter (fun text -> Dom.appendChild root ((Page.document page)##createTextNode (js (" " ^ text)))) text;
     root##.classList##add (js "no-selection");
     root##.classList##add (js "clickable");
     {page; root}

@@ -99,7 +99,7 @@ let request_to_resource request routes =
   routes
   |> List.map (fun { request_to_resource; _ } -> request_to_resource request)
   |> List.find_opt ((<>) None)
-  >>=? fun x -> x
+  |> Option.join
 
 let resource_to_request resource routes =
   let first_matching_route =

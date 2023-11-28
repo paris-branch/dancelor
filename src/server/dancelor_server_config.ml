@@ -4,11 +4,13 @@ module Log = (val Dancelor_server_logs.create "config" : Logs.LOG)
 let int = Json.int
 let string = Json.string
 
-let bool =
-  Json.string >=>? function
-    | "true" | "yes" | "on" -> Some true
-    | "false" | "no" | "off" -> Some false
-    | _ -> None
+let bool x =
+  Option.bind
+    (Json.string x)
+    (function
+      | "true" | "yes" | "on" -> Some true
+      | "false" | "no" | "off" -> Some false
+      | _ -> None)
 
 let loglevel_of_string = function
   | "error" -> Logs.Error
@@ -18,8 +20,9 @@ let loglevel_of_string = function
   | _ -> assert false
 
 let loglevel_of_json_string json =
-  Json.string json >>=? fun s ->
-  Some (loglevel_of_string s)
+  Option.bind
+    (Json.string json)
+    (Option.some % loglevel_of_string)
 
 let loglevel_to_string = function
   | Logs.Error -> "error"
