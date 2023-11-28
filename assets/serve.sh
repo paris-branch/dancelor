@@ -56,7 +56,7 @@ opam_deps () {
 build () { make release; }
 
 just_serve () {
-    bin/dancelor-server --config share/config.json
+    bin/dancelor --config share/config.json
 }
 serve () {
     if [ -z "$log_dir" ]; then

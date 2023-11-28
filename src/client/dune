@@ -13,4 +13,4 @@
 (install
  (section share)
  (files
-  (main.bc.js as main.js)))
+  (main.bc.js as client.js)))
