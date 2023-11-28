@@ -16,10 +16,20 @@ type t =
     created_at  : Datetime.t            [@key "created-at"] }
 [@@deriving make, yojson]
 
-let slug tune = Lwt.return tune.slug
-let status tune = Lwt.return tune.status
-let dances tune = Lwt.return tune.dances
-let author tune = Lwt.return tune.author
+let slug tune = tune.slug
+let status tune = tune.status
+let name tune = tune.name
+let alternative_names tune = tune.alternative_names
+let kind tune = tune.kind
+let author tune = tune.author
+let dances tune = tune.dances
+let remark tune = tune.remark
+let scddb_id tune = tune.scddb_id
+let modified_at tune = tune.modified_at
+let created_at tune = tune.created_at
+
+let compare = Slug.compare_slugs_or ~fallback:Stdlib.compare slug
+let equal tune1 tune2 = compare tune1 tune2 = 0
 
 module Filter = struct
   let _key = "tune-filter"

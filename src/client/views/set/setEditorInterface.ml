@@ -70,9 +70,9 @@ let display_warnings t =
       let display_duplicated_warning tune =
         li [
           txt "Tune “";
-          L.span (Formatters.Tune.name tune);
+          span (Formatters.Tune.name tune);
           txt "” already appears in book ";
-          L.span (Formatters.Book.short_title bk);
+          span (Formatters.Book.short_title bk);
         ]
       in
       Lwt.return [
@@ -87,7 +87,7 @@ let make_version_subwindow t index version =
   subwin##.classList##add (js "subwindow");
   let toolbar = Html.createDiv (Page.document t.page) in
   toolbar##.classList##add (js "toolbar");
-  let title = Text.Heading.h3_static ~text:(Tune.name version.SetEditor.tune) t.page in
+  let title = Text.Heading.h3_static ~text:(Lwt.return @@ Tune.name version.SetEditor.tune) t.page in
   Dom.appendChild toolbar (Text.Heading.root title);
   let buttons = Html.createUl (Page.document t.page) in
   let down, up, del =
@@ -136,20 +136,8 @@ let refresh t =
   Inputs.Text.set_contents t.input_name (SetEditor.name t.composer);
   Inputs.Text.set_contents t.input_kind (SetEditor.kind t.composer);
   Inputs.Text.set_contents t.input_order (SetEditor.order t.composer);
-  begin match SetEditor.deviser t.composer with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.deviser_search) ""
-    | Some cr ->
-      let name = Person.name cr in
-      Lwt.on_success name (fun name ->
-          Inputs.Text.set_contents (SearchBar.bar t.deviser_search) name)
-  end;
-  begin match SetEditor.for_book t.composer with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.book_search) ""
-    | Some bk ->
-      let title = Book.title bk in
-      Lwt.on_success title (fun title ->
-          Inputs.Text.set_contents (SearchBar.bar t.book_search) title)
-  end;
+  Inputs.Text.set_contents (SearchBar.bar t.deviser_search) (Option.fold ~none:"" ~some:Person.name (SetEditor.deviser t.composer));
+  Inputs.Text.set_contents (SearchBar.bar t.book_search) (Option.fold ~none:"" ~some:Book.title (SetEditor.for_book t.composer));
   JsHelpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
       let subwin = make_version_subwindow t i version in
@@ -162,11 +150,11 @@ let refresh t =
 let make_version_search_result composer page score =
   let version = Score.value score in
   let score = score.Score.score in
-  let%lwt slug = Version.slug version in
-  let%lwt bars = Version.bars version in
-  let%lwt structure = Version.structure version in
+  let slug = Version.slug version in
+  let bars = Version.bars version in
+  let structure = Version.structure version in
   let%lwt tune = Version.tune version in
-  let%lwt kind = Tune.kind tune in
+  let kind = Tune.kind tune in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success (SetEditor.add composer slug) (fun () -> Page.refresh page; SetEditor.save composer))
@@ -211,8 +199,8 @@ let make_person_modal composer content page =
 let make_deviser_search_result composer page score =
   let deviser = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Person.name deviser in
-  let%lwt slug = Person.slug deviser in
+  let name = Person.name deviser in
+  let slug = Person.slug deviser in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
@@ -228,16 +216,14 @@ let make_deviser_search_result composer page score =
 let make_book_search_result composer page score =
   let book = Score.value score in
   let score = score.Score.score in
-  let%lwt name = Book.title book in
-  let%lwt slug = Book.slug book in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
-            (SetEditor.set_for_book composer slug)
+            (SetEditor.set_for_book composer (Book.slug book))
             (fun () -> Page.refresh page; SetEditor.save composer))
       ~cells:[
         Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
-        Table.Cell.text ~text:(Lwt.return name) page]
+        Table.Cell.text ~text:(Lwt.return @@ Book.title book) page]
       page
   in
   Lwt.return row
@@ -367,9 +353,7 @@ let create page =
           in
           if b1 && b2 && b3 && b4 && b5 then (
             Lwt.on_success (SetEditor.submit composer) (fun set ->
-                Lwt.on_success (Set.slug set) (fun slug ->
-                    let href = PageRouter.(path (Set slug)) in
-                    Html.window##.location##.href := js href))))
+                Html.window##.location##.href := js (PageRouter.path_set @@ Set.slug set))))
       page
   in
   let clear =

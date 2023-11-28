@@ -12,13 +12,13 @@ module Lift
 
   let equal any1 any2 =
     match any1, any2 with
-    |  Person c1,  Person c2 ->  Person.equal c1 c2
-    |   Dance d1,   Dance d2 ->   Dance.equal d1 d2
-    |    Book b1,    Book b2 ->    Book.equal b1 b2
-    |     Set s1,     Set s2 ->     Set.equal s1 s2
-    |    Tune t1,    Tune t2 ->    Tune.equal t1 t2
+    |  Person c1,  Person c2 -> Person.equal c1 c2
+    |   Dance d1,   Dance d2 -> Dance.equal d1 d2
+    |    Book b1,    Book b2 -> Book.equal b1 b2
+    |     Set s1,     Set s2 -> Set.equal s1 s2
+    |    Tune t1,    Tune t2 -> Tune.equal t1 t2
     | Version v1, Version v2 -> Version.equal v1 v2
-    | _ -> Lwt.return_false
+    | _ -> false
 
   module Type = struct
     include AnyCore.Type

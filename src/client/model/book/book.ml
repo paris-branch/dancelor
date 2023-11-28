@@ -7,11 +7,7 @@ let make_and_save
     ?status ~title ?date ?contents ~modified_at ~created_at
     ()
   =
-  let%lwt contents =
-    let%olwt contents = Lwt.return contents in
-    let%lwt contents = Lwt_list.map_s page_to_page_core contents in
-    Lwt.return_some contents
-  in
+  let contents = Option.map (List.map page_to_page_core) contents in
   Madge_client.(
     call ~endpoint:E.make_and_save @@ fun {a} {o} ->
     o A.status status;
@@ -34,11 +30,7 @@ let update
     ?status ~slug ~title ?date ?contents ~modified_at ~created_at
     ()
   =
-  let%lwt contents =
-    let%olwt contents = Lwt.return contents in
-    let%lwt contents = Lwt_list.map_s page_to_page_core contents in
-    Lwt.return_some contents
-  in
+  let contents = Option.map (List.map page_to_page_core) contents in
   Madge_client.(
     call ~endpoint:E.update @@ fun {a} {o} ->
     o A.status status;

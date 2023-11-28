@@ -3,12 +3,12 @@ open Dancelor_client_html
 module M = Dancelor_client_model
 
 let name ?(link=true) dance =
-  let name_text = [L.txt (M.Dance.name dance)] in
+  let name_text = [txt (M.Dance.name dance)] in
   if link then
-    let href =
-      let%lwt slug = M.Dance.slug dance in
-      Lwt.return PageRouter.(path (Dance slug))
-    in
-    Lwt.return [a ~a:[L.a_href href] name_text]
+    [
+      a
+        ~a:[a_href @@ PageRouter.path_dance @@ M.Dance.slug dance]
+        name_text
+    ]
   else
-    Lwt.return name_text
+    name_text

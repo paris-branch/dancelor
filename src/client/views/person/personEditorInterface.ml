@@ -59,11 +59,11 @@ let create ?on_save page =
           in
           if b1 && b2 then (
             Lwt.on_success (PersonEditor.submit editor) (fun person ->
-                Lwt.on_success (Person.slug person) (fun slug ->
-                    begin match on_save with
-                      | None -> Html.window##.location##.href := js PageRouter.(path (Person slug))
-                      | Some cb -> cb slug
-                    end))))
+                let slug = Person.slug person in
+                match on_save with
+                | None -> Html.window##.location##.href := js PageRouter.(path (Person slug))
+                | Some cb -> cb slug
+              )))
       page
   in
   let clear =

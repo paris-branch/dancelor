@@ -7,8 +7,8 @@ module Ly = struct
   let kind set set_parmeters =
     let%lwt kind =
       match%lwt Model.SetParameters.for_dance set_parmeters with
-      | None -> Model.Set.kind set
-      | Some dance -> Model.Dance.kind dance
+      | None -> Lwt.return @@ Model.Set.kind set
+      | Some dance -> Lwt.return @@ Model.Dance.kind dance
     in
     Lwt.return (Model.Kind.Dance.to_pretty_string kind)
 
@@ -16,27 +16,19 @@ module Ly = struct
     let%lwt dance =
       match%lwt Model.SetParameters.for_dance set_parameters with
       | None -> Lwt.return_nil
-      | Some dance ->
-        let%lwt name = Model.Dance.name dance in
-        Lwt.return [spf "Dance: %s" name]
+      | Some dance -> Lwt.return [spf "Dance: %s" (Model.Dance.name dance)]
     in
     let%lwt kind = kind set set_parameters in
-    let%lwt order =
+    let order =
       if Model.SetParameters.show_order set_parameters then
-        let%lwt order = Model.Set.order set >|=| Model.SetOrder.to_pretty_string in
-        Lwt.return [spf "Play %s" order]
+        [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order set]
       else
-        Lwt.return_nil
+        []
     in
     let%lwt chords =
       match%lwt Model.SetParameters.for_dance set_parameters with
-      | None -> Lwt.return_nil
-      | Some dance ->
-        let%lwt two_chords = Model.Dance.two_chords dance in
-        if two_chords then
-          Lwt.return ["Two Chords"]
-        else
-          Lwt.return_nil
+      | Some dance when Model.Dance.two_chords dance -> Lwt.return ["Two Chords"]
+      | _ -> Lwt.return_nil
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
@@ -61,7 +53,7 @@ module Ly = struct
     let parameters = Model.BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
-      let%lwt title = Model.Book.title book in (** FIXME: subtitle *)
+      let title = Model.Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
       (
         match Model.BookParameters.paper_size parameters with
@@ -117,24 +109,21 @@ module Ly = struct
           Fun.flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune version in
-            let%lwt name = Model.Tune.name tune in
             let name =
               parameters
               |> Model.VersionParameters.display_name
-              |> Option.value ~default:name
+              |> Option.value ~default:(Model.Tune.name tune)
             in
             let trivia =
               parameters
               |> Model.VersionParameters.trivia
               |> Option.value ~default:" "
             in
-            let%lwt bars = Model.Version.bars version in
-            let%lwt kind = Model.Tune.kind tune in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let%lwt set =
               Model.Set.make
                 ~name
-                ~kind:(Model.Kind.Dance.Version (bars, kind))
+                ~kind:(Model.Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
                 ~versions_and_parameters:[version, parameters]
                 ~order:[Internal 1]
                 ~modified_at:(NesDatetime.now ())
@@ -151,21 +140,18 @@ module Ly = struct
         in
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
-        let%lwt name = Model.Set.name set in
         let name =
           set_parameters
           |> Model.SetParameters.display_name
-          |> Option.value ~default:name
+          |> Option.value ~default:(Model.Set.name set)
         in
         let%lwt deviser =
           if not (set_parameters |> Model.SetParameters.show_deviser) then
             Lwt.return ""
           else
-            (match%lwt Model.Set.deviser set with
-             | None -> Lwt.return ""
-             | Some deviser ->
-               let%lwt deviser = Model.Person.name deviser in
-               Lwt.return (spf "Set by %s" deviser))
+            Lwt.map
+              (Option.fold ~none:"" ~some:(spf "Set by %s" % Model.Person.name))
+              (Model.Set.deviser set)
         in
         let%lwt kind = kind set set_parameters in
         let%lwt details_line = details_line set set_parameters in
@@ -176,10 +162,9 @@ module Ly = struct
          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
         let%lwt () =
           let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
-          let%lwt order = Model.Set.order set in
           let versions_and_parameters =
             rearrange_set_content
-              ~order
+              ~order:(Model.Set.order set)
               ?order_type:(Model.SetParameters.order_type set_parameters)
               versions_and_parameters
           in
@@ -194,17 +179,14 @@ module Ly = struct
               Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_string clef_parameter) content
           in
           let%lwt tune = Model.Version.tune version in
-          let%lwt key = Model.Version.key version in
-          let%lwt name = Model.Tune.name tune in
+          let key = Model.Version.key version in
           let name =
             version_parameters
             |> Model.VersionParameters.display_name
-            |> Option.value ~default:name
+            |> Option.value ~default:(Model.Tune.name tune)
           in
           let%lwt author =
-            match%lwt Model.Tune.author tune with
-            | None -> Lwt.return ""
-            | Some author -> Model.Person.name author
+            Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.author tune)
           in
           let author =
             version_parameters
@@ -278,7 +260,7 @@ module Pdf = struct
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
-      let%lwt slug = Model.Book.slug book in
+      let slug = Model.Book.slug book in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in

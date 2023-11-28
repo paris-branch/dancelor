@@ -1,4 +1,3 @@
-open Lwt
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_elements
@@ -10,76 +9,70 @@ module Html = Dom_html
 let js = Js.string
 
 let make_person_result ~prefix page person =
-  let%lwt slug = Person.slug person in
-  let href = Lwt.return PageRouter.(path (Person slug)) in
+  let href = Lwt.return @@ PageRouter.path_person @@ Person.slug person in
   let cells =
     prefix @ [
-      Table.Cell.text ~colspan:3 ~text:(Person.name person) page
+      Table.Cell.text ~colspan:3 ~text:(Lwt.return @@ Person.name person) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_dance_result ~prefix page dance =
-  let%lwt slug = Dance.slug dance in
-  let href = Lwt.return PageRouter.(path (Dance slug)) in
+  let href = Lwt.return @@ PageRouter.path_dance @@ Dance.slug dance in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(Dance.name dance) page ;
-      Table.Cell.text ~text:(Dance.kind dance >|= Kind.Dance.to_string) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Dance.name dance) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Kind.Dance.to_string @@ Dance.kind dance) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Dance.deviser dance >>= Formatters.Person.name)
+          (Lwt.map Formatters.Person.name (Dance.deviser dance))
       ) page ;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_book_result ~prefix page book =
-  let%lwt slug = Book.slug book in
-  let href = Lwt.return PageRouter.(path (Book slug)) in
+  let href = Lwt.return @@ PageRouter.path_book @@ Book.slug book in
   let cells =
     prefix @ [
       Table.Cell.create ~colspan:3 ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.Book.title_and_subtitle book)
+          (Lwt.return @@ Formatters.Book.title_and_subtitle book)
       ) page
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_set_result ~prefix page set =
-  let%lwt slug = Set.slug set in
-  let href = Lwt.return PageRouter.(path (Set slug)) in
+  let href = Lwt.return @@ PageRouter.path_set @@ Set.slug set in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(Set.name set) page;
-      Table.Cell.text ~text:(Set.kind set >|= Kind.Dance.to_string) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Set.name set) page;
+      Table.Cell.text ~text:(Lwt.return @@ Kind.Dance.to_string @@ Set.kind set) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Set.deviser set >>= Formatters.Person.name)
+          (Lwt.map Formatters.Person.name (Set.deviser set))
       ) page;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_tune_result ~prefix page tune =
-  let%lwt slug = Tune.slug tune in
-  let href = Lwt.return PageRouter.(path (Tune slug)) in
+  let href = Lwt.return @@ PageRouter.path_tune @@ Tune.slug tune in
   let cells =
     prefix @ [
-      Table.Cell.text ~text:(Tune.name tune) page ;
-      Table.Cell.text ~text:(Tune.kind tune >|= Kind.Base.to_pretty_string ~capitalised:true) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Tune.name tune) page ;
+      Table.Cell.text ~text:(Lwt.return @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Tune.author tune >>= Formatters.Person.name)
+          (Lwt.map Formatters.Person.name (Tune.author tune))
       ) page ;
     ]
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
 let make_version_result ~prefix page version =
-  let%lwt slug = Version.slug version in
-  let href = Lwt.return PageRouter.(path (Version slug)) in
+  let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in
   let%lwt tune = Version.tune version in
   let cells =
     prefix @ [
@@ -88,10 +81,9 @@ let make_version_result ~prefix page version =
           (Formatters.Version.name_and_disambiguation ~link:false version)
       ) page;
       Table.Cell.text ~text:(
-        let%lwt bars = Version.bars version in
-        let%lwt kind = Tune.kind tune in
-        let%lwt structure = Version.structure version in
-        Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
+        let bars = Version.bars version in
+        let structure = Version.structure version in
+        Lwt.return (Kind.Version.to_string (bars, Tune.kind tune) ^ " (" ^ structure ^ ")")
       ) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style

@@ -17,21 +17,18 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let tune_lwt = Tune.get slug in
 
-  Lwt.async (fun () ->
-      let%lwt tune = tune_lwt in
-      let%lwt name = Tune.name tune in
-      document##.title := js (name ^ " | Tune | Dancelor");
-      Lwt.return ()
+  Lwt.on_success tune_lwt (fun tune ->
+      document##.title := js (Tune.name tune ^ " | Tune | Dancelor");
     );
 
   (
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [L.txt (tune_lwt >>=| Tune.name)];
-      L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.aka);
+      h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Tune.name tune_lwt];
+      L.h3 ~a:[a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
       L.div (
-        match%lwt tune_lwt >>=| Tune.scddb_id with
+        match%lwt Lwt.map Tune.scddb_id tune_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
           let href = SCDDB.tune_uri scddb_id in
@@ -59,16 +56,11 @@ let create slug page =
           let%lwt versions = versions_lwt in
 
           (* If there is only one version, redirect directly to it. *)
-          if List.length versions = 1 then
-            (
-              Lwt.async @@ fun () ->
-              let%lwt href =
-                let%lwt slug = Version.slug (List.hd versions) in
-                Lwt.return PageRouter.(path (Version slug))
-              in
-              Dom_html.window##.location##.href := js href;
-              Lwt.return_unit
-            );
+          (
+            match versions with
+            | [version] -> Dom_html.window##.location##.href := js (PageRouter.path_version @@ Version.slug version);
+            | _ -> ()
+          );
 
           Lwt.return [Dancelor_client_tables.versions versions]
         )

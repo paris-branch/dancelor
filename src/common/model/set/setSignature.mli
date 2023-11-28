@@ -2,25 +2,26 @@ open Nes
 
 type t = SetCore.t
 
-val slug : t -> t Slug.t Lwt.t
-val is_slug_none : t -> bool Lwt.t
+val slug : t -> t Slug.t
+val is_slug_none : t -> bool
 
-val status : t -> Status.t Lwt.t
-val name : t -> string Lwt.t
+val status : t -> Status.t
+val name : t -> string
 val deviser : t -> PersonCore.t option Lwt.t
-val kind : t -> Kind.Dance.t Lwt.t
+val kind : t -> Kind.Dance.t
 val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
-val order : t -> SetOrder.t Lwt.t
-val instructions : t -> string Lwt.t
+val order : t -> SetOrder.t
+val instructions : t -> string
 val dances : t -> DanceCore.t list Lwt.t
-val remark : t -> string Lwt.t
-val modified_at : t -> Datetime.t Lwt.t
-val created_at : t -> Datetime.t Lwt.t
+val remark : t -> string
+val modified_at : t -> Datetime.t
+val created_at : t -> Datetime.t
 
 val contains_version : VersionCore.t Slug.t -> t -> bool
+(** REVIEW: This really takes a slug? *)
 
-val compare : t -> t -> int Lwt.t
-val equal : t -> t -> bool Lwt.t
+val compare : t -> t -> int
+val equal : t -> t -> bool
 
 val lilypond_content_cache_key : t -> string Lwt.t
 

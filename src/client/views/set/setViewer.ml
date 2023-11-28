@@ -17,11 +17,8 @@ let create slug page =
   let content = Dom_html.createDiv document in
   let set_lwt = Set.get slug in
 
-  Lwt.async (fun () ->
-      let%lwt set = set_lwt in
-      let%lwt title = Set.name set in
-      document##.title := js (title ^ " | Set | Dancelor");
-      Lwt.return ()
+  Lwt.on_success set_lwt (fun set ->
+      document##.title := js (Set.name set ^ " | Set | Dancelor");
     );
 
   let open Dancelor_client_html in
@@ -30,19 +27,17 @@ let create slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [L.txt (set_lwt >>=| Set.name)];
+      h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Set.name set_lwt];
       L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3 ~a:[a_class ["title"]] [
-        L.txt (set_lwt >>=| Set.kind >|=| Kind.Dance.to_pretty_string);
+        L.txt (Lwt.map (Kind.Dance.to_pretty_string % Set.kind) set_lwt);
         txt " — Play ";
-        L.txt (set_lwt >>=| Set.order >|=| SetOrder.to_pretty_string);
+        L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order) set_lwt);
       ];
       L.h3 ~a:[a_class ["title"]] (
         match%lwt set_lwt >>=| Set.deviser with
         | None -> Lwt.return_nil
-        | Some deviser ->
-          let%lwt name_block = Formatters.Person.name ~link:true (Some deviser) in
-          Lwt.return (txt "Set devised by " :: name_block)
+        | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
       );
 
       download_dialog;
@@ -60,7 +55,7 @@ let create slug page =
       ];
 
       p [ L.txt (
-          match%lwt set_lwt >>=| Set.instructions with
+          match%lwt Lwt.map Set.instructions set_lwt with
           | "" -> Lwt.return ""
           | instructions -> Lwt.return ("Instructions: " ^ instructions)) ];
 
@@ -75,12 +70,12 @@ let create slug page =
             (fun (version, _parameters) ->
                (* FIXME: use parameters *)
                let%lwt tune = Version.tune version in
-               let%lwt slug = Version.slug version in
+               let slug = Version.slug version in
 
                Lwt.return (
                  div ~a:[a_class ["image-container"]]
                    [
-                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [L.txt (Tune.name tune)]];
+                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [txt @@ Tune.name tune]];
 
                      object_ ~a:[
                        a_mime_type "image/svg+xml";

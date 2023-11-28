@@ -235,13 +235,13 @@ let submit_updated_book set opt_book =
   | None -> Lwt.return ()
   | Some (slug, _) ->
     let%lwt book = Book.get slug in
-    let%lwt title = Book.title book in
-    let%lwt date = Book.date book in
+    let title = Book.title book in
+    let date = Book.date book in
     let%lwt contents = Book.contents book in
     let%lwt set = set in
     let contents = contents @ [Set (set, SetParameters.none)] in
     let modified_at = Datetime.now () in
-    let%lwt created_at = Book.created_at book in
+    let created_at = Book.created_at book in
     Book.update ~slug ~title ?date ~contents ~modified_at ~created_at ()
 
 let submit t =

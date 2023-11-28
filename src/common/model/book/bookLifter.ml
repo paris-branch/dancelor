@@ -8,34 +8,25 @@ module Lift
 = struct
   include BookCore
 
-  let title book = Lwt.return book.title
-  let subtitle book = Lwt.return book.subtitle
-  let short_title book = if book.short_title = "" then title book else Lwt.return book.short_title
-  let date book = Lwt.return book.date
-  let contents book = Lwt.return book.contents
-  let source book = Lwt.return book.source (* FIXME: Should be removed *)
-  let remark book = Lwt.return book.remark
-  let scddb_id book = Lwt.return book.scddb_id
-  let modified_at book = Lwt.return book.modified_at
-  let created_at book = Lwt.return book.created_at
-
-  let equal book1 book2 =
-    let%lwt slug1 = slug book1 in
-    let%lwt slug2 = slug book2 in
-    Lwt.return (Slug.equal slug1 slug2)
+  let short_title book = if short_title book = "" then title book else short_title book
 
   let is_source book = source book
 
-  let compare book1 book2 =
-    (* Compare first by date *)
-    let c = compare book1.date book2.date in
-    if c = 0 then
-      compare book1 book2
-    else
-      c
+  let compare =
+    Slug.compare_slugs_or
+      ~fallback:
+        (fun book1 book2 ->
+           (* Compare first by date *)
+           let c = compare book1.date book2.date in
+           if c = 0 then
+             compare book1 book2
+           else
+             c)
+      slug
+
+  let equal book1 book2 = compare book1 book2 = 0
 
   let contents book =
-    let%lwt contents = contents book in
     Lwt_list.map_p
       (function
         | PageCore.Version (version, parameters) ->
@@ -46,7 +37,7 @@ module Lift
           Lwt.return (Set (set, parameters))
         | PageCore.InlineSet (set, parameters) ->
           Lwt.return (InlineSet (set, parameters)))
-      contents
+      (contents book)
 
   let versions_from_contents book =
     let%lwt contents = contents book in
@@ -64,9 +55,8 @@ module Lift
         | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set)
       contents
 
-  let unique_sets_from_contents book =
-    let%lwt sets = sets_from_contents book in
-    List.sort_uniq_lwt Set.compare sets
+  let unique_sets_from_contents =
+    Lwt.map (List.sort_uniq Set.compare) % sets_from_contents
 
   let sets_and_parameters_from_contents book =
     let%lwt contents = contents book in
@@ -88,21 +78,12 @@ module Lift
     Lwt.return (String.concat "\n" contents)
 
   let page_to_page_core = function
-    | (Version (version, params) : page) ->
-      let%lwt slug = Version.slug version in
-      Lwt.return @@ PageCore.Version (slug, params)
-    | (Set (set, params) : page) ->
-      let%lwt slug = Set.slug set in
-      Lwt.return @@ PageCore.Set (slug, params)
-    | (InlineSet (set, params) : page) ->
-      Lwt.return @@ PageCore.InlineSet (set, params)
+    | (Version (version, params) : page) -> PageCore.Version (Version.slug version, params)
+    | (Set (set, params) : page) -> PageCore.Set (Set.slug set, params)
+    | (InlineSet (set, params) : page) -> PageCore.InlineSet (set, params)
 
   let make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () =
-    let%lwt contents =
-      let%olwt contents = Lwt.return contents in
-      let%lwt contents = Lwt_list.map_s page_to_page_core contents in
-      Lwt.return_some contents
-    in
+    let contents = Option.map (List.map page_to_page_core) contents in
     Lwt.return @@ make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
 
   module Warnings = struct
@@ -119,24 +100,24 @@ module Lift
         Lwt.return_nil
 
     let duplicateSet book =
-      let%lwt sets = sets_from_contents book in
-      match%lwt List.sort_lwt Set.compare sets with
-      | [] -> Lwt.return_nil
+      Fun.flip Lwt.map (sets_from_contents book) @@ fun sets ->
+      match List.sort Set.compare sets with
+      | [] -> []
       | first_set :: other_sets ->
-        let%lwt (_, warnings) =
-          Lwt_list.fold_left_s
+        let (_, warnings) =
+          List.fold_left
             (fun (previous_set, warnings) current_set ->
-               let%lwt warnings =
-                 if%lwt Set.equal current_set previous_set then
-                   Lwt.return ((DuplicateSet current_set) :: warnings)
+               let warnings =
+                 if Set.equal current_set previous_set then
+                   ((DuplicateSet current_set) :: warnings)
                  else
-                   Lwt.return warnings
+                   warnings
                in
-               Lwt.return (current_set, warnings))
+               (current_set, warnings))
             (first_set, [])
             other_sets
         in
-        Lwt.return warnings
+        warnings
 
     let duplicateVersion book =
       let%lwt sets = unique_sets_from_contents book in
@@ -174,14 +155,15 @@ module Lift
          the case, add a warning accordingly *)
       Hashtbl.to_seq tunes_to_sets
       |> List.of_seq
-      |> Lwt_list.fold_left_s
+      |> List.fold_left
         (fun warnings (tune, set_opts) ->
-           let%lwt set_opts = List.sort_count_lwt (Option.compare_lwt Set.compare) set_opts in
+           let set_opts = List.sort_count (Option.compare Set.compare) set_opts in
            if List.length set_opts > 1 then
-             Lwt.return ((DuplicateVersion (tune, set_opts)) :: warnings)
+             ((DuplicateVersion (tune, set_opts)) :: warnings)
            else
-             Lwt.return warnings)
+             warnings)
         []
+      |> Lwt.return
 
     let setDanceMismatch book =
       let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
@@ -191,9 +173,7 @@ module Lift
            (* FIXME: SetParameters should be hidden behind the same kind of
               mechanism as the rest; and this step should not be necessary *)
            let%lwt dance = Dance.get dance_slug in
-           let%lwt dance_kind = Dance.kind dance in
-           let%lwt set_kind = Set.kind set in
-           if set_kind = dance_kind then
+           if Set.kind set = Dance.kind dance then
              Lwt.return_none
            else
              Lwt.return_some (SetDanceMismatch (set, dance)))
@@ -231,26 +211,22 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is book' ->
-        equal book book' >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ equal book book'
 
       | Title string ->
-        let%lwt title = title book in
-        Lwt.return (String.proximity ~char_equal string title)
+        Lwt.return @@ String.proximity ~char_equal string @@ title book
 
       | TitleMatches string ->
-        let%lwt title = title book in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string title)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ title book
 
       | Subtitle string ->
-        let%lwt subtitle = subtitle book in
-        Lwt.return (String.proximity ~char_equal string subtitle)
+        Lwt.return @@ String.proximity ~char_equal string @@ subtitle book
 
       | SubtitleMatches string ->
-        let%lwt subtitle = subtitle book in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string subtitle)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ subtitle book
 
       | IsSource ->
-        is_source book >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ is_source book
 
       | ExistsVersion vfilter ->
         let%lwt content = contents book in

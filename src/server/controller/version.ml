@@ -13,17 +13,16 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
 
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Model.Version.tune version in
-  let%lwt key = Model.Version.key version in
-  let%lwt name = Model.Tune.name tune in
+  let key = Model.Version.key version in
   let name =
     parameters
     |> Model.VersionParameters.display_name
-    |> Option.value ~default:name
+    |> Option.value ~default:(Model.Tune.name tune)
   in
   let%lwt author =
     match%lwt Model.Tune.author tune with
     | None -> Lwt.return ""
-    | Some author -> Model.Person.name author
+    | Some author -> Lwt.return @@ Model.Person.name author
   in
   let author =
     parameters
@@ -42,7 +41,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
     else
       "", ""
   in
-  let%lwt kind = Model.Tune.kind tune in
+  let kind = Model.Tune.kind tune in
   let (tempo_unit, tempo_value) = Model.Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
   let%lwt content = Model.Version.content version in
@@ -144,7 +143,7 @@ module Svg = struct
     StorageCache.use ~cache ~key:(`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
-      let%lwt slug = Model.Version.slug version in
+      let slug = Model.Version.slug version in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".svg")
     in
@@ -168,7 +167,7 @@ end
 module Pdf = struct
   let render ?parameters version =
     let%lwt kind = Model.Version.kind version in
-    let%lwt slug = Lwt.map Slug.unsafe_coerce @@ Model.Version.slug version in
+    let slug = Slug.unsafe_coerce @@ Model.Version.slug version in
     let%lwt name = Model.Version.name version in
     let%lwt set_parameters =
       Model.SetParameters.make
@@ -211,7 +210,7 @@ module Ogg = struct
     let%lwt body = Model.Version.content version in
     StorageCache.use ~cache ~key:(`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
-      let%lwt slug = Model.Version.slug version in
+      let slug = Model.Version.slug version in
       let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".ogg")
     in

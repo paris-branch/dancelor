@@ -11,8 +11,12 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving yojson, make]
 
-let slug c = Lwt.return c.slug
-let status c = Lwt.return c.status
+let slug person = person.slug
+let status person = person.status
+let name person = person.name
+let scddb_id person = person.scddb_id
+let modified_at person = person.modified_at
+let created_at person = person.created_at
 
 module Filter = struct
   let _key = "person-filter"

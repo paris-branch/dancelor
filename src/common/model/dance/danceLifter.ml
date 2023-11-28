@@ -12,29 +12,15 @@ module Lift
     =
     let name = String.remove_duplicates ~char:' ' name in
     let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
-    let%lwt deviser =
-      match deviser with
-      | None -> Lwt.return_none
-      | Some deviser ->
-        let%lwt deviser = Person.slug deviser in
-        Lwt.return_some deviser
-    in
+    let deviser = Option.map Person.slug deviser in
     Lwt.return (make
                   ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id
                   ?disambiguation ~modified_at ~created_at
                   ())
 
-  let name d = Lwt.return d.name
-  let kind d = Lwt.return d.kind
-  let deviser dance = Olwt.flip @@ Option.map Person.get dance.deviser
-  let two_chords d = Lwt.return d.two_chords
-  let scddb_id d = Lwt.return d.scddb_id
-  let disambiguation d = Lwt.return d.disambiguation
+  let deviser dance = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (deviser dance)
 
-  let equal dance1 dance2 =
-    let%lwt slug1 = slug dance1 in
-    let%lwt slug2 = slug dance2 in
-    Lwt.return (Slug.equal slug1 slug2)
+  let equal dance1 dance2 = Slug.equal (slug dance1) (slug dance2)
 
   module Filter = struct
     include DanceCore.Filter
@@ -44,19 +30,16 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is dance' ->
-        equal dance dance' >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ equal dance dance'
 
       | Name string ->
-        let%lwt name = name dance in
-        Lwt.return (String.proximity ~char_equal string name)
+        Lwt.return @@ String.proximity ~char_equal string @@ name dance
 
       | NameMatches string ->
-        let%lwt name = name dance in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name dance
 
       | Kind kfilter ->
-        let%lwt kind = kind dance in
-        Kind.Dance.Filter.accepts kfilter kind
+        Kind.Dance.Filter.accepts kfilter @@ kind dance
 
       | Deviser cfilter ->
         (match%lwt deviser dance with

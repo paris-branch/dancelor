@@ -13,39 +13,23 @@ module Lift
     =
     let structure = String.remove_duplicates ~char:' ' structure in
     let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
-    let%lwt tune = Tune.slug tune in
-    let%lwt arranger =
-      let%olwt arranger = Lwt.return arranger in
-      let%lwt arranger = Person.slug arranger in
-      Lwt.return_some arranger
-    in
+    let tune = Tune.slug tune in
+    let arranger = Option.map Person.slug arranger in
     Lwt.return (make
                   ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
                   ?disambiguation ?broken ~modified_at ~created_at
                   ())
 
-  let tune version = Tune.get version.tune
-  let bars t = Lwt.return t.bars
-  let key t = Lwt.return t.key
-  let structure t = Lwt.return t.structure
+  let tune version = Tune.get (tune version)
   let arranger tune = Olwt.flip @@ Option.map Person.get tune.arranger
-  let remark t = Lwt.return t.remark
-  let disambiguation t = Lwt.return t.disambiguation
-  let broken t = Lwt.return t.broken
 
-  let set_broken t broken = Lwt.return {t with broken}
-
-  let equal version1 version2 =
-    let%lwt slug1 = slug version1 in
-    let%lwt slug2 = slug version2 in
-    Lwt.return (Slug.equal slug1 slug2)
+  let set_broken t broken = {t with broken}
 
   let kind version =
-    let%lwt bars = bars version in
-    let%lwt kind = tune version >>=| Tune.kind in
-    Lwt.return (bars, kind)
+    Fun.flip Lwt.map (tune version) @@ fun tune ->
+    (bars version, Tune.kind tune)
 
-  let name version = tune version >>=| Tune.name
+  let name version = Lwt.map Tune.name (tune version)
 
   module Filter = struct
     include VersionCore.Filter
@@ -54,24 +38,21 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is version' ->
-        equal version version' >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ equal version version'
 
       | Tune tfilter ->
         let%lwt tune = tune version in
         Tune.Filter.accepts tfilter tune
 
       | Key key' ->
-        let%lwt key = key version in
-        Lwt.return (Formula.interpret_bool (key = key'))
+        Lwt.return @@ Formula.interpret_bool (key version = key')
 
       | Kind kfilter ->
         let%lwt tune = tune version in
-        let%lwt kind = Tune.kind tune in
-        let%lwt bars = bars version in
-        Kind.Version.Filter.accepts kfilter (bars, kind)
+        Kind.Version.Filter.accepts kfilter (bars version, Tune.kind tune)
 
       | Broken ->
-        broken version >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ broken version
 
     let is version = Formula.pred (Is version)
     let tune tfilter = Formula.pred (Tune tfilter)

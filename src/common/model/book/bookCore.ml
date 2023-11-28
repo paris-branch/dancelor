@@ -37,9 +37,18 @@ let make
     ~scddb_id ~modified_at ~created_at
     ()
 
-let slug book = Lwt.return book.slug
-let status book = Lwt.return book.status
-let contents book = Lwt.return book.contents
+let slug book = book.slug
+let status book = book.status
+let title book = book.title
+let subtitle book = book.subtitle
+let short_title book = book.short_title
+let date book = book.date
+let contents book = book.contents
+let source book = book.source
+let remark book = book.remark
+let scddb_id book = book.scddb_id
+let modified_at book = book.modified_at
+let created_at book = book.created_at
 
 let contains_set set1 book =
   List.exists

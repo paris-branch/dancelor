@@ -1,4 +1,3 @@
-open Nes
 include SetLifted
 
 module E = Dancelor_common_model.SetEndpoints
@@ -23,10 +22,9 @@ let make_and_save
   )
 
 let delete s =
-  let%lwt slug = slug s in (* FIXME: SetDelete could maybe take a set directly? *)
   Madge_client.(
     call ~endpoint:E.delete @@ fun {a} _ ->
-    a A.slug slug
+    a A.slug (slug s)
   )
 
 let search ?pagination ?threshold filter =

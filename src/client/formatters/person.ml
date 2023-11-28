@@ -4,18 +4,14 @@ module M = Dancelor_client_model
 
 let name ?(link=true) person =
   match person with
-  | None -> Lwt.return_nil
+  | None -> []
   | Some person ->
-    let name_text = [L.txt (M.Person.name person)] in
+    let name_text = [txt (M.Person.name person)] in
     if link then
-      let href_lwt =
-        let%lwt slug = M.Person.slug person in
-        Lwt.return PageRouter.(path (Person slug))
-      in
-      Lwt.return [
+      [
         a
-          ~a:[L.a_href href_lwt]
+          ~a:[a_href @@ PageRouter.path_person @@ M.Person.slug person]
           name_text
       ]
     else
-      Lwt.return name_text
+      name_text

@@ -13,9 +13,10 @@ module Dance = Table.Make (struct
     include Model.DanceCore
 
     let dependencies dance =
-      match%lwt deviser dance with
-      | None -> Lwt.return_nil
-      | Some deviser -> Lwt.return [Table.make_slug_and_table (module Person) deviser]
+      Lwt.return @@
+      match deviser dance with
+      | None -> []
+      | Some deviser -> [Table.make_slug_and_table (module Person) deviser]
 
     let standalone = false
   end)
@@ -24,12 +25,8 @@ module Tune = Table.Make (struct
     include Model.TuneCore
 
     let dependencies tune =
-      let%lwt dances = dances tune in
-      let%lwt author = author tune in
-      List.map (Table.make_slug_and_table (module Dance)) dances
-      |> (match author with
-          | None -> Fun.id
-          | Some author -> List.cons (Table.make_slug_and_table (module Person) author))
+      List.map (Table.make_slug_and_table (module Dance)) (dances tune)
+      |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (author tune)
       |> Lwt.return
 
     let standalone = false
@@ -39,13 +36,8 @@ module Version = Table.Make (struct
     include Model.VersionCore
 
     let dependencies version =
-      let%lwt tune = tune version in
-      let%lwt arranger = arranger version in
-      []
-      |> (match arranger with
-          | None -> Fun.id
-          | Some arranger -> List.cons (Table.make_slug_and_table (module Person) arranger))
-      |> List.cons (Table.make_slug_and_table (module Tune) tune)
+      Option.fold ~none:[] ~some:(List.singleton % Table.make_slug_and_table (module Person)) (arranger version)
+      |> List.cons (Table.make_slug_and_table (module Tune) (tune version))
       |> Lwt.return
 
     let standalone = true
@@ -55,13 +47,8 @@ module SetModel = struct
   include Model.SetCore
 
   let dependencies set =
-    let%lwt deviser = deviser set in
-    let%lwt versions_and_parameters = versions_and_parameters set in
-    let versions = List.map fst versions_and_parameters in
-    List.map (Table.make_slug_and_table (module Version)) versions
-    |> (match deviser with
-        | None -> Fun.id
-        | Some deviser -> List.cons (Table.make_slug_and_table (module Person) deviser))
+    List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
+    |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (deviser set)
     |> Lwt.return
 
   let standalone = true
@@ -73,7 +60,6 @@ module Book = Table.Make (struct
     include Model.BookCore
 
     let dependencies book =
-      let%lwt contents = contents book in
       let%lwt dependencies =
         Lwt_list.map_p
           (function
@@ -102,7 +88,7 @@ module Book = Table.Make (struct
                 | None -> []
                 | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               ))
-          contents
+          (contents book)
       in
       Lwt.return (List.flatten dependencies)
 

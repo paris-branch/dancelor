@@ -10,16 +10,11 @@ module Lift () = struct
     let name = String.remove_duplicates ~char:' ' name in
     make ~slug ?status ~name ?scddb_id ~modified_at ~created_at ()
 
-  let name c = Lwt.return c.name
-  let scddb_id c = Lwt.return c.scddb_id
-
   let trad_slug = Slug.unsafe_of_string "traditional"
   let is_trad c = Slug.equal c.slug trad_slug
 
   let equal person1 person2 =
-    let%lwt slug1 = slug person1 in
-    let%lwt slug2 = slug person2 in
-    Lwt.return (Slug.equal slug1 slug2)
+    Slug.equal (slug person1) (slug person2)
 
   module Filter = struct
     include PersonCore.Filter
@@ -29,15 +24,13 @@ module Lift () = struct
       Formula.interpret filter @@ function
 
       | Is person' ->
-        equal person person' >|=| Formula.interpret_bool
+        Lwt.return @@ Formula.interpret_bool @@ equal person person'
 
       | Name string ->
-        let%lwt name = name person in
-        Lwt.return (String.proximity ~char_equal string name)
+        Lwt.return @@ String.proximity ~char_equal string @@ name person
 
       | NameMatches string ->
-        let%lwt name = name person in
-        Lwt.return (String.inclusion_proximity ~char_equal ~needle:string name)
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name person
 
     let is person = Formula.pred (Is person)
     let name name = Formula.pred (Name name)
