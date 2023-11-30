@@ -68,8 +68,13 @@ button.disabled {
 }
 
 .image-container object {
-  width: 100%;
-  margin: auto;
+  // Tune previews are generated on A4 paper -- 21cm wide -- with a left margin
+  // of 1cm for page numbers -- that is 5% of the whole page. Since we want page
+  // numbers to actually appear in the margin on the website, we make the image
+  // bigger but remove those 5% of margin on the left.
+  max-width: none;
+  width: 105%;
+  margin-left: -5%;
   display: block;
 }
 
