@@ -47,21 +47,27 @@ let make
 
 (** {2 Getters} *)
 
-let forced_pages p = Option.get p.forced_pages
+let forced_pages p = p.forced_pages
 let for_dance    p = p.for_dance
 let display_name p = p.display_name
-let show_deviser p = Option.get p.show_deviser
-let show_order   p = Option.get p.show_order
+let show_deviser p = p.show_deviser
+let show_order   p = p.show_order
 let order_type   p = p.order_type
-let paper_size   p = Option.get p.paper_size
-let paper_size_opt p = p.paper_size
+let paper_size   p = p.paper_size
 
 let every_version p = p.every_version
 let instruments = VersionParameters.instruments % every_version
 
-(** {2 Defaults} *)
+(** {2 Defaults}
+
+    Getters that end with a quote are getters that have a default value. *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
+
+let forced_pages' = Option.value ~default:0 % forced_pages
+let show_deviser' = Option.value ~default:true % show_deviser
+let show_order' = Option.value ~default:true % show_order
+let paper_size' = Option.value ~default:(A 4) % paper_size
 
 let default = {
   forced_pages = Some 0 ;

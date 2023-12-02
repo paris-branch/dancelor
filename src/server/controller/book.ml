@@ -20,7 +20,7 @@ module Ly = struct
     in
     let%lwt kind = kind set set_parameters in
     let order =
-      if Model.SetParameters.show_order set_parameters then
+      if Model.SetParameters.show_order' set_parameters then
         [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order set]
       else
         []
@@ -138,7 +138,7 @@ module Ly = struct
           |> Option.value ~default:(Model.Set.name set)
         in
         let%lwt deviser =
-          if not (set_parameters |> Model.SetParameters.show_deviser) then
+          if not (Model.SetParameters.show_deviser' set_parameters) then
             Lwt.return ""
           else
             Lwt.map
@@ -149,7 +149,7 @@ module Ly = struct
         let%lwt details_line = details_line set set_parameters in
         fpf fmt [%blob "template/book/set_beginning.ly"]
           name kind name deviser details_line;
-        (match set_parameters |> Model.SetParameters.forced_pages with
+        (match Model.SetParameters.forced_pages' set_parameters with
          | 0 -> ()
          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
         let%lwt () =
