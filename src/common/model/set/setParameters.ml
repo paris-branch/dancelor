@@ -69,18 +69,6 @@ let show_deviser' = Option.value ~default:true % show_deviser
 let show_order' = Option.value ~default:true % show_order
 let paper_size' = Option.value ~default:(A 4) % paper_size
 
-let default = {
-  forced_pages = Some 0 ;
-  for_dance = None ;
-  display_name = None ;
-  show_deviser = Some true ;
-  show_order = Some true ;
-  order_type = Some Default ;
-  paper_size = Some (A 4) ;
-
-  every_version = VersionParameters.none ;
-}
-
 (** {2 Setters} *)
 
 let set_show_order show_order p =
@@ -98,5 +86,3 @@ let compose first second =
     paper_size    = Option.(choose ~tie:second) first.paper_size   second.paper_size ;
 
     every_version = VersionParameters.compose first.every_version second.every_version }
-
-let fill = compose default

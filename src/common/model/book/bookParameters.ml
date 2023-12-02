@@ -47,9 +47,9 @@ let default = {
   two_sided = Some false ;
   running_header = Some true ;
   running_footer = Some true ;
-  paper_size = SetParameters.default.paper_size ;
+  paper_size = Some SetParameters.(paper_size' none) ;
 
-  every_set = SetParameters.default ;
+  every_set = SetParameters.none ;
 }
 
 let compose first second =
