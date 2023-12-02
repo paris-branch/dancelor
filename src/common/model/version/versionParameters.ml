@@ -31,8 +31,10 @@ let make_instrument pitch =
     ~transposition:(Transposition.relative pitch Music.pitch_c)
     ()
 
-let transposition  p = Option.get p.transposition
-let first_bar      p = Option.get p.first_bar
+(* Getters *)
+
+let transposition  p = p.transposition
+let first_bar      p = p.first_bar
 let instruments    p = p.instruments
 let for_dance      p = p.for_dance
 let clef           p = p.clef
@@ -40,21 +42,21 @@ let trivia         p = p.trivia
 let display_name   p = p.display_name
 let display_author p = p.display_author
 
-let set_display_name display_name p =
-  { p with display_name = Some display_name }
+(** {2 Defaults}
+
+    Getters that end with a quote are getters that have a default value. *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let default = {
-  instruments    = None ;
-  transposition  = Some Transposition.identity ;
-  first_bar      = Some 1 ;
-  for_dance      = None ;
-  clef           = None ;
-  trivia         = None ;
-  display_name   = None ;
-  display_author = None ;
-}
+let transposition' = Option.value ~default:Transposition.identity % transposition
+let first_bar' = Option.value ~default:1 % first_bar
+
+(* Setters *)
+
+let set_display_name display_name p =
+  { p with display_name = Some display_name }
+
+(* Composition *)
 
 let compose first second =
   { instruments    = Option.(choose ~tie:fail)   first.instruments    second.instruments ;
@@ -65,5 +67,3 @@ let compose first second =
     trivia         = Option.(choose ~tie:second) first.trivia         second.trivia ;
     display_name   = Option.(choose ~tie:second) first.display_name   second.display_name ;
     display_author = Option.(choose ~tie:second) first.display_author second.display_author }
-
-let fill = compose default

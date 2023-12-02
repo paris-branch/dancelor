@@ -66,7 +66,7 @@ let default = {
   order_type = Some Default ;
   paper_size = Some (A 4) ;
 
-  every_version = VersionParameters.default ;
+  every_version = VersionParameters.none ;
 }
 
 let compose first second =

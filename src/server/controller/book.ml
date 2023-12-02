@@ -193,14 +193,11 @@ module Ly = struct
             |> Model.VersionParameters.display_author
             |> Option.value ~default:author
           in
-          let first_bar =
-            version_parameters
-            |> Model.VersionParameters.first_bar
-          in
+          let first_bar = Model.VersionParameters.first_bar' version_parameters in
           let source, target =
-            match version_parameters |> Model.VersionParameters.transposition with
+            match Model.VersionParameters.transposition' version_parameters with
             | Relative (source, target) -> (source, target)
-            | Absolute target -> (key |> Model.Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
+            | Absolute target -> (Model.Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
           in
           fpf fmt [%blob "template/book/version.ly"]
             name author

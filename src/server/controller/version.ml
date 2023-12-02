@@ -9,7 +9,6 @@ let get_ly version =
 
 let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false) ?(meta_in_title=false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
-  let parameters = Model.VersionParameters.fill parameters in
 
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Model.Version.tune version in
@@ -56,7 +55,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
       Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_lilypond_string clef_parameter) content
   in
   let source, target =
-    match parameters |> Model.VersionParameters.transposition with
+    match Model.VersionParameters.transposition' parameters with
     | Relative (source, target) -> (source, target)
     | Absolute target -> (Model.Music.key_pitch key, target)
     (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
