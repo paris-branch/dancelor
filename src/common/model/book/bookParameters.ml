@@ -36,12 +36,12 @@ let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header ?p
 
 (** {2 Getters} *)
 
-let front_page        p = Option.get p.front_page
-let table_of_contents p = Option.get p.table_of_contents
-let two_sided         p = Option.get p.two_sided
-let running_header    p = Option.get p.running_header
-let running_footer    p = Option.get p.running_footer
-let paper_size        p = Option.get p.paper_size
+let front_page p = p.front_page
+let table_of_contents p = p.table_of_contents
+let two_sided p = p.two_sided
+let running_header p = p.running_header
+let running_footer p = p.running_footer
+let paper_size p = p.paper_size
 
 let every_set         p = p.every_set
 let instruments = SetParameters.instruments % every_set
@@ -49,6 +49,13 @@ let instruments = SetParameters.instruments % every_set
 (** {2 Defaults} *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
+
+let front_page' = Option.value ~default:false % front_page
+let table_of_contents' = Option.value ~default:Nowhere % table_of_contents
+let two_sided' = Option.value ~default:false % two_sided
+let running_header' = Option.value ~default:true % running_header
+let running_footer' = Option.value ~default:true % running_footer
+let paper_size' = Option.value ~default:SetParameters.(paper_size' none) % paper_size
 
 let default = {
   front_page = Some false ;

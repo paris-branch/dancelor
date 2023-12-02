@@ -56,7 +56,7 @@ module Ly = struct
       let title = Model.Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
       (
-        match Model.BookParameters.paper_size parameters with
+        match Model.BookParameters.paper_size' parameters with
         | A n -> fpf fmt [%blob "template/paper-size/a.ly"] n;
         | Custom (width, height, unit) -> fpf fmt [%blob "template/paper-size/custom.ly"] width unit height unit;
       );
@@ -67,16 +67,16 @@ module Ly = struct
       fpf fmt [%blob "template/paper.ly"];
 
       fpf fmt [%blob "template/book/paper.ly"];
-      if parameters |> Model.BookParameters.two_sided then
+      if Model.BookParameters.two_sided' parameters then
         (
           fpf fmt [%blob "template/book/two-sided.ly"];
           fpf fmt
-            (if parameters |> Model.BookParameters.running_header then
+            (if Model.BookParameters.running_header' parameters then
                [%blob "template/book/header/two-sided.ly"]
              else
                [%blob "template/book/header/none.ly"]);
           fpf fmt
-            (if parameters |> Model.BookParameters.running_footer then
+            (if Model.BookParameters.running_footer' parameters then
                [%blob "template/book/footer/two-sided.ly"]
              else
                [%blob "template/book/footer/none.ly"])
@@ -84,12 +84,12 @@ module Ly = struct
       else
         (
           fpf fmt
-            (if parameters |> Model.BookParameters.running_header then
+            (if Model.BookParameters.running_header' parameters then
                [%blob "template/book/header/one-sided.ly"]
              else
                [%blob "template/book/header/none.ly"]);
           fpf fmt
-            (if parameters |> Model.BookParameters.running_footer then
+            (if Model.BookParameters.running_footer' parameters then
                [%blob "template/book/footer/one-sided.ly"]
              else
                [%blob "template/book/footer/none.ly"])
@@ -99,9 +99,9 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
-      if parameters |> Model.BookParameters.front_page then
+      if Model.BookParameters.front_page' parameters then
         fpf fmt [%blob "template/book/book_front_page.ly"];
-      if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.Beginning then
+      if Model.BookParameters.(table_of_contents' parameters = Beginning) then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       let%lwt () =
         let%lwt sets_and_parameters =
@@ -191,7 +191,7 @@ module Ly = struct
         fpf fmt [%blob "template/book/set_end.ly"];
         Lwt.return ()
       in
-      if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.End then
+      if Model.BookParameters.(table_of_contents' parameters = End) then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       fpf fmt [%blob "template/book/book_end.ly"];
       Lwt.return ()
