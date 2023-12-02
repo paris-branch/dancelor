@@ -33,8 +33,8 @@ module Ly = struct
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
   (** Rearrange the content of a set. [Default] will leave the content as-is,
-      while [Unfolded] will duplicated the tunes depending on the set order. *)
-  let rearrange_set_content ?(order_type=Model.SetParameters.Default) ~order content =
+      while [Unfolded] will duplicate the tunes depending on the set order. *)
+  let rearrange_set_content ~order_type ~order content =
     let module P = Model.SetParameters in
     let module O = Model.SetOrder in
     match order_type with
@@ -132,11 +132,7 @@ module Ly = struct
         in
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
-        let name =
-          set_parameters
-          |> Model.SetParameters.display_name
-          |> Option.value ~default:(Model.Set.name set)
-        in
+        let name = Model.SetParameters.display_name ~default:(Model.Set.name set) set_parameters in
         let%lwt deviser =
           if not (Model.SetParameters.show_deviser' set_parameters) then
             Lwt.return ""
@@ -157,7 +153,7 @@ module Ly = struct
           let versions_and_parameters =
             rearrange_set_content
               ~order:(Model.Set.order set)
-              ?order_type:(Model.SetParameters.order_type set_parameters)
+              ~order_type:(Model.SetParameters.order_type' set_parameters)
               versions_and_parameters
           in
           Fun.flip Lwt_list.iter_s versions_and_parameters @@ fun (version, version_parameters) ->

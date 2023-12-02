@@ -68,6 +68,8 @@ let forced_pages' = Option.value ~default:0 % forced_pages
 let show_deviser' = Option.value ~default:true % show_deviser
 let show_order' = Option.value ~default:true % show_order
 let paper_size' = Option.value ~default:(A 4) % paper_size
+let order_type' = Option.value ~default:Default % order_type
+let display_name' ~default = Option.value ~default % display_name
 
 (** {2 Setters} *)
 
