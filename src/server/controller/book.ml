@@ -132,7 +132,7 @@ module Ly = struct
         in
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
-        let name = Model.SetParameters.display_name ~default:(Model.Set.name set) set_parameters in
+        let name = Model.SetParameters.display_name' ~default:(Model.Set.name set) set_parameters in
         let%lwt deviser =
           if not (Model.SetParameters.show_deviser' set_parameters) then
             Lwt.return ""
