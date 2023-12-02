@@ -1,3 +1,7 @@
+(** {1 Version Parameters}
+
+    This module defines parameters that make sense at the level of a version. *)
+
 open Nes
 
 module Self = struct
@@ -31,7 +35,7 @@ let make_instrument pitch =
     ~transposition:(Transposition.relative pitch Music.pitch_c)
     ()
 
-(* Getters *)
+(** {2 Getters} *)
 
 let transposition  p = p.transposition
 let first_bar      p = p.first_bar
@@ -54,12 +58,12 @@ let display_name' ~default = Option.value ~default % display_name
 let display_author' ~default = Option.value ~default % display_author
 let trivia' ~default = Option.value ~default % trivia
 
-(* Setters *)
+(** {2 Setters} *)
 
 let set_display_name display_name p =
   { p with display_name = Some display_name }
 
-(* Composition *)
+(** {2 Composition} *)
 
 let compose first second =
   { instruments    = Option.(choose ~tie:fail)   first.instruments    second.instruments ;
