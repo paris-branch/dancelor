@@ -1,3 +1,8 @@
+(** {1 Book Parameters}
+
+    This module defines parameters that make sense at the level of a book. This
+    includes set parameters (which include version parameters) as well. *)
+
 open Nes
 
 type where = Beginning | End | Nowhere
@@ -29,6 +34,8 @@ include Self
 let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header ?paper_size () =
   make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ~paper_size ()
 
+(** {2 Getters} *)
+
 let front_page        p = Option.get p.front_page
 let table_of_contents p = Option.get p.table_of_contents
 let two_sided         p = Option.get p.two_sided
@@ -38,6 +45,8 @@ let paper_size        p = Option.get p.paper_size
 
 let every_set         p = p.every_set
 let instruments = SetParameters.instruments % every_set
+
+(** {2 Defaults} *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
@@ -51,6 +60,8 @@ let default = {
 
   every_set = SetParameters.none ;
 }
+
+(** {2 Composition} *)
 
 let compose first second =
   { front_page        = Option.(choose ~tie:second) first.front_page        second.front_page ;
