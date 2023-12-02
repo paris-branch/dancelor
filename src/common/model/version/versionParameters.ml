@@ -50,6 +50,9 @@ let none = `Assoc [] |> of_yojson |> Result.get_ok
 
 let transposition' = Option.value ~default:Transposition.identity % transposition
 let first_bar' = Option.value ~default:1 % first_bar
+let display_name' ~default = Option.value ~default % display_name
+let display_author' ~default = Option.value ~default % display_author
+let trivia' ~default = Option.value ~default % trivia
 
 (* Setters *)
 

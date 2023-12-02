@@ -109,16 +109,8 @@ module Ly = struct
           Fun.flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune version in
-            let name =
-              parameters
-              |> Model.VersionParameters.display_name
-              |> Option.value ~default:(Model.Tune.name tune)
-            in
-            let trivia =
-              parameters
-              |> Model.VersionParameters.trivia
-              |> Option.value ~default:" "
-            in
+            let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) parameters in
+            let trivia = Model.VersionParameters.trivia' ~default:" " parameters in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let%lwt set =
               Model.Set.make
@@ -172,7 +164,7 @@ module Ly = struct
           let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
           let%lwt content = Model.Version.content version in
           let content =
-            match version_parameters |> Model.VersionParameters.clef with
+            match Model.VersionParameters.clef version_parameters with
             | None -> content
             | Some clef_parameter ->
               let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
@@ -180,19 +172,11 @@ module Ly = struct
           in
           let%lwt tune = Model.Version.tune version in
           let key = Model.Version.key version in
-          let name =
-            version_parameters
-            |> Model.VersionParameters.display_name
-            |> Option.value ~default:(Model.Tune.name tune)
-          in
+          let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) version_parameters in
           let%lwt author =
             Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.author tune)
           in
-          let author =
-            version_parameters
-            |> Model.VersionParameters.display_author
-            |> Option.value ~default:author
-          in
+          let author = Model.VersionParameters.display_author' ~default:author version_parameters in
           let first_bar = Model.VersionParameters.first_bar' version_parameters in
           let source, target =
             match Model.VersionParameters.transposition' version_parameters with

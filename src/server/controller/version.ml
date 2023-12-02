@@ -13,21 +13,13 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Model.Version.tune version in
   let key = Model.Version.key version in
-  let name =
-    parameters
-    |> Model.VersionParameters.display_name
-    |> Option.value ~default:(Model.Tune.name tune)
-  in
+  let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) parameters in
   let%lwt author =
     match%lwt Model.Tune.author tune with
     | None -> Lwt.return ""
     | Some author -> Lwt.return @@ Model.Person.name author
   in
-  let author =
-    parameters
-    |> Model.VersionParameters.display_author
-    |> Option.value ~default:author
-  in
+  let author = Model.VersionParameters.display_author' ~default:author parameters in
   let title, piece =
     if show_meta then
       if meta_in_title then name, " " else "", name
@@ -48,7 +40,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   (* Handle parameters *)
 
   let content =
-    match parameters |> Model.VersionParameters.clef with
+    match Model.VersionParameters.clef parameters with
     | None -> content
     | Some clef_parameter ->
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
