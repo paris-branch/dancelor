@@ -50,7 +50,6 @@ module Ly = struct
   let render ?(parameters=Model.BookParameters.none) book =
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key:(`Ly, book, parameters, body) @@ fun _hash ->
-    let parameters = Model.BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let title = Model.Book.title book in (** FIXME: subtitle *)

@@ -57,17 +57,6 @@ let running_header' = Option.value ~default:true % running_header
 let running_footer' = Option.value ~default:true % running_footer
 let paper_size' = Option.value ~default:SetParameters.(paper_size' none) % paper_size
 
-let default = {
-  front_page = Some false ;
-  table_of_contents = Some Nowhere ;
-  two_sided = Some false ;
-  running_header = Some true ;
-  running_footer = Some true ;
-  paper_size = Some SetParameters.(paper_size' none) ;
-
-  every_set = SetParameters.none ;
-}
-
 (** {2 Composition} *)
 
 let compose first second =
@@ -79,5 +68,3 @@ let compose first second =
     paper_size        = Option.(choose ~tie:second) first.paper_size        second.paper_size ;
 
     every_set = SetParameters.compose first.every_set second.every_set }
-
-let fill = compose default
