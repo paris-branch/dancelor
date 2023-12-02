@@ -1,3 +1,8 @@
+(** {1 Set Parameters}
+
+    This module defines parameters that make sense at the level of a set. This
+    includes version parameters as well. *)
+
 open Nes
 
 (** How to render the order. [Default] prints the tunes as they appear in the
@@ -40,6 +45,8 @@ let make
     ~forced_pages ~show_deviser ~show_order
     ~display_name ~for_dance ?every_version ()
 
+(** {2 Getters} *)
+
 let forced_pages p = Option.get p.forced_pages
 let for_dance    p = p.for_dance
 let display_name p = p.display_name
@@ -52,8 +59,7 @@ let paper_size_opt p = p.paper_size
 let every_version p = p.every_version
 let instruments = VersionParameters.instruments % every_version
 
-let set_show_order show_order p =
-  { p with show_order = Some show_order }
+(** {2 Defaults} *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
@@ -68,6 +74,13 @@ let default = {
 
   every_version = VersionParameters.none ;
 }
+
+(** {2 Setters} *)
+
+let set_show_order show_order p =
+  { p with show_order = Some show_order }
+
+(** {2 Composition} *)
 
 let compose first second =
   { forced_pages  = Option.(choose ~tie:second) first.forced_pages second.forced_pages ;
