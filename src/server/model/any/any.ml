@@ -1,10 +1,13 @@
 open Nes
+module Common = Dancelor_common
+
 include AnyLifted
 
-module E = Dancelor_common_model.AnyEndpoints
+module E = Common.Model.AnyEndpoints
 module A = E.Arguments
 
 let search ?pagination ?(threshold=Float.min_float) filter =
+  let module Score = Common.Model.Score in
   let%lwt persons  = Dancelor_server_database.Person.get_all ()  >|=| List.map (fun c -> Person c) in
   let%lwt dances   = Dancelor_server_database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
   let%lwt books    = Dancelor_server_database.Book.get_all ()    >|=| List.map (fun b -> Book b) in

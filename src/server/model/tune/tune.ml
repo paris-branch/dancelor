@@ -1,7 +1,9 @@
 open Nes
+module Common = Dancelor_common
+
 include TuneLifted
 
-module E = Dancelor_common_model.TuneEndpoints
+module E = Common.Model.TuneEndpoints
 module A = E.Arguments
 
 let make_and_save
@@ -33,6 +35,7 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
+  let module Score = Common.Model.Score in
   Dancelor_server_database.Tune.get_all ()
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)

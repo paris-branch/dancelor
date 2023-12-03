@@ -1,7 +1,9 @@
 open Nes
+module Common = Dancelor_common
+
 include VersionLifted
 
-module E = Dancelor_common_model.VersionEndpoints
+module E = Common.Model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
@@ -66,6 +68,7 @@ let score_list_vs_list words needles =
   end
 
 let search ?pagination ?(threshold=Float.min_float) filter =
+  let module Score = Common.Model.Score in
   Dancelor_server_database.Version.get_all ()
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)

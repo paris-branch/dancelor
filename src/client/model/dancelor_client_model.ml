@@ -1,14 +1,10 @@
+(** {1 Client-side models} *)
+
 module Common = Dancelor_common_model
 
-module Music  = Music
-module Pagination = Pagination
-module Status = Status
-module Score  = Score
-module Transposition = Transposition
-module Formula = Formula
-module TextFormula = TextFormula
+(** {2 Modules overriden on the client side} *)
 
-module Kind                               = Kind
+module Pagination = Pagination
 
 module Person            : Common.PERSON  = Person
 module Dance             : Common.DANCE   = Dance
@@ -25,3 +21,15 @@ module Book              : Common.BOOK    = Book
 module BookParameters                     = BookParameters
 
 module Any               : Common.ANY     = Any
+
+(** {2 Modules taken as-is from {!Dancelor_common}} *)
+
+open Common
+
+module Formula = Formula
+module Kind = Kind
+module Music = Music
+module Score = Score
+module Status = Status
+module TextFormula = TextFormula
+module Transposition = Transposition

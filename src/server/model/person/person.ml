@@ -1,4 +1,6 @@
 open Nes
+module Common = Dancelor_common
+
 include PersonLifted
 
 let make_and_save ?status ~name ?scddb_id ~modified_at ~created_at () =
@@ -17,6 +19,7 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
+  let module Score = Common.Model.Score in
   Dancelor_server_database.Person.get_all ()
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)

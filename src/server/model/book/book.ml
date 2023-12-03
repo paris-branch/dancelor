@@ -1,7 +1,9 @@
 open Nes
+module Common = Dancelor_common
+
 include BookLifted
 
-module E = Dancelor_common_model.BookEndpoints
+module E = Common.Model.BookEndpoints
 module A = E.Arguments
 
 let make_and_save
@@ -29,6 +31,7 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
+  let module Score = Common.Model.Score in
   Dancelor_server_database.Book.get_all ()
   >>=| Score.lwt_map_from_list (Filter.accepts filter)
   >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
