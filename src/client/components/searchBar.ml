@@ -10,7 +10,7 @@ let emoji_row emoji message =
   ]
 
 (** Abstraction of the possible states of the search bar. *)
-type 'a search_bar_state =
+type 'a state =
   | StartTyping (** when the user has not typed anything yet *)
   | ContinueTyping (** when the user has not typed enough yet *)
   | NoResults (** when the search returned no results *)
@@ -49,9 +49,8 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
   (** Minimum number of characters for the search to fire. *)
   let min_characters = 3 in
 
-  (** A signal that provides a [search_bar_state] view based on
-      [search_text]. *)
-  let search_bar_state =
+  (** A signal that provides a {!state} view based on [search_text]. *)
+  let state =
     S.bind_s' search_text StartTyping @@ fun search_text ->
     if String.length search_text < min_characters then
       (
@@ -123,7 +122,7 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
       ]
       [
         R.tbody (
-          S.bind_s' search_bar_state [] @@ function
+          S.bind_s' state [] @@ function
           | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
           | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
           | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
