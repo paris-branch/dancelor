@@ -28,7 +28,7 @@ let make_person_result ~prefix person =
     ~href:(PageRouter.path_person @@ Person.slug person)
     (
       prefix @ [
-        td ~a:[a_colspan 3] (Formatters.Person.name (Some person));
+        td ~a:[a_colspan 3] (Formatters.Person.name ~link:false (Some person));
       ]
     )
 
