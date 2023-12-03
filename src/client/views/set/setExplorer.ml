@@ -53,7 +53,7 @@ let create page =
           R.tbody (
             S.bind_s' pagination.signal [] @@ fun pagination ->
             Fun.flip Lwt.map
-              (Set.search ~pagination:(PageNav.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
+              (Set.search' ~pagination:(PageNav.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun set ->
                     let href = PageRouter.path @@ PageRouter.Set (Set.slug set) in

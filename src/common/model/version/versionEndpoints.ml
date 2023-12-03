@@ -26,8 +26,7 @@ end
 
 let get = endpoint ~path:"/version" (module VersionCore)
 let make_and_save = endpoint ~path:"/version/save" (module VersionCore)
-let search = endpoint ~path:"/version/search" (module MList(Score.Make_Serialisable(VersionCore)))
-let count = endpoint ~path:"/version/count" (module MInteger)
+let search = endpoint ~path:"/version/search" (module MPair (MInteger) (MList(Score.Make_Serialisable(VersionCore))))
 
 let mark_fixed = endpoint ~path:"/version/mark-fixed" (module MUnit)
 let mark_broken = endpoint ~path:"/version/mark-broken" (module MUnit)

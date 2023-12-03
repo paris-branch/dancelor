@@ -41,7 +41,7 @@ let create page =
         [
           L.tbody (
             Fun.flip Lwt.map
-              (Book.search Formula.true_ >|=| Score.list_erase)
+              (Book.search' Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun book ->
                     let href = PageRouter.path_book @@ Book.slug book in

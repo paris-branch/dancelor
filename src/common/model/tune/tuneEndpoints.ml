@@ -19,4 +19,4 @@ end
 
 let get = endpoint ~path:"/tune" (module TuneCore)
 let make_and_save = endpoint ~path:"/tune/save" (module TuneCore)
-let search = endpoint ~path:"/tune/search" (module MList(Score.Make_Serialisable(TuneCore)))
+let search = endpoint ~path:"/tune/search" (module MPair (MInteger) (MList(Score.Make_Serialisable(TuneCore))))

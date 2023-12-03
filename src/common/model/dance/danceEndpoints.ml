@@ -18,4 +18,4 @@ end
 
 let get = endpoint ~path:"/dance" (module DanceCore)
 let make_and_save = endpoint ~path:"/dance/save" (module DanceCore)
-let search = endpoint ~path:"/dance/search" (module MList(Score.Make_Serialisable(DanceCore)))
+let search = endpoint ~path:"/dance/search" (module MPair (MInteger) (MList(Score.Make_Serialisable(DanceCore))))

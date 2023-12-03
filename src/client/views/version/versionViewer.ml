@@ -31,8 +31,7 @@ let create slug page =
           not_ (Version.Filter.is version);
         ])
     in
-    Version.search filter
-    >|=| Score.list_erase
+    Version.search' filter >|=| Score.list_erase
   in
 
   let open Dancelor_client_html in
@@ -199,8 +198,7 @@ let create slug page =
           let sets_lwt =
             let%lwt version = version_lwt in
             let filter = Set.Filter.memVersion version in
-            Set.search filter
-            >|=| Score.list_erase
+            Set.search' filter >|=| Score.list_erase
           in
           let%lwt sets = sets_lwt in
 
@@ -234,8 +232,7 @@ let create slug page =
           let%lwt books =
             let%lwt version = version_lwt in
             let filter = Book.Filter.memVersionDeep version in
-            Book.search filter
-            >|=| Score.list_erase
+            Book.search' filter >|=| Score.list_erase
           in
 
           Lwt.return [

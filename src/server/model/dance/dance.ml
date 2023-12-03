@@ -43,7 +43,10 @@ let search ?pagination ?(threshold=Float.min_float) filter =
         increasing (Lwt.return % name) String.Sensible.compare
       ])
   in
-  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
+  Lwt.return (
+    List.length results,
+    Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
+  )
 
 let () =
   Madge_server.(
@@ -53,3 +56,9 @@ let () =
       ?threshold: (o A.threshold)
       (a A.filter)
   )
+
+let search' ?pagination ?threshold filter =
+  Lwt.map snd @@ search ?pagination ?threshold filter
+
+let count ?threshold filter =
+  Lwt.map fst @@ search ?threshold filter

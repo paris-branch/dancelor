@@ -23,7 +23,7 @@ end
 let get = endpoint ~path:"/set" (module SetCore)
 let make_and_save = endpoint ~path:"/set/save" (module SetCore)
 let delete = endpoint ~path:"/set/delete" (module MUnit)
-let search = endpoint ~path:"/set/search" (module MList(Score.Make_Serialisable(SetCore)))
+let search = endpoint ~path:"/set/search" (module MPair (MInteger) (MList(Score.Make_Serialisable(SetCore))))
 let count = endpoint ~path:"/set/count" (module MInteger)
 
 (* New-style Endpoints *)
