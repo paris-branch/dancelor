@@ -22,28 +22,29 @@ let current_pagination state =
   }
 
 type t = {
-  signal : state React.signal;
-  setter : state -> unit;
-  updater : (state -> state) -> unit;
+  state : state React.signal;
+  update_current_page : (int -> int) -> unit;
 }
 
-(** Create a page navigation from a number of entries (as an {!Lwt} promise)
-    and a number of entries per page. *)
-let create ~(number_of_entries: int Lwt.t) ~(entries_per_page: int) : t =
-  let initial = {
-    current_page = 1;
-    entries_per_page;
-    number_of_entries = 0;
-  }
+let create ~number_of_entries ~entries_per_page =
+  let (current_page, set_current_page) = S.create 1 in
+  let update_current_page f =
+    let current_page = S.value current_page in
+    set_current_page (f current_page)
   in
-  let (signal, setter) = S.create initial in
-  let updater f = setter (f (S.value signal)) in
-  Lwt.on_success number_of_entries (fun number_of_entries ->
-      updater (fun state -> { state with number_of_entries }));
-  { signal; setter; updater }
+  let state =
+    S.bind current_page @@ fun current_page ->
+    S.bind number_of_entries @@ fun number_of_entries ->
+    S.const {
+      current_page;
+      entries_per_page;
+      number_of_entries;
+    }
+  in
+  { state; update_current_page }
 
 let status_text pagination =
-  Fun.flip S.map pagination.signal @@ fun state ->
+  Fun.flip S.map pagination.state @@ fun state ->
   if state.number_of_entries = 0 then
     "No entries"
   else
@@ -64,7 +65,7 @@ module Button = struct
     li
       ~a:[
         R.a_class (
-          Fun.flip S.map pagination.signal @@ fun state ->
+          Fun.flip S.map pagination.state @@ fun state ->
           if active state then ["active"] else []
         )
       ]
@@ -72,16 +73,14 @@ module Button = struct
         button ~a: [
           a_button_type `Button;
           R.a_class (
-            Fun.flip S.map pagination.signal @@ fun state ->
+            Fun.flip S.map pagination.state @@ fun state ->
             if enabled state then ["clickable"] else ["disabled"]
           );
           a_onclick
             (fun _ ->
-               let state = S.value pagination.signal in
+               let state = S.value pagination.state in
                if enabled state then
-                 pagination.updater (fun state ->
-                     { state with current_page = target state }
-                   );
+                 pagination.update_current_page (fun current_page -> target current_page);
                false
             )
         ]
@@ -114,7 +113,7 @@ module Button = struct
     make
       ~active:(Fun.const false)
       ~enabled:(fun state -> state.current_page <> 1)
-      ~target:(fun state -> state.current_page - 1)
+      ~target:(fun current_page -> current_page - 1)
       ~text:"Previous"
 
   (** A button that brings to the next page. *)
@@ -122,12 +121,12 @@ module Button = struct
     make
       ~active:(Fun.const false)
       ~enabled:(fun state -> state.current_page <> number_of_pages state)
-      ~target:(fun state -> state.current_page + 1)
+      ~target:(fun current_page -> current_page + 1)
       ~text:"Next"
 end
 
 let button_list pagination =
-  Fun.flip S.map pagination.signal @@ fun state ->
+  Fun.flip S.map pagination.state @@ fun state ->
   let number_of_pages = number_of_pages state
   and current_page = state.current_page
   in
@@ -162,3 +161,5 @@ let render pagination =
     div [R.txt (status_text pagination)];
     R.ul (button_list pagination);
   ]
+
+let pagination page_nav = S.map current_pagination page_nav.state
