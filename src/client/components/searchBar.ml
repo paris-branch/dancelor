@@ -22,10 +22,7 @@ type ('result, 'html) t = {
   set_text : (string -> unit);
 }
 
-(** Minimum number of characters for a search bar to fire. *)
-let min_characters = 3
-
-let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) () =
+let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_characters=0) () =
   (** A signal containing the search text. *)
   let (text, set_text_immediately) = S.create "" in
 
@@ -114,7 +111,7 @@ let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) () =
   { state; set_text; html }
 
 let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
-
+  let min_characters = 3 in
 
   (** A signal tracking whether the table is focused. *)
   let (table_visible, set_table_visible) = S.create false in
@@ -126,6 +123,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
       ~on_focus:(fun () -> set_table_visible true)
       ?on_enter
       ?autofocus
+      ~min_characters
       ()
   in
 

@@ -23,6 +23,7 @@ val make :
   ?on_focus:(unit -> unit) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
+  ?min_characters:int ->
   unit ->
   ('result, 'html) t
 (** Makes a search bar and exposes whatever is useful to interact with it. The
@@ -40,6 +41,9 @@ val make :
 
     - [autofocus] is a boolean that indicates whether the search bar should grab
       the focus when the page loads. It is [false] by default.
+
+    - [min_characters] is an integer indicating the minimum number of characters
+      to type for the search bar to fire. By default, there is no such limit.
 *)
 
 val quick_search :
@@ -52,9 +56,10 @@ val quick_search :
   [> Html_types.div] Html.elt
 (** Wrapper around {!make} returning a quick search bar. This is a search bar
     with a floating table. The table reports hints or errors and shows the
-    search results. The arguments are mostly inherited from {!make}; refer to
-    this function for documentation. The additional ones are to be used as
-    follows:
+    search results. The minimum number of characters is set to [3].
+
+    The arguments are mostly inherited from {!make}; refer to this function for
+    documentation. The additional ones are to be used as follows:
 
     - [make_result] is a function that, from a result, returns a table line
       displaying that result;
