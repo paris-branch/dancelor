@@ -19,11 +19,12 @@ type ('result, 'html) t = {
 
 val make :
   placeholder:string ->
-  search:(string -> ('result list, string list) result Lwt.t) ->
+  search:(Dancelor_client_model.Pagination.t -> string -> ('result list, string list) result Lwt.t) ->
   ?on_focus:(unit -> unit) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
   ?min_characters:int ->
+  pagination:Dancelor_client_model.Pagination.t React.signal ->
   unit ->
   ('result, 'html) t
 (** Makes a search bar and exposes whatever is useful to interact with it. The
@@ -32,8 +33,7 @@ val make :
     - [placeholder] shows in the bar when no text is entered yet;
 
     - [search] is an Lwt function that returns either a list of results or a
-      list of error messages to display. All the results will be shown so it
-      is up to this function to limit/paginate them.
+      list of error messages to display. It should respect the given pagination.
 
     - [on_focus] is a function that fires when the bar gains focus;
 
@@ -44,11 +44,13 @@ val make :
 
     - [min_characters] is an integer indicating the minimum number of characters
       to type for the search bar to fire. By default, there is no such limit.
+
+    - [pagination] is a signal giving the state of the pagination.
 *)
 
 val quick_search :
   placeholder:string ->
-  search:(string -> ('result list, string list) result Lwt.t) ->
+  search:(Dancelor_client_model.Pagination.t -> string -> ('result list, string list) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
@@ -56,7 +58,8 @@ val quick_search :
   [> Html_types.div] Html.elt
 (** Wrapper around {!make} returning a quick search bar. This is a search bar
     with a floating table. The table reports hints or errors and shows the
-    search results. The minimum number of characters is set to [3].
+    search results. The minimum number of characters is set to [3] and the
+    pagination picks only one page of [10] entries.
 
     The arguments are mostly inherited from {!make}; refer to this function for
     documentation. The additional ones are to be used as follows:

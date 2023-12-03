@@ -22,7 +22,7 @@ type ('result, 'html) t = {
   set_text : (string -> unit);
 }
 
-let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_characters=0) () =
+let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_characters=0) ~pagination () =
   (** A signal containing the search text. *)
   let (text, set_text_immediately) = S.create "" in
 
@@ -53,6 +53,7 @@ let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_chara
 
   (** A signal that provides a {!state} view based on [text]. *)
   let state =
+    S.bind pagination @@ fun pagination ->
     S.bind_s' text StartTyping @@ fun text ->
     if String.length text < min_characters then
       (
@@ -63,7 +64,7 @@ let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_chara
           ContinueTyping
       )
     else
-      Fun.flip Lwt.map (search text) @@ function
+      Fun.flip Lwt.map (search pagination text) @@ function
       | Error messages -> Errors messages
       | Ok [] -> NoResults
       | Ok results -> Results results
@@ -112,6 +113,7 @@ let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_chara
 
 let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
   let min_characters = 3 in
+  let pagination = S.const Dancelor_client_model.Pagination.{ start = 0; end_ = 10 } in
 
   (** A signal tracking whether the table is focused. *)
   let (table_visible, set_table_visible) = S.create false in
@@ -124,6 +126,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
       ?on_enter
       ?autofocus
       ~min_characters
+      ~pagination
       ()
   in
 

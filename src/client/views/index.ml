@@ -17,9 +17,8 @@ type t =
     content : Html.divElement Js.t;
   }
 
-let search input =
+let search pagination input =
   let threshold = 0.4 in
-  let pagination = Pagination.{ start = 0; end_ = 10 } in
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in (* FIXME: AnyFilter.from_string should return a result lwt *)
   let%lwt results = Any.search' ~threshold ~pagination filter in
   Lwt.return_ok results
