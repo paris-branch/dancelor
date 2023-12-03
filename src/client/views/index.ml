@@ -32,7 +32,7 @@ let create page =
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
 
-      SearchBar.make
+      SearchBar.quick_search
         ~placeholder:"Search for anything (it's magic!)"
         ~search
         ~make_result:(Lwt.return % AnyResultNewAPI.make_result)

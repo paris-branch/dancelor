@@ -130,7 +130,7 @@ let create ?on_save page =
   let sets_search =
     let open Dancelor_client_html in
     To_dom.of_div @@ div [
-      Dancelor_client_components.SearchBar.make
+      Dancelor_client_components.SearchBar.quick_search
         ~placeholder:"Add set (Magic Search)"
         ~search
         ~make_result:(Lwt.return % make_set_result editor page)
@@ -217,7 +217,7 @@ let update slug ?on_save page =
   let sets_search =
     let open Dancelor_client_html in
     To_dom.of_div @@ div [
-      Dancelor_client_components.SearchBar.make
+      Dancelor_client_components.SearchBar.quick_search
         ~placeholder:"Add set (Magic Search)"
         ~search
         ~make_result:(Lwt.return % make_set_result editor page)

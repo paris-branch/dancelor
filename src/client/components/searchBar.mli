@@ -2,7 +2,7 @@
 
 open Js_of_ocaml_tyxml.Tyxml_js
 
-val make :
+val quick_search :
   placeholder:string ->
   search:(string -> ('result list, string list) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
@@ -11,7 +11,9 @@ val make :
   ?autofocus:bool ->
   unit ->
   [> Html_types.div] Html.elt
-(** Makes a search bar:
+(** Makes a quick search bar. This is an input element with a floating table.
+    The table reports hints or errors and shows the search results. The
+    arguments are to be used as follows:
 
     - [placeholder] shows in the bar when no text is entered yet;
 
