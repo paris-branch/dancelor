@@ -17,6 +17,7 @@
 %%
 
 formula:
+  | EOF { True }
   | es=expressions EOF { es }
 
 expressions:
