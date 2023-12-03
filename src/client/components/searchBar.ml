@@ -9,17 +9,25 @@ let emoji_row emoji message =
     td ~a:[a_colspan 4] [txt message];
   ]
 
-(** Abstraction of the possible states of the search bar. *)
-type 'a state =
-  | StartTyping (** when the user has not typed anything yet *)
-  | ContinueTyping (** when the user has not typed enough yet *)
-  | NoResults (** when the search returned no results *)
-  | Results of 'a list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
-  | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
+type 'result state =
+  | StartTyping
+  | ContinueTyping
+  | NoResults
+  | Results of 'result list
+  | Errors of string list
 
-let quick_search ~placeholder ~search ~make_result ?on_enter ?(autofocus=false) () =
-  let (search_text, set_search_text_immediately) = S.create "" in
-  let (table_visible, set_table_visible) = S.create false in
+type ('result, 'html) t = {
+  html : ([> Html_types.input] as 'html) elt;
+  state : 'result state S.t;
+  set_text : (string -> unit);
+}
+
+(** Minimum number of characters for a search bar to fire. *)
+let min_characters = 3
+
+let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) () =
+  (** A signal containing the search text. *)
+  let (text, set_text_immediately) = S.create "" in
 
   (* REVIEW: maybe this should become a generic signal helper to delay signals
      by a certain time? *)
@@ -28,55 +36,45 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?(autofocus=false) 
       is to set the search text after a delayed time. The [set_search_text]
       function cancels the current Lwt promise (which does nothing if it already
       resolved) and creates a new one in its place. *)
-  let (search_text_setter, set_search_text_setter) = S.create Lwt.return_unit in
-  let set_search_text text =
+  let (text_setter, set_text_setter) = S.create Lwt.return_unit in
+  let set_text text =
     (* try cancelling the current search text setter *)
-    Lwt.cancel (S.value search_text_setter);
+    Lwt.cancel (S.value text_setter);
     (* prepare the new search text setter *)
-    let new_search_text_setter =
+    let new_text_setter =
       (* FIXME: here, we need to delay by something like 100ms but [Lwt_unix]
          does not seem to be the answer. *)
       Lwt.pmsleep 0.30;%lwt
-      set_search_text_immediately text;
+      set_text_immediately text;
       Lwt.return_unit
     in
     (* register it in the signal *)
-    set_search_text_setter new_search_text_setter;
+    set_text_setter new_text_setter;
     (* fire it asynchronously *)
-    Lwt.async (fun () -> new_search_text_setter)
+    Lwt.async (fun () -> new_text_setter)
   in
 
-  (** Minimum number of characters for the search to fire. *)
-  let min_characters = 3 in
-
-  (** A signal that provides a {!state} view based on [search_text]. *)
+  (** A signal that provides a {!state} view based on [text]. *)
   let state =
-    S.bind_s' search_text StartTyping @@ fun search_text ->
-    if String.length search_text < min_characters then
+    S.bind_s' text StartTyping @@ fun text ->
+    if String.length text < min_characters then
       (
         Lwt.return @@
-        if search_text = "" then
+        if text = "" then
           StartTyping
         else
           ContinueTyping
       )
     else
-      Fun.flip Lwt.map (search search_text) @@ function
+      Fun.flip Lwt.map (search text) @@ function
       | Error messages -> Errors messages
       | Ok [] -> NoResults
       | Ok results -> Results results
   in
 
-  div ~a:[a_class ["search-bar"]] [
-    div ~a:[
-      R.a_class (
-        Fun.flip S.map table_visible @@ function
-        | false -> []
-        | true -> ["visible"]
-      );
-      a_onclick (fun _ -> set_table_visible false; false);
-    ] [];
-
+  (** The HTML element of the bar; it is simply an input element with some
+      customisation. *)
+  let html =
     input
       ~a:(List.filter_map Fun.id [
           Some (a_input_type `Text);
@@ -86,7 +84,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?(autofocus=false) 
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  set_search_text (Js.to_string input##.value)
+                  set_text (Js.to_string input##.value)
                 );
                 false
               )
@@ -97,7 +95,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?(autofocus=false) 
             else
               None
           );
-          Some (a_onfocus (fun _ -> set_table_visible true; false));
+          Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
           (
             Fun.flip Option.map on_enter @@ fun on_enter ->
             a_onkeyup (fun event ->
@@ -110,7 +108,38 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?(autofocus=false) 
                 true
               )
           );
-        ]) ();
+        ]) ()
+  in
+
+  { state; set_text; html }
+
+let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
+
+
+  (** A signal tracking whether the table is focused. *)
+  let (table_visible, set_table_visible) = S.create false in
+
+  let { state; html; _ } =
+    make
+      ~placeholder
+      ~search
+      ~on_focus:(fun () -> set_table_visible true)
+      ?on_enter
+      ?autofocus
+      ()
+  in
+
+  div ~a:[a_class ["search-bar"]] [
+    div ~a:[
+      R.a_class (
+        Fun.flip S.map table_visible @@ function
+        | false -> []
+        | true -> ["visible"]
+      );
+      a_onclick (fun _ -> set_table_visible false; false);
+    ] [];
+
+    html;
 
     tablex
       ~a:[
