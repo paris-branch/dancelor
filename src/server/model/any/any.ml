@@ -1,5 +1,6 @@
 open Nes
 module Common = Dancelor_common
+module Database = Dancelor_server_database
 
 include AnyLifted
 
@@ -8,12 +9,12 @@ module A = E.Arguments
 
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
-  let%lwt persons  = Dancelor_server_database.Person.get_all ()  >|=| List.map (fun c -> Person c) in
-  let%lwt dances   = Dancelor_server_database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
-  let%lwt books    = Dancelor_server_database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
-  let%lwt sets     = Dancelor_server_database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
-  let%lwt tunes    = Dancelor_server_database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
-  let%lwt versions = Dancelor_server_database.Version.get_all () >|=| List.map (fun v -> Version v) in
+  let%lwt persons  = Database.Person.get_all ()  >|=| List.map (fun c -> Person c) in
+  let%lwt dances   = Database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
+  let%lwt books    = Database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
+  let%lwt sets     = Database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
+  let%lwt tunes    = Database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
+  let%lwt versions = Database.Version.get_all () >|=| List.map (fun v -> Version v) in
   let%lwt results =
     (Lwt.return (persons @ dances @ books @ sets @ tunes @ versions))
     >>=| Score.lwt_map_from_list (Filter.accepts filter)

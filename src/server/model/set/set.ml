@@ -1,5 +1,6 @@
 open Nes
 module Common = Dancelor_common
+module Database = Dancelor_server_database
 
 include SetLifted
 
@@ -11,7 +12,7 @@ let make_and_save
     ~order ?dances ~modified_at ~created_at
     ()
   =
-  Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
+  Database.Set.save ~slug_hint:name @@ fun slug ->
   make
     ?status ~slug ~name ?deviser ~kind ?versions_and_parameters
     ~order ?dances ~modified_at ~created_at ()
@@ -32,7 +33,7 @@ let () =
       ()
   )
 
-let delete = Dancelor_server_database.Set.delete % slug
+let delete = Database.Set.delete % slug
 
 let () =
   Madge_server.(
@@ -44,7 +45,7 @@ let () =
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
   let%lwt results =
-    Dancelor_server_database.Set.get_all ()
+    Database.Set.get_all ()
     >>=| Score.lwt_map_from_list (Filter.accepts filter)
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
     >>=| Score.(list_proj_sort_decreasing [

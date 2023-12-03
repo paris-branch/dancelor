@@ -1,5 +1,6 @@
 open Nes
 module Common = Dancelor_common
+module Database = Dancelor_server_database
 
 include VersionLifted
 
@@ -13,13 +14,13 @@ let make_and_save
   =
   let name = Tune.name tune in
   let%lwt version =
-    Dancelor_server_database.Version.save ~slug_hint:name @@ fun slug ->
+    Database.Version.save ~slug_hint:name @@ fun slug ->
     make
       ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
       ?disambiguation ?broken ~modified_at ~created_at
       ()
   in
-  Dancelor_server_database.Version.write_content version content;%lwt
+  Database.Version.write_content version content;%lwt
   Lwt.return version
 
 let () =
@@ -70,7 +71,7 @@ let score_list_vs_list words needles =
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
   let%lwt results =
-    Dancelor_server_database.Version.get_all ()
+    Database.Version.get_all ()
     >>=| Score.lwt_map_from_list (Filter.accepts filter)
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
     >>=| Score.(list_proj_sort_decreasing [
@@ -99,7 +100,7 @@ let () =
   )
 
 let mark_fixed version =
-  Dancelor_server_database.Version.update (set_broken version false)
+  Database.Version.update (set_broken version false)
 
 let () =
   Madge_server.(
@@ -108,7 +109,7 @@ let () =
   )
 
 let mark_broken version =
-  Dancelor_server_database.Version.update (set_broken version true)
+  Database.Version.update (set_broken version true)
 
 let () =
   Madge_server.(

@@ -1,5 +1,6 @@
 open Nes
 module Common = Dancelor_common
+module Database = Dancelor_server_database
 
 include TuneLifted
 
@@ -11,7 +12,7 @@ let make_and_save
     ?dances ?remark ?scddb_id ~modified_at ~created_at
     ()
   =
-  Dancelor_server_database.Tune.save ~slug_hint:name @@ fun slug ->
+  Database.Tune.save ~slug_hint:name @@ fun slug ->
   make
     ?status ~slug ~name ?alternative_names ~kind ?author
     ?dances ?remark ?scddb_id ~modified_at ~created_at
@@ -37,7 +38,7 @@ let () =
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
   let%lwt results =
-    Dancelor_server_database.Tune.get_all ()
+    Database.Tune.get_all ()
     >>=| Score.lwt_map_from_list (Filter.accepts filter)
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
     >>=| Score.(list_proj_sort_decreasing [

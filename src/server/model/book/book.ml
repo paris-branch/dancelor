@@ -1,5 +1,6 @@
 open Nes
 module Common = Dancelor_common
+module Database = Dancelor_server_database
 
 include BookLifted
 
@@ -9,7 +10,7 @@ module A = E.Arguments
 let make_and_save
     ?status ~title ?date ?contents ~modified_at ~created_at ()
   =
-  Dancelor_server_database.Book.save ~slug_hint:title @@ fun slug ->
+  Database.Book.save ~slug_hint:title @@ fun slug ->
   make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
 
 let () =
@@ -33,7 +34,7 @@ let () =
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
   let%lwt results =
-    Dancelor_server_database.Book.get_all ()
+    Database.Book.get_all ()
     >>=| Score.lwt_map_from_list (Filter.accepts filter)
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
     >>=| Score.(list_proj_sort_decreasing [
@@ -62,7 +63,7 @@ let update
     ()
   =
   let%lwt book = make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () in
-  Dancelor_server_database.Book.update book
+  Database.Book.update book
 
 let () =
   Madge_server.(
