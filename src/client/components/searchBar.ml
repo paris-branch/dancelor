@@ -17,7 +17,7 @@ type 'a state =
   | Results of 'a list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
   | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
 
-let quick_search ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=false) () =
+let quick_search ~placeholder ~search ~make_result ?on_enter ?(autofocus=false) () =
   let (search_text, set_search_text_immediately) = S.create "" in
   let (table_visible, set_table_visible) = S.create false in
 
@@ -64,7 +64,7 @@ let quick_search ~placeholder ~search ~make_result ~max_results ?on_enter ?(auto
       Fun.flip Lwt.map (search search_text) @@ function
       | Error messages -> Errors messages
       | Ok [] -> NoResults
-      | Ok results -> Results (List.sub max_results results)
+      | Ok results -> Results results
   in
 
   div ~a:[a_class ["search-bar"]] [

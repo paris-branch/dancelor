@@ -6,7 +6,6 @@ val quick_search :
   placeholder:string ->
   search:(string -> ('result list, string list) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
-  max_results:int ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
   unit ->
@@ -22,8 +21,6 @@ val quick_search :
 
     - [make_result] is a function that, from a result, returns a table line
       displaying that result;
-
-    - [max_results] is a threshold on the number of results to display;
 
     - [on_enter] is a function that triggers when the user presses Enter.
 

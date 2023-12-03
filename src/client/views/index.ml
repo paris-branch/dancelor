@@ -19,7 +19,7 @@ type t =
 
 let search input =
   let threshold = 0.4 in
-  let pagination = Pagination.{ start = 0; end_ = 15 } in
+  let pagination = Pagination.{ start = 0; end_ = 10 } in
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in (* FIXME: AnyFilter.from_string should return a result lwt *)
   let%lwt results = Any.search' ~threshold ~pagination filter in
   Lwt.return_ok results
@@ -36,7 +36,6 @@ let create page =
         ~placeholder:"Search for anything (it's magic!)"
         ~search
         ~make_result:(Lwt.return % AnyResultNewAPI.make_result)
-        ~max_results:10
         ~autofocus:true
         ~on_enter:(fun search_text ->
             Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text)))
