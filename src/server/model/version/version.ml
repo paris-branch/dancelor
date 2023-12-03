@@ -69,13 +69,15 @@ let score_list_vs_list words needles =
 
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
-  Dancelor_server_database.Version.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.(list_proj_sort_decreasing [
-      increasing (Lwt.map Tune.name % tune) String.Sensible.compare
-    ])
-  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+  let%lwt results =
+    Dancelor_server_database.Version.get_all ()
+    >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+    >>=| Score.(list_proj_sort_decreasing [
+        increasing (Lwt.map Tune.name % tune) String.Sensible.compare
+      ])
+  in
+  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
 
 let () =
   Madge_server.(

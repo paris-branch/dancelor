@@ -4,8 +4,6 @@ module Common = Dancelor_common_model
 
 (** {2 Modules overriden on the client side} *)
 
-module Pagination = Pagination
-
 module Person            : Common.PERSON  = Person
 module Dance             : Common.DANCE   = Dance
 module Tune              : Common.TUNE    = Tune
@@ -29,6 +27,7 @@ open Common
 module Formula = Formula
 module Kind = Kind
 module Music = Music
+module Pagination = Pagination
 module Score = Score
 module Status = Status
 module TextFormula = TextFormula

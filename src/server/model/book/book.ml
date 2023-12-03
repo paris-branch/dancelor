@@ -32,17 +32,19 @@ let () =
 
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
-  Dancelor_server_database.Book.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.(list_proj_sort_decreasing [
-      decreasing (Lwt.return %     date) (NesOption.compare NesPartialDate.compare) ;
-      increasing (Lwt.return %    title) String.Sensible.compare ;
-      increasing (Lwt.return %    title) String.compare_lengths ;
-      increasing (Lwt.return % subtitle) String.Sensible.compare ;
-      increasing (Lwt.return % subtitle) String.compare_lengths ;
-    ])
-  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+  let%lwt results =
+    Dancelor_server_database.Book.get_all ()
+    >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+    >>=| Score.(list_proj_sort_decreasing [
+        decreasing (Lwt.return %     date) (NesOption.compare NesPartialDate.compare) ;
+        increasing (Lwt.return %    title) String.Sensible.compare ;
+        increasing (Lwt.return %    title) String.compare_lengths ;
+        increasing (Lwt.return % subtitle) String.Sensible.compare ;
+        increasing (Lwt.return % subtitle) String.compare_lengths ;
+      ])
+  in
+  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
 (* FIXME: Simplify [list_proj_sort_decreasing] and [decreasing] and
    [increasing] because they probably don't need Lwt anymore. *)
 
