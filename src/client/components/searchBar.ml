@@ -17,12 +17,22 @@ type 'result state =
   | Errors of string list
 
 type ('result, 'html) t = {
-  html : ([> Html_types.input] as 'html) elt;
+  html : 'html elt;
   state : 'result state S.t;
   set_text : (string -> unit);
 }
 
-let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_characters=0) ~pagination () =
+let make
+    ~placeholder
+    ~search
+    ?on_focus
+    ?on_enter
+    ?(autofocus=false)
+    ?(min_characters=0)
+    ~pagination
+    ?(on_number_of_entries=(Fun.const ()))
+    ()
+  =
   (** A signal containing the search text. *)
   let (text, set_text_immediately) = S.create "" in
 
@@ -66,8 +76,8 @@ let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_chara
     else
       Fun.flip Lwt.map (search pagination text) @@ function
       | Error messages -> Errors messages
-      | Ok [] -> NoResults
-      | Ok results -> Results results
+      | Ok (_, []) -> NoResults
+      | Ok (total, results) -> on_number_of_entries total; Results results
   in
 
   (** The HTML element of the bar; it is simply an input element with some
@@ -110,6 +120,10 @@ let make ~placeholder ~search ?on_focus ?on_enter ?(autofocus=false) ?(min_chara
   in
 
   { state; set_text; html }
+
+let render search_bar = search_bar.html
+
+let state search_bar = search_bar.state
 
 let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
   let min_characters = 3 in

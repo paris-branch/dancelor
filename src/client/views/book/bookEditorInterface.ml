@@ -102,7 +102,7 @@ let make_set_result editor page score =
 let search pagination input =
   let threshold = 0.4 in
   let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Set.Filter.from_string input in
-  let%lwt results = Set.search' ~threshold ~pagination formula in
+  let%lwt results = Set.search ~threshold ~pagination formula in
   Lwt.return_ok results
 
 let create ?on_save page =

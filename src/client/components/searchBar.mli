@@ -10,30 +10,29 @@ type 'result state =
   | Results of 'result list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
   | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
 
-(** Type of a search bar; contains all that is useful to interact with it. *)
-type ('result, 'html) t = {
-  html : ([> Html_types.input] as 'html) Html.elt;
-  state : 'result state React.S.t;
-  set_text : (string -> unit);
-}
+type ('result, 'html) t
+(** Abstract type of a search bar, holding a result of type ['result] and
+    rendering as an HTML node ['html]. *)
 
 val make :
   placeholder:string ->
-  search:(Dancelor_client_model.Pagination.t -> string -> ('result list, string list) result Lwt.t) ->
+  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string list) result Lwt.t) ->
   ?on_focus:(unit -> unit) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
   ?min_characters:int ->
   pagination:Dancelor_client_model.Pagination.t React.signal ->
+  ?on_number_of_entries:(int -> unit) ->
   unit ->
-  ('result, 'html) t
+  ('result, [> Html_types.input]) t
 (** Makes a search bar and exposes whatever is useful to interact with it. The
     arguments are to be used as follows:
 
     - [placeholder] shows in the bar when no text is entered yet;
 
     - [search] is an Lwt function that returns either a list of results or a
-      list of error messages to display. It should respect the given pagination.
+      list of error messages to display. It should respect the given pagination
+      and return the total number of entries that match the query.
 
     - [on_focus] is a function that fires when the bar gains focus;
 
@@ -46,11 +45,20 @@ val make :
       to type for the search bar to fire. By default, there is no such limit.
 
     - [pagination] is a signal giving the state of the pagination.
+
+    - [on_number_of_entries] is a function that fires whenever the [search]
+      returns a number of entries.
 *)
+
+val render : ('result, 'html) t -> 'html Html.elt
+(** HTML rendering of a search bar. *)
+
+val state : ('result, 'html) t -> 'result state React.signal
+(** Signal giving a state out of a search bar. *)
 
 val quick_search :
   placeholder:string ->
-  search:(Dancelor_client_model.Pagination.t -> string -> ('result list, string list) result Lwt.t) ->
+  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string list) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
