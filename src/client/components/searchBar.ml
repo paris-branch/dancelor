@@ -16,18 +16,13 @@ type 'result state =
   | Results of 'result list
   | Errors of string list
 
-type ('result, 'html) t = {
-  html : 'html elt;
+type 'result t = {
   state : 'result state S.t;
   set_text : (string -> unit);
 }
 
 let make
-    ~placeholder
     ~search
-    ?on_focus
-    ?on_enter
-    ?(autofocus=false)
     ?(min_characters=0)
     ~pagination
     ?(on_number_of_entries=(Fun.const ()))
@@ -80,48 +75,43 @@ let make
       | Ok (total, results) -> on_number_of_entries total; Results results
   in
 
-  (** The HTML element of the bar; it is simply an input element with some
-      customisation. *)
-  let html =
-    input
-      ~a:(List.filter_map Fun.id [
-          Some (a_input_type `Text);
-          Some (a_placeholder placeholder);
-          Some (
-            a_oninput (fun event ->
+  { state; set_text }
+
+let render ~placeholder ?(autofocus=false) ?on_focus ?on_enter search_bar =
+  input
+    ~a:(List.filter_map Fun.id [
+        Some (a_input_type `Text);
+        Some (a_placeholder placeholder);
+        Some (
+          a_oninput (fun event ->
+              (
+                Js.Opt.iter event##.target @@ fun elt ->
+                Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                search_bar.set_text (Js.to_string input##.value)
+              );
+              false
+            )
+        );
+        (
+          if autofocus then
+            Some (a_autofocus ())
+          else
+            None
+        );
+        Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
+        (
+          Fun.flip Option.map on_enter @@ fun on_enter ->
+          a_onkeyup (fun event ->
+              if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  set_text (Js.to_string input##.value)
+                  on_enter (Js.to_string input##.value)
                 );
-                false
-              )
-          );
-          (
-            if autofocus then
-              Some (a_autofocus ())
-            else
-              None
-          );
-          Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
-          (
-            Fun.flip Option.map on_enter @@ fun on_enter ->
-            a_onkeyup (fun event ->
-                if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
-                  (
-                    Js.Opt.iter event##.target @@ fun elt ->
-                    Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                    on_enter (Js.to_string input##.value)
-                  );
-                true
-              )
-          );
-        ]) ()
-  in
-
-  { state; set_text; html }
-
-let render search_bar = search_bar.html
+              true
+            )
+        );
+      ]) ()
 
 let state search_bar = search_bar.state
 
@@ -132,17 +122,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
   (** A signal tracking whether the table is focused. *)
   let (table_visible, set_table_visible) = S.create false in
 
-  let { state; html; _ } =
-    make
-      ~placeholder
-      ~search
-      ~on_focus:(fun () -> set_table_visible true)
-      ?on_enter
-      ?autofocus
-      ~min_characters
-      ~pagination
-      ()
-  in
+  let search_bar = make ~search ~min_characters ~pagination () in
 
   div ~a:[a_class ["search-bar"]] [
     div ~a:[
@@ -154,7 +134,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
       a_onclick (fun _ -> set_table_visible false; false);
     ] [];
 
-    html;
+    render ~placeholder ~on_focus:(fun () -> set_table_visible true) ?on_enter ?autofocus search_bar;
 
     tablex
       ~a:[
@@ -166,7 +146,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
       ]
       [
         R.tbody (
-          S.bind_s' state [] @@ function
+          S.bind_s' (state search_bar) [] @@ function
           | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
           | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
           | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
