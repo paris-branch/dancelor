@@ -23,7 +23,7 @@ let create page =
 
   let pagination =
     PageNav.create
-      ~number_of_entries: (Dancelor_client_html.S.from' 0 @@ Set.count Formula.true_)
+      ~number_of_entries: (Dancelor_client_html.S.from' None @@ Lwt.map Option.some @@ Set.count Formula.true_)
       ~entries_per_page: 25
   in
 
