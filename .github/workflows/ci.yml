@@ -102,7 +102,7 @@ jobs:
 
     steps:
       - name: Deploy to GitHub pages
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
 
   run-nix-flake-checks:
     name: Run Nix flake checks
