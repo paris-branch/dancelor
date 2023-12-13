@@ -33,6 +33,8 @@
         ./.nix/formatter.nix
         ./.nix/app-dancelor.nix
         ./.nix/app-default.nix
+        ./.nix/nixosmodule-dancelor.nix
+        ./.nix/nixosmodule-default.nix
         ./.nix/package-dancelor.nix
         ./.nix/package-default.nix
         ./.nix/perinput-lib.nix
