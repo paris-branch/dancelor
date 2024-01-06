@@ -85,7 +85,7 @@ let make
 
   { text; state; set_text }
 
-let render ~placeholder ?(autofocus=false) ?on_focus ?on_enter search_bar =
+let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_bar =
   input
     ~a:(List.filter_map Fun.id [
         Some (a_input_type `Text);
@@ -96,7 +96,9 @@ let render ~placeholder ?(autofocus=false) ?on_focus ?on_enter search_bar =
               (
                 Js.Opt.iter event##.target @@ fun elt ->
                 Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                search_bar.set_text (Js.to_string input##.value)
+                let input = Js.to_string input##.value in
+                search_bar.set_text input;
+                Option.value ~default:ignore on_input input;
               );
               false
             )

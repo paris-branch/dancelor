@@ -48,6 +48,7 @@ val render :
   placeholder:string ->
   ?autofocus:bool ->
   ?on_focus:(unit -> unit) ->
+  ?on_input:(string -> unit) ->
   ?on_enter:(string -> unit) ->
   'result t ->
   [> Html_types.input] Html.elt
@@ -57,6 +58,8 @@ val render :
     - [placeholder] shows in the bar when no text is entered yet;
 
     - [on_focus] is a function that fires when the bar gains focus;
+
+    - [on_input] is a function that triggers whenever there is an input.
 
     - [on_enter] is a function that triggers when the user presses Enter.
 
