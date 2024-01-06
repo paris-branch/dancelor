@@ -21,6 +21,7 @@ val make :
   ?min_characters:int ->
   pagination:Dancelor_client_model.Pagination.t React.signal ->
   ?on_number_of_entries:(int -> unit) ->
+  ?initial_input: string ->
   unit ->
   'result t
 (** Makes a search bar and exposes whatever is useful to interact with it. The
@@ -37,6 +38,10 @@ val make :
 
     - [on_number_of_entries] is a function that fires whenever the [search]
       returns a number of entries.
+
+    - [initial_input] is a string specifying the initial input of the search
+      bar. This string will appear in the search bar and a first search will be
+      triggered with it.
 *)
 
 val render :

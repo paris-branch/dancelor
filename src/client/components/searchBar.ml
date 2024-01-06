@@ -17,6 +17,7 @@ type 'result state =
   | Errors of string list
 
 type 'result t = {
+  text : string S.t; (* prefer [state] *)
   state : 'result state S.t;
   set_text : (string -> unit);
 }
@@ -26,10 +27,11 @@ let make
     ?(min_characters=0)
     ~pagination
     ?(on_number_of_entries=(Fun.const ()))
+    ?(initial_input = "")
     ()
   =
   (** A signal containing the search text. *)
-  let (text, set_text_immediately) = S.create "" in
+  let (text, set_text_immediately) = S.create initial_input in
 
   (* REVIEW: maybe this should become a generic signal helper to delay signals
      by a certain time? *)
@@ -70,18 +72,25 @@ let make
       )
     else
       Fun.flip Lwt.map (search pagination text) @@ function
-      | Error messages -> Errors messages
-      | Ok (_, []) -> NoResults
-      | Ok (total, results) -> on_number_of_entries total; Results results
+      | Error messages ->
+        Format.printf "The search returned errors.@.";
+        Errors messages
+      | Ok (_, []) ->
+        Format.printf "The search returned no results.@.";
+        NoResults
+      | Ok (total, results) ->
+        Format.printf "The search returned %d results out of %d total.@." (List.length results) total;
+        on_number_of_entries total; Results results
   in
 
-  { state; set_text }
+  { text; state; set_text }
 
 let render ~placeholder ?(autofocus=false) ?on_focus ?on_enter search_bar =
   input
     ~a:(List.filter_map Fun.id [
         Some (a_input_type `Text);
         Some (a_placeholder placeholder);
+        Some (a_value (S.value search_bar.text));
         Some (
           a_oninput (fun event ->
               (
