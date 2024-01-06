@@ -1,9 +1,10 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_elements
-open Dancelor_client_utils
 open Dancelor_client_model
+open Dancelor_client_components
+module Elements = Dancelor_client_elements
 module Formatters = Dancelor_client_formatters
+module Utils = Dancelor_client_utils
 
 module Html = Dom_html
 
@@ -11,126 +12,115 @@ let js = Js.string
 
 type t =
   {
-    page : Page.t;
+    page : Elements.Page.t;
     content : Html.divElement Js.t;
-    page_nav : PageNav.t;
-    table_wrapper : Html.divElement Js.t;
-    error_wrapper : Html.divElement Js.t;
-    table : Table.t;
-    error : Html.divElement Js.t;
-    bar : Inputs.Text.t;
   }
 
-let update_table t =
-  let pagination = PageNav.pagination t.page_nav in
-  let input = Inputs.Text.contents t.bar in
-  (* we can afford the exception because we'll have checked before *)
-  let filter = Any.Filter.from_string_exn input in
-  let rows =
-    let%lwt results = Any.search' ~pagination filter in
-    Lwt_list.map_s (AnyResult.make_result t.page) results
-  in
-  let section = Table.Section.create ~rows t.page in
-  Table.replace_bodies t.table (Lwt.return [section])
-
-let update_title_and_uri t =
-  (* Update title *)
-  let input = Inputs.Text.contents t.bar in
-  let for_ =
-    if input = "" then ""
-    else spf " for %s" input
-  in
-  (Page.document t.page)##.title := js (spf "Magic Search%s | Dancelor" for_);
-  (* Update URI *)
+let update_uri input =
   Dom_html.window##.history##replaceState
     "fixme-the-state" (js "") (Js.some (js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)))))
 
-let update t =
-  update_title_and_uri t;
-  let input = Inputs.Text.contents t.bar in
-  match Any.Filter.from_string input with
-  | Ok filter ->
-    (
-      t.table_wrapper##.style##.display := js "block";
-      t.error_wrapper##.style##.display := js "none";
-      Lwt.on_success (Any.count filter) (PageNav.set_entries t.page_nav);
-      update_table t
-    )
-  | Error msgs ->
-    (
-      t.table_wrapper##.style##.display := js "none";
-      t.error_wrapper##.style##.display := js "block";
-      JsHelpers.clear_children t.error;
-      let ul = Html.createUl (Page.document t.page) in
-      List.iter
-        (fun msg ->
-           let li = Html.createLi (Page.document t.page) in
-           li##.textContent := Js.some (js msg);
-           Dom.appendChild ul li)
-        msgs;
-      Dom.appendChild t.error ul
-    )
+let search pagination input =
+  let threshold = 0.4 in
+  let%rlwt filter = Lwt.return (Any.Filter.from_string input) in
+  let%lwt (total, results) = Any.search ~threshold ~pagination filter in
+  Format.printf "Got a search with %d results out of %d total.@." (List.length results) total;
+  Lwt.return_ok (total, results)
 
-let create input page =
-  let document = Page.document page in
+(** Generic row showing an emoji on the left and a message on the right. *)
+let emoji_row emoji message =
+  let open Dancelor_client_html in
+  tr [
+    td [txt emoji];
+    td ~a:[a_colspan 4] [txt message];
+  ]
+
+let create ?query page =
+  let document = Elements.Page.document page in
   let content = Html.createDiv document in
 
-  let bar =
-    Inputs.Text.create
-      ?default:input
-      ~placeholder:"Search for anything (it really is magic!)"
-      page
+  document##.title := js ("Search | Dancelor");
+
+  let open Dancelor_client_html in
+
+  let (number_of_entries, set_number_of_entries) = S.create None in
+
+  let pagination =
+    PageNav.create
+      ~entries_per_page: 25
+      ~number_of_entries
   in
 
-  let header =
-    Table.Row.create
-      ~cells:[
-        Table.Cell.header_text ~text:(Lwt.return "Score") page;
-        Table.Cell.header_text ~text:(Lwt.return "Type") page;
-        Table.Cell.header_text ~text:(Lwt.return "Name") page;
-        Table.Cell.header_text ~text:(Lwt.return "Kind") page;
-        Table.Cell.header_text ~text:(Lwt.return "By") page
-      ]
-      page
-  in
-  let table = Table.create
-      ~header
-      ~kind:Table.Kind.Separated
-      page
-  in
-  let table_wrapper = Html.createDiv document in
-  let error_wrapper = Html.createDiv document in
-  error_wrapper##.classList##add (js "error");
-  let error = Html.createDiv document in
-  Dom.appendChild error_wrapper error;
-
-  let page_nav = PageNav.create ~entries:0 ~entries_per_page:25 page in
-
-  let t = { page; content; page_nav; table_wrapper; error_wrapper; table; error; bar } in
-
-  let () =
-    let title = Text.Heading.h2_static ~text:(Lwt.return "Magic Search") page in
-    Dom.appendChild content (Text.Heading.root title);
+  let search_bar =
+    SearchBar.make
+      ~search
+      ~pagination:(PageNav.pagination pagination)
+      ~on_number_of_entries: (set_number_of_entries % Option.some)
+      ?initial_input: query
+      ()
   in
 
-  let () =
-    Inputs.Text.on_change bar (fun _ -> update t);
-    Dom.appendChild content (Inputs.Text.root bar);
-  in
+  (
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [txt "Search"];
 
-  Dom.appendChild content (Html.createHr document);
+      SearchBar.render
+        ~placeholder:"Search for anything (it really is magic!)"
+        ~autofocus:true
+        ~on_input:update_uri
+        search_bar;
 
-  Dom.appendChild table_wrapper (Table.root table);
-  Dom.appendChild table_wrapper (PageNav.root page_nav);
-  Dom.appendChild content table_wrapper;
-  Dom.appendChild content error_wrapper;
+      R.div (
+        Fun.flip S.map (SearchBar.state search_bar) @@ function
+        | NoResults -> [div ~a:[a_class ["warning"]] [txt "Your search returned no results."]]
+        | Errors errors -> [div ~a:[a_class ["error"]] [ul (List.map (li % List.singleton % txt) errors)]]
+        | StartTyping | ContinueTyping | Results _ -> []
+      );
 
-  PageNav.connect_on_page_change page_nav (fun _ ->
-      PageNav.rebuild page_nav;
-      update_table t;
-      (Inputs.Text.root t.bar)##focus);
-  update t;
-  t
+      div
+        ~a:[
+          R.a_class (
+            Fun.flip S.map (SearchBar.state search_bar) @@ function
+            | Results _ ->
+              Format.printf "No class when resuts.@.";
+              []
+            | _ ->
+              Format.printf "Should be hidden when no results.@.";
+              ["hidden"]
+          )
+        ]
+        [
+          PageNav.render pagination;
+
+          tablex
+            ~a:[a_class ["separated-table"]]
+            ~thead:(
+              thead [
+                tr [th [txt "Score"]; th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
+              ];
+            )
+            [
+              R.tbody (
+                Fun.flip S.map (S.Pair.pair (PageNav.pagination pagination) (SearchBar.state search_bar))
+                @@ fun (_, state) ->
+                match state with
+                | Results results ->
+                  Format.printf "Mapping over the results...@.";
+                  let results = List.map Utils.AnyResultNewAPI.make_result results in
+                  Format.printf "done mapping over the results...@.";
+                  results
+                | _ ->
+                  Format.printf "No results to map on.@.";
+                  []
+              )
+            ];
+
+          PageNav.render pagination;
+        ]
+    ]
+  );
+
+  { page; content }
 
 let contents t =
   t.content
@@ -139,4 +129,4 @@ let refresh t =
   ignore t
 
 let init t =
-  (Inputs.Text.root t.bar)##focus
+  ignore t

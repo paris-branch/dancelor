@@ -29,8 +29,8 @@ let dispatch url =
   match Option.get page with
   | PageRouter.Index ->
     pack (module Index) Index.create
-  | Search q ->
-    pack (module Search) (Search.create q)
+  | Search query ->
+    pack (module Search) (Search.create ?query)
   | VersionAdd ->
     pack (module VersionEditorInterface) VersionEditorInterface.create
   | VersionAll ->
