@@ -1,3 +1,8 @@
+(** {1 Book Parameters}
+
+    This module defines parameters that make sense at the level of a book. This
+    includes set parameters (which include version parameters) as well. *)
+
 open Nes
 
 type where = Beginning | End | Nowhere
@@ -16,7 +21,6 @@ module Self = struct
     running_header    : bool   option [@default None] [@key "running-header"] ;
     running_footer    : bool   option [@default None] [@key "running-footer"] ;
     paper_size        : SetParameters.paper_size option [@default None] [@key "paper-size"] ;
-
     every_set : SetParameters.t [@default SetParameters.none] [@key "every-set"] ;
   }
   [@@deriving make, yojson]
@@ -29,28 +33,30 @@ include Self
 let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header ?paper_size () =
   make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ~paper_size ()
 
-let front_page        p = Option.get p.front_page
-let table_of_contents p = Option.get p.table_of_contents
-let two_sided         p = Option.get p.two_sided
-let running_header    p = Option.get p.running_header
-let running_footer    p = Option.get p.running_footer
-let paper_size        p = Option.get p.paper_size
+(** {2 Getters} *)
 
-let every_set         p = p.every_set
+let front_page p = p.front_page
+let table_of_contents p = p.table_of_contents
+let two_sided p = p.two_sided
+let running_header p = p.running_header
+let running_footer p = p.running_footer
+let paper_size p = p.paper_size
+let every_set p = p.every_set
 let instruments = SetParameters.instruments % every_set
+
+(** {2 Defaults} *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let default = {
-  front_page = Some false ;
-  table_of_contents = Some Nowhere ;
-  two_sided = Some false ;
-  running_header = Some true ;
-  running_footer = Some true ;
-  paper_size = SetParameters.default.paper_size ;
+let front_page' = Option.value ~default:false % front_page
+let table_of_contents' = Option.value ~default:Nowhere % table_of_contents
+let two_sided' = Option.value ~default:false % two_sided
+let running_header' = Option.value ~default:true % running_header
+let running_footer' = Option.value ~default:true % running_footer
+let paper_size' = Option.value ~default:SetParameters.(paper_size' none) % paper_size
+let instruments' = Option.value ~default:"" % instruments
 
-  every_set = SetParameters.default ;
-}
+(** {2 Composition} *)
 
 let compose first second =
   { front_page        = Option.(choose ~tie:second) first.front_page        second.front_page ;
@@ -59,7 +65,4 @@ let compose first second =
     running_header    = Option.(choose ~tie:second) first.running_header    second.running_header ;
     running_footer    = Option.(choose ~tie:second) first.running_footer    second.running_footer ;
     paper_size        = Option.(choose ~tie:second) first.paper_size        second.paper_size ;
-
     every_set = SetParameters.compose first.every_set second.every_set }
-
-let fill = compose default

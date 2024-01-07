@@ -1,3 +1,8 @@
+(** {1 Set Parameters}
+
+    This module defines parameters that make sense at the level of a set. This
+    includes version parameters as well. *)
+
 open Nes
 
 (** How to render the order. [Default] prints the tunes as they appear in the
@@ -40,34 +45,38 @@ let make
     ~forced_pages ~show_deviser ~show_order
     ~display_name ~for_dance ?every_version ()
 
-let forced_pages p = Option.get p.forced_pages
+(** {2 Getters} *)
+
+let forced_pages p = p.forced_pages
 let for_dance    p = p.for_dance
 let display_name p = p.display_name
-let show_deviser p = Option.get p.show_deviser
-let show_order   p = Option.get p.show_order
+let show_deviser p = p.show_deviser
+let show_order   p = p.show_order
 let order_type   p = p.order_type
-let paper_size   p = Option.get p.paper_size
-let paper_size_opt p = p.paper_size
+let paper_size   p = p.paper_size
 
 let every_version p = p.every_version
 let instruments = VersionParameters.instruments % every_version
 
-let set_show_order show_order p =
-  { p with show_order = Some show_order }
+(** {2 Defaults}
+
+    Getters that end with a quote are getters that have a default value. *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let default = {
-  forced_pages = Some 0 ;
-  for_dance = None ;
-  display_name = None ;
-  show_deviser = Some true ;
-  show_order = Some true ;
-  order_type = Some Default ;
-  paper_size = Some (A 4) ;
+let forced_pages' = Option.value ~default:0 % forced_pages
+let show_deviser' = Option.value ~default:true % show_deviser
+let show_order' = Option.value ~default:true % show_order
+let paper_size' = Option.value ~default:(A 4) % paper_size
+let order_type' = Option.value ~default:Default % order_type
+let display_name' ~default = Option.value ~default % display_name
 
-  every_version = VersionParameters.default ;
-}
+(** {2 Setters} *)
+
+let set_show_order show_order p =
+  { p with show_order = Some show_order }
+
+(** {2 Composition} *)
 
 let compose first second =
   { forced_pages  = Option.(choose ~tie:second) first.forced_pages second.forced_pages ;
@@ -79,5 +88,3 @@ let compose first second =
     paper_size    = Option.(choose ~tie:second) first.paper_size   second.paper_size ;
 
     every_version = VersionParameters.compose first.every_version second.every_version }
-
-let fill = compose default

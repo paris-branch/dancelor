@@ -20,7 +20,7 @@ module Ly = struct
     in
     let%lwt kind = kind set set_parameters in
     let order =
-      if Model.SetParameters.show_order set_parameters then
+      if Model.SetParameters.show_order' set_parameters then
         [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order set]
       else
         []
@@ -33,8 +33,8 @@ module Ly = struct
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
 
   (** Rearrange the content of a set. [Default] will leave the content as-is,
-      while [Unfolded] will duplicated the tunes depending on the set order. *)
-  let rearrange_set_content ?(order_type=Model.SetParameters.Default) ~order content =
+      while [Unfolded] will duplicate the tunes depending on the set order. *)
+  let rearrange_set_content ~order_type ~order content =
     let module P = Model.SetParameters in
     let module O = Model.SetOrder in
     match order_type with
@@ -50,33 +50,32 @@ module Ly = struct
   let render ?(parameters=Model.BookParameters.none) book =
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key:(`Ly, book, parameters, body) @@ fun _hash ->
-    let parameters = Model.BookParameters.fill parameters in
     let (res, prom) =
       Format.with_formatter_to_string_gen @@ fun fmt ->
       let title = Model.Book.title book in (** FIXME: subtitle *)
       fpf fmt [%blob "template/lyversion.ly"];
       (
-        match Model.BookParameters.paper_size parameters with
+        match Model.BookParameters.paper_size' parameters with
         | A n -> fpf fmt [%blob "template/paper-size/a.ly"] n;
         | Custom (width, height, unit) -> fpf fmt [%blob "template/paper-size/custom.ly"] width unit height unit;
       );
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
       fpf fmt [%blob "template/book/globals.ly"]
-        title (Option.value ~default:"" (Model.BookParameters.instruments parameters));
+        title (Model.BookParameters.instruments' parameters);
       fpf fmt [%blob "template/paper.ly"];
 
       fpf fmt [%blob "template/book/paper.ly"];
-      if parameters |> Model.BookParameters.two_sided then
+      if Model.BookParameters.two_sided' parameters then
         (
           fpf fmt [%blob "template/book/two-sided.ly"];
           fpf fmt
-            (if parameters |> Model.BookParameters.running_header then
+            (if Model.BookParameters.running_header' parameters then
                [%blob "template/book/header/two-sided.ly"]
              else
                [%blob "template/book/header/none.ly"]);
           fpf fmt
-            (if parameters |> Model.BookParameters.running_footer then
+            (if Model.BookParameters.running_footer' parameters then
                [%blob "template/book/footer/two-sided.ly"]
              else
                [%blob "template/book/footer/none.ly"])
@@ -84,12 +83,12 @@ module Ly = struct
       else
         (
           fpf fmt
-            (if parameters |> Model.BookParameters.running_header then
+            (if Model.BookParameters.running_header' parameters then
                [%blob "template/book/header/one-sided.ly"]
              else
                [%blob "template/book/header/none.ly"]);
           fpf fmt
-            (if parameters |> Model.BookParameters.running_footer then
+            (if Model.BookParameters.running_footer' parameters then
                [%blob "template/book/footer/one-sided.ly"]
              else
                [%blob "template/book/footer/none.ly"])
@@ -99,9 +98,9 @@ module Ly = struct
       fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
       fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
-      if parameters |> Model.BookParameters.front_page then
+      if Model.BookParameters.front_page' parameters then
         fpf fmt [%blob "template/book/book_front_page.ly"];
-      if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.Beginning then
+      if Model.BookParameters.(table_of_contents' parameters = Beginning) then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       let%lwt () =
         let%lwt sets_and_parameters =
@@ -109,16 +108,8 @@ module Ly = struct
           Fun.flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune version in
-            let name =
-              parameters
-              |> Model.VersionParameters.display_name
-              |> Option.value ~default:(Model.Tune.name tune)
-            in
-            let trivia =
-              parameters
-              |> Model.VersionParameters.trivia
-              |> Option.value ~default:" "
-            in
+            let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) parameters in
+            let trivia = Model.VersionParameters.trivia' ~default:" " parameters in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let%lwt set =
               Model.Set.make
@@ -140,13 +131,9 @@ module Ly = struct
         in
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
-        let name =
-          set_parameters
-          |> Model.SetParameters.display_name
-          |> Option.value ~default:(Model.Set.name set)
-        in
+        let name = Model.SetParameters.display_name' ~default:(Model.Set.name set) set_parameters in
         let%lwt deviser =
-          if not (set_parameters |> Model.SetParameters.show_deviser) then
+          if not (Model.SetParameters.show_deviser' set_parameters) then
             Lwt.return ""
           else
             Lwt.map
@@ -157,7 +144,7 @@ module Ly = struct
         let%lwt details_line = details_line set set_parameters in
         fpf fmt [%blob "template/book/set_beginning.ly"]
           name kind name deviser details_line;
-        (match set_parameters |> Model.SetParameters.forced_pages with
+        (match Model.SetParameters.forced_pages' set_parameters with
          | 0 -> ()
          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
         let%lwt () =
@@ -165,14 +152,14 @@ module Ly = struct
           let versions_and_parameters =
             rearrange_set_content
               ~order:(Model.Set.order set)
-              ?order_type:(Model.SetParameters.order_type set_parameters)
+              ~order_type:(Model.SetParameters.order_type' set_parameters)
               versions_and_parameters
           in
           Fun.flip Lwt_list.iter_s versions_and_parameters @@ fun (version, version_parameters) ->
           let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
           let%lwt content = Model.Version.content version in
           let content =
-            match version_parameters |> Model.VersionParameters.clef with
+            match Model.VersionParameters.clef version_parameters with
             | None -> content
             | Some clef_parameter ->
               let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
@@ -180,27 +167,16 @@ module Ly = struct
           in
           let%lwt tune = Model.Version.tune version in
           let key = Model.Version.key version in
-          let name =
-            version_parameters
-            |> Model.VersionParameters.display_name
-            |> Option.value ~default:(Model.Tune.name tune)
-          in
+          let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) version_parameters in
           let%lwt author =
             Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.author tune)
           in
-          let author =
-            version_parameters
-            |> Model.VersionParameters.display_author
-            |> Option.value ~default:author
-          in
-          let first_bar =
-            version_parameters
-            |> Model.VersionParameters.first_bar
-          in
+          let author = Model.VersionParameters.display_author' ~default:author version_parameters in
+          let first_bar = Model.VersionParameters.first_bar' version_parameters in
           let source, target =
-            match version_parameters |> Model.VersionParameters.transposition with
+            match Model.VersionParameters.transposition' version_parameters with
             | Relative (source, target) -> (source, target)
-            | Absolute target -> (key |> Model.Music.key_pitch, target) (* FIXME: probably an octave to fix here *)
+            | Absolute target -> (Model.Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
           in
           fpf fmt [%blob "template/book/version.ly"]
             name author
@@ -214,7 +190,7 @@ module Ly = struct
         fpf fmt [%blob "template/book/set_end.ly"];
         Lwt.return ()
       in
-      if parameters |> Model.BookParameters.table_of_contents |> (=) Model.BookParameters.End then
+      if Model.BookParameters.(table_of_contents' parameters = End) then
         fpf fmt [%blob "template/book/book_table_of_contents.ly"];
       fpf fmt [%blob "template/book/book_end.ly"];
       Lwt.return ()
