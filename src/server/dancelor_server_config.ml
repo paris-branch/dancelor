@@ -85,25 +85,25 @@ let parse_cmd_line () =
     | true -> fpf fmt " (default)"
     | false -> ()
   in
-  let specs = [
-    "--cache",            Set_string cache,          spf "DIR Set cache directory (default: %s)"    !cache;
-    "--config",           String load_from_file,     spf "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
-    "--database",         Set_string database,       spf "DIR Set database directory (default: %s)" !database;
-    "--init-only",        Set        init_only,     aspf " Stop after initialisation%a" pp_default !init_only;
-    "--no-init-only",     Clear      init_only,     aspf " Do not stop after initialisation%a" pp_default (not !init_only);
-    "--lilypond",         Set_string lilypond,       spf "PATH Set path to the LilyPond binary (default: %s)" !lilypond;
-    "--loglevel",         String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
-    "--port",             Set_int    port,           spf "NB Set the port (default: %d)" !port;
-    "--routines",         Set        routines,      aspf " Start routines%a" pp_default !routines;
-    "--no-routines",      Clear      routines,      aspf " Do not start routines%a" pp_default (not !routines);
-    "--heavy-routines",   Set        heavy_routines,aspf " Allow heavy load for routines%a" pp_default !heavy_routines;
-    "--no-heavy-routines",Clear      heavy_routines,aspf " Disallow heavy load for routines%a" pp_default (not !heavy_routines);
-    "--share",            Set_string share,          spf "DIR Set share directory (default: %s)" !share;
-    "--sync-storage",     Set        sync_storage,  aspf " Sync storage using git%a" pp_default !sync_storage;
-    "--no-sync-storage",  Clear      sync_storage,  aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
-    "--write-storage",    Set        write_storage, aspf " Reflect storage on filesystem%a" pp_default !write_storage;
-    "--no-write-storage", Clear      write_storage, aspf " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
-  ]
+  let specs = align [
+      "--cache",            Set_string cache,          spf   "DIR Set cache directory (default: %s)"    !cache;
+      "--config",           String load_from_file,     spf  "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
+      "--database",         Set_string database,       spf   "DIR Set database directory (default: %s)" !database;
+      "--init-only",        Set        init_only,     aspf      " Stop after initialisation%a" pp_default !init_only;
+      "--no-init-only",     Clear      init_only,     aspf      " Do not stop after initialisation%a" pp_default (not !init_only);
+      "--lilypond",         Set_string lilypond,       spf  "PATH Set path to the LilyPond binary (default: %s)" !lilypond;
+      "--loglevel",         String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
+      "--port",             Set_int    port,           spf    "NB Set the port (default: %d)" !port;
+      "--routines",         Set        routines,      aspf      " Start routines%a" pp_default !routines;
+      "--no-routines",      Clear      routines,      aspf      " Do not start routines%a" pp_default (not !routines);
+      "--heavy-routines",   Set        heavy_routines,aspf      " Allow heavy load for routines%a" pp_default !heavy_routines;
+      "--no-heavy-routines",Clear      heavy_routines,aspf      " Disallow heavy load for routines%a" pp_default (not !heavy_routines);
+      "--share",            Set_string share,          spf   "DIR Set share directory (default: %s)" !share;
+      "--sync-storage",     Set        sync_storage,  aspf      " Sync storage using git%a" pp_default !sync_storage;
+      "--no-sync-storage",  Clear      sync_storage,  aspf      " Do not sync storage using git%a" pp_default (not !sync_storage);
+      "--write-storage",    Set        write_storage, aspf      " Reflect storage on filesystem%a" pp_default !write_storage;
+      "--no-write-storage", Clear      write_storage, aspf      " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
+    ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in
   let usage = spf "Usage: %s [OPTIONS...]" Sys.argv.(0) in
