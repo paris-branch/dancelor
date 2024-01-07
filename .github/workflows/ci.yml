@@ -46,8 +46,13 @@ jobs:
       - name: Build documentation
         run: nix develop --command make doc
 
-      - name: Run tests
-        run: nix develop --command make test
+      - name: Run unit tests
+        run: nix develop --command make unit-tests
+
+      - name: Run system tests
+        run: |
+          sudo apt install firefox
+          nix develop --command make system-tests
 
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -80,12 +85,6 @@ jobs:
 
       - name: Build Dancelor
         run: opam exec -- make
-
-      - name: Build documentation
-        run: opam exec -- make doc
-
-      - name: Run tests
-        run: opam exec -- make test
 
   deploy-documentation:
     name: Deploy documentation
