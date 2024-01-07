@@ -64,8 +64,7 @@ let create slug page =
           let tunes_lwt =
             let%lwt dance = dance_lwt in
             let filter = Tune.Filter.existsDance (Dance.Filter.is dance) in
-            Tune.search filter
-            >|=| Score.list_erase
+            Tune.search' filter >|=| Score.list_erase
           in
           let%lwt tunes = tunes_lwt in
 

@@ -60,8 +60,7 @@ let name_disambiguation_and_sources ?link version =
           M.Formula.and_ (memVersionDeep version) isSource
         )
       in
-      M.Book.search filter
-      >|=| M.Score.list_erase
+      M.Book.search' filter >|=| M.Score.list_erase
     in
     Lwt.return @@
     match List.map Book.short_title sources with
@@ -86,8 +85,7 @@ let disambiguation_and_sources version =
           M.Formula.and_ (memVersionDeep version) isSource
         )
       in
-      M.Book.search filter
-      >|=| M.Score.list_erase
+      M.Book.search' filter >|=| M.Score.list_erase
     in
     Lwt.return @@
     match List.map Book.short_title sources with

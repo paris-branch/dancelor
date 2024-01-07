@@ -31,12 +31,11 @@ let search ?pagination ?threshold filter =
     a A.filter filter;
   )
 
+let search' ?pagination ?threshold filter =
+  Lwt.map snd @@ search ?pagination ?threshold filter
+
 let count ?threshold filter =
-  Madge_client.(
-    call ~endpoint:E.count @@ fun {a} {o} ->
-    o A.threshold threshold;
-    a A.filter filter
-  )
+  Lwt.map fst @@ search ?threshold filter
 
 let mark_fixed version =
   Madge_client.(

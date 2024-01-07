@@ -6,5 +6,4 @@ module Arguments = struct
   let threshold = optarg ~key:"threshold" (module MFloat)
 end
 
-let search = endpoint ~path:"/any/search" (module MList (Score.Make_Serialisable (AnyCore)))
-let count = endpoint ~path:"/any/count" (module MInteger)
+let search = endpoint ~path:"/any/search" (module MPair (MInteger) (MList (Score.Make_Serialisable (AnyCore))))

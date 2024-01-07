@@ -45,7 +45,10 @@ let search ?pagination ?(threshold=Float.min_float) filter =
         increasing (Lwt.return % subtitle) String.compare_lengths ;
       ])
   in
-  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
+  Lwt.return (
+    List.length results,
+    Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
+  )
 (* FIXME: Simplify [list_proj_sort_decreasing] and [decreasing] and
    [increasing] because they probably don't need Lwt anymore. *)
 
@@ -57,6 +60,12 @@ let () =
       ?threshold: (o A.threshold)
       (a A.filter)
   )
+
+let search' ?pagination ?threshold filter =
+  Lwt.map snd @@ search ?pagination ?threshold filter
+
+let count ?threshold filter =
+  Lwt.map fst @@ search ?threshold filter
 
 let update
     ?status ~slug ~title ?date ?contents ~modified_at ~created_at

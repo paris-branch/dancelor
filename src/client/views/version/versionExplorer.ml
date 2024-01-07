@@ -139,8 +139,7 @@ let update_table t =
       let filter = t.search in
       let%lwt filter = filter_to_versionfilter filter in
       let pagination = PageNav.pagination t.page_nav in
-      Version.search ~pagination filter
-      >|=| Score.list_erase
+      Version.search' ~pagination filter >|=| Score.list_erase
     in
     Lwt.return (List.map (fun version ->
         let href = Lwt.return @@ PageRouter.path_version @@ Version.slug version in

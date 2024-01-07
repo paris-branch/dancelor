@@ -164,7 +164,7 @@ let create page =
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Tune.Filter.from_string input in
             let%lwt results =
-              Tune.search ~threshold:0.4
+              Tune.search' ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
@@ -195,7 +195,7 @@ let create page =
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Person.Filter.from_string input in
             let%lwt results =
-              Person.search ~threshold:0.4
+              Person.search' ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)

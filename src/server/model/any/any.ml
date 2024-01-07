@@ -21,7 +21,10 @@ let search ?pagination ?(threshold=Float.min_float) filter =
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
     >>=| Score.(list_proj_sort_decreasing [])
   in
-  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
+  Lwt.return (
+    List.length results,
+    Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
+  )
 
 let () =
   Madge_server.(
@@ -32,12 +35,8 @@ let () =
       (a A.filter)
   )
 
-let count ?threshold filter =
-  let%lwt l = search ?threshold filter in
-  Lwt.return (List.length l)
+let search' ?pagination ?threshold filter =
+  Lwt.map snd @@ search ?pagination ?threshold filter
 
-let () =
-  Madge_server.(
-    register ~endpoint:E.count @@ fun {a} {o} ->
-    count ?threshold:(o A.threshold) (a A.filter)
-  )
+let count ?threshold filter =
+  Lwt.map fst @@ search ?threshold filter

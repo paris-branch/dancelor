@@ -19,7 +19,7 @@ end
 
 let get = endpoint ~path:"/book" (module BookCore)
 let make_and_save = endpoint ~path:"/book/save" (module BookCore)
-let search = endpoint ~path:"/book/search" (module MList(Score.Make_Serialisable(BookCore)))
+let search = endpoint ~path:"/book/search" (module MPair (MInteger) (MList(Score.Make_Serialisable(BookCore))))
 let update = endpoint ~path:"/book/update" (module MUnit)
 
 (* New-style Endpoints *)

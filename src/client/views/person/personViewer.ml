@@ -52,7 +52,7 @@ let create slug page =
           let%lwt tunes =
             let%lwt person = person_lwt in
             let filter = Tune.Filter.authorIs person in
-            Tune.search filter >|=| Score.list_erase
+            Tune.search' filter >|=| Score.list_erase
           in
 
           Lwt.return [
@@ -71,8 +71,7 @@ let create slug page =
           let%lwt sets =
             let%lwt person = person_lwt in
             let filter = Set.Filter.deviser (Person.Filter.is person) in
-            Set.search filter
-            >|=| Score.list_erase
+            Set.search' filter >|=| Score.list_erase
           in
 
           Lwt.return [
@@ -91,7 +90,7 @@ let create slug page =
           let%lwt dances =
             let%lwt person = person_lwt in
             let filter = Dance.Filter.deviser (Person.Filter.is person) in
-            Dance.search filter >|=| Score.list_erase
+            Dance.search' filter >|=| Score.list_erase
           in
 
           Lwt.return [

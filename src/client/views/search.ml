@@ -27,7 +27,7 @@ let update_table t =
   (* we can afford the exception because we'll have checked before *)
   let filter = Any.Filter.from_string_exn input in
   let rows =
-    let%lwt results = Any.search ~pagination filter in
+    let%lwt results = Any.search' ~pagination filter in
     Lwt_list.map_s (AnyResult.make_result t.page) results
   in
   let section = Table.Section.create ~rows t.page in

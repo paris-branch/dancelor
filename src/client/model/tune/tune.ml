@@ -28,3 +28,9 @@ let search ?pagination ?threshold filter =
     o A.threshold threshold;
     a A.filter filter;
   )
+
+let search' ?pagination ?threshold filter =
+  Lwt.map snd @@ search ?pagination ?threshold filter
+
+let count ?threshold filter =
+  Lwt.map fst @@ search ?threshold filter
