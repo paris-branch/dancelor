@@ -135,7 +135,7 @@ module Text = struct
     Lwt.async (fun () ->
         Lwt_js_events.keydowns t.root
           (fun ev _ ->
-             if Js.Optdef.to_option ev##.key = Some (js "Enter")
+             if ev##.keyCode = 13
              then cb (Js.to_string t.root##.value) else Lwt.return_unit))
 
   let on_focus t cb =
@@ -205,7 +205,7 @@ module Textarea = struct
     Lwt.async (fun () ->
         Lwt_js_events.keydowns t.root
           (fun ev _ ->
-             if Js.Optdef.to_option ev##.key = Some (js "Enter")
+             if ev##.keyCode = 13
              then cb (Js.to_string t.root##.value) else Lwt.return_unit))
 
   let on_focus t cb =
