@@ -1,4 +1,4 @@
-.PHONY: build doc test local dev indent clean
+.PHONY: build doc test dev-test local dev indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -21,6 +21,9 @@ dev: build
 
 local: build
 	bin/dancelor --config assets/config.local.json --write-storage
+
+dev-test: build
+	bin/dancelor --config tests/config.json
 
 indent:
 	opam exec -- \
