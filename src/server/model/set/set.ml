@@ -1,7 +1,10 @@
 open Nes
+module Common = Dancelor_common
+module Database = Dancelor_server_database
+
 include SetLifted
 
-module E = Dancelor_common_model.SetEndpoints
+module E = Common.Model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save
@@ -9,7 +12,7 @@ let make_and_save
     ~order ?dances ~modified_at ~created_at
     ()
   =
-  Dancelor_server_database.Set.save ~slug_hint:name @@ fun slug ->
+  Database.Set.save ~slug_hint:name @@ fun slug ->
   make
     ?status ~slug ~name ?deviser ~kind ?versions_and_parameters
     ~order ?dances ~modified_at ~created_at ()
@@ -30,7 +33,7 @@ let () =
       ()
   )
 
-let delete = Dancelor_server_database.Set.delete % slug
+let delete = Database.Set.delete % slug
 
 let () =
   Madge_server.(
@@ -40,14 +43,17 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
-  Dancelor_server_database.Set.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.(list_proj_sort_decreasing [
-      increasing (Lwt.return % name) String.Sensible.compare;
-      increasing (Lwt.return % name) String.compare_lengths;
-    ])
-  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+  let module Score = Common.Model.Score in
+  let%lwt results =
+    Database.Set.get_all ()
+    >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+    >>=| Score.(list_proj_sort_decreasing [
+        increasing (Lwt.return % name) String.Sensible.compare;
+        increasing (Lwt.return % name) String.compare_lengths;
+      ])
+  in
+  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
 
 let () =
   Madge_server.(

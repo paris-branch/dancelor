@@ -1,13 +1,16 @@
 open Nes
+module Common = Dancelor_common
+module Database = Dancelor_server_database
+
 include BookLifted
 
-module E = Dancelor_common_model.BookEndpoints
+module E = Common.Model.BookEndpoints
 module A = E.Arguments
 
 let make_and_save
     ?status ~title ?date ?contents ~modified_at ~created_at ()
   =
-  Dancelor_server_database.Book.save ~slug_hint:title @@ fun slug ->
+  Database.Book.save ~slug_hint:title @@ fun slug ->
   make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
 
 let () =
@@ -29,17 +32,20 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
-  Dancelor_server_database.Book.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.(list_proj_sort_decreasing [
-      decreasing (Lwt.return %     date) (NesOption.compare NesPartialDate.compare) ;
-      increasing (Lwt.return %    title) String.Sensible.compare ;
-      increasing (Lwt.return %    title) String.compare_lengths ;
-      increasing (Lwt.return % subtitle) String.Sensible.compare ;
-      increasing (Lwt.return % subtitle) String.compare_lengths ;
-    ])
-  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+  let module Score = Common.Model.Score in
+  let%lwt results =
+    Database.Book.get_all ()
+    >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+    >>=| Score.(list_proj_sort_decreasing [
+        decreasing (Lwt.return %     date) (NesOption.compare NesPartialDate.compare) ;
+        increasing (Lwt.return %    title) String.Sensible.compare ;
+        increasing (Lwt.return %    title) String.compare_lengths ;
+        increasing (Lwt.return % subtitle) String.Sensible.compare ;
+        increasing (Lwt.return % subtitle) String.compare_lengths ;
+      ])
+  in
+  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
 (* FIXME: Simplify [list_proj_sort_decreasing] and [decreasing] and
    [increasing] because they probably don't need Lwt anymore. *)
 
@@ -57,7 +63,7 @@ let update
     ()
   =
   let%lwt book = make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () in
-  Dancelor_server_database.Book.update book
+  Database.Book.update book
 
 let () =
   Madge_server.(

@@ -1,8 +1,11 @@
 open Nes
+module Common = Dancelor_common
+module Database = Dancelor_server_database
+
 include PersonLifted
 
 let make_and_save ?status ~name ?scddb_id ~modified_at ~created_at () =
-  Dancelor_server_database.Person.save ~slug_hint:name @@ fun slug ->
+  Database.Person.save ~slug_hint:name @@ fun slug ->
   Lwt.return (make ?status ~slug ~name ~scddb_id ~modified_at ~created_at ()) (* FIXME: status should probably go in save *)
 
 let () =
@@ -17,13 +20,16 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
-  Dancelor_server_database.Person.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.(list_proj_sort_decreasing [
-      increasing (Lwt.return % name) String.Sensible.compare
-    ])
-  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+  let module Score = Common.Model.Score in
+  let%lwt results =
+    Database.Person.get_all ()
+    >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+    >>=| Score.(list_proj_sort_decreasing [
+        increasing (Lwt.return % name) String.Sensible.compare
+      ])
+  in
+  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
 
 let () =
   Madge_server.(

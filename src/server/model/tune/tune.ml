@@ -1,7 +1,10 @@
 open Nes
+module Common = Dancelor_common
+module Database = Dancelor_server_database
+
 include TuneLifted
 
-module E = Dancelor_common_model.TuneEndpoints
+module E = Common.Model.TuneEndpoints
 module A = E.Arguments
 
 let make_and_save
@@ -9,7 +12,7 @@ let make_and_save
     ?dances ?remark ?scddb_id ~modified_at ~created_at
     ()
   =
-  Dancelor_server_database.Tune.save ~slug_hint:name @@ fun slug ->
+  Database.Tune.save ~slug_hint:name @@ fun slug ->
   make
     ?status ~slug ~name ?alternative_names ~kind ?author
     ?dances ?remark ?scddb_id ~modified_at ~created_at
@@ -33,14 +36,17 @@ let () =
   )
 
 let search ?pagination ?(threshold=Float.min_float) filter =
-  Dancelor_server_database.Tune.get_all ()
-  >>=| Score.lwt_map_from_list (Filter.accepts filter)
-  >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-  >>=| Score.(list_proj_sort_decreasing [
-      increasing (Lwt.return % name) String.Sensible.compare;
-      increasing (Lwt.return % name) String.compare_lengths;
-    ])
-  >>=| Option.fold ~none:Lwt.return ~some:Pagination.apply pagination
+  let module Score = Common.Model.Score in
+  let%lwt results =
+    Database.Tune.get_all ()
+    >>=| Score.lwt_map_from_list (Filter.accepts filter)
+    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
+    >>=| Score.(list_proj_sort_decreasing [
+        increasing (Lwt.return % name) String.Sensible.compare;
+        increasing (Lwt.return % name) String.compare_lengths;
+      ])
+  in
+  Lwt.return @@ Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
 
 let () =
   Madge_server.(
