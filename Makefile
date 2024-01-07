@@ -1,4 +1,4 @@
-.PHONY: build docker ci doc release test local dev serve init-only check-tunes indent clean
+.PHONY: build doc test local dev indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -8,13 +8,6 @@ endif
 build:
 	dune build $(DUNEJOBSARG) @install
 	ln -sf _build/install/default/bin .
-
-release:
-	dune build $(DUNEJOBSARG) --profile=release @install
-	ln -sf _build/install/default/bin .
-
-docker:
-	docker build --tag dancelor .
 
 doc:
 	dune build $(DUNEJOBSARG) @doc
