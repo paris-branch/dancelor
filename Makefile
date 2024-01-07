@@ -17,10 +17,10 @@ test:
 	dune test $(DUNEJOBSARG)
 
 dev: build
-	bin/dancelor --config assets/config.json --no-routines --no-sync-storage --no-write-storage
+	bin/dancelor --config assets/config.local.json
 
 local: build
-	bin/dancelor --config assets/config.json --no-routines --no-sync-storage
+	bin/dancelor --config assets/config.local.json --write-storage
 
 indent:
 	opam exec -- \
