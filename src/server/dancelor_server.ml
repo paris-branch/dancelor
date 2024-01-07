@@ -109,6 +109,16 @@ let read_configuration () =
 let initialise_logs () =
   Dancelor_server_logs.initialise !Dancelor_server_config.loglevel
 
+let write_pid () =
+  let pid = Unix.getpid () in
+  if !Dancelor_server_config.pid_file <> "" then
+    Lwt_io.(
+      with_file ~mode:output !Dancelor_server_config.pid_file @@ fun ochan ->
+      fprintlf ochan "%d" pid
+    )
+  else
+    Lwt.return_unit
+
 let populate_caches () =
   Dancelor_server_controller.Version.Svg.populate_cache ();%lwt
   Dancelor_server_controller.Version.Ogg.populate_cache ();%lwt
@@ -155,6 +165,7 @@ let main =
   @@ fun () ->
   read_configuration ();
   initialise_logs ();
+  write_pid ();%lwt
   populate_caches ();%lwt
   initialise_database ();%lwt
   check_init_only ();

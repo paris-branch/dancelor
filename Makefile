@@ -1,4 +1,4 @@
-.PHONY: build doc test local dev indent clean
+.PHONY: build doc unit-tests system-tests dev-test local dev indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -13,14 +13,23 @@ doc:
 	dune build $(DUNEJOBSARG) @doc
 	ln -sf _build/default/_doc/_html doc
 
-test:
+unit-tests:
 	dune test $(DUNEJOBSARG)
+
+system-tests: build
+	bin/dancelor --config tests/config.json --pid-file tests/run.pid &
+	pytest || rc=$$?; \
+	kill $$(cat tests/run.pid); rm tests/run.pid; \
+	exit $$rc
 
 dev: build
 	bin/dancelor --config assets/config.local.json
 
 local: build
 	bin/dancelor --config assets/config.local.json --write-storage
+
+dev-test: build
+	bin/dancelor --config tests/config.json
 
 indent:
 	opam exec -- \

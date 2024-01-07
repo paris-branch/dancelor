@@ -31,12 +31,50 @@ automatically via OPAM or Nix:
   If you are a user of [direnv], you may also want to have the following
   `.envrc` file:
 
-  ```console
+  ```
   watch_dir .nix
   use flake
   ```
 
 [direnv]: https://direnv.net/
+
+### Running and writing tests
+
+Dancelor contains two kinds of tests: unit tests and system tests. Unit tests
+are fully integrated with Dune so nothing much is required there. There is a
+`make unit-tests` target, but it is really just an alias for `dune test`. Tests
+are written right after the function that they test, using [ppx_inline_test].
+
+[ppx_inline_test]: https://github.com/janestreet/ppx_inline_test
+
+System tests are heavier tests on the final product. They run using [Selenium]'s
+Python API and Firefox driver. To run them, you need Python 3, Selenium and
+`pytest` on your machine. The Nix environment provides them; otherwise, you can
+install them with pip:
+
+```console
+$ pip install pytest selenium
+```
+
+You also need the Firefox web browser. It is not provided by the Nix environment
+but you can easily get it with your machine's package manager. You can now run
+the system tests with:
+
+```console
+$ pytest
+```
+
+This requires having a properly-configured Dancelor instance running in the
+background. This instance must listen on port 8080 and use database
+`tests/database/`. The `make system-tests` target builds Dancelor if needed,
+then starts it in the background with the right options, run the system tests
+against it and then kills it.
+
+Writing Selenium scripts can be done manually by mimmicking the ones already
+present in `tests/scripts`, but we recommed relying on the Selenium IDE and
+exporting tests in `pytest` style.
+
+[selenium]: https://www.selenium.dev/
 
 ### Invariants enforced in this repository
 

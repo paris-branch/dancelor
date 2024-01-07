@@ -20,3 +20,9 @@
 /cache
 /assets/config.json
 /database
+
+## Test-specific
+geckodriver.log
+*.pid
+__pycache__
+*.side

@@ -38,6 +38,7 @@ let database = ref "database"
 let init_only = ref false
 let lilypond = ref "lilypond"
 let loglevel = ref Logs.Debug
+let pid_file = ref ""
 let port = ref 8080
 let routines = ref true
 let heavy_routines = ref false
@@ -71,6 +72,7 @@ let load_from_file filename =
   init_only     := field config ~type_:bool   ~default:!init_only     ["init_only"];
   lilypond      := field config ~type_:string ~default:!lilypond      ["lilypond"];
   loglevel      := field config ~type_:loglevel_of_json_string ~default:!loglevel  ["loglevel"];
+  pid_file      := field config ~type_:string ~default:!pid_file      ["pid_file"];
   port          := field config ~type_:int    ~default:!port          ["port"];
   routines      := field config ~type_:bool   ~default:!routines      ["routines"];
   heavy_routines:= field config ~type_:bool   ~default:!heavy_routines["heavy_routines"];
@@ -93,6 +95,7 @@ let parse_cmd_line () =
       "--no-init-only",     Clear      init_only,     aspf      " Do not stop after initialisation%a" pp_default (not !init_only);
       "--lilypond",         Set_string lilypond,       spf  "PATH Set path to the LilyPond binary (default: %s)" !lilypond;
       "--loglevel",         String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
+      "--pid-file",         Set_string pid_file,       spf  "FILE Write process id to the given file.";
       "--port",             Set_int    port,           spf    "NB Set the port (default: %d)" !port;
       "--routines",         Set        routines,      aspf      " Start routines%a" pp_default !routines;
       "--no-routines",      Clear      routines,      aspf      " Do not start routines%a" pp_default (not !routines);
