@@ -9,17 +9,29 @@ let emoji_row emoji message =
     td ~a:[a_colspan 4] [txt message];
   ]
 
-(** Abstraction of the possible states of the search bar. *)
-type 'a search_bar_state =
-  | StartTyping (** when the user has not typed anything yet *)
-  | ContinueTyping (** when the user has not typed enough yet *)
-  | NoResults (** when the search returned no results *)
-  | Results of 'a list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
-  | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
+type 'result state =
+  | StartTyping
+  | ContinueTyping
+  | NoResults
+  | Results of 'result list
+  | Errors of string list
 
-let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=false) () =
-  let (search_text, set_search_text_immediately) = S.create "" in
-  let (table_visible, set_table_visible) = S.create false in
+type 'result t = {
+  text : string S.t; (* prefer [state] *)
+  state : 'result state S.t;
+  set_text : (string -> unit);
+}
+
+let make
+    ~search
+    ?(min_characters=0)
+    ~pagination
+    ?(on_number_of_entries=(Fun.const ()))
+    ?(initial_input = "")
+    ()
+  =
+  (** A signal containing the search text. *)
+  let (text, set_text_immediately) = S.create initial_input in
 
   (* REVIEW: maybe this should become a generic signal helper to delay signals
      by a certain time? *)
@@ -28,45 +40,100 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
       is to set the search text after a delayed time. The [set_search_text]
       function cancels the current Lwt promise (which does nothing if it already
       resolved) and creates a new one in its place. *)
-  let (search_text_setter, set_search_text_setter) = S.create Lwt.return_unit in
-  let set_search_text text =
+  let (text_setter, set_text_setter) = S.create Lwt.return_unit in
+  let set_text text =
     (* try cancelling the current search text setter *)
-    Lwt.cancel (S.value search_text_setter);
+    Lwt.cancel (S.value text_setter);
     (* prepare the new search text setter *)
-    let new_search_text_setter =
+    let new_text_setter =
       (* FIXME: here, we need to delay by something like 100ms but [Lwt_unix]
          does not seem to be the answer. *)
       Lwt.pmsleep 0.30;%lwt
-      set_search_text_immediately text;
+      set_text_immediately text;
       Lwt.return_unit
     in
     (* register it in the signal *)
-    set_search_text_setter new_search_text_setter;
+    set_text_setter new_text_setter;
     (* fire it asynchronously *)
-    Lwt.async (fun () -> new_search_text_setter)
+    Lwt.async (fun () -> new_text_setter)
   in
 
-  (** Minimum number of characters for the search to fire. *)
-  let min_characters = 3 in
-
-  (** A signal that provides a [search_bar_state] view based on
-      [search_text]. *)
-  let search_bar_state =
-    S.bind_s' search_text StartTyping @@ fun search_text ->
-    if String.length search_text < min_characters then
+  (** A signal that provides a {!state} view based on [text]. *)
+  let state =
+    S.bind pagination @@ fun pagination ->
+    S.bind_s' text StartTyping @@ fun text ->
+    if String.length text < min_characters then
       (
         Lwt.return @@
-        if search_text = "" then
+        if text = "" then
           StartTyping
         else
           ContinueTyping
       )
     else
-      Fun.flip Lwt.map (search search_text) @@ function
-      | Error messages -> Errors messages
-      | Ok [] -> NoResults
-      | Ok results -> Results (List.sub max_results results)
+      Fun.flip Lwt.map (search pagination text) @@ function
+      | Error messages ->
+        Format.printf "The search returned errors.@.";
+        Errors messages
+      | Ok (_, []) ->
+        Format.printf "The search returned no results.@.";
+        NoResults
+      | Ok (total, results) ->
+        Format.printf "The search returned %d results out of %d total.@." (List.length results) total;
+        on_number_of_entries total; Results results
   in
+
+  { text; state; set_text }
+
+let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_bar =
+  input
+    ~a:(List.filter_map Fun.id [
+        Some (a_input_type `Text);
+        Some (a_placeholder placeholder);
+        Some (a_value (S.value search_bar.text));
+        Some (
+          a_oninput (fun event ->
+              (
+                Js.Opt.iter event##.target @@ fun elt ->
+                Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                let input = Js.to_string input##.value in
+                search_bar.set_text input;
+                Option.value ~default:ignore on_input input;
+              );
+              false
+            )
+        );
+        (
+          if autofocus then
+            Some (a_autofocus ())
+          else
+            None
+        );
+        Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
+        (
+          Fun.flip Option.map on_enter @@ fun on_enter ->
+          a_onkeyup (fun event ->
+              if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
+                (
+                  Js.Opt.iter event##.target @@ fun elt ->
+                  Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                  on_enter (Js.to_string input##.value)
+                );
+              true
+            )
+        );
+      ]) ()
+
+let state search_bar = search_bar.state
+
+let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
+  let min_characters = 3 in
+  let pagination = S.const Dancelor_client_model.Pagination.{ start = 0; end_ = 10 } in
+
+  (** A signal tracking whether the table is focused. *)
+  let (table_visible, set_table_visible) = S.create false in
+
+  let search_bar = make ~search ~min_characters ~pagination () in
 
   div ~a:[a_class ["search-bar"]] [
     div ~a:[
@@ -78,40 +145,7 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
       a_onclick (fun _ -> set_table_visible false; false);
     ] [];
 
-    input
-      ~a:(List.filter_map Fun.id [
-          Some (a_input_type `Text);
-          Some (a_placeholder placeholder);
-          Some (
-            a_oninput (fun event ->
-                (
-                  Js.Opt.iter event##.target @@ fun elt ->
-                  Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  set_search_text (Js.to_string input##.value)
-                );
-                false
-              )
-          );
-          (
-            if autofocus then
-              Some (a_autofocus ())
-            else
-              None
-          );
-          Some (a_onfocus (fun _ -> set_table_visible true; false));
-          (
-            Fun.flip Option.map on_enter @@ fun on_enter ->
-            a_onkeyup (fun event ->
-                if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
-                  (
-                    Js.Opt.iter event##.target @@ fun elt ->
-                    Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                    on_enter (Js.to_string input##.value)
-                  );
-                true
-              )
-          );
-        ]) ();
+    render ~placeholder ~on_focus:(fun () -> set_table_visible true) ?on_enter ?autofocus search_bar;
 
     tablex
       ~a:[
@@ -123,7 +157,7 @@ let make ~placeholder ~search ~make_result ~max_results ?on_enter ?(autofocus=fa
       ]
       [
         R.tbody (
-          S.bind_s' search_bar_state [] @@ function
+          S.bind_s' (state search_bar) [] @@ function
           | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
           | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
           | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
