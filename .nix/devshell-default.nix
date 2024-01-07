@@ -6,6 +6,7 @@
         ocaml-lsp-server
         ocp-indent
         utop
+        (pkgs.python3.withPackages (p: with p; [ pytest selenium ]))
       ];
       inputsFrom = [ self'.packages.dancelor ];
       shellHook = config.pre-commit.installationScript;
