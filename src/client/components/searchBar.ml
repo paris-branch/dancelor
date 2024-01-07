@@ -113,7 +113,10 @@ let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_
         (
           Fun.flip Option.map on_enter @@ fun on_enter ->
           a_onkeyup (fun event ->
-              if Js.Optdef.to_option event##.key = Some (Js.string "Enter") then
+              (* NOTE: Enter is decimal key code 13. One could also use
+                 event##.key and check that it is ["Enter"] but it is somehow
+                 sometimes not set (eg. in Selenium or on mobile phones). *)
+              if event##.keyCode = 13 then
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
