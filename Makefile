@@ -1,4 +1,4 @@
-.PHONY: build docker ci doc release test local dev serve init-only check-tunes indent clean
+.PHONY: build doc test local dev indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -9,13 +9,6 @@ build:
 	dune build $(DUNEJOBSARG) @install
 	ln -sf _build/install/default/bin .
 
-release:
-	dune build $(DUNEJOBSARG) --profile=release @install
-	ln -sf _build/install/default/bin .
-
-docker:
-	docker build --tag dancelor .
-
 doc:
 	dune build $(DUNEJOBSARG) @doc
 	ln -sf _build/default/_doc/_html doc
@@ -24,10 +17,10 @@ test:
 	dune test $(DUNEJOBSARG)
 
 dev: build
-	bin/dancelor --config assets/config.json --no-routines --no-sync-storage --no-write-storage
+	bin/dancelor --config assets/config.local.json
 
 local: build
-	bin/dancelor --config assets/config.json --no-routines --no-sync-storage
+	bin/dancelor --config assets/config.local.json --write-storage
 
 indent:
 	opam exec -- \
