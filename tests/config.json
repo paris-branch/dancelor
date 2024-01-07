@@ -1,0 +1,12 @@
+{
+  "port": 8080,
+  "lilypond": "lilypond",
+  "cache": "cache",
+  "database": "tests/database",
+  "share": "_build/install/default/share/dancelor",
+  "loglevel": "debug",
+  "routines": "false",
+  "heavy_routines": "false",
+  "sync_storage": "false",
+  "write_storage": "false"
+}
