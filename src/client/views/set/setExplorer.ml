@@ -23,7 +23,7 @@ let create page =
 
   let pagination =
     PageNav.create
-      ~number_of_entries: (Set.count Formula.true_)
+      ~number_of_entries: (Dancelor_client_html.S.from' None @@ Lwt.map Option.some @@ Set.count Formula.true_)
       ~entries_per_page: 25
   in
 
@@ -51,9 +51,9 @@ let create page =
         )
         [
           R.tbody (
-            S.bind_s' pagination.signal [] @@ fun pagination ->
+            S.bind_s' (PageNav.pagination pagination) [] @@ fun pagination ->
             Fun.flip Lwt.map
-              (Set.search' ~pagination:(PageNav.current_pagination pagination) Formula.true_ >|=| Score.list_erase)
+              (Set.search' ~pagination Formula.true_ >|=| Score.list_erase)
               (List.map
                  (fun set ->
                     let href = PageRouter.path @@ PageRouter.Set (Set.slug set) in
