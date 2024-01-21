@@ -87,19 +87,13 @@ let create slug page =
         in
 
         let add_to_current_set_button =
-          button
+          a
             ~a:[
-              a_button_type `Button;
-              a_onclick
-                (fun _ ->
-                   SetEditor.add_to_storage slug;
-                   Dom_html.window##.location##.href := js PageRouter.(path SetCompose);
-                   false
-                );
+              a_class ["button"];
+              a_href PageRouter.(path SetCompose);
+              a_onclick (fun _ -> SetEditor.add_to_storage slug; true);
             ]
-            [
-              txt "Add to current set"
-            ]
+            [txt "Add to current set"]
         in
 
         [
@@ -130,8 +124,8 @@ let create slug page =
         let%lwt is_broken = Lwt.map Version.broken version_lwt in
 
         Lwt.return [
-          button ~a:[
-            a_button_type `Button;
+          a ~a:[
+            a_class ["button"; "button-danger"];
             a_onclick
               (fun _ ->
                  Lwt.async
