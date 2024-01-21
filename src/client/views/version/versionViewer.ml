@@ -93,7 +93,10 @@ let create slug page =
               a_href PageRouter.(path SetCompose);
               a_onclick (fun _ -> SetEditor.add_to_storage slug; true);
             ]
-            [txt "Add to current set"]
+            [
+              i ~a:[a_class ["fas"; "fa-plus-square"]] [];
+              txt " Add to current set";
+            ]
         in
 
         [
