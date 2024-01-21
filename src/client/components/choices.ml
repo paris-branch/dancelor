@@ -1,3 +1,5 @@
+open Nes
+open Js_of_ocaml
 open Dancelor_client_html
 
 let unique =
@@ -26,21 +28,17 @@ let render c = c.box
 
 let make choices =
   let name = unique () in
-  let (values, set_values) = S.create None in
+  let (values, set_values) = S.create [] in
+  let update_values () =
+    let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
+    set_values @@ List.filter_map (fun choice -> if Js.to_bool (choice_inputElement choice)##.checked then choice.value else None) choices
+  in
+  let values' = Fun.flip S.map values @@ function [] -> None | [x] -> Some x | _ -> failwith "too many values at once" in
   let box =
     div
       ~a:[
         a_class ["choices"];
-        a_onchange (fun event ->
-            (
-              let open Js_of_ocaml in
-              Js.Opt.iter event##.target @@ fun target ->
-              let id = target##.id in
-              let {value;_} = List.find (fun choice -> id = Js.string choice.id) choices in
-              set_values value
-            );
-            false
-          );
+        a_onchange (fun _ -> update_values (); true);
       ]
       (
         Fun.flip List.concat_map choices @@ fun choice ->
@@ -55,4 +53,4 @@ let make choices =
         ]
       )
   in
-  {box; values}
+  {box; values=values'}
