@@ -24,12 +24,12 @@
   }
 
   input:checked + label {
-    background: #960010;
-    color: white;
+    background: $red;
+    color: $white;
     font-weight: bolder;
     &:hover {
-      background: darken(#960010, 5%);
-      color: darken(white, 5%);
+      background: darken($red, 5%);
+      color: darken($white, 5%);
     }
   }
 

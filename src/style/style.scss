@@ -1,4 +1,10 @@
+// Reset a lot of basic CSS properties of elements; start with a clean slate.
 @import "reset";
+
+// Define the Dancelor palette of colours.
+@import "palette";
+
+// FIXME: the rest is a mess.
 @import "default";
 @import "menu";
 @import "sandbox";

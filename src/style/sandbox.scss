@@ -22,14 +22,14 @@ textarea {
 
 input[type="text"].invalid,
 textarea.invalid {
-  box-shadow: 0px 0px 4px 2px #e03333;
+  box-shadow: 0px 0px 4px 2px $orange;
 }
 
 button {
   box-sizing: border-box;
   padding: 0.375rem 0.75rem;
   background-color: #ffffff;
-  color: #960010;
+  color: $red;
   border: 1px solid #c0c0c9;
   line-height: 1.5;
   font-size: 1rem;
@@ -37,15 +37,15 @@ button {
 }
 
 button.btn-danger {
-  background-color: #e03333;
+  background-color: $orange;
   color: #ffffff;
-  border: 1px solid #f03030;
+  border: 1px solid brighten($orange, 5%);
 }
 
 button.btn-success {
-  background-color: #22b033;
+  background-color: $red;
   color: #ffffff;
-  border: 1px solid #20c030;
+  border: 1px solid brighten($red, 5%);
 }
 
 button.disabled {
@@ -55,7 +55,7 @@ button.disabled {
 .subwindow .toolbar {
   border-radius: 4px 4px 0 0;
   border: 1px solid #ced4da;
-  background-color: #960010;
+  background-color: $red;
   display: flex;
   vertical-align: middle;
 }

@@ -23,8 +23,8 @@ tbody {
 thead tr,
 tr th {
   font-weight: bold;
-  background: #960010;
-  color: white;
+  background: $red;
+  color: $white;
 }
 
 tbody tr:nth-child(even) {
@@ -87,7 +87,7 @@ tbody tr:focus {
    here to make the whole cell clickable. If one wants to change the style of
    clickable rows, this should be done on the "clickable" class. */
 a {
-  color: #960010;
+  color: $red;
 }
 a.fill {
   color: inherit;
@@ -172,14 +172,14 @@ p {
 
 .error {
   padding: 1rem;
-  background: #ffbaba;
-  border: 2px solid red;
+  background: $orange;
+  border: 2px solid darken($orange, 5%);
   border-radius: 2px;
 }
 
 .warning {
   padding: 1rem;
-  background: #ffc87c;
-  border: 2px solid orange;
+  background: $blue;
+  border: 2px solid darken($blue, 5%);
   border-radius: 2px;
 }

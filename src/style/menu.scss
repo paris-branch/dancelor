@@ -1,5 +1,5 @@
 header {
-  background: #960010;
+  background: $red;
   border-bottom: 1px solid black;
   margin-bottom: 20px;
 
@@ -7,10 +7,17 @@ header {
   user-select: none;
 
   /* All text in the header is in white with no decorations, including links. */
-  color: white;
+  color: $white;
   a {
-    color: white;
+    color: $white;
     text-decoration: none;
+
+    /* Hovering the links makes their background lighter and the text bigger. */
+    &:hover,
+    &:focus {
+      background: lighten($red, 4%);
+      text-shadow: 0 0 0.2rem $white;
+    }
   }
 
   /* Style of the main title. */
@@ -19,13 +26,6 @@ header {
     font-weight: bolder;
     letter-spacing: -0.04rem;
     margin: 0;
-  }
-
-  /* Hovering the links makes their background lighter and the text bigger. */
-  a:hover,
-  a:focus {
-    background: #b60008;
-    text-shadow: 0 0 0.1rem #ffffff;
   }
 
   /**************************************************************************/
@@ -65,7 +65,7 @@ header {
     ul.subnav {
       display: none;
       position: absolute;
-      background: #960010;
+      background: $red;
       z-index: 99999;
       padding: 0 1rem;
       left: -1rem;
