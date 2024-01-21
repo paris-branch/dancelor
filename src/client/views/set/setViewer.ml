@@ -24,7 +24,7 @@ let create ?context slug page =
 
   let open Dancelor_client_html in
 
-  let (download_dialog, show_download_dialog) = SetDownloadDialog.create_and_render slug in
+  let (download_dialog, download_dialog_handlers) = SetDownloadDialog.create_and_render slug in
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
@@ -52,7 +52,7 @@ let create ?context slug page =
         a
           ~a:[
             a_class ["button"];
-            a_onclick (fun _ -> show_download_dialog (); false);
+            a_onclick (fun _ -> download_dialog_handlers.show (); false);
           ]
           [
             i ~a:[a_class ["fas"; "fa-file-pdf"]] [];

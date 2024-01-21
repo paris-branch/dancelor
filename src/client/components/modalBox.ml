@@ -1,11 +1,22 @@
+open Dancelor_client_html
+
 (* REVIEW: Should we use the <dialog> HTML tag? *)
 
-let make content =
-  let open Dancelor_client_html in
+type handlers = {
+  show : unit -> unit;
+  hide : unit -> unit;
+}
 
+let make content =
   (* Reactive signal that holds the information on whether the modal box should
      be visible or not. *)
   let (visible, set_visible) = S.create false in
+
+  let handlers = {
+    show = (fun () -> set_visible true);
+    hide = (fun () -> set_visible false);
+  }
+  in
 
   (* The actual modal box. This looks like:
 
@@ -39,7 +50,7 @@ let make content =
               [
                 txt "⨉"
               ]
-            :: content
+            :: content handlers
           )
       ]
   in
@@ -62,4 +73,4 @@ let make content =
     );
 
   (* We return the box and a function to make it appear. *)
-  (box, (fun () -> set_visible true))
+  (box, handlers)

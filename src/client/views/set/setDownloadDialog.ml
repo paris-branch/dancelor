@@ -30,7 +30,7 @@ let create () =
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let render slug dialog =
-  ModalBox.make [
+  ModalBox.make @@ fun _ -> [
     h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
 
     form [

@@ -49,7 +49,7 @@ let create () =
   }
 
 let render slug dialog =
-  ModalBox.make [
+  ModalBox.make @@ fun _ -> [
     h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
 
     form [
