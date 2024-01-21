@@ -11,7 +11,7 @@ type t =
   }
 
 let create () =
-  let (key_choices, key_choices_signal) =
+  let key_choices =
     Choices.(make [
         choice [txt "C"] ~checked:true;
 
@@ -23,7 +23,7 @@ let create () =
       ])
   in
 
-  let (clef_choices, clef_choices_signal) =
+  let clef_choices =
     Choices.(make [
         choice [txt "𝄞"] ~checked:true;
 
@@ -35,15 +35,15 @@ let create () =
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
     S.merge (Option.concat VersionParameters.compose) None [
-      key_choices_signal;
-      clef_choices_signal;
+      Choices.signal key_choices;
+      Choices.signal clef_choices;
     ]
   in
 
   {
     choice_rows = [
-      tr [td [label [txt "Key:"]]; td [key_choices]];
-      tr [td [label [txt "Clef:"]]; td [clef_choices]];
+      tr [td [label [txt "Key:"]]; td [Choices.render key_choices]];
+      tr [td [label [txt "Clef:"]]; td [Choices.render clef_choices]];
     ];
     parameters_signal;
   }

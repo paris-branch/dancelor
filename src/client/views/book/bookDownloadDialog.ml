@@ -18,7 +18,7 @@ let lift_set_parameters every_set =
 let create () =
   let set_dialog = SetDownloadDialog.create () in
 
-  let (booklet_choices, booklet_choices_signal) =
+  let booklet_choices =
     Choices.(make [
         choice [txt "Normal"] ~checked:true;
 
@@ -37,14 +37,14 @@ let create () =
       (
         set_dialog.choice_rows
         @ [
-          tr [td [label [txt "Mode:"]]; td [booklet_choices]]
+          tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
         ]
       );
 
     parameters_signal =
       S.merge (Option.concat BookParameters.compose) None [
         S.map (Option.map lift_set_parameters) set_dialog.parameters_signal;
-        booklet_choices_signal;
+        Choices.signal booklet_choices;
       ]
   }
 
