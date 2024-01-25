@@ -23,6 +23,11 @@ type page =
   | VersionBroken
   | Version of VersionCore.t Slug.t
 
+(* FIXME: It would be so much nicer if [Search] could carry an actual
+   [AnyCore.Filter.predicate Formula.t]. That however requires moving a lot of
+   code from [*Lifter] to [*Core] for all models (basically everything but the
+   [accepts] function, I would say), so, for now, we keep it as a string. *)
+
 let book slug = Book slug
 let bookEdit slug = BookEdit slug
 let person slug = Person slug
