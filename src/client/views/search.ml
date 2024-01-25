@@ -5,6 +5,7 @@ open Dancelor_client_components
 module Elements = Dancelor_client_elements
 module Formatters = Dancelor_client_formatters
 module Utils = Dancelor_client_utils
+module PageRouter = Dancelor_common_pageRouter
 
 module Html = Dom_html
 
@@ -105,13 +106,9 @@ let create ?query page =
                 @@ fun (_, state) ->
                 match state with
                 | Results results ->
-                  Format.printf "Mapping over the results...@.";
-                  let results = List.map Utils.AnyResultNewAPI.make_result results in
-                  Format.printf "done mapping over the results...@.";
-                  results
-                | _ ->
-                  Format.printf "No results to map on.@.";
-                  []
+                  let context = Option.map PageRouter.inSearch query in
+                  List.map Utils.AnyResultNewAPI.(make_result ?context) results
+                | _ -> []
               )
             ];
 

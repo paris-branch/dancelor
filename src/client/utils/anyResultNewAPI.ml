@@ -74,9 +74,9 @@ let make_tune_result ~prefix tune =
       ]
     )
 
-let make_version_result ~prefix version =
+let make_version_result ?context ~prefix version =
   clickable_row
-    ~href:(PageRouter.path_version @@ Version.slug version)
+    ~href:(PageRouter.path_version ?context @@ Version.slug version)
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);
@@ -92,7 +92,7 @@ let make_version_result ~prefix version =
       ]
     )
 
-let make_result score =
+let make_result ?context score =
   let any = Score.value score in
   let prefix = [
     td [txt (Score.score_to_string score)];
@@ -105,4 +105,4 @@ let make_result score =
   | Book book       -> make_book_result    ~prefix book
   | Set set         -> make_set_result     ~prefix set
   | Tune tune       -> make_tune_result    ~prefix tune
-  | Version version -> make_version_result ~prefix version
+  | Version version -> make_version_result ?context ~prefix version
