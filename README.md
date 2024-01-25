@@ -66,9 +66,10 @@ $ pytest
 
 This requires having a properly-configured Dancelor instance running in the
 background. This instance must listen on port 8080 and use database
-`tests/database/`. The `make system-tests` target builds Dancelor if needed,
-then starts it in the background with the right options, run the system tests
-against it and then kills it.
+`tests/database/`. For running tests, the target `make system-tests` builds
+Dancelor if needed, then starts it in the background with the right options, run
+the system tests against it and then kills Dancelor again. For developping
+tests, the target `make dev-test` launches Dancelor in such a mode.
 
 Writing Selenium scripts can be done manually by mimmicking the ones already
 present in `tests/scripts`, but we recommed relying on the Selenium IDE and

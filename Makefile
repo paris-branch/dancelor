@@ -1,4 +1,4 @@
-.PHONY: build doc unit-tests system-tests dev-test local dev indent clean
+.PHONY: build doc test tests unit-tests system-tests dev-test local dev indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -12,6 +12,10 @@ build:
 doc:
 	dune build $(DUNEJOBSARG) @doc
 	ln -sf _build/default/_doc/_html doc
+
+test: tests
+tests:
+	@echo 'You probably mean use the targets `unit-tests` or `system-tests`.'
 
 unit-tests:
 	dune test $(DUNEJOBSARG)
