@@ -2,6 +2,8 @@ open Nes
 
 type t = AnyCore.t
 
+val equal : t -> t -> bool
+
 module Type : sig
   type t = AnyCore.Type.t
 
