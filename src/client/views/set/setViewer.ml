@@ -75,7 +75,7 @@ let create slug page =
                Lwt.return (
                  div ~a:[a_class ["image-container"]]
                    [
-                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [txt @@ Tune.name tune]];
+                     h4 [a ~a:[a_href PageRouter.(path_version slug)] [txt @@ Tune.name tune]];
 
                      object_ ~a:[
                        a_mime_type "image/svg+xml";

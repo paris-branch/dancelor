@@ -3,6 +3,13 @@
 open Nes
 open Dancelor_common_model
 
+(** Context in which a page might exist. TODO: I wonder whether it'd be possible
+    to simply use [page] here, having pages carry a “parent” [page option]. *)
+type context =
+  | InSearch of string
+
+let inSearch query = InSearch query
+
 (** Existing pages in Dancelor's client. *)
 type page =
   | Index
@@ -21,7 +28,7 @@ type page =
   | VersionAdd
   | VersionAll
   | VersionBroken
-  | Version of VersionCore.t Slug.t
+  | Version of {slug : VersionCore.t Slug.t; context: context option}
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
    [AnyCore.Filter.predicate Formula.t]. That however requires moving a lot of
@@ -35,7 +42,7 @@ let dance slug = Dance slug
 let search q = Search q
 let set slug = Set slug
 let tune slug = Tune slug
-let version slug = Version slug
+let version ?context slug = Version {slug; context}
 
 let unBook = function Book slug -> Some slug | _ -> None
 let unBookEdit = function BookEdit slug -> Some slug | _ -> None
@@ -43,7 +50,6 @@ let unPerson = function Person slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
 let unSet = function Set slug -> Some slug | _ -> None
 let unTune = function Tune slug -> Some slug | _ -> None
-let unVersion = function Version slug -> Some slug | _ -> None
 
 open Madge_router
 module MQ = Madge_query
@@ -76,7 +82,13 @@ let routes =
     direct    `GET "/version/add"     VersionAdd ;
     direct    `GET "/version/all"     VersionAll ;
     direct    `GET "/version/broken"  VersionBroken ;
-    with_slug `GET "/version"        (version, unVersion) ;
+
+    with_slug_and_query `GET "/version"
+      (fun slug query -> version slug ?context:(Option.map inSearch (MQ.get_string "in-search" query)))
+      (function
+        | Version {slug; context=None} -> Some (slug, MQ.empty)
+        | Version {slug; context=Some (InSearch query)} -> Some (slug, MQ.singleton "in-search" (`String query))
+        | _ -> None) ;
   ]
 
 let path page =
@@ -93,4 +105,4 @@ let path_dance = path % dance
 let path_search = path % search
 let path_set = path % set
 let path_tune = path % tune
-let path_version = path % version
+let path_version ?context slug = path @@ version ?context slug

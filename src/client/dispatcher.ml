@@ -37,8 +37,8 @@ let dispatch url =
     pack (module VersionExplorer) VersionExplorer.create
   | VersionBroken ->
     pack (module VersionBrokenExplorer) VersionBrokenExplorer.create
-  | Version slug ->
-    pack (module VersionViewer) (VersionViewer.create slug)
+  | Version {slug; context} ->
+    pack (module VersionViewer) (VersionViewer.create slug ?context)
   | Tune slug ->
     pack (module TuneViewer) (TuneViewer.create slug)
   | SetAll ->
