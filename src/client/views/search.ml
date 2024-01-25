@@ -21,12 +21,10 @@ let update_uri input =
   Dom_html.window##.history##replaceState
     "fixme-the-state" (js "") (Js.some (js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)))))
 
-let search pagination input =
+let search ?pagination input =
   let threshold = 0.4 in
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in
-  let%lwt (total, results) = Any.search ~threshold ~pagination filter in
-  Format.printf "Got a search with %d results out of %d total.@." (List.length results) total;
-  Lwt.return_ok (total, results)
+  Lwt.map Result.ok @@ Any.search ~threshold ?pagination filter
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let emoji_row emoji message =
@@ -54,7 +52,7 @@ let create ?query page =
 
   let search_bar =
     SearchBar.make
-      ~search
+      ~search:(fun pagination -> search ~pagination)
       ~pagination:(PageNav.pagination pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input: query
