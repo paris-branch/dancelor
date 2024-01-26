@@ -16,7 +16,7 @@ type page =
   | BookAll
   | BookCompose
   | BookEdit of BookCore.t Slug.t
-  | Book of BookCore.t Slug.t
+  | Book of {slug: BookCore.t Slug.t; context: context option}
   | PersonAdd
   | Person of PersonCore.t Slug.t
   | Dance of DanceCore.t Slug.t
@@ -35,7 +35,7 @@ type page =
    code from [*Lifter] to [*Core] for all models (basically everything but the
    [accepts] function, I would say), so, for now, we keep it as a string. *)
 
-let book slug = Book slug
+let book ?context slug = Book {slug; context}
 let bookEdit slug = BookEdit slug
 let person slug = Person slug
 let dance slug = Dance slug
@@ -44,7 +44,6 @@ let set ?context slug = Set {slug; context}
 let tune ?context slug = Tune {slug; context}
 let version ?context slug = Version {slug; context}
 
-let unBook = function Book slug -> Some slug | _ -> None
 let unBookEdit = function BookEdit slug -> Some slug | _ -> None
 let unPerson = function Person slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
@@ -66,7 +65,11 @@ let routes =
     direct    `GET "/book/all"        BookAll ;
     direct    `GET "/book/compose"    BookCompose ;
     with_slug `GET "/book/edit"      (bookEdit, unBookEdit) ;
-    with_slug `GET "/book"           (book, unBook) ;
+
+    with_slug_and_query `GET "/book"
+      (fun slug query -> book slug ?context:(context_of_query query))
+      (function Book {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
+
     direct    `GET "/person/add"      PersonAdd ;
     with_slug `GET "/person"         (person, unPerson) ;
     with_slug `GET "/dance"          (dance, unDance) ;

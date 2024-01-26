@@ -53,8 +53,8 @@ let dispatch url =
     pack (module BookEditorInterface) BookEditorInterface.create
   | BookEdit slug ->
     pack (module BookEditorInterface) (BookEditorInterface.update slug)
-  | Book slug ->
-    pack (module BookViewer) (BookViewer.create slug)
+  | Book {slug; context} ->
+    pack (module BookViewer) (BookViewer.create slug ?context)
   | PersonAdd ->
     pack (module PersonEditorInterface) (fun page -> PersonEditorInterface.create page)
   | Person slug ->

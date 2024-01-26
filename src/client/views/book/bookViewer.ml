@@ -119,7 +119,9 @@ let table_contents contents =
       )
     ]
 
-let create slug page =
+let create ?context slug page =
+  ignore context;
+
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
