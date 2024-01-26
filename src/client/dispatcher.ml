@@ -57,7 +57,7 @@ let dispatch url =
     pack (module BookViewer) (BookViewer.create slug ?context)
   | PersonAdd ->
     pack (module PersonEditorInterface) (fun page -> PersonEditorInterface.create page)
-  | Person slug ->
-    pack (module PersonViewer) (PersonViewer.create slug)
+  | Person {slug; context} ->
+    pack (module PersonViewer) (PersonViewer.create slug ?context)
   | Dance {slug; context} ->
     pack (module DanceViewer) (DanceViewer.create slug ?context)
