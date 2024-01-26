@@ -24,7 +24,7 @@ type page =
   | SetAll
   | SetCompose
   | Set of SetCore.t Slug.t
-  | Tune of TuneCore.t Slug.t
+  | Tune of {slug: TuneCore.t Slug.t; context: context option}
   | VersionAdd
   | VersionAll
   | VersionBroken
@@ -41,7 +41,7 @@ let person slug = Person slug
 let dance slug = Dance slug
 let search q = Search q
 let set slug = Set slug
-let tune slug = Tune slug
+let tune ?context slug = Tune {slug; context}
 let version ?context slug = Version {slug; context}
 
 let unBook = function Book slug -> Some slug | _ -> None
@@ -49,10 +49,14 @@ let unBookEdit = function BookEdit slug -> Some slug | _ -> None
 let unPerson = function Person slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
 let unSet = function Set slug -> Some slug | _ -> None
-let unTune = function Tune slug -> Some slug | _ -> None
 
 open Madge_router
 module MQ = Madge_query
+
+let context_of_query = Option.map inSearch % MQ.get_string "in-search"
+let context_to_query = function
+  | None -> MQ.empty
+  | Some (InSearch query) -> MQ.singleton "in-search" (`String query)
 
 let routes =
   (* NOTE: It is important that [with_slug] instances come after more specific
@@ -78,17 +82,18 @@ let routes =
     direct    `GET "/set/all"         SetAll ;
     direct    `GET "/set/compose"     SetCompose ;
     with_slug `GET "/set"            (set, unSet) ;
-    with_slug `GET "/tune"           (tune, unTune) ;
+
+    with_slug_and_query `GET "/tune"
+      (fun slug query -> tune slug ?context:(context_of_query query))
+      (function Tune {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
+
     direct    `GET "/version/add"     VersionAdd ;
     direct    `GET "/version/all"     VersionAll ;
     direct    `GET "/version/broken"  VersionBroken ;
 
     with_slug_and_query `GET "/version"
-      (fun slug query -> version slug ?context:(Option.map inSearch (MQ.get_string "in-search" query)))
-      (function
-        | Version {slug; context=None} -> Some (slug, MQ.empty)
-        | Version {slug; context=Some (InSearch query)} -> Some (slug, MQ.singleton "in-search" (`String query))
-        | _ -> None) ;
+      (fun slug query -> version slug ?context:(context_of_query query))
+      (function Version {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
   ]
 
 let path page =
@@ -104,5 +109,5 @@ let path_person = path % person
 let path_dance = path % dance
 let path_search = path % search
 let path_set = path % set
-let path_tune = path % tune
+let path_tune ?context slug = path @@ tune ?context slug
 let path_version ?context slug = path @@ version ?context slug

@@ -12,7 +12,7 @@ type t =
     content : Dom_html.divElement Js.t;
   }
 
-let create slug page =
+let create ?context slug page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let tune_lwt = Tune.get slug in
@@ -54,10 +54,11 @@ let create slug page =
           in
           let%lwt versions = versions_lwt in
 
-          (* If there is only one version, redirect directly to it. *)
+          (* NOTE: If there is only one version and we are not in a context,
+             redirect directly to the version in question. *)
           (
-            match versions with
-            | [version] -> Dom_html.window##.location##.href := js (PageRouter.path_version @@ Version.slug version);
+            match versions, context with
+            | [version], None -> Dom_html.window##.location##.href := js (PageRouter.path_version @@ Version.slug version);
             | _ -> ()
           );
 
