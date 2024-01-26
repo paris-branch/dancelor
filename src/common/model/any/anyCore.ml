@@ -9,6 +9,13 @@ type t =
   | Version of VersionCore.t
 [@@deriving yojson]
 
+let person p = Person p
+let dance d = Dance d
+let book b = Book b
+let set s = Set s
+let tune t = Tune t
+let version v = Version v
+
 module Type = struct
   let _key = "type"
 
