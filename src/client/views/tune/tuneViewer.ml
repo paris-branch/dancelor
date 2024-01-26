@@ -61,6 +61,7 @@ let create ?context slug page =
         h3 [txt "Dances That Recommend This Tune"];
 
         L.div (
+          (* FIXME: What the heck is this? *)
           let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
           Dom.appendChild none_maybe none;
@@ -82,6 +83,7 @@ let create ?context slug page =
         h3 [txt "Sets in Which This Tune Appears"];
 
         L.div (
+          (* FIXME: What the heck is this? *)
           let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
           Dom.appendChild none_maybe none;
