@@ -12,7 +12,9 @@ type t =
     content : Dom_html.divElement Js.t;
   }
 
-let create slug page =
+let create ?context slug page =
+  ignore context;
+
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let dance_lwt = Dance.get slug in
