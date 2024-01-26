@@ -23,7 +23,7 @@ type page =
   | Search of string option
   | SetAll
   | SetCompose
-  | Set of SetCore.t Slug.t
+  | Set of {slug: SetCore.t Slug.t; context: context option}
   | Tune of {slug: TuneCore.t Slug.t; context: context option}
   | VersionAdd
   | VersionAll
@@ -40,7 +40,7 @@ let bookEdit slug = BookEdit slug
 let person slug = Person slug
 let dance slug = Dance slug
 let search q = Search q
-let set slug = Set slug
+let set ?context slug = Set {slug; context}
 let tune ?context slug = Tune {slug; context}
 let version ?context slug = Version {slug; context}
 
@@ -48,7 +48,6 @@ let unBook = function Book slug -> Some slug | _ -> None
 let unBookEdit = function BookEdit slug -> Some slug | _ -> None
 let unPerson = function Person slug -> Some slug | _ -> None
 let unDance = function Dance slug -> Some slug | _ -> None
-let unSet = function Set slug -> Some slug | _ -> None
 
 open Madge_router
 module MQ = Madge_query
@@ -81,7 +80,10 @@ let routes =
 
     direct    `GET "/set/all"         SetAll ;
     direct    `GET "/set/compose"     SetCompose ;
-    with_slug `GET "/set"            (set, unSet) ;
+
+    with_slug_and_query `GET "/set"
+      (fun slug query -> set slug ?context:(context_of_query query))
+      (function Set {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
 
     with_slug_and_query `GET "/tune"
       (fun slug query -> tune slug ?context:(context_of_query query))

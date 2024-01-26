@@ -45,8 +45,8 @@ let dispatch url =
     pack (module SetExplorer) SetExplorer.create
   | SetCompose ->
     pack (module SetEditorInterface) SetEditorInterface.create
-  | Set slug ->
-    pack (module SetViewer) (SetViewer.create slug)
+  | Set {slug; context} ->
+    pack (module SetViewer) (SetViewer.create slug ?context)
   | BookAll ->
     pack (module BookExplorer) BookExplorer.create
   | BookCompose ->
