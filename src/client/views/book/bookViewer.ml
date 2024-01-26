@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
+module Components = Dancelor_client_components
 
 let js = Js.string
 
@@ -120,8 +121,6 @@ let table_contents contents =
     ]
 
 let create ?context slug page =
-  ignore context;
-
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
@@ -151,6 +150,11 @@ let create ?context slug page =
             ]
           ]
       );
+
+      Components.ContextLinks.make_and_render
+        ?context
+        ~search: Search.search
+        (Lwt.map Any.book book_lwt);
 
       L.div (
         match%lwt book_lwt >>=| Book.warnings with

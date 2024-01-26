@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
+module Components = Dancelor_client_components
 
 let js = Js.string
 
@@ -13,8 +14,6 @@ type t =
   }
 
 let create ?context slug page =
-  ignore context;
-
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let set_lwt = Set.get slug in
@@ -41,6 +40,11 @@ let create ?context slug page =
         | None -> Lwt.return_nil
         | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
       );
+
+      Components.ContextLinks.make_and_render
+        ?context
+        ~search: Search.search
+        (Lwt.map Any.set set_lwt);
 
       download_dialog;
 

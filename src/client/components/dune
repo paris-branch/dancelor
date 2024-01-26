@@ -6,4 +6,5 @@
  (preprocess
   (pps lwt_ppx js_of_ocaml-ppx))
  (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.common
-   dancelor.client.model dancelor.client.html dancelor.nes lwt_react))
+   dancelor.client.model dancelor.client.html dancelor.nes lwt_react
+   dancelor.client.utils))
