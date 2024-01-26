@@ -1,8 +1,8 @@
 open Dancelor_client_model
-open Dancelor_client_html
+module Html = Dancelor_client_html
 module PageRouter = Dancelor_common_pageRouter
 
-let make ?context content any =
+let make ?(a=[]) ?context content any =
   (* FIXME: [Any] should re-export the constructors (ppx_import?) *)
   let open Dancelor_common_model.AnyCore in
   let href = match any with
@@ -13,4 +13,4 @@ let make ?context content any =
     | Book book -> PageRouter.path_book ?context (Book.slug book)
     | Tune tune -> PageRouter.path_tune ?context (Tune.slug tune)
   in
-  a ~a:[a_href href] content
+  Html.a ~a:(Html.a_href href :: a) content
