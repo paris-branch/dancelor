@@ -53,15 +53,6 @@ let create ?context slug page =
             Version.search' filter >|=| Score.list_erase
           in
           let%lwt versions = versions_lwt in
-
-          (* NOTE: If there is only one version and we are not in a context,
-             redirect directly to the version in question. *)
-          (
-            match versions, context with
-            | [version], None -> Dom_html.window##.location##.href := js (PageRouter.path_version @@ Version.slug version);
-            | _ -> ()
-          );
-
           Lwt.return [Dancelor_client_tables.versions versions]
         )
       ];
