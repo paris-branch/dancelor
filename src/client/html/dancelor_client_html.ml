@@ -77,6 +77,7 @@ module R = struct
 
   let a_class elts = R.a_class elts
   let a_style elts = R.a_style elts
+  let a_href val_ = R.a_href val_
 
   let div ?a elts = R.div ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)

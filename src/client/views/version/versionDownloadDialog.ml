@@ -3,7 +3,6 @@ open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_html
 open Dancelor_client_components
-open Js_of_ocaml
 
 type t =
   {
@@ -56,18 +55,12 @@ let render slug dialog =
     form [
       table dialog.choice_rows;
 
-      input
+      a
         ~a:[
           a_class ["button"];
-          a_input_type `Submit;
-          a_value "Download";
-          a_onclick (fun _event ->
-              let parameters = S.value dialog.parameters_signal in
-              let href = ApiRouter.(path @@ versionPdf slug parameters) in
-              ignore (Dom_html.window##open_ (Js.string href) (Js.string "_blank") Js.null);
-              false
-            );
-        ] ();
+          a_target "_blank";
+          R.a_href (S.map ApiRouter.(path % versionPdf slug) dialog.parameters_signal);
+        ] [txt "Download"];
     ];
   ]
 
