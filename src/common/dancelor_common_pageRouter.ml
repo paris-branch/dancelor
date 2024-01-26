@@ -112,11 +112,11 @@ let path page =
 
 (* Shorter versions for when we want immediately a path, which is the case the
    majority of the time. *)
-let path_book = path % book
+let path_book ?context slug = path @@ book ?context slug
 let path_bookEdit = path % bookEdit
-let path_person = path % person
-let path_dance = path % dance
+let path_person ?context slug = path @@ person ?context slug
+let path_dance ?context slug = path @@ dance ?context slug
 let path_search = path % search
-let path_set = path % set
+let path_set ?context slug = path @@ set ?context slug
 let path_tune ?context slug = path @@ tune ?context slug
 let path_version ?context slug = path @@ version ?context slug

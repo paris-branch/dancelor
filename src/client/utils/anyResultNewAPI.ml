@@ -23,18 +23,18 @@ let clickable_row ~href =
         );
     ]
 
-let make_person_result ~prefix person =
+let make_person_result ?context ~prefix person =
   clickable_row
-    ~href:(PageRouter.path_person @@ Person.slug person)
+    ~href:(PageRouter.path_person ?context @@ Person.slug person)
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name ~link:false (Some person));
       ]
     )
 
-let make_dance_result ~prefix dance =
+let make_dance_result ?context ~prefix dance =
   clickable_row
-    ~href:(PageRouter.path_dance @@ Dance.slug dance)
+    ~href:(PageRouter.path_dance ?context @@ Dance.slug dance)
     (
       prefix @ [
         td [txt (Dance.name dance)];
@@ -43,18 +43,18 @@ let make_dance_result ~prefix dance =
       ]
     )
 
-let make_book_result ~prefix book =
+let make_book_result ?context ~prefix book =
   clickable_row
-    ~href:(PageRouter.path_book @@ Book.slug book)
+    ~href:(PageRouter.path_book ?context @@ Book.slug book)
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Book.title_and_subtitle book);
       ]
     )
 
-let make_set_result ~prefix set =
+let make_set_result ?context ~prefix set =
   clickable_row
-    ~href:(PageRouter.path_set @@ Set.slug set)
+    ~href:(PageRouter.path_set ?context @@ Set.slug set)
     (
       prefix @ [
         td [txt @@ Set.name set];
@@ -63,9 +63,9 @@ let make_set_result ~prefix set =
       ]
     )
 
-let make_tune_result ~prefix tune =
+let make_tune_result ?context ~prefix tune =
   clickable_row
-    ~href:(PageRouter.path_tune @@ Tune.slug tune)
+    ~href:(PageRouter.path_tune ?context @@ Tune.slug tune)
     (
       prefix @ [
         td [txt @@ Tune.name tune];
@@ -100,9 +100,9 @@ let make_result ?context score =
   ]
   in
   match any with
-  | Person person   -> make_person_result  ~prefix person
-  | Dance dance     -> make_dance_result   ~prefix dance
-  | Book book       -> make_book_result    ~prefix book
-  | Set set         -> make_set_result     ~prefix set
-  | Tune tune       -> make_tune_result    ~prefix tune
+  | Person person   -> make_person_result  ?context ~prefix person
+  | Dance dance     -> make_dance_result   ?context ~prefix dance
+  | Book book       -> make_book_result    ?context ~prefix book
+  | Set set         -> make_set_result     ?context ~prefix set
+  | Tune tune       -> make_tune_result    ?context ~prefix tune
   | Version version -> make_version_result ?context ~prefix version
