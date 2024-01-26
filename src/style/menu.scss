@@ -3,6 +3,10 @@ header {
   border-bottom: 1px solid black;
   margin-bottom: 20px;
 
+  /* A z-index big but not too big so that we can put elements behind it. */
+  z-index: 100;
+  position: relative;
+
   /* All text in the header is non-selectable. */
   user-select: none;
 

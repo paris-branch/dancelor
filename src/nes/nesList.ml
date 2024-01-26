@@ -152,10 +152,10 @@ let sort_uniq_lwt compare l =
 
 let snoc l x = l @ [x]
 
-let find_context p l =
-  let rec find_context prev = function
+let findi_context p l =
+  let rec findi_context prev i = function
     | [] -> None
-    | x :: l when p x -> Some (prev, x, hd_opt l)
-    | x :: l -> find_context (Some x) l
+    | x :: l when p x -> Some (prev, i, x, hd_opt l)
+    | x :: l -> findi_context (Some x) (i + 1) l
   in
-  find_context None l
+  findi_context None 0 l

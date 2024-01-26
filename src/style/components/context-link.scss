@@ -1,0 +1,52 @@
+.context-link {
+  /* Positioning: fixed taking the whole height */
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 6rem;
+
+  /* Color, background & hidden on tiny screens */
+  color: $red;
+  opacity: 50%;
+  @media only screen and (max-width: 767px) {
+    opacity: 0;
+  }
+  transition: 0.5s;
+  &:hover {
+    opacity: 100%;
+    text-shadow: 0 0 1rem $white;
+  }
+
+  /* Horizontal alignment */
+  text-align: center;
+
+  /* Vertical alignment */
+  display: block;
+  > * {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  > .context-link-aligner {
+    width: 0;
+    height: 100%;
+  }
+
+  /* Size of elements: a big arrow and tiny text */
+  .context-link-main {
+    font-size: 10rem;
+    line-height: 0.8;
+  }
+  .context-link-detail {
+    font-size: 0.7rem;
+  }
+}
+
+/* Specifities of the left/right one */
+.context-link-left {
+  left: 0;
+  // background: linear-gradient(90deg, darken($white, 10%) 0%, $white 100%);
+}
+.context-link-right {
+  right: 0;
+  // background: linear-gradient(270deg, darken($white, 10%) 0%, $white 100%);
+}

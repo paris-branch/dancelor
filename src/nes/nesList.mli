@@ -37,7 +37,7 @@ val sub : int -> 'a t -> 'a t
 val hd_opt : 'a t -> 'a option
 (** Return the first element of the given list or [None] if the list is empty. *)
 
-val find_context : ('a -> bool) -> 'a t -> ('a option * 'a * 'a option) option
+val findi_context : ('a -> bool) -> 'a t -> ('a option * int * 'a * 'a option) option
 (** Finds the given element and return it as well as the one before and the one
     after. *)
 
