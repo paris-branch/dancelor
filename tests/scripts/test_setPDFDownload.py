@@ -18,7 +18,10 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 class BrokenTestSetPDFDownload():
   def setup_method(self, method):
-    self.driver = webdriver.Firefox()
+    options = webdriver.FirefoxOptions()
+    options.headless = True
+    self.driver = webdriver.Firefox(options=options)
+    self.driver.implicitly_wait(1)
     self.vars = {}
 
   def teardown_method(self, method):
