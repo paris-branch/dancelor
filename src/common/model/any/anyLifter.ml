@@ -20,6 +20,14 @@ module Lift
     | Version v1, Version v2 -> Version.equal v1 v2
     | _ -> false
 
+  let name = function
+    | Person p -> Lwt.return @@ Person.name p
+    | Dance d -> Lwt.return @@ Dance.name d
+    | Book b -> Lwt.return @@ Book.title b
+    | Set s -> Lwt.return @@ Set.name s
+    | Tune t -> Lwt.return @@ Tune.name t
+    | Version v -> Version.name v
+
   module Type = struct
     include AnyCore.Type
 

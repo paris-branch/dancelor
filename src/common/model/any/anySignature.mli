@@ -11,6 +11,9 @@ val version : VersionCore.t -> t
 
 val equal : t -> t -> bool
 
+val name : t -> string Lwt.t
+(** Finds a name to give to the element, no matter what it is. *)
+
 module Type : sig
   type t = AnyCore.Type.t
 
