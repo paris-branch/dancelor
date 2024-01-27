@@ -35,9 +35,13 @@ let () =
       ()
   )
 
+(* Cache for search requests with a lifetime of 10 minutes. *)
+let cache = Cache.create ~lifetime:600 ()
+
 let search ?pagination ?(threshold=Float.min_float) filter =
   let module Score = Common.Model.Score in
   let%lwt results =
+    Cache.use ~cache ~key:(threshold, filter) @@ fun () ->
     Database.Tune.get_all ()
     >>=| Score.lwt_map_from_list (Filter.accepts filter)
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)

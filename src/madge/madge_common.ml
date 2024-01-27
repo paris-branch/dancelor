@@ -112,6 +112,20 @@ struct
   let _key = A._key ^ "-" ^ B._key ^ "-pair"
 end
 
+module MTriple (A : SERIALISABLE) (B : SERIALISABLE) (C : SERIALISABLE) : SERIALISABLE
+  with type t = A.t * B.t * C.t =
+struct
+  type t = A.t * B.t * C.t [@@deriving yojson]
+  let _key = A._key ^ "-" ^ B._key ^ "-" ^ C._key ^ "-triple"
+end
+
+module MQuadruple (A : SERIALISABLE) (B : SERIALISABLE) (C : SERIALISABLE) (D : SERIALISABLE) : SERIALISABLE
+  with type t = A.t * B.t * C.t * D.t =
+struct
+  type t = A.t * B.t * C.t * D.t [@@deriving yojson]
+  let _key = A._key ^ "-" ^ B._key ^ "-" ^ C._key ^ "-" ^ D._key ^ "-quadruple"
+end
+
 module MList (A : SERIALISABLE) : SERIALISABLE
   with type t = A.t list =
 struct

@@ -16,3 +16,11 @@ let search' ?pagination ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
+
+let search_context ?threshold filter element =
+  Madge_client.(
+    call ~endpoint:E.search_context @@ fun {a} {o} ->
+    o A.threshold threshold;
+    a A.filter    filter;
+    a A.element   element;
+  )

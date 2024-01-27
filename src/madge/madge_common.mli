@@ -65,6 +65,19 @@ module MPair :
   functor (B : SERIALISABLE) -> SERIALISABLE
   with type t = A.t * B.t
 
+module MTriple :
+  functor (A : SERIALISABLE) ->
+  functor (B : SERIALISABLE) ->
+  functor (C : SERIALISABLE) -> SERIALISABLE
+  with type t = A.t * B.t * C.t
+
+module MQuadruple :
+  functor (A : SERIALISABLE) ->
+  functor (B : SERIALISABLE) ->
+  functor (C : SERIALISABLE) ->
+  functor (D : SERIALISABLE) -> SERIALISABLE
+  with type t = A.t * B.t * C.t * D.t
+
 module MList :
   functor (A : SERIALISABLE) -> SERIALISABLE
   with type t = A.t list
