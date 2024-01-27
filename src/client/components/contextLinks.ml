@@ -8,13 +8,19 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
   Utils.AnyLink.make ~context ~a:[a_class ["context-link"; (if left then "context-link-left" else "context-link-right")]] [
     div ~a:[a_class ["context-link-aligner"]] [];
-    div [
-      div ~a:[a_class ["context-link-main"]] [txt @@ if left then "‹" else "›"];
-      div ~a:[a_class ["context-link-detail"]] [txt Any.(Type.to_string (type_of neighbour))];
-      div ~a:[a_class ["context-link-detail"]] [L.txt @@ Any.name neighbour];
-      div ~a:[a_class ["context-link-detail"]] (
-        if number_of_others <= 0 then [] else [txt @@ spf "...and %d more" number_of_others]);
-    ];
+    let context_repr = match context with
+      | InSearch query -> [[txt "In search for"]; [txt query]]
+    in
+    let element_repr = [
+      [txt Any.(Type.to_string (type_of neighbour))];
+      [L.txt @@ Any.name neighbour];
+    ] @ (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
+    in
+    div (
+      List.map (div ~a:[a_class ["context-link-detail"]]) context_repr
+      @ [div ~a:[a_class ["context-link-main"]] [txt @@ if left then "‹" else "›"]]
+      @ List.map (div ~a:[a_class ["context-link-detail"]]) element_repr
+    );
   ] neighbour
 
 let make_and_render ?context ~search any_lwt =
