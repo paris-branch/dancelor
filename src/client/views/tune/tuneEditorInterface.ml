@@ -254,7 +254,7 @@ let create ?on_save page =
             Lwt.on_success (TuneEditor.submit editor) (fun tune ->
                 let slug = Tune.slug tune in
                 match on_save with
-                | None -> Html.window##.location##.href := js PageRouter.(path (Tune slug))
+                | None -> Html.window##.location##.href := js (PageRouter.path_tune slug)
                 | Some cb -> cb slug
               )))
       page

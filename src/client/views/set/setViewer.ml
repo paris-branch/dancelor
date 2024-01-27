@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
+module Components = Dancelor_client_components
 
 let js = Js.string
 
@@ -12,7 +13,7 @@ type t =
     content : Dom_html.divElement Js.t;
   }
 
-let create slug page =
+let create ?context slug page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let set_lwt = Set.get slug in
@@ -39,6 +40,11 @@ let create slug page =
         | None -> Lwt.return_nil
         | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
       );
+
+      Components.ContextLinks.make_and_render
+        ?context
+        ~search: Search.search
+        (Lwt.map Any.set set_lwt);
 
       download_dialog;
 
@@ -75,7 +81,7 @@ let create slug page =
                Lwt.return (
                  div ~a:[a_class ["image-container"]]
                    [
-                     h4 [a ~a:[a_href PageRouter.(path (Version slug))] [txt @@ Tune.name tune]];
+                     h4 [a ~a:[a_href PageRouter.(path_version slug)] [txt @@ Tune.name tune]];
 
                      object_ ~a:[
                        a_mime_type "image/svg+xml";

@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
+module Components = Dancelor_client_components
 
 let js = Js.string
 
@@ -12,7 +13,7 @@ type t =
     content : Dom_html.divElement Js.t;
   }
 
-let create slug page =
+let create ?context slug page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let dance_lwt = Dance.get slug in
@@ -56,6 +57,11 @@ let create slug page =
             ]
           ]
       );
+
+      Components.ContextLinks.make_and_render
+        ?context
+        ~search: Search.search
+        (Lwt.map Any.dance dance_lwt);
 
       div ~a:[a_class ["section"]] [
         h3 [txt "Recommended Tunes"];

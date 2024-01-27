@@ -151,3 +151,11 @@ let sort_uniq_lwt compare l =
   Lwt.return (List.map fst l)
 
 let snoc l x = l @ [x]
+
+let findi_context p l =
+  let rec findi_context prev i = function
+    | [] -> None
+    | x :: l when p x -> Some (prev, i, x, hd_opt l)
+    | x :: l -> findi_context (Some x) (i + 1) l
+  in
+  findi_context None 0 l

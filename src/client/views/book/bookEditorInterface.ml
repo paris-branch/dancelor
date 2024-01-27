@@ -152,7 +152,7 @@ let create ?on_save page =
             Lwt.on_success (BookEditor.submit editor) (fun book ->
                 let slug = Book.slug book in
                 match on_save with
-                | None -> Html.window##.location##.href := js PageRouter.(path (Book slug))
+                | None -> Html.window##.location##.href := js (PageRouter.path_book slug)
                 | Some cb -> cb slug
               )))
       page
@@ -238,7 +238,7 @@ let update slug ?on_save page =
             Lwt.on_success (BookEditor.update_submit editor slug) (fun _ ->
                 begin match on_save with
                   | None ->
-                    let href = PageRouter.(path (Book slug)) in
+                    let href = PageRouter.path_book slug in
                     Html.window##.location##.href := js href
                   | Some cb -> cb slug
                 end)))

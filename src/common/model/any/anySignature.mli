@@ -2,6 +2,18 @@ open Nes
 
 type t = AnyCore.t
 
+val person : PersonCore.t -> t
+val dance : DanceCore.t -> t
+val book : BookCore.t -> t
+val set : SetCore.t -> t
+val tune : TuneCore.t -> t
+val version : VersionCore.t -> t
+
+val equal : t -> t -> bool
+
+val name : t -> string Lwt.t
+(** Finds a name to give to the element, no matter what it is. *)
+
 module Type : sig
   type t = AnyCore.Type.t
 

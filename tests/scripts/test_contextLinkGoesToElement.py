@@ -9,7 +9,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-class TestQuickSearchToComplexSearch():
+class TestContextLinkGoesToElement():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
     options.headless = True
@@ -20,9 +20,8 @@ class TestQuickSearchToComplexSearch():
   def teardown_method(self, method):
     self.driver.quit()
 
-  def test_quickSearchToComplexSearch(self):
-    self.driver.get("http://localhost:8080/")
-    self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys("tam lin")
-    self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys(Keys.ENTER)
-    assert self.driver.find_element(By.CSS_SELECTOR, "h2").text == "Search"
-    # assert self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").get_attribute("value") == "tam lin"
+  def test_contextLinkGoesToElement(self):
+    self.driver.get("http://localhost:8080/set/tam-lin-thrice?in-search=%22tam%22")
+    self.driver.find_element(By.CSS_SELECTOR, ".context-link-left .context-link-main").click()
+    assert self.driver.find_element(By.CSS_SELECTOR, ".title:nth-child(1)").text == "The Tam Lin Book"
+    assert self.driver.title == "The Tam Lin Book | Book | Dancelor"

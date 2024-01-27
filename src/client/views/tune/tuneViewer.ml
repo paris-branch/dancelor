@@ -3,6 +3,7 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
+module Components = Dancelor_client_components
 
 let js = Js.string
 
@@ -12,7 +13,7 @@ type t =
     content : Dom_html.divElement Js.t;
   }
 
-let create slug page =
+let create ?context slug page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   let tune_lwt = Tune.get slug in
@@ -41,6 +42,11 @@ let create slug page =
           ]
       );
 
+      Components.ContextLinks.make_and_render
+        ?context
+        ~search: Search.search
+        (Lwt.map Any.tune tune_lwt);
+
       div ~a:[a_class ["section"]] [
         h3 [txt "Versions of This Tune"];
 
@@ -53,14 +59,6 @@ let create slug page =
             Version.search' filter >|=| Score.list_erase
           in
           let%lwt versions = versions_lwt in
-
-          (* If there is only one version, redirect directly to it. *)
-          (
-            match versions with
-            | [version] -> Dom_html.window##.location##.href := js (PageRouter.path_version @@ Version.slug version);
-            | _ -> ()
-          );
-
           Lwt.return [Dancelor_client_tables.versions versions]
         )
       ];
@@ -69,6 +67,7 @@ let create slug page =
         h3 [txt "Dances That Recommend This Tune"];
 
         L.div (
+          (* FIXME: What the heck is this? *)
           let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
           Dom.appendChild none_maybe none;
@@ -90,6 +89,7 @@ let create slug page =
         h3 [txt "Sets in Which This Tune Appears"];
 
         L.div (
+          (* FIXME: What the heck is this? *)
           let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
           let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
           Dom.appendChild none_maybe none;

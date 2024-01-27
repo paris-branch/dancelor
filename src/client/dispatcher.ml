@@ -37,27 +37,27 @@ let dispatch url =
     pack (module VersionExplorer) VersionExplorer.create
   | VersionBroken ->
     pack (module VersionBrokenExplorer) VersionBrokenExplorer.create
-  | Version slug ->
-    pack (module VersionViewer) (VersionViewer.create slug)
-  | Tune slug ->
-    pack (module TuneViewer) (TuneViewer.create slug)
+  | Version {slug; context} ->
+    pack (module VersionViewer) (VersionViewer.create slug ?context)
+  | Tune {slug; context} ->
+    pack (module TuneViewer) (TuneViewer.create slug ?context)
   | SetAll ->
     pack (module SetExplorer) SetExplorer.create
   | SetCompose ->
     pack (module SetEditorInterface) SetEditorInterface.create
-  | Set slug ->
-    pack (module SetViewer) (SetViewer.create slug)
+  | Set {slug; context} ->
+    pack (module SetViewer) (SetViewer.create slug ?context)
   | BookAll ->
     pack (module BookExplorer) BookExplorer.create
   | BookCompose ->
     pack (module BookEditorInterface) BookEditorInterface.create
   | BookEdit slug ->
     pack (module BookEditorInterface) (BookEditorInterface.update slug)
-  | Book slug ->
-    pack (module BookViewer) (BookViewer.create slug)
+  | Book {slug; context} ->
+    pack (module BookViewer) (BookViewer.create slug ?context)
   | PersonAdd ->
     pack (module PersonEditorInterface) (fun page -> PersonEditorInterface.create page)
-  | Person slug ->
-    pack (module PersonViewer) (PersonViewer.create slug)
-  | Dance slug ->
-    pack (module DanceViewer) (DanceViewer.create slug)
+  | Person {slug; context} ->
+    pack (module PersonViewer) (PersonViewer.create slug ?context)
+  | Dance {slug; context} ->
+    pack (module DanceViewer) (DanceViewer.create slug ?context)
