@@ -44,3 +44,18 @@ let search' ?pagination ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
+
+let search_context ?threshold filter element =
+  let%lwt (total, results) = search ?threshold filter in
+  let results = List.map Common.Model.Score.value results in
+  let (prev, index, _, next) = Option.get @@ List.findi_context (equal element) results in
+  Lwt.return (total, prev, index, next)
+
+let () =
+  Madge_server.(
+    register ~endpoint:E.search_context @@ fun {a} {o} ->
+    search_context
+      ?threshold:(o A.threshold)
+      (a A.filter)
+      (a A.element)
+  )
