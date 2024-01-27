@@ -6,22 +6,28 @@ module Utils = Dancelor_client_utils
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
-  Utils.AnyLink.make ~context ~a:[a_class ["context-link"; (if left then "context-link-left" else "context-link-right")]] [
-    div ~a:[a_class ["context-link-aligner"]] [];
-    let context_repr = match context with
-      | InSearch query -> [[txt "In search for"]; [txt query]]
-    in
-    let element_repr = [
-      [txt Any.(Type.to_string (type_of neighbour))];
-      [L.txt @@ Any.name neighbour];
-    ] @ (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
-    in
-    div (
-      List.map (div ~a:[a_class ["context-link-detail"]]) context_repr
-      @ [div ~a:[a_class ["context-link-main"]] [txt @@ if left then "‹" else "›"]]
-      @ List.map (div ~a:[a_class ["context-link-detail"]]) element_repr
-    );
-  ] neighbour
+  let href = PageRouter.path_any ~context neighbour in
+  a
+    ~a:[
+      a_href href;
+      a_class ["context-link"; (if left then "context-link-left" else "context-link-right")];
+    ]
+    [
+      div ~a:[a_class ["context-link-aligner"]] [];
+      let context_repr = match context with
+        | InSearch query -> [[txt "In search for"]; [txt query]]
+      in
+      let element_repr = [
+        [txt Any.(Type.to_string (type_of neighbour))];
+        [L.txt @@ Any.name neighbour];
+      ] @ (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
+      in
+      div (
+        List.map (div ~a:[a_class ["context-link-detail"]]) context_repr
+        @ [div ~a:[a_class ["context-link-main"]] [txt @@ if left then "‹" else "›"]]
+        @ List.map (div ~a:[a_class ["context-link-detail"]]) element_repr
+      );
+    ]
 
 let make_and_render ?context ~search any_lwt =
   L.div (

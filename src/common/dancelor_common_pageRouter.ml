@@ -120,3 +120,15 @@ let path_search = path % search
 let path_set ?context slug = path @@ set ?context slug
 let path_tune ?context slug = path @@ tune ?context slug
 let path_version ?context slug = path @@ version ?context slug
+
+let path_any ?context any =
+  (* FIXME: [Any] should re-export the constructors (ppx_import?) *)
+  let open Dancelor_common_model in
+  let open AnyCore in
+  match any with
+  | Version version -> path_version ?context (VersionCore.slug version)
+  | Set set -> path_set ?context (SetCore.slug set)
+  | Person person -> path_person ?context (PersonCore.slug person)
+  | Dance dance -> path_dance ?context (DanceCore.slug dance)
+  | Book book -> path_book ?context (BookCore.slug book)
+  | Tune tune -> path_tune ?context (TuneCore.slug tune)
