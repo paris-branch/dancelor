@@ -1,12 +1,25 @@
 open Nes
 open Dancelor_client_html
 open Dancelor_client_model
+open Js_of_ocaml
+open Js_of_ocaml_lwt
 module PageRouter = Dancelor_common_pageRouter
 module Utils = Dancelor_client_utils
+
+let register_body_keydown_listener f =
+  let rec body_keydown_listener () =
+    Lwt_js_events.keydowns Dom_html.document##.body @@ fun ev _thread ->
+    f ev;
+    body_keydown_listener ()
+  in
+  Lwt.async body_keydown_listener
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
   let href = PageRouter.path_any ~context neighbour in
+  register_body_keydown_listener (fun ev ->
+      if ev##.keyCode = (if left then 37 else 39) then
+        Dom_html.window##.location##.href := Js.string href);
   a
     ~a:[
       a_href href;
