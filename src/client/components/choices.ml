@@ -26,6 +26,7 @@ type 'value t = {
 }
 
 let signal c = c.values
+let value c = S.value (signal c)
 let render c = c.box
 
 let make_gen_unsafe ~radios choices =

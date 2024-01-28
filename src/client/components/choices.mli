@@ -53,5 +53,8 @@ val make_checkboxes :
 val signal : 'value t -> 'value S.t
 (** A signal holding the value/s of the “choices” component. *)
 
+val value : 'value t -> 'value
+(** The value/s of the “choices” component at that point. *)
+
 val render : 'value t -> Html_types.div elt
 (** Render the “choices” component as HTML. *)
