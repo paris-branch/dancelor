@@ -73,13 +73,10 @@ let make
     else
       Fun.flip Lwt.map (search pagination text) @@ function
       | Error messages ->
-        Format.printf "The search returned errors.@.";
         Errors messages
       | Ok (_, []) ->
-        Format.printf "The search returned no results.@.";
         NoResults
       | Ok (total, results) ->
-        Format.printf "The search returned %d results out of %d total.@." (List.length results) total;
         on_number_of_entries total; Results results
   in
 
