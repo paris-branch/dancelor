@@ -23,7 +23,8 @@ end
 val type_of : t -> Type.t
 
 module Filter : sig
-  type t = AnyCore.Filter.t
+  type predicate = [%import: AnyCore.Filter.predicate]
+  type t = [%import: AnyCore.Filter.t]
 
   val accepts : t -> AnyCore.t -> float Lwt.t
 
