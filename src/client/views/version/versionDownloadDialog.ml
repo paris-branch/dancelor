@@ -12,22 +12,22 @@ type t =
 
 let create () =
   let key_choices =
-    Choices.(make [
-        choice [txt "C"] ~checked:true;
+    Choices.(make_radios [
+        choice' [txt "C"] ~checked:true;
 
-        choice [txt "B♭"]
+        choice' [txt "B♭"]
           ~value:(VersionParameters.make_instrument (Music.make_pitch B Flat (-1)));
 
-        choice [txt "E♭"]
+        choice' [txt "E♭"]
           ~value:(VersionParameters.make_instrument (Music.make_pitch E Flat 0));
       ])
   in
 
   let clef_choices =
-    Choices.(make [
-        choice [txt "𝄞"] ~checked:true;
+    Choices.(make_radios [
+        choice' [txt "𝄞"] ~checked:true;
 
-        choice [txt "𝄢"]
+        choice' [txt "𝄢"]
           ~value:(VersionParameters.make ~clef:Music.Bass ~transposition:(Relative(Music.pitch_c, Music.make_pitch C Natural (-1))) ());
       ])
   in

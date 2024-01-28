@@ -19,10 +19,10 @@ let create () =
   let set_dialog = SetDownloadDialog.create () in
 
   let booklet_choices =
-    Choices.(make [
-        choice [txt "Normal"] ~checked:true;
+    Choices.(make_radios [
+        choice' [txt "Normal"] ~checked:true;
 
-        choice [txt "Booklet"]
+        choice' [txt "Booklet"]
           ~value:(BookParameters.make
                     ~front_page:true
                     ~table_of_contents:End

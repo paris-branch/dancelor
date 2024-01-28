@@ -19,25 +19,39 @@ type 'value choice
 
 val choice :
   ?checked: bool ->
-  ?value: 'value ->
+  value: 'value ->
   Html_types.label_content_fun elt list ->
   'value choice
-(** Make one choice from the value it must hold (or uses [None]), whether it
-    should be checked at the start (defaults to [false]) and its HTML
-    contents. *)
+(** Make one choice from the value it must hold, whether it should be checked at
+    the start (defaults to [false]) and its HTML contents. *)
+
+val choice' :
+  ?checked: bool ->
+  ?value: 'value ->
+  Html_types.label_content_fun elt list ->
+  'value option choice
+(** Variant of {!choice} that holds the option of a value. Useful when the
+    default choice is to do nothing. *)
 
 (** {2 Choices element} *)
 
 type 'value t
 (** Abstract type for a “choices” component that can take ['value]s. *)
 
-val make :
-  'value choice list ->
-  'value t
-(** Make a “choices” component out of a list of single choices. *)
+val make_radios :
+  'value option choice list ->
+  'value option t
+(** Make a radio-based “choices” component that can hold at most one value at
+    once out of a list of single choices. *)
 
-val signal : 'value t -> 'value option S.t
-(** A signal holding the value of the “choices” component. *)
+val make_checkboxes :
+  'value choice list ->
+  'value list t
+(** Make a checkbox-based “choices” component that can hold zero, one, or
+    several values at once out of a list of single choices. *)
+
+val signal : 'value t -> 'value S.t
+(** A signal holding the value/s of the “choices” component. *)
 
 val render : 'value t -> Html_types.div elt
 (** Render the “choices” component as HTML. *)
