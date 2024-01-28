@@ -15,7 +15,7 @@ val name : t -> string Lwt.t
 (** Finds a name to give to the element, no matter what it is. *)
 
 module Type : sig
-  type t = AnyCore.Type.t
+  type t = [%import: AnyCore.Type.t]
 
   val to_string : t -> string
 end
