@@ -1,3 +1,5 @@
+open Nes
+open Js_of_ocaml
 open Dancelor_client_html
 
 let unique =
@@ -6,40 +8,59 @@ let unique =
     incr counter;
     "choices-" ^ string_of_int !counter
 
-let make choices =
+type 'value choice = {
+  id : string;
+  value : 'value;
+  checked : bool;
+  contents : Html_types.label_content_fun elt list;
+}
+
+let choice ?(checked=false) ~value contents =
+  { id = unique (); value; checked; contents }
+
+let choice' ?checked ?value contents = choice ?checked ~value contents
+
+type 'value t = {
+  box : Html_types.div elt;
+  values : 'value S.t;
+}
+
+let signal c = c.values
+let value c = S.value (signal c)
+let render c = c.box
+
+let make_gen_unsafe ~radios choices =
   let name = unique () in
-  let (value, set_value) = S.create None in
+  let (values, set_values) = S.create [] in
+  let update_values () =
+    let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
+    set_values @@ List.filter_map (fun choice -> if Js.to_bool (choice_inputElement choice)##.checked then Some choice.value else None) choices
+  in
   let box =
     div
       ~a:[
         a_class ["choices"];
-        a_onchange (fun event ->
-            (
-              let open Js_of_ocaml in
-              Js.Opt.iter event##.target @@ fun target ->
-              let id = target##.id in
-              let (_, value, _, _) = List.find (fun (id', _, _, _) -> id = Js.string id') choices in
-              set_value value
-            );
-            false
-          );
+        a_onchange (fun _ -> update_values (); true);
       ]
       (
-        Fun.flip List.concat_map choices @@ fun (id, _value, checked, content) ->
+        Fun.flip List.concat_map choices @@ fun choice ->
         [
           input ~a:(List.filter_map Fun.id [
-              Some (a_input_type `Radio);
+              Some (a_input_type (if radios then `Radio else `Checkbox));
               Some (a_name name);
-              Some (a_id id);
-              (if checked then Some (a_checked ()) else None);
+              Some (a_id choice.id);
+              (if choice.checked then Some (a_checked ()) else None);
             ]) ();
-          label ~a:[a_label_for id] content;
+          label ~a:[a_label_for choice.id] choice.contents;
         ]
       )
   in
-  (box, value)
+  {box; values}
 
-let choice ?value ?(checked=false) content =
-  (* FIXME: it would be better as a record, but this would imply managing to
-     type the content part of this. *)
-  (unique (), value, checked, content)
+let make_radios choices =
+  let {box; values} = make_gen_unsafe ~radios:true choices in
+  let values = S.map (function [] -> None | [x] -> x | _ -> assert false) values in
+  {box; values}
+
+let make_checkboxes choices =
+  make_gen_unsafe ~radios:false choices

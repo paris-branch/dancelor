@@ -18,11 +18,11 @@ let lift_set_parameters every_set =
 let create () =
   let set_dialog = SetDownloadDialog.create () in
 
-  let (booklet_choices, booklet_choices_signal) =
-    Choices.(make [
-        choice [txt "Normal"] ~checked:true;
+  let booklet_choices =
+    Choices.(make_radios [
+        choice' [txt "Normal"] ~checked:true;
 
-        choice [txt "Booklet"]
+        choice' [txt "Booklet"]
           ~value:(BookParameters.make
                     ~front_page:true
                     ~table_of_contents:End
@@ -37,21 +37,21 @@ let create () =
       (
         set_dialog.choice_rows
         @ [
-          tr [td [label [txt "Mode:"]]; td [booklet_choices]]
+          tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
         ]
       );
 
     parameters_signal =
       S.merge (Option.concat BookParameters.compose) None [
         S.map (Option.map lift_set_parameters) set_dialog.parameters_signal;
-        booklet_choices_signal;
+        Choices.signal booklet_choices;
       ]
   }
 
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let render slug dialog =
-  ModalBox.make [
+  ModalBox.make @@ fun handlers -> [
     h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
 
     form [
@@ -62,6 +62,7 @@ let render slug dialog =
           a_class ["button"];
           a_target "_blank";
           R.a_href (S.map ApiRouter.(path % bookPdf slug) dialog.parameters_signal);
+          a_onclick (fun _ -> handlers.hide (); true);
         ] [txt "Download"];
     ];
   ]

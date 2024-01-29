@@ -30,7 +30,7 @@ let create () =
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let render slug dialog =
-  ModalBox.make [
+  ModalBox.make @@ fun handlers -> [
     h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
 
     form [
@@ -41,6 +41,7 @@ let render slug dialog =
           a_class ["button"];
           a_target "_blank";
           R.a_href (S.map ApiRouter.(path % setPdf slug) dialog.parameters_signal);
+          a_onclick (fun _ -> handlers.hide (); true);
         ] [txt "Download"];
     ];
   ]
