@@ -126,6 +126,8 @@ let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_
       ]) ()
 
 let state search_bar = search_bar.state
+let text search_bar = search_bar.text
+let set_text search_bar text = search_bar.set_text text
 
 let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
   let min_characters = 3 in

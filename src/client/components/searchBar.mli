@@ -17,6 +17,13 @@ type 'result t
 val state : 'result t -> 'result state React.signal
 (** Signal giving a state out of a search bar. *)
 
+val text : 'result t -> string React.signal
+(** Signal holding the text of the search bar. Prefer relying on {!state} when
+    possible. *)
+
+val set_text : 'result t -> string -> unit
+(** Imperatively set the text of the search bar. *)
+
 val make :
   search:(Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters:int ->
