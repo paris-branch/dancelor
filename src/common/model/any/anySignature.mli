@@ -17,6 +17,7 @@ val name : t -> string Lwt.t
 module Type : sig
   type t = [%import: AnyCore.Type.t]
 
+  val all : t list
   val to_string : t -> string
 end
 
@@ -32,6 +33,8 @@ module Filter : sig
 
   val from_string : string -> (t, string list) result
   val from_string_exn : string -> t
+
+  val possible_types : t -> Type.t list
 end
 
 val search :
