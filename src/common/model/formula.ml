@@ -69,6 +69,16 @@ let interpret formula interpret_predicate =
   in
   interpret formula
 
+(* FIXME: Considering the type, this is not really a [map] but more something
+   like a [bind]. *)
+let rec map f = function
+  | False -> Ok False
+  | True -> Ok True
+  | Not e -> Result.map (fun e' -> Not e') (map f e)
+  | And (e1, e2) -> Result.bind (map f e1) (fun e1' -> Result.map (fun e2' -> And (e1', e2')) (map f e2))
+  | Or (e1, e2) -> Result.bind (map f e1) (fun e1' -> Result.map (fun e2' -> Or (e1', e2')) (map f e2))
+  | Pred pred -> f pred
+
 (** {2 Serialisable} *)
 
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct

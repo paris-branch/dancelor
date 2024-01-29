@@ -191,7 +191,7 @@ module Lift
                 "The errors are:"
               ] @ errors)
       in
-      TextFormula.to_formula from_text_predicate
+      Formula.map from_text_predicate
 
     (** All the possible types that a formula can return. *)
     let possible_types =

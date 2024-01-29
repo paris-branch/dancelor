@@ -76,29 +76,6 @@ type 'a nullary_text_predicates = (string * 'a nullary_builder) list
 type 'a unary_builder = t -> 'a Formula.t or_error
 type 'a unary_text_predicates = (string * 'a unary_builder) list
 
-let to_formula predicate_to_formula formula =
-  let rec to_formula = function
-    | False -> Ok False
-    | True -> Ok True
-    | Not formula ->
-      (match to_formula formula with
-       | Ok formula -> Ok (Not formula)
-       | Error err -> Error err) (* FIXME: ppx_syntext *)
-    | And (formula1, formula2) ->
-      (match to_formula formula1,
-             to_formula formula2 with
-      | Ok formula1, Ok formula2 -> Ok (And (formula1, formula2))
-      | Error err, _ | _, Error err -> Error err)
-    | Or (formula1, formula2) ->
-      (match to_formula formula1,
-             to_formula formula2 with
-      | Ok formula1, Ok formula2 -> Ok (Or (formula1, formula2))
-      | Error err, _ | _, Error err -> Error err)
-    | Pred pred ->
-      predicate_to_formula pred
-  in
-  to_formula formula
-
 let make_predicate_to_formula
     (raw_builder : 'a raw_builder)
     (nullary_text_predicates : 'a nullary_text_predicates)
@@ -129,7 +106,7 @@ let make_to_formula
       nullary_text_predicates
       unary_text_predicates
   in
-  to_formula predicate_to_formula formula
+  Formula.map predicate_to_formula formula
 
 (** Helper to build a unary predicate whose argument must be raw only. *)
 let raw_only
