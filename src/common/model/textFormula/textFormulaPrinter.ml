@@ -32,3 +32,5 @@ and pp_pars parent fmt formula =
     fpf fmt "(%a)" pp formula
   else
     pp fmt formula
+
+let to_string = Format.kasprintf Fun.id "%a" pp

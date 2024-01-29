@@ -63,6 +63,7 @@ end
 let from_string = Parser.from_string_exn
 
 let pp = Printer.pp
+let to_string = Printer.to_string
 
 (******************************************************************************)
 (* To help convert from text_formula to filter. *)
