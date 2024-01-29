@@ -88,7 +88,7 @@ let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_
     ~a:(List.filter_map Fun.id [
         Some (a_input_type `Text);
         Some (a_placeholder placeholder);
-        Some (a_value (S.value search_bar.text));
+        Some (R.a_value search_bar.text);
         Some (
           a_oninput (fun event ->
               (
