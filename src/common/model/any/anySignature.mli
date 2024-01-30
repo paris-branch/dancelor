@@ -26,6 +26,8 @@ module Filter : sig
   type predicate = [%import: AnyCore.Filter.predicate]
   type t = [%import: AnyCore.Filter.t]
 
+  val type_ : Type.t -> t
+
   val accepts : t -> AnyCore.t -> float Lwt.t
 
   val from_string : string -> (t, string list) result
