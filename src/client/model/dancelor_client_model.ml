@@ -20,7 +20,7 @@ module BookParameters                     = BookParameters
 
 module Any               : Common.ANY     = Any
 
-(** {2 Modules taken as-is from {!Dancelor_common}} *)
+(** {2 Modules taken as-is from [Dancelor_common]} *)
 
 open Common
 

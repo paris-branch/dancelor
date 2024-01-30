@@ -30,7 +30,7 @@ val choice' :
   ?value: 'value ->
   Html_types.label_content_fun elt list ->
   'value option choice
-(** Variant of {!choice} that holds the option of a value. Useful when the
+(** Variant of {!val-choice} that holds the option of a value. Useful when the
     default choice is to do nothing. *)
 
 (** {2 Choices element} *)

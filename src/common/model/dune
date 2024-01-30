@@ -6,8 +6,8 @@
  (libraries str lwt dancelor.nes dancelor.madge.common dancelor.madge.router
    menhirLib yojson ppx_deriving_yojson.runtime)
  (preprocess
-  (pps lwt_ppx ppx_inline_test ppx_deriving_yojson ppx_deriving.std ppx_monad
-    ppx_monad_olwt ppx_monad_rlwt))
+  (staged_pps lwt_ppx ppx_inline_test ppx_deriving_yojson ppx_deriving.std
+    ppx_monad ppx_monad_olwt ppx_monad_rlwt ppx_import))
  (modules_without_implementation personSignature danceSignature bookSignature
    anySignature setSignature tuneSignature versionSignature)
  (inline_tests))

@@ -35,6 +35,7 @@
    ppx_deriving
    ppx_deriving_yojson
   (ppx_inline_test     (or :build :with-test))
+   ppx_import
   (ppx_monad           (and :build (>= 0.2.0)))
    slug
    yaml

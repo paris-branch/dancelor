@@ -36,7 +36,8 @@ module Lift
         let compare = compare
       end)
 
-    let all = Set.of_list [ Person; Dance; Book; Set; Tune; Version ]
+    let all = [ Person; Dance; Book; Set; Tune; Version ]
+    let all_s = Set.of_list all
 
     let equal = (=)
 
@@ -193,25 +194,27 @@ module Lift
       TextFormula.to_formula from_text_predicate
 
     (** All the possible types that a formula can return. *)
-    let rec possible_types =
+    let possible_types =
       let open Formula in
-      function
-      | False -> Type.Set.empty
-      | True -> Type.all
-      | Not formula -> Type.Set.diff Type.all (possible_types formula)
-      | And (formula1, formula2) -> Type.Set.inter (possible_types formula1) (possible_types formula2)
-      | Or  (formula1, formula2) -> Type.Set.union (possible_types formula1) (possible_types formula2)
-      | Pred pred ->
-        (* FIXME: We could do better here by checking in depth whether a formula
-           has a chance to return. That would eliminate some other types. *)
-        match pred with
-        | Type type_  -> Type.Set.singleton type_
-        | AsPerson  _ -> Type.Set.singleton Person
-        | AsDance   _ -> Type.Set.singleton Dance
-        | AsBook    _ -> Type.Set.singleton Book
-        | AsSet     _ -> Type.Set.singleton Set
-        | AsTune    _ -> Type.Set.singleton Tune
-        | AsVersion _ -> Type.Set.singleton Version
+      let rec possible_types = function
+        | False -> Type.Set.empty
+        | True -> Type.all_s
+        | Not formula -> Type.Set.diff Type.all_s (possible_types formula)
+        | And (formula1, formula2) -> Type.Set.inter (possible_types formula1) (possible_types formula2)
+        | Or  (formula1, formula2) -> Type.Set.union (possible_types formula1) (possible_types formula2)
+        | Pred pred ->
+          (* FIXME: We could do better here by checking in depth whether a formula
+             has a chance to return. That would eliminate some other types. *)
+          match pred with
+          | Type type_  -> Type.Set.singleton type_
+          | AsPerson  _ -> Type.Set.singleton Person
+          | AsDance   _ -> Type.Set.singleton Dance
+          | AsBook    _ -> Type.Set.singleton Book
+          | AsSet     _ -> Type.Set.singleton Set
+          | AsTune    _ -> Type.Set.singleton Tune
+          | AsVersion _ -> Type.Set.singleton Version
+      in
+      List.of_seq % Type.Set.to_seq % possible_types
 
     let nullary_text_predicates_of_type type_ =
       String.Set.of_list
@@ -224,9 +227,10 @@ module Lift
          | Type.Version -> List.map fst Version.Filter.nullary_text_predicates)
 
     let nullary_text_predicates_of_types types =
-      Type.Set.fold
-        (String.Set.union @@@ nullary_text_predicates_of_type)
-        types (String.Set.of_list (List.map fst nullary_text_predicates))
+      List.fold_left
+        (Fun.flip (String.Set.union @@@ nullary_text_predicates_of_type))
+        (String.Set.of_list (List.map fst nullary_text_predicates))
+        types
 
     let unary_text_predicates_of_type type_ =
       String.Set.of_list
@@ -239,9 +243,10 @@ module Lift
          | Type.Version -> List.map fst Version.Filter.unary_text_predicates)
 
     let unary_text_predicates_of_types types =
-      Type.Set.fold
-        (String.Set.union @@@ unary_text_predicates_of_type)
-        types (String.Set.of_list (List.map fst unary_text_predicates))
+      List.fold_left
+        (Fun.flip (String.Set.union @@@ unary_text_predicates_of_type))
+        (String.Set.of_list (List.map fst unary_text_predicates))
+        types
 
     (* let check_predicates text_formula = *)
 
