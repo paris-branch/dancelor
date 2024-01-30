@@ -139,10 +139,10 @@ val search' :
   ?threshold:float ->
   Filter.t ->
   t Score.t list Lwt.t
-(** Like {!search} but returns only the list. *)
+(** Like {!val-search} but returns only the list. *)
 
 val count :
   ?threshold:float ->
   Filter.t ->
   int Lwt.t
-(** Like {!search} but returns only the number of items. *)
+(** Like {!val-search} but returns only the number of items. *)
