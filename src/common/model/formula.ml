@@ -1,5 +1,3 @@
-(** {1 Formula} *)
-
 open Nes
 
 type 'filter t =
@@ -35,16 +33,16 @@ let interpret_not s = 1. -. s
 let interpret_and s1 s2 = min s1 s2
 let interpret_or s1 s2 = max s1 s2
 
-let interpet_and_l = function
+let interpret_and_l = function
   | [] -> interpret_true
   | h :: t -> List.fold_left interpret_and h t
 
-let interpet_or_l = function
+let interpret_or_l = function
   | [] -> interpret_false
   | h :: t -> List.fold_left interpret_or h t
 
 let interpret_exists p l =
-  Lwt_list.map_s p l >|=| interpet_or_l
+  Lwt_list.map_s p l >|=| interpret_or_l
 
 let interpret_bool b =
   if b then interpret_true else interpret_false
@@ -69,17 +67,13 @@ let interpret formula interpret_predicate =
   in
   interpret formula
 
-(* FIXME: Considering the type, this is not really a [map] but more something
-   like a [bind]. *)
-let rec map f = function
+let rec convert f = function
   | False -> Ok False
   | True -> Ok True
-  | Not e -> Result.map (fun e' -> Not e') (map f e)
-  | And (e1, e2) -> Result.bind (map f e1) (fun e1' -> Result.map (fun e2' -> And (e1', e2')) (map f e2))
-  | Or (e1, e2) -> Result.bind (map f e1) (fun e1' -> Result.map (fun e2' -> Or (e1', e2')) (map f e2))
+  | Not e -> Result.map (fun e' -> Not e') (convert f e)
+  | And (e1, e2) -> Result.bind (convert f e1) (fun e1' -> Result.map (fun e2' -> And (e1', e2')) (convert f e2))
+  | Or (e1, e2) -> Result.bind (convert f e1) (fun e1' -> Result.map (fun e2' -> Or (e1', e2')) (convert f e2))
   | Pred pred -> f pred
-
-(** {2 Serialisable} *)
 
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t

@@ -50,7 +50,7 @@ module Lift
       | ExistsDance dfilter ->
         let%lwt dances = dances tune in
         let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
-        Lwt.return (Formula.interpet_or_l scores)
+        Lwt.return (Formula.interpret_or_l scores)
 
     let is tune = Formula.pred (Is tune)
     let name string = Formula.pred (Name string)

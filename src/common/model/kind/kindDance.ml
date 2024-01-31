@@ -82,7 +82,7 @@ module Filter = struct
 
     | Version vfilter ->
       Lwt.map
-        Formula.interpet_and_l
+        Formula.interpret_and_l
         (Lwt_list.map_s
            (KindVersion.Filter.accepts vfilter)
            (version_kinds kind))

@@ -107,7 +107,7 @@ let make_to_formula
       nullary_text_predicates
       unary_text_predicates
   in
-  Formula.map predicate_to_formula formula
+  Formula.convert predicate_to_formula formula
 
 (** Helper to build a unary predicate whose argument must be raw only. *)
 let raw_only
