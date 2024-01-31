@@ -61,10 +61,7 @@ module Lift
     let kind kfilter = Formula.pred (Kind kfilter)
     let broken = Formula.pred Broken
 
-    let raw string =
-      match Tune.Filter.raw string with
-      | Ok tfilter -> Ok (tune tfilter)
-      | Error err -> Error err (* FIXME: syntext *)
+    let raw = Result.map tune % Tune.Filter.raw
 
     let nullary_text_predicates = [
       "reel",       (kind Kind.(Version.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
@@ -77,16 +74,10 @@ module Lift
     let unary_text_predicates =
       TextFormula.[
         "tune",    (tune @@@@ Tune.Filter.from_text_formula);
-        "key",     raw_only ~convert:(fun s -> match Music.key_of_string_opt s with Some k -> Ok k | None -> Error "not a valid key") key;
+        "key",     raw_only ~convert:(Option.to_result ~none:"not a valid key" % Music.key_of_string_opt) key;
         "kind",    (kind @@@@ Kind.Version.Filter.from_text_formula);
       ]
-      @ (List.map
-           (fun (name, pred) ->
-              (name, fun x ->
-                  match pred x with
-                  | Ok tfilter -> Ok (tune tfilter)
-                  | Error err -> Error err))
-           Tune.Filter.unary_text_predicates)
+      @ (List.map (fun (name, pred) -> (name, Result.map tune % pred)) Tune.Filter.unary_text_predicates)
 
     let from_text_formula =
       TextFormula.make_to_formula raw
