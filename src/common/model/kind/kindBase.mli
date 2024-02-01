@@ -36,5 +36,5 @@ module Filter : sig
 
   val is : base_kind -> t
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
 end

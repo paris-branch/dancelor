@@ -24,7 +24,8 @@ val equal : t -> t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = TuneCore.Filter.t
+  type predicate = [%import: TuneCore.Filter.predicate]
+  type t = [%import: TuneCore.Filter.t]
 
   val accepts : t -> TuneCore.t -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]
@@ -39,19 +40,19 @@ module Filter : sig
   val authorIs : PersonCore.t -> t
   val existsDance : DanceCore.Filter.t -> t
 
-  val raw : string -> t TextFormula.or_error
+  val raw : predicate TextFormula.raw_builder
   (** Build a filter appropriate to match raw strings, or fail. *)
 
-  val nullary_text_predicates : (string * t) list
+  val nullary_text_predicates : predicate TextFormula.nullary_predicates
   (** Association list of nullary text predicates over sets. *)
 
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+  val unary_text_predicates : predicate TextFormula.unary_predicates
   (** Association list of unary text predicates over tunes. *)
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
   (** Build a filter from a text formula, or fail. *)
 
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> (t, string) Result.t
   (** Build a fliter from a string, or fail. *)
 end
 

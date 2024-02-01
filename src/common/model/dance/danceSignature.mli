@@ -22,19 +22,20 @@ val equal : t -> t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = DanceCore.Filter.t
+  type predicate = [%import: DanceCore.Filter.predicate]
+  type t = [%import: DanceCore.Filter.t]
 
   val accepts : t -> DanceCore.t -> float Lwt.t
 
   val is : DanceCore.t -> t
   val deviser : PersonCore.Filter.t -> t
 
-  val raw : string -> t TextFormula.or_error
-  val nullary_text_predicates : (string * t) list
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+  val raw : predicate TextFormula.raw_builder
+  val nullary_text_predicates : predicate TextFormula.nullary_predicates
+  val unary_text_predicates : predicate TextFormula.unary_predicates
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
 end
 
 (** {2 Getters and setters} *)

@@ -300,25 +300,27 @@ module Lift
         ]
       )
 
-    let nullary_text_predicates = [
-      "source", isSource
-    ]
+    let nullary_text_predicates =
+      TextFormula.[
+        nullary ~name:"source" isSource;
+      ]
 
     let unary_text_predicates =
       TextFormula.[
-        "title",             raw_only ~convert:no_convert title;
-        "title-matches",     raw_only ~convert:no_convert titleMatches;
-        "subtitle",          raw_only ~convert:no_convert subtitle;
-        "subtitle-matches",  raw_only ~convert:no_convert subtitleMatches;
-        "exists-version",    (existsVersion @@@@ Version.Filter.from_text_formula);
-        "exists-set",        (existsSet @@@@ Set.Filter.from_text_formula);
-        "exists-inline-set", (existsInlineSet @@@@ Set.Filter.from_text_formula);
-        "exists-version-deep", (existsVersionDeep @@@@ Version.Filter.from_text_formula);
-        "exists-tune-deep",    (existsVersionDeep @@@@ Version.Filter.from_text_formula);
+        unary ~name:"title"               (raw_only ~convert:no_convert title);
+        unary ~name:"title-matches"       (raw_only ~convert:no_convert titleMatches);
+        unary ~name:"subtitle"            (raw_only ~convert:no_convert subtitle);
+        unary ~name:"subtitle-matches"    (raw_only ~convert:no_convert subtitleMatches);
+        unary ~name:"exists-version"      (existsVersion @@@@ Version.Filter.from_text_formula);
+        unary ~name:"exists-set"          (existsSet @@@@ Set.Filter.from_text_formula);
+        unary ~name:"exists-inline-set"   (existsInlineSet @@@@ Set.Filter.from_text_formula);
+        unary ~name:"exists-version-deep" (existsVersionDeep @@@@ Version.Filter.from_text_formula);
+        unary ~name:"exists-tune-deep"    (existsVersionDeep @@@@ Version.Filter.from_text_formula);
       ]
 
     let from_text_formula =
-      TextFormula.make_to_formula raw
+      TextFormula.make_to_formula
+        raw
         nullary_text_predicates
         unary_text_predicates
 

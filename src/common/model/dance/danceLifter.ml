@@ -54,24 +54,26 @@ module Lift
 
     let raw string = Ok (nameMatches string)
 
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.(Dance.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind Kind.(Dance.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
-    ]
+    let nullary_text_predicates =
+      TextFormula.[
+        nullary ~name: "reel"       (kind Kind.(Dance.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
+        nullary ~name: "jig"        (kind Kind.(Dance.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
+        nullary ~name: "strathspey" (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
+        nullary ~name: "waltz"      (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
+      ]
 
     let unary_text_predicates =
       TextFormula.[
-        "name",         raw_only ~convert:no_convert name;
-        "name-matches", raw_only ~convert:no_convert nameMatches;
-        "kind",         (kind @@@@ Kind.Dance.Filter.from_text_formula);
-        "deviser",      (deviser @@@@ Person.Filter.from_text_formula);
-        "by",           (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+        unary ~name: "name"         (raw_only ~convert:no_convert name);
+        unary ~name: "name-matches" (raw_only ~convert:no_convert nameMatches);
+        unary ~name: "kind"         (kind @@@@ Kind.Dance.Filter.from_text_formula);
+        unary ~name: "deviser"      (deviser @@@@ Person.Filter.from_text_formula);
+        unary ~name: "by"           (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
       ]
 
     let from_text_formula =
-      TextFormula.make_to_formula raw
+      TextFormula.make_to_formula
+        raw
         nullary_text_predicates
         unary_text_predicates
 

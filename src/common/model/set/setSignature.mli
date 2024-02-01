@@ -41,7 +41,8 @@ val warnings : t -> warnings Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = SetCore.Filter.t
+  type predicate = [%import: SetCore.Filter.predicate]
+  type t = [%import: SetCore.Filter.t]
 
   val accepts : t -> SetCore.t -> float Lwt.t
 
@@ -50,12 +51,12 @@ module Filter : sig
   val deviser : PersonCore.Filter.t -> t
   val memVersion : VersionCore.t -> t
 
-  val raw : string -> t TextFormula.or_error
-  val nullary_text_predicates : (string * t) list
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+  val raw : predicate TextFormula.raw_builder
+  val nullary_text_predicates : predicate TextFormula.nullary_predicates
+  val unary_text_predicates : predicate TextFormula.unary_predicates
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
 end
 
 (** {2 Getters and setters} *)

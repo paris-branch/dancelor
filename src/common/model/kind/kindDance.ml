@@ -103,16 +103,12 @@ module Filter = struct
   (* Unary text_predicates lifted from Versions. *)
   let unary_text_predicates =
     List.map
-      (fun (name, builder) ->
-         (name,
-          (fun formula ->
-             match builder formula with
-             | Ok formula -> Ok (version formula)
-             | Error err -> Error err)))
+      (TextFormula.map_unary ((%) (Result.map version)))
       KindVersion.Filter.unary_text_predicates
 
   let from_text_formula =
-    TextFormula.make_to_formula raw
+    TextFormula.make_to_formula
+      raw
       nullary_text_predicates
       unary_text_predicates
 end

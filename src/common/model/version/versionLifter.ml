@@ -63,21 +63,22 @@ module Lift
 
     let raw = Result.map tune % Tune.Filter.raw
 
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.(Version.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
-      "jig",        (kind Kind.(Version.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
-      "strathspey", (kind Kind.(Version.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
-      "waltz",      (kind Kind.(Version.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
-      "broken",      broken;
-    ]
+    let nullary_text_predicates =
+      TextFormula.[
+        nullary ~name:"reel"       (kind Kind.(Version.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
+        nullary ~name:"jig"        (kind Kind.(Version.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
+        nullary ~name:"strathspey" (kind Kind.(Version.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
+        nullary ~name:"waltz"      (kind Kind.(Version.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
+        nullary ~name:"broken"      broken;
+      ]
 
     let unary_text_predicates =
       TextFormula.[
-        "tune",    (tune @@@@ Tune.Filter.from_text_formula);
-        "key",     raw_only ~convert:(Option.to_result ~none:"not a valid key" % Music.key_of_string_opt) key;
-        "kind",    (kind @@@@ Kind.Version.Filter.from_text_formula);
+        unary ~name:"tune"    (tune @@@@ Tune.Filter.from_text_formula);
+        unary ~name:"key"     (raw_only ~convert:(Option.to_result ~none:"not a valid key" % Music.key_of_string_opt) key);
+        unary ~name:"kind"    (kind @@@@ Kind.Version.Filter.from_text_formula);
       ]
-      @ (List.map (fun (name, pred) -> (name, Result.map tune % pred)) Tune.Filter.unary_text_predicates)
+      @ List.map (TextFormula.map_unary ((%) (Result.map tune))) Tune.Filter.unary_text_predicates
 
     let from_text_formula =
       TextFormula.make_to_formula raw

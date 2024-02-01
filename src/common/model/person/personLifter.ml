@@ -42,8 +42,8 @@ module Lift () = struct
 
     let unary_text_predicates =
       TextFormula.[
-        "name",          raw_only ~convert:no_convert name;
-        "name-matches",  raw_only ~convert:no_convert nameMatches;
+        { name = "name";         to_formula = raw_only ~convert:no_convert name };
+        { name = "name-matches"; to_formula = raw_only ~convert:no_convert nameMatches };
       ]
 
     let from_text_formula =

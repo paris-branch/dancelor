@@ -144,22 +144,25 @@ module Lift
         | [] -> assert false
         | err :: _ -> Error err (* FIXME: also show the others *)
 
-    let nullary_text_predicates = [
-      "person",  type_ Type.Person;  (* alias for type:Person *)
-      "dance",   type_ Type.Dance;   (* alias for type:Dance *)
-      "book",    type_ Type.Book;    (* alias for type:Book *)
-      "set",     type_ Type.Set;     (* alias for type:Set *)
-      "tune",    type_ Type.Tune;    (* alias for type:Tune *)
-      "version", type_ Type.Version; (* alias for type:Version *)
-    ]
+    let nullary_text_predicates =
+      TextFormula.[
+        nullary ~name:"person"  (type_ Type.Person);  (* alias for type:Person *)
+        nullary ~name:"dance"   (type_ Type.Dance);   (* alias for type:Dance *)
+        nullary ~name:"book"    (type_ Type.Book);    (* alias for type:Book *)
+        nullary ~name:"set"     (type_ Type.Set);     (* alias for type:Set *)
+        nullary ~name:"tune"    (type_ Type.Tune);    (* alias for type:Tune *)
+        nullary ~name:"version" (type_ Type.Version); (* alias for type:Version *)
+      ]
 
     let unary_text_predicates =
       TextFormula.[
-        "type", raw_only ~convert:(fun s ->
-            match Type.of_string_opt s with
-            | Some t -> Ok t
-            | None -> error_fmt ("There is an error in your request: "
-                                 ^^ "\"%s\" is not a valid type.") s) type_;
+        unary
+          ~name:"type"
+          (raw_only type_
+             ~convert:(fun s ->
+                 Option.to_result
+                   ~none:(spf "There is an error in your request: \"%s\" is not a valid type." s)
+                 @@ Type.of_string_opt s))
       ]
 
     let from_text_formula =
@@ -219,33 +222,33 @@ module Lift
     let nullary_text_predicates_of_type type_ =
       String.Set.of_list
         (match type_ with
-         | Type.Person  -> List.map fst  Person.Filter.nullary_text_predicates
-         | Type.Dance   -> List.map fst   Dance.Filter.nullary_text_predicates
-         | Type.Book    -> List.map fst    Book.Filter.nullary_text_predicates
-         | Type.Set     -> List.map fst     Set.Filter.nullary_text_predicates
-         | Type.Tune    -> List.map fst    Tune.Filter.nullary_text_predicates
-         | Type.Version -> List.map fst Version.Filter.nullary_text_predicates)
+         | Type.Person  -> List.map TextFormula.name_nullary  Person.Filter.nullary_text_predicates
+         | Type.Dance   -> List.map TextFormula.name_nullary   Dance.Filter.nullary_text_predicates
+         | Type.Book    -> List.map TextFormula.name_nullary    Book.Filter.nullary_text_predicates
+         | Type.Set     -> List.map TextFormula.name_nullary     Set.Filter.nullary_text_predicates
+         | Type.Tune    -> List.map TextFormula.name_nullary    Tune.Filter.nullary_text_predicates
+         | Type.Version -> List.map TextFormula.name_nullary Version.Filter.nullary_text_predicates)
 
     let nullary_text_predicates_of_types types =
       List.fold_left
         (Fun.flip (String.Set.union @@@ nullary_text_predicates_of_type))
-        (String.Set.of_list (List.map fst nullary_text_predicates))
+        (String.Set.of_list (List.map TextFormula.name_nullary nullary_text_predicates))
         types
 
     let unary_text_predicates_of_type type_ =
       String.Set.of_list
         (match type_ with
-         | Type.Person  -> List.map fst  Person.Filter.unary_text_predicates
-         | Type.Dance   -> List.map fst   Dance.Filter.unary_text_predicates
-         | Type.Book    -> List.map fst    Book.Filter.unary_text_predicates
-         | Type.Set     -> List.map fst     Set.Filter.unary_text_predicates
-         | Type.Tune    -> List.map fst    Tune.Filter.unary_text_predicates
-         | Type.Version -> List.map fst Version.Filter.unary_text_predicates)
+         | Type.Person  -> List.map TextFormula.name_unary  Person.Filter.unary_text_predicates
+         | Type.Dance   -> List.map TextFormula.name_unary   Dance.Filter.unary_text_predicates
+         | Type.Book    -> List.map TextFormula.name_unary    Book.Filter.unary_text_predicates
+         | Type.Set     -> List.map TextFormula.name_unary     Set.Filter.unary_text_predicates
+         | Type.Tune    -> List.map TextFormula.name_unary    Tune.Filter.unary_text_predicates
+         | Type.Version -> List.map TextFormula.name_unary Version.Filter.unary_text_predicates)
 
     let unary_text_predicates_of_types types =
       List.fold_left
         (Fun.flip (String.Set.union @@@ unary_text_predicates_of_type))
-        (String.Set.of_list (List.map fst unary_text_predicates))
+        (String.Set.of_list (List.map TextFormula.name_unary unary_text_predicates))
         types
 
     (* let check_predicates text_formula = *)

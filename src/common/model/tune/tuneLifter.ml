@@ -60,27 +60,29 @@ module Lift
     let kind kfilter = Formula.pred (Kind kfilter)
     let existsDance dfilter = Formula.pred (ExistsDance dfilter)
 
-    let raw string = Ok (nameMatches string)
+    let raw = Result.ok % nameMatches
 
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.Base.(Filter.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind Kind.Base.(Filter.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind Kind.Base.(Filter.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind Kind.Base.(Filter.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
-    ]
+    let nullary_text_predicates =
+      TextFormula.[
+        nullary ~name:"reel"       (kind Kind.Base.(Filter.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
+        nullary ~name:"jig"        (kind Kind.Base.(Filter.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
+        nullary ~name:"strathspey" (kind Kind.Base.(Filter.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
+        nullary ~name:"waltz"      (kind Kind.Base.(Filter.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
+      ]
 
     let unary_text_predicates =
       TextFormula.[
-        "name",         raw_only ~convert:no_convert name;
-        "name-matches", raw_only ~convert:no_convert nameMatches;
-        "author",       (author @@@@ Person.Filter.from_text_formula);
-        "by",           (author @@@@ Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-        "kind",         (kind @@@@ Kind.Base.Filter.from_text_formula);
-        "exists-dance", (existsDance @@@@ Dance.Filter.from_text_formula);
+        unary ~name:"name"         (raw_only ~convert:no_convert name);
+        unary ~name:"name-matches" (raw_only ~convert:no_convert nameMatches);
+        unary ~name:"author"       (author @@@@ Person.Filter.from_text_formula);
+        unary ~name:"by"           (author @@@@ Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
+        unary ~name:"kind"         (kind @@@@ Kind.Base.Filter.from_text_formula);
+        unary ~name:"exists-dance" (existsDance @@@@ Dance.Filter.from_text_formula);
       ]
 
     let from_text_formula =
-      TextFormula.make_to_formula raw
+      TextFormula.make_to_formula
+        raw
         nullary_text_predicates
         unary_text_predicates
 

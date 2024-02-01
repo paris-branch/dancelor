@@ -112,16 +112,17 @@ module Filter = struct
 
   let unary_text_predicates =
     TextFormula.[
-      "bars-eq", raw_only ~convert:convert_int barsEq;
-      "bars-ne", raw_only ~convert:convert_int barsNe;
-      "bars-gt", raw_only ~convert:convert_int barsGt;
-      "bars-ge", raw_only ~convert:convert_int barsGe;
-      "bars-lt", raw_only ~convert:convert_int barsLt;
-      "bars-le", raw_only ~convert:convert_int barsLe;
+      unary ~name:"bars-eq" (raw_only ~convert:convert_int barsEq);
+      unary ~name:"bars-ne" (raw_only ~convert:convert_int barsNe);
+      unary ~name:"bars-gt" (raw_only ~convert:convert_int barsGt);
+      unary ~name:"bars-ge" (raw_only ~convert:convert_int barsGe);
+      unary ~name:"bars-lt" (raw_only ~convert:convert_int barsLt);
+      unary ~name:"bars-le" (raw_only ~convert:convert_int barsLe);
     ]
 
   let from_text_formula =
-    TextFormula.make_to_formula raw
+    TextFormula.make_to_formula
+      raw
       nullary_text_predicates
       unary_text_predicates
 end
