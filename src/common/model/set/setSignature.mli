@@ -46,10 +46,17 @@ module Filter : sig
 
   val accepts : t -> SetCore.t -> float Lwt.t
 
-  val is : SetCore.t -> t
-  val existsVersion : VersionCore.Filter.t -> t
-  val deviser : PersonCore.Filter.t -> t
-  val memVersion : VersionCore.t -> t
+  val is : SetCore.t -> predicate
+  val is' : SetCore.t -> t
+
+  val existsVersion : VersionCore.Filter.t -> predicate
+  val existsVersion' : VersionCore.Filter.t -> t
+
+  val deviser : PersonCore.Filter.t -> predicate
+  val deviser' : PersonCore.Filter.t -> t
+
+  val memVersion : VersionCore.t -> predicate
+  val memVersion' : VersionCore.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

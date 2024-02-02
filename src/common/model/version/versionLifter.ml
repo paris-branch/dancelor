@@ -54,12 +54,19 @@ module Lift
       | Broken ->
         Lwt.return @@ Formula.interpret_bool @@ broken version
 
-    let is version = Formula.pred (Is version)
-    let tune tfilter = Formula.pred (Tune tfilter)
-    let tuneIs tune_ = tune (Tune.Filter.is tune_)
-    let key key_ = Formula.pred (Key key_)
-    let kind kfilter = Formula.pred (Kind kfilter)
-    let broken = Formula.pred Broken
+    let is version = Is version
+    let tune tfilter = Tune tfilter
+    let tuneIs tune_ = tune (Tune.Filter.is' tune_)
+    let key key_ = Key key_
+    let kind kfilter = Kind kfilter
+    let broken = Broken
+
+    let is' = Formula.pred % is
+    let tune' = Formula.pred % tune
+    let tuneIs' = Formula.pred % tuneIs
+    let key' = Formula.pred % key
+    let kind' = Formula.pred % kind
+    let broken' = Formula.pred broken
 
     let text_formula_converter =
       TextFormulaConverter.(
@@ -68,16 +75,16 @@ module Lift
             (* Version-specific converter *)
             make
               [
-                nullary   ~name:"broken"  broken;
-                unary     ~name:"tune"   (Result.map tune % Tune.Filter.from_text_formula);
-                unary_raw ~name:"key"    (Result.map key % Option.to_result ~none:"not a valid key" % Music.key_of_string_opt);
-                unary     ~name:"kind"   (Result.map kind % Kind.Version.Filter.from_text_formula);
+                nullary   ~name:"broken"  broken';
+                unary     ~name:"tune"   (Result.map tune' % Tune.Filter.from_text_formula);
+                unary_raw ~name:"key"    (Result.map key' % Option.to_result ~none:"not a valid key" % Music.key_of_string_opt);
+                unary     ~name:"kind"   (Result.map kind' % Kind.Version.Filter.from_text_formula);
               ]
-              ~raw: (Result.map tune % raw Tune.Filter.text_formula_converter)
+              ~raw: (Result.map tune' % raw Tune.Filter.text_formula_converter)
           )
           (
             (* Tune converter, lifted to versions *)
-            map tune Tune.Filter.text_formula_converter
+            map tune' Tune.Filter.text_formula_converter
           )
       )
 

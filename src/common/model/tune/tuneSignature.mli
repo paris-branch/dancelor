@@ -33,12 +33,18 @@ module Filter : sig
       accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
       meaning that the tune is fully rejected. *)
 
-  val is : TuneCore.t -> t
+  val is : TuneCore.t -> predicate
+  val is' : TuneCore.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
-  val author : PersonCore.Filter.t -> t
-  val authorIs : PersonCore.t -> t
-  val existsDance : DanceCore.Filter.t -> t
+  val author : PersonCore.Filter.t -> predicate
+  val author' : PersonCore.Filter.t -> t
+
+  val authorIs : PersonCore.t -> predicate
+  val authorIs' : PersonCore.t -> t
+
+  val existsDance : DanceCore.Filter.t -> predicate
+  val existsDance' : DanceCore.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   (** Converter from text formulas to formulas on tunes. *)

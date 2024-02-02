@@ -127,26 +127,36 @@ module Lift
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ kind set
 
-    let is set = Formula.pred (Is set)
-    let name name = Formula.pred (Name name)
-    let nameMatches name = Formula.pred (NameMatches name)
-    let deviser cfilter = Formula.pred (Deviser cfilter)
-    let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
-    let memVersion version = existsVersion (Version.Filter.is version)
-    let kind kfilter = Formula.pred (Kind kfilter)
+    (* FIXME: PPX *)
+    let is set = Is set
+    let name name = Name name
+    let nameMatches name = NameMatches name
+    let deviser cfilter = Deviser cfilter
+    let existsVersion vfilter = ExistsVersion vfilter
+    let kind kfilter = Kind kfilter
+
+    let memVersion = existsVersion % Version.Filter.is'
+
+    let is' = Formula.pred % is
+    let name' = Formula.pred % name
+    let nameMatches' = Formula.pred % nameMatches
+    let deviser' = Formula.pred % deviser
+    let existsVersion' = Formula.pred % existsVersion
+    let memVersion' = Formula.pred % memVersion
+    let kind' = Formula.pred % kind
 
     let text_formula_converter =
       TextFormulaConverter.(
         make
           [
-            unary_raw ~name:"name"           (Result.ok % name);
-            unary_raw ~name:"name-matches"   (Result.ok % nameMatches);
-            unary     ~name:"deviser"        (Result.map deviser % Person.Filter.from_text_formula);
-            unary     ~name:"by"             (Result.map deviser % Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
-            unary     ~name:"exists-version" (Result.map existsVersion % Version.Filter.from_text_formula);
-            unary     ~name:"kind"           (Result.map kind % Kind.Dance.Filter.from_text_formula);
+            unary_raw ~name:"name"           (Result.ok % name');
+            unary_raw ~name:"name-matches"   (Result.ok % nameMatches');
+            unary     ~name:"deviser"        (Result.map deviser' % Person.Filter.from_text_formula);
+            unary     ~name:"by"             (Result.map deviser' % Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+            unary     ~name:"exists-version" (Result.map existsVersion' % Version.Filter.from_text_formula);
+            unary     ~name:"kind"           (Result.map kind' % Kind.Dance.Filter.from_text_formula);
           ]
-          ~raw: (Result.ok % nameMatches)
+          ~raw: (Result.ok % nameMatches')
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter

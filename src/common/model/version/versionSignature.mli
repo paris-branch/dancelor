@@ -36,12 +36,23 @@ module Filter : sig
 
   val accepts : t -> VersionCore.t -> float Lwt.t
 
-  val is : VersionCore.t -> t
-  val tuneIs : TuneCore.t -> t
-  val tune : TuneCore.Filter.t -> t
-  val broken : t
-  val kind : Kind.Version.Filter.t -> t
-  val key : Music.Key.t -> t
+  val is : VersionCore.t -> predicate
+  val is' : VersionCore.t -> t
+
+  val tuneIs : TuneCore.t -> predicate
+  val tuneIs' : TuneCore.t -> t
+
+  val tune : TuneCore.Filter.t -> predicate
+  val tune' : TuneCore.Filter.t -> t
+
+  val broken : predicate
+  val broken' : t
+
+  val kind : Kind.Version.Filter.t -> predicate
+  val kind' : Kind.Version.Filter.t -> t
+
+  val key : Music.Key.t -> predicate
+  val key' : Music.Key.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

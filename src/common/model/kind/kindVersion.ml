@@ -68,16 +68,6 @@ module Filter = struct
   type t = predicate Formula.t
   [@@deriving yojson]
 
-  let is kind = Formula.pred (Is kind)
-  let barsEq int = Formula.pred (BarsEq int)
-  let barsNe int = Formula.not_ (barsEq int)
-  let barsGt int = Formula.pred (BarsGt int)
-  let barsGe int = Formula.or_l [ barsEq int; barsGt int ]
-  let barsLt int = Formula.pred (BarsLt int)
-  let barsLe int = Formula.or_l [ barsEq int; barsLt int ]
-
-  let base bfilter = Formula.pred (Base bfilter)
-
   let accepts filter kind =
     Formula.interpret filter @@ function
 
@@ -100,6 +90,23 @@ module Filter = struct
       let (_bars, bkind) = kind in
       KindBase.Filter.accepts bfilter bkind
 
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let barsEq int = BarsEq int
+  let barsGt int = BarsGt int
+  let barsLt int = BarsLt int
+  let base bfilter = Base bfilter
+
+  let is' = Formula.pred % is
+  let barsEq' = Formula.pred % barsEq
+  let barsGt' = Formula.pred % barsGt
+  let barsLt' = Formula.pred % barsLt
+  let base' = Formula.pred % base
+
+  let barsNe' = Formula.not_ % barsEq'
+  let barsGe' int = Formula.or_l [ barsEq' int; barsGt' int ]
+  let barsLe' int = Formula.or_l [ barsEq' int; barsLt' int ]
+
   let text_formula_converter =
     TextFormulaConverter.(
       merge
@@ -107,23 +114,23 @@ module Filter = struct
           (* Version kind-specific converter *)
           make
             [
-              unary_int ~name:"bars-eq" (Result.ok % barsEq);
-              unary_int ~name:"bars-ne" (Result.ok % barsNe);
-              unary_int ~name:"bars-gt" (Result.ok % barsGt);
-              unary_int ~name:"bars-ge" (Result.ok % barsGe);
-              unary_int ~name:"bars-lt" (Result.ok % barsLt);
-              unary_int ~name:"bars-le" (Result.ok % barsLe);
+              unary_int ~name:"bars-eq" (Result.ok % barsEq');
+              unary_int ~name:"bars-ne" (Result.ok % barsNe');
+              unary_int ~name:"bars-gt" (Result.ok % barsGt');
+              unary_int ~name:"bars-ge" (Result.ok % barsGe');
+              unary_int ~name:"bars-lt" (Result.ok % barsLt');
+              unary_int ~name:"bars-le" (Result.ok % barsLe');
             ]
             ~raw: (fun string ->
                 Option.fold
-                  ~some: (Result.ok % is)
+                  ~some: (Result.ok % is')
                   ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
                   (of_string_opt string)
               )
         )
         (
           (* Base kind converter, lifted to version kinds *)
-          map base KindBase.Filter.text_formula_converter
+          map base' KindBase.Filter.text_formula_converter
         )
     )
 

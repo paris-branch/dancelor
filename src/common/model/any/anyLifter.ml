@@ -114,14 +114,22 @@ module Lift
          | Version version -> Version.Filter.accepts vfilter version
          | _ -> Lwt.return Formula.interpret_false)
 
-    let type_ type_ = Formula.pred (Type type_)
+    (* FIXME: PPX *)
+    let type_ type_ = Type type_
+    let asPerson  filter = AsPerson  filter
+    let asDance   filter = AsDance   filter
+    let asBook    filter = AsBook    filter
+    let asSet     filter = AsSet     filter
+    let asTune    filter = AsTune    filter
+    let asVersion filter = AsVersion filter
 
-    let asPerson  filter = Formula.pred (AsPerson  filter)
-    let asDance   filter = Formula.pred (AsDance   filter)
-    let asBook    filter = Formula.pred (AsBook    filter)
-    let asSet     filter = Formula.pred (AsSet     filter)
-    let asTune    filter = Formula.pred (AsTune    filter)
-    let asVersion filter = Formula.pred (AsVersion filter)
+    let type_' = Formula.pred % type_
+    let asPerson' = Formula.pred % asPerson
+    let asDance' = Formula.pred % asDance
+    let asBook' = Formula.pred % asBook
+    let asSet' = Formula.pred % asSet
+    let asTune' = Formula.pred % asTune
+    let asVersion' = Formula.pred % asVersion
 
     let text_formula_converter =
       TextFormulaConverter.(
@@ -130,19 +138,19 @@ module Lift
           make
             [
               unary_raw ~name:"type" (fun string ->
-                  Result.map type_ @@
+                  Result.map type_' @@
                   Option.to_result (Type.of_string_opt string)
                     ~none:(spf "Unary predicate \"type\" does not accept \"%s\" as a valid type" string)
                 )
             ]
             ~raw: Result.error;
           (* Other converters, lifted to Any *)
-          map asPerson Person.Filter.text_formula_converter;
-          map asDance Dance.Filter.text_formula_converter;
-          map asBook Book.Filter.text_formula_converter;
-          map asSet Set.Filter.text_formula_converter;
-          map asTune Tune.Filter.text_formula_converter;
-          map asVersion Version.Filter.text_formula_converter;
+          map asPerson' Person.Filter.text_formula_converter;
+          map asDance' Dance.Filter.text_formula_converter;
+          map asBook' Book.Filter.text_formula_converter;
+          map asSet' Set.Filter.text_formula_converter;
+          map asTune' Tune.Filter.text_formula_converter;
+          map asVersion' Version.Filter.text_formula_converter;
         ]
       )
 

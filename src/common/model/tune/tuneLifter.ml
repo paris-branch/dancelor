@@ -52,26 +52,34 @@ module Lift
         let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
         Lwt.return (Formula.interpret_or_l scores)
 
-    let is tune = Formula.pred (Is tune)
-    let name string = Formula.pred (Name string)
-    let nameMatches string = Formula.pred (NameMatches string)
-    let author cfilter = Formula.pred (Author cfilter)
-    let authorIs author_ = author (Person.Filter.is author_)
-    let kind kfilter = Formula.pred (Kind kfilter)
-    let existsDance dfilter = Formula.pred (ExistsDance dfilter)
+    let is tune = Is tune
+    let name string = Name string
+    let nameMatches string = NameMatches string
+    let author cfilter = Author cfilter
+    let authorIs author_ = author (Person.Filter.is' author_)
+    let kind kfilter = Kind kfilter
+    let existsDance dfilter = ExistsDance dfilter
+
+    let is' = Formula.pred % is
+    let name' = Formula.pred % name
+    let nameMatches' = Formula.pred % nameMatches
+    let author' = Formula.pred % author
+    let authorIs' = Formula.pred % authorIs
+    let kind' = Formula.pred % kind
+    let existsDance' = Formula.pred % existsDance
 
     let text_formula_converter =
       TextFormulaConverter.(
         make
           [
-            unary_raw ~name:"name"         (Result.ok % name);
-            unary_raw ~name:"name-matches" (Result.ok % nameMatches);
-            unary     ~name:"author"       (Result.map author % Person.Filter.from_text_formula);
-            unary     ~name:"by"           (Result.map author % Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-            unary     ~name:"kind"         (Result.map kind % Kind.Base.Filter.from_text_formula);
-            unary     ~name:"exists-dance" (Result.map existsDance % Dance.Filter.from_text_formula);
+            unary_raw ~name:"name"         (Result.ok % name');
+            unary_raw ~name:"name-matches" (Result.ok % nameMatches');
+            unary     ~name:"author"       (Result.map author' % Person.Filter.from_text_formula);
+            unary     ~name:"by"           (Result.map author' % Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
+            unary     ~name:"kind"         (Result.map kind' % Kind.Base.Filter.from_text_formula);
+            unary     ~name:"exists-dance" (Result.map existsDance' % Dance.Filter.from_text_formula);
           ]
-          ~raw: (Result.ok % nameMatches)
+          ~raw: (Result.ok % nameMatches')
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter

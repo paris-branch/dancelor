@@ -29,8 +29,17 @@ module Filter : sig
 
   val accepts : t -> KindDanceType.t -> float Lwt.t
 
-  val is : KindDanceType.t -> t
-  val base : KindBase.Filter.t -> t
+  val is : KindDanceType.t -> predicate
+  val is' : KindDanceType.t -> t
+
+  val version : KindVersion.Filter.t -> predicate
+  val version' : KindVersion.Filter.t -> t
+
+  val simple : predicate
+  val simple' : t
+
+  val base : KindBase.Filter.t -> predicate
+  val base' : KindBase.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

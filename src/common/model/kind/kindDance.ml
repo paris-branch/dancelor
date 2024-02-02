@@ -65,10 +65,6 @@ module Filter = struct
   type t = predicate Formula.t
   [@@deriving yojson]
 
-  let is kind = Formula.pred (Is kind)
-  let version vfilter = Formula.pred (Version vfilter)
-  let base bfilter = version (KindVersion.Filter.base bfilter)
-
   let accepts filter kind =
     Formula.interpret filter @@ function
 
@@ -87,6 +83,18 @@ module Filter = struct
            (KindVersion.Filter.accepts vfilter)
            (version_kinds kind))
 
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let version vfilter = Version vfilter
+  let simple = Simple
+
+  let base = version % KindVersion.Filter.base'
+
+  let is' = Formula.pred % is
+  let version' = Formula.pred % version
+  let simple' = Formula.pred simple
+  let base' = Formula.pred % base
+
   let text_formula_converter =
     TextFormulaConverter.(
       merge
@@ -96,14 +104,14 @@ module Filter = struct
             []
             ~raw: (fun string ->
                 Option.fold
-                  ~some: (Result.ok % is)
+                  ~some: (Result.ok % is')
                   ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
                   (of_string_opt string)
               )
         )
         (
           (* Version kind converter, lifted to dance kinds *)
-          map version KindVersion.Filter.text_formula_converter
+          map version' KindVersion.Filter.text_formula_converter
         )
     )
 

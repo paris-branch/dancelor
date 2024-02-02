@@ -32,18 +32,23 @@ module Lift () = struct
       | NameMatches string ->
         Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name person
 
-    let is person = Formula.pred (Is person)
-    let name name = Formula.pred (Name name)
-    let nameMatches name = Formula.pred (NameMatches name)
+    (* FIXME: PPX *)
+    let is person = Is person
+    let name name = Name name
+    let nameMatches name = NameMatches name
+
+    let is' = Formula.pred % is
+    let name' = Formula.pred % name
+    let nameMatches' = Formula.pred % nameMatches
 
     let text_formula_converter =
       TextFormulaConverter.(
         make
           [
-            unary_raw ~name:"name"         (Result.ok % name);
-            unary_raw ~name:"name-matches" (Result.ok % nameMatches);
+            unary_raw ~name:"name"         (Result.ok % name');
+            unary_raw ~name:"name-matches" (Result.ok % nameMatches');
           ]
-          ~raw: (Result.ok % nameMatches)
+          ~raw: (Result.ok % nameMatches')
       )
 
     let from_text_formula = TextFormulaConverter.to_formula text_formula_converter

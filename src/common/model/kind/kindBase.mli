@@ -35,7 +35,8 @@ module Filter : sig
 
   val accepts : t -> base_kind -> float Lwt.t
 
-  val is : base_kind -> t
+  val is : base_kind -> predicate
+  val is' : base_kind -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

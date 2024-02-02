@@ -73,20 +73,23 @@ module Filter = struct
   type t = predicate Formula.t
   [@@deriving yojson]
 
-  let is kind = Formula.pred (Is kind)
-
   let accepts filter kind =
     Formula.interpret filter @@ function
 
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
+  (* FIXME: PPX *)
+  let is kind = Is kind
+
+  let is' = Formula.pred % is
+
   let text_formula_converter =
     TextFormulaConverter.make
       []
       ~raw: (fun string ->
           Option.fold
-            ~some: (Result.ok % is)
+            ~some: (Result.ok % is')
             ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
             (of_string_opt string)
         )

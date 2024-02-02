@@ -22,7 +22,7 @@ let create page =
       h2 ~a:[a_class ["title"]] [txt "List of broken versions"];
 
       L.div (
-        let%lwt versions = Version.search' Version.Filter.broken >|=| Score.list_erase in
+        let%lwt versions = Version.search' Version.Filter.broken' >|=| Score.list_erase in
 
         (* If there is no broken version, no need to print the table *)
         if List.length versions = 0 then

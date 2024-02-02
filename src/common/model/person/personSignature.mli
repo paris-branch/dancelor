@@ -31,7 +31,8 @@ module Filter : sig
 
   val accepts : t -> PersonCore.t -> float Lwt.t
 
-  val is : PersonCore.t -> t
+  val is : PersonCore.t -> predicate
+  val is' : PersonCore.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

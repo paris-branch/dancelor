@@ -27,8 +27,11 @@ module Filter : sig
 
   val accepts : t -> DanceCore.t -> float Lwt.t
 
-  val is : DanceCore.t -> t
-  val deviser : PersonCore.Filter.t -> t
+  val is : DanceCore.t -> predicate
+  val is' : DanceCore.t -> t
+
+  val deviser : PersonCore.Filter.t -> predicate
+  val deviser' : PersonCore.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

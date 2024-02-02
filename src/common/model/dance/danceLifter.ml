@@ -46,23 +46,30 @@ module Lift
          | None -> Lwt.return Formula.interpret_false
          | Some deviser -> Person.Filter.accepts cfilter deviser)
 
-    let is dance = Formula.pred (Is dance)
-    let name name = Formula.pred (Name name)
-    let nameMatches name = Formula.pred (NameMatches name)
-    let kind kfilter = Formula.pred (Kind kfilter)
-    let deviser cfilter = Formula.pred (Deviser cfilter)
+    (* FIXME: PPX *)
+    let is dance = Is dance
+    let name name = Name name
+    let nameMatches name = NameMatches name
+    let kind kfilter = Kind kfilter
+    let deviser cfilter = Deviser cfilter
+
+    let is' = Formula.pred % is
+    let name' = Formula.pred % name
+    let nameMatches' = Formula.pred % nameMatches
+    let kind' = Formula.pred % kind
+    let deviser' = Formula.pred % deviser
 
     let text_formula_converter =
       TextFormulaConverter.(
         make
           [
-            unary_raw ~name: "name"         (Result.ok % name);
-            unary_raw ~name: "name-matches" (Result.ok % nameMatches);
-            unary     ~name: "kind"         (Result.map kind % Kind.Dance.Filter.from_text_formula);
-            unary     ~name: "deviser"      (Result.map deviser % Person.Filter.from_text_formula);
-            unary     ~name: "by"           (Result.map deviser % Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+            unary_raw ~name: "name"         (Result.ok % name');
+            unary_raw ~name: "name-matches" (Result.ok % nameMatches');
+            unary     ~name: "kind"         (Result.map kind' % Kind.Dance.Filter.from_text_formula);
+            unary     ~name: "deviser"      (Result.map deviser' % Person.Filter.from_text_formula);
+            unary     ~name: "by"           (Result.map deviser' % Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
           ]
-          ~raw: (Result.ok % nameMatches)
+          ~raw: (Result.ok % nameMatches')
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter

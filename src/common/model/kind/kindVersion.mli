@@ -28,9 +28,14 @@ module Filter : sig
 
   val accepts : t -> version_kind -> float Lwt.t
 
-  val is : version_kind -> t
-  val base : KindBase.Filter.t -> t
-  val barsEq : int -> t
+  val is : version_kind -> predicate
+  val is' : version_kind -> t
+
+  val base : KindBase.Filter.t -> predicate
+  val base' : KindBase.Filter.t -> t
+
+  val barsEq : int -> predicate
+  val barsEq' : int -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
