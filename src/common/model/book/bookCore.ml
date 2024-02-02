@@ -89,6 +89,7 @@ module Filter = struct
     | ExistsVersion of VersionCore.Filter.t
     | ExistsSet of SetCore.Filter.t
     | ExistsInlineSet of SetCore.Filter.t
+    | ExistsVersionDeep of VersionCore.Filter.t
   [@@deriving yojson]
 
   type t = predicate Formula.t

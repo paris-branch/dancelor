@@ -61,7 +61,12 @@ type version_kind = t (* needed for the inferface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-    | BarsEq of int | BarsGt of int | BarsLt of int
+    | BarsEq of int
+    | BarsNe of int
+    | BarsGt of int
+    | BarsGe of int
+    | BarsLt of int
+    | BarsLe of int
     | Base of KindBase.Filter.t
   [@@deriving yojson]
 
@@ -78,13 +83,25 @@ module Filter = struct
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars = bars'))
 
+    | BarsNe bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars <> bars'))
+
     | BarsGt bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars > bars'))
 
+    | BarsGe bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars >= bars'))
+
     | BarsLt bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars < bars'))
+
+    | BarsLe bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars <= bars'))
 
     | Base bfilter ->
       let (_bars, bkind) = kind in
@@ -93,19 +110,16 @@ module Filter = struct
   (* FIXME: PPX *)
   let is kind = Is kind
   let barsEq int = BarsEq int
+  let barsNe int = BarsNe int
   let barsGt int = BarsGt int
+  let barsGe int = BarsGe int
   let barsLt int = BarsLt int
+  let barsLe int = BarsLe int
   let base bfilter = Base bfilter
 
   let is' = Formula.pred % is
   let barsEq' = Formula.pred % barsEq
-  let barsGt' = Formula.pred % barsGt
-  let barsLt' = Formula.pred % barsLt
   let base' = Formula.pred % base
-
-  let barsNe' = Formula.not_ % barsEq'
-  let barsGe' int = Formula.or_l [ barsEq' int; barsGt' int ]
-  let barsLe' int = Formula.or_l [ barsEq' int; barsLt' int ]
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -114,12 +128,12 @@ module Filter = struct
           (* Version kind-specific converter *)
           make
             [
-              unary_int ~name:"bars-eq" (Result.ok % barsEq');
-              unary_int ~name:"bars-ne" (Result.ok % barsNe');
-              unary_int ~name:"bars-gt" (Result.ok % barsGt');
-              unary_int ~name:"bars-ge" (Result.ok % barsGe');
-              unary_int ~name:"bars-lt" (Result.ok % barsLt');
-              unary_int ~name:"bars-le" (Result.ok % barsLe');
+              unary_int ~name:"bars-eq" (Result.ok % barsEq);
+              unary_int ~name:"bars-ne" (Result.ok % barsNe);
+              unary_int ~name:"bars-gt" (Result.ok % barsGt);
+              unary_int ~name:"bars-ge" (Result.ok % barsGe);
+              unary_int ~name:"bars-lt" (Result.ok % barsLt);
+              unary_int ~name:"bars-le" (Result.ok % barsLe);
             ]
             ~raw: (fun string ->
                 Option.fold

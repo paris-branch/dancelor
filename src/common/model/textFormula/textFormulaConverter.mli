@@ -14,8 +14,13 @@ type 'p t
 type 'p predicate_binding
 (** Abstract type of a binding in the map of predicates. *)
 
-val nullary : name:string -> 'p Formula.t -> 'p predicate_binding
-val unary : name:string -> (TextFormulaType.t -> ('p Formula.t, string) Result.t) -> 'p predicate_binding
+val nullary : name:string -> 'p -> 'p predicate_binding
+(** Make a predicate binding for a nullary predicate of the given name
+    converting to the given predicate. *)
+
+val unary : name:string -> (TextFormulaType.t -> ('p, string) Result.t) -> 'p predicate_binding
+(** Make a predicate binding for a unary predicate of the given name converter
+    to the given predicate. *)
 
 val make :
   raw: (string -> ('p Formula.t, string) Result.t) ->
@@ -52,16 +57,10 @@ val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 
 (** {2 Other helpers} *)
 
-val unary_raw :
-  name: string ->
-  (string -> ('p Formula.t, string) Result.t) ->
-  'p predicate_binding
+val unary_raw : name: string -> (string -> ('p, string) Result.t) -> 'p predicate_binding
 (** Build a unary predicate whose argument must be raw only. *)
 
-val unary_int :
-  name: string ->
-  (int -> ('p Formula.t, string) Result.t) ->
-  'p predicate_binding
+val unary_int : name: string -> (int -> ('p, string) Result.t) -> 'p predicate_binding
 (** Build a unary predicate whose argument must be an int. *)
 
 val raw : 'p t -> string -> ('p Formula.t, string) Result.t

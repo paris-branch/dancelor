@@ -206,7 +206,7 @@ module Lift
   module Filter = struct
     include BookCore.Filter
 
-    let accepts filter book =
+    let rec accepts filter book =
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
 
@@ -261,6 +261,14 @@ module Lift
         in
         Formula.interpret_exists (Set.Filter.accepts sfilter) isets
 
+      | ExistsVersionDeep vfilter ->
+        (* recursive call to check the compound formula *)
+        Fun.flip accepts book @@ Formula.or_l [
+          Formula.pred (ExistsVersion vfilter);
+          Formula.pred (ExistsSet (Set.Filter.existsVersion' vfilter));
+          Formula.pred (ExistsInlineSet (Set.Filter.existsVersion' vfilter));
+        ]
+
     (* FIXME: PPX *)
     let is book = Is book
     let title string = Title string
@@ -271,9 +279,13 @@ module Lift
     let existsVersion vfilter = ExistsVersion vfilter
     let existsSet sfilter = ExistsSet sfilter
     let existsInlineSet sfilter = ExistsInlineSet sfilter
+    let existsVersionDeep vfilter = ExistsVersionDeep vfilter
 
     let memVersion = existsVersion % Version.Filter.is'
     let memSet = existsSet % Set.Filter.is'
+    let memVersionDeep = existsVersionDeep % Version.Filter.is'
+    let existsTuneDeep = existsVersionDeep % Version.Filter.tune'
+    let memTuneDeep = existsTuneDeep % Tune.Filter.is'
 
     let is' = Formula.pred % is
     let title' = Formula.pred % title
@@ -284,41 +296,27 @@ module Lift
     let existsVersion' = Formula.pred % existsVersion
     let existsSet' = Formula.pred % existsSet
     let existsInlineSet' = Formula.pred % existsInlineSet
+    let existsVersionDeep' = Formula.pred % existsVersionDeep
 
     let memVersion' = Formula.pred % memVersion
     let memSet' = Formula.pred % memSet
-
-    let existsVersionDeep' vfilter =
-      Formula.or_l [
-        existsVersion' vfilter;
-        existsSet' (Set.Filter.existsVersion' vfilter);
-        existsInlineSet' (Set.Filter.existsVersion' vfilter);
-      ]
-    (** Check whether the given version filter can be satisfied in the book at any
-        depth. This is different from {!existsVersion} which checks only in the
-        direct list of version. *)
-
-    let memVersionDeep' = existsVersionDeep' % Version.Filter.is'
-
-    let existsTuneDeep' = existsVersionDeep' % Version.Filter.tune'
-    (** Checks whether the given tune filter can be satisfied in the book at any
-        depth. *)
-
-    let memTuneDeep' = existsTuneDeep' % Tune.Filter.is'
+    let memVersionDeep' = Formula.pred % memVersionDeep
+    let existsTuneDeep' = Formula.pred % existsTuneDeep
+    let memTuneDeep' = Formula.pred % memTuneDeep
 
     let text_formula_converter =
       TextFormulaConverter.(
         make
           [
-            unary_raw ~name:"title"               (Result.ok % title');
-            unary_raw ~name:"title-matches"       (Result.ok % titleMatches');
-            unary_raw ~name:"subtitle"            (Result.ok % subtitle');
-            unary_raw ~name:"subtitle-matches"    (Result.ok % subtitleMatches');
-            unary     ~name:"exists-version"      (Result.map existsVersion' % Version.Filter.from_text_formula);
-            unary     ~name:"exists-set"          (Result.map existsSet' % Set.Filter.from_text_formula);
-            unary     ~name:"exists-inline-set"   (Result.map existsInlineSet' % Set.Filter.from_text_formula);
-            unary     ~name:"exists-version-deep" (Result.map existsVersionDeep' % Version.Filter.from_text_formula);
-            unary     ~name:"exists-tune-deep"    (Result.map existsVersionDeep' % Version.Filter.from_text_formula);
+            unary_raw ~name:"title"               (Result.ok % title);
+            unary_raw ~name:"title-matches"       (Result.ok % titleMatches);
+            unary_raw ~name:"subtitle"            (Result.ok % subtitle);
+            unary_raw ~name:"subtitle-matches"    (Result.ok % subtitleMatches);
+            unary     ~name:"exists-version"      (Result.map existsVersion % Version.Filter.from_text_formula);
+            unary     ~name:"exists-set"          (Result.map existsSet % Set.Filter.from_text_formula);
+            unary     ~name:"exists-inline-set"   (Result.map existsInlineSet % Set.Filter.from_text_formula);
+            unary     ~name:"exists-version-deep" (Result.map existsVersionDeep % Version.Filter.from_text_formula);
+            unary     ~name:"exists-tune-deep"    (Result.map existsVersionDeep % Version.Filter.from_text_formula);
           ]
           ~raw: (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)))
       )

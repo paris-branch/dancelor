@@ -138,7 +138,7 @@ module Lift
           make
             [
               unary_raw ~name:"type" (fun string ->
-                  Result.map type_' @@
+                  Result.map type_ @@
                   Option.to_result (Type.of_string_opt string)
                     ~none:(spf "Unary predicate \"type\" does not accept \"%s\" as a valid type" string)
                 )

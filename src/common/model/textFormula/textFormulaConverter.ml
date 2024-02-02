@@ -12,8 +12,11 @@ let map_predicate f = function
 
 type 'p predicate_binding = string * 'p predicate
 
-let nullary ~name formula = (name, Nullary formula)
-let unary ~name to_formula = (name, Unary to_formula)
+let nullary' ~name formula = (name, Nullary formula)
+let nullary ~name predicate = nullary' ~name (Formula.pred predicate)
+
+let unary' ~name to_formula = (name, Unary to_formula)
+let unary ~name to_predicate = unary' ~name (Result.map Formula.pred % to_predicate)
 
 let map_predicate_binding f (name, predicate) =
   (name, map_predicate f predicate)
@@ -54,14 +57,18 @@ let predicate_to_formula converter text_predicate =
 
 let to_formula converter = Formula.convert (predicate_to_formula converter)
 
-let unary_raw ~name to_formula = unary ~name @@ function
+let unary_raw' ~name to_formula = unary' ~name @@ function
   | Pred (Raw s) -> to_formula s
   | _ -> Error "the unary predicate \"%s:\" only accepts a raw argument"
 
-let unary_int ~name to_formula = unary_raw ~name @@ fun s ->
+let unary_raw ~name to_predicate = unary_raw' ~name (Result.map Formula.pred % to_predicate)
+
+let unary_int' ~name to_formula = unary_raw' ~name @@ fun s ->
   Option.fold (int_of_string_opt s)
     ~some: to_formula
     ~none: (kspf Result.error "the unary predicate \"%s:\" expects an integer; got \"%s\"" name s)
+
+let unary_int ~name to_predicate = unary_int' ~name (Result.map Formula.pred % to_predicate)
 
 let rec predicate_names predicate_name = function
   | False -> String.Set.empty
