@@ -1,11 +1,4 @@
 let (||>) f g x = f x |> g
-let (@@@) f g x = f (g x)
-
-(* FIXME: this has to be renamed and go in the Result syntax *)
-let (@@@@) f g x =
-  match g x with
-  | Ok y -> Ok (f y)
-  | Error err -> Error err
 
 let (>>=|) = NesLwt.bind
 let (>=>|) = NesLwt.compose

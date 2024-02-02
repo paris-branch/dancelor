@@ -292,39 +292,25 @@ module Lift
 
     let memTuneDeep tune = existsTuneDeep (Tune.Filter.is tune)
 
-    let raw string =
-      Ok (
-        Formula.or_l [
-          titleMatches string;
-          subtitleMatches string;
-        ]
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            unary_raw ~name:"title"               (Result.ok % title);
+            unary_raw ~name:"title-matches"       (Result.ok % titleMatches);
+            unary_raw ~name:"subtitle"            (Result.ok % subtitle);
+            unary_raw ~name:"subtitle-matches"    (Result.ok % subtitleMatches);
+            unary     ~name:"exists-version"      (Result.map existsVersion % Version.Filter.from_text_formula);
+            unary     ~name:"exists-set"          (Result.map existsSet % Set.Filter.from_text_formula);
+            unary     ~name:"exists-inline-set"   (Result.map existsInlineSet % Set.Filter.from_text_formula);
+            unary     ~name:"exists-version-deep" (Result.map existsVersionDeep % Version.Filter.from_text_formula);
+            unary     ~name:"exists-tune-deep"    (Result.map existsVersionDeep % Version.Filter.from_text_formula);
+          ]
+          ~raw: (fun string -> Ok (Formula.or_ (titleMatches string) (subtitleMatches string)))
       )
 
-    let nullary_text_predicates =
-      TextFormula.[
-        nullary ~name:"source" isSource;
-      ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        unary ~name:"title"               (raw_only ~convert:no_convert title);
-        unary ~name:"title-matches"       (raw_only ~convert:no_convert titleMatches);
-        unary ~name:"subtitle"            (raw_only ~convert:no_convert subtitle);
-        unary ~name:"subtitle-matches"    (raw_only ~convert:no_convert subtitleMatches);
-        unary ~name:"exists-version"      (existsVersion @@@@ Version.Filter.from_text_formula);
-        unary ~name:"exists-set"          (existsSet @@@@ Set.Filter.from_text_formula);
-        unary ~name:"exists-inline-set"   (existsInlineSet @@@@ Set.Filter.from_text_formula);
-        unary ~name:"exists-version-deep" (existsVersionDeep @@@@ Version.Filter.from_text_formula);
-        unary ~name:"exists-tune-deep"    (existsVersionDeep @@@@ Version.Filter.from_text_formula);
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula
-        raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
   end
 end

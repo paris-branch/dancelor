@@ -36,22 +36,18 @@ module Lift () = struct
     let name name = Formula.pred (Name name)
     let nameMatches name = Formula.pred (NameMatches name)
 
-    let raw string = Ok (nameMatches string)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            unary_raw ~name:"name"         (Result.ok % name);
+            unary_raw ~name:"name-matches" (Result.ok % nameMatches);
+          ]
+          ~raw: (Result.ok % nameMatches)
+      )
 
-    let nullary_text_predicates = []
-
-    let unary_text_predicates =
-      TextFormula.[
-        { name = "name";         to_formula = raw_only ~convert:no_convert name };
-        { name = "name-matches"; to_formula = raw_only ~convert:no_convert nameMatches };
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormulaConverter.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
   end
 end

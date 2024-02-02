@@ -40,14 +40,8 @@ module Filter : sig
   val authorIs : PersonCore.t -> t
   val existsDance : DanceCore.Filter.t -> t
 
-  val raw : predicate TextFormula.raw_builder
-  (** Build a filter appropriate to match raw strings, or fail. *)
-
-  val nullary_text_predicates : predicate TextFormula.nullary_predicates
-  (** Association list of nullary text predicates over sets. *)
-
-  val unary_text_predicates : predicate TextFormula.unary_predicates
-  (** Association list of unary text predicates over tunes. *)
+  val text_formula_converter : predicate TextFormulaConverter.t
+  (** Converter from text formulas to formulas on tunes. *)
 
   val from_text_formula : TextFormula.t -> (t, string) Result.t
   (** Build a filter from a text formula, or fail. *)

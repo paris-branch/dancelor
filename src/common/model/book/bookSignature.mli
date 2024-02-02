@@ -89,10 +89,7 @@ module Filter : sig
   val memTuneDeep : TuneCore.t -> t
   val memVersionDeep : VersionCore.t -> t
 
-  val raw : predicate TextFormula.raw_builder
-  val nullary_text_predicates : predicate TextFormula.nullary_predicates
-  val unary_text_predicates : predicate TextFormula.unary_predicates
-
+  val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
 end

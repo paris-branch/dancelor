@@ -1,120 +1,112 @@
 open Nes
 open Formula
-open TextFormulaType
+module Type = TextFormulaType
 
-(* REVIEW: Should maybe go to [NesResult]. *)
-let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
+type 'p predicate =
+  | Nullary of 'p Formula.t
+  | Unary of (Type.t -> ('p Formula.t, string) Result.t)
 
-type 'p raw_builder = string -> ('p Formula.t, string) Result.t
-(** A raw builder describes how to get a formula from raw strings. Raw strings
-    are search strings not attached to a predicate. For instance, in the search
-    string ["bonjour baguette:oui monsieur :chocolate"], the raw strings are
-    ["bonjour"] and ["monsieur"]. *)
+let map_predicate f = function
+  | Nullary formula -> Nullary (f formula)
+  | Unary to_formula -> Unary (Result.map f % to_formula)
 
-type 'p nullary_predicate = {
-  name: string;
-  formula: 'p Formula.t;
+type 'p predicate_binding = string * 'p predicate
+
+let nullary ~name formula = (name, Nullary formula)
+let unary ~name to_formula = (name, Unary to_formula)
+
+let map_predicate_binding f (name, predicate) =
+  (name, map_predicate f predicate)
+
+type 'p t = {
+  raw: string -> ('p Formula.t, string) Result.t;
+  predicates: 'p predicate String.Map.t
 }
-(** A nullary text predicate is described by its name and a formula to which it
-    should be converted. For instance, in the search string ["bonjour
-    baguette:oui monsieur :chocolate"], the nullary predicate is [:chocolate]
-    which could, in an imaginary world, be described as [{ name = "chocolate";
-    formula = And(Food, Kind "choco") }]. *)
 
-let nullary ~name formula = {name; formula}
-(** Smart constructor of a {!nullary_predicate}. *)
+let raw converter = converter.raw
+let predicates converter = List.of_seq @@ String.Map.to_seq converter.predicates
 
-let name_nullary {name; formula=_} = name
+let make ~raw predicates = {raw; predicates = String.Map.of_seq (List.to_seq predicates)}
 
-let map_nullary f {name; formula} = {name; formula = f formula}
-(** Map over the formula in a nullary predicate. *)
+let map_raw f raw = Result.map f % raw
 
-type 'p nullary_predicates = 'p nullary_predicate list
-(** Several nullary predicates; the names should be all distinct. Although not
-    necessary, ideally, they should also be distinct fomr the ones in
-    {!unary_predicates}. *)
+let map f {raw; predicates} =
+  {
+    raw = map_raw f raw;
+    predicates = String.Map.map (map_predicate f) predicates
+  }
 
-type 'p unary_predicate = {
-  name: string;
-  to_formula: t -> ('p Formula.t, string) Result.t;
-}
-(** A unary text predicate is described by its name and a function from its
-    argument (as a text formula) to a formula representing this applied unary
-    predicate. For instance, in the search string ["bonjour baguette:oui
-    monsieur :chocolate"], the unary predicate is [baguette:], applied to [Raw
-    "oui"] which could, in an imaginary world, be described as [{ name =
-    "baguette"; to_formula = (function "oui" -> Ok true | "non" -> Ok false | _
-    -> Error "bad french!") }] *)
-
-let unary ~name to_formula = {name; to_formula}
-(** Smart constructor of a {!unary_predicate}. *)
-
-let name_unary {name; to_formula=_} = name
-
-let map_unary f {name; to_formula} = {name; to_formula = f to_formula}
-(** Map over the [to_formula] field of a unary predicate. *)
-
-type 'p unary_predicates = 'p unary_predicate list
-(** Several unary predicates; the names should be all distinct. Although not
-    necessary, ideally, they should also be distinct from the ones in
-    {!nullary_predicates}. *)
-
-let make_predicate_to_formula
-    (raw_builder : 'p raw_builder)
-    (nullary_predicates : 'p nullary_predicates)
-    (unary_predicates : 'p unary_predicates)
-  : predicate -> ('p Formula.t, string) Result.t
-  =
-  function
-  | Raw string -> raw_builder string
-  | Nullary n ->
+let predicate_to_formula converter text_predicate =
+  match text_predicate with
+  | Type.Raw string -> converter.raw string
+  | Type.Nullary name | Type.Unary (name, _) ->
     Option.fold
-      (List.find_opt (fun (np : 'p nullary_predicate) -> np.name = n) nullary_predicates)
-      ~some: (fun np -> Ok np.formula)
-      ~none: (error_fmt "the nullary predicate \":%s\" does not exist" n)
-  | Unary (n, e) ->
-    Option.fold
-      (List.find_opt (fun (up : 'p unary_predicate) -> up.name = n) unary_predicates)
-      ~some: (fun up -> up.to_formula e)
-      ~none: (error_fmt "the unary predicate \"%s:\" does not exist" n)
+      (String.Map.find_opt name converter.predicates)
+      ~none: (kspf Result.error "the predicate \"%s\" does not exist" name)
+      ~some: (fun predicate ->
+          match text_predicate, predicate with
+          | Type.Nullary _, Nullary formula -> Ok formula
+          | Type.Unary (_, subformula), Unary to_formula -> to_formula subformula
+          | Type.Nullary _, _ -> kspf Result.error "the predicate \":%s\" expects no argument" name
+          | Type.Unary _, _ -> kspf Result.error "the predicate \"%s:\" expects one argument" name
+          | Type.Raw _, _ -> assert false
+        )
 
-let make_to_formula
-    (raw_builder : 'p raw_builder)
-    (nullary_predicates : 'p nullary_predicates)
-    (unary_predicates : 'p unary_predicates)
-  : t -> ('p Formula.t, string) Result.t
-  =
-  Formula.convert @@ make_predicate_to_formula raw_builder nullary_predicates unary_predicates
+let to_formula converter = Formula.convert (predicate_to_formula converter)
 
-(** Helper to build a unary predicate whose argument must be raw only. *)
-let raw_only
-    ~(convert : string -> ('a, string) result)
-    (mk : 'a -> 'b Formula.t)
-  : t -> ('b Formula.t, string) result
-  =
-  function
-  | Pred (Raw s) -> Result.map mk (convert s)
-  | _ -> Error "this predicate only accepts raw arguments"
+let unary_raw ~name to_formula = unary ~name @@ function
+  | Pred (Raw s) -> to_formula s
+  | _ -> Error "the unary predicate \"%s:\" only accepts a raw argument"
 
-let no_convert x = Ok x
+let unary_int ~name to_formula = unary_raw ~name @@ fun s ->
+  Option.fold (int_of_string_opt s)
+    ~some: to_formula
+    ~none: (kspf Result.error "the unary predicate \"%s:\" expects an integer; got \"%s\"" name s)
 
-let convert_int s =
-  Option.to_result (int_of_string_opt s)
-    ~none: "this predicate only accepts integers"
-
-let rec predicates from_predicate = function
+let rec predicate_names predicate_name = function
   | False -> String.Set.empty
   | True -> String.Set.empty
-  | Not formula -> predicates from_predicate formula
+  | Not formula -> predicate_names predicate_name formula
   | And (formula1, formula2) | Or (formula1, formula2) ->
     String.Set.union
-      (predicates from_predicate formula1)
-      (predicates from_predicate formula2)
+      (predicate_names predicate_name formula1)
+      (predicate_names predicate_name formula2)
   | Pred pred ->
     Option.fold
       ~none: String.Set.empty
       ~some: String.Set.singleton
-      (from_predicate pred)
+      (predicate_name pred)
 
-let nullary_predicates = predicates @@ function Nullary string -> Some string | _ -> None
-let unary_predicates = predicates @@ function Unary (string, _) -> Some string | _ -> None
+let merge converter1 converter2 =
+  let formula_result_or_ result1 result2 =
+    (* If both formulas are [Ok], then [Formula.or_]. If only one is [Ok], then
+       that one. If both are [Error] then [Error]. *)
+    match result1, result2 with
+    | Ok formula1, Ok formula2 -> Ok (Formula.or_ formula1 formula2)
+    | Ok formula1, _ -> Ok formula1
+    | _, Ok formula2 -> Ok formula2
+    | Error err1, Error err2 -> Error (err1 ^ "\n" ^ err2)
+  in
+  let raw string =
+    formula_result_or_
+      (converter1.raw string)
+      (converter2.raw string)
+  in
+  let predicates =
+    String.Map.union
+      (fun name predicate1 predicate2 ->
+         match predicate1, predicate2 with
+         | Nullary formula1, Nullary formula2 ->
+           Some (Nullary (Formula.or_ formula1 formula2))
+         | Unary to_formula1, Unary to_formula2 ->
+           Some (Unary (fun text_formula -> formula_result_or_ (to_formula1 text_formula) (to_formula2 text_formula)))
+         | _ ->
+           kspf invalid_arg "TextFormula.Converter.merge: predicate \"%s\" appears in both with different arities" name)
+      converter1.predicates
+      converter2.predicates
+  in
+  { raw; predicates }
+
+let merge_l = function
+  | [] -> invalid_arg "TextFormula.Converter.merge_l"
+  | converter :: converters -> List.fold_left merge converter converters

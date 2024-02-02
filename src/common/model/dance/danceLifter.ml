@@ -52,32 +52,21 @@ module Lift
     let kind kfilter = Formula.pred (Kind kfilter)
     let deviser cfilter = Formula.pred (Deviser cfilter)
 
-    let raw string = Ok (nameMatches string)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            unary_raw ~name: "name"         (Result.ok % name);
+            unary_raw ~name: "name-matches" (Result.ok % nameMatches);
+            unary     ~name: "kind"         (Result.map kind % Kind.Dance.Filter.from_text_formula);
+            unary     ~name: "deviser"      (Result.map deviser % Person.Filter.from_text_formula);
+            unary     ~name: "by"           (Result.map deviser % Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
+          ]
+          ~raw: (Result.ok % nameMatches)
+      )
 
-    let nullary_text_predicates =
-      TextFormula.[
-        nullary ~name: "reel"       (kind Kind.(Dance.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
-        nullary ~name: "jig"        (kind Kind.(Dance.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
-        nullary ~name: "strathspey" (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
-        nullary ~name: "waltz"      (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
-      ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        unary ~name: "name"         (raw_only ~convert:no_convert name);
-        unary ~name: "name-matches" (raw_only ~convert:no_convert nameMatches);
-        unary ~name: "kind"         (kind @@@@ Kind.Dance.Filter.from_text_formula);
-        unary ~name: "deviser"      (deviser @@@@ Person.Filter.from_text_formula);
-        unary ~name: "by"           (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula
-        raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
   end
 end

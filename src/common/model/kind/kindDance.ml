@@ -87,28 +87,27 @@ module Filter = struct
            (KindVersion.Filter.accepts vfilter)
            (version_kinds kind))
 
-  let raw string =
-    match KindBase.of_string_opt string with
-    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
-    | None ->
-      match KindVersion.of_string_opt string with
-      | Some vkind -> Ok (version (KindVersion.Filter.is vkind))
-      | None ->
-        match of_string_opt string with
-        | Some dkind -> Ok (is dkind)
-        | None -> error_fmt "could not interpret \"%s\" as a kind for dances" string
+  let text_formula_converter =
+    TextFormulaConverter.(
+      merge
+        (
+          (* Dance kind-specific converter *)
+          make
+            []
+            ~raw: (fun string ->
+                Option.fold
+                  ~some: (Result.ok % is)
+                  ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
+                  (of_string_opt string)
+              )
+        )
+        (
+          (* Version kind converter, lifted to dance kinds *)
+          map version KindVersion.Filter.text_formula_converter
+        )
+    )
 
-  let nullary_text_predicates = []
-
-  (* Unary text_predicates lifted from Versions. *)
-  let unary_text_predicates =
-    List.map
-      (TextFormula.map_unary ((%) (Result.map version)))
-      KindVersion.Filter.unary_text_predicates
-
-  let from_text_formula =
-    TextFormula.make_to_formula
-      raw
-      nullary_text_predicates
-      unary_text_predicates
+  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_string ?filename input =
+    Result.bind (TextFormula.from_string ?filename input) from_text_formula
 end

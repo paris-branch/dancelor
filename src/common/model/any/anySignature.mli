@@ -107,11 +107,10 @@ module Filter : sig
 
   (** {3 Destructors} *)
 
-  val from_string : string -> (t, string list) result
+  val from_string : ?filename:string -> string -> (t, string list) Result.t
   (** Parse a text formula into a filter on “any” elements. *)
-
-  val from_string_exn : string -> t
-  (** Exceptional equivalent of {!from_string}. *)
+  (* FIXME: In fact, the list is always a singleton, so maybe we could use a
+     list instead, everywhere. *)
 
   (** {3 Others} *)
 

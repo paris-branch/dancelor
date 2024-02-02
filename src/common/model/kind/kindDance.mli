@@ -25,16 +25,14 @@ val version_kinds : t -> KindVersion.t list
 
 module Filter : sig
   type predicate
-  type t [@@deriving yojson]
+  type t = predicate Formula.t [@@deriving yojson]
 
   val accepts : t -> KindDanceType.t -> float Lwt.t
 
   val is : KindDanceType.t -> t
   val base : KindBase.Filter.t -> t
 
-  val raw : predicate TextFormula.raw_builder
-  val nullary_text_predicates : predicate TextFormula.nullary_predicates
-  val unary_text_predicates : predicate TextFormula.unary_predicates
-
+  val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
 end

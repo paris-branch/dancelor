@@ -100,29 +100,34 @@ module Filter = struct
       let (_bars, bkind) = kind in
       KindBase.Filter.accepts bfilter bkind
 
-  let raw string =
-    match KindBase.of_string_opt string with
-    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
-    | None ->
-      match of_string_opt string with
-      | Some vkind -> Ok (is vkind)
-      | None -> error_fmt "could not interpret \"%s\" as a kind for versions" string
+  let text_formula_converter =
+    TextFormulaConverter.(
+      merge
+        (
+          (* Version kind-specific converter *)
+          make
+            [
+              unary_int ~name:"bars-eq" (Result.ok % barsEq);
+              unary_int ~name:"bars-ne" (Result.ok % barsNe);
+              unary_int ~name:"bars-gt" (Result.ok % barsGt);
+              unary_int ~name:"bars-ge" (Result.ok % barsGe);
+              unary_int ~name:"bars-lt" (Result.ok % barsLt);
+              unary_int ~name:"bars-le" (Result.ok % barsLe);
+            ]
+            ~raw: (fun string ->
+                Option.fold
+                  ~some: (Result.ok % is)
+                  ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
+                  (of_string_opt string)
+              )
+        )
+        (
+          (* Base kind converter, lifted to version kinds *)
+          map base KindBase.Filter.text_formula_converter
+        )
+    )
 
-  let nullary_text_predicates = []
-
-  let unary_text_predicates =
-    TextFormula.[
-      unary ~name:"bars-eq" (raw_only ~convert:convert_int barsEq);
-      unary ~name:"bars-ne" (raw_only ~convert:convert_int barsNe);
-      unary ~name:"bars-gt" (raw_only ~convert:convert_int barsGt);
-      unary ~name:"bars-ge" (raw_only ~convert:convert_int barsGe);
-      unary ~name:"bars-lt" (raw_only ~convert:convert_int barsLt);
-      unary ~name:"bars-le" (raw_only ~convert:convert_int barsLe);
-    ]
-
-  let from_text_formula =
-    TextFormula.make_to_formula
-      raw
-      nullary_text_predicates
-      unary_text_predicates
+  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_string ?filename input =
+    Result.bind (TextFormula.from_string ?filename input) from_text_formula
 end

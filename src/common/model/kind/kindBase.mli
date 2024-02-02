@@ -30,11 +30,13 @@ type base_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
 module Filter : sig
-  type t [@@deriving yojson]
+  type predicate
+  type t = predicate Formula.t [@@deriving yojson]
 
   val accepts : t -> base_kind -> float Lwt.t
 
   val is : base_kind -> t
 
+  val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
 end

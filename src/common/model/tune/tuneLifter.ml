@@ -60,33 +60,22 @@ module Lift
     let kind kfilter = Formula.pred (Kind kfilter)
     let existsDance dfilter = Formula.pred (ExistsDance dfilter)
 
-    let raw = Result.ok % nameMatches
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            unary_raw ~name:"name"         (Result.ok % name);
+            unary_raw ~name:"name-matches" (Result.ok % nameMatches);
+            unary     ~name:"author"       (Result.map author % Person.Filter.from_text_formula);
+            unary     ~name:"by"           (Result.map author % Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
+            unary     ~name:"kind"         (Result.map kind % Kind.Base.Filter.from_text_formula);
+            unary     ~name:"exists-dance" (Result.map existsDance % Dance.Filter.from_text_formula);
+          ]
+          ~raw: (Result.ok % nameMatches)
+      )
 
-    let nullary_text_predicates =
-      TextFormula.[
-        nullary ~name:"reel"       (kind Kind.Base.(Filter.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
-        nullary ~name:"jig"        (kind Kind.Base.(Filter.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
-        nullary ~name:"strathspey" (kind Kind.Base.(Filter.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
-        nullary ~name:"waltz"      (kind Kind.Base.(Filter.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
-      ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        unary ~name:"name"         (raw_only ~convert:no_convert name);
-        unary ~name:"name-matches" (raw_only ~convert:no_convert nameMatches);
-        unary ~name:"author"       (author @@@@ Person.Filter.from_text_formula);
-        unary ~name:"by"           (author @@@@ Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-        unary ~name:"kind"         (kind @@@@ Kind.Base.Filter.from_text_formula);
-        unary ~name:"exists-dance" (existsDance @@@@ Dance.Filter.from_text_formula);
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula
-        raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
   end
 end

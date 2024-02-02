@@ -81,17 +81,15 @@ module Filter = struct
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
-  let raw string =
-    match of_string_opt string with
-    | Some kind -> Ok (is kind)
-    | None -> error_fmt "could not interpret \"%s\" as a base kind" string
+  let text_formula_converter =
+    TextFormulaConverter.make
+      []
+      ~raw: (fun string ->
+          Option.fold
+            ~some: (Result.ok % is)
+            ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
+            (of_string_opt string)
+        )
 
-  let nullary_text_predicates = []
-
-  let unary_text_predicates = []
-
-  let from_text_formula =
-    TextFormula.make_to_formula raw
-      nullary_text_predicates
-      unary_text_predicates
+  let from_text_formula = TextFormula.to_formula text_formula_converter
 end

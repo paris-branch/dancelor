@@ -123,80 +123,33 @@ module Lift
     let asTune    filter = Formula.pred (AsTune    filter)
     let asVersion filter = Formula.pred (AsVersion filter)
 
-    let raw str =
-      let filters = [
-        (match  Person.Filter.raw str with Ok cfilter -> Ok ( asPerson cfilter) | Error err -> error_fmt "- for persons, %s"  err);
-        (match   Dance.Filter.raw str with Ok dfilter -> Ok (  asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
-        (match    Book.Filter.raw str with Ok bfilter -> Ok (   asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
-        (match     Set.Filter.raw str with Ok sfilter -> Ok (    asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
-        (match    Tune.Filter.raw str with Ok tfilter -> Ok (   asTune tfilter) | Error err -> error_fmt "- for tunes, %s"    err);
-        (match Version.Filter.raw str with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "- for versions, %s" err);
-      ] in
-      let filters, errors =
-        List.partition_map
-          (function Ok filter -> Left filter | Error err -> Right err)
-          filters
-      in
-      if filters <> [] then
-        Ok (Formula.or_l filters)
-      else
-        match errors with
-        | [] -> assert false
-        | err :: _ -> Error err (* FIXME: also show the others *)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        merge_l [
+          (* Any-specific converter *)
+          make
+            [
+              unary_raw ~name:"type" (fun string ->
+                  Result.map type_ @@
+                  Option.to_result (Type.of_string_opt string)
+                    ~none:(spf "Unary predicate \"type\" does not accept \"%s\" as a valid type" string)
+                )
+            ]
+            ~raw: Result.error;
+          (* Other converters, lifted to Any *)
+          map asPerson Person.Filter.text_formula_converter;
+          map asDance Dance.Filter.text_formula_converter;
+          map asBook Book.Filter.text_formula_converter;
+          map asSet Set.Filter.text_formula_converter;
+          map asTune Tune.Filter.text_formula_converter;
+          map asVersion Version.Filter.text_formula_converter;
+        ]
+      )
 
-    let nullary_text_predicates =
-      TextFormula.[
-        nullary ~name:"person"  (type_ Type.Person);  (* alias for type:Person *)
-        nullary ~name:"dance"   (type_ Type.Dance);   (* alias for type:Dance *)
-        nullary ~name:"book"    (type_ Type.Book);    (* alias for type:Book *)
-        nullary ~name:"set"     (type_ Type.Set);     (* alias for type:Set *)
-        nullary ~name:"tune"    (type_ Type.Tune);    (* alias for type:Tune *)
-        nullary ~name:"version" (type_ Type.Version); (* alias for type:Version *)
-      ]
+    let from_text_formula = TextFormula.to_formula text_formula_converter
+    let from_string ?filename input =
+      Result.map_error List.singleton @@ Result.bind (TextFormula.from_string ?filename input) from_text_formula
 
-    let unary_text_predicates =
-      TextFormula.[
-        unary
-          ~name:"type"
-          (raw_only type_
-             ~convert:(fun s ->
-                 Option.to_result
-                   ~none:(spf "There is an error in your request: \"%s\" is not a valid type." s)
-                 @@ Type.of_string_opt s))
-      ]
-
-    let from_text_formula =
-      let from_text_predicate pred =
-        let filters = [
-          TextFormula.make_predicate_to_formula raw
-            nullary_text_predicates unary_text_predicates pred;
-          (match  Person.Filter.from_text_formula (Pred pred) with Ok cfilter -> Ok  (asPerson cfilter) | Error err -> error_fmt "- for persons, %s"  err);
-          (match   Dance.Filter.from_text_formula (Pred pred) with Ok dfilter -> Ok   (asDance dfilter) | Error err -> error_fmt "- for dances, %s"   err);
-          (match    Book.Filter.from_text_formula (Pred pred) with Ok bfilter -> Ok    (asBook bfilter) | Error err -> error_fmt "- for books, %s"    err);
-          (match     Set.Filter.from_text_formula (Pred pred) with Ok sfilter -> Ok     (asSet sfilter) | Error err -> error_fmt "- for sets, %s"     err);
-          (match    Tune.Filter.from_text_formula (Pred pred) with Ok tfilter -> Ok    (asTune tfilter) | Error err -> error_fmt "- for tunes, %s"    err);
-          (match Version.Filter.from_text_formula (Pred pred) with Ok vfilter -> Ok (asVersion vfilter) | Error err -> error_fmt "- for versions, %s" err);
-        ] in
-        let filters, errors =
-          List.partition_map
-            (function Ok filter -> Left filter | Error err -> Right err)
-            filters
-        in
-        if filters <> [] then
-          Ok (Formula.or_l filters)
-        else
-          match errors with
-          | [] -> assert false
-          | _ ->
-            Error ([
-                "There is a part of your formula on which all types encountered an error.";
-                aspf "The part in question is: %a." (TextFormula.Printer.pp_predicate False) pred;
-                "The errors are:"
-              ] @ errors)
-      in
-      Formula.convert from_text_predicate
-
-    (** All the possible types that a formula can return. *)
     let possible_types =
       let open Formula in
       let rec possible_types = function
@@ -218,100 +171,5 @@ module Lift
           | AsVersion _ -> Type.Set.singleton Version
       in
       List.of_seq % Type.Set.to_seq % possible_types
-
-    let nullary_text_predicates_of_type type_ =
-      String.Set.of_list
-        (match type_ with
-         | Type.Person  -> List.map TextFormula.name_nullary  Person.Filter.nullary_text_predicates
-         | Type.Dance   -> List.map TextFormula.name_nullary   Dance.Filter.nullary_text_predicates
-         | Type.Book    -> List.map TextFormula.name_nullary    Book.Filter.nullary_text_predicates
-         | Type.Set     -> List.map TextFormula.name_nullary     Set.Filter.nullary_text_predicates
-         | Type.Tune    -> List.map TextFormula.name_nullary    Tune.Filter.nullary_text_predicates
-         | Type.Version -> List.map TextFormula.name_nullary Version.Filter.nullary_text_predicates)
-
-    let nullary_text_predicates_of_types types =
-      List.fold_left
-        (Fun.flip (String.Set.union @@@ nullary_text_predicates_of_type))
-        (String.Set.of_list (List.map TextFormula.name_nullary nullary_text_predicates))
-        types
-
-    let unary_text_predicates_of_type type_ =
-      String.Set.of_list
-        (match type_ with
-         | Type.Person  -> List.map TextFormula.name_unary  Person.Filter.unary_text_predicates
-         | Type.Dance   -> List.map TextFormula.name_unary   Dance.Filter.unary_text_predicates
-         | Type.Book    -> List.map TextFormula.name_unary    Book.Filter.unary_text_predicates
-         | Type.Set     -> List.map TextFormula.name_unary     Set.Filter.unary_text_predicates
-         | Type.Tune    -> List.map TextFormula.name_unary    Tune.Filter.unary_text_predicates
-         | Type.Version -> List.map TextFormula.name_unary Version.Filter.unary_text_predicates)
-
-    let unary_text_predicates_of_types types =
-      List.fold_left
-        (Fun.flip (String.Set.union @@@ unary_text_predicates_of_type))
-        (String.Set.of_list (List.map TextFormula.name_unary unary_text_predicates))
-        types
-
-    (* let check_predicates text_formula = *)
-
-    exception UnknownPredicate of string * string
-
-    let from_string string =
-      try
-        (
-          let text_formula = TextFormula.from_string string in
-          match from_text_formula text_formula with (* can yield parse error *)
-          | Ok formula ->
-            (
-              let types_ = possible_types formula in
-              (
-                let unknown_nullary_text_predicates =
-                  String.Set.diff
-                    (TextFormula.nullary_predicates text_formula)
-                    (nullary_text_predicates_of_types types_)
-                in
-                match String.Set.choose_opt unknown_nullary_text_predicates with
-                | None -> ()
-                | Some pred -> raise (UnknownPredicate ("nullary", pred))
-              );
-              (
-                let unknown_unary_text_predicates =
-                  String.Set.diff
-                    (TextFormula.unary_predicates text_formula)
-                    (unary_text_predicates_of_types types_)
-                in
-                match String.Set.choose_opt unknown_unary_text_predicates with
-                | None -> ()
-                | Some pred -> raise (UnknownPredicate ("unary", pred))
-              );
-              Ok formula
-            )
-          | Error err -> Error err
-        )
-      with
-      | TextFormula.Lexer.UnexpectedCharacter char ->
-        errors_fmt ("There is an unexpected character in your request: '%c'. "
-                    ^^ "If you really want to type it, protect it with quotes, "
-                    ^^ "eg. \"foo%cbar\".") char char
-      | TextFormula.Lexer.UnterminatedQuote ->
-        errors_fmt ("There is an unterminated quote in your request. "
-                    ^^ "If you just want to type a quote character, "
-                    ^^ "whether inside quotes or not, escape it, eg. \"foo\\\"bar\".")
-      | TextFormula.Parser.ParseError (_, _, where) ->
-        errors_fmt "There is a syntax error %s in your request." where
-      | UnknownPredicate(arity, pred) ->
-        (* FIXME: when building the predicate produces an error, it is considered
-           unknown. This is shite. *)
-        errors_fmt "The following %s predicate is either unknown or produces an error: \"%s\"." arity pred
-      | exn ->
-        errors_fmt ("Handling your request caused an unknown exception: %s. "
-                    ^^ "Contact your system administrator with this message.")
-          (Printexc.to_string exn)
-
-    exception Error of string list
-
-    let from_string_exn string =
-      match from_string string with
-      | Ok results -> results
-      | Error err -> raise (Error err)
   end
 end

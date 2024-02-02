@@ -5,6 +5,8 @@ let  epf = Format.eprintf
 let  fpf = Format.fprintf
 let  spf = Format.sprintf
 let aspf = Format.asprintf
+let kspf = Format.ksprintf
+let kaspf = Format.kasprintf
 
 let ssf = Scanf.sscanf
 
@@ -51,9 +53,6 @@ let%test _ = (pmod (-67) (-4)) + (pdiv (-67) (-4)) *  -4 = -67
 
 let compare_or cmp1 cmp2 =
   if cmp1 <> 0 then cmp1 else cmp2 ()
-
-let error_fmt fmt = Format.kasprintf (fun s -> Error s) fmt
-let errors_fmt fmt = Format.kasprintf (fun s -> Error [s]) fmt
 
 let rec first_non_zero ?(or_=0) = function
   | [] -> or_
