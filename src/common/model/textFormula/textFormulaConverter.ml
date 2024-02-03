@@ -57,6 +57,9 @@ let predicate_to_formula converter text_predicate =
 
 let to_formula converter = Formula.convert (predicate_to_formula converter)
 
+let unary_lift ~name ~converter lift =
+  unary ~name (Result.map lift % to_formula converter)
+
 let unary_raw ~name ~cast ~type_ to_predicate = unary ~name @@ function
   | Pred (Raw s) ->
     Result.map to_predicate

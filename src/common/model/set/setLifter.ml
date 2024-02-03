@@ -137,10 +137,10 @@ module Lift
           [
             unary_string ~name:"name"           name;
             unary_string ~name:"name-matches"   nameMatches;
-            unary        ~name:"deviser"        (Result.map deviser % Person.Filter.from_text_formula);
-            unary        ~name:"by"             (Result.map deviser % Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
-            unary        ~name:"exists-version" (Result.map existsVersion % Version.Filter.from_text_formula);
-            unary        ~name:"kind"           (Result.map kind % Kind.Dance.Filter.from_text_formula);
+            unary_lift   ~name:"deviser"        deviser       ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"             deviser       ~converter:Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_lift   ~name:"exists-version" existsVersion ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"kind"           kind          ~converter:Kind.Dance.Filter.text_formula_converter;
           ]
           ~raw: (Result.ok % nameMatches')
       )

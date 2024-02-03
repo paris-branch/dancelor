@@ -18,9 +18,10 @@ val nullary : name:string -> 'p -> 'p predicate_binding
 (** Make a predicate binding for a nullary predicate of the given name
     converting to the given predicate. *)
 
-val unary : name:string -> (TextFormulaType.t -> ('p, string) Result.t) -> 'p predicate_binding
-(** Make a predicate binding for a unary predicate of the given name converter
-    to the given predicate. *)
+val unary_lift : name:string -> converter:'i t -> ('i Formula.t -> 'p) -> 'p predicate_binding
+(** Make a unary predicate that lifts other formulas. The argument is converted
+    using the [converter] and the result is passed to the given lifting
+    function. *)
 
 val unary_string : name:string -> (string -> 'p) -> 'p predicate_binding
 (** Make a unary predicate whose argument must be a string. *)

@@ -277,11 +277,11 @@ module Lift
             unary_string ~name:"title-matches"       titleMatches;
             unary_string ~name:"subtitle"            subtitle;
             unary_string ~name:"subtitle-matches"    subtitleMatches;
-            unary        ~name:"exists-version"      (Result.map existsVersion % Version.Filter.from_text_formula);
-            unary        ~name:"exists-set"          (Result.map existsSet % Set.Filter.from_text_formula);
-            unary        ~name:"exists-inline-set"   (Result.map existsInlineSet % Set.Filter.from_text_formula);
-            unary        ~name:"exists-version-deep" (Result.map existsVersionDeep % Version.Filter.from_text_formula);
-            unary        ~name:"exists-tune-deep"    (Result.map existsVersionDeep % Version.Filter.from_text_formula);
+            unary_lift   ~name:"exists-version"      existsVersion ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-set"          existsSet ~converter:Set.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-inline-set"   existsInlineSet ~converter:Set.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-version-deep" existsVersionDeep ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-tune-deep"    existsVersionDeep ~converter:Version.Filter.text_formula_converter;
           ]
           ~raw: (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)))
       )

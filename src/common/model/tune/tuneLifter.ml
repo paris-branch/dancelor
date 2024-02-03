@@ -64,10 +64,10 @@ module Lift
           [
             unary_string ~name:"name"         name;
             unary_string ~name:"name-matches" nameMatches;
-            unary        ~name:"author"       (Result.map author % Person.Filter.from_text_formula);
-            unary        ~name:"by"           (Result.map author % Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-            unary        ~name:"kind"         (Result.map kind % Kind.Base.Filter.from_text_formula);
-            unary        ~name:"exists-dance" (Result.map existsDance % Dance.Filter.from_text_formula);
+            unary_lift   ~name:"author"       author      ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"           author      ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
+            unary_lift   ~name:"kind"         kind        ~converter:Kind.Base.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-dance" existsDance ~converter:Dance.Filter.text_formula_converter;
           ]
           ~raw: (Result.ok % nameMatches')
       )
