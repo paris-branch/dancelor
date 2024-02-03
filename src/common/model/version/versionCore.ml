@@ -18,6 +18,7 @@ type t =
     created_at  : Datetime.t          [@key "created-at"] }
 [@@deriving make, yojson]
 
+(* FIXME: PPX *)
 let slug version = version.slug
 let status version = version.status
 let tune version = version.tune
@@ -45,6 +46,23 @@ module Filter = struct
     | Broken
   [@@deriving yojson]
 
+  (* FIXME: PPX *)
+  let is version = Is version
+  let tune tfilter = Tune tfilter
+  let key key_ = Key key_
+  let kind kfilter = Kind kfilter
+  let broken = Broken
+
+  let tuneIs = tune % TuneCore.Filter.is'
+
   type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is' = Formula.pred % is
+  let tune' = Formula.pred % tune
+  let key' = Formula.pred % key
+  let kind' = Formula.pred % kind
+  let broken' = Formula.pred broken
+
+  let tuneIs' = Formula.pred % tuneIs
 end

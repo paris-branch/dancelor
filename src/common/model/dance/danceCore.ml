@@ -15,6 +15,7 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, yojson]
 
+(* FIXME: PPX *)
 let slug dance = dance.slug
 let status dance = dance.status
 let name dance = dance.name
@@ -37,6 +38,19 @@ module Filter = struct
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
   [@@deriving yojson]
 
+  (* FIXME: PPX *)
+  let is dance = Is dance
+  let name name = Name name
+  let nameMatches name = NameMatches name
+  let kind kfilter = Kind kfilter
+  let deviser cfilter = Deviser cfilter
+
   type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is' = Formula.pred % is
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
+  let kind' = Formula.pred % kind
+  let deviser' = Formula.pred % deviser
 end

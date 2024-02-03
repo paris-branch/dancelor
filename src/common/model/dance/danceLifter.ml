@@ -23,6 +23,9 @@ module Lift
   let equal dance1 dance2 = Slug.equal (slug dance1) (slug dance2)
 
   module Filter = struct
+    (* NOTE: [include DanceCore.Filter] shadows the accessors of [DanceCore]. *)
+    let danceCore_deviser = deviser
+
     include DanceCore.Filter
 
     let accepts filter dance =
@@ -33,31 +36,18 @@ module Lift
         Lwt.return @@ Formula.interpret_bool @@ equal dance dance'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name dance
+        Lwt.return @@ String.proximity ~char_equal string @@ DanceCore.name dance
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name dance
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ DanceCore.name dance
 
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ kind dance
+        Kind.Dance.Filter.accepts kfilter @@ DanceCore.kind dance
 
       | Deviser cfilter ->
-        (match%lwt deviser dance with
+        (match%lwt danceCore_deviser dance with
          | None -> Lwt.return Formula.interpret_false
          | Some deviser -> Person.Filter.accepts cfilter deviser)
-
-    (* FIXME: PPX *)
-    let is dance = Is dance
-    let name name = Name name
-    let nameMatches name = NameMatches name
-    let kind kfilter = Kind kfilter
-    let deviser cfilter = Deviser cfilter
-
-    let is' = Formula.pred % is
-    let name' = Formula.pred % name
-    let nameMatches' = Formula.pred % nameMatches
-    let kind' = Formula.pred % kind
-    let deviser' = Formula.pred % deviser
 
     let text_formula_converter =
       TextFormulaConverter.(

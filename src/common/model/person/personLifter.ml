@@ -27,19 +27,10 @@ module Lift () = struct
         Lwt.return @@ Formula.interpret_bool @@ equal person person'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name person
+        Lwt.return @@ String.proximity ~char_equal string @@ PersonCore.name person
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name person
-
-    (* FIXME: PPX *)
-    let is person = Is person
-    let name name = Name name
-    let nameMatches name = NameMatches name
-
-    let is' = Formula.pred % is
-    let name' = Formula.pred % name
-    let nameMatches' = Formula.pred % nameMatches
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ PersonCore.name person
 
     let text_formula_converter =
       TextFormulaConverter.(

@@ -114,23 +114,6 @@ module Lift
          | Version version -> Version.Filter.accepts vfilter version
          | _ -> Lwt.return Formula.interpret_false)
 
-    (* FIXME: PPX *)
-    let type_ type_ = Type type_
-    let asPerson  filter = AsPerson  filter
-    let asDance   filter = AsDance   filter
-    let asBook    filter = AsBook    filter
-    let asSet     filter = AsSet     filter
-    let asTune    filter = AsTune    filter
-    let asVersion filter = AsVersion filter
-
-    let type_' = Formula.pred % type_
-    let asPerson' = Formula.pred % asPerson
-    let asDance' = Formula.pred % asDance
-    let asBook' = Formula.pred % asBook
-    let asSet' = Formula.pred % asSet
-    let asTune' = Formula.pred % asTune
-    let asVersion' = Formula.pred % asVersion
-
     let text_formula_converter =
       TextFormulaConverter.(
         merge_l [

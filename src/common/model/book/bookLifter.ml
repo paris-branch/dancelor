@@ -214,16 +214,16 @@ module Lift
         Lwt.return @@ Formula.interpret_bool @@ equal book book'
 
       | Title string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ title book
+        Lwt.return @@ String.proximity ~char_equal string @@ BookCore.title book
 
       | TitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ title book
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ BookCore.title book
 
       | Subtitle string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ subtitle book
+        Lwt.return @@ String.proximity ~char_equal string @@ BookCore.subtitle book
 
       | SubtitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ subtitle book
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ BookCore.subtitle book
 
       | IsSource ->
         Lwt.return @@ Formula.interpret_bool @@ is_source book
@@ -268,41 +268,6 @@ module Lift
           Formula.pred (ExistsSet (Set.Filter.existsVersion' vfilter));
           Formula.pred (ExistsInlineSet (Set.Filter.existsVersion' vfilter));
         ]
-
-    (* FIXME: PPX *)
-    let is book = Is book
-    let title string = Title string
-    let titleMatches string = TitleMatches string
-    let subtitle string = Subtitle string
-    let subtitleMatches string = SubtitleMatches string
-    let isSource = IsSource
-    let existsVersion vfilter = ExistsVersion vfilter
-    let existsSet sfilter = ExistsSet sfilter
-    let existsInlineSet sfilter = ExistsInlineSet sfilter
-    let existsVersionDeep vfilter = ExistsVersionDeep vfilter
-
-    let memVersion = existsVersion % Version.Filter.is'
-    let memSet = existsSet % Set.Filter.is'
-    let memVersionDeep = existsVersionDeep % Version.Filter.is'
-    let existsTuneDeep = existsVersionDeep % Version.Filter.tune'
-    let memTuneDeep = existsTuneDeep % Tune.Filter.is'
-
-    let is' = Formula.pred % is
-    let title' = Formula.pred % title
-    let titleMatches' = Formula.pred % titleMatches
-    let subtitle' = Formula.pred % subtitle
-    let subtitleMatches' = Formula.pred % subtitleMatches
-    let isSource' = Formula.pred IsSource
-    let existsVersion' = Formula.pred % existsVersion
-    let existsSet' = Formula.pred % existsSet
-    let existsInlineSet' = Formula.pred % existsInlineSet
-    let existsVersionDeep' = Formula.pred % existsVersionDeep
-
-    let memVersion' = Formula.pred % memVersion
-    let memSet' = Formula.pred % memSet
-    let memVersionDeep' = Formula.pred % memVersionDeep
-    let existsTuneDeep' = Formula.pred % existsTuneDeep
-    let memTuneDeep' = Formula.pred % memTuneDeep
 
     let text_formula_converter =
       TextFormulaConverter.(

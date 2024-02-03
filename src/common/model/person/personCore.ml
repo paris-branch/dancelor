@@ -11,6 +11,7 @@ type t =
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving yojson, make]
 
+(* FIXME: PPX *)
 let slug person = person.slug
 let status person = person.status
 let name person = person.name
@@ -27,6 +28,15 @@ module Filter = struct
     | NameMatches of string
   [@@deriving yojson]
 
+  (* FIXME: PPX *)
+  let is person = Is person
+  let name name = Name name
+  let nameMatches name = NameMatches name
+
   type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is' = Formula.pred % is
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
 end

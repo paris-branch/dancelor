@@ -24,6 +24,10 @@ module Lift
   let dances tune = Lwt_list.map_p Dance.get (dances tune)
 
   module Filter = struct
+    (* NOTE: [include TuneCore.Filter] shadows the accessors of [TuneCore]. *)
+    let tuneCore_author = author
+    let tuneCore_dances = dances
+
     include TuneCore.Filter
 
     let accepts filter tune =
@@ -34,39 +38,25 @@ module Lift
         Lwt.return @@ Formula.interpret_bool @@ equal tune tune'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name tune
+        Lwt.return @@ String.proximity ~char_equal string @@ TuneCore.name tune
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name tune
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ TuneCore.name tune
 
       | Author afilter ->
-        (match%lwt author tune with
-         | None -> Formula.interpret_false |> Lwt.return
-         | Some author -> Person.Filter.accepts afilter author)
+        Lwt.bind
+          (tuneCore_author tune)
+          (Option.fold
+             ~none: (Lwt.return Formula.interpret_false)
+             ~some: (Person.Filter.accepts afilter))
 
       | Kind kfilter ->
-        Kind.Base.Filter.accepts kfilter @@ kind tune
+        Kind.Base.Filter.accepts kfilter @@ TuneCore.kind tune
 
       | ExistsDance dfilter ->
-        let%lwt dances = dances tune in
+        let%lwt dances = tuneCore_dances tune in
         let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
         Lwt.return (Formula.interpret_or_l scores)
-
-    let is tune = Is tune
-    let name string = Name string
-    let nameMatches string = NameMatches string
-    let author cfilter = Author cfilter
-    let authorIs author_ = author (Person.Filter.is' author_)
-    let kind kfilter = Kind kfilter
-    let existsDance dfilter = ExistsDance dfilter
-
-    let is' = Formula.pred % is
-    let name' = Formula.pred % name
-    let nameMatches' = Formula.pred % nameMatches
-    let author' = Formula.pred % author
-    let authorIs' = Formula.pred % authorIs
-    let kind' = Formula.pred % kind
-    let existsDance' = Formula.pred % existsDance
 
     let text_formula_converter =
       TextFormulaConverter.(

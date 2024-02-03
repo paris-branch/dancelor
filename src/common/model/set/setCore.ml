@@ -20,6 +20,7 @@ type t =
 
 (* FIXME: rename [versions_and_parameters] into [contents]. *)
 
+(* FIXME: PPX *)
 let slug set = set.slug
 let status set = set.status
 let name set = set.name
@@ -56,6 +57,24 @@ module Filter = struct
     | Kind of Kind.Dance.Filter.t
   [@@deriving yojson]
 
+  (* FIXME: PPX *)
+  let is set = Is set
+  let name name = Name name
+  let nameMatches name = NameMatches name
+  let deviser cfilter = Deviser cfilter
+  let existsVersion vfilter = ExistsVersion vfilter
+  let kind kfilter = Kind kfilter
+
+  let memVersion = existsVersion % VersionCore.Filter.is'
+
   type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is' = Formula.pred % is
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
+  let deviser' = Formula.pred % deviser
+  let existsVersion' = Formula.pred % existsVersion
+  let kind' = Formula.pred % kind
+  let memVersion' = Formula.pred % memVersion
 end

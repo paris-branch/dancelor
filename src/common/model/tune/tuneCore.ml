@@ -16,6 +16,7 @@ type t =
     created_at  : Datetime.t            [@key "created-at"] }
 [@@deriving make, yojson]
 
+(* FIXME: PPX *)
 let slug tune = tune.slug
 let status tune = tune.status
 let name tune = tune.name
@@ -43,6 +44,25 @@ module Filter = struct
     | ExistsDance of DanceCore.Filter.t
   [@@deriving yojson]
 
+  (* FIXME: PPX *)
+  let is tune = Is tune
+  let name string = Name string
+  let nameMatches string = NameMatches string
+  let author cfilter = Author cfilter
+  let kind kfilter = Kind kfilter
+  let existsDance dfilter = ExistsDance dfilter
+
+  let authorIs = author % PersonCore.Filter.is'
+
   type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is' = Formula.pred % is
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
+  let author' = Formula.pred % author
+  let kind' = Formula.pred % kind
+  let existsDance' = Formula.pred % existsDance
+
+  let authorIs' = Formula.pred % authorIs
 end

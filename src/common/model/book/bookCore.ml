@@ -37,6 +37,7 @@ let make
     ~scddb_id ~modified_at ~created_at
     ()
 
+(* FIXME: PPX *)
 let slug book = book.slug
 let status book = book.status
 let title book = book.title
@@ -92,6 +93,41 @@ module Filter = struct
     | ExistsVersionDeep of VersionCore.Filter.t
   [@@deriving yojson]
 
+  (* FIXME: PPX *)
+  let is book = Is book
+  let title string = Title string
+  let titleMatches string = TitleMatches string
+  let subtitle string = Subtitle string
+  let subtitleMatches string = SubtitleMatches string
+  let isSource = IsSource
+  let existsVersion vfilter = ExistsVersion vfilter
+  let existsSet sfilter = ExistsSet sfilter
+  let existsInlineSet sfilter = ExistsInlineSet sfilter
+  let existsVersionDeep vfilter = ExistsVersionDeep vfilter
+
+  let memVersion = existsVersion % VersionCore.Filter.is'
+  let memSet = existsSet % SetCore.Filter.is'
+  let memVersionDeep = existsVersionDeep % VersionCore.Filter.is'
+  let existsTuneDeep = existsVersionDeep % VersionCore.Filter.tune'
+  let memTuneDeep = existsTuneDeep % TuneCore.Filter.is'
+
   type t = predicate Formula.t
   [@@deriving yojson]
+
+  let is' = Formula.pred % is
+  let title' = Formula.pred % title
+  let titleMatches' = Formula.pred % titleMatches
+  let subtitle' = Formula.pred % subtitle
+  let subtitleMatches' = Formula.pred % subtitleMatches
+  let isSource' = Formula.pred IsSource
+  let existsVersion' = Formula.pred % existsVersion
+  let existsSet' = Formula.pred % existsSet
+  let existsInlineSet' = Formula.pred % existsInlineSet
+  let existsVersionDeep' = Formula.pred % existsVersionDeep
+
+  let memVersion' = Formula.pred % memVersion
+  let memSet' = Formula.pred % memSet
+  let memVersionDeep' = Formula.pred % memVersionDeep
+  let existsTuneDeep' = Formula.pred % existsTuneDeep
+  let memTuneDeep' = Formula.pred % memTuneDeep
 end

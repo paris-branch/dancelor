@@ -97,6 +97,8 @@ module Lift
     Lwt.return !warnings
 
   module Filter = struct
+    let setCore_deviser = deviser
+
     include SetCore.Filter
 
     let accepts filter set =
@@ -107,15 +109,17 @@ module Lift
         Lwt.return @@ Formula.interpret_bool @@ equal set set'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name set
+        Lwt.return @@ String.proximity ~char_equal string @@ SetCore.name set
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name set
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ SetCore.name set
 
       | Deviser dfilter ->
-        (match%lwt deviser set with
-         | None -> Lwt.return Formula.interpret_false
-         | Some deviser -> Person.Filter.accepts dfilter deviser)
+        Lwt.bind
+          (setCore_deviser set)
+          (Option.fold
+             ~none: (Lwt.return Formula.interpret_false)
+             ~some: (Person.Filter.accepts dfilter))
 
       | ExistsVersion vfilter ->
         let%lwt versions_and_parameters = versions_and_parameters set in
@@ -125,25 +129,7 @@ module Lift
           versions_and_parameters
 
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ kind set
-
-    (* FIXME: PPX *)
-    let is set = Is set
-    let name name = Name name
-    let nameMatches name = NameMatches name
-    let deviser cfilter = Deviser cfilter
-    let existsVersion vfilter = ExistsVersion vfilter
-    let kind kfilter = Kind kfilter
-
-    let memVersion = existsVersion % Version.Filter.is'
-
-    let is' = Formula.pred % is
-    let name' = Formula.pred % name
-    let nameMatches' = Formula.pred % nameMatches
-    let deviser' = Formula.pred % deviser
-    let existsVersion' = Formula.pred % existsVersion
-    let memVersion' = Formula.pred % memVersion
-    let kind' = Formula.pred % kind
+        Kind.Dance.Filter.accepts kfilter @@ SetCore.kind set
 
     let text_formula_converter =
       TextFormulaConverter.(

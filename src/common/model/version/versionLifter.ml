@@ -32,6 +32,8 @@ module Lift
   let name version = Lwt.map Tune.name (tune version)
 
   module Filter = struct
+    let versionCore_tune = tune
+
     include VersionCore.Filter
 
     let accepts filter version =
@@ -41,32 +43,18 @@ module Lift
         Lwt.return @@ Formula.interpret_bool @@ equal version version'
 
       | Tune tfilter ->
-        let%lwt tune = tune version in
+        let%lwt tune = versionCore_tune version in
         Tune.Filter.accepts tfilter tune
 
       | Key key' ->
-        Lwt.return @@ Formula.interpret_bool (key version = key')
+        Lwt.return @@ Formula.interpret_bool (VersionCore.key version = key')
 
       | Kind kfilter ->
-        let%lwt tune = tune version in
-        Kind.Version.Filter.accepts kfilter (bars version, Tune.kind tune)
+        let%lwt tune = versionCore_tune version in
+        Kind.Version.Filter.accepts kfilter (VersionCore.bars version, Tune.kind tune)
 
       | Broken ->
-        Lwt.return @@ Formula.interpret_bool @@ broken version
-
-    let is version = Is version
-    let tune tfilter = Tune tfilter
-    let tuneIs tune_ = tune (Tune.Filter.is' tune_)
-    let key key_ = Key key_
-    let kind kfilter = Kind kfilter
-    let broken = Broken
-
-    let is' = Formula.pred % is
-    let tune' = Formula.pred % tune
-    let tuneIs' = Formula.pred % tuneIs
-    let key' = Formula.pred % key
-    let kind' = Formula.pred % kind
-    let broken' = Formula.pred broken
+        Lwt.return @@ Formula.interpret_bool @@ VersionCore.broken version
 
     let text_formula_converter =
       TextFormulaConverter.(
