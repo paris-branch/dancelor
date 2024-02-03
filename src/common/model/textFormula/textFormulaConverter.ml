@@ -57,18 +57,17 @@ let predicate_to_formula converter text_predicate =
 
 let to_formula converter = Formula.convert (predicate_to_formula converter)
 
-let unary_raw' ~name to_formula = unary' ~name @@ function
-  | Pred (Raw s) -> to_formula s
-  | _ -> Error "the unary predicate \"%s:\" only accepts a raw argument"
+let unary_raw ~name ~cast ~type_ to_predicate = unary ~name @@ function
+  | Pred (Raw s) ->
+    Result.map to_predicate
+      (Option.to_result
+         ~none: (spf "the unary predicate \"%s:\" only accepts %s arguments" name type_)
+         (cast s))
+  | _ ->
+    Error (spf "the unary predicate \"%s:\" only accepts a %s arguments" name type_)
 
-let unary_raw ~name to_predicate = unary_raw' ~name (Result.map Formula.pred % to_predicate)
-
-let unary_int' ~name to_formula = unary_raw' ~name @@ fun s ->
-  Option.fold (int_of_string_opt s)
-    ~some: to_formula
-    ~none: (kspf Result.error "the unary predicate \"%s:\" expects an integer; got \"%s\"" name s)
-
-let unary_int ~name to_predicate = unary_int' ~name (Result.map Formula.pred % to_predicate)
+let unary_string = unary_raw ~cast:Option.some ~type_:"string"
+let unary_int = unary_raw ~cast:int_of_string_opt ~type_:"int"
 
 let rec predicate_names predicate_name = function
   | False -> String.Set.empty

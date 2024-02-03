@@ -22,6 +22,18 @@ val unary : name:string -> (TextFormulaType.t -> ('p, string) Result.t) -> 'p pr
 (** Make a predicate binding for a unary predicate of the given name converter
     to the given predicate. *)
 
+val unary_string : name:string -> (string -> 'p) -> 'p predicate_binding
+(** Make a unary predicate whose argument must be a string. *)
+
+val unary_int : name:string -> (int -> 'p) -> 'p predicate_binding
+(** Make a unary predicate whose argument must be an int. *)
+
+val unary_raw : name:string -> cast:(string -> 'i option) -> type_:string -> ('i -> 'p) -> 'p predicate_binding
+(** Make a unary predicate whose argument must be raw. The raw string is then
+    passed to [~cast] to convert it to an ['i]ntermediary value. If it fails, an
+    error message is created using [~type_]. For instance, {!unary_int} is
+    [unary_raw ~cast:int_of_string_opt ~type_:"int"]. *)
+
 val make :
   raw: (string -> ('p Formula.t, string) Result.t) ->
   'p predicate_binding list ->
@@ -56,12 +68,6 @@ val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 (** Map over a converter given a function. *)
 
 (** {2 Other helpers} *)
-
-val unary_raw : name: string -> (string -> ('p, string) Result.t) -> 'p predicate_binding
-(** Build a unary predicate whose argument must be raw only. *)
-
-val unary_int : name: string -> (int -> ('p, string) Result.t) -> 'p predicate_binding
-(** Build a unary predicate whose argument must be an int. *)
 
 val raw : 'p t -> string -> ('p Formula.t, string) Result.t
 (** Return the raw function of a converter. *)

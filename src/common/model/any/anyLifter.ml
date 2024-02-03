@@ -120,11 +120,8 @@ module Lift
           (* Any-specific converter *)
           make
             [
-              unary_raw ~name:"type" (fun string ->
-                  Result.map type_ @@
-                  Option.to_result (Type.of_string_opt string)
-                    ~none:(spf "Unary predicate \"type\" does not accept \"%s\" as a valid type" string)
-                )
+              unary_raw ~name:"type" type_
+                ~cast:Type.of_string_opt ~type_:"valid type"
             ]
             ~raw: Result.error;
           (* Other converters, lifted to Any *)

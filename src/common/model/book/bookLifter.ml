@@ -273,15 +273,15 @@ module Lift
       TextFormulaConverter.(
         make
           [
-            unary_raw ~name:"title"               (Result.ok % title);
-            unary_raw ~name:"title-matches"       (Result.ok % titleMatches);
-            unary_raw ~name:"subtitle"            (Result.ok % subtitle);
-            unary_raw ~name:"subtitle-matches"    (Result.ok % subtitleMatches);
-            unary     ~name:"exists-version"      (Result.map existsVersion % Version.Filter.from_text_formula);
-            unary     ~name:"exists-set"          (Result.map existsSet % Set.Filter.from_text_formula);
-            unary     ~name:"exists-inline-set"   (Result.map existsInlineSet % Set.Filter.from_text_formula);
-            unary     ~name:"exists-version-deep" (Result.map existsVersionDeep % Version.Filter.from_text_formula);
-            unary     ~name:"exists-tune-deep"    (Result.map existsVersionDeep % Version.Filter.from_text_formula);
+            unary_string ~name:"title"               title;
+            unary_string ~name:"title-matches"       titleMatches;
+            unary_string ~name:"subtitle"            subtitle;
+            unary_string ~name:"subtitle-matches"    subtitleMatches;
+            unary        ~name:"exists-version"      (Result.map existsVersion % Version.Filter.from_text_formula);
+            unary        ~name:"exists-set"          (Result.map existsSet % Set.Filter.from_text_formula);
+            unary        ~name:"exists-inline-set"   (Result.map existsInlineSet % Set.Filter.from_text_formula);
+            unary        ~name:"exists-version-deep" (Result.map existsVersionDeep % Version.Filter.from_text_formula);
+            unary        ~name:"exists-tune-deep"    (Result.map existsVersionDeep % Version.Filter.from_text_formula);
           ]
           ~raw: (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)))
       )

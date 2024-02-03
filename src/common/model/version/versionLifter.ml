@@ -63,9 +63,9 @@ module Lift
             (* Version-specific converter *)
             make
               [
-                nullary   ~name:"broken"  broken;
+                nullary   ~name:"broken" broken;
                 unary     ~name:"tune"   (Result.map tune % Tune.Filter.from_text_formula);
-                unary_raw ~name:"key"    (Result.map key % Option.to_result ~none:"not a valid key" % Music.key_of_string_opt);
+                unary_raw ~name:"key"    key ~cast:Music.key_of_string_opt ~type_:"key";
                 unary     ~name:"kind"   (Result.map kind % Kind.Version.Filter.from_text_formula);
               ]
               ~raw: (Result.map tune' % raw Tune.Filter.text_formula_converter)

@@ -128,12 +128,12 @@ module Filter = struct
           (* Version kind-specific converter *)
           make
             [
-              unary_int ~name:"bars-eq" (Result.ok % barsEq);
-              unary_int ~name:"bars-ne" (Result.ok % barsNe);
-              unary_int ~name:"bars-gt" (Result.ok % barsGt);
-              unary_int ~name:"bars-ge" (Result.ok % barsGe);
-              unary_int ~name:"bars-lt" (Result.ok % barsLt);
-              unary_int ~name:"bars-le" (Result.ok % barsLe);
+              unary_int ~name:"bars-eq" barsEq;
+              unary_int ~name:"bars-ne" barsNe;
+              unary_int ~name:"bars-gt" barsGt;
+              unary_int ~name:"bars-ge" barsGe;
+              unary_int ~name:"bars-lt" barsLt;
+              unary_int ~name:"bars-le" barsLe;
             ]
             ~raw: (fun string ->
                 Option.fold
