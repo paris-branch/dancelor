@@ -2,6 +2,9 @@ open Nes
 open Formula
 module Type = TextFormulaType
 
+(* NOTE: Even though this type is called [predicate], and even though all our
+   builders ([nullary], [unary_lift], etc.) work on predicates, we need to carry
+   formulas because of things like [merge]. *)
 type 'p predicate =
   | Nullary of 'p Formula.t
   | Unary of (Type.t -> ('p Formula.t, string) Result.t)
@@ -12,11 +15,8 @@ let map_predicate f = function
 
 type 'p predicate_binding = string * 'p predicate
 
-let nullary' ~name formula = (name, Nullary formula)
-let nullary ~name predicate = nullary' ~name (Formula.pred predicate)
-
-let unary' ~name to_formula = (name, Unary to_formula)
-let unary ~name to_predicate = unary' ~name (Result.map Formula.pred % to_predicate)
+let nullary ~name predicate = (name, Nullary (Formula.pred predicate))
+let unary ~name to_predicate = (name, Unary (Result.map Formula.pred % to_predicate))
 
 let map_predicate_binding f (name, predicate) =
   (name, map_predicate f predicate)
