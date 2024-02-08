@@ -65,7 +65,10 @@ val make :
     will be called on ["bonjour"] and ["monsieur"] while ["baguette"] and
     ["chocolat"] will be searched for in the {!predicate_binding} list. *)
 
-val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
+val map :
+  ('p Formula.t -> 'q) ->
+  'p t ->
+  'q t
 (** Map over a converter given a function. *)
 
 val merge : 'p t -> 'p t -> 'p t

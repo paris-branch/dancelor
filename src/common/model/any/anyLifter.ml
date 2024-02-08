@@ -125,15 +125,14 @@ module Lift
                 (type_, unType)
                 ~cast:(Type.of_string_opt, Type.to_string)
                 ~type_:"valid type"
-            ]
-            ~raw: Result.error;
+            ];
           (* Other converters, lifted to Any *)
-          map asPerson' Person.Filter.text_formula_converter;
-          map asDance' Dance.Filter.text_formula_converter;
-          map asBook' Book.Filter.text_formula_converter;
-          map asSet' Set.Filter.text_formula_converter;
-          map asTune' Tune.Filter.text_formula_converter;
-          map asVersion' Version.Filter.text_formula_converter;
+          map asPerson Person.Filter.text_formula_converter;
+          map asDance Dance.Filter.text_formula_converter;
+          map asBook Book.Filter.text_formula_converter;
+          map asSet Set.Filter.text_formula_converter;
+          map asTune Tune.Filter.text_formula_converter;
+          map asVersion Version.Filter.text_formula_converter;
         ]
       )
 

@@ -1,5 +1,3 @@
-open Nes
-
 let _key = "any"
 
 type t =
@@ -59,12 +57,4 @@ module Filter = struct
 
   type t = predicate Formula.t
   [@@deriving yojson]
-
-  let type_' = Formula.pred % type_
-  let asPerson' = Formula.pred % asPerson
-  let asDance' = Formula.pred % asDance
-  let asBook' = Formula.pred % asBook
-  let asSet' = Formula.pred % asSet
-  let asTune' = Formula.pred % asTune
-  let asVersion' = Formula.pred % asVersion
 end

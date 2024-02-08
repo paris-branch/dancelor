@@ -151,7 +151,7 @@ module Filter = struct
         )
         (
           (* Base kind converter, lifted to version kinds *)
-          map base' KindBase.Filter.text_formula_converter
+          map base KindBase.Filter.text_formula_converter
         )
     )
 

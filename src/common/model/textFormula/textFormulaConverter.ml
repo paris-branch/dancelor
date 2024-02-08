@@ -10,8 +10,8 @@ type 'p to_predicate =
   | Unary of (Type.t -> ('p Formula.t, string) Result.t)
 
 let map_to_predicate f = function
-  | Nullary formula -> Nullary (f formula)
-  | Unary to_formula -> Unary (Result.map f % to_formula)
+  | Nullary formula -> Nullary (Formula.pred (f formula))
+  | Unary to_formula -> Unary (Result.map (Formula.pred % f) % to_formula)
 
 type 'p t = {
   raw: string -> ('p Formula.t, string) Result.t;
@@ -37,7 +37,7 @@ let make ?raw predicates_bindings =
 
 let map f {raw; to_predicates} =
   {
-    raw = Result.map f % raw;
+    raw = Result.map (Formula.pred % f) % raw;
     to_predicates = String.Map.map (map_to_predicate f) to_predicates
   }
 

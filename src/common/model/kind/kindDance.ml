@@ -111,7 +111,7 @@ module Filter = struct
         )
         (
           (* Version kind converter, lifted to dance kinds *)
-          map version' KindVersion.Filter.text_formula_converter
+          map version KindVersion.Filter.text_formula_converter
         )
     )
 
