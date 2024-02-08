@@ -29,9 +29,6 @@ let nullary ~name predicate =
 let unary ~name to_predicate =
   make_predicate_binding ~name ~to_predicate:(Unary (Result.map Formula.pred % to_predicate))
 
-let map_predicate_binding f (name, predicate) =
-  (name, map_to_predicate f predicate)
-
 let make ?raw predicates_bindings =
   {
     raw = Option.value ~default:(fun _ -> Error "raw arguments are unsupported") raw;

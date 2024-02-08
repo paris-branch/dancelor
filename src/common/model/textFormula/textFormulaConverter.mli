@@ -73,13 +73,6 @@ val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
 
 (** {2 Mapping} *)
 
-val map_predicate_binding :
-  ('p Formula.t -> 'q Formula.t) ->
-  'p predicate_binding ->
-  'q predicate_binding
-(** Map the given function on a predicate binding. The result is another
-    predicate binding with formulas transformed using the given function. *)
-
 val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 (** Map over a converter given a function. *)
 
