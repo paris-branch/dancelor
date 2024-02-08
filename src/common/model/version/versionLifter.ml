@@ -71,7 +71,6 @@ module Lift
 
                 unary_lift ~name:"kind"   (kind, unKind)   ~converter:Kind.Version.Filter.text_formula_converter;
               ]
-              ~raw: (Result.map tune' % raw Tune.Filter.text_formula_converter)
           )
           (
             (* Tune converter, lifted to versions *)

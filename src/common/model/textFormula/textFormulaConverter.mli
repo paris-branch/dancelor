@@ -51,7 +51,7 @@ val unary_raw :
     [unary_raw ~cast:int_of_string_opt ~type_:"int"]. *)
 
 val make :
-  raw: (string -> ('p Formula.t, string) Result.t) ->
+  ?raw: (string -> ('p Formula.t, string) Result.t) ->
   'p predicate_binding list ->
   'p t
 (** Make a converter from a list of {!predicate_binding}s and a [~raw] argument.
@@ -84,9 +84,6 @@ val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 (** Map over a converter given a function. *)
 
 (** {2 Other helpers} *)
-
-val raw : 'p t -> string -> ('p Formula.t, string) Result.t
-(** Return the raw function of a converter. *)
 
 val predicate_names : ('p -> string option) -> 'p Formula.t -> String.Set.t
 (** All the predicate names that appear in a formula. *)

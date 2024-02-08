@@ -32,11 +32,9 @@ let unary ~name to_predicate =
 let map_predicate_binding f (name, predicate) =
   (name, map_to_predicate f predicate)
 
-let raw converter = converter.raw
-
-let make ~raw predicates_bindings =
+let make ?raw predicates_bindings =
   {
-    raw;
+    raw = Option.value ~default:(fun _ -> Error "raw arguments are unsupported") raw;
     to_predicates = String.Map.of_seq (List.to_seq predicates_bindings);
   }
 
