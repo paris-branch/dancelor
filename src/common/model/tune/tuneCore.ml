@@ -52,6 +52,12 @@ module Filter = struct
   let kind kfilter = Kind kfilter
   let existsDance dfilter = ExistsDance dfilter
 
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
+  let unAuthor = function Author cf -> Some cf | _ -> None
+  let unKind = function Kind kf -> Some kf | _ -> None
+  let unExistsDance = function ExistsDance df -> Some df | _ -> None
+
   let authorIs = author % PersonCore.Filter.is'
 
   type t = predicate Formula.t

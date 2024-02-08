@@ -55,6 +55,8 @@ module Filter = struct
   let asTune    filter = AsTune    filter
   let asVersion filter = AsVersion filter
 
+  let unType = function Type t -> Some t | _ -> None
+
   type t = predicate Formula.t
   [@@deriving yojson]
 

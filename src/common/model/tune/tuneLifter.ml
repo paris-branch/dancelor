@@ -62,12 +62,12 @@ module Lift
       TextFormulaConverter.(
         make
           [
-            unary_string ~name:"name"         name;
-            unary_string ~name:"name-matches" nameMatches;
-            unary_lift   ~name:"author"       author      ~converter:Person.Filter.text_formula_converter;
-            unary_lift   ~name:"by"           author      ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
-            unary_lift   ~name:"kind"         kind        ~converter:Kind.Base.Filter.text_formula_converter;
-            unary_lift   ~name:"exists-dance" existsDance ~converter:Dance.Filter.text_formula_converter;
+            unary_string ~name:"name"         (name, unName);
+            unary_string ~name:"name-matches" (nameMatches, unNameMatches);
+            unary_lift   ~name:"author"       (author, unAuthor)           ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"           (author, unAuthor)           ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
+            unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-dance" (existsDance, unExistsDance) ~converter:Dance.Filter.text_formula_converter;
           ]
           ~raw: (Result.ok % nameMatches')
       )

@@ -33,6 +33,9 @@ module Filter = struct
   let name name = Name name
   let nameMatches name = NameMatches name
 
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
+
   type t = predicate Formula.t
   [@@deriving yojson]
 

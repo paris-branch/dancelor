@@ -120,8 +120,11 @@ module Lift
           (* Any-specific converter *)
           make
             [
-              unary_raw ~name:"type" type_
-                ~cast:Type.of_string_opt ~type_:"valid type"
+              unary_raw
+                ~name:"type"
+                (type_, unType)
+                ~cast:(Type.of_string_opt, Type.to_string)
+                ~type_:"valid type"
             ]
             ~raw: Result.error;
           (* Other converters, lifted to Any *)

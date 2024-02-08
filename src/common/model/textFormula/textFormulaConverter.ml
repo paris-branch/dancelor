@@ -65,10 +65,11 @@ let predicate_to_formula converter text_predicate =
 
 let to_formula converter = Formula.convert (predicate_to_formula converter)
 
-let unary_lift ~name ~converter lift =
+let unary_lift ~name ~converter (lift, _unlift) =
   unary ~name (Result.map lift % to_formula converter)
 
-let unary_raw ~name ~cast ~type_ to_predicate = unary ~name @@ function
+let unary_raw ~name ~cast:(cast, _uncast) ~type_ (to_predicate, _from_predicate) =
+  unary ~name @@ function
   | Pred (Raw s) ->
     Result.map to_predicate
       (Option.to_result
@@ -77,8 +78,8 @@ let unary_raw ~name ~cast ~type_ to_predicate = unary ~name @@ function
   | _ ->
     Error (spf "the unary predicate \"%s:\" only accepts a %s arguments" name type_)
 
-let unary_string = unary_raw ~cast:Option.some ~type_:"string"
-let unary_int = unary_raw ~cast:int_of_string_opt ~type_:"int"
+let unary_string = unary_raw ~cast:(Option.some, Fun.id) ~type_:"string"
+let unary_int = unary_raw ~cast:(int_of_string_opt, string_of_int) ~type_:"int"
 
 let rec predicate_names predicate_name = function
   | False -> String.Set.empty

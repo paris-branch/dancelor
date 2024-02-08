@@ -273,15 +273,15 @@ module Lift
       TextFormulaConverter.(
         make
           [
-            unary_string ~name:"title"               title;
-            unary_string ~name:"title-matches"       titleMatches;
-            unary_string ~name:"subtitle"            subtitle;
-            unary_string ~name:"subtitle-matches"    subtitleMatches;
-            unary_lift   ~name:"exists-version"      existsVersion ~converter:Version.Filter.text_formula_converter;
-            unary_lift   ~name:"exists-set"          existsSet ~converter:Set.Filter.text_formula_converter;
-            unary_lift   ~name:"exists-inline-set"   existsInlineSet ~converter:Set.Filter.text_formula_converter;
-            unary_lift   ~name:"exists-version-deep" existsVersionDeep ~converter:Version.Filter.text_formula_converter;
-            unary_lift   ~name:"exists-tune-deep"    existsVersionDeep ~converter:Version.Filter.text_formula_converter;
+            unary_string ~name:"title"               (title, unTitle);
+            unary_string ~name:"title-matches"       (titleMatches, unTitleMatches);
+            unary_string ~name:"subtitle"            (subtitle, unSubtitle);
+            unary_string ~name:"subtitle-matches"    (subtitleMatches, unSubtitleMatches);
+            unary_lift   ~name:"exists-version"      (existsVersion, unExistsVersion)          ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-set"          (existsSet, unExistsSet)                  ~converter:Set.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-inline-set"   (existsInlineSet, unExistsInlineSet)      ~converter:Set.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-version-deep" (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-tune-deep"    (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
           ]
           ~raw: (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)))
       )

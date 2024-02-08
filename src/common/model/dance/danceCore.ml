@@ -45,6 +45,11 @@ module Filter = struct
   let kind kfilter = Kind kfilter
   let deviser cfilter = Deviser cfilter
 
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
+  let unKind = function Kind kf -> Some kf | _ -> None
+  let unDeviser = function Deviser cf -> Some cf | _ -> None
+
   type t = predicate Formula.t
   [@@deriving yojson]
 

@@ -64,9 +64,12 @@ module Lift
             make
               [
                 nullary    ~name:"broken" broken;
-                unary_lift ~name:"tune"   tune   ~converter:Tune.Filter.text_formula_converter;
-                unary_raw  ~name:"key"    key    ~cast:Music.key_of_string_opt ~type_:"key";
-                unary_lift ~name:"kind"   kind   ~converter:Kind.Version.Filter.text_formula_converter;
+
+                unary_lift ~name:"tune"   (tune, unTune)   ~converter:Tune.Filter.text_formula_converter;
+
+                unary_raw  ~name:"key"    (key, unKey)     ~cast:(Music.key_of_string_opt, Music.key_to_string) ~type_:"key";
+
+                unary_lift ~name:"kind"   (kind, unKind)   ~converter:Kind.Version.Filter.text_formula_converter;
               ]
               ~raw: (Result.map tune' % raw Tune.Filter.text_formula_converter)
           )

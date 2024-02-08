@@ -53,6 +53,11 @@ module Filter = struct
   let kind kfilter = Kind kfilter
   let broken = Broken
 
+  let unIs = function Is v -> Some v | _ -> None
+  let unTune = function Tune f -> Some f | _ -> None
+  let unKey = function Key k -> Some k | _ -> None
+  let unKind = function Kind f -> Some f | _ -> None
+
   let tuneIs = tune % TuneCore.Filter.is'
 
   type t = predicate Formula.t

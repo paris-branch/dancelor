@@ -65,6 +65,12 @@ module Filter = struct
   let existsVersion vfilter = ExistsVersion vfilter
   let kind kfilter = Kind kfilter
 
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
+  let unDeviser = function Deviser cf -> Some cf | _ -> None
+  let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
+  let unKind = function Kind kf -> Some kf | _ -> None
+
   let memVersion = existsVersion % VersionCore.Filter.is'
 
   type t = predicate Formula.t

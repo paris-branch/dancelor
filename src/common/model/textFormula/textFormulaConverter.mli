@@ -18,18 +18,33 @@ val nullary : name:string -> 'p -> 'p predicate_binding
 (** Make a predicate binding for a nullary predicate of the given name
     converting to the given predicate. *)
 
-val unary_lift : name:string -> converter:'i t -> ('i Formula.t -> 'p) -> 'p predicate_binding
+val unary_lift :
+  name: string ->
+  converter: 'i t ->
+  (('i Formula.t -> 'p) * ('p -> 'i Formula.t option)) ->
+  'p predicate_binding
 (** Make a unary predicate that lifts other formulas. The argument is converted
     using the [converter] and the result is passed to the given lifting
     function. *)
 
-val unary_string : name:string -> (string -> 'p) -> 'p predicate_binding
+val unary_string :
+  name: string ->
+  ((string -> 'p) * ('p -> string option)) ->
+  'p predicate_binding
 (** Make a unary predicate whose argument must be a string. *)
 
-val unary_int : name:string -> (int -> 'p) -> 'p predicate_binding
+val unary_int :
+  name: string ->
+  ((int -> 'p) * ('p -> int option)) ->
+  'p predicate_binding
 (** Make a unary predicate whose argument must be an int. *)
 
-val unary_raw : name:string -> cast:(string -> 'i option) -> type_:string -> ('i -> 'p) -> 'p predicate_binding
+val unary_raw :
+  name: string ->
+  cast: ((string -> 'i option) * ('i -> string)) ->
+  type_: string ->
+  (('i -> 'p) * ('p -> 'i option)) ->
+  'p predicate_binding
 (** Make a unary predicate whose argument must be raw. The raw string is then
     passed to [~cast] to convert it to an ['i]ntermediary value. If it fails, an
     error message is created using [~type_]. For instance, {!unary_int} is

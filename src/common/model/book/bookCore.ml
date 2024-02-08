@@ -105,6 +105,15 @@ module Filter = struct
   let existsInlineSet sfilter = ExistsInlineSet sfilter
   let existsVersionDeep vfilter = ExistsVersionDeep vfilter
 
+  let unTitle = function Title t -> Some t | _ -> None
+  let unTitleMatches = function TitleMatches t -> Some t | _ -> None
+  let unSubtitle = function Subtitle s -> Some s | _ -> None
+  let unSubtitleMatches = function Subtitle s -> Some s | _ -> None
+  let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
+  let unExistsSet = function ExistsSet sf -> Some sf | _ -> None
+  let unExistsInlineSet = function ExistsInlineSet sf -> Some sf | _ -> None
+  let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
+
   let memVersion = existsVersion % VersionCore.Filter.is'
   let memSet = existsSet % SetCore.Filter.is'
   let memVersionDeep = existsVersionDeep % VersionCore.Filter.is'

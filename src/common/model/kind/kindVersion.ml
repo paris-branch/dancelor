@@ -117,6 +117,13 @@ module Filter = struct
   let barsLe int = BarsLe int
   let base bfilter = Base bfilter
 
+  let unBarsEq = function BarsEq i -> Some i | _ -> None
+  let unBarsNe = function BarsNe i -> Some i | _ -> None
+  let unBarsGt = function BarsGt i -> Some i | _ -> None
+  let unBarsGe = function BarsGe i -> Some i | _ -> None
+  let unBarsLt = function BarsLt i -> Some i | _ -> None
+  let unBarsLe = function BarsLe i -> Some i | _ -> None
+
   let is' = Formula.pred % is
   let barsEq' = Formula.pred % barsEq
   let base' = Formula.pred % base
@@ -128,12 +135,12 @@ module Filter = struct
           (* Version kind-specific converter *)
           make
             [
-              unary_int ~name:"bars-eq" barsEq;
-              unary_int ~name:"bars-ne" barsNe;
-              unary_int ~name:"bars-gt" barsGt;
-              unary_int ~name:"bars-ge" barsGe;
-              unary_int ~name:"bars-lt" barsLt;
-              unary_int ~name:"bars-le" barsLe;
+              unary_int ~name:"bars-eq" (barsEq, unBarsEq);
+              unary_int ~name:"bars-ne" (barsNe, unBarsNe);
+              unary_int ~name:"bars-gt" (barsGt, unBarsGt);
+              unary_int ~name:"bars-ge" (barsGe, unBarsGe);
+              unary_int ~name:"bars-lt" (barsLt, unBarsLt);
+              unary_int ~name:"bars-le" (barsLe, unBarsLe);
             ]
             ~raw: (fun string ->
                 Option.fold
