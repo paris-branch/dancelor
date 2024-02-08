@@ -75,20 +75,6 @@ let unary_raw ~name ~cast:(cast, _uncast) ~type_ (to_predicate, _from_predicate)
 let unary_string = unary_raw ~cast:(Option.some, Fun.id) ~type_:"string"
 let unary_int = unary_raw ~cast:(int_of_string_opt, string_of_int) ~type_:"int"
 
-let rec predicate_names predicate_name = function
-  | False -> String.Set.empty
-  | True -> String.Set.empty
-  | Not formula -> predicate_names predicate_name formula
-  | And (formula1, formula2) | Or (formula1, formula2) ->
-    String.Set.union
-      (predicate_names predicate_name formula1)
-      (predicate_names predicate_name formula2)
-  | Pred pred ->
-    Option.fold
-      ~none: String.Set.empty
-      ~some: String.Set.singleton
-      (predicate_name pred)
-
 let merge converter1 converter2 =
   let formula_result_or_ result1 result2 =
     (* If both formulas are [Ok], then [Formula.or_]. If only one is [Ok], then

@@ -1,5 +1,3 @@
-open Nes
-
 (** {1 Text formula converter}
 
     This module contains utilities to help convert text formulas into non-text
@@ -76,11 +74,7 @@ val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
 val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 (** Map over a converter given a function. *)
 
-(** {2 Other helpers} *)
-
-val predicate_names : ('p -> string option) -> 'p Formula.t -> String.Set.t
-(** All the predicate names that appear in a formula. *)
-(* FIXME: Maybe it is only meant to be used for text formulas? *)
+(** {2 Merging} *)
 
 val merge : 'p t -> 'p t -> 'p t
 (** Merge two converters together. Predicates that exist on both sides must have
