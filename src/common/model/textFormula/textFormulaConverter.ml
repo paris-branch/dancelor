@@ -33,7 +33,6 @@ let map_predicate_binding f (name, predicate) =
   (name, map_to_predicate f predicate)
 
 let raw converter = converter.raw
-let predicates converter = List.of_seq @@ String.Map.to_seq converter.to_predicates
 
 let make ~raw predicates_bindings =
   {

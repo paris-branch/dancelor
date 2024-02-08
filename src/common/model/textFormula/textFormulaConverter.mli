@@ -88,9 +88,6 @@ val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 val raw : 'p t -> string -> ('p Formula.t, string) Result.t
 (** Return the raw function of a converter. *)
 
-val predicates : 'p t -> 'p predicate_binding list
-(** Return the bindings of a converter. *)
-
 val predicate_names : ('p -> string option) -> 'p Formula.t -> String.Set.t
 (** All the predicate names that appear in a formula. *)
 (* FIXME: Maybe it is only meant to be used for text formulas? *)
