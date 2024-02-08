@@ -2,41 +2,49 @@ open Nes
 open Formula
 module Type = TextFormulaType
 
-(* NOTE: Even though this type is called [predicate], and even though all our
+(* NOTE: Even though this type is called [to_predicate], and even though all our
    builders ([nullary], [unary_lift], etc.) work on predicates, we need to carry
    formulas because of things like [merge]. *)
-type 'p predicate =
+type 'p to_predicate =
   | Nullary of 'p Formula.t
   | Unary of (Type.t -> ('p Formula.t, string) Result.t)
 
-let map_predicate f = function
+let map_to_predicate f = function
   | Nullary formula -> Nullary (f formula)
   | Unary to_formula -> Unary (Result.map f % to_formula)
 
-type 'p predicate_binding = string * 'p predicate
-
-let nullary ~name predicate = (name, Nullary (Formula.pred predicate))
-let unary ~name to_predicate = (name, Unary (Result.map Formula.pred % to_predicate))
-
-let map_predicate_binding f (name, predicate) =
-  (name, map_predicate f predicate)
-
 type 'p t = {
   raw: string -> ('p Formula.t, string) Result.t;
-  predicates: 'p predicate String.Map.t
+  to_predicates: 'p to_predicate String.Map.t
 }
 
+type 'p predicate_binding = string * 'p to_predicate
+
+let make_predicate_binding ~name ~to_predicate =
+  (name, to_predicate)
+
+let nullary ~name predicate =
+  make_predicate_binding ~name ~to_predicate:(Nullary (Formula.pred predicate))
+
+let unary ~name to_predicate =
+  make_predicate_binding ~name ~to_predicate:(Unary (Result.map Formula.pred % to_predicate))
+
+let map_predicate_binding f (name, predicate) =
+  (name, map_to_predicate f predicate)
+
 let raw converter = converter.raw
-let predicates converter = List.of_seq @@ String.Map.to_seq converter.predicates
+let predicates converter = List.of_seq @@ String.Map.to_seq converter.to_predicates
 
-let make ~raw predicates = {raw; predicates = String.Map.of_seq (List.to_seq predicates)}
-
-let map_raw f raw = Result.map f % raw
-
-let map f {raw; predicates} =
+let make ~raw predicates_bindings =
   {
-    raw = map_raw f raw;
-    predicates = String.Map.map (map_predicate f) predicates
+    raw;
+    to_predicates = String.Map.of_seq (List.to_seq predicates_bindings);
+  }
+
+let map f {raw; to_predicates} =
+  {
+    raw = Result.map f % raw;
+    to_predicates = String.Map.map (map_to_predicate f) to_predicates
   }
 
 let predicate_to_formula converter text_predicate =
@@ -44,10 +52,10 @@ let predicate_to_formula converter text_predicate =
   | Type.Raw string -> converter.raw string
   | Type.Nullary name | Type.Unary (name, _) ->
     Option.fold
-      (String.Map.find_opt name converter.predicates)
+      (String.Map.find_opt name converter.to_predicates)
       ~none: (kspf Result.error "the predicate \"%s\" does not exist" name)
-      ~some: (fun predicate ->
-          match text_predicate, predicate with
+      ~some: (fun to_predicate ->
+          match text_predicate, to_predicate with
           | Type.Nullary _, Nullary formula -> Ok formula
           | Type.Unary (_, subformula), Unary to_formula -> to_formula subformula
           | Type.Nullary _, _ -> kspf Result.error "the predicate \":%s\" expects no argument" name
@@ -96,25 +104,19 @@ let merge converter1 converter2 =
     | _, Ok formula2 -> Ok formula2
     | Error err1, Error err2 -> Error (err1 ^ "\n" ^ err2)
   in
-  let raw string =
-    formula_result_or_
-      (converter1.raw string)
-      (converter2.raw string)
+  let merge_to_predicate name to_predicate1 to_predicate2 =
+    match to_predicate1, to_predicate2 with
+    | Nullary formula1, Nullary formula2 ->
+      Some (Nullary (Formula.or_ formula1 formula2))
+    | Unary to_formula1, Unary to_formula2 ->
+      Some (Unary (fun text_formula -> formula_result_or_ (to_formula1 text_formula) (to_formula2 text_formula)))
+    | _ ->
+      kspf invalid_arg "TextFormula.Converter.merge: predicate \"%s\" appears in both with different arities" name
   in
-  let predicates =
-    String.Map.union
-      (fun name predicate1 predicate2 ->
-         match predicate1, predicate2 with
-         | Nullary formula1, Nullary formula2 ->
-           Some (Nullary (Formula.or_ formula1 formula2))
-         | Unary to_formula1, Unary to_formula2 ->
-           Some (Unary (fun text_formula -> formula_result_or_ (to_formula1 text_formula) (to_formula2 text_formula)))
-         | _ ->
-           kspf invalid_arg "TextFormula.Converter.merge: predicate \"%s\" appears in both with different arities" name)
-      converter1.predicates
-      converter2.predicates
-  in
-  { raw; predicates }
+  {
+    raw = (fun string -> formula_result_or_ (converter1.raw string) (converter2.raw string));
+    to_predicates = String.Map.union merge_to_predicate converter1.to_predicates converter2.to_predicates;
+  }
 
 let merge_l = function
   | [] -> invalid_arg "TextFormula.Converter.merge_l"
