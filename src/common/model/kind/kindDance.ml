@@ -88,6 +88,8 @@ module Filter = struct
   let version vfilter = Version vfilter
   let simple = Simple
 
+  let unVersion = function Version vf -> Some vf | _ -> None
+
   let base = version % KindVersion.Filter.base'
 
   let is' = Formula.pred % is
@@ -111,7 +113,7 @@ module Filter = struct
         )
         (
           (* Version kind converter, lifted to dance kinds *)
-          map version KindVersion.Filter.text_formula_converter
+          map (version, unVersion) KindVersion.Filter.text_formula_converter
         )
     )
 

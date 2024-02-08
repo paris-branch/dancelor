@@ -66,7 +66,7 @@ val make :
     ["chocolat"] will be searched for in the {!predicate_binding} list. *)
 
 val map :
-  ('p Formula.t -> 'q) ->
+  (('p Formula.t -> 'q) * ('q -> 'p Formula.t option)) ->
   'p t ->
   'q t
 (** Map over a converter given a function. *)

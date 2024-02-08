@@ -54,6 +54,12 @@ module Filter = struct
   let asVersion filter = AsVersion filter
 
   let unType = function Type t -> Some t | _ -> None
+  let unAsPerson = function AsPerson pf -> Some pf | _ -> None
+  let unAsDance = function AsDance df -> Some df | _ -> None
+  let unAsBook = function AsBook bf -> Some bf | _ -> None
+  let unAsSet = function AsSet sf -> Some sf | _ -> None
+  let unAsTune = function AsTune tf -> Some tf | _ -> None
+  let unAsVersion = function AsVersion vf -> Some vf | _ -> None
 
   type t = predicate Formula.t
   [@@deriving yojson]

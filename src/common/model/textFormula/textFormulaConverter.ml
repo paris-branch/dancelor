@@ -35,7 +35,7 @@ let make ?raw predicates_bindings =
     to_predicates = String.Map.of_seq (List.to_seq predicates_bindings);
   }
 
-let map f {raw; to_predicates} =
+let map (f, _f1) {raw; to_predicates} =
   {
     raw = Result.map (Formula.pred % f) % raw;
     to_predicates = String.Map.map (map_to_predicate f) to_predicates

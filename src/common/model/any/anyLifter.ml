@@ -127,12 +127,12 @@ module Lift
                 ~type_:"valid type"
             ];
           (* Other converters, lifted to Any *)
-          map asPerson Person.Filter.text_formula_converter;
-          map asDance Dance.Filter.text_formula_converter;
-          map asBook Book.Filter.text_formula_converter;
-          map asSet Set.Filter.text_formula_converter;
-          map asTune Tune.Filter.text_formula_converter;
-          map asVersion Version.Filter.text_formula_converter;
+          map (asPerson, unAsPerson) Person.Filter.text_formula_converter;
+          map (asDance, unAsDance) Dance.Filter.text_formula_converter;
+          map (asBook, unAsBook) Book.Filter.text_formula_converter;
+          map (asSet, unAsSet) Set.Filter.text_formula_converter;
+          map (asTune, unAsTune) Tune.Filter.text_formula_converter;
+          map (asVersion, unAsVersion) Version.Filter.text_formula_converter;
         ]
       )
 

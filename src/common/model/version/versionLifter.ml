@@ -71,7 +71,7 @@ module Lift
           )
           (
             (* Tune converter, lifted to versions *)
-            map tune Tune.Filter.text_formula_converter
+            map (tune, unTune) Tune.Filter.text_formula_converter
           )
       )
 

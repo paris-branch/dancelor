@@ -123,6 +123,7 @@ module Filter = struct
   let unBarsGe = function BarsGe i -> Some i | _ -> None
   let unBarsLt = function BarsLt i -> Some i | _ -> None
   let unBarsLe = function BarsLe i -> Some i | _ -> None
+  let unBase = function Base bf -> Some bf | _ -> None
 
   let is' = Formula.pred % is
   let barsEq' = Formula.pred % barsEq
@@ -151,7 +152,7 @@ module Filter = struct
         )
         (
           (* Base kind converter, lifted to version kinds *)
-          map base KindBase.Filter.text_formula_converter
+          map (base, unBase) KindBase.Filter.text_formula_converter
         )
     )
 
