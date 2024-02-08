@@ -7,7 +7,12 @@ type 'p t
 (** Abstract type of a converter from text formulas to formulas with predicates
     of type ['p]. *)
 
-(** {2 Building} *)
+(** {2 Using} *)
+
+val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
+(** Convert a text formula to a formula using the given converter. *)
+
+(** {2 Predicate bindings} *)
 
 type 'p predicate_binding
 (** Abstract type of a binding in the map of predicates. *)
@@ -48,6 +53,8 @@ val unary_raw :
     error message is created using [~type_]. For instance, {!unary_int} is
     [unary_raw ~cast:int_of_string_opt ~type_:"int"]. *)
 
+(** {2 Building} *)
+
 val make :
   ?raw: (string -> ('p Formula.t, string) Result.t) ->
   'p predicate_binding list ->
@@ -58,23 +65,8 @@ val make :
     will be called on ["bonjour"] and ["monsieur"] while ["baguette"] and
     ["chocolat"] will be searched for in the {!predicate_binding} list. *)
 
-(** {2 Using} *)
-
-val predicate_to_formula : 'p t -> TextFormulaType.predicate -> ('p Formula.t, string) Result.t
-(** Convert one text predicate to a formula using the given converter. Can fail
-    via [Result] if, for instance, the predicates are not used with the right
-    arity. *)
-
-val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
-(** Convert a text formula to a formula using the given converter. This is
-    basically {!Formula.convert} applied to {!predicate_to_formula}. *)
-
-(** {2 Mapping} *)
-
 val map : ('p Formula.t -> 'q Formula.t) -> 'p t -> 'q t
 (** Map over a converter given a function. *)
-
-(** {2 Merging} *)
 
 val merge : 'p t -> 'p t -> 'p t
 (** Merge two converters together. Predicates that exist on both sides must have
