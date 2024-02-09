@@ -36,10 +36,10 @@ module Lift () = struct
       TextFormulaConverter.(
         make
           [
+            raw (Result.ok % nameMatches');
             unary_string ~name:"name"         (name, unName);
             unary_string ~name:"name-matches" (nameMatches, unNameMatches);
           ]
-          ~raw: (Result.ok % nameMatches')
       )
 
     let from_text_formula = TextFormulaConverter.to_formula text_formula_converter

@@ -103,13 +103,14 @@ module Filter = struct
         (
           (* Dance kind-specific converter *)
           make
-            []
-            ~raw: (fun string ->
-                Option.fold
-                  ~some: (Result.ok % is')
-                  ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
-                  (of_string_opt string)
-              )
+            [
+              raw
+                (fun string ->
+                   Option.fold
+                     ~some: (Result.ok % is')
+                     ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
+                     (of_string_opt string))
+            ]
         )
         (
           (* Version kind converter, lifted to dance kinds *)

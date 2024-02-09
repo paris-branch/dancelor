@@ -62,6 +62,7 @@ module Lift
       TextFormulaConverter.(
         make
           [
+            raw (Result.ok % nameMatches');
             unary_string ~name:"name"         (name, unName);
             unary_string ~name:"name-matches" (nameMatches, unNameMatches);
             unary_lift   ~name:"author"       (author, unAuthor)           ~converter:Person.Filter.text_formula_converter;
@@ -69,7 +70,6 @@ module Lift
             unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
             unary_lift   ~name:"exists-dance" (existsDance, unExistsDance) ~converter:Dance.Filter.text_formula_converter;
           ]
-          ~raw: (Result.ok % nameMatches')
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter

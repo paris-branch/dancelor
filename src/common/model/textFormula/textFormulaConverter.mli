@@ -12,58 +12,63 @@ type 'p t
 val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
 (** Convert a text formula to a formula using the given converter. *)
 
-(** {2 Predicate bindings} *)
+(** {2 Case}
 
-type 'p predicate_binding
-(** Abstract type of a binding in the map of predicates. *)
+    Conversion cases. The full conversion consists in many tiny cases that can
+    be built and combined separately. *)
 
-val nullary : name:string -> 'p -> 'p predicate_binding
-(** Make a predicate binding for a nullary predicate of the given name
-    converting to the given predicate. *)
+type 'p case
+(** Abstract type of one case. *)
 
-val unary_lift :
-  name: string ->
-  converter: 'i t ->
-  (('i Formula.t -> 'p) * ('p -> 'i Formula.t option)) ->
-  'p predicate_binding
-(** Make a unary predicate that lifts other formulas. The argument is converted
-    using the [converter] and the result is passed to the given lifting
-    function. *)
+val raw :
+  (string -> ('p Formula.t, string) Result.t) ->
+  'p case
+(** Make a case for standalone strings. For instance, in the formula ["bonjour
+    baguette:oui monsieur :chocolat"], the {!raw} case will apply to ["bonjour"]
+    and ["monsieur"]. *)
+
+val nullary : name:string -> 'p -> 'p case
+(** Make a case for a nullary predicate of the given name converting to the
+    given predicate. For instance, in the formula ["bonjour baguette:oui
+    monsieur :chocolat"], a [nullary ~name:"chocolat" p] case will apply to
+    [":chocolat"] while a [nullary ~name:"banana" q] case will not apply to
+    anything. *)
 
 val unary_string :
   name: string ->
   ((string -> 'p) * ('p -> string option)) ->
-  'p predicate_binding
-(** Make a unary predicate whose argument must be a string. *)
+  'p case
+(** Make a case whose argument must be a string. *)
 
 val unary_int :
   name: string ->
   ((int -> 'p) * ('p -> int option)) ->
-  'p predicate_binding
-(** Make a unary predicate whose argument must be an int. *)
+  'p case
+(** Make a case whose argument must be an int. *)
 
 val unary_raw :
   name: string ->
   cast: ((string -> 'i option) * ('i -> string)) ->
   type_: string ->
   (('i -> 'p) * ('p -> 'i option)) ->
-  'p predicate_binding
-(** Make a unary predicate whose argument must be raw. The raw string is then
-    passed to [~cast] to convert it to an ['i]ntermediary value. If it fails, an
-    error message is created using [~type_]. For instance, {!unary_int} is
-    [unary_raw ~cast:int_of_string_opt ~type_:"int"]. *)
+  'p case
+(** Make a case whose argument must be raw. The raw string is then passed to
+    [~cast] to convert it to an ['i]ntermediary value. If it fails, an error
+    message is created using [~type_]. For instance, {!unary_int} is [unary_raw
+    ~cast:int_of_string_opt ~type_:"int"]. *)
+
+val unary_lift :
+  name: string ->
+  converter: 'i t ->
+  (('i Formula.t -> 'p) * ('p -> 'i Formula.t option)) ->
+  'p case
+(** Make a case that lifts other formulas. The argument is converted using the
+    [converter] and the result is passed to the given lifting function. *)
 
 (** {2 Building} *)
 
-val make :
-  ?raw: (string -> ('p Formula.t, string) Result.t) ->
-  'p predicate_binding list ->
-  'p t
-(** Make a converter from a list of {!predicate_binding}s and a [~raw] argument.
-    This argument will be called on standalone strings. For instance, in the
-    formula ["bonjour baguette:oui monsieur :chocolat"], the [~raw] function
-    will be called on ["bonjour"] and ["monsieur"] while ["baguette"] and
-    ["chocolat"] will be searched for in the {!predicate_binding} list. *)
+val make : 'p case list -> 'p t
+(** Make a converter from a list of {!case}s. *)
 
 val map :
   (('p Formula.t -> 'q) * ('q -> 'p Formula.t option)) ->

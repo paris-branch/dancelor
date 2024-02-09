@@ -85,14 +85,17 @@ module Filter = struct
   let is' = Formula.pred % is
 
   let text_formula_converter =
-    TextFormulaConverter.make
-      []
-      ~raw: (fun string ->
-          Option.fold
-            ~some: (Result.ok % is')
-            ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
-            (of_string_opt string)
-        )
+    TextFormulaConverter.(
+      make
+        [
+          raw
+            (fun string ->
+               Option.fold
+                 ~some: (Result.ok % is')
+                 ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
+                 (of_string_opt string))
+        ]
+    )
 
   let from_text_formula = TextFormula.to_formula text_formula_converter
 end

@@ -273,6 +273,7 @@ module Lift
       TextFormulaConverter.(
         make
           [
+            raw (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)));
             unary_string ~name:"title"               (title, unTitle);
             unary_string ~name:"title-matches"       (titleMatches, unTitleMatches);
             unary_string ~name:"subtitle"            (subtitle, unSubtitle);
@@ -283,7 +284,6 @@ module Lift
             unary_lift   ~name:"exists-version-deep" (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
             unary_lift   ~name:"exists-tune-deep"    (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
           ]
-          ~raw: (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)))
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter
