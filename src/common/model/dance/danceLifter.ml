@@ -59,6 +59,7 @@ module Lift
             unary_lift   ~name: "kind"         (kind, unKind)                ~converter: Kind.Dance.Filter.text_formula_converter;
             unary_lift   ~name: "deviser"      (deviser, unDeviser)          ~converter: Person.Filter.text_formula_converter;
             unary_lift   ~name: "by"           (deviser, unDeviser)          ~converter: Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
           ]
       )
 

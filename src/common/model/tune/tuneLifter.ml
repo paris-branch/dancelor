@@ -69,6 +69,7 @@ module Lift
             unary_lift   ~name:"by"           (author, unAuthor)           ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
             unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
             unary_lift   ~name:"exists-dance" (existsDance, unExistsDance) ~converter:Dance.Filter.text_formula_converter;
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
           ]
       )
 

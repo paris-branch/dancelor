@@ -67,6 +67,7 @@ module Lift
                 unary_lift ~name:"tune"   (tune, unTune)   ~converter:Tune.Filter.text_formula_converter;
                 unary_raw  ~name:"key"    (key, unKey)     ~cast:(Music.key_of_string_opt, Music.key_to_string) ~type_:"key";
                 unary_lift ~name:"kind"   (kind, unKind)   ~converter:Kind.Version.Filter.text_formula_converter;
+                unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
               ]
           )
           (
