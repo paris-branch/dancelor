@@ -9,6 +9,10 @@ type 'p t =
   | Pred of 'p
 [@@deriving qcheck, yojson]
 
+(* Formulas can grow very quickly. We therefore limit the size of formulas
+   drastically in our generator. *)
+let gen gen_p = gen_sized gen_p 10
+
 (** For debugging purposes, our custom [show]. *)
 let pp pp_pred fmt formula =
   let ppf par fmt =
