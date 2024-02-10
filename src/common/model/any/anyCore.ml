@@ -27,7 +27,7 @@ module Type = struct
     | Set
     | Tune
     | Version
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 end
 
 module Filter = struct
@@ -42,7 +42,7 @@ module Filter = struct
     | Set     of     SetCore.Filter.t
     | Tune    of    TuneCore.Filter.t
     | Version of VersionCore.Filter.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let type_ type_ = Type type_
@@ -62,5 +62,5 @@ module Filter = struct
   let unVersion = function Version vf -> Some vf | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 end

@@ -38,13 +38,17 @@ let equal version1 version2 = Slug.equal (slug version1) (slug version2)
 module Filter = struct
   let _key = "version-filter"
 
+  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
+     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
+  let gen = QCheck.Gen.pure (Obj.magic 0)
+
   type predicate =
     | Is of t Slug.t
     | Tune of TuneCore.Filter.t
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
     | Broken
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is version = Is version
@@ -59,7 +63,7 @@ module Filter = struct
   let unKind = function Kind f -> Some f | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   let tune' = Formula.pred % tune
   let key' = Formula.pred % key

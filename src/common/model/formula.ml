@@ -1,13 +1,13 @@
 open Nes
 
-type 'filter t =
+type 'p t =
   | False
   | True
-  | Not of 'filter t
-  | And of 'filter t * 'filter t
-  | Or  of 'filter t * 'filter t
-  | Pred of 'filter
-[@@deriving yojson]
+  | Not of 'p t
+  | And of 'p t * 'p t
+  | Or  of 'p t * 'p t
+  | Pred of 'p
+[@@deriving qcheck, yojson]
 
 (** For debugging purposes, our custom [show]. *)
 let pp pp_pred fmt formula =

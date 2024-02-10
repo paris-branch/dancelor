@@ -48,6 +48,10 @@ type warnings = warning list
 module Filter = struct
   let _key = "set-filter"
 
+  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
+     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
+  let gen = QCheck.Gen.pure (Obj.magic 0)
+
   type predicate =
     | Is of t Slug.t
     | Name of string
@@ -55,7 +59,7 @@ module Filter = struct
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
     | Kind of Kind.Dance.Filter.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is set = Is set
@@ -73,7 +77,7 @@ module Filter = struct
   let unKind = function Kind kf -> Some kf | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches

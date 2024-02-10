@@ -56,3 +56,5 @@ let compare_slugs_or ~fallback slug x y =
     compare slug_x slug_y
   else
     fallback x y
+
+let gen _ = QCheck.Gen.map from_string QCheck.Gen.string

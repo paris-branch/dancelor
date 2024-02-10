@@ -71,3 +71,15 @@ val clef_to_symbol : clef -> string
 (** Unicode symbol of the clef. *)
 
 val clef_of_string : string -> clef
+
+(** {2 Generators} *)
+
+(* FIXME: Should be able to go in the [@@deriving] block. *)
+
+val gen_note : note QCheck.Gen.t
+val gen_alteration : alteration QCheck.Gen.t
+val gen_octave : octave QCheck.Gen.t
+val gen_pitch : pitch QCheck.Gen.t
+val gen_mode : mode QCheck.Gen.t
+val gen_key : key QCheck.Gen.t
+val gen_clef : clef QCheck.Gen.t

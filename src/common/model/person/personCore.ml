@@ -22,11 +22,15 @@ let created_at person = person.created_at
 module Filter = struct
   let _key = "person-filter"
 
+  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
+     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
+  let gen = QCheck.Gen.pure (Obj.magic 0)
+
   type predicate =
     | Is of t Slug.t
     | Name of string
     | NameMatches of string
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is person = Is person
@@ -38,7 +42,7 @@ module Filter = struct
   let unNameMatches = function NameMatches n -> Some n | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches

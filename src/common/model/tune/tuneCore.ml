@@ -35,6 +35,10 @@ let equal tune1 tune2 = compare tune1 tune2 = 0
 module Filter = struct
   let _key = "tune-filter"
 
+  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
+     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
+  let gen = QCheck.Gen.pure (Obj.magic 0)
+
   type predicate =
     | Is of t Slug.t
     | Name of string
@@ -42,7 +46,7 @@ module Filter = struct
     | Author of PersonCore.Filter.t (** author is defined and passes the filter *)
     | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is tune = Is tune
@@ -60,7 +64,7 @@ module Filter = struct
   let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
