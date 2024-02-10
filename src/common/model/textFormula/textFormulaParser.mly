@@ -30,6 +30,6 @@ expression:
   | NOT e=expression { Not e }
   | e1=expression AND e2=expression { And (e1, e2) }
   | e1=expression  OR e2=expression { Or  (e1, e2) }
-  | l=LITERAL { raw l }
-  | p=NULLARY_PREDICATE { nullary p }
-  | p=PREDICATE e=expression { unary p e }
+  | l=LITERAL { raw' l }
+  | p=NULLARY_PREDICATE { nullary' p }
+  | p=PREDICATE e=expression { unary' p e }

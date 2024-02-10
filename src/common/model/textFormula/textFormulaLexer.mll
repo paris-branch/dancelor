@@ -37,7 +37,7 @@ rule token = parse
 
   | '"' {
       let buf = Buffer.create 8 in
-      LITERAL (string buf lexbuf)
+      LITERAL (string false buf lexbuf)
     }
 
   (* The following pattern must exclude all the special characters matched above. *)
@@ -49,7 +49,22 @@ rule token = parse
 
   | eof { EOF }
 
-and string buf = parse
-  | '"'    { Buffer.contents buf }
-  | _ as c { Buffer.add_char buf c; string buf lexbuf }
-  | eof    { raise UnterminatedQuote }
+and string esc buf = parse
+  | '"' {
+      if esc then
+        (Buffer.add_char buf '"'; string false buf lexbuf)
+      else
+        Buffer.contents buf
+    }
+  | '\\' {
+      if esc then
+        (Buffer.add_char buf '\\'; string false buf lexbuf)
+      else
+        string true buf lexbuf
+    }
+  | _ as c {
+      Buffer.add_char buf c; string false buf lexbuf
+    }
+  | eof {
+      raise UnterminatedQuote
+    }
