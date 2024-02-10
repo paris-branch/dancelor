@@ -6,6 +6,7 @@ type t = int * KindBase.t
 [@@deriving eq, show {with_path = false}]
 
 let gen = QCheck.Gen.(pair nat KindBase.gen)
+let shrink _ = QCheck.Iter.empty
 
 let to_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_string base)

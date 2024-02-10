@@ -19,6 +19,7 @@ val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
 
 val gen : t QCheck.Gen.t
+val shrink : t QCheck.Shrink.t
 
 (** {2 Filters} *)
 
