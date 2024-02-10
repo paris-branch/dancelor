@@ -27,9 +27,11 @@
         yaml
 
         # documentation and tests
+        alcotest
         odoc
         ppx_deriving_qcheck
         qcheck
+        qcheck-alcotest
       ];
     };
   };

@@ -18,6 +18,7 @@
  (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
+  (alcotest             :with-test)
   (cohttp-lwt-jsoo     (>= 4.0.0))
   (cohttp-lwt-unix     (>= 4.0.0))
    dates_calc
@@ -39,6 +40,7 @@
    ppx_import
   (ppx_monad           (and :build (>= 0.2.0)))
    qcheck
+  (qcheck-alcotest      :with-test)
    slug
    yaml
   (yojson              (>= 1.6.0))))
