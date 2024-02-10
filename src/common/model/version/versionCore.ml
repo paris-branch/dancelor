@@ -39,7 +39,7 @@ module Filter = struct
   let _key = "version-filter"
 
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Tune of TuneCore.Filter.t
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
@@ -58,16 +58,11 @@ module Filter = struct
   let unKey = function Key k -> Some k | _ -> None
   let unKind = function Kind f -> Some f | _ -> None
 
-  let tuneIs = tune % TuneCore.Filter.is'
-
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, yojson]
 
-  let is' = Formula.pred % is
   let tune' = Formula.pred % tune
   let key' = Formula.pred % key
   let kind' = Formula.pred % kind
   let broken' = Formula.pred broken
-
-  let tuneIs' = Formula.pred % tuneIs
 end

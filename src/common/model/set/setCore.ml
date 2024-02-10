@@ -49,7 +49,7 @@ module Filter = struct
   let _key = "set-filter"
 
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Name of string
     | NameMatches of string
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
@@ -65,22 +65,19 @@ module Filter = struct
   let existsVersion vfilter = ExistsVersion vfilter
   let kind kfilter = Kind kfilter
 
+  let unIs = function Is s -> Some s | _ -> None
   let unName = function Name n -> Some n | _ -> None
   let unNameMatches = function NameMatches n -> Some n | _ -> None
   let unDeviser = function Deviser cf -> Some cf | _ -> None
   let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
   let unKind = function Kind kf -> Some kf | _ -> None
 
-  let memVersion = existsVersion % VersionCore.Filter.is'
-
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, yojson]
 
-  let is' = Formula.pred % is
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
   let deviser' = Formula.pred % deviser
   let existsVersion' = Formula.pred % existsVersion
   let kind' = Formula.pred % kind
-  let memVersion' = Formula.pred % memVersion
 end

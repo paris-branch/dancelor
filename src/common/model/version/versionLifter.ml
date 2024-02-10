@@ -40,7 +40,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is version' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal version version'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug version) version'
 
       | Tune tfilter ->
         let%lwt tune = versionCore_tune version in
@@ -80,5 +80,11 @@ module Lift
       Result.bind
         (TextFormula.from_string ?filename input)
         from_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let tuneIs = tune % Tune.Filter.is'
+    let tuneIs' = Formula.pred % tuneIs
   end
 end

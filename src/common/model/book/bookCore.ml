@@ -82,7 +82,7 @@ module Filter = struct
   let _key = "book-filter"
 
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | IsSource
     | Title of string
     | TitleMatches of string
@@ -106,6 +106,7 @@ module Filter = struct
   let existsInlineSet sfilter = ExistsInlineSet sfilter
   let existsVersionDeep vfilter = ExistsVersionDeep vfilter
 
+  let unIs = function Is s -> Some s | _ -> None
   let unTitle = function Title t -> Some t | _ -> None
   let unTitleMatches = function TitleMatches t -> Some t | _ -> None
   let unSubtitle = function Subtitle s -> Some s | _ -> None
@@ -115,16 +116,9 @@ module Filter = struct
   let unExistsInlineSet = function ExistsInlineSet sf -> Some sf | _ -> None
   let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
 
-  let memVersion = existsVersion % VersionCore.Filter.is'
-  let memSet = existsSet % SetCore.Filter.is'
-  let memVersionDeep = existsVersionDeep % VersionCore.Filter.is'
-  let existsTuneDeep = existsVersionDeep % VersionCore.Filter.tune'
-  let memTuneDeep = existsTuneDeep % TuneCore.Filter.is'
-
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, yojson]
 
-  let is' = Formula.pred % is
   let title' = Formula.pred % title
   let titleMatches' = Formula.pred % titleMatches
   let subtitle' = Formula.pred % subtitle
@@ -134,10 +128,4 @@ module Filter = struct
   let existsSet' = Formula.pred % existsSet
   let existsInlineSet' = Formula.pred % existsInlineSet
   let existsVersionDeep' = Formula.pred % existsVersionDeep
-
-  let memVersion' = Formula.pred % memVersion
-  let memSet' = Formula.pred % memSet
-  let memVersionDeep' = Formula.pred % memVersionDeep
-  let existsTuneDeep' = Formula.pred % existsTuneDeep
-  let memTuneDeep' = Formula.pred % memTuneDeep
 end

@@ -106,7 +106,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is set' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal set set'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug set) set'
 
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ SetCore.name set
@@ -148,5 +148,11 @@ module Lift
     let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
       Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let memVersion = existsVersion % Version.Filter.is'
+    let memVersion' = Formula.pred % memVersion
   end
 end

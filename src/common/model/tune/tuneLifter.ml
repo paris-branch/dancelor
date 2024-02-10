@@ -35,7 +35,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is tune' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal tune tune'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug tune) tune'
 
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ TuneCore.name tune
@@ -75,5 +75,11 @@ module Lift
     let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
       Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let authorIs = author % Person.Filter.is'
+    let authorIs' = Formula.pred % authorIs
   end
 end

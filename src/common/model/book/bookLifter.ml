@@ -211,7 +211,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is book' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal book book'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug book) book'
 
       | Title string ->
         Lwt.return @@ String.proximity ~char_equal string @@ BookCore.title book
@@ -289,5 +289,20 @@ module Lift
     let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
       Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let memVersion = existsVersion % Version.Filter.is'
+    let memSet = existsSet % Set.Filter.is'
+    let memVersionDeep = existsVersionDeep % Version.Filter.is'
+    let existsTuneDeep = existsVersionDeep % Version.Filter.tune'
+    let memTuneDeep = existsTuneDeep % Tune.Filter.is'
+
+    let memVersion' = Formula.pred % memVersion
+    let memSet' = Formula.pred % memSet
+    let memVersionDeep' = Formula.pred % memVersionDeep
+    let existsTuneDeep' = Formula.pred % existsTuneDeep
+    let memTuneDeep' = Formula.pred % memTuneDeep
   end
 end

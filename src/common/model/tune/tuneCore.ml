@@ -36,7 +36,7 @@ module Filter = struct
   let _key = "tune-filter"
 
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Name of string
     | NameMatches of string
     | Author of PersonCore.Filter.t (** author is defined and passes the filter *)
@@ -52,23 +52,19 @@ module Filter = struct
   let kind kfilter = Kind kfilter
   let existsDance dfilter = ExistsDance dfilter
 
+  let unIs = function Is s -> Some s | _ -> None
   let unName = function Name n -> Some n | _ -> None
   let unNameMatches = function NameMatches n -> Some n | _ -> None
   let unAuthor = function Author cf -> Some cf | _ -> None
   let unKind = function Kind kf -> Some kf | _ -> None
   let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
-  let authorIs = author % PersonCore.Filter.is'
-
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, yojson]
 
-  let is' = Formula.pred % is
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
   let author' = Formula.pred % author
   let kind' = Formula.pred % kind
   let existsDance' = Formula.pred % existsDance
-
-  let authorIs' = Formula.pred % authorIs
 end

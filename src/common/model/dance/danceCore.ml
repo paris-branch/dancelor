@@ -31,7 +31,7 @@ module Filter = struct
   let _key = "dance-filter"
 
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Name of string
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
@@ -45,6 +45,7 @@ module Filter = struct
   let kind kfilter = Kind kfilter
   let deviser cfilter = Deviser cfilter
 
+  let unIs = function Is s -> Some s | _ -> None
   let unName = function Name n -> Some n | _ -> None
   let unNameMatches = function NameMatches n -> Some n | _ -> None
   let unKind = function Kind kf -> Some kf | _ -> None
@@ -53,7 +54,6 @@ module Filter = struct
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, yojson]
 
-  let is' = Formula.pred % is
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
   let kind' = Formula.pred % kind
