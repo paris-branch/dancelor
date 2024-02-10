@@ -101,3 +101,17 @@ module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   let of_yojson = of_yojson M.of_yojson
   let to_yojson = to_yojson M.to_yojson
 end
+
+let rec shrink shrink_predicate = let open QCheck.Iter in function
+    | False -> empty
+    | True -> empty
+    | Not f -> return f
+    | And (f1, f2) -> (return f1) <+> (return f2)
+                      <+> map (fun f1' -> And (f1', f2)) (shrink shrink_predicate f1)
+                      <+> map (fun f2' -> And (f1, f2')) (shrink shrink_predicate f2)
+    | Or (f1, f2) -> (return f1) <+> (return f2)
+                     <+> map (fun f1' -> Or (f1', f2)) (shrink shrink_predicate f1)
+                     <+> map (fun f2' -> Or (f1, f2')) (shrink shrink_predicate f2)
+    | Pred p -> map (fun p' -> Pred p') (shrink_predicate p)
+
+let shrink' f = shrink (Fun.const QCheck.Iter.empty) f
