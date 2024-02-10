@@ -28,6 +28,8 @@
 
         # documentation and tests
         odoc
+        ppx_deriving_qcheck
+        qcheck
       ];
     };
   };

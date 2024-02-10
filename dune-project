@@ -33,10 +33,12 @@
   (odoc                 :with-doc)
   (ppx_blob             :build)
    ppx_deriving
+   ppx_deriving_qcheck
    ppx_deriving_yojson
   (ppx_inline_test     (or :build :with-test))
    ppx_import
   (ppx_monad           (and :build (>= 0.2.0)))
+   qcheck
    slug
    yaml
   (yojson              (>= 1.6.0))))
