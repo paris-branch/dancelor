@@ -84,32 +84,32 @@ module Lift
         |> Formula.interpret_bool
         |> Lwt.return
 
-      | AsPerson cfilter ->
+      | Person cfilter ->
         (match any with
          | Person person -> Person.Filter.accepts cfilter person
          | _ -> Lwt.return Formula.interpret_false)
 
-      | AsDance dfilter ->
+      | Dance dfilter ->
         (match any with
          | Dance dance -> Dance.Filter.accepts dfilter dance
          | _ -> Lwt.return Formula.interpret_false)
 
-      | AsBook bfilter ->
+      | Book bfilter ->
         (match any with
          | Book book -> Book.Filter.accepts bfilter book
          | _ -> Lwt.return Formula.interpret_false)
 
-      | AsSet sfilter ->
+      | Set sfilter ->
         (match any with
          | Set set -> Set.Filter.accepts sfilter set
          | _ -> Lwt.return Formula.interpret_false)
 
-      | AsTune tfilter ->
+      | Tune tfilter ->
         (match any with
          | Tune tune -> Tune.Filter.accepts tfilter tune
          | _ -> Lwt.return Formula.interpret_false)
 
-      | AsVersion vfilter ->
+      | Version vfilter ->
         (match any with
          | Version version -> Version.Filter.accepts vfilter version
          | _ -> Lwt.return Formula.interpret_false)
@@ -126,21 +126,21 @@ module Lift
                 ~cast:(Type.of_string_opt, Type.to_string)
                 ~type_:"valid type";
 
-              unary_lift ~name:"as-person" (asPerson, unAsPerson) ~converter:Person.Filter.text_formula_converter;
-              unary_lift ~name:"as-dance" (asDance, unAsDance) ~converter:Dance.Filter.text_formula_converter;
-              unary_lift ~name:"as-book" (asBook, unAsBook) ~converter:Book.Filter.text_formula_converter;
-              unary_lift ~name:"as-set" (asSet, unAsSet) ~converter:Set.Filter.text_formula_converter;
-              unary_lift ~name:"as-tune" (asTune, unAsTune) ~converter:Tune.Filter.text_formula_converter;
-              unary_lift ~name:"as-version" (asVersion, unAsVersion) ~converter:Version.Filter.text_formula_converter;
+              unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter;
+              unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter;
+              unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter;
+              unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter;
+              unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter;
+              unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter;
             ];
 
           (* Other converters, lifted to Any *)
-          map asPerson Person.Filter.text_formula_converter;
-          map asDance Dance.Filter.text_formula_converter;
-          map asBook Book.Filter.text_formula_converter;
-          map asSet Set.Filter.text_formula_converter;
-          map asTune Tune.Filter.text_formula_converter;
-          map asVersion Version.Filter.text_formula_converter;
+          map person Person.Filter.text_formula_converter;
+          map dance Dance.Filter.text_formula_converter;
+          map book Book.Filter.text_formula_converter;
+          map set Set.Filter.text_formula_converter;
+          map tune Tune.Filter.text_formula_converter;
+          map version Version.Filter.text_formula_converter;
         ]
       )
 
@@ -164,12 +164,12 @@ module Lift
              has a chance to return. That would eliminate some other types. *)
           match pred with
           | Type type_  -> Type.Set.singleton type_
-          | AsPerson  _ -> Type.Set.singleton Person
-          | AsDance   _ -> Type.Set.singleton Dance
-          | AsBook    _ -> Type.Set.singleton Book
-          | AsSet     _ -> Type.Set.singleton Set
-          | AsTune    _ -> Type.Set.singleton Tune
-          | AsVersion _ -> Type.Set.singleton Version
+          | Person  _ -> Type.Set.singleton Person
+          | Dance   _ -> Type.Set.singleton Dance
+          | Book    _ -> Type.Set.singleton Book
+          | Set     _ -> Type.Set.singleton Set
+          | Tune    _ -> Type.Set.singleton Tune
+          | Version _ -> Type.Set.singleton Version
       in
       List.of_seq % Type.Set.to_seq % possible_types
   end

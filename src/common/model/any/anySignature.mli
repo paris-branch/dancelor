@@ -82,27 +82,27 @@ module Filter : sig
   val type_ : Type.t -> predicate
   (** A filter that asserts that the element has the given type. *)
 
-  val asPerson : PersonSignature.Filter.t -> predicate
+  val person : PersonSignature.Filter.t -> predicate
   (** Lift a filter on persons to make a filter on “any”. This filter asserts
       that the “any” element is a person that matches the given filter. *)
 
-  val asDance : DanceSignature.Filter.t -> predicate
+  val dance : DanceSignature.Filter.t -> predicate
   (** Lift a filter on dances to make a filter on “any”. This filter asserts
       that the “any” element is a dance that matches the given filter. *)
 
-  val asBook : BookSignature.Filter.t -> predicate
+  val book : BookSignature.Filter.t -> predicate
   (** Lift a filter on books to make a filter on “any”. This filter asserts that
       the “any” element is a book that matches the given filter. *)
 
-  val asSet : SetSignature.Filter.t -> predicate
+  val set : SetSignature.Filter.t -> predicate
   (** Lift a filter on sets to make a filter on “any”. This filter asserts that
       the “any” element is a set that matches the given filter. *)
 
-  val asTune : TuneSignature.Filter.t -> predicate
+  val tune : TuneSignature.Filter.t -> predicate
   (** Lift a filter on tunes to make a filter on “any”. This filter asserts that
       the “any” element is a tune that matches the given filter. *)
 
-  val asVersion : VersionSignature.Filter.t -> predicate
+  val version : VersionSignature.Filter.t -> predicate
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
 
