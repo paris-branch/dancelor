@@ -33,6 +33,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: VersionCore.Filter.predicate]
   type t = [%import: VersionCore.Filter.t]
+  [@@deriving show]
 
   val accepts : t -> VersionCore.t -> float Lwt.t
 
@@ -55,8 +56,11 @@ module Filter : sig
   val key' : Music.Key.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
+  val to_string : t -> string
+
+  val gen : t QCheck.Gen.t
+  val shrink' : t QCheck.Shrink.t
 end
 
 (** {2 Getters and setters} *)

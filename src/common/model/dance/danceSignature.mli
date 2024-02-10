@@ -24,6 +24,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: DanceCore.Filter.predicate]
   type t = [%import: DanceCore.Filter.t]
+  [@@deriving show]
 
   val accepts : t -> DanceCore.t -> float Lwt.t
 
@@ -34,8 +35,11 @@ module Filter : sig
   val deviser' : PersonCore.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
+  val to_string : t -> string
+
+  val gen : t QCheck.Gen.t
+  val shrink' : t QCheck.Shrink.t
 end
 
 (** {2 Getters and setters} *)

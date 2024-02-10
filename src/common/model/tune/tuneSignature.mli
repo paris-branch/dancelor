@@ -26,6 +26,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: TuneCore.Filter.predicate]
   type t = [%import: TuneCore.Filter.t]
+  [@@deriving show]
 
   val accepts : t -> TuneCore.t -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]
@@ -49,11 +50,13 @@ module Filter : sig
   val text_formula_converter : predicate TextFormulaConverter.t
   (** Converter from text formulas to formulas on tunes. *)
 
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
-  (** Build a filter from a text formula, or fail. *)
-
   val from_string : ?filename:string -> string -> (t, string) Result.t
   (** Build a fliter from a string, or fail. *)
+
+  val to_string : t -> string
+
+  val gen : t QCheck.Gen.t
+  val shrink' : t QCheck.Shrink.t
 end
 
 (** {2 Getters and setters} *)

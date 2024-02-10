@@ -82,6 +82,9 @@ module Lift
         (TextFormula.from_string ?filename input)
         from_text_formula
 
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
     let is = is % slug
     let is' = Formula.pred % is
 

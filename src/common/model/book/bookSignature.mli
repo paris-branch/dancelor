@@ -81,6 +81,7 @@ val warnings : t -> warnings Lwt.t
 module Filter : sig
   type predicate = [%import: BookCore.Filter.predicate]
   type t = [%import: BookCore.Filter.t]
+  [@@deriving show]
 
   val accepts : t -> BookCore.t -> float Lwt.t
 
@@ -99,8 +100,11 @@ module Filter : sig
       directly in the book or in a set of the book. *)
 
   val text_formula_converter : predicate TextFormulaConverter.t
-  val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
+  val to_string : t -> string
+
+  val gen : t QCheck.Gen.t
+  val shrink' : t QCheck.Shrink.t
 end
 
 (** {2 API Getters & Setters} *)
