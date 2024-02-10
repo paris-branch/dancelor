@@ -88,6 +88,7 @@ module Filter = struct
   let version vfilter = Version vfilter
   let simple = Simple
 
+  let unIs = function Is k -> Some k | _ -> None
   let unVersion = function Version vf -> Some vf | _ -> None
 
   let base = version % KindVersion.Filter.base'
@@ -111,7 +112,9 @@ module Filter = struct
                      ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
                      (of_string_opt string));
 
+              nullary ~name:"simple"  Simple;
               unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
+              unary_string ~name:"is" (is % of_string, Option.map to_string % unIs);
             ]
         )
         (

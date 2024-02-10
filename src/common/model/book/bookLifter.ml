@@ -282,7 +282,6 @@ module Lift
             unary_lift   ~name:"exists-set"          (existsSet, unExistsSet)                  ~converter:Set.Filter.text_formula_converter;
             unary_lift   ~name:"exists-inline-set"   (existsInlineSet, unExistsInlineSet)      ~converter:Set.Filter.text_formula_converter;
             unary_lift   ~name:"exists-version-deep" (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
-            unary_lift   ~name:"exists-tune-deep"    (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
             unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
             nullary      ~name:"is-source"            IsSource;
           ]
