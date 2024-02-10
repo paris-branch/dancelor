@@ -121,11 +121,21 @@ module Filter = struct
   let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
 
   (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck in function
-      | Is slug -> Iter.map is (Slug.shrink slug)
-      | Title string -> Iter.map title (Shrink.string string)
-      | TitleMatches string -> Iter.map titleMatches (Shrink.string string)
-      | _ -> Iter.empty
+  let shrink =
+    let open QCheck in
+    let open Iter in
+    function
+    | IsSource -> empty
+    | Is slug -> return IsSource <+> map is (Slug.shrink slug)
+    | Title string -> return IsSource <+> map title (Shrink.string string)
+    | TitleMatches string -> return IsSource <+> map titleMatches (Shrink.string string)
+    | Subtitle string -> return IsSource <+> map subtitle (Shrink.string string)
+    | SubtitleMatches string -> return IsSource <+> map subtitleMatches (Shrink.string string)
+    | ExistsVersion vf -> return IsSource <+> map existsVersion (VersionCore.Filter.shrink' vf)
+    | ExistsSet sf -> return IsSource <+> map existsSet (SetCore.Filter.shrink' sf)
+    | ExistsInlineSet sf -> return IsSource <+> map existsInlineSet (SetCore.Filter.shrink' sf)
+    | ExistsVersionDeep vf -> return IsSource <+> map existsVersionDeep (VersionCore.Filter.shrink' vf)
+  [@@deriving show {with_path = false}, qcheck, yojson]
 
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]

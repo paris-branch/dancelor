@@ -60,7 +60,12 @@ let alteration_of_string = function
 (* Octave *)
 
 type octave = int
-[@@deriving show {with_path = false}, qcheck]
+[@@deriving show {with_path = false}]
+
+let gen_octave = QCheck.Gen.int_range (-8) 8
+let shrink_octave = function
+  | 0 -> QCheck.Iter.empty
+  | _ -> QCheck.Iter.return 0
 
 let octave_to_string octave =
   if octave < 0
@@ -151,16 +156,6 @@ let mode_to_string = function Major -> "" | Minor -> "m"
 let mode_to_pretty_string = mode_to_string
 let mode_to_lilypond_string = function Major -> "" | Minor -> ":m"
 let mode_to_safe_string = mode_to_string
-
-(* let mode_of_string = function
- *   | "" -> Major
- *   | "m" -> Minor
- *   | _ -> failwith "Dancelor_common_model.Music.mode_of_string" *)
-
-(* let mode_of_lilypond_string = function
- *   | "" -> Major
- *   | ":m" -> Minor
- *   | _ -> failwith "Dancelor_common_model.Music.mode_of_lilypond_string" *)
 
 (* Key *)
 

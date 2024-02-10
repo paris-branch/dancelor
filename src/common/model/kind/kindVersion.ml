@@ -118,6 +118,7 @@ module Filter = struct
   let barsLe int = BarsLe int
   let base bfilter = Base bfilter
 
+  let unIs = function Is k -> Some k | _ -> None
   let unBarsEq = function BarsEq i -> Some i | _ -> None
   let unBarsNe = function BarsNe i -> Some i | _ -> None
   let unBarsGt = function BarsGt i -> Some i | _ -> None
@@ -150,7 +151,7 @@ module Filter = struct
               unary_int ~name:"bars-ge" (barsGe, unBarsGe);
               unary_int ~name:"bars-lt" (barsLt, unBarsLt);
               unary_int ~name:"bars-le" (barsLe, unBarsLe);
-
+              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_string) ~type_:"version kind";
               unary_lift ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
             ]
         )

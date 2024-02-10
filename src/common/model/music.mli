@@ -79,6 +79,7 @@ val clef_of_string : string -> clef
 val gen_note : note QCheck.Gen.t
 val gen_alteration : alteration QCheck.Gen.t
 val gen_octave : octave QCheck.Gen.t
+val shrink_octave : octave QCheck.Shrink.t
 val gen_pitch : pitch QCheck.Gen.t
 val gen_mode : mode QCheck.Gen.t
 val gen_key : key QCheck.Gen.t

@@ -114,7 +114,7 @@ module Filter = struct
 
               nullary ~name:"simple"  Simple;
               unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
-              unary_string ~name:"is" (is % of_string, Option.map to_string % unIs);
+              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_string) ~type_:"dance kind";
             ]
         )
         (

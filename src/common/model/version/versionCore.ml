@@ -63,9 +63,12 @@ module Filter = struct
   let unKind = function Kind f -> Some f | _ -> None
 
   (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck in function
-      | Is slug -> Iter.map is (Slug.shrink slug)
-      | _ -> Iter.empty
+  let shrink = let open QCheck.Iter in function
+      | Broken -> empty
+      | Is slug -> return Broken <+> map is (Slug.shrink slug)
+      | Tune tf -> return Broken <+> map tune (TuneCore.Filter.shrink' tf)
+      | Key _ -> return Broken
+      | Kind _ -> return Broken
 
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]

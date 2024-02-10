@@ -81,7 +81,9 @@ module Filter = struct
       | Is slug -> Iter.map is (Slug.shrink slug)
       | Name string -> Iter.map name (Shrink.string string)
       | NameMatches string -> Iter.map nameMatches (Shrink.string string)
-      | _ -> Iter.empty
+      | Deviser pf -> Iter.map deviser (PersonCore.Filter.shrink' pf)
+      | ExistsVersion vf -> Iter.map existsVersion (VersionCore.Filter.shrink' vf)
+      | Kind _ -> Iter.empty
 
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]
