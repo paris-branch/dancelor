@@ -124,21 +124,32 @@ module Lift
                 ~name:"type"
                 (type_, unType)
                 ~cast:(Type.of_string_opt, Type.to_string)
-                ~type_:"valid type"
+                ~type_:"valid type";
+
+              unary_lift ~name:"as-person" (asPerson, unAsPerson) ~converter:Person.Filter.text_formula_converter;
+              unary_lift ~name:"as-dance" (asDance, unAsDance) ~converter:Dance.Filter.text_formula_converter;
+              unary_lift ~name:"as-book" (asBook, unAsBook) ~converter:Book.Filter.text_formula_converter;
+              unary_lift ~name:"as-set" (asSet, unAsSet) ~converter:Set.Filter.text_formula_converter;
+              unary_lift ~name:"as-tune" (asTune, unAsTune) ~converter:Tune.Filter.text_formula_converter;
+              unary_lift ~name:"as-version" (asVersion, unAsVersion) ~converter:Version.Filter.text_formula_converter;
             ];
+
           (* Other converters, lifted to Any *)
-          map (asPerson, unAsPerson) Person.Filter.text_formula_converter;
-          map (asDance, unAsDance) Dance.Filter.text_formula_converter;
-          map (asBook, unAsBook) Book.Filter.text_formula_converter;
-          map (asSet, unAsSet) Set.Filter.text_formula_converter;
-          map (asTune, unAsTune) Tune.Filter.text_formula_converter;
-          map (asVersion, unAsVersion) Version.Filter.text_formula_converter;
+          map asPerson Person.Filter.text_formula_converter;
+          map asDance Dance.Filter.text_formula_converter;
+          map asBook Book.Filter.text_formula_converter;
+          map asSet Set.Filter.text_formula_converter;
+          map asTune Tune.Filter.text_formula_converter;
+          map asVersion Version.Filter.text_formula_converter;
         ]
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
       Result.map_error List.singleton @@ Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
 
     let possible_types =
       let open Formula in

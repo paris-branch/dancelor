@@ -109,12 +109,14 @@ module Filter = struct
                    Option.fold
                      ~some: (Result.ok % is')
                      ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
-                     (of_string_opt string))
+                     (of_string_opt string));
+
+              unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
             ]
         )
         (
           (* Version kind converter, lifted to dance kinds *)
-          map (version, unVersion) KindVersion.Filter.text_formula_converter
+          map version KindVersion.Filter.text_formula_converter
         )
     )
 

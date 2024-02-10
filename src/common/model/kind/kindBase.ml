@@ -82,6 +82,7 @@ module Filter = struct
 
   (* FIXME: PPX *)
   let is kind = Is kind
+  let unIs = function Is k -> Some k
 
   let is' = Formula.pred % is
 
@@ -94,7 +95,9 @@ module Filter = struct
                Option.fold
                  ~some: (Result.ok % is')
                  ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
-                 (of_string_opt string))
+                 (of_string_opt string));
+
+          unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string ~capitalised:true) ~type_:"base kind";
         ]
     )
 

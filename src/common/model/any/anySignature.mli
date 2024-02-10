@@ -113,6 +113,10 @@ module Filter : sig
   (* FIXME: In fact, the list is always a singleton, so maybe we could use a
      list instead, everywhere. *)
 
+  val to_string : t -> string
+  (** Convert a formula on “any” elements into a text formula representing
+      it. *)
+
   (** {3 Others} *)
 
   val possible_types : t -> Type.t list

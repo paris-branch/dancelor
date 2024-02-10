@@ -150,11 +150,13 @@ module Filter = struct
               unary_int ~name:"bars-ge" (barsGe, unBarsGe);
               unary_int ~name:"bars-lt" (barsLt, unBarsLt);
               unary_int ~name:"bars-le" (barsLe, unBarsLe);
+
+              unary_lift ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
             ]
         )
         (
           (* Base kind converter, lifted to version kinds *)
-          map (base, unBase) KindBase.Filter.text_formula_converter
+          map base KindBase.Filter.text_formula_converter
         )
     )
 

@@ -74,3 +74,4 @@ let pp = Printer.pp
 let to_string = Printer.to_string
 
 let to_formula = Converter.to_formula
+let of_formula = Converter.of_formula

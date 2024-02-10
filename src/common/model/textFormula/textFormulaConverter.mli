@@ -12,6 +12,9 @@ type 'p t
 val to_formula : 'p t -> TextFormulaType.t -> ('p Formula.t, string) Result.t
 (** Convert a text formula to a formula using the given converter. *)
 
+val of_formula : 'p t -> 'p Formula.t -> TextFormulaType.t
+(** Convert a formula to a text formula using the given converter. *)
+
 (** {2 Case}
 
     Conversion cases. The full conversion consists in many tiny cases that can
@@ -70,11 +73,11 @@ val unary_lift :
 val make : 'p case list -> 'p t
 (** Make a converter from a list of {!case}s. *)
 
-val map :
-  (('p Formula.t -> 'q) * ('q -> 'p Formula.t option)) ->
-  'p t ->
-  'q t
-(** Map over a converter given a function. *)
+val map : ('p Formula.t -> 'q) -> 'p t -> 'q t
+(** Map over a converter given a function. This allows to lift formulas on ['p]
+    to formulas on ['q] without a constructor. However, there is no way back. It
+    is common to have both a [unary_lift ~name ~converter (constr, destr)] and a
+    [map constr converter], the unary lift allowing to convert back to text. *)
 
 val merge : 'p t -> 'p t -> 'p t
 (** Merge two converters together. Predicates that exist on both sides must have

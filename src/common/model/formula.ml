@@ -80,13 +80,15 @@ let interpret formula interpret_predicate =
   in
   interpret formula
 
-let rec convert f = function
+let rec convert_res f = function
   | False -> Ok False
   | True -> Ok True
-  | Not e -> Result.map (fun e' -> Not e') (convert f e)
-  | And (e1, e2) -> Result.bind (convert f e1) (fun e1' -> Result.map (fun e2' -> And (e1', e2')) (convert f e2))
-  | Or (e1, e2) -> Result.bind (convert f e1) (fun e1' -> Result.map (fun e2' -> Or (e1', e2')) (convert f e2))
+  | Not e -> Result.map (fun e' -> Not e') (convert_res f e)
+  | And (e1, e2) -> Result.bind (convert_res f e1) (fun e1' -> Result.map (fun e2' -> And (e1', e2')) (convert_res f e2))
+  | Or (e1, e2) -> Result.bind (convert_res f e1) (fun e1' -> Result.map (fun e2' -> Or (e1', e2')) (convert_res f e2))
   | Pred pred -> f pred
+
+let convert_opt f = Result.to_option % convert_res (Option.to_result ~none:"" % f)
 
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t
