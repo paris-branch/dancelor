@@ -11,10 +11,10 @@ module Lift () = struct
     make ~slug ?status ~name ?scddb_id ~modified_at ~created_at ()
 
   let trad_slug = Slug.unsafe_of_string "traditional"
-  let is_trad c = Slug.equal c.slug trad_slug
+  let is_trad c = Slug.equal' c.slug trad_slug
 
   let equal person1 person2 =
-    Slug.equal (slug person1) (slug person2)
+    Slug.equal' (slug person1) (slug person2)
 
   module Filter = struct
     include PersonCore.Filter
@@ -24,7 +24,7 @@ module Lift () = struct
       Formula.interpret filter @@ function
 
       | Is person' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug person) person'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug person) person'
 
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ PersonCore.name person

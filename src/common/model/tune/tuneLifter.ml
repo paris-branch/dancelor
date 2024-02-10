@@ -35,7 +35,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is tune' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug tune) tune'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug tune) tune'
 
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ TuneCore.name tune

@@ -81,7 +81,7 @@ val warnings : t -> warnings Lwt.t
 module Filter : sig
   type predicate = [%import: BookCore.Filter.predicate]
   type t = [%import: BookCore.Filter.t]
-  [@@deriving show]
+  [@@deriving eq, show]
 
   val accepts : t -> BookCore.t -> float Lwt.t
 

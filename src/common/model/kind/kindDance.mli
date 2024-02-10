@@ -26,7 +26,7 @@ val version_kinds : t -> KindVersion.t list
 module Filter : sig
   type predicate
   type t = predicate Formula.t
-  [@@deriving show, yojson]
+  [@@deriving eq, show, yojson]
 
   val accepts : t -> KindDanceType.t -> float Lwt.t
 

@@ -26,7 +26,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: TuneCore.Filter.predicate]
   type t = [%import: TuneCore.Filter.t]
-  [@@deriving show]
+  [@@deriving eq, show]
 
   val accepts : t -> TuneCore.t -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]

@@ -24,7 +24,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: DanceCore.Filter.predicate]
   type t = [%import: DanceCore.Filter.t]
-  [@@deriving show]
+  [@@deriving eq, show]
 
   val accepts : t -> DanceCore.t -> float Lwt.t
 

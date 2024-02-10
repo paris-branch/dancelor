@@ -40,7 +40,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is version' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug version) version'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug version) version'
 
       | Tune tfilter ->
         let%lwt tune = versionCore_tune version in

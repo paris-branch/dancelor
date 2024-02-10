@@ -211,7 +211,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is book' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug book) book'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug book) book'
 
       | Title string ->
         Lwt.return @@ String.proximity ~char_equal string @@ BookCore.title book

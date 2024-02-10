@@ -39,7 +39,7 @@ module Lift
   let contains_version slug1 set =
     List.exists
       (fun (slug2, _parameters) ->
-         Slug.equal slug1 slug2)
+         Slug.equal' slug1 slug2)
       set.versions_and_parameters
 
   let lilypond_content_cache_key set =
@@ -106,7 +106,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is set' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug set) set'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug set) set'
 
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ SetCore.name set

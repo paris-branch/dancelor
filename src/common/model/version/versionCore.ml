@@ -33,7 +33,7 @@ let broken version = version.broken
 let modified_at version = version.modified_at
 let created_at  version = version.created_at
 
-let equal version1 version2 = Slug.equal (slug version1) (slug version2)
+let equal version1 version2 = Slug.equal' (slug version1) (slug version2)
 
 module Filter = struct
   let _key = "version-filter"
@@ -48,7 +48,7 @@ module Filter = struct
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
     | Broken
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is version = Is version
@@ -71,7 +71,7 @@ module Filter = struct
       | Kind _ -> return Broken
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   let tune' = Formula.pred % tune
   let key' = Formula.pred % key

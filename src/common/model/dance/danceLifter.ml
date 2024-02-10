@@ -20,7 +20,7 @@ module Lift
 
   let deviser dance = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (deviser dance)
 
-  let equal dance1 dance2 = Slug.equal (slug dance1) (slug dance2)
+  let equal dance1 dance2 = Slug.equal' (slug dance1) (slug dance2)
 
   module Filter = struct
     (* NOTE: [include DanceCore.Filter] shadows the accessors of [DanceCore]. *)
@@ -33,7 +33,7 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is dance' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal (slug dance) dance'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug dance) dance'
 
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ DanceCore.name dance

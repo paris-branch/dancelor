@@ -28,7 +28,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: PersonCore.Filter.predicate]
   type t = [%import: PersonCore.Filter.t]
-  [@@deriving show]
+  [@@deriving eq, show]
 
   val accepts : t -> PersonCore.t -> float Lwt.t
 

@@ -9,6 +9,30 @@ type 'p t =
   | Pred of 'p
 [@@deriving qcheck, yojson]
 
+(** Comparison of ands and ors is problematic, so we normalise them always in
+    the same way before comparing. *)
+let rec normalise = function
+  | True -> True
+  | False -> False
+  | Pred p -> Pred p
+  | Not f -> Not (normalise f)
+  | And (And (f1, f2), f3) -> normalise @@ And (f1, And (f2, f3))
+  | And (f1, f2) -> And (normalise f1, normalise f2)
+  | Or (Or (f1, f2), f3) -> normalise @@ Or (f1, Or (f2, f3))
+  | Or (f1, f2) -> Or (normalise f1, normalise f2)
+
+let equal eq_pred f1 f2 =
+  let rec eq f g = match (f, g) with
+    | True, True -> true
+    | False, False -> true
+    | Pred p1, Pred p2 -> eq_pred p1 p2
+    | Not f, Not g -> eq f g
+    | And (f1, g1), And (f2, g2) -> eq f1 f2 && eq g1 g2
+    | Or (f1, g1), Or (f2, g2) -> eq f1 f2 && eq g1 g2
+    | _ -> false
+  in
+  eq (normalise f1) (normalise f2)
+
 (* Formulas can grow very quickly. We therefore limit the size of formulas
    drastically in our generator. *)
 let gen gen_p = gen_sized gen_p 10

@@ -43,7 +43,7 @@ val warnings : t -> warnings Lwt.t
 module Filter : sig
   type predicate = [%import: SetCore.Filter.predicate]
   type t = [%import: SetCore.Filter.t]
-  [@@deriving show]
+  [@@deriving eq, show]
 
   val accepts : t -> SetCore.t -> float Lwt.t
 

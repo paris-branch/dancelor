@@ -27,7 +27,7 @@ module Type = struct
     | Set
     | Tune
     | Version
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   let shrink = function
     | Person -> QCheck.Iter.empty
@@ -46,7 +46,7 @@ module Filter = struct
     | Set     of     SetCore.Filter.t
     | Tune    of    TuneCore.Filter.t
     | Version of VersionCore.Filter.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let type_ type_ = Type type_
@@ -79,7 +79,7 @@ module Filter = struct
     | Version v -> (return (Type Person)) <+> map version (VersionCore.Filter.shrink' v)
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   let shrink' = Formula.shrink shrink
 end

@@ -27,10 +27,12 @@ let%test _ = from_string "<> My friend!" = Some "lessgreater-my-friend"
 let%test _ = from_string "*ù" = Some "u"
 let%test _ = from_string "*&&" = Some "andand"
 
-let equal slug1 slug2 =
+let equal' slug1 slug2 =
   match slug1, slug2 with
   | Some slug1, Some slug2 -> String.equal slug1 slug2
   | _ -> failwith "NesSlug.equal: cannot be None"
+
+let equal _ slug1 slug2 = equal' slug1 slug2
 
 let compare slug1 slug2 =
   match slug1, slug2 with

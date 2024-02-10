@@ -33,6 +33,7 @@ module Filter = struct
   (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
   let gen = QCheck.Gen.pure (Obj.magic 0)
+  let equal _ _ = assert false
 
   type predicate =
     | Is of t Slug.t
@@ -40,7 +41,7 @@ module Filter = struct
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is dance = Is dance
@@ -67,7 +68,7 @@ module Filter = struct
     | Kind _ -> return (Name "a")
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches

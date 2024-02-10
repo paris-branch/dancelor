@@ -3,7 +3,7 @@ open Nes
 let _key = "kind-version"
 
 type t = int * KindBase.t
-[@@deriving show {with_path = false}, qcheck]
+[@@deriving eq, show {with_path = false}, qcheck]
 
 let to_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_string base)
@@ -69,10 +69,10 @@ module Filter = struct
     | BarsLt of int
     | BarsLe of int
     | Base of KindBase.Filter.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   let accepts filter kind =
     Formula.interpret filter @@ function

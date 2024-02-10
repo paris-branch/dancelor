@@ -54,7 +54,7 @@ let created_at book = book.created_at
 let contains_set set1 book =
   List.exists
     (function
-      | PageCore.Set (set2, _) -> Slug.equal set1 set2
+      | PageCore.Set (set2, _) -> Slug.equal' set1 set2
       | _ -> false)
     book.contents
 
@@ -84,6 +84,7 @@ module Filter = struct
   (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
   let gen = QCheck.Gen.pure (Obj.magic 0)
+  let equal _ _ = assert false
 
   type predicate =
     | Is of t Slug.t
@@ -96,7 +97,7 @@ module Filter = struct
     | ExistsSet of SetCore.Filter.t
     | ExistsInlineSet of SetCore.Filter.t
     | ExistsVersionDeep of VersionCore.Filter.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   (* FIXME: PPX *)
   let is book = Is book
@@ -135,10 +136,9 @@ module Filter = struct
     | ExistsSet sf -> return IsSource <+> map existsSet (SetCore.Filter.shrink' sf)
     | ExistsInlineSet sf -> return IsSource <+> map existsInlineSet (SetCore.Filter.shrink' sf)
     | ExistsVersionDeep vf -> return IsSource <+> map existsVersionDeep (VersionCore.Filter.shrink' vf)
-  [@@deriving show {with_path = false}, qcheck, yojson]
 
   type t = predicate Formula.t
-  [@@deriving show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
   let title' = Formula.pred % title
   let titleMatches' = Formula.pred % titleMatches

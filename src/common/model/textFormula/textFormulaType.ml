@@ -7,7 +7,7 @@ and predicate =
   | Raw of string
   | Nullary of string
   | Unary of string * t
-[@@deriving show]
+[@@deriving eq, show]
 
 let raw s = Raw s
 let nullary p = Nullary p

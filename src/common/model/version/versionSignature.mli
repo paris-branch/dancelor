@@ -33,7 +33,7 @@ val equal : t -> t -> bool
 module Filter : sig
   type predicate = [%import: VersionCore.Filter.predicate]
   type t = [%import: VersionCore.Filter.t]
-  [@@deriving show]
+  [@@deriving eq, show]
 
   val accepts : t -> VersionCore.t -> float Lwt.t
 
