@@ -16,7 +16,7 @@ type t =
     broken : bool                     [@default false] ;
     modified_at : Datetime.t          [@key "modified-at"] ;
     created_at  : Datetime.t          [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
 (* FIXME: PPX *)
 let slug version = version.slug
@@ -44,7 +44,7 @@ module Filter = struct
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
     | Broken
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is version = Is version
@@ -61,7 +61,7 @@ module Filter = struct
   let tuneIs = tune % TuneCore.Filter.is'
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let tune' = Formula.pred % tune

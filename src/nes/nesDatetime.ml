@@ -1,3 +1,5 @@
+open NesPervasives
+
 module I = ISO8601.Permissive
 
 let _key = "datetime"
@@ -7,6 +9,8 @@ type t = float
 
 let of_string = I.datetime ~reqtime:true
 let to_string = I.string_of_datetime
+
+let pp fmt = fpf fmt "%s" % to_string
 
 let to_yojson date =
   `String (to_string date)

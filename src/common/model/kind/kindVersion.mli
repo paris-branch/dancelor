@@ -5,6 +5,7 @@ open Nes
 val _key : string
 
 type t = int * KindBase.t
+[@@deriving show]
 (** The kind of a version. For instance, [32R]. *)
 
 val to_string : t -> string
@@ -24,7 +25,8 @@ type version_kind = t
 
 module Filter : sig
   type predicate
-  type t = predicate Formula.t [@@deriving yojson]
+  type t = predicate Formula.t
+  [@@deriving show, yojson]
 
   val accepts : t -> version_kind -> float Lwt.t
 

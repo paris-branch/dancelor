@@ -7,7 +7,7 @@ module PageCore = struct
     | Version       of VersionCore.t Slug.t * VersionParameters.t
     | Set           of     SetCore.t Slug.t * SetParameters.t
     | InlineSet     of     SetCore.t        * SetParameters.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 end
 
 let _key = "book"
@@ -25,7 +25,7 @@ type t =
     scddb_id    : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
 let make
     ~slug ?status ~title ?subtitle ?short_title ?date ?(contents=[]) ?source ?remark
@@ -67,15 +67,16 @@ type warning =
   | SetDanceMismatch of SetCore.t * DanceCore.t
   (* SetDanceMismatch contains a set where one of the associated dances
      does not have the same kind *)
-[@@deriving yojson]
+[@@deriving show {with_path = false}, yojson]
 
 type warnings = warning list
-[@@deriving yojson]
+[@@deriving show {with_path = false}, yojson]
 
 type page =
   | Version   of VersionCore.t * VersionParameters.t
   | Set       of     SetCore.t * SetParameters.t
   | InlineSet of     SetCore.t * SetParameters.t
+[@@deriving show {with_path = false}]
 
 module Filter = struct
   let _key = "book-filter"
@@ -91,7 +92,7 @@ module Filter = struct
     | ExistsSet of SetCore.Filter.t
     | ExistsInlineSet of SetCore.Filter.t
     | ExistsVersionDeep of VersionCore.Filter.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is book = Is book
@@ -121,7 +122,7 @@ module Filter = struct
   let memTuneDeep = existsTuneDeep % TuneCore.Filter.is'
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let title' = Formula.pred % title

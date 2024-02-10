@@ -60,10 +60,10 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of KindVersion.Filter.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let accepts filter kind =
     Formula.interpret filter @@ function

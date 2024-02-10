@@ -5,10 +5,16 @@
 (** {2 Pitch} *)
 
 type note = A | B | C | D | E | F | G
-type alteration = Flat | Sharp | Natural
-type octave = int
+[@@deriving show]
 
-type pitch [@@deriving yojson]
+type alteration = Flat | Sharp | Natural
+[@@deriving show]
+
+type octave = int
+[@@deriving show]
+
+type pitch
+[@@deriving show, yojson]
 
 val make_pitch : note -> alteration -> octave -> pitch
 
@@ -27,8 +33,10 @@ val pitch_to_lilypond_string : pitch -> string
 (** {2 Key} *)
 
 type mode = Major | Minor
+[@@deriving show]
 
-type key [@@deriving yojson]
+type key
+[@@deriving show, yojson]
 
 val make_key : pitch -> mode -> key
 val key_pitch : key -> pitch
@@ -52,7 +60,8 @@ module Key : Madge_common.SERIALISABLE with type t = key
 
 (** {2 Clef} *)
 
-type clef = Treble | Bass [@@deriving yojson]
+type clef = Treble | Bass
+[@@deriving show, yojson]
 
 val clef_to_string : clef -> string
 val clef_to_pretty_string : clef -> string

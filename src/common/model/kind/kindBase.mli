@@ -5,6 +5,7 @@ open Nes
 val _key : string
 
 type t = Jig | Polka | Reel | Strathspey | Waltz
+[@@deriving show]
 
 val to_char : t -> char
 val of_char : char -> t
@@ -31,7 +32,8 @@ type base_kind = t
 
 module Filter : sig
   type predicate
-  type t = predicate Formula.t [@@deriving yojson]
+  type t = predicate Formula.t
+  [@@deriving show, yojson]
 
   val accepts : t -> base_kind -> float Lwt.t
 

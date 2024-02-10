@@ -9,14 +9,14 @@ open Nes
     set. [Unfolded] follows the order, duplicating the tunes if they are to be
     played several times. *)
 type order_type = Default | Unfolded
-[@@deriving yojson]
+[@@deriving show {with_path = false}, yojson]
 
 (** The size of the paper to use. [A] allows to select the ISO 216 “A” format.
     [Custom] allows to give a custom value. The default is [A 4]. *)
 type paper_size =
   | A of int
   | Custom of float * float * string (** width, height and unit *)
-[@@deriving yojson]
+[@@deriving show {with_path = false}, yojson]
 
 module Self = struct
   type t =
@@ -30,7 +30,7 @@ module Self = struct
       for_dance     : DanceCore.t Slug.t option [@default None] [@key "for-dance"] ;
 
       every_version : VersionParameters.t [@default VersionParameters.none] [@key "every-version"] }
-  [@@deriving make, yojson]
+  [@@deriving make, show {with_path = false}, yojson]
 
   let _key = "set-parameters"
 end

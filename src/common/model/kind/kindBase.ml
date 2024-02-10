@@ -8,6 +8,7 @@ type t =
   | Reel
   | Strathspey
   | Waltz
+[@@deriving show {with_path = false}]
 
 let to_char = function
   | Jig -> 'J'
@@ -68,10 +69,10 @@ type base_kind = t (* needed for the interface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let accepts filter kind =
     Formula.interpret filter @@ function

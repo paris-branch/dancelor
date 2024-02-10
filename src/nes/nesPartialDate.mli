@@ -5,7 +5,7 @@
 
 val _key : string
 
-type t [@@deriving yojson]
+type t [@@deriving show, yojson]
 (** The type of a partial date. *)
 
 val from_string : string -> t

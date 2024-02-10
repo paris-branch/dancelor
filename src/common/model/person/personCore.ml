@@ -9,7 +9,7 @@ type t =
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving yojson, make]
+[@@deriving yojson, make, show {with_path = false}]
 
 (* FIXME: PPX *)
 let slug person = person.slug
@@ -26,7 +26,7 @@ module Filter = struct
     | Is of t
     | Name of string
     | NameMatches of string
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is person = Is person
@@ -37,7 +37,7 @@ module Filter = struct
   let unNameMatches = function NameMatches n -> Some n | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let name' = Formula.pred % name

@@ -237,7 +237,7 @@ module Pdf = struct
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
       let slug = Model.Book.slug book in
-      let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
+      let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".pdf")
     in
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)

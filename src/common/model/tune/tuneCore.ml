@@ -14,7 +14,7 @@ type t =
     scddb_id : int option               [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t            [@key "modified-at"] ;
     created_at  : Datetime.t            [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
 (* FIXME: PPX *)
 let slug tune = tune.slug
@@ -42,7 +42,7 @@ module Filter = struct
     | Author of PersonCore.Filter.t (** author is defined and passes the filter *)
     | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is tune = Is tune
@@ -61,7 +61,7 @@ module Filter = struct
   let authorIs = author % PersonCore.Filter.is'
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let name' = Formula.pred % name

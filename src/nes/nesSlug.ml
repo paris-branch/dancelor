@@ -41,8 +41,10 @@ let to_string = function
   | Some s -> s
   | None -> failwith "NesSlug.to_string"
 
-let pp fmt slug =
+let pp' fmt slug =
   Format.pp_print_string fmt (to_string slug)
+
+let pp _ = pp'
 
 let unsafe_coerce = Fun.id
 let unsafe_of_string = Option.some

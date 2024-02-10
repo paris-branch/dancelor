@@ -70,6 +70,7 @@ module Filter : sig
   (** Type of predicates on “any” elements. *)
 
   type t = [%import: AnyCore.Filter.t]
+  [@@deriving show]
   (** Type of a filter on “any” element, that is a formula over
       {!predicate}s. *)
 

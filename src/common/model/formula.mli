@@ -62,6 +62,10 @@ val convert : ('p -> ('q t, 'e) Result.t) -> 'p t -> ('q t, 'e) Result.t
     into predicates of type ['q]. The given function can fail in {!Result} and
     so can {!map}. *)
 
+val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
+(** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
+    more usual representation of formulas. *)
+
 module Make_Serialisable :
   functor (M : Madge_common.SERIALISABLE) -> Madge_common.SERIALISABLE
   with type t = M.t t

@@ -16,7 +16,7 @@ type t =
     remark : string                  [@default ""] ;
     modified_at : Datetime.t      [@key "modified-at"] ;
     created_at  : Datetime.t      [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
 (* FIXME: rename [versions_and_parameters] into [contents]. *)
 
@@ -55,7 +55,7 @@ module Filter = struct
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
     | Kind of Kind.Dance.Filter.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is set = Is set
@@ -74,7 +74,7 @@ module Filter = struct
   let memVersion = existsVersion % VersionCore.Filter.is'
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let name' = Formula.pred % name

@@ -13,7 +13,7 @@ type t =
     disambiguation : string [@default ""] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
 (* FIXME: PPX *)
 let slug dance = dance.slug
@@ -36,7 +36,7 @@ module Filter = struct
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is dance = Is dance
@@ -51,7 +51,7 @@ module Filter = struct
   let unDeviser = function Deviser cf -> Some cf | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let name' = Formula.pred % name

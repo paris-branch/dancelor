@@ -80,12 +80,8 @@ let create ?query page =
         ~a:[
           R.a_class (
             Fun.flip S.map (SearchBar.state search_bar) @@ function
-            | Results _ ->
-              Format.printf "No class when resuts.@.";
-              []
-            | _ ->
-              Format.printf "Should be hidden when no results.@.";
-              ["hidden"]
+            | Results _ -> []
+            | _ -> ["hidden"]
           )
         ]
         [

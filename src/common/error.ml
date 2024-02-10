@@ -5,7 +5,7 @@ type t =
   | StorageReadOnly
   | BadQuery of string
   | Unexpected
-[@@deriving yojson, show {with_path=false}]
+[@@deriving yojson, show {with_path = false}]
 
 exception Exn of t
 

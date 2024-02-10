@@ -19,7 +19,10 @@ val to_string : 'any t -> string
 (** Returns a string representing the slug. This function fails with [Failure _]
     [none]. *)
 
-val pp : Format.formatter -> 'any t -> unit
+val pp : (Format.formatter -> 'any -> unit) -> Format.formatter -> 'any t -> unit
+(** For debugging purposes with [ppx_deriving_show]. Prefer {!pp'}. *)
+
+val pp' : Format.formatter -> 'any t -> unit
 
 (** {2 Low-level and Unsafe} *)
 

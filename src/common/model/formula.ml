@@ -9,6 +9,19 @@ type 'filter t =
   | Pred of 'filter
 [@@deriving yojson]
 
+(** For debugging purposes, our custom [show]. *)
+let pp pp_pred fmt formula =
+  let ppf par = kaspf (fun s -> fpf fmt "%s%s%s" (if par then "(" else "") s (if par then ")" else "")) in
+  let rec pp above fmt = function
+    | False -> ppf false "⊥"
+    | True -> ppf false "⊤"
+    | Not f -> ppf false "¬ %a" (pp `Not) f
+    | And (f1, f2) -> ppf (above = `Or || above = `Not) "%a ∧ %a" (pp `And) f1 (pp `And) f2
+    | Or (f1, f2) -> ppf (above = `And || above = `Not) "%a ∨ %a" (pp `Or) f1 (pp `Or) f2
+    | Pred p -> pp_pred fmt p
+  in
+  fpf fmt "(%a)" (pp `Root) formula
+
 let false_ = False
 let true_ = True
 

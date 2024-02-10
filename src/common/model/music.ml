@@ -14,6 +14,7 @@ let of_yojson__of__of_string of_string message = function
 (* Note *)
 
 type note = A | B | C | D | E | F | G
+[@@deriving show {with_path = false}]
 
 let note_to_char = function A -> 'a' | B -> 'b' | C -> 'c'
                           | D -> 'd' | E -> 'e' | F -> 'f' | G -> 'g'
@@ -37,6 +38,7 @@ let note_of_char c =
 (* Alteration *)
 
 type alteration = Flat | Sharp | Natural
+[@@deriving show {with_path = false}]
 
 let alteration_to_string = function Flat -> "b" | Sharp -> "#" | Natural -> ""
 let alteration_to_pretty_string = function Flat -> "♭" | Sharp -> "♯" | Natural -> ""
@@ -58,6 +60,7 @@ let alteration_of_string = function
 (* Octave *)
 
 type octave = int
+[@@deriving show {with_path = false}]
 
 let octave_to_string octave =
   if octave < 0
@@ -84,6 +87,7 @@ type pitch =
   { note : note ;
     alteration : alteration ;
     octave : octave }
+[@@deriving show {with_path = false}]
 
 let make_pitch note alteration octave =
   { note; alteration; octave }
@@ -141,6 +145,7 @@ let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common_
 (* Mode *)
 
 type mode = Major | Minor
+[@@deriving show {with_path = false}]
 
 let mode_to_string = function Major -> "" | Minor -> "m"
 let mode_to_pretty_string = mode_to_string
@@ -160,6 +165,7 @@ let mode_to_safe_string = mode_to_string
 (* Key *)
 
 type key = { pitch : pitch ; mode : mode }
+[@@deriving show {with_path = false}]
 
 let make_key pitch mode = { pitch; mode }
 let key_pitch key = key.pitch
@@ -198,6 +204,7 @@ end
 (* Clef*)
 
 type clef = Treble | Bass
+[@@deriving show {with_path = false}]
 
 let clef_to_string = function Treble -> "treble" | Bass -> "bass"
 let clef_to_pretty_string = clef_to_string
