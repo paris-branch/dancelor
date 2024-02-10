@@ -145,8 +145,7 @@ module Lift
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter
-    let from_string ?filename input =
-      Result.map_error List.singleton @@ Result.bind (TextFormula.from_string ?filename input) from_text_formula
+    let from_string ?filename input = Result.bind (TextFormula.from_string ?filename input) from_text_formula
 
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula

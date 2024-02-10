@@ -108,10 +108,8 @@ module Filter : sig
 
   (** {3 Destructors} *)
 
-  val from_string : ?filename:string -> string -> (t, string list) Result.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
   (** Parse a text formula into a filter on “any” elements. *)
-  (* FIXME: In fact, the list is always a singleton, so maybe we could use a
-     list instead, everywhere. *)
 
   val to_string : t -> string
   (** Convert a formula on “any” elements into a text formula representing

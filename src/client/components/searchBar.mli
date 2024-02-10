@@ -8,7 +8,7 @@ type 'result state =
   | ContinueTyping (** when the user has not typed enough yet *)
   | NoResults (** when the search returned no results *)
   | Results of 'result list (** when the search returned results; guaranteed to be non empty; otherwise [NoResults] *)
-  | Errors of string list (** when the search returned an error; guaranteed to be non empty *)
+  | Errors of string (** when the search returned an error *)
 
 type 'result t
 (** Abstract type of a search bar, holding results of type ['result]. *)
@@ -17,7 +17,7 @@ val state : 'result t -> 'result state React.signal
 (** Signal giving a state out of a search bar. *)
 
 val make :
-  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string list) result Lwt.t) ->
+  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters:int ->
   pagination:Dancelor_client_model.Pagination.t React.signal ->
   ?on_number_of_entries:(int -> unit) ->
@@ -69,7 +69,7 @@ val render :
 
 val quick_search :
   placeholder:string ->
-  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string list) result Lwt.t) ->
+  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->

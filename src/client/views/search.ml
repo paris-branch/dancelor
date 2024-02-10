@@ -72,7 +72,7 @@ let create ?query page =
       R.div (
         Fun.flip S.map (SearchBar.state search_bar) @@ function
         | NoResults -> [div ~a:[a_class ["warning"]] [txt "Your search returned no results."]]
-        | Errors errors -> [div ~a:[a_class ["error"]] [ul (List.map (li % List.singleton % txt) errors)]]
+        | Errors error -> [div ~a:[a_class ["error"]] [txt error]]
         | StartTyping | ContinueTyping | Results _ -> []
       );
 
