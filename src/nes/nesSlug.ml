@@ -57,4 +57,7 @@ let compare_slugs_or ~fallback slug x y =
   else
     fallback x y
 
-let gen _ = QCheck.Gen.map from_string QCheck.Gen.string
+let gen _ =
+  QCheck.Gen.map
+    unsafe_of_string
+    QCheck.Gen.(string_size ~gen:(char_range 'a' 'z') (int_range 1 10))
