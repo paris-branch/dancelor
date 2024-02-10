@@ -3,7 +3,9 @@ open Nes
 let _key = "kind-version"
 
 type t = int * KindBase.t
-[@@deriving eq, show {with_path = false}, qcheck]
+[@@deriving eq, show {with_path = false}]
+
+let gen = QCheck.Gen.(pair nat KindBase.gen)
 
 let to_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_string base)
