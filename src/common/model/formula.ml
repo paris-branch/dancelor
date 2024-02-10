@@ -11,16 +11,19 @@ type 'p t =
 
 (** For debugging purposes, our custom [show]. *)
 let pp pp_pred fmt formula =
-  let ppf par = kaspf (fun s -> fpf fmt "%s%s%s" (if par then "(" else "") s (if par then ")" else "")) in
-  let rec pp above fmt = function
-    | False -> ppf false "⊥"
-    | True -> ppf false "⊤"
-    | Not f -> ppf false "¬ %a" (pp `Not) f
-    | And (f1, f2) -> ppf (above = `Or || above = `Not) "%a ∧ %a" (pp `And) f1 (pp `And) f2
-    | Or (f1, f2) -> ppf (above = `And || above = `Not) "%a ∨ %a" (pp `Or) f1 (pp `Or) f2
-    | Pred p -> pp_pred fmt p
+  let ppf par fmt =
+    kaspf @@ fun s ->
+    fpf fmt "%s%s%s" (if par then "(" else "") s (if par then ")" else "")
   in
-  fpf fmt "(%a)" (pp `Root) formula
+  let rec pp above fmt = function
+    | False -> ppf false fmt "⊥"
+    | True -> ppf false fmt "⊤"
+    | Not f -> ppf false fmt "¬ %a" (pp `Not) f
+    | And (f1, f2) -> ppf (above = `Or || above = `Not) fmt "%a ∧ %a" (pp `And) f1 (pp `And) f2
+    | Or (f1, f2) -> ppf (above = `And || above = `Not) fmt "%a ∨ %a" (pp `Or) f1 (pp `Or) f2
+    | Pred p -> ppf false fmt "%a" pp_pred p
+  in
+  ppf (match formula with Pred _ -> false | _ -> true) fmt "%a" (pp `Root) formula
 
 let false_ = False
 let true_ = True
