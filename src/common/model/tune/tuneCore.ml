@@ -63,6 +63,13 @@ module Filter = struct
   let unKind = function Kind kf -> Some kf | _ -> None
   let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
+  (* FIXME: QCheck2 does this automatically. *)
+  let shrink = let open QCheck in function
+      | Is slug -> Iter.map is (Slug.shrink slug)
+      | Name string -> Iter.map name (Shrink.string string)
+      | NameMatches string -> Iter.map nameMatches (Shrink.string string)
+      | _ -> Iter.empty
+
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]
 
@@ -71,4 +78,6 @@ module Filter = struct
   let author' = Formula.pred % author
   let kind' = Formula.pred % kind
   let existsDance' = Formula.pred % existsDance
+
+  let shrink' = Formula.shrink shrink
 end

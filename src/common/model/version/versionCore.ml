@@ -62,6 +62,11 @@ module Filter = struct
   let unKey = function Key k -> Some k | _ -> None
   let unKind = function Kind f -> Some f | _ -> None
 
+  (* FIXME: QCheck2 does this automatically. *)
+  let shrink = let open QCheck in function
+      | Is slug -> Iter.map is (Slug.shrink slug)
+      | _ -> Iter.empty
+
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]
 
@@ -69,4 +74,6 @@ module Filter = struct
   let key' = Formula.pred % key
   let kind' = Formula.pred % kind
   let broken' = Formula.pred broken
+
+  let shrink' = Formula.shrink shrink
 end

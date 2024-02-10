@@ -61,3 +61,7 @@ let gen _ =
   QCheck.Gen.map
     unsafe_of_string
     QCheck.Gen.(string_size ~gen:(char_range 'a' 'z') (int_range 1 10))
+
+let shrink = function
+  | Some "a" -> QCheck.Iter.empty
+  | _ -> QCheck.Iter.return (unsafe_of_string "a")

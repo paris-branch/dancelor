@@ -117,5 +117,3 @@ let rec shrink shrink_predicate = let open QCheck.Iter in function
                      <+> map (fun f1' -> Or (f1', f2)) (shrink shrink_predicate f1)
                      <+> map (fun f2' -> Or (f1, f2')) (shrink shrink_predicate f2)
     | Pred p -> map (fun p' -> Pred p') (shrink_predicate p)
-
-let shrink' f = shrink (Fun.const QCheck.Iter.empty) f

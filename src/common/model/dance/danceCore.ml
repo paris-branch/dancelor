@@ -55,6 +55,14 @@ module Filter = struct
   let unKind = function Kind kf -> Some kf | _ -> None
   let unDeviser = function Deviser cf -> Some cf | _ -> None
 
+  (* FIXME: QCheck2 does this automatically. *)
+  let shrink = let open QCheck in function
+      | Is slug -> Iter.map is (Slug.shrink slug)
+      | Name string -> Iter.map name (Shrink.string string)
+      | NameMatches string -> Iter.map nameMatches (Shrink.string string)
+      | Deviser person -> Iter.map deviser (PersonCore.Filter.shrink' person)
+      | _ -> Iter.empty
+
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]
 
@@ -62,4 +70,6 @@ module Filter = struct
   let nameMatches' = Formula.pred % nameMatches
   let kind' = Formula.pred % kind
   let deviser' = Formula.pred % deviser
+
+  let shrink' = Formula.shrink shrink
 end

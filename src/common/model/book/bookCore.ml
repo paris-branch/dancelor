@@ -120,6 +120,13 @@ module Filter = struct
   let unExistsInlineSet = function ExistsInlineSet sf -> Some sf | _ -> None
   let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
 
+  (* FIXME: QCheck2 does this automatically. *)
+  let shrink = let open QCheck in function
+      | Is slug -> Iter.map is (Slug.shrink slug)
+      | Title string -> Iter.map title (Shrink.string string)
+      | TitleMatches string -> Iter.map titleMatches (Shrink.string string)
+      | _ -> Iter.empty
+
   type t = predicate Formula.t
   [@@deriving show {with_path = false}, qcheck, yojson]
 
@@ -132,4 +139,6 @@ module Filter = struct
   let existsSet' = Formula.pred % existsSet
   let existsInlineSet' = Formula.pred % existsInlineSet
   let existsVersionDeep' = Formula.pred % existsVersionDeep
+
+  let shrink' = Formula.shrink shrink
 end

@@ -126,6 +126,7 @@ module Filter : sig
       element of this type accepted by the filter. *)
 
   val gen : t QCheck.Gen.t
+  val shrink' : t QCheck.Shrink.t
   (** For QCheck-style testing. *)
 end
 

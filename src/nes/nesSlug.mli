@@ -40,3 +40,6 @@ val compare_slugs_or : fallback:('a -> 'a -> int) -> ('a -> 'a t) -> 'a -> 'a ->
 
 val gen : 'any QCheck.Gen.t -> 'any t QCheck.Gen.t
 (** For testing purposes. The argument is not called. *)
+
+val shrink : 'any t QCheck.Shrink.t
+(** For testing purposes. *)
