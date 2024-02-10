@@ -16,7 +16,7 @@ let to_string kind =
 
 let of_string_opt s =
   try Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
-  with KindDanceParser.Error -> None
+  with KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"

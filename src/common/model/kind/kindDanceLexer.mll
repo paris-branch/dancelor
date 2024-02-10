@@ -1,5 +1,4 @@
 {
-  open Nes
   open KindDanceParser
 
   exception UnexpectedCharacter of char
@@ -16,5 +15,5 @@ rule token = parse
   | 'x' { TIMES }
   | digit+ as n { NUMBER (int_of_string n) }
   | alpha+ as w { WORD w }
-  | _ as c { failwith (spf "Unexpected character: %c" c) }
+  | _ as c { raise (UnexpectedCharacter c) }
   | eof { EOF }
