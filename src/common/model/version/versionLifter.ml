@@ -58,9 +58,9 @@ module Lift
 
     let text_formula_converter =
       TextFormulaConverter.(
-        merge
+        merge ~tiebreaker:Left
           (
-            (* Version-specific converter *)
+            (* Version-specific converter. *)
             make
               [
                 nullary    ~name:"broken" broken;
@@ -71,7 +71,7 @@ module Lift
               ]
           )
           (
-            (* Tune converter, lifted to versions *)
+            (* Tune converter, lifted to versions. Lose in case of tiebreak. *)
             map tune Tune.Filter.text_formula_converter
           )
       )

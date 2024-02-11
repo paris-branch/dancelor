@@ -116,32 +116,36 @@ module Lift
 
     let text_formula_converter =
       TextFormulaConverter.(
-        merge_l [
-          (* Any-specific converter *)
-          make
-            [
-              unary_raw
-                ~name:"type"
-                (type_, unType)
-                ~cast:(Type.of_string_opt, Type.to_string)
-                ~type_:"valid type";
+        merge ~tiebreaker:Left
+          (
+            (* Any-specific converter *)
+            make
+              [
+                unary_raw
+                  ~name:"type"
+                  (type_, unType)
+                  ~cast:(Type.of_string_opt, Type.to_string)
+                  ~type_:"valid type";
 
-              unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter;
-              unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter;
-              unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter;
-              unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter;
-              unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter;
-              unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter;
-            ];
-
-          (* Other converters, lifted to Any *)
-          map person Person.Filter.text_formula_converter;
-          map dance Dance.Filter.text_formula_converter;
-          map book Book.Filter.text_formula_converter;
-          map set Set.Filter.text_formula_converter;
-          map tune Tune.Filter.text_formula_converter;
-          map version Version.Filter.text_formula_converter;
-        ]
+                unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter;
+                unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter;
+                unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter;
+                unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter;
+                unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter;
+                unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter;
+              ];
+          )
+          (
+            merge_l [
+              (* Other converters, lifted to Any *)
+              map person Person.Filter.text_formula_converter;
+              map dance Dance.Filter.text_formula_converter;
+              map book Book.Filter.text_formula_converter;
+              map set Set.Filter.text_formula_converter;
+              map tune Tune.Filter.text_formula_converter;
+              map version Version.Filter.text_formula_converter;
+            ]
+          )
       )
 
     let from_text_formula = TextFormula.to_formula text_formula_converter

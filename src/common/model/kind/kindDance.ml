@@ -107,7 +107,7 @@ module Filter = struct
 
   let text_formula_converter =
     TextFormulaConverter.(
-      merge
+      merge ~tiebreaker:Left
         (
           (* Dance kind-specific converter *)
           make
@@ -125,7 +125,7 @@ module Filter = struct
             ]
         )
         (
-          (* Version kind converter, lifted to dance kinds *)
+          (* Version kind converter, lifted to dance kinds; lose in case of tiebreak. *)
           map version KindVersion.Filter.text_formula_converter
         )
     )

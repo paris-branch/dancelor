@@ -79,11 +79,12 @@ val map : ('p Formula.t -> 'q) -> 'p t -> 'q t
     is common to have both a [unary_lift ~name ~converter (constr, destr)] and a
     [map constr converter], the unary lift allowing to convert back to text. *)
 
-val merge : 'p t -> 'p t -> 'p t
-(** Merge two converters together. Predicates that exist on both sides must have
-    the same arity. The result is then the disjunction of the two formulas.
-    Raises {!Invalid_arg} if a predicate exists in both with different
-    arities. *)
+type tiebreaker = Left | Right | Both
+
+val merge : ?tiebreaker:tiebreaker -> 'p t -> 'p t -> 'p t
+(** Merge two converters together. When predicates exist on both sides,
+    [~tiebreaker] is used to choose which one to keep. If it is [Both] (the
+    default), then the result is the disjunction of the two formulas. *)
 
 val merge_l : 'p t list -> 'p t
-(** Same as {!merge} on a non-empy list. *)
+(** Folds {!merge} on a non-empty list with the default tiebreaker. *)

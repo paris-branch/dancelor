@@ -10,14 +10,16 @@ type 'p case = {
 let to_ case = case.to_
 let from case = case.from
 
+type tiebreaker = Left | Right | Both
+
 type _ t =
   | Cases : 'p case list -> 'p t
   | Map : (('p Formula.t -> 'q) * 'p t) -> 'q t
-  | Merge : 'p t * 'p t -> 'p t
+  | Merge : tiebreaker * 'p t * 'p t -> 'p t
 
 let make cs = Cases cs
 let map f c = Map (f, c)
-let merge c1 c2 = Merge (c1, c2)
+let merge ?(tiebreaker=Both) c1 c2 = Merge (tiebreaker, c1, c2)
 
 let merge_l = function
   | [] -> invalid_arg "TextFormulaConverter.merge_l"
@@ -28,9 +30,10 @@ let predicate_to_formula c tp =
   let rec aux : type p. p t -> (p Formula.t, string) Result.t = function
     | Cases cases -> Link.link' ~default:(Error "no converter for this predicate") (List.map to_ cases) tp
     | Map (f, c) -> Result.map (Formula.pred % f) (aux c)
-    | Merge (c1, c2) ->
+    | Merge (tiebreaker, c1, c2) ->
       match (aux c1, aux c2) with
-      | Ok f1, Ok f2 -> Ok (Formula.or_ f1 f2)
+      | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
+      | _, Ok f2 when tiebreaker = Right -> Ok f2
       | Ok f1, _ -> Ok f1
       | _, Ok f2 -> Ok f2
       | Error e1, Error e2 -> Error (e1 ^ "\n" ^ e2)
@@ -44,7 +47,13 @@ let of_formula converter formula =
     match c with
     | Cases cases -> Option.map Formula.pred (Link.link (List.map from cases) p)
     | Map (_, _) -> None
-    | Merge (c1, c2) -> Option.concat Formula.or_ (aux c1 p) (aux c2 p)
+    | Merge (tiebreaker, c1, c2) ->
+      match (aux c1 p, aux c2 p) with
+      | Some f1, Some f2 when tiebreaker = Both -> Some (Formula.or_ f1 f2)
+      | _, Some f2 when tiebreaker = Right -> Some f2
+      | Some f1, _ -> Some f1
+      | _, Some f2 -> Some f2
+      | None, None -> None
   and aux' : type p. p t -> p Formula.t -> Type.t option = fun c f ->
     Formula.convert_opt (aux c) f
   in
