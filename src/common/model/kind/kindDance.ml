@@ -60,7 +60,7 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of KindVersion.Filter.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is kind = Is kind
@@ -70,22 +70,15 @@ module Filter = struct
   let unIs = function Is k -> Some k | _ -> None
   let unVersion = function Version vf -> Some vf | _ -> None
 
-  let shrink = let open QCheck.Iter in function
-      | Simple -> empty
-      | Is k -> return Simple <+> map is (shrink k)
-      | Version vf -> return Simple <+> map version (KindVersion.Filter.shrink' vf)
-
   let base = version % KindVersion.Filter.base'
 
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let version' = Formula.pred % version
   let simple' = Formula.pred simple
   let base' = Formula.pred % base
-
-  let shrink' = Formula.shrink shrink
 
   let accepts filter kind =
     Formula.interpret filter @@ function

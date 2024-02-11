@@ -1,3 +1,5 @@
 (tests
  (names formula kind)
- (libraries dancelor.server.model alcotest qcheck qcheck-alcotest))
+ (libraries dancelor.server.model alcotest qcheck qcheck-alcotest)
+ (preprocess
+  (staged_pps ppx_import ppx_deriving_qcheck)))

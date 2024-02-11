@@ -30,9 +30,8 @@ let created_at dance = dance.created_at
 module Filter = struct
   let _key = "dance-filter"
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen = QCheck.Gen.pure (Obj.magic 0)
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false
 
   type predicate =
@@ -41,7 +40,7 @@ module Filter = struct
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is dance = Is dance
@@ -56,24 +55,11 @@ module Filter = struct
   let unKind = function Kind kf -> Some kf | _ -> None
   let unDeviser = function Deviser cf -> Some cf | _ -> None
 
-  (* FIXME: QCheck2 does this automatically. *)
-  let shrink =
-    let open QCheck in
-    let open Iter in
-    function
-    | Name string -> map name (Shrink.string string)
-    | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
-    | NameMatches string -> return (Name "a") <+> map nameMatches (Shrink.string string)
-    | Deviser person -> return (Name "a") <+> map deviser (PersonCore.Filter.shrink' person)
-    | Kind k -> return (Name "a") <+> map kind (Kind.Dance.Filter.shrink' k)
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
   let kind' = Formula.pred % kind
   let deviser' = Formula.pred % deviser
-
-  let shrink' = Formula.shrink shrink
 end

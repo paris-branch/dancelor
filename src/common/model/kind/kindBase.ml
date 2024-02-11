@@ -8,7 +8,7 @@ type t =
   | Reel
   | Strathspey
   | Waltz
-[@@deriving eq, show {with_path = false}, qcheck]
+[@@deriving eq, show {with_path = false}]
 
 let to_char = function
   | Jig -> 'J'
@@ -69,21 +69,16 @@ type base_kind = t (* needed for the interface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is kind = Is kind
   let unIs = function Is k -> Some k
 
-  let shrink = function
-    | Is _ -> QCheck.Iter.empty
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
-
-  let shrink' = Formula.shrink shrink
 
   let accepts filter kind =
     Formula.interpret filter @@ function

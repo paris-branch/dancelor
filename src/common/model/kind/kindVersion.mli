@@ -18,34 +18,46 @@ val to_pretty_string : t -> string
 val to_yojson : t -> Json.t
 val of_yojson : Json.t -> (t, string) result
 
-val gen : t QCheck.Gen.t
-val shrink : t QCheck.Shrink.t
-
 (** {2 Filters} *)
 
 type version_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
 module Filter : sig
-  type predicate
+  type predicate =
+    | Is of t
+    | BarsEq of int
+    | BarsNe of int
+    | BarsGt of int
+    | BarsGe of int
+    | BarsLt of int
+    | BarsLe of int
+    | Base of KindBase.Filter.t
+
+  val is : version_kind -> predicate
+  val base : KindBase.Filter.t -> predicate
+  val barsEq : int -> predicate
+  val barsNe : int -> predicate
+  val barsGt : int -> predicate
+  val barsGe : int -> predicate
+  val barsLt : int -> predicate
+  val barsLe : int -> predicate
+
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
 
   val accepts : t -> version_kind -> float Lwt.t
 
-  val is : version_kind -> predicate
   val is' : version_kind -> t
-
-  val base : KindBase.Filter.t -> predicate
   val base' : KindBase.Filter.t -> t
-
-  val barsEq : int -> predicate
   val barsEq' : int -> t
+  val barsNe' : int -> t
+  val barsGt' : int -> t
+  val barsGe' : int -> t
+  val barsLt' : int -> t
+  val barsLe' : int -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
-
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
 end

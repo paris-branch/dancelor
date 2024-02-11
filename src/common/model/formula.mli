@@ -68,14 +68,6 @@ val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
 (** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
     more usual representation of formulas. *)
 
-val gen : 'p QCheck.Gen.t -> 'p t QCheck.Gen.t
-(** For testing purposes: QCheck generator of formulas given a QCheck generator
-    of predicates. *)
-
-val shrink : 'p QCheck.Shrink.t -> 'p t QCheck.Shrink.t
-(** For testing purposes: QCheck shrinker for formulas given a QCheck shrinker
-    of predicates. *)
-
 module Make_Serialisable :
   functor (M : Madge_common.SERIALISABLE) -> Madge_common.SERIALISABLE
   with type t = M.t t

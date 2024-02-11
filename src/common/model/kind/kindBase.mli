@@ -25,15 +25,13 @@ val tempo : t -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]
     for reels. *)
 
-val gen : t QCheck.Gen.t
-
 (** {2 Filters} *)
 
 type base_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
 module Filter : sig
-  type predicate
+  type predicate = Is of t
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
 
@@ -44,7 +42,4 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
-
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
 end

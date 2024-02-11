@@ -22,16 +22,15 @@ let created_at person = person.created_at
 module Filter = struct
   let _key = "person-filter"
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen = QCheck.Gen.pure (Obj.magic 0)
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false
 
   type predicate =
     | Is of t Slug.t
     | Name of string
     | NameMatches of string
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is person = Is person
@@ -42,17 +41,9 @@ module Filter = struct
   let unName = function Name n -> Some n | _ -> None
   let unNameMatches = function NameMatches n -> Some n | _ -> None
 
-  (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck.Iter in function
-      | Name string -> map name (QCheck.Shrink.string string)
-      | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
-      | NameMatches string -> return (Name "a") <+> map nameMatches (QCheck.Shrink.string string)
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
-
-  let shrink' = Formula.shrink shrink
 end

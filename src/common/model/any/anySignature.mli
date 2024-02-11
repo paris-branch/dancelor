@@ -122,10 +122,6 @@ module Filter : sig
       elements whose types are not in the list will be rejected by the filter.
       It is not guaranteed that for each type in the list there will be an
       element of this type accepted by the filter. *)
-
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
-  (** For QCheck-style testing. *)
 end
 
 (** {2 Search} *)

@@ -5,9 +5,6 @@ let _key = "kind-version"
 type t = int * KindBase.t
 [@@deriving eq, show {with_path = false}]
 
-let gen = QCheck.Gen.(pair nat KindBase.gen)
-let shrink _ = QCheck.Iter.empty
-
 let to_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_string base)
 
@@ -72,7 +69,7 @@ module Filter = struct
     | BarsLt of int
     | BarsLe of int
     | Base of KindBase.Filter.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is kind = Is kind
@@ -93,24 +90,17 @@ module Filter = struct
   let unBarsLe = function BarsLe i -> Some i | _ -> None
   let unBase = function Base bf -> Some bf | _ -> None
 
-  let shrink = let open QCheck.Iter in function
-      | Is k -> map is (shrink k)
-      | BarsEq n -> map barsEq (QCheck.Shrink.int n)
-      | BarsNe n -> map barsNe (QCheck.Shrink.int n)
-      | BarsGt n -> map barsGt (QCheck.Shrink.int n)
-      | BarsGe n -> map barsGe (QCheck.Shrink.int n)
-      | BarsLt n -> map barsLt (QCheck.Shrink.int n)
-      | BarsLe n -> map barsLe (QCheck.Shrink.int n)
-      | Base bf -> map base (KindBase.Filter.shrink' bf)
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
   let barsEq' = Formula.pred % barsEq
+  let barsNe' = Formula.pred % barsNe
+  let barsGt' = Formula.pred % barsGt
+  let barsGe' = Formula.pred % barsGe
+  let barsLt' = Formula.pred % barsLt
+  let barsLe' = Formula.pred % barsLe
   let base' = Formula.pred % base
-
-  let shrink' = Formula.shrink shrink
 
   let accepts filter kind =
     Formula.interpret filter @@ function

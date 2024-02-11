@@ -24,28 +24,29 @@ val version_kinds : t -> KindVersion.t list
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate
+  type predicate =
+    | Is of t
+    | Simple
+    | Version of KindVersion.Filter.t
+
+  val is : KindDanceType.t -> predicate
+  val version : KindVersion.Filter.t -> predicate
+  val simple : predicate
+
+  val base : KindBase.Filter.t -> predicate
+
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
 
-  val accepts : t -> KindDanceType.t -> float Lwt.t
-
-  val is : KindDanceType.t -> predicate
   val is' : KindDanceType.t -> t
-
-  val version : KindVersion.Filter.t -> predicate
   val version' : KindVersion.Filter.t -> t
-
-  val simple : predicate
   val simple' : t
 
-  val base : KindBase.Filter.t -> predicate
   val base' : KindBase.Filter.t -> t
+
+  val accepts : t -> KindDanceType.t -> float Lwt.t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
-
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
 end

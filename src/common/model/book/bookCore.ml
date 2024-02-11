@@ -81,9 +81,8 @@ type page =
 module Filter = struct
   let _key = "book-filter"
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen = QCheck.Gen.pure (Obj.magic 0)
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false
 
   type predicate =
@@ -97,7 +96,7 @@ module Filter = struct
     | ExistsSet of SetCore.Filter.t
     | ExistsInlineSet of SetCore.Filter.t
     | ExistsVersionDeep of VersionCore.Filter.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is book = Is book
@@ -121,24 +120,8 @@ module Filter = struct
   let unExistsInlineSet = function ExistsInlineSet sf -> Some sf | _ -> None
   let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
 
-  (* FIXME: QCheck2 does this automatically. *)
-  let shrink =
-    let open QCheck in
-    let open Iter in
-    function
-    | IsSource -> empty
-    | Is slug -> return IsSource <+> map is (Slug.shrink slug)
-    | Title string -> return IsSource <+> map title (Shrink.string string)
-    | TitleMatches string -> return IsSource <+> map titleMatches (Shrink.string string)
-    | Subtitle string -> return IsSource <+> map subtitle (Shrink.string string)
-    | SubtitleMatches string -> return IsSource <+> map subtitleMatches (Shrink.string string)
-    | ExistsVersion vf -> return IsSource <+> map existsVersion (VersionCore.Filter.shrink' vf)
-    | ExistsSet sf -> return IsSource <+> map existsSet (SetCore.Filter.shrink' sf)
-    | ExistsInlineSet sf -> return IsSource <+> map existsInlineSet (SetCore.Filter.shrink' sf)
-    | ExistsVersionDeep vf -> return IsSource <+> map existsVersionDeep (VersionCore.Filter.shrink' vf)
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let title' = Formula.pred % title
   let titleMatches' = Formula.pred % titleMatches
@@ -149,6 +132,4 @@ module Filter = struct
   let existsSet' = Formula.pred % existsSet
   let existsInlineSet' = Formula.pred % existsInlineSet
   let existsVersionDeep' = Formula.pred % existsVersionDeep
-
-  let shrink' = Formula.shrink shrink
 end

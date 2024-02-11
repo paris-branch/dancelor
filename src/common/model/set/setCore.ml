@@ -48,9 +48,8 @@ type warnings = warning list
 module Filter = struct
   let _key = "set-filter"
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen = QCheck.Gen.pure (Obj.magic 0)
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false
 
   type predicate =
@@ -60,7 +59,7 @@ module Filter = struct
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
     | Kind of Kind.Dance.Filter.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is set = Is set
@@ -77,23 +76,12 @@ module Filter = struct
   let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
   let unKind = function Kind kf -> Some kf | _ -> None
 
-  (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck.Iter in function
-      | Name string -> map name (QCheck.Shrink.string string)
-      | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
-      | NameMatches string -> return (Name "a") <+> map nameMatches (QCheck.Shrink.string string)
-      | Deviser pf -> return (Name "a") <+> map deviser (PersonCore.Filter.shrink' pf)
-      | ExistsVersion vf -> return (Name "a") <+> map existsVersion (VersionCore.Filter.shrink' vf)
-      | Kind kf -> return (Name "a") <+> map kind (Kind.Dance.Filter.shrink' kf)
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
   let deviser' = Formula.pred % deviser
   let existsVersion' = Formula.pred % existsVersion
   let kind' = Formula.pred % kind
-
-  let shrink' = Formula.shrink shrink
 end

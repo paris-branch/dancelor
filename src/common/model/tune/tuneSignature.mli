@@ -54,9 +54,6 @@ module Filter : sig
   (** Build a fliter from a string, or fail. *)
 
   val to_string : t -> string
-
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
 end
 
 (** {2 Getters and setters} *)

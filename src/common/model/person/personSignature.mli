@@ -38,9 +38,6 @@ module Filter : sig
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
   val to_string : t -> string
-
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
 end
 
 (** {2 Getters and setters} *)

@@ -7,7 +7,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or  of 'p t * 'p t
   | Pred of 'p
-[@@deriving qcheck, yojson]
+[@@deriving yojson]
 
 (** Comparison of ands and ors is problematic, so we normalise them always in
     the same way before comparing. *)
@@ -32,10 +32,6 @@ let equal eq_pred f1 f2 =
     | _ -> false
   in
   eq (normalise f1) (normalise f2)
-
-(* Formulas can grow very quickly. We therefore limit the size of formulas
-   drastically in our generator. *)
-let gen gen_p = gen_sized gen_p 10
 
 (** For debugging purposes, our custom [show]. *)
 let pp pp_pred fmt formula =
@@ -129,15 +125,3 @@ module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   let of_yojson = of_yojson M.of_yojson
   let to_yojson = to_yojson M.to_yojson
 end
-
-let rec shrink shrink_predicate = let open QCheck.Iter in function
-    | False -> empty
-    | True -> empty
-    | Not f -> return f
-    | And (f1, f2) -> (return f1) <+> (return f2)
-                      <+> map (fun f1' -> And (f1', f2)) (shrink shrink_predicate f1)
-                      <+> map (fun f2' -> And (f1, f2')) (shrink shrink_predicate f2)
-    | Or (f1, f2) -> (return f1) <+> (return f2)
-                     <+> map (fun f1' -> Or (f1', f2)) (shrink shrink_predicate f1)
-                     <+> map (fun f2' -> Or (f1, f2')) (shrink shrink_predicate f2)
-    | Pred p -> map (fun p' -> Pred p') (shrink_predicate p)

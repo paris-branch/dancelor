@@ -35,9 +35,8 @@ let equal tune1 tune2 = compare tune1 tune2 = 0
 module Filter = struct
   let _key = "tune-filter"
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen = QCheck.Gen.pure (Obj.magic 0)
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false
 
   type predicate =
@@ -47,7 +46,7 @@ module Filter = struct
     | Author of PersonCore.Filter.t (** author is defined and passes the filter *)
     | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is tune = Is tune
@@ -64,23 +63,12 @@ module Filter = struct
   let unKind = function Kind kf -> Some kf | _ -> None
   let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
-  (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck.Iter in function
-      | Name string -> map name (QCheck.Shrink.string string)
-      | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
-      | NameMatches string -> return (Name "a") <+> map nameMatches (QCheck.Shrink.string string)
-      | Author person -> return (Name "a") <+> map author (PersonCore.Filter.shrink' person)
-      | Kind kf -> return (Name "a") <+> map kind (Kind.Base.Filter.shrink' kf)
-      | ExistsDance df -> return (Name "a") <+> map existsDance (DanceCore.Filter.shrink' df)
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
   let author' = Formula.pred % author
   let kind' = Formula.pred % kind
   let existsDance' = Formula.pred % existsDance
-
-  let shrink' = Formula.shrink shrink
 end

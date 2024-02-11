@@ -38,17 +38,13 @@ let equal version1 version2 = Slug.equal' (slug version1) (slug version2)
 module Filter = struct
   let _key = "version-filter"
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-     generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen = QCheck.Gen.pure (Obj.magic 0)
-
   type predicate =
     | Is of t Slug.t
     | Tune of TuneCore.Filter.t
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
     | Broken
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   (* FIXME: PPX *)
   let is version = Is version
@@ -62,21 +58,11 @@ module Filter = struct
   let unKey = function Key k -> Some k | _ -> None
   let unKind = function Kind f -> Some f | _ -> None
 
-  (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck.Iter in function
-      | Broken -> empty
-      | Is slug -> return Broken <+> map is (Slug.shrink slug)
-      | Tune tf -> return Broken <+> map tune (TuneCore.Filter.shrink' tf)
-      | Kind kf -> return Broken <+> map kind (Kind.Version.Filter.shrink' kf)
-      | Key _ -> return Broken
-
   type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, qcheck, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
   let tune' = Formula.pred % tune
   let key' = Formula.pred % key
   let kind' = Formula.pred % kind
   let broken' = Formula.pred broken
-
-  let shrink' = Formula.shrink shrink
 end

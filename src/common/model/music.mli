@@ -13,7 +13,10 @@ type alteration = Flat | Sharp | Natural
 type octave = int
 [@@deriving eq, show]
 
-type pitch
+type pitch =
+  { note : note ;
+    alteration : alteration ;
+    octave : octave }
 [@@deriving eq, show, yojson]
 
 val make_pitch : note -> alteration -> octave -> pitch
@@ -35,7 +38,7 @@ val pitch_to_lilypond_string : pitch -> string
 type mode = Major | Minor
 [@@deriving eq, show]
 
-type key
+type key = { pitch : pitch ; mode : mode }
 [@@deriving eq, show, yojson]
 
 val make_key : pitch -> mode -> key
@@ -71,16 +74,3 @@ val clef_to_symbol : clef -> string
 (** Unicode symbol of the clef. *)
 
 val clef_of_string : string -> clef
-
-(** {2 Generators} *)
-
-(* FIXME: Should be able to go in the [@@deriving] block. *)
-
-val gen_note : note QCheck.Gen.t
-val gen_alteration : alteration QCheck.Gen.t
-val gen_octave : octave QCheck.Gen.t
-val shrink_octave : octave QCheck.Shrink.t
-val gen_pitch : pitch QCheck.Gen.t
-val gen_mode : mode QCheck.Gen.t
-val gen_key : key QCheck.Gen.t
-val gen_clef : clef QCheck.Gen.t
