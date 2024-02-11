@@ -1,0 +1,3 @@
+(tests
+ (names formula kind)
+ (libraries dancelor.server.model alcotest qcheck qcheck-alcotest))

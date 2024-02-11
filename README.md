@@ -51,8 +51,10 @@ system dependencies are the following:
 
 Dancelor contains two kinds of tests: unit tests and system tests. Unit tests
 are fully integrated with Dune so nothing much is required there. There is a
-`make unit-tests` target, but it is really just an alias for `dune test`. Tests
-are written right after the function that they test, using [ppx_inline_test].
+`make unit-tests` target, but it is really just an alias for `dune test`. Unit
+tests are written either right after the function that they test, using
+[ppx_inline_test], or in `tests/unit`, using Alcotest. The latter usually
+contain QCheck-based tests.
 
 [ppx_inline_test]: https://github.com/janestreet/ppx_inline_test
 
