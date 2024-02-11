@@ -71,20 +71,25 @@ module Filter = struct
     | Is of t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let unIs = function Is k -> Some k
+
+  let shrink = function
+    | Is _ -> QCheck.Iter.empty
+
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]
+
+  let is' = Formula.pred % is
+
+  let shrink' = Formula.shrink shrink
 
   let accepts filter kind =
     Formula.interpret filter @@ function
 
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
-
-  (* FIXME: PPX *)
-  let is kind = Is kind
-  let unIs = function Is k -> Some k
-
-  let is' = Formula.pred % is
 
   let text_formula_converter =
     TextFormulaConverter.(

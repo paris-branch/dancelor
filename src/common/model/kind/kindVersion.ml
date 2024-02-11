@@ -74,8 +74,43 @@ module Filter = struct
     | Base of KindBase.Filter.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let barsEq int = BarsEq int
+  let barsNe int = BarsNe int
+  let barsGt int = BarsGt int
+  let barsGe int = BarsGe int
+  let barsLt int = BarsLt int
+  let barsLe int = BarsLe int
+  let base bfilter = Base bfilter
+
+  let unIs = function Is k -> Some k | _ -> None
+  let unBarsEq = function BarsEq i -> Some i | _ -> None
+  let unBarsNe = function BarsNe i -> Some i | _ -> None
+  let unBarsGt = function BarsGt i -> Some i | _ -> None
+  let unBarsGe = function BarsGe i -> Some i | _ -> None
+  let unBarsLt = function BarsLt i -> Some i | _ -> None
+  let unBarsLe = function BarsLe i -> Some i | _ -> None
+  let unBase = function Base bf -> Some bf | _ -> None
+
+  let shrink = let open QCheck.Iter in function
+      | Is k -> map is (shrink k)
+      | BarsEq n -> map barsEq (QCheck.Shrink.int n)
+      | BarsNe n -> map barsNe (QCheck.Shrink.int n)
+      | BarsGt n -> map barsGt (QCheck.Shrink.int n)
+      | BarsGe n -> map barsGe (QCheck.Shrink.int n)
+      | BarsLt n -> map barsLt (QCheck.Shrink.int n)
+      | BarsLe n -> map barsLe (QCheck.Shrink.int n)
+      | Base bf -> map base (KindBase.Filter.shrink' bf)
+
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]
+
+  let is' = Formula.pred % is
+  let barsEq' = Formula.pred % barsEq
+  let base' = Formula.pred % base
+
+  let shrink' = Formula.shrink shrink
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -111,29 +146,6 @@ module Filter = struct
       let (_bars, bkind) = kind in
       KindBase.Filter.accepts bfilter bkind
 
-  (* FIXME: PPX *)
-  let is kind = Is kind
-  let barsEq int = BarsEq int
-  let barsNe int = BarsNe int
-  let barsGt int = BarsGt int
-  let barsGe int = BarsGe int
-  let barsLt int = BarsLt int
-  let barsLe int = BarsLe int
-  let base bfilter = Base bfilter
-
-  let unIs = function Is k -> Some k | _ -> None
-  let unBarsEq = function BarsEq i -> Some i | _ -> None
-  let unBarsNe = function BarsNe i -> Some i | _ -> None
-  let unBarsGt = function BarsGt i -> Some i | _ -> None
-  let unBarsGe = function BarsGe i -> Some i | _ -> None
-  let unBarsLt = function BarsLt i -> Some i | _ -> None
-  let unBarsLe = function BarsLe i -> Some i | _ -> None
-  let unBase = function Base bf -> Some bf | _ -> None
-
-  let is' = Formula.pred % is
-  let barsEq' = Formula.pred % barsEq
-  let base' = Formula.pred % base
-
   let text_formula_converter =
     TextFormulaConverter.(
       merge
@@ -154,7 +166,7 @@ module Filter = struct
               unary_int ~name:"bars-ge" (barsGe, unBarsGe);
               unary_int ~name:"bars-lt" (barsLt, unBarsLt);
               unary_int ~name:"bars-le" (barsLe, unBarsLe);
-              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_string) ~type_:"version kind";
+              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
               unary_lift ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
             ]
         )

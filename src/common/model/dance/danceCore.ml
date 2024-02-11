@@ -61,11 +61,11 @@ module Filter = struct
     let open QCheck in
     let open Iter in
     function
-    | Is slug -> map is (Slug.shrink slug)
     | Name string -> map name (Shrink.string string)
-    | NameMatches string -> map nameMatches (Shrink.string string)
+    | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
+    | NameMatches string -> return (Name "a") <+> map nameMatches (Shrink.string string)
     | Deviser person -> return (Name "a") <+> map deviser (PersonCore.Filter.shrink' person)
-    | Kind _ -> return (Name "a")
+    | Kind k -> return (Name "a") <+> map kind (Kind.Dance.Filter.shrink' k)
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]

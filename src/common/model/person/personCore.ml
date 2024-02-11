@@ -43,10 +43,10 @@ module Filter = struct
   let unNameMatches = function NameMatches n -> Some n | _ -> None
 
   (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck in function
-      | Is slug -> Iter.map is (Slug.shrink slug)
-      | Name string -> Iter.map name (Shrink.string string)
-      | NameMatches string -> Iter.map nameMatches (Shrink.string string)
+  let shrink = let open QCheck.Iter in function
+      | Name string -> map name (QCheck.Shrink.string string)
+      | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
+      | NameMatches string -> return (Name "a") <+> map nameMatches (QCheck.Shrink.string string)
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]

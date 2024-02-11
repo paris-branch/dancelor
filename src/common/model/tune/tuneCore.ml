@@ -65,11 +65,13 @@ module Filter = struct
   let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
   (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck in function
-      | Is slug -> Iter.map is (Slug.shrink slug)
-      | Name string -> Iter.map name (Shrink.string string)
-      | NameMatches string -> Iter.map nameMatches (Shrink.string string)
-      | _ -> Iter.empty
+  let shrink = let open QCheck.Iter in function
+      | Name string -> map name (QCheck.Shrink.string string)
+      | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
+      | NameMatches string -> return (Name "a") <+> map nameMatches (QCheck.Shrink.string string)
+      | Author person -> return (Name "a") <+> map author (PersonCore.Filter.shrink' person)
+      | Kind kf -> return (Name "a") <+> map kind (Kind.Base.Filter.shrink' kf)
+      | ExistsDance df -> return (Name "a") <+> map existsDance (DanceCore.Filter.shrink' df)
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]

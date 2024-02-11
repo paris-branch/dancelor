@@ -67,8 +67,8 @@ module Filter = struct
       | Broken -> empty
       | Is slug -> return Broken <+> map is (Slug.shrink slug)
       | Tune tf -> return Broken <+> map tune (TuneCore.Filter.shrink' tf)
+      | Kind kf -> return Broken <+> map kind (Kind.Version.Filter.shrink' kf)
       | Key _ -> return Broken
-      | Kind _ -> return Broken
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]

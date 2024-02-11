@@ -62,8 +62,30 @@ module Filter = struct
     | Version of KindVersion.Filter.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]
 
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let version vfilter = Version vfilter
+  let simple = Simple
+
+  let unIs = function Is k -> Some k | _ -> None
+  let unVersion = function Version vf -> Some vf | _ -> None
+
+  let shrink = let open QCheck.Iter in function
+      | Simple -> empty
+      | Is k -> return Simple <+> map is (shrink k)
+      | Version vf -> return Simple <+> map version (KindVersion.Filter.shrink' vf)
+
+  let base = version % KindVersion.Filter.base'
+
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]
+
+  let is' = Formula.pred % is
+  let version' = Formula.pred % version
+  let simple' = Formula.pred simple
+  let base' = Formula.pred % base
+
+  let shrink' = Formula.shrink shrink
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -83,21 +105,6 @@ module Filter = struct
            (KindVersion.Filter.accepts vfilter)
            (version_kinds kind))
 
-  (* FIXME: PPX *)
-  let is kind = Is kind
-  let version vfilter = Version vfilter
-  let simple = Simple
-
-  let unIs = function Is k -> Some k | _ -> None
-  let unVersion = function Version vf -> Some vf | _ -> None
-
-  let base = version % KindVersion.Filter.base'
-
-  let is' = Formula.pred % is
-  let version' = Formula.pred % version
-  let simple' = Formula.pred simple
-  let base' = Formula.pred % base
-
   let text_formula_converter =
     TextFormulaConverter.(
       merge
@@ -114,7 +121,7 @@ module Filter = struct
 
               nullary ~name:"simple"  Simple;
               unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
-              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_string) ~type_:"dance kind";
+              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"dance kind";
             ]
         )
         (

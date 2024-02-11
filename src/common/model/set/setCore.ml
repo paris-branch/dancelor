@@ -78,13 +78,13 @@ module Filter = struct
   let unKind = function Kind kf -> Some kf | _ -> None
 
   (* FIXME: QCheck2 does this automatically. *)
-  let shrink = let open QCheck in function
-      | Is slug -> Iter.map is (Slug.shrink slug)
-      | Name string -> Iter.map name (Shrink.string string)
-      | NameMatches string -> Iter.map nameMatches (Shrink.string string)
-      | Deviser pf -> Iter.map deviser (PersonCore.Filter.shrink' pf)
-      | ExistsVersion vf -> Iter.map existsVersion (VersionCore.Filter.shrink' vf)
-      | Kind _ -> Iter.empty
+  let shrink = let open QCheck.Iter in function
+      | Name string -> map name (QCheck.Shrink.string string)
+      | Is slug -> return (Name "a") <+> map is (Slug.shrink slug)
+      | NameMatches string -> return (Name "a") <+> map nameMatches (QCheck.Shrink.string string)
+      | Deviser pf -> return (Name "a") <+> map deviser (PersonCore.Filter.shrink' pf)
+      | ExistsVersion vf -> return (Name "a") <+> map existsVersion (VersionCore.Filter.shrink' vf)
+      | Kind kf -> return (Name "a") <+> map kind (Kind.Dance.Filter.shrink' kf)
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, qcheck, yojson]

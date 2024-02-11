@@ -47,4 +47,5 @@ module Filter : sig
   val from_string : ?filename:string -> string -> (t, string) Result.t
 
   val gen : t QCheck.Gen.t
+  val shrink' : t QCheck.Shrink.t
 end
