@@ -1,6 +1,10 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    ## FIXME: Remove once LilyPond can be taken from NixOS unstable.
+    nixpkgs2211.url = "github:nixos/nixpkgs/nixos-22.11";
+
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     opam-repository = {

@@ -13,5 +13,15 @@
         })
       ];
     };
+
+    ## Same with NixOS 22.11.
+    _module.args.pkgs2211 = import inputs.nixpkgs2211 {
+      inherit system;
+      overlays = [
+        (_self: _super: {
+          timidity = inputs'.timidity.packages.timidityWithVorbis;
+        })
+      ];
+    };
   };
 }
