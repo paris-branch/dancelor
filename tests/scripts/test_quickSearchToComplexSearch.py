@@ -12,7 +12,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 class TestQuickSearchToComplexSearch():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
-    options.headless = True
+    options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
     self.driver.implicitly_wait(1)
     self.wait = WebDriverWait(self.driver, timeout=1)

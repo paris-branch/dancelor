@@ -8,21 +8,30 @@ A chancelor for Scottish country dance musicians.
 
 ### Setting up a development environment
 
-The OCaml dependencies are described in `dune-project`; as far as they are
-concerned, this is the single source of truth. The system dependencies are
-described in `dancelor.opam.template`. Both of these can be acquired
-automatically via OPAM or Nix:
+The OCaml dependencies are described in `dune-project` and in
+`.nix/package.nix`; these files should not go out of sync and the CI checks that
+Dancelor builds fine both in an opam-based or a nix-based environments. The
+system dependencies are the following:
 
-- OPAM can install automatically all the system and OCaml dependencies that are
-  necessary to develop Dancelor with:
+- freepats (runtime)
+- git (runtime)
+- lilypond (runtime; 2.22)
+- sassc (compile time)
+- timidity (runtime; with Vorbis support)
+
+- OPAM can install automatically all the OCaml dependencies that are necessary
+  to develop Dancelor with:
 
   ```console
-  $ opam install . --depext-only
   $ opam install . --deps-only --with-doc --with-test
   ```
 
-- Nix can provide a development environment with all the necessary dependencies
-  as well. Use:
+  You might still want to add a proper development environment (eg. Tuareg, an
+  LSP server, etc.) and you will need to install the system dependencies
+  yourself.
+
+- Nix can provide an environment with all the necessary dependencies, both OCaml
+  and system, as well as development tools:
 
   ```console
   $ nix develop
@@ -72,10 +81,12 @@ the system tests against it and then kills Dancelor again. For developping
 tests, the target `make dev-test` launches Dancelor in such a mode.
 
 Writing Selenium scripts can be done manually by mimmicking the ones already
-present in `tests/scripts`, but we recommed relying on the Selenium IDE and
-exporting tests in `pytest` style.
+present in `tests/scripts`, in which case you might be interesting in
+[Selenium's API documentation][selenium-api-doc], but it is also possible to
+rely on the Selenium IDE and exporting tests in `pytest` style.
 
 [selenium]: https://www.selenium.dev/
+[selenium-api-doc]: https://www.selenium.dev/selenium/docs/api/py/py-modindex.html
 
 ### Invariants enforced in this repository
 
