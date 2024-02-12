@@ -6,7 +6,7 @@ type process_status = Unix.process_status =
   | WEXITED of int
   | WSIGNALED of int
   | WSTOPPED of int
-[@@deriving show]
+[@@deriving show {with_path = false}]
 
 type output =
   { stdout : string ;

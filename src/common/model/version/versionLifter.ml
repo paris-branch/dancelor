@@ -32,68 +32,63 @@ module Lift
   let name version = Lwt.map Tune.name (tune version)
 
   module Filter = struct
+    let versionCore_tune = tune
+
     include VersionCore.Filter
 
     let accepts filter version =
       Formula.interpret filter @@ function
 
       | Is version' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal version version'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug version) version'
 
       | Tune tfilter ->
-        let%lwt tune = tune version in
+        let%lwt tune = versionCore_tune version in
         Tune.Filter.accepts tfilter tune
 
       | Key key' ->
-        Lwt.return @@ Formula.interpret_bool (key version = key')
+        Lwt.return @@ Formula.interpret_bool (VersionCore.key version = key')
 
       | Kind kfilter ->
-        let%lwt tune = tune version in
-        Kind.Version.Filter.accepts kfilter (bars version, Tune.kind tune)
+        let%lwt tune = versionCore_tune version in
+        Kind.Version.Filter.accepts kfilter (VersionCore.bars version, Tune.kind tune)
 
       | Broken ->
-        Lwt.return @@ Formula.interpret_bool @@ broken version
+        Lwt.return @@ Formula.interpret_bool @@ VersionCore.broken version
 
-    let is version = Formula.pred (Is version)
-    let tune tfilter = Formula.pred (Tune tfilter)
-    let tuneIs tune_ = tune (Tune.Filter.is tune_)
-    let key key_ = Formula.pred (Key key_)
-    let kind kfilter = Formula.pred (Kind kfilter)
-    let broken = Formula.pred Broken
+    let text_formula_converter =
+      TextFormulaConverter.(
+        merge ~tiebreaker:Left
+          (
+            (* Version-specific converter. *)
+            make
+              [
+                nullary    ~name:"broken" broken;
+                unary_lift ~name:"tune"   (tune, unTune)   ~converter:Tune.Filter.text_formula_converter;
+                unary_raw  ~name:"key"    (key, unKey)     ~cast:(Music.key_of_string_opt, Music.key_to_string) ~type_:"key";
+                unary_lift ~name:"kind"   (kind, unKind)   ~converter:Kind.Version.Filter.text_formula_converter;
+                unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+              ]
+          )
+          (
+            (* Tune converter, lifted to versions. Lose in case of tiebreak. *)
+            map tune Tune.Filter.text_formula_converter ~error:((^) "As tune lifted to version: ")
+          )
+      )
 
-    let raw string =
-      match Tune.Filter.raw string with
-      | Ok tfilter -> Ok (tune tfilter)
-      | Error err -> Error err (* FIXME: syntext *)
-
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.(Version.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXME: make this clearer *)
-      "jig",        (kind Kind.(Version.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXME: make this clearer *)
-      "strathspey", (kind Kind.(Version.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXME: make this clearer *)
-      "waltz",      (kind Kind.(Version.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXME: make this clearer *)
-      "broken",      broken;
-    ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        "tune",    (tune @@@@ Tune.Filter.from_text_formula);
-        "key",     raw_only ~convert:(fun s -> match Music.key_of_string_opt s with Some k -> Ok k | None -> Error "not a valid key") key;
-        "kind",    (kind @@@@ Kind.Version.Filter.from_text_formula);
-      ]
-      @ (List.map
-           (fun (name, pred) ->
-              (name, fun x ->
-                  match pred x with
-                  | Ok tfilter -> Ok (tune tfilter)
-                  | Error err -> Error err))
-           Tune.Filter.unary_text_predicates)
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind
+        (TextFormula.from_string ?filename input)
+        from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let tuneIs = tune % Tune.Filter.is'
+    let tuneIs' = Formula.pred % tuneIs
   end
 end

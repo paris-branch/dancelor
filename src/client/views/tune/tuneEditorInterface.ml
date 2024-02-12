@@ -182,7 +182,7 @@ let create ?on_save page =
                       Table.Cell.text ~text:(Lwt.return "Create a new dance") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Dance.Filter.from_string input in
+            let%rlwt formula = Lwt.return @@ Dance.Filter.from_string input in
             let%lwt results = Dance.search' ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
             Lwt.return_ok results)
         ~make_result:(fun score -> make_dance_search_result editor page score)
@@ -204,7 +204,7 @@ let create ?on_save page =
                       Table.Cell.text ~text:(Lwt.return "Create a new author") page]
                     page)
         ~search:(fun input ->
-            let%rlwt formula = Lwt.return @@ Result.map_error List.singleton @@ Person.Filter.from_string input in
+            let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
             let%lwt results =
               Person.search' ~threshold:0.4
                 ~pagination:Pagination.{start = 0; end_ = 10} formula

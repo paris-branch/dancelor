@@ -26,18 +26,18 @@ val equal : t -> t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = PersonCore.Filter.t
+  type predicate = [%import: PersonCore.Filter.predicate]
+  type t = [%import: PersonCore.Filter.t]
+  [@@deriving eq, show]
 
   val accepts : t -> PersonCore.t -> float Lwt.t
 
-  val is : PersonCore.t -> t
+  val is : PersonCore.t -> predicate
+  val is' : PersonCore.t -> t
 
-  val raw : string -> t TextFormula.or_error
-  val nullary_text_predicates : (string * t) list
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
-
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val text_formula_converter : predicate TextFormulaConverter.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val to_string : t -> string
 end
 
 (** {2 Getters and setters} *)

@@ -58,12 +58,12 @@ let entry_from_uri uri =
   match String.split_on_char '/' (Uri.path uri) with
   | [""; "dd"; type_; id; ""] ->
     (match entry_type_of_string type_ with
-     | None -> error_fmt "Dancelor_common.SCDDB.entry_from_uri: no such entry type: %s" type_
+     | None -> kspf Result.error "Dancelor_common.SCDDB.entry_from_uri: no such entry type: %s" type_
      | Some type_ ->
        (match int_of_string_opt id with
-        | None -> error_fmt "Dancelor_common.SCDDB.entry_from_uri: not a valid id: %s" id
+        | None -> kspf Result.error "Dancelor_common.SCDDB.entry_from_uri: not a valid id: %s" id
         | Some id -> Ok (type_, id)))
-  | _ -> error_fmt "Dancelor_common.SCDDB.entry_from_uri: could not recognise path"
+  | _ -> kspf Result.error "Dancelor_common.SCDDB.entry_from_uri: could not recognise path"
 
 let%test _ = entry_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok (Person, 11781)
 let%test _ = entry_from_uri "https://my.strathspey.org/dd/tune/14452/" = Ok (Tune, 14452)
@@ -74,7 +74,7 @@ let specific_entry_from_uri type_ uri =
   match entry_from_uri uri with
   | Error err -> Error err
   | Ok (type', _) when type_ <> type' ->
-    error_fmt "Dancelor_common.SCDDB.*_from_uri: expected %s but got %s"
+    kspf Result.error "Dancelor_common.SCDDB.*_from_uri: expected %s but got %s"
       (entry_type_to_string type_) (entry_type_to_string type')
   | Ok (_, id) -> Ok id
 

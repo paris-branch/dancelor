@@ -16,7 +16,7 @@ let to_string kind =
 
 let of_string_opt s =
   try Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
-  with KindDanceParser.Error -> None
+  with KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
@@ -60,14 +60,25 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of KindVersion.Filter.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let version vfilter = Version vfilter
+  let simple = Simple
+
+  let unIs = function Is k -> Some k | _ -> None
+  let unVersion = function Version vf -> Some vf | _ -> None
+
+  let base = version % KindVersion.Filter.base'
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
-  let is kind = Formula.pred (Is kind)
-  let version vfilter = Formula.pred (Version vfilter)
-  let base bfilter = version (KindVersion.Filter.base bfilter)
+  let is' = Formula.pred % is
+  let version' = Formula.pred % version
+  let simple' = Formula.pred simple
+  let base' = Formula.pred % base
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -82,37 +93,37 @@ module Filter = struct
 
     | Version vfilter ->
       Lwt.map
-        Formula.interpet_and_l
+        Formula.interpret_and_l
         (Lwt_list.map_s
            (KindVersion.Filter.accepts vfilter)
            (version_kinds kind))
 
-  let raw string =
-    match KindBase.of_string_opt string with
-    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
-    | None ->
-      match KindVersion.of_string_opt string with
-      | Some vkind -> Ok (version (KindVersion.Filter.is vkind))
-      | None ->
-        match of_string_opt string with
-        | Some dkind -> Ok (is dkind)
-        | None -> error_fmt "could not interpret \"%s\" as a kind for dances" string
+  let text_formula_converter =
+    TextFormulaConverter.(
+      merge ~tiebreaker:Left
+        (
+          (* Dance kind-specific converter *)
+          make
+            [
+              raw
+                (fun string ->
+                   Option.fold
+                     ~some: (Result.ok % is')
+                     ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
+                     (of_string_opt string));
 
-  let nullary_text_predicates = []
+              nullary ~name:"simple"  Simple;
+              unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
+              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"dance kind";
+            ]
+        )
+        (
+          (* Version kind converter, lifted to dance kinds; lose in case of tiebreak. *)
+          map version KindVersion.Filter.text_formula_converter
+        )
+    )
 
-  (* Unary text_predicates lifted from Versions. *)
-  let unary_text_predicates =
-    List.map
-      (fun (name, builder) ->
-         (name,
-          (fun formula ->
-             match builder formula with
-             | Ok formula -> Ok (version formula)
-             | Error err -> Error err)))
-      KindVersion.Filter.unary_text_predicates
-
-  let from_text_formula =
-    TextFormula.make_to_formula raw
-      nullary_text_predicates
-      unary_text_predicates
+  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_string ?filename input =
+    Result.bind (TextFormula.from_string ?filename input) from_text_formula
 end

@@ -57,7 +57,7 @@ let name_disambiguation_and_sources ?link version =
   let sources_lwt =
     let%lwt sources =
       let filter = M.Book.Filter.(
-          M.Formula.and_ (memVersionDeep version) isSource
+          M.Formula.and_ (memVersionDeep' version) isSource'
         )
       in
       M.Book.search' filter >|=| M.Score.list_erase
@@ -82,7 +82,7 @@ let disambiguation_and_sources version =
   let sources_lwt =
     let%lwt sources =
       let filter = M.Book.Filter.(
-          M.Formula.and_ (memVersionDeep version) isSource
+          M.Formula.and_ (memVersionDeep' version) isSource'
         )
       in
       M.Book.search' filter >|=| M.Score.list_erase

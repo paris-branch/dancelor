@@ -5,6 +5,7 @@ open Nes
 val _key : string
 
 type t = Jig | Polka | Reel | Strathspey | Waltz
+[@@deriving eq, show]
 
 val to_char : t -> char
 val of_char : char -> t
@@ -30,11 +31,15 @@ type base_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
 module Filter : sig
-  type t [@@deriving yojson]
+  type predicate = Is of t
+  type t = predicate Formula.t
+  [@@deriving eq, show, yojson]
 
   val accepts : t -> base_kind -> float Lwt.t
 
-  val is : base_kind -> t
+  val is : base_kind -> predicate
+  val is' : base_kind -> t
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val text_formula_converter : predicate TextFormulaConverter.t
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
 end

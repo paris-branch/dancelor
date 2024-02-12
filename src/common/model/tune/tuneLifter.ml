@@ -24,6 +24,10 @@ module Lift
   let dances tune = Lwt_list.map_p Dance.get (dances tune)
 
   module Filter = struct
+    (* NOTE: [include TuneCore.Filter] shadows the accessors of [TuneCore]. *)
+    let tuneCore_author = author
+    let tuneCore_dances = dances
+
     include TuneCore.Filter
 
     let accepts filter tune =
@@ -31,60 +35,55 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is tune' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal tune tune'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug tune) tune'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name tune
+        Lwt.return @@ String.proximity ~char_equal string @@ TuneCore.name tune
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name tune
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ TuneCore.name tune
 
       | Author afilter ->
-        (match%lwt author tune with
-         | None -> Formula.interpret_false |> Lwt.return
-         | Some author -> Person.Filter.accepts afilter author)
+        Lwt.bind
+          (tuneCore_author tune)
+          (Option.fold
+             ~none: (Lwt.return Formula.interpret_false)
+             ~some: (Person.Filter.accepts afilter))
 
       | Kind kfilter ->
-        Kind.Base.Filter.accepts kfilter @@ kind tune
+        Kind.Base.Filter.accepts kfilter @@ TuneCore.kind tune
 
       | ExistsDance dfilter ->
-        let%lwt dances = dances tune in
+        let%lwt dances = tuneCore_dances tune in
         let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
-        Lwt.return (Formula.interpet_or_l scores)
+        Lwt.return (Formula.interpret_or_l scores)
 
-    let is tune = Formula.pred (Is tune)
-    let name string = Formula.pred (Name string)
-    let nameMatches string = Formula.pred (NameMatches string)
-    let author cfilter = Formula.pred (Author cfilter)
-    let authorIs author_ = author (Person.Filter.is author_)
-    let kind kfilter = Formula.pred (Kind kfilter)
-    let existsDance dfilter = Formula.pred (ExistsDance dfilter)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            raw (Result.ok % nameMatches');
+            unary_string ~name:"name"         (name, unName);
+            unary_string ~name:"name-matches" (nameMatches, unNameMatches);
+            unary_lift   ~name:"author"       (author, unAuthor)           ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"           (author, unAuthor)           ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
+            unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-dance" (existsDance, unExistsDance) ~converter:Dance.Filter.text_formula_converter;
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+          ]
+      )
 
-    let raw string = Ok (nameMatches string)
-
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.Base.(Filter.is Reel));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind Kind.Base.(Filter.is Jig));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind Kind.Base.(Filter.is Strathspey)); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind Kind.Base.(Filter.is Waltz));      (* alias for kind:waltz      FIXNE: make this clearer *)
-    ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        "name",         raw_only ~convert:no_convert name;
-        "name-matches", raw_only ~convert:no_convert nameMatches;
-        "author",       (author @@@@ Person.Filter.from_text_formula);
-        "by",           (author @@@@ Person.Filter.from_text_formula); (* alias for author; FIXME: make this clearer *)
-        "kind",         (kind @@@@ Kind.Base.Filter.from_text_formula);
-        "exists-dance", (existsDance @@@@ Dance.Filter.from_text_formula);
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let authorIs = author % Person.Filter.is'
+    let authorIs' = Formula.pred % authorIs
   end
 end

@@ -52,3 +52,5 @@ let rec compare cmp s1 s2 =
   | Cons(x1, s1), Cons(x2, s2) ->
     let c = cmp x1 x2 in
     if c <> 0 then c else compare cmp s1 s2
+
+let return x = fun () -> Cons (x, fun () -> Nil)

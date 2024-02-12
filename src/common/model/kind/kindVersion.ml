@@ -3,6 +3,7 @@ open Nes
 let _key = "kind-version"
 
 type t = int * KindBase.t
+[@@deriving eq, show {with_path = false}]
 
 let to_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_string base)
@@ -61,22 +62,45 @@ type version_kind = t (* needed for the inferface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-    | BarsEq of int | BarsGt of int | BarsLt of int
+    | BarsEq of int
+    | BarsNe of int
+    | BarsGt of int
+    | BarsGe of int
+    | BarsLt of int
+    | BarsLe of int
     | Base of KindBase.Filter.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let barsEq int = BarsEq int
+  let barsNe int = BarsNe int
+  let barsGt int = BarsGt int
+  let barsGe int = BarsGe int
+  let barsLt int = BarsLt int
+  let barsLe int = BarsLe int
+  let base bfilter = Base bfilter
+
+  let unIs = function Is k -> Some k | _ -> None
+  let unBarsEq = function BarsEq i -> Some i | _ -> None
+  let unBarsNe = function BarsNe i -> Some i | _ -> None
+  let unBarsGt = function BarsGt i -> Some i | _ -> None
+  let unBarsGe = function BarsGe i -> Some i | _ -> None
+  let unBarsLt = function BarsLt i -> Some i | _ -> None
+  let unBarsLe = function BarsLe i -> Some i | _ -> None
+  let unBase = function Base bf -> Some bf | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
-  let is kind = Formula.pred (Is kind)
-  let barsEq int = Formula.pred (BarsEq int)
-  let barsNe int = Formula.not_ (barsEq int)
-  let barsGt int = Formula.pred (BarsGt int)
-  let barsGe int = Formula.or_l [ barsEq int; barsGt int ]
-  let barsLt int = Formula.pred (BarsLt int)
-  let barsLe int = Formula.or_l [ barsEq int; barsLt int ]
-
-  let base bfilter = Formula.pred (Base bfilter)
+  let is' = Formula.pred % is
+  let barsEq' = Formula.pred % barsEq
+  let barsNe' = Formula.pred % barsNe
+  let barsGt' = Formula.pred % barsGt
+  let barsGe' = Formula.pred % barsGe
+  let barsLt' = Formula.pred % barsLt
+  let barsLe' = Formula.pred % barsLe
+  let base' = Formula.pred % base
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -88,40 +112,61 @@ module Filter = struct
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars = bars'))
 
+    | BarsNe bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars <> bars'))
+
     | BarsGt bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars > bars'))
+
+    | BarsGe bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars >= bars'))
 
     | BarsLt bars' ->
       let (bars, _) = kind in
       Lwt.return (Formula.interpret_bool (bars < bars'))
 
+    | BarsLe bars' ->
+      let (bars, _) = kind in
+      Lwt.return (Formula.interpret_bool (bars <= bars'))
+
     | Base bfilter ->
       let (_bars, bkind) = kind in
       KindBase.Filter.accepts bfilter bkind
 
-  let raw string =
-    match KindBase.of_string_opt string with
-    | Some bkind -> Ok (base (KindBase.Filter.is bkind))
-    | None ->
-      match of_string_opt string with
-      | Some vkind -> Ok (is vkind)
-      | None -> error_fmt "could not interpret \"%s\" as a kind for versions" string
+  let text_formula_converter =
+    TextFormulaConverter.(
+      merge
+        (
+          (* Version kind-specific converter *)
+          make
+            [
+              raw
+                (fun string ->
+                   Option.fold
+                     ~some: (Result.ok % is')
+                     ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
+                     (of_string_opt string)
+                );
+              unary_int ~name:"bars-eq" (barsEq, unBarsEq);
+              unary_int ~name:"bars-ne" (barsNe, unBarsNe);
+              unary_int ~name:"bars-gt" (barsGt, unBarsGt);
+              unary_int ~name:"bars-ge" (barsGe, unBarsGe);
+              unary_int ~name:"bars-lt" (barsLt, unBarsLt);
+              unary_int ~name:"bars-le" (barsLe, unBarsLe);
+              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
+              unary_lift ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
+            ]
+        )
+        (
+          (* Base kind converter, lifted to version kinds *)
+          map base KindBase.Filter.text_formula_converter
+        )
+    )
 
-  let nullary_text_predicates = []
-
-  let unary_text_predicates =
-    TextFormula.[
-      "bars-eq", raw_only ~convert:convert_int barsEq;
-      "bars-ne", raw_only ~convert:convert_int barsNe;
-      "bars-gt", raw_only ~convert:convert_int barsGt;
-      "bars-ge", raw_only ~convert:convert_int barsGe;
-      "bars-lt", raw_only ~convert:convert_int barsLt;
-      "bars-le", raw_only ~convert:convert_int barsLe;
-    ]
-
-  let from_text_formula =
-    TextFormula.make_to_formula raw
-      nullary_text_predicates
-      unary_text_predicates
+  let from_text_formula = TextFormula.to_formula text_formula_converter
+  let from_string ?filename input =
+    Result.bind (TextFormula.from_string ?filename input) from_text_formula
 end

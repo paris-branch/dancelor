@@ -8,10 +8,21 @@ let level = function
   | And _ -> 1
   | Or _ -> 0
 
+let escape_char = function
+  | '"' -> Seq.(cons '\\' (return '"'))
+  | '\\' -> Seq.(cons '\\' (return '\\'))
+  | c -> Seq.return c
+
+let escape = function
+  | "" -> "\"\""
+  | s when String.exists is_special s -> "\"" ^ String.of_seq (Seq.concat_map escape_char (String.to_seq s)) ^ "\""
+  | s -> s
+
 let pp_raw fmt string =
-  match String.index_opt string ' ' with
-  | None -> Format.pp_print_string fmt string
-  | Some _ -> fpf fmt "\"%s\"" string (* FIXME: escape quotes *)
+  if String.exists is_special string then
+    fpf fmt "\"%s\"" (escape string)
+  else
+    fpf fmt "%s" string
 
 let rec pp fmt formula =
   match formula with
@@ -23,7 +34,7 @@ let rec pp fmt formula =
   | Pred pred -> pp_predicate formula fmt pred
 
 and pp_predicate parent fmt = function
-  | Raw string -> pp_raw fmt string
+  | Raw string -> fpf fmt "%s" (escape string)
   | Nullary pred -> fpf fmt ":%s" pred
   | Unary (pred, f) -> fpf fmt "%s:%a" pred (pp_pars parent) f
 
@@ -32,3 +43,7 @@ and pp_pars parent fmt formula =
     fpf fmt "(%a)" pp formula
   else
     pp fmt formula
+
+let pp_predicate = pp_predicate False
+
+let to_string = Format.kasprintf Fun.id "%a" pp

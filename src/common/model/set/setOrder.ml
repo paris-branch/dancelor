@@ -5,6 +5,7 @@ let _key = "set-order"
 type component =
   | External of int
   | Internal of int
+[@@deriving show {with_path = false}]
 
 let component_to_string = function
   | External int -> spf "X%d" int
@@ -25,6 +26,7 @@ let component_of_string =
         invalid_arg "Dancelor_common_model.SetOrder.component_of_string"
 
 type t = component list
+[@@deriving show {with_path = false}]
 
 let to_string order =
   List.map component_to_string order

@@ -14,8 +14,9 @@ type t =
     scddb_id : int option               [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t            [@key "modified-at"] ;
     created_at  : Datetime.t            [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
+(* FIXME: PPX *)
 let slug tune = tune.slug
 let status tune = tune.status
 let name tune = tune.name
@@ -34,15 +35,40 @@ let equal tune1 tune2 = compare tune1 tune2 = 0
 module Filter = struct
   let _key = "tune-filter"
 
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
+  let equal _ _ = assert false
+
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Name of string
     | NameMatches of string
     | Author of PersonCore.Filter.t (** author is defined and passes the filter *)
     | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  (* FIXME: PPX *)
+  let is tune = Is tune
+  let name string = Name string
+  let nameMatches string = NameMatches string
+  let author cfilter = Author cfilter
+  let kind kfilter = Kind kfilter
+  let existsDance dfilter = ExistsDance dfilter
+
+  let unIs = function Is s -> Some s | _ -> None
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
+  let unAuthor = function Author cf -> Some cf | _ -> None
+  let unKind = function Kind kf -> Some kf | _ -> None
+  let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
+  let author' = Formula.pred % author
+  let kind' = Formula.pred % kind
+  let existsDance' = Formula.pred % existsDance
 end

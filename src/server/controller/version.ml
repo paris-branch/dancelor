@@ -135,7 +135,7 @@ module Svg = struct
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
       let slug = Model.Version.slug version in
-      let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
+      let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".svg")
     in
     Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
@@ -149,7 +149,7 @@ module Svg = struct
     Lwt.return (Filename.concat path fname_svg)
 
   let get version parameters =
-    Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp version);
+    Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp' version);
     let%lwt version = Model.Version.get version in
     let%lwt path_svg = render ?parameters version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_svg ()
@@ -202,7 +202,7 @@ module Ogg = struct
     StorageCache.use ~cache ~key:(`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
       let slug = Model.Version.slug version in
-      let fname = aspf "%a-%a" Slug.pp slug StorageCache.pp_hash hash in
+      let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname^".ly", fname^".ogg")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
@@ -212,7 +212,7 @@ module Ogg = struct
     Lwt.return (Filename.concat path fname_ogg)
 
   let get version =
-    Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp version);
+    Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp' version);
     let%lwt version = Model.Version.get version in
     let%lwt path_ogg = render version in
     Cohttp_lwt_unix.Server.respond_file ~fname:path_ogg ()

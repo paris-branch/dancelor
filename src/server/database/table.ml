@@ -216,7 +216,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
          if Stats.get_accesses stats = 0 then
            Lwt.async (fun () ->
                let slug = Model.slug model in
-               Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp slug);
+               Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp' slug);
                Lwt.return ()))
 
   let get ?version slug =

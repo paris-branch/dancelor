@@ -57,7 +57,7 @@ let create ?context slug page =
         L.div (
           let%lwt tunes =
             let%lwt person = person_lwt in
-            let filter = Tune.Filter.authorIs person in
+            let filter = Tune.Filter.authorIs' person in
             Tune.search' filter >|=| Score.list_erase
           in
 
@@ -76,7 +76,7 @@ let create ?context slug page =
         L.div (
           let%lwt sets =
             let%lwt person = person_lwt in
-            let filter = Set.Filter.deviser (Person.Filter.is person) in
+            let filter = Set.Filter.deviser' (Person.Filter.is' person) in
             Set.search' filter >|=| Score.list_erase
           in
 
@@ -95,7 +95,7 @@ let create ?context slug page =
         L.div (
           let%lwt dances =
             let%lwt person = person_lwt in
-            let filter = Dance.Filter.deviser (Person.Filter.is person) in
+            let filter = Dance.Filter.deviser' (Person.Filter.is' person) in
             Dance.search' filter >|=| Score.list_erase
           in
 

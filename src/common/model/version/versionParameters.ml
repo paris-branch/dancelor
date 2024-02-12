@@ -14,7 +14,7 @@ module Self = struct
       trivia         : string          option [@default None] ;
       display_name   : string          option [@default None] [@key "display-name"] ;
       display_author : string          option [@default None] [@key "display-author"] }
-  [@@deriving make, yojson]
+  [@@deriving make, show {with_path = false}, yojson]
 
   let _key = "version-parameters"
 end

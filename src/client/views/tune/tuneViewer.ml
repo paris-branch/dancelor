@@ -54,7 +54,7 @@ let create ?context slug page =
           let versions_lwt =
             let%lwt filter =
               let%lwt tune = tune_lwt in
-              Lwt.return (Version.Filter.tuneIs tune)
+              Lwt.return (Version.Filter.tuneIs' tune)
             in
             Version.search' filter >|=| Score.list_erase
           in
@@ -97,7 +97,7 @@ let create ?context slug page =
 
           let sets_lwt =
             let%lwt tune = tune_lwt in
-            let filter = Set.Filter.existsVersion (Version.Filter.tuneIs tune) in
+            let filter = Set.Filter.existsVersion' (Version.Filter.tuneIs' tune) in
             Set.search' filter >|=| Score.list_erase
           in
           let%lwt sets = sets_lwt in
@@ -117,7 +117,7 @@ let create ?context slug page =
         L.div (
           let%lwt books =
             let%lwt tune = tune_lwt in
-            let filter = Book.Filter.memTuneDeep tune in
+            let filter = Book.Filter.memTuneDeep' tune in
             Book.search' filter >|=| Score.list_erase
           in
 

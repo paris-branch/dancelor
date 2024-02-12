@@ -206,24 +206,24 @@ module Lift
   module Filter = struct
     include BookCore.Filter
 
-    let accepts filter book =
+    let rec accepts filter book =
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
 
       | Is book' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal book book'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug book) book'
 
       | Title string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ title book
+        Lwt.return @@ String.proximity ~char_equal string @@ BookCore.title book
 
       | TitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ title book
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ BookCore.title book
 
       | Subtitle string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ subtitle book
+        Lwt.return @@ String.proximity ~char_equal string @@ BookCore.subtitle book
 
       | SubtitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ subtitle book
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ BookCore.subtitle book
 
       | IsSource ->
         Lwt.return @@ Formula.interpret_bool @@ is_source book
@@ -261,68 +261,52 @@ module Lift
         in
         Formula.interpret_exists (Set.Filter.accepts sfilter) isets
 
-
-    let is book = Formula.pred (Is book)
-    let title string = Formula.pred (Title string)
-    let titleMatches string = Formula.pred (TitleMatches string)
-    let subtitle string = Formula.pred (Subtitle string)
-    let subtitleMatches string = Formula.pred (SubtitleMatches string)
-    let isSource = Formula.pred IsSource
-    let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
-    let memVersion version = existsVersion (Version.Filter.is version)
-    let existsSet sfilter = Formula.pred (ExistsSet sfilter)
-    let memSet set = existsSet (Set.Filter.is set)
-    let existsInlineSet sfilter = Formula.pred (ExistsInlineSet sfilter)
-
-    let existsVersionDeep vfilter =
-      Formula.or_l [
-        existsVersion vfilter;
-        existsSet (Set.Filter.existsVersion vfilter);
-        existsInlineSet (Set.Filter.existsVersion vfilter);
-      ]
-    (** Check whether the given version filter can be satisfied in the book at any
-        depth. This is different from {!existsVersion} which checks only in the
-        direct list of version. *)
-
-    let memVersionDeep version = existsVersionDeep (Version.Filter.is version)
-
-    let existsTuneDeep tfilter = existsVersionDeep (Version.Filter.tune tfilter)
-    (** Checks whether the given tune filter can be satisfied in the book at any
-        depth. *)
-
-    let memTuneDeep tune = existsTuneDeep (Tune.Filter.is tune)
-
-    let raw string =
-      Ok (
-        Formula.or_l [
-          titleMatches string;
-          subtitleMatches string;
+      | ExistsVersionDeep vfilter ->
+        (* recursive call to check the compound formula *)
+        Fun.flip accepts book @@ Formula.or_l [
+          Formula.pred (ExistsVersion vfilter);
+          Formula.pred (ExistsSet (Set.Filter.existsVersion' vfilter));
+          Formula.pred (ExistsInlineSet (Set.Filter.existsVersion' vfilter));
         ]
+
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            raw (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)));
+            unary_string ~name:"title"               (title, unTitle);
+            unary_string ~name:"title-matches"       (titleMatches, unTitleMatches);
+            unary_string ~name:"subtitle"            (subtitle, unSubtitle);
+            unary_string ~name:"subtitle-matches"    (subtitleMatches, unSubtitleMatches);
+            unary_lift   ~name:"exists-version"      (existsVersion, unExistsVersion)          ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-set"          (existsSet, unExistsSet)                  ~converter:Set.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-inline-set"   (existsInlineSet, unExistsInlineSet)      ~converter:Set.Filter.text_formula_converter;
+            unary_lift   ~name:"exists-version-deep" (existsVersionDeep, unExistsVersionDeep)  ~converter:Version.Filter.text_formula_converter;
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+            nullary      ~name:"is-source"            IsSource;
+          ]
       )
 
-    let nullary_text_predicates = [
-      "source", isSource
-    ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        "title",             raw_only ~convert:no_convert title;
-        "title-matches",     raw_only ~convert:no_convert titleMatches;
-        "subtitle",          raw_only ~convert:no_convert subtitle;
-        "subtitle-matches",  raw_only ~convert:no_convert subtitleMatches;
-        "exists-version",    (existsVersion @@@@ Version.Filter.from_text_formula);
-        "exists-set",        (existsSet @@@@ Set.Filter.from_text_formula);
-        "exists-inline-set", (existsInlineSet @@@@ Set.Filter.from_text_formula);
-        "exists-version-deep", (existsVersionDeep @@@@ Version.Filter.from_text_formula);
-        "exists-tune-deep",    (existsVersionDeep @@@@ Version.Filter.from_text_formula);
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let memVersion = existsVersion % Version.Filter.is'
+    let memSet = existsSet % Set.Filter.is'
+    let memVersionDeep = existsVersionDeep % Version.Filter.is'
+    let existsTuneDeep = existsVersionDeep % Version.Filter.tune'
+    let memTuneDeep = existsTuneDeep % Tune.Filter.is'
+
+    let memVersion' = Formula.pred % memVersion
+    let memSet' = Formula.pred % memSet
+    let memVersionDeep' = Formula.pred % memVersionDeep
+    let existsTuneDeep' = Formula.pred % existsTuneDeep
+    let memTuneDeep' = Formula.pred % memTuneDeep
   end
 end

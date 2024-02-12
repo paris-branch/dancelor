@@ -20,9 +20,12 @@ module Lift
 
   let deviser dance = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (deviser dance)
 
-  let equal dance1 dance2 = Slug.equal (slug dance1) (slug dance2)
+  let equal dance1 dance2 = Slug.equal' (slug dance1) (slug dance2)
 
   module Filter = struct
+    (* NOTE: [include DanceCore.Filter] shadows the accessors of [DanceCore]. *)
+    let danceCore_deviser = deviser
+
     include DanceCore.Filter
 
     let accepts filter dance =
@@ -30,52 +33,44 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is dance' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal dance dance'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug dance) dance'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name dance
+        Lwt.return @@ String.proximity ~char_equal string @@ DanceCore.name dance
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name dance
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ DanceCore.name dance
 
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ kind dance
+        Kind.Dance.Filter.accepts kfilter @@ DanceCore.kind dance
 
       | Deviser cfilter ->
-        (match%lwt deviser dance with
+        (match%lwt danceCore_deviser dance with
          | None -> Lwt.return Formula.interpret_false
          | Some deviser -> Person.Filter.accepts cfilter deviser)
 
-    let is dance = Formula.pred (Is dance)
-    let name name = Formula.pred (Name name)
-    let nameMatches name = Formula.pred (NameMatches name)
-    let kind kfilter = Formula.pred (Kind kfilter)
-    let deviser cfilter = Formula.pred (Deviser cfilter)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            raw (Result.ok % nameMatches');
+            unary_string ~name: "name"         (name, unName);
+            unary_string ~name: "name-matches" (nameMatches, unNameMatches);
+            unary_lift   ~name: "kind"         (kind, unKind)                ~converter: Kind.Dance.Filter.text_formula_converter;
+            unary_lift   ~name: "deviser"      (deviser, unDeviser)          ~converter: Person.Filter.text_formula_converter;
+            unary_lift   ~name: "by"           (deviser, unDeviser)          ~converter: Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+          ]
+      )
 
-    let raw string = Ok (nameMatches string)
-
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.(Dance.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind Kind.(Dance.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
-    ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        "name",         raw_only ~convert:no_convert name;
-        "name-matches", raw_only ~convert:no_convert nameMatches;
-        "kind",         (kind @@@@ Kind.Dance.Filter.from_text_formula);
-        "deviser",      (deviser @@@@ Person.Filter.from_text_formula);
-        "by",           (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
   end
 end

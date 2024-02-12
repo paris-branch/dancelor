@@ -5,6 +5,7 @@ open Nes
 val _key : string
 
 type t = int * KindBase.t
+[@@deriving eq, show]
 (** The kind of a version. For instance, [32R]. *)
 
 val to_string : t -> string
@@ -23,17 +24,40 @@ type version_kind = t
 (** Alias for {!t} needed for the type interface of {!Filter}. *)
 
 module Filter : sig
-  type t [@@deriving yojson]
+  type predicate =
+    | Is of t
+    | BarsEq of int
+    | BarsNe of int
+    | BarsGt of int
+    | BarsGe of int
+    | BarsLt of int
+    | BarsLe of int
+    | Base of KindBase.Filter.t
+
+  val is : version_kind -> predicate
+  val base : KindBase.Filter.t -> predicate
+  val barsEq : int -> predicate
+  val barsNe : int -> predicate
+  val barsGt : int -> predicate
+  val barsGe : int -> predicate
+  val barsLt : int -> predicate
+  val barsLe : int -> predicate
+
+  type t = predicate Formula.t
+  [@@deriving eq, show, yojson]
 
   val accepts : t -> version_kind -> float Lwt.t
 
-  val is : version_kind -> t
-  val base : KindBase.Filter.t -> t
-  val barsEq : int -> t
+  val is' : version_kind -> t
+  val base' : KindBase.Filter.t -> t
+  val barsEq' : int -> t
+  val barsNe' : int -> t
+  val barsGt' : int -> t
+  val barsGe' : int -> t
+  val barsLt' : int -> t
+  val barsLe' : int -> t
 
-  val raw : string -> t TextFormula.or_error
-  val nullary_text_predicates : (string * t) list
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
-
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
+  val text_formula_converter : predicate TextFormulaConverter.t
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
 end

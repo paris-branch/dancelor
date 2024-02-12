@@ -11,10 +11,10 @@ module Lift () = struct
     make ~slug ?status ~name ?scddb_id ~modified_at ~created_at ()
 
   let trad_slug = Slug.unsafe_of_string "traditional"
-  let is_trad c = Slug.equal c.slug trad_slug
+  let is_trad c = Slug.equal' c.slug trad_slug
 
   let equal person1 person2 =
-    Slug.equal (slug person1) (slug person2)
+    Slug.equal' (slug person1) (slug person2)
 
   module Filter = struct
     include PersonCore.Filter
@@ -24,34 +24,33 @@ module Lift () = struct
       Formula.interpret filter @@ function
 
       | Is person' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal person person'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug person) person'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name person
+        Lwt.return @@ String.proximity ~char_equal string @@ PersonCore.name person
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name person
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ PersonCore.name person
 
-    let is person = Formula.pred (Is person)
-    let name name = Formula.pred (Name name)
-    let nameMatches name = Formula.pred (NameMatches name)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            raw (Result.ok % nameMatches');
+            unary_string ~name:"name"         (name, unName);
+            unary_string ~name:"name-matches" (nameMatches, unNameMatches);
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+          ]
+      )
 
-    let raw string = Ok (nameMatches string)
-
-    let nullary_text_predicates = []
-
-    let unary_text_predicates =
-      TextFormula.[
-        "name",          raw_only ~convert:no_convert name;
-        "name-matches",  raw_only ~convert:no_convert nameMatches;
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormulaConverter.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
   end
 end

@@ -79,21 +79,29 @@ val warnings : t -> warnings Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = BookCore.Filter.t
+  type predicate = [%import: BookCore.Filter.predicate]
+  type t = [%import: BookCore.Filter.t]
+  [@@deriving eq, show]
 
   val accepts : t -> BookCore.t -> float Lwt.t
 
-  val isSource : t
-  val memSet : SetCore.t -> t
-  val memTuneDeep : TuneCore.t -> t
-  val memVersionDeep : VersionCore.t -> t
+  val isSource : predicate
+  val isSource' : t
 
-  val raw : string -> t TextFormula.or_error
-  val nullary_text_predicates : (string * t) list
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+  val memSet : SetCore.t -> predicate
+  val memSet' : SetCore.t -> t
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val memTuneDeep' : TuneCore.t -> t
+  (** Matches if the given tune appears in any version at any depth in the book,
+      that is directly in the book or in a set of the book. *)
+
+  val memVersionDeep' : VersionCore.t -> t
+  (** Matches if the given version appears at any depth in the book, that is
+      directly in the book or in a set of the book. *)
+
+  val text_formula_converter : predicate TextFormulaConverter.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val to_string : t -> string
 end
 
 (** {2 API Getters & Setters} *)

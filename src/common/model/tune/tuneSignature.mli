@@ -24,7 +24,9 @@ val equal : t -> t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = TuneCore.Filter.t
+  type predicate = [%import: TuneCore.Filter.predicate]
+  type t = [%import: TuneCore.Filter.t]
+  [@@deriving eq, show]
 
   val accepts : t -> TuneCore.t -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]
@@ -32,27 +34,26 @@ module Filter : sig
       accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
       meaning that the tune is fully rejected. *)
 
-  val is : TuneCore.t -> t
+  val is : TuneCore.t -> predicate
+  val is' : TuneCore.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
-  val author : PersonCore.Filter.t -> t
-  val authorIs : PersonCore.t -> t
-  val existsDance : DanceCore.Filter.t -> t
+  val author : PersonCore.Filter.t -> predicate
+  val author' : PersonCore.Filter.t -> t
 
-  val raw : string -> t TextFormula.or_error
-  (** Build a filter appropriate to match raw strings, or fail. *)
+  val authorIs : PersonCore.t -> predicate
+  val authorIs' : PersonCore.t -> t
 
-  val nullary_text_predicates : (string * t) list
-  (** Association list of nullary text predicates over sets. *)
+  val existsDance : DanceCore.Filter.t -> predicate
+  val existsDance' : DanceCore.Filter.t -> t
 
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
-  (** Association list of unary text predicates over tunes. *)
+  val text_formula_converter : predicate TextFormulaConverter.t
+  (** Converter from text formulas to formulas on tunes. *)
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  (** Build a filter from a text formula, or fail. *)
-
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val from_string : ?filename:string -> string -> (t, string) Result.t
   (** Build a fliter from a string, or fail. *)
+
+  val to_string : t -> string
 end
 
 (** {2 Getters and setters} *)

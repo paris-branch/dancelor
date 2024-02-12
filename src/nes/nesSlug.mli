@@ -7,7 +7,10 @@ type 'value t
 val none : 'any t
 val is_none : 'any t -> bool
 
-val equal : 'any t -> 'any t -> bool
+val equal : ('any -> 'any -> bool) -> 'any t -> 'any t -> bool
+(** For compatibility with [ppx_deriving.std]'s [equal]. Prefer {!equal'}. *)
+
+val equal' : 'any t -> 'any t -> bool
 val compare : 'any t -> 'any t -> int
 
 val from_string : string -> 'any t
@@ -19,7 +22,10 @@ val to_string : 'any t -> string
 (** Returns a string representing the slug. This function fails with [Failure _]
     [none]. *)
 
-val pp : Format.formatter -> 'any t -> unit
+val pp : (Format.formatter -> 'any -> unit) -> Format.formatter -> 'any t -> unit
+(** For debugging purposes with [ppx_deriving_show]. Prefer {!pp'}. *)
+
+val pp' : Format.formatter -> 'any t -> unit
 
 (** {2 Low-level and Unsafe} *)
 

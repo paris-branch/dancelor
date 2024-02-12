@@ -14,7 +14,7 @@ type 'result state =
   | ContinueTyping
   | NoResults
   | Results of 'result list
-  | Errors of string list
+  | Errors of string
 
 type 'result t = {
   text : string S.t; (* prefer [state] *)
@@ -164,7 +164,7 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
           | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
           | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
           | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
-          | Errors errors -> Lwt.return @@ List.map (emoji_row "❌") errors
+          | Errors error -> Lwt.return [emoji_row "❌" error]
           | Results results ->
             let%lwt results = Lwt_list.map_p make_result results in
             Lwt.return @@

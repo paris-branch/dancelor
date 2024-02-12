@@ -8,6 +8,7 @@ type t =
   | Reel
   | Strathspey
   | Waltz
+[@@deriving eq, show {with_path = false}]
 
 let to_char = function
   | Jig -> 'J'
@@ -68,12 +69,16 @@ type base_kind = t (* needed for the interface of filters *)
 module Filter = struct
   type predicate =
     | Is of t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  (* FIXME: PPX *)
+  let is kind = Is kind
+  let unIs = function Is k -> Some k
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 
-  let is kind = Formula.pred (Is kind)
+  let is' = Formula.pred % is
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -81,17 +86,19 @@ module Filter = struct
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
-  let raw string =
-    match of_string_opt string with
-    | Some kind -> Ok (is kind)
-    | None -> error_fmt "could not interpret \"%s\" as a base kind" string
+  let text_formula_converter =
+    TextFormulaConverter.(
+      make
+        [
+          raw
+            (fun string ->
+               Option.fold
+                 ~some: (Result.ok % is')
+                 ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
+                 (of_string_opt string));
+          unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string ~capitalised:true) ~type_:"base kind";
+        ]
+    )
 
-  let nullary_text_predicates = []
-
-  let unary_text_predicates = []
-
-  let from_text_formula =
-    TextFormula.make_to_formula raw
-      nullary_text_predicates
-      unary_text_predicates
+  let from_text_formula = TextFormula.to_formula text_formula_converter
 end

@@ -13,8 +13,9 @@ type t =
     disambiguation : string [@default ""] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving make, yojson]
+[@@deriving make, show {with_path = false}, yojson]
 
+(* FIXME: PPX *)
 let slug dance = dance.slug
 let status dance = dance.status
 let name dance = dance.name
@@ -29,14 +30,36 @@ let created_at dance = dance.created_at
 module Filter = struct
   let _key = "dance-filter"
 
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
+  let equal _ _ = assert false
+
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Name of string
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
     | Deviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  (* FIXME: PPX *)
+  let is dance = Is dance
+  let name name = Name name
+  let nameMatches name = NameMatches name
+  let kind kfilter = Kind kfilter
+  let deviser cfilter = Deviser cfilter
+
+  let unIs = function Is s -> Some s | _ -> None
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
+  let unKind = function Kind kf -> Some kf | _ -> None
+  let unDeviser = function Deviser cf -> Some cf | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
+  let kind' = Formula.pred % kind
+  let deviser' = Formula.pred % deviser
 end

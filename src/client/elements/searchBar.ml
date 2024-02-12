@@ -10,7 +10,7 @@ module Section = struct
 
   type 'a t = {
     page : Page.t;
-    search : string -> (('a Score.t) list, string list) result Lwt.t;
+    search : string -> ('a Score.t list, string) result Lwt.t;
     section : Table.Section.t;
     default : Table.Row.t option;
     empty : Table.Row.t;
@@ -38,18 +38,15 @@ module Section = struct
   let reset (Wrapped t) =
     Table.Section.clear t.section
 
-  let make_error_rows (Wrapped t) messages =
+  let make_error_row (Wrapped t) message =
     let open Table in
     Lwt.return (
-      List.map
-        (fun message ->
-           Row.create
-             ~cells:[
-               Cell.text ~text:(Lwt.return "❌") t.page;
-               Cell.text ~text:(Lwt.return message) t.page
-             ]
-             t.page)
-        messages
+      Row.create
+        ~cells:[
+          Cell.text ~text:(Lwt.return "❌") t.page;
+          Cell.text ~text:(Lwt.return message) t.page
+        ]
+        t.page
     )
 
   let make_result_rows (Wrapped t) input cb =
@@ -75,8 +72,8 @@ module Section = struct
               | None -> Lwt.return [t.empty]
               | Some d -> Lwt.return [t.empty; d]
           )
-        | Error errors ->
-          make_error_rows (Wrapped t) errors
+        | Error error ->
+          Lwt.map List.singleton (make_error_row (Wrapped t) error)
       )
     else
       match t.default with

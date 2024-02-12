@@ -4,7 +4,7 @@ module Self = struct
   type t =
     | Relative of Music.pitch * Music.pitch
     | Absolute of Music.pitch
-  [@@deriving yojson]
+  [@@deriving show {with_path = false}, yojson]
 
   let _key = "transposition"
 end

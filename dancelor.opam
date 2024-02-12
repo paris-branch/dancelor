@@ -12,6 +12,7 @@ license: "GPL-3.0-or-later"
 homepage: "https://github.com/paris-branch/dancelor"
 bug-reports: "https://github.com/paris-branch/dancelor/issues"
 depends: [
+  "alcotest" {with-test}
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
   "dates_calc"
@@ -27,10 +28,13 @@ depends: [
   "odoc" {with-doc}
   "ppx_blob" {build}
   "ppx_deriving"
+  "ppx_deriving_qcheck"
   "ppx_deriving_yojson"
   "ppx_inline_test" {build | with-test}
   "ppx_import"
   "ppx_monad" {build & >= "0.2.0"}
+  "qcheck"
+  "qcheck-alcotest" {with-test}
   "slug"
   "yaml"
   "yojson" {>= "1.6.0"}

@@ -39,7 +39,7 @@ module Lift
   let contains_version slug1 set =
     List.exists
       (fun (slug2, _parameters) ->
-         Slug.equal slug1 slug2)
+         Slug.equal' slug1 slug2)
       set.versions_and_parameters
 
   let lilypond_content_cache_key set =
@@ -97,6 +97,8 @@ module Lift
     Lwt.return !warnings
 
   module Filter = struct
+    let setCore_deviser = deviser
+
     include SetCore.Filter
 
     let accepts filter set =
@@ -104,18 +106,20 @@ module Lift
       Formula.interpret filter @@ function
 
       | Is set' ->
-        Lwt.return @@ Formula.interpret_bool @@ equal set set'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug set) set'
 
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ name set
+        Lwt.return @@ String.proximity ~char_equal string @@ SetCore.name set
 
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ name set
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ SetCore.name set
 
       | Deviser dfilter ->
-        (match%lwt deviser set with
-         | None -> Lwt.return Formula.interpret_false
-         | Some deviser -> Person.Filter.accepts dfilter deviser)
+        Lwt.bind
+          (setCore_deviser set)
+          (Option.fold
+             ~none: (Lwt.return Formula.interpret_false)
+             ~some: (Person.Filter.accepts dfilter))
 
       | ExistsVersion vfilter ->
         let%lwt versions_and_parameters = versions_and_parameters set in
@@ -125,41 +129,34 @@ module Lift
           versions_and_parameters
 
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ kind set
+        Kind.Dance.Filter.accepts kfilter @@ SetCore.kind set
 
-    let is set = Formula.pred (Is set)
-    let name name = Formula.pred (Name name)
-    let nameMatches name = Formula.pred (NameMatches name)
-    let deviser cfilter = Formula.pred (Deviser cfilter)
-    let existsVersion vfilter = Formula.pred (ExistsVersion vfilter)
-    let memVersion version = existsVersion (Version.Filter.is version)
-    let kind kfilter = Formula.pred (Kind kfilter)
+    let text_formula_converter =
+      TextFormulaConverter.(
+        make
+          [
+            raw (Result.ok % nameMatches');
+            unary_string ~name:"name"           (name, unName);
+            unary_string ~name:"name-matches"   (nameMatches, unNameMatches);
+            unary_lift   ~name:"deviser"        (deviser, unDeviser)             ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"             (deviser, unDeviser)             ~converter:Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_lift   ~name:"exists-version" (existsVersion, unExistsVersion) ~converter:Version.Filter.text_formula_converter;
+            unary_lift   ~name:"kind"           (kind, unKind)                   ~converter:Kind.Dance.Filter.text_formula_converter;
+            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+          ]
+      )
 
-    let raw string = Ok (nameMatches string)
-
-    let nullary_text_predicates = [
-      "reel",       (kind Kind.(Dance.Filter.base Base.(Filter.is Reel)));       (* alias for kind:reel       FIXNE: make this clearer *)
-      "jig",        (kind Kind.(Dance.Filter.base Base.(Filter.is Jig)));        (* alias for kind:jig        FIXNE: make this clearer *)
-      "strathspey", (kind Kind.(Dance.Filter.base Base.(Filter.is Strathspey))); (* alias for kind:strathspey FIXNE: make this clearer *)
-      "waltz",      (kind Kind.(Dance.Filter.base Base.(Filter.is Waltz)));      (* alias for kind:waltz      FIXNE: make this clearer *)
-    ]
-
-    let unary_text_predicates =
-      TextFormula.[
-        "name",           raw_only ~convert:no_convert name;
-        "name-matches",   raw_only ~convert:no_convert nameMatches;
-        "deviser",        (deviser @@@@ Person.Filter.from_text_formula);
-        "by",             (deviser @@@@ Person.Filter.from_text_formula); (* alias for deviser; FIXME: make this clearer *)
-        "exists-version", (existsVersion @@@@ Version.Filter.from_text_formula);
-        "kind",           (kind @@@@ Kind.Dance.Filter.from_text_formula);
-      ]
-
-    let from_text_formula =
-      TextFormula.make_to_formula raw
-        nullary_text_predicates
-        unary_text_predicates
-
+    let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input =
-      from_text_formula (TextFormula.from_string ?filename input)
+      Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+    let to_text_formula = TextFormula.of_formula text_formula_converter
+    let to_string = TextFormula.to_string % to_text_formula
+
+    let is = is % slug
+    let is' = Formula.pred % is
+
+    let memVersion = existsVersion % Version.Filter.is'
+    let memVersion' = Formula.pred % memVersion
   end
 end

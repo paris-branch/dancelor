@@ -9,8 +9,9 @@ type t =
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving yojson, make]
+[@@deriving yojson, make, show {with_path = false}]
 
+(* FIXME: PPX *)
 let slug person = person.slug
 let status person = person.status
 let name person = person.name
@@ -21,12 +22,28 @@ let created_at person = person.created_at
 module Filter = struct
   let _key = "person-filter"
 
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
+  let equal _ _ = assert false
+
   type predicate =
-    | Is of t
+    | Is of t Slug.t
     | Name of string
     | NameMatches of string
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  (* FIXME: PPX *)
+  let is person = Is person
+  let name name = Name name
+  let nameMatches name = NameMatches name
+
+  let unIs = function Is s -> Some s | _ -> None
+  let unName = function Name n -> Some n | _ -> None
+  let unNameMatches = function NameMatches n -> Some n | _ -> None
 
   type t = predicate Formula.t
-  [@@deriving yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
+
+  let name' = Formula.pred % name
+  let nameMatches' = Formula.pred % nameMatches
 end

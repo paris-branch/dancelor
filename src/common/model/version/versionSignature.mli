@@ -31,23 +31,33 @@ val equal : t -> t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type t = VersionCore.Filter.t
+  type predicate = [%import: VersionCore.Filter.predicate]
+  type t = [%import: VersionCore.Filter.t]
+  [@@deriving eq, show]
 
   val accepts : t -> VersionCore.t -> float Lwt.t
 
-  val is : VersionCore.t -> t
-  val tuneIs : TuneCore.t -> t
-  val tune : TuneCore.Filter.t -> t
-  val broken : t
-  val kind : Kind.Version.Filter.t -> t
-  val key : Music.Key.t -> t
+  val is : VersionCore.t -> predicate
+  val is' : VersionCore.t -> t
 
-  val raw : string -> t TextFormula.or_error
-  val nullary_text_predicates : (string * t) list
-  val unary_text_predicates : (string * (TextFormula.t -> t TextFormula.or_error)) list
+  val tuneIs : TuneCore.t -> predicate
+  val tuneIs' : TuneCore.t -> t
 
-  val from_text_formula : TextFormula.t -> t TextFormula.or_error
-  val from_string : ?filename:string -> string -> t TextFormula.or_error
+  val tune : TuneCore.Filter.t -> predicate
+  val tune' : TuneCore.Filter.t -> t
+
+  val broken : predicate
+  val broken' : t
+
+  val kind : Kind.Version.Filter.t -> predicate
+  val kind' : Kind.Version.Filter.t -> t
+
+  val key : Music.Key.t -> predicate
+  val key' : Music.Key.t -> t
+
+  val text_formula_converter : predicate TextFormulaConverter.t
+  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val to_string : t -> string
 end
 
 (** {2 Getters and setters} *)

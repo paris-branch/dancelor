@@ -7,8 +7,8 @@
 %token<int> NUMBER
 %token EOF
 
-%left TIMES
 %left PLUS
+%left TIMES
 
 %start<KindDanceType.t> main
 %%
