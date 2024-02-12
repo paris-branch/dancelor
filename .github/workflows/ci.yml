@@ -59,8 +59,8 @@ jobs:
         with:
           path: doc/
 
-  build-and-test-with-opam:
-    name: Build and test with OPAM
+  build-with-opam:
+    name: Build with OPAM
     runs-on: ubuntu-latest
 
     steps:
