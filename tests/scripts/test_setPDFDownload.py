@@ -19,7 +19,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 class BrokenTestSetPDFDownload():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
-    options.headless = True
+    options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
     self.driver.implicitly_wait(1)
     self.vars = {}
