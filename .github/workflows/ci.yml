@@ -50,9 +50,7 @@ jobs:
         run: nix develop --command make unit-tests
 
       - name: Run system tests
-        run: |
-          sudo apt install firefox
-          nix develop --command make system-tests
+        run: nix develop --command make system-tests
 
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -73,12 +71,7 @@ jobs:
           ocaml-compiler: 4.14.x
 
       - name: Install system dependencies
-        ## FIXME: There should be an automated way to install system
-        ## dependencies since they are declared via OPAM -- either `opam depext`
-        ## or `opam install --depext`. However, this does not seem to work, so
-        ## we do things manually for now. This also means that CI does not check
-        ## that the system dependencies declared by OPAM are up-to-date.
-        run: sudo apt install --yes timidity freepats inkscape lilypond sassc xvfb
+        run: sudo apt install --yes timidity freepats lilypond sassc
 
       - name: Install OCaml dependencies
         run: opam install . --deps-only --with-doc --with-test

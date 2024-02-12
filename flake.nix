@@ -7,17 +7,6 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    opam-repository = {
-      url = "github:ocaml/opam-repository";
-      flake = false;
-    };
-
-    opam-nix = {
-      url = "github:tweag/opam-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.opam-repository.follows = "opam-repository";
-    };
-
     timidity = {
       url = "github:niols/nixpkg-timidity";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,23 +18,54 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs = inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.pre-commit-hooks.flakeModule
-        ./.nix/devshell-default.nix
-        ./.nix/formatter.nix
-        ./.nix/app-dancelor.nix
-        ./.nix/app-default.nix
-        ./.nix/nixosmodule-dancelor.nix
-        ./.nix/nixosmodule-default.nix
-        ./.nix/package-dancelor.nix
-        ./.nix/package-default.nix
-        ./.nix/perinput-lib.nix
-        ./.nix/pre-commit-settings.nix
-        ./.nix/systems.nix
-        ./.nix/timidity-overlay.nix
+        ./.nix/app-devshell.nix
+        ./.nix/nixosmodule.nix
+        ./.nix/package.nix
       ];
+
+      systems = [ "x86_64-linux" ];
+
+      ## Overwrite the package `timidity` by a custom version coming from our
+      ## custom `github:niols/nixpkg-timidity` flake that provides a version of
+      ## TiMidity++ with Ogg Vorbis support.
+      ##
+      flake.overlays.timidityWithVorbis = _final: prev: {
+        timidity =
+          inputs.timidity.packages.${prev.stdenv.hostPlatform.system}.timidityWithVorbis;
+      };
+
+      perSystem = { system, pkgs, ... }: {
+        formatter = pkgs.nixfmt;
+
+        _module.args.pkgs = import inputs.nixpkgs {
+          inherit system;
+          overlays = [ self.overlays.timidityWithVorbis ];
+        };
+        _module.args.pkgs2211 = import inputs.nixpkgs2211 {
+          inherit system;
+          overlays = [ self.overlays.timidityWithVorbis ];
+        };
+
+        pre-commit.settings.hooks = {
+          nixfmt.enable = true;
+          deadnix.enable = true;
+          prettier.enable = true;
+          dune-fmt.enable = true;
+          dune-opam-sync.enable = true;
+          ocp-indent.enable = true;
+          opam-lint.enable = true;
+        };
+      };
+
+      ## Improve the way `inputs'` are computed by also handling the case of
+      ## flakes having a `lib.${system}` attribute.
+      ##
+      perInput = system: flake:
+        if flake ? lib.${system} then { lib = flake.lib.${system}; } else { };
     };
 
   nixConfig = {

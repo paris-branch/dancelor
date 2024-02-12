@@ -8,21 +8,30 @@ A chancelor for Scottish country dance musicians.
 
 ### Setting up a development environment
 
-The OCaml dependencies are described in `dune-project`; as far as they are
-concerned, this is the single source of truth. The system dependencies are
-described in `dancelor.opam.template`. Both of these can be acquired
-automatically via OPAM or Nix:
+The OCaml dependencies are described in `dune-project` and in
+`.nix/package.nix`; these files should not go out of sync and the CI checks that
+Dancelor builds fine both in an opam-based or a nix-based environments. The
+system dependencies are the following:
 
-- OPAM can install automatically all the system and OCaml dependencies that are
-  necessary to develop Dancelor with:
+- freepats (runtime)
+- git (runtime)
+- lilypond (runtime; 2.22)
+- sassc (compile time)
+- timidity (runtime; with Vorbis support)
+
+- OPAM can install automatically all the OCaml dependencies that are necessary
+  to develop Dancelor with:
 
   ```console
-  $ opam install . --depext-only
   $ opam install . --deps-only --with-doc --with-test
   ```
 
-- Nix can provide a development environment with all the necessary dependencies
-  as well. Use:
+  You might still want to add a proper development environment (eg. Tuareg, an
+  LSP server, etc.) and you will need to install the system dependencies
+  yourself.
+
+- Nix can provide an environment with all the necessary dependencies, both OCaml
+  and system, as well as development tools:
 
   ```console
   $ nix develop

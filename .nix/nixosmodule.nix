@@ -1,5 +1,5 @@
 { self, ... }: {
-  flake.nixosModules.dancelor = { lib, config, pkgs, ... }:
+  flake.nixosModules.default = { lib, config, pkgs, ... }:
     let cfg = config.services.dancelor;
     in {
       options.services.dancelor = {
@@ -55,7 +55,7 @@
         run-dancelor = pkgs.writeShellApplication {
           name = "run-dancelor";
           text = ''
-            ${self.apps.${pkgs.system}.dancelor.program} \
+            ${self.apps.${pkgs.system}.default.program} \
               --cache /var/cache/dancelor \
               --database /var/lib/dancelor/database \
               --loglevel info \
