@@ -72,7 +72,7 @@ module Lift
           )
           (
             (* Tune converter, lifted to versions. Lose in case of tiebreak. *)
-            map tune Tune.Filter.text_formula_converter
+            map tune Tune.Filter.text_formula_converter ~error:((^) "As tune lifted to version: ")
           )
       )
 

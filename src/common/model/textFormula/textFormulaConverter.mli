@@ -73,7 +73,7 @@ val unary_lift :
 val make : 'p case list -> 'p t
 (** Make a converter from a list of {!case}s. *)
 
-val map : ('p Formula.t -> 'q) -> 'p t -> 'q t
+val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
 (** Map over a converter given a function. This allows to lift formulas on ['p]
     to formulas on ['q] without a constructor. However, there is no way back. It
     is common to have both a [unary_lift ~name ~converter (constr, destr)] and a

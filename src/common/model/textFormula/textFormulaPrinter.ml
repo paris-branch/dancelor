@@ -44,4 +44,6 @@ and pp_pars parent fmt formula =
   else
     pp fmt formula
 
+let pp_predicate = pp_predicate False
+
 let to_string = Format.kasprintf Fun.id "%a" pp

@@ -138,12 +138,12 @@ module Lift
           (
             merge_l [
               (* Other converters, lifted to Any *)
-              map person Person.Filter.text_formula_converter;
-              map dance Dance.Filter.text_formula_converter;
-              map book Book.Filter.text_formula_converter;
-              map set Set.Filter.text_formula_converter;
-              map tune Tune.Filter.text_formula_converter;
-              map version Version.Filter.text_formula_converter;
+              map person Person.Filter.text_formula_converter ~error:((^) "As person: ");
+              map dance Dance.Filter.text_formula_converter ~error:((^) "As dance: ");
+              map book Book.Filter.text_formula_converter ~error:((^) "As book: ");
+              map set Set.Filter.text_formula_converter ~error:((^) "As set: ");
+              map tune Tune.Filter.text_formula_converter ~error:((^) "As tune: ");
+              map version Version.Filter.text_formula_converter ~error:((^) "As version: ");
             ]
           )
       )

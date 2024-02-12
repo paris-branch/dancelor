@@ -1,6 +1,7 @@
 open Nes
 open Formula
 module Type = TextFormulaType
+module Printer = TextFormulaPrinter
 
 type 'p case = {
   to_: (Type.predicate, ('p Formula.t, string) Result.t) Link.t;
@@ -14,11 +15,11 @@ type tiebreaker = Left | Right | Both
 
 type _ t =
   | Cases : 'p case list -> 'p t
-  | Map : (('p Formula.t -> 'q) * 'p t) -> 'q t
+  | Map : (('p Formula.t -> 'q) * (string -> string) * 'p t) -> 'q t
   | Merge : tiebreaker * 'p t * 'p t -> 'p t
 
 let make cs = Cases cs
-let map f c = Map (f, c)
+let map ?(error=Fun.id) f c = Map (f, error, c)
 let merge ?(tiebreaker=Both) c1 c2 = Merge (tiebreaker, c1, c2)
 
 let merge_l = function
@@ -28,8 +29,8 @@ let merge_l = function
 
 let predicate_to_formula c tp =
   let rec aux : type p. p t -> (p Formula.t, string) Result.t = function
-    | Cases cases -> Link.link' ~default:(Error "no converter for this predicate") (List.map to_ cases) tp
-    | Map (f, c) -> Result.map (Formula.pred % f) (aux c)
+    | Cases cases -> Link.link' ~default:(kaspf Result.error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
+    | Map (f, error, c) -> Result.map_error error @@ Result.map (Formula.pred % f) @@ aux c
     | Merge (tiebreaker, c1, c2) ->
       match (aux c1, aux c2) with
       | Ok f1, Ok f2 when tiebreaker = Both -> Ok (Formula.or_ f1 f2)
@@ -46,7 +47,7 @@ let of_formula converter formula =
   let rec aux : type p. p t -> p -> Type.t option = fun c p ->
     match c with
     | Cases cases -> Option.map Formula.pred (Link.link (List.map from cases) p)
-    | Map (_, _) -> None
+    | Map (_, _, _) -> None
     | Merge (tiebreaker, c1, c2) ->
       match (aux c1 p, aux c2 p) with
       | Some f1, Some f2 when tiebreaker = Both -> Some (Formula.or_ f1 f2)
@@ -94,10 +95,10 @@ let unary_raw ~name ~cast:(cast, uncast) ~type_ (to_predicate, from_predicate) =
       | Pred (Raw s) ->
         Result.map to_predicate
           (Option.to_result
-             ~none: (spf "the unary predicate \"%s:\" only accepts %s arguments" name type_)
+             ~none: (spf "the unary predicate \"%s:\" only accepts %s arguments." name type_)
              (cast s))
       | _ ->
-        Error (spf "the unary predicate \"%s:\" only accepts a %s arguments" name type_))
+        Error (spf "the unary predicate \"%s:\" only accepts a %s arguments." name type_))
     (Option.map (fun v -> Type.Unary (name, Pred (Raw (uncast v)))) % from_predicate)
 
 let unary_string = unary_raw ~cast:(Option.some, Fun.id) ~type_:"string"
