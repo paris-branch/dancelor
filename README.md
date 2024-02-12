@@ -72,10 +72,12 @@ the system tests against it and then kills Dancelor again. For developping
 tests, the target `make dev-test` launches Dancelor in such a mode.
 
 Writing Selenium scripts can be done manually by mimmicking the ones already
-present in `tests/scripts`, but we recommed relying on the Selenium IDE and
-exporting tests in `pytest` style.
+present in `tests/scripts`, in which case you might be interesting in
+[Selenium's API documentation][selenium-api-doc], but it is also possible to
+rely on the Selenium IDE and exporting tests in `pytest` style.
 
 [selenium]: https://www.selenium.dev/
+[selenium-api-doc]: https://www.selenium.dev/selenium/docs/api/py/py-modindex.html
 
 ### Invariants enforced in this repository
 
