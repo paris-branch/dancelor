@@ -13,8 +13,7 @@ end
 module type GEN = sig
   type predicate
   type t = predicate Gen.Formula.t
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
+  val gen : t QCheck2.Gen.t
 end
 
 module type MODELGEN = sig
@@ -24,8 +23,7 @@ module type MODELGEN = sig
   val show : t -> string
   val to_string : t -> string
   val from_string : ?filename:string -> string -> (t, string) result
-  val gen : t QCheck.Gen.t
-  val shrink' : t QCheck.Shrink.t
+  val gen : t QCheck2.Gen.t
 end
 
 module MakeModelGen
@@ -40,25 +38,24 @@ end
 let to_string_no_exn ~name (module M : MODELGEN) =
   QCheck_alcotest.to_alcotest
     (
-      QCheck.Test.make ~name
-        (QCheck.make ~print:M.show ~shrink:M.shrink' M.gen)
+      QCheck2.Test.make
+        ~name
+        ~print:M.show
+        M.gen
         (fun f -> try ignore (M.to_string f); true with _exn -> false)
     )
 
 let to_string_from_string_roundtrip ~name (module M : MODELGEN) =
   QCheck_alcotest.to_alcotest
     (
-      QCheck.Test.make ~name
-        (
-          QCheck.make
-            ~print: (fun f -> "Filter:\n\n  " ^ M.show f
-                              ^ "\n\nText formula:\n\n  " ^ M.to_string f
-                              ^ "\n\nOutput:\n\n  " ^ match M.from_string (M.to_string f) with
-                              | Ok f -> M.show f
-                              | Error err -> "Error: " ^ err)
-            ~shrink: M.shrink'
-            M.gen
-        )
+      QCheck2.Test.make
+        ~name
+        ~print: (fun f -> "Filter:\n\n  " ^ M.show f
+                          ^ "\n\nText formula:\n\n  " ^ M.to_string f
+                          ^ "\n\nOutput:\n\n  " ^ match M.from_string (M.to_string f) with
+                          | Ok f -> M.show f
+                          | Error err -> "Error: " ^ err)
+        M.gen
         (fun f ->
            Result.equal
              ~ok:M.equal
