@@ -1,4 +1,4 @@
-.PHONY: build doc test tests unit-tests system-tests dev-test local dev indent clean
+.PHONY: build doc test tests unit-tests system-tests dev-test local dev entr indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -28,6 +28,9 @@ system-tests: build
 
 dev: build
 	bin/dancelor --config assets/config.local.json
+
+entr:
+	find src/ -type f | entr -ccrd make dev
 
 local: build
 	bin/dancelor --config assets/config.local.json --write-storage
