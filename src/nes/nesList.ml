@@ -19,6 +19,10 @@ let hd_opt = function
   | [] -> None
   | h :: _ -> Some h
 
+let hd_tl = function
+  | [] -> failwith "hd_tl"
+  | x :: xs -> (x, xs)
+
 (* Bodies and feet. *)
 
 let bd_ft_opt xs =

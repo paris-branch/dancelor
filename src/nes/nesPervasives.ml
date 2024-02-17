@@ -63,3 +63,7 @@ let rec first_non_zero ?(or_=0) = function
 
 let (%) f g = fun x -> f (g x)
 let (%>) f g = fun x -> f x |> g
+
+let map_fst f (x, y) = (f x, y)
+let map_snd f (x, y) = (x, f y)
+let map_pair f g (x, y) = (f x, g y)
