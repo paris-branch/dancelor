@@ -39,6 +39,8 @@ let to_string_no_exn ~name (module M : MODELGEN) =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
+        ~count: 1_000
+        ~long_factor: 100
         ~name
         ~print:M.show
         M.gen
@@ -49,6 +51,8 @@ let to_string_from_string_roundtrip ~name (module M : MODELGEN) =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
+        ~count: 1_000
+        ~long_factor: 100
         ~name
         ~print: (fun f -> "Filter:\n\n  " ^ M.show f
                           ^ "\n\nText formula:\n\n  " ^ M.to_string f
