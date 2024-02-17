@@ -24,26 +24,40 @@ let pp_raw fmt string =
   else
     fpf fmt "%s" string
 
-let rec pp fmt formula =
-  match formula with
+let head = function
+  | False -> `False
+  | True -> `True
+  | Not _ -> `Not
+  | And _ -> `And
+  | Or _ -> `Or
+  | Pred _ -> `Pred
+
+let needs_parentheses ~parent head = match (parent, head) with
+  | (`False, _) | (`True, _) -> assert false
+  | (`Not, `And) | (`Not, `Or) -> true
+  | (`And, `Or) | (`Or, `And) -> true
+  | (`Pred, `Not) | (`Pred, `And) | (`Pred, `Or) -> true
+  | _ -> false
+
+let rec pp fmt = function
   | False -> fpf fmt ":false"
   | True -> fpf fmt ":true"
-  | Not f -> fpf fmt ":not %a" (pp_pars formula) f
-  | And (f1, f2) -> fpf fmt "%a :and %a" (pp_pars formula) f1 (pp_pars formula) f2
-  | Or  (f1, f2) -> fpf fmt "%a :or %a" (pp_pars formula) f1 (pp_pars formula) f2
-  | Pred pred -> pp_predicate formula fmt pred
+  | Not f -> fpf fmt ":not %a" (pp_pars `Not) f
+  | And (f1, f2) -> fpf fmt "%a %a" (pp_pars `And) f1 (pp_pars `And) f2
+  | Or  (f1, f2) -> fpf fmt "%a :or %a" (pp_pars `Or) f1 (pp_pars `Or) f2
+  | Pred pred -> pp_predicate fmt pred
 
-and pp_predicate parent fmt = function
+and pp_predicate fmt = function
   | Raw string -> fpf fmt "%s" (escape string)
   | Nullary pred -> fpf fmt ":%s" pred
-  | Unary (pred, f) -> fpf fmt "%s:%a" pred (pp_pars parent) f
+  | Unary (pred, f) -> fpf fmt "%s:%a" pred (pp_pars `Pred) f
 
 and pp_pars parent fmt formula =
-  if level parent > level formula then
+  if needs_parentheses ~parent (head formula) then
     fpf fmt "(%a)" pp formula
   else
     pp fmt formula
 
-let pp_predicate = pp_predicate False
+let pp_predicate = pp_predicate
 
 let to_string = Format.kasprintf Fun.id "%a" pp
