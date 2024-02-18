@@ -156,8 +156,8 @@ module Filter = struct
               unary_int ~name:"bars-ge" (barsGe, unBarsGe);
               unary_int ~name:"bars-lt" (barsLt, unBarsLt);
               unary_int ~name:"bars-le" (barsLe, unBarsLe);
-              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
-              unary_lift ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
+              unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
+              unary_lift ~wrap_back:NotPred ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
             ]
         )
         (
