@@ -90,11 +90,11 @@ let () =
       ("to_string raises no exception", [
           to_string_no_exn' ~name:"TextFormula" (module Model.TextFormula) (module Gen.TextFormula);
           to_string_no_exn' ~name:"Person.Filter" (module Model.Person.Filter) (module Gen.Person.Filter);
-          to_string_no_exn' ~name:"Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
-          to_string_no_exn' ~name:"Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
+          to_string_no_exn' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
           to_string_no_exn' ~name:"Tune.Filter" (module Model.Tune.Filter) (module Gen.Tune.Filter);
           to_string_no_exn' ~name:"Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
-          to_string_no_exn' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
+          to_string_no_exn' ~name:"Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
+          to_string_no_exn' ~name:"Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
           to_string_no_exn' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
           to_string_no_exn  ~name:"Any.Filter (pretty)" ~gen:Gen.Any.Filter.gen ~show:Model.Any.Filter.show ~to_string:Model.Any.Filter.to_pretty_string;
         ]);
@@ -102,11 +102,11 @@ let () =
       ("from_string % to_string = id", [
           to_string_from_string_roundtrip' ~name:"TextFormula" (module Model.TextFormula) (module Gen.TextFormula);
           to_string_from_string_roundtrip' ~name:"Person.Filter" (module Model.Person.Filter) (module Gen.Person.Filter);
-          to_string_from_string_roundtrip' ~name:"Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
-          to_string_from_string_roundtrip' ~name:"Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
+          to_string_from_string_roundtrip' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
           to_string_from_string_roundtrip' ~name:"Tune.Filter" (module Model.Tune.Filter) (module Gen.Tune.Filter);
           to_string_from_string_roundtrip' ~name:"Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
-          to_string_from_string_roundtrip' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
+          to_string_from_string_roundtrip' ~name:"Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
+          to_string_from_string_roundtrip' ~name:"Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
           to_string_from_string_roundtrip' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
           (* FIXME: Does not actually hold. *)
           (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
