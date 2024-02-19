@@ -52,6 +52,7 @@ let pp pp_pred fmt formula =
 let false_ = False
 let true_ = True
 
+(* FIXME: PPX *)
 let not_ f = Not f
 
 let and_ f1 f2 = And(f1, f2)
@@ -65,6 +66,8 @@ let or_l = function
   | h::t -> List.fold_left or_ h t
 
 let pred value = Pred value
+
+let unPred = function Pred p -> Some p | _ -> None
 
 let interpret_false = 0.
 let interpret_true = 1.
@@ -116,6 +119,14 @@ let rec convert_res f = function
   | Pred pred -> f pred
 
 let convert_opt f = Result.to_option % convert_res (Option.to_result ~none:"" % f)
+
+let rec conjuncts = function
+  | And (f1, f2) -> conjuncts f1 @ conjuncts f2
+  | f -> [f]
+
+let rec disjuncts = function
+  | Or (f1, f2) -> disjuncts f1 @ disjuncts f2
+  | f -> [f]
 
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t

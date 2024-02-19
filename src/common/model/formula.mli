@@ -54,6 +54,18 @@ val interpret_exists : ('x -> float Lwt.t) -> 'x list -> float Lwt.t
 val interpret : 'p t -> ('p -> float Lwt.t) -> float Lwt.t
 (** Interpret a whole formula given a function to interpret predicates. *)
 
+(** {3 Destructors} *)
+
+val unPred : 'p t -> 'p option
+
+val conjuncts : 'p t -> 'p t list
+(** Returns all the conjuncts of the given formula. [and_l (conjuncts f) = f].
+    The returned list is never empty. *)
+
+val disjuncts : 'p t -> 'p t list
+(** Returns all the disjuncts of the given formula. [or_l (disjuncts f) = f].
+    The returned list is never empty. *)
+
 (** {3 Miscellaneous} *)
 
 val convert_opt : ('p -> 'q t option) -> 'p t -> 'q t option
