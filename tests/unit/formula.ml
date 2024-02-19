@@ -35,6 +35,22 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~eq
         )
     )
 
+let optimise_idempotent ~name ~gen ~show ~optimise ~equal =
+  QCheck_alcotest.to_alcotest
+    (
+      QCheck2.Test.make
+        ~count: 1_000
+        ~long_factor: 100
+        ~name
+        ~print: (fun f -> "Input:\n\n  " ^ show f
+                          ^ "\n\nOptimised:\n\n  " ^ show (optimise f)
+                          ^ "\n\nOptimised twice:\n\n  " ^ show (optimise (optimise f)))
+        gen
+        (fun f ->
+           let f1 = optimise f in
+           equal (optimise f1) f1)
+    )
+
 module type MODEL = sig
   type predicate
   type t = predicate Model.Formula.t
@@ -80,6 +96,7 @@ let () =
           to_string_no_exn' ~name:"Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
           to_string_no_exn' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
           to_string_no_exn' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
+          to_string_no_exn  ~name:"Any.Filter (pretty)" ~gen:Gen.Any.Filter.gen ~show:Model.Any.Filter.show ~to_string:Model.Any.Filter.to_pretty_string;
         ]);
 
       ("from_string % to_string = id", [
@@ -91,5 +108,17 @@ let () =
           to_string_from_string_roundtrip' ~name:"Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
           to_string_from_string_roundtrip' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
           to_string_from_string_roundtrip' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
+          (* FIXME: Does not actually hold. *)
+          (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
+          (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
+          (*   ~show: Model.Any.Filter.show *)
+          (*   ~to_string: Model.Any.Filter.to_pretty_string *)
+          (*   ~from_string: Model.Any.Filter.(Result.map optimise % from_string) *)
+          (*   ~equal: Model.Any.Filter.equal; *)
+        ]);
+
+      ("optimise is idempotent", [
+          (* FIXME: Expose [optimise] in all models, then make a first-class module version of this test. *)
+          optimise_idempotent ~name:"Any.Filter" ~gen:Gen.Any.Filter.gen ~show:Model.Any.Filter.show ~optimise:Model.Any.Filter.optimise ~equal:Model.Any.Filter.equal;
         ]);
     ]
