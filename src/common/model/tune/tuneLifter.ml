@@ -64,7 +64,7 @@ module Lift
           [
             raw (Result.ok % nameMatches');
             unary_string ~name:"name"         (name, unName);
-            unary_string ~name:"name-matches" (nameMatches, unNameMatches);
+            unary_string ~wrap_back:Never ~name:"name-matches" (nameMatches, unNameMatches);
             unary_lift   ~name:"author"       (author, unAuthor)           ~converter:Person.Filter.text_formula_converter;
             unary_lift   ~name:"by"           (author, unAuthor)           ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
             unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
