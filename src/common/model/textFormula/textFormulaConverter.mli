@@ -41,6 +41,7 @@ type wrap_back =
   | Always
   | Never
   | NotPred
+  | NotRaw
   | Custom of (TextFormulaType.t -> TextFormulaType.t)
 
 val unary_string :

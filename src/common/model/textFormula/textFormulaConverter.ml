@@ -89,12 +89,13 @@ let unary ~name f from =
   in
   {to_; from}
 
-type wrap_back = Always | Never | NotPred | Custom of (Type.t -> Type.t)
+type wrap_back = Always | Never | NotPred | NotRaw | Custom of (Type.t -> Type.t)
 
 let apply_wrap_back ~name = function
   | Always -> Type.unary' name
   | Never -> Fun.id
   | NotPred -> (function Pred p -> Pred p | f -> Type.unary' name f)
+  | NotRaw -> (function Pred (Raw _) as f -> f | f -> Type.unary' name f)
   | Custom c -> c
 
 let unary_raw ?(wrap_back=Always) ~name ~cast:(cast, uncast) ~type_ (to_predicate, from_predicate) =
