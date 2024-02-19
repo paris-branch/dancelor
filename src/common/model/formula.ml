@@ -128,6 +128,42 @@ let rec disjuncts = function
   | Or (f1, f2) -> disjuncts f1 @ disjuncts f2
   | f -> [f]
 
+let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise_predicate formula =
+  let optimise_head = function
+    | Not True -> False
+    | Not False -> True
+    | Not (Not f) -> f
+    | And (True, f) | And (f, True) -> f
+    | And (False, _) | And (_, False) -> False
+    | And (f1, f2) as f ->
+      (
+        match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
+        | ((f1, Pred p1), (Pred p2, f2)) ->
+          Option.fold ~none:f ~some:(fun p12 -> and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
+        | _ -> f
+      )
+    | Or (True, _) | Or (_, True) -> True
+    | Or (False, f) | Or (f, False) -> f
+    | Or (f1, f2) as f ->
+      (
+        match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
+        | ((f1, Pred p1), (Pred p2, f2)) ->
+          Option.fold ~none:f ~some:(fun p12 -> or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
+        | _ -> f
+      )
+    | head -> head
+  in
+  let rec optimise f =
+    optimise_head @@ match f with
+    | True -> True
+    | False -> False
+    | Not f -> Not (optimise f)
+    | And (f1, f2) -> And (optimise f1, optimise f2)
+    | Or (f1, f2) -> Or (optimise f1, optimise f2)
+    | Pred p -> Pred (optimise_predicate p)
+  in
+  optimise formula
+
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t
 
