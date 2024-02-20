@@ -116,36 +116,48 @@ module Lift
          | Version version -> Version.Filter.accepts vfilter version
          | _ -> Lwt.return Formula.interpret_false)
 
-    let text_formula_converter =
+    (** The [?human] flag specifies whether we should print eg. [Version
+        <vfilter>] as ["type:version <vfilter>"]. This is correct but it will
+        not generate the correct inverse of [of_string]. *)
+    let make_text_formula_converter ?(human=false) () =
       TextFormulaConverter.(
+        (* We find formulas of the form [type:version predicate-on-version]
+           better for humans than [version:predicate-on-version]. *)
+        let make_wrap_back =
+          if human then
+            (fun type_ ->
+               Custom (
+                 Formula.and_
+                   (TextFormula.unary' "type" (Formula.pred (TextFormula.raw type_)))
+               )
+            )
+          else
+            Fun.const Always
+        in
         merge ~tiebreaker:Left
           (
             (* Any-specific converter *)
             make
               [
-                unary_raw
-                  ~name:"type"
-                  (type_, unType)
-                  ~cast:(Type.of_string_opt, Type.to_string)
-                  ~type_:"valid type";
+                unary_raw ~name:"type" (type_, unType) ~cast:(Type.of_string_opt, Type.to_string) ~type_:"valid type";
 
                 unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter
-                  ~wrap_back:(Custom (Formula.and_ (TextFormula.unary' "type" (Formula.pred (TextFormula.raw "person")))));
+                  ~wrap_back:(make_wrap_back "person");
 
                 unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter
-                  ~wrap_back:(Custom (Formula.and_ (TextFormula.unary' "type" (Formula.pred (TextFormula.raw "dance")))));
+                  ~wrap_back:(make_wrap_back "dance");
 
                 unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter
-                  ~wrap_back:(Custom (Formula.and_ (TextFormula.unary' "type" (Formula.pred (TextFormula.raw "book")))));
+                  ~wrap_back:(make_wrap_back "book");
 
                 unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter
-                  ~wrap_back:(Custom (Formula.and_ (TextFormula.unary' "type" (Formula.pred (TextFormula.raw "set")))));
+                  ~wrap_back:(make_wrap_back "set");
 
                 unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter
-                  ~wrap_back:(Custom (Formula.and_ (TextFormula.unary' "type" (Formula.pred (TextFormula.raw "tune")))));
+                  ~wrap_back:(make_wrap_back "tune");
 
                 unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter
-                  ~wrap_back:(Custom (Formula.and_ (TextFormula.unary' "type" (Formula.pred (TextFormula.raw "version")))));
+                  ~wrap_back:(make_wrap_back "version");
               ];
           )
           (
@@ -160,12 +172,12 @@ module Lift
             ]
           )
       )
+    let text_formula_converter = make_text_formula_converter ()
 
     let from_text_formula = TextFormula.to_formula text_formula_converter
     let from_string ?filename input = Result.bind (TextFormula.from_string ?filename input) from_text_formula
 
-    let to_text_formula = TextFormula.of_formula text_formula_converter
-    let to_string = TextFormula.to_string % to_text_formula
+    let to_string = TextFormula.to_string % TextFormula.of_formula text_formula_converter
 
     let possible_types =
       let open Formula in
