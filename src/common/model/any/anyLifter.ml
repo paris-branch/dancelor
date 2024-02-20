@@ -79,8 +79,22 @@ module Lift
   module Filter = struct
     include AnyCore.Filter
 
-    let accepts filter any =
+    let rec accepts filter any =
       Formula.interpret filter @@ function
+
+      | Raw string ->
+        let lift_raw lift from_text_formula str =
+          lift (Result.get_ok (from_text_formula (TextFormula.raw' str)))
+        in
+        Fun.flip accepts any @@ Formula.or_l [
+          lift_raw person' Person.Filter.from_text_formula string;
+          lift_raw dance' Dance.Filter.from_text_formula string;
+          lift_raw book' Book.Filter.from_text_formula string;
+          lift_raw set' Set.Filter.from_text_formula string;
+          lift_raw tune' Tune.Filter.from_text_formula string;
+          lift_raw version' Version.Filter.from_text_formula string;
+        ]
+
       | Type type_ ->
         Type.equal (type_of any) type_
         |> Formula.interpret_bool
@@ -139,6 +153,10 @@ module Lift
             (* Any-specific converter *)
             make
               [
+                raw (Result.ok % AnyCore.Filter.raw');
+
+                unary_string ~name:"raw" (AnyCore.Filter.raw, unRaw) ~wrap_back:Never;
+
                 unary_raw ~name:"type" (type_, unType) ~cast:(Type.of_string_opt, Type.to_string) ~type_:"valid type";
 
                 unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter
