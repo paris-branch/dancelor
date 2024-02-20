@@ -50,8 +50,11 @@ module Filter : sig
   val text_formula_converter : predicate TextFormulaConverter.t
   (** Converter from text formulas to formulas on tunes. *)
 
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
+  (** Build a filter from a text predicate, or fail. *)
+
   val from_string : ?filename:string -> string -> (t, string) Result.t
-  (** Build a fliter from a string, or fail. *)
+  (** Build a filter from a string, or fail. *)
 
   val to_string : t -> string
 end

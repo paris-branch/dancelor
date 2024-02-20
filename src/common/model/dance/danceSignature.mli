@@ -35,6 +35,7 @@ module Filter : sig
   val deviser' : PersonCore.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
   val to_string : t -> string
 end
