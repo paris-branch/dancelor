@@ -128,6 +128,10 @@ let rec disjuncts = function
   | Or (f1, f2) -> disjuncts f1 @ disjuncts f2
   | f -> [f]
 
+let unCnf f =
+  let unDisj f = List.(all_some @@ map unPred (disjuncts f)) in
+  List.(all_some @@ map unDisj (conjuncts f))
+
 let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise_predicate formula =
   let optimise_head = function
     | Not True -> False

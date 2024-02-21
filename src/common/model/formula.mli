@@ -66,6 +66,10 @@ val disjuncts : 'p t -> 'p t list
 (** Returns all the disjuncts of the given formula. [or_l (disjuncts f) = f].
     The returned list is never empty. *)
 
+val unCnf : 'p t -> 'p list list option
+(** Given a formula in conjunctive normal form (CNF), return said CNF. Otherwise
+    return [None]. This function {i does not} compute the CNF. *)
+
 (** {3 Miscellaneous} *)
 
 val optimise :
