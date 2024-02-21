@@ -38,6 +38,9 @@ module Filter : sig
   val is' : TuneCore.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
+  val kind : KindBase.Filter.t -> predicate
+  val kind' : KindBase.Filter.t -> t
+
   val author : PersonCore.Filter.t -> predicate
   val author' : PersonCore.Filter.t -> t
 

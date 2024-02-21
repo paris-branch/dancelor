@@ -71,6 +71,7 @@ module Filter = struct
   let unVersion = function Version vf -> Some vf | _ -> None
 
   let base = version % KindVersion.Filter.base'
+  let baseIs = version % KindVersion.Filter.baseIs'
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -79,6 +80,7 @@ module Filter = struct
   let version' = Formula.pred % version
   let simple' = Formula.pred simple
   let base' = Formula.pred % base
+  let baseIs' = Formula.pred % baseIs
 
   let accepts filter kind =
     Formula.interpret filter @@ function

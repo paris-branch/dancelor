@@ -56,6 +56,9 @@ module Filter : sig
   val deviser : PersonCore.Filter.t -> predicate
   val deviser' : PersonCore.Filter.t -> t
 
+  val kind : KindDance.Filter.t -> predicate
+  val kind' : KindDance.Filter.t -> t
+
   val memVersion : VersionCore.t -> predicate
   val memVersion' : VersionCore.t -> t
 

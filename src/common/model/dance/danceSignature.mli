@@ -31,6 +31,9 @@ module Filter : sig
   val is : DanceCore.t -> predicate
   val is' : DanceCore.t -> t
 
+  val kind : KindDance.Filter.t -> predicate
+  val kind' : KindDance.Filter.t -> t
+
   val deviser : PersonCore.Filter.t -> predicate
   val deviser' : PersonCore.Filter.t -> t
 

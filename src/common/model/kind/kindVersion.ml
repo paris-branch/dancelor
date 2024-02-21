@@ -90,6 +90,8 @@ module Filter = struct
   let unBarsLe = function BarsLe i -> Some i | _ -> None
   let unBase = function Base bf -> Some bf | _ -> None
 
+  let baseIs = base % KindBase.Filter.is'
+
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
 
@@ -101,6 +103,8 @@ module Filter = struct
   let barsLt' = Formula.pred % barsLt
   let barsLe' = Formula.pred % barsLe
   let base' = Formula.pred % base
+
+  let baseIs' = Formula.pred % baseIs
 
   let accepts filter kind =
     Formula.interpret filter @@ function

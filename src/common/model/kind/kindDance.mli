@@ -34,6 +34,7 @@ module Filter : sig
   val simple : predicate
 
   val base : KindBase.Filter.t -> predicate
+  val baseIs : KindBase.t -> predicate
 
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
@@ -43,6 +44,7 @@ module Filter : sig
   val simple' : t
 
   val base' : KindBase.Filter.t -> t
+  val baseIs' : KindBase.t -> t
 
   val accepts : t -> KindDanceType.t -> float Lwt.t
 
