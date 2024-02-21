@@ -26,15 +26,6 @@ let search ?pagination input =
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in
   Lwt.map Result.ok @@ Any.search ~threshold ?pagination filter
 
-let preprocess additional_filter input =
-  match Any.Filter.from_string input with
-  | Error m -> React.S.const (Error m)
-  | Ok filter -> React.S.map (Result.ok % Formula.and_ filter) additional_filter
-
-let search' ?pagination filter =
-  let threshold = 0.4 in
-  Lwt.map Result.ok @@ Any.search ~threshold ?pagination filter
-
 (** Generic row showing an emoji on the left and a message on the right. *)
 let emoji_row emoji message =
   let open Dancelor_client_html in
@@ -59,27 +50,9 @@ let create ?query page =
       ~number_of_entries
   in
 
-  let type_choices =
-    Choices.(make_checkboxes [
-        choice [txt "Book"] ~value:Any.Type.Book;
-        choice [txt "Dance"] ~value:Any.Type.Dance;
-        choice [txt "Person"] ~value:Any.Type.Person;
-        choice [txt "Set"] ~value:Any.Type.Set;
-        choice [txt "Tune"] ~value:Any.Type.Tune;
-        choice [txt "Version"] ~value:Any.Type.Version;
-      ])
-  in
-
-  let additional_filter =
-    Fun.flip S.map (Choices.signal type_choices) @@ function
-    | [] -> Formula.true_
-    | type_choices -> Formula.or_l (List.map Any.Filter.type_ type_choices)
-  in
-
   let search_bar =
-    SearchBar.make_pps
-      ~preprocess:(preprocess additional_filter)
-      ~search:(fun pagination input -> search' ~pagination input)
+    SearchBar.make
+      ~search:(fun pagination input -> search ~pagination input)
       ~pagination:(PageNav.pagination pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input: query
@@ -96,8 +69,24 @@ let create ?query page =
         ~on_input:update_uri
         search_bar;
 
-      div [
-        Choices.render type_choices;
+      div ~a:[a_class ["buttons"]] [
+        a
+          ~a:[
+            a_class ["button"];
+            a_onclick (fun _ ->
+                Lwt.async (fun () ->
+                    let search_text = S.value (SearchBar.text search_bar) in
+                    (* TODO: On return, add a space and focus the search bar. *)
+                    Fun.flip Lwt.map
+                      (SearchComplexFiltersDialog.open_ search_text)
+                      (Result.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
+                  );
+                false);
+          ]
+          [
+            i ~a:[a_class ["fas"; "fa-filter"]] [];
+            txt " Complex filter";
+          ]
       ];
 
       R.div (
