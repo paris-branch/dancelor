@@ -38,7 +38,7 @@ let create ?query page =
   let document = Elements.Page.document page in
   let content = Dom_html.createDiv document in
 
-  document##.title := js ("Search | Dancelor");
+  document##.title := js ("Explore | Dancelor");
 
   let open Dancelor_client_html in
 
@@ -61,7 +61,7 @@ let create ?query page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [txt "Search"];
+      h2 ~a:[a_class ["title"]] [txt "Explore"];
 
       SearchBar.render
         ~placeholder:"Search for anything (it really is magic!)"

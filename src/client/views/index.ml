@@ -37,7 +37,7 @@ let create page =
         ~make_result:(Lwt.return % AnyResultNewAPI.make_result)
         ~autofocus:true
         ~on_enter:(fun search_text ->
-            Dom_html.window##.location##.href := js PageRouter.(path (Search (Some search_text)))
+            Dom_html.window##.location##.href := js PageRouter.(path_explore (Some search_text))
           )
         ()
     ]

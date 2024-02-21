@@ -40,16 +40,7 @@ let header =
         )
       ]
       [
-        li [a ~a:[a_href PageRouter.(path (Search None))] [txt "Search"]];
-
-        li [
-          txt "Explore ▾";
-          ul ~a:[a_class ["subnav"]] [
-            li [a ~a:[a_href PageRouter.(path VersionAll)] [txt "Tunes"]];
-            li [a ~a:[a_href PageRouter.(path SetAll)] [txt "Sets"]];
-            li [a ~a:[a_href PageRouter.(path BookAll)] [txt "Books"]];
-          ]
-        ];
+        li [a ~a:[a_href PageRouter.(path (Explore None))] [txt "Explore"]];
 
         li [
           txt "Add ▾";
