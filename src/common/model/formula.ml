@@ -119,6 +119,7 @@ let rec convert_res f = function
   | Pred pred -> f pred
 
 let convert_opt f = Result.to_option % convert_res (Option.to_result ~none:"" % f)
+let convert f = Result.get_ok % convert_res (Result.ok % f)
 
 let rec conjuncts = function
   | And (f1, f2) -> conjuncts f1 @ conjuncts f2

@@ -141,17 +141,7 @@ module Lift
       TextFormulaConverter.(
         (* We find formulas of the form [type:version predicate-on-version]
            better for humans than [version:predicate-on-version]. *)
-        let make_wrap_back =
-          if human then
-            (fun type_ ->
-               Custom (
-                 Formula.and_
-                   (TextFormula.unary' "type" (Formula.pred (TextFormula.raw type_)))
-               )
-            )
-          else
-            Fun.const Always
-        in
+        let wrap_back = if human then Never else Always in
         merge ~tiebreaker:Left
           (
             (* Any-specific converter *)
@@ -163,23 +153,12 @@ module Lift
 
                 unary_raw ~name:"type" (type_, unType) ~cast:(Type.of_string_opt, Type.to_string) ~type_:"valid type";
 
-                unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter
-                  ~wrap_back:(make_wrap_back "person");
-
-                unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter
-                  ~wrap_back:(make_wrap_back "dance");
-
-                unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter
-                  ~wrap_back:(make_wrap_back "book");
-
-                unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter
-                  ~wrap_back:(make_wrap_back "set");
-
-                unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter
-                  ~wrap_back:(make_wrap_back "tune");
-
-                unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter
-                  ~wrap_back:(make_wrap_back "version");
+                unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter ~wrap_back;
               ];
           )
           (
@@ -247,6 +226,7 @@ module Lift
     (* Little trick to convince OCaml that polymorphism is OK. *)
     type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
 
+    (* FIXME: Not idempotent *)
     let optimise =
       let lift {op} f1 f2 = match (f1, f2) with
         (* [person:] eats [type:person] *)
@@ -271,6 +251,23 @@ module Lift
         Fun.id
       % type_based_cleanup
 
-    let to_pretty_string = TextFormula.to_string % TextFormula.of_formula (make_text_formula_converter ~human:true ()) % optimise
+    let to_pretty_string =
+      let add_explicit_type = Formula.convert @@ function
+        | Person f -> Formula.and_ (type_' Person) (person' f)
+        | Dance f -> Formula.and_ (type_' Dance) (dance' f)
+        | Book f -> Formula.and_ (type_' Book) (book' f)
+        | Set f -> Formula.and_ (type_' Set) (set' f)
+        | Tune f -> Formula.and_ (type_' Tune) (tune' f)
+        | Version f -> Formula.and_ (type_' Version) (version' f)
+        | p -> Formula.pred p
+      in
+      (* NOTE: As of writing this, [optimise] is not idempotent, so we call it
+         three times to not take chances. *)
+      TextFormula.to_string
+      % TextFormula.of_formula (make_text_formula_converter ~human:true ())
+      % add_explicit_type
+      % optimise
+      % optimise
+      % optimise
   end
 end
