@@ -122,7 +122,6 @@ let path_tune ?context slug = path @@ tune ?context slug
 let path_version ?context slug = path @@ version ?context slug
 
 let path_any ?context any =
-  (* FIXME: [Any] should re-export the constructors (ppx_import?) *)
   let open Dancelor_common_model in
   let open AnyCore in
   match any with

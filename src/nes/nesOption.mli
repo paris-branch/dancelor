@@ -28,3 +28,6 @@ val concat : ('a -> 'a -> 'a) -> 'a option -> 'a option -> 'a option
 
 val concat_l : ('a -> 'a -> 'a) -> 'a option list -> 'a option
 (** Same as {!concat} but for a list of options. *)
+
+val return : 'a -> 'a option
+(** Same as {!some}. *)

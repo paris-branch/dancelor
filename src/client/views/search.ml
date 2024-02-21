@@ -7,19 +7,19 @@ module Formatters = Dancelor_client_formatters
 module Utils = Dancelor_client_utils
 module PageRouter = Dancelor_common_pageRouter
 
-module Html = Dom_html
-
 let js = Js.string
 
 type t =
   {
     page : Elements.Page.t;
-    content : Html.divElement Js.t;
+    content : Dom_html.divElement Js.t;
   }
 
 let update_uri input =
+  let query = [("q", [Yojson.Safe.to_string (`String input)])] in
+  let uri = Uri.make ~path:"/search" ~query () in
   Dom_html.window##.history##replaceState
-    "fixme-the-state" (js "") (Js.some (js (spf "/search?q=%s" (Yojson.Safe.to_string (`String input)))))
+    "fixme-the-state" (js "") (Js.some (js (Uri.to_string uri)))
 
 let search ?pagination input =
   let threshold = 0.4 in
@@ -36,7 +36,7 @@ let emoji_row emoji message =
 
 let create ?query page =
   let document = Elements.Page.document page in
-  let content = Html.createDiv document in
+  let content = Dom_html.createDiv document in
 
   document##.title := js ("Search | Dancelor");
 

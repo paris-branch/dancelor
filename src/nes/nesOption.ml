@@ -24,3 +24,5 @@ let concat conc o1 o2 =
   | (Some v1, Some v2) -> Some (conc v1 v2)
 
 let concat_l conc = List.fold_left (concat conc) None
+
+let return = some

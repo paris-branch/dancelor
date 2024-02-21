@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_html
+open Dancelor_client_model
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let emoji_row emoji message =
@@ -73,13 +74,10 @@ let make
     else
       Fun.flip Lwt.map (search pagination text) @@ function
       | Error messages ->
-        Format.printf "The search returned errors.@.";
         Errors messages
       | Ok (_, []) ->
-        Format.printf "The search returned no results.@.";
         NoResults
       | Ok (total, results) ->
-        Format.printf "The search returned %d results out of %d total.@." (List.length results) total;
         on_number_of_entries total; Results results
   in
 
@@ -131,7 +129,7 @@ let state search_bar = search_bar.state
 
 let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
   let min_characters = 3 in
-  let pagination = S.const Dancelor_client_model.Pagination.{ start = 0; end_ = 10 } in
+  let pagination = S.const Pagination.{ start = 0; end_ = 10 } in
 
   (** A signal tracking whether the table is focused. *)
   let (table_visible, set_table_visible) = S.create false in

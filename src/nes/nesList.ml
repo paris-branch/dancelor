@@ -19,6 +19,10 @@ let hd_opt = function
   | [] -> None
   | h :: _ -> Some h
 
+let hd_tl = function
+  | [] -> failwith "hd_tl"
+  | x :: xs -> (x, xs)
+
 (* Bodies and feet. *)
 
 let bd_ft_opt xs =
@@ -159,3 +163,8 @@ let findi_context p l =
     | x :: l -> findi_context (Some x) (i + 1) l
   in
   findi_context None 0 l
+
+let all_some l =
+  match partition_map (function Some x -> Left x | _ -> Right ()) l with
+  | (l, []) -> Some l
+  | _ -> None

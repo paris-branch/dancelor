@@ -37,6 +37,9 @@ val sub : int -> 'a t -> 'a t
 val hd_opt : 'a t -> 'a option
 (** Return the first element of the given list or [None] if the list is empty. *)
 
+val hd_tl : 'a list -> 'a * 'a list
+(** Pair of {!hd} and {!tl}. @raise Failure if the list is empty. *)
+
 val findi_context : ('a -> bool) -> 'a t -> ('a option * int * 'a * 'a option) option
 (** Finds the given element and return it as well as the one before and the one
     after. *)
@@ -81,3 +84,7 @@ val singleton : 'a -> 'a list
 
 val snoc : 'a list -> 'a -> 'a list
 (** Append at the end. [snoc l x] is [l @ \[x\]]*)
+
+val all_some : 'a option list -> 'a list option
+(** Return [Some] if all the elements of the list are of the form [Some x], or
+    [None] if at least one element is [None]. *)

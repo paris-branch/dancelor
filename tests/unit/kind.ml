@@ -4,6 +4,8 @@ let kindDance_to_string_of_string_roundtrip =
   QCheck_alcotest.to_alcotest
     (
       QCheck2.Test.make
+        ~count: 1_000
+        ~long_factor: 50
         ~name: "Kind.Dance"
         ~print: (fun k -> "Kind:\n\n  " ^ Kind.Dance.show k
                           ^ "\n\nRepr:\n\n  " ^ Kind.Dance.to_string k

@@ -1,6 +1,7 @@
 (** {1 SearchBar} *)
 
 open Js_of_ocaml_tyxml.Tyxml_js
+open Dancelor_client_model
 
 (** Abstraction of the possible states of the search bar. *)
 type 'result state =
@@ -17,9 +18,9 @@ val state : 'result t -> 'result state React.signal
 (** Signal giving a state out of a search bar. *)
 
 val make :
-  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
+  search:(Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters:int ->
-  pagination:Dancelor_client_model.Pagination.t React.signal ->
+  pagination:Pagination.t React.signal ->
   ?on_number_of_entries:(int -> unit) ->
   ?initial_input: string ->
   unit ->
@@ -69,7 +70,7 @@ val render :
 
 val quick_search :
   placeholder:string ->
-  search:(Dancelor_client_model.Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
+  search:(Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
