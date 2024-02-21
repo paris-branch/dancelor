@@ -84,3 +84,7 @@ val singleton : 'a -> 'a list
 
 val snoc : 'a list -> 'a -> 'a list
 (** Append at the end. [snoc l x] is [l @ \[x\]]*)
+
+val all_some : 'a option list -> 'a list option
+(** Return [Some] if all the elements of the list are of the form [Some x], or
+    [None] if at least one element is [None]. *)

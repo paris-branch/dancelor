@@ -67,3 +67,5 @@ let (%>) f g = fun x -> f x |> g
 let map_fst f (x, y) = (f x, y)
 let map_snd f (x, y) = (x, f y)
 let map_pair f g (x, y) = (f x, g y)
+
+type ('a, 'b) either = [%import: ('a, 'b) Either.t]
