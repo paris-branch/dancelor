@@ -82,6 +82,11 @@ module Filter : sig
 
   (** {3 Constructors} *)
 
+  val raw : string -> predicate
+  val raw' : string -> t
+  (** A filter containing raw strings, semantically equivalent to the
+      disjunction of the [raw] cases of all the other models. *)
+
   val type_ : Type.t -> predicate
   val type_' : Type.t -> t
   (** A filter that asserts that the element has the given type. *)
@@ -125,13 +130,17 @@ module Filter : sig
   (** Convert a formula on “any” elements into a text formula representing
       it. *)
 
+  val to_pretty_string : t -> string
+  (** Convert a formula on “any” elements into an equivalent text formula meant
+      to be more readable to humans. *)
+
   (** {3 Others} *)
 
-  val possible_types : t -> Type.t list
-  (** Returns the list of types that a formula can match. It is guaranteed that
-      elements whose types are not in the list will be rejected by the filter.
-      It is not guaranteed that for each type in the list there will be an
-      element of this type accepted by the filter. *)
+  val optimise : t -> t
+  (** Optimise a filter of “any” elements. This relies on the generic
+      {!Formula.optimise} but it also merges predicates together; for instance,
+      ["type:Version version:<vfilter1> version:<vfilter2>"] will be optimised
+      as ["version:(<vfilter1> <vfilter2>)"]. *)
 end
 
 (** {2 Search} *)

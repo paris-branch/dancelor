@@ -31,15 +31,19 @@ module Lift
   module Type = struct
     include AnyCore.Type
 
-    module Set = Stdlib.Set.Make(struct
-        type nonrec t = t
-        let compare = compare
-      end)
-
     let all = [ Person; Dance; Book; Set; Tune; Version ]
-    let all_s = Set.of_list all
 
-    let are_all l = Set.(equal (of_list l) all_s)
+    module Set = struct
+      include Stdlib.Set.Make(struct
+          type nonrec t = t
+          let compare = compare
+        end)
+
+      let all = of_list all
+      let comp = diff all
+    end
+
+    let are_all l = Set.(equal (of_list l) all)
 
     let equal = (=)
 
@@ -197,26 +201,76 @@ module Lift
 
     let to_string = TextFormula.to_string % TextFormula.of_formula text_formula_converter
 
-    let possible_types =
-      let open Formula in
-      let rec possible_types = function
-        | False -> Type.Set.empty
-        | True -> Type.all_s
-        | Not formula -> Type.Set.diff Type.all_s (possible_types formula)
-        | And (formula1, formula2) -> Type.Set.inter (possible_types formula1) (possible_types formula2)
-        | Or  (formula1, formula2) -> Type.Set.union (possible_types formula1) (possible_types formula2)
-        | Pred pred ->
-          (* FIXME: We could do better here by checking in depth whether a formula
-             has a chance to return. That would eliminate some other types. *)
-          match pred with
-          | Type type_  -> Type.Set.singleton type_
-          | Person  _ -> Type.Set.singleton Person
-          | Dance   _ -> Type.Set.singleton Dance
-          | Book    _ -> Type.Set.singleton Book
-          | Set     _ -> Type.Set.singleton Set
-          | Tune    _ -> Type.Set.singleton Tune
-          | Version _ -> Type.Set.singleton Version
+    (** Clean up a formula by analysing the types of given predicates. For
+        instance, ["type:version (version:key:A :or book::source)"] can be
+        simplified to ["type:version version:key:A"]. *)
+    let type_based_cleanup =
+      (* Returns the types of objects matched by a predicate. *)
+      let types_of_predicate = function
+        | Raw _ -> Type.Set.all
+        | Type type_ -> Type.Set.singleton type_
+        | Person _ -> Type.Set.singleton Person
+        | Dance _ -> Type.Set.singleton Dance
+        | Book _ -> Type.Set.singleton Book
+        | Set _ -> Type.Set.singleton Set
+        | Tune _ -> Type.Set.singleton Tune
+        | Version _ -> Type.Set.singleton Version
       in
-      List.of_seq % Type.Set.to_seq % possible_types
+      let open Formula in
+      (* Given a maximal set of possible types [t] and a formula, refine the
+         possible types of the formula and a clean up the formula. The returned
+         types are a subset of [t]. The returned formula does not contain
+         predicates that would clash with [t]. *)
+      let rec refine_types_and_cleanup t = function
+        | False -> (Type.Set.empty, False)
+        | True -> (t, True)
+        | Not f ->
+          (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
+          map_pair (Type.Set.diff t) not_ @@ refine_types_and_cleanup (Type.Set.comp t) f
+        | And (f1, f2) ->
+          (* Refine [t] on [f1], the refine it again while cleaning up [f2],
+             then come back and clean up [f1]. *)
+          let (t,  _) = refine_types_and_cleanup t f1 in
+          let (t, f2) = refine_types_and_cleanup t f2 in
+          let (t, f1) = refine_types_and_cleanup t f1 in
+          (t, and_ f1 f2)
+        | Or (f1, f2) ->
+          let (t1, f1) = refine_types_and_cleanup t f1 in
+          let (t2, f2) = refine_types_and_cleanup t f2 in
+          (Type.Set.union t1 t2, or_ f1 f2)
+        | Pred p ->
+          let ts = Type.Set.inter (types_of_predicate p) t in
+          (ts, if Type.Set.is_empty ts then False else Pred p)
+      in
+      snd % refine_types_and_cleanup Type.Set.all
+
+    (* Little trick to convince OCaml that polymorphism is OK. *)
+    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+    let optimise =
+      let lift {op} f1 f2 = match (f1, f2) with
+        (* [person:] eats [type:person] *)
+        | (Type Person, Person f) | (Person f, Type Person) -> Option.some @@ person f
+        | (Type Dance, Dance f) | (Dance f, Type Dance) -> Option.some @@ dance f
+        | (Type Book, Book f) | (Book f, Type Book) -> Option.some @@ book f
+        | (Type Set, Set f) | (Set f, Type Set) -> Option.some @@ set f
+        | (Type Tune, Tune f) | (Tune f, Type Tune) -> Option.some @@ tune f
+        | (Type Version, Version f) | (Version f, Type Version) -> Option.some @@ version f
+        (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
+        | (Person f1, Person f2) -> Option.some @@ person (op f1 f2)
+        | (Dance f1, Dance f2) -> Option.some @@ dance (op f1 f2)
+        | (Book f1, Book f2) -> Option.some @@ book (op f1 f2)
+        | (Set f1, Set f2) -> Option.some @@ set (op f1 f2)
+        | (Tune f1, Tune f2) -> Option.some @@ tune (op f1 f2)
+        | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
+        | _ -> None
+      in
+      Formula.optimise
+        ~lift_and: (lift {op = Formula.and_})
+        ~lift_or: (lift {op = Formula.or_})
+        Fun.id
+      % type_based_cleanup
+
+    let to_pretty_string = TextFormula.to_string % TextFormula.of_formula (make_text_formula_converter ~human:true ()) % optimise
   end
 end
