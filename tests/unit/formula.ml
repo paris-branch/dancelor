@@ -83,6 +83,16 @@ let to_string_from_string_roundtrip'
   to_string_from_string_roundtrip ~name ~show:M.show ~to_string:M.to_string
     ~from_string:M.from_string ~gen:G.gen ~equal:M.equal
 
+(* FIXME: Expose [optimise] in all models, then get rid of [~optimise]. *)
+let optimise_idempotent'
+    (type p)
+    ~name
+    (module M : MODEL with type predicate = p)
+    (module G : GEN with type predicate = p)
+    ~optimise
+  =
+  optimise_idempotent ~name ~gen:G.gen ~equal:M.equal ~optimise ~show:M.show
+
 let () =
   Alcotest.run
     "formulas"
@@ -118,7 +128,6 @@ let () =
         ]);
 
       ("optimise is idempotent", [
-          (* FIXME: Expose [optimise] in all models, then make a first-class module version of this test. *)
-          optimise_idempotent ~name:"Any.Filter" ~gen:Gen.Any.Filter.gen ~show:Model.Any.Filter.show ~optimise:Model.Any.Filter.optimise ~equal:Model.Any.Filter.equal;
+          optimise_idempotent' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter) ~optimise:Model.Any.Filter.optimise;
         ]);
     ]
