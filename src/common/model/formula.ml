@@ -134,7 +134,7 @@ let unCnf f =
   List.(all_some @@ map unDisj (conjuncts f))
 
 let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise_predicate formula =
-  let optimise_head = function
+  let rec optimise_head = function
     | Not True -> False
     | Not False -> True
     | Not (Not f) -> f
@@ -144,7 +144,7 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       (
         match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none:f ~some:(fun p12 -> and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
+          Option.fold ~none:f ~some:(fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
         | _ -> f
       )
     | Or (True, _) | Or (_, True) -> True
@@ -153,12 +153,11 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       (
         match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none:f ~some:(fun p12 -> or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
+          Option.fold ~none:f ~some:(fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
         | _ -> f
       )
     | head -> head
-  in
-  let rec optimise f =
+  and optimise f =
     optimise_head @@ match f with
     | True -> True
     | False -> False
