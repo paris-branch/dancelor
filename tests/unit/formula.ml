@@ -93,6 +93,15 @@ let optimise_idempotent'
   =
   optimise_idempotent ~name ~gen:G.gen ~equal:M.equal ~optimise ~show:M.show
 
+module FormulaUnit = struct
+  type predicate = unit
+  type t = unit Model.Formula.t
+  [@@deriving eq, show]
+
+  let gen = Gen.Formula.gen (QCheck2.Gen.pure ())
+  let optimise = Model.Formula.optimise Fun.id
+end
+
 let () =
   Alcotest.run
     "formulas"
@@ -128,6 +137,7 @@ let () =
         ]);
 
       ("optimise is idempotent", [
+          optimise_idempotent ~name:"Formula" ~gen:FormulaUnit.gen ~show:FormulaUnit.show ~optimise:FormulaUnit.optimise ~equal:FormulaUnit.equal;
           optimise_idempotent' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter) ~optimise:Model.Any.Filter.optimise;
         ]);
     ]
