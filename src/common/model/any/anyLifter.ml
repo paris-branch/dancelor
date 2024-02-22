@@ -255,6 +255,8 @@ module Lift
           | Set sfilter -> set @@ Set.Filter.optimise sfilter
           | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
           | Version vfilter -> version @@ Version.Filter.optimise vfilter)
+      (* FIXME: adding this [type_based_cleanup] here makes
+         [Any.Filter.optimise] non-idempotent. Sad times. *)
       % type_based_cleanup
 
     let to_pretty_string =
