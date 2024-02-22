@@ -56,8 +56,31 @@ module type MODEL = sig
   type t = predicate Model.Formula.t
   val equal : t -> t -> bool
   val show : t -> string
+end
+
+module type TOFROMSTRING = sig
+  type predicate
+  type t = predicate Model.Formula.t
   val to_string : t -> string
   val from_string : ?filename:string -> string -> (t, string) result
+end
+
+module type OPTIMISE = sig
+  type predicate
+  type t = predicate Model.Formula.t
+  val optimise : t -> t
+end
+
+module type MODEL_TOFROMSTRING = sig
+  type predicate
+  include MODEL with type predicate := predicate
+  include TOFROMSTRING with type predicate := predicate
+end
+
+module type MODEL_OPTIMISE = sig
+  type predicate
+  include MODEL with type predicate := predicate
+  include OPTIMISE with type predicate := predicate
 end
 
 module type GEN = sig
@@ -69,7 +92,7 @@ end
 let to_string_no_exn'
     (type p)
     ~name
-    (module M : MODEL with type predicate = p)
+    (module M : MODEL_TOFROMSTRING with type predicate = p)
     (module G : GEN with type predicate = p)
   =
   to_string_no_exn ~name ~show:M.show ~gen:G.gen ~to_string:M.to_string
@@ -77,21 +100,19 @@ let to_string_no_exn'
 let to_string_from_string_roundtrip'
     (type p)
     ~name
-    (module M : MODEL with type predicate = p)
+    (module M : MODEL_TOFROMSTRING with type predicate = p)
     (module G : GEN with type predicate = p)
   =
   to_string_from_string_roundtrip ~name ~show:M.show ~to_string:M.to_string
     ~from_string:M.from_string ~gen:G.gen ~equal:M.equal
 
-(* FIXME: Expose [optimise] in all models, then get rid of [~optimise]. *)
 let optimise_idempotent'
     (type p)
     ~name
-    (module M : MODEL with type predicate = p)
+    (module M : MODEL_OPTIMISE with type predicate = p)
     (module G : GEN with type predicate = p)
-    ~optimise
   =
-  optimise_idempotent ~name ~gen:G.gen ~equal:M.equal ~optimise ~show:M.show
+  optimise_idempotent ~name ~gen:G.gen ~equal:M.equal ~optimise:M.optimise ~show:M.show
 
 module FormulaUnit = struct
   type predicate = unit
@@ -100,6 +121,20 @@ module FormulaUnit = struct
 
   let gen = Gen.Formula.gen (QCheck2.Gen.pure ())
   let optimise = Model.Formula.optimise Fun.id
+end
+
+module FormulaInt = struct
+  type predicate = int
+  type t = int Model.Formula.t
+  [@@deriving eq, show]
+
+  let gen = Gen.Formula.gen QCheck2.Gen.int
+
+  let lift_and x y = Some (min x y)
+  let lift_or x y = Some (max x y)
+  let optimise = Model.Formula.optimise ~lift_and ~lift_or @@ function
+    | n when n mod 2 = 1 -> n - 1
+    | n -> n
 end
 
 let () =
@@ -137,7 +172,14 @@ let () =
         ]);
 
       ("optimise is idempotent", [
-          optimise_idempotent ~name:"Formula" ~gen:FormulaUnit.gen ~show:FormulaUnit.show ~optimise:FormulaUnit.optimise ~equal:FormulaUnit.equal;
-          optimise_idempotent' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter) ~optimise:Model.Any.Filter.optimise;
+          optimise_idempotent' ~name:"Formula (unit)" (module FormulaUnit) (module FormulaUnit);
+          optimise_idempotent' ~name:"Formula (int)" (module FormulaInt) (module FormulaInt);
+          optimise_idempotent' ~name:"Person.Filter" (module Model.Person.Filter) (module Gen.Person.Filter);
+          optimise_idempotent' ~name:"Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
+          optimise_idempotent' ~name:"Tune.Filter" (module Model.Tune.Filter) (module Gen.Tune.Filter);
+          optimise_idempotent' ~name:"Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
+          optimise_idempotent' ~name:"Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
+          optimise_idempotent' ~name:"Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
+          optimise_idempotent' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
         ]);
     ]
