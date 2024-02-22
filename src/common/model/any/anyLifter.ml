@@ -39,6 +39,8 @@ module Lift
     let all = [ Person; Dance; Book; Set; Tune; Version ]
     let all_s = Set.of_list all
 
+    let are_all l = Set.(equal (of_list l) all_s)
+
     let equal = (=)
 
     let to_string = function

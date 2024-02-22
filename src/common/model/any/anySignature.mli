@@ -46,6 +46,9 @@ module Type : sig
   (** All the existing types, as a list. There is no guarantee on the order in
       which those elements appear. *)
 
+  val are_all : t list -> bool
+  (** Whether the given list contains all the existing types. *)
+
   val to_string : t -> string
   (** Convert a type to a string, eg [to_string Person = "Person"]. *)
 
@@ -80,29 +83,36 @@ module Filter : sig
   (** {3 Constructors} *)
 
   val type_ : Type.t -> predicate
+  val type_' : Type.t -> t
   (** A filter that asserts that the element has the given type. *)
 
   val person : PersonSignature.Filter.t -> predicate
+  val person' : PersonSignature.Filter.t -> t
   (** Lift a filter on persons to make a filter on “any”. This filter asserts
       that the “any” element is a person that matches the given filter. *)
 
   val dance : DanceSignature.Filter.t -> predicate
+  val dance' : DanceSignature.Filter.t -> t
   (** Lift a filter on dances to make a filter on “any”. This filter asserts
       that the “any” element is a dance that matches the given filter. *)
 
   val book : BookSignature.Filter.t -> predicate
+  val book' : BookSignature.Filter.t -> t
   (** Lift a filter on books to make a filter on “any”. This filter asserts that
       the “any” element is a book that matches the given filter. *)
 
   val set : SetSignature.Filter.t -> predicate
+  val set' : SetSignature.Filter.t -> t
   (** Lift a filter on sets to make a filter on “any”. This filter asserts that
       the “any” element is a set that matches the given filter. *)
 
   val tune : TuneSignature.Filter.t -> predicate
+  val tune' : TuneSignature.Filter.t -> t
   (** Lift a filter on tunes to make a filter on “any”. This filter asserts that
       the “any” element is a tune that matches the given filter. *)
 
   val version : VersionSignature.Filter.t -> predicate
+  val version' : VersionSignature.Filter.t -> t
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
 

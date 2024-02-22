@@ -7,6 +7,8 @@ val _key : string
 type t = Jig | Polka | Reel | Strathspey | Waltz
 [@@deriving eq, show]
 
+val all : t list
+
 val to_char : t -> char
 val of_char : char -> t
 

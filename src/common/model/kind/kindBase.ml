@@ -10,6 +10,8 @@ type t =
   | Waltz
 [@@deriving eq, show {with_path = false}]
 
+let all = [Jig; Reel; Strathspey; Polka; Waltz]
+
 let to_char = function
   | Jig -> 'J'
   | Polka -> 'P'
