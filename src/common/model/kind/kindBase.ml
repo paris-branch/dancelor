@@ -103,4 +103,7 @@ module Filter = struct
     )
 
   let from_text_formula = TextFormula.to_formula text_formula_converter
+
+  let optimise = Formula.optimise @@ function
+    | (Is _ as p) -> p
 end

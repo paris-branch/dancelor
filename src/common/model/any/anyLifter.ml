@@ -247,7 +247,14 @@ module Lift
       Formula.optimise
         ~lift_and: (lift {op = Formula.and_})
         ~lift_or: (lift {op = Formula.or_})
-        Fun.id
+        (function
+          | (Raw _ as p) | (Type _ as p) -> p
+          | Person pfilter -> person @@ Person.Filter.optimise pfilter
+          | Dance dfilter -> dance @@ Dance.Filter.optimise dfilter
+          | Book bfilter -> book @@ Book.Filter.optimise bfilter
+          | Set sfilter -> set @@ Set.Filter.optimise sfilter
+          | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
+          | Version vfilter -> version @@ Version.Filter.optimise vfilter)
       % type_based_cleanup
 
     let to_pretty_string =

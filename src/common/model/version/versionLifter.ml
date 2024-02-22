@@ -90,5 +90,10 @@ module Lift
 
     let tuneIs = tune % Tune.Filter.is'
     let tuneIs' = Formula.pred % tuneIs
+
+    let optimise = Formula.optimise @@ function
+      | (Is _ as p) | (Key _ as p) | (Broken as p) -> p
+      | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
+      | Kind kfilter -> kind @@ Kind.Version.Filter.optimise kfilter
   end
 end

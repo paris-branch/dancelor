@@ -60,6 +60,8 @@ module Filter : sig
   (** Build a filter from a string, or fail. *)
 
   val to_string : t -> string
+
+  val optimise : t -> t
 end
 
 (** {2 Getters and setters} *)

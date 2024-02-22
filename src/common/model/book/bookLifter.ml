@@ -308,5 +308,13 @@ module Lift
     let memVersionDeep' = Formula.pred % memVersionDeep
     let existsTuneDeep' = Formula.pred % existsTuneDeep
     let memTuneDeep' = Formula.pred % memTuneDeep
+
+    let optimise = Formula.optimise @@ function
+      | (Is _ as p) | (Title _ as p) | (TitleMatches _ as p) | (Subtitle _ as p)
+      | (SubtitleMatches _ as p) | (IsSource as p) -> p
+      | ExistsVersion vfilter -> existsVersion @@ Version.Filter.optimise vfilter
+      | ExistsSet sfilter -> existsSet @@ Set.Filter.optimise sfilter
+      | ExistsInlineSet sfilter -> existsInlineSet @@ Set.Filter.optimise sfilter
+      | ExistsVersionDeep vfilter -> existsVersionDeep @@ Version.Filter.optimise vfilter
   end
 end

@@ -85,5 +85,11 @@ module Lift
 
     let authorIs = author % Person.Filter.is'
     let authorIs' = Formula.pred % authorIs
+
+    let optimise = Formula.optimise @@ function
+      | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+      | Author pfilter -> author @@ Person.Filter.optimise pfilter
+      | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
+      | ExistsDance dfilter -> existsDance @@ Dance.Filter.optimise dfilter
   end
 end

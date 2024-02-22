@@ -158,5 +158,11 @@ module Lift
 
     let memVersion = existsVersion % Version.Filter.is'
     let memVersion' = Formula.pred % memVersion
+
+    let optimise = Formula.optimise @@ function
+      | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+      | Deviser pfilter -> deviser @@ Person.Filter.optimise pfilter
+      | ExistsVersion vfilter -> existsVersion @@ Version.Filter.optimise vfilter
+      | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
   end
 end

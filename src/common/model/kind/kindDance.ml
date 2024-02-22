@@ -128,4 +128,8 @@ module Filter = struct
   let from_text_formula = TextFormula.to_formula text_formula_converter
   let from_string ?filename input =
     Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+  let optimise = Formula.optimise @@ function
+    | (Is _ as p) | (Simple as p) -> p
+    | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter
 end

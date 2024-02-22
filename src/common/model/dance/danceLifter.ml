@@ -72,5 +72,10 @@ module Lift
 
     let is = is % slug
     let is' = Formula.pred % is
+
+    let optimise = Formula.optimise @@ function
+      | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+      | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
+      | Deviser pfilter -> deviser @@ Person.Filter.optimise pfilter
   end
 end
