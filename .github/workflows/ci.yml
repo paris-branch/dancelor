@@ -47,7 +47,7 @@ jobs:
         run: nix develop --command make doc
 
       - name: Run unit tests
-        run: nix develop --command make unit-tests
+        run: nix develop --command make unit-tests QCHECK_LONG=true
 
       - name: Run system tests
         run: nix develop --command make system-tests
