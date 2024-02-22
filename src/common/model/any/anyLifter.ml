@@ -226,7 +226,6 @@ module Lift
     (* Little trick to convince OCaml that polymorphism is OK. *)
     type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
 
-    (* FIXME: Not idempotent *)
     let optimise =
       let lift {op} f1 f2 = match (f1, f2) with
         (* [person:] eats [type:person] *)
@@ -261,13 +260,9 @@ module Lift
         | Version f -> Formula.and_ (type_' Version) (version' f)
         | p -> Formula.pred p
       in
-      (* NOTE: As of writing this, [optimise] is not idempotent, so we call it
-         three times to not take chances. *)
       TextFormula.to_string
       % TextFormula.of_formula (make_text_formula_converter ~human:true ())
       % add_explicit_type
-      % optimise
-      % optimise
       % optimise
   end
 end
