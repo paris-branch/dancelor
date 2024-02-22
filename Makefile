@@ -18,7 +18,7 @@ tests:
 	@echo 'You probably mean use the targets `unit-tests` or `system-tests`.'
 
 unit-tests:
-	dune test $(DUNEJOBSARG)
+	dune test $(DUNEJOBSARG) --force
 
 system-tests: build
 	bin/dancelor --config tests/config.json --pid-file tests/run.pid &
