@@ -141,6 +141,9 @@ module Filter : sig
       {!Formula.optimise} but it also merges predicates together; for instance,
       ["type:Version version:<vfilter1> version:<vfilter2>"] will be optimised
       as ["version:(<vfilter1> <vfilter2>)"]. *)
+
+  val type_based_cleanup : t -> t
+  (** Part of {!optimise} exposed for testing purposes. *)
 end
 
 (** {2 Search} *)

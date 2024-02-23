@@ -180,6 +180,7 @@ let () =
           optimise_idempotent' ~name:"Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
           optimise_idempotent' ~name:"Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
           optimise_idempotent' ~name:"Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
+          optimise_idempotent ~name:"Any.Filter (type_based_cleanup)" ~optimise:Model.Any.Filter.type_based_cleanup ~gen:Gen.Any.Filter.gen ~show:Model.Any.Filter.show ~equal:Model.Any.Filter.equal;
           optimise_idempotent' ~name:"Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
         ]);
     ]
