@@ -263,13 +263,17 @@ module Lift
         )
 
     let to_pretty_string =
+      let type_and t lift = function
+        | Formula.True -> type_' t
+        | f -> Formula.and_ (type_' t) (lift f)
+      in
       let add_explicit_type = Formula.convert @@ function
-        | Person f -> Formula.and_ (type_' Person) (person' f)
-        | Dance f -> Formula.and_ (type_' Dance) (dance' f)
-        | Book f -> Formula.and_ (type_' Book) (book' f)
-        | Set f -> Formula.and_ (type_' Set) (set' f)
-        | Tune f -> Formula.and_ (type_' Tune) (tune' f)
-        | Version f -> Formula.and_ (type_' Version) (version' f)
+        | Person f -> type_and Person person' f
+        | Dance f -> type_and Dance dance' f
+        | Book f -> type_and Book book' f
+        | Set f -> type_and Set set' f
+        | Tune f -> type_and Tune tune' f
+        | Version f -> type_and Version version' f
         | p -> Formula.pred p
       in
       TextFormula.to_string
