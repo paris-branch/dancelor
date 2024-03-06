@@ -309,12 +309,26 @@ module Lift
     let existsTuneDeep' = Formula.pred % existsTuneDeep
     let memTuneDeep' = Formula.pred % memTuneDeep
 
-    let optimise = Formula.optimise @@ function
-      | (Is _ as p) | (Title _ as p) | (TitleMatches _ as p) | (Subtitle _ as p)
-      | (SubtitleMatches _ as p) | (IsSource as p) -> p
-      | ExistsVersion vfilter -> existsVersion @@ Version.Filter.optimise vfilter
-      | ExistsSet sfilter -> existsSet @@ Set.Filter.optimise sfilter
-      | ExistsInlineSet sfilter -> existsInlineSet @@ Set.Filter.optimise sfilter
-      | ExistsVersionDeep vfilter -> existsVersionDeep @@ Version.Filter.optimise vfilter
+    (* Little trick to convince OCaml that polymorphism is OK. *)
+    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+    let optimise =
+      let lift {op} f1 f2 = match (f1, f2) with
+        | (ExistsVersion f1, ExistsVersion f2) -> Option.some @@ existsVersion (op f1 f2)
+        | (ExistsSet f1, ExistsSet f2) -> Option.some @@ existsSet (op f1 f2)
+        | (ExistsInlineSet f1, ExistsInlineSet f2) -> Option.some @@ existsInlineSet (op f1 f2)
+        | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> Option.some @@ existsVersionDeep (op f1 f2)
+        | _ -> None
+      in
+      Formula.optimise
+        ~lift_and: (lift {op = Formula.and_})
+        ~lift_or: (lift {op = Formula.or_})
+        (function
+          | (Is _ as p) | (Title _ as p) | (TitleMatches _ as p) | (Subtitle _ as p)
+          | (SubtitleMatches _ as p) | (IsSource as p) -> p
+          | ExistsVersion vfilter -> existsVersion @@ Version.Filter.optimise vfilter
+          | ExistsSet sfilter -> existsSet @@ Set.Filter.optimise sfilter
+          | ExistsInlineSet sfilter -> existsInlineSet @@ Set.Filter.optimise sfilter
+          | ExistsVersionDeep vfilter -> existsVersionDeep @@ Version.Filter.optimise vfilter)
   end
 end

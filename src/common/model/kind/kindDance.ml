@@ -129,7 +129,18 @@ module Filter = struct
   let from_string ?filename input =
     Result.bind (TextFormula.from_string ?filename input) from_text_formula
 
-  let optimise = Formula.optimise @@ function
-    | (Is _ as p) | (Simple as p) -> p
-    | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter
+  (* Little trick to convince OCaml that polymorphism is OK. *)
+  type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+  let optimise =
+    let lift {op} f1 f2 = match (f1, f2) with
+      | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
+      | _ -> None
+    in
+    Formula.optimise
+      ~lift_and: (lift {op = Formula.and_})
+      ~lift_or: (lift {op = Formula.or_})
+      (function
+        | (Is _ as p) | (Simple as p) -> p
+        | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter)
 end

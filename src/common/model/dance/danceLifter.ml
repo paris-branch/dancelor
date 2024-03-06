@@ -73,9 +73,21 @@ module Lift
     let is = is % slug
     let is' = Formula.pred % is
 
-    let optimise = Formula.optimise @@ function
-      | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
-      | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-      | Deviser pfilter -> deviser @@ Person.Filter.optimise pfilter
+    (* Little trick to convince OCaml that polymorphism is OK. *)
+    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+    let optimise =
+      let lift {op} f1 f2 = match (f1, f2) with
+        | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
+        | (Deviser f1, Deviser f2) -> Option.some @@ deviser (op f1 f2)
+        | _ -> None
+      in
+      Formula.optimise
+        ~lift_and: (lift {op = Formula.and_})
+        ~lift_or: (lift {op = Formula.or_})
+        (function
+          | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+          | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
+          | Deviser pfilter -> deviser @@ Person.Filter.optimise pfilter)
   end
 end
