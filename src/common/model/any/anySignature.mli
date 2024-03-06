@@ -46,6 +46,9 @@ module Type : sig
   (** All the existing types, as a list. There is no guarantee on the order in
       which those elements appear. *)
 
+  val are_all : t list -> bool
+  (** Whether the given list contains all the existing types. *)
+
   val to_string : t -> string
   (** Convert a type to a string, eg [to_string Person = "Person"]. *)
 
@@ -79,30 +82,42 @@ module Filter : sig
 
   (** {3 Constructors} *)
 
+  val raw : string -> predicate
+  val raw' : string -> t
+  (** A filter containing raw strings, semantically equivalent to the
+      disjunction of the [raw] cases of all the other models. *)
+
   val type_ : Type.t -> predicate
+  val type_' : Type.t -> t
   (** A filter that asserts that the element has the given type. *)
 
   val person : PersonSignature.Filter.t -> predicate
+  val person' : PersonSignature.Filter.t -> t
   (** Lift a filter on persons to make a filter on “any”. This filter asserts
       that the “any” element is a person that matches the given filter. *)
 
   val dance : DanceSignature.Filter.t -> predicate
+  val dance' : DanceSignature.Filter.t -> t
   (** Lift a filter on dances to make a filter on “any”. This filter asserts
       that the “any” element is a dance that matches the given filter. *)
 
   val book : BookSignature.Filter.t -> predicate
+  val book' : BookSignature.Filter.t -> t
   (** Lift a filter on books to make a filter on “any”. This filter asserts that
       the “any” element is a book that matches the given filter. *)
 
   val set : SetSignature.Filter.t -> predicate
+  val set' : SetSignature.Filter.t -> t
   (** Lift a filter on sets to make a filter on “any”. This filter asserts that
       the “any” element is a set that matches the given filter. *)
 
   val tune : TuneSignature.Filter.t -> predicate
+  val tune' : TuneSignature.Filter.t -> t
   (** Lift a filter on tunes to make a filter on “any”. This filter asserts that
       the “any” element is a tune that matches the given filter. *)
 
   val version : VersionSignature.Filter.t -> predicate
+  val version' : VersionSignature.Filter.t -> t
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
 
@@ -115,13 +130,20 @@ module Filter : sig
   (** Convert a formula on “any” elements into a text formula representing
       it. *)
 
+  val to_pretty_string : t -> string
+  (** Convert a formula on “any” elements into an equivalent text formula meant
+      to be more readable to humans. *)
+
   (** {3 Others} *)
 
-  val possible_types : t -> Type.t list
-  (** Returns the list of types that a formula can match. It is guaranteed that
-      elements whose types are not in the list will be rejected by the filter.
-      It is not guaranteed that for each type in the list there will be an
-      element of this type accepted by the filter. *)
+  val optimise : t -> t
+  (** Optimise a filter of “any” elements. This relies on the generic
+      {!Formula.optimise} but it also merges predicates together; for instance,
+      ["type:Version version:<vfilter1> version:<vfilter2>"] will be optimised
+      as ["version:(<vfilter1> <vfilter2>)"]. *)
+
+  val type_based_cleanup : t -> t
+  (** Part of {!optimise} exposed for testing purposes. *)
 end
 
 (** {2 Search} *)

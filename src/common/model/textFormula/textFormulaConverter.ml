@@ -5,7 +5,7 @@ module Printer = TextFormulaPrinter
 
 type 'p case = {
   to_: (Type.predicate, ('p Formula.t, string) Result.t) Link.t;
-  from: ('p, Type.predicate) Link.t;
+  from: ('p, Type.t) Link.t;
 }
 
 let to_ case = case.to_
@@ -46,7 +46,7 @@ let to_formula converter = Formula.convert_res (predicate_to_formula converter)
 let of_formula converter formula =
   let rec aux : type p. p t -> p -> Type.t option = fun c p ->
     match c with
-    | Cases cases -> Option.map Formula.pred (Link.link (List.map from cases) p)
+    | Cases cases -> Link.link (List.map from cases) p
     | Map (_, _, _) -> None
     | Merge (tiebreaker, c1, c2) ->
       match (aux c1 p, aux c2 p) with
@@ -77,7 +77,7 @@ let nullary ~name p =
   in
   (* FIXME: predicate equality *)
   let from p' = match p = p' with
-    | true -> Some (Type.Nullary name)
+    | true -> Some (Type.nullary' name)
     | false -> None
   in
   {to_; from}
@@ -89,7 +89,16 @@ let unary ~name f from =
   in
   {to_; from}
 
-let unary_raw ~name ~cast:(cast, uncast) ~type_ (to_predicate, from_predicate) =
+type wrap_back = Always | Never | NotPred | NotRaw | Custom of (Type.t -> Type.t)
+
+let apply_wrap_back ~name = function
+  | Always -> Type.unary' name
+  | Never -> Fun.id
+  | NotPred -> (function Pred p -> Pred p | f -> Type.unary' name f)
+  | NotRaw -> (function Pred (Raw _) as f -> f | f -> Type.unary' name f)
+  | Custom c -> c
+
+let unary_raw ?(wrap_back=Always) ~name ~cast:(cast, uncast) ~type_ (to_predicate, from_predicate) =
   unary ~name
     (function
       | Pred (Raw s) ->
@@ -99,12 +108,12 @@ let unary_raw ~name ~cast:(cast, uncast) ~type_ (to_predicate, from_predicate) =
              (cast s))
       | _ ->
         Error (spf "the unary predicate \"%s:\" only accepts a %s arguments." name type_))
-    (Option.map (fun v -> Type.Unary (name, Pred (Raw (uncast v)))) % from_predicate)
+    (Option.map (apply_wrap_back ~name wrap_back % Type.raw' % uncast) % from_predicate)
 
 let unary_string = unary_raw ~cast:(Option.some, Fun.id) ~type_:"string"
 let unary_int = unary_raw ~cast:(int_of_string_opt, string_of_int) ~type_:"int"
 
-let unary_lift ~name ~converter (lift, unlift) =
+let unary_lift ?(wrap_back=Always) ~name ~converter (lift, unlift) =
   unary ~name
     (Result.map lift % to_formula converter)
-    (Option.map (fun f -> Type.Unary (name, of_formula converter f)) % unlift)
+    (Option.map (apply_wrap_back ~name wrap_back % of_formula converter) % unlift)

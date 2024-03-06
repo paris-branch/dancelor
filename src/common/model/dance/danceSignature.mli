@@ -31,12 +31,18 @@ module Filter : sig
   val is : DanceCore.t -> predicate
   val is' : DanceCore.t -> t
 
+  val kind : KindDance.Filter.t -> predicate
+  val kind' : KindDance.Filter.t -> t
+
   val deviser : PersonCore.Filter.t -> predicate
   val deviser' : PersonCore.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
   val to_string : t -> string
+
+  val optimise : t -> t
 end
 
 (** {2 Getters and setters} *)

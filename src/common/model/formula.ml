@@ -52,6 +52,7 @@ let pp pp_pred fmt formula =
 let false_ = False
 let true_ = True
 
+(* FIXME: PPX *)
 let not_ f = Not f
 
 let and_ f1 f2 = And(f1, f2)
@@ -65,6 +66,8 @@ let or_l = function
   | h::t -> List.fold_left or_ h t
 
 let pred value = Pred value
+
+let unPred = function Pred p -> Some p | _ -> None
 
 let interpret_false = 0.
 let interpret_true = 1.
@@ -116,6 +119,54 @@ let rec convert_res f = function
   | Pred pred -> f pred
 
 let convert_opt f = Result.to_option % convert_res (Option.to_result ~none:"" % f)
+let convert f = Result.get_ok % convert_res (Result.ok % f)
+
+let rec conjuncts = function
+  | And (f1, f2) -> conjuncts f1 @ conjuncts f2
+  | f -> [f]
+
+let rec disjuncts = function
+  | Or (f1, f2) -> disjuncts f1 @ disjuncts f2
+  | f -> [f]
+
+let unCnf f =
+  let unDisj f = List.(all_some @@ map unPred (disjuncts f)) in
+  List.(all_some @@ map unDisj (conjuncts f))
+
+let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise_predicate formula =
+  let rec optimise_head = function
+    | Not True -> False
+    | Not False -> True
+    | Not (Not f) -> f
+    | And (True, f) | And (f, True) -> f
+    | And (False, _) | And (_, False) -> False
+    | And (f1, f2) as f ->
+      (
+        match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
+        | ((f1, Pred p1), (Pred p2, f2)) ->
+          Option.fold ~none:f ~some:(fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
+        | _ -> f
+      )
+    | Or (True, _) | Or (_, True) -> True
+    | Or (False, f) | Or (f, False) -> f
+    | Or (f1, f2) as f ->
+      (
+        match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
+        | ((f1, Pred p1), (Pred p2, f2)) ->
+          Option.fold ~none:f ~some:(fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
+        | _ -> f
+      )
+    | head -> head
+  and optimise f =
+    optimise_head @@ match f with
+    | True -> True
+    | False -> False
+    | Not f -> Not (optimise f)
+    | And (f1, f2) -> And (optimise f1, optimise f2)
+    | Or (f1, f2) -> Or (optimise f1, optimise f2)
+    | Pred p -> Pred (optimise_predicate p)
+  in
+  optimise formula
 
 module Make_Serialisable (M : Madge_common.SERIALISABLE) = struct
   type nonrec t = M.t t

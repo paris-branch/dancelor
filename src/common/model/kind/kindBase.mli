@@ -7,6 +7,8 @@ val _key : string
 type t = Jig | Polka | Reel | Strathspey | Waltz
 [@@deriving eq, show]
 
+val all : t list
+
 val to_char : t -> char
 val of_char : char -> t
 
@@ -42,4 +44,6 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
+
+  val optimise : t -> t
 end

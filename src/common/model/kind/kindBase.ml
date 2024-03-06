@@ -10,6 +10,8 @@ type t =
   | Waltz
 [@@deriving eq, show {with_path = false}]
 
+let all = [Jig; Reel; Strathspey; Polka; Waltz]
+
 let to_char = function
   | Jig -> 'J'
   | Polka -> 'P'
@@ -96,9 +98,12 @@ module Filter = struct
                  ~some: (Result.ok % is')
                  ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
                  (of_string_opt string));
-          unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string ~capitalised:true) ~type_:"base kind";
+          unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string ~capitalised:true) ~type_:"base kind";
         ]
     )
 
   let from_text_formula = TextFormula.to_formula text_formula_converter
+
+  let optimise = Formula.optimise @@ function
+    | (Is _ as p) -> p
 end

@@ -71,6 +71,7 @@ module Filter = struct
   let unVersion = function Version vf -> Some vf | _ -> None
 
   let base = version % KindVersion.Filter.base'
+  let baseIs = version % KindVersion.Filter.baseIs'
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -79,6 +80,7 @@ module Filter = struct
   let version' = Formula.pred % version
   let simple' = Formula.pred simple
   let base' = Formula.pred % base
+  let baseIs' = Formula.pred % baseIs
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -114,7 +116,7 @@ module Filter = struct
 
               nullary ~name:"simple"  Simple;
               unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
-              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"dance kind";
+              unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"dance kind";
             ]
         )
         (
@@ -126,4 +128,19 @@ module Filter = struct
   let from_text_formula = TextFormula.to_formula text_formula_converter
   let from_string ?filename input =
     Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+  (* Little trick to convince OCaml that polymorphism is OK. *)
+  type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+  let optimise =
+    let lift {op} f1 f2 = match (f1, f2) with
+      | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
+      | _ -> None
+    in
+    Formula.optimise
+      ~lift_and: (lift {op = Formula.and_})
+      ~lift_or: (lift {op = Formula.or_})
+      (function
+        | (Is _ as p) | (Simple as p) -> p
+        | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter)
 end

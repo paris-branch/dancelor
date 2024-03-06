@@ -36,8 +36,11 @@ module Filter : sig
   val is' : PersonCore.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
+  val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
   val to_string : t -> string
+
+  val optimise : t -> t
 end
 
 (** {2 Getters and setters} *)

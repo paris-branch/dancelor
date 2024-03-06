@@ -64,7 +64,7 @@ module Lift
             make
               [
                 nullary    ~name:"broken" broken;
-                unary_lift ~name:"tune"   (tune, unTune)   ~converter:Tune.Filter.text_formula_converter;
+                unary_lift ~wrap_back:NotRaw ~name:"tune"   (tune, unTune)   ~converter:Tune.Filter.text_formula_converter;
                 unary_raw  ~name:"key"    (key, unKey)     ~cast:(Music.key_of_string_opt, Music.key_to_string) ~type_:"key";
                 unary_lift ~name:"kind"   (kind, unKind)   ~converter:Kind.Version.Filter.text_formula_converter;
                 unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
@@ -90,5 +90,22 @@ module Lift
 
     let tuneIs = tune % Tune.Filter.is'
     let tuneIs' = Formula.pred % tuneIs
+
+    (* Little trick to convince OCaml that polymorphism is OK. *)
+    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+    let optimise =
+      let lift {op} f1 f2 = match (f1, f2) with
+        | (Tune f1, Tune f2) -> Option.some @@ tune (op f1 f2)
+        | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
+        | _ -> None
+      in
+      Formula.optimise
+        ~lift_and: (lift {op = Formula.and_})
+        ~lift_or: (lift {op = Formula.or_})
+        (function
+          | (Is _ as p) | (Key _ as p) | (Broken as p) -> p
+          | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
+          | Kind kfilter -> kind @@ Kind.Version.Filter.optimise kfilter)
   end
 end

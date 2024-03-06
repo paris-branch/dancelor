@@ -43,6 +43,8 @@ module Filter : sig
   val barsLt : int -> predicate
   val barsLe : int -> predicate
 
+  val baseIs : KindBase.t -> predicate
+
   type t = predicate Formula.t
   [@@deriving eq, show, yojson]
 
@@ -57,7 +59,11 @@ module Filter : sig
   val barsLt' : int -> t
   val barsLe' : int -> t
 
+  val baseIs' : KindBase.t -> t
+
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t
+
+  val optimise : t -> t
 end

@@ -90,6 +90,8 @@ module Filter = struct
   let unBarsLe = function BarsLe i -> Some i | _ -> None
   let unBase = function Base bf -> Some bf | _ -> None
 
+  let baseIs = base % KindBase.Filter.is'
+
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
 
@@ -101,6 +103,8 @@ module Filter = struct
   let barsLt' = Formula.pred % barsLt
   let barsLe' = Formula.pred % barsLe
   let base' = Formula.pred % base
+
+  let baseIs' = Formula.pred % baseIs
 
   let accepts filter kind =
     Formula.interpret filter @@ function
@@ -156,8 +160,8 @@ module Filter = struct
               unary_int ~name:"bars-ge" (barsGe, unBarsGe);
               unary_int ~name:"bars-lt" (barsLt, unBarsLt);
               unary_int ~name:"bars-le" (barsLe, unBarsLe);
-              unary_raw ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
-              unary_lift ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
+              unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
+              unary_lift ~wrap_back:NotPred ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
             ]
         )
         (
@@ -169,4 +173,20 @@ module Filter = struct
   let from_text_formula = TextFormula.to_formula text_formula_converter
   let from_string ?filename input =
     Result.bind (TextFormula.from_string ?filename input) from_text_formula
+
+  (* Little trick to convince OCaml that polymorphism is OK. *)
+  type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+  let optimise =
+    let lift {op} f1 f2 = match (f1, f2) with
+      | (Base f1, Base f2) -> Option.some @@ base (op f1 f2)
+      | _ -> None
+    in
+    Formula.optimise
+      ~lift_and: (lift {op = Formula.and_})
+      ~lift_or: (lift {op = Formula.or_})
+      (function
+        | (Is _ as p) | (BarsEq _ as p) | (BarsNe _ as p) | (BarsGt _ as p)
+        | (BarsGe _ as p) | (BarsLt _ as p) | (BarsLe _ as p) -> p
+        | Base bfilter -> base @@ KindBase.Filter.optimise bfilter)
 end

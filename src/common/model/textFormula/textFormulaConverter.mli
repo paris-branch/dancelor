@@ -37,19 +37,35 @@ val nullary : name:string -> 'p -> 'p case
     [":chocolat"] while a [nullary ~name:"banana" q] case will not apply to
     anything. *)
 
+type wrap_back =
+  | Always
+  | Never
+  | NotPred
+  | NotRaw
+  | Custom of (TextFormulaType.t -> TextFormulaType.t)
+
 val unary_string :
+  ?wrap_back: wrap_back ->
   name: string ->
   ((string -> 'p) * ('p -> string option)) ->
   'p case
-(** Make a case whose argument must be a string. *)
+(** Make a case whose argument must be a string.
+
+    The optional argument [?wrap_back] ([Always] by default) specifies whether,
+    when converting back to text formula, a unary text predicate should be used
+    to wrap the value. It can be useful to set it to [NotPred] when the unary
+    predicate is exactly the same as {!raw}. *)
 
 val unary_int :
+  ?wrap_back: wrap_back ->
   name: string ->
   ((int -> 'p) * ('p -> int option)) ->
   'p case
-(** Make a case whose argument must be an int. *)
+(** Make a case whose argument must be an int. See {!unary_string} for the
+    [?wrap_back] argument. *)
 
 val unary_raw :
+  ?wrap_back: wrap_back ->
   name: string ->
   cast: ((string -> 'i option) * ('i -> string)) ->
   type_: string ->
@@ -58,15 +74,18 @@ val unary_raw :
 (** Make a case whose argument must be raw. The raw string is then passed to
     [~cast] to convert it to an ['i]ntermediary value. If it fails, an error
     message is created using [~type_]. For instance, {!unary_int} is [unary_raw
-    ~cast:int_of_string_opt ~type_:"int"]. *)
+    ~cast:int_of_string_opt ~type_:"int"]. See {!unary_string} for the
+    [?wrap_back] argument. *)
 
 val unary_lift :
+  ?wrap_back: wrap_back ->
   name: string ->
   converter: 'i t ->
   (('i Formula.t -> 'p) * ('p -> 'i Formula.t option)) ->
   'p case
 (** Make a case that lifts other formulas. The argument is converted using the
-    [converter] and the result is passed to the given lifting function. *)
+    [converter] and the result is passed to the given lifting function. See
+    {!unary_string} for the [?wrap_back] argument. *)
 
 (** {2 Building} *)
 

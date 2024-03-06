@@ -64,7 +64,7 @@ module Lift
           [
             raw (Result.ok % nameMatches');
             unary_string ~name:"name"         (name, unName);
-            unary_string ~name:"name-matches" (nameMatches, unNameMatches);
+            unary_string ~wrap_back:Never ~name:"name-matches" (nameMatches, unNameMatches);
             unary_lift   ~name:"author"       (author, unAuthor)           ~converter:Person.Filter.text_formula_converter;
             unary_lift   ~name:"by"           (author, unAuthor)           ~converter:Person.Filter.text_formula_converter; (* alias for author; FIXME: make this clearer *)
             unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
@@ -85,5 +85,24 @@ module Lift
 
     let authorIs = author % Person.Filter.is'
     let authorIs' = Formula.pred % authorIs
+
+    (* Little trick to convince OCaml that polymorphism is OK. *)
+    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+
+    let optimise =
+      let lift {op} f1 f2 = match (f1, f2) with
+        | (Author f1, Author f2) -> Option.some @@ author (op f1 f2)
+        | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
+        | (ExistsDance f1, ExistsDance f2) -> Option.some @@ existsDance (op f1 f2)
+        | _ -> None
+      in
+      Formula.optimise
+        ~lift_and: (lift {op = Formula.and_})
+        ~lift_or: (lift {op = Formula.or_})
+        (function
+          | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+          | Author pfilter -> author @@ Person.Filter.optimise pfilter
+          | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
+          | ExistsDance dfilter -> existsDance @@ Dance.Filter.optimise dfilter)
   end
 end
