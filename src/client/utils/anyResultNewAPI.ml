@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
@@ -18,14 +19,21 @@ let clickable_row ~href =
       a_onclick
         (fun _ ->
            let open Js_of_ocaml in
-           Dom_html.window##.location##.href := Js.string href;
+           Dom_html.window##.location##.href := Js.string (S.value href);
            true
         );
     ]
 
+let s_for_option so f = match so with
+  | None -> S.const (f None)
+  | Some s -> S.map (f % Option.some) s
+
 let make_person_result ?context ~prefix person =
   clickable_row
-    ~href:(PageRouter.path_person ?context @@ Person.slug person)
+    ~href:(
+      s_for_option context @@ fun context ->
+      PageRouter.path_person ?context @@ Person.slug person
+    )
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name ~link:false (Some person));
@@ -34,7 +42,10 @@ let make_person_result ?context ~prefix person =
 
 let make_dance_result ?context ~prefix dance =
   clickable_row
-    ~href:(PageRouter.path_dance ?context @@ Dance.slug dance)
+    ~href:(
+      s_for_option context @@ fun context ->
+      PageRouter.path_dance ?context @@ Dance.slug dance
+    )
     (
       prefix @ [
         td [txt (Dance.name dance)];
@@ -45,7 +56,10 @@ let make_dance_result ?context ~prefix dance =
 
 let make_book_result ?context ~prefix book =
   clickable_row
-    ~href:(PageRouter.path_book ?context @@ Book.slug book)
+    ~href:(
+      s_for_option context @@ fun context ->
+      PageRouter.path_book ?context @@ Book.slug book
+    )
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Book.title_and_subtitle book);
@@ -54,7 +68,10 @@ let make_book_result ?context ~prefix book =
 
 let make_set_result ?context ~prefix set =
   clickable_row
-    ~href:(PageRouter.path_set ?context @@ Set.slug set)
+    ~href:(
+      s_for_option context @@ fun context ->
+      PageRouter.path_set ?context @@ Set.slug set
+    )
     (
       prefix @ [
         td [txt @@ Set.name set];
@@ -65,7 +82,10 @@ let make_set_result ?context ~prefix set =
 
 let make_tune_result ?context ~prefix tune =
   clickable_row
-    ~href:(PageRouter.path_tune ?context @@ Tune.slug tune)
+    ~href:(
+      s_for_option context @@ fun context ->
+      PageRouter.path_tune ?context @@ Tune.slug tune
+    )
     (
       prefix @ [
         td [txt @@ Tune.name tune];
@@ -76,7 +96,10 @@ let make_tune_result ?context ~prefix tune =
 
 let make_version_result ?context ~prefix version =
   clickable_row
-    ~href:(PageRouter.path_version ?context @@ Version.slug version)
+    ~href:(
+      s_for_option context @@ fun context ->
+      PageRouter.path_version ?context @@ Version.slug version
+    )
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);

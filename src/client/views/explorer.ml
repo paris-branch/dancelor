@@ -120,8 +120,8 @@ let create ?query page =
                 @@ fun (_, state) ->
                 match state with
                 | Results results ->
-                  let context = Option.map PageRouter.inSearch query in
-                  List.map Utils.AnyResultNewAPI.(make_result ?context) results
+                  let context = S.map PageRouter.inSearch @@ SearchBar.text search_bar in
+                  List.map Utils.AnyResultNewAPI.(make_result ~context) results
                 | _ -> []
               )
             ];
