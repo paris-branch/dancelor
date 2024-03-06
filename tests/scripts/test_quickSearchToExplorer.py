@@ -9,7 +9,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-class TestQuickSearchToComplexSearch():
+class TestQuickSearchToExplorer():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
@@ -21,7 +21,7 @@ class TestQuickSearchToComplexSearch():
   def teardown_method(self, method):
     self.driver.quit()
 
-  def test_quickSearchToComplexSearch(self):
+  def test_quickSearchToExplorer(self):
     self.driver.get("http://localhost:8080/")
     self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys("tam lin")
     self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys(Keys.ENTER)
