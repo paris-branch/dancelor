@@ -44,7 +44,7 @@ let create ?context slug page =
 
       Components.ContextLinks.make_and_render
         ?context
-        ~search: Search.search
+        ~search: Explorer.search
         (Lwt.map Any.tune tune_lwt);
 
       div ~a:[a_class ["section"]] [

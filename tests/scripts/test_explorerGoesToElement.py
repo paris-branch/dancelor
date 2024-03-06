@@ -9,7 +9,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-class TestQuickSearchToComplexSearch():
+class TestExplorerGoesToElement():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
@@ -21,9 +21,8 @@ class TestQuickSearchToComplexSearch():
   def teardown_method(self, method):
     self.driver.quit()
 
-  def test_quickSearchToComplexSearch(self):
-    self.driver.get("http://localhost:8080/")
-    self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys("tam lin")
-    self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys(Keys.ENTER)
-    self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, "h2"), "Search"))
-    # self.wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "input:nth-child(2)"), "tam lin"))
+  def test_explorerGoesToElement(self):
+    self.driver.get("http://localhost:8080/explore?q=%22tam%22")
+    self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(2) > td:nth-child(3)").click()
+    self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, ".title:nth-child(1)"), "Tam Lin Thrice"))
+    self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))

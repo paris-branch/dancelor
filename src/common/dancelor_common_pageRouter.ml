@@ -13,21 +13,17 @@ let inSearch query = InSearch query
 (** Existing pages in Dancelor's client. *)
 type page =
   | Index
-  | BookAll
   | BookCompose
   | BookEdit of BookCore.t Slug.t
   | Book of {slug: BookCore.t Slug.t; context: context option}
   | PersonAdd
   | Person of {slug: PersonCore.t Slug.t; context: context option}
   | Dance of {slug: DanceCore.t Slug.t; context: context option}
-  | Search of string option
-  | SetAll
+  | Explore of string option
   | SetCompose
   | Set of {slug: SetCore.t Slug.t; context: context option}
   | Tune of {slug: TuneCore.t Slug.t; context: context option}
   | VersionAdd
-  | VersionAll
-  | VersionBroken
   | Version of {slug : VersionCore.t Slug.t; context: context option}
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
@@ -39,7 +35,7 @@ let book ?context slug = Book {slug; context}
 let bookEdit slug = BookEdit slug
 let person ?context slug = Person {slug; context}
 let dance ?context slug = Dance {slug; context}
-let search q = Search q
+let explore q = Explore q
 let set ?context slug = Set {slug; context}
 let tune ?context slug = Tune {slug; context}
 let version ?context slug = Version {slug; context}
@@ -60,7 +56,6 @@ let routes =
      come after "/book/all", so as to avoid matching "all" as a slug. *)
   [
     direct    `GET "/"                Index ;
-    direct    `GET "/book/all"        BookAll ;
     direct    `GET "/book/compose"    BookCompose ;
     with_slug `GET "/book/edit"      (bookEdit, unBookEdit) ;
 
@@ -78,14 +73,13 @@ let routes =
       (fun slug query -> dance slug ?context:(context_of_query query))
       (function Dance {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
 
-    with_query `GET "/search"
-      (fun query -> search @@ MQ.get_string "q" query)
+    with_query `GET "/explore"
+      (fun query -> explore @@ MQ.get_string "q" query)
       (function
-        | Search None -> Some MQ.empty
-        | Search (Some q) -> Option.some @@ MQ.singleton "q" (`String q)
+        | Explore None -> Some MQ.empty
+        | Explore (Some q) -> Option.some @@ MQ.singleton "q" (`String q)
         | _ -> None) ;
 
-    direct    `GET "/set/all"         SetAll ;
     direct    `GET "/set/compose"     SetCompose ;
 
     with_slug_and_query `GET "/set"
@@ -97,8 +91,6 @@ let routes =
       (function Tune {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
 
     direct    `GET "/version/add"     VersionAdd ;
-    direct    `GET "/version/all"     VersionAll ;
-    direct    `GET "/version/broken"  VersionBroken ;
 
     with_slug_and_query `GET "/version"
       (fun slug query -> version slug ?context:(context_of_query query))
@@ -116,7 +108,7 @@ let path_book ?context slug = path @@ book ?context slug
 let path_bookEdit = path % bookEdit
 let path_person ?context slug = path @@ person ?context slug
 let path_dance ?context slug = path @@ dance ?context slug
-let path_search = path % search
+let path_explore = path % explore
 let path_set ?context slug = path @@ set ?context slug
 let path_tune ?context slug = path @@ tune ?context slug
 let path_version ?context slug = path @@ version ?context slug

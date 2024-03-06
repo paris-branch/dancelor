@@ -48,8 +48,8 @@ let create () =
     parameters_signal;
   }
 
-let render slug dialog =
-  ModalBox.make @@ fun handlers -> [
+let open_ slug dialog =
+  Dialog.open_ @@ fun return -> [
     h2 ~a:[a_class ["title"]] [txt "Download a PDF"];
 
     form [
@@ -60,9 +60,9 @@ let render slug dialog =
           a_class ["button"];
           a_target "_blank";
           R.a_href (S.map ApiRouter.(path % versionPdf slug) dialog.parameters_signal);
-          a_onclick (fun _ -> handlers.hide (); true);
+          a_onclick (fun _ -> return (); true);
         ] [txt "Download"];
     ];
   ]
 
-let create_and_render slug = render slug (create ())
+let create_and_open slug = open_ slug (create ())

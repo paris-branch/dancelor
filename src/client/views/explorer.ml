@@ -38,7 +38,7 @@ let create ?query page =
   let document = Elements.Page.document page in
   let content = Dom_html.createDiv document in
 
-  document##.title := js ("Search | Dancelor");
+  document##.title := js ("Explore | Dancelor");
 
   let open Dancelor_client_html in
 
@@ -52,7 +52,7 @@ let create ?query page =
 
   let search_bar =
     SearchBar.make
-      ~search:(fun pagination -> search ~pagination)
+      ~search:(fun pagination input -> search ~pagination input)
       ~pagination:(PageNav.pagination pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input: query
@@ -61,13 +61,33 @@ let create ?query page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [txt "Search"];
+      h2 ~a:[a_class ["title"]] [txt "Explore"];
 
       SearchBar.render
         ~placeholder:"Search for anything (it really is magic!)"
         ~autofocus:true
         ~on_input:update_uri
         search_bar;
+
+      div ~a:[a_class ["buttons"]] [
+        a
+          ~a:[
+            a_class ["button"];
+            a_onclick (fun _ ->
+                Lwt.async (fun () ->
+                    let search_text = S.value (SearchBar.text search_bar) in
+                    (* TODO: On return, add a space and focus the search bar. *)
+                    Fun.flip Lwt.map
+                      (SearchComplexFiltersDialog.open_ search_text)
+                      (Result.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
+                  );
+                false);
+          ]
+          [
+            i ~a:[a_class ["fas"; "fa-filter"]] [];
+            txt " Complex filter";
+          ]
+      ];
 
       R.div (
         Fun.flip S.map (SearchBar.state search_bar) @@ function

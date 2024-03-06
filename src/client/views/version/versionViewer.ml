@@ -37,8 +37,6 @@ let create ?context slug page =
 
   let open Dancelor_client_html in
 
-  let (download_dialog, download_dialog_handlers) = VersionDownloadDialog.create_and_render slug in
-
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Tune.name tune_lwt];
@@ -61,10 +59,8 @@ let create ?context slug page =
 
       Components.ContextLinks.make_and_render
         ?context
-        ~search: Search.search
+        ~search: Explorer.search
         (Lwt.map Any.version version_lwt);
-
-      download_dialog;
 
       div ~a:[a_class ["buttons"]] (
 
@@ -72,7 +68,7 @@ let create ?context slug page =
           a
             ~a:[
               a_class ["button"];
-              a_onclick (fun _ -> download_dialog_handlers.show (); false);
+              a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (VersionDownloadDialog.create_and_open slug)); false);
             ]
             [
               i ~a:[a_class ["fas"; "fa-file-pdf"]] [];

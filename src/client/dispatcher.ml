@@ -29,26 +29,18 @@ let dispatch url =
   match Option.get page with
   | PageRouter.Index ->
     pack (module Index) Index.create
-  | Search query ->
-    pack (module Search) (Search.create ?query)
+  | Explore query ->
+    pack (module Explorer) (Explorer.create ?query)
   | VersionAdd ->
     pack (module VersionEditorInterface) VersionEditorInterface.create
-  | VersionAll ->
-    pack (module VersionExplorer) VersionExplorer.create
-  | VersionBroken ->
-    pack (module VersionBrokenExplorer) VersionBrokenExplorer.create
   | Version {slug; context} ->
     pack (module VersionViewer) (VersionViewer.create slug ?context)
   | Tune {slug; context} ->
     pack (module TuneViewer) (TuneViewer.create slug ?context)
-  | SetAll ->
-    pack (module SetExplorer) SetExplorer.create
   | SetCompose ->
     pack (module SetEditorInterface) SetEditorInterface.create
   | Set {slug; context} ->
     pack (module SetViewer) (SetViewer.create slug ?context)
-  | BookAll ->
-    pack (module BookExplorer) BookExplorer.create
   | BookCompose ->
     pack (module BookEditorInterface) BookEditorInterface.create
   | BookEdit slug ->

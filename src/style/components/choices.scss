@@ -3,8 +3,8 @@
 
   label {
     display: inline-block;
-    padding: 0.8em 1.5em;
-    margin: 0.2em;
+    padding: 0.8em 1em; // horizontal padding a bit less than for a standalone button
+    margin: 0.2em 0.05em;
     cursor: pointer;
     border-radius: 0.25em;
     box-shadow:
@@ -29,7 +29,6 @@
   input:checked + label {
     background: $red;
     color: $white;
-    font-weight: bolder;
     &:hover {
       background: darken($red, 5%);
       color: darken($white, 5%);

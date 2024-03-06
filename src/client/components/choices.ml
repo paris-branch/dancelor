@@ -31,10 +31,11 @@ let render c = c.box
 
 let make_gen_unsafe ~radios choices =
   let name = unique () in
-  let (values, set_values) = S.create [] in
+  let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
+  let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
   let update_values () =
     let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
-    set_values @@ List.filter_map (fun choice -> if Js.to_bool (choice_inputElement choice)##.checked then Some choice.value else None) choices
+    set_values @@ gather_values_such_that @@ fun choice -> Js.to_bool (choice_inputElement choice)##.checked
   in
   let box =
     div

@@ -8,6 +8,8 @@ open Nes
 module S = struct
   include Lwt_react.S
 
+  let all (ss : 'a t list) : 'a list t = merge (Fun.flip List.cons) [] (List.rev ss)
+
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves, and changes every time [promise] resolves
       again after that. *)
@@ -78,6 +80,7 @@ module R = struct
   let a_class elts = R.a_class elts
   let a_style elts = R.a_style elts
   let a_href val_ = R.a_href val_
+  let a_value val_ = R.a_value val_
 
   let div ?a elts = R.div ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
