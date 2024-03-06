@@ -69,3 +69,10 @@ let map_snd f (x, y) = (x, f y)
 let map_pair f g (x, y) = (f x, g y)
 
 type ('a, 'b) either = [%import: ('a, 'b) Either.t]
+
+let rec fixpoint ?(eq=(=)) f x =
+  let y = f x in
+  if eq x y then
+    x
+  else
+    fixpoint ~eq f y

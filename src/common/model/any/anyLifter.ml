@@ -244,20 +244,23 @@ module Lift
         | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
         | _ -> None
       in
-      Formula.optimise
-        ~lift_and: (lift {op = Formula.and_})
-        ~lift_or: (lift {op = Formula.or_})
-        (function
-          | (Raw _ as p) | (Type _ as p) -> p
-          | Person pfilter -> person @@ Person.Filter.optimise pfilter
-          | Dance dfilter -> dance @@ Dance.Filter.optimise dfilter
-          | Book bfilter -> book @@ Book.Filter.optimise bfilter
-          | Set sfilter -> set @@ Set.Filter.optimise sfilter
-          | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
-          | Version vfilter -> version @@ Version.Filter.optimise vfilter)
-      (* FIXME: adding this [type_based_cleanup] here makes
-         [Any.Filter.optimise] non-idempotent. Sad times. *)
-      % type_based_cleanup
+      fixpoint
+        (
+          (* FIXME: Because of [type_based_cleanup], the following is not
+             idempotent. Hence the [fixpoint] above. *)
+          Formula.optimise
+            ~lift_and: (lift {op = Formula.and_})
+            ~lift_or: (lift {op = Formula.or_})
+            (function
+              | (Raw _ as p) | (Type _ as p) -> p
+              | Person pfilter -> person @@ Person.Filter.optimise pfilter
+              | Dance dfilter -> dance @@ Dance.Filter.optimise dfilter
+              | Book bfilter -> book @@ Book.Filter.optimise bfilter
+              | Set sfilter -> set @@ Set.Filter.optimise sfilter
+              | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
+              | Version vfilter -> version @@ Version.Filter.optimise vfilter)
+          % type_based_cleanup
+        )
 
     let to_pretty_string =
       let add_explicit_type = Formula.convert @@ function
