@@ -37,6 +37,20 @@ class TestContextLinks():
     self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(2) > td:nth-child(3)").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
+  def test_fromSet(self):
+    ## From the set “Tam Lin Thrice”, click on the second “Tam Lin” version and
+    ## check that the resulting URL contains the right context.
+    self.driver.get("http://localhost:8080/set/tam-lin-thrice")
+    self.driver.find_element(By.CSS_SELECTOR, ".image-container:nth-child(2) a").click()
+    self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InSet%22%2C%22tam-lin-thrice%22%2C1%5D"))
+
+  def test_fromBook(self):
+    ## From the book “The Tam Lin Book”, click on the set “Tam Lin Thrice” and
+    ## check that the resulting URL contains the right context.
+    self.driver.get("http://localhost:8080/book/the-tam-lin-book")
+    self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(1) > td:nth-child(2)").click()
+    self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InBook%22%2C%22the-tam-lin-book%22%2C0%5D"))
+
   def test_sideArrowGoesToNeighbour(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking on the arrow to the left goes to “The Tam Lin Book”.
