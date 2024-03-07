@@ -42,17 +42,18 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
       );
     ]
 
-let make_and_render ?context ~search any_lwt =
+let make_and_render ?context any_lwt =
   L.div (
     match context with
     | None -> Lwt.return_nil
     | Some ((PageRouter.InSearch query) as context) ->
-      let%lwt (total, scores) = Lwt.map Result.get_ok (search query) in
-      let scores = List.map Score.value scores in
       let%lwt any = any_lwt in
-      let (prev, i, _, next) = Option.get @@ List.findi_context (Any.equal any) scores in
+      (* TODO: Unify with [Explorer.search]. *)
+      let threshold = 0.4 in
+      let filter = Result.get_ok (Any.Filter.from_string query) in
+      let%lwt (total, prev, index, next) = Any.search_context ~threshold filter any in
       Lwt.return @@ List.filter_map Fun.id [
-        make_context_link ~context ~left:true ~neighbour:prev ~number_of_others:(i - 1);
-        make_context_link ~context ~left:false ~neighbour:next ~number_of_others:(total - i - 2);
+        make_context_link ~context ~left:true ~neighbour:prev ~number_of_others:(index - 1);
+        make_context_link ~context ~left:false ~neighbour:next ~number_of_others:(total - index - 2);
       ]
   );

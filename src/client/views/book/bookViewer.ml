@@ -151,7 +151,6 @@ let create ?context slug page =
 
       Components.ContextLinks.make_and_render
         ?context
-        ~search: Explorer.search
         (Lwt.map Any.book book_lwt);
 
       L.div (

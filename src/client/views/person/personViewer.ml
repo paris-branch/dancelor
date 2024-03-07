@@ -48,7 +48,6 @@ let create ?context slug page =
 
       Components.ContextLinks.make_and_render
         ?context
-        ~search: Explorer.search
         (Lwt.map Any.person person_lwt);
 
       div ~a:[a_class ["section"]] [

@@ -59,7 +59,6 @@ let create ?context slug page =
 
       Components.ContextLinks.make_and_render
         ?context
-        ~search: Explorer.search
         (Lwt.map Any.version version_lwt);
 
       div ~a:[a_class ["buttons"]] (

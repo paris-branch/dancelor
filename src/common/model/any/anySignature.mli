@@ -165,6 +165,16 @@ val search' :
   t Score.t list Lwt.t
 (** Like {!val-search} but returns only the list. *)
 
+val search_context :
+  ?threshold: float ->
+  Filter.t ->
+  t ->
+  (int * t option * int * t option) Lwt.t
+(** [search_context ?threshold filter elt] is equivalent to running [search
+    ?threshold filter], looking for [elt] in the resulting list and returning
+    the total number of elements, the element before [elt], the index of [elt],
+    and the element after [elt], but it does this much more efficiently. *)
+
 val count :
   ?threshold:float ->
   Filter.t ->
