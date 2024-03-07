@@ -42,6 +42,10 @@ module Lift
          Slug.equal' slug1 slug2)
       set.versions_and_parameters
 
+  let find_context index set =
+    let%lwt versions = Lwt.map (List.map fst) @@ versions_and_parameters set in
+    Lwt.return @@ List.findi_context (fun i _ -> i = index) versions
+
   let lilypond_content_cache_key set =
     let%lwt versions_and_parameters = versions_and_parameters set in
     let versions = List.map fst versions_and_parameters in

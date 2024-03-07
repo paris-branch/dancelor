@@ -26,6 +26,11 @@ let create ?context slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_set slug)
+        (Lwt.map Any.set set_lwt);
+
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Set.name set_lwt];
       L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3 ~a:[a_class ["title"]] [
@@ -38,11 +43,6 @@ let create ?context slug page =
         | None -> Lwt.return_nil
         | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        ~search: Explorer.search
-        (Lwt.map Any.set set_lwt);
 
       div ~a:[a_class ["buttons"]] [
         a
@@ -68,8 +68,9 @@ let create ?context slug page =
           let%lwt set = set_lwt in
           let%lwt versions_and_parameters = Set.versions_and_parameters set in
 
-          Lwt_list.map_p
-            (fun (version, _parameters) ->
+          Lwt_list.mapi_p
+            (fun index (version, _parameters) ->
+               let context = PageRouter.inSet slug index in
                (* FIXME: use parameters *)
                let%lwt tune = Version.tune version in
                let slug = Version.slug version in
@@ -77,7 +78,7 @@ let create ?context slug page =
                Lwt.return (
                  div ~a:[a_class ["image-container"]]
                    [
-                     h4 [a ~a:[a_href PageRouter.(path_version slug)] [txt @@ Tune.name tune]];
+                     h4 [a ~a:[a_href PageRouter.(path_version ~context slug)] [txt @@ Tune.name tune]];
 
                      object_ ~a:[
                        a_mime_type "image/svg+xml";

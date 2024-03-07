@@ -39,6 +39,11 @@ let create ?context slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_version slug)
+        (Lwt.map Any.version version_lwt);
+
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Tune.name tune_lwt];
       L.h3 ~a:[a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
@@ -56,11 +61,6 @@ let create ?context slug page =
             ]
           ]
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        ~search: Explorer.search
-        (Lwt.map Any.version version_lwt);
 
       div ~a:[a_class ["buttons"]] (
 

@@ -14,4 +14,6 @@
  (name dancelor_common_pageRouter)
  (modules dancelor_common_pageRouter)
  (public_name dancelor.common.page-router)
- (libraries dancelor.nes dancelor.common.model))
+ (libraries dancelor.nes dancelor.common.model)
+ (preprocess
+  (pps ppx_deriving_yojson)))

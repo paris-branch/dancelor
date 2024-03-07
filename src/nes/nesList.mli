@@ -40,9 +40,25 @@ val hd_opt : 'a t -> 'a option
 val hd_tl : 'a list -> 'a * 'a list
 (** Pair of {!hd} and {!tl}. @raise Failure if the list is empty. *)
 
-val findi_context : ('a -> bool) -> 'a t -> ('a option * int * 'a * 'a option) option
-(** Finds the given element and return it as well as the one before and the one
-    after. *)
+(** {4 Contexts} *)
+
+type 'a context = {
+  element : 'a;
+  index : int;
+  previous : 'a option;
+  next : 'a option;
+  total : int;
+}
+(** The context of an element *)
+
+val find_context : ('a -> bool) -> 'a t -> 'a context option
+(** Finds the given element and return it and its context. *)
+
+val findi_context : (int -> 'a -> bool) -> 'a t -> 'a context option
+(** Same as {!find_context} but also provides the index in the test. *)
+
+val map_context : ('a -> 'b) -> 'a context -> 'b context
+(** Maps the given function on all the elements of the context. *)
 
 (** {4 Bodies and feet} *)
 
@@ -88,3 +104,6 @@ val snoc : 'a list -> 'a -> 'a list
 val all_some : 'a option list -> 'a list option
 (** Return [Some] if all the elements of the list are of the form [Some x], or
     [None] if at least one element is [None]. *)
+
+val apply : ('a -> 'b) list -> 'a -> 'b list
+(** [apply \[f1; f2; f3\] x = \[f1 x; f2 x; f3 x\]]. *)

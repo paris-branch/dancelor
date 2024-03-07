@@ -6,6 +6,87 @@ open Js_of_ocaml_lwt
 module PageRouter = Dancelor_common_pageRouter
 module Utils = Dancelor_client_utils
 
+let book_page_to_any = function
+  | Book.Set (set, _) -> Any.Set set
+  | Version (version, _) -> Any.Version version
+  | InlineSet _ -> assert false
+
+(** Given an element and a context, find the total number of elements, the
+    previous element, the index of the given element and the next element. *)
+let get_neighbours any = function
+  | PageRouter.InSearch query ->
+    (* TODO: Unify with [Explorer.search]. *)
+    let threshold = 0.4 in
+    let filter = Result.get_ok (Any.Filter.from_string query) in
+    let%lwt (total, previous, index, next) = Any.search_context ~threshold filter any in
+    Lwt.return List.{total; previous; index; next; element = any}
+  | PageRouter.InSet (set, index) ->
+    let%lwt set = Set.get set in
+    let%lwt context = Lwt.map Option.get @@ Set.find_context index set in
+    assert (any = Any.Version context.element);
+    Lwt.return @@ List.map_context Any.version context
+  | PageRouter.InBook (book, index) ->
+    let%lwt book = Book.get book in
+    let%lwt context =
+      Lwt.map (List.map_context book_page_to_any % Option.get)
+      @@ Book.find_context_no_inline index book
+    in
+    Lwt.return context
+
+let make_context_link_banner ~context ~this_page =
+  let parent_href = let open PageRouter in match context with
+    | InSearch query -> path_explore (Some query)
+    | InSet (slug, _) -> path_set slug
+    | InBook (slug, _) -> path_book slug
+  in
+  let parent_a ?a:(as_=[]) content =
+    a ~a:(a_href parent_href :: as_) content
+  in
+  div
+    ~a:[
+      a_class ["context-links"; "context-links-banner"]
+    ]
+    (
+      (
+        let open PageRouter in match context with
+        | InSearch query ->
+          [
+            txt "In search for: ";
+            parent_a [txt query];
+          ]
+        | InSet (slug, _) ->
+          [
+            txt "In set: ";
+            parent_a [L.txt (Lwt.map Set.name @@ Set.get slug)];
+          ]
+        | InBook (slug, _) ->
+          [
+            txt "In book: ";
+            parent_a [L.txt (Lwt.map Book.title @@ Book.get slug)];
+          ]
+      )
+      @ [
+        div ~a:[a_class ["context-links-actions"]] [
+          parent_a
+            ~a:[
+              a_class ["context-links-action"];
+              a_title "Return to the parent of this page.";
+            ]
+            [txt "▴"];
+          a
+            ~a:[
+              a_class ["context-links-action"];
+              a_href this_page;
+              a_title "Reload the current page without the context. This \
+                       will get rid of this banner and of the side links.";
+            ]
+            [txt "⨉"];
+          div ~a:[a_class ["context-links-aligner"]] [];
+        ];
+        div ~a:[a_class ["context-links-aligner"]] [];
+      ]
+    )
+
 let register_body_keydown_listener f =
   let rec body_keydown_listener () =
     Lwt_js_events.keydowns Dom_html.document##.body @@ fun ev _thread ->
@@ -14,105 +95,47 @@ let register_body_keydown_listener f =
   in
   Lwt.async body_keydown_listener
 
-type swipe_direction = Up | Down | Left | Right
-
-(* REVIEW: This first version seems a bit buggy. Sometimes, the `touches_0`
-   variable gets a “TypeError: touches_0 is null” in the
-   `body_touchend_listener`, killing the async thread. I feel that I am handling
-   them correctly with `Js.Optdef.to_option` so I would bet on a bug of
-   Js_of_ocaml? We should try again with a more recent version. *)
-let register_body_swipe_listener f =
-  (* Helper to get touch info. JS equivalent of `e.touches[0]`. *)
-  let touches_0 ev = Js.Optdef.to_option (ev##.touches##item 0) in
-  (* Helper to decide whether something is indeed a swipe. *)
-  let detect_swipe duration move_x move_y =
-    let duration_threshold = 0.5 in
-    let move_threshold = 100 in
-    if duration <= duration_threshold then
-      (
-        if move_x >= move_threshold then
-          Some Right
-        else if move_x <= - move_threshold then
-          Some Left
-        else if move_y >= move_threshold then
-          Some Down
-        else if move_y <= - move_threshold then
-          Some Up
-        else
-          None
-      )
-    else
-      None
-  in
-  (* Keep listeners in the background listening to touchstarts. *)
-  let start_time = ref min_float in
-  let start_x = ref 0 in
-  let start_y = ref 0 in
-  let rec body_touchstart_listener () =
-    let%lwt ev = Lwt_js_events.touchstart Dom_html.document##.body in
-    Fun.flip Option.iter (touches_0 ev) (fun touches_0 ->
-        start_x := touches_0##.clientX;
-        start_y := touches_0##.clientY;
-        start_time := Unix.gettimeofday ()
-      );
-    body_touchstart_listener ()
-  in
-  (* And now touchends *)
-  let rec body_touchend_listener () =
-    let%lwt ev = Lwt_js_events.touchend Dom_html.document##.body in
-    Fun.flip Option.iter (touches_0 ev) (fun touches_0 ->
-        let end_x = touches_0##.clientX in
-        let end_y = touches_0##.clientY in
-        let end_time = Unix.gettimeofday () in
-        Option.iter f (detect_swipe (end_time -. !start_time) (end_x - !start_x) (end_y - !start_y));
-      );
-    body_touchend_listener ()
-  in
-  Lwt.async body_touchstart_listener;
-  Lwt.async body_touchend_listener
+let neighbour_context ~left = function
+  | PageRouter.InSearch query -> PageRouter.InSearch query
+  | PageRouter.InSet (slug, index) -> PageRouter.InSet (slug, index + if left then (-1) else 1)
+  | PageRouter.InBook (slug, index) -> PageRouter.InBook (slug, index + if left then (-1) else 1)
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
-  let href = PageRouter.path_any ~context neighbour in
+  let href = PageRouter.path_any ~context:(neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
       if ev##.keyCode = (if left then 37 else 39) then
-        Dom_html.window##.location##.href := Js.string href);
-  register_body_swipe_listener (fun dir ->
-      if dir = (if left then Right else Left) then
         Dom_html.window##.location##.href := Js.string href);
   a
     ~a:[
       a_href href;
-      a_class ["context-link"; (if left then "context-link-left" else "context-link-right")];
+      a_class ["context-links"; (if left then "context-links-left" else "context-links-right")];
     ]
     [
-      div ~a:[a_class ["context-link-aligner"]] [];
-      let context_repr = match context with
-        | InSearch query -> [[txt "In search for"]; [txt query]]
-      in
+      div ~a:[a_class ["context-links-aligner"]] [];
       let element_repr = [
         [txt Any.(Type.to_string (type_of neighbour))];
         [L.txt @@ Any.name neighbour];
       ] @ (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
       in
       div (
-        List.map (div ~a:[a_class ["context-link-detail"]]) context_repr
-        @ [div ~a:[a_class ["context-link-main"]] [txt @@ if left then "‹" else "›"]]
-        @ List.map (div ~a:[a_class ["context-link-detail"]]) element_repr
+        (div ~a:[a_class ["context-links-main"]] [txt @@ if left then "‹" else "›"])
+        :: List.map (div ~a:[a_class ["context-links-details"]]) element_repr
       );
     ]
 
-let make_and_render ?context ~search any_lwt =
-  L.div (
-    match context with
-    | None -> Lwt.return_nil
-    | Some ((PageRouter.InSearch query) as context) ->
-      let%lwt (total, scores) = Lwt.map Result.get_ok (search query) in
-      let scores = List.map Score.value scores in
+let make_and_render ?context ~this_page any_lwt =
+  match context with
+  | None -> div []
+  | Some context ->
+    L.div (
       let%lwt any = any_lwt in
-      let (prev, i, _, next) = Option.get @@ List.findi_context (Any.equal any) scores in
+      let%lwt {total; previous; index; next; _} = get_neighbours any context in
       Lwt.return @@ List.filter_map Fun.id [
-        make_context_link ~context ~left:true ~neighbour:prev ~number_of_others:(i - 1);
-        make_context_link ~context ~left:false ~neighbour:next ~number_of_others:(total - i - 2);
+        make_context_link ~context ~left:true ~neighbour:previous ~number_of_others:(index - 1);
+        make_context_link ~context ~left:false ~neighbour:next ~number_of_others:(total - index - 2);
+        (* The banner must be placed after the side-links so as to be appear on
+           top in the HTML rendering. *)
+        Some (make_context_link_banner ~context ~this_page);
       ]
-  );
+    );

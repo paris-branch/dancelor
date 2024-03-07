@@ -31,3 +31,6 @@ val concat_l : ('a -> 'a -> 'a) -> 'a option list -> 'a option
 
 val return : 'a -> 'a option
 (** Same as {!some}. *)
+
+val first : 'a option list -> 'a option
+(** Return the first element of the list that is not [None]. *)

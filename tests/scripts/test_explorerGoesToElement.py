@@ -24,5 +24,5 @@ class TestExplorerGoesToElement():
   def test_explorerGoesToElement(self):
     self.driver.get("http://localhost:8080/explore?q=%22tam%22")
     self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(2) > td:nth-child(3)").click()
-    self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, ".title:nth-child(1)"), "Tam Lin Thrice"))
+    self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, ".title:nth-child(2)"), "Tam Lin Thrice"))
     self.wait.until(EC.title_is("Tam Lin Thrice | Set | Dancelor"))

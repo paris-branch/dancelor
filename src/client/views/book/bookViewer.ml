@@ -65,7 +65,7 @@ let display_warnings warnings =
   in
   List.map display_warning warnings
 
-let table_contents contents =
+let table_contents ~this_slug contents =
   let open Dancelor_client_html in
   tablex
     ~a:[a_class ["separated-table"]]
@@ -81,39 +81,41 @@ let table_contents contents =
     [
       L.tbody (
         let%lwt contents = contents in
-        List.map
-          (function
-            | Book.Set (set, parameters) ->
-              (
-                let href = PageRouter.path_set @@ Set.slug set in
-                Dancelor_client_tables.clickable_row ~href [
-                  Lwt.return [txt "Set"];
-                  (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
-                  Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
-                ]
-              )
+        List.mapi
+          (fun index page ->
+             let context = PageRouter.inBook this_slug index in
+             match page with
+             | Book.Set (set, parameters) ->
+               (
+                 let href = PageRouter.path_set ~context @@ Set.slug set in
+                 Dancelor_client_tables.clickable_row ~href [
+                   Lwt.return [txt "Set"];
+                   (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
+                   Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
+                 ]
+               )
 
-            | InlineSet (set, parameters) ->
-              (
-                tr [
-                  td [txt "Set (inline)"];
-                  L.td (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
-                  td [txt @@ Kind.Dance.to_string @@ Set.kind set];
-                ]
-              )
+             | InlineSet (set, parameters) ->
+               (
+                 tr [
+                   td [txt "Set (inline)"];
+                   L.td (Formatters.Set.name_tunes_and_dance ~link:false set parameters);
+                   td [txt @@ Kind.Dance.to_string @@ Set.kind set];
+                 ]
+               )
 
-            | Version (version, parameters) ->
-              (
-                let href = PageRouter.path_version @@ Version.slug version in
-                Dancelor_client_tables.clickable_row ~href [
-                  Lwt.return [txt "Tune"];
-                  (Formatters.Version.name_and_dance ~link:false version parameters);
-                  Lwt.return [L.txt (
-                      let%lwt tune = Version.tune version in
-                      Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
-                    )];
-                ]
-              )
+             | Version (version, parameters) ->
+               (
+                 let href = PageRouter.path_version ~context @@ Version.slug version in
+                 Dancelor_client_tables.clickable_row ~href [
+                   Lwt.return [txt "Tune"];
+                   (Formatters.Version.name_and_dance ~link:false version parameters);
+                   Lwt.return [L.txt (
+                       let%lwt tune = Version.tune version in
+                       Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
+                     )];
+                 ]
+               )
           )
           contents
         |> Lwt.return
@@ -133,6 +135,11 @@ let create ?context slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_book slug)
+        (Lwt.map Any.book book_lwt);
+
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.title book_lwt];
       h3 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
       L.div (
@@ -148,11 +155,6 @@ let create ?context slug page =
             ]
           ]
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        ~search: Explorer.search
-        (Lwt.map Any.book book_lwt);
 
       L.div (
         match%lwt book_lwt >>=| Book.warnings with
@@ -193,7 +195,9 @@ let create ?context slug page =
       div ~a:[a_class ["section"]] [
         h3 [txt "Contents"];
 
-        table_contents (Lwt.bind book_lwt Book.contents)
+        table_contents
+          ~this_slug: slug
+          (Lwt.bind book_lwt Book.contents);
       ];
     ]);
 

@@ -7,8 +7,16 @@ open Dancelor_common_model
     to simply use [page] here, having pages carry a “parent” [page option]. *)
 type context =
   | InSearch of string
+  | InSet of SetCore.t Slug.t * int
+  | InBook of BookCore.t Slug.t * int
+[@@deriving yojson]
 
 let inSearch query = InSearch query
+let inSet slug index = InSet (slug, index)
+let inBook slug index = InBook (slug, index)
+
+let inSet' = inSet % Slug.unsafe_of_string
+let inBook' = inBook % Slug.unsafe_of_string
 
 (** Existing pages in Dancelor's client. *)
 type page =
@@ -45,10 +53,8 @@ let unBookEdit = function BookEdit slug -> Some slug | _ -> None
 open Madge_router
 module MQ = Madge_query
 
-let context_of_query = Option.map inSearch % MQ.get_string "in-search"
-let context_to_query = function
-  | None -> MQ.empty
-  | Some (InSearch query) -> MQ.singleton "in-search" (`String query)
+let context_of_query = MQ.get_ "context" context_of_yojson
+let context_to_query = Option.fold ~none:MQ.empty ~some:(MQ.singleton "context" % context_to_yojson)
 
 let routes =
   (* NOTE: It is important that [with_slug] instances come after more specific

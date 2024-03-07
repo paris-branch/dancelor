@@ -26,6 +26,11 @@ let create ?context slug page =
   (
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_dance slug)
+        (Lwt.map Any.dance dance_lwt);
+
       h2 ~a:[a_class ["title"]] [
         L.txt (Lwt.map Dance.name dance_lwt);
       ];
@@ -57,11 +62,6 @@ let create ?context slug page =
             ]
           ]
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        ~search: Explorer.search
-        (Lwt.map Any.dance dance_lwt);
 
       div ~a:[a_class ["section"]] [
         h3 [txt "Recommended Tunes"];
