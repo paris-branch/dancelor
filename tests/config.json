@@ -4,7 +4,7 @@
   "cache": "cache",
   "database": "tests/database",
   "share": "_build/install/default/share/dancelor",
-  "loglevel": "debug",
+  "loglevel": "warning",
   "routines": "false",
   "heavy_routines": "false",
   "sync_storage": "false",
