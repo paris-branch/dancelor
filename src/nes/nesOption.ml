@@ -26,3 +26,8 @@ let concat conc o1 o2 =
 let concat_l conc = List.fold_left (concat conc) None
 
 let return = some
+
+let rec first = function
+  | [] -> None
+  | (Some x) :: _ -> Some x
+  | _ :: xs -> first xs

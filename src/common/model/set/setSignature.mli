@@ -20,6 +20,10 @@ val created_at : t -> Datetime.t
 val contains_version : VersionCore.t Slug.t -> t -> bool
 (** REVIEW: This really takes a slug? *)
 
+val find_context : int -> t -> VersionCore.t List.context option Lwt.t
+(** Given an indice and a set, find the context around that indice in the
+    set. *)
+
 val compare : t -> t -> int
 val equal : t -> t -> bool
 

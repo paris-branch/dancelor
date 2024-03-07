@@ -46,10 +46,11 @@ let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
 
 let search_context ?threshold filter element =
-  let%lwt (total, results) = search ?threshold filter in
+  let%lwt results = search' ?threshold filter in
   let results = List.map Common.Model.Score.value results in
-  let (prev, index, _, next) = Option.get @@ List.findi_context (equal element) results in
-  Lwt.return (total, prev, index, next)
+  let List.{total; previous; index; next; _} = Option.get @@ List.find_context (equal element) results in
+  (* TODO: Return the context directly. *)
+  Lwt.return (total, previous, index, next)
 
 let () =
   Madge_server.(

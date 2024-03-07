@@ -156,15 +156,36 @@ let sort_uniq_lwt compare l =
 
 let snoc l x = l @ [x]
 
+type 'a context = {
+  element : 'a;
+  index : int;
+  previous : 'a option;
+  next : 'a option;
+  total : int;
+}
+
 let findi_context p l =
-  let rec findi_context prev i = function
+  let rec findi_context previous index = function
     | [] -> None
-    | x :: l when p x -> Some (prev, i, x, hd_opt l)
-    | x :: l -> findi_context (Some x) (i + 1) l
+    | element :: l when p index element ->
+      Some {element; previous; index; next = hd_opt l; total = 1 + index + length l}
+    | x :: l -> findi_context (Some x) (index + 1) l
   in
   findi_context None 0 l
+
+let find_context p = findi_context (Fun.const p)
+
+let map_context f c = {
+  element = f c.element;
+  index = c.index;
+  previous = Option.map f c.previous;
+  next = Option.map f c.next;
+  total = c.total;
+}
 
 let all_some l =
   match partition_map (function Some x -> Left x | _ -> Right ()) l with
   | (l, []) -> Some l
   | _ -> None
+
+let apply fs x = List.map (fun f -> f x) fs

@@ -67,6 +67,15 @@ module Lift
         | Version _ -> Lwt.return_none)
       contents
 
+  let isInlineSet = function
+    | InlineSet _ -> true
+    | _ -> false
+
+  let find_context_no_inline index set =
+    let%lwt contents = contents set in
+    let contents_no_inline = List.filter (not % isInlineSet) contents in
+    Lwt.return @@ List.findi_context (fun i _ -> i = index) contents_no_inline
+
   let lilypond_contents_cache_key book =
     let%lwt pages = contents book in
     let%lwt contents = Lwt_list.map_p

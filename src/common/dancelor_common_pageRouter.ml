@@ -7,9 +7,16 @@ open Dancelor_common_model
     to simply use [page] here, having pages carry a “parent” [page option]. *)
 type context =
   | InSearch of string
+  | InSet of SetCore.t Slug.t * int
+  | InBook of BookCore.t Slug.t * int
 [@@deriving yojson]
 
 let inSearch query = InSearch query
+let inSet slug index = InSet (slug, index)
+let inBook slug index = InBook (slug, index)
+
+let inSet' = inSet % Slug.unsafe_of_string
+let inBook' = inBook % Slug.unsafe_of_string
 
 (** Existing pages in Dancelor's client. *)
 type page =

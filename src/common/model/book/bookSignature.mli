@@ -54,6 +54,11 @@ val unique_sets_from_contents : t -> SetCore.t list Lwt.t
 val sets_and_parameters_from_contents : t -> (SetCore.t * SetParameters.t) list Lwt.t
 (** Same as {!sets_from_contents} but also includes parameters. *)
 
+val find_context_no_inline : int -> t -> page List.context option Lwt.t
+(** Given an indice and a book, find the context around that indice in the book.
+    Ignores the [InlineSet] pages, both in the given indice and the resulting
+    context. *)
+
 (** {2 Utilities} *)
 
 val contains_set : SetCore.t Slug.t -> t -> bool

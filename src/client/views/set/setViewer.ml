@@ -68,8 +68,9 @@ let create ?context slug page =
           let%lwt set = set_lwt in
           let%lwt versions_and_parameters = Set.versions_and_parameters set in
 
-          Lwt_list.map_p
-            (fun (version, _parameters) ->
+          Lwt_list.mapi_p
+            (fun index (version, _parameters) ->
+               let context = PageRouter.inSet slug index in
                (* FIXME: use parameters *)
                let%lwt tune = Version.tune version in
                let slug = Version.slug version in
@@ -77,7 +78,7 @@ let create ?context slug page =
                Lwt.return (
                  div ~a:[a_class ["image-container"]]
                    [
-                     h4 [a ~a:[a_href PageRouter.(path_version slug)] [txt @@ Tune.name tune]];
+                     h4 [a ~a:[a_href PageRouter.(path_version ~context slug)] [txt @@ Tune.name tune]];
 
                      object_ ~a:[
                        a_mime_type "image/svg+xml";
