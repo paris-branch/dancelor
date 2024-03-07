@@ -50,3 +50,17 @@ class TestContextLinks():
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?in-search=%22tam%22")
     self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.LEFT)
     self.wait.until(EC.url_to_be("http://localhost:8080/book/the-tam-lin-book?in-search=%22tam%22"))
+
+  def test_bannerUpwardsTriangleGoesToContext(self):
+    ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
+    ## that clicking the banner's upwards triangle goes back to the explorer.
+    self.driver.get("http://localhost:8080/set/tam-lin-thrice?in-search=%22tam%22")
+    self.driver.find_element(By.LINK_TEXT, "▴").click()
+    self.wait.until(EC.url_to_be("http://localhost:8080/explore?q=%22tam%22"))
+
+  def test_bannerCrossRemovesContext(self):
+    ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
+    ## that clicking the banner's cross removes the context.
+    self.driver.get("http://localhost:8080/set/tam-lin-thrice?in-search=%22tam%22")
+    self.driver.find_element(By.LINK_TEXT, "⨉").click()
+    self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice"))
