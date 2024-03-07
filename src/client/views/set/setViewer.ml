@@ -26,6 +26,11 @@ let create ?context slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_set slug)
+        (Lwt.map Any.set set_lwt);
+
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Set.name set_lwt];
       L.h3 ~a:[a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3 ~a:[a_class ["title"]] [
@@ -38,10 +43,6 @@ let create ?context slug page =
         | None -> Lwt.return_nil
         | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        (Lwt.map Any.set set_lwt);
 
       div ~a:[a_class ["buttons"]] [
         a

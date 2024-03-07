@@ -25,6 +25,11 @@ let create ?context slug page =
   (
     let open Dancelor_client_html in
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_tune slug)
+        (Lwt.map Any.tune tune_lwt);
+
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Tune.name tune_lwt];
       L.h3 ~a:[a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
@@ -41,10 +46,6 @@ let create ?context slug page =
             ]
           ]
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        (Lwt.map Any.tune tune_lwt);
 
       div ~a:[a_class ["section"]] [
         h3 [txt "Versions of This Tune"];
@@ -66,12 +67,6 @@ let create ?context slug page =
         h3 [txt "Dances That Recommend This Tune"];
 
         L.div (
-          (* FIXME: What the heck is this? *)
-          let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
-          let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
-          Dom.appendChild none_maybe none;
-          Dom.appendChild content none_maybe;
-
           let%lwt tune = tune_lwt in
           let%lwt dances = Tune.dances tune in
 
@@ -88,12 +83,6 @@ let create ?context slug page =
         h3 [txt "Sets in Which This Tune Appears"];
 
         L.div (
-          (* FIXME: What the heck is this? *)
-          let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
-          let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
-          Dom.appendChild none_maybe none;
-          Dom.appendChild content none_maybe;
-
           let sets_lwt =
             let%lwt tune = tune_lwt in
             let filter = Set.Filter.existsVersion' (Version.Filter.tuneIs' tune) in

@@ -1,4 +1,5 @@
-.context-link {
+.context-links-left,
+.context-links-right {
   /* Positioning: fixed taking the whole height */
   position: fixed;
   top: 0;
@@ -26,26 +27,80 @@
     display: inline-block;
     vertical-align: middle;
   }
-  > .context-link-aligner {
-    width: 0;
-    height: 100%;
-  }
 
   /* Size of elements: a big arrow and tiny text */
-  .context-link-main {
+  .context-links-main {
     font-size: 10rem;
     margin-top: -3rem;
     margin-bottom: -1.5rem;
   }
-  .context-link-detail {
+  .context-links-details {
     font-size: 0.7rem;
   }
 }
 
 /* Specifities of the left/right one */
-.context-link-left {
+.context-links-left {
   left: 0;
 }
-.context-link-right {
+.context-links-right {
   right: 0;
+}
+
+.context-links-banner {
+  margin-top: -20px; // compensate for header's margin
+  margin-bottom: 20px;
+  display: block;
+
+  height: 100%;
+  text-align: center;
+  height: 3rem;
+  background: lightgray;
+  opacity: 75%;
+
+  /* Vertical alignment of contents */
+  > * {
+    display: inline-block;
+    vertical-align: baseline;
+  }
+
+  /* For positioning of actions */
+  position: relative;
+
+  .context-links-actions {
+    position: absolute;
+    right: 20px;
+    height: 100%;
+    font-size: 28px;
+    font-weight: bold;
+
+    /* Vertical alignment of actions */
+    > * {
+      display: inline-block;
+      vertical-align: baseline;
+    }
+
+    .context-links-action {
+      color: #aaa;
+      margin-left: 10px;
+      &:hover {
+        color: $black;
+      }
+      transition: 0.5s;
+    }
+  }
+}
+
+.context-links-aligner {
+  width: 0;
+  height: 100%;
+
+  /* The baseline of an inline-block element is the baseline of its last line box
+   * in the normal flow [...] so we affect the baseline of `&` by adding a
+   * pseudo-element of the right height. */
+  &::before {
+    content: "";
+    display: inline-block;
+    height: calc(65%);
+  }
 }

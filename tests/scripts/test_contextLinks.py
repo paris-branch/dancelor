@@ -41,7 +41,7 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking on the arrow to the left goes to “The Tam Lin Book”.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?in-search=%22tam%22")
-    self.driver.find_element(By.CSS_SELECTOR, ".context-link-left .context-link-main").click()
+    self.driver.find_element(By.CSS_SELECTOR, ".context-links-left .context-links-main").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/book/the-tam-lin-book?in-search=%22tam%22"))
 
   def test_keyGoesToNeighbour(self):

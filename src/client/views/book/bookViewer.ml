@@ -133,6 +133,11 @@ let create ?context slug page =
 
   (
     Dom.appendChild content @@ To_dom.of_div @@ div [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (PageRouter.path_book slug)
+        (Lwt.map Any.book book_lwt);
+
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.title book_lwt];
       h3 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
       L.div (
@@ -148,10 +153,6 @@ let create ?context slug page =
             ]
           ]
       );
-
-      Components.ContextLinks.make_and_render
-        ?context
-        (Lwt.map Any.book book_lwt);
 
       L.div (
         match%lwt book_lwt >>=| Book.warnings with
