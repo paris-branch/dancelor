@@ -97,8 +97,7 @@ let create ?context slug page =
         L.div (
           let books_lwt =
             let%lwt set = set_lwt in
-            let filter = Book.Filter.memSet' set in
-            Book.search' filter >|=| Score.list_erase
+            Book.search' @@ Book.Filter.memSet' set
           in
           let%lwt books = books_lwt in
 

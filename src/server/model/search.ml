@@ -18,6 +18,7 @@ let search
     >>=| Score.lwt_map_from_list (scoring_function filter)
     >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
     >>=| (Score.list_proj_sort_decreasing tiebreakers)
+    >>=| (Lwt.return % Score.list_erase)
   in
   Lwt.return (
     List.length results,

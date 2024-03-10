@@ -93,10 +93,8 @@ let make_version_result ~prefix page version =
   in
   Lwt.return (Table.Row.create ~href ~cells page)
 
-let make_result page score =
-  let any = Score.value score in
+let make_result page any =
   let prefix = [
-    Table.Cell.text ~text:(Lwt.return (Score.score_to_string score)) page ;
     Table.Cell.text ~text:(Lwt.return (any |> Any.type_of |> Any.Type.to_string)) page ;
   ]
   in

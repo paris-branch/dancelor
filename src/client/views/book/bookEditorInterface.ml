@@ -85,14 +85,12 @@ let clickable_row editor page set =
         );
     ]
 
-let make_set_result editor page score =
+let make_set_result editor page set =
   let open Dancelor_client_html in
-  let set = Score.value score in
   clickable_row
     editor page set
     (
       [
-        td [txt (Score.score_to_string score)];
         td [txt (Set.name set)];
         td [txt @@ Kind.Dance.to_string @@ Set.kind set];
         L.td (Lwt.map Dancelor_client_formatters.Person.name (Set.deviser set));

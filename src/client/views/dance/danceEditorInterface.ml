@@ -55,9 +55,7 @@ let make_deviser_modal editor content page =
     ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[person_modal]
 
-let make_deviser_search_result editor page score =
-  let deviser = Score.value score in
-  let score = score.Score.score in
+let make_deviser_search_result editor page deviser =
   let name = Person.name deviser in
   let slug = Person.slug deviser in
   let row = Table.Row.create
@@ -66,7 +64,6 @@ let make_deviser_search_result editor page score =
             (DanceEditor.set_deviser editor slug)
             (fun () -> Page.refresh page))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return name) page]
       page
   in
@@ -113,7 +110,7 @@ let create ?on_save page =
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
             let%lwt results = Person.search' ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_deviser_search_result editor page score)
+        ~make_result:(make_deviser_search_result editor page)
         page
     in
     SearchBar.create

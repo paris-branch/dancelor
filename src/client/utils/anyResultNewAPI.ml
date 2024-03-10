@@ -115,10 +115,8 @@ let make_version_result ?context ~prefix version =
       ]
     )
 
-let make_result ?context score =
-  let any = Score.value score in
+let make_result ?context any =
   let prefix = [
-    td [txt (Score.score_to_string score)];
     td [txt (any |> Any.type_of |> Any.Type.to_string)];
   ]
   in

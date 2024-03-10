@@ -40,7 +40,6 @@ let count ?threshold filter =
 
 let search_context ?threshold filter element =
   let%lwt results = search' ?threshold filter in
-  let results = List.map Common.Model.Score.value results in
   let List.{total; previous; index; next; _} = Option.get @@ List.find_context (equal element) results in
   (* TODO: Return the context directly. *)
   Lwt.return (total, previous, index, next)

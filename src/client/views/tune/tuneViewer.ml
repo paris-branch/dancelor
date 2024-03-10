@@ -51,14 +51,10 @@ let create ?context slug page =
         h3 [txt "Versions of This Tune"];
 
         L.div (
-          let versions_lwt =
-            let%lwt filter =
-              let%lwt tune = tune_lwt in
-              Lwt.return (Version.Filter.tuneIs' tune)
-            in
-            Version.search' filter >|=| Score.list_erase
+          let%lwt versions =
+            let%lwt tune = tune_lwt in
+            Version.search' @@ Version.Filter.tuneIs' tune
           in
-          let%lwt versions = versions_lwt in
           Lwt.return [Dancelor_client_tables.versions versions]
         )
       ];
@@ -83,12 +79,10 @@ let create ?context slug page =
         h3 [txt "Sets in Which This Tune Appears"];
 
         L.div (
-          let sets_lwt =
+          let%lwt sets =
             let%lwt tune = tune_lwt in
-            let filter = Set.Filter.existsVersion' (Version.Filter.tuneIs' tune) in
-            Set.search' filter >|=| Score.list_erase
+            Set.search' @@  Set.Filter.existsVersion' (Version.Filter.tuneIs' tune)
           in
-          let%lwt sets = sets_lwt in
 
           Lwt.return [
             if sets = [] then
@@ -105,8 +99,7 @@ let create ?context slug page =
         L.div (
           let%lwt books =
             let%lwt tune = tune_lwt in
-            let filter = Book.Filter.memTuneDeep' tune in
-            Book.search' filter >|=| Score.list_erase
+            Book.search' @@ Book.Filter.memTuneDeep' tune
           in
 
           Lwt.return [
