@@ -26,7 +26,7 @@ type 'result t = {
 let make
     ~search
     ?(min_characters=0)
-    ~pagination
+    ~slice
     ?(on_number_of_entries=(Fun.const ()))
     ?(initial_input = "")
     ()
@@ -61,7 +61,7 @@ let make
 
   (** A signal that provides a {!state} view based on [text]. *)
   let state =
-    S.bind pagination @@ fun pagination ->
+    S.bind slice @@ fun slice ->
     S.bind_s' text StartTyping @@ fun text ->
     if String.length text < min_characters then
       (
@@ -72,7 +72,7 @@ let make
           ContinueTyping
       )
     else
-      Fun.flip Lwt.map (search pagination text) @@ function
+      Fun.flip Lwt.map (search slice text) @@ function
       | Error messages ->
         Errors messages
       | Ok (_, []) ->
@@ -131,12 +131,12 @@ let set_text search_bar text = search_bar.set_text text
 
 let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
   let min_characters = 3 in
-  let pagination = S.const Pagination.{ start = 0; end_ = 10 } in
+  let slice = S.const @@ Slice.make ~start:0 ~end_excl:10 () in
 
   (** A signal tracking whether the table is focused. *)
   let (table_visible, set_table_visible) = S.create false in
 
-  let search_bar = make ~search ~min_characters ~pagination () in
+  let search_bar = make ~search ~min_characters ~slice () in
 
   div ~a:[a_class ["search-bar"]] [
     div ~a:[

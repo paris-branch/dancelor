@@ -177,7 +177,7 @@ let create ?on_save page =
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Dance.Filter.from_string input in
-            let%lwt results = Dance.search' ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
+            let%lwt results = Dance.search' ~threshold:0.4 ~slice:(Slice.make ~start:0 ~end_excl:10 ()) formula in
             Lwt.return_ok results)
         ~make_result:(make_dance_search_result editor page)
         page
@@ -201,7 +201,7 @@ let create ?on_save page =
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
             let%lwt results =
               Person.search' ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
+                ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
         ~make_result:(make_author_search_result editor page)

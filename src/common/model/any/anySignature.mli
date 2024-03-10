@@ -149,17 +149,17 @@ end
 (** {2 Search} *)
 
 val search :
-  ?pagination:Pagination.t ->
+  ?slice: Slice.t ->
   ?threshold:float ->
   Filter.t ->
   (int * t list) Lwt.t
-(** [search ?pagination ?threshold filter] returns the list of all the objects
+(** [search ?slice ?threshold filter] returns the list of all the objects
     that match [filter] with a score higher than [threshold] (if any). The first
     element of the pair is the number of objects. The second element of the pair
-    is a slice of the list, taken as per the [pagination] (if any). *)
+    is a slice of the list, taken as per the [slice] (if any). *)
 
 val search' :
-  ?pagination:Pagination.t ->
+  ?slice: Slice.t ->
   ?threshold:float ->
   Filter.t ->
   t list Lwt.t

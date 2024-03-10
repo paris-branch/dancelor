@@ -137,17 +137,17 @@ val make :
 (** Low-level unsafe book creation. Prefer {!make_and_save} or {!update}. *)
 
 val search :
-  ?pagination:Pagination.t ->
+  ?slice: Slice.t ->
   ?threshold:float ->
   Filter.t ->
   (int * t list) Lwt.t
-(** [search ?pagination ?threshold filter] returns the list of all the books
+(** [search ?slice ?threshold filter] returns the list of all the books
     that match [filter] with a score higher than [threshold] (if any). The first
     element of the pair is the number of books. The second element of the pair
-    is a slice of the list, taken as per the [pagination] (if any). *)
+    is a slice of the list, taken as per the [slice] (if any). *)
 
 val search' :
-  ?pagination:Pagination.t ->
+  ?slice: Slice.t ->
   ?threshold:float ->
   Filter.t ->
   t list Lwt.t

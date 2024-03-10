@@ -48,13 +48,13 @@ let () =
   Madge_server.(
     register ~endpoint:E.search @@ fun {a} {o} ->
     search
-      ?pagination:(o A.pagination)
+      ?slice: (o A.slice)
       ?threshold: (o A.threshold)
       (a A.filter)
   )
 
-let search' ?pagination ?threshold filter =
-  Lwt.map snd @@ search ?pagination ?threshold filter
+let search' ?slice ?threshold filter =
+  Lwt.map snd @@ search ?slice ?threshold filter
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter

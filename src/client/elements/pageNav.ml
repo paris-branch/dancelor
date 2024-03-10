@@ -71,12 +71,12 @@ let build_page_list cur_page max_pages =
       (i <= 5 && cur_page <= 4) ||
       (i > max_pages - 5 && cur_page > max_pages - 4))
 
-let pagination t =
+let slice t =
   let f, l =
     ((t.cur_page - 1) * t.entries_per_page),
     (min (t.cur_page * t.entries_per_page) t.entries)
   in
-  Pagination.{start = f; end_ = l}
+  Slice.make ~start:f ~end_excl:l ()
 
 let make_info t =
   if t.cur_page = 0 then
@@ -84,8 +84,8 @@ let make_info t =
   else if t.entries = 0 then
     spf "No entries"
   else begin
-    let pag = pagination t in
-    spf "Showing %i to %i of %i entries" (Pagination.start pag + 1) (Pagination.end_ pag) t.entries
+    let pag = slice t in
+    spf "Showing %i to %i of %i entries" (Slice.start pag + 1) (Slice.end_excl pag) t.entries
   end
 
 let rebuild t =

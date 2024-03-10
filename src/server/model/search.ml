@@ -6,7 +6,7 @@ let search
     ~scoring_function
     ~tiebreakers
     (* typically will be partially applied until here *)
-    ?pagination
+    ?slice
     ?(threshold=Float.min_float)
     filter
   =
@@ -31,5 +31,5 @@ let search
   (* Return the pair of the total number of results and the requested slice. *)
   Lwt.return (
     List.length results,
-    Option.fold ~none:Fun.id ~some:Dancelor_common.Model.Pagination.apply pagination results
+    Option.fold ~none:Fun.id ~some:(Dancelor_common.Model.Slice.list ~strict:false) slice results
   )

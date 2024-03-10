@@ -254,7 +254,7 @@ let create page =
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
             let%lwt results =
               Person.search' ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
+                ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
         ~make_result:(make_deviser_search_result composer page)
@@ -272,7 +272,7 @@ let create page =
             let%rlwt formula = Lwt.return @@ Book.Filter.from_string input in
             let%lwt results =
               Book.search' ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
+                ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
         ~make_result:(make_book_search_result composer page)
@@ -291,7 +291,7 @@ let create page =
             let%rlwt formula = Lwt.return @@ Version.Filter.from_string input in
             let%lwt results =
               Version.search' ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
+                ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
         ~make_result:(make_version_search_result composer page)

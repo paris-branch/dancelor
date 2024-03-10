@@ -12,13 +12,13 @@ let number_of_pages { entries_per_page; number_of_entries; _ } =
   let number_of_entries = Option.value ~default:entries_per_page number_of_entries in
   (number_of_entries + entries_per_page - 1) / entries_per_page
 
-let current_pagination { current_page; entries_per_page; number_of_entries } =
+let current_slice { current_page; entries_per_page; number_of_entries } =
   let number_of_entries = Option.value ~default:entries_per_page number_of_entries in
-  Pagination.{
+  Slice.make
     (* NOTE: Our page numbers start at 1. *)
-    start = (current_page - 1) * entries_per_page;
-    end_ = min (current_page * entries_per_page) number_of_entries;
-  }
+    ~start: ((current_page - 1) * entries_per_page)
+    ~end_excl: (min (current_page * entries_per_page) number_of_entries)
+    ()
 
 type t = {
   state : state React.signal;
@@ -48,10 +48,10 @@ let status_text pagination =
   | None -> "Loading.."
   | Some 0 -> "No entries"
   | Some number_of_entries ->
-    let pagination = current_pagination state in
+    let slice = current_slice state in
     spf "Showing %d to %d of %d entries"
-      (Pagination.start pagination + 1)
-      (Pagination.end_ pagination)
+      (Slice.start slice + 1)
+      (Slice.end_excl slice)
       number_of_entries
 
 module Button = struct
@@ -162,4 +162,4 @@ let render pagination =
     R.ul (button_list pagination);
   ]
 
-let pagination page_nav = S.map current_pagination page_nav.state
+let slice page_nav = S.map current_slice page_nav.state

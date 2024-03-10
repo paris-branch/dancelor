@@ -20,10 +20,10 @@ let update_uri input =
   Dom_html.window##.history##replaceState
     "fixme-the-state" (js "") (Js.some (js uri))
 
-let search ?pagination input =
+let search ?slice input =
   let threshold = 0.4 in
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in
-  Lwt.map Result.ok @@ Any.search ~threshold ?pagination filter
+  Lwt.map Result.ok @@ Any.search ~threshold ?slice filter
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let emoji_row emoji message =
@@ -51,8 +51,8 @@ let create ?query page =
 
   let search_bar =
     SearchBar.make
-      ~search:(fun pagination input -> search ~pagination input)
-      ~pagination:(PageNav.pagination pagination)
+      ~search: (fun slice input -> search ~slice input)
+      ~slice: (PageNav.slice pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input: query
       ()
@@ -115,7 +115,7 @@ let create ?query page =
             )
             [
               R.tbody (
-                Fun.flip S.map (S.Pair.pair (PageNav.pagination pagination) (SearchBar.state search_bar))
+                Fun.flip S.map (S.Pair.pair (PageNav.slice pagination) (SearchBar.state search_bar))
                 @@ fun (_, state) ->
                 match state with
                 | Results results ->

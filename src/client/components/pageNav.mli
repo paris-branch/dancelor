@@ -1,8 +1,6 @@
 (** {1 Page Navigation} *)
 
-(* FIXME: rename this into [Pagination] (which it is); rename the current
-   [Pagination] into [Slice] or something, which describes it better. Maybe we
-   don't even need a type for that. *)
+(* FIXME: rename this into [Pagination] (which it is). *)
 
 open Dancelor_common_model
 open Dancelor_client_html
@@ -20,5 +18,5 @@ val create :
 val render : t -> [> Html_types.div ] elt
 (** HTML rendering of a page navigation. *)
 
-val pagination : t -> Pagination.t React.signal
-(** Signal giving a {!Pagination} out of a page navigation. *)
+val slice : t -> Slice.t React.signal
+(** Signal giving a {!Slice} out of a page navigation. *)
