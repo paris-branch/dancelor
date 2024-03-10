@@ -58,9 +58,7 @@ let make_tune_modal editor content page =
     ~on_refresh:(fun () -> TuneEditorInterface.refresh interface)
     ~targets:[tune_modal]
 
-let make_tune_search_result editor page score =
-  let tune = Score.value score in
-  let score = score.Score.score in
+let make_tune_search_result editor page tune =
   let name = Tune.name tune in
   let slug = Tune.slug tune in
   let row = Table.Row.create
@@ -69,7 +67,6 @@ let make_tune_search_result editor page score =
             (VersionEditor.set_tune editor slug)
             (fun () -> Page.refresh page))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return name) page]
       page
   in
@@ -96,9 +93,7 @@ let make_arranger_modal editor content page =
     ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[arranger_modal]
 
-let make_arranger_search_result editor page score =
-  let arranger = Score.value score in
-  let score = score.Score.score in
+let make_arranger_search_result editor page arranger =
   let name = Person.name arranger in
   let slug = Person.slug arranger in
   let row = Table.Row.create
@@ -107,7 +102,6 @@ let make_arranger_search_result editor page score =
             (VersionEditor.set_arranger editor slug)
             (fun () -> Page.refresh page))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return name) page]
       page
   in
@@ -168,7 +162,7 @@ let create page =
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_tune_search_result editor page score)
+        ~make_result:(make_tune_search_result editor page)
         page
     in
     SearchBar.create
@@ -199,7 +193,7 @@ let create page =
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_arranger_search_result editor page score)
+        ~make_result:(make_arranger_search_result editor page)
         page
     in
     SearchBar.create

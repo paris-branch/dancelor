@@ -61,7 +61,7 @@ val search :
   ?pagination:Pagination.t ->
   ?threshold:float ->
   Filter.t ->
-  (int * t Score.t list) Lwt.t
+  (int * t list) Lwt.t
 (** [search ?pagination ?threshold filter] returns the list of all the persons
     that match [filter] with a score higher than [threshold] (if any). The first
     element of the pair is the number of persons. The second element of the pair
@@ -71,7 +71,7 @@ val search' :
   ?pagination:Pagination.t ->
   ?threshold:float ->
   Filter.t ->
-  t Score.t list Lwt.t
+  t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :

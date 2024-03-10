@@ -14,4 +14,4 @@ end
 
 let get = endpoint ~path:"/person" (module PersonCore)
 let make_and_save = endpoint ~path:"/person/save" (module PersonCore)
-let search = endpoint ~path:"/person/search" (module MPair (MInteger) (MList(Score.Make_Serialisable(PersonCore))))
+let search = endpoint ~path:"/person/search" (module MPair (MInteger) (MList(PersonCore)))

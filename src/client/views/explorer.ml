@@ -111,7 +111,7 @@ let create ?query page =
             ~a:[a_class ["separated-table"]]
             ~thead:(
               thead [
-                tr [th [txt "Score"]; th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
+                tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
               ];
             )
             [

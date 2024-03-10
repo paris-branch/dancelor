@@ -33,24 +33,14 @@ let () =
       ()
   )
 
-(* Cache for search requests with a lifetime of 10 minutes. *)
-let cache = Cache.create ~lifetime:600 ()
-
-let search ?pagination ?(threshold=Float.min_float) filter =
-  let module Score = Common.Model.Score in
-  let%lwt results =
-    Cache.use ~cache ~key:(threshold, filter) @@ fun () ->
-    Database.Dance.get_all ()
-    >>=| Score.lwt_map_from_list (Filter.accepts filter)
-    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-    >>=| Score.(list_proj_sort_decreasing [
+let search =
+  Search.search
+    ~cache: (Cache.create ~lifetime: 600 ())
+    ~values_getter: Database.Dance.get_all
+    ~scoring_function: Filter.accepts
+    ~tiebreakers: Lwt_list.[
         increasing (Lwt.return % name) String.Sensible.compare
-      ])
-  in
-  Lwt.return (
-    List.length results,
-    Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
-  )
+      ]
 
 let () =
   Madge_server.(

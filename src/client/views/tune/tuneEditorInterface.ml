@@ -65,9 +65,7 @@ let refresh t =
   Inputs.Text.set_contents t.input_remark (TuneEditor.remark t.editor);
   Inputs.Text.set_contents t.input_scddb_id (TuneEditor.scddb_id t.editor)
 
-let make_dance_search_result editor page score =
-  let dance = Score.value score in
-  let score = score.Score.score in
+let make_dance_search_result editor page dance =
   let name = Dance.name dance in
   let slug = Dance.slug dance in
   let row = Table.Row.create
@@ -75,7 +73,6 @@ let make_dance_search_result editor page score =
                     (TuneEditor.add editor slug)
                     (fun () -> Page.refresh page))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return name) page]
       page
   in
@@ -123,9 +120,7 @@ let make_author_modal editor content page =
     ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[person_modal]
 
-let make_author_search_result editor page score =
-  let author = Score.value score in
-  let score = score.Score.score in
+let make_author_search_result editor page author =
   let name = Person.name author in
   let slug = Person.slug author in
   let row = Table.Row.create
@@ -134,7 +129,6 @@ let make_author_search_result editor page score =
             (TuneEditor.set_author editor slug)
             (fun () -> Page.refresh page))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return name) page]
       page
   in
@@ -185,7 +179,7 @@ let create ?on_save page =
             let%rlwt formula = Lwt.return @@ Dance.Filter.from_string input in
             let%lwt results = Dance.search' ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_dance_search_result editor page score)
+        ~make_result:(make_dance_search_result editor page)
         page
     in
     SearchBar.create
@@ -210,7 +204,7 @@ let create ?on_save page =
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_author_search_result editor page score)
+        ~make_result:(make_author_search_result editor page)
         page
     in
     SearchBar.create

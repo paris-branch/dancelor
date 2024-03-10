@@ -28,7 +28,6 @@ module Formula = Formula
 module Kind = Kind
 module Music = Music
 module Pagination = Pagination
-module Score = Score
 module Status = Status
 module TextFormula = TextFormula
 module Transposition = Transposition

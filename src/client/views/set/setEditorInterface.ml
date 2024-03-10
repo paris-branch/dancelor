@@ -147,9 +147,7 @@ let refresh t =
   Dom.appendChild t.warnings_area
     Dancelor_client_html.(To_dom.of_div (L.div (display_warnings t)))
 
-let make_version_search_result composer page score =
-  let version = Score.value score in
-  let score = score.Score.score in
+let make_version_search_result composer page version =
   let slug = Version.slug version in
   let bars = Version.bars version in
   let structure = Version.structure version in
@@ -159,7 +157,6 @@ let make_version_search_result composer page score =
       ~on_click:(fun () ->
           Lwt.on_success (SetEditor.add composer slug) (fun () -> Page.refresh page; SetEditor.save composer))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.create ~content:(
           Dancelor_client_html.to_old_style
             (Dancelor_client_formatters.Version.name_disambiguation_and_sources ~link:false version)
@@ -196,9 +193,7 @@ let make_person_modal composer content page =
     ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[persons_modal]
 
-let make_deviser_search_result composer page score =
-  let deviser = Score.value score in
-  let score = score.Score.score in
+let make_deviser_search_result composer page deviser =
   let name = Person.name deviser in
   let slug = Person.slug deviser in
   let row = Table.Row.create
@@ -207,22 +202,18 @@ let make_deviser_search_result composer page score =
             (SetEditor.set_deviser composer slug)
             (fun () -> Page.refresh page; SetEditor.save composer))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return name) page]
       page
   in
   Lwt.return row
 
-let make_book_search_result composer page score =
-  let book = Score.value score in
-  let score = score.Score.score in
+let make_book_search_result composer page book =
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
             (SetEditor.set_for_book composer (Book.slug book))
             (fun () -> Page.refresh page; SetEditor.save composer))
       ~cells:[
-        Table.Cell.text ~text:(Lwt.return (string_of_int (int_of_float (score *. 100.)))) page;
         Table.Cell.text ~text:(Lwt.return @@ Book.title book) page]
       page
   in
@@ -266,7 +257,7 @@ let create page =
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_deviser_search_result composer page score)
+        ~make_result:(make_deviser_search_result composer page)
         page
     in
     SearchBar.create
@@ -284,7 +275,7 @@ let create page =
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_book_search_result composer page score)
+        ~make_result:(make_book_search_result composer page)
         page
     in
     SearchBar.create
@@ -303,7 +294,7 @@ let create page =
                 ~pagination:Pagination.{start = 0; end_ = 10} formula
             in
             Lwt.return_ok results)
-        ~make_result:(fun score -> make_version_search_result composer page score)
+        ~make_result:(make_version_search_result composer page)
         page
     in
     SearchBar.create

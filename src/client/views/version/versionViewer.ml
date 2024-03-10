@@ -26,13 +26,10 @@ let create ?context slug page =
   let other_versions_lwt =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in
-    let filter =
-      Formula.(and_l [
-          Version.Filter.tuneIs' tune;
-          not_ (Version.Filter.is' version);
-        ])
-    in
-    Version.search' filter >|=| Score.list_erase
+    Version.search' Formula.(and_l [
+        Version.Filter.tuneIs' tune;
+        not_ (Version.Filter.is' version);
+      ])
   in
 
   let open Dancelor_client_html in
@@ -194,12 +191,10 @@ let create ?context slug page =
         h3 [txt "Sets in Which This Version Appears"];
 
         L.div (
-          let sets_lwt =
+          let%lwt sets =
             let%lwt version = version_lwt in
-            let filter = Set.Filter.memVersion' version in
-            Set.search' filter >|=| Score.list_erase
+            Set.search' @@ Set.Filter.memVersion' version
           in
-          let%lwt sets = sets_lwt in
 
           Lwt.return [
             if sets = [] then
@@ -230,8 +225,7 @@ let create ?context slug page =
         L.div (
           let%lwt books =
             let%lwt version = version_lwt in
-            let filter = Book.Filter.memVersionDeep' version in
-            Book.search' filter >|=| Score.list_erase
+            Book.search' @@ Book.Filter.memVersionDeep' version
           in
 
           Lwt.return [
