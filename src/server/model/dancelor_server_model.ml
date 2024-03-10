@@ -27,7 +27,7 @@ open Common
 module Formula = Formula
 module Kind = Kind
 module Music = Music
-module Pagination = Pagination
+module Slice = Slice
 module Status = Status
 module TextFormula = TextFormula
 module Transposition = Transposition

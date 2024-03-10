@@ -97,10 +97,10 @@ let make_set_result editor page set =
       ]
     )
 
-let search pagination input =
+let search slice input =
   let threshold = 0.4 in
   let%rlwt formula = Lwt.return @@ Set.Filter.from_string input in
-  let%lwt results = Set.search ~threshold ~pagination formula in
+  let%lwt results = Set.search ~threshold ~slice formula in
   Lwt.return_ok results
 
 let create ?on_save page =

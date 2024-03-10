@@ -25,9 +25,9 @@ val set_text : 'result t -> string -> unit
 (** Imperatively set the text of the search bar. *)
 
 val make :
-  search:(Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
+  search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters:int ->
-  pagination:Pagination.t React.signal ->
+  slice: Slice.t React.signal ->
   ?on_number_of_entries:(int -> unit) ->
   ?initial_input: string ->
   unit ->
@@ -36,13 +36,13 @@ val make :
     arguments are to be used as follows:
 
     - [search] is an Lwt function that returns either a list of results or a
-      list of error messages to display. It should respect the given pagination
+      list of error messages to display. It should respect the given slice
       and return the total number of entries that match the query.
 
     - [min_characters] is an integer indicating the minimum number of characters
       to type for the search bar to fire. By default, there is no such limit.
 
-    - [pagination] is a signal giving the state of the pagination.
+    - [slice] is a signal giving the state of the slice.
 
     - [on_number_of_entries] is a function that fires whenever the [search]
       returns a number of entries.
@@ -77,7 +77,7 @@ val render :
 
 val quick_search :
   placeholder:string ->
-  search:(Pagination.t -> string -> (int * 'result list, string) result Lwt.t) ->
+  search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter:(string -> unit) ->
   ?autofocus:bool ->
@@ -86,7 +86,7 @@ val quick_search :
 (** Wrapper around {!make} and {!render} returning a quick search bar. This is a
     search bar with a floating table. The table reports hints or errors and
     shows the search results. The minimum number of characters is set to [3] and
-    the pagination picks only one page of [10] entries.
+    the slice picks only one page of [10] entries.
 
     The arguments are mostly inherited from {!make} and {!render}; refer to
     these functions for documentation. The additional ones are to be used as

@@ -5,7 +5,7 @@ val search :
   values_getter: (unit -> 'value list Lwt.t) ->
   scoring_function: ('filter -> 'value -> float Lwt.t) ->
   tiebreakers: ('value -> 'value -> int Lwt.t) list ->
-  ?pagination: Pagination.t ->
+  ?slice: Slice.t ->
   ?threshold: float ->
   'filter ->
   (int * 'value list) Lwt.t

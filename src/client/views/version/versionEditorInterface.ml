@@ -159,7 +159,7 @@ let create page =
             let%rlwt formula = Lwt.return @@ Tune.Filter.from_string input in
             let%lwt results =
               Tune.search' ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
+                ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
         ~make_result:(make_tune_search_result editor page)
@@ -190,7 +190,7 @@ let create page =
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
             let%lwt results =
               Person.search' ~threshold:0.4
-                ~pagination:Pagination.{start = 0; end_ = 10} formula
+                ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
         ~make_result:(make_arranger_search_result editor page)

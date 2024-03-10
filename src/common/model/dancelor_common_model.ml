@@ -51,7 +51,7 @@
    something else. Maybe Dancelor_common_utils? *)
 module Date = Date
 module Music = Music
-module Pagination = Pagination
+module Slice = Slice
 module Status = Status
 module Transposition = Transposition
 

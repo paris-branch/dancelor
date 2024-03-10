@@ -108,7 +108,7 @@ let create ?on_save page =
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
-            let%lwt results = Person.search' ~threshold:0.4 ~pagination:Pagination.{start = 0; end_ = 10} formula in
+            let%lwt results = Person.search' ~threshold:0.4 ~slice:(Slice.make ~start:0 ~end_excl:10 ()) formula in
             Lwt.return_ok results)
         ~make_result:(make_deviser_search_result editor page)
         page

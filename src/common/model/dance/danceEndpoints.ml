@@ -3,7 +3,7 @@ open Madge_common
 module Arguments = struct
   let slug = arg ~key:"slug" (module MSlug(DanceCore))
   let status = optarg (module Status)
-  let pagination = optarg (module Pagination)
+  let slice = optarg (module Slice)
   let threshold = optarg ~key:"threshold" (module MFloat)
   let filter = arg (module DanceCore.Filter)
   let name = arg ~key:"name" (module MString)

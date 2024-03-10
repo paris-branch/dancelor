@@ -17,10 +17,10 @@ type t =
     content : Html.divElement Js.t;
   }
 
-let search pagination input =
+let search slice input =
   let threshold = 0.4 in
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in (* FIXME: AnyFilter.from_string should return a result lwt *)
-  let%lwt results = Any.search ~threshold ~pagination filter in
+  let%lwt results = Any.search ~threshold ~slice filter in
   Lwt.return_ok results
 
 let create page =
