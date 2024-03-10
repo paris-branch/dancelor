@@ -7,28 +7,21 @@ include AnyLifted
 module E = Common.Model.AnyEndpoints
 module A = E.Arguments
 
-(* Cache for search requests with a lifetime of 10 minutes. *)
-let cache = Cache.create ~lifetime:600 ()
+let get_all () =
+  let%lwt persons  = Database.Person.get_all ()  >|=| List.map (fun c -> Person c) in
+  let%lwt dances   = Database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
+  let%lwt books    = Database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
+  let%lwt sets     = Database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
+  let%lwt tunes    = Database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
+  let%lwt versions = Database.Version.get_all () >|=| List.map (fun v -> Version v) in
+  (Lwt.return (persons @ dances @ books @ sets @ tunes @ versions))
 
-let search ?pagination ?(threshold=Float.min_float) filter =
-  let module Score = Common.Model.Score in
-  let%lwt results =
-    Cache.use ~cache ~key:(threshold, filter) @@ fun () ->
-    let%lwt persons  = Database.Person.get_all ()  >|=| List.map (fun c -> Person c) in
-    let%lwt dances   = Database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
-    let%lwt books    = Database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
-    let%lwt sets     = Database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
-    let%lwt tunes    = Database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
-    let%lwt versions = Database.Version.get_all () >|=| List.map (fun v -> Version v) in
-    (Lwt.return (persons @ dances @ books @ sets @ tunes @ versions))
-    >>=| Score.lwt_map_from_list (Filter.accepts filter)
-    >>=| (Score.list_filter_threshold threshold ||> Lwt.return)
-    >>=| Score.(list_proj_sort_decreasing [])
-  in
-  Lwt.return (
-    List.length results,
-    Option.fold ~none:Fun.id ~some:Common.Model.Pagination.apply pagination results
-  )
+let search =
+  Search.search
+    ~cache: (Cache.create ~lifetime: 600 ())
+    ~values_getter: get_all
+    ~scoring_function: Filter.accepts
+    ~tiebreakers: []
 
 let () =
   Madge_server.(
