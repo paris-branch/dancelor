@@ -16,10 +16,9 @@ type t =
   }
 
 let update_uri input =
-  let query = [("q", [Yojson.Safe.to_string (`String input)])] in
-  let uri = Uri.make ~path:"/search" ~query () in
+  let uri = PageRouter.path_explore (Some input) in
   Dom_html.window##.history##replaceState
-    "fixme-the-state" (js "") (Js.some (js (Uri.to_string uri)))
+    "fixme-the-state" (js "") (Js.some (js uri))
 
 let search ?pagination input =
   let threshold = 0.4 in
