@@ -44,7 +44,7 @@ let create ?query page =
   let (number_of_entries, set_number_of_entries) = S.create None in
 
   let pagination =
-    PageNav.create
+    Pagination.create
       ~entries_per_page: 25
       ~number_of_entries
   in
@@ -52,7 +52,7 @@ let create ?query page =
   let search_bar =
     SearchBar.make
       ~search: (fun slice input -> search ~slice input)
-      ~slice: (PageNav.slice pagination)
+      ~slice: (Pagination.slice pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input: query
       ()
@@ -104,7 +104,7 @@ let create ?query page =
           )
         ]
         [
-          PageNav.render pagination;
+          Pagination.render pagination;
 
           tablex
             ~a:[a_class ["separated-table"]]
@@ -115,7 +115,7 @@ let create ?query page =
             )
             [
               R.tbody (
-                Fun.flip S.map (S.Pair.pair (PageNav.slice pagination) (SearchBar.state search_bar))
+                Fun.flip S.map (S.Pair.pair (Pagination.slice pagination) (SearchBar.state search_bar))
                 @@ fun (_, state) ->
                 match state with
                 | Results results ->
@@ -125,7 +125,7 @@ let create ?query page =
               )
             ];
 
-          PageNav.render pagination;
+          Pagination.render pagination;
         ]
     ]
   );

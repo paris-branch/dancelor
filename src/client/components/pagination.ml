@@ -90,7 +90,7 @@ module Button = struct
   (** A value that can be passed to [make]'s [~target] argument when the button
       is never be enabled. *)
   let no_target =
-    fun _ -> failwith "Dancelor_client.Eleents.PageNav.no_target"
+    fun _ -> failwith "Dancelor_client.Eleents.Pagination.no_target"
 
   (** A button that is never enabled and shows three dots. *)
   let ellipsis =

@@ -1,7 +1,5 @@
 (** {1 Page Navigation} *)
 
-(* FIXME: rename this into [Pagination] (which it is). *)
-
 open Dancelor_common_model
 open Dancelor_client_html
 
