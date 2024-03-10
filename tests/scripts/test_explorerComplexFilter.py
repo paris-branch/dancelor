@@ -14,8 +14,8 @@ class TestExplorerComplexFilter():
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
-    self.driver.implicitly_wait(1)
-    self.wait = WebDriverWait(self.driver, timeout=1)
+    self.driver.implicitly_wait(10)
+    self.wait = WebDriverWait(self.driver, timeout=10)
     self.vars = {}
 
   def teardown_method(self, method):

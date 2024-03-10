@@ -21,7 +21,7 @@ class BrokenTestSetPDFDownload():
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
-    self.driver.implicitly_wait(1)
+    self.driver.implicitly_wait(10)
     self.vars = {}
 
   def teardown_method(self, method):

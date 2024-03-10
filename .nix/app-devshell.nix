@@ -20,7 +20,7 @@
           ++ (with pkgs; [
             firefox
             geckodriver
-            (python3.withPackages (p: with p; [ pytest selenium ]))
+            (python3.withPackages (p: with p; [ pytest pytest-xdist selenium ]))
           ]);
         inputsFrom = [ self'.packages.default ];
         shellHook = config.pre-commit.installationScript;

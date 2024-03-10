@@ -22,7 +22,7 @@ unit-tests:
 
 system-tests: build
 	bin/dancelor --config tests/config.json --pid-file tests/run.pid &
-	pytest || rc=$$?; \
+	pytest -n 8 || rc=$$?; \
 	kill $$(cat tests/run.pid); rm tests/run.pid; \
 	exit $$rc
 
