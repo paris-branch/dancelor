@@ -1,34 +1,5 @@
 open Nes
 
-type 'a t =
-  { score : float ;
-    value : 'a }
-
-let lwt_map_from_list score =
-  Lwt_list.map_s
-    (fun value ->
-       let%lwt score = score value in
-       Lwt.return { score; value })
-
-let list_filter_threshold threshold =
-  List.filter (fun score -> score.score >= threshold)
-
-let list_proj_sort_decreasing compares l =
-  let compares =
-    List.map
-      (fun compare ->
-         fun x y -> compare x.value y.value)
-      compares
-  in
-  let compares =
-    (Lwt_list.decreasing (fun x -> Lwt.return x.score) compare)
-    :: compares
-  in
-  Lwt_list.sort_multiple compares l
-
-let list_erase l =
-  List.map (fun score -> score.value) l
-
 let search
     ~cache
     ~values_getter
@@ -39,14 +10,25 @@ let search
     ?(threshold=Float.min_float)
     filter
   =
+  (* We cache the computation of the results but not the computation of the
+     slice because that really isn't the expensive part. *)
   let%lwt results =
     Cache.use ~cache ~key:(threshold, filter) @@ fun () ->
-    values_getter ()
-    >>=| lwt_map_from_list (scoring_function filter)
-    >>=| (list_filter_threshold threshold ||> Lwt.return)
-    >>=| (list_proj_sort_decreasing tiebreakers)
-    >>=| (Lwt.return % list_erase)
+    let%lwt values = values_getter () in
+    (* For each value, compute its score and return the pair (value, score). *)
+    let%lwt values = Lwt_list.map_s (fun value -> Lwt.map (pair value) (scoring_function filter value)) values in
+    (* Keep only values whose score is above the given threshold. *)
+    let values = List.filter (fun value -> snd value >= threshold) values in
+    (* Sort by score, decreasing, falling back on the tiebreakers otherwise. *)
+    let comparisons =
+      Lwt_list.decreasing (Lwt.return % snd) Float.compare
+      :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) tiebreakers
+    in
+    let%lwt values = Lwt_list.sort_multiple comparisons values in
+    (* Remove the scores again. *)
+    Lwt.return @@ List.map fst values
   in
+  (* Return the pair of the total number of results and the requested slice. *)
   Lwt.return (
     List.length results,
     Option.fold ~none:Fun.id ~some:Dancelor_common.Model.Pagination.apply pagination results
