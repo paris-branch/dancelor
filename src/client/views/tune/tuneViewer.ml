@@ -33,6 +33,13 @@ let create ?context slug page =
       h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Tune.name tune_lwt];
       L.h3 ~a:[a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a:[a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
+
+      L.div (
+        match%lwt Lwt.map Tune.date tune_lwt with
+        | None -> Lwt.return_nil
+        | Some date ->
+          Lwt.return [txt "Date: "; txt (PartialDate.to_pretty_string date)]
+      );
       L.div (
         match%lwt Lwt.map Tune.scddb_id tune_lwt with
         | None -> Lwt.return_nil

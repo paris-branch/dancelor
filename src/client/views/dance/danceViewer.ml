@@ -49,6 +49,13 @@ let create ?context slug page =
         | false -> []
         | true -> [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
       );
+
+      L.div (
+        match%lwt Lwt.map Dance.date dance_lwt with
+        | None -> Lwt.return_nil
+        | Some date ->
+          Lwt.return [txt "Date: "; txt (PartialDate.to_pretty_string date)]
+      );
       L.div (
         match%lwt Lwt.map Dance.scddb_id dance_lwt with
         | None -> Lwt.return_nil
