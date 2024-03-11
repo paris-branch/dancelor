@@ -11,6 +11,7 @@ type t =
     two_chords : bool [@default false] [@key "two-chords"] ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     disambiguation : string [@default ""] ;
+    date : PartialDate.t option [@default None] ; (** When the dance was devised. *)
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
 [@@deriving make, show {with_path = false}, yojson]
@@ -24,6 +25,7 @@ let deviser dance = dance.deviser
 let two_chords dance = dance.two_chords
 let scddb_id dance = dance.scddb_id
 let disambiguation dance = dance.disambiguation
+let date dance = dance.date
 let modified_at dance = dance.modified_at
 let created_at dance = dance.created_at
 

@@ -15,6 +15,7 @@ val author : t -> PersonCore.t option Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string
 val scddb_id : t -> int option
+val date : t -> PartialDate.t option
 val modified_at : t -> Datetime.t
 val created_at  : t -> Datetime.t
 

@@ -12,6 +12,7 @@ type t =
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;
     scddb_id : int option               [@default None] [@key "scddb-id"] ;
+    date : PartialDate.t option [@default None] ; (** When the tune was composed. *)
     modified_at : Datetime.t            [@key "modified-at"] ;
     created_at  : Datetime.t            [@key "created-at"] }
 [@@deriving make, show {with_path = false}, yojson]
@@ -26,6 +27,7 @@ let author tune = tune.author
 let dances tune = tune.dances
 let remark tune = tune.remark
 let scddb_id tune = tune.scddb_id
+let date tune = tune.date
 let modified_at tune = tune.modified_at
 let created_at tune = tune.created_at
 
