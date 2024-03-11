@@ -8,7 +8,7 @@ module Lift
 
   let make
       ?status ~slug ~name ?alternative_names ~kind ?author ?dances
-      ?remark ?scddb_id ~modified_at ~created_at
+      ?remark ?scddb_id ?date ~modified_at ~created_at
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
@@ -17,7 +17,7 @@ module Lift
     let dances = Option.map (List.map Dance.slug) dances in
     Lwt.return (make
                   ?status ~slug ~name ?alternative_names ~kind ~author ?dances
-                  ?remark ~scddb_id ~modified_at ~created_at
+                  ?remark ~scddb_id ~date ~modified_at ~created_at
                   ())
 
   let author tune = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (author tune)

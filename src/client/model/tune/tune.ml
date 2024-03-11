@@ -5,7 +5,7 @@ module A = E.Arguments
 
 let make_and_save
     ?status ~name ?alternative_names ~kind ?author ?dances
-    ?remark ?scddb_id ~modified_at ~created_at ()
+    ?remark ?scddb_id ?date ~modified_at ~created_at ()
   =
   Madge_client.(
     call ~endpoint:E.make_and_save @@ fun {a} {o} ->
@@ -17,6 +17,7 @@ let make_and_save
     o A.dances dances;
     o A.remark remark;
     o A.scddb_id scddb_id;
+    o A.date date;
     a A.modified_at modified_at;
     a A.created_at created_at;
   )

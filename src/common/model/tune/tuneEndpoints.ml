@@ -1,3 +1,4 @@
+open Nes
 open Madge_common
 
 module Arguments = struct
@@ -13,6 +14,7 @@ module Arguments = struct
   let dances = optarg ~key:"dances" (module MList(DanceCore))
   let remark = optarg ~key:"remark" (module MString)
   let scddb_id = optarg ~key:"scddb-id" (module MInteger)
+  let date = optarg ~key:"date" (module PartialDate)
   let modified_at = arg ~key:"modified-at" (module NesDatetime)
   let created_at = arg ~key:"created-at" (module NesDatetime)
 end
