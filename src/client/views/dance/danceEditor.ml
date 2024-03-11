@@ -5,6 +5,7 @@ open Dancelor_client_model
 type t = {
   mutable name : string;
   mutable kind : string;
+  mutable date : string;
   mutable deviser : (Person.t Slug.t * Person.t) option;
   mutable two_chords : bool;
   mutable scddb_id : string;
@@ -14,6 +15,7 @@ let create () =
   {
     name = "";
     kind = "";
+    date = "";
     deviser = None;
     two_chords = false;
     scddb_id = ""
@@ -30,6 +32,12 @@ let kind t =
 
 let set_kind t kind =
   t.kind <- kind
+
+let date t =
+  t.date
+
+let set_date t date =
+  t.date <- date
 
 let deviser t =
   match t.deviser with
@@ -59,6 +67,7 @@ let set_scddb_id t id =
 let clear t =
   t.name <- "";
   t.kind <- "";
+  t.date <- "";
   t.deviser <- None;
   t.two_chords <- false;
   t.scddb_id <- ""
@@ -66,6 +75,7 @@ let clear t =
 let submit t =
   let name = t.name in
   let kind = Kind.Dance.of_string t.kind in
+  let date = if t.date = "" then None else Some (PartialDate.from_string t.date) in
   let two_chords = t.two_chords in
   let scddb_id =
     if t.scddb_id = "" then
@@ -81,4 +91,4 @@ let submit t =
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
   Dance.make_and_save ~name ~kind ?deviser:(deviser t)
-    ~two_chords ?scddb_id ~modified_at ~created_at ()
+    ~two_chords ?scddb_id ?date ~modified_at ~created_at ()

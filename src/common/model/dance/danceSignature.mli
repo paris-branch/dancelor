@@ -58,6 +58,7 @@ val make_and_save :
   two_chords:bool ->
   ?scddb_id:int ->
   ?disambiguation:string ->
+  ?date: PartialDate.t ->
   modified_at:Datetime.t ->
   created_at:Datetime.t ->
   unit -> t Lwt.t

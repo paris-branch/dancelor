@@ -7,7 +7,7 @@ module Lift
 
   let make
       ?status ~slug ~name ~kind ?deviser ~two_chords ?scddb_id
-      ?disambiguation ~modified_at ~created_at
+      ?disambiguation ?date ~modified_at ~created_at
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
@@ -15,7 +15,7 @@ module Lift
     let deviser = Option.map Person.slug deviser in
     Lwt.return (make
                   ?status ~slug ~name ~kind ~deviser ~two_chords ~scddb_id
-                  ?disambiguation ~modified_at ~created_at
+                  ?disambiguation ~date ~modified_at ~created_at
                   ())
 
   let deviser dance = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (deviser dance)
