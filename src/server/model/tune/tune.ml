@@ -9,13 +9,13 @@ module A = E.Arguments
 
 let make_and_save
     ?status ~name ?alternative_names ~kind ?author
-    ?dances ?remark ?scddb_id ~modified_at ~created_at
+    ?dances ?remark ?scddb_id ?date ~modified_at ~created_at
     ()
   =
   Database.Tune.save ~slug_hint:name @@ fun slug ->
   make
     ?status ~slug ~name ?alternative_names ~kind ?author
-    ?dances ?remark ?scddb_id ~modified_at ~created_at
+    ?dances ?remark ?scddb_id ?date ~modified_at ~created_at
     ()
 
 let () =
@@ -30,6 +30,7 @@ let () =
       ?dances:  (o A.dances)
       ?remark:  (o A.remark)
       ?scddb_id:(o A.scddb_id)
+      ?date: (o A.date)
       ~modified_at:(a A.modified_at)
       ~created_at:(a A.created_at)
       ()

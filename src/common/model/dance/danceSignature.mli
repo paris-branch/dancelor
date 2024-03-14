@@ -14,6 +14,7 @@ val deviser : t -> PersonCore.t option Lwt.t
 val two_chords : t -> bool
 val scddb_id : t -> int option
 val disambiguation : t -> string
+val date : t -> PartialDate.t option
 val modified_at : t -> Datetime.t
 val created_at  : t -> Datetime.t
 
@@ -57,6 +58,7 @@ val make_and_save :
   two_chords:bool ->
   ?scddb_id:int ->
   ?disambiguation:string ->
+  ?date: PartialDate.t ->
   modified_at:Datetime.t ->
   created_at:Datetime.t ->
   unit -> t Lwt.t

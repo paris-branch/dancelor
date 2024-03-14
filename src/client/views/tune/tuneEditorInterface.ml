@@ -16,6 +16,7 @@ type t =
     input_name : Inputs.Text.t;
     input_alternative : Inputs.Text.t;
     input_kind : Inputs.Text.t;
+    input_date : Inputs.Text.t;
     author_search : SearchBar.t;
     dances_area : Html.divElement Js.t;
     dances_search : SearchBar.t;
@@ -51,6 +52,7 @@ let refresh t =
   Inputs.Text.set_contents t.input_name (TuneEditor.name t.editor);
   Inputs.Text.set_contents t.input_alternative (TuneEditor.alternative t.editor);
   Inputs.Text.set_contents t.input_kind (TuneEditor.kind t.editor);
+  Inputs.Text.set_contents t.input_date (TuneEditor.date t.editor);
   begin match TuneEditor.author t.editor with
     | None -> Inputs.Text.set_contents (SearchBar.bar t.author_search) ""
     | Some cr ->
@@ -154,6 +156,11 @@ let create ?on_save page =
       ~on_change:(fun kind -> TuneEditor.set_kind editor kind)
       page
   in
+  let input_date = Inputs.Text.create
+      ~placeholder:"Date of composition (eg. 2019 or 2012-03-14)"
+      ~on_change:(fun date -> TuneEditor.set_date editor date)
+      page
+  in
   let input_remark = Inputs.Text.create
       ~placeholder:"Additional remark about the tune, if any"
       ~on_change:(fun str -> TuneEditor.set_remark editor str)
@@ -224,14 +231,15 @@ let create ?on_save page =
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
 
-  let t = {page; editor; content; input_name; input_alternative; input_kind; author_search; dances_area; dances_search; input_remark; input_scddb_id} in
+  let t = {page; editor; content; input_name; input_alternative; input_kind; input_date; author_search; dances_area; dances_search; input_remark; input_scddb_id} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
       ~on_click:(fun () ->
-          let b1, b2, b3 =
+          let b1, b2, b3, b4 =
             Inputs.Text.check input_name (fun str -> str <> ""),
             Inputs.Text.check input_kind (fun str -> try Kind.Base.of_string str |> ignore; true with _ -> false),
+            Inputs.Text.check input_date (fun str -> str = "" || try PartialDate.from_string str |> ignore; true with _ -> false),
             Inputs.Text.check input_scddb_id (fun str ->
                 if str = "" then
                   true
@@ -244,7 +252,7 @@ let create ?on_save page =
                     | Error _ -> false
               )
           in
-          if b1 && b2 && b3 then (
+          if b1 && b2 && b3 && b4 then (
             Lwt.on_success (TuneEditor.submit editor) (fun tune ->
                 let slug = Tune.slug tune in
                 match on_save with
@@ -261,6 +269,7 @@ let create ?on_save page =
             Page.refresh page;
             Inputs.Text.set_valid input_name true;
             Inputs.Text.set_valid input_kind true;
+            Inputs.Text.set_valid input_date true;
             Inputs.Text.set_valid input_scddb_id true
           end)
       page
@@ -276,6 +285,8 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root author_search);
+  Dom.appendChild form (Html.createBr (Page.document page));
+  Dom.appendChild form (Inputs.Text.root input_date);
   Dom.appendChild form dances_area;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root dances_search);

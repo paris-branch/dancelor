@@ -6,6 +6,7 @@ type t = {
   mutable name : string;
   mutable alternative : string;
   mutable kind : string;
+  mutable date : string;
   mutable author : (Person.t Slug.t * Person.t) option;
   mutable dances : (Dance.t Slug.t * Dance.t) option array;
   mutable remark : string;
@@ -18,6 +19,7 @@ let create () =
     name = "";
     alternative = "";
     kind = "";
+    date = "";
     author = None;
     count = 0;
     dances = Array.make 1 None;
@@ -42,6 +44,12 @@ let kind t =
 
 let set_kind t kind =
   t.kind <- kind
+
+let date t =
+  t.date
+
+let set_date t date =
+  t.date <- date
 
 let author t =
   let%opt (_, cr) = t.author in
@@ -135,6 +143,7 @@ let submit t =
   let name = t.name in
   let alternative_names = if t.alternative = "" then [] else [t.alternative] in
   let kind = Kind.Base.of_string t.kind in
+  let date = if t.date = "" then None else Some (PartialDate.from_string t.date) in
   let dances = list_dances t in
   let remark = if t.remark = "" then None else Some t.remark in
   let scddb_id =
@@ -147,4 +156,4 @@ let submit t =
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
   Tune.make_and_save ~name ~alternative_names ~kind ?author:(author t)
-    ~dances ?remark ?scddb_id ~modified_at ~created_at ()
+    ?date ~dances ?remark ?scddb_id ~modified_at ~created_at ()

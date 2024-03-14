@@ -1,3 +1,4 @@
+open Nes
 open Madge_common
 
 module Arguments = struct
@@ -12,6 +13,7 @@ module Arguments = struct
   let disambiguation = optarg ~key:"disambiguation" (module MString)
   let two_chords = arg ~key:"two-chords" (module MBool)
   let scddb_id = optarg ~key:"scddb-id" (module MInteger)
+  let date = optarg ~key:"date" (module PartialDate)
   let modified_at = arg ~key:"modified-at" (module NesDatetime)
   let created_at = arg ~key:"created-at" (module NesDatetime)
 end

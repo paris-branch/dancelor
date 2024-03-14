@@ -5,7 +5,7 @@ module A = E.Arguments
 
 let make_and_save
     ?status ~name ~kind ?deviser ~two_chords ?scddb_id
-    ?disambiguation ~modified_at ~created_at
+    ?disambiguation ?date ~modified_at ~created_at
     ()
   =
   Madge_client.(
@@ -17,6 +17,7 @@ let make_and_save
     a A.two_chords two_chords;
     o A.scddb_id scddb_id;
     o A.disambiguation disambiguation;
+    o A.date date;
     a A.modified_at modified_at;
     a A.created_at created_at;
   )
