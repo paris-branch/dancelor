@@ -51,12 +51,12 @@ let dances dances =
   ]
 
 let tunes tunes =
-  map_table ~header:["Name"; "Kind"; "Author"] tunes @@ fun tune ->
+  map_table ~header:["Name"; "Kind"; "Composer"] tunes @@ fun tune ->
   let href = PageRouter.path_tune @@ Tune.slug tune in
   clickable_row ~href [
     (Lwt.return @@ Formatters.Tune.name tune);
     Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
-    (Lwt.map Formatters.Person.name (Tune.author tune));
+    (Lwt.map Formatters.Person.name (Tune.composer tune));
   ]
 
 let versions versions =

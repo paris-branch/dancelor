@@ -26,7 +26,7 @@ module Tune = Table.Make (struct
 
     let dependencies tune =
       List.map (Table.make_slug_and_table (module Dance)) (dances tune)
-      |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (author tune)
+      |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (composer tune)
       |> Lwt.return
 
     let standalone = false

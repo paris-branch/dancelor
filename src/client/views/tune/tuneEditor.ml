@@ -7,7 +7,7 @@ type t = {
   mutable alternative : string;
   mutable kind : string;
   mutable date : string;
-  mutable author : (Person.t Slug.t * Person.t) option;
+  mutable composer : (Person.t Slug.t * Person.t) option;
   mutable dances : (Dance.t Slug.t * Dance.t) option array;
   mutable remark : string;
   mutable scddb_id : string;
@@ -20,7 +20,7 @@ let create () =
     alternative = "";
     kind = "";
     date = "";
-    author = None;
+    composer = None;
     count = 0;
     dances = Array.make 1 None;
     remark = "";
@@ -51,17 +51,17 @@ let date t =
 let set_date t date =
   t.date <- date
 
-let author t =
-  let%opt (_, cr) = t.author in
+let composer t =
+  let%opt (_, cr) = t.composer in
   Some cr
 
-let set_author t slug =
-  let%lwt author = Person.get slug in
-  t.author <- Some (slug, author);
+let set_composer t slug =
+  let%lwt composer = Person.get slug in
+  t.composer <- Some (slug, composer);
   Lwt.return ()
 
-let remove_author t =
-  t.author <- None
+let remove_composer t =
+  t.composer <- None
 
 let count t =
   t.count
@@ -134,7 +134,7 @@ let clear t =
   t.name <- "";
   t.alternative <- "";
   t.kind <- "";
-  t.author <- None;
+  t.composer <- None;
   t.count <- 0;
   t.dances <- Array.make 1 None;
   t.scddb_id <- ""
@@ -155,5 +155,5 @@ let submit t =
   in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
-  Tune.make_and_save ~name ~alternative_names ~kind ?author:(author t)
+  Tune.make_and_save ~name ~alternative_names ~kind ?composer:(composer t)
     ?date ~dances ?remark ?scddb_id ~modified_at ~created_at ()

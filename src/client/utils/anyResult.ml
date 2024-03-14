@@ -65,7 +65,7 @@ let make_tune_result ~prefix page tune =
       Table.Cell.text ~text:(Lwt.return @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Lwt.map Formatters.Person.name (Tune.author tune))
+          (Lwt.map Formatters.Person.name (Tune.composer tune))
       ) page ;
     ]
   in
@@ -87,7 +87,7 @@ let make_version_result ~prefix page version =
       ) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.Version.author_and_arranger version)
+          (Formatters.Version.composer_and_arranger version)
       ) page;
     ]
   in

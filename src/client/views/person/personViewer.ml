@@ -57,7 +57,7 @@ let create ?context slug page =
         L.div (
           let%lwt tunes =
             let%lwt person = person_lwt in
-            Tune.search' @@ Tune.Filter.authorIs' person
+            Tune.search' @@ Tune.Filter.composerIs' person
           in
 
           Lwt.return [

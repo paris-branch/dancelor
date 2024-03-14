@@ -90,7 +90,7 @@ let make_tune_result ?context ~prefix tune =
       prefix @ [
         td [txt @@ Tune.name tune];
         td [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
-        L.td (Lwt.map Formatters.Person.name (Tune.author tune));
+        L.td (Lwt.map Formatters.Person.name (Tune.composer tune));
       ]
     )
 
@@ -111,7 +111,7 @@ let make_version_result ?context ~prefix version =
             Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
           )
         ];
-        L.td (Formatters.Version.author_and_arranger version);
+        L.td (Formatters.Version.composer_and_arranger version);
       ]
     )
 

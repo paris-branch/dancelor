@@ -13,7 +13,7 @@ module Self = struct
       clef           : Music.clef      option [@default None] ;
       trivia         : string          option [@default None] ;
       display_name   : string          option [@default None] [@key "display-name"] ;
-      display_author : string          option [@default None] [@key "display-author"] }
+      display_composer : string          option [@default None] [@key "display-composer"] }
   [@@deriving make, show {with_path = false}, yojson]
 
   let _key = "version-parameters"
@@ -26,8 +26,8 @@ include Self
    [@yojson.default]. Current version of [@@deriving yojson] (3.5.3) does not,
    however, seem to recognise this option anymore. In the meantime, we use
    [@default] and we add a dirty fix for [@@deriving make]: *)
-let make ?instruments ?transposition ?clef ?first_bar ?display_name ?display_author () =
-  make ~instruments ~transposition ~clef ~first_bar ~display_name ~display_author ()
+let make ?instruments ?transposition ?clef ?first_bar ?display_name ?display_composer () =
+  make ~instruments ~transposition ~clef ~first_bar ~display_name ~display_composer ()
 
 let make_instrument pitch =
   make
@@ -44,7 +44,7 @@ let for_dance      p = p.for_dance
 let clef           p = p.clef
 let trivia         p = p.trivia
 let display_name   p = p.display_name
-let display_author p = p.display_author
+let display_composer p = p.display_composer
 
 (** {2 Defaults}
 
@@ -55,7 +55,7 @@ let none = `Assoc [] |> of_yojson |> Result.get_ok
 let transposition' = Option.value ~default:Transposition.identity % transposition
 let first_bar' = Option.value ~default:1 % first_bar
 let display_name' ~default = Option.value ~default % display_name
-let display_author' ~default = Option.value ~default % display_author
+let display_composer' ~default = Option.value ~default % display_composer
 let trivia' ~default = Option.value ~default % trivia
 
 (** {2 Setters} *)
@@ -73,4 +73,4 @@ let compose first second =
     for_dance      = Option.(choose ~tie:fail)   first.for_dance      second.for_dance ;
     trivia         = Option.(choose ~tie:second) first.trivia         second.trivia ;
     display_name   = Option.(choose ~tie:second) first.display_name   second.display_name ;
-    display_author = Option.(choose ~tie:second) first.display_author second.display_author }
+    display_composer = Option.(choose ~tie:second) first.display_composer second.display_composer }

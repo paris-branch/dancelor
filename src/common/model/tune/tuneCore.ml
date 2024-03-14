@@ -8,7 +8,7 @@ type t =
     name : string ;
     alternative_names : string list     [@key "alternative-names"] [@default []] ;
     kind : Kind.Base.t ;
-    author : PersonCore.t Slug.t option [@default None] ;
+    composer : PersonCore.t Slug.t option [@default None] ;
     dances : DanceCore.t Slug.t list    [@default []] ;
     remark : string                     [@default ""] ;
     scddb_id : int option               [@default None] [@key "scddb-id"] ;
@@ -23,7 +23,7 @@ let status tune = tune.status
 let name tune = tune.name
 let alternative_names tune = tune.alternative_names
 let kind tune = tune.kind
-let author tune = tune.author
+let composer tune = tune.composer
 let dances tune = tune.dances
 let remark tune = tune.remark
 let scddb_id tune = tune.scddb_id
@@ -45,7 +45,7 @@ module Filter = struct
     | Is of t Slug.t
     | Name of string
     | NameMatches of string
-    | Author of PersonCore.Filter.t (** author is defined and passes the filter *)
+    | Composer of PersonCore.Filter.t (** composer is defined and passes the filter *)
     | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
   [@@deriving eq, show {with_path = false}, yojson]
@@ -54,14 +54,14 @@ module Filter = struct
   let is tune = Is tune
   let name string = Name string
   let nameMatches string = NameMatches string
-  let author cfilter = Author cfilter
+  let composer cfilter = Composer cfilter
   let kind kfilter = Kind kfilter
   let existsDance dfilter = ExistsDance dfilter
 
   let unIs = function Is s -> Some s | _ -> None
   let unName = function Name n -> Some n | _ -> None
   let unNameMatches = function NameMatches n -> Some n | _ -> None
-  let unAuthor = function Author cf -> Some cf | _ -> None
+  let unComposer = function Composer cf -> Some cf | _ -> None
   let unKind = function Kind kf -> Some kf | _ -> None
   let unExistsDance = function ExistsDance df -> Some df | _ -> None
 
@@ -70,7 +70,7 @@ module Filter = struct
 
   let name' = Formula.pred % name
   let nameMatches' = Formula.pred % nameMatches
-  let author' = Formula.pred % author
+  let composer' = Formula.pred % composer
   let kind' = Formula.pred % kind
   let existsDance' = Formula.pred % existsDance
 end

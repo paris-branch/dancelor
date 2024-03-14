@@ -4,7 +4,7 @@ module E = Dancelor_common_model.TuneEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?alternative_names ~kind ?author ?dances
+    ?status ~name ?alternative_names ~kind ?composer ?dances
     ?remark ?scddb_id ?date ~modified_at ~created_at ()
   =
   Madge_client.(
@@ -13,7 +13,7 @@ let make_and_save
     a A.name name;
     o A.alternative_names alternative_names;
     a A.kind kind;
-    o A.author author;
+    o A.composer composer;
     o A.dances dances;
     o A.remark remark;
     o A.scddb_id scddb_id;

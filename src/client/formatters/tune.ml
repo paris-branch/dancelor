@@ -16,18 +16,18 @@ let name ?(link=true) tune =
 
 let description tune =
   let kind = M.Kind.Base.to_pretty_string @@ M.Tune.kind tune in
-  let%lwt author = M.Tune.author tune in
-  match author with
+  let%lwt composer = M.Tune.composer tune in
+  match composer with
   | None ->
     Lwt.return [
       txt (String.capitalize_ascii kind)
     ]
-  | Some author when M.Person.is_trad author ->
+  | Some composer when M.Person.is_trad composer ->
     Lwt.return [
       txt ("Traditional " ^ kind)
     ]
-  | Some author ->
-    let name_block = Person.name ~link:true (Some author) in
+  | Some composer ->
+    let name_block = Person.name ~link:true (Some composer) in
     Lwt.return (
       [txt (String.capitalize_ascii kind ^ " by ")]
       @ name_block

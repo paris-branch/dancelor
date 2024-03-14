@@ -168,10 +168,10 @@ module Ly = struct
           let%lwt tune = Model.Version.tune version in
           let key = Model.Version.key version in
           let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) version_parameters in
-          let%lwt author =
-            Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.author tune)
+          let%lwt composer =
+            Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.composer tune)
           in
-          let author = Model.VersionParameters.display_author' ~default:author version_parameters in
+          let composer = Model.VersionParameters.display_composer' ~default:composer version_parameters in
           let first_bar = Model.VersionParameters.first_bar' version_parameters in
           let source, target =
             match Model.VersionParameters.transposition' version_parameters with
@@ -179,7 +179,7 @@ module Ly = struct
             | Absolute target -> (Model.Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
           in
           fpf fmt [%blob "template/book/version.ly"]
-            name author
+            name composer
             first_bar
             name
             (Model.Music.pitch_to_lilypond_string source)

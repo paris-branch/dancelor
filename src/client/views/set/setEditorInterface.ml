@@ -163,7 +163,7 @@ let make_version_search_result composer page version =
         ) page;
         Table.Cell.create ~content:(
           Dancelor_client_html.to_old_style
-            (Dancelor_client_formatters.Version.author_and_arranger ~link:false version)
+            (Dancelor_client_formatters.Version.composer_and_arranger ~link:false version)
         ) page;
         Table.Cell.text ~text:(Lwt.return (string_of_int bars)) page;
         Table.Cell.text ~text:(Lwt.return (Kind.Base.to_pretty_string ~capitalised:true kind)) page;
