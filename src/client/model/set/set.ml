@@ -4,7 +4,7 @@ module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?deviser ~kind ?versions_and_parameters
+    ?status ~name ?devisers ~kind ?versions_and_parameters
     ~order ?dances ~modified_at ~created_at
     ()
   =
@@ -12,7 +12,7 @@ let make_and_save
     call ~endpoint:E.make_and_save @@ fun {a} {o} ->
     o A.status status;
     a A.name name;
-    o A.deviser deviser;
+    o A.devisers devisers;
     a A.kind kind;
     o A.versions_and_parameters versions_and_parameters;
     a A.order order;

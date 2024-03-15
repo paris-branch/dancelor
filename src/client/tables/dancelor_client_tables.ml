@@ -37,7 +37,7 @@ let sets sets =
   let href = PageRouter.path_set @@ Set.slug set in
   clickable_row ~href [
     (Formatters.Set.name_and_tunes ~link:true set);
-    (Lwt.map Formatters.Person.name (Set.deviser set));
+    (Lwt.map Formatters.Person.names (Set.devisers set));
     Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set];
   ]
 

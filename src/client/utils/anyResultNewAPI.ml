@@ -76,7 +76,7 @@ let make_set_result ?context ~prefix set =
       prefix @ [
         td [txt @@ Set.name set];
         td [txt @@ Kind.Dance.to_string @@ Set.kind set];
-        L.td (Lwt.map Formatters.Person.name (Set.deviser set));
+        L.td (Lwt.map (Formatters.Person.names ~short:true) (Set.devisers set));
       ]
     )
 

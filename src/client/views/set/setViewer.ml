@@ -39,9 +39,9 @@ let create ?context slug page =
         L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order) set_lwt);
       ];
       L.h3 ~a:[a_class ["title"]] (
-        match%lwt set_lwt >>=| Set.deviser with
-        | None -> Lwt.return_nil
-        | Some deviser -> Lwt.return (txt "Set devised by " :: Formatters.Person.name ~link:true (Some deviser))
+        match%lwt set_lwt >>=| Set.devisers with
+        | [] -> Lwt.return_nil
+        | devisers -> Lwt.return (txt "Set devised by " :: Formatters.Person.names ~link:true devisers)
       );
 
       div ~a:[a_class ["buttons"]] [

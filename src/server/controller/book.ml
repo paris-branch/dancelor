@@ -136,9 +136,9 @@ module Ly = struct
           if not (Model.SetParameters.show_deviser' set_parameters) then
             Lwt.return ""
           else
-            Lwt.map
-              (Option.fold ~none:"" ~some:(spf "Set by %s" % Model.Person.name))
-              (Model.Set.deviser set)
+            match%lwt Model.Set.devisers set with
+            | [] -> Lwt.return ""
+            | devisers -> Lwt.return ("Set by " ^ String.concat ", " ~last:" & " @@ List.map Model.Person.name devisers)
         in
         let%lwt kind = kind set set_parameters in
         let%lwt details_line = details_line set set_parameters in

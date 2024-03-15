@@ -253,7 +253,7 @@ let submit t =
   let created_at = Datetime.now () in
   let answer =
     Set.make_and_save ~kind ~name:t.name ~versions_and_parameters
-      ~order ?deviser:(deviser t) ~modified_at ~created_at ()
+      ~order ?devisers:(Option.map List.singleton (deviser t)) ~modified_at ~created_at ()
   in
   Lwt.on_success answer
     (fun _ -> erase_storage t;

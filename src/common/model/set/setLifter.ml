@@ -9,20 +9,20 @@ module Lift
   include SetCore
 
   let make
-      ?status ?(slug=Slug.none) ~name ?deviser ~kind ?versions_and_parameters
+      ?status ?(slug=Slug.none) ~name ?devisers ~kind ?versions_and_parameters
       ~order ?dances ~modified_at ~created_at
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
-    let deviser = Option.map Person.slug deviser in
+    let devisers = Option.map (List.map Person.slug) devisers in
     let versions_and_parameters = Option.map (List.map (fun (version, parameters) -> (Version.slug version, parameters))) versions_and_parameters in
     let dances = Option.map (List.map Dance.slug) dances in
-    Lwt.return (make ?status ~slug ~name ~deviser ~kind ?versions_and_parameters
+    Lwt.return (make ?status ~slug ~name ?devisers ~kind ?versions_and_parameters
                   ~order ?dances ~modified_at ~created_at
                   ())
 
   let is_slug_none = Slug.is_none % slug
-  let deviser = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) % deviser
+  let devisers = Lwt_list.map_p Person.get % devisers
   let dances = Lwt_list.map_p Dance.get % dances
 
   let versions_and_parameters set =
@@ -101,8 +101,6 @@ module Lift
     Lwt.return !warnings
 
   module Filter = struct
-    let setCore_deviser = deviser
-
     include SetCore.Filter
 
     let accepts filter set =
@@ -118,12 +116,10 @@ module Lift
       | NameMatches string ->
         Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ SetCore.name set
 
-      | Deviser dfilter ->
-        Lwt.bind
-          (setCore_deviser set)
-          (Option.fold
-             ~none: (Lwt.return Formula.interpret_false)
-             ~some: (Person.Filter.accepts dfilter))
+      | ExistsDeviser pfilter ->
+        let%lwt devisers = devisers set in
+        let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) devisers in
+        Lwt.return (Formula.interpret_or_l scores)
 
       | ExistsVersion vfilter ->
         let%lwt versions_and_parameters = versions_and_parameters set in
@@ -142,8 +138,8 @@ module Lift
             raw (Result.ok % nameMatches');
             unary_string ~name:"name"           (name, unName);
             unary_string ~name:"name-matches"   (nameMatches, unNameMatches);
-            unary_lift   ~name:"deviser"        (deviser, unDeviser)             ~converter:Person.Filter.text_formula_converter;
-            unary_lift   ~name:"by"             (deviser, unDeviser)             ~converter:Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_lift   ~name:"exists-deviser" (existsDeviser, unExistsDeviser)             ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"             (existsDeviser, unExistsDeviser)             ~converter:Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
             unary_lift   ~name:"exists-version" (existsVersion, unExistsVersion) ~converter:Version.Filter.text_formula_converter;
             unary_lift   ~name:"kind"           (kind, unKind)                   ~converter:Kind.Dance.Filter.text_formula_converter;
             unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
@@ -168,7 +164,7 @@ module Lift
 
     let optimise =
       let lift {op} f1 f2 = match (f1, f2) with
-        | (Deviser f1, Deviser f2) -> Option.some @@ deviser (op f1 f2)
+        | (ExistsDeviser f1, ExistsDeviser f2) -> Option.some @@ existsDeviser (op f1 f2)
         | (ExistsVersion f1, ExistsVersion f2) -> Option.some @@ existsVersion (op f1 f2)
         | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
         | _ -> None
@@ -178,7 +174,7 @@ module Lift
         ~lift_or: (lift {op = Formula.or_})
         (function
           | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
-          | Deviser pfilter -> deviser @@ Person.Filter.optimise pfilter
+          | ExistsDeviser pfilter -> existsDeviser @@ Person.Filter.optimise pfilter
           | ExistsVersion vfilter -> existsVersion @@ Version.Filter.optimise vfilter
           | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter)
   end

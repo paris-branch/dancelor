@@ -51,7 +51,7 @@ let make_set_result ~prefix page set =
       Table.Cell.text ~text:(Lwt.return @@ Kind.Dance.to_string @@ Set.kind set) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Lwt.map Formatters.Person.name (Set.deviser set))
+          (Lwt.map (Formatters.Person.names ~short:true) (Set.devisers set))
       ) page;
     ]
   in

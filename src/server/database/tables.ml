@@ -47,9 +47,10 @@ module SetModel = struct
   include Model.SetCore
 
   let dependencies set =
-    List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
-    |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (deviser set)
-    |> Lwt.return
+    Lwt.return (
+      List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
+      @ List.map (Table.make_slug_and_table (module Person)) (devisers set)
+    )
 
   let standalone = true
 end
