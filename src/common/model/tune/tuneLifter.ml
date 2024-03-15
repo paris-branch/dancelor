@@ -7,25 +7,24 @@ module Lift
   include TuneCore
 
   let make
-      ?status ~slug ~name ?alternative_names ~kind ?composer ?dances
+      ?status ~slug ~name ?alternative_names ~kind ?composers ?dances
       ?remark ?scddb_id ?date ~modified_at ~created_at
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
     let alternative_names = Option.map (List.map (String.remove_duplicates ~char:' ')) alternative_names in
-    let composer = Option.map Person.slug composer in
+    let composers = Option.map (List.map Person.slug) composers in
     let dances = Option.map (List.map Dance.slug) dances in
     Lwt.return (make
-                  ?status ~slug ~name ?alternative_names ~kind ~composer ?dances
+                  ?status ~slug ~name ?alternative_names ~kind ?composers ?dances
                   ?remark ~scddb_id ~date ~modified_at ~created_at
                   ())
 
-  let composer tune = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % Person.get) (composer tune)
+  let composers = Lwt_list.map_p Person.get % composers
   let dances tune = Lwt_list.map_p Dance.get (dances tune)
 
   module Filter = struct
     (* NOTE: [include TuneCore.Filter] shadows the accessors of [TuneCore]. *)
-    let tuneCore_composer = composer
     let tuneCore_dances = dances
 
     include TuneCore.Filter
@@ -43,12 +42,10 @@ module Lift
       | NameMatches string ->
         Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ TuneCore.name tune
 
-      | Composer afilter ->
-        Lwt.bind
-          (tuneCore_composer tune)
-          (Option.fold
-             ~none: (Lwt.return Formula.interpret_false)
-             ~some: (Person.Filter.accepts afilter))
+      | ExistsComposer pfilter ->
+        let%lwt composers = composers tune in
+        let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) composers in
+        Lwt.return (Formula.interpret_or_l scores)
 
       | Kind kfilter ->
         Kind.Base.Filter.accepts kfilter @@ TuneCore.kind tune
@@ -65,8 +62,8 @@ module Lift
             raw (Result.ok % nameMatches');
             unary_string ~name:"name"         (name, unName);
             unary_string ~wrap_back:Never ~name:"name-matches" (nameMatches, unNameMatches);
-            unary_lift   ~name:"composer"       (composer, unComposer)           ~converter:Person.Filter.text_formula_converter;
-            unary_lift   ~name:"by"           (composer, unComposer)           ~converter:Person.Filter.text_formula_converter; (* alias for composer; FIXME: make this clearer *)
+            unary_lift   ~name:"exists-composer"       (existsComposer, unExistsComposer)           ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"           (existsComposer, unExistsComposer)           ~converter:Person.Filter.text_formula_converter; (* alias for exists-composer; FIXME: make this clearer *)
             unary_lift   ~name:"kind"         (kind, unKind)               ~converter:Kind.Base.Filter.text_formula_converter;
             unary_lift   ~name:"exists-dance" (existsDance, unExistsDance) ~converter:Dance.Filter.text_formula_converter;
             unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
@@ -83,15 +80,15 @@ module Lift
     let is = is % slug
     let is' = Formula.pred % is
 
-    let composerIs = composer % Person.Filter.is'
-    let composerIs' = Formula.pred % composerIs
+    let existsComposerIs = existsComposer % Person.Filter.is'
+    let existsComposerIs' = Formula.pred % existsComposerIs
 
     (* Little trick to convince OCaml that polymorphism is OK. *)
     type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
 
     let optimise =
       let lift {op} f1 f2 = match (f1, f2) with
-        | (Composer f1, Composer f2) -> Option.some @@ composer (op f1 f2)
+        | (ExistsComposer f1, ExistsComposer f2) -> Option.some @@ existsComposer (op f1 f2)
         | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
         | (ExistsDance f1, ExistsDance f2) -> Option.some @@ existsDance (op f1 f2)
         | _ -> None
@@ -101,7 +98,7 @@ module Lift
         ~lift_or: (lift {op = Formula.or_})
         (function
           | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
-          | Composer pfilter -> composer @@ Person.Filter.optimise pfilter
+          | ExistsComposer pfilter -> existsComposer @@ Person.Filter.optimise pfilter
           | Kind kfilter -> kind @@ Kind.Base.Filter.optimise kfilter
           | ExistsDance dfilter -> existsDance @@ Dance.Filter.optimise dfilter)
   end

@@ -90,7 +90,7 @@ let make_tune_result ?context ~prefix tune =
       prefix @ [
         td [txt @@ Tune.name tune];
         td [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
-        L.td (Lwt.map Formatters.Person.name (Tune.composer tune));
+        L.td (Formatters.Tune.composers tune);
       ]
     )
 

@@ -168,9 +168,7 @@ module Ly = struct
           let%lwt tune = Model.Version.tune version in
           let key = Model.Version.key version in
           let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) version_parameters in
-          let%lwt composer =
-            Lwt.map (Option.fold ~none:"" ~some:Model.Person.name) (Model.Tune.composer tune)
-          in
+          let%lwt composer = Lwt.map (String.concat ", " ~last:" and " % List.map Model.Person.name) (Model.Tune.composers tune) in
           let composer = Model.VersionParameters.display_composer' ~default:composer version_parameters in
           let first_bar = Model.VersionParameters.first_bar' version_parameters in
           let source, target =

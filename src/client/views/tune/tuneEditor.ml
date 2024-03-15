@@ -155,5 +155,5 @@ let submit t =
   in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
-  Tune.make_and_save ~name ~alternative_names ~kind ?composer:(composer t)
+  Tune.make_and_save ~name ~alternative_names ~kind ?composers:(Option.map List.singleton (composer t))
     ?date ~dances ?remark ?scddb_id ~modified_at ~created_at ()

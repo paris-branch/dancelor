@@ -14,23 +14,23 @@ let name ?(link=true) tune =
   else
     name_text
 
+let composers ?short = Lwt.map (Person.names ?short) % M.Tune.composers
+
 let description tune =
   let kind = M.Kind.Base.to_pretty_string @@ M.Tune.kind tune in
-  let%lwt composer = M.Tune.composer tune in
-  match composer with
-  | None ->
+  match%lwt M.Tune.composers tune with
+  | [] ->
     Lwt.return [
       txt (String.capitalize_ascii kind)
     ]
-  | Some composer when M.Person.is_trad composer ->
+  | [composer] when M.Person.is_trad composer ->
     Lwt.return [
       txt ("Traditional " ^ kind)
     ]
-  | Some composer ->
-    let name_block = Person.name ~link:true (Some composer) in
+  | composers ->
     Lwt.return (
       [txt (String.capitalize_ascii kind ^ " by ")]
-      @ name_block
+      @ (Person.names composers)
     )
 
 let aka tune =

@@ -1,6 +1,7 @@
 name: Tam Lin
 kind: R
-composer: davey-arthur
+composers:
+  - davey-arthur
 dances:
   - the-architect
 created-at: 2018-12-07T01:18:53+01:00

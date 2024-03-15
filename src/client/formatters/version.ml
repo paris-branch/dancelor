@@ -99,23 +99,12 @@ let disambiguation_and_sources version =
   ]
 
 let composer_and_arranger ?(short=true) ?link version =
-  let%lwt composer_block =
-    let%lwt tune = M.Version.tune version in
-    match%lwt M.Tune.composer tune with
-    | None -> Lwt.return_nil
-    | Some composer -> Lwt.return @@ Person.name ?link (Some composer)
-  in
-  let has_composer =
-    let%lwt tune = M.Version.tune version in
-    match%lwt M.Tune.composer tune with
-    | None -> Lwt.return_false
-    | Some _ -> Lwt.return_true
-  in
+  let%lwt composer_block = Lwt.bind (M.Version.tune version) Tune.composers in
   let%lwt arranger_block =
     match%lwt M.Version.arranger version with
     | None -> Lwt.return_nil
     | Some arranger ->
-      let%lwt comma = if%lwt has_composer then Lwt.return ", " else Lwt.return "" in
+      let comma = if composer_block = [] then ", " else "" in
       let arr = if short then "arr." else "arranged by" in
       let arranger_block = Person.name ?link (Some arranger) in
       Lwt.return [

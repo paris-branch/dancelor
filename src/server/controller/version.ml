@@ -14,11 +14,7 @@ let prepare_ly_file ?(parameters=Model.VersionParameters.none) ?(show_meta=false
   let%lwt tune = Model.Version.tune version in
   let key = Model.Version.key version in
   let name = Model.VersionParameters.display_name' ~default:(Model.Tune.name tune) parameters in
-  let%lwt composer =
-    match%lwt Model.Tune.composer tune with
-    | None -> Lwt.return ""
-    | Some composer -> Lwt.return @@ Model.Person.name composer
-  in
+  let%lwt composer = Lwt.map (String.concat ", " ~last:" and " % List.map Model.Person.name) (Model.Tune.composers tune) in
   let composer = Model.VersionParameters.display_composer' ~default:composer parameters in
   let title, piece =
     if show_meta then

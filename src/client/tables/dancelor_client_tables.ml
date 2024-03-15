@@ -56,7 +56,7 @@ let tunes tunes =
   clickable_row ~href [
     (Lwt.return @@ Formatters.Tune.name tune);
     Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
-    (Lwt.map Formatters.Person.name (Tune.composer tune));
+    (Formatters.Tune.composers tune);
   ]
 
 let versions versions =
