@@ -90,7 +90,14 @@ val bd_ft_opt : 'a t -> ('a list * 'a) option
     empty.
     @raise Failure if the list is empty. *)
 
-val intertwine : (int -> 'a) -> 'a t -> 'a t
+val intersperse : ?last:'a -> 'a -> 'a t -> 'a t
+(** [intersperse ?last x l] is the list [l] with [x] “interspersed” between all
+    the elements of [l]. If [?last] is not [None], then the last occurence is
+    not [x] but [last]. For instance, [intersperse ?last:" & " "," \["a"; "b";
+    "c"\] = \["a"; ", "; "b"; " & "; "c"\]]. *)
+
+val interspersei : ?last:(int -> 'a) -> (int -> 'a) -> 'a t -> 'a t
+(** Same as {!intersperse} but with the indice passed as argument. *)
 
 val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
 (** Same as {!compare} when the comparison function returns an Lwt value. *)

@@ -66,7 +66,7 @@ let name_disambiguation_and_sources ?link version =
     | [title] -> txt "Source: " :: title
     | titles ->
       titles
-      |> List.intertwine (fun _ -> [txt " - "])
+      |> List.interspersei (fun _ -> [txt " - "])
       |> List.flatten
       |> List.cons (txt "Sources: ")
   in
@@ -89,7 +89,7 @@ let disambiguation_and_sources version =
     | [title] -> txt "Source: " :: title
     | titles ->
       titles
-      |> List.intertwine (fun _ -> [txt " - "])
+      |> List.interspersei (fun _ -> [txt " - "])
       |> List.flatten
       |> List.cons (txt "Sources: ")
   in
