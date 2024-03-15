@@ -13,10 +13,9 @@ module Dance = Table.Make (struct
     include Model.DanceCore
 
     let dependencies dance =
-      Lwt.return @@
-      match deviser dance with
-      | None -> []
-      | Some deviser -> [Table.make_slug_and_table (module Person) deviser]
+      Lwt.return (
+        List.map (Table.make_slug_and_table (module Person)) (devisers dance)
+      )
 
     let standalone = false
   end)
@@ -25,9 +24,10 @@ module Tune = Table.Make (struct
     include Model.TuneCore
 
     let dependencies tune =
-      List.map (Table.make_slug_and_table (module Dance)) (dances tune)
-      |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (author tune)
-      |> Lwt.return
+      Lwt.return (
+        List.map (Table.make_slug_and_table (module Dance)) (dances tune)
+        @ List.map (Table.make_slug_and_table (module Person)) (composers tune)
+      )
 
     let standalone = false
   end)
@@ -36,9 +36,10 @@ module Version = Table.Make (struct
     include Model.VersionCore
 
     let dependencies version =
-      Option.fold ~none:[] ~some:(List.singleton % Table.make_slug_and_table (module Person)) (arranger version)
-      |> List.cons (Table.make_slug_and_table (module Tune) (tune version))
-      |> Lwt.return
+      Lwt.return (
+        (Table.make_slug_and_table (module Tune) (tune version))
+        :: List.map (Table.make_slug_and_table (module Person)) (arrangers version)
+      )
 
     let standalone = true
   end)
@@ -47,9 +48,10 @@ module SetModel = struct
   include Model.SetCore
 
   let dependencies set =
-    List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
-    |> Option.fold ~none:Fun.id ~some:(List.cons % Table.make_slug_and_table (module Person)) (deviser set)
-    |> Lwt.return
+    Lwt.return (
+      List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
+      @ List.map (Table.make_slug_and_table (module Person)) (conceptors set)
+    )
 
   let standalone = true
 end

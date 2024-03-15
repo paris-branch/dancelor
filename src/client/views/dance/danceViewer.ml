@@ -37,9 +37,9 @@ let create ?context slug page =
       L.h3 ~a:[a_class ["title"]] (
         let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind) dance_lwt] in
         let%lwt by =
-          match%lwt dance_lwt >>=| Dance.deviser with
-          | None -> Lwt.return_nil
-          | Some deviser -> Lwt.return (txt " by " :: Formatters.Person.name ~link:true (Some deviser))
+          match%lwt dance_lwt >>=| Dance.devisers with
+          | [] -> Lwt.return_nil
+          | devisers -> Lwt.return (txt " by " :: Formatters.Person.names ~link:true devisers)
         in
         Lwt.return (kind @ by)
       );

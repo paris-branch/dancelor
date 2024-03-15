@@ -4,7 +4,7 @@ module E = Dancelor_common_model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~tune ~bars ~key ~structure ?arranger ?remark
+    ?status ~tune ~bars ~key ~structure ?arrangers ?remark
     ?disambiguation ?broken ~content ~modified_at ~created_at ()
   =
   Madge_client.(
@@ -14,7 +14,7 @@ let make_and_save
     a A.bars bars;
     a A.key key;
     a A.structure structure;
-    o A.arranger arranger;
+    o A.arrangers arrangers;
     o A.remark remark;
     o A.disambiguation disambiguation;
     o A.broken broken;

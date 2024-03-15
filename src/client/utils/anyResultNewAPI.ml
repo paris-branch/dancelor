@@ -36,7 +36,7 @@ let make_person_result ?context ~prefix person =
     )
     (
       prefix @ [
-        td ~a:[a_colspan 3] (Formatters.Person.name ~link:false (Some person));
+        td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
       ]
     )
 
@@ -50,7 +50,7 @@ let make_dance_result ?context ~prefix dance =
       prefix @ [
         td [txt (Dance.name dance)];
         td [txt (Kind.Dance.to_string @@ Dance.kind dance)];
-        L.td (Lwt.map Formatters.Person.name (Dance.deviser dance));
+        L.td (Lwt.map (Formatters.Person.names ~short:true) (Dance.devisers dance));
       ]
     )
 
@@ -76,7 +76,7 @@ let make_set_result ?context ~prefix set =
       prefix @ [
         td [txt @@ Set.name set];
         td [txt @@ Kind.Dance.to_string @@ Set.kind set];
-        L.td (Lwt.map Formatters.Person.name (Set.deviser set));
+        L.td (Lwt.map (Formatters.Person.names ~short:true) (Set.conceptors set));
       ]
     )
 
@@ -90,7 +90,7 @@ let make_tune_result ?context ~prefix tune =
       prefix @ [
         td [txt @@ Tune.name tune];
         td [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
-        L.td (Lwt.map Formatters.Person.name (Tune.author tune));
+        L.td (Formatters.Tune.composers tune);
       ]
     )
 
@@ -111,7 +111,7 @@ let make_version_result ?context ~prefix version =
             Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
           )
         ];
-        L.td (Formatters.Version.author_and_arranger version);
+        L.td (Formatters.Version.composer_and_arranger ~short:true version);
       ]
     )
 

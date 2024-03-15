@@ -52,14 +52,17 @@ let ft l =
   | Some x -> x
   | _ -> failwith "ft"
 
-let intertwine f l =
-  let rec intertwine i = function
+let interspersei ?last mid l =
+  let rec interspersei i = function
     | [] -> []
     | [e] -> [e]
-    | h :: q ->
-      h :: (f i) :: intertwine (i+1) q
+    | [e; f] -> [e; Option.value ~default:mid last i; f]
+    | h :: t -> h :: mid i :: interspersei (i + 1) t
   in
-  intertwine 0 l
+  interspersei 0 l
+
+let intersperse ?last mid =
+  interspersei ?last:(Option.map Fun.const last) (Fun.const mid)
 
 let singleton x = [x]
 

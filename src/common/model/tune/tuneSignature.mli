@@ -11,7 +11,7 @@ val status : t -> Status.t
 val name : t -> string
 val alternative_names : t -> string list
 val kind : t -> Kind.Base.t
-val author : t -> PersonCore.t option Lwt.t
+val composers : t -> PersonCore.t list Lwt.t
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string
 val scddb_id : t -> int option
@@ -42,11 +42,11 @@ module Filter : sig
   val kind : KindBase.Filter.t -> predicate
   val kind' : KindBase.Filter.t -> t
 
-  val author : PersonCore.Filter.t -> predicate
-  val author' : PersonCore.Filter.t -> t
+  val existsComposer : PersonCore.Filter.t -> predicate
+  val existsComposer' : PersonCore.Filter.t -> t
 
-  val authorIs : PersonCore.t -> predicate
-  val authorIs' : PersonCore.t -> t
+  val existsComposerIs : PersonCore.t -> predicate
+  val existsComposerIs' : PersonCore.t -> t
 
   val existsDance : DanceCore.Filter.t -> predicate
   val existsDance' : DanceCore.Filter.t -> t
@@ -74,7 +74,7 @@ val make_and_save :
   name:string ->
   ?alternative_names:string list ->
   kind:Kind.Base.t ->
-  ?author:PersonCore.t ->
+  ?composers: PersonCore.t list ->
   ?dances:DanceCore.t list ->
   ?remark:string ->
   ?scddb_id:int ->

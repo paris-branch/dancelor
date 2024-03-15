@@ -1,6 +1,7 @@
 ---
 name: Tam Lin Thrice
-deviser: niols
+conceptors:
+  - niols
 kind: 3x32R
 versions-and-parameters:
   - [tam-lin-niols, { transposition: [Absolute, D] }]

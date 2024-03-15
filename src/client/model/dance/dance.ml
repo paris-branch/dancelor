@@ -4,7 +4,7 @@ module E = Dancelor_common_model.DanceEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ~kind ?deviser ~two_chords ?scddb_id
+    ?status ~name ~kind ?devisers ~two_chords ?scddb_id
     ?disambiguation ?date ~modified_at ~created_at
     ()
   =
@@ -13,7 +13,7 @@ let make_and_save
     o A.status status;
     a A.name name;
     a A.kind kind;
-    o A.deviser deviser;
+    o A.devisers devisers;
     a A.two_chords two_chords;
     o A.scddb_id scddb_id;
     o A.disambiguation disambiguation;

@@ -8,7 +8,7 @@ module E = Common.Model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~tune ~bars ~key ~structure ?arranger ?remark
+    ?status ~tune ~bars ~key ~structure ?arrangers ?remark
     ?disambiguation ?broken ~content ~modified_at ~created_at
     ()
   =
@@ -16,7 +16,7 @@ let make_and_save
   let%lwt version =
     Database.Version.save ~slug_hint:name @@ fun slug ->
     make
-      ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
+      ~slug ?status ~tune ~bars ~key ~structure ?arrangers ?remark
       ?disambiguation ?broken ~modified_at ~created_at
       ()
   in
@@ -32,7 +32,7 @@ let () =
       ~bars:     (a A.bars)
       ~key:      (a A.key)
       ~structure:(a A.structure)
-      ?arranger: (o A.arranger)
+      ?arrangers: (o A.arrangers)
       ?remark:   (o A.remark)
       ?disambiguation:(o A.disambiguation)
       ?broken:   (o A.broken)

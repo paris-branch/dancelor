@@ -17,7 +17,7 @@ type t =
     input_alternative : Inputs.Text.t;
     input_kind : Inputs.Text.t;
     input_date : Inputs.Text.t;
-    author_search : SearchBar.t;
+    composer_search : SearchBar.t;
     dances_area : Html.divElement Js.t;
     dances_search : SearchBar.t;
     input_remark : Inputs.Text.t;
@@ -53,11 +53,11 @@ let refresh t =
   Inputs.Text.set_contents t.input_alternative (TuneEditor.alternative t.editor);
   Inputs.Text.set_contents t.input_kind (TuneEditor.kind t.editor);
   Inputs.Text.set_contents t.input_date (TuneEditor.date t.editor);
-  begin match TuneEditor.author t.editor with
-    | None -> Inputs.Text.set_contents (SearchBar.bar t.author_search) ""
+  begin match TuneEditor.composer t.editor with
+    | None -> Inputs.Text.set_contents (SearchBar.bar t.composer_search) ""
     | Some cr ->
       let name = Person.name cr in
-      Inputs.Text.set_contents (SearchBar.bar t.author_search) name
+      Inputs.Text.set_contents (SearchBar.bar t.composer_search) name
   end;
   JsHelpers.clear_children t.dances_area;
   TuneEditor.iter t.editor (fun i dance ->
@@ -101,7 +101,7 @@ let make_dance_modal editor content page =
     ~on_refresh:(fun () -> DanceEditorInterface.refresh interface)
     ~targets:[dance_modal]
 
-let make_author_modal editor content page =
+let make_composer_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let person_modal = Html.createDiv (Page.document page) in
   let interface =
@@ -109,7 +109,7 @@ let make_author_modal editor content page =
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
-          Lwt.on_success (TuneEditor.set_author editor slug) (fun () -> Page.refresh page))
+          Lwt.on_success (TuneEditor.set_composer editor slug) (fun () -> Page.refresh page))
   in
   Dom.appendChild person_modal (PersonEditorInterface.contents interface);
   person_modal##.classList##add (js "modal-window");
@@ -122,13 +122,13 @@ let make_author_modal editor content page =
     ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[person_modal]
 
-let make_author_search_result editor page author =
-  let name = Person.name author in
-  let slug = Person.slug author in
+let make_composer_search_result editor page composer =
+  let name = Person.name composer in
+  let slug = Person.slug composer in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
-            (TuneEditor.set_author editor slug)
+            (TuneEditor.set_composer editor slug)
             (fun () -> Page.refresh page))
       ~cells:[
         Table.Cell.text ~text:(Lwt.return name) page]
@@ -195,14 +195,14 @@ let create ?on_save page =
       page
   in
 
-  let author_search =
+  let composer_search =
     let main_section =
       SearchBar.Section.create
         ~default:(Table.Row.create
-                    ~on_click:(fun () -> make_author_modal editor content page)
+                    ~on_click:(fun () -> make_composer_modal editor content page)
                     ~cells:[
                       Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new author") page]
+                      Table.Cell.text ~text:(Lwt.return "Create a new composer") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
@@ -211,19 +211,19 @@ let create ?on_save page =
                 ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
-        ~make_result:(make_author_search_result editor page)
+        ~make_result:(make_composer_search_result editor page)
         page
     in
     SearchBar.create
-      ~placeholder:"Author (Magic Search)"
+      ~placeholder:"Composer (Magic Search)"
       ~sections:[main_section]
       page
   in
 
-  Inputs.Text.on_focus (SearchBar.bar author_search) (fun b ->
+  Inputs.Text.on_focus (SearchBar.bar composer_search) (fun b ->
       if b then begin
-        Inputs.Text.erase (SearchBar.bar author_search);
-        TuneEditor.remove_author editor;
+        Inputs.Text.erase (SearchBar.bar composer_search);
+        TuneEditor.remove_composer editor;
         Page.refresh page
       end);
 
@@ -231,7 +231,7 @@ let create ?on_save page =
   Style.set ~display:"flex" submit;
   submit##.classList##add (js "justify-content-space-between");
 
-  let t = {page; editor; content; input_name; input_alternative; input_kind; input_date; author_search; dances_area; dances_search; input_remark; input_scddb_id} in
+  let t = {page; editor; content; input_name; input_alternative; input_kind; input_date; composer_search; dances_area; dances_search; input_remark; input_scddb_id} in
 
   let save =
     Inputs.Button.create ~kind:Inputs.Button.Kind.Success ~icon:"save" ~text:"Save"
@@ -284,7 +284,7 @@ let create ?on_save page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchBar.root author_search);
+  Dom.appendChild form (SearchBar.root composer_search);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_date);
   Dom.appendChild form dances_area;

@@ -8,13 +8,13 @@ module E = Common.Model.TuneEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?alternative_names ~kind ?author
+    ?status ~name ?alternative_names ~kind ?composers
     ?dances ?remark ?scddb_id ?date ~modified_at ~created_at
     ()
   =
   Database.Tune.save ~slug_hint:name @@ fun slug ->
   make
-    ?status ~slug ~name ?alternative_names ~kind ?author
+    ?status ~slug ~name ?alternative_names ~kind ?composers
     ?dances ?remark ?scddb_id ?date ~modified_at ~created_at
     ()
 
@@ -26,7 +26,7 @@ let () =
       ~name:    (a A.name)
       ?alternative_names:(o A.alternative_names)
       ~kind:    (a A.kind)
-      ?author:  (o A.author)
+      ?composers:  (o A.composers)
       ?dances:  (o A.dances)
       ?remark:  (o A.remark)
       ?scddb_id:(o A.scddb_id)

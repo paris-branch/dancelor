@@ -57,7 +57,7 @@ let create ?context slug page =
         L.div (
           let%lwt tunes =
             let%lwt person = person_lwt in
-            Tune.search' @@ Tune.Filter.authorIs' person
+            Tune.search' @@ Tune.Filter.existsComposerIs' person
           in
 
           Lwt.return [
@@ -75,7 +75,7 @@ let create ?context slug page =
         L.div (
           let%lwt sets =
             let%lwt person = person_lwt in
-            Set.search' @@ Set.Filter.deviser' (Person.Filter.is' person)
+            Set.search' @@ Set.Filter.existsConceptor' (Person.Filter.is' person)
           in
 
           Lwt.return [
@@ -93,7 +93,7 @@ let create ?context slug page =
         L.div (
           let%lwt dances =
             let%lwt person = person_lwt in
-            Dance.search' @@ Dance.Filter.deviser' (Person.Filter.is' person)
+            Dance.search' @@ Dance.Filter.existsDeviser' (Person.Filter.is' person)
           in
 
           Lwt.return [

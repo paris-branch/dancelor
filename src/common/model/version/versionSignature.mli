@@ -2,8 +2,6 @@ open Nes
 
 type t = VersionCore.t
 
-
-
 val slug : t -> t Slug.t
 val status : t -> Status.t
 val tune : t -> TuneCore.t Lwt.t
@@ -11,7 +9,7 @@ val bars : t -> int
 val key : t -> Music.key
 val structure : t -> string
 val sources : t -> string list
-val arranger : t -> PersonCore.t option Lwt.t
+val arrangers : t -> PersonCore.t list Lwt.t
 val remark : t -> string
 val disambiguation : t -> string
 val broken : t -> bool
@@ -73,7 +71,7 @@ val make_and_save :
   bars:int ->
   key:Music.key ->
   structure:string ->
-  ?arranger:PersonCore.t ->
+  ?arrangers: PersonCore.t list ->
   ?remark:string ->
   ?disambiguation:string ->
   ?broken:bool ->

@@ -90,5 +90,5 @@ let submit t =
   in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
-  Dance.make_and_save ~name ~kind ?deviser:(deviser t)
+  Dance.make_and_save ~name ~kind ?devisers:(Option.map List.singleton (deviser t))
     ~two_chords ?scddb_id ?date ~modified_at ~created_at ()

@@ -7,21 +7,21 @@ module Lift
   include VersionCore
 
   let make
-      ~slug ?status ~tune ~bars ~key ~structure ?arranger ?remark
+      ~slug ?status ~tune ~bars ~key ~structure ?arrangers ?remark
       ?disambiguation ?broken ~modified_at ~created_at
       ()
     =
     let structure = String.remove_duplicates ~char:' ' structure in
     let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
     let tune = Tune.slug tune in
-    let arranger = Option.map Person.slug arranger in
+    let arrangers = Option.map (List.map Person.slug) arrangers in
     Lwt.return (make
-                  ~slug ?status ~tune ~bars ~key ~structure ~arranger ?remark
+                  ~slug ?status ~tune ~bars ~key ~structure ?arrangers ?remark
                   ?disambiguation ?broken ~modified_at ~created_at
                   ())
 
   let tune version = Tune.get (tune version)
-  let arranger tune = Olwt.flip @@ Option.map Person.get tune.arranger
+  let arrangers version = Lwt_list.map_p Person.get version.arrangers
 
   let set_broken t broken = {t with broken}
 

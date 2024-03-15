@@ -10,7 +10,7 @@ val slug : t -> t Slug.t
 val status : t -> Status.t
 val name : t -> string
 val kind : t -> Kind.Dance.t
-val deviser : t -> PersonCore.t option Lwt.t
+val devisers : t -> PersonCore.t list Lwt.t
 val two_chords : t -> bool
 val scddb_id : t -> int option
 val disambiguation : t -> string
@@ -35,8 +35,8 @@ module Filter : sig
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
 
-  val deviser : PersonCore.Filter.t -> predicate
-  val deviser' : PersonCore.Filter.t -> t
+  val existsDeviser : PersonCore.Filter.t -> predicate
+  val existsDeviser' : PersonCore.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
@@ -54,7 +54,7 @@ val make_and_save :
   ?status:Status.t ->
   name:string ->
   kind:Kind.Dance.t ->
-  ?deviser:PersonCore.t ->
+  ?devisers: PersonCore.t list ->
   two_chords:bool ->
   ?scddb_id:int ->
   ?disambiguation:string ->

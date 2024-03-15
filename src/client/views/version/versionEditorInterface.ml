@@ -197,7 +197,7 @@ let create page =
         page
     in
     SearchBar.create
-      ~placeholder:"Arranger, if different from the tune author (optional)"
+      ~placeholder:"Arranger, if different from the tune composer (optional)"
       ~sections:[main_section]
       page
   in

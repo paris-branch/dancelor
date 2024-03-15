@@ -23,7 +23,7 @@ let name_and_tunes ?link ?tunes_link set =
   let%lwt versions =
     let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
     List.map (Version.name ?link:tunes_link % fst) versions_and_parameters
-    |> List.intertwine (fun _ -> [txt " - "])
+    |> List.interspersei (fun _ -> [txt " - "])
     |> List.flatten
     |> List.cons (txt "Tunes: ")
     |> span ~a:[a_class ["dim"; "details"]]

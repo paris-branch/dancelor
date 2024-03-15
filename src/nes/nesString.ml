@@ -308,3 +308,9 @@ let remove_duplicates ?(char_equal=Char.equal) ?(char=' ') input =
        Buffer.add_char output input.[i])
   done;
   trim ~char_equal ~char (Buffer.contents output)
+
+(** Richer version of [concat] that can also handle differently the last
+    separator. For instance, [concat ~last:" & " ", " \["a"; "b"; "c"\] = "a, b
+    & c"]. *)
+let concat ?last sep strings =
+  String.concat "" (NesList.intersperse ?last sep strings)
