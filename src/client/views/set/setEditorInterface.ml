@@ -17,7 +17,7 @@ type t =
     warnings_area : Html.divElement Js.t;
     input_name : Inputs.Text.t;
     input_kind : Inputs.Text.t;
-    deviser_search : SearchBar.t;
+    conceptor_search : SearchBar.t;
     book_search : SearchBar.t;
     versions_area : Html.divElement Js.t;
     version_search : SearchBar.t;
@@ -136,7 +136,7 @@ let refresh t =
   Inputs.Text.set_contents t.input_name (SetEditor.name t.composer);
   Inputs.Text.set_contents t.input_kind (SetEditor.kind t.composer);
   Inputs.Text.set_contents t.input_order (SetEditor.order t.composer);
-  Inputs.Text.set_contents (SearchBar.bar t.deviser_search) (Option.fold ~none:"" ~some:Person.name (SetEditor.deviser t.composer));
+  Inputs.Text.set_contents (SearchBar.bar t.conceptor_search) (Option.fold ~none:"" ~some:Person.name (SetEditor.conceptor t.composer));
   Inputs.Text.set_contents (SearchBar.bar t.book_search) (Option.fold ~none:"" ~some:Book.title (SetEditor.for_book t.composer));
   JsHelpers.clear_children t.versions_area;
   SetEditor.iter t.composer (fun i version ->
@@ -180,7 +180,7 @@ let make_person_modal composer content page =
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
-          Lwt.on_success (SetEditor.set_deviser composer slug) (fun () -> Page.refresh page))
+          Lwt.on_success (SetEditor.set_conceptor composer slug) (fun () -> Page.refresh page))
   in
   Dom.appendChild persons_modal (PersonEditorInterface.contents interface);
   persons_modal##.classList##add (js "modal-window");
@@ -193,13 +193,13 @@ let make_person_modal composer content page =
     ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
     ~targets:[persons_modal]
 
-let make_deviser_search_result composer page deviser =
-  let name = Person.name deviser in
-  let slug = Person.slug deviser in
+let make_conceptor_search_result composer page conceptor =
+  let name = Person.name conceptor in
+  let slug = Person.slug conceptor in
   let row = Table.Row.create
       ~on_click:(fun () ->
           Lwt.on_success
-            (SetEditor.set_deviser composer slug)
+            (SetEditor.set_conceptor composer slug)
             (fun () -> Page.refresh page; SetEditor.save composer))
       ~cells:[
         Table.Cell.text ~text:(Lwt.return name) page]
@@ -241,14 +241,14 @@ let create page =
           SetEditor.save composer)
       page
   in
-  let deviser_search =
+  let conceptor_search =
     let main_section =
       SearchBar.Section.create
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_person_modal composer content page)
                     ~cells:[
                       Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
+                      Table.Cell.text ~text:(Lwt.return "Create a new person") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
@@ -257,7 +257,7 @@ let create page =
                 ~slice: (Slice.make ~start:0 ~end_excl:10 ()) formula
             in
             Lwt.return_ok results)
-        ~make_result:(make_deviser_search_result composer page)
+        ~make_result:(make_conceptor_search_result composer page)
         page
     in
     SearchBar.create
@@ -302,10 +302,10 @@ let create page =
       ~sections:[main_section]
       page
   in
-  Inputs.Text.on_focus (SearchBar.bar deviser_search) (fun b ->
+  Inputs.Text.on_focus (SearchBar.bar conceptor_search) (fun b ->
       if b then begin
-        Inputs.Text.erase (SearchBar.bar deviser_search);
-        SetEditor.remove_deviser composer;
+        Inputs.Text.erase (SearchBar.bar conceptor_search);
+        SetEditor.remove_conceptor composer;
         Page.refresh page
       end);
   Inputs.Text.on_focus (SearchBar.bar book_search) (fun b ->
@@ -323,7 +323,7 @@ let create page =
   in
 
   let t =
-    {page; composer; content; warnings_area; versions_area; deviser_search;
+    {page; composer; content; warnings_area; versions_area; conceptor_search;
      book_search; version_search; input_name; input_kind; input_order}
   in
   let submit = Html.createDiv (Page.document page) in
@@ -337,8 +337,8 @@ let create page =
             Inputs.Text.check t.input_name ((<>) ""),
             Inputs.Text.check (SearchBar.bar t.version_search)
               (fun _ -> SetEditor.count t.composer > 0),
-            Inputs.Text.check (SearchBar.bar t.deviser_search)
-              (fun _ -> SetEditor.deviser t.composer <> None),
+            Inputs.Text.check (SearchBar.bar t.conceptor_search)
+              (fun _ -> SetEditor.conceptor t.composer <> None),
             Inputs.Text.check t.input_order
               (SetOrder.check ~number:(SetEditor.count t.composer))
           in
@@ -357,7 +357,7 @@ let create page =
             Inputs.Text.set_valid input_kind true;
             Inputs.Text.set_valid input_name true;
             Inputs.Text.set_valid (SearchBar.bar version_search) true;
-            Inputs.Text.set_valid (SearchBar.bar deviser_search) true;
+            Inputs.Text.set_valid (SearchBar.bar conceptor_search) true;
             Inputs.Text.set_valid input_order true
           end)
       page
@@ -372,7 +372,7 @@ let create page =
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_kind);
   Dom.appendChild form (Html.createBr (Page.document page));
-  Dom.appendChild form (SearchBar.root deviser_search);
+  Dom.appendChild form (SearchBar.root conceptor_search);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (SearchBar.root book_search);
   Dom.appendChild form versions_area;

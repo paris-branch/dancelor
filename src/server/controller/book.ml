@@ -136,7 +136,7 @@ module Ly = struct
           if not (Model.SetParameters.show_deviser' set_parameters) then
             Lwt.return ""
           else
-            match%lwt Model.Set.devisers set with
+            match%lwt Model.Set.conceptors set with
             | [] -> Lwt.return ""
             | devisers -> Lwt.return ("Set by " ^ String.concat ", " ~last:" & " @@ List.map Model.Person.name devisers)
         in

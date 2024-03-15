@@ -9,20 +9,20 @@ module Lift
   include SetCore
 
   let make
-      ?status ?(slug=Slug.none) ~name ?devisers ~kind ?versions_and_parameters
+      ?status ?(slug=Slug.none) ~name ?conceptors ~kind ?versions_and_parameters
       ~order ?dances ~modified_at ~created_at
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
-    let devisers = Option.map (List.map Person.slug) devisers in
+    let conceptors = Option.map (List.map Person.slug) conceptors in
     let versions_and_parameters = Option.map (List.map (fun (version, parameters) -> (Version.slug version, parameters))) versions_and_parameters in
     let dances = Option.map (List.map Dance.slug) dances in
-    Lwt.return (make ?status ~slug ~name ?devisers ~kind ?versions_and_parameters
+    Lwt.return (make ?status ~slug ~name ?conceptors ~kind ?versions_and_parameters
                   ~order ?dances ~modified_at ~created_at
                   ())
 
   let is_slug_none = Slug.is_none % slug
-  let devisers = Lwt_list.map_p Person.get % devisers
+  let conceptors = Lwt_list.map_p Person.get % conceptors
   let dances = Lwt_list.map_p Dance.get % dances
 
   let versions_and_parameters set =
@@ -116,9 +116,9 @@ module Lift
       | NameMatches string ->
         Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ SetCore.name set
 
-      | ExistsDeviser pfilter ->
-        let%lwt devisers = devisers set in
-        let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) devisers in
+      | ExistsConceptor pfilter ->
+        let%lwt conceptors = conceptors set in
+        let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) conceptors in
         Lwt.return (Formula.interpret_or_l scores)
 
       | ExistsVersion vfilter ->
@@ -138,8 +138,8 @@ module Lift
             raw (Result.ok % nameMatches');
             unary_string ~name:"name"           (name, unName);
             unary_string ~name:"name-matches"   (nameMatches, unNameMatches);
-            unary_lift   ~name:"exists-deviser" (existsDeviser, unExistsDeviser)             ~converter:Person.Filter.text_formula_converter;
-            unary_lift   ~name:"by"             (existsDeviser, unExistsDeviser)             ~converter:Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_lift   ~name:"exists-conceptor" (existsConceptor, unExistsConceptor)             ~converter:Person.Filter.text_formula_converter;
+            unary_lift   ~name:"by"             (existsConceptor, unExistsConceptor)             ~converter:Person.Filter.text_formula_converter; (* alias for exists-conceptor; FIXME: make this clearer *)
             unary_lift   ~name:"exists-version" (existsVersion, unExistsVersion) ~converter:Version.Filter.text_formula_converter;
             unary_lift   ~name:"kind"           (kind, unKind)                   ~converter:Kind.Dance.Filter.text_formula_converter;
             unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
@@ -164,7 +164,7 @@ module Lift
 
     let optimise =
       let lift {op} f1 f2 = match (f1, f2) with
-        | (ExistsDeviser f1, ExistsDeviser f2) -> Option.some @@ existsDeviser (op f1 f2)
+        | (ExistsConceptor f1, ExistsConceptor f2) -> Option.some @@ existsConceptor (op f1 f2)
         | (ExistsVersion f1, ExistsVersion f2) -> Option.some @@ existsVersion (op f1 f2)
         | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
         | _ -> None
@@ -174,7 +174,7 @@ module Lift
         ~lift_or: (lift {op = Formula.or_})
         (function
           | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
-          | ExistsDeviser pfilter -> existsDeviser @@ Person.Filter.optimise pfilter
+          | ExistsConceptor pfilter -> existsConceptor @@ Person.Filter.optimise pfilter
           | ExistsVersion vfilter -> existsVersion @@ Version.Filter.optimise vfilter
           | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter)
   end

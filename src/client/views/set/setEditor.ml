@@ -15,7 +15,7 @@ type cached_version = {
 type t = {
   mutable name : string;
   mutable kind : string;
-  mutable deviser : (Person.t Slug.t * Person.t) option;
+  mutable conceptor : (Person.t Slug.t * Person.t) option;
   mutable for_book : (Book.t Slug.t * Book.t) option;
   mutable versions : cached_version option array;
   mutable order : string;
@@ -26,7 +26,7 @@ let create () =
   {
     name = "";
     kind = "";
-    deviser = None;
+    conceptor = None;
     for_book = None;
     versions = Array.make 2 None;
     order = "";
@@ -50,17 +50,17 @@ let order t = t.order
 let set_order t order =
   t.order <- order
 
-let deviser t =
-  let%opt (_, cr) = t.deviser in
+let conceptor t =
+  let%opt (_, cr) = t.conceptor in
   Some cr
 
-let set_deviser t slug =
-  let%lwt deviser = Person.get slug in
-  t.deviser <- Some (slug, deviser);
+let set_conceptor t slug =
+  let%lwt conceptor = Person.get slug in
+  t.conceptor <- Some (slug, conceptor);
   Lwt.return ()
 
-let remove_deviser t =
-  t.deviser <- None
+let remove_conceptor t =
+  t.conceptor <- None
 
 let for_book t =
   let%opt (_, bk) = t.for_book in
@@ -147,7 +147,7 @@ let clear t =
   t.name <- "";
   t.kind <- "";
   t.count <- 0;
-  t.deviser <- None;
+  t.conceptor <- None;
   t.for_book <- None;
   t.order <- ""
 
@@ -161,9 +161,9 @@ let save t =
          |> List.map Slug.to_string
          |> String.concat ";"
        in
-       begin match t.deviser with
+       begin match t.conceptor with
          | None -> ()
-         | Some (slug, _) -> local_storage##setItem (js "composer.deviser") (js (Slug.to_string slug))
+         | Some (slug, _) -> local_storage##setItem (js "composer.conceptor") (js (Slug.to_string slug))
        end;
        begin match t.for_book with
          | None -> ()
@@ -200,7 +200,7 @@ let load t =
              (fun book -> set_for_book t (Slug.unsafe_of_string (Js.to_string book))))
        >>= (fun () ->
            Js.Opt.case deviser (fun () -> Lwt.return ())
-             (fun deviser -> set_deviser t (Slug.unsafe_of_string (Js.to_string deviser)))))
+             (fun conceptor -> set_conceptor t (Slug.unsafe_of_string (Js.to_string conceptor)))))
 
 let add_to_storage slug =
   Js.Optdef.case Html.window##.localStorage
@@ -253,7 +253,7 @@ let submit t =
   let created_at = Datetime.now () in
   let answer =
     Set.make_and_save ~kind ~name:t.name ~versions_and_parameters
-      ~order ?devisers:(Option.map List.singleton (deviser t)) ~modified_at ~created_at ()
+      ~order ?conceptors:(Option.map List.singleton (conceptor t)) ~modified_at ~created_at ()
   in
   Lwt.on_success answer
     (fun _ -> erase_storage t;

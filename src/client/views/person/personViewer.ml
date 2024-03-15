@@ -75,7 +75,7 @@ let create ?context slug page =
         L.div (
           let%lwt sets =
             let%lwt person = person_lwt in
-            Set.search' @@ Set.Filter.existsDeviser' (Person.Filter.is' person)
+            Set.search' @@ Set.Filter.existsConceptor' (Person.Filter.is' person)
           in
 
           Lwt.return [

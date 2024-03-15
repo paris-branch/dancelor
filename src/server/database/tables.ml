@@ -50,7 +50,7 @@ module SetModel = struct
   let dependencies set =
     Lwt.return (
       List.map (Table.make_slug_and_table (module Version) % fst) (versions_and_parameters set)
-      @ List.map (Table.make_slug_and_table (module Person)) (devisers set)
+      @ List.map (Table.make_slug_and_table (module Person)) (conceptors set)
     )
 
   let standalone = true

@@ -7,7 +7,7 @@ val is_slug_none : t -> bool
 
 val status : t -> Status.t
 val name : t -> string
-val devisers : t -> PersonCore.t list Lwt.t
+val conceptors : t -> PersonCore.t list Lwt.t
 val kind : t -> Kind.Dance.t
 val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
 val order : t -> SetOrder.t
@@ -57,8 +57,8 @@ module Filter : sig
   val existsVersion : VersionCore.Filter.t -> predicate
   val existsVersion' : VersionCore.Filter.t -> t
 
-  val existsDeviser : PersonCore.Filter.t -> predicate
-  val existsDeviser' : PersonCore.Filter.t -> t
+  val existsConceptor : PersonCore.Filter.t -> predicate
+  val existsConceptor' : PersonCore.Filter.t -> t
 
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
@@ -82,7 +82,7 @@ val make :
   ?status:Status.t ->
   ?slug:t Slug.t ->
   name:string ->
-  ?devisers: PersonCore.t list ->
+  ?conceptors: PersonCore.t list ->
   kind:Kind.Dance.t ->
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
@@ -94,7 +94,7 @@ val make :
 val make_and_save :
   ?status:Status.t ->
   name:string ->
-  ?devisers: PersonCore.t list ->
+  ?conceptors: PersonCore.t list ->
   kind:Kind.Dance.t ->
   ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->

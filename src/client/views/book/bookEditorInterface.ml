@@ -93,7 +93,7 @@ let make_set_result editor page set =
       [
         td [txt (Set.name set)];
         td [txt @@ Kind.Dance.to_string @@ Set.kind set];
-        L.td (Lwt.map Dancelor_client_formatters.Person.names (Set.devisers set));
+        L.td (Lwt.map Dancelor_client_formatters.Person.names (Set.conceptors set));
       ]
     )
 
