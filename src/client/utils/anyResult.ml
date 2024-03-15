@@ -25,7 +25,7 @@ let make_dance_result ~prefix page dance =
       Table.Cell.text ~text:(Lwt.return @@ Kind.Dance.to_string @@ Dance.kind dance) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Lwt.map Formatters.Person.name (Dance.deviser dance))
+          (Lwt.map (Formatters.Person.names ~short:true) (Dance.devisers dance))
       ) page ;
     ]
   in

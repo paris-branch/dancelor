@@ -93,7 +93,7 @@ let create ?context slug page =
         L.div (
           let%lwt dances =
             let%lwt person = person_lwt in
-            Dance.search' @@ Dance.Filter.deviser' (Person.Filter.is' person)
+            Dance.search' @@ Dance.Filter.existsDeviser' (Person.Filter.is' person)
           in
 
           Lwt.return [

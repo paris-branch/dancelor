@@ -1,5 +1,6 @@
 name: The Architect
 kind: 8 x 32 R
-deviser: mervyn-c-short
+devisers:
+  - mervyn-c-short
 modified-at: 2023-12-21T17:11:33
 created-at: 2023-12-21T17:11:33

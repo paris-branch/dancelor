@@ -46,7 +46,7 @@ let dances dances =
   let href = PageRouter.path_dance @@ Dance.slug dance in
   clickable_row ~href [
     (Lwt.return @@ Formatters.Dance.name dance);
-    (Lwt.map Formatters.Person.name (Dance.deviser dance));
+    (Lwt.map Formatters.Person.names (Dance.devisers dance));
     Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind dance];
   ]
 

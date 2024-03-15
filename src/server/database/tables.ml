@@ -13,10 +13,9 @@ module Dance = Table.Make (struct
     include Model.DanceCore
 
     let dependencies dance =
-      Lwt.return @@
-      match deviser dance with
-      | None -> []
-      | Some deviser -> [Table.make_slug_and_table (module Person) deviser]
+      Lwt.return (
+        List.map (Table.make_slug_and_table (module Person)) (devisers dance)
+      )
 
     let standalone = false
   end)

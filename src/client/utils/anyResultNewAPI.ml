@@ -50,7 +50,7 @@ let make_dance_result ?context ~prefix dance =
       prefix @ [
         td [txt (Dance.name dance)];
         td [txt (Kind.Dance.to_string @@ Dance.kind dance)];
-        L.td (Lwt.map Formatters.Person.name (Dance.deviser dance));
+        L.td (Lwt.map (Formatters.Person.names ~short:true) (Dance.devisers dance));
       ]
     )
 
