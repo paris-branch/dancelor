@@ -10,7 +10,7 @@ type t =
     key : Music.key ;
     structure : string ;
     sources : string list [@default []] ; (* FIXME: remove from DB *)
-    arranger : PersonCore.t Slug.t option [@default None] ;
+    arrangers : PersonCore.t Slug.t list [@default []] ;
     remark : string                   [@default ""] ;
     disambiguation : string           [@default ""] ;
     broken : bool                     [@default false] ;
@@ -26,7 +26,7 @@ let bars version = version.bars
 let key version = version.key
 let structure version = version.structure
 let sources version = version.sources
-let arranger version = version.arranger
+let arrangers version = version.arrangers
 let remark version = version.remark
 let disambiguation version = version.disambiguation
 let broken version = version.broken

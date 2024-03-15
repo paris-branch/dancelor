@@ -36,7 +36,7 @@ let make_person_result ?context ~prefix person =
     )
     (
       prefix @ [
-        td ~a:[a_colspan 3] (Formatters.Person.name ~link:false (Some person));
+        td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
       ]
     )
 
@@ -111,7 +111,7 @@ let make_version_result ?context ~prefix version =
             Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
           )
         ];
-        L.td (Formatters.Version.composer_and_arranger version);
+        L.td (Formatters.Version.composer_and_arranger ~short:true version);
       ]
     )
 

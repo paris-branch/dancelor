@@ -66,7 +66,7 @@ let versions versions =
   let href = PageRouter.path_version @@ Version.slug version in
   clickable_row ~href [
     (Formatters.Version.disambiguation_and_sources version);
-    (Lwt.map Formatters.Person.name (Version.arranger version));
+    (Lwt.map Formatters.Person.names (Version.arrangers version));
     (tune_lwt >>=| Formatters.Kind.full_string version);
     Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
     Lwt.return [txt @@ Version.structure version];

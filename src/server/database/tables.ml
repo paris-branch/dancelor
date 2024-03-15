@@ -36,9 +36,10 @@ module Version = Table.Make (struct
     include Model.VersionCore
 
     let dependencies version =
-      Option.fold ~none:[] ~some:(List.singleton % Table.make_slug_and_table (module Person)) (arranger version)
-      |> List.cons (Table.make_slug_and_table (module Tune) (tune version))
-      |> Lwt.return
+      Lwt.return (
+        (Table.make_slug_and_table (module Tune) (tune version))
+        :: List.map (Table.make_slug_and_table (module Person)) (arrangers version)
+      )
 
     let standalone = true
   end)

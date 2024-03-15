@@ -87,7 +87,7 @@ let make_version_result ~prefix page version =
       ) page ;
       Table.Cell.create ~content:(
         Dancelor_client_html.to_old_style
-          (Formatters.Version.composer_and_arranger version)
+          (Formatters.Version.composer_and_arranger ~short:true version)
       ) page;
     ]
   in

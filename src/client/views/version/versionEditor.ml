@@ -100,12 +100,12 @@ let submit t =
   in
   let bars = int_of_string t.bars in
   let key = Music.key_of_string t.key in
-  let arranger = arranger t in
+  let arrangers = Option.map List.singleton (arranger t) in
   let structure = t.structure in
   let remark = if t.remark = "" then None else Some t.remark in
   let disambiguation = if t.disambiguation = "" then None else Some t.disambiguation in
   let content = t.content in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
-  Version.make_and_save ~tune ~bars ~key ~structure ?arranger
+  Version.make_and_save ~tune ~bars ~key ~structure ?arrangers
     ?remark ?disambiguation ~content ~modified_at ~created_at ()

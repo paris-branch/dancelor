@@ -9,10 +9,10 @@ let description ?link version =
   let key = M.Version.key version in
   let shape = spf "%d-bar %s version in %s" bars structure (M.Music.key_to_pretty_string key) in
   let%lwt arranger_block =
-    match%lwt M.Version.arranger version with
-    | None -> Lwt.return_nil
-    | Some arranger ->
-      let name_block = Person.name ?link (Some arranger) in
+    match%lwt M.Version.arrangers version with
+    | [] -> Lwt.return_nil
+    | arrangers ->
+      let name_block = Person.names ?link arrangers in
       Lwt.return ([txt " arranged by "] @ name_block)
   in
   let disambiguation_block =
@@ -98,15 +98,15 @@ let disambiguation_and_sources version =
     L.span ~a:[a_class ["dim"; "details"]] sources_lwt;
   ]
 
-let composer_and_arranger ?(short=true) ?link version =
-  let%lwt composer_block = Lwt.bind (M.Version.tune version) Tune.composers in
+let composer_and_arranger ?(short=false) ?link version =
+  let%lwt composer_block = Lwt.bind (M.Version.tune version) (Tune.composers ~short) in
   let%lwt arranger_block =
-    match%lwt M.Version.arranger version with
-    | None -> Lwt.return_nil
-    | Some arranger ->
-      let comma = if composer_block = [] then ", " else "" in
+    match%lwt M.Version.arrangers version with
+    | [] -> Lwt.return_nil
+    | arrangers ->
+      let comma = if composer_block <> [] then ", " else "" in
       let arr = if short then "arr." else "arranged by" in
-      let arranger_block = Person.name ?link (Some arranger) in
+      let arranger_block = Person.names ~short ?link arrangers in
       Lwt.return [
         span ~a:[a_class ["dim"]] (txt (spf "%s%s " comma arr) :: arranger_block)
       ]
