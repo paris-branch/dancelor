@@ -42,15 +42,17 @@ let () =
     delete set
   )
 
+let tiebreakers = Lwt_list.[
+    increasing (Lwt.return % name) String.Sensible.compare;
+    increasing (Lwt.return % name) String.compare_lengths;
+  ]
+
 let search =
   Search.search
     ~cache: (Cache.create ~lifetime: 600 ())
     ~values_getter: Database.Set.get_all
     ~scoring_function: Filter.accepts
-    ~tiebreakers: Lwt_list.[
-        increasing (Lwt.return % name) String.Sensible.compare;
-        increasing (Lwt.return % name) String.compare_lengths;
-      ]
+    ~tiebreakers
 
 let () =
   Madge_server.(

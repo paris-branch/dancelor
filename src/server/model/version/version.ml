@@ -68,14 +68,16 @@ let score_list_vs_list words needles =
     |> List.fold_left max 0.
   end
 
+let tiebreakers = Lwt_list.[
+    increasing (Lwt.map Tune.name % tune) String.Sensible.compare
+  ]
+
 let search =
   Search.search
     ~cache: (Cache.create ~lifetime: 600 ())
     ~values_getter: Database.Version.get_all
     ~scoring_function: Filter.accepts
-    ~tiebreakers: Lwt_list.[
-        increasing (Lwt.map Tune.name % tune) String.Sensible.compare
-      ]
+    ~tiebreakers
 
 let () =
   Madge_server.(
