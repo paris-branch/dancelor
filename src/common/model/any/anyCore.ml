@@ -30,6 +30,20 @@ module Type = struct
     | Tune
     | Version
   [@@deriving eq, show {with_path = false}, yojson]
+
+  let compare t1 t2 =
+    let to_int = function
+      | Person -> 0
+      | Dance -> 1
+      | Tune -> 2
+      | Version -> 3
+      | Set -> 4
+      | Book -> 5
+    in
+    if t1 = t2 then
+      0
+    else
+      Int.compare (to_int t1) (to_int t2)
 end
 
 module Filter = struct

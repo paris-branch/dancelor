@@ -49,6 +49,9 @@ module Type : sig
   val are_all : t list -> bool
   (** Whether the given list contains all the existing types. *)
 
+  val compare : t -> t -> int
+  (** Total comparison function for types. *)
+
   val to_string : t -> string
   (** Convert a type to a string, eg [to_string Person = "Person"]. *)
 
