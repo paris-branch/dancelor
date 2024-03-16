@@ -1,4 +1,4 @@
-(lang dune 2.5)
+(lang dune 3.0)
 
 (name dancelor)
 (version 0.1)
@@ -32,7 +32,6 @@
    lwt_react
   (ocaml               (and :build (>= 4.08.0)))
   (odoc                 :with-doc)
-  (ppx_blob             :build)
    ppx_deriving
    ppx_deriving_qcheck
    ppx_deriving_yojson
@@ -47,5 +46,4 @@
 
 (using menhir 2.1)
 (generate_opam_files)
-(allow_approximate_merlin)
 (formatting (enabled_for dune))

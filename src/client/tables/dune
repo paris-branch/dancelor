@@ -5,6 +5,12 @@
  (public_name dancelor.client.tables)
  (preprocess
   (pps lwt_ppx js_of_ocaml-ppx))
- (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.common
-   dancelor.client.model dancelor.client.elements dancelor.client.html
-   dancelor.client.formatters dancelor.nes))
+ (libraries
+  js_of_ocaml-lwt
+  cohttp-lwt-jsoo
+  dancelor.common
+  dancelor.client.model
+  dancelor.client.elements
+  dancelor.client.html
+  dancelor.client.formatters
+  dancelor.nes))
