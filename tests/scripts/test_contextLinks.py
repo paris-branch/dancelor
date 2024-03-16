@@ -25,16 +25,16 @@ class TestContextLinks():
     ## From the explorer, type “tam”, then click on the set “Tam Lin Thrice” and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/explore")
-    self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").send_keys("tam")
+    self.driver.find_element(By.XPATH, "//input").send_keys("tam")
     time.sleep(1)
-    self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(2) > td:nth-child(3)").click()
+    self.driver.find_element(By.XPATH, "//td[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
   def test_fromExplorerURI(self):
     ## From the explorer loaded with query “tam”, click on the set “Tam Lin
     ## Thrice” and check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/explore?q=%22tam%22")
-    self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(2) > td:nth-child(3)").click()
+    self.driver.find_element(By.XPATH, "//td[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
   def test_fromSet(self):
@@ -56,14 +56,14 @@ class TestContextLinks():
     ## that clicking on the arrow to the left goes to “The Tam Lin Book”.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D")
     self.driver.find_element(By.CSS_SELECTOR, ".context-links-left .context-links-main").click()
-    self.wait.until(EC.url_to_be("http://localhost:8080/book/the-tam-lin-book?context=%5B%22InSearch%22%2C%22tam%22%5D"));
+    self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
   def test_keyGoesToNeighbour(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that pressing the left key goes to “The Tam Lin Book”.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D")
     self.driver.find_element(By.CSS_SELECTOR, "body").send_keys(Keys.LEFT)
-    self.wait.until(EC.url_to_be("http://localhost:8080/book/the-tam-lin-book?context=%5B%22InSearch%22%2C%22tam%22%5D"));
+    self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
   def test_bannerUpwardsTriangleGoesToContext(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
