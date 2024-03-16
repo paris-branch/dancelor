@@ -15,3 +15,5 @@ val sort_multiple : ('a -> 'a -> int Lwt.t) list -> 'a list -> 'a list Lwt.t
 
 val increasing : ('a -> 'b Lwt.t) -> ('b -> 'b -> int) -> ('a -> 'a -> int Lwt.t)
 val decreasing : ('a -> 'b Lwt.t) -> ('b -> 'b -> int) -> ('a -> 'a -> int Lwt.t)
+
+val compare_multiple : ('a -> 'a -> int Lwt.t) list -> ('a -> 'a -> int Lwt.t)

@@ -77,3 +77,5 @@ let rec fixpoint ?(eq=(=)) f x =
     x
   else
     fixpoint ~eq f y
+
+let curry f = fun x y -> f (x, y)

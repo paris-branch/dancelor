@@ -19,14 +19,16 @@ let () =
       ()
   )
 
+let tiebreakers = Lwt_list.[
+    increasing (Lwt.return % name) String.Sensible.compare
+  ]
+
 let search =
   Search.search
     ~cache: (Cache.create ~lifetime: 600 ())
     ~values_getter: Database.Person.get_all
     ~scoring_function: Filter.accepts
-    ~tiebreakers: Lwt_list.[
-        increasing (Lwt.return % name) String.Sensible.compare
-      ]
+    ~tiebreakers
 
 let () =
   Madge_server.(
