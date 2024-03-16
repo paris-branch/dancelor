@@ -62,7 +62,8 @@ let make_book_result ?context ~prefix book =
     )
     (
       prefix @ [
-        td ~a:[a_colspan 3] (Formatters.Book.title_and_subtitle book);
+        td (Formatters.Book.title_and_subtitle book);
+        td ~a:[a_colspan 2] [txt (Option.fold ~none:"" ~some:PartialDate.to_pretty_string (Book.date book))];
       ]
     )
 
