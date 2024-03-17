@@ -5,6 +5,7 @@ let js = Js.string
 
 let i cls page =
   let i = Html.createI (Page.document page) in
-  i##.classList##add (js "fas");
-  i##.classList##add (js ("fa-" ^ cls));
+  let text = (Page.document page)##createTextNode (js cls) in
+  Dom.appendChild i text;
+  i##.classList##add (js "material-symbols-outlined");
   i

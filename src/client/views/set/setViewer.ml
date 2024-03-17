@@ -51,7 +51,7 @@ let create ?context slug page =
             a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (SetDownloadDialog.create_and_open slug)); false);
           ]
           [
-            i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+            i ~a:[a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
             txt " PDF";
           ]
       ];

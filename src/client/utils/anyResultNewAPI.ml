@@ -116,9 +116,22 @@ let make_version_result ?context ~prefix version =
       ]
     )
 
+let any_type_to_fa = function
+  | Any.Type.Person -> "person"
+  | Dance -> "directions_walk"
+  | Tune -> "music_note"
+  | Version -> "music_note"
+  | Set -> "format_list_bulleted"
+  | Book -> "library_books"
+
 let make_result ?context any =
+  let type_ = Any.type_of any in
   let prefix = [
-    td [txt (any |> Any.type_of |> Any.Type.to_string)];
+    td [
+      i ~a:[a_class ["material-symbols-outlined"]] [txt @@ any_type_to_fa type_];
+      txt " ";
+      txt (Any.Type.to_string type_);
+    ];
   ]
   in
   match any with

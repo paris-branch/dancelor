@@ -4,10 +4,13 @@ open Dancelor_client_html
 open Dancelor_client_model
 
 (** Generic row showing an emoji on the left and a message on the right. *)
-let emoji_row emoji message =
+let fa_row icon message =
   tr [
-    td [txt emoji];
-    td ~a:[a_colspan 4] [txt message];
+    td ~a:[a_colspan 0] [
+      i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
+      txt " ";
+      txt message;
+    ];
   ]
 
 type 'result state =
@@ -161,17 +164,17 @@ let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
       [
         R.tbody (
           S.bind_s' (state search_bar) [] @@ function
-          | StartTyping -> Lwt.return [emoji_row "👉" "Start typing to search."]
-          | ContinueTyping -> Lwt.return [emoji_row "👉" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
-          | NoResults -> Lwt.return [emoji_row "⚠️" "Your search returned no results."]
-          | Errors error -> Lwt.return [emoji_row "❌" error]
+          | StartTyping -> Lwt.return [fa_row "keyboard" "Start typing to search."]
+          | ContinueTyping -> Lwt.return [fa_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
+          | NoResults -> Lwt.return [fa_row "warning" "Your search returned no results."]
+          | Errors error -> Lwt.return [fa_row "error" error]
           | Results results ->
             let%lwt results = Lwt_list.map_p make_result results in
             Lwt.return @@
             if on_enter = None then
               results
             else
-              results @ [emoji_row "👉" "Press enter for more results."]
+              results @ [fa_row "info" "Press enter for more results."]
         );
       ]
   ]

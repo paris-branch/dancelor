@@ -30,9 +30,11 @@
 
   /* Size of elements: a big arrow and tiny text */
   .context-links-main {
-    font-size: 10rem;
     margin-top: -3rem;
     margin-bottom: -1.5rem;
+    i {
+      font-size: 6rem;
+    }
   }
   .context-links-details {
     font-size: 0.7rem;
@@ -69,20 +71,19 @@
 
   .context-links-actions {
     position: absolute;
-    right: 20px;
+    right: 10px;
     height: 100%;
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 20px;
 
     /* Vertical alignment of actions */
     > * {
       display: inline-block;
-      vertical-align: baseline;
+      vertical-align: middle;
     }
 
     .context-links-action {
       color: #aaa;
-      margin-left: 10px;
+      // margin-left: 10px;
       &:hover {
         color: $black;
       }

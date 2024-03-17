@@ -30,7 +30,9 @@ let open_ content =
           ~a:[
             a_class ["content"];
           ]      (
-          span ~a:[a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)] [txt "⨉"]
+          span ~a:[a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)] [
+            i ~a:[a_class ["material-symbols-outlined"]] [txt "close"];
+          ]
           :: content (return % Result.ok)
         )
       ]

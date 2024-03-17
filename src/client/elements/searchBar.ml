@@ -130,8 +130,7 @@ and update t =
       let messages =
         Table.Row.create
           ~cells:[
-            Table.Cell.text ~text:(Lwt.return "👉") t.page;
-            Table.Cell.text ~text:(Lwt.return info_message) t.page
+            Table.Cell.text ~icon:"keyboard" ~colspan:0 ~text:(Lwt.return info_message) t.page
           ]
           t.page
       in
@@ -145,8 +144,7 @@ and update t =
       let enter_for_more =
         Table.Row.create
           ~cells:[
-            Table.Cell.text ~text:(Lwt.return "👉") t.page;
-            Table.Cell.text ~colspan:4 ~text:(Lwt.return "Press enter for more results.") t.page
+            Table.Cell.text ~icon:"info" ~colspan:0 ~text:(Lwt.return "Press enter for more results.") t.page
           ]
           t.page
       in

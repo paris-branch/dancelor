@@ -104,9 +104,11 @@ let search slice input =
   Lwt.return_ok results
 
 let create ?on_save page =
+  (Page.document page)##.title := js "Add a book | Dancelor";
+
   let editor = BookEditor.create () in
   let content = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h2_static ~text:(Lwt.return "Add a Book") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Add a book") page in
   let form = Html.createForm (Page.document page) in
   let input_title = Inputs.Text.create
       ~placeholder:"Name of the book"
@@ -157,7 +159,7 @@ let create ?on_save page =
   in
 
   let clear =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"cancel" ~text:"Clear"
       ~on_click:(fun () ->
           if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
             BookEditor.clear editor;
@@ -174,7 +176,6 @@ let create ?on_save page =
   Dom.appendChild form (Inputs.Text.root input_title);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_date);
-  Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form sets_area;
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form sets_search;
@@ -182,8 +183,6 @@ let create ?on_save page =
   Dom.appendChild form submit;
 
   Dom.appendChild content (Text.Heading.root title);
-  Dom.appendChild content (Html.createHr (Page.document page));
-  Dom.appendChild content (Html.createBr (Page.document page));
   Dom.appendChild content form;
   t
 

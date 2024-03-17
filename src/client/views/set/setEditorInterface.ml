@@ -220,12 +220,12 @@ let make_book_search_result composer page book =
   Lwt.return row
 
 let create page =
-  (Page.document page)##.title := js "Compose a Set | Dancelor";
+  (Page.document page)##.title := js "Add a set | Dancelor";
 
   let composer = SetEditor.create () in
   let content = Html.createDiv (Page.document page) in
   let warnings_area = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h2_static ~text:(Lwt.return "Compose a Set") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Add a set") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
       ~placeholder:"Name"
@@ -247,8 +247,7 @@ let create page =
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_person_modal composer content page)
                     ~cells:[
-                      Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new person") page]
+                      Table.Cell.text ~icon:"add_circle" ~colspan:0 ~text:(Lwt.return "Create a new person") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
@@ -348,7 +347,7 @@ let create page =
       page
   in
   let clear =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"cancel" ~text:"Clear"
       ~on_click:(fun () ->
           if Html.window##confirm (js "Clear the composer?") |> Js.to_bool then begin
             SetEditor.clear composer;
@@ -366,8 +365,6 @@ let create page =
   Dom.appendChild submit (Inputs.Button.root save);
   Dom.appendChild submit (Inputs.Button.root clear);
   Dom.appendChild content (Text.Heading.root title);
-  Dom.appendChild content (Html.createHr (Page.document page));
-  Dom.appendChild content (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_name);
   Dom.appendChild form (Html.createBr (Page.document page));
   Dom.appendChild form (Inputs.Text.root input_kind);

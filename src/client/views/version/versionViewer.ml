@@ -75,7 +75,7 @@ let create ?context slug page =
               a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (VersionDownloadDialog.create_and_open slug)); false);
             ]
             [
-              i ~a:[a_class ["fas"; "fa-file-pdf"]] [];
+              i ~a:[a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
               txt " PDF";
             ]
         in
@@ -87,7 +87,7 @@ let create ?context slug page =
               a_href ApiRouter.(path @@ versionLy slug);
             ]
             [
-              i ~a:[a_class ["fas"; "fa-file-alt"]] [];
+              i ~a:[a_class ["material-symbols-outlined"]] [txt "article"];
               txt " LilyPond"
             ]
         in
@@ -100,7 +100,7 @@ let create ?context slug page =
               a_onclick (fun _ -> SetEditor.add_to_storage slug; true);
             ]
             [
-              i ~a:[a_class ["fas"; "fa-plus-square"]] [];
+              i ~a:[a_class ["material-symbols-outlined"]] [txt "add_box"];
               txt " Add to current set";
             ]
         in
