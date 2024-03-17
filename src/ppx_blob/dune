@@ -1,0 +1,4 @@
+(library
+ (name ppx_blob)
+ (kind ppx_rewriter)
+ (libraries ppxlib))

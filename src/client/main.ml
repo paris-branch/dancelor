@@ -5,8 +5,6 @@ open Dancelor_client_html
 
 module Html = Dom_html
 
-let js = Js.string
-
 (* Whether to show the menu or not. [None] indicates the default (yes on
    desktop, no on mobile). *)
 let (show_menu, set_show_menu) = React.S.create None

@@ -2,12 +2,25 @@
  (name dancelor_common)
  (modules :standard \ dancelor_common_pageRouter)
  (public_name dancelor.common)
- (libraries dancelor.nes dancelor.madge.router dancelor.common.model
-   dancelor.common.page-router cohttp cohttp-lwt logs yojson
-   ppx_deriving_yojson.runtime)
+ (libraries
+  dancelor.nes
+  dancelor.madge.router
+  dancelor.common.model
+  dancelor.common.page-router
+  cohttp
+  cohttp-lwt
+  logs
+  yojson
+  ppx_deriving_yojson.runtime)
  (preprocess
-  (pps lwt_ppx ppx_deriving_yojson ppx_deriving.std ppx_inline_test ppx_monad
-    ppx_monad_olwt ppx_monad_rlwt))
+  (pps
+   lwt_ppx
+   ppx_deriving_yojson
+   ppx_deriving.std
+   ppx_inline_test
+   ppx_monad
+   ppx_monad_olwt
+   ppx_monad_rlwt))
  (inline_tests))
 
 (library

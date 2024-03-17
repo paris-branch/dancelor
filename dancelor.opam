@@ -16,7 +16,7 @@ depends: [
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
   "dates_calc"
-  "dune" {build & < "3.7.0"}
+  "dune" {>= "3.4" & build & < "3.7.0"}
   "ISO8601"
   "js_of_ocaml"
   "js_of_ocaml-lwt"
@@ -26,7 +26,6 @@ depends: [
   "lwt_react"
   "ocaml" {build & >= "4.08.0"}
   "odoc" {with-doc}
-  "ppx_blob" {build}
   "ppx_deriving"
   "ppx_deriving_qcheck"
   "ppx_deriving_yojson"
@@ -40,7 +39,7 @@ depends: [
   "yojson" {>= "1.6.0"}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

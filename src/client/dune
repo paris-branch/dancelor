@@ -3,10 +3,18 @@
 (executables
  (names main)
  (modes js)
- (libraries js_of_ocaml-lwt cohttp-lwt-jsoo dancelor.client.html
-   dancelor.client.elements dancelor.client.tables dancelor.client.formatters
-   dancelor.client.model dancelor.client.views dancelor.client.utils
-   dancelor.nes dancelor.common)
+ (libraries
+  js_of_ocaml-lwt
+  cohttp-lwt-jsoo
+  dancelor.client.html
+  dancelor.client.elements
+  dancelor.client.tables
+  dancelor.client.formatters
+  dancelor.client.model
+  dancelor.client.views
+  dancelor.client.utils
+  dancelor.nes
+  dancelor.common)
  (preprocess
   (pps lwt_ppx js_of_ocaml-ppx)))
 

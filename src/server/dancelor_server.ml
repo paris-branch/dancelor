@@ -4,9 +4,6 @@ open Dancelor_server_controller
 open Cohttp_lwt_unix
 module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
 
-type query = (string * string list) list
-[@@deriving show {with_path = false}]
-
 let log_exn ~msg exn =
   Log.err @@ fun m ->
   let repr = match exn with
