@@ -241,7 +241,10 @@ module Pdf = struct
     Lwt_io.with_file ~mode:Output (Filename.concat path fname_ly)
       (fun ochan -> Lwt_io.write ochan lilypond);%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.run ~exec_path:path fname_ly;%lwt
+    LilyPond.run
+      ~exec_path:path
+      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      fname_ly;%lwt
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf
 
