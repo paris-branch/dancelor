@@ -91,7 +91,14 @@
   (fonts/truetype/SourceSansPro-SemiboldIt.ttf
    as
    fonts/truetype/SourceSansPro-SemiboldIt.ttf)
+  (fonts/webfont/SourceSansPro-Latin.woff2
+   as
+   fonts/webfont/SourceSansPro-Latin.woff2)
+  (fonts/webfont/SourceSansPro-Extended.woff2
+   as
+   fonts/webfont/SourceSansPro-Extended.woff2)
   fonts.conf
+  fonts.css
   index.html
   plus.svg
   site.webmanifest))
