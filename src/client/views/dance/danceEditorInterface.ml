@@ -110,8 +110,7 @@ let create ?on_save page =
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_deviser_modal editor content page)
                     ~cells:[
-                      Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new deviser") page]
+                      Table.Cell.text ~colspan:0 ~icon:"add_circle" ~text:(Lwt.return "Create a new deviser") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
@@ -169,7 +168,7 @@ let create ?on_save page =
   in
 
   let clear =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"cancel" ~text:"Clear"
       ~on_click:(fun () ->
           if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
             DanceEditor.clear editor;

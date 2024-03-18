@@ -21,7 +21,7 @@ let header =
             false
           )
       ]
-      [i ~a:[a_class ["fas"; "fa-bars"]] []];
+      [i ~a:[a_class ["material-symbols-outlined"]] [txt "menu"]];
 
     (* A glorious title. *)
     a ~a:[a_href "/"] [h1 [txt "Dancelor"]];
@@ -38,14 +38,36 @@ let header =
         )
       ]
       [
-        li [a ~a:[a_href PageRouter.(path (Explore None))] [txt "Explore"]];
+        li [
+          a ~a:[a_href PageRouter.(path (Explore None))] [
+            i ~a:[a_class ["material-symbols-outlined"]] [txt "search"];
+            txt " Explore";
+          ];
+        ];
 
         li [
-          txt "Add ▾";
+          txt "Add ";
+          i ~a:[a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
+
           ul ~a:[a_class ["subnav"]] [
-            li [a ~a:[a_href PageRouter.(path VersionAdd)] [txt "Tune"]];
-            li [a ~a:[a_href PageRouter.(path SetCompose)] [txt "Set"]];
-            li [a ~a:[a_href PageRouter.(path BookCompose)] [txt "Book"]];
+            li [
+              a ~a:[a_href PageRouter.(path VersionAdd)] [
+                i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
+                txt " Tune";
+              ];
+            ];
+            li [
+              a ~a:[a_href PageRouter.(path SetCompose)] [
+                i ~a:[a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
+                txt " Set";
+              ];
+            ];
+            li [
+              a ~a:[a_href PageRouter.(path BookCompose)] [
+                i ~a:[a_class ["material-symbols-outlined"]] [txt "library_books"];
+                txt " Book";
+              ];
+            ];
           ]
         ]
       ]

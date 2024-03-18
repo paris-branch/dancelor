@@ -14,20 +14,21 @@ module Cell = struct
     root : root Js.t;
   }
 
-  let create ?width ?colspan ~content page =
+  let create ?width ?colspan ?icon ~content page =
     let cell = Html.createTd (Page.document page) in
     Option.iter (fun i -> cell##.colSpan := i) colspan;
     Style.set ?width cell;
+    Option.iter (fun icon ->
+        Dom.appendChild cell (Fa.i icon page);
+        Dom.appendChild cell ((Page.document page)##createTextNode (js " "));
+      ) icon;
     Lwt.on_success content @@ JsHelpers.add_children cell;
     {page; root = cell}
 
-  let create_static ?width ?colspan ~content page =
-    create ?width ?colspan ~content:(Lwt.return content) page
-
-  let text ?width ?colspan ~text page =
+  let text ?width ?colspan ?icon ~text page =
     let text_node = (Page.document page)##createTextNode (js "") in
     Lwt.on_success text (fun text -> text_node##.data := js text);
-    create ?width ?colspan ~content:(Lwt.return [text_node]) page
+    create ?width ?colspan ?icon ~content:(Lwt.return [text_node]) page
 
   let header_text ?width ?colspan ?alt ~text page =
     (* Cell, span & style *)

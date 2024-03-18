@@ -83,7 +83,7 @@ let create ?query page =
                 false);
           ]
           [
-            i ~a:[a_class ["fas"; "fa-filter"]] [];
+            i ~a:[a_class ["material-symbols-outlined"]] [txt "filter_alt"];
             txt " Complex filter";
           ]
       ];

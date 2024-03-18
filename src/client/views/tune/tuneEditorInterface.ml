@@ -139,7 +139,7 @@ let make_composer_search_result editor page composer =
 let create ?on_save page =
   let editor = TuneEditor.create () in
   let content = Html.createDiv (Page.document page) in
-  let title = Text.Heading.h2_static ~text:(Lwt.return "Create a Tune") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Create a tune") page in
   let form = Html.createForm (Page.document page) in
   let input_name = Inputs.Text.create
       ~placeholder:"Name of the tune"
@@ -179,8 +179,7 @@ let create ?on_save page =
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_dance_modal editor content page)
                     ~cells:[
-                      Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new dance") page]
+                      Table.Cell.text ~colspan:0 ~icon:"add_circle" ~text:(Lwt.return "Create a new dance") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Dance.Filter.from_string input in
@@ -201,8 +200,7 @@ let create ?on_save page =
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_composer_modal editor content page)
                     ~cells:[
-                      Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new composer") page]
+                      Table.Cell.text ~colspan:0 ~icon:"add_circle" ~text:(Lwt.return "Create a new composer") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
@@ -262,7 +260,7 @@ let create ?on_save page =
       page
   in
   let clear =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"cancel" ~text:"Clear"
       ~on_click:(fun () ->
           if Html.window##confirm (js "Clear the editor?") |> Js.to_bool then begin
             TuneEditor.clear editor;
@@ -298,8 +296,6 @@ let create ?on_save page =
   Dom.appendChild form submit;
 
   Dom.appendChild content (Text.Heading.root title);
-  Dom.appendChild content (Html.createHr (Page.document page));
-  Dom.appendChild content (Html.createBr (Page.document page));
   Dom.appendChild content form;
   t
 

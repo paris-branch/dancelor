@@ -72,7 +72,7 @@ let make_context_link_banner ~context ~this_page =
               a_class ["context-links-action"];
               a_title "Return to the parent of this page.";
             ]
-            [txt "▴"];
+            [i ~a:[a_class ["material-symbols-outlined"]] [txt "undo"]];
           a
             ~a:[
               a_class ["context-links-action"];
@@ -80,7 +80,7 @@ let make_context_link_banner ~context ~this_page =
               a_title "Reload the current page without the context. This \
                        will get rid of this banner and of the side links.";
             ]
-            [txt "⨉"];
+            [i ~a:[a_class ["material-symbols-outlined"]] [txt "close"]];
           div ~a:[a_class ["context-links-aligner"]] [];
         ];
         div ~a:[a_class ["context-links-aligner"]] [];
@@ -119,7 +119,10 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
       ] @ (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
       in
       div (
-        (div ~a:[a_class ["context-links-main"]] [txt @@ if left then "‹" else "›"])
+        (div ~a:[a_class ["context-links-main"]] [
+            i ~a:[a_class ["material-symbols-outlined"]] [
+              txt @@ if left then "navigate_before" else "navigate_next"
+            ]])
         :: List.map (div ~a:[a_class ["context-links-details"]]) element_repr
       );
     ]

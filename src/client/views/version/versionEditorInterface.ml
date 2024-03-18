@@ -109,11 +109,11 @@ let make_arranger_search_result editor page arranger =
 
 let create page =
   let document = Page.document page in
-  document##.title := js "Add a Tune | Dancelor";
+  document##.title := js "Add a tune | Dancelor";
 
   let editor = VersionEditor.create () in
   let content = Dom_html.createDiv document in
-  let title = Text.Heading.h2_static ~text:(Lwt.return "Add a new tune") page in
+  let title = Text.Heading.h2_static ~text:(Lwt.return "Add a tune") page in
   let form = Html.createForm document in
   let input_bars = Inputs.Text.create
       ~placeholder:"Number of bars"
@@ -152,8 +152,7 @@ let create page =
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_tune_modal editor content page)
                     ~cells:[
-                      Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new associated tune") page]
+                      Table.Cell.text ~icon:"add_circle" ~colspan:0 ~text:(Lwt.return "Create a new associated tune") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Tune.Filter.from_string input in
@@ -183,8 +182,7 @@ let create page =
         ~default:(Table.Row.create
                     ~on_click:(fun () -> make_arranger_modal editor content page)
                     ~cells:[
-                      Table.Cell.text ~text:(Lwt.return "  +") page;
-                      Table.Cell.text ~text:(Lwt.return "Create a new arranger") page]
+                      Table.Cell.text ~icon:"add_circle" ~colspan:0 ~text:(Lwt.return "Create a new arranger") page]
                     page)
         ~search:(fun input ->
             let%rlwt formula = Lwt.return @@ Person.Filter.from_string input in
@@ -234,7 +232,7 @@ let create page =
       page
   in
   let clear =
-    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"exclamation-triangle" ~text:"Clear"
+    Inputs.Button.create ~kind:Inputs.Button.Kind.Danger ~icon:"cancel" ~text:"Clear"
       ~on_click:(fun () ->
           if Html.window##confirm (js "Clear the version?") |> Js.to_bool then begin
             VersionEditor.clear editor;
