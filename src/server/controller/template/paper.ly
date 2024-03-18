@@ -2,11 +2,9 @@
   indent = 0
 
   #(define fonts
-    (make-pango-font-tree
-     "Trebuchet MS"
-     "Nimbus Sans"
-     "Luxi Mono"
-     (/ staff-height pt 20)))
+    (set-global-fonts
+     #:roman "Source Sans Pro"
+     #:sans  "Source Sans Pro"))
 
   ragged-right = ##f
   ragged-bottom = ##t

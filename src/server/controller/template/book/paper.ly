@@ -25,7 +25,7 @@
   bookTitleMarkup = \markup {
     \fill-line {
       \dir-column {
-        \center-align \bold \abs-fontsize #26 \fromproperty #'header:title
+        \center-align \abs-fontsize #26 \fromproperty #'header:title
         \center-align \large \fromproperty #'header:deviser
         \center-align \large \fromproperty #'header:kind
         " "

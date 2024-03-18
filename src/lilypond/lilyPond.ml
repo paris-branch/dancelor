@@ -1,12 +1,24 @@
 open Nes
 module Log = (val Logs.(src_log (Src.create "lilypond")) : Logs.LOG)
 
+let make_env ?(copy=[]) set =
+  Array.of_list (
+    List.filter_map
+      (fun var ->
+         try Some (var ^ "=" ^ Unix.getenv var)
+         with _ -> None)
+      copy
+    @ set
+  )
+
 let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) filename =
   try%lwt
     NesProcess.run_ignore
-      ~env:[|"PATH="^(Unix.getenv "PATH");
-             "HOME="^(Unix.getenv "HOME");
-             "LANG=en"|]
+      ~env: (
+        make_env
+          ~copy: ["PATH"; "HOME"; "FONTCONFIG_FILE"]
+          ["LANG=en"]
+      )
       ~cwd:exec_path
       ~on_wrong_status:Logs.Error
       ~on_nonempty_stdout:Logs.Warning ~on_nonempty_stderr:Logs.Warning

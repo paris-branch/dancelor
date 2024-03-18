@@ -24,6 +24,8 @@
           ]);
         inputsFrom = [ self'.packages.default ];
         shellHook = config.pre-commit.installationScript;
+        FONTCONFIG_FILE =
+          pkgs.makeFontsConf { fontDirectories = [ pkgs.source-sans-pro ]; };
       };
 
       apps.default = {
@@ -37,6 +39,9 @@
                 --share ${self'.packages.default}/share/dancelor \
                 "$@"
             '';
+            FONTCONFIG_FILE = pkgs.makeFontsConf {
+              fontDirectories = [ pkgs.source-sans-pro ];
+            };
           };
         in "${dancelor}/bin/dancelor";
       };
