@@ -123,7 +123,7 @@ module Svg = struct
     StorageCache.create ()
 
   let populate_cache () =
-    populate_cache ~cache ~ext:".cropped.svg" ~pp_ext:"svg"
+    populate_cache ~cache ~ext:".svg" ~pp_ext:"svg"
 
   let render ?parameters version =
     let%lwt body = Model.Version.content version in
@@ -143,6 +143,7 @@ module Svg = struct
     LilyPond.svg
       ~exec_path:path
       ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~stylesheet: "/fonts.css"
       fname_ly;%lwt
     Log.debug (fun m -> m "done!");
     Lwt.return (Filename.concat path fname_svg)

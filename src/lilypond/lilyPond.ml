@@ -1,7 +1,7 @@
 open Nes
 module Log = (val Logs.(src_log (Src.create "lilypond")) : Logs.LOG)
 
-let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) ~fontconfig_file filename =
+let run ?(lilypond_bin="lilypond") ~exec_path ?(options=[]) ~fontconfig_file filename =
   let fontconfig_file = Unix.realpath fontconfig_file in
   try%lwt
     NesProcess.run_ignore
@@ -18,9 +18,22 @@ let run ?(lilypond_bin="lilypond") ?(exec_path=".") ?(options=[]) ~fontconfig_fi
   with
     Failure _ -> Lwt.return_unit
 
-(** Alias of {!run} for SVG generation. *)
-let svg ?lilypond_bin ?exec_path ?(options=[]) ~fontconfig_file filename =
-  run ?lilypond_bin ?exec_path ~options:("-dbackend=svg" :: options) ~fontconfig_file filename
+(** Wrapper around {!run} for SVG generation. Also allows injecting a custom
+    stylesheet. *)
+let svg ?lilypond_bin ?(exec_path=".") ?(options=[]) ~fontconfig_file ?stylesheet filename =
+  run ?lilypond_bin ~exec_path ~options:("-dbackend=svg" :: options) ~fontconfig_file filename;%lwt
+  match stylesheet with
+  | None -> Lwt.return_unit
+  | Some stylesheet ->
+    (* Using [sed], add a CSS import directive to the given stylesheet after the
+       [<style>] block. *)
+    NesProcess.run_ignore ~cwd:exec_path
+      ~on_wrong_status:Logs.Error
+      ~on_nonempty_stdout:Logs.Error
+      ~on_nonempty_stderr:Logs.Error
+      [ "sed"; "-i";
+        "s|^\\(<style.*\\)$|\\1\\n@import url(\"" ^ stylesheet ^ "\");|";
+        (Filename.chop_extension filename) ^ ".svg" ]
 
 let ogg ?lilypond_bin ?(exec_path=".") ~fontconfig_file filename =
   run ?lilypond_bin ~exec_path ~fontconfig_file filename;%lwt
