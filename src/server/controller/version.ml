@@ -140,7 +140,10 @@ module Svg = struct
     Log.debug (fun m -> m "Preparing lilypond file");
     prepare_ly_file ?parameters ~show_meta:false ~fname:(Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Generate score");
-    LilyPond.svg ~exec_path:path fname_ly;%lwt
+    LilyPond.svg
+      ~exec_path:path
+      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      fname_ly;%lwt
     Log.debug (fun m -> m "done!");
     Lwt.return (Filename.concat path fname_svg)
 
@@ -204,7 +207,10 @@ module Ogg = struct
     let path = Filename.concat !Dancelor_server_config.cache "version" in
     prepare_ly_file ~fname:(Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
-    LilyPond.ogg ~exec_path:path fname_ly;%lwt
+    LilyPond.ogg
+      ~exec_path:path
+      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 
   let get version =
