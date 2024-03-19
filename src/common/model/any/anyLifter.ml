@@ -205,7 +205,7 @@ module Lift
         | True -> (t, True)
         | Not f ->
           (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-          map_pair (Type.Set.diff t) not_ @@ refine_types_and_cleanup (Type.Set.comp t) f
+          map_pair (Type.Set.diff t) not @@ refine_types_and_cleanup (Type.Set.comp t) f
         | And (f1, f2) ->
           (* Refine [t] on [f1], the refine it again while cleaning up [f2],
              then come back and clean up [f1]. *)

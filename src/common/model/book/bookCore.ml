@@ -25,7 +25,7 @@ type t =
     scddb_id    : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 let make
     ~slug ?status ~title ?subtitle ?short_title ?date ?(contents=[]) ?source ?remark
@@ -36,20 +36,6 @@ let make
     ~slug ?status ~title ?subtitle ?short_title ~date ~contents ?source ?remark
     ~scddb_id ~modified_at ~created_at
     ()
-
-(* FIXME: PPX *)
-let slug book = book.slug
-let status book = book.status
-let title book = book.title
-let subtitle book = book.subtitle
-let short_title book = book.short_title
-let date book = book.date
-let contents book = book.contents
-let source book = book.source
-let remark book = book.remark
-let scddb_id book = book.scddb_id
-let modified_at book = book.modified_at
-let created_at book = book.created_at
 
 let contains_set set1 book =
   List.exists
@@ -96,29 +82,7 @@ module Filter = struct
     | ExistsSet of SetCore.Filter.t
     | ExistsInlineSet of SetCore.Filter.t
     | ExistsVersionDeep of VersionCore.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is book = Is book
-  let title string = Title string
-  let titleMatches string = TitleMatches string
-  let subtitle string = Subtitle string
-  let subtitleMatches string = SubtitleMatches string
-  let isSource = IsSource
-  let existsVersion vfilter = ExistsVersion vfilter
-  let existsSet sfilter = ExistsSet sfilter
-  let existsInlineSet sfilter = ExistsInlineSet sfilter
-  let existsVersionDeep vfilter = ExistsVersionDeep vfilter
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unTitle = function Title t -> Some t | _ -> None
-  let unTitleMatches = function TitleMatches t -> Some t | _ -> None
-  let unSubtitle = function Subtitle s -> Some s | _ -> None
-  let unSubtitleMatches = function SubtitleMatches s -> Some s | _ -> None
-  let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
-  let unExistsSet = function ExistsSet sf -> Some sf | _ -> None
-  let unExistsInlineSet = function ExistsInlineSet sf -> Some sf | _ -> None
-  let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

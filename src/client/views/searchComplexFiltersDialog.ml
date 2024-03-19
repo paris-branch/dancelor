@@ -12,14 +12,7 @@ type restricted_predicate =
   | Set     of     Set.Filter.predicate list list
   | Tune    of    Tune.Filter.predicate list list
   | Version of Version.Filter.predicate list list
-
-(* FIXME: PPX *)
-let person rpc = Person rpc
-let dance rpc = Dance rpc
-let book rpc = Book rpc
-let set rpc = Set rpc
-let tune rpc = Tune rpc
-let version rpc = Version rpc
+[@@deriving variants]
 
 (** Restricted formulas supported by the complex filter dialog. This is a bunch
     of raw strings and zero or one {!restricted_predicate}. *)

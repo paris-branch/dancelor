@@ -28,7 +28,7 @@ let create ?context slug page =
     let%lwt version = version_lwt in
     Version.search' Formula.(and_l [
         Version.Filter.tuneIs' tune;
-        not_ (Version.Filter.is' version);
+        not (Version.Filter.is' version);
       ])
   in
 
@@ -84,7 +84,7 @@ let create ?context slug page =
           a
             ~a:[
               a_class ["button"];
-              a_href ApiRouter.(path @@ versionLy slug);
+              a_href ApiRouter.(path_versionLy slug);
             ]
             [
               i ~a:[a_class ["material-symbols-outlined"]] [txt "article"];
@@ -118,14 +118,14 @@ let create ?context slug page =
         div ~a:[a_class ["image-container"]] [
           object_ ~a:[
             a_mime_type "image/svg+xml";
-            a_data ApiRouter.(path (versionSvg slug None))
+            a_data ApiRouter.(path_versionSvg slug)
           ] [];
         ]
       ];
 
       div ~a:[a_class ["audio-container"]] [
         audio ~a:[a_controls ()]
-          ~src:ApiRouter.(path (versionOgg slug))
+          ~src:ApiRouter.(path_versionOgg slug)
           []
       ];
 

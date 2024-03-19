@@ -7,7 +7,7 @@ type 'p t =
   | And of 'p t * 'p t
   | Or  of 'p t * 'p t
   | Pred of 'p
-[@@deriving yojson]
+[@@deriving yojson, variants]
 
 (** Comparison of ands and ors is problematic, so we normalise them always in
     the same way before comparing. *)
@@ -49,18 +49,10 @@ let pp pp_pred fmt formula =
   in
   ppf (match formula with Pred _ -> false | _ -> true) fmt "%a" (pp `Root) formula
 
-let false_ = False
-let true_ = True
-
-(* FIXME: PPX *)
-let not_ f = Not f
-
-let and_ f1 f2 = And(f1, f2)
 let and_l = function
   | [] -> True
   | h::t -> List.fold_left and_ h t
 
-let or_ f1 f2 = Or(f1, f2)
 let or_l = function
   | [] -> False
   | h::t -> List.fold_left or_ h t

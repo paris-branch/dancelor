@@ -15,21 +15,7 @@ type t =
     date : PartialDate.t option [@default None] ; (** When the tune was composed. *)
     modified_at : Datetime.t            [@key "modified-at"] ;
     created_at  : Datetime.t            [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
-
-(* FIXME: PPX *)
-let slug tune = tune.slug
-let status tune = tune.status
-let name tune = tune.name
-let alternative_names tune = tune.alternative_names
-let kind tune = tune.kind
-let composers tune = tune.composers
-let dances tune = tune.dances
-let remark tune = tune.remark
-let scddb_id tune = tune.scddb_id
-let date tune = tune.date
-let modified_at tune = tune.modified_at
-let created_at tune = tune.created_at
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 let compare = Slug.compare_slugs_or ~fallback:Stdlib.compare slug
 let equal tune1 tune2 = compare tune1 tune2 = 0
@@ -48,22 +34,7 @@ module Filter = struct
     | ExistsComposer of PersonCore.Filter.t (** one of the composers of the list passes the filter *)
     | Kind of Kind.Base.Filter.t
     | ExistsDance of DanceCore.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is tune = Is tune
-  let name string = Name string
-  let nameMatches string = NameMatches string
-  let existsComposer pfilter = ExistsComposer pfilter
-  let kind kfilter = Kind kfilter
-  let existsDance dfilter = ExistsDance dfilter
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unName = function Name n -> Some n | _ -> None
-  let unNameMatches = function NameMatches n -> Some n | _ -> None
-  let unExistsComposer = function ExistsComposer pf -> Some pf | _ -> None
-  let unKind = function Kind kf -> Some kf | _ -> None
-  let unExistsDance = function ExistsDance df -> Some df | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

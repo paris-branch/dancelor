@@ -9,11 +9,7 @@ type context =
   | InSearch of string
   | InSet of SetCore.t Slug.t * int
   | InBook of BookCore.t Slug.t * int
-[@@deriving yojson]
-
-let inSearch query = InSearch query
-let inSet slug index = InSet (slug, index)
-let inBook slug index = InBook (slug, index)
+[@@deriving yojson, variants]
 
 let inSet' = inSet % Slug.unsafe_of_string
 let inBook' = inBook % Slug.unsafe_of_string
@@ -33,22 +29,19 @@ type page =
   | Tune of {slug: TuneCore.t Slug.t; context: context option}
   | VersionAdd
   | Version of {slug : VersionCore.t Slug.t; context: context option}
+[@@deriving variants]
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
    [AnyCore.Filter.predicate Formula.t]. That however requires moving a lot of
    code from [*Lifter] to [*Core] for all models (basically everything but the
    [accepts] function, I would say), so, for now, we keep it as a string. *)
 
-let book ?context slug = Book {slug; context}
-let bookEdit slug = BookEdit slug
-let person ?context slug = Person {slug; context}
-let dance ?context slug = Dance {slug; context}
-let explore q = Explore q
-let set ?context slug = Set {slug; context}
-let tune ?context slug = Tune {slug; context}
-let version ?context slug = Version {slug; context}
-
-let unBookEdit = function BookEdit slug -> Some slug | _ -> None
+let book ?context slug = book ~context ~slug
+let person ?context slug = person ~context ~slug
+let dance ?context slug = dance ~context ~slug
+let set ?context slug = set ~context ~slug
+let tune ?context slug = tune ~context ~slug
+let version ?context slug = version ~context ~slug
 
 open Madge_router
 module MQ = Madge_query

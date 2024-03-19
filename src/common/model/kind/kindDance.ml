@@ -60,15 +60,7 @@ module Filter = struct
     | Is of t
     | Simple
     | Version of KindVersion.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is kind = Is kind
-  let version vfilter = Version vfilter
-  let simple = Simple
-
-  let unIs = function Is k -> Some k | _ -> None
-  let unVersion = function Version vf -> Some vf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   let base = version % KindVersion.Filter.base'
   let baseIs = version % KindVersion.Filter.baseIs'

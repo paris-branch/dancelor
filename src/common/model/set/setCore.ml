@@ -16,23 +16,9 @@ type t =
     remark : string                  [@default ""] ;
     modified_at : Datetime.t      [@key "modified-at"] ;
     created_at  : Datetime.t      [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 (* FIXME: rename [versions_and_parameters] into [contents]. *)
-
-(* FIXME: PPX *)
-let slug set = set.slug
-let status set = set.status
-let name set = set.name
-let conceptors set = set.conceptors
-let kind set = set.kind
-let versions_and_parameters set = set.versions_and_parameters
-let order set = set.order
-let instructions set = set.instructions
-let dances set = set.dances
-let remark set = set.remark
-let modified_at set = set.modified_at
-let created_at set = set.created_at
 
 type warning =
   | Empty
@@ -59,22 +45,7 @@ module Filter = struct
     | ExistsConceptor of PersonCore.Filter.t (** conceptor is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
     | Kind of Kind.Dance.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is set = Is set
-  let name name = Name name
-  let nameMatches name = NameMatches name
-  let existsConceptor pfilter = ExistsConceptor pfilter
-  let existsVersion vfilter = ExistsVersion vfilter
-  let kind kfilter = Kind kfilter
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unName = function Name n -> Some n | _ -> None
-  let unNameMatches = function NameMatches n -> Some n | _ -> None
-  let unExistsConceptor = function ExistsConceptor cf -> Some cf | _ -> None
-  let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
-  let unKind = function Kind kf -> Some kf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
