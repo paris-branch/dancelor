@@ -127,7 +127,7 @@ let make_version_subwindow t index version =
   Dom.appendChild buttons delli;
   Dom.appendChild toolbar buttons;
   Dom.appendChild subwin toolbar;
-  let source = Lwt.return ApiRouter.(path (versionSvg version.SetEditor.slug None)) in
+  let source = Lwt.return (ApiRouter.path_versionSvg version.SetEditor.slug) in
   let img = Image.create ~source t.page in
   Dom.appendChild subwin (Image.root img);
   subwin

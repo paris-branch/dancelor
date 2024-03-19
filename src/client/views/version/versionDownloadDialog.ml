@@ -59,7 +59,7 @@ let open_ slug dialog =
         ~a:[
           a_class ["button"];
           a_target "_blank";
-          R.a_href (S.map ApiRouter.(path % versionPdf slug) dialog.parameters_signal);
+          R.a_href (S.map ApiRouter.(fun params -> path_versionPdf ?params slug) dialog.parameters_signal);
           a_onclick (fun _ -> return (); true);
         ] [txt "Download"];
     ];

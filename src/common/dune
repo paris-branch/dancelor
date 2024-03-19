@@ -18,6 +18,7 @@
    ppx_deriving_yojson
    ppx_deriving.std
    ppx_inline_test
+   ppx_variants_conv
    ppx_monad
    ppx_monad_olwt
    ppx_monad_rlwt))
@@ -29,4 +30,4 @@
  (public_name dancelor.common.page-router)
  (libraries dancelor.nes dancelor.common.model)
  (preprocess
-  (pps ppx_deriving_yojson)))
+  (pps ppx_deriving_yojson ppx_variants_conv)))

@@ -41,6 +41,7 @@ type t =
   | Svg of VersionCore.t Slug.t * VersionParameters.t option
   | Ogg of VersionCore.t Slug.t
   | Pdf of VersionCore.t Slug.t * VersionParameters.t option
+[@@deriving variants]
 
 let routes : t route list =
   [

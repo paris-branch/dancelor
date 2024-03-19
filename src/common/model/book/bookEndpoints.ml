@@ -29,6 +29,7 @@ module MQ = Madge_query
 
 type t =
   | Pdf of BookCore.t Slug.t * BookParameters.t option
+[@@deriving variants]
 
 let routes : t route list =
   [

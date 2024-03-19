@@ -33,6 +33,7 @@ module MQ = Madge_query
 
 type t =
   | Pdf of SetCore.t Slug.t * SetParameters.t option
+[@@deriving variants]
 
 let routes : t route list =
   [
