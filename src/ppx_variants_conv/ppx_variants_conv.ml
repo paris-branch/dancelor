@@ -143,8 +143,15 @@ module Variant_constructor = struct
   ;;
 end
 
+let string_lowercase_first_character = function
+  | "" -> ""
+  | s ->
+    let s = Bytes.of_string s in
+    Bytes.set s 0 (Char.lowercase (Bytes.get s 0));
+    Bytes.unsafe_to_string ~no_mutation_while_string_reachable:s
+
 let variant_name_to_string v =
-  let s = String.lowercase v in
+  let s = string_lowercase_first_character v in
   if Keyword.is_keyword s then s ^ "_" else s
 ;;
 
@@ -320,8 +327,8 @@ module Gen_sig = struct
              let getter_type_opt = V.to_getter_type v ~lhs:return_ty in
              let name = variant_name_to_string v.V.name in
              ( ( val_ ~loc name constructor_type
-               , val_ ~loc ("is_" ^ name) tester_type
-               , Option.map getter_type_opt ~f:(val_ ~loc (name ^ "_val")) )
+               , val_ ~loc ("is" ^ v.V.name) tester_type
+               , Option.map getter_type_opt ~f:(val_ ~loc ("un" ^ v.V.name)) )
              , val_ ~loc name [%type: [%t constructor_type] Variantslib.Variant.t] )))
     in
     let constructors, testers, getters = List.unzip3 helpers in
@@ -469,7 +476,7 @@ module Gen_str = struct
             [%stri let [%p pvar ~loc name] = [%e body] [@@warning "-4"]]
           in
           let tester =
-            let name = "is_" ^ uncapitalized in
+            let name = "is" ^ v.V.name in
             let true_case =
               case
                 ~guard:None
@@ -486,7 +493,7 @@ module Gen_str = struct
             if Variant_constructor.is_gadt v
             then None
             else (
-              let name = uncapitalized ^ "_val" in
+              let name = "un" ^ v.V.name in
               let pat, expr = Variant_constructor.to_getter_case v in
               let true_case =
                 case ~guard:None ~lhs:pat ~rhs:[%expr Stdlib.Option.Some [%e expr]]
