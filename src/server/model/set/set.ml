@@ -8,13 +8,13 @@ module E = Common.Model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?conceptors ~kind ?versions_and_parameters
+    ?status ~name ?conceptors ~kind ?contents
     ~order ?dances ~modified_at ~created_at
     ()
   =
   Database.Set.save ~slug_hint:name @@ fun slug ->
   make
-    ?status ~slug ~name ?conceptors ~kind ?versions_and_parameters
+    ?status ~slug ~name ?conceptors ~kind ?contents
     ~order ?dances ~modified_at ~created_at ()
 
 let () =
@@ -25,7 +25,7 @@ let () =
       ?conceptors: (o A.conceptors)
       ~kind:   (a A.kind)
       ?status: (o A.status)
-      ?versions_and_parameters:(o A.versions_and_parameters)
+      ?contents: (o A.contents)
       ~order:  (a A.order)
       ?dances: (o A.dances)
       ~modified_at: (a A.modified_at)
