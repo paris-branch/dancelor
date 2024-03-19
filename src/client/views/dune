@@ -16,4 +16,10 @@
   dancelor.common
   dancelor.client.components)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx ppx_monad ppx_monad_olwt ppx_monad_rlwt)))
+  (pps
+   lwt_ppx
+   js_of_ocaml-ppx
+   ppx_monad
+   ppx_monad_olwt
+   ppx_monad_rlwt
+   ppx_variants_conv)))

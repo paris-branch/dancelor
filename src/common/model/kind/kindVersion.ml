@@ -69,26 +69,7 @@ module Filter = struct
     | BarsLt of int
     | BarsLe of int
     | Base of KindBase.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is kind = Is kind
-  let barsEq int = BarsEq int
-  let barsNe int = BarsNe int
-  let barsGt int = BarsGt int
-  let barsGe int = BarsGe int
-  let barsLt int = BarsLt int
-  let barsLe int = BarsLe int
-  let base bfilter = Base bfilter
-
-  let unIs = function Is k -> Some k | _ -> None
-  let unBarsEq = function BarsEq i -> Some i | _ -> None
-  let unBarsNe = function BarsNe i -> Some i | _ -> None
-  let unBarsGt = function BarsGt i -> Some i | _ -> None
-  let unBarsGe = function BarsGe i -> Some i | _ -> None
-  let unBarsLt = function BarsLt i -> Some i | _ -> None
-  let unBarsLe = function BarsLe i -> Some i | _ -> None
-  let unBase = function Base bf -> Some bf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   let baseIs = base % KindBase.Filter.is'
 

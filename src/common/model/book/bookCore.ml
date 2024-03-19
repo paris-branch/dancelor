@@ -96,29 +96,7 @@ module Filter = struct
     | ExistsSet of SetCore.Filter.t
     | ExistsInlineSet of SetCore.Filter.t
     | ExistsVersionDeep of VersionCore.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is book = Is book
-  let title string = Title string
-  let titleMatches string = TitleMatches string
-  let subtitle string = Subtitle string
-  let subtitleMatches string = SubtitleMatches string
-  let isSource = IsSource
-  let existsVersion vfilter = ExistsVersion vfilter
-  let existsSet sfilter = ExistsSet sfilter
-  let existsInlineSet sfilter = ExistsInlineSet sfilter
-  let existsVersionDeep vfilter = ExistsVersionDeep vfilter
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unTitle = function Title t -> Some t | _ -> None
-  let unTitleMatches = function TitleMatches t -> Some t | _ -> None
-  let unSubtitle = function Subtitle s -> Some s | _ -> None
-  let unSubtitleMatches = function SubtitleMatches s -> Some s | _ -> None
-  let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
-  let unExistsSet = function ExistsSet sf -> Some sf | _ -> None
-  let unExistsInlineSet = function ExistsInlineSet sf -> Some sf | _ -> None
-  let unExistsVersionDeep = function ExistsVersionDeep vf -> Some vf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

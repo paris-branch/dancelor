@@ -30,16 +30,7 @@ module Filter = struct
     | Is of t Slug.t
     | Name of string
     | NameMatches of string
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is person = Is person
-  let name name = Name name
-  let nameMatches name = NameMatches name
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unName = function Name n -> Some n | _ -> None
-  let unNameMatches = function NameMatches n -> Some n | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

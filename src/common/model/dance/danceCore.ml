@@ -42,20 +42,7 @@ module Filter = struct
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
     | ExistsDeviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is dance = Is dance
-  let name name = Name name
-  let nameMatches name = NameMatches name
-  let kind kfilter = Kind kfilter
-  let existsDeviser pfilter = ExistsDeviser pfilter
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unName = function Name n -> Some n | _ -> None
-  let unNameMatches = function NameMatches n -> Some n | _ -> None
-  let unKind = function Kind kf -> Some kf | _ -> None
-  let unExistsDeviser = function ExistsDeviser pf -> Some pf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

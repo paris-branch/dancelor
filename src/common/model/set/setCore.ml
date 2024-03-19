@@ -59,22 +59,7 @@ module Filter = struct
     | ExistsConceptor of PersonCore.Filter.t (** conceptor is defined and passes the filter *)
     | ExistsVersion of VersionCore.Filter.t
     | Kind of Kind.Dance.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is set = Is set
-  let name name = Name name
-  let nameMatches name = NameMatches name
-  let existsConceptor pfilter = ExistsConceptor pfilter
-  let existsVersion vfilter = ExistsVersion vfilter
-  let kind kfilter = Kind kfilter
-
-  let unIs = function Is s -> Some s | _ -> None
-  let unName = function Name n -> Some n | _ -> None
-  let unNameMatches = function NameMatches n -> Some n | _ -> None
-  let unExistsConceptor = function ExistsConceptor cf -> Some cf | _ -> None
-  let unExistsVersion = function ExistsVersion vf -> Some vf | _ -> None
-  let unKind = function Kind kf -> Some kf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

@@ -44,19 +44,7 @@ module Filter = struct
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
     | Broken
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let is version = Is version
-  let tune tfilter = Tune tfilter
-  let key key_ = Key key_
-  let kind kfilter = Kind kfilter
-  let broken = Broken
-
-  let unIs = function Is v -> Some v | _ -> None
-  let unTune = function Tune f -> Some f | _ -> None
-  let unKey = function Key k -> Some k | _ -> None
-  let unKind = function Kind f -> Some f | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]

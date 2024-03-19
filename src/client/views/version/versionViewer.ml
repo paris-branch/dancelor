@@ -28,7 +28,7 @@ let create ?context slug page =
     let%lwt version = version_lwt in
     Version.search' Formula.(and_l [
         Version.Filter.tuneIs' tune;
-        not_ (Version.Filter.is' version);
+        not (Version.Filter.is' version);
       ])
   in
 

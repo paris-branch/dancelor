@@ -9,15 +9,7 @@ type t =
   | Set     of     SetCore.t
   | Tune    of    TuneCore.t
   | Version of VersionCore.t
-[@@deriving show {with_path = false}, yojson]
-
-(* FIXME: PPX *)
-let person p = Person p
-let dance d = Dance d
-let book b = Book b
-let set s = Set s
-let tune t = Tune t
-let version v = Version v
+[@@deriving show {with_path = false}, yojson, variants]
 
 module Type = struct
   let _key = "type"
@@ -63,26 +55,7 @@ module Filter = struct
     | Set     of     SetCore.Filter.t
     | Tune    of    TuneCore.Filter.t
     | Version of VersionCore.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  (* FIXME: PPX *)
-  let raw string = Raw string
-  let type_ type_ = Type type_
-  let person  filter = Person  filter
-  let dance   filter = Dance   filter
-  let book    filter = Book    filter
-  let set     filter = Set     filter
-  let tune    filter = Tune    filter
-  let version filter = Version filter
-
-  let unRaw = function Raw s -> Some s | _ -> None
-  let unType = function Type t -> Some t | _ -> None
-  let unPerson = function Person pf -> Some pf | _ -> None
-  let unDance = function Dance df -> Some df | _ -> None
-  let unBook = function Book bf -> Some bf | _ -> None
-  let unSet = function Set sf -> Some sf | _ -> None
-  let unTune = function Tune tf -> Some tf | _ -> None
-  let unVersion = function Version vf -> Some vf | _ -> None
+  [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
   [@@deriving eq, show {with_path = false}, yojson]
