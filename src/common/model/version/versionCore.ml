@@ -16,22 +16,7 @@ type t =
     broken : bool                     [@default false] ;
     modified_at : Datetime.t          [@key "modified-at"] ;
     created_at  : Datetime.t          [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
-
-(* FIXME: PPX *)
-let slug version = version.slug
-let status version = version.status
-let tune version = version.tune
-let bars version = version.bars
-let key version = version.key
-let structure version = version.structure
-let sources version = version.sources
-let arrangers version = version.arrangers
-let remark version = version.remark
-let disambiguation version = version.disambiguation
-let broken version = version.broken
-let modified_at version = version.modified_at
-let created_at  version = version.created_at
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 let equal version1 version2 = Slug.equal' (slug version1) (slug version2)
 

@@ -25,7 +25,7 @@ type t =
     scddb_id    : int option [@default None] [@key "scddb-id"] ;
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 let make
     ~slug ?status ~title ?subtitle ?short_title ?date ?(contents=[]) ?source ?remark
@@ -36,20 +36,6 @@ let make
     ~slug ?status ~title ?subtitle ?short_title ~date ~contents ?source ?remark
     ~scddb_id ~modified_at ~created_at
     ()
-
-(* FIXME: PPX *)
-let slug book = book.slug
-let status book = book.status
-let title book = book.title
-let subtitle book = book.subtitle
-let short_title book = book.short_title
-let date book = book.date
-let contents book = book.contents
-let source book = book.source
-let remark book = book.remark
-let scddb_id book = book.scddb_id
-let modified_at book = book.modified_at
-let created_at book = book.created_at
 
 let contains_set set1 book =
   List.exists

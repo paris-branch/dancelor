@@ -14,20 +14,7 @@ type t =
     date : PartialDate.t option [@default None] ; (** When the dance was devised. *)
     modified_at : Datetime.t [@key "modified-at"] ;
     created_at  : Datetime.t [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
-
-(* FIXME: PPX *)
-let slug dance = dance.slug
-let status dance = dance.status
-let name dance = dance.name
-let kind dance = dance.kind
-let devisers dance = dance.devisers
-let two_chords dance = dance.two_chords
-let scddb_id dance = dance.scddb_id
-let disambiguation dance = dance.disambiguation
-let date dance = dance.date
-let modified_at dance = dance.modified_at
-let created_at dance = dance.created_at
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 module Filter = struct
   let _key = "dance-filter"

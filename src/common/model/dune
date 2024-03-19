@@ -21,6 +21,7 @@
    ppx_monad
    ppx_monad_olwt
    ppx_monad_rlwt
+   ppx_fields_conv
    ppx_variants_conv
    ppx_import))
  (modules_without_implementation

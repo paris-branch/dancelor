@@ -22,6 +22,7 @@
         ppx_deriving_yojson
         ppx_import
         ppx_inline_test
+        ppx_fields_conv
         ppx_monad
         slug
         yaml

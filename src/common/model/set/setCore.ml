@@ -16,23 +16,9 @@ type t =
     remark : string                  [@default ""] ;
     modified_at : Datetime.t      [@key "modified-at"] ;
     created_at  : Datetime.t      [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 (* FIXME: rename [versions_and_parameters] into [contents]. *)
-
-(* FIXME: PPX *)
-let slug set = set.slug
-let status set = set.status
-let name set = set.name
-let conceptors set = set.conceptors
-let kind set = set.kind
-let versions_and_parameters set = set.versions_and_parameters
-let order set = set.order
-let instructions set = set.instructions
-let dances set = set.dances
-let remark set = set.remark
-let modified_at set = set.modified_at
-let created_at set = set.created_at
 
 type warning =
   | Empty

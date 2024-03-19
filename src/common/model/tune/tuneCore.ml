@@ -15,21 +15,7 @@ type t =
     date : PartialDate.t option [@default None] ; (** When the tune was composed. *)
     modified_at : Datetime.t            [@key "modified-at"] ;
     created_at  : Datetime.t            [@key "created-at"] }
-[@@deriving make, show {with_path = false}, yojson]
-
-(* FIXME: PPX *)
-let slug tune = tune.slug
-let status tune = tune.status
-let name tune = tune.name
-let alternative_names tune = tune.alternative_names
-let kind tune = tune.kind
-let composers tune = tune.composers
-let dances tune = tune.dances
-let remark tune = tune.remark
-let scddb_id tune = tune.scddb_id
-let date tune = tune.date
-let modified_at tune = tune.modified_at
-let created_at tune = tune.created_at
+[@@deriving make, show {with_path = false}, yojson, fields]
 
 let compare = Slug.compare_slugs_or ~fallback:Stdlib.compare slug
 let equal tune1 tune2 = compare tune1 tune2 = 0
