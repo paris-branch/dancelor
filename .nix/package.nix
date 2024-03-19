@@ -32,6 +32,9 @@
         ppx_deriving_qcheck
         qcheck
         qcheck-alcotest
+
+        # used for vendored `ppx_variants_conv`
+        variantslib
       ];
     };
   };
