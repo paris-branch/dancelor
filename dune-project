@@ -40,6 +40,7 @@
   (ppx_monad           (and :build (>= 0.2.0)))
    qcheck
   (qcheck-alcotest      :with-test)
+   variantslib
    slug
    yaml
   (yojson              (>= 1.6.0))))
