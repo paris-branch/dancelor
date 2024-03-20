@@ -246,13 +246,13 @@ let submit_updated_book set opt_book =
 
 let submit t =
   let versions = fold t (fun _ version acc -> version.version :: acc) [] in
-  let versions_and_parameters = List.map (fun version -> (version, VersionParameters.none)) versions in
+  let contents = List.map (fun version -> (version, VersionParameters.none)) versions in
   let kind = Kind.Dance.of_string t.kind in
   let order = SetOrder.of_string t.order in
   let modified_at = Datetime.now () in
   let created_at = Datetime.now () in
   let answer =
-    Set.make_and_save ~kind ~name:t.name ~versions_and_parameters
+    Set.make_and_save ~kind ~name:t.name ~contents
       ~order ?conceptors:(Option.map List.singleton (conceptor t)) ~modified_at ~created_at ()
   in
   Lwt.on_success answer

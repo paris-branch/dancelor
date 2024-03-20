@@ -9,15 +9,15 @@ module Lift
   include SetCore
 
   let make
-      ?status ?(slug=Slug.none) ~name ?conceptors ~kind ?versions_and_parameters
+      ?status ?(slug=Slug.none) ~name ?conceptors ~kind ?contents
       ~order ?dances ~modified_at ~created_at
       ()
     =
     let name = String.remove_duplicates ~char:' ' name in
     let conceptors = Option.map (List.map Person.slug) conceptors in
-    let versions_and_parameters = Option.map (List.map (fun (version, parameters) -> (Version.slug version, parameters))) versions_and_parameters in
+    let contents = Option.map (List.map (fun (version, parameters) -> (Version.slug version, parameters))) contents in
     let dances = Option.map (List.map Dance.slug) dances in
-    Lwt.return (make ?status ~slug ~name ?conceptors ~kind ?versions_and_parameters
+    Lwt.return (make ?status ~slug ~name ?conceptors ~kind ?contents
                   ~order ?dances ~modified_at ~created_at
                   ())
 
@@ -25,12 +25,12 @@ module Lift
   let conceptors = Lwt_list.map_p Person.get % conceptors
   let dances = Lwt_list.map_p Dance.get % dances
 
-  let versions_and_parameters set =
+  let contents set =
     Lwt_list.map_s
       (fun (slug, parameters) ->
          let%lwt version = Version.get slug in
          Lwt.return (version, parameters))
-      set.versions_and_parameters
+      set.contents
 
   let compare = Slug.compare_slugs_or ~fallback:Stdlib.compare slug
   let equal set1 set2 = compare set1 set2 = 0
@@ -40,15 +40,15 @@ module Lift
     List.exists
       (fun (slug2, _parameters) ->
          Slug.equal' slug1 slug2)
-      set.versions_and_parameters
+      set.contents
 
   let find_context index set =
-    let%lwt versions = Lwt.map (List.map fst) @@ versions_and_parameters set in
+    let%lwt versions = Lwt.map (List.map fst) @@ contents set in
     Lwt.return @@ List.findi_context (fun i _ -> i = index) versions
 
   let lilypond_content_cache_key set =
-    let%lwt versions_and_parameters = versions_and_parameters set in
-    let versions = List.map fst versions_and_parameters in
+    let%lwt contents = contents set in
+    let versions = List.map fst contents in
     let%lwt contents = Lwt_list.map_p Version.content versions in
     Lwt.return (String.concat "\n" contents)
 
@@ -68,8 +68,8 @@ module Lift
         (32, KindBase.Reel)
     in
     let%lwt versions =
-      let%lwt versions_and_parameters = versions_and_parameters s in
-      Lwt.return (List.map fst versions_and_parameters)
+      let%lwt contents = contents s in
+      Lwt.return (List.map fst contents)
     in
     let%lwt () =
       Lwt_list.iter_s
@@ -122,11 +122,11 @@ module Lift
         Lwt.return (Formula.interpret_or_l scores)
 
       | ExistsVersion vfilter ->
-        let%lwt versions_and_parameters = versions_and_parameters set in
+        let%lwt contents = contents set in
         Formula.interpret_exists
           (fun (version, _) ->
              Version.Filter.accepts vfilter version)
-          versions_and_parameters
+          contents
 
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ SetCore.kind set

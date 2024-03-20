@@ -151,8 +151,8 @@ module Lift
       (* register tunes in sets *)
       Lwt_list.iter_s
         (fun set ->
-           let%lwt versions_and_parameters = Set.versions_and_parameters set in
-           let versions = List.map fst versions_and_parameters in
+           let%lwt contents = Set.contents set in
+           let versions = List.map fst contents in
            Lwt_list.iter_s
              (fun v ->
                 let%lwt tune = Version.tune v in

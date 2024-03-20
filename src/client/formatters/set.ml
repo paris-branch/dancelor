@@ -21,8 +21,8 @@ let name ?(link=true) set =
 
 let name_and_tunes ?link ?tunes_link set =
   let%lwt versions =
-    let%lwt versions_and_parameters = M.Set.versions_and_parameters set in
-    List.map (Version.name ?link:tunes_link % fst) versions_and_parameters
+    let%lwt contents = M.Set.contents set in
+    List.map (Version.name ?link:tunes_link % fst) contents
     |> List.interspersei (fun _ -> [txt " - "])
     |> List.flatten
     |> List.cons (txt "Tunes: ")

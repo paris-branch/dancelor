@@ -66,7 +66,7 @@ let create ?context slug page =
 
         L.div (
           let%lwt set = set_lwt in
-          let%lwt versions_and_parameters = Set.versions_and_parameters set in
+          let%lwt contents = Set.contents set in
 
           Lwt_list.mapi_p
             (fun index (version, _parameters) ->
@@ -87,7 +87,7 @@ let create ?context slug page =
                    ]
                )
             )
-            versions_and_parameters
+            contents
         );
       ];
 

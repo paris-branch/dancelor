@@ -8,8 +8,8 @@ type t =
     name : string ;
     conceptors : PersonCore.t Slug.t list [@default []] ;
     kind : Kind.Dance.t ;
-    versions_and_parameters : (VersionCore.t Slug.t * VersionParameters.t) list
-                              [@key "versions-and-parameters"] [@default []] ;
+    contents : (VersionCore.t Slug.t * VersionParameters.t) list
+               [@key "versions-and-parameters"] [@default []] ;
     order : SetOrder.t ;
     instructions : string            [@default ""] ;
     dances : DanceCore.t Slug.t list [@default []] ;
@@ -17,8 +17,6 @@ type t =
     modified_at : Datetime.t      [@key "modified-at"] ;
     created_at  : Datetime.t      [@key "created-at"] }
 [@@deriving make, show {with_path = false}, yojson, fields]
-
-(* FIXME: rename [versions_and_parameters] into [contents]. *)
 
 type warning =
   | Empty

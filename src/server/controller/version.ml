@@ -176,7 +176,7 @@ module Pdf = struct
         ~slug
         ~name
         ~kind:(Model.Kind.Dance.Version kind)
-        ~versions_and_parameters:[(version, parameters)]
+        ~contents: [(version, parameters)]
         ~order:[Internal 1]
         ~modified_at:(Datetime.now ())
         ~created_at:(Datetime.now ())

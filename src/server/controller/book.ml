@@ -115,7 +115,7 @@ module Ly = struct
               Model.Set.make
                 ~name
                 ~kind:(Model.Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
-                ~versions_and_parameters:[version, parameters]
+                ~contents: [version, parameters]
                 ~order:[Internal 1]
                 ~modified_at:(NesDatetime.now ())
                 ~created_at:(NesDatetime.now ())
@@ -148,14 +148,14 @@ module Ly = struct
          | 0 -> ()
          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n);
         let%lwt () =
-          let%lwt versions_and_parameters = Model.Set.versions_and_parameters set in
-          let versions_and_parameters =
+          let%lwt contents = Model.Set.contents set in
+          let contents =
             rearrange_set_content
               ~order:(Model.Set.order set)
               ~order_type:(Model.SetParameters.order_type' set_parameters)
-              versions_and_parameters
+              contents
           in
-          Fun.flip Lwt_list.iter_s versions_and_parameters @@ fun (version, version_parameters) ->
+          Fun.flip Lwt_list.iter_s contents @@ fun (version, version_parameters) ->
           let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
           let%lwt content = Model.Version.content version in
           let content =

@@ -9,7 +9,7 @@ val status : t -> Status.t
 val name : t -> string
 val conceptors : t -> PersonCore.t list Lwt.t
 val kind : t -> Kind.Dance.t
-val versions_and_parameters : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
+val contents : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
 val order : t -> SetOrder.t
 val instructions : t -> string
 val dances : t -> DanceCore.t list Lwt.t
@@ -84,7 +84,7 @@ val make :
   name:string ->
   ?conceptors: PersonCore.t list ->
   kind:Kind.Dance.t ->
-  ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
+  ?contents: (VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
   ?dances:DanceCore.t list ->
   modified_at:Datetime.t ->
@@ -96,7 +96,7 @@ val make_and_save :
   name:string ->
   ?conceptors: PersonCore.t list ->
   kind:Kind.Dance.t ->
-  ?versions_and_parameters:(VersionCore.t * VersionParameters.t) list ->
+  ?contents: (VersionCore.t * VersionParameters.t) list ->
   order:SetOrder.t ->
   ?dances:DanceCore.t list ->
   modified_at:Datetime.t ->

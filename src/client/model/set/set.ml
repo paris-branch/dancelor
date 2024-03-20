@@ -4,7 +4,7 @@ module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?conceptors ~kind ?versions_and_parameters
+    ?status ~name ?conceptors ~kind ?contents
     ~order ?dances ~modified_at ~created_at
     ()
   =
@@ -14,7 +14,7 @@ let make_and_save
     a A.name name;
     o A.conceptors conceptors;
     a A.kind kind;
-    o A.versions_and_parameters versions_and_parameters;
+    o A.contents contents;
     a A.order order;
     o A.dances dances;
     a A.modified_at modified_at;
