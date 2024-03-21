@@ -6,6 +6,7 @@
 
 form {
   position: relative;
+  margin-top: 30px;
 }
 
 input[type="text"],
@@ -50,6 +51,7 @@ button.btn-success {
 
 button.disabled {
   color: #7c7c7c;
+  background-color: #4c4c4c;
 }
 
 .subwindow .toolbar {

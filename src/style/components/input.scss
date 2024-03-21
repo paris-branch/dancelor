@@ -1,0 +1,7 @@
+// FIXME: Find another name for this component?
+
+.input {
+  & > .message-box {
+    min-height: 1.5rem;
+  }
+}
