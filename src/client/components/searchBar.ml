@@ -132,49 +132,51 @@ let state search_bar = search_bar.state
 let text search_bar = search_bar.text
 let set_text search_bar text = search_bar.set_text text
 
-let quick_search ~placeholder ~search ~make_result ?on_enter ?autofocus () =
-  let min_characters = 3 in
-  let slice = S.const @@ Slice.make ~start:0 ~end_excl:10 () in
+module Quick = struct
+  let make_and_render ~placeholder ~search ~make_result ?on_enter ?autofocus () =
+    let min_characters = 3 in
+    let slice = S.const @@ Slice.make ~start:0 ~end_excl:10 () in
 
-  (** A signal tracking whether the table is focused. *)
-  let (table_visible, set_table_visible) = S.create false in
+    (** A signal tracking whether the table is focused. *)
+    let (table_visible, set_table_visible) = S.create false in
 
-  let search_bar = make ~search ~min_characters ~slice () in
+    let search_bar = make ~search ~min_characters ~slice () in
 
-  div ~a:[a_class ["search-bar"]] [
-    div ~a:[
-      R.a_class (
-        Fun.flip S.map table_visible @@ function
-        | false -> []
-        | true -> ["visible"]
-      );
-      a_onclick (fun _ -> set_table_visible false; false);
-    ] [];
-
-    render ~placeholder ~on_focus:(fun () -> set_table_visible true) ?on_enter ?autofocus search_bar;
-
-    tablex
-      ~a:[
+    div ~a:[a_class ["search-bar"]] [
+      div ~a:[
         R.a_class (
           Fun.flip S.map table_visible @@ function
-          | false -> ["dropdown-table"]
-          | true -> ["dropdown-table"; "visible"]
+          | false -> []
+          | true -> ["visible"]
         );
-      ]
-      [
-        R.tbody (
-          S.bind_s' (state search_bar) [] @@ function
-          | StartTyping -> Lwt.return [fa_row "keyboard" "Start typing to search."]
-          | ContinueTyping -> Lwt.return [fa_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
-          | NoResults -> Lwt.return [fa_row "warning" "Your search returned no results."]
-          | Errors error -> Lwt.return [fa_row "error" error]
-          | Results results ->
-            let%lwt results = Lwt_list.map_p make_result results in
-            Lwt.return @@
-            if on_enter = None then
-              results
-            else
-              results @ [fa_row "info" "Press enter for more results."]
-        );
-      ]
-  ]
+        a_onclick (fun _ -> set_table_visible false; false);
+      ] [];
+
+      render ~placeholder ~on_focus:(fun () -> set_table_visible true) ?on_enter ?autofocus search_bar;
+
+      tablex
+        ~a:[
+          R.a_class (
+            Fun.flip S.map table_visible @@ function
+            | false -> ["dropdown-table"]
+            | true -> ["dropdown-table"; "visible"]
+          );
+        ]
+        [
+          R.tbody (
+            S.bind_s' (state search_bar) [] @@ function
+            | StartTyping -> Lwt.return [fa_row "keyboard" "Start typing to search."]
+            | ContinueTyping -> Lwt.return [fa_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string min_characters))]
+            | NoResults -> Lwt.return [fa_row "warning" "Your search returned no results."]
+            | Errors error -> Lwt.return [fa_row "error" error]
+            | Results results ->
+              let%lwt results = Lwt_list.map_p make_result results in
+              Lwt.return @@
+              if on_enter = None then
+                results
+              else
+                results @ [fa_row "info" "Press enter for more results."]
+          );
+        ]
+    ]
+end

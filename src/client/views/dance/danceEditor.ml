@@ -125,7 +125,7 @@ let create ?on_save page =
         Input.Text.render state.name ~placeholder:"Name";
         Input.Text.render state.kind ~placeholder:"Kind (eg. 8x32R, 2x(16R+16S))";
 
-        SearchBar.quick_search
+        SearchBar.Quick.make_and_render
           ~placeholder: "Devisor (magic search)"
           ~search: search_person
           ~make_result: (Lwt.return % AnyResultNewAPI.make_person_result ~prefix:[])
