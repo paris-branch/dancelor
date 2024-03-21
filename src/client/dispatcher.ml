@@ -51,5 +51,7 @@ let dispatch url =
     pack (module PersonEditor) PersonEditor.create
   | Person {slug; context} ->
     pack (module PersonViewer) (PersonViewer.create slug ?context)
+  | DanceAdd ->
+    pack (module DanceEditor) DanceEditor.create
   | Dance {slug; context} ->
     pack (module DanceViewer) (DanceViewer.create slug ?context)

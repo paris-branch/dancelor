@@ -57,6 +57,12 @@ let header =
               ]
             ];
             li [
+              a ~a:[a_href PageRouter.(path DanceAdd)] [
+                i ~a:[a_class ["material-symbols-outlined"]] [txt "directions_walk"];
+                txt " Dance";
+              ]
+            ];
+            li [
               a ~a:[a_href PageRouter.(path VersionAdd)] [
                 i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
                 txt " Tune";

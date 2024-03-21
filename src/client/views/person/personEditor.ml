@@ -8,16 +8,16 @@ module PageRouter = Dancelor_common.PageRouter
 
 module State = struct
   type t = {
-    name : string Input.t;
-    scddb_id : SCDDB.entry_id option Input.t;
+    name : string Input.Text.t;
+    scddb_id : SCDDB.entry_id option Input.Text.t;
   }
 
   let create () =
-    let name = Input.make @@ fun name ->
+    let name = Input.Text.make @@ fun name ->
       if name = "" then Error "The name cannot be empty."
       else Ok name
     in
-    let scddb_id = Input.make @@ fun scddb_id ->
+    let scddb_id = Input.Text.make @@ fun scddb_id ->
       if scddb_id = "" then
         Ok None
       else
@@ -78,8 +78,8 @@ let create ?on_save page =
       h2 ~a:[a_class ["title"]] [txt "Add a person"];
 
       form [
-        Input.render state.name ~placeholder:"Name";
-        Input.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+        Input.Text.render state.name ~placeholder:"Name";
+        Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
 
         Button.group [
           Button.save

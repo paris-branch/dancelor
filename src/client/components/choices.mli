@@ -44,6 +44,12 @@ val make_radios :
 (** Make a radio-based “choices” component that can hold at most one value at
     once out of a list of single choices. *)
 
+val make_radios' :
+  validate: ('cvalue option -> ('value, string) Result.t) ->
+  'cvalue option choice list ->
+  ('value, string) Result.t t
+(** Variant of {!make_radios} with a validation function. *)
+
 val make_checkboxes :
   'value choice list ->
   'value list t

@@ -22,6 +22,7 @@ type page =
   | Book of {slug: BookCore.t Slug.t; context: context option}
   | PersonAdd
   | Person of {slug: PersonCore.t Slug.t; context: context option}
+  | DanceAdd
   | Dance of {slug: DanceCore.t Slug.t; context: context option}
   | Explore of string option
   | SetCompose
@@ -67,6 +68,8 @@ let routes =
     with_slug_and_query `GET "/person"
       (fun slug query -> person slug ?context:(context_of_query query))
       (function Person {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
+
+    direct    `GET "/dance/add"      DanceAdd ;
 
     with_slug_and_query `GET "/dance"
       (fun slug query -> dance slug ?context:(context_of_query query))

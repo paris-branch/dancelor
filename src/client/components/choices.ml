@@ -29,39 +29,55 @@ let signal c = c.values
 let value c = S.value (signal c)
 let render c = c.box
 
-let make_gen_unsafe ~radios choices =
+let make_gen_unsafe ~validate ~post_validate ~radios choices =
   let name = unique () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
   let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
+  let values = S.map validate values in
   let update_values () =
     let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
     set_values @@ gather_values_such_that @@ fun choice -> Js.to_bool (choice_inputElement choice)##.checked
   in
   let box =
-    div
-      ~a:[
-        a_class ["choices"];
-        a_onchange (fun _ -> update_values (); true);
-      ]
-      (
-        Fun.flip List.concat_map choices @@ fun choice ->
-        [
-          input ~a:(List.filter_map Fun.id [
-              Some (a_input_type (if radios then `Radio else `Checkbox));
-              Some (a_name name);
-              Some (a_id choice.id);
-              (if choice.checked then Some (a_checked ()) else None);
-            ]) ();
-          label ~a:[a_label_for choice.id] choice.contents;
+    div ~a:[a_class ["input-with-message"]] [
+      div
+        ~a:[
+          a_class ["choices"];
+          a_onchange (fun _ -> update_values (); true);
         ]
+        (
+          Fun.flip List.concat_map choices @@ fun choice ->
+          [
+            input ~a:(List.filter_map Fun.id [
+                Some (a_input_type (if radios then `Radio else `Checkbox));
+                Some (a_name name);
+                Some (a_id choice.id);
+                (if choice.checked then Some (a_checked ()) else None);
+              ]) ();
+            label ~a:[a_label_for choice.id] choice.contents;
+          ]
+        );
+      R.div ~a:[a_class ["message-box"]] (
+        Fun.flip S.map values @@ function
+        | Ok _ -> []
+        | Error msg -> [txt msg]
       )
-  in
-  {box; values}
 
-let make_radios choices =
-  let {box; values} = make_gen_unsafe ~radios:true choices in
-  let values = S.map (function [] -> None | [x] -> x | _ -> assert false) values in
-  {box; values}
+    ]
+  in
+  {box; values = S.map post_validate values}
+
+let make_radios_gen ~validate ~post_validate choices =
+  make_gen_unsafe ~radios:true choices
+    ~validate:(function
+        | [] -> validate None
+        | [x] -> validate x
+        | _ -> Error "Cannot select multiple options" (* should never happen *))
+    ~post_validate
+
+let make_radios choices = make_radios_gen ~validate:Result.ok ~post_validate:Result.get_ok choices
+let make_radios' = make_radios_gen ~post_validate:Fun.id
 
 let make_checkboxes choices =
   make_gen_unsafe ~radios:false choices
+    ~validate:Result.ok ~post_validate:Result.get_ok

@@ -84,13 +84,13 @@ let make_dance_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let dance_modal = Html.createDiv (Page.document page) in
   let interface =
-    DanceEditorInterface.create page
+    DanceEditor.create page
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
           Lwt.on_success (TuneEditor.add editor slug) (fun () -> Page.refresh page))
   in
-  Dom.appendChild dance_modal (DanceEditorInterface.contents interface);
+  Dom.appendChild dance_modal (DanceEditor.contents interface);
   dance_modal##.classList##add (js "modal-window");
   modal_bg##.classList##add (js "modal-background");
   Dom.appendChild modal_bg dance_modal;
@@ -98,7 +98,7 @@ let make_dance_modal editor content page =
   Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
-    ~on_refresh:(fun () -> DanceEditorInterface.refresh interface)
+    ~on_refresh:(fun () -> DanceEditor.refresh interface)
     ~targets:[dance_modal]
 
 let make_composer_modal editor content page =
