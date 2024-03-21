@@ -51,6 +51,12 @@ let header =
 
           ul ~a:[a_class ["subnav"]] [
             li [
+              a ~a:[a_href PageRouter.(path PersonAdd)] [
+                i ~a:[a_class ["material-symbols-outlined"]] [txt "person"];
+                txt " Person";
+              ]
+            ];
+            li [
               a ~a:[a_href PageRouter.(path VersionAdd)] [
                 i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
                 txt " Tune";
