@@ -1,53 +1,109 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
+open Js_of_ocaml
+open Dancelor_client_components
+open Dancelor_client_html
+module SCDDB = Dancelor_common.SCDDB
+module Model = Dancelor_client_model
+module PageRouter = Dancelor_common.PageRouter
 
-type t = {
-  mutable name : string;
-  mutable count : int;
-  mutable scddb_id : string;
-}
-
-let create () =
-  {
-    name = "";
-    count = 0;
-    scddb_id = "";
+module State = struct
+  type t = {
+    name : string Input.t;
+    scddb_id : SCDDB.entry_id option Input.t;
   }
 
-let name t =
-  t.name
+  let create () =
+    let name = Input.make @@ fun name ->
+      if name = "" then Error "The name cannot be empty."
+      else Ok name
+    in
+    let scddb_id = Input.make @@ fun scddb_id ->
+      if scddb_id = "" then
+        Ok None
+      else
+        match int_of_string_opt scddb_id with
+        | Some scddb_id -> Ok (Some scddb_id)
+        | None ->
+          match SCDDB.person_from_uri scddb_id with
+          | Ok scddb_id -> Ok (Some scddb_id)
+          | Error msg -> Error msg
+    in
+    {name; scddb_id}
 
-let set_name t name =
-  t.name <- name
+  let clear state =
+    state.name.set "";
+    state.scddb_id.set ""
 
-let count t =
-  t.count
+  let signal state =
+    S.map Result.to_option @@
+    RS.bind state.name.signal @@ fun name ->
+    RS.bind state.scddb_id.signal @@ fun scddb_id ->
+    RS.pure (name, scddb_id)
 
-let scddb_id t =
-  t.scddb_id
+  let submit state =
+    match S.value (signal state) with
+    | None -> Lwt.return_none
+    | Some (name, scddb_id) ->
+      Lwt.map Option.some @@
+      Model.Person.make_and_save
+        ~name
+        ?scddb_id
+        ~modified_at: (Datetime.now ())
+        ~created_at: (Datetime.now ())
+        ()
+end
 
-let set_scddb_id t id =
-  t.scddb_id <- id
+type t =
+  {
+    page : Dancelor_client_elements.Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
-let clear t =
-  t.name <- "";
-  t.count <- 0;
-  t.scddb_id <- ""
+let refresh _ = ()
 
-let submit t =
-  (* The fact that the string is an integer will have been checked in the form *)
-  let scddb_id =
-    if t.scddb_id = "" then
-      None
-    else
-      match int_of_string_opt t.scddb_id with
-      | Some scddb_id -> Some scddb_id
-      | None ->
-        match SCDDB.person_from_uri t.scddb_id with
-        | Ok scddb_id -> Some scddb_id
-        | Error _ -> None
-  in
-  let modified_at = Datetime.now () in
-  let created_at = Datetime.now () in
-  Person.make_and_save ~name:t.name ?scddb_id ~modified_at ~created_at ()
+let create ?on_save page =
+  let state = State.create () in
+
+  let document = Dancelor_client_elements.Page.document page in
+  let content = Dom_html.createDiv document in
+
+  Lwt.async (fun () ->
+      document##.title := Js.string ("Add a person | Dancelor");
+      Lwt.return ()
+    );
+
+  (
+    let open Dancelor_client_html in
+    Dom.appendChild content @@ To_dom.of_div @@ div [
+      h2 ~a:[a_class ["title"]] [txt "Add a person"];
+
+      form [
+        Input.render state.name ~placeholder:"Name";
+        Input.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+
+        Button.group [
+          Button.save
+            ~disabled: (S.map Option.is_none (State.signal state))
+            ~onclick: (fun () ->
+                Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun person ->
+                let slug = Model.Person.slug person in
+                match on_save with
+                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person slug)
+                | Some on_save -> on_save slug
+              )
+            ();
+          Button.clear
+            ~onclick: (fun () -> State.clear state)
+            ();
+        ];
+      ]
+    ]
+  );
+
+  {page; content}
+
+let contents t =
+  t.content
+
+let init t =
+  refresh t

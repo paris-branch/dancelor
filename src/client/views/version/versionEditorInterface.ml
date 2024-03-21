@@ -76,13 +76,13 @@ let make_arranger_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let arranger_modal = Html.createDiv (Page.document page) in
   let interface =
-    PersonEditorInterface.create page
+    PersonEditor.create page
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
           Lwt.on_success (VersionEditor.set_arranger editor slug) (fun () -> Page.refresh page))
   in
-  Dom.appendChild arranger_modal (PersonEditorInterface.contents interface);
+  Dom.appendChild arranger_modal (PersonEditor.contents interface);
   arranger_modal##.classList##add (js "modal-window");
   modal_bg##.classList##add (js "modal-background");
   Dom.appendChild modal_bg arranger_modal;
@@ -90,7 +90,7 @@ let make_arranger_modal editor content page =
   Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
-    ~on_refresh:(fun () -> PersonEditorInterface.refresh interface)
+    ~on_refresh:(fun () -> PersonEditor.refresh interface)
     ~targets:[arranger_modal]
 
 let make_arranger_search_result editor page arranger =
