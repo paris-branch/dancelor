@@ -11,6 +11,9 @@ open Dancelor_client_model
 type 'result t
 (** Abstract type of a quick search bar, holding results of type ['result]. *)
 
+val clear : 'result t -> unit
+(** Imperatively clear the quick search bar. *)
+
 val make :
   ?number_of_results: int ->
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->

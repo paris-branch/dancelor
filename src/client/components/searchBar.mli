@@ -24,6 +24,9 @@ val text : 'result t -> string React.signal
 val set_text : 'result t -> string -> unit
 (** Imperatively set the text of the search bar. *)
 
+val clear : 'result t -> unit
+(** Imperatively clear the text of the search bar. *)
+
 val make :
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters:int ->

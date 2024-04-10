@@ -21,6 +21,8 @@ type 'result t = {
   search_bar : 'result SearchBar.t;
 }
 
+let clear q = SearchBar.clear q.search_bar
+
 let make ?(number_of_results=10) ~search () =
   let min_characters = 3 in
   let slice = S.const @@ Slice.make ~start:0 ~end_excl:number_of_results () in

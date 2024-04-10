@@ -35,7 +35,6 @@ module State = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        ~make_result: AnyResultNewAPI.make_person_result'
         Result.ok
     in
     let date = Input.Text.make @@ fun date ->
@@ -132,7 +131,9 @@ let create ?on_save page =
       form [
         Input.Text.render state.name ~placeholder:"Name";
         Input.Text.render state.kind ~placeholder:"Kind (eg. 8x32R, 2x(16R+16S))";
-        ListSelector.render state.devisers;
+        ListSelector.render
+          ~make_result: AnyResultNewAPI.make_person_result'
+          state.devisers;
         Input.Text.render state.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
         Choices.render state.two_chords;
         Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
