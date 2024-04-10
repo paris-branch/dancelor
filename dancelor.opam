@@ -12,32 +12,32 @@ license: "GPL-3.0-or-later"
 homepage: "https://github.com/paris-branch/dancelor"
 bug-reports: "https://github.com/paris-branch/dancelor/issues"
 depends: [
-  "alcotest" {with-test}
+  "dune" {>= "3.4"}
+  "ocaml" {build & >= "4.08.0"}
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
   "dates_calc"
-  "dune" {>= "3.4" & build & < "3.7.0"}
   "ISO8601"
-  "js_of_ocaml"
-  "js_of_ocaml-lwt"
   "js_of_ocaml-ppx" {build}
   "js_of_ocaml-tyxml"
+  "logs"
   "lwt_ppx" {build}
   "lwt_react"
-  "ocaml" {build & >= "4.08.0"}
-  "odoc" {with-doc}
-  "ppx_deriving"
-  "ppx_deriving_qcheck"
+  "ppx_blob"
   "ppx_deriving_yojson"
+  "ppx_import"
   "ppx_inline_test" {build | with-test}
   "ppx_import"
+  "ppx_fields_conv"
   "ppx_monad" {build & >= "0.2.0"}
+  "slug"
+  "yaml"
+  "alcotest" {with-test}
+  "odoc" {with-doc}
+  "ppx_deriving_qcheck"
   "qcheck"
   "qcheck-alcotest" {with-test}
   "variantslib"
-  "slug"
-  "yaml"
-  "yojson" {>= "1.6.0"}
 ]
 build: [
   ["dune" "subst"] {dev}
