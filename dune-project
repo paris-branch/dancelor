@@ -18,7 +18,6 @@
  (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
-  (dune                (and :build (< 3.7.0)))
   (ocaml               (and :build (>= 4.08.0)))
 
   (cohttp-lwt-jsoo     (>= 4.0.0))

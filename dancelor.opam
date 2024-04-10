@@ -12,7 +12,7 @@ license: "GPL-3.0-or-later"
 homepage: "https://github.com/paris-branch/dancelor"
 bug-reports: "https://github.com/paris-branch/dancelor/issues"
 depends: [
-  "dune" {>= "3.4" & build & < "3.7.0"}
+  "dune" {>= "3.4"}
   "ocaml" {build & >= "4.08.0"}
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
