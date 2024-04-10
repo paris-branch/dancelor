@@ -96,14 +96,14 @@ let make_version_subwindow t index version =
           SetEditor.move_down t.composer index;
           SetEditor.save t.composer;
           Page.refresh t.page)
-      ~icon:"chevron-down"
+      ~icon:"keyboard_arrow_down"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
           SetEditor.move_up t.composer index;
           SetEditor.save t.composer;
           Page.refresh t.page)
-      ~icon:"chevron-up"
+      ~icon:"keyboard_arrow_up"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
@@ -111,7 +111,7 @@ let make_version_subwindow t index version =
           SetEditor.save t.composer;
           Page.refresh t.page)
       ~kind:Inputs.Button.Kind.Danger
-      ~icon:"times"
+      ~icon:"close"
       t.page
   in
   let downli, upli, delli =

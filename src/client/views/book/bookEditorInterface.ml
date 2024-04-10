@@ -31,20 +31,20 @@ let make_set_subwindow t index set =
       ~on_click:(fun () ->
           BookEditor.move_down t.editor index;
           Page.refresh t.page)
-      ~icon:"chevron-down"
+      ~icon:"keyboard_arrow_down"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
           BookEditor.move_up t.editor index;
           Page.refresh t.page)
-      ~icon:"chevron-up"
+      ~icon:"keyboard_arrow_up"
       t.page,
     Inputs.Button.create
       ~on_click:(fun () ->
           BookEditor.remove t.editor index;
           Page.refresh t.page)
       ~kind:Inputs.Button.Kind.Danger
-      ~icon:"times"
+      ~icon:"close"
       t.page
   in
   let downli, upli, delli =
