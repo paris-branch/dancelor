@@ -47,7 +47,7 @@ let render s =
           )
       )
     ];
-    SearchBar.Quick.make_and_render
+    QuickSearchBar.make_and_render
       ~number_of_results: 5
       ~placeholder: "Add a deviser (magic search)"
       ~search: s.search
