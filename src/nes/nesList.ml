@@ -192,3 +192,31 @@ let all_some l =
   | _ -> None
 
 let apply fs x = List.map (fun f -> f x) fs
+
+let remove i l =
+  let rec remove i acc = function
+    | [] -> List.rev acc
+    | h :: t -> if i = 0 then List.rev_append acc t else remove (i - 1) (h :: acc) t
+  in
+  remove i [] l
+
+let replace i x l =
+  let rec replace i acc = function
+    | [] -> invalid_arg "replace"
+    | h :: t when i = 0 -> (h, List.rev_append acc (x :: t))
+    | h :: t -> replace (i - 1) (h :: acc) t
+  in
+  replace i [] l
+
+let swap i j l =
+  let rec swap i j acc = function
+    | [] -> invalid_arg "swap"
+    | h :: t when i = 0 ->
+      let (h, t) = replace (j - 1) h t in
+      List.rev_append acc (h :: t)
+    | h :: t ->
+      swap (i - 1) (j - 1) (h :: acc) t
+  in
+  if i = j then l
+  else if i < j then swap i j [] l
+  else swap j i [] l

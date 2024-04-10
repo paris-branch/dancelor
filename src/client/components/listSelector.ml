@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml_tyxml.Tyxml_js
 open Dancelor_client_html
 module Model = Dancelor_client_model
@@ -40,11 +41,21 @@ let render
   div [
     tablex [
       R.tbody (
-        Fun.flip S.map s.inner_signal @@ List.map (fun person ->
+        Fun.flip S.map s.inner_signal @@ List.mapi (fun n person ->
             make_result
-              ~onclick:(fun () -> ())
-              ~suffix:[
-                td [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]]
+              ~onclick: (fun () -> ())
+              ~suffix: [
+                td [
+                  a
+                    ~a: [a_onclick (fun _ -> s.set @@ List.swap n (n+1) @@ S.value s.inner_signal; true)]
+                    [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_down"]];
+                  a
+                    ~a: [a_onclick (fun _ -> s.set @@ List.swap (n-1) n @@ S.value s.inner_signal; true)]
+                    [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_up"]];
+                  a
+                    ~a: [a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.inner_signal; true)]
+                    [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
+                ]
               ]
               person
           )
