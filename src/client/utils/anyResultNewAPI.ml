@@ -14,15 +14,15 @@ let js = Js.string
    [Dancelor_client_tables]). *)
 (* FIXME: When [onclick] is used as an [a], we could do better and actually have
    an [<a />] element *)
-let clickable_row ~onclick =
+let clickable_row ?(onclick = fun () -> ()) =
   tr
     ~a:[
       a_class ["clickable"];
       a_onclick (fun _ -> onclick (); true);
     ]
 
-let make_person_result' ~onclick ?(prefix=[]) ?(suffix=[]) person =
-  clickable_row ~onclick
+let make_person_result' ?onclick ?(prefix=[]) ?(suffix=[]) person =
+  clickable_row ?onclick
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
@@ -40,8 +40,8 @@ let make_person_result ?context ?prefix ?suffix person =
     ?suffix
     person
 
-let make_dance_result' ~onclick ?(prefix=[]) ?(suffix=[]) dance =
-  clickable_row ~onclick
+let make_dance_result' ?onclick ?(prefix=[]) ?(suffix=[]) dance =
+  clickable_row ?onclick
     (
       prefix @ [
         td [txt (Dance.name dance)];
@@ -61,8 +61,8 @@ let make_dance_result ?context ?prefix ?suffix dance =
     ?suffix
     dance
 
-let make_book_result' ~onclick ?(prefix=[]) ?(suffix=[]) book =
-  clickable_row ~onclick
+let make_book_result' ?onclick ?(prefix=[]) ?(suffix=[]) book =
+  clickable_row ?onclick
     (
       prefix @ [
         td (Formatters.Book.title_and_subtitle book);
@@ -81,8 +81,8 @@ let make_book_result ?context ?prefix ?suffix book =
     ?suffix
     book
 
-let make_set_result' ~onclick ?(prefix=[]) ?(suffix=[]) set =
-  clickable_row ~onclick
+let make_set_result' ?onclick ?(prefix=[]) ?(suffix=[]) set =
+  clickable_row ?onclick
     (
       prefix @ [
         td [txt @@ Set.name set];
@@ -102,8 +102,8 @@ let make_set_result ?context ?prefix ?suffix set =
     ?suffix
     set
 
-let make_tune_result' ~onclick ?(prefix=[]) ?(suffix=[]) tune =
-  clickable_row ~onclick
+let make_tune_result' ?onclick ?(prefix=[]) ?(suffix=[]) tune =
+  clickable_row ?onclick
     (
       prefix @ [
         td [txt @@ Tune.name tune];
@@ -123,8 +123,8 @@ let make_tune_result ?context ?prefix ?suffix tune =
     ?suffix
     tune
 
-let make_version_result' ~onclick ?(prefix=[]) ?(suffix=[]) version =
-  clickable_row ~onclick
+let make_version_result' ?onclick ?(prefix=[]) ?(suffix=[]) version =
+  clickable_row ?onclick
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);

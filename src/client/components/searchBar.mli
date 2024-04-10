@@ -77,6 +77,7 @@ val render :
 
 module Quick : sig
   val make_and_render :
+    ?number_of_results: int ->
     placeholder:string ->
     search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
     make_result:('result -> Html_types.tr Html.elt Lwt.t) ->

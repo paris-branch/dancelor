@@ -133,9 +133,13 @@ let text search_bar = search_bar.text
 let set_text search_bar text = search_bar.set_text text
 
 module Quick = struct
-  let make_and_render ~placeholder ~search ~make_result ?on_enter ?autofocus () =
+  (* FIXME: We should push the selection into the search bar, instead of
+     providing a [make_result] that gives a clickable row. That way, we could
+     improve the search bar to work with keys and not just clicks. *)
+
+  let make_and_render ?(number_of_results=10) ~placeholder ~search ~make_result ?on_enter ?autofocus () =
     let min_characters = 3 in
-    let slice = S.const @@ Slice.make ~start:0 ~end_excl:10 () in
+    let slice = S.const @@ Slice.make ~start:0 ~end_excl:number_of_results () in
 
     (** A signal tracking whether the table is focused. *)
     let (table_visible, set_table_visible) = S.create false in

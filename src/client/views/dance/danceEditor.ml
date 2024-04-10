@@ -6,11 +6,13 @@ module Model = Dancelor_client_model
 module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
+module Formatters = Dancelor_client_formatters
 
 module State = struct
   type t = {
     name : string Input.Text.t;
     kind : Model.Kind.Dance.t Input.Text.t;
+    devisers : Model.Person.t ListSelector.t;
     date : PartialDate.t option Input.Text.t;
     disambiguation : string option Input.Text.t;
     two_chords : (bool, string) Result.t Choices.t;
@@ -26,6 +28,15 @@ module State = struct
       match Model.Kind.Dance.of_string_opt kind with
       | None -> Error "Not a valid kind"
       | Some kind -> Ok kind
+    in
+    let devisers = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
+          )
+        ~make_result: AnyResultNewAPI.make_person_result'
+        Result.ok
     in
     let date = Input.Text.make @@ fun date ->
       if date = "" then Ok None
@@ -53,11 +64,12 @@ module State = struct
           | Ok scddb_id -> Ok (Some scddb_id)
           | Error msg -> Error msg
     in
-    {name; kind; date; disambiguation; two_chords; scddb_id}
+    {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let clear state =
     state.name.set "";
     state.kind.set "";
+    ListSelector.clear state.devisers;
     state.date.set "";
     state.disambiguation.set "";
     (* FIXME: reset two chords *)
@@ -67,21 +79,22 @@ module State = struct
     S.map Result.to_option @@
     RS.bind state.name.signal @@ fun name ->
     RS.bind state.kind.signal @@ fun kind ->
+    RS.bind (ListSelector.signal state.devisers) @@ fun devisers ->
     RS.bind state.date.signal @@ fun date ->
     RS.bind state.disambiguation.signal @@ fun disambiguation ->
     RS.bind (Choices.signal state.two_chords) @@ fun two_chords ->
     RS.bind state.scddb_id.signal @@ fun scddb_id ->
-    RS.pure (name, kind, date, disambiguation, two_chords, scddb_id)
+    RS.pure (name, kind, devisers, date, disambiguation, two_chords, scddb_id)
 
   let submit state =
     match S.value (signal state) with
     | None -> Lwt.return_none
-    | Some (name, kind, date, disambiguation, two_chords, scddb_id) ->
+    | Some (name, kind, devisers, date, disambiguation, two_chords, scddb_id) ->
       Lwt.map Option.some @@
       Model.Dance.make_and_save
         ~name
         ~kind
-        (* ?devisers *) (* FIXME *)
+        ~devisers
         ~two_chords
         ?scddb_id
         ?disambiguation
@@ -101,11 +114,6 @@ let refresh _ = ()
 let contents t = t.content
 let init t = refresh t
 
-let search_person slice input =
-  let threshold = 0.4 in
-  let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-  Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
-
 let create ?on_save page =
   let state = State.create () in
 
@@ -124,13 +132,7 @@ let create ?on_save page =
       form [
         Input.Text.render state.name ~placeholder:"Name";
         Input.Text.render state.kind ~placeholder:"Kind (eg. 8x32R, 2x(16R+16S))";
-
-        SearchBar.Quick.make_and_render
-          ~placeholder: "Devisor (magic search)"
-          ~search: search_person
-          ~make_result: (Lwt.return % AnyResultNewAPI.make_person_result ~prefix:[])
-          ();
-
+        ListSelector.render state.devisers;
         Input.Text.render state.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
         Choices.render state.two_chords;
         Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
