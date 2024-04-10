@@ -18,32 +18,37 @@
  (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
-  (alcotest             :with-test)
+  (dune                (and :build (< 3.7.0)))
+  (ocaml               (and :build (>= 4.08.0)))
+
   (cohttp-lwt-jsoo     (>= 4.0.0))
   (cohttp-lwt-unix     (>= 4.0.0))
    dates_calc
-  (dune                (and :build (< 3.7.0)))
    ISO8601
-   js_of_ocaml
-   js_of_ocaml-lwt
   (js_of_ocaml-ppx      :build)
    js_of_ocaml-tyxml
+   logs
   (lwt_ppx              :build)
    lwt_react
-  (ocaml               (and :build (>= 4.08.0)))
-  (odoc                 :with-doc)
-   ppx_deriving
-   ppx_deriving_qcheck
+   ppx_blob
    ppx_deriving_yojson
+   ppx_import
   (ppx_inline_test     (or :build :with-test))
    ppx_import
+   ppx_fields_conv
   (ppx_monad           (and :build (>= 0.2.0)))
-   qcheck
-  (qcheck-alcotest      :with-test)
-   variantslib
    slug
    yaml
-  (yojson              (>= 1.6.0))))
+
+  ;; documentation and tests
+  (alcotest             :with-test)
+  (odoc                 :with-doc)
+   ppx_deriving_qcheck
+   qcheck
+  (qcheck-alcotest      :with-test)
+
+   ;; used for vendored `ppx_variants_conv`
+   variantslib))
 
 (using menhir 2.1)
 (generate_opam_files)
