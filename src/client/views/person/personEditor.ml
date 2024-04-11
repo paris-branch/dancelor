@@ -7,6 +7,13 @@ module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
 
 module State = struct
+  module Value = struct
+    type t = {
+      name : string;
+      scddb_id : SCDDB.entry_id option;
+    }
+  end
+
   type t = {
     name : string Input.Text.t;
     scddb_id : SCDDB.entry_id option Input.Text.t;
@@ -38,12 +45,12 @@ module State = struct
     S.map Result.to_option @@
     RS.bind state.name.signal @@ fun name ->
     RS.bind state.scddb_id.signal @@ fun scddb_id ->
-    RS.pure (name, scddb_id)
+    RS.pure Value.{name; scddb_id}
 
   let submit state =
     match S.value (signal state) with
     | None -> Lwt.return_none
-    | Some (name, scddb_id) ->
+    | Some {name; scddb_id} ->
       Lwt.map Option.some @@
       Model.Person.make_and_save
         ~name

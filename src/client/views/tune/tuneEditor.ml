@@ -9,6 +9,18 @@ open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 
 module State = struct
+  module Value = struct
+    type t = {
+      name : string;
+      kind : Model.Kind.Base.t;
+      composers : Model.Person.t list;
+      date : PartialDate.t option;
+      dances : Model.Dance.t list;
+      remark : string option;
+      scddb_id : SCDDB.entry_id option;
+    }
+  end
+
   type t = {
     name : string Input.Text.t;
     kind : Model.Kind.Base.t Input.Text.t;
@@ -85,12 +97,12 @@ module State = struct
     RS.bind (ListSelector.signal state.dances) @@ fun dances ->
     RS.bind state.remark.signal @@ fun remark ->
     RS.bind state.scddb_id.signal @@ fun scddb_id ->
-    RS.pure (name, kind, composers, date, dances, remark, scddb_id)
+    RS.pure Value.{name; kind; composers; date; dances; remark; scddb_id}
 
   let submit state =
     match S.value (signal state) with
     | None -> Lwt.return_none
-    | Some (name, kind, composers, date, dances, remark, scddb_id) ->
+    | Some Value.{name; kind; composers; date; dances; remark; scddb_id} ->
       Lwt.map Option.some @@
       Model.Tune.make_and_save
         ~name
