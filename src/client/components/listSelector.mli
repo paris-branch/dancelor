@@ -23,6 +23,7 @@ val render :
     'result ->
     Html_types.tr Html.elt
   ) ->
+  field_name: string ->
   model_name: string ->
   create_dialog_content: (
     ?on_save:('result -> unit) ->

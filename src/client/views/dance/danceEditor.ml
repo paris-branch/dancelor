@@ -123,6 +123,7 @@ let createNewAPI ?on_save () =
       Input.Text.render state.kind ~placeholder:"Kind (eg. 8x32R, 2x(16R+16S))";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
+        ~field_name: "deviser"
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         state.devisers;

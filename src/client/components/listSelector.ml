@@ -37,6 +37,7 @@ let render
       'result ->
       Html_types.tr Html.elt
      )
+    ~field_name
     ~model_name
     ~(create_dialog_content:
         ?on_save:('result -> unit) ->
@@ -83,7 +84,7 @@ let render
     ];
 
     QuickSearchBar.render
-      ~placeholder: "Add a deviser (magic search)"
+      ~placeholder: ("Add a " ^ field_name ^ " (magic search)")
       ~make_result: (fun person ->
           Lwt.return @@ make_result
             ~onclick:(fun () ->
