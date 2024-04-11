@@ -63,9 +63,15 @@ let header =
               ]
             ];
             li [
-              a ~a:[a_href PageRouter.(path VersionAdd)] [
+              a ~a:[a_href PageRouter.(path TuneAdd)] [
                 i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
                 txt " Tune";
+              ];
+            ];
+            li [
+              a ~a:[a_href PageRouter.(path VersionAdd)] [
+                i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
+                txt " Version";
               ];
             ];
             li [

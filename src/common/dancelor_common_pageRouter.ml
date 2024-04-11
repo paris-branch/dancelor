@@ -27,6 +27,7 @@ type page =
   | Explore of string option
   | SetCompose
   | Set of {slug: SetCore.t Slug.t; context: context option}
+  | TuneAdd
   | Tune of {slug: TuneCore.t Slug.t; context: context option}
   | VersionAdd
   | Version of {slug : VersionCore.t Slug.t; context: context option}
@@ -87,6 +88,8 @@ let routes =
     with_slug_and_query `GET "/set"
       (fun slug query -> set slug ?context:(context_of_query query))
       (function Set {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
+
+    direct    `GET "/tune/add"     TuneAdd ;
 
     with_slug_and_query `GET "/tune"
       (fun slug query -> tune slug ?context:(context_of_query query))
