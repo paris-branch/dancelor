@@ -30,7 +30,8 @@ let clear s =
 
 let render
     ~(make_result:
-        ?onclick: (unit -> unit) ->
+        ?classes: string list ->
+      ?onclick: (unit -> unit) ->
       ?prefix: Html_types.td Html.elt list ->
       ?suffix: Html_types.td Html.elt list ->
       'result ->
@@ -38,22 +39,26 @@ let render
      )
     s
   =
-  div [
-    tablex [
+  div ~a:[a_class ["list-selector"]] [
+    tablex ~a:[a_class ["container"]] [
       R.tbody (
         Fun.flip S.map s.inner_signal @@ List.mapi (fun n person ->
             make_result
+              ~classes: ["row"]
               ~onclick: (fun () -> ())
               ~suffix: [
-                td [
-                  a
+                td ~a:[a_class ["actions"]] [
+                  button
                     ~a: [a_onclick (fun _ -> s.set @@ List.swap n (n+1) @@ S.value s.inner_signal; true)]
                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_down"]];
-                  a
+                  button
                     ~a: [a_onclick (fun _ -> s.set @@ List.swap (n-1) n @@ S.value s.inner_signal; true)]
                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_up"]];
-                  a
-                    ~a: [a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.inner_signal; true)]
+                  button
+                    ~a: [
+                      a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.inner_signal; true);
+                      a_class ["btn-danger"];
+                    ]
                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
                 ]
               ]

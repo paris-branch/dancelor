@@ -15,6 +15,7 @@ val clear : 'result t -> unit
 
 val render :
   make_result: (
+    ?classes: string list ->
     ?onclick: (unit -> unit) ->
     ?prefix: Html_types.td Html.elt list ->
     ?suffix: Html_types.td Html.elt list ->
