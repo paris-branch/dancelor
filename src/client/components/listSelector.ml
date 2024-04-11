@@ -48,28 +48,37 @@ let render
   div ~a:[a_class ["list-selector"]] [
     tablex ~a:[a_class ["container"]] [
       R.tbody (
-        Fun.flip S.map s.inner_signal @@ List.mapi (fun n person ->
-            make_result
-              ~classes: ["row"]
-              ~onclick: (fun () -> ())
-              ~suffix: [
-                td ~a:[a_class ["actions"]] [
-                  button
-                    ~a: [a_onclick (fun _ -> s.set @@ List.swap n (n+1) @@ S.value s.inner_signal; true)]
-                    [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_down"]];
-                  button
-                    ~a: [a_onclick (fun _ -> s.set @@ List.swap (n-1) n @@ S.value s.inner_signal; true)]
-                    [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_up"]];
-                  button
-                    ~a: [
-                      a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.inner_signal; true);
-                      a_class ["btn-danger"];
-                    ]
-                    [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
-                ]
-              ]
-              person
+        Fun.flip S.map s.inner_signal @@ fun elements ->
+        List.mapi
+          (fun n element ->
+             make_result
+               ~classes: ["row"]
+               ~onclick: (fun () -> ())
+               ~suffix: [
+                 td ~a:[a_class ["actions"]] [
+                   button
+                     ~a: [
+                       a_class (if n = List.length elements - 1 then ["disabled"] else []);
+                       a_onclick (fun _ -> s.set @@ List.swap n (n+1) @@ S.value s.inner_signal; true);
+                     ]
+                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_down"]];
+                   button
+                     ~a: [
+                       a_class (if n = 0 then ["disabled"] else []);
+                       a_onclick (fun _ -> s.set @@ List.swap (n-1) n @@ S.value s.inner_signal; true);
+                     ]
+                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_up"]];
+                   button
+                     ~a: [
+                       a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.inner_signal; true);
+                       a_class ["btn-danger"];
+                     ]
+                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
+                 ]
+               ]
+               element
           )
+          elements
       )
     ];
 
