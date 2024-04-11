@@ -1,159 +1,168 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
+open Js_of_ocaml
+open Dancelor_client_components
+open Dancelor_client_html
+module Model = Dancelor_client_model
+module SCDDB = Dancelor_common.SCDDB
+module PageRouter = Dancelor_common.PageRouter
+open Dancelor_client_utils
+module Formatters = Dancelor_client_formatters
 
-type t = {
-  mutable name : string;
-  mutable alternative : string;
-  mutable kind : string;
-  mutable date : string;
-  mutable composer : (Person.t Slug.t * Person.t) option;
-  mutable dances : (Dance.t Slug.t * Dance.t) option array;
-  mutable remark : string;
-  mutable scddb_id : string;
-  mutable count : int;
-}
-
-let create () =
-  {
-    name = "";
-    alternative = "";
-    kind = "";
-    date = "";
-    composer = None;
-    count = 0;
-    dances = Array.make 1 None;
-    remark = "";
-    scddb_id = "";
+module State = struct
+  type t = {
+    name : string Input.Text.t;
+    kind : Model.Kind.Base.t Input.Text.t;
+    composers : Model.Person.t ListSelector.t;
+    date : PartialDate.t option Input.Text.t;
+    dances : Model.Dance.t ListSelector.t;
+    remark : string option Input.Text.t;
+    scddb_id : SCDDB.entry_id option Input.Text.t;
   }
 
-let name t =
-  t.name
+  let create () =
+    let name = Input.Text.make @@ fun name ->
+      if name = "" then Error "The name cannot be empty."
+      else Ok name
+    in
+    let kind = Input.Text.make @@ fun kind ->
+      match Model.Kind.Base.of_string_opt kind with
+      | None -> Error "Not a valid kind"
+      | Some kind -> Ok kind
+    in
+    let composers = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
+          )
+        Result.ok
+    in
+    let date = Input.Text.make @@ fun date ->
+      if date = "" then Ok None
+      else
+        try Ok (Some (PartialDate.from_string date))
+        with _ -> Error "Not a valid date"
+    in
+    let dances = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Dance.search ~threshold ~slice filter
+          )
+        Result.ok
+    in
+    let remark = Input.Text.make @@ fun remark ->
+      Ok (if remark = "" then None else Some remark)
+    in
+    let scddb_id = Input.Text.make @@ fun scddb_id ->
+      if scddb_id = "" then
+        Ok None
+      else
+        match int_of_string_opt scddb_id with
+        | Some scddb_id -> Ok (Some scddb_id)
+        | None ->
+          match SCDDB.dance_from_uri scddb_id with
+          | Ok scddb_id -> Ok (Some scddb_id)
+          | Error msg -> Error msg
+    in
+    {name; kind; composers; date; dances; remark; scddb_id}
 
-let set_name t name =
-  t.name <- name
+  let clear state =
+    state.name.set "";
+    state.kind.set "";
+    ListSelector.clear state.composers;
+    state.date.set "";
+    ListSelector.clear state.dances;
+    state.remark.set "";
+    state.scddb_id.set ""
 
-let alternative t =
-  t.alternative
+  let signal state =
+    S.map Result.to_option @@
+    RS.bind state.name.signal @@ fun name ->
+    RS.bind state.kind.signal @@ fun kind ->
+    RS.bind (ListSelector.signal state.composers) @@ fun composers ->
+    RS.bind state.date.signal @@ fun date ->
+    RS.bind (ListSelector.signal state.dances) @@ fun dances ->
+    RS.bind state.remark.signal @@ fun remark ->
+    RS.bind state.scddb_id.signal @@ fun scddb_id ->
+    RS.pure (name, kind, composers, date, dances, remark, scddb_id)
 
-let set_alternative t name =
-  t.alternative <- name
+  let submit state =
+    match S.value (signal state) with
+    | None -> Lwt.return_none
+    | Some (name, kind, composers, date, dances, remark, scddb_id) ->
+      Lwt.map Option.some @@
+      Model.Tune.make_and_save
+        ~name
+        ~kind
+        ~composers
+        ?date
+        ~dances
+        ?remark
+        ?scddb_id
+        ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
+        ()
+end
 
-let kind t =
-  t.kind
+type t =
+  {
+    page : Dancelor_client_elements.Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
-let set_kind t kind =
-  t.kind <- kind
+let refresh _ = ()
+let contents t = t.content
+let init t = refresh t
 
-let date t =
-  t.date
+let createNewAPI ?on_save () =
+  let state = State.create () in
+  div [
+    h2 ~a:[a_class ["title"]] [txt "Add a tune"];
 
-let set_date t date =
-  t.date <- date
+    form [
+      Input.Text.render state.name ~placeholder:"Name";
+      Input.Text.render state.kind ~placeholder:"Kind (eg. R, Strathspey)";
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_person_result'
+        ~field_name: "composer"
+        ~model_name: "person"
+        ~create_dialog_content: PersonEditor.createNewAPI
+        state.composers;
+      Input.Text.render state.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_dance_result'
+        ~field_name: "dance"
+        ~model_name: "dance"
+        ~create_dialog_content: DanceEditor.createNewAPI
+        state.dances;
+      Input.Text.render state.remark ~placeholder:"Remark (optional)";
+      Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
 
-let composer t =
-  let%opt (_, cr) = t.composer in
-  Some cr
+      Button.group [
+        Button.save
+          ~disabled: (S.map Option.is_none (State.signal state))
+          ~onclick: (fun () ->
+              Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun dance ->
+              let slug = Model.Tune.slug dance in
+              match on_save with
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune slug)
+              | Some on_save -> on_save slug
+            )
+          ();
+        Button.clear
+          ~onclick: (fun () -> State.clear state)
+          ();
+      ]
+    ]
+  ]
 
-let set_composer t slug =
-  let%lwt composer = Person.get slug in
-  t.composer <- Some (slug, composer);
-  Lwt.return ()
-
-let remove_composer t =
-  t.composer <- None
-
-let count t =
-  t.count
-
-let insert t slug i =
-  if Array.length t.dances = t.count then begin
-    let new_dances = Array.make (t.count * 2) None in
-    Array.blit t.dances 0 new_dances 0 t.count;
-    t.dances <- new_dances;
-  end;
-  for idx = t.count-1 downto i do
-    t.dances.(idx+1) <- t.dances.(idx)
-  done;
-  t.count <- t.count + 1;
-  let%lwt dance = Dance.get slug in
-  t.dances.(min t.count i) <- Some (slug, dance);
-  Lwt.return ()
-
-let add t slug =
-  insert t slug t.count
-
-let get t i =
-  if i < 0 || i >= t.count then
-    None
-  else
-    t.dances.(i)
-
-let remove t i =
-  if i >= 0 && i < t.count then begin
-    t.dances.(i) <- None;
-    for j = i + 1 to t.count - 1 do
-      t.dances.(j-1) <- t.dances.(j);
-      t.dances.(j) <- None;
-    done;
-    t.count <- t.count - 1
-  end
-
-let iter t f =
-  for i = 0 to t.count - 1 do
-    match t.dances.(i) with
-    | None -> ()
-    | Some dance -> f i dance
-  done
-
-let fold t f acc =
-  let acc = ref acc in
-  for i = t.count - 1 downto 0 do
-    match t.dances.(i) with
-    | None -> ()
-    | Some dance -> acc := f i dance !acc
-  done;
-  !acc
-
-let list_dances t =
-  fold t (fun _ dance acc -> (snd dance) :: acc) []
-
-let remark t =
-  t.remark
-
-let set_remark t remark =
-  t.remark <- remark
-
-let scddb_id t =
-  t.scddb_id
-
-let set_scddb_id t id =
-  t.scddb_id <- id
-
-let clear t =
-  t.name <- "";
-  t.alternative <- "";
-  t.kind <- "";
-  t.composer <- None;
-  t.count <- 0;
-  t.dances <- Array.make 1 None;
-  t.scddb_id <- ""
-
-let submit t =
-  let name = t.name in
-  let alternative_names = if t.alternative = "" then [] else [t.alternative] in
-  let kind = Kind.Base.of_string t.kind in
-  let date = if t.date = "" then None else Some (PartialDate.from_string t.date) in
-  let dances = list_dances t in
-  let remark = if t.remark = "" then None else Some t.remark in
-  let scddb_id =
-    if t.scddb_id = "" then
-      None
-    else
-      try%opt int_of_string_opt t.scddb_id
-      with _ -> Result.to_option (SCDDB.tune_from_uri t.scddb_id)
-  in
-  let modified_at = Datetime.now () in
-  let created_at = Datetime.now () in
-  Tune.make_and_save ~name ~alternative_names ~kind ?composers:(Option.map List.singleton (composer t))
-    ?date ~dances ?remark ?scddb_id ~modified_at ~created_at ()
+let create ?on_save page =
+  let document = Dancelor_client_elements.Page.document page in
+  let content = Dom_html.createDiv document in
+  Lwt.async (fun () ->
+      document##.title := Js.string "Add a tune | Dancelor";
+      Lwt.return ()
+    );
+  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
+  {page; content}

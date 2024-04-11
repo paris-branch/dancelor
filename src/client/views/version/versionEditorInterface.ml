@@ -41,13 +41,13 @@ let make_tune_modal editor content page =
   let modal_bg = Html.createDiv (Page.document page) in
   let tune_modal = Html.createDiv (Page.document page) in
   let interface =
-    TuneEditorInterface.create page
+    TuneEditor.create page
       ~on_save:(fun slug ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
           Lwt.on_success (VersionEditor.set_tune editor slug) (fun () -> Page.refresh page))
   in
-  Dom.appendChild tune_modal (TuneEditorInterface.contents interface);
+  Dom.appendChild tune_modal (TuneEditor.contents interface);
   tune_modal##.classList##add (js "modal-window");
   modal_bg##.classList##add (js "modal-background");
   Dom.appendChild modal_bg tune_modal;
@@ -55,7 +55,7 @@ let make_tune_modal editor content page =
   Page.register_modal page
     ~element:modal_bg
     ~on_unfocus:(fun () -> Dom.removeChild content modal_bg; Page.remove_modal page modal_bg)
-    ~on_refresh:(fun () -> TuneEditorInterface.refresh interface)
+    ~on_refresh:(fun () -> TuneEditor.refresh interface)
     ~targets:[tune_modal]
 
 let make_tune_search_result editor page tune =

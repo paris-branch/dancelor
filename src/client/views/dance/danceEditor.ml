@@ -137,10 +137,9 @@ let createNewAPI ?on_save () =
           ~disabled: (S.map Option.is_none (State.signal state))
           ~onclick: (fun () ->
               Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun dance ->
-              let slug = Model.Dance.slug dance in
               match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_dance slug)
-              | Some on_save -> on_save slug
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_dance (Model.Dance.slug dance))
+              | Some on_save -> on_save dance
             )
           ();
         Button.clear

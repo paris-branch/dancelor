@@ -36,7 +36,7 @@ let dispatch url =
   | Version {slug; context} ->
     pack (module VersionViewer) (VersionViewer.create slug ?context)
   | TuneAdd ->
-    pack (module TuneEditorInterface) TuneEditorInterface.create
+    pack (module TuneEditor) TuneEditor.create
   | Tune {slug; context} ->
     pack (module TuneViewer) (TuneViewer.create slug ?context)
   | SetCompose ->
