@@ -61,45 +61,38 @@ type t =
 
 let refresh _ = ()
 
-let create ?on_save page =
+let createNewAPI ?on_save () =
   let state = State.create () in
+  div [
+    h2 ~a:[a_class ["title"]] [txt "Add a person"];
+    form [
+      Input.Text.render state.name ~placeholder:"Name";
+      Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+      Button.group [
+        Button.save
+          ~disabled: (S.map Option.is_none (State.signal state))
+          ~onclick: (fun () ->
+              Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun person ->
+              match on_save with
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
+              | Some on_save -> on_save person
+            )
+          ();
+        Button.clear
+          ~onclick: (fun () -> State.clear state)
+          ();
+      ];
+    ]
+  ]
 
+let create ?on_save page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
-
   Lwt.async (fun () ->
       document##.title := Js.string ("Add a person | Dancelor");
       Lwt.return ()
     );
-
-  (
-    let open Dancelor_client_html in
-    Dom.appendChild content @@ To_dom.of_div @@ div [
-      h2 ~a:[a_class ["title"]] [txt "Add a person"];
-
-      form [
-        Input.Text.render state.name ~placeholder:"Name";
-        Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
-
-        Button.group [
-          Button.save
-            ~disabled: (S.map Option.is_none (State.signal state))
-            ~onclick: (fun () ->
-                Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun person ->
-                let slug = Model.Person.slug person in
-                match on_save with
-                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person slug)
-                | Some on_save -> on_save slug
-              )
-            ();
-          Button.clear
-            ~onclick: (fun () -> State.clear state)
-            ();
-        ];
-      ]
-    ]
-  );
-
+  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
   {page; content}
 
 let contents t =

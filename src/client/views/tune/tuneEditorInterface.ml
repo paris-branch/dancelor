@@ -106,10 +106,10 @@ let make_composer_modal editor content page =
   let person_modal = Html.createDiv (Page.document page) in
   let interface =
     PersonEditor.create page
-      ~on_save:(fun slug ->
+      ~on_save:(fun person ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
-          Lwt.on_success (TuneEditor.set_composer editor slug) (fun () -> Page.refresh page))
+          Lwt.on_success (TuneEditor.set_composer editor (Person.slug person)) (fun () -> Page.refresh page))
   in
   Dom.appendChild person_modal (PersonEditor.contents interface);
   person_modal##.classList##add (js "modal-window");

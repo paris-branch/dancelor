@@ -77,10 +77,10 @@ let make_arranger_modal editor content page =
   let arranger_modal = Html.createDiv (Page.document page) in
   let interface =
     PersonEditor.create page
-      ~on_save:(fun slug ->
+      ~on_save:(fun person ->
           Page.remove_modal page modal_bg;
           Dom.removeChild content modal_bg;
-          Lwt.on_success (VersionEditor.set_arranger editor slug) (fun () -> Page.refresh page))
+          Lwt.on_success (VersionEditor.set_arranger editor (Person.slug person)) (fun () -> Page.refresh page))
   in
   Dom.appendChild arranger_modal (PersonEditor.contents interface);
   arranger_modal##.classList##add (js "modal-window");

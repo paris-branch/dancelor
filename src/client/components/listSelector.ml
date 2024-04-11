@@ -37,6 +37,12 @@ let render
       'result ->
       Html_types.tr Html.elt
      )
+    ~model_name
+    ~(create_dialog_content:
+        ?on_save:('result -> unit) ->
+      unit ->
+      Html_types.div Html.elt
+     )
     s
   =
   div ~a:[a_class ["list-selector"]] [
@@ -66,6 +72,7 @@ let render
           )
       )
     ];
+
     QuickSearchBar.render
       ~placeholder: "Add a deviser (magic search)"
       ~make_result: (fun person ->
@@ -77,6 +84,21 @@ let render
             ~suffix:[]
             person
         )
+      ~more_lines: [
+        QuickSearchBar.fa_row
+          ~onclick:(fun () ->
+              Lwt.async @@ fun () ->
+              let%lwt result = Dialog.open_ @@ fun return ->
+                QuickSearchBar.clear s.search_bar;
+                [create_dialog_content ~on_save:return ()]
+              in
+              Result.iter (fun element ->
+                  s.set (S.value s.inner_signal @ [element]);
+                ) result;
+              Lwt.return_unit
+            )
+          "add_circle" ("Create a new " ^ model_name)
+      ]
       s.search_bar;
     div ~a:[a_class ["message-box"]] [];
   ]

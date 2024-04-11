@@ -26,6 +26,7 @@ val render :
   placeholder: string ->
   make_result: ('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter: (string -> unit) ->
+  ?more_lines: Html_types.tr Html.elt list ->
   ?autofocus: bool ->
   'result t ->
   [> Html_types.div] Html.elt
@@ -39,7 +40,14 @@ val make_and_render :
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter:(string -> unit) ->
+  ?more_lines: Html_types.tr Html.elt list ->
   ?autofocus:bool ->
   unit ->
   [> Html_types.div] Html.elt
 (** Short form of the composition of {!make} directly followed by {!render}. *)
+
+val fa_row :
+  ?onclick: (unit -> unit) ->
+  string ->
+  string ->
+  Html_types.tr Html.elt

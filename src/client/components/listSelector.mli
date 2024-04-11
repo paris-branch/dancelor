@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml_tyxml.Tyxml_js
 open Dancelor_client_model
 open Dancelor_client_html
@@ -21,6 +22,12 @@ val render :
     ?suffix: Html_types.td Html.elt list ->
     'result ->
     Html_types.tr Html.elt
+  ) ->
+  model_name: string ->
+  create_dialog_content: (
+    ?on_save:('result -> unit) ->
+    unit ->
+    Html_types.div Html.elt
   ) ->
   'result t ->
   [> Html_types.div ] Html.elt
