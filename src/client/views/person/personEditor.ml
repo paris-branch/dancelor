@@ -20,11 +20,11 @@ module State = struct
   }
 
   let create () =
-    let name = Input.Text.make @@ fun name ->
+    let name = Input.Text.make "" @@ fun name ->
       if name = "" then Error "The name cannot be empty."
       else Ok name
     in
-    let scddb_id = Input.Text.make @@ fun scddb_id ->
+    let scddb_id = Input.Text.make "" @@ fun scddb_id ->
       if scddb_id = "" then
         Ok None
       else
@@ -38,13 +38,13 @@ module State = struct
     {name; scddb_id}
 
   let clear state =
-    state.name.set "";
-    state.scddb_id.set ""
+    Input.Text.clear state.name;
+    Input.Text.clear state.scddb_id
 
   let signal state =
     S.map Result.to_option @@
-    RS.bind state.name.signal @@ fun name ->
-    RS.bind state.scddb_id.signal @@ fun scddb_id ->
+    RS.bind (Input.Text.signal state.name) @@ fun name ->
+    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
     RS.pure Value.{name; scddb_id}
 
   let submit state =

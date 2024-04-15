@@ -76,6 +76,8 @@ let make
   { text; state; set_text }
 
 let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_bar =
+  (* FIXME: This looks awfully like {!Input.Text.render}. We should probably
+     build {!SearchBar} on top of that. *)
   input
     ~a:(List.filter_map Fun.id [
         Some (a_input_type `Text);

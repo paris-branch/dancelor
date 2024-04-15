@@ -32,11 +32,11 @@ module State = struct
   }
 
   let create () =
-    let name = Input.Text.make @@ fun name ->
+    let name = Input.Text.make "" @@ fun name ->
       if name = "" then Error "The name cannot be empty."
       else Ok name
     in
-    let kind = Input.Text.make @@ fun kind ->
+    let kind = Input.Text.make "" @@ fun kind ->
       match Model.Kind.Dance.of_string_opt kind with
       | None -> Error "Not a valid kind"
       | Some kind -> Ok kind
@@ -49,13 +49,13 @@ module State = struct
           )
         Result.ok
     in
-    let date = Input.Text.make @@ fun date ->
+    let date = Input.Text.make "" @@ fun date ->
       if date = "" then Ok None
       else
         try Ok (Some (PartialDate.from_string date))
         with _ -> Error "Not a valid date"
     in
-    let disambiguation = Input.Text.make @@ fun disambiguation ->
+    let disambiguation = Input.Text.make "" @@ fun disambiguation ->
       Ok (if disambiguation = "" then None else Some disambiguation)
     in
     let two_chords = Choices.make_radios' [
@@ -64,7 +64,7 @@ module State = struct
       ]
         ~validate: (Option.to_result ~none:"A choice must be made")
     in
-    let scddb_id = Input.Text.make @@ fun scddb_id ->
+    let scddb_id = Input.Text.make "" @@ fun scddb_id ->
       if scddb_id = "" then
         Ok None
       else
@@ -78,23 +78,23 @@ module State = struct
     {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let clear state =
-    state.name.set "";
-    state.kind.set "";
+    Input.Text.clear state.name;
+    Input.Text.clear state.kind;
     ListSelector.clear state.devisers;
-    state.date.set "";
-    state.disambiguation.set "";
-    (* FIXME: reset two chords *)
-    state.scddb_id.set ""
+    Input.Text.clear state.date;
+    Input.Text.clear state.disambiguation;
+    (* FIXME: clear two chords *)
+    Input.Text.clear state.scddb_id
 
   let signal state =
     S.map Result.to_option @@
-    RS.bind state.name.signal @@ fun name ->
-    RS.bind state.kind.signal @@ fun kind ->
+    RS.bind (Input.Text.signal state.name) @@ fun name ->
+    RS.bind (Input.Text.signal state.kind) @@ fun kind ->
     RS.bind (ListSelector.signal state.devisers) @@ fun devisers ->
-    RS.bind state.date.signal @@ fun date ->
-    RS.bind state.disambiguation.signal @@ fun disambiguation ->
+    RS.bind (Input.Text.signal state.date) @@ fun date ->
+    RS.bind (Input.Text.signal state.disambiguation) @@ fun disambiguation ->
     RS.bind (Choices.signal state.two_chords) @@ fun two_chords ->
-    RS.bind state.scddb_id.signal @@ fun scddb_id ->
+    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
     RS.pure Value.{name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let submit state =

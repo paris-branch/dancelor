@@ -32,11 +32,11 @@ module State = struct
   }
 
   let create () =
-    let name = Input.Text.make @@ fun name ->
+    let name = Input.Text.make "" @@ fun name ->
       if name = "" then Error "The name cannot be empty."
       else Ok name
     in
-    let kind = Input.Text.make @@ fun kind ->
+    let kind = Input.Text.make "" @@ fun kind ->
       match Model.Kind.Base.of_string_opt kind with
       | None -> Error "Not a valid kind"
       | Some kind -> Ok kind
@@ -49,7 +49,7 @@ module State = struct
           )
         Result.ok
     in
-    let date = Input.Text.make @@ fun date ->
+    let date = Input.Text.make "" @@ fun date ->
       if date = "" then Ok None
       else
         try Ok (Some (PartialDate.from_string date))
@@ -63,10 +63,10 @@ module State = struct
           )
         Result.ok
     in
-    let remark = Input.Text.make @@ fun remark ->
+    let remark = Input.Text.make "" @@ fun remark ->
       Ok (if remark = "" then None else Some remark)
     in
-    let scddb_id = Input.Text.make @@ fun scddb_id ->
+    let scddb_id = Input.Text.make "" @@ fun scddb_id ->
       if scddb_id = "" then
         Ok None
       else
@@ -80,23 +80,23 @@ module State = struct
     {name; kind; composers; date; dances; remark; scddb_id}
 
   let clear state =
-    state.name.set "";
-    state.kind.set "";
+    Input.Text.clear state.name;
+    Input.Text.clear state.kind;
     ListSelector.clear state.composers;
-    state.date.set "";
+    Input.Text.clear state.date;
     ListSelector.clear state.dances;
-    state.remark.set "";
-    state.scddb_id.set ""
+    Input.Text.clear state.remark;
+    Input.Text.clear state.scddb_id
 
   let signal state =
     S.map Result.to_option @@
-    RS.bind state.name.signal @@ fun name ->
-    RS.bind state.kind.signal @@ fun kind ->
+    RS.bind (Input.Text.signal state.name) @@ fun name ->
+    RS.bind (Input.Text.signal state.kind) @@ fun kind ->
     RS.bind (ListSelector.signal state.composers) @@ fun composers ->
-    RS.bind state.date.signal @@ fun date ->
+    RS.bind (Input.Text.signal state.date) @@ fun date ->
     RS.bind (ListSelector.signal state.dances) @@ fun dances ->
-    RS.bind state.remark.signal @@ fun remark ->
-    RS.bind state.scddb_id.signal @@ fun scddb_id ->
+    RS.bind (Input.Text.signal state.remark) @@ fun remark ->
+    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
     RS.pure Value.{name; kind; composers; date; dances; remark; scddb_id}
 
   let submit state =
