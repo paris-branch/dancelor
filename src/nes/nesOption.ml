@@ -31,3 +31,9 @@ let rec first = function
   | [] -> None
   | (Some x) :: _ -> Some x
   | _ :: xs -> first xs
+
+let to_string = value ~default:""
+
+let of_string_nonempty = function
+  | "" -> None
+  | s -> Some s

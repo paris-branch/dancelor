@@ -1,4 +1,4 @@
-(** {1 Lists} *)
+(** {1 Options} *)
 
 (** {2 Standard Library}
 
@@ -34,3 +34,9 @@ val return : 'a -> 'a option
 
 val first : 'a option list -> 'a option
 (** Return the first element of the list that is not [None]. *)
+
+val to_string : string option -> string
+(** Maps [None] to [""] and [Some s] to [s]. *)
+
+val of_string_nonempty : string -> string option
+(** Maps [""] to [None] and other strings to [Some]. *)

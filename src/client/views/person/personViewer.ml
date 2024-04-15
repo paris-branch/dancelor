@@ -39,7 +39,7 @@ let create ?context slug page =
         match%lwt Lwt.map Person.scddb_id person_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.person_uri scddb_id in
+          let href = Uri.to_string @@ SCDDB.person_uri scddb_id in
           Lwt.return [
             p [
               txt "You can ";

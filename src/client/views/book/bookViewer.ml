@@ -146,7 +146,7 @@ let create ?context slug page =
         match%lwt Lwt.map Book.scddb_id book_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.list_uri scddb_id in
+          let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
           Lwt.return [
             h3 ~a:[a_class ["title"]] [
               a ~a:[a_href href; a_target "blank"] [

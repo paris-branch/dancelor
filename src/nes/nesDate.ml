@@ -9,8 +9,7 @@ let to_pretty_string ?at date =
   NesPartialDate.(to_pretty_string ?at (internal__from_full date))
 
 let from_string str =
-  match NesPartialDate.(internal__to_full (from_string str)) with
-  | exception Failure _ -> failwith "NesDate.from_string"
+  match NesPartialDate.(Option.bind (from_string str) internal__to_full) with
   | None -> failwith "NesDate.from_string"
   | Some date -> date
 

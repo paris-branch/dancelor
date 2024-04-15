@@ -108,7 +108,7 @@ let clear t =
 
 let submit t =
   let title = t.title in
-  let date = if t.date <> "" then Some (PartialDate.from_string t.date) else None in
+  let date = if t.date <> "" then PartialDate.from_string t.date else None in
   let contents = fold t (fun _ set acc -> snd set :: acc) [] in
   let contents = List.map (fun set -> Book.Set (set, SetParameters.none)) contents in
   let modified_at = Datetime.now () in
@@ -118,7 +118,7 @@ let submit t =
 let update_submit t slug =
   let%lwt book = Book.get slug in
   let title = t.title in
-  let date = if t.date <> "" then Some (PartialDate.from_string t.date) else None in
+  let date = if t.date <> "" then PartialDate.from_string t.date else None in
   let contents = fold t (fun _ set acc -> snd set :: acc) [] in
   let contents = List.map (fun set -> Book.Set (set, SetParameters.none)) contents in
   let modified_at = Datetime.now () in

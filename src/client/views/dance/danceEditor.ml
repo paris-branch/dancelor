@@ -32,14 +32,11 @@ module State = struct
   }
 
   let create () =
-    let name = Input.Text.make "" @@ fun name ->
-      if name = "" then Error "The name cannot be empty."
-      else Ok name
+    let name = Input.Text.make "" @@
+      Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
-    let kind = Input.Text.make "" @@ fun kind ->
-      match Model.Kind.Dance.of_string_opt kind with
-      | None -> Error "Not a valid kind"
-      | Some kind -> Ok kind
+    let kind = Input.Text.make "" @@
+      Option.to_result ~none:"Not a valid kind" % Model.Kind.Dance.of_string_opt
     in
     let devisers = ListSelector.make
         ~search: (fun slice input ->
@@ -49,14 +46,14 @@ module State = struct
           )
         Result.ok
     in
-    let date = Input.Text.make "" @@ fun date ->
-      if date = "" then Ok None
-      else
-        try Ok (Some (PartialDate.from_string date))
-        with _ -> Error "Not a valid date"
+    let date = Input.Text.make "" @@
+      Option.fold
+        ~none: (Ok None)
+        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
+      % Option.of_string_nonempty
     in
-    let disambiguation = Input.Text.make "" @@ fun disambiguation ->
-      Ok (if disambiguation = "" then None else Some disambiguation)
+    let disambiguation = Input.Text.make "" @@
+      Result.ok % Option.of_string_nonempty
     in
     let two_chords = Choices.make_radios' [
         Choices.choice' ~value:false [txt "One chord"];
@@ -64,16 +61,11 @@ module State = struct
       ]
         ~validate: (Option.to_result ~none:"A choice must be made")
     in
-    let scddb_id = Input.Text.make "" @@ fun scddb_id ->
-      if scddb_id = "" then
-        Ok None
-      else
-        match int_of_string_opt scddb_id with
-        | Some scddb_id -> Ok (Some scddb_id)
-        | None ->
-          match SCDDB.dance_from_uri scddb_id with
-          | Ok scddb_id -> Ok (Some scddb_id)
-          | Error msg -> Error msg
+    let scddb_id = Input.Text.make "" @@
+      Option.fold
+        ~none: (Ok None)
+        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Dance)
+      % Option.of_string_nonempty
     in
     {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 

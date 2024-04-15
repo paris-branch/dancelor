@@ -20,20 +20,14 @@ module State = struct
   }
 
   let create () =
-    let name = Input.Text.make "" @@ fun name ->
-      if name = "" then Error "The name cannot be empty."
-      else Ok name
+    let name = Input.Text.make "" @@
+      Result.of_string_nonempty ~empty:"The name cannot be empty."
     in
-    let scddb_id = Input.Text.make "" @@ fun scddb_id ->
-      if scddb_id = "" then
-        Ok None
-      else
-        match int_of_string_opt scddb_id with
-        | Some scddb_id -> Ok (Some scddb_id)
-        | None ->
-          match SCDDB.person_from_uri scddb_id with
-          | Ok scddb_id -> Ok (Some scddb_id)
-          | Error msg -> Error msg
+    let scddb_id = Input.Text.make "" @@
+      Option.fold
+        ~none: (Ok None)
+        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person)
+      % Option.of_string_nonempty
     in
     {name; scddb_id}
 

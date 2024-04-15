@@ -8,7 +8,7 @@ val _key : string
 type t [@@deriving show, yojson]
 (** The type of a partial date. *)
 
-val from_string : string -> t
+val from_string : string -> t option
 (** Parses the date from a potentially-truncated ISO 8601 string, eg.
     [2022-11-09], [2022-11] or [2022]. *)
 
