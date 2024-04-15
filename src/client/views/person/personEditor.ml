@@ -6,24 +6,39 @@ module SCDDB = Dancelor_common.SCDDB
 module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
 
-module State = struct
-  module Value = struct
-    type t = {
-      name : string;
-      scddb_id : SCDDB.entry_id option;
-    }
-  end
+module Value = struct
+  type t = {
+    name : string;
+    scddb_id : SCDDB.entry_id option;
+  }
+  [@@deriving yojson]
 
+  let empty = {
+    name = "";
+    scddb_id = None;
+  }
+
+  let _key = "personEditor.value"
+end
+
+module State = struct
   type t = {
     name : string Input.Text.t;
     scddb_id : SCDDB.entry_id option Input.Text.t;
   }
 
+  let signal state =
+    S.map Result.to_option @@
+    RS.bind (Input.Text.signal state.name) @@ fun name ->
+    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
+    RS.pure Value.{name; scddb_id}
+
   let create () =
-    let name = Input.Text.make "" @@
+    Utils.with_local_storage (module Value) signal @@ fun initial_value ->
+    let name = Input.Text.make initial_value.name @@
       Result.of_string_nonempty ~empty:"The name cannot be empty."
     in
-    let scddb_id = Input.Text.make "" @@
+    let scddb_id = Input.Text.make (Option.to_string @@ Option.map (Uri.to_string % SCDDB.person_uri) @@ initial_value.scddb_id) @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person)
@@ -34,12 +49,6 @@ module State = struct
   let clear state =
     Input.Text.clear state.name;
     Input.Text.clear state.scddb_id
-
-  let signal state =
-    S.map Result.to_option @@
-    RS.bind (Input.Text.signal state.name) @@ fun name ->
-    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
-    RS.pure Value.{name; scddb_id}
 
   let submit state =
     match S.value (signal state) with
