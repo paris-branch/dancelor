@@ -33,7 +33,7 @@ type t =
 
 let routes : t route list =
   [
-    with_slug_and_query `GET "/" ~ext:".pdf"
+    with_slug_and_query `GET "/" ~ext:"pdf"
       (fun slug query -> Pdf (slug, MQ.get_ "parameters" BookParameters.of_yojson query))
       (function
         | Pdf (slug, None) -> Some (slug, MQ.empty)
