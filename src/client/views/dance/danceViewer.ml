@@ -29,8 +29,9 @@ let create ?context slug =
     L.div (
       Fun.flip Lwt.map dance_lwt @@ fun dance ->
       match Dance.two_chords dance with
-      | false -> []
-      | true -> [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
+      | Some false -> []
+      | Some true -> [h3 ~a:[a_class ["title"]] [txt "Two Chords"]]
+      | None -> [h3 ~a:[a_class ["title"]] [txt "Two Chords: unknown"]]
     );
 
     L.div (

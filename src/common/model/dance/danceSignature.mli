@@ -11,7 +11,7 @@ val status : t -> Status.t
 val name : t -> string
 val kind : t -> Kind.Dance.t
 val devisers : t -> PersonCore.t list Lwt.t
-val two_chords : t -> bool
+val two_chords : t -> bool option
 val scddb_id : t -> int option
 val disambiguation : t -> string
 val date : t -> PartialDate.t option
@@ -55,7 +55,7 @@ val make_and_save :
   name:string ->
   kind:Kind.Dance.t ->
   ?devisers: PersonCore.t list ->
-  two_chords:bool ->
+  ?two_chords:bool ->
   ?scddb_id:int ->
   ?disambiguation:string ->
   ?date: PartialDate.t ->

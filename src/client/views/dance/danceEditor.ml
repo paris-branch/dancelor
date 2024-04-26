@@ -57,7 +57,7 @@ module Editor = struct
       Model.Person.t ListSelector.t,
       PartialDate.t option Input.Text.t,
       string option Input.Text.t,
-      (bool, string) Result.t Choices.t,
+      bool option Choices.t,
       SCDDB.entry_id option Input.Text.t
     ) gen;
     set_interacted : unit -> unit;
@@ -81,7 +81,7 @@ module Editor = struct
     RS.bind (ListSelector.signal editor.elements.devisers) @@ fun devisers ->
     RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
     RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
-    RS.bind (Choices.signal editor.elements.two_chords) @@ fun two_chords ->
+    RS.bind (S.map Result.ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
     RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
@@ -114,12 +114,12 @@ module Editor = struct
     let disambiguation = Input.Text.make ~has_interacted initial_state.disambiguation @@
       Result.ok % Option.of_string_nonempty
     in
-    let two_chords = Choices.make_radios' [
+    let two_chords = Choices.make_radios [
+        Choices.choice' [txt "I don't know"] ~checked:true;
         Choices.choice' ~value:false [txt "One chord"];
         Choices.choice' ~value:true [txt "Two chords"];
       ]
         ~name: "Number of chords"
-        ~validate: (Option.to_result ~none:"A choice must be made")
     in
     let scddb_id = Input.Text.make ~has_interacted initial_state.scddb_id @@
       Option.fold
@@ -150,7 +150,7 @@ module Editor = struct
         ~name
         ~kind
         ~devisers
-        ~two_chords
+        ?two_chords
         ?scddb_id
         ?disambiguation
         ?date

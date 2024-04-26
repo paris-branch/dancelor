@@ -8,7 +8,7 @@ type t =
     name : string ;
     kind : Kind.Dance.t ;
     devisers : PersonCore.t Slug.t list [@default []] ;
-    two_chords : bool [@default false] [@key "two-chords"] ;
+    two_chords : bool option [@default None] [@key "two-chords"] ;
     scddb_id : int option [@default None] [@key "scddb-id"] ;
     disambiguation : string [@default ""] ;
     date : PartialDate.t option [@default None] ; (** When the dance was devised. *)

@@ -8,13 +8,13 @@ module E = Common.Model.DanceEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ~kind ?devisers ~two_chords ?scddb_id
+    ?status ~name ~kind ?devisers ?two_chords ?scddb_id
     ?disambiguation ?date ~modified_at ~created_at
     ()
   =
   Database.Dance.save ~slug_hint:name @@ fun slug ->
   make
-    ?status ~slug ~name ~kind ?devisers ~two_chords ?scddb_id
+    ?status ~slug ~name ~kind ?devisers ?two_chords ?scddb_id
     ?disambiguation ?date ~modified_at ~created_at
     ()
 
@@ -26,7 +26,7 @@ let () =
       ~name:        (a A.name)
       ~kind:        (a A.kind)
       ?devisers: (o A.devisers)
-      ~two_chords:  (a A.two_chords)
+      ?two_chords:  (o A.two_chords)
       ?scddb_id:    (o A.scddb_id)
       ?date: (o A.date)
       ~modified_at: (a A.modified_at)
