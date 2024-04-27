@@ -23,33 +23,10 @@ let make
     ?(initial_input = "")
     ()
   =
-  (** A signal containing the search text. *)
-  let (text, set_text_immediately) = S.create initial_input in
 
-  (* REVIEW: maybe this should become a generic signal helper to delay signals
-     by a certain time? *)
-  (** The following is a mechanism to only set the search text in a delayed
-      fashion. The [search_text_setter] signal contains an Lwt promise whose job
-      is to set the search text after a delayed time. The [set_search_text]
-      function cancels the current Lwt promise (which does nothing if it already
-      resolved) and creates a new one in its place. *)
-  let (text_setter, set_text_setter) = S.create Lwt.return_unit in
-  let set_text text =
-    (* try cancelling the current search text setter *)
-    Lwt.cancel (S.value text_setter);
-    (* prepare the new search text setter *)
-    let new_text_setter =
-      (* FIXME: here, we need to delay by something like 100ms but [Lwt_unix]
-         does not seem to be the answer. *)
-      Lwt.pmsleep 0.30;%lwt
-      set_text_immediately text;
-      Lwt.return_unit
-    in
-    (* register it in the signal *)
-    set_text_setter new_text_setter;
-    (* fire it asynchronously *)
-    Lwt.async (fun () -> new_text_setter)
-  in
+  (** A signal containing the search text. *)
+  let (text, set_immediately) = S.create initial_input in
+  let set_text = S.delayed_setter 0.30 set_immediately in
 
   (** A signal that provides a {!state} view based on [text]. *)
   let state =
