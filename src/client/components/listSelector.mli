@@ -6,13 +6,17 @@ open Dancelor_client_html
 type 'model t
 
 val make :
-  search: (Slice.t -> string -> (int * 'result list, string) Result.t Lwt.t) ->
-  ('result list -> ('result list, string) Result.t) ->
-  'result t
+  search: (Slice.t -> string -> (int * 'model list, string) Result.t Lwt.t) ->
+  serialise: ('model -> 'model Slug.t) ->
+  unserialise: ('model Slug.t -> 'model Lwt.t) ->
+  'model Slug.t list ->
+  'model t
 
-val signal : 'result t -> ('result list, string) result S.t
+val raw_signal : 'model t -> 'model Slug.t list S.t
 
-val clear : 'result t -> unit
+val signal : 'model t -> ('model list, string) Result.t S.t
+
+val clear : 'model t -> unit
 
 val render :
   make_result: (
@@ -20,15 +24,15 @@ val render :
     ?onclick: (unit -> unit) ->
     ?prefix: Html_types.td Html.elt list ->
     ?suffix: Html_types.td Html.elt list ->
-    'result ->
+    'model ->
     Html_types.tr Html.elt
   ) ->
   field_name: string ->
   model_name: string ->
   create_dialog_content: (
-    ?on_save:('result -> unit) ->
+    ?on_save:('model -> unit) ->
     unit ->
     Html_types.div Html.elt
   ) ->
-  'result t ->
+  'model t ->
   [> Html_types.div ] Html.elt

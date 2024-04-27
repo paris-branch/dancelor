@@ -20,11 +20,15 @@ type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) g
 [@@deriving yojson]
 
 module RawState = struct
+  (* Dirty trick to convince Yojson to serialise slugs. *)
+  type person = Model.Person.t
+  let person_to_yojson _ = assert false
+  let person_of_yojson _ = assert false
+
   type t = (
     string,
     string,
-    (* Model.Person.t Slug.t list, *)
-    unit, (* FIXME *)
+    person Slug.t list,
     string,
     string,
     (* bool, *)
@@ -33,10 +37,10 @@ module RawState = struct
   ) gen
   [@@deriving yojson]
 
-  let empty = {
+  let empty : t = {
     name = "";
     kind = "";
-    devisers = ();
+    devisers = [];
     date = "";
     disambiguation = "";
     two_chords = ();
@@ -60,8 +64,7 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
     S.bind (Input.Text.raw_signal editor.kind) @@ fun kind ->
-    (* S.bind (ListSelector.raw_signal editor.devisers) @@ fun devisers -> *)
-    let devisers = () in (* FIXME *)
+    S.bind (ListSelector.raw_signal editor.devisers) @@ fun devisers ->
     S.bind (Input.Text.raw_signal editor.date) @@ fun date ->
     S.bind (Input.Text.raw_signal editor.disambiguation) @@ fun disambiguation ->
     (* S.bind (Choices.raw_signal editor.two_chords) @@ fun two_chords -> *)
@@ -94,7 +97,9 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        Result.ok
+        ~serialise: Model.Person.slug
+        ~unserialise: Model.Person.get
+        initial_state.devisers
     in
     let date = Input.Text.make initial_state.date @@
       Option.fold
@@ -119,14 +124,14 @@ module Editor = struct
     in
     {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
-  let clear state =
-    Input.Text.clear state.name;
-    Input.Text.clear state.kind;
-    ListSelector.clear state.devisers;
-    Input.Text.clear state.date;
-    Input.Text.clear state.disambiguation;
+  let clear editor =
+    Input.Text.clear editor.name;
+    Input.Text.clear editor.kind;
+    ListSelector.clear editor.devisers;
+    Input.Text.clear editor.date;
+    Input.Text.clear editor.disambiguation;
     (* FIXME: clear two chords *)
-    Input.Text.clear state.scddb_id
+    Input.Text.clear editor.scddb_id
 
   let submit editor =
     match S.value (state editor) with

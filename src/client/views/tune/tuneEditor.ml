@@ -44,7 +44,9 @@ module State = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        Result.ok
+        ~serialise: Model.Person.slug
+        ~unserialise: Model.Person.get
+        []
     in
     let date = Input.Text.make "" @@
       Option.fold
@@ -58,7 +60,9 @@ module State = struct
             let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Dance.search ~threshold ~slice filter
           )
-        Result.ok
+        ~serialise: Model.Dance.slug
+        ~unserialise: Model.Dance.get
+        []
     in
     let remark = Input.Text.make "" @@
       Result.ok % Option.of_string_nonempty
