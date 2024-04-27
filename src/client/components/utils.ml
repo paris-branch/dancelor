@@ -39,13 +39,13 @@ let gc_roots = ref []
 let with_local_storage
     (type t)
     (module V : Storable with type t = t)
-    (signal : 'a -> t option S.t)
+    (signal : 'a -> t S.t)
     (make : t -> 'a)
   : 'a
   =
   let value = retrieve (module V) in
   let result = make value in
-  let iter = S.map (Option.iter @@ store (module V)) @@ signal result in
+  let iter = S.map (store (module V)) @@ signal result in
   gc_roots := iter :: !gc_roots;
   Gc.finalise_last (fun () -> gc_roots := List.filter (not % S.equal iter) !gc_roots) result;
   result

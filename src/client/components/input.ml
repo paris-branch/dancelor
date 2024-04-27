@@ -4,15 +4,17 @@ open Dancelor_client_html
 module Text = struct
   type 'a t = {
     validator : string -> ('a, string) Result.t;
-    inner_signal : string S.t;
+    raw_signal : string S.t;
     set : string -> unit;
   }
 
   let make initial_value validator =
-    let (inner_signal, set) = S.create initial_value in
-    {validator; inner_signal; set}
+    let (raw_signal, set) = S.create initial_value in
+    {validator; raw_signal; set}
 
-  let signal state = S.map state.validator state.inner_signal
+  let raw_signal state = state.raw_signal
+
+  let signal state = S.map state.validator state.raw_signal
 
   let clear state = state.set ""
 
@@ -22,7 +24,7 @@ module Text = struct
         ~a: [
           a_input_type `Text;
           a_placeholder placeholder;
-          R.a_value state.inner_signal;
+          R.a_value state.raw_signal;
           R.a_class (
             Fun.flip S.map (signal state) @@ function
             | Ok _ -> []

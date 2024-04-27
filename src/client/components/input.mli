@@ -12,6 +12,9 @@ module Text : sig
   (** Make a text input component from the initial input string and a validator
       function. *)
 
+  val raw_signal : 'a t -> string React.S.t
+  (** A signal to the raw value of the input text component. *)
+
   val signal : 'a t -> ('a, string) Result.t React.S.t
   (** A signal to the value of the input text component as validated by the
       validator. *)

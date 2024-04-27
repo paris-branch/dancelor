@@ -6,39 +6,50 @@ module SCDDB = Dancelor_common.SCDDB
 module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
 
-module Value = struct
-  type t = {
-    name : string;
-    scddb_id : SCDDB.entry_id option;
-  }
+type ('name, 'scddb_id) gen = {
+  name : 'name;
+  scddb_id : 'scddb_id;
+}
+[@@deriving yojson]
+
+module RawState = struct
+  type t = (
+    string,
+    string
+  ) gen
   [@@deriving yojson]
 
   let empty = {
     name = "";
-    scddb_id = None;
+    scddb_id = "";
   }
 
-  let _key = "personEditor.value"
+  let _key = "PersonEditor.RawState"
 end
 
-module State = struct
-  type t = {
-    name : string Input.Text.t;
-    scddb_id : SCDDB.entry_id option Input.Text.t;
-  }
+module Editor = struct
+  type t = (
+    string Input.Text.t,
+    SCDDB.entry_id option Input.Text.t
+  ) gen
 
-  let signal state =
+  let raw_state (editor : t) : RawState.t S.t =
+    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.scddb_id) @@ fun scddb_id ->
+    S.const {name; scddb_id}
+
+  let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal state.name) @@ fun name ->
-    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
-    RS.pure Value.{name; scddb_id}
+    RS.bind (Input.Text.signal editor.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.scddb_id) @@ fun scddb_id ->
+    RS.pure {name; scddb_id}
 
-  let create () =
-    Utils.with_local_storage (module Value) signal @@ fun initial_value ->
-    let name = Input.Text.make initial_value.name @@
+  let create () : t =
+    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    let name = Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty:"The name cannot be empty."
     in
-    let scddb_id = Input.Text.make (Option.to_string @@ Option.map (Uri.to_string % SCDDB.person_uri) @@ initial_value.scddb_id) @@
+    let scddb_id = Input.Text.make initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person)
@@ -46,12 +57,12 @@ module State = struct
     in
     {name; scddb_id}
 
-  let clear state =
-    Input.Text.clear state.name;
-    Input.Text.clear state.scddb_id
+  let clear (editor : t) : unit =
+    Input.Text.clear editor.name;
+    Input.Text.clear editor.scddb_id
 
-  let submit state =
-    match S.value (signal state) with
+  let submit (editor : t) : Model.Person.t option Lwt.t =
+    match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; scddb_id} ->
       Lwt.map Option.some @@
@@ -72,24 +83,24 @@ type t =
 let refresh _ = ()
 
 let createNewAPI ?on_save () =
-  let state = State.create () in
+  let editor = Editor.create () in
   div [
     h2 ~a:[a_class ["title"]] [txt "Add a person"];
     form [
-      Input.Text.render state.name ~placeholder:"Name";
-      Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+      Input.Text.render editor.name ~placeholder:"Name";
+      Input.Text.render editor.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
       Button.group [
         Button.save
-          ~disabled: (S.map Option.is_none (State.signal state))
+          ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
-              Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun person ->
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun person ->
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
               | Some on_save -> on_save person
             )
           ();
         Button.clear
-          ~onclick: (fun () -> State.clear state)
+          ~onclick: (fun () -> Editor.clear editor)
           ();
       ];
     ]
