@@ -1,111 +1,204 @@
 open Nes
-open Dancelor_client_model
+open Js_of_ocaml
+open Dancelor_client_components
+open Dancelor_client_html
+module Model = Dancelor_client_model
+module SCDDB = Dancelor_common.SCDDB
+module PageRouter = Dancelor_common.PageRouter
+open Dancelor_client_utils
+module Formatters = Dancelor_client_formatters
 
-type t = {
-  mutable tune : (Tune.t Slug.t * Tune.t) option;
-  mutable bars : string;
-  mutable key : string;
-  mutable structure : string;
-  mutable arranger : (Person.t Slug.t * Person.t) option;
-  mutable remark : string;
-  mutable disambiguation : string;
-  mutable content : string;
+type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
+  tune : 'tune;
+  bars : 'bars;
+  key : 'key;
+  structure : 'structure;
+  arrangers : 'arrangers;
+  remark : 'remark;
+  disambiguation : 'disambiguation;
+  content : 'content;
 }
+[@@deriving yojson]
 
-let create () = {
-  tune = None;
-  bars = "";
-  key = "";
-  arranger = None;
-  structure = "";
-  remark = "";
-  disambiguation = "";
-  content = ""
-}
+module RawState = struct
+  (* Dirty trick to convince Yojson to serialise slugs. *)
+  type tune = Model.Tune.t
+  let tune_to_yojson _ = assert false
+  let tune_of_yojson _ = assert false
+  type person = Model.Person.t
+  let person_to_yojson _ = assert false
+  let person_of_yojson _ = assert false
 
-let tune t =
-  let%opt (_, tune) = t.tune in
-  Some tune
+  type t = (
+    (* tune Slug.t option, *)
+    string,
+    string,
+    string,
+    string,
+    person Slug.t list,
+    string,
+    string,
+    string
+  ) gen
+  [@@deriving yojson]
 
-let set_tune t slug =
-  let%lwt tune = Tune.get slug in
-  t.tune <- Some (slug, tune);
-  Lwt.return ()
+  let empty = {
+    (* tune = None; *)
+    tune = "";
+    bars = "";
+    key = "";
+    structure = "";
+    arrangers = [];
+    remark = "";
+    disambiguation = "";
+    content = ""
+  }
 
-let remove_tune t =
-  t.tune <- None
+  let _key = "VersionEditor.RawState"
+end
 
-let arranger t =
-  let%opt (_, cr) = t.arranger in
-  Some cr
+module Editor = struct
+  type t = (
+    string Input.Text.t, (* FIXME: selector *)
+    int Input.Text.t,
+    Model.Music.key Input.Text.t,
+    string Input.Text.t,
+    Model.Person.t ListSelector.t,
+    string Input.Text.t,
+    string Input.Text.t,
+    string Input.Text.t (* FIXME: textarea *)
+  ) gen
 
-let set_arranger t slug =
-  let%lwt arranger = Person.get slug in
-  t.arranger <- Some (slug, arranger);
-  Lwt.return ()
+  let raw_state (editor : t) : RawState.t S.t =
+    S.bind (Input.Text.raw_signal editor.tune) @@ fun tune ->
+    S.bind (Input.Text.raw_signal editor.bars) @@ fun bars ->
+    S.bind (Input.Text.raw_signal editor.key) @@ fun key ->
+    S.bind (Input.Text.raw_signal editor.structure) @@ fun structure ->
+    S.bind (ListSelector.raw_signal editor.arrangers) @@ fun arrangers ->
+    S.bind (Input.Text.raw_signal editor.remark) @@ fun remark ->
+    S.bind (Input.Text.raw_signal editor.disambiguation) @@ fun disambiguation ->
+    S.bind (Input.Text.raw_signal editor.content) @@ fun content ->
+    S.const {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-let remove_arranger t =
-  t.arranger <- None
+  let state (editor : t) =
+    S.map Result.to_option @@
+    RS.bind (Input.Text.signal editor.tune) @@ fun tune ->
+    RS.bind (Input.Text.signal editor.bars) @@ fun bars ->
+    RS.bind (Input.Text.signal editor.key) @@ fun key ->
+    RS.bind (Input.Text.signal editor.structure) @@ fun structure ->
+    RS.bind (ListSelector.signal editor.arrangers) @@ fun arrangers ->
+    RS.bind (Input.Text.signal editor.remark) @@ fun remark ->
+    RS.bind (Input.Text.signal editor.disambiguation) @@ fun disambiguation ->
+    RS.bind (Input.Text.signal editor.content) @@ fun content ->
+    RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-let bars t =
-  t.bars
+  let create () : t =
+    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    let tune = Input.Text.make initial_state.tune @@ Result.ok in (* FIXME: selector *)
+    let bars = Input.Text.make initial_state.bars @@
+      Option.to_result ~none:"Must be an integer" % int_of_string_opt
+    in
+    let key = Input.Text.make initial_state.key @@
+      Option.to_result ~none:"Must be a valid key" % Model.Music.key_of_string_opt
+    in
+    let structure = Input.Text.make initial_state.structure @@ Result.ok in
+    let arrangers = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Person.slug
+        ~unserialise: Model.Person.get
+        initial_state.arrangers
+    in
+    let remark = Input.Text.make initial_state.remark @@ Result.ok in
+    let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
+    let content = Input.Text.make initial_state.content @@ Result.ok in (* FIXME: textarea *)
+    {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-let set_bars t bars =
-  t.bars <- bars
+  let clear editor =
+    Input.Text.clear editor.tune;
+    Input.Text.clear editor.bars;
+    Input.Text.clear editor.key;
+    Input.Text.clear editor.structure;
+    ListSelector.clear editor.arrangers;
+    Input.Text.clear editor.remark;
+    Input.Text.clear editor.disambiguation;
+    Input.Text.clear editor.content
 
-let key t =
-  t.key
+  let submit (editor : t) =
+    match S.value (state editor) with
+    | None -> Lwt.return_none
+    | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
+      Lwt.map Option.some @@
+      Model.Version.make_and_save
+        ~tune: (Obj.magic tune) (* FIXME *)
+        ~bars
+        ~key
+        ~structure
+        ~arrangers
+        ~remark
+        ~disambiguation
+        ~content
+        ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
+        ()
+end
 
-let set_key t key =
-  t.key <- key
+type t =
+  {
+    page : Dancelor_client_elements.Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
-let structure t =
-  t.structure
+let refresh _ = ()
+let contents t = t.content
+let init t = refresh t
 
-let set_structure t s =
-  t.structure <- s
+let createNewAPI ?on_save () =
+  let editor = Editor.create () in
+  div [
+    h2 ~a:[a_class ["title"]] [txt "Add a version"];
 
-let remark t =
-  t.remark
+    form [
+      Input.Text.render editor.tune ~placeholder:"Associated tune (magic search)";
+      Input.Text.render editor.bars ~placeholder:"Number of bars";
+      Input.Text.render editor.key ~placeholder:"Key";
+      Input.Text.render editor.structure ~placeholder:"Structure of the tune (AABB, ABAB, ...)";
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_person_result'
+        ~field_name: "arranger"
+        ~model_name: "person"
+        ~create_dialog_content: PersonEditor.createNewAPI
+        editor.arrangers;
+      Input.Text.render editor.remark ~placeholder:"Additional information about this version (origin...)";
+      Input.Text.render editor.disambiguation ~placeholder:"Disambiguation information if this is a new version";
+      Input.Text.render editor.content ~placeholder:"LilyPond of the tune";
 
-let set_remark t r =
-  t.remark <- r
+      Button.group [
+        Button.save
+          ~disabled: (S.map Option.is_none (Editor.state editor))
+          ~onclick: (fun () ->
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
+              match on_save with
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug dance))
+              | Some on_save -> on_save dance
+            )
+          ();
+        Button.clear
+          ~onclick: (fun () -> Editor.clear editor)
+          ();
+      ]
+    ]
+  ]
 
-let disambiguation t =
-  t.disambiguation
-
-let set_disambiguation t dis =
-  t.disambiguation <- dis
-
-let content t =
-  t.content
-
-let set_content t content =
-  t.content <- content
-
-let clear t =
-  t.tune <- None;
-  t.bars <- "";
-  t.key <- "";
-  t.arranger <- None;
-  t.structure <- "";
-  t.remark <- "";
-  t.disambiguation <- "";
-  t.content <- ""
-
-let submit t =
-  let tune = match tune t with
-    | None -> failwith "Empty tune"
-    | Some tune -> tune
-  in
-  let bars = int_of_string t.bars in
-  let key = Music.key_of_string t.key in
-  let arrangers = Option.map List.singleton (arranger t) in
-  let structure = t.structure in
-  let remark = if t.remark = "" then None else Some t.remark in
-  let disambiguation = if t.disambiguation = "" then None else Some t.disambiguation in
-  let content = t.content in
-  let modified_at = Datetime.now () in
-  let created_at = Datetime.now () in
-  Version.make_and_save ~tune ~bars ~key ~structure ?arrangers
-    ?remark ?disambiguation ~content ~modified_at ~created_at ()
+let create ?on_save page =
+  let document = Dancelor_client_elements.Page.document page in
+  let content = Dom_html.createDiv document in
+  Lwt.async (fun () ->
+      document##.title := Js.string "Add a version | Dancelor";
+      Lwt.return ()
+    );
+  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
+  {page; content}

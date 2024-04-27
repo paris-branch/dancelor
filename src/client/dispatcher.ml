@@ -32,7 +32,7 @@ let dispatch url =
   | Explore query ->
     pack (module Explorer) (Explorer.create ?query)
   | VersionAdd ->
-    pack (module VersionEditorInterface) VersionEditorInterface.create
+    pack (module VersionEditor) VersionEditor.create
   | Version {slug; context} ->
     pack (module VersionViewer) (VersionViewer.create slug ?context)
   | TuneAdd ->
