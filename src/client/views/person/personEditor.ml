@@ -25,7 +25,13 @@ module State = struct
   type t = {
     name : string Input.Text.t;
     scddb_id : SCDDB.entry_id option Input.Text.t;
+    mutable artificial_dependency : unit;
+    (* ^ FIXME: disgusting; see {!Utils.with_local_storage} *)
   }
+
+  (* FIXME: disgusting; see {!Utils.with_local_storage} *)
+  let create_artificial_dependency state value =
+    state.artificial_dependency <- Obj.magic value
 
   let signal state =
     S.map Result.to_option @@
@@ -34,7 +40,7 @@ module State = struct
     RS.pure Value.{name; scddb_id}
 
   let create () =
-    Utils.with_local_storage (module Value) signal @@ fun initial_value ->
+    Utils.with_local_storage (module Value) signal create_artificial_dependency @@ fun initial_value ->
     let name = Input.Text.make initial_value.name @@
       Result.of_string_nonempty ~empty:"The name cannot be empty."
     in
@@ -44,7 +50,7 @@ module State = struct
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person)
       % Option.of_string_nonempty
     in
-    {name; scddb_id}
+    {name; scddb_id; artificial_dependency = ()}
 
   let clear state =
     Input.Text.clear state.name;
