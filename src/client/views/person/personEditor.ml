@@ -19,7 +19,7 @@ module RawState = struct
   ) gen
   [@@deriving yojson]
 
-  let empty = {
+  let empty : t = {
     name = "";
     scddb_id = "";
   }
