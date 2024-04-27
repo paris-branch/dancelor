@@ -8,34 +8,88 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 
-module State = struct
-  module Value = struct
-    type t = {
-      name : string;
-      kind : Model.Kind.Base.t;
-      composers : Model.Person.t list;
-      date : PartialDate.t option;
-      dances : Model.Dance.t list;
-      remark : string option;
-      scddb_id : SCDDB.entry_id option;
-    }
-  end
+type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
+  name : 'name;
+  kind : 'kind;
+  composers : 'composers;
+  date : 'date;
+  dances : 'dances;
+  remark : 'remark;
+  scddb_id : 'scddb_id;
+}
+[@@deriving yojson]
 
-  type t = {
-    name : string Input.Text.t;
-    kind : Model.Kind.Base.t Input.Text.t;
-    composers : Model.Person.t ListSelector.t;
-    date : PartialDate.t option Input.Text.t;
-    dances : Model.Dance.t ListSelector.t;
-    remark : string option Input.Text.t;
-    scddb_id : SCDDB.entry_id option Input.Text.t;
+module RawState = struct
+  (* Dirty trick to convince Yojson to serialise slugs. *)
+  type person = Model.Person.t
+  let person_to_yojson _ = assert false
+  let person_of_yojson _ = assert false
+  type dance = Model.Dance.t
+  let dance_to_yojson _ = assert false
+  let dance_of_yojson _ = assert false
+
+  type t = (
+    string,
+    string,
+    person Slug.t list,
+    string,
+    dance Slug.t list,
+    string,
+    string
+  ) gen
+  [@@deriving yojson]
+
+  let empty : t = {
+    name = "";
+    kind = "";
+    composers = [];
+    date = "";
+    dances = [];
+    remark = "";
+    scddb_id = "";
   }
 
-  let create () =
-    let name = Input.Text.make "" @@
+  let _key = "TuneEditor.RawState"
+end
+
+module Editor = struct
+  type t = (
+    string Input.Text.t,
+    Model.Kind.Base.t Input.Text.t,
+    Model.Person.t ListSelector.t,
+    PartialDate.t option Input.Text.t,
+    Model.Dance.t ListSelector.t,
+    string option Input.Text.t,
+    SCDDB.entry_id option Input.Text.t
+  ) gen
+
+  let raw_state (editor : t) : RawState.t S.t =
+    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.kind) @@ fun kind ->
+    S.bind (ListSelector.raw_signal editor.composers) @@ fun composers ->
+    S.bind (Input.Text.raw_signal editor.date) @@ fun date ->
+    S.bind (ListSelector.raw_signal editor.dances) @@ fun dances ->
+    S.bind (Input.Text.raw_signal editor.remark) @@ fun remark ->
+    S.bind (Input.Text.raw_signal editor.scddb_id) @@ fun scddb_id ->
+    S.const {name; kind; composers; date; dances; remark; scddb_id}
+
+  let state (editor : t) =
+    S.map Result.to_option @@
+    RS.bind (Input.Text.signal editor.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.kind) @@ fun kind ->
+    RS.bind (ListSelector.signal editor.composers) @@ fun composers ->
+    RS.bind (Input.Text.signal editor.date) @@ fun date ->
+    RS.bind (ListSelector.signal editor.dances) @@ fun dances ->
+    RS.bind (Input.Text.signal editor.remark) @@ fun remark ->
+    RS.bind (Input.Text.signal editor.scddb_id) @@ fun scddb_id ->
+    RS.pure {name; kind; composers; date; dances; remark; scddb_id}
+
+  let create () : t =
+    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    let name = Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
-    let kind = Input.Text.make "" @@
+    let kind = Input.Text.make initial_state.kind @@
       Option.to_result ~none:"Not a valid kind" % Model.Kind.Base.of_string_opt
     in
     let composers = ListSelector.make
@@ -46,9 +100,9 @@ module State = struct
           )
         ~serialise: Model.Person.slug
         ~unserialise: Model.Person.get
-        []
+        initial_state.composers
     in
-    let date = Input.Text.make "" @@
+    let date = Input.Text.make initial_state.date @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
@@ -62,12 +116,12 @@ module State = struct
           )
         ~serialise: Model.Dance.slug
         ~unserialise: Model.Dance.get
-        []
+        initial_state.dances
     in
-    let remark = Input.Text.make "" @@
+    let remark = Input.Text.make initial_state.remark @@
       Result.ok % Option.of_string_nonempty
     in
-    let scddb_id = Input.Text.make "" @@
+    let scddb_id = Input.Text.make initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Tune)
@@ -75,30 +129,19 @@ module State = struct
     in
     {name; kind; composers; date; dances; remark; scddb_id}
 
-  let clear state =
-    Input.Text.clear state.name;
-    Input.Text.clear state.kind;
-    ListSelector.clear state.composers;
-    Input.Text.clear state.date;
-    ListSelector.clear state.dances;
-    Input.Text.clear state.remark;
-    Input.Text.clear state.scddb_id
+  let clear editor =
+    Input.Text.clear editor.name;
+    Input.Text.clear editor.kind;
+    ListSelector.clear editor.composers;
+    Input.Text.clear editor.date;
+    ListSelector.clear editor.dances;
+    Input.Text.clear editor.remark;
+    Input.Text.clear editor.scddb_id
 
-  let signal state =
-    S.map Result.to_option @@
-    RS.bind (Input.Text.signal state.name) @@ fun name ->
-    RS.bind (Input.Text.signal state.kind) @@ fun kind ->
-    RS.bind (ListSelector.signal state.composers) @@ fun composers ->
-    RS.bind (Input.Text.signal state.date) @@ fun date ->
-    RS.bind (ListSelector.signal state.dances) @@ fun dances ->
-    RS.bind (Input.Text.signal state.remark) @@ fun remark ->
-    RS.bind (Input.Text.signal state.scddb_id) @@ fun scddb_id ->
-    RS.pure Value.{name; kind; composers; date; dances; remark; scddb_id}
-
-  let submit state =
-    match S.value (signal state) with
+  let submit editor =
+    match S.value (state editor) with
     | None -> Lwt.return_none
-    | Some Value.{name; kind; composers; date; dances; remark; scddb_id} ->
+    | Some {name; kind; composers; date; dances; remark; scddb_id} ->
       Lwt.map Option.some @@
       Model.Tune.make_and_save
         ~name
@@ -124,34 +167,34 @@ let contents t = t.content
 let init t = refresh t
 
 let createNewAPI ?on_save () =
-  let state = State.create () in
+  let editor = Editor.create () in
   div [
     h2 ~a:[a_class ["title"]] [txt "Add a tune"];
 
     form [
-      Input.Text.render state.name ~placeholder:"Name";
-      Input.Text.render state.kind ~placeholder:"Kind (eg. R, Strathspey)";
+      Input.Text.render editor.name ~placeholder:"Name";
+      Input.Text.render editor.kind ~placeholder:"Kind (eg. R, Strathspey)";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: "composer"
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
-        state.composers;
-      Input.Text.render state.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
+        editor.composers;
+      Input.Text.render editor.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_dance_result'
         ~field_name: "dance"
         ~model_name: "dance"
         ~create_dialog_content: DanceEditor.createNewAPI
-        state.dances;
-      Input.Text.render state.remark ~placeholder:"Remark (optional)";
-      Input.Text.render state.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+        editor.dances;
+      Input.Text.render editor.remark ~placeholder:"Remark (optional)";
+      Input.Text.render editor.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
 
       Button.group [
         Button.save
-          ~disabled: (S.map Option.is_none (State.signal state))
+          ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
-              Fun.flip Lwt.map (State.submit state) @@ Option.iter @@ fun dance ->
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
               let slug = Model.Tune.slug dance in
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune slug)
@@ -159,7 +202,7 @@ let createNewAPI ?on_save () =
             )
           ();
         Button.clear
-          ~onclick: (fun () -> State.clear state)
+          ~onclick: (fun () -> Editor.clear editor)
           ();
       ]
     ]
