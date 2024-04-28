@@ -194,11 +194,10 @@ let createNewAPI ?on_save () =
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
-              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
-              let slug = Model.Tune.slug dance in
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun tune ->
               match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune slug)
-              | Some on_save -> on_save slug
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune (Model.Tune.slug tune))
+              | Some on_save -> on_save tune
             )
           ();
         Button.clear

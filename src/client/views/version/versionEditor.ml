@@ -30,8 +30,7 @@ module RawState = struct
   let person_of_yojson _ = assert false
 
   type t = (
-    (* tune Slug.t option, *)
-    string,
+    tune Slug.t option,
     string,
     string,
     string,
@@ -43,8 +42,7 @@ module RawState = struct
   [@@deriving yojson]
 
   let empty = {
-    (* tune = None; *)
-    tune = "";
+    tune = None;
     bars = "";
     key = "";
     structure = "";
@@ -59,7 +57,7 @@ end
 
 module Editor = struct
   type t = (
-    string Input.Text.t, (* FIXME: selector *)
+    Model.Tune.t Selector.t,
     int Input.Text.t,
     Model.Music.key Input.Text.t,
     string Input.Text.t,
@@ -70,7 +68,7 @@ module Editor = struct
   ) gen
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.tune) @@ fun tune ->
+    S.bind (Selector.raw_signal editor.tune) @@ fun tune ->
     S.bind (Input.Text.raw_signal editor.bars) @@ fun bars ->
     S.bind (Input.Text.raw_signal editor.key) @@ fun key ->
     S.bind (Input.Text.raw_signal editor.structure) @@ fun structure ->
@@ -82,7 +80,7 @@ module Editor = struct
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.tune) @@ fun tune ->
+    RS.bind (Selector.signal editor.tune) @@ fun tune ->
     RS.bind (Input.Text.signal editor.bars) @@ fun bars ->
     RS.bind (Input.Text.signal editor.key) @@ fun key ->
     RS.bind (Input.Text.signal editor.structure) @@ fun structure ->
@@ -94,7 +92,16 @@ module Editor = struct
 
   let create () : t =
     Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
-    let tune = Input.Text.make initial_state.tune @@ Result.ok in (* FIXME: selector *)
+    let tune = Selector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Tune.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Tune.slug
+        ~unserialise: Model.Tune.get
+        initial_state.tune
+    in
     let bars = Input.Text.make initial_state.bars @@
       Option.to_result ~none:"Must be an integer" % int_of_string_opt
     in
@@ -117,8 +124,8 @@ module Editor = struct
     let content = Input.Text.make initial_state.content @@ Result.ok in (* FIXME: textarea *)
     {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-  let clear editor =
-    Input.Text.clear editor.tune;
+  let clear (editor : t) =
+    Selector.clear editor.tune;
     Input.Text.clear editor.bars;
     Input.Text.clear editor.key;
     Input.Text.clear editor.structure;
@@ -162,7 +169,12 @@ let createNewAPI ?on_save () =
     h2 ~a:[a_class ["title"]] [txt "Add a version"];
 
     form [
-      Input.Text.render editor.tune ~placeholder:"Associated tune (magic search)";
+      Selector.render
+        ~make_result: AnyResultNewAPI.make_tune_result'
+        ~field_name: "tune"
+        ~model_name: "tune"
+        ~create_dialog_content: TuneEditor.createNewAPI
+        editor.tune;
       Input.Text.render editor.bars ~placeholder:"Number of bars";
       Input.Text.render editor.key ~placeholder:"Key";
       Input.Text.render editor.structure ~placeholder:"Structure of the tune (AABB, ABAB, ...)";
