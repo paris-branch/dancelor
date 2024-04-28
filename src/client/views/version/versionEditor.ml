@@ -80,7 +80,7 @@ module Editor = struct
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Selector.signal editor.tune) @@ fun tune ->
+    RS.bind (Selector.signal_non_empty editor.tune) @@ fun tune ->
     RS.bind (Input.Text.signal editor.bars) @@ fun bars ->
     RS.bind (Input.Text.signal editor.key) @@ fun key ->
     RS.bind (Input.Text.signal editor.structure) @@ fun structure ->
@@ -195,10 +195,10 @@ let createNewAPI ?on_save () =
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
-              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun version ->
               match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug dance))
-              | Some on_save -> on_save dance
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
+              | Some on_save -> on_save version
             )
           ();
         Button.clear

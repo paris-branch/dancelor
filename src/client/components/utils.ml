@@ -22,6 +22,9 @@ let retrieve (type t) (module V : Storable with type t = t) : t =
   Js.Opt.case (local_storage##getItem (Js.string V._key)) (fun () -> None) @@ fun value ->
   Result.to_option @@ V.of_yojson @@ Yojson.Safe.from_string @@ Js.to_string value
 
+let update (type t) (module V : Storable with type t = t) (f : t -> t) =
+  store (module V) @@ f @@ retrieve (module V)
+
 (** Used by {!with_local_storage} to avoid garbage-collection of the iterators
     that store the state in the local storage. This is inspired by {!S.keep},
     except {!S.keep} does not seem to work in our context and introduces a

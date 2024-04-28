@@ -40,7 +40,7 @@ let dispatch url =
   | Tune {slug; context} ->
     pack (module TuneViewer) (TuneViewer.create slug ?context)
   | SetCompose ->
-    pack (module SetEditorInterface) SetEditorInterface.create
+    pack (module SetEditor) SetEditor.create
   | Set {slug; context} ->
     pack (module SetViewer) (SetViewer.create slug ?context)
   | BookCompose ->

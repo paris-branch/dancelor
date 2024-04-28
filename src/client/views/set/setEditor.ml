@@ -1,261 +1,234 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_model
+open Dancelor_client_components
+open Dancelor_client_html
+module Model = Dancelor_client_model
+module SCDDB = Dancelor_common.SCDDB
+module PageRouter = Dancelor_common.PageRouter
+open Dancelor_client_utils
+module Formatters = Dancelor_client_formatters
 
-module Html = Dom_html
-
-let js = Js.string
-
-type cached_version = {
-  slug : Version.t Slug.t;
-  version : Version.t;
-  tune : Tune.t
+type ('name, 'kind, 'conceptors, 'for_book, 'versions, 'order) gen = {
+  name : 'name;
+  kind : 'kind;
+  conceptors : 'conceptors;
+  for_book : 'for_book;
+  versions : 'versions;
+  order : 'order;
 }
+[@@deriving yojson]
 
-type t = {
-  mutable name : string;
-  mutable kind : string;
-  mutable conceptor : (Person.t Slug.t * Person.t) option;
-  mutable for_book : (Book.t Slug.t * Book.t) option;
-  mutable versions : cached_version option array;
-  mutable order : string;
-  mutable count : int;
-}
+module RawState = struct
+  (* Dirty trick to convince Yojson to serialise slugs. *)
+  type person = Model.Person.t
+  let person_to_yojson _ = assert false
+  let person_of_yojson _ = assert false
+  type book = Model.Book.t
+  let book_to_yojson _ = assert false
+  let book_of_yojson _ = assert false
+  type version = Model.Version.t
+  let version_to_yojson _ = assert false
+  let version_of_yojson _ = assert false
 
-let create () =
-  {
+  type t = (
+    string,
+    string,
+    person Slug.t list,
+    book Slug.t option,
+    version Slug.t list,
+    string
+  ) gen
+  [@@deriving yojson]
+
+  let empty = {
     name = "";
     kind = "";
-    conceptor = None;
+    conceptors = [];
     for_book = None;
-    versions = Array.make 2 None;
-    order = "";
-    count = 0;
+    versions = [];
+    order = ""
   }
 
-let name t =
-  t.name
+  let _key = "SetEditor.RawState"
+end
 
-let set_name t name =
-  t.name <- name
+module Editor = struct
+  type t = (
+    string Input.Text.t,
+    Model.Kind.Dance.t Input.Text.t,
+    Model.Person.t ListSelector.t,
+    Model.Book.t Selector.t,
+    Model.Version.t ListSelector.t,
+    Model.SetOrder.t Input.Text.t
+  ) gen
 
-let kind t =
-  t.kind
+  let raw_state (editor : t) : RawState.t S.t =
+    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.kind) @@ fun kind ->
+    S.bind (ListSelector.raw_signal editor.conceptors) @@ fun conceptors ->
+    S.bind (Selector.raw_signal editor.for_book) @@ fun for_book ->
+    S.bind (ListSelector.raw_signal editor.versions) @@ fun versions ->
+    S.bind (Input.Text.raw_signal editor.order) @@ fun order ->
+    S.const {name; kind; conceptors; for_book; versions; order}
 
-let set_kind t kind =
-  t.kind <- kind
+  let state (editor : t) =
+    S.map Result.to_option @@
+    RS.bind (Input.Text.signal editor.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.kind) @@ fun kind ->
+    RS.bind (ListSelector.signal editor.conceptors) @@ fun conceptors ->
+    RS.bind (Selector.signal editor.for_book) @@ fun for_book ->
+    RS.bind (ListSelector.signal editor.versions) @@ fun versions ->
+    RS.bind (Input.Text.signal editor.order) @@ fun order ->
+    RS.pure {name; kind; conceptors; for_book; versions; order}
 
-let order t = t.order
+  let create () : t =
+    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    let name = Input.Text.make initial_state.name @@
+      Result.of_string_nonempty ~empty: "The name cannot be empty."
+    in
+    let kind = Input.Text.make initial_state.kind @@
+      Option.to_result ~none: "Not a valid kind." % Model.Kind.Dance.of_string_opt
+    in
+    let conceptors = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Person.slug
+        ~unserialise: Model.Person.get
+        initial_state.conceptors
+    in
+    let for_book = Selector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Book.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Book.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Book.slug
+        ~unserialise: Model.Book.get
+        initial_state.for_book
+    in
+    let versions = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Version.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Version.slug
+        ~unserialise: Model.Version.get
+        initial_state.versions
+    in
+    let order = Input.Text.make initial_state.order @@
+      Option.to_result ~none:"Not a valid order." % Model.SetOrder.of_string_opt
+    in
+    {name; kind; conceptors; for_book; versions; order}
 
-let set_order t order =
-  t.order <- order
+  let add_to_storage version =
+    Utils.update (module RawState) @@ fun state ->
+    { state with versions = state.versions @ [version] }
 
-let conceptor t =
-  let%opt (_, cr) = t.conceptor in
-  Some cr
+  let clear (editor : t) =
+    Input.Text.clear editor.name;
+    Input.Text.clear editor.kind;
+    ListSelector.clear editor.conceptors;
+    Selector.clear editor.for_book;
+    ListSelector.clear editor.versions;
+    Input.Text.clear editor.order
 
-let set_conceptor t slug =
-  let%lwt conceptor = Person.get slug in
-  t.conceptor <- Some (slug, conceptor);
-  Lwt.return ()
+  (* FIXME: get rid of this shitty [for_book] business. This involves being able
+     to edit books. *)
+  let submit_updated_book set = function
+    | None -> Lwt.return_unit
+    | Some book ->
+      let slug = Model.Book.slug book in
+      let title = Model.Book.title book in
+      let date = Model.Book.date book in
+      let%lwt contents = Model.Book.contents book in
+      let contents = contents @ [Set (set, Model.SetParameters.none)] in
+      let modified_at = Datetime.now () in
+      let created_at = Model.Book.created_at book in
+      Model.Book.update ~slug ~title ?date ~contents ~modified_at ~created_at ()
 
-let remove_conceptor t =
-  t.conceptor <- None
+  let submit (editor : t) =
+    match S.value (state editor) with
+    | None -> Lwt.return_none
+    | Some {name; kind; conceptors; for_book; versions; order} ->
+      let%lwt set = Model.Set.make_and_save
+          ~name
+          ~kind
+          ~conceptors
+          ~contents: (List.map (fun version -> (version, Model.VersionParameters.none)) versions)
+          ~order
+          ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
+          ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
+          ()
+      in
+      submit_updated_book set for_book;%lwt
+      Lwt.return_some set
+end
 
-let for_book t =
-  let%opt (_, bk) = t.for_book in
-  Some bk
+type t =
+  {
+    page : Dancelor_client_elements.Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
-let set_for_book t slug =
-  let%lwt book = Book.get slug in
-  t.for_book <- Some (slug, book);
-  Lwt.return ()
+let refresh _ = ()
+let contents t = t.content
+let init t = refresh t
 
-let remove_for_book t =
-  t.for_book <- None
+let createNewAPI ?on_save () =
+  let editor = Editor.create () in
+  div [
+    h2 ~a:[a_class ["title"]] [txt "Add a version"];
 
-let count t =
-  t.count
+    form [
+      Input.Text.render editor.name ~placeholder:"Name";
+      Input.Text.render editor.kind ~placeholder:"Kind";
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_person_result'
+        ~field_name: "conceptor"
+        ~model_name: "person"
+        ~create_dialog_content: PersonEditor.createNewAPI
+        editor.conceptors;
+      (* Selector.render *)
+      (*   ~make_result: AnyResultNewAPI.make_book_result' *)
+      (*   ~field_name: "for book" *)
+      (*   ~model_name: "book" *)
+      (*   ~create_dialog_content: BookEditor.createNewAPI *)
+      (*   editor.book; *)
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_version_result'
+        ~field_name: "version"
+        ~model_name: "versions"
+        ~create_dialog_content: VersionEditor.createNewAPI
+        editor.versions;
+      Input.Text.render editor.order ~placeholder:"Order";
 
-let insert t slug i =
-  if Array.length t.versions = t.count then begin
-    let new_versions = Array.make (t.count * 2) None in
-    Array.blit t.versions 0 new_versions 0 t.count;
-    t.versions <- new_versions;
-  end;
-  for idx = t.count-1 downto i do
-    t.versions.(idx+1) <- t.versions.(idx)
-  done;
-  t.count <- t.count + 1;
-  let%lwt version = Version.get slug in
-  let%lwt tune = Version.tune version in
-  t.versions.(min t.count i) <- Some {version; tune; slug};
-  Lwt.return ()
+      Button.group [
+        Button.save
+          ~disabled: (S.map Option.is_none (Editor.state editor))
+          ~onclick: (fun () ->
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun set ->
+              match on_save with
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_set (Model.Set.slug set))
+              | Some on_save -> on_save set
+            )
+          ();
+        Button.clear
+          ~onclick: (fun () -> Editor.clear editor)
+          ();
+      ]
+    ]
+  ]
 
-let add t slug =
-  insert t slug t.count
-
-let get t i =
-  if i < 0 || i >= t.count then
-    None
-  else
-    t.versions.(i)
-
-let remove t i =
-  if i >= 0 && i < t.count then begin
-    t.versions.(i) <- None;
-    for j = i + 1 to t.count - 1 do
-      t.versions.(j-1) <- t.versions.(j);
-      t.versions.(j) <- None;
-    done;
-    t.count <- t.count - 1
-  end
-
-let move_up t i =
-  if i > 0 && i < t.count then begin
-    let tmp = t.versions.(i-1) in
-    t.versions.(i-1) <- t.versions.(i);
-    t.versions.(i) <- tmp
-  end
-
-let move_down t i =
-  move_up t (i+1)
-
-let iter t f =
-  for i = 0 to t.count - 1 do
-    match t.versions.(i) with
-    | None -> ()
-    | Some version -> f i version
-  done
-
-let fold t f acc =
-  let acc = ref acc in
-  for i = t.count - 1 downto 0 do
-    match t.versions.(i) with
-    | None -> ()
-    | Some version -> acc := f i version !acc
-  done;
-  !acc
-
-let list_versions t =
-  fold t (fun _ version acc -> version::acc) []
-
-let list_tunes t =
-  fold t (fun _ version acc -> version.tune::acc) []
-
-let clear t =
-  t.name <- "";
-  t.kind <- "";
-  t.count <- 0;
-  t.conceptor <- None;
-  t.for_book <- None;
-  t.order <- ""
-
-let save t =
-  Js.Optdef.case Html.window##.localStorage
-    (fun () -> ())
-    (fun local_storage ->
-       let versions =
-         list_versions t
-         |> List.map (fun t -> t.slug)
-         |> List.map Slug.to_string
-         |> String.concat ";"
-       in
-       begin match t.conceptor with
-         | None -> ()
-         | Some (slug, _) -> local_storage##setItem (js "composer.conceptor") (js (Slug.to_string slug))
-       end;
-       begin match t.for_book with
-         | None -> ()
-         | Some (slug, _) -> local_storage##setItem (js "composer.for_book") (js (Slug.to_string slug))
-       end;
-       local_storage##setItem (js "composer.name") (js t.name);
-       local_storage##setItem (js "composer.kind") (js t.kind);
-       local_storage##setItem (js "composer.versions") (js versions);)
-
-let load t =
-  Js.Optdef.case Html.window##.localStorage
-    (fun () -> Lwt.return ())
-    (fun local_storage ->
-       let name, kind, versions, for_book, deviser =
-         local_storage##getItem (js "composer.name"),
-         local_storage##getItem (js "composer.kind"),
-         local_storage##getItem (js "composer.versions"),
-         local_storage##getItem (js "composer.for_book"),
-         local_storage##getItem (js "composer.deviser")
-       in
-       let open Lwt in
-       Js.Opt.case name (fun () -> ())
-         (fun name -> t.name <- Js.to_string name);
-       Js.Opt.case kind (fun () -> ())
-         (fun kind -> t.kind <- Js.to_string kind);
-       Js.Opt.case versions (fun () -> Lwt.return ())
-         (fun versions ->
-            String.split_on_char ';' (Js.to_string versions)
-            |> List.filter (fun s -> s <> " " && s <> "")
-            |> List.map Slug.unsafe_of_string
-            |> Lwt_list.iteri_p (fun idx slug -> insert t slug idx))
-       >>= (fun () ->
-           Js.Opt.case for_book (fun () -> Lwt.return ())
-             (fun book -> set_for_book t (Slug.unsafe_of_string (Js.to_string book))))
-       >>= (fun () ->
-           Js.Opt.case deviser (fun () -> Lwt.return ())
-             (fun conceptor -> set_conceptor t (Slug.unsafe_of_string (Js.to_string conceptor)))))
-
-let add_to_storage slug =
-  Js.Optdef.case Html.window##.localStorage
-    (fun () -> ())
-    (fun local_storage ->
-       let versions = local_storage##getItem (js "composer.versions") in
-       Js.Opt.case versions
-         (* No versions in storage yet, we add this one *)
-         (fun () -> local_storage##setItem (js "composer.versions") (js (Slug.to_string slug)))
-         (* This editor already contains versions, we add the new one at the tail *)
-         (fun versions ->
-            let new_versions = String.cat
-                (Js.to_string versions)
-                (String.cat ";" (Slug.to_string slug))
-            in local_storage##setItem (js "composer.versions") (js new_versions)
-         )
-    )
-
-let erase_storage _ =
-  Js.Optdef.case Html.window##.localStorage
-    (fun () -> ())
-    (fun local_storage ->
-       local_storage##removeItem (js "composer.name");
-       local_storage##removeItem (js "composer.kind");
-       local_storage##removeItem (js "composer.deviser");
-       local_storage##removeItem (js "composer.for_book");
-       local_storage##removeItem (js "composer.order");
-       local_storage##removeItem (js "composer.versions"))
-
-let submit_updated_book set opt_book =
-  match opt_book with
-  | None -> Lwt.return ()
-  | Some (slug, _) ->
-    let%lwt book = Book.get slug in
-    let title = Book.title book in
-    let date = Book.date book in
-    let%lwt contents = Book.contents book in
-    let%lwt set = set in
-    let contents = contents @ [Set (set, SetParameters.none)] in
-    let modified_at = Datetime.now () in
-    let created_at = Book.created_at book in
-    Book.update ~slug ~title ?date ~contents ~modified_at ~created_at ()
-
-let submit t =
-  let versions = fold t (fun _ version acc -> version.version :: acc) [] in
-  let contents = List.map (fun version -> (version, VersionParameters.none)) versions in
-  let kind = Kind.Dance.of_string t.kind in
-  let order = SetOrder.of_string t.order in
-  let modified_at = Datetime.now () in
-  let created_at = Datetime.now () in
-  let answer =
-    Set.make_and_save ~kind ~name:t.name ~contents
-      ~order ?conceptors:(Option.map List.singleton (conceptor t)) ~modified_at ~created_at ()
-  in
-  Lwt.on_success answer
-    (fun _ -> erase_storage t;
-      Lwt.on_success (submit_updated_book answer t.for_book) (fun _ -> ()));
-  answer
+let create ?on_save page =
+  let document = Dancelor_client_elements.Page.document page in
+  let content = Dom_html.createDiv document in
+  Lwt.async (fun () ->
+      document##.title := Js.string "Add a set | Dancelor";
+      Lwt.return ()
+    );
+  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
+  {page; content}

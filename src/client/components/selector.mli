@@ -14,7 +14,11 @@ val make :
 
 val raw_signal : 'model t -> 'model Slug.t option S.t
 
-val signal : 'model t -> ('model, string) Result.t S.t
+val signal : 'model t -> ('model option, string) Result.t S.t
+
+val signal_non_empty : 'model t -> ('model, string) Result.t S.t
+(** Same as {!signal} except it can only be [Some], [None] being mapped to an
+    error. *)
 
 val clear : 'model t -> unit
 

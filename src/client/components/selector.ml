@@ -29,7 +29,10 @@ let make ~search ~serialise ~unserialise initial_value =
 
 let raw_signal s = S.map (Option.map s.serialise) s.signal
 
-let signal (s : 'model t) : ('model, string) Result.t S.t =
+let signal (s : 'model t) : ('model option, string) Result.t S.t =
+  S.map Result.ok s.signal
+
+let signal_non_empty (s : 'model t) : ('model, string) Result.t S.t =
   S.map (Option.to_result ~none:"Must select something") s.signal
 
 let clear s =

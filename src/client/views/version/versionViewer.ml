@@ -97,7 +97,7 @@ let create ?context slug page =
             ~a:[
               a_class ["button"];
               a_href PageRouter.(path SetCompose);
-              a_onclick (fun _ -> SetEditor.add_to_storage slug; true);
+              a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
             ]
             [
               i ~a:[a_class ["material-symbols-outlined"]] [txt "add_box"];
