@@ -64,7 +64,7 @@ module Editor = struct
     Model.Person.t ListSelector.t,
     string Input.Text.t,
     string Input.Text.t,
-    string Input.Text.t (* FIXME: textarea *)
+    string Input.Text.t
   ) gen
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -121,7 +121,10 @@ module Editor = struct
     in
     let remark = Input.Text.make initial_state.remark @@ Result.ok in
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
-    let content = Input.Text.make initial_state.content @@ Result.ok in (* FIXME: textarea *)
+    let content =
+      Input.Text.make initial_state.content @@
+      Result.of_string_nonempty ~empty: "Cannot be empty."
+    in
     {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
   let clear (editor : t) =
@@ -140,7 +143,7 @@ module Editor = struct
     | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
       Lwt.map Option.some @@
       Model.Version.make_and_save
-        ~tune: (Obj.magic tune) (* FIXME *)
+        ~tune
         ~bars
         ~key
         ~structure
@@ -186,7 +189,7 @@ let createNewAPI ?on_save () =
         editor.arrangers;
       Input.Text.render editor.remark ~placeholder:"Additional information about this version (origin...)";
       Input.Text.render editor.disambiguation ~placeholder:"Disambiguation information if this is a new version";
-      Input.Text.render editor.content ~placeholder:"LilyPond of the tune";
+      Input.Text.render_as_textarea editor.content ~placeholder:"LilyPond of the tune";
 
       Button.group [
         Button.save

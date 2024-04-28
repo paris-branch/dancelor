@@ -46,4 +46,31 @@ module Text = struct
         | Error msg -> [txt msg]
       );
     ]
+
+  let render_as_textarea ~placeholder state =
+    div ~a:[a_class ["input"]] [
+      textarea (R.txt state.raw_signal)
+        ~a: [
+          a_placeholder placeholder;
+          R.a_class (
+            Fun.flip S.map (signal state) @@ function
+            | Ok _ -> []
+            | Error _ -> ["invalid"]
+          );
+          a_oninput (fun event ->
+              (
+                Js.Opt.iter event##.target @@ fun elt ->
+                Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
+                let input = Js.to_string input##.value in
+                state.set input
+              );
+              false
+            );
+        ];
+      R.div ~a:[a_class ["message-box"]] (
+        Fun.flip S.map (signal state) @@ function
+        | Ok _ -> []
+        | Error msg -> [txt msg]
+      );
+    ]
 end

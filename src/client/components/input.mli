@@ -24,4 +24,7 @@ module Text : sig
 
   val render : placeholder:string -> 'a t -> Html_types.div Html.elt
   (** Render a text input component as HTML. *)
+
+  val render_as_textarea : placeholder:string -> 'a t -> Html_types.div Html.elt
+  (** Variant of {!render} that renders the input as a textarea. *)
 end
