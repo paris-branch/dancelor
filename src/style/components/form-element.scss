@@ -1,0 +1,76 @@
+div.form-element {
+  margin-top: 1rem;
+
+  label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  input,
+  textarea {
+    border: none;
+    background: $white;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    outline: none;
+    padding: 0.5rem 0 0.4rem 0;
+
+    &:focus {
+      background: darken($white, 3%);
+      border-bottom: 1px solid $red;
+    }
+
+    &.invalid {
+      border-bottom: 1px solid $orange;
+    }
+  }
+
+  textarea {
+    font-size: 0.7rem;
+  }
+
+  .message-box {
+    min-height: 1.5rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  table.container {
+    width: calc(100% - 10px);
+    margin-left: 10px;
+    border-collapse: none;
+
+    tbody {
+      border: none;
+    }
+
+    tr,
+    td {
+      border: none;
+      line-height: 1.2;
+      padding: 0;
+      background: $white;
+
+      .actions {
+        text-align: right;
+      }
+    }
+
+    button {
+      border: none;
+      background: darken($white, 3%);
+      color: $black;
+
+      &.disabled {
+        visibility: hidden;
+      }
+
+      &.btn-danger {
+        background: $orange;
+        color: $white;
+      }
+    }
+  }
+}

@@ -1,159 +1,233 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
+open Js_of_ocaml
+open Dancelor_client_components
+open Dancelor_client_html
+module Model = Dancelor_client_model
+module SCDDB = Dancelor_common.SCDDB
+module PageRouter = Dancelor_common.PageRouter
+open Dancelor_client_utils
+module Formatters = Dancelor_client_formatters
 
-type t = {
-  mutable name : string;
-  mutable alternative : string;
-  mutable kind : string;
-  mutable date : string;
-  mutable composer : (Person.t Slug.t * Person.t) option;
-  mutable dances : (Dance.t Slug.t * Dance.t) option array;
-  mutable remark : string;
-  mutable scddb_id : string;
-  mutable count : int;
+type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
+  name : 'name;
+  kind : 'kind;
+  composers : 'composers;
+  date : 'date;
+  dances : 'dances;
+  remark : 'remark;
+  scddb_id : 'scddb_id;
 }
+[@@deriving yojson]
 
-let create () =
-  {
+module RawState = struct
+  (* Dirty trick to convince Yojson to serialise slugs. *)
+  type person = Model.Person.t
+  let person_to_yojson _ = assert false
+  let person_of_yojson _ = assert false
+  type dance = Model.Dance.t
+  let dance_to_yojson _ = assert false
+  let dance_of_yojson _ = assert false
+
+  type t = (
+    string,
+    string,
+    person Slug.t list,
+    string,
+    dance Slug.t list,
+    string,
+    string
+  ) gen
+  [@@deriving yojson]
+
+  let empty : t = {
     name = "";
-    alternative = "";
     kind = "";
+    composers = [];
     date = "";
-    composer = None;
-    count = 0;
-    dances = Array.make 1 None;
+    dances = [];
     remark = "";
     scddb_id = "";
   }
 
-let name t =
-  t.name
+  let _key = "TuneEditor.RawState"
+end
 
-let set_name t name =
-  t.name <- name
+module Editor = struct
+  type t = (
+    string Input.Text.t,
+    Model.Kind.Base.t Input.Text.t,
+    Model.Person.t ListSelector.t,
+    PartialDate.t option Input.Text.t,
+    Model.Dance.t ListSelector.t,
+    string option Input.Text.t,
+    SCDDB.entry_id option Input.Text.t
+  ) gen
 
-let alternative t =
-  t.alternative
+  let raw_state (editor : t) : RawState.t S.t =
+    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.kind) @@ fun kind ->
+    S.bind (ListSelector.raw_signal editor.composers) @@ fun composers ->
+    S.bind (Input.Text.raw_signal editor.date) @@ fun date ->
+    S.bind (ListSelector.raw_signal editor.dances) @@ fun dances ->
+    S.bind (Input.Text.raw_signal editor.remark) @@ fun remark ->
+    S.bind (Input.Text.raw_signal editor.scddb_id) @@ fun scddb_id ->
+    S.const {name; kind; composers; date; dances; remark; scddb_id}
 
-let set_alternative t name =
-  t.alternative <- name
+  let state (editor : t) =
+    S.map Result.to_option @@
+    RS.bind (Input.Text.signal editor.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.kind) @@ fun kind ->
+    RS.bind (ListSelector.signal editor.composers) @@ fun composers ->
+    RS.bind (Input.Text.signal editor.date) @@ fun date ->
+    RS.bind (ListSelector.signal editor.dances) @@ fun dances ->
+    RS.bind (Input.Text.signal editor.remark) @@ fun remark ->
+    RS.bind (Input.Text.signal editor.scddb_id) @@ fun scddb_id ->
+    RS.pure {name; kind; composers; date; dances; remark; scddb_id}
 
-let kind t =
-  t.kind
+  let create () : t =
+    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    let name = Input.Text.make initial_state.name @@
+      Result.of_string_nonempty ~empty: "The name cannot be empty."
+    in
+    let kind = Input.Text.make initial_state.kind @@
+      Option.to_result ~none:"Not a valid kind" % Model.Kind.Base.of_string_opt
+    in
+    let composers = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Person.slug
+        ~unserialise: Model.Person.get
+        initial_state.composers
+    in
+    let date = Input.Text.make initial_state.date @@
+      Option.fold
+        ~none: (Ok None)
+        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
+      % Option.of_string_nonempty
+    in
+    let dances = ListSelector.make
+        ~search: (fun slice input ->
+            let threshold = 0.4 in
+            let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Dance.search ~threshold ~slice filter
+          )
+        ~serialise: Model.Dance.slug
+        ~unserialise: Model.Dance.get
+        initial_state.dances
+    in
+    let remark = Input.Text.make initial_state.remark @@
+      Result.ok % Option.of_string_nonempty
+    in
+    let scddb_id = Input.Text.make initial_state.scddb_id @@
+      Option.fold
+        ~none: (Ok None)
+        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Tune)
+      % Option.of_string_nonempty
+    in
+    {name; kind; composers; date; dances; remark; scddb_id}
 
-let set_kind t kind =
-  t.kind <- kind
+  let clear editor =
+    Input.Text.clear editor.name;
+    Input.Text.clear editor.kind;
+    ListSelector.clear editor.composers;
+    Input.Text.clear editor.date;
+    ListSelector.clear editor.dances;
+    Input.Text.clear editor.remark;
+    Input.Text.clear editor.scddb_id
 
-let date t =
-  t.date
+  let submit editor =
+    match S.value (state editor) with
+    | None -> Lwt.return_none
+    | Some {name; kind; composers; date; dances; remark; scddb_id} ->
+      Lwt.map Option.some @@
+      Model.Tune.make_and_save
+        ~name
+        ~kind
+        ~composers
+        ?date
+        ~dances
+        ?remark
+        ?scddb_id
+        ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
+        ()
+end
 
-let set_date t date =
-  t.date <- date
+type t =
+  {
+    page : Dancelor_client_elements.Page.t;
+    content : Dom_html.divElement Js.t;
+  }
 
-let composer t =
-  let%opt (_, cr) = t.composer in
-  Some cr
+let refresh _ = ()
+let contents t = t.content
+let init t = refresh t
 
-let set_composer t slug =
-  let%lwt composer = Person.get slug in
-  t.composer <- Some (slug, composer);
-  Lwt.return ()
+let createNewAPI ?on_save () =
+  let editor = Editor.create () in
+  div [
+    h2 ~a:[a_class ["title"]] [txt "Add a tune"];
 
-let remove_composer t =
-  t.composer <- None
+    form [
+      Input.Text.render
+        editor.name
+        ~label: "Name"
+        ~placeholder: "eg. The Cairdin O't";
+      Input.Text.render
+        editor.kind
+        ~label: "Kind"
+        ~placeholder:"eg. R or Strathspey";
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_person_result'
+        ~field_name: ("Composers", "composer")
+        ~model_name: "person"
+        ~create_dialog_content: PersonEditor.createNewAPI
+        editor.composers;
+      Input.Text.render
+        editor.date
+        ~label: "Date of devising"
+        ~placeholder:"eg. 2019 or 2012-03-14";
+      ListSelector.render
+        ~make_result: AnyResultNewAPI.make_dance_result'
+        ~field_name: ("Dances", "dance")
+        ~model_name: "dance"
+        ~create_dialog_content: DanceEditor.createNewAPI
+        editor.dances;
+      Input.Text.render
+        editor.remark
+        ~label: "Remark"
+        ~placeholder: "Any additional information that doesn't fit in the other fields.";
+      Input.Text.render
+        editor.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/";
 
-let count t =
-  t.count
+      Button.group [
+        Button.save
+          ~disabled: (S.map Option.is_none (Editor.state editor))
+          ~onclick: (fun () ->
+              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun tune ->
+              match on_save with
+              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune (Model.Tune.slug tune))
+              | Some on_save -> on_save tune
+            )
+          ();
+        Button.clear
+          ~onclick: (fun () -> Editor.clear editor)
+          ();
+      ]
+    ]
+  ]
 
-let insert t slug i =
-  if Array.length t.dances = t.count then begin
-    let new_dances = Array.make (t.count * 2) None in
-    Array.blit t.dances 0 new_dances 0 t.count;
-    t.dances <- new_dances;
-  end;
-  for idx = t.count-1 downto i do
-    t.dances.(idx+1) <- t.dances.(idx)
-  done;
-  t.count <- t.count + 1;
-  let%lwt dance = Dance.get slug in
-  t.dances.(min t.count i) <- Some (slug, dance);
-  Lwt.return ()
-
-let add t slug =
-  insert t slug t.count
-
-let get t i =
-  if i < 0 || i >= t.count then
-    None
-  else
-    t.dances.(i)
-
-let remove t i =
-  if i >= 0 && i < t.count then begin
-    t.dances.(i) <- None;
-    for j = i + 1 to t.count - 1 do
-      t.dances.(j-1) <- t.dances.(j);
-      t.dances.(j) <- None;
-    done;
-    t.count <- t.count - 1
-  end
-
-let iter t f =
-  for i = 0 to t.count - 1 do
-    match t.dances.(i) with
-    | None -> ()
-    | Some dance -> f i dance
-  done
-
-let fold t f acc =
-  let acc = ref acc in
-  for i = t.count - 1 downto 0 do
-    match t.dances.(i) with
-    | None -> ()
-    | Some dance -> acc := f i dance !acc
-  done;
-  !acc
-
-let list_dances t =
-  fold t (fun _ dance acc -> (snd dance) :: acc) []
-
-let remark t =
-  t.remark
-
-let set_remark t remark =
-  t.remark <- remark
-
-let scddb_id t =
-  t.scddb_id
-
-let set_scddb_id t id =
-  t.scddb_id <- id
-
-let clear t =
-  t.name <- "";
-  t.alternative <- "";
-  t.kind <- "";
-  t.composer <- None;
-  t.count <- 0;
-  t.dances <- Array.make 1 None;
-  t.scddb_id <- ""
-
-let submit t =
-  let name = t.name in
-  let alternative_names = if t.alternative = "" then [] else [t.alternative] in
-  let kind = Kind.Base.of_string t.kind in
-  let date = if t.date = "" then None else Some (PartialDate.from_string t.date) in
-  let dances = list_dances t in
-  let remark = if t.remark = "" then None else Some t.remark in
-  let scddb_id =
-    if t.scddb_id = "" then
-      None
-    else
-      try%opt int_of_string_opt t.scddb_id
-      with _ -> Result.to_option (SCDDB.tune_from_uri t.scddb_id)
-  in
-  let modified_at = Datetime.now () in
-  let created_at = Datetime.now () in
-  Tune.make_and_save ~name ~alternative_names ~kind ?composers:(Option.map List.singleton (composer t))
-    ?date ~dances ?remark ?scddb_id ~modified_at ~created_at ()
+let create ?on_save page =
+  let document = Dancelor_client_elements.Page.document page in
+  let content = Dom_html.createDiv document in
+  Lwt.async (fun () ->
+      document##.title := Js.string "Add a tune | Dancelor";
+      Lwt.return ()
+    );
+  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
+  {page; content}

@@ -40,6 +40,16 @@ val hd_opt : 'a t -> 'a option
 val hd_tl : 'a list -> 'a * 'a list
 (** Pair of {!hd} and {!tl}. @raise Failure if the list is empty. *)
 
+val remove : int -> 'a list -> 'a list
+(** Remove the element at the given indice in the list. *)
+
+val replace : int -> 'a -> 'a list -> 'a * 'a list
+(** Replace the element at the given indice by the given element; return the
+    element previously at the given indice and the new list. *)
+
+val swap : int -> int -> 'a list -> 'a list
+(** Swap elements at the given indices in the list. *)
+
 (** {4 Contexts} *)
 
 type 'a context = {

@@ -26,13 +26,14 @@ let check = function
 let from_string s =
   let date =
     match String.split_on_char '-' s |> List.map int_of_string_opt with
-    | [Some year] -> Year year
-    | [Some year; Some month] -> YearMonth (year, month)
-    | [Some year; Some month; Some day] -> YearMonthDay (year, month, day)
-    | _ -> failwith "NesPartialDate.from_string"
+    | [Some year] -> Some (Year year)
+    | [Some year; Some month] -> Some (YearMonth (year, month))
+    | [Some year; Some month; Some day] -> Some (YearMonthDay (year, month, day))
+    | _ -> None
   in
-  if not (check date) then failwith "NesPartialDate.from_string";
-  date
+  match date with
+  | Some date when check date -> Some date
+  | _ -> None
 
 let to_string = function
   | Year year -> spf "%04d" year
@@ -43,9 +44,7 @@ let to_yojson date =
   `String (to_string date)
 
 let of_yojson = function
-  | `String s ->
-    (try Ok (from_string s)
-     with _ -> Error "NesPartialDate.of_yojson: not a valid date")
+  | `String s -> Option.to_result ~none:"NesPartialDate.of_yojson: not a valid date" @@ from_string s
   | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
 
 let month_to_pretty_string month =

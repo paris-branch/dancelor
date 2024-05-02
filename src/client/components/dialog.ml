@@ -29,12 +29,13 @@ let open_ content =
         div
           ~a:[
             a_class ["content"];
-          ]      (
-          span ~a:[a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)] [
-            i ~a:[a_class ["material-symbols-outlined"]] [txt "close"];
           ]
-          :: content (return % Result.ok)
-        )
+          [
+            span ~a:[a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)] [
+              i ~a:[a_class ["material-symbols-outlined"]] [txt "close"];
+            ];
+            div (content (return % Result.ok))
+          ]
       ]
   in
   let dom_box = To_dom.of_div box in

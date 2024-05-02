@@ -42,6 +42,24 @@ module S = struct
       therefore we choose the placeholder approach. *)
   let bind_s' (signal: 'a Lwt_react.signal) (placeholder: 'b) (promise: 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
     switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
+
+  let delayed_setter delay set_immediately =
+    let (setter, set_setter) = create Lwt.return_unit in
+    fun x ->
+      (* try cancelling the current search text setter *)
+      Lwt.cancel (value setter);
+      (* prepare the new search text setter *)
+      let new_setter =
+        (* FIXME: here, we need to delay by something but [Lwt_unix] does not
+           seem to be the answer. *)
+        Lwt.pmsleep delay;%lwt
+        set_immediately x;
+        Lwt.return_unit
+      in
+      (* register it in the signal *)
+      set_setter new_setter;
+      (* fire it asynchronously *)
+      Lwt.async (fun () -> new_setter)
 end
 
 (** Reactive lists. *)
@@ -122,3 +140,16 @@ module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Helper to inject the new API in old-style Dom manipulation. *)
 let to_old_style x = Lwt.return [To_dom.of_div (L.div x)]
 (* FIXME: get rid of this once only the new API remains. *)
+
+(** Result-Signal monad. *)
+module RS = struct
+  type 'a t = ('a, string) Result.t S.t
+
+  let pure x =
+    S.const (Ok x)
+
+  let bind x f =
+    S.bind x @@ function
+    | Ok x -> f x
+    | Error msg -> S.const @@ Error msg
+end

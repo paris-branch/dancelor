@@ -32,24 +32,28 @@ let dispatch url =
   | Explore query ->
     pack (module Explorer) (Explorer.create ?query)
   | VersionAdd ->
-    pack (module VersionEditorInterface) VersionEditorInterface.create
+    pack (module VersionEditor) VersionEditor.create
   | Version {slug; context} ->
     pack (module VersionViewer) (VersionViewer.create slug ?context)
+  | TuneAdd ->
+    pack (module TuneEditor) TuneEditor.create
   | Tune {slug; context} ->
     pack (module TuneViewer) (TuneViewer.create slug ?context)
   | SetCompose ->
-    pack (module SetEditorInterface) SetEditorInterface.create
+    pack (module SetEditor) SetEditor.create
   | Set {slug; context} ->
     pack (module SetViewer) (SetViewer.create slug ?context)
   | BookCompose ->
-    pack (module BookEditorInterface) BookEditorInterface.create
+    pack (module BookEditor) BookEditor.create
   | BookEdit slug ->
-    pack (module BookEditorInterface) (BookEditorInterface.update slug)
+    pack (module BookEditor) (BookEditor.create ~edit:slug)
   | Book {slug; context} ->
     pack (module BookViewer) (BookViewer.create slug ?context)
   | PersonAdd ->
-    pack (module PersonEditorInterface) (fun page -> PersonEditorInterface.create page)
+    pack (module PersonEditor) PersonEditor.create
   | Person {slug; context} ->
     pack (module PersonViewer) (PersonViewer.create slug ?context)
+  | DanceAdd ->
+    pack (module DanceEditor) DanceEditor.create
   | Dance {slug; context} ->
     pack (module DanceViewer) (DanceViewer.create slug ?context)

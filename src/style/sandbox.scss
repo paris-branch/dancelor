@@ -6,6 +6,7 @@
 
 form {
   position: relative;
+  margin-top: 30px;
 }
 
 input[type="text"],
@@ -18,11 +19,6 @@ textarea {
   font-size: 1rem;
   padding: 0.375rem 0.75rem;
   line-height: 1.5;
-}
-
-input[type="text"].invalid,
-textarea.invalid {
-  box-shadow: 0px 0px 4px 2px $orange;
 }
 
 button {
@@ -50,6 +46,7 @@ button.btn-success {
 
 button.disabled {
   color: #7c7c7c;
+  background-color: #4c4c4c;
 }
 
 .subwindow .toolbar {

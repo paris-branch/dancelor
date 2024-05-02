@@ -39,10 +39,18 @@ type 'value t
 (** Abstract type for a “choices” component that can take ['value]s. *)
 
 val make_radios :
+  ?name: string ->
   'value option choice list ->
   'value option t
 (** Make a radio-based “choices” component that can hold at most one value at
     once out of a list of single choices. *)
+
+val make_radios' :
+  ?name: string ->
+  validate: ('cvalue option -> ('value, string) Result.t) ->
+  'cvalue option choice list ->
+  ('value, string) Result.t t
+(** Variant of {!make_radios} with a validation function. *)
 
 val make_checkboxes :
   'value choice list ->

@@ -56,7 +56,7 @@ let create ?context slug page =
         match%lwt Lwt.map Tune.scddb_id tune_lwt with
         | None -> Lwt.return_nil
         | Some scddb_id ->
-          let href = SCDDB.tune_uri scddb_id in
+          let href = Uri.to_string @@ SCDDB.tune_uri scddb_id in
           Lwt.return [
             h3 ~a:[a_class ["title"]] [
               a ~a:[a_href href; a_target "blank"] [
@@ -97,7 +97,7 @@ let create ?context slug page =
             ~a:[
               a_class ["button"];
               a_href PageRouter.(path SetCompose);
-              a_onclick (fun _ -> SetEditor.add_to_storage slug; true);
+              a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
             ]
             [
               i ~a:[a_class ["material-symbols-outlined"]] [txt "add_box"];

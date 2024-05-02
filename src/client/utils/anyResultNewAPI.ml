@@ -12,95 +12,119 @@ let js = Js.string
 (* FIXME: this is very similar to [Dancelor_client_tables.clickable_row]; those
    two should be merged in a common notion (probably that ot
    [Dancelor_client_tables]). *)
-let clickable_row ~href =
+(* FIXME: When [onclick] is used as an [a], we could do better and actually have
+   an [<a />] element *)
+let clickable_row ?(classes=[]) ?(onclick = fun () -> ()) =
   tr
     ~a:[
-      a_class ["clickable"];
-      a_onclick
-        (fun _ ->
-           let open Js_of_ocaml in
-           Dom_html.window##.location##.href := Js.string (S.value href);
-           true
-        );
+      a_class (["clickable"] @ classes);
+      a_onclick (fun _ -> onclick (); true);
     ]
 
-let s_for_option so f = match so with
-  | None -> S.const (f None)
-  | Some s -> S.map (f % Option.some) s
-
-let make_person_result ?context ~prefix person =
-  clickable_row
-    ~href:(
-      s_for_option context @@ fun context ->
-      PageRouter.path_person ?context @@ Person.slug person
-    )
+let make_person_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) person =
+  clickable_row ?classes ?onclick
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
-      ]
+      ] @ suffix
     )
 
-let make_dance_result ?context ~prefix dance =
-  clickable_row
-    ~href:(
-      s_for_option context @@ fun context ->
-      PageRouter.path_dance ?context @@ Dance.slug dance
-    )
+let make_person_result ?context ?prefix ?suffix person =
+  make_person_result'
+    ~onclick: (fun () ->
+        let context = Option.map S.value context in
+        let href = PageRouter.path_person ?context @@ Person.slug person in
+        Dom_html.window##.location##.href := Js.string href
+      )
+    ?prefix
+    ?suffix
+    person
+
+let make_dance_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) dance =
+  clickable_row ?classes ?onclick
     (
       prefix @ [
         td [txt (Dance.name dance)];
         td [txt (Kind.Dance.to_string @@ Dance.kind dance)];
         L.td (Lwt.map (Formatters.Person.names ~short:true) (Dance.devisers dance));
-      ]
+      ] @ suffix
     )
 
-let make_book_result ?context ~prefix book =
-  clickable_row
-    ~href:(
-      s_for_option context @@ fun context ->
-      PageRouter.path_book ?context @@ Book.slug book
-    )
+let make_dance_result ?context ?prefix ?suffix dance =
+  make_dance_result'
+    ~onclick: (fun () ->
+        let context = Option.map S.value context in
+        let href = PageRouter.path_dance ?context @@ Dance.slug dance in
+        Dom_html.window##.location##.href := Js.string href
+      )
+    ?prefix
+    ?suffix
+    dance
+
+let make_book_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) book =
+  clickable_row ?classes ?onclick
     (
       prefix @ [
         td (Formatters.Book.title_and_subtitle book);
         td ~a:[a_colspan 2] [txt (Option.fold ~none:"" ~some:PartialDate.to_pretty_string (Book.date book))];
-      ]
+      ] @ suffix
     )
 
-let make_set_result ?context ~prefix set =
-  clickable_row
-    ~href:(
-      s_for_option context @@ fun context ->
-      PageRouter.path_set ?context @@ Set.slug set
-    )
+let make_book_result ?context ?prefix ?suffix book =
+  make_book_result'
+    ~onclick: (fun () ->
+        let context = Option.map S.value context in
+        let href = PageRouter.path_book ?context @@ Book.slug book in
+        Dom_html.window##.location##.href := Js.string href
+      )
+    ?prefix
+    ?suffix
+    book
+
+let make_set_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) set =
+  clickable_row ?classes ?onclick
     (
       prefix @ [
         td [txt @@ Set.name set];
         td [txt @@ Kind.Dance.to_string @@ Set.kind set];
         L.td (Lwt.map (Formatters.Person.names ~short:true) (Set.conceptors set));
-      ]
+      ] @ suffix
     )
 
-let make_tune_result ?context ~prefix tune =
-  clickable_row
-    ~href:(
-      s_for_option context @@ fun context ->
-      PageRouter.path_tune ?context @@ Tune.slug tune
-    )
+let make_set_result ?context ?prefix ?suffix set =
+  make_set_result'
+    ~onclick: (fun () ->
+        let context = Option.map S.value context in
+        let href = PageRouter.path_set ?context @@ Set.slug set in
+        Dom_html.window##.location##.href := Js.string href
+      )
+    ?prefix
+    ?suffix
+    set
+
+let make_tune_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) tune =
+  clickable_row ?classes ?onclick
     (
       prefix @ [
         td [txt @@ Tune.name tune];
         td [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
         L.td (Formatters.Tune.composers tune);
-      ]
+      ] @ suffix
     )
 
-let make_version_result ?context ~prefix version =
-  clickable_row
-    ~href:(
-      s_for_option context @@ fun context ->
-      PageRouter.path_version ?context @@ Version.slug version
-    )
+let make_tune_result ?context ?prefix ?suffix tune =
+  make_tune_result'
+    ~onclick: (fun () ->
+        let context = Option.map S.value context in
+        let href = PageRouter.path_tune ?context @@ Tune.slug tune in
+        Dom_html.window##.location##.href := Js.string href
+      )
+    ?prefix
+    ?suffix
+    tune
+
+let make_version_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) version =
+  clickable_row ?classes ?onclick
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);
@@ -113,8 +137,19 @@ let make_version_result ?context ~prefix version =
           )
         ];
         L.td (Formatters.Version.composer_and_arranger ~short:true version);
-      ]
+      ] @ suffix
     )
+
+let make_version_result ?context ?prefix ?suffix version =
+  make_version_result'
+    ~onclick: (fun () ->
+        let context = Option.map S.value context in
+        let href = PageRouter.path_version ?context @@ Version.slug version in
+        Dom_html.window##.location##.href := Js.string href
+      )
+    ?prefix
+    ?suffix
+    version
 
 let any_type_to_fa = function
   | Any.Type.Person -> "person"

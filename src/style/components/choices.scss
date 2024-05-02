@@ -1,28 +1,27 @@
 .choices {
-  display: inline-block;
+  display: block;
+
+  &.invalid {
+    label {
+      border-bottom: 1px solid $orange;
+    }
+  }
 
   label {
     display: inline-block;
+    font-weight: 0 !important;
     padding: 0.8em 1em; // horizontal padding a bit less than for a standalone button
-    margin: 0.2em 0.05em;
+    margin: 0 0 0.05em 0;
+    margin-bottom: 0 !important;
     cursor: pointer;
-    border-radius: 0.25em;
-    box-shadow:
-      0 3px 10px rgba(0, 0, 0, 0.2),
-      inset 0 -3px 0 rgba(0, 0, 0, 0.22);
+    border-radius: 0;
     transition: 0.3s;
     user-select: none;
     font-size: 1em;
     &:hover {
-      box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.2),
-        inset 0 -3px 0 rgba(0, 0, 0, 0.32);
     }
     &:active {
       transform: translateY(2px);
-      box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.2),
-        inset 0px -1px 0 rgba(0, 0, 0, 0.22);
     }
   }
 

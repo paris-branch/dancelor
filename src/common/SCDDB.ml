@@ -1,6 +1,11 @@
 open Nes
 
-let root = "https://my.strathspey.org/dd/"
+let root =
+  Uri.make
+    ~scheme: "https"
+    ~host: "my.strathspey.org"
+    ~path: "dd"
+    ()
 
 type entry_type =
   | Dance
@@ -11,6 +16,7 @@ type entry_type =
   | Recording
   | Tune
   | List
+[@@deriving yojson]
 
 let entry_type_to_string = function
   | Dance -> "dance"
@@ -35,14 +41,16 @@ let entry_type_of_string str =
   | _ -> None
 
 type entry_id = int
+[@@deriving yojson]
 
 type entry = entry_type * entry_id
+[@@deriving yojson]
 
 let entry_type = fst
 let entry_id = snd
 
 let entry_uri (type_, id) =
-  spf "%s%s/%d/" root (entry_type_to_string type_) id
+  Uri.with_path root @@ spf "%s/%s/%d/" (Uri.path root) (entry_type_to_string type_) id
 
 let dance_uri id = entry_uri (Dance, id)
 let formation_uri id = entry_uri (Formation, id)
@@ -54,7 +62,6 @@ let tune_uri id = entry_uri (Tune, id)
 let list_uri id = entry_uri (List, id)
 
 let entry_from_uri uri =
-  let uri = Uri.of_string uri in
   match String.split_on_char '/' (Uri.path uri) with
   | [""; "dd"; type_; id; ""] ->
     (match entry_type_of_string type_ with
@@ -65,28 +72,20 @@ let entry_from_uri uri =
         | Some id -> Ok (type_, id)))
   | _ -> kspf Result.error "Dancelor_common.SCDDB.entry_from_uri: could not recognise path"
 
-let%test _ = entry_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok (Person, 11781)
-let%test _ = entry_from_uri "https://my.strathspey.org/dd/tune/14452/" = Ok (Tune, 14452)
-let%test _ = Result.is_error @@ entry_from_uri "https://my.strathspey.org/choucroute/"
-let%test _ = entry_from_uri "https://my.strathspey.org/dd/dance/1337/" = Ok (Dance, 1337)
+let%test _ = entry_from_uri @@ Uri.of_string "https://my.strathspey.org/dd/person/11781/" = Ok (Person, 11781)
+let%test _ = entry_from_uri @@ Uri.of_string "https://my.strathspey.org/dd/tune/14452/" = Ok (Tune, 14452)
+let%test _ = Result.is_error @@ entry_from_uri @@ Uri.of_string "https://my.strathspey.org/choucroute/"
+let%test _ = entry_from_uri @@ Uri.of_string "https://my.strathspey.org/dd/dance/1337/" = Ok (Dance, 1337)
 
 let specific_entry_from_uri type_ uri =
   match entry_from_uri uri with
   | Error err -> Error err
   | Ok (type', _) when type_ <> type' ->
-    kspf Result.error "Dancelor_common.SCDDB.*_from_uri: expected %s but got %s"
-      (entry_type_to_string type_) (entry_type_to_string type')
+    kspf Result.error "The given entry is a %s but a %s was expected"
+      (entry_type_to_string type') (entry_type_to_string type_)
   | Ok (_, id) -> Ok id
 
-let dance_from_uri uri = specific_entry_from_uri Dance uri
-let formation_from_uri uri = specific_entry_from_uri Formation uri
-let person_from_uri uri = specific_entry_from_uri Person uri
-let publication_from_uri uri = specific_entry_from_uri Publication uri
-let album_from_uri uri = specific_entry_from_uri Album uri
-let recording_from_uri uri = specific_entry_from_uri Recording uri
-let tune_from_uri uri = specific_entry_from_uri Tune uri
-let list_from_uri uri = specific_entry_from_uri List uri
-
-let%test _ = person_from_uri "https://my.strathspey.org/dd/person/11781/" = Ok 11781
-let%test _ = Result.is_error @@ person_from_uri "https://my.strathspey.org/dd/tune/14452/"
-let%test _ = Result.is_error @@ person_from_uri "https://my.strathspey.org/choucroute/"
+let entry_from_string type_ string =
+  match int_of_string_opt string with
+  | Some entry_id -> Ok entry_id
+  | None -> specific_entry_from_uri type_ (Uri.of_string string)

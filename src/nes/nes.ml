@@ -12,6 +12,7 @@ module Lwt_list = NesLwt_list
 module Seq = NesSeq
 module String = NesString
 module Option = NesOption
+module Result = NesResult
 
 (* New modules *)
 
