@@ -125,7 +125,7 @@ let createNewAPI ?on_save () =
         ~placeholder: "eg. 2019 or 2012-03-14";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_set_result'
-        ~field_name: "set"
+        ~field_name: ("Sets", "set")
         ~model_name: "set"
         ~create_dialog_content: SetEditor.createNewAPI
         editor.sets;

@@ -177,7 +177,7 @@ let createNewAPI ?on_save () =
         ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
-        ~field_name: "deviser"
+        ~field_name: ("Devisers", "deviser")
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         editor.devisers;

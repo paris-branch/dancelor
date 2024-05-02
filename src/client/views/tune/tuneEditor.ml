@@ -182,7 +182,7 @@ let createNewAPI ?on_save () =
         ~placeholder:"eg. R or Strathspey";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
-        ~field_name: "composer"
+        ~field_name: ("Composers", "composer")
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         editor.composers;
@@ -192,7 +192,7 @@ let createNewAPI ?on_save () =
         ~placeholder:"eg. 2019 or 2012-03-14";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_dance_result'
-        ~field_name: "dance"
+        ~field_name: ("Dances", "dance")
         ~model_name: "dance"
         ~create_dialog_content: DanceEditor.createNewAPI
         editor.dances;

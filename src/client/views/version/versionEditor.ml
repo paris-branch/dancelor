@@ -192,7 +192,7 @@ let createNewAPI ?on_save () =
         ~placeholder: "eg. AABB or ABAB";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
-        ~field_name: "arranger"
+        ~field_name: ("Arrangers", "arranger")
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         editor.arrangers;

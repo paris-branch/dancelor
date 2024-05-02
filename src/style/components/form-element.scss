@@ -31,4 +31,30 @@ div.form-element {
     margin-top: 0.5rem;
     font-style: italic;
   }
+
+  table.container {
+    width: calc(100% - 10px);
+    margin-left: 10px;
+    border-collapse: none;
+
+    tbody {
+      border: none;
+    }
+
+    tr,
+    td {
+      border: none;
+      line-height: 1.2;
+      padding: 0;
+      background: $white;
+
+      .actions {
+        text-align: right;
+      }
+    }
+
+    button {
+      border: none;
+    }
+  }
 }
