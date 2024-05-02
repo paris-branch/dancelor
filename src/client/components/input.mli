@@ -22,9 +22,9 @@ module Text : sig
   val clear : 'a t -> unit
   (** Clear a text input component to an empty value . *)
 
-  val render : placeholder:string -> 'a t -> Html_types.div Html.elt
+  val render : ?label:string -> ?placeholder:string -> 'a t -> Html_types.div Html.elt
   (** Render a text input component as HTML. *)
 
-  val render_as_textarea : placeholder:string -> 'a t -> Html_types.div Html.elt
+  val render_as_textarea : ?label:string -> ?placeholder:string -> 'a t -> Html_types.div Html.elt
   (** Variant of {!render} that renders the input as a textarea. *)
 end

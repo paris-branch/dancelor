@@ -18,8 +18,10 @@ module Text = struct
 
   let clear state = state.set ""
 
-  let render ~placeholder state =
-    div ~a:[a_class ["input"]] [
+  let render ?label:lbl ?(placeholder="") state =
+    div ~a:[a_class ["form-element"]] [
+      label (Option.to_list (Option.map txt lbl));
+
       input ()
         ~a: [
           a_input_type `Text;
@@ -40,6 +42,7 @@ module Text = struct
               false
             );
         ];
+
       R.div ~a:[a_class ["message-box"]] (
         Fun.flip S.map (signal state) @@ function
         | Ok _ -> []
@@ -47,8 +50,10 @@ module Text = struct
       );
     ]
 
-  let render_as_textarea ~placeholder state =
+  let render_as_textarea ?label:lbl ?(placeholder="") state =
     div ~a:[a_class ["input"]] [
+      label (Option.to_list (Option.map txt lbl));
+
       textarea (R.txt state.raw_signal)
         ~a: [
           a_placeholder placeholder;
@@ -67,6 +72,7 @@ module Text = struct
               false
             );
         ];
+
       R.div ~a:[a_class ["message-box"]] (
         Fun.flip S.map (signal state) @@ function
         | Ok _ -> []

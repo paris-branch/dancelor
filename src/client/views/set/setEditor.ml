@@ -151,8 +151,14 @@ let createNewAPI ?on_save () =
     h2 ~a:[a_class ["title"]] [txt "Add a set"];
 
     form [
-      Input.Text.render editor.name ~placeholder:"Name";
-      Input.Text.render editor.kind ~placeholder:"Kind";
+      Input.Text.render
+        editor.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller";
+      Input.Text.render
+        editor.kind
+        ~label: "Kind"
+        ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: "conceptor"
@@ -165,7 +171,10 @@ let createNewAPI ?on_save () =
         ~model_name: "versions"
         ~create_dialog_content: VersionEditor.createNewAPI
         editor.versions;
-      Input.Text.render editor.order ~placeholder:"Order";
+      Input.Text.render
+        editor.order
+        ~label: "Order"
+        ~placeholder: "eg. 1,2,3,4,2,3,4,1";
 
       Button.group [
         Button.save

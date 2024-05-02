@@ -87,8 +87,14 @@ let createNewAPI ?on_save () =
   div [
     h2 ~a:[a_class ["title"]] [txt "Add a person"];
     form [
-      Input.Text.render editor.name ~placeholder:"Name";
-      Input.Text.render editor.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+      Input.Text.render
+        editor.name
+        ~label: "Name"
+        ~placeholder: "eg. John Doe";
+      Input.Text.render
+        editor.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
       Button.group [
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))

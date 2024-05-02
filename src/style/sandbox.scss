@@ -21,11 +21,6 @@ textarea {
   line-height: 1.5;
 }
 
-input[type="text"].invalid,
-textarea.invalid {
-  box-shadow: 0px 0px 4px 2px $orange;
-}
-
 button {
   box-sizing: border-box;
   padding: 0.375rem 0.75rem;

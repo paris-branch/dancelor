@@ -178,18 +178,36 @@ let createNewAPI ?on_save () =
         ~model_name: "tune"
         ~create_dialog_content: TuneEditor.createNewAPI
         editor.tune;
-      Input.Text.render editor.bars ~placeholder:"Number of bars";
-      Input.Text.render editor.key ~placeholder:"Key";
-      Input.Text.render editor.structure ~placeholder:"Structure of the tune (AABB, ABAB, ...)";
+      Input.Text.render
+        editor.bars
+        ~label: "Number of bars"
+        ~placeholder: "eg. 32 or 48";
+      Input.Text.render
+        editor.key
+        ~label: "Key"
+        ~placeholder: "eg. A or F#m";
+      Input.Text.render
+        editor.structure
+        ~label: "Structure"
+        ~placeholder: "eg. AABB or ABAB";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: "arranger"
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         editor.arrangers;
-      Input.Text.render editor.remark ~placeholder:"Additional information about this version (origin...)";
-      Input.Text.render editor.disambiguation ~placeholder:"Disambiguation information if this is a new version";
-      Input.Text.render_as_textarea editor.content ~placeholder:"LilyPond of the tune";
+      Input.Text.render
+        editor.disambiguation
+        ~label: "Disambiguation"
+        ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
+      Input.Text.render
+        editor.remark
+        ~label: "Remark"
+        ~placeholder: "Any additional information that doesn't fit in the other fields.";
+      Input.Text.render_as_textarea
+        editor.content
+        ~label: "LilyPond content"
+        ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    ...";
 
       Button.group [
         Button.save

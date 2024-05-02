@@ -115,8 +115,14 @@ let createNewAPI ?on_save () =
     h2 ~a:[a_class ["title"]] [txt "Add a book"];
 
     form [
-      Input.Text.render editor.name ~placeholder:"Name";
-      Input.Text.render editor.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
+      Input.Text.render
+        editor.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller Book";
+      Input.Text.render
+        editor.date
+        ~label: "Date of devising"
+        ~placeholder: "eg. 2019 or 2012-03-14";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_set_result'
         ~field_name: "set"

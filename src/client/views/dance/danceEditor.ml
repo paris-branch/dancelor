@@ -167,18 +167,34 @@ let createNewAPI ?on_save () =
     h2 ~a:[a_class ["title"]] [txt "Add a dance"];
 
     form [
-      Input.Text.render editor.name ~placeholder:"Name";
-      Input.Text.render editor.kind ~placeholder:"Kind (eg. 8x32R, 2x(16R+16S))";
+      Input.Text.render
+        editor.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller";
+      Input.Text.render
+        editor.kind
+        ~label: "Kind"
+        ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: "deviser"
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         editor.devisers;
-      Input.Text.render editor.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
-      Choices.render editor.two_chords;
-      Input.Text.render editor.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
-      Input.Text.render editor.disambiguation ~placeholder:"Disambiguation";
+      Input.Text.render
+        editor.date
+        ~label: "Date of devising"
+        ~placeholder: "eg. 2019 or 2012-03-14";
+      Choices.render
+        editor.two_chords;
+      Input.Text.render
+        editor.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
+      Input.Text.render
+        editor.disambiguation
+        ~label: "Disambiguation"
+        ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
 
       Button.group [
         Button.save

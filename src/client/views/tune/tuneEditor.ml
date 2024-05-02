@@ -172,23 +172,38 @@ let createNewAPI ?on_save () =
     h2 ~a:[a_class ["title"]] [txt "Add a tune"];
 
     form [
-      Input.Text.render editor.name ~placeholder:"Name";
-      Input.Text.render editor.kind ~placeholder:"Kind (eg. R, Strathspey)";
+      Input.Text.render
+        editor.name
+        ~label: "Name"
+        ~placeholder: "eg. The Cairdin O't";
+      Input.Text.render
+        editor.kind
+        ~label: "Kind"
+        ~placeholder:"eg. R or Strathspey";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: "composer"
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.createNewAPI
         editor.composers;
-      Input.Text.render editor.date ~placeholder:"Date of devising (eg. 2019 or 2012-03-14)";
+      Input.Text.render
+        editor.date
+        ~label: "Date of devising"
+        ~placeholder:"eg. 2019 or 2012-03-14";
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_dance_result'
         ~field_name: "dance"
         ~model_name: "dance"
         ~create_dialog_content: DanceEditor.createNewAPI
         editor.dances;
-      Input.Text.render editor.remark ~placeholder:"Remark (optional)";
-      Input.Text.render editor.scddb_id ~placeholder:"Strathspey database URI or id (optional)";
+      Input.Text.render
+        editor.remark
+        ~label: "Remark"
+        ~placeholder: "Any additional information that doesn't fit in the other fields.";
+      Input.Text.render
+        editor.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/";
 
       Button.group [
         Button.save
