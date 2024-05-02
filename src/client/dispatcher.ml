@@ -45,8 +45,8 @@ let dispatch url =
     pack (module SetViewer) (SetViewer.create slug ?context)
   | BookCompose ->
     pack (module BookEditor) BookEditor.create
-  | BookEdit _slug ->
-    assert false
+  | BookEdit slug ->
+    pack (module BookEditor) (BookEditor.create ~edit:slug)
   | Book {slug; context} ->
     pack (module BookViewer) (BookViewer.create slug ?context)
   | PersonAdd ->

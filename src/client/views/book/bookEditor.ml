@@ -37,6 +37,38 @@ module RawState = struct
   let _key = "BookEditor.RawState"
 end
 
+module State = struct
+  type t = (
+    string,
+    PartialDate.t option,
+    Model.Set.t list
+  ) gen
+
+  let to_raw_state (state : t) : RawState.t =
+    {
+      name = state.name;
+      date = Option.fold ~none:"" ~some:PartialDate.to_string state.date;
+      sets = List.map Model.Set.slug state.sets;
+    }
+
+  exception Non_convertible
+
+  let of_model (book : Model.Book.t) : t Lwt.t =
+    let%lwt contents = Model.Book.contents book in
+    let sets =
+      List.map (function
+          | Model.Book.Set (set, params) when params = Model.SetParameters.none -> set
+          | _ -> raise Non_convertible
+        )
+        contents
+    in
+    Lwt.return {
+      name = book.title;
+      date = book.date;
+      sets;
+    }
+end
+
 module Editor = struct
   type t = (
     string Input.Text.t,
@@ -48,17 +80,27 @@ module Editor = struct
     S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
     S.bind (Input.Text.raw_signal editor.date) @@ fun date ->
     S.bind (ListSelector.raw_signal editor.sets) @@ fun sets ->
-    S.const { name; date; sets }
+    S.const {name; date; sets}
 
-  let state (editor : t) =
+  let state (editor : t) : State.t option S.t =
     S.map Result.to_option @@
     RS.bind (Input.Text.signal editor.name) @@ fun name ->
     RS.bind (Input.Text.signal editor.date) @@ fun date ->
     RS.bind (ListSelector.signal editor.sets) @@ fun sets ->
-    RS.pure { name; date; sets }
+    RS.pure {name; date; sets}
 
-  let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+  let with_or_without_local_storage ?edit f =
+    match edit with
+    | None ->
+      Lwt.return @@
+      Utils.with_local_storage (module RawState) raw_state f
+    | Some slug ->
+      let%lwt book = Model.Book.get slug in
+      let%lwt raw_state = Lwt.map State.to_raw_state (State.of_model book) in
+      Lwt.return @@ f raw_state
+
+  let create ?edit () : t Lwt.t =
+    with_or_without_local_storage ?edit @@ fun initial_state ->
     let name = Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
@@ -109,10 +151,14 @@ let refresh _ = ()
 let contents t = t.content
 let init t = refresh t
 
-let createNewAPI ?on_save () =
-  let editor = Editor.create () in
-  div [
-    h2 ~a:[a_class ["title"]] [txt "Add a book"];
+let createNewAPI ?on_save ?edit () =
+  let%lwt editor = Editor.create ?edit () in
+
+  Lwt.return @@ div [
+    h2 ~a:[a_class ["title"]] [
+      let verb = match edit with None -> "Add" | Some _ -> "Edit" in
+      txt (verb ^ " a book")
+    ];
 
     form [
       Input.Text.render
@@ -147,12 +193,26 @@ let createNewAPI ?on_save () =
     ]
   ]
 
-let create ?on_save page =
+let create ?on_save ?edit page =
   let document = Dancelor_client_elements.Page.document page in
   let content = Dom_html.createDiv document in
   Lwt.async (fun () ->
-      document##.title := Js.string "Add a book | Dancelor";
+      let verb = match edit with None -> "Add" | Some _ -> "Edit" in
+      document##.title := Js.string (verb ^ " a book | Dancelor");
       Lwt.return ()
     );
-  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
+  Lwt.async (fun () ->
+      try%lwt
+        let%lwt div = createNewAPI ?on_save ?edit () in
+        Dom.appendChild content (To_dom.of_div div);
+        Lwt.return_unit
+      with
+        State.Non_convertible ->
+        Lwt.map ignore @@ Dialog.open_ @@ fun _return ->
+        [
+          h2 [txt "Error"];
+          p [txt "This book cannot be edited."];
+          (* FIXME: handle this more gracefully *)
+        ]
+    );
   {page; content}
