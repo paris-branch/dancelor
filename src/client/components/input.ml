@@ -51,11 +51,12 @@ module Text = struct
     ]
 
   let render_as_textarea ?label:lbl ?(placeholder="") state =
-    div ~a:[a_class ["input"]] [
+    div ~a:[a_class ["form-element"]] [
       label (Option.to_list (Option.map txt lbl));
 
       textarea (R.txt state.raw_signal)
         ~a: [
+          a_rows 15;
           a_placeholder placeholder;
           R.a_class (
             Fun.flip S.map (signal state) @@ function

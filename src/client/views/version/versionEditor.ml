@@ -174,7 +174,7 @@ let createNewAPI ?on_save () =
     form [
       Selector.render
         ~make_result: AnyResultNewAPI.make_tune_result'
-        ~field_name: "tune"
+        ~field_name: ("Tune", "tune")
         ~model_name: "tune"
         ~create_dialog_content: TuneEditor.createNewAPI
         editor.tune;
@@ -207,7 +207,7 @@ let createNewAPI ?on_save () =
       Input.Text.render_as_textarea
         editor.content
         ~label: "LilyPond content"
-        ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    ...";
+        ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
 
       Button.group [
         Button.save

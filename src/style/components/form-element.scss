@@ -8,7 +8,8 @@ div.form-element {
     margin-bottom: 0.5rem;
   }
 
-  input {
+  input,
+  textarea {
     border: none;
     background: $white;
     border-radius: 0;
@@ -24,6 +25,10 @@ div.form-element {
     &.invalid {
       border-bottom: 1px solid $orange;
     }
+  }
+
+  textarea {
+    font-size: 0.7rem;
   }
 
   .message-box {
@@ -55,6 +60,17 @@ div.form-element {
 
     button {
       border: none;
+      background: darken($white, 3%);
+      color: $black;
+
+      &.disabled {
+        visibility: hidden;
+      }
+
+      &.btn-danger {
+        background: $orange;
+        color: $white;
+      }
     }
   }
 }

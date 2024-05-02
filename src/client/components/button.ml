@@ -2,7 +2,12 @@ open Js_of_ocaml
 open Dancelor_client_html
 
 let group content =
-  div ~a:[a_style "display: flex;"; a_class ["justify-content-space-between"]] content
+  div
+    ~a: [
+      a_style "display: flex;";
+      a_class ["justify-content-space-between"; "form-element"];
+    ]
+    content
 
 let save ~disabled ~onclick () =
   button

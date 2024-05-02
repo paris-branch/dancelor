@@ -114,6 +114,7 @@ module Editor = struct
         Choices.choice' ~value:false [txt "One chord"];
         Choices.choice' ~value:true [txt "Two chords"];
       ]
+        ~name: "Number of chords"
         ~validate: (Option.to_result ~none:"A choice must be made")
     in
     let scddb_id = Input.Text.make initial_state.scddb_id @@

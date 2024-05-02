@@ -57,7 +57,9 @@ let render
      )
     s
   =
-  div ~a:[a_class ["list-selector"]] [
+  div ~a:[a_class ["form-element"]] [
+    label [txt (fst field_name)];
+
     tablex ~a:[a_class ["container"]] [
       R.tbody (
         Fun.flip S.map s.signal @@ fun maybe_element ->
@@ -83,7 +85,7 @@ let render
     ];
 
     QuickSearchBar.render
-      ~placeholder: ("Replace a " ^ field_name ^ " (magic search)")
+      ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
       ~make_result: (fun person ->
           Lwt.return @@ make_result
             ~onclick:(fun () ->
