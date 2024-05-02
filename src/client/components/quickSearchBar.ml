@@ -46,16 +46,19 @@ let make ?(number_of_results=10) ~search () =
 
 let render ~placeholder ~make_result ?on_enter ?(more_lines=[]) ?autofocus q =
   div ~a:[a_class ["search-bar"]] [
-    div ~a:[
-      R.a_class (
-        Fun.flip S.map q.table_visible @@ function
-        | false -> []
-        | true -> ["visible"]
-      );
-      a_onclick (fun _ -> q.set_table_visible false; false);
-    ] [];
-
-    SearchBar.render ~placeholder ~on_focus:(fun () -> q.set_table_visible true) ?on_enter ?autofocus q.search_bar;
+    SearchBar.render
+      ~placeholder
+      ~on_focus: (fun () -> q.set_table_visible true)
+      ~on_blur: (fun () ->
+          Lwt.async (fun () ->
+              Lwt.pmsleep 0.1;%lwt
+              q.set_table_visible false;
+              Lwt.return_unit
+            ); ()
+        )
+      ?on_enter
+      ?autofocus
+      q.search_bar;
 
     tablex
       ~a:[

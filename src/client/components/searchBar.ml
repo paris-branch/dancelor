@@ -52,7 +52,15 @@ let make
 
   { text; state; set_text }
 
-let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_bar =
+let render
+    ~placeholder
+    ?(autofocus=false)
+    ?on_focus
+    ?on_blur
+    ?on_input
+    ?on_enter
+    search_bar
+  =
   (* FIXME: This looks awfully like {!Input.Text.render}. We should probably
      build {!SearchBar} on top of that. *)
   input
@@ -79,6 +87,7 @@ let render ~placeholder ?(autofocus=false) ?on_focus ?on_input ?on_enter search_
             None
         );
         Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
+        Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
         (
           Fun.flip Option.map on_enter @@ fun on_enter ->
           a_onkeyup (fun event ->

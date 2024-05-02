@@ -59,6 +59,7 @@ val render :
   placeholder:string ->
   ?autofocus:bool ->
   ?on_focus:(unit -> unit) ->
+  ?on_blur:(unit -> unit) ->
   ?on_input:(string -> unit) ->
   ?on_enter:(string -> unit) ->
   'result t ->
@@ -69,6 +70,8 @@ val render :
     - [placeholder] shows in the bar when no text is entered yet;
 
     - [on_focus] is a function that fires when the bar gains focus;
+
+    - [on_blur] is a function that fires when the bar loses focus;
 
     - [on_input] is a function that triggers whenever there is an input.
 
