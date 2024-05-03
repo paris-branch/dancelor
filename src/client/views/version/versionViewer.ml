@@ -4,17 +4,18 @@ open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Components = Dancelor_client_components
+module Page = Dancelor_client_page
 
 let js = Js.string
 
 type t =
   {
-    page : Dancelor_client_elements.Page.t;
+    page : Page.t;
     content : Dom_html.divElement Js.t;
   }
 
 let create ?context slug page =
-  let document = Dancelor_client_elements.Page.document page in
+  let document = Page.document page in
   let content = Dom_html.createDiv document in
   let version_lwt = Version.get slug in
   let tune_lwt = version_lwt >>=| Version.tune in
@@ -177,8 +178,8 @@ let create ?context slug page =
         h3 [txt "Dances That Recommend This Tune"];
 
         L.div (
-          let none = (Dancelor_client_elements.Page.document page)##createTextNode (js "") in
-          let none_maybe = Dom_html.createP (Dancelor_client_elements.Page.document page) in
+          let none = (Page.document page)##createTextNode (js "") in
+          let none_maybe = Dom_html.createP (Page.document page) in
           Dom.appendChild none_maybe none;
           Dom.appendChild content none_maybe;
 

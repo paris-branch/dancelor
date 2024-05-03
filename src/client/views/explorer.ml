@@ -2,16 +2,16 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_model
 open Dancelor_client_components
-module Elements = Dancelor_client_elements
 module Formatters = Dancelor_client_formatters
 module Utils = Dancelor_client_utils
 module PageRouter = Dancelor_common_pageRouter
+module Page = Dancelor_client_page
 
 let js = Js.string
 
 type t =
   {
-    page : Elements.Page.t;
+    page : Page.t;
     content : Dom_html.divElement Js.t;
   }
 
@@ -34,7 +34,7 @@ let emoji_row emoji message =
   ]
 
 let create ?query page =
-  let document = Elements.Page.document page in
+  let document = Page.document page in
   let content = Dom_html.createDiv document in
 
   document##.title := js ("Explore | Dancelor");

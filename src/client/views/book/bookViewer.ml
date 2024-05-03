@@ -4,12 +4,13 @@ open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Components = Dancelor_client_components
+module Page = Dancelor_client_page
 
 let js = Js.string
 
 type t =
   {
-    page : Dancelor_client_elements.Page.t;
+    page : Page.t;
     content : Dom_html.divElement Js.t;
   }
 
@@ -123,7 +124,7 @@ let table_contents ~this_slug contents =
     ]
 
 let create ?context slug page =
-  let document = Dancelor_client_elements.Page.document page in
+  let document = Page.document page in
   let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
 

@@ -3,17 +3,18 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Components = Dancelor_client_components
+module Page = Dancelor_client_page
 
 let js = Js.string
 
 type t =
   {
-    page : Dancelor_client_elements.Page.t;
+    page : Page.t;
     content : Dom_html.divElement Js.t;
   }
 
 let create ?context slug page =
-  let document = Dancelor_client_elements.Page.document page in
+  let document = Page.document page in
   let content = Dom_html.createDiv document in
   let person_lwt = Person.get slug in
 

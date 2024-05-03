@@ -10,6 +10,6 @@
   cohttp-lwt-jsoo
   dancelor.nes
   dancelor.client.formatters
-  dancelor.client.elements
+  dancelor.client.page
   dancelor.common
   dancelor.client.tables))

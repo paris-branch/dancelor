@@ -7,6 +7,7 @@ module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
+module Page = Dancelor_client_page
 
 type ('name, 'date, 'sets) gen = {
   name : 'name;
@@ -143,7 +144,7 @@ end
 
 type t =
   {
-    page : Dancelor_client_elements.Page.t;
+    page : Page.t;
     content : Dom_html.divElement Js.t;
   }
 
@@ -194,7 +195,7 @@ let createNewAPI ?on_save ?edit () =
   ]
 
 let create ?on_save ?edit page =
-  let document = Dancelor_client_elements.Page.document page in
+  let document = Page.document page in
   let content = Dom_html.createDiv document in
   Lwt.async (fun () ->
       let verb = match edit with None -> "Add" | Some _ -> "Edit" in

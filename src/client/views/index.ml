@@ -5,14 +5,14 @@ open Dancelor_client_components
 open Dancelor_client_utils
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
-
+module Page = Dancelor_client_page
 module Html = Dom_html
 
 let js = Js.string
 
 type t =
   {
-    page : Dancelor_client_elements.Page.t;
+    page : Page.t;
     document : Html.document Js.t;
     content : Html.divElement Js.t;
   }

@@ -5,6 +5,7 @@ open Dancelor_client_html
 module SCDDB = Dancelor_common.SCDDB
 module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
+module Page = Dancelor_client_page
 
 type ('name, 'scddb_id) gen = {
   name : 'name;
@@ -76,7 +77,7 @@ end
 
 type t =
   {
-    page : Dancelor_client_elements.Page.t;
+    page : Page.t;
     content : Dom_html.divElement Js.t;
   }
 
@@ -113,7 +114,7 @@ let createNewAPI ?on_save () =
   ]
 
 let create ?on_save page =
-  let document = Dancelor_client_elements.Page.document page in
+  let document = Page.document page in
   let content = Dom_html.createDiv document in
   Lwt.async (fun () ->
       document##.title := Js.string ("Add a person | Dancelor");
