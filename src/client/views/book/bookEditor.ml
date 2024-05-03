@@ -34,8 +34,6 @@ module RawState = struct
     date = "";
     sets = [];
   }
-
-  let _key = "BookEditor.RawState"
 end
 
 module State = struct
@@ -94,7 +92,7 @@ module Editor = struct
     match edit with
     | None ->
       Lwt.return @@
-      Utils.with_local_storage (module RawState) raw_state f
+      Utils.with_local_storage "BookEditor" (module RawState) raw_state f
     | Some slug ->
       let%lwt book = Model.Book.get slug in
       let%lwt raw_state = Lwt.map State.to_raw_state (State.of_model book) in

@@ -52,8 +52,6 @@ module RawState = struct
     disambiguation = "";
     content = ""
   }
-
-  let _key = "VersionEditor.RawState"
 end
 
 module Editor = struct
@@ -92,7 +90,7 @@ module Editor = struct
     RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    Utils.with_local_storage "VersionEditor" (module RawState) raw_state @@ fun initial_state ->
     let tune = Selector.make
         ~search: (fun slice input ->
             let threshold = 0.4 in

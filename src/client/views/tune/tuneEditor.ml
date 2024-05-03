@@ -49,8 +49,6 @@ module RawState = struct
     remark = "";
     scddb_id = "";
   }
-
-  let _key = "TuneEditor.RawState"
 end
 
 module Editor = struct
@@ -86,7 +84,7 @@ module Editor = struct
     RS.pure {name; kind; composers; date; dances; remark; scddb_id}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    Utils.with_local_storage "TuneEditor" (module RawState) raw_state @@ fun initial_state ->
     let name = Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in

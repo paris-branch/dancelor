@@ -24,8 +24,6 @@ module RawState = struct
     name = "";
     scddb_id = "";
   }
-
-  let _key = "PersonEditor.RawState"
 end
 
 module Editor = struct
@@ -46,7 +44,7 @@ module Editor = struct
     RS.pure {name; scddb_id}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    Utils.with_local_storage "PersonEditor" (module RawState) raw_state @@ fun initial_state ->
     let name = Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty:"The name cannot be empty."
     in

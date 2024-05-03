@@ -47,8 +47,6 @@ module RawState = struct
     two_chords = ();
     scddb_id = "";
   }
-
-  let _key = "DanceEditor.RawState"
 end
 
 module Editor = struct
@@ -88,7 +86,7 @@ module Editor = struct
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    Utils.with_local_storage "DanceEditor" (module RawState) raw_state @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let name = Input.Text.make ~has_interacted initial_state.name @@

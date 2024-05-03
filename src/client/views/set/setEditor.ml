@@ -46,8 +46,6 @@ module RawState = struct
     versions = [];
     order = ""
   }
-
-  let _key = "SetEditor.RawState"
 end
 
 module Editor = struct
@@ -77,7 +75,7 @@ module Editor = struct
     RS.pure {name; kind; conceptors; versions; order}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
+    Utils.with_local_storage "SetEditor" (module RawState) raw_state @@ fun initial_state ->
     let name = Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
@@ -110,7 +108,7 @@ module Editor = struct
     {name; kind; conceptors; versions; order}
 
   let add_to_storage version =
-    Utils.update (module RawState) @@ fun state ->
+    Utils.update "SetEditor" (module RawState) @@ fun state ->
     { state with versions = state.versions @ [version] }
 
   let clear (editor : t) =
