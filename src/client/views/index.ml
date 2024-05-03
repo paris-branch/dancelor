@@ -15,7 +15,7 @@ let search slice input =
   Lwt.return_ok results
 
 let create () =
-  Page.make_new_api ~title:(S.const "") @@
+  Page.make ~title:(S.const "") @@
   div [
 
     QuickSearchBar.make_and_render

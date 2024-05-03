@@ -9,7 +9,7 @@ open Dancelor_client_html
 let create ?context slug =
   let dance_lwt = Dance.get slug in
   let title = S.from' "" (Lwt.map Dance.name dance_lwt) in
-  Page.make_new_api ~title:(Page.sub_title "Dance" title) @@
+  Page.make ~title:(Page.sub_title "Dance" title) @@
   div [
     Components.ContextLinks.make_and_render
       ?context

@@ -118,7 +118,7 @@ let table_contents ~this_slug contents =
 let create ?context slug =
   let book_lwt = Book.get slug in
   let title = S.from' "" (Lwt.map Book.title book_lwt) in
-  Page.make_new_api ~title: (Page.sub_title "Book" title) @@
+  Page.make ~title:(Page.sub_title "Book" title) @@
   div [
     Components.ContextLinks.make_and_render
       ?context

@@ -144,7 +144,7 @@ end
 
 let create ?on_save ?edit () =
   let title = (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book" in
-  Page.make_new_api ~title:(S.const title) @@
+  Page.make ~title:(S.const title) @@
   L.div (
     try%lwt
       let%lwt editor = Editor.create ?edit () in

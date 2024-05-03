@@ -156,7 +156,7 @@ end
 let create ?on_save () =
   let title = "Add a dance" in
   let editor = Editor.create () in
-  Page.make_new_api ~title:(S.const title) @@
+  Page.make ~title:(S.const title) @@
   div [
     h2 ~a:[a_class ["title"]] [txt title];
 

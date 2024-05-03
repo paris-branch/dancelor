@@ -41,7 +41,7 @@ let create ?query () =
       ()
   in
   let title = "Explore" in
-  Page.make_new_api ~title:(S.const title) @@
+  Page.make ~title:(S.const title) @@
   div [
     h2 ~a:[a_class ["title"]] [txt title];
 
