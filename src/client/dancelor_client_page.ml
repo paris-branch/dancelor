@@ -57,7 +57,6 @@ module type CONTENTS = sig
   val create : page -> t
   val contents : t -> Dom_html.divElement Js.t
   val init : t -> unit
-  val refresh : t -> unit
 end
 
 let create () =
@@ -95,8 +94,7 @@ let set_contents (type s) (module M : CONTENTS with type t = s) t contents =
   end;
   (M.contents contents)##.classList##add (js "content");
   (M.contents contents)##.classList##add (js "page-body");
-  t.content <- Some (M.contents contents);
-  t.on_refresh <- (fun () -> M.refresh contents)
+  t.content <- Some (M.contents contents)
 
 let register_modal ?(on_refresh = (fun () -> ())) t ~element ~on_unfocus ~targets = 
   t.modals <- {element; on_unfocus; targets; on_refresh} :: t.modals

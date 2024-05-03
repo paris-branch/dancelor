@@ -17,7 +17,6 @@ let pack (create : unit -> Page.new_api) =
     type t = Dom_html.divElement Js.t
 
     let init _ = ()
-    let refresh _ = ()
     let contents = Fun.id
 
     let create _ =
