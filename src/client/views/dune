@@ -7,7 +7,7 @@
   js_of_ocaml-lwt
   cohttp-lwt-jsoo
   dancelor.client.html
-  dancelor.client.elements
+  dancelor.client.page
   dancelor.client.tables
   dancelor.client.formatters
   dancelor.client.utils

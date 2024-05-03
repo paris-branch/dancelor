@@ -5,8 +5,6 @@ open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 open Dancelor_client_html
 
-module Html = Dom_html
-
 let js = Js.string
 
 (* FIXME: this is very similar to [Dancelor_client_tables.clickable_row]; those

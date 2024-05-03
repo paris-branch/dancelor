@@ -7,6 +7,7 @@ module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
+module Page = Dancelor_client_page
 
 type ('name, 'date, 'sets) gen = {
   name : 'name;
@@ -141,78 +142,51 @@ module Editor = struct
         ()
 end
 
-type t =
-  {
-    page : Dancelor_client_elements.Page.t;
-    content : Dom_html.divElement Js.t;
-  }
+let create ?on_save ?edit () =
+  let title = (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book" in
+  Page.make ~title:(S.const title) @@
+  L.div (
+    try%lwt
+      let%lwt editor = Editor.create ?edit () in
+      Lwt.return @@ [
+        h2 ~a:[a_class ["title"]] [txt title];
 
-let refresh _ = ()
-let contents t = t.content
-let init t = refresh t
+        form [
+          Input.Text.render
+            editor.name
+            ~label: "Name"
+            ~placeholder: "eg. The Dusty Miller Book";
+          Input.Text.render
+            editor.date
+            ~label: "Date of devising"
+            ~placeholder: "eg. 2019 or 2012-03-14";
+          ListSelector.render
+            ~make_result: AnyResultNewAPI.make_set_result'
+            ~field_name: ("Sets", "set")
+            ~model_name: "set"
+            ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ SetEditor.create ?on_save ())
+            editor.sets;
 
-let createNewAPI ?on_save ?edit () =
-  let%lwt editor = Editor.create ?edit () in
-
-  Lwt.return @@ div [
-    h2 ~a:[a_class ["title"]] [
-      let verb = match edit with None -> "Add" | Some _ -> "Edit" in
-      txt (verb ^ " a book")
-    ];
-
-    form [
-      Input.Text.render
-        editor.name
-        ~label: "Name"
-        ~placeholder: "eg. The Dusty Miller Book";
-      Input.Text.render
-        editor.date
-        ~label: "Date of devising"
-        ~placeholder: "eg. 2019 or 2012-03-14";
-      ListSelector.render
-        ~make_result: AnyResultNewAPI.make_set_result'
-        ~field_name: ("Sets", "set")
-        ~model_name: "set"
-        ~create_dialog_content: SetEditor.createNewAPI
-        editor.sets;
-
-      Button.group [
-        Button.save
-          ~disabled: (S.map Option.is_none (Editor.state editor))
-          ~onclick: (fun () ->
-              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun book ->
-              match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_book (Model.Book.slug book))
-              | Some on_save -> on_save book
-            )
-          ();
-        Button.clear
-          ~onclick: (fun () -> Editor.clear editor)
-          ();
-      ]
-    ]
-  ]
-
-let create ?on_save ?edit page =
-  let document = Dancelor_client_elements.Page.document page in
-  let content = Dom_html.createDiv document in
-  Lwt.async (fun () ->
-      let verb = match edit with None -> "Add" | Some _ -> "Edit" in
-      document##.title := Js.string (verb ^ " a book | Dancelor");
-      Lwt.return ()
-    );
-  Lwt.async (fun () ->
-      try%lwt
-        let%lwt div = createNewAPI ?on_save ?edit () in
-        Dom.appendChild content (To_dom.of_div div);
-        Lwt.return_unit
-      with
-        State.Non_convertible ->
-        Lwt.map ignore @@ Dialog.open_ @@ fun _return ->
-        [
-          h2 [txt "Error"];
-          p [txt "This book cannot be edited."];
-          (* FIXME: handle this more gracefully *)
+          Button.group [
+            Button.save
+              ~disabled: (S.map Option.is_none (Editor.state editor))
+              ~onclick: (fun () ->
+                  Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun book ->
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_book (Model.Book.slug book))
+                  | Some on_save -> on_save book
+                )
+              ();
+            Button.clear
+              ~onclick: (fun () -> Editor.clear editor)
+              ();
+          ]
         ]
-    );
-  {page; content}
+      ]
+    with
+      State.Non_convertible ->
+      Lwt.return [
+        h2 ~a:[a_class ["title"]] [txt "Error"];
+        p [txt "This book cannot be edited."];
+      ]
+  )

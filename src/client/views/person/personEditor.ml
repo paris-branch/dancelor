@@ -5,6 +5,7 @@ open Dancelor_client_html
 module SCDDB = Dancelor_common.SCDDB
 module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
+module Page = Dancelor_client_page
 
 type ('name, 'scddb_id) gen = {
   name : 'name;
@@ -74,18 +75,12 @@ module Editor = struct
         ()
 end
 
-type t =
-  {
-    page : Dancelor_client_elements.Page.t;
-    content : Dom_html.divElement Js.t;
-  }
-
-let refresh _ = ()
-
-let createNewAPI ?on_save () =
+let create ?on_save () =
+  let title = "Add a person" in
   let editor = Editor.create () in
+  Page.make ~title:(S.const title) @@
   div [
-    h2 ~a:[a_class ["title"]] [txt "Add a person"];
+    h2 ~a:[a_class ["title"]] [txt title];
     form [
       Input.Text.render
         editor.name
@@ -111,19 +106,3 @@ let createNewAPI ?on_save () =
       ];
     ]
   ]
-
-let create ?on_save page =
-  let document = Dancelor_client_elements.Page.document page in
-  let content = Dom_html.createDiv document in
-  Lwt.async (fun () ->
-      document##.title := Js.string ("Add a person | Dancelor");
-      Lwt.return ()
-    );
-  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
-  {page; content}
-
-let contents t =
-  t.content
-
-let init t =
-  refresh t

@@ -7,6 +7,7 @@ module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
+module Page = Dancelor_client_page
 
 type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
   name : 'name;
@@ -156,20 +157,12 @@ module Editor = struct
         ()
 end
 
-type t =
-  {
-    page : Dancelor_client_elements.Page.t;
-    content : Dom_html.divElement Js.t;
-  }
-
-let refresh _ = ()
-let contents t = t.content
-let init t = refresh t
-
-let createNewAPI ?on_save () =
+let create ?on_save () =
+  let title = "Add a tune" in
   let editor = Editor.create () in
+  Page.make ~title:(S.const title) @@
   div [
-    h2 ~a:[a_class ["title"]] [txt "Add a tune"];
+    h2 ~a:[a_class ["title"]] [txt title];
 
     form [
       Input.Text.render
@@ -184,7 +177,7 @@ let createNewAPI ?on_save () =
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: ("Composers", "composer")
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.createNewAPI
+        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
         editor.composers;
       Input.Text.render
         editor.date
@@ -194,7 +187,7 @@ let createNewAPI ?on_save () =
         ~make_result: AnyResultNewAPI.make_dance_result'
         ~field_name: ("Dances", "dance")
         ~model_name: "dance"
-        ~create_dialog_content: DanceEditor.createNewAPI
+        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ DanceEditor.create ?on_save ()) (* FIXME: ListSelector should just take a page *)
         editor.dances;
       Input.Text.render
         editor.remark
@@ -221,13 +214,3 @@ let createNewAPI ?on_save () =
       ]
     ]
   ]
-
-let create ?on_save page =
-  let document = Dancelor_client_elements.Page.document page in
-  let content = Dom_html.createDiv document in
-  Lwt.async (fun () ->
-      document##.title := Js.string "Add a tune | Dancelor";
-      Lwt.return ()
-    );
-  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
-  {page; content}

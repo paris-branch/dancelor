@@ -7,7 +7,6 @@
   js_of_ocaml-lwt
   cohttp-lwt-jsoo
   dancelor.client.html
-  dancelor.client.elements
   dancelor.client.tables
   dancelor.client.formatters
   dancelor.client.model
@@ -16,9 +15,18 @@
   dancelor.nes
   dancelor.common)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx)))
+  (pps lwt_ppx js_of_ocaml-ppx))
+ (modules :standard \ dancelor_client_page))
 
 (install
  (section share)
  (files
   (main.bc.js as client.js)))
+
+(library
+ (name dancelor_client_page)
+ (public_name dancelor.client.page)
+ (libraries js_of_ocaml-tyxml js_of_ocaml-lwt react)
+ (preprocess
+  (pps lwt_ppx js_of_ocaml-ppx))
+ (modules dancelor_client_page))

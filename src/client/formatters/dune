@@ -10,6 +10,6 @@
   cohttp-lwt-jsoo
   dancelor.common
   dancelor.client.model
-  dancelor.client.elements
+  dancelor.client.page
   dancelor.client.html
   dancelor.nes))
