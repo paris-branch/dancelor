@@ -18,8 +18,8 @@
     transition: 0.3s;
     user-select: none;
     font-size: 1em;
-    &:hover {
-    }
+    border-bottom: 1px solid transparent;
+
     &:active {
       transform: translateY(2px);
     }
@@ -27,6 +27,7 @@
 
   input:checked + label {
     background: $red;
+    border-bottom: 1px solid $red;
     color: $white;
     &:hover {
       background: darken($red, 5%);
