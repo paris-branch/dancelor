@@ -61,11 +61,16 @@ let to_pretty_string order =
     to_string order
 
 let of_string =
-  (* FIXME: Str might break when used from JS? *)
   let regexp = Str.regexp "[ \t]*,[ \t]*" in
   fun string ->
-    Str.split regexp string
-    |> List.map component_of_string
+    let result =
+      Str.split regexp string
+      |> List.map component_of_string
+    in
+    if List.length result = 0 then
+      failwith "SetOrder.of_string"
+    else
+      result
 
 let of_string_opt s =
   try Some (of_string s) with _ -> None
