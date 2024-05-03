@@ -151,13 +151,13 @@ let create ?on_save () =
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_person_result'
+        ~make_result: AnyResult.make_person_result'
         ~field_name: ("Conceptors", "conceptor")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
         editor.conceptors;
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_version_result'
+        ~make_result: AnyResult.make_version_result'
         ~make_more_results: (fun version -> [
               tr ~a:[a_class ["small-previsualisation"]] [
                 td ~a:[a_colspan 10000] [

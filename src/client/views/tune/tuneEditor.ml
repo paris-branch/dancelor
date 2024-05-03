@@ -172,7 +172,7 @@ let create ?on_save () =
         ~label: "Kind"
         ~placeholder:"eg. R or Strathspey";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_person_result'
+        ~make_result: AnyResult.make_person_result'
         ~field_name: ("Composers", "composer")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
@@ -182,7 +182,7 @@ let create ?on_save () =
         ~label: "Date of devising"
         ~placeholder:"eg. 2019 or 2012-03-14";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_dance_result'
+        ~make_result: AnyResult.make_dance_result'
         ~field_name: ("Dances", "dance")
         ~model_name: "dance"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ DanceEditor.create ?on_save ()) (* FIXME: ListSelector should just take a page *)

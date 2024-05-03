@@ -164,7 +164,7 @@ let create ?on_save () =
 
     form [
       Selector.render
-        ~make_result: AnyResultNewAPI.make_tune_result'
+        ~make_result: AnyResult.make_tune_result'
         ~field_name: ("Tune", "tune")
         ~model_name: "tune"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ TuneEditor.create ?on_save ())
@@ -182,7 +182,7 @@ let create ?on_save () =
         ~label: "Structure"
         ~placeholder: "eg. AABB or ABAB";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_person_result'
+        ~make_result: AnyResult.make_person_result'
         ~field_name: ("Arrangers", "arranger")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())

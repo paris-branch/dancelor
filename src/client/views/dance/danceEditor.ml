@@ -176,7 +176,7 @@ let create ?on_save () =
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_person_result'
+        ~make_result: AnyResult.make_person_result'
         ~field_name: ("Devisers", "deviser")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())

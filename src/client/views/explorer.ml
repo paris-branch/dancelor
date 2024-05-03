@@ -103,7 +103,7 @@ let create ?query () =
               match state with
               | Results results ->
                 let context = S.map PageRouter.inSearch @@ SearchBar.text search_bar in
-                List.map Utils.AnyResultNewAPI.(make_result ~context) results
+                List.map Utils.AnyResult.(make_result ~context) results
               | _ -> []
             )
           ];
