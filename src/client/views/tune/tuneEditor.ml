@@ -195,7 +195,7 @@ let createNewAPI ?on_save () =
         ~make_result: AnyResultNewAPI.make_dance_result'
         ~field_name: ("Dances", "dance")
         ~model_name: "dance"
-        ~create_dialog_content: DanceEditor.createNewAPI
+        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ DanceEditor.create ?on_save ()) (* FIXME: ListSelector should just take a page *)
         editor.dances;
       Input.Text.render
         editor.remark

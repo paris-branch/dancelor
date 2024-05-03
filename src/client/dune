@@ -26,7 +26,7 @@
 (library
  (name dancelor_client_page)
  (public_name dancelor.client.page)
- (libraries js_of_ocaml-lwt)
+ (libraries js_of_ocaml-tyxml js_of_ocaml-lwt react)
  (preprocess
   (pps lwt_ppx js_of_ocaml-ppx))
  (modules dancelor_client_page))

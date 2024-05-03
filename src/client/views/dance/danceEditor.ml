@@ -153,20 +153,12 @@ module Editor = struct
         ()
 end
 
-type t =
-  {
-    page : Page.t;
-    content : Dom_html.divElement Js.t;
-  }
-
-let refresh _ = ()
-let contents t = t.content
-let init t = refresh t
-
-let createNewAPI ?on_save () =
+let create ?on_save () =
+  let title = "Add a dance" in
   let editor = Editor.create () in
+  Page.make_new_api ~title:(S.const title) @@
   div [
-    h2 ~a:[a_class ["title"]] [txt "Add a dance"];
+    h2 ~a:[a_class ["title"]] [txt title];
 
     form [
       Input.Text.render
@@ -214,13 +206,3 @@ let createNewAPI ?on_save () =
       ]
     ]
   ]
-
-let create ?on_save page =
-  let document = Dom_html.document in
-  let content = Dom_html.createDiv document in
-  Lwt.async (fun () ->
-      document##.title := Js.string "Add a dance | Dancelor";
-      Lwt.return ()
-    );
-  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
-  {page; content}

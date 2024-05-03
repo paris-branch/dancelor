@@ -107,3 +107,16 @@ let remove_modal t element =
 let refresh t = 
   t.on_refresh ();
   List.iter (fun (modal : modal) -> modal.on_refresh ()) t.modals
+
+(* New page API *)
+
+open Js_of_ocaml_tyxml.Tyxml_js
+
+type new_api = {
+  title : string React.S.t;
+  content : Html_types.div Html.elt;
+}
+
+let get_content p = p.content
+
+let make_new_api ~title content = {title; content}
