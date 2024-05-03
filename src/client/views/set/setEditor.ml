@@ -2,8 +2,8 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_components
 open Dancelor_client_html
+open Dancelor_common
 module Model = Dancelor_client_model
-module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
@@ -158,6 +158,17 @@ let create ?on_save () =
         editor.conceptors;
       ListSelector.render
         ~make_result: AnyResultNewAPI.make_version_result'
+        ~make_more_results: (fun version -> [
+              tr ~a:[a_class ["small-previsualisation"]] [
+                td ~a:[a_colspan 10000] [
+                  object_ ~a:[
+                    a_mime_type "image/svg+xml";
+                    a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
+                  ] [];
+                ]
+              ]
+            ]
+          )
         ~field_name: ("Versions", "version")
         ~model_name: "versions"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ VersionEditor.create ?on_save ())

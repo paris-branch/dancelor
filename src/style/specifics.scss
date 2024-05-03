@@ -169,3 +169,8 @@ p {
   border: 2px solid darken($blue, 5%);
   border-radius: 2px;
 }
+
+tr.small-previsualisation object {
+  width: 65%;
+  min-width: 300px;
+}
