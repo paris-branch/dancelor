@@ -38,7 +38,18 @@ let create ?context slug =
         [
           i ~a:[a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
           txt " PDF";
+        ];
+
+      a
+        ~a:[
+          a_class ["button"];
+          a_href PageRouter.(path BookCompose);
+          a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
         ]
+        [
+          i ~a:[a_class ["material-symbols-outlined"]] [txt "add_box"];
+          txt " Add to current book";
+        ];
     ];
 
     p [ L.txt (
@@ -46,9 +57,9 @@ let create ?context slug =
         | "" -> Lwt.return ""
         | instructions -> Lwt.return ("Instructions: " ^ instructions)) ];
 
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Previsualisation"];
+    div ~a:[a_class ["after-buttons"]] [];
 
+    div ~a:[a_class ["section"]] [
       L.div (
         let%lwt set = set_lwt in
         let%lwt contents = Set.contents set in

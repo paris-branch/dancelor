@@ -1,6 +1,10 @@
 /* Class for div/span wrapper around a group of buttons. */
 .buttons {
-  text-align: right;
+  float: right;
+}
+
+.after-buttons {
+  clear: both;
 }
 
 .button {
