@@ -54,8 +54,7 @@ module Text = struct
               );
               false
             );
-          a_onchange (fun _ -> state.set_interacted (); false);
-          a_onblur (fun _ -> state.set_interacted (); false);
+          a_onfocus (fun _ -> state.set_interacted (); false);
         ];
 
       R.div ~a:[a_class ["message-box"]] (
@@ -71,11 +70,7 @@ module Text = struct
         ~a: [
           a_rows 15;
           a_placeholder placeholder;
-          R.a_class (
-            Fun.flip S.map (signal state) @@ function
-            | Ok _ -> []
-            | Error _ -> ["invalid"]
-          );
+          R.a_class (case_errored ~no:[] ~yes:(Fun.const ["invalid"]) state);
           a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
@@ -85,12 +80,11 @@ module Text = struct
               );
               false
             );
+          a_onfocus (fun _ -> state.set_interacted (); false);
         ];
 
       R.div ~a:[a_class ["message-box"]] (
-        Fun.flip S.map (signal state) @@ function
-        | Ok _ -> []
-        | Error msg -> [txt msg]
+        case_errored ~no:[] ~yes:(List.singleton % txt) state
       );
     ]
 end
