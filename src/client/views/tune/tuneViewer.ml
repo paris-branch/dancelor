@@ -24,7 +24,7 @@ let create ?context slug =
       match%lwt Lwt.map Tune.date tune_lwt with
       | None -> Lwt.return_nil
       | Some date ->
-        Lwt.return [txt "Date: "; txt (PartialDate.to_pretty_string date)]
+        Lwt.return [txt "Composed "; txt (PartialDate.to_pretty_string ~at:true date); txt "."]
     );
     L.div (
       match%lwt Lwt.map Tune.scddb_id tune_lwt with
@@ -32,11 +32,11 @@ let create ?context slug =
       | Some scddb_id ->
         let href = SCDDB.tune_uri scddb_id in
         Lwt.return [
-          h3 ~a:[a_class ["title"]] [
-            a ~a:[a_href (Uri.to_string href); a_target "blank"] [
-              txt "Link to the Strathspey Database"
-            ]
-          ]
+          txt "See on ";
+          a ~a:[a_href (Uri.to_string href); a_target "blank"] [
+            txt "the Strathspey Database"
+          ];
+          txt ".";
         ]
     );
 

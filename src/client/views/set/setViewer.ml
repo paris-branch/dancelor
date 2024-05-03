@@ -46,9 +46,9 @@ let create ?context slug =
         | "" -> Lwt.return ""
         | instructions -> Lwt.return ("Instructions: " ^ instructions)) ];
 
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Previsualisation"];
+    div ~a:[a_class ["after-buttons"]] [];
 
+    div ~a:[a_class ["section"]] [
       L.div (
         let%lwt set = set_lwt in
         let%lwt contents = Set.contents set in

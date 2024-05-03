@@ -38,7 +38,7 @@ let create ?context slug =
       match%lwt Lwt.map Dance.date dance_lwt with
       | None -> Lwt.return_nil
       | Some date ->
-        Lwt.return [txt "Date: "; txt (PartialDate.to_pretty_string date)]
+        Lwt.return [txt "Devised "; txt (PartialDate.to_pretty_string ~at:true date); txt "."]
     );
     L.div (
       match%lwt Lwt.map Dance.scddb_id dance_lwt with
@@ -46,11 +46,11 @@ let create ?context slug =
       | Some scddb_id ->
         let href = Uri.to_string @@ SCDDB.dance_uri scddb_id in
         Lwt.return [
-          h3 ~a:[a_class ["title"]] [
-            a ~a:[a_href href; a_target "blank"] [
-              txt "Link to the Strathspey Database"
-            ]
-          ]
+          txt "See to ";
+          a ~a:[a_href href; a_target "blank"] [
+            txt "the Strathspey Database"
+          ];
+          txt ".";
         ]
     );
 
