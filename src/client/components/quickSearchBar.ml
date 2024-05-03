@@ -44,11 +44,14 @@ let make ?(number_of_results=10) ~search () =
   let (table_visible, set_table_visible) = S.create false in
   {min_characters; search_bar; table_visible; set_table_visible}
 
-let render ~placeholder ~make_result ?on_enter ?(more_lines=[]) ?autofocus q =
+let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autofocus q =
   div ~a:[a_class ["search-bar"]] [
     SearchBar.render
       ~placeholder
-      ~on_focus: (fun () -> q.set_table_visible true)
+      ~on_focus: (fun () ->
+          Option.iter (fun on_focus -> on_focus ()) on_focus;
+          q.set_table_visible true
+        )
       ~on_blur: (fun () ->
           Lwt.async (fun () ->
               Lwt.pmsleep 0.1;%lwt

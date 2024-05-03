@@ -132,16 +132,16 @@ module Editor = struct
       set_interacted;
     }
 
-  let clear editor =
-    Input.Text.clear editor.name;
-    Input.Text.clear editor.kind;
-    ListSelector.clear editor.devisers;
-    Input.Text.clear editor.date;
-    Input.Text.clear editor.disambiguation;
+  let clear (editor : t) =
+    Input.Text.clear editor.elements.name;
+    Input.Text.clear editor.elements.kind;
+    ListSelector.clear editor.elements.devisers;
+    Input.Text.clear editor.elements.date;
+    Input.Text.clear editor.elements.disambiguation;
     (* FIXME: clear two chords *)
-    Input.Text.clear editor.scddb_id
+    Input.Text.clear editor.elements.scddb_id
 
-  let submit editor =
+  let submit (editor : t) =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
@@ -208,7 +208,7 @@ let create ?on_save () =
             )
           ();
         Button.clear
-          ~onclick: (fun () -> Editor.clear editor.elements)
+          ~onclick: (fun () -> Editor.clear editor)
           ();
       ]
     ]

@@ -6,6 +6,7 @@ open Dancelor_client_html
 type 'model t
 
 val make :
+  ?has_interacted: bool S.t ->
   search: (Slice.t -> string -> (int * 'model list, string) Result.t Lwt.t) ->
   serialise: ('model -> 'model Slug.t) ->
   unserialise: ('model Slug.t -> 'model Lwt.t) ->
@@ -14,11 +15,7 @@ val make :
 
 val raw_signal : 'model t -> 'model Slug.t option S.t
 
-val signal : 'model t -> ('model option, string) Result.t S.t
-
-val signal_non_empty : 'model t -> ('model, string) Result.t S.t
-(** Same as {!signal} except it can only be [Some], [None] being mapped to an
-    error. *)
+val signal : 'model t -> ('model, string) Result.t S.t
 
 val clear : 'model t -> unit
 

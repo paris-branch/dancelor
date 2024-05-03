@@ -55,59 +55,65 @@ module RawState = struct
 end
 
 module Editor = struct
-  type t = (
-    Model.Tune.t Selector.t,
-    int Input.Text.t,
-    Model.Music.key Input.Text.t,
-    string Input.Text.t,
-    Model.Person.t ListSelector.t,
-    string Input.Text.t,
-    string Input.Text.t,
-    string Input.Text.t
-  ) gen
+  type t = {
+    elements : (
+      Model.Tune.t Selector.t,
+      int Input.Text.t,
+      Model.Music.key Input.Text.t,
+      string Input.Text.t,
+      Model.Person.t ListSelector.t,
+      string Input.Text.t,
+      string Input.Text.t,
+      string Input.Text.t
+    ) gen;
+    set_interacted : unit -> unit;
+  }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Selector.raw_signal editor.tune) @@ fun tune ->
-    S.bind (Input.Text.raw_signal editor.bars) @@ fun bars ->
-    S.bind (Input.Text.raw_signal editor.key) @@ fun key ->
-    S.bind (Input.Text.raw_signal editor.structure) @@ fun structure ->
-    S.bind (ListSelector.raw_signal editor.arrangers) @@ fun arrangers ->
-    S.bind (Input.Text.raw_signal editor.remark) @@ fun remark ->
-    S.bind (Input.Text.raw_signal editor.disambiguation) @@ fun disambiguation ->
-    S.bind (Input.Text.raw_signal editor.content) @@ fun content ->
+    S.bind (Selector.raw_signal editor.elements.tune) @@ fun tune ->
+    S.bind (Input.Text.raw_signal editor.elements.bars) @@ fun bars ->
+    S.bind (Input.Text.raw_signal editor.elements.key) @@ fun key ->
+    S.bind (Input.Text.raw_signal editor.elements.structure) @@ fun structure ->
+    S.bind (ListSelector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
+    S.bind (Input.Text.raw_signal editor.elements.remark) @@ fun remark ->
+    S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
+    S.bind (Input.Text.raw_signal editor.elements.content) @@ fun content ->
     S.const {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Selector.signal_non_empty editor.tune) @@ fun tune ->
-    RS.bind (Input.Text.signal editor.bars) @@ fun bars ->
-    RS.bind (Input.Text.signal editor.key) @@ fun key ->
-    RS.bind (Input.Text.signal editor.structure) @@ fun structure ->
-    RS.bind (ListSelector.signal editor.arrangers) @@ fun arrangers ->
-    RS.bind (Input.Text.signal editor.remark) @@ fun remark ->
-    RS.bind (Input.Text.signal editor.disambiguation) @@ fun disambiguation ->
-    RS.bind (Input.Text.signal editor.content) @@ fun content ->
+    RS.bind (Selector.signal editor.elements.tune) @@ fun tune ->
+    RS.bind (Input.Text.signal editor.elements.bars) @@ fun bars ->
+    RS.bind (Input.Text.signal editor.elements.key) @@ fun key ->
+    RS.bind (Input.Text.signal editor.elements.structure) @@ fun structure ->
+    RS.bind (ListSelector.signal editor.elements.arrangers) @@ fun arrangers ->
+    RS.bind (Input.Text.signal editor.elements.remark) @@ fun remark ->
+    RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
+    RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
   let create () : t =
     Utils.with_local_storage "VersionEditor" (module RawState) raw_state @@ fun initial_state ->
+    let (has_interacted, set_interacted) = S.create false in
+    let set_interacted () = set_interacted true in
     let tune = Selector.make
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Tune.search ~threshold ~slice filter
           )
+        ~has_interacted
         ~serialise: Model.Tune.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
-    let bars = Input.Text.make initial_state.bars @@
+    let bars = Input.Text.make ~has_interacted initial_state.bars @@
       Option.to_result ~none:"Must be an integer" % int_of_string_opt
     in
-    let key = Input.Text.make initial_state.key @@
+    let key = Input.Text.make ~has_interacted initial_state.key @@
       Option.to_result ~none:"Must be a valid key" % Model.Music.key_of_string_opt
     in
-    let structure = Input.Text.make initial_state.structure @@ Result.ok in
+    let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
     let arrangers = ListSelector.make
         ~search: (fun slice input ->
             let threshold = 0.4 in
@@ -118,23 +124,25 @@ module Editor = struct
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
-    let remark = Input.Text.make initial_state.remark @@ Result.ok in
+    let remark = Input.Text.make ~has_interacted initial_state.remark @@ Result.ok in
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
-    let content =
-      Input.Text.make initial_state.content @@
+    let content = Input.Text.make ~has_interacted initial_state.content @@
       Result.of_string_nonempty ~empty: "Cannot be empty."
     in
-    {tune; bars; key; structure; arrangers; remark; disambiguation; content}
+    {
+      elements = {tune; bars; key; structure; arrangers; remark; disambiguation; content};
+      set_interacted;
+    }
 
   let clear (editor : t) =
-    Selector.clear editor.tune;
-    Input.Text.clear editor.bars;
-    Input.Text.clear editor.key;
-    Input.Text.clear editor.structure;
-    ListSelector.clear editor.arrangers;
-    Input.Text.clear editor.remark;
-    Input.Text.clear editor.disambiguation;
-    Input.Text.clear editor.content
+    Selector.clear editor.elements.tune;
+    Input.Text.clear editor.elements.bars;
+    Input.Text.clear editor.elements.key;
+    Input.Text.clear editor.elements.structure;
+    ListSelector.clear editor.elements.arrangers;
+    Input.Text.clear editor.elements.remark;
+    Input.Text.clear editor.elements.disambiguation;
+    Input.Text.clear editor.elements.content
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -168,17 +176,17 @@ let create ?on_save () =
         ~field_name: ("Tune", "tune")
         ~model_name: "tune"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ TuneEditor.create ?on_save ())
-        editor.tune;
+        editor.elements.tune;
       Input.Text.render
-        editor.bars
+        editor.elements.bars
         ~label: "Number of bars"
         ~placeholder: "eg. 32 or 48";
       Input.Text.render
-        editor.key
+        editor.elements.key
         ~label: "Key"
         ~placeholder: "eg. A or F#m";
       Input.Text.render
-        editor.structure
+        editor.elements.structure
         ~label: "Structure"
         ~placeholder: "eg. AABB or ABAB";
       ListSelector.render
@@ -186,17 +194,17 @@ let create ?on_save () =
         ~field_name: ("Arrangers", "arranger")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
-        editor.arrangers;
+        editor.elements.arrangers;
       Input.Text.render
-        editor.disambiguation
+        editor.elements.disambiguation
         ~label: "Disambiguation"
         ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
       Input.Text.render
-        editor.remark
+        editor.elements.remark
         ~label: "Remark"
         ~placeholder: "Any additional information that doesn't fit in the other fields.";
       Input.Text.render_as_textarea
-        editor.content
+        editor.elements.content
         ~label: "LilyPond content"
         ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
 
@@ -204,6 +212,7 @@ let create ?on_save () =
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
+              editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun version ->
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))

@@ -27,38 +27,46 @@ module RawState = struct
 end
 
 module Editor = struct
-  type t = (
-    string Input.Text.t,
-    SCDDB.entry_id option Input.Text.t
-  ) gen
+  type t = {
+    elements : (
+      string Input.Text.t,
+      SCDDB.entry_id option Input.Text.t
+    ) gen;
+    set_interacted : unit -> unit;
+  }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.scddb_id) @@ fun scddb_id ->
+    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.scddb_id) @@ fun scddb_id ->
+    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; scddb_id}
 
   let create () : t =
     Utils.with_local_storage "PersonEditor" (module RawState) raw_state @@ fun initial_state ->
-    let name = Input.Text.make initial_state.name @@
+    let (has_interacted, set_interacted) = S.create false in
+    let set_interacted () = set_interacted true in
+    let name = Input.Text.make ~has_interacted initial_state.name @@
       Result.of_string_nonempty ~empty:"The name cannot be empty."
     in
-    let scddb_id = Input.Text.make initial_state.scddb_id @@
+    let scddb_id = Input.Text.make ~has_interacted initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person)
       % Option.of_string_nonempty
     in
-    {name; scddb_id}
+    {
+      elements = {name; scddb_id};
+      set_interacted;
+    }
 
   let clear (editor : t) : unit =
-    Input.Text.clear editor.name;
-    Input.Text.clear editor.scddb_id
+    Input.Text.clear editor.elements.name;
+    Input.Text.clear editor.elements.scddb_id
 
   let submit (editor : t) : Model.Person.t option Lwt.t =
     match S.value (state editor) with
@@ -81,17 +89,18 @@ let create ?on_save () =
     h2 ~a:[a_class ["title"]] [txt title];
     form [
       Input.Text.render
-        editor.name
+        editor.elements.name
         ~label: "Name"
         ~placeholder: "eg. John Doe";
       Input.Text.render
-        editor.scddb_id
+        editor.elements.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
       Button.group [
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
+              editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun person ->
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))

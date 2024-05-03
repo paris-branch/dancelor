@@ -7,13 +7,21 @@ module Model = Dancelor_client_model
 (* TODO: Also store the search text in the raw signal. *)
 
 type 'model t = {
+  has_interacted : bool S.t;
+  set_interacted : unit -> unit;
   signal : 'model option S.t;
   set : 'model option -> unit;
   search_bar : 'model QuickSearchBar.t;
   serialise : 'model -> 'model Slug.t;
 }
 
-let make ~search ~serialise ~unserialise initial_value =
+let make ?(has_interacted=S.const false) ~search ~serialise ~unserialise initial_value =
+  let (has_interacted_locally, set_interacted) = S.create false in
+  let has_interacted = S.l2 (||) has_interacted has_interacted_locally in
+  let set_interacted () =
+    set_interacted true;
+    S.stop ~strong:true has_interacted
+  in
   let (signal, set) = S.create None in
   let search_bar = QuickSearchBar.make
       ~number_of_results: 5
@@ -25,15 +33,20 @@ let make ~search ~serialise ~unserialise initial_value =
       set initial_value;
       Lwt.return_unit
     );
-  {signal; set; search_bar; serialise}
+  {has_interacted; set_interacted; signal; set; search_bar; serialise}
 
 let raw_signal s = S.map (Option.map s.serialise) s.signal
 
-let signal (s : 'model t) : ('model option, string) Result.t S.t =
-  S.map Result.ok s.signal
-
-let signal_non_empty (s : 'model t) : ('model, string) Result.t S.t =
+let signal (s : 'model t) : ('model, string) Result.t S.t =
   S.map (Option.to_result ~none:"Must select something") s.signal
+
+let has_interacted state = state.has_interacted
+
+let case_errored ~no ~yes state =
+  S.bind (has_interacted state) @@ fun has_interacted ->
+  Fun.flip S.map (signal state) @@ function
+  | Error msg when has_interacted -> yes msg
+  | _ -> no
 
 let clear s =
   s.set None;
@@ -57,59 +70,67 @@ let render
      )
     s
   =
-  div ~a:[a_class ["form-element"]] [
-    label [txt (fst field_name)];
+  div
+    ~a:[
+      R.a_class (case_errored ~no:["form-element"] ~yes:(Fun.const ["form-element"; "invalid"]) s);
+    ]
+    [
+      label [txt (fst field_name)];
 
-    tablex ~a:[a_class ["container"]] [
-      R.tbody (
-        Fun.flip S.map s.signal @@ fun maybe_element ->
-        List.map
-          (fun element ->
-             make_result
-               ~classes: ["row"]
-               ~onclick: (fun () -> ())
-               ~suffix: [
-                 td ~a:[a_class ["actions"]] [
-                   button
-                     ~a: [
-                       a_onclick (fun _ -> s.set None; true);
-                       a_class ["btn-danger"];
-                     ]
-                     [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
+      tablex ~a:[a_class ["container"]] [
+        R.tbody (
+          Fun.flip S.map s.signal @@ fun maybe_element ->
+          List.map
+            (fun element ->
+               make_result
+                 ~classes: ["row"]
+                 ~onclick: (fun () -> ())
+                 ~suffix: [
+                   td ~a:[a_class ["actions"]] [
+                     button
+                       ~a: [
+                         a_onclick (fun _ -> s.set None; true);
+                         a_class ["btn-danger"];
+                       ]
+                       [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
+                   ]
                  ]
-               ]
-               element
-          )
-          (Option.to_list maybe_element)
-      )
-    ];
-
-    QuickSearchBar.render
-      ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
-      ~make_result: (fun person ->
-          Lwt.return @@ make_result
-            ~onclick:(fun () ->
-                s.set (Some person);
-                QuickSearchBar.clear s.search_bar;
-              )
-            ~suffix:[]
-            person
-        )
-      ~more_lines: [
-        QuickSearchBar.fa_row
-          ~onclick:(fun () ->
-              Lwt.async @@ fun () ->
-              let%lwt result = Dialog.open_ @@ fun return ->
-                QuickSearchBar.clear s.search_bar;
-                [create_dialog_content ~on_save:return ()]
-              in
-              Result.iter (fun element ->
-                  s.set (Some element);
-                ) result;
-              Lwt.return_unit
+                 element
             )
-          "add_circle" ("Create a new " ^ model_name)
-      ]
-      s.search_bar;
-    div ~a:[a_class ["message-box"]] [];
-  ]
+            (Option.to_list maybe_element)
+        )
+      ];
+
+      QuickSearchBar.render
+        ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
+        ~on_focus: s.set_interacted
+        ~make_result: (fun person ->
+            Lwt.return @@ make_result
+              ~onclick:(fun () ->
+                  s.set (Some person);
+                  QuickSearchBar.clear s.search_bar;
+                )
+              ~suffix:[]
+              person
+          )
+        ~more_lines: [
+          QuickSearchBar.fa_row
+            ~onclick:(fun () ->
+                Lwt.async @@ fun () ->
+                let%lwt result = Dialog.open_ @@ fun return ->
+                  QuickSearchBar.clear s.search_bar;
+                  [create_dialog_content ~on_save:return ()]
+                in
+                Result.iter (fun element ->
+                    s.set (Some element);
+                  ) result;
+                Lwt.return_unit
+              )
+            "add_circle" ("Create a new " ^ model_name)
+        ]
+        s.search_bar;
+
+      R.div ~a:[a_class ["message-box"]] (
+        case_errored ~no:[] ~yes:(List.singleton % txt) s
+      );
+    ]
