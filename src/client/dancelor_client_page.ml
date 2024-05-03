@@ -120,3 +120,7 @@ type new_api = {
 let get_content p = p.content
 
 let make_new_api ~title content = {title; content}
+
+let sub_title category title = Fun.flip React.S.map title @@ function
+  | "" -> category
+  | title -> title ^ " | " ^ category

@@ -1,18 +1,10 @@
 open Nes
-open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Components = Dancelor_client_components
 module Page = Dancelor_client_page
-
-let js = Js.string
-
-type t =
-  {
-    page : Page.t;
-    content : Dom_html.divElement Js.t;
-  }
+open Dancelor_client_html
 
 let display_warnings warnings =
   let open Dancelor_client_html in
@@ -123,92 +115,73 @@ let table_contents ~this_slug contents =
       )
     ]
 
-let create ?context slug page =
-  let document = Dom_html.document in
-  let content = Dom_html.createDiv document in
+let create ?context slug =
   let book_lwt = Book.get slug in
+  let title = S.from' "" (Lwt.map Book.title book_lwt) in
+  Page.make_new_api ~title: (Page.sub_title "Book" title) @@
+  div [
+    Components.ContextLinks.make_and_render
+      ?context
+      ~this_page: (PageRouter.path_book slug)
+      (Lwt.map Any.book book_lwt);
 
-  Lwt.on_success book_lwt (fun book ->
-      document##.title := js (Book.title book ^ " | Book | Dancelor");
-    );
-
-  let open Dancelor_client_html in
-
-  (
-    Dom.appendChild content @@ To_dom.of_div @@ div [
-      Components.ContextLinks.make_and_render
-        ?context
-        ~this_page: (PageRouter.path_book slug)
-        (Lwt.map Any.book book_lwt);
-
-      h2 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.title book_lwt];
-      h3 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
-      L.div (
-        match%lwt Lwt.map Book.scddb_id book_lwt with
-        | None -> Lwt.return_nil
-        | Some scddb_id ->
-          let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
-          Lwt.return [
-            h3 ~a:[a_class ["title"]] [
-              a ~a:[a_href href; a_target "blank"] [
-                txt "Link to the Strathspey Database"
-              ]
+    h2 ~a:[a_class ["title"]] [R.txt title];
+    h3 ~a:[a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
+    L.div (
+      match%lwt Lwt.map Book.scddb_id book_lwt with
+      | None -> Lwt.return_nil
+      | Some scddb_id ->
+        let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
+        Lwt.return [
+          h3 ~a:[a_class ["title"]] [
+            a ~a:[a_href href; a_target "blank"] [
+              txt "Link to the Strathspey Database"
             ]
           ]
-      );
+        ]
+    );
 
-      L.div (
-        match%lwt book_lwt >>=| Book.warnings with
-        | [] -> Lwt.return []
-        | warnings -> Lwt.return [div ~a:[a_class ["warning"]] [ul (display_warnings warnings)]]
-      );
+    L.div (
+      match%lwt book_lwt >>=| Book.warnings with
+      | [] -> Lwt.return []
+      | warnings -> Lwt.return [div ~a:[a_class ["warning"]] [ul (display_warnings warnings)]]
+    );
 
-      p [
-        L.txt (
-          match%lwt Lwt.map Book.date book_lwt with
-          | None -> Lwt.return ""
-          | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
-        )
-      ];
+    p [
+      L.txt (
+        match%lwt Lwt.map Book.date book_lwt with
+        | None -> Lwt.return ""
+        | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
+      )
+    ];
 
-      div ~a:[a_class ["buttons"]] [
-        a
-          ~a:[
-            a_class ["button"];
-            a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
-          ]
-          [
-            i ~a:[a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
-            txt " PDF";
-          ];
+    div ~a:[a_class ["buttons"]] [
+      a
+        ~a:[
+          a_class ["button"];
+          a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
+        ]
+        [
+          i ~a:[a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
+          txt " PDF";
+        ];
 
-        a
-          ~a:[
-            a_class ["button"];
-            a_href PageRouter.(path (BookEdit slug))
-          ]
-          [
-            i ~a:[a_class ["material-symbols-outlined"]] [txt "edit"];
-            txt " Edit"
-          ]
-      ];
+      a
+        ~a:[
+          a_class ["button"];
+          a_href PageRouter.(path (BookEdit slug))
+        ]
+        [
+          i ~a:[a_class ["material-symbols-outlined"]] [txt "edit"];
+          txt " Edit"
+        ]
+    ];
 
-      div ~a:[a_class ["section"]] [
-        h3 [txt "Contents"];
+    div ~a:[a_class ["section"]] [
+      h3 [txt "Contents"];
 
-        table_contents
-          ~this_slug: slug
-          (Lwt.bind book_lwt Book.contents);
-      ];
-    ]);
-
-  {page; content}
-
-let contents t =
-  t.content
-
-let init t =
-  ignore t
-
-let refresh t =
-  ignore t
+      table_contents
+        ~this_slug: slug
+        (Lwt.bind book_lwt Book.contents);
+    ];
+  ]

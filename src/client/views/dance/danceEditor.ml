@@ -173,7 +173,7 @@ let create ?on_save () =
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: ("Devisers", "deviser")
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.createNewAPI
+        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
         editor.devisers;
       Input.Text.render
         editor.date

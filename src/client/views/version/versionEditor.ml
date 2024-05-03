@@ -157,27 +157,19 @@ module Editor = struct
         ()
 end
 
-type t =
-  {
-    page : Page.t;
-    content : Dom_html.divElement Js.t;
-  }
-
-let refresh _ = ()
-let contents t = t.content
-let init t = refresh t
-
-let createNewAPI ?on_save () =
+let create ?on_save () =
+  let title = "Add a version" in
   let editor = Editor.create () in
+  Page.make_new_api ~title:(S.const title) @@
   div [
-    h2 ~a:[a_class ["title"]] [txt "Add a version"];
+    h2 ~a:[a_class ["title"]] [txt title];
 
     form [
       Selector.render
         ~make_result: AnyResultNewAPI.make_tune_result'
         ~field_name: ("Tune", "tune")
         ~model_name: "tune"
-        ~create_dialog_content: TuneEditor.createNewAPI
+        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ TuneEditor.create ?on_save ())
         editor.tune;
       Input.Text.render
         editor.bars
@@ -195,7 +187,7 @@ let createNewAPI ?on_save () =
         ~make_result: AnyResultNewAPI.make_person_result'
         ~field_name: ("Arrangers", "arranger")
         ~model_name: "person"
-        ~create_dialog_content: PersonEditor.createNewAPI
+        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
         editor.arrangers;
       Input.Text.render
         editor.disambiguation
@@ -226,13 +218,3 @@ let createNewAPI ?on_save () =
       ]
     ]
   ]
-
-let create ?on_save page =
-  let document = Dom_html.document in
-  let content = Dom_html.createDiv document in
-  Lwt.async (fun () ->
-      document##.title := Js.string "Add a version | Dancelor";
-      Lwt.return ()
-    );
-  Dom.appendChild content (To_dom.of_div (createNewAPI ?on_save ()));
-  {page; content}
