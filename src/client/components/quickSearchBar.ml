@@ -7,7 +7,7 @@ let fa_row ?(onclick = fun () -> ()) icon message =
   tr ~a:[
     a_onclick (fun _ -> onclick (); true)
   ] [
-    td ~a:[a_colspan 0] [
+    td ~a:[a_colspan 9999] [
 
       i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
       txt " ";
