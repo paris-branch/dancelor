@@ -129,6 +129,10 @@ module Editor = struct
       set_interacted;
     }
 
+  let add_to_storage set =
+    Utils.update "BookEditor" (module RawState) @@ fun state ->
+    { state with sets = state.sets @ [set] }
+
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.date;
