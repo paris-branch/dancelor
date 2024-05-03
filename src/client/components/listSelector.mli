@@ -27,6 +27,10 @@ val render :
     'model ->
     Html_types.tr Html.elt
   ) ->
+  ?make_more_results: (
+    'model ->
+    Html_types.tr Html.elt list
+  ) ->
   field_name: (string * string) ->
   model_name: string ->
   create_dialog_content: (
@@ -36,3 +40,5 @@ val render :
   ) ->
   'model t ->
   [> Html_types.div ] Html.elt
+(** The optional argument [?make_more_results] adds rows to the table after the
+    result. This only happens in the result, not in the quick search. *)

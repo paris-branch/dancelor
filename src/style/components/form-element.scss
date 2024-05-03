@@ -74,3 +74,10 @@ div.form-element {
     }
   }
 }
+
+div.form-element.invalid {
+  input,
+  textarea {
+    border-bottom: 1px solid $orange;
+  }
+}

@@ -7,23 +7,22 @@ module type Storable = sig
   val to_yojson : t -> Yojson.Safe.t
   val of_yojson : Yojson.Safe.t -> (t, string) result
   val empty : t
-  val _key : string
 end
 
-let store (type t) (module V : Storable with type t = t) (value : t) =
+let store (type t) (key : string) (module V : Storable with type t = t) (value : t) =
   Js.Optdef.iter Dom_html.window##.localStorage @@ fun local_storage ->
   local_storage##setItem
-    (Js.string V._key)
+    (Js.string key)
     (Js.string @@ Yojson.Safe.to_string @@ V.to_yojson value)
 
-let retrieve (type t) (module V : Storable with type t = t) : t =
+let retrieve (type t) (key : string) (module V : Storable with type t = t) : t =
   Option.value ~default: V.empty @@
   Js.Optdef.case Dom_html.window##.localStorage (fun () -> None) @@ fun local_storage ->
-  Js.Opt.case (local_storage##getItem (Js.string V._key)) (fun () -> None) @@ fun value ->
+  Js.Opt.case (local_storage##getItem (Js.string key)) (fun () -> None) @@ fun value ->
   Result.to_option @@ V.of_yojson @@ Yojson.Safe.from_string @@ Js.to_string value
 
-let update (type t) (module V : Storable with type t = t) (f : t -> t) =
-  store (module V) @@ f @@ retrieve (module V)
+let update (type t) (key : string) (module V : Storable with type t = t) (f : t -> t) =
+  store key (module V) @@ f @@ retrieve key (module V)
 
 (** Used by {!with_local_storage} to avoid garbage-collection of the iterators
     that store the state in the local storage. This is inspired by {!S.keep},
@@ -41,14 +40,15 @@ let gc_roots = ref []
     representation change, the new one will be stored. *)
 let with_local_storage
     (type t)
+    (key : string)
     (module V : Storable with type t = t)
     (signal : 'a -> t S.t)
     (make : t -> 'a)
   : 'a
   =
-  let value = retrieve (module V) in
+  let value = retrieve key (module V) in
   let result = make value in
-  let iter = S.map (store (module V)) @@ signal result in
+  let iter = S.map (store key (module V)) @@ signal result in
   gc_roots := iter :: !gc_roots;
   Gc.finalise_last (fun () -> gc_roots := List.filter (not % S.equal iter) !gc_roots) result;
   result

@@ -137,10 +137,6 @@ end
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Conversion from TyXML nodes to Dom ones. *)
 
-(** Helper to inject the new API in old-style Dom manipulation. *)
-let to_old_style x = Lwt.return [To_dom.of_div (L.div x)]
-(* FIXME: get rid of this once only the new API remains. *)
-
 (** Result-Signal monad. *)
 module RS = struct
   type 'a t = ('a, string) Result.t S.t

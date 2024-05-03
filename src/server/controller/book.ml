@@ -27,7 +27,7 @@ module Ly = struct
     in
     let%lwt chords =
       match%lwt Model.SetParameters.for_dance set_parameters with
-      | Some dance when Model.Dance.two_chords dance -> Lwt.return ["Two Chords"]
+      | Some dance when Model.Dance.two_chords dance = Some true -> Lwt.return ["Two Chords"]
       | _ -> Lwt.return_nil
     in
     Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))

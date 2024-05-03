@@ -34,8 +34,6 @@ module RawState = struct
     date = "";
     sets = [];
   }
-
-  let _key = "BookEditor.RawState"
 end
 
 module State = struct
@@ -71,30 +69,33 @@ module State = struct
 end
 
 module Editor = struct
-  type t = (
-    string Input.Text.t,
-    PartialDate.t option Input.Text.t,
-    Model.Set.t ListSelector.t
-  ) gen
+  type t = {
+    elements : (
+      string Input.Text.t,
+      PartialDate.t option Input.Text.t,
+      Model.Set.t ListSelector.t
+    ) gen;
+    set_interacted : unit -> unit;
+  }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.date) @@ fun date ->
-    S.bind (ListSelector.raw_signal editor.sets) @@ fun sets ->
+    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
+    S.bind (ListSelector.raw_signal editor.elements.sets) @@ fun sets ->
     S.const {name; date; sets}
 
   let state (editor : t) : State.t option S.t =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.date) @@ fun date ->
-    RS.bind (ListSelector.signal editor.sets) @@ fun sets ->
+    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
+    RS.bind (ListSelector.signal editor.elements.sets) @@ fun sets ->
     RS.pure {name; date; sets}
 
   let with_or_without_local_storage ?edit f =
     match edit with
     | None ->
       Lwt.return @@
-      Utils.with_local_storage (module RawState) raw_state f
+      Utils.with_local_storage "BookEditor" (module RawState) raw_state f
     | Some slug ->
       let%lwt book = Model.Book.get slug in
       let%lwt raw_state = Lwt.map State.to_raw_state (State.of_model book) in
@@ -102,10 +103,12 @@ module Editor = struct
 
   let create ?edit () : t Lwt.t =
     with_or_without_local_storage ?edit @@ fun initial_state ->
-    let name = Input.Text.make initial_state.name @@
+    let (has_interacted, set_interacted) = S.create false in
+    let set_interacted () = set_interacted true in
+    let name = Input.Text.make ~has_interacted initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
-    let date = Input.Text.make initial_state.date @@
+    let date = Input.Text.make ~has_interacted initial_state.date @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
@@ -121,12 +124,15 @@ module Editor = struct
         ~unserialise: Model.Set.get
         initial_state.sets
     in
-    {name; date; sets}
+    {
+      elements = {name; date; sets};
+      set_interacted;
+    }
 
   let clear (editor : t) =
-    Input.Text.clear editor.name;
-    Input.Text.clear editor.date;
-    ListSelector.clear editor.sets
+    Input.Text.clear editor.elements.name;
+    Input.Text.clear editor.elements.date;
+    ListSelector.clear editor.elements.sets
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -153,24 +159,26 @@ let create ?on_save ?edit () =
 
         form [
           Input.Text.render
-            editor.name
+            editor.elements.name
             ~label: "Name"
             ~placeholder: "eg. The Dusty Miller Book";
           Input.Text.render
-            editor.date
+            editor.elements.date
             ~label: "Date of devising"
             ~placeholder: "eg. 2019 or 2012-03-14";
           ListSelector.render
-            ~make_result: AnyResultNewAPI.make_set_result'
+            ~make_result: AnyResult.make_set_result'
+            ~make_more_results: (fun set -> [tr [L.td ~a:[a_colspan 9999] (Formatters.Set.tunes set)]])
             ~field_name: ("Sets", "set")
             ~model_name: "set"
             ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ SetEditor.create ?on_save ())
-            editor.sets;
+            editor.elements.sets;
 
           Button.group [
             Button.save
               ~disabled: (S.map Option.is_none (Editor.state editor))
               ~onclick: (fun () ->
+                  editor.set_interacted ();
                   Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun book ->
                   match on_save with
                   | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_book (Model.Book.slug book))

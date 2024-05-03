@@ -19,18 +19,19 @@ let name ?(link=true) set =
   else
     name_text
 
+let tunes ?tunes_link set =
+  let%lwt contents = M.Set.contents set in
+  List.map (Version.name ?link:tunes_link % fst) contents
+  |> List.interspersei (fun _ -> [txt " - "])
+  |> List.flatten
+  |> List.cons (txt "Tunes: ")
+  |> span ~a:[a_class ["dim"; "details"]]
+  |> List.singleton
+  |> Lwt.return
+
 let name_and_tunes ?link ?tunes_link set =
-  let%lwt versions =
-    let%lwt contents = M.Set.contents set in
-    List.map (Version.name ?link:tunes_link % fst) contents
-    |> List.interspersei (fun _ -> [txt " - "])
-    |> List.flatten
-    |> List.cons (txt "Tunes: ")
-    |> span ~a:[a_class ["dim"; "details"]]
-    |> List.singleton
-    |> Lwt.return
-  in
-  Lwt.return (name ?link set @ versions)
+  let%lwt tunes = tunes ?tunes_link set in
+  Lwt.return (name ?link set @ tunes)
 
 let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
   let%lwt name_and_tunes = name_and_tunes ?link ?tunes_link set in

@@ -6,7 +6,7 @@ module Lift
   include DanceCore
 
   let make
-      ?status ~slug ~name ~kind ?devisers ~two_chords ?scddb_id
+      ?status ~slug ~name ~kind ?devisers ?two_chords ?scddb_id
       ?disambiguation ?date ~modified_at ~created_at
       ()
     =

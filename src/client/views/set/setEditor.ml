@@ -2,8 +2,8 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_components
 open Dancelor_client_html
+open Dancelor_common
 module Model = Dancelor_client_model
-module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
@@ -46,42 +46,45 @@ module RawState = struct
     versions = [];
     order = ""
   }
-
-  let _key = "SetEditor.RawState"
 end
 
 module Editor = struct
-  type t = (
-    string Input.Text.t,
-    Model.Kind.Dance.t Input.Text.t,
-    Model.Person.t ListSelector.t,
-    Model.Version.t ListSelector.t,
-    Model.SetOrder.t Input.Text.t
-  ) gen
+  type t = {
+    elements : (
+      string Input.Text.t,
+      Model.Kind.Dance.t Input.Text.t,
+      Model.Person.t ListSelector.t,
+      Model.Version.t ListSelector.t,
+      Model.SetOrder.t Input.Text.t
+    ) gen;
+    set_interacted : unit -> unit;
+  }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.kind) @@ fun kind ->
-    S.bind (ListSelector.raw_signal editor.conceptors) @@ fun conceptors ->
-    S.bind (ListSelector.raw_signal editor.versions) @@ fun versions ->
-    S.bind (Input.Text.raw_signal editor.order) @@ fun order ->
+    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (ListSelector.raw_signal editor.elements.conceptors) @@ fun conceptors ->
+    S.bind (ListSelector.raw_signal editor.elements.versions) @@ fun versions ->
+    S.bind (Input.Text.raw_signal editor.elements.order) @@ fun order ->
     S.const {name; kind; conceptors; versions; order}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.kind) @@ fun kind ->
-    RS.bind (ListSelector.signal editor.conceptors) @@ fun conceptors ->
-    RS.bind (ListSelector.signal editor.versions) @@ fun versions ->
-    RS.bind (Input.Text.signal editor.order) @@ fun order ->
+    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (ListSelector.signal editor.elements.conceptors) @@ fun conceptors ->
+    RS.bind (ListSelector.signal editor.elements.versions) @@ fun versions ->
+    RS.bind (Input.Text.signal editor.elements.order) @@ fun order ->
     RS.pure {name; kind; conceptors; versions; order}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
-    let name = Input.Text.make initial_state.name @@
+    Utils.with_local_storage "SetEditor" (module RawState) raw_state @@ fun initial_state ->
+    let (has_interacted, set_interacted) = S.create false in
+    let set_interacted () = set_interacted true in
+    let name = Input.Text.make ~has_interacted initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
-    let kind = Input.Text.make initial_state.kind @@
+    let kind = Input.Text.make ~has_interacted initial_state.kind @@
       Option.to_result ~none: "Not a valid kind." % Model.Kind.Dance.of_string_opt
     in
     let conceptors = ListSelector.make
@@ -104,21 +107,24 @@ module Editor = struct
         ~unserialise: Model.Version.get
         initial_state.versions
     in
-    let order = Input.Text.make initial_state.order @@
+    let order = Input.Text.make ~has_interacted initial_state.order @@
       Option.to_result ~none:"Not a valid order." % Model.SetOrder.of_string_opt
     in
-    {name; kind; conceptors; versions; order}
+    {
+      elements = {name; kind; conceptors; versions; order};
+      set_interacted;
+    }
 
   let add_to_storage version =
-    Utils.update (module RawState) @@ fun state ->
+    Utils.update "SetEditor" (module RawState) @@ fun state ->
     { state with versions = state.versions @ [version] }
 
   let clear (editor : t) =
-    Input.Text.clear editor.name;
-    Input.Text.clear editor.kind;
-    ListSelector.clear editor.conceptors;
-    ListSelector.clear editor.versions;
-    Input.Text.clear editor.order
+    Input.Text.clear editor.elements.name;
+    Input.Text.clear editor.elements.kind;
+    ListSelector.clear editor.elements.conceptors;
+    ListSelector.clear editor.elements.versions;
+    Input.Text.clear editor.elements.order
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -145,27 +151,38 @@ let create ?on_save () =
 
     form [
       Input.Text.render
-        editor.name
+        editor.elements.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller";
       Input.Text.render
-        editor.kind
+        editor.elements.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_person_result'
+        ~make_result: AnyResult.make_person_result'
         ~field_name: ("Conceptors", "conceptor")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
-        editor.conceptors;
+        editor.elements.conceptors;
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_version_result'
+        ~make_result: AnyResult.make_version_result'
+        ~make_more_results: (fun version -> [
+              tr ~a:[a_class ["small-previsualisation"]] [
+                td ~a:[a_colspan 9999] [
+                  object_ ~a:[
+                    a_mime_type "image/svg+xml";
+                    a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
+                  ] [];
+                ]
+              ]
+            ]
+          )
         ~field_name: ("Versions", "version")
         ~model_name: "versions"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ VersionEditor.create ?on_save ())
-        editor.versions;
+        editor.elements.versions;
       Input.Text.render
-        editor.order
+        editor.elements.order
         ~label: "Order"
         ~placeholder: "eg. 1,2,3,4,2,3,4,1";
 
@@ -173,6 +190,7 @@ let create ?on_save () =
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
+              editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun set ->
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_set (Model.Set.slug set))

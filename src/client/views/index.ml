@@ -21,7 +21,7 @@ let create () =
     QuickSearchBar.make_and_render
       ~placeholder:"Search for anything (it's magic!)"
       ~search
-      ~make_result:(Lwt.return % AnyResultNewAPI.make_result)
+      ~make_result:(Lwt.return % AnyResult.make_result)
       ~autofocus:true
       ~on_enter:(fun search_text ->
           Dom_html.window##.location##.href := Js.string PageRouter.(path_explore (Some search_text))

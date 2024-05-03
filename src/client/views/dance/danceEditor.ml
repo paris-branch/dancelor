@@ -47,49 +47,52 @@ module RawState = struct
     two_chords = ();
     scddb_id = "";
   }
-
-  let _key = "DanceEditor.RawState"
 end
 
 module Editor = struct
-  type t = (
-    string Input.Text.t,
-    Model.Kind.Dance.t Input.Text.t,
-    Model.Person.t ListSelector.t,
-    PartialDate.t option Input.Text.t,
-    string option Input.Text.t,
-    (bool, string) Result.t Choices.t,
-    SCDDB.entry_id option Input.Text.t
-  ) gen
+  type t = {
+    elements : (
+      string Input.Text.t,
+      Model.Kind.Dance.t Input.Text.t,
+      Model.Person.t ListSelector.t,
+      PartialDate.t option Input.Text.t,
+      string option Input.Text.t,
+      bool option Choices.t,
+      SCDDB.entry_id option Input.Text.t
+    ) gen;
+    set_interacted : unit -> unit;
+  }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.kind) @@ fun kind ->
-    S.bind (ListSelector.raw_signal editor.devisers) @@ fun devisers ->
-    S.bind (Input.Text.raw_signal editor.date) @@ fun date ->
-    S.bind (Input.Text.raw_signal editor.disambiguation) @@ fun disambiguation ->
-    (* S.bind (Choices.raw_signal editor.two_chords) @@ fun two_chords -> *)
+    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.Text.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (ListSelector.raw_signal editor.elements.devisers) @@ fun devisers ->
+    S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
+    S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
+    (* S.bind (Choices.raw_signal editor.elements.two_chords) @@ fun two_chords -> *)
     let two_chords = () in (* FIXME *)
-    S.bind (Input.Text.raw_signal editor.scddb_id) @@ fun scddb_id ->
+    S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.kind) @@ fun kind ->
-    RS.bind (ListSelector.signal editor.devisers) @@ fun devisers ->
-    RS.bind (Input.Text.signal editor.date) @@ fun date ->
-    RS.bind (Input.Text.signal editor.disambiguation) @@ fun disambiguation ->
-    RS.bind (Choices.signal editor.two_chords) @@ fun two_chords ->
-    RS.bind (Input.Text.signal editor.scddb_id) @@ fun scddb_id ->
+    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.Text.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (ListSelector.signal editor.elements.devisers) @@ fun devisers ->
+    RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
+    RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
+    RS.bind (S.map Result.ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
+    RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let create () : t =
-    Utils.with_local_storage (module RawState) raw_state @@ fun initial_state ->
-    let name = Input.Text.make initial_state.name @@
+    Utils.with_local_storage "DanceEditor" (module RawState) raw_state @@ fun initial_state ->
+    let (has_interacted, set_interacted) = S.create false in
+    let set_interacted () = set_interacted true in
+    let name = Input.Text.make ~has_interacted initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
-    let kind = Input.Text.make initial_state.kind @@
+    let kind = Input.Text.make ~has_interacted initial_state.kind @@
       Option.to_result ~none:"Not a valid kind" % Model.Kind.Dance.of_string_opt
     in
     let devisers = ListSelector.make
@@ -102,40 +105,43 @@ module Editor = struct
         ~unserialise: Model.Person.get
         initial_state.devisers
     in
-    let date = Input.Text.make initial_state.date @@
+    let date = Input.Text.make ~has_interacted initial_state.date @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
       % Option.of_string_nonempty
     in
-    let disambiguation = Input.Text.make initial_state.disambiguation @@
+    let disambiguation = Input.Text.make ~has_interacted initial_state.disambiguation @@
       Result.ok % Option.of_string_nonempty
     in
-    let two_chords = Choices.make_radios' [
+    let two_chords = Choices.make_radios [
+        Choices.choice' [txt "I don't know"] ~checked:true;
         Choices.choice' ~value:false [txt "One chord"];
         Choices.choice' ~value:true [txt "Two chords"];
       ]
         ~name: "Number of chords"
-        ~validate: (Option.to_result ~none:"A choice must be made")
     in
-    let scddb_id = Input.Text.make initial_state.scddb_id @@
+    let scddb_id = Input.Text.make ~has_interacted initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Dance)
       % Option.of_string_nonempty
     in
-    {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
+    {
+      elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id};
+      set_interacted;
+    }
 
-  let clear editor =
-    Input.Text.clear editor.name;
-    Input.Text.clear editor.kind;
-    ListSelector.clear editor.devisers;
-    Input.Text.clear editor.date;
-    Input.Text.clear editor.disambiguation;
+  let clear (editor : t) =
+    Input.Text.clear editor.elements.name;
+    Input.Text.clear editor.elements.kind;
+    ListSelector.clear editor.elements.devisers;
+    Input.Text.clear editor.elements.date;
+    Input.Text.clear editor.elements.disambiguation;
     (* FIXME: clear two chords *)
-    Input.Text.clear editor.scddb_id
+    Input.Text.clear editor.elements.scddb_id
 
-  let submit editor =
+  let submit (editor : t) =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
@@ -144,7 +150,7 @@ module Editor = struct
         ~name
         ~kind
         ~devisers
-        ~two_chords
+        ?two_chords
         ?scddb_id
         ?disambiguation
         ?date
@@ -162,31 +168,31 @@ let create ?on_save () =
 
     form [
       Input.Text.render
-        editor.name
+        editor.elements.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller";
       Input.Text.render
-        editor.kind
+        editor.elements.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S))";
       ListSelector.render
-        ~make_result: AnyResultNewAPI.make_person_result'
+        ~make_result: AnyResult.make_person_result'
         ~field_name: ("Devisers", "deviser")
         ~model_name: "person"
         ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
-        editor.devisers;
+        editor.elements.devisers;
       Input.Text.render
-        editor.date
+        editor.elements.date
         ~label: "Date of devising"
         ~placeholder: "eg. 2019 or 2012-03-14";
       Choices.render
-        editor.two_chords;
+        editor.elements.two_chords;
       Input.Text.render
-        editor.scddb_id
+        editor.elements.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
       Input.Text.render
-        editor.disambiguation
+        editor.elements.disambiguation
         ~label: "Disambiguation"
         ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
 
@@ -194,6 +200,7 @@ let create ?on_save () =
         Button.save
           ~disabled: (S.map Option.is_none (Editor.state editor))
           ~onclick: (fun () ->
+              editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_dance (Model.Dance.slug dance))

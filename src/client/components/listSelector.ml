@@ -45,6 +45,11 @@ let render
       'result ->
       Html_types.tr Html.elt
      )
+    ?(make_more_results =
+      (Fun.const [] :
+         'result ->
+       Html_types.tr Html.elt list)
+     )
     ~field_name
     ~model_name
     ~(create_dialog_content:
@@ -60,7 +65,7 @@ let render
     tablex ~a:[a_class ["container"]] [
       R.tbody (
         Fun.flip S.map s.signal @@ fun elements ->
-        List.mapi
+        List.concat @@ List.mapi
           (fun n element ->
              make_result
                ~classes: ["row"]
@@ -88,6 +93,7 @@ let render
                  ]
                ]
                element
+             :: make_more_results element
           )
           elements
       )

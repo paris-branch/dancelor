@@ -26,6 +26,7 @@ val render :
   placeholder: string ->
   make_result: ('result -> Html_types.tr Html.elt Lwt.t) ->
   ?on_enter: (string -> unit) ->
+  ?on_focus: (unit -> unit) ->
   ?more_lines: Html_types.tr Html.elt list ->
   ?autofocus: bool ->
   'result t ->
