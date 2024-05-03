@@ -4,13 +4,11 @@ open Dancelor_common
 open Dancelor_client_views
 module Page = Dancelor_client_page
 
-module Html = Dom_html
-
 let js = Js.string
 
 module type PAGE = sig
   type t
-  val contents : t -> Html.divElement Js.t
+  val contents : t -> Dom_html.divElement Js.t
   val init : t -> unit
   val refresh : t -> unit
 end

@@ -6,15 +6,14 @@ open Dancelor_client_utils
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
-module Html = Dom_html
 
 let js = Js.string
 
 type t =
   {
     page : Page.t;
-    document : Html.document Js.t;
-    content : Html.divElement Js.t;
+    document : Dom_html.document Js.t;
+    content : Dom_html.divElement Js.t;
   }
 
 let search slice input =
@@ -24,8 +23,8 @@ let search slice input =
   Lwt.return_ok results
 
 let create page =
-  let document = Html.window##.document in
-  let content = Html.createDiv document in
+  let document = Dom_html.window##.document in
+  let content = Dom_html.createDiv document in
 
   (
     let open Dancelor_client_html in

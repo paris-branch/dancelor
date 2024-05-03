@@ -4,8 +4,6 @@ open Dancelor_common
 open Dancelor_client_html
 module Page = Dancelor_client_page
 
-module Html = Dom_html
-
 (* Whether to show the menu or not. [None] indicates the default (yes on
    desktop, no on mobile). *)
 let (show_menu, set_show_menu) = React.S.create None
@@ -96,7 +94,7 @@ let on_load _ev =
   let page = Page.create () in
   Page.set_header page (To_dom.of_div header);
   let url =
-    Html.window##.location##.href
+    Dom_html.window##.location##.href
     |> Js.to_string
     |> Uri.of_string
   in
@@ -107,4 +105,4 @@ let on_load _ev =
   Js._false
 
 let _ =
-  Html.window##.onload := Html.handler on_load
+  Dom_html.window##.onload := Dom_html.handler on_load

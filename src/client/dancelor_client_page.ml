@@ -1,13 +1,7 @@
 open Js_of_ocaml
 open Js_of_ocaml_lwt
 
-module Html = Dom_html
-
 module JsHelpers = struct
-  open Js_of_ocaml
-
-  module Html = Dom_html
-
   let js = Js.string
 
   let add_children t cs =
@@ -40,18 +34,18 @@ let js = Js.string
 
 type modal =
   {
-    element : Html.element Js.t;
+    element : Dom_html.element Js.t;
     on_unfocus : (unit -> unit);
-    targets : (Html.element Js.t) list;
+    targets : (Dom_html.element Js.t) list;
     on_refresh : (unit -> unit);
   }
 
 type t =
   {
-    document : Html.document Js.t;
-    body : Html.bodyElement Js.t;
-    header : Html.element Js.t;
-    mutable content : (Html.divElement Js.t) option;
+    document : Dom_html.document Js.t;
+    body : Dom_html.bodyElement Js.t;
+    header : Dom_html.element Js.t;
+    mutable content : (Dom_html.divElement Js.t) option;
     mutable modals : modal list;
     mutable on_refresh : (unit -> unit);
   }
@@ -61,13 +55,13 @@ type page = t
 module type CONTENTS = sig
   type t
   val create : page -> t
-  val contents : t -> Html.divElement Js.t
+  val contents : t -> Dom_html.divElement Js.t
   val init : t -> unit
   val refresh : t -> unit
 end
 
 let create () =
-  let document = Html.window##.document in
+  let document = Dom_html.window##.document in
   let body = document##.body in
   let header = document##createElement (js "header") in
   let modals = [] in
