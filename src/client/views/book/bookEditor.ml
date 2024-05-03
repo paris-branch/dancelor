@@ -160,6 +160,7 @@ let create ?on_save ?edit () =
             ~placeholder: "eg. 2019 or 2012-03-14";
           ListSelector.render
             ~make_result: AnyResultNewAPI.make_set_result'
+            ~make_more_results: (fun set -> [tr [L.td ~a:[a_colspan 10000] (Formatters.Set.tunes set)]])
             ~field_name: ("Sets", "set")
             ~model_name: "set"
             ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ SetEditor.create ?on_save ())
