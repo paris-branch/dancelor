@@ -195,7 +195,7 @@ let createNewAPI ?on_save ?edit () =
   ]
 
 let create ?on_save ?edit page =
-  let document = Page.document page in
+  let document = Dom_html.document in
   let content = Dom_html.createDiv document in
   Lwt.async (fun () ->
       let verb = match edit with None -> "Add" | Some _ -> "Edit" in

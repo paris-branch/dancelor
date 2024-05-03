@@ -124,7 +124,7 @@ let table_contents ~this_slug contents =
     ]
 
 let create ?context slug page =
-  let document = Page.document page in
+  let document = Dom_html.document in
   let content = Dom_html.createDiv document in
   let book_lwt = Book.get slug in
 

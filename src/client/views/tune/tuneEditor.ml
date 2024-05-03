@@ -224,7 +224,7 @@ let createNewAPI ?on_save () =
   ]
 
 let create ?on_save page =
-  let document = Page.document page in
+  let document = Dom_html.document in
   let content = Dom_html.createDiv document in
   Lwt.async (fun () ->
       document##.title := Js.string "Add a tune | Dancelor";

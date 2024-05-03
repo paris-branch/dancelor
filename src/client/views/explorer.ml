@@ -34,7 +34,7 @@ let emoji_row emoji message =
   ]
 
 let create ?query page =
-  let document = Page.document page in
+  let document = Dom_html.document in
   let content = Dom_html.createDiv document in
 
   document##.title := js ("Explore | Dancelor");

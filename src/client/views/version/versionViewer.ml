@@ -15,7 +15,7 @@ type t =
   }
 
 let create ?context slug page =
-  let document = Page.document page in
+  let document = Dom_html.document in
   let content = Dom_html.createDiv document in
   let version_lwt = Version.get slug in
   let tune_lwt = version_lwt >>=| Version.tune in

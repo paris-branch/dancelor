@@ -15,7 +15,7 @@ type t =
   }
 
 let create ?context slug page =
-  let document = Page.document page in
+  let document = Dom_html.document in
   let content = Dom_html.createDiv document in
   let dance_lwt = Dance.get slug in
 
