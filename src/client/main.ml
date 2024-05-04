@@ -113,12 +113,6 @@ let dispatch url =
   | DanceAdd -> DanceEditor.create ()
   | Dance {slug; context} -> DanceViewer.create slug ?context
 
-(** Used by {!on_load} to avoid garbage-collection of the iterators that store
-    the state in the local storage. This is inspired by {!S.keep}, except
-    {!S.keep} does not seem to work in our context and introduces a memory
-    leak. *)
-let gc_roots = ref []
-
 let set_title title =
   Dom_html.document##.title := Js.string @@ match title with
     | "" -> "Dancelor"
@@ -127,7 +121,7 @@ let set_title title =
 let on_load _ev =
   let page = dispatch @@ Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
   let iter_title = React.S.map set_title (Page.get_title page) in
-  gc_roots := iter_title :: !gc_roots;
+  Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
   let content = To_dom.of_div (Page.get_content page) in
   content##.classList##add (Js.string "content");

@@ -19,6 +19,7 @@ module Result = NesResult
 module Cache = NesCache
 module Date = NesDate
 module Datetime = NesDatetime
+module Depart = NesDepart
 module PartialDate = NesPartialDate
 module Filesystem = NesFilesystem
 module Json = NesJson

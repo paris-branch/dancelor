@@ -24,12 +24,6 @@ let retrieve (type t) (key : string) (module V : Storable with type t = t) : t =
 let update (type t) (key : string) (module V : Storable with type t = t) (f : t -> t) =
   store key (module V) @@ f @@ retrieve key (module V)
 
-(** Used by {!with_local_storage} to avoid garbage-collection of the iterators
-    that store the state in the local storage. This is inspired by {!S.keep},
-    except {!S.keep} does not seem to work in our context and introduces a
-    memory leak. *)
-let gc_roots = ref []
-
 (** [with_local_storage (module V) signal make] aims at making a “state”
     transparently stored in the local storage using its storable representations
     [V.t]. It takes a storable module [V] and checks whether there is something
@@ -49,6 +43,5 @@ let with_local_storage
   let value = retrieve key (module V) in
   let result = make value in
   let iter = S.map (store key (module V)) @@ signal result in
-  gc_roots := iter :: !gc_roots;
-  Gc.finalise_last (fun () -> gc_roots := List.filter (not % S.equal iter) !gc_roots) result;
+  Depart.depends ~on:result iter;
   result
