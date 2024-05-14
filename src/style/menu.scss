@@ -25,11 +25,16 @@ header {
   }
 
   /* Style of the main title. */
-  h1 {
-    font-size: 2rem;
-    font-weight: bolder;
-    letter-spacing: -0.04rem;
+  a.logo {
+    line-height: 0 !important;
     margin: 0;
+    height: 4.5rem;
+    overflow: hidden;
+
+    & > img {
+      margin-top: -1.9rem;
+      height: 7rem;
+    }
   }
 
   /**************************************************************************/

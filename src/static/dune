@@ -100,6 +100,7 @@
   fonts.conf
   fonts.css
   index.html
+  logo.svg
   plus.svg
   site.webmanifest))
 
