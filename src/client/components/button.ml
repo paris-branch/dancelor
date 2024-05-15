@@ -10,18 +10,35 @@ let group content =
     content
 
 let save ~disabled ~onclick () =
+  let (processing, set_processing) = React.S.create false in
   button
     [
-      i ~a:[a_class ["material-symbols-outlined"]] [txt "save"];
-      txt " Save";
+      i ~a:[a_class ["material-symbols-outlined"]] [
+        R.txt  (
+          Fun.flip S.map processing @@ function
+          | true -> "pending"
+          | false -> "save"
+        )
+      ];
+      txt " ";
+      R.txt (
+        Fun.flip S.map processing @@ function
+        | true -> "Saving..."
+        | false -> "Save"
+      );
     ]
     ~a: [
       R.a_class (
-        Fun.flip S.map disabled @@ function
+        Fun.flip S.map (S.l2 (||) disabled processing) @@ function
         | true -> ["btn-success"; "disabled"]
         | false -> ["btn-success"]);
       a_onclick (fun _event ->
-          Lwt.async onclick;
+          Lwt.async (fun () ->
+              set_processing true;
+              onclick ();%lwt
+              set_processing false;
+              Lwt.return_unit
+            );
           false
         );
     ]

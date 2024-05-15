@@ -46,8 +46,16 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; scddb_id}
 
-  let create () : t =
-    Utils.with_local_storage "PersonEditor" (module RawState) raw_state @@ fun initial_state ->
+  let with_or_without_local_storage ~on_save f =
+    match on_save with
+    | Some _ ->
+      Lwt.return @@ f RawState.empty
+    | None ->
+      Lwt.return @@
+      Utils.with_local_storage "PersonEditor" (module RawState) raw_state f
+
+  let create ~on_save () : t Lwt.t =
+    with_or_without_local_storage ~on_save @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let name = Input.Text.make ~has_interacted initial_state.name @@
@@ -83,33 +91,36 @@ end
 
 let create ?on_save () =
   let title = "Add a person" in
-  let editor = Editor.create () in
   Page.make ~title:(S.const title) @@
-  div [
-    h2 ~a:[a_class ["title"]] [txt title];
-    form [
-      Input.Text.render
-        editor.elements.name
-        ~label: "Name"
-        ~placeholder: "eg. John Doe";
-      Input.Text.render
-        editor.elements.scddb_id
-        ~label: "SCDDB ID"
-        ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
-      Button.group [
-        Button.save
-          ~disabled: (S.map Option.is_none (Editor.state editor))
-          ~onclick: (fun () ->
-              editor.set_interacted ();
-              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun person ->
-              match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
-              | Some on_save -> on_save person
-            )
-          ();
-        Button.clear
-          ~onclick: (fun () -> Editor.clear editor)
-          ();
-      ];
+  L.div (
+    let%lwt editor = Editor.create ~on_save () in
+    Lwt.return @@ [
+      h2 ~a:[a_class ["title"]] [txt title];
+      form [
+        Input.Text.render
+          editor.elements.name
+          ~label: "Name"
+          ~placeholder: "eg. John Doe";
+        Input.Text.render
+          editor.elements.scddb_id
+          ~label: "SCDDB ID"
+          ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
+        Button.group [
+          Button.save
+            ~disabled: (S.map Option.is_none (Editor.state editor))
+            ~onclick: (fun () ->
+                editor.set_interacted ();
+                Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun person ->
+                Editor.clear editor;
+                match on_save with
+                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
+                | Some on_save -> on_save person
+              )
+            ();
+          Button.clear
+            ~onclick: (fun () -> Editor.clear editor)
+            ();
+        ];
+      ]
     ]
-  ]
+  )

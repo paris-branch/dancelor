@@ -85,8 +85,16 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
-  let create () : t =
-    Utils.with_local_storage "DanceEditor" (module RawState) raw_state @@ fun initial_state ->
+  let with_or_without_local_storage ~on_save f =
+    match on_save with
+    | Some _ ->
+      Lwt.return @@ f RawState.empty
+    | None ->
+      Lwt.return @@
+      Utils.with_local_storage "DanceEditor" (module RawState) raw_state f
+
+  let create ~on_save () : t Lwt.t =
+    with_or_without_local_storage ~on_save @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let name = Input.Text.make ~has_interacted initial_state.name @@
@@ -161,55 +169,58 @@ end
 
 let create ?on_save () =
   let title = "Add a dance" in
-  let editor = Editor.create () in
   Page.make ~title:(S.const title) @@
-  div [
-    h2 ~a:[a_class ["title"]] [txt title];
+  L.div (
+    let%lwt editor = Editor.create ~on_save () in
+    Lwt.return @@ [
+      h2 ~a:[a_class ["title"]] [txt title];
 
-    form [
-      Input.Text.render
-        editor.elements.name
-        ~label: "Name"
-        ~placeholder: "eg. The Dusty Miller";
-      Input.Text.render
-        editor.elements.kind
-        ~label: "Kind"
-        ~placeholder: "eg. 8x32R or 2x(16R+16S))";
-      ListSelector.render
-        ~make_result: AnyResult.make_person_result'
-        ~field_name: ("Devisers", "deviser")
-        ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
-        editor.elements.devisers;
-      Input.Text.render
-        editor.elements.date
-        ~label: "Date of devising"
-        ~placeholder: "eg. 2019 or 2012-03-14";
-      Choices.render
-        editor.elements.two_chords;
-      Input.Text.render
-        editor.elements.scddb_id
-        ~label: "SCDDB ID"
-        ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
-      Input.Text.render
-        editor.elements.disambiguation
-        ~label: "Disambiguation"
-        ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
+      form [
+        Input.Text.render
+          editor.elements.name
+          ~label: "Name"
+          ~placeholder: "eg. The Dusty Miller";
+        Input.Text.render
+          editor.elements.kind
+          ~label: "Kind"
+          ~placeholder: "eg. 8x32R or 2x(16R+16S))";
+        ListSelector.render
+          ~make_result: AnyResult.make_person_result'
+          ~field_name: ("Devisers", "deviser")
+          ~model_name: "person"
+          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
+          editor.elements.devisers;
+        Input.Text.render
+          editor.elements.date
+          ~label: "Date of devising"
+          ~placeholder: "eg. 2019 or 2012-03-14";
+        Choices.render
+          editor.elements.two_chords;
+        Input.Text.render
+          editor.elements.scddb_id
+          ~label: "SCDDB ID"
+          ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
+        Input.Text.render
+          editor.elements.disambiguation
+          ~label: "Disambiguation"
+          ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
 
-      Button.group [
-        Button.save
-          ~disabled: (S.map Option.is_none (Editor.state editor))
-          ~onclick: (fun () ->
-              editor.set_interacted ();
-              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
-              match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_dance (Model.Dance.slug dance))
-              | Some on_save -> on_save dance
-            )
-          ();
-        Button.clear
-          ~onclick: (fun () -> Editor.clear editor)
-          ();
+        Button.group [
+          Button.save
+            ~disabled: (S.map Option.is_none (Editor.state editor))
+            ~onclick: (fun () ->
+                editor.set_interacted ();
+                Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun dance ->
+                Editor.clear editor;
+                match on_save with
+                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_dance (Model.Dance.slug dance))
+                | Some on_save -> on_save dance
+              )
+            ();
+          Button.clear
+            ~onclick: (fun () -> Editor.clear editor)
+            ();
+        ]
       ]
     ]
-  ]
+  )

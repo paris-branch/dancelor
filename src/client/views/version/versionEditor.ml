@@ -92,8 +92,16 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-  let create () : t =
-    Utils.with_local_storage "VersionEditor" (module RawState) raw_state @@ fun initial_state ->
+  let with_or_without_local_storage ~on_save f =
+    match on_save with
+    | Some _ ->
+      Lwt.return @@ f RawState.empty
+    | None ->
+      Lwt.return @@
+      Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
+
+  let create ~on_save () : t Lwt.t =
+    with_or_without_local_storage ~on_save @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let tune = Selector.make
@@ -165,63 +173,66 @@ end
 
 let create ?on_save () =
   let title = "Add a version" in
-  let editor = Editor.create () in
   Page.make ~title:(S.const title) @@
-  div [
-    h2 ~a:[a_class ["title"]] [txt title];
+  L.div (
+    let%lwt editor = Editor.create ~on_save () in
+    Lwt.return @@ [
+      h2 ~a:[a_class ["title"]] [txt title];
 
-    form [
-      Selector.render
-        ~make_result: AnyResult.make_tune_result'
-        ~field_name: ("Tune", "tune")
-        ~model_name: "tune"
-        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ TuneEditor.create ?on_save ())
-        editor.elements.tune;
-      Input.Text.render
-        editor.elements.bars
-        ~label: "Number of bars"
-        ~placeholder: "eg. 32 or 48";
-      Input.Text.render
-        editor.elements.key
-        ~label: "Key"
-        ~placeholder: "eg. A or F#m";
-      Input.Text.render
-        editor.elements.structure
-        ~label: "Structure"
-        ~placeholder: "eg. AABB or ABAB";
-      ListSelector.render
-        ~make_result: AnyResult.make_person_result'
-        ~field_name: ("Arrangers", "arranger")
-        ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
-        editor.elements.arrangers;
-      Input.Text.render
-        editor.elements.disambiguation
-        ~label: "Disambiguation"
-        ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
-      Input.Text.render
-        editor.elements.remark
-        ~label: "Remark"
-        ~placeholder: "Any additional information that doesn't fit in the other fields.";
-      Input.Text.render_as_textarea
-        editor.elements.content
-        ~label: "LilyPond content"
-        ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
+      form [
+        Selector.render
+          ~make_result: AnyResult.make_tune_result'
+          ~field_name: ("Tune", "tune")
+          ~model_name: "tune"
+          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ TuneEditor.create ?on_save ())
+          editor.elements.tune;
+        Input.Text.render
+          editor.elements.bars
+          ~label: "Number of bars"
+          ~placeholder: "eg. 32 or 48";
+        Input.Text.render
+          editor.elements.key
+          ~label: "Key"
+          ~placeholder: "eg. A or F#m";
+        Input.Text.render
+          editor.elements.structure
+          ~label: "Structure"
+          ~placeholder: "eg. AABB or ABAB";
+        ListSelector.render
+          ~make_result: AnyResult.make_person_result'
+          ~field_name: ("Arrangers", "arranger")
+          ~model_name: "person"
+          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
+          editor.elements.arrangers;
+        Input.Text.render
+          editor.elements.disambiguation
+          ~label: "Disambiguation"
+          ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
+        Input.Text.render
+          editor.elements.remark
+          ~label: "Remark"
+          ~placeholder: "Any additional information that doesn't fit in the other fields.";
+        Input.Text.render_as_textarea
+          editor.elements.content
+          ~label: "LilyPond content"
+          ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
 
-      Button.group [
-        Button.save
-          ~disabled: (S.map Option.is_none (Editor.state editor))
-          ~onclick: (fun () ->
-              editor.set_interacted ();
-              Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun version ->
-              match on_save with
-              | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
-              | Some on_save -> on_save version
-            )
-          ();
-        Button.clear
-          ~onclick: (fun () -> Editor.clear editor)
-          ();
+        Button.group [
+          Button.save
+            ~disabled: (S.map Option.is_none (Editor.state editor))
+            ~onclick: (fun () ->
+                editor.set_interacted ();
+                Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun version ->
+                Editor.clear editor;
+                match on_save with
+                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
+                | Some on_save -> on_save version
+              )
+            ();
+          Button.clear
+            ~onclick: (fun () -> Editor.clear editor)
+            ();
+        ]
       ]
     ]
-  ]
+  )
