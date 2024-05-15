@@ -188,7 +188,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Devisers", "deviser")
           ~model_name: "person"
-          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
+          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ PersonEditor.create ?on_save ())
           editor.elements.devisers;
         Input.Text.render
           editor.elements.date

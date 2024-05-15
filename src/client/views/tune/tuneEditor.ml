@@ -192,7 +192,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Composers", "composer")
           ~model_name: "person"
-          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
+          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ PersonEditor.create ?on_save ())
           editor.elements.composers;
         Input.Text.render
           editor.elements.date
@@ -202,7 +202,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_dance_result'
           ~field_name: ("Dances", "dance")
           ~model_name: "dance"
-          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ DanceEditor.create ?on_save ()) (* FIXME: ListSelector should just take a page *)
+          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ DanceEditor.create ?on_save ()) (* FIXME: ListSelector should just take a page *)
           editor.elements.dances;
         Input.Text.render
           editor.elements.remark

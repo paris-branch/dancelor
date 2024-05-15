@@ -184,7 +184,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_tune_result'
           ~field_name: ("Tune", "tune")
           ~model_name: "tune"
-          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ TuneEditor.create ?on_save ())
+          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ TuneEditor.create ?on_save ())
           editor.elements.tune;
         Input.Text.render
           editor.elements.bars
@@ -202,7 +202,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Arrangers", "arranger")
           ~model_name: "person"
-          ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ PersonEditor.create ?on_save ())
+          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ PersonEditor.create ?on_save ())
           editor.elements.arrangers;
         Input.Text.render
           editor.elements.disambiguation
