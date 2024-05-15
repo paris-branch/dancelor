@@ -210,6 +210,7 @@ let create ?on_save () =
           ~onclick: (fun () ->
               editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun tune ->
+              Editor.clear editor;
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune (Model.Tune.slug tune))
               | Some on_save -> on_save tune

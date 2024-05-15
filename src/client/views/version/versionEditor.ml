@@ -214,6 +214,7 @@ let create ?on_save () =
           ~onclick: (fun () ->
               editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun version ->
+              Editor.clear editor;
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
               | Some on_save -> on_save version

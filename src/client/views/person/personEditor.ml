@@ -102,6 +102,7 @@ let create ?on_save () =
           ~onclick: (fun () ->
               editor.set_interacted ();
               Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun person ->
+              Editor.clear editor;
               match on_save with
               | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
               | Some on_save -> on_save person
