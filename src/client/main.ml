@@ -25,7 +25,16 @@ let header =
         [i ~a:[a_class ["material-symbols-outlined"]] [txt "menu"]];
 
       (* A glorious title. *)
-      a ~a:[a_href "/"] [h1 [txt "Dancelor"]];
+      a
+        ~a: [
+          a_href "/";
+          a_class ["logo"];
+        ] [
+        img
+          ~src: "/logo.svg"
+          ~alt: "Dancelor"
+          ()
+      ];
 
       (* Navigation menu. *)
       ul
