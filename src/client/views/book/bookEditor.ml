@@ -91,18 +91,20 @@ module Editor = struct
     RS.bind (ListSelector.signal editor.elements.sets) @@ fun sets ->
     RS.pure {name; date; sets}
 
-  let with_or_without_local_storage ?edit f =
-    match edit with
-    | None ->
-      Lwt.return @@
-      Utils.with_local_storage "BookEditor" (module RawState) raw_state f
-    | Some slug ->
+  let with_or_without_local_storage ~on_save ~edit f =
+    match (on_save, edit) with
+    | Some _, _ ->
+      Lwt.return @@ f RawState.empty
+    | _, Some slug ->
       let%lwt book = Model.Book.get slug in
       let%lwt raw_state = Lwt.map State.to_raw_state (State.of_model book) in
       Lwt.return @@ f raw_state
+    | _, None ->
+      Lwt.return @@
+      Utils.with_local_storage "BookEditor" (module RawState) raw_state f
 
-  let create ?edit () : t Lwt.t =
-    with_or_without_local_storage ?edit @@ fun initial_state ->
+  let create ~on_save ~edit () : t Lwt.t =
+    with_or_without_local_storage ~on_save ~edit @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let name = Input.Text.make ~has_interacted initial_state.name @@
@@ -157,7 +159,7 @@ let create ?on_save ?edit () =
   Page.make ~title:(S.const title) @@
   L.div (
     try%lwt
-      let%lwt editor = Editor.create ?edit () in
+      let%lwt editor = Editor.create ~on_save ~edit () in
       Lwt.return @@ [
         h2 ~a:[a_class ["title"]] [txt title];
 
