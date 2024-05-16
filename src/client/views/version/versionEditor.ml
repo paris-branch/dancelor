@@ -92,16 +92,18 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-  let with_or_without_local_storage ~on_save f =
-    match on_save with
-    | Some _ ->
+  let with_or_without_local_storage ~text f =
+    match text with
+    | Some _ -> (* NOTE: We are ignoring the actual value of the text because
+                   there is nowhere where we can actually put it; we could if
+                   the selector accepted an initial text for the search bar. *)
       Lwt.return @@ f RawState.empty
     | None ->
       Lwt.return @@
       Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
 
-  let create ~on_save () : t Lwt.t =
-    with_or_without_local_storage ~on_save @@ fun initial_state ->
+  let create ~text : t Lwt.t =
+    with_or_without_local_storage ~text @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let tune = Selector.make
@@ -171,11 +173,11 @@ module Editor = struct
         ()
 end
 
-let create ?on_save () =
+let create ?on_save ?text () =
   let title = "Add a version" in
   Page.make ~title:(S.const title) @@
   L.div (
-    let%lwt editor = Editor.create ~on_save () in
+    let%lwt editor = Editor.create ~text in
     Lwt.return @@ [
       h2 ~a:[a_class ["title"]] [txt title];
 
@@ -184,7 +186,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_tune_result'
           ~field_name: ("Tune", "tune")
           ~model_name: "tune"
-          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ TuneEditor.create ?on_save ())
+          ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ TuneEditor.create ?on_save ~text ())
           editor.elements.tune;
         Input.Text.render
           editor.elements.bars
@@ -202,7 +204,7 @@ let create ?on_save () =
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Arrangers", "arranger")
           ~model_name: "person"
-          ~create_dialog_content: (fun ?on_save _text -> Page.get_content @@ PersonEditor.create ?on_save ())
+          ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
           editor.elements.arrangers;
         Input.Text.render
           editor.elements.disambiguation
