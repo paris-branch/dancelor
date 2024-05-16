@@ -22,6 +22,9 @@ val make :
 (** Wrapper around {!SearchBar.make}; refer to it for a description of the
     arguments. *)
 
+val search_bar : 'result t -> 'result SearchBar.t
+(** Access the underlying search bar. *)
+
 val render :
   placeholder: string ->
   make_result: ('result -> Html_types.tr Html.elt Lwt.t) ->

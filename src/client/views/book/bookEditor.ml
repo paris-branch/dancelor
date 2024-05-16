@@ -91,10 +91,10 @@ module Editor = struct
     RS.bind (ListSelector.signal editor.elements.sets) @@ fun sets ->
     RS.pure {name; date; sets}
 
-  let with_or_without_local_storage ~on_save ~edit f =
-    match (on_save, edit) with
-    | Some _, _ ->
-      Lwt.return @@ f RawState.empty
+  let with_or_without_local_storage ~text ~edit f =
+    match (text, edit) with
+    | Some text, _ ->
+      Lwt.return @@ f {RawState.empty with name = text}
     | _, Some slug ->
       let%lwt book = Model.Book.get slug in
       let%lwt raw_state = Lwt.map State.to_raw_state (State.of_model book) in
@@ -103,8 +103,8 @@ module Editor = struct
       Lwt.return @@
       Utils.with_local_storage "BookEditor" (module RawState) raw_state f
 
-  let create ~on_save ~edit () : t Lwt.t =
-    with_or_without_local_storage ~on_save ~edit @@ fun initial_state ->
+  let create ~text ~edit : t Lwt.t =
+    with_or_without_local_storage ~text ~edit @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let name = Input.Text.make ~has_interacted initial_state.name @@
@@ -154,12 +154,12 @@ module Editor = struct
         ()
 end
 
-let create ?on_save ?edit () =
+let create ?on_save ?text ?edit () =
   let title = (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book" in
   Page.make ~title:(S.const title) @@
   L.div (
     try%lwt
-      let%lwt editor = Editor.create ~on_save ~edit () in
+      let%lwt editor = Editor.create ~text ~edit in
       Lwt.return @@ [
         h2 ~a:[a_class ["title"]] [txt title];
 
@@ -177,7 +177,7 @@ let create ?on_save ?edit () =
             ~make_more_results: (fun set -> [tr [L.td ~a:[a_colspan 9999] (Formatters.Set.tunes set)]])
             ~field_name: ("Sets", "set")
             ~model_name: "set"
-            ~create_dialog_content: (fun ?on_save () -> Page.get_content @@ SetEditor.create ?on_save ())
+            ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ SetEditor.create ?on_save ~text ())
             editor.elements.sets;
 
           Button.group [

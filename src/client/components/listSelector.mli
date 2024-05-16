@@ -35,7 +35,7 @@ val render :
   model_name: string ->
   create_dialog_content: (
     ?on_save:('model -> unit) ->
-    unit ->
+    string ->
     Html_types.div Html.elt
   ) ->
   'model t ->

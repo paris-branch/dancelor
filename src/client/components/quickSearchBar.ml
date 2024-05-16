@@ -26,6 +26,8 @@ type 'result t = {
   set_table_visible : bool -> unit;
 }
 
+let search_bar q = q.search_bar
+
 let clear q =
   SearchBar.clear q.search_bar;
   q.set_table_visible false

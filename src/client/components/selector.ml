@@ -65,7 +65,7 @@ let render
     ~model_name
     ~(create_dialog_content:
         ?on_save:('result -> unit) ->
-      unit ->
+      string ->
       Html_types.div Html.elt
      )
     s
@@ -119,7 +119,11 @@ let render
                 Lwt.async @@ fun () ->
                 let%lwt result = Dialog.open_ @@ fun return ->
                   QuickSearchBar.clear s.search_bar;
-                  [create_dialog_content ~on_save:return ()]
+                  [
+                    create_dialog_content
+                      ~on_save:return
+                      (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
+                  ]
                 in
                 Result.iter (fun element ->
                     s.set (Some element);
