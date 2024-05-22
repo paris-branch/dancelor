@@ -1,4 +1,4 @@
-# ![Dancelor](<src/static/logo.svg#svgView(viewBox(0,0,100,100))>)
+# <img alt="Dancelor" src="src/static/logo.svg" height="100px">
 
 A chancelor for Scottish country dance musicians.
 
