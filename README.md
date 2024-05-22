@@ -1,4 +1,4 @@
-# ![Dancelor](src/static/logo.svg)
+# ![Dancelor](<src/static/logo.svg#svgView(viewBox(0,0,100,100))>)
 
 A chancelor for Scottish country dance musicians.
 
