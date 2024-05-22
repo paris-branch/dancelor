@@ -1,4 +1,4 @@
-# Dancelor
+# ![Dancelor](src/static/logo.svg)
 
 A chancelor for Scottish country dance musicians.
 
