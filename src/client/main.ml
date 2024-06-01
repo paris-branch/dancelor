@@ -15,6 +15,18 @@ let search slice input =
   let%lwt results = Model.Any.search ~threshold ~slice filter in
   Lwt.return_ok results
 
+let set_title title =
+  Dom_html.document##.title :=
+    Js.string @@
+      match title with
+      | "" -> "Dancelor"
+      | title -> title ^ " | Dancelor"
+
+let get_page () =
+  let url = Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
+  let request = Madge_router.{method_ = `GET; path = Uri.path url; query = Madge_query.from_uri url} in
+  Madge_router.request_to_resource request PageRouter.routes
+
 (* Whether to show the menu or not. [None] indicates the default (yes on
    desktop, no on mobile). *)
 let (show_menu, set_show_menu) = React.S.create None
@@ -226,15 +238,24 @@ let issue_report_button =
     ~a: [a_id "issue-report-button"]
     [
       a
+        ~a: [
+          a_onclick (fun _ ->
+            Lwt.async (fun () ->
+              Lwt.map ignore @@
+              IssueReportDialog.open_ @@
+              get_page ()
+            );
+            false
+          );
+        ]
         [
           i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
           span [txt " Report an issue"];
         ];
     ]
 
-let dispatch url =
-  let request = Madge_router.{method_ = `GET; path = Uri.path url; query = Madge_query.from_uri url} in
-  let page = Madge_router.request_to_resource request PageRouter.routes in
+let dispatch page =
+  (* FIXME: When option is none, redirect to a 404 page. *)
   match Option.get page with
   | PageRouter.Index -> Index.create ()
   | Explore query -> Explorer.create ?query ()
@@ -252,15 +273,8 @@ let dispatch url =
   | DanceAdd -> DanceEditor.create ()
   | Dance {slug; context} -> DanceViewer.create slug ?context
 
-let set_title title =
-  Dom_html.document##.title :=
-    Js.string @@
-      match title with
-      | "" -> "Dancelor"
-      | title -> title ^ " | Dancelor"
-
 let on_load _ev =
-  let page = dispatch @@ Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
+  let page = dispatch @@ get_page () in
   let iter_title = React.S.map set_title (Page.get_title page) in
   Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
