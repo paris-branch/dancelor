@@ -16,7 +16,6 @@ let make_and_save
     ?arrangers
     ?remark
     ?disambiguation
-    ?broken
     ~content
     ~modified_at
     ~created_at
@@ -35,7 +34,6 @@ let make_and_save
       ?arrangers
       ?remark
       ?disambiguation
-      ?broken
       ~modified_at
       ~created_at
       ()
@@ -55,7 +53,6 @@ let () =
       ?arrangers: (o A.arrangers)
       ?remark: (o A.remark)
       ?disambiguation: (o A.disambiguation)
-      ?broken: (o A.broken)
       ~content: (a A.content)
       ~modified_at: (a A.modified_at)
       ~created_at: (a A.created_at)
@@ -115,21 +112,3 @@ let search' ?slice ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
-
-let mark_fixed version =
-  Database.Version.update (set_broken version false)
-
-let () =
-  Madge_server.(
-    register ~endpoint: E.mark_fixed @@ fun {a} _ ->
-    mark_fixed (a A.version)
-  )
-
-let mark_broken version =
-  Database.Version.update (set_broken version true)
-
-let () =
-  Madge_server.(
-    register ~endpoint: E.mark_broken @@ fun {a} _ ->
-    mark_broken (a A.version)
-  )

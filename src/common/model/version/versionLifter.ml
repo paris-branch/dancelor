@@ -16,7 +16,6 @@ module Lift
       ?arrangers
       ?remark
       ?disambiguation
-      ?broken
       ~modified_at
       ~created_at
       ()
@@ -37,7 +36,6 @@ module Lift
           ?arrangers
           ?remark
           ?disambiguation
-          ?broken
           ~modified_at
           ~created_at
           ()
@@ -45,8 +43,6 @@ module Lift
 
   let tune version = Tune.get (tune version)
   let arrangers version = Lwt_list.map_p Person.get version.arrangers
-
-  let set_broken t broken = {t with broken}
 
   let kind version =
     Fun.flip Lwt.map (tune version) @@ fun tune ->
@@ -71,8 +67,6 @@ module Lift
         | Kind kfilter ->
           let%lwt tune = versionCore_tune version in
           Kind.Version.Filter.accepts kfilter (VersionCore.bars version, Tune.kind tune)
-        | Broken ->
-          Lwt.return @@ Formula.interpret_bool @@ VersionCore.broken version
 
     let text_formula_converter =
       TextFormulaConverter.(
@@ -82,7 +76,6 @@ module Lift
             (* Version-specific converter. *)
             make
               [
-                nullary ~name: "broken" broken;
                 unary_lift ~wrap_back: NotRaw ~name: "tune" (tune, unTune) ~converter: Tune.Filter.text_formula_converter;
                 unary_raw ~name: "key" (key, unKey) ~cast: (Music.key_of_string_opt, Music.key_to_string) ~type_: "key";
                 unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Version.Filter.text_formula_converter;
@@ -124,7 +117,7 @@ module Lift
         ~lift_and: (lift {op = Formula.and_})
         ~lift_or: (lift {op = Formula.or_})
         (function
-          | (Is _ as p) | (Key _ as p) | (Broken as p) -> p
+          | (Is _ as p) | (Key _ as p) -> p
           | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
           | Kind kfilter -> kind @@ Kind.Version.Filter.optimise kfilter
         )

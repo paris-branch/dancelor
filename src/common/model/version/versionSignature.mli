@@ -12,7 +12,6 @@ val sources : t -> string list
 val arrangers : t -> PersonCore.t list Lwt.t
 val remark : t -> string
 val disambiguation : t -> string
-val broken : t -> bool
 val modified_at : t -> Datetime.t
 val created_at : t -> Datetime.t
 
@@ -44,9 +43,6 @@ module Filter : sig
   val tune : TuneCore.Filter.t -> predicate
   val tune' : TuneCore.Filter.t -> t
 
-  val broken : predicate
-  val broken' : t
-
   val kind : Kind.Version.Filter.t -> predicate
   val kind' : Kind.Version.Filter.t -> t
 
@@ -74,7 +70,6 @@ val make_and_save :
   ?arrangers: PersonCore.t list ->
   ?remark: string ->
   ?disambiguation: string ->
-  ?broken: bool ->
   content: string ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
@@ -103,7 +98,3 @@ val count :
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)
-
-val mark_broken : t -> unit Lwt.t
-
-val mark_fixed : t -> unit Lwt.t

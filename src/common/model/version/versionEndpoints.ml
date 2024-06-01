@@ -18,7 +18,6 @@ module Arguments = struct
   let arrangers = optarg ~key: "arrangers" (module MList(PersonCore))
   let remark = optarg ~key: "remark" (module MString)
   let disambiguation = optarg ~key: "disambiguation" (module MString)
-  let broken = optarg ~key: "broken" (module MBool)
   let content = arg ~key: "content" (module MString)
   let modified_at = arg ~key: "modified-at" (module NesDatetime)
   let created_at = arg ~key: "created-at" (module NesDatetime)
@@ -27,9 +26,6 @@ end
 let get = endpoint ~path: "/version" (module VersionCore)
 let make_and_save = endpoint ~path: "/version/save" (module VersionCore)
 let search = endpoint ~path: "/version/search" (module MPair(MInteger)(MList(VersionCore)))
-
-let mark_fixed = endpoint ~path: "/version/mark-fixed" (module MUnit)
-let mark_broken = endpoint ~path: "/version/mark-broken" (module MUnit)
 
 (* New-style Endpoints *)
 
