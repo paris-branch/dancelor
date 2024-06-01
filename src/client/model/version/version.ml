@@ -11,7 +11,6 @@ let save
     ?arrangers
     ?remark
     ?disambiguation
-    ?broken
     ~content
     ~modified_at
     ~created_at
@@ -27,7 +26,6 @@ let save
     arrangers
     remark
     disambiguation
-    broken
     content
     modified_at
     created_at
@@ -40,6 +38,3 @@ let search' ?slice ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
-
-let mark_fixed = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version MarkFixed) % slug
-let mark_broken = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version MarkBroken) % slug

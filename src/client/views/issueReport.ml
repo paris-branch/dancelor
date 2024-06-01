@@ -1,4 +1,5 @@
 open Nes
+open Js_of_ocaml
 open Dancelor_common
 module Model = Dancelor_client_model
 open Dancelor_client_html
@@ -42,7 +43,7 @@ let describe uri =
   | Some page -> page ()
   | None -> (* FIXME: 404 page *) assert false
 
-let open_ page =
+let open_dialog page =
   let reporter_input = Input.Text.make "" (fun s -> Ok s) in
   let%lwt source =
     Fun.flip Lwt.map (describe page) @@ function
@@ -100,3 +101,24 @@ let open_ page =
           ]
       ]
   ]
+
+let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
+
+let button =
+  div
+    ~a: [a_id "issue-report-button"]
+    [
+      a
+        ~a: [
+          a_onclick (fun _ ->
+              Lwt.async (fun () ->
+                  Lwt.map ignore @@ open_dialog @@ get_uri ()
+                );
+              false
+            );
+        ]
+        [
+          i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
+          span [txt " Report an issue"];
+        ];
+    ]

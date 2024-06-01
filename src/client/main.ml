@@ -229,25 +229,6 @@ let header =
         ]
     ]
 
-let issue_report_button =
-  div
-    ~a: [a_id "issue-report-button"]
-    [
-      a
-        ~a: [
-          a_onclick (fun _ ->
-              Lwt.async (fun () ->
-                  Lwt.map ignore @@ IssueReportDialog.open_ @@ get_uri ()
-                );
-              false
-            );
-        ]
-        [
-          i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
-          span [txt " Report an issue"];
-        ];
-    ]
-
 let dispatch uri =
   let dispatch : type a r. (a, Page.t, r) PageRouter.page -> a = function
     | Index -> Index.create ()
@@ -283,7 +264,7 @@ let on_load _ev =
   content##.classList##add (Js.string "content");
   content##.classList##add (Js.string "page-body");
   Dom.appendChild Dom_html.document##.body content;
-  Dom.appendChild Dom_html.document##.body (To_dom.of_div issue_report_button);
+  Dom.appendChild Dom_html.document##.body (To_dom.of_div IssueReport.button);
   Js._false
 
 let _ =
