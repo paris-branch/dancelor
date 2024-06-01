@@ -1,6 +1,6 @@
 .dialog {
   position: fixed;
-  z-index: 1;
+  z-index: 1000; /* above the header that has z-index 100 */
   left: 0;
   top: 0;
   width: 100%;
@@ -10,10 +10,14 @@
 
   .content {
     background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
+    margin: 10% auto; /* 10% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
     max-width: 50%;
+
+    @media only screen and (max-width: 767px) {
+      max-width: 100%;
+    }
   }
 
   .close {
