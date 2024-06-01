@@ -220,6 +220,17 @@ let header =
         ]
     ]
 
+let issue_report_button =
+  div
+    ~a: [a_id "issue-report-button"]
+    [
+      a
+        [
+          i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
+          span [txt " Report an issue"];
+        ];
+    ]
+
 let dispatch uri =
   let dispatch : type a r. (a, Page.t, r) PageRouter.page -> a = function
     | Index -> Index.create ()
@@ -262,6 +273,7 @@ let on_load _ev =
   content##.classList##add (Js.string "content");
   content##.classList##add (Js.string "page-body");
   Dom.appendChild Dom_html.document##.body content;
+  Dom.appendChild Dom_html.document##.body (To_dom.of_div issue_report_button);
   Js._false
 
 let _ =
