@@ -9,7 +9,12 @@ let group content =
     ]
     content
 
-let save ~disabled ~onclick () =
+let save
+    ?(label = ("Save", "Saving..."))
+    ?(disabled = S.const false)
+    ~onclick
+    ()
+  =
   let (processing, set_processing) = React.S.create false in
   button
     [
@@ -27,8 +32,8 @@ let save ~disabled ~onclick () =
       R.txt
         (
           Fun.flip S.map processing @@ function
-          | true -> "Saving..."
-          | false -> "Save"
+          | true -> snd label
+          | false -> fst label
         );
     ]
     ~a: [
@@ -60,6 +65,20 @@ let clear ~onclick () =
       a_onclick (fun _event ->
           if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
             onclick ();
+          false
+        );
+    ]
+
+let cancel ~return () =
+  button
+    [
+      i ~a: [a_class ["material-symbols-outlined"]] [txt "cancel"];
+      txt " Cancel";
+    ]
+    ~a: [
+      a_class ["btn-danger"];
+      a_onclick (fun _event ->
+          return (Error Dialog.Closed);
           false
         );
     ]
