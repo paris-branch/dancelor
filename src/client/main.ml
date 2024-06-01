@@ -221,6 +221,17 @@ let header =
         ]
     ]
 
+let issue_report_button =
+  div
+    ~a: [a_id "issue-report-button"]
+    [
+      a
+        [
+          i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
+          span [txt " Report an issue"];
+        ];
+    ]
+
 let dispatch url =
   let request = Madge_router.{method_ = `GET; path = Uri.path url; query = Madge_query.from_uri url} in
   let page = Madge_router.request_to_resource request PageRouter.routes in
@@ -257,6 +268,7 @@ let on_load _ev =
   content##.classList##add (Js.string "content");
   content##.classList##add (Js.string "page-body");
   Dom.appendChild Dom_html.document##.body content;
+  Dom.appendChild Dom_html.document##.body (To_dom.of_div issue_report_button);
   Js._false
 
 let _ =
