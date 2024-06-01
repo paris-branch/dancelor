@@ -13,7 +13,6 @@ let save
     ?arrangers
     ?remark
     ?disambiguation
-    ?broken
     ~content
     ~modified_at
     ~created_at
@@ -32,7 +31,6 @@ let save
       ?arrangers
       ?remark
       ?disambiguation
-      ?broken
       ~modified_at
       ~created_at
       ()
@@ -84,9 +82,3 @@ let search' ?slice ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
-
-let mark_fixed version =
-  Database.Version.update (set_broken version false)
-
-let mark_broken version =
-  Database.Version.update (set_broken version true)

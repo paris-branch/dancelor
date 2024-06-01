@@ -1,5 +1,4 @@
 open Nes
-open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
@@ -125,31 +124,6 @@ let create ?context slug =
             ~src: (ApiRouter.(href @@ Version Ogg) slug)
             []
         ];
-      L.div
-        ~a: [a_class ["buttons"]]
-        (
-          let%lwt is_broken = Lwt.map Version.broken version_lwt in
-          Lwt.return
-            [
-              a
-                ~a: [
-                  a_class ["button"; "button-danger"];
-                  a_onclick
-                    (fun _ ->
-                       Lwt.async
-                         (fun () ->
-                            if is_broken then version_lwt >>=| Version.mark_fixed else version_lwt >>=| Version.mark_broken;%lwt
-                            Dom_html.window##.location##reload;
-                            Lwt.return_unit
-                         );
-                       false
-                    )
-                ]
-                [
-                  txt (if is_broken then "Mark fixed" else "Mark broken");
-                ]
-            ]
-        );
       Utils.quick_explorer_links
         [
           ("sets containing this version", Lwt.map (Any.Filter.set' % Set.Filter.memVersion') version_lwt);
