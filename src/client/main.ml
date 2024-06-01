@@ -15,6 +15,15 @@ let search slice input =
   let%lwt results = Model.Any.search ~threshold ~slice filter in
   Lwt.return_ok results
 
+let set_title title =
+  Dom_html.document##.title :=
+    Js.string @@
+    match title with
+    | "" -> "Dancelor"
+    | title -> title ^ " | Dancelor"
+
+let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
+
 (* Whether to show the menu or not. [None] indicates the default (yes on
    desktop, no on mobile). *)
 let (show_menu, set_show_menu) = React.S.create None
@@ -225,6 +234,14 @@ let issue_report_button =
     ~a: [a_id "issue-report-button"]
     [
       a
+        ~a: [
+          a_onclick (fun _ ->
+              Lwt.async (fun () ->
+                  Lwt.map ignore @@ IssueReportDialog.open_ @@ get_uri ()
+                );
+              false
+            );
+        ]
         [
           i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
           span [txt " Report an issue"];
@@ -257,15 +274,8 @@ let dispatch uri =
   | Some page -> page ()
   | None -> (* FIXME: 404 page *) assert false
 
-let set_title title =
-  Dom_html.document##.title :=
-    Js.string @@
-    match title with
-    | "" -> "Dancelor"
-    | title -> title ^ " | Dancelor"
-
 let on_load _ev =
-  let page = dispatch @@ Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
+  let page = dispatch @@ get_uri () in
   let iter_title = React.S.map set_title (Page.get_title page) in
   Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
