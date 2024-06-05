@@ -40,61 +40,70 @@ let describe_page page =
       Lwt.return @@ Some ("person", name)
 
 let open_dialog page =
-  let reporter_input = Input.Text.make "" (fun s -> Ok s) in
+  let (has_interacted, set_interacted) = S.create false in
+  let set_interacted () = set_interacted true in
+
+  let reporter_input =
+    Input.Text.make ~has_interacted "" @@
+    Result.of_string_nonempty ~empty: "You must specify the reporter"
+  in
   let%lwt source =
     Fun.flip Lwt.map (describe_page page) @@ function
-      | None ->
-        Choices.make_radios
-          ~name: "Source of the issue"
-          [
-            Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
-          ]
-      | Some (kind, name) ->
-        Choices.make_radios
-          ~name: "Source of the issue"
-          [
-            Choices.choice'
-              ~value: false
-              [
-                txt @@
-                  spf "This %s: %s" kind name
-              ];
-            Choices.choice' ~value: true [txt "Dancelor itself"];
-          ]
+    | None ->
+      Choices.make_radios
+        ~name: "Source of the issue"
+        [
+          Choices.choice' ~value:true [txt "Dancelor itself"] ~checked: true;
+        ]
+    | Some (kind, name) ->
+      Choices.make_radios
+        ~name: "Source of the issue"
+        [
+          Choices.choice' ~value:false [txt @@ spf "This %s: %s" kind name];
+          Choices.choice' ~value:true [txt "Dancelor itself"];
+        ]
   in
-  let title_input = Input.Text.make "" (fun s -> Ok s) in
-  let description_input = Input.Text.make "" (fun s -> Ok s) in
+  let title_input =
+    Input.Text.make ~has_interacted "" @@
+    Result.of_string_nonempty ~empty: "The title cannot be empty"
+  in
+  let description_input =
+    Input.Text.make ~has_interacted "" @@
+    Result.of_string_nonempty ~empty: "The description cannot be empty"
+  in
+
   Dialog.open_ @@ fun return ->
   [
     h2 [txt "Report an issue"];
-    form
-      [
-        Input.Text.render
-          reporter_input
-          ~placeholder: "Dr Jean Milligan"
-          ~label: "Reporter";
-        Choices.render source;
-        Input.Text.render
-          title_input
-          ~placeholder: "Blimey, 'tis not working!"
-          ~label: "Title";
-        Input.Text.render_as_textarea
-          description_input
-          ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-          ~label: "Description";
-        Button.group
-          [
-            Button.save
-              ~label: ("Report", "Reporting...")
-              ~disabled: (S.const false)
-              ~onclick: (fun () ->
-                Lwt.pmsleep 2.;%lwt
-                return (Ok ());
-                Lwt.return_unit
-              )
-              ();
-            Button.cancel ~return ()
-          ]
+    form [
+      Input.Text.render
+        reporter_input
+        ~placeholder: "Dr Jean Milligan"
+        ~label: "Reporter";
+      Choices.render source;
+      Input.Text.render
+        title_input
+        ~placeholder: "Blimey, 'tis not working!"
+        ~label: "Title";
+      Input.Text.render_as_textarea
+        description_input
+        ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+        ~label: "Description";
+
+      Button.group [
+        Button.make
+          ~label: "Report"
+          ~label_processing: "Reporting..."
+          ~icon: "bug_report"
+          ~classes: ["btn-success"]
+          ~onclick: (fun () ->
+              set_interacted ();
+              Lwt.pmsleep 2.;%lwt
+              return (Ok ());
+              Lwt.return_unit
+            )
+          ();
+        Button.cancel ~return ()
       ]
   ]
 

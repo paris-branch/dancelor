@@ -9,8 +9,11 @@ let group content =
     ]
     content
 
-let save
-    ?(label = ("Save", "Saving..."))
+let make
+    ~label
+    ~label_processing
+    ~icon
+    ~classes
     ?(disabled = S.const false)
     ~onclick
     ()
@@ -25,24 +28,33 @@ let save
             (
               Fun.flip S.map processing @@ function
                 | true -> "pending"
-                | false -> "save"
+                | false -> icon
             )
         ];
       txt " ";
       R.txt
         (
           Fun.flip S.map processing @@ function
-            | true -> snd label
-            | false -> fst label
+            | true -> label_processing
+            | false -> label
         );
     ]
     ~a: [
       R.a_class
         (
           Fun.flip S.map (S.l2 (||) disabled processing) @@ function
-            | true -> ["btn-success"; "disabled"]
-            | false -> ["btn-success"]
+            | true -> "disabled" :: classes
+            | false -> classes
         );
+      a_onclick (fun _event ->
+        Lwt.async (fun () ->
+          set_processing true;
+          onclick ();%lwt
+          set_processing false;
+          Lwt.return_unit
+        );
+        false
+      );
       a_onclick (fun _event ->
         Lwt.async (fun () ->
           set_processing true;
@@ -54,31 +66,37 @@ let save
       );
     ]
 
+let save ?disabled ~onclick () =
+  make
+    ~label: "Save"
+    ~label_processing: "Saving..."
+    ~icon: "save"
+    ~classes: ["btn-success"]
+    ?disabled
+    ~onclick
+    ()
+
 let clear ~onclick () =
-  button
-    [
-      i ~a: [a_class ["material-symbols-outlined"]] [txt "cancel"];
-      txt " Clear";
-    ]
-    ~a: [
-      a_class ["btn-danger"];
-      a_onclick (fun _event ->
-        if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
-          onclick ();
-        false
-      );
-    ]
+  make
+    ~label: "Clear"
+    ~label_processing: "Clearing..."
+    ~icon: "cancel"
+    ~classes: ["btn-danger"]
+    ~onclick: (fun () ->
+      if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
+        onclick ();
+      Lwt.return_unit
+    )
+    ()
 
 let cancel ~return () =
-  button
-    [
-      i ~a: [a_class ["material-symbols-outlined"]] [txt "cancel"];
-      txt " Cancel";
-    ]
-    ~a: [
-      a_class ["btn-danger"];
-      a_onclick (fun _event ->
-        return (Error Dialog.Closed);
-        false
-      );
-    ]
+  make
+    ~label: "Cancel"
+    ~label_processing: "Cancelling..."
+    ~icon: "cancel"
+    ~classes: ["btn-danger"]
+    ~onclick: (fun () ->
+      return (Error Dialog.Closed);
+      Lwt.return_unit
+    )
+    ()
