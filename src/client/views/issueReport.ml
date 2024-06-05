@@ -53,14 +53,18 @@ let open_dialog page =
   let%lwt source =
     Fun.flip Lwt.map (describe page) @@ function
     | None ->
-      Choices.make_radios
+      Choices.make_radios'
         ~name: "Source of the issue"
+        ~has_interacted
+        ~validate: (Option.to_result ~none: "You must make a choice")
         [
           Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
         ]
     | Some (kind, name) ->
-      Choices.make_radios
+      Choices.make_radios'
         ~name: "Source of the issue"
+        ~has_interacted
+        ~validate: (Option.to_result ~none: "You must make a choice")
         [
           Choices.choice'
             ~value: false
