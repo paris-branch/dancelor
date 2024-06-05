@@ -1,10 +1,11 @@
 open Nes
+open Js_of_ocaml
 open Dancelor_common
 module Model = Dancelor_client_model
 open Dancelor_client_html
 open Dancelor_client_components
 
-let describe page =
+let describe_page page =
   match page with
   | None -> Lwt.return None
   | Some page ->
@@ -38,10 +39,10 @@ let describe page =
       let%lwt name = Lwt.map Model.Person.name (Model.Person.get slug) in
       Lwt.return @@ Some ("person", name)
 
-let open_ page =
+let open_dialog page =
   let reporter_input = Input.Text.make "" (fun s -> Ok s) in
   let%lwt source =
-    Fun.flip Lwt.map (describe page) @@ function
+    Fun.flip Lwt.map (describe_page page) @@ function
       | None ->
         Choices.make_radios
           ~name: "Source of the issue"
@@ -96,3 +97,27 @@ let open_ page =
           ]
       ]
   ]
+
+let get_page () =
+  let url = Uri.of_string (Js.to_string Dom_html.window##.location##.href) in
+  let request = Madge_router.{method_ = `GET; path = Uri.path url; query = Madge_query.from_uri url} in
+  Madge_router.request_to_resource request PageRouter.routes
+
+let button =
+  div
+    ~a: [a_id "issue-report-button"]
+    [
+      a
+        ~a: [
+          a_onclick (fun _ ->
+            Lwt.async (fun () ->
+              Lwt.map ignore @@ open_dialog @@ get_page ()
+            );
+            false
+          );
+        ]
+        [
+          i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
+          span [txt " Report an issue"];
+        ];
+    ]
