@@ -44,7 +44,12 @@ let describe uri =
   | None -> (* FIXME: 404 page *) assert false
 
 let open_dialog page =
-  let reporter_input = Input.Text.make "" (fun s -> Ok s) in
+  let (has_interacted, set_interacted) = S.create false in
+  let set_interacted () = set_interacted true in
+  let reporter_input =
+    Input.Text.make ~has_interacted "" @@
+    Result.of_string_nonempty ~empty: "You must specify the reporter"
+  in
   let%lwt source =
     Fun.flip Lwt.map (describe page) @@ function
     | None ->
@@ -66,8 +71,14 @@ let open_dialog page =
           Choices.choice' ~value: true [txt "Dancelor itself"];
         ]
   in
-  let title_input = Input.Text.make "" (fun s -> Ok s) in
-  let description_input = Input.Text.make "" (fun s -> Ok s) in
+  let title_input =
+    Input.Text.make ~has_interacted "" @@
+    Result.of_string_nonempty ~empty: "The title cannot be empty"
+  in
+  let description_input =
+    Input.Text.make ~has_interacted "" @@
+    Result.of_string_nonempty ~empty: "The description cannot be empty"
+  in
   Dialog.open_ @@ fun return ->
   [
     h2 [txt "Report an issue"];
@@ -88,10 +99,14 @@ let open_dialog page =
           ~label: "Description";
         Button.group
           [
-            Button.save
-              ~label: ("Report", "Reporting...")
+            Button.make
+              ~label: "Report"
+              ~label_processing: "Reporting..."
+              ~icon: "save" (* FIXME *)
+              ~classes: ["btn-success"] (* FIXME *)
               ~disabled: (S.const false)
               ~onclick: (fun () ->
+                  set_interacted ();
                   Lwt.pmsleep 2.;%lwt
                   return (Ok ());
                   Lwt.return_unit

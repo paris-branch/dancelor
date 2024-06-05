@@ -9,8 +9,11 @@ let group content =
     ]
     content
 
-let save
-    ?(label = ("Save", "Saving..."))
+let make
+    ~label
+    ~label_processing
+    ~icon
+    ~classes
     ?(disabled = S.const false)
     ~onclick
     ()
@@ -25,23 +28,23 @@ let save
             (
               Fun.flip S.map processing @@ function
               | true -> "pending"
-              | false -> "save"
+              | false -> icon
             )
         ];
       txt " ";
       R.txt
         (
           Fun.flip S.map processing @@ function
-          | true -> snd label
-          | false -> fst label
+          | true -> label_processing
+          | false -> label
         );
     ]
     ~a: [
       R.a_class
         (
           Fun.flip S.map (S.l2 (||) disabled processing) @@ function
-          | true -> ["btn-success"; "disabled"]
-          | false -> ["btn-success"]
+          | true -> "disabled" :: classes
+          | false -> classes
         );
       a_onclick (fun _event ->
           Lwt.async (fun () ->
@@ -53,6 +56,16 @@ let save
           false
         );
     ]
+
+let save ?disabled ~onclick () =
+  make
+    ~label: "Save"
+    ~label_processing: "Saving..."
+    ~icon: "save"
+    ~classes: ["btn-success"]
+    ?disabled
+    ~onclick
+    ()
 
 let clear ~onclick () =
   button
