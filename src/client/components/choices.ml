@@ -28,7 +28,15 @@ let signal c = c.values
 let value c = S.value (signal c)
 let render c = c.box
 
-let make_gen_unsafe ?name: nam ~validate ~post_validate ~radios choices =
+let make_gen_unsafe
+    ?name: nam
+    ?(has_interacted = S.const false)
+    ~validate
+    ~post_validate
+    ~radios
+    choices
+  =
+  ignore has_interacted; (* FIXME *)
   let name = unique () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
   let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
@@ -81,11 +89,12 @@ let make_gen_unsafe ?name: nam ~validate ~post_validate ~radios choices =
   in
   {box; values = S.map post_validate values}
 
-let make_radios_gen ?name ~validate ~post_validate choices =
+let make_radios_gen ?name ?has_interacted ~validate ~post_validate choices =
   make_gen_unsafe
     ?name
     ~radios: true
     choices
+    ?has_interacted
     ~validate: (function
         | [] -> validate None
         | [x] -> validate x
@@ -93,7 +102,9 @@ let make_radios_gen ?name ~validate ~post_validate choices =
       )
     ~post_validate
 
-let make_radios ?name choices = make_radios_gen ?name ~validate: Result.ok ~post_validate: Result.get_ok choices
+let make_radios ?name ?has_interacted choices =
+  make_radios_gen ?name ?has_interacted ~validate: Result.ok ~post_validate: Result.get_ok choices
+
 let make_radios' = make_radios_gen ~post_validate: Fun.id
 
 let make_checkboxes choices =
