@@ -14,6 +14,7 @@ module Pdf = struct
       @@ Model.Tune.Filter.existsDance'
       @@ Model.Dance.Filter.is' dance
     in
+    let%lwt parameters = Model.SetParameters.make ~show_order:false () in
     let%lwt set =
       Model.Set.make
         ~slug
@@ -25,7 +26,7 @@ module Pdf = struct
         ~created_at: (Datetime.now ())
         ()
     in
-    Set.Pdf.render set
+    Set.Pdf.render set ~parameters
 
   let get dance_slug =
     let%lwt dance = Model.Dance.get dance_slug in
