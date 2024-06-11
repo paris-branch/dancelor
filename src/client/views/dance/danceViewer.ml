@@ -46,7 +46,7 @@ let create ?context slug =
       | Some scddb_id ->
         let href = Uri.to_string @@ SCDDB.dance_uri scddb_id in
         Lwt.return [
-          txt "See to ";
+          txt "See on ";
           a ~a:[a_href href; a_target "blank"] [
             txt "the Strathspey Database"
           ];
