@@ -1,3 +1,4 @@
+open Nes
 open Dancelor_common_model
 
 type victor_level = One | Two | Three | Four
@@ -7,6 +8,7 @@ type endpoint =
   | Book    of    BookEndpoints.t
   | Set     of     SetEndpoints.t
   | Version of VersionEndpoints.t
+  | Dance of DanceEndpoints.t
   | Victor of victor_level
 [@@deriving variants]
 
@@ -23,6 +25,7 @@ let routes : endpoint route list =
   @ wrap_routes ~prefix:"/book"    ~wrap:book    ~unwrap:unBook       BookEndpoints.routes
   @ wrap_routes ~prefix:"/set"     ~wrap:set     ~unwrap:unSet         SetEndpoints.routes
   @ wrap_routes ~prefix:"/version" ~wrap:version ~unwrap:unVersion VersionEndpoints.routes
+  @ wrap_routes ~prefix:"/dance" ~wrap:dance ~unwrap:unDance DanceEndpoints.routes
 
 let path ?(api_prefix=true) endpoint =
   let request = Madge_router.resource_to_request endpoint routes in
@@ -37,6 +40,7 @@ let path_versionOgg slug = path @@ version @@ VersionEndpoints.ogg slug
 let path_versionPdf ?params slug = path @@ version @@ VersionEndpoints.pdf slug params
 let path_setPdf ?params slug = path @@ set @@ SetEndpoints.pdf slug params
 let path_bookPdf ?params slug = path @@ book @@ BookEndpoints.pdf slug params
+let path_dancePdf = path % dance % DanceEndpoints.pdf
 
 let endpoint method_ path query =
   Madge_router.request_to_resource { method_; path; query } routes

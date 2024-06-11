@@ -21,3 +21,14 @@ end
 let get = endpoint ~path:"/dance" (module DanceCore)
 let make_and_save = endpoint ~path:"/dance/save" (module DanceCore)
 let search = endpoint ~path:"/dance/search" (module MPair (MInteger) (MList(DanceCore)))
+
+(* New-style Endpoints *)
+
+open Madge_router
+module MQ = Madge_query
+
+type t =
+  | Pdf of DanceCore.t Slug.t
+[@@deriving variants]
+
+let routes : t route list = [with_slug `GET "/" ~ext:"pdf" (pdf, unPdf)]
