@@ -34,6 +34,18 @@ let create ?context slug =
       | None -> [h3 ~a:[a_class ["title"]] [txt "Two Chords: unknown"]]
     );
 
+    div ~a:[a_class ["buttons"]] [
+      a
+        ~a:[
+          a_class ["button"];
+          a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (DanceDownloadDialog.create_and_open slug)); false);
+        ]
+        [
+          i ~a:[a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
+          txt " PDF";
+        ];
+    ];
+
     L.div (
       match%lwt Lwt.map Dance.date dance_lwt with
       | None -> Lwt.return_nil
@@ -46,7 +58,7 @@ let create ?context slug =
       | Some scddb_id ->
         let href = Uri.to_string @@ SCDDB.dance_uri scddb_id in
         Lwt.return [
-          txt "See to ";
+          txt "See on ";
           a ~a:[a_href href; a_target "blank"] [
             txt "the Strathspey Database"
           ];
@@ -58,11 +70,10 @@ let create ?context slug =
       h3 [txt "Recommended Tunes"];
 
       L.div (
-        let tunes_lwt =
+        let%lwt tunes =
           let%lwt dance = dance_lwt in
-          Tune.search' @@ Tune.Filter.existsDance' (Dance.Filter.is' dance)
+          Tune.search' @@ Tune.Filter.existsDance' @@ Dance.Filter.is' dance
         in
-        let%lwt tunes = tunes_lwt in
 
         Lwt.return [
           if tunes = [] then

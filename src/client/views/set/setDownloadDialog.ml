@@ -23,7 +23,7 @@ let create () =
     parameters_signal =
       S.merge (Option.concat SetParameters.compose) None [
         S.map (Option.map lift_version_parameters) version_dialog.parameters_signal;
-        (* fills a bit silly at this point but will make more sense once we have set-specific options *)
+        (* feels a bit silly at this point but will make more sense once we have set-specific options *)
       ];
   }
 

@@ -21,3 +21,21 @@ end
 let get = endpoint ~path:"/dance" (module DanceCore)
 let make_and_save = endpoint ~path:"/dance/save" (module DanceCore)
 let search = endpoint ~path:"/dance/search" (module MPair (MInteger) (MList(DanceCore)))
+
+(* New-style Endpoints *)
+
+open Madge_router
+module MQ = Madge_query
+
+type t =
+  | Pdf of DanceCore.t Slug.t * SetParameters.t option
+[@@deriving variants]
+
+let routes : t route list =
+  [
+    with_slug_and_query `GET "/" ~ext:"pdf"
+      (fun slug query -> Pdf (slug, MQ.get_ "parameters" SetParameters.of_yojson query))
+      (function
+        | Pdf (slug, None) -> Some (slug, MQ.empty)
+        | Pdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ SetParameters.to_yojson params))
+  ]
