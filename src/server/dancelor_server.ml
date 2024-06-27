@@ -25,7 +25,7 @@ let apply_controller path query =
   | Version (Svg (slug, params)) -> Version.Svg.get slug params
   | Version (Ogg slug) -> Version.Ogg.get slug
   | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
-  | Dance (Pdf slug) -> Dance.Pdf.get slug
+  | Dance (Pdf (slug, params)) -> Dance.Pdf.get slug params
   | Victor One   -> log_exit 101
   | Victor Two   -> log_exit 102
   | Victor Three -> log_exit 103

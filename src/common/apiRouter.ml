@@ -1,4 +1,3 @@
-open Nes
 open Dancelor_common_model
 
 type victor_level = One | Two | Three | Four
@@ -40,7 +39,7 @@ let path_versionOgg slug = path @@ version @@ VersionEndpoints.ogg slug
 let path_versionPdf ?params slug = path @@ version @@ VersionEndpoints.pdf slug params
 let path_setPdf ?params slug = path @@ set @@ SetEndpoints.pdf slug params
 let path_bookPdf ?params slug = path @@ book @@ BookEndpoints.pdf slug params
-let path_dancePdf = path % dance % DanceEndpoints.pdf
+let path_dancePdf ?params slug = path @@ dance @@ DanceEndpoints.pdf slug params
 
 let endpoint method_ path query =
   Madge_router.request_to_resource { method_; path; query } routes
