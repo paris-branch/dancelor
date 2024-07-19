@@ -18,18 +18,23 @@ let log_die () = Dancelor_server_logs.log_die (module Log)
 
 let apply_controller path query =
   (* FIXME: not necessarily `GET *)
-  match Option.get @@ ApiRouter.endpoint `GET path query with
-  | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
-  | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
-  | Version (Ly slug) -> Version.get_ly slug
-  | Version (Svg (slug, params)) -> Version.Svg.get slug params
-  | Version (Ogg slug) -> Version.Ogg.get slug
-  | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
-  | Dance (Pdf (slug, params)) -> Dance.Pdf.get slug params
-  | Victor One   -> log_exit 101
-  | Victor Two   -> log_exit 102
-  | Victor Three -> log_exit 103
-  | Victor Four  -> log_exit 104
+  match ApiRouter.endpoint `GET path query with
+  | None ->
+    let message = spf "Page `%s` was not found" path in
+    let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
+    Server.respond_error ~status:`Not_found ~body ()
+  | Some endpoint -> match endpoint with
+    | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
+    | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
+    | Version (Ly slug) -> Version.get_ly slug
+    | Version (Svg (slug, params)) -> Version.Svg.get slug params
+    | Version (Ogg slug) -> Version.Ogg.get slug
+    | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
+    | Dance (Pdf (slug, params)) -> Dance.Pdf.get slug params
+    | Victor One   -> log_exit 101
+    | Victor Two   -> log_exit 102
+    | Victor Three -> log_exit 103
+    | Victor Four  -> log_exit 104
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
@@ -79,7 +84,7 @@ let callback _ request body =
       match%lwt Madge_server.handle meth path (Madge_query.to_list query_parameters) with
       | Some response -> Lwt.return response
       | None ->
-        if String.length path >= 5 && String.sub path 0 5 = "/"^Constant.api_prefix^"/" then
+        if String.starts_with ~needle:"/api/" path then
           (
             let path = String.sub path 4 (String.length path - 4) in
             Log.debug (fun m -> m "Looking for an API controller for %s." path);
