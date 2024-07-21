@@ -1,6 +1,14 @@
 open Nes
+open Js_of_ocaml
 open Dancelor_client_html
 open Dancelor_client_model
+
+let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t) -> bool =
+  fun c p ->
+  ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) ||
+  (Js.Opt.case c##.parentNode
+     (Fun.const false)
+     (fun p' -> is_child_of p' p))
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let fa_row ?(onclick = fun () -> ()) icon message =
@@ -47,24 +55,18 @@ let make ?(number_of_results=10) ~search () =
   {min_characters; search_bar; table_visible; set_table_visible}
 
 let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autofocus q =
-  div ~a:[a_class ["search-bar"]] [
+  let bar =
     SearchBar.render
       ~placeholder
       ~on_focus: (fun () ->
           Option.iter (fun on_focus -> on_focus ()) on_focus;
           q.set_table_visible true
         )
-      ~on_blur: (fun () ->
-          Lwt.async (fun () ->
-              Lwt.pmsleep 0.1;%lwt
-              q.set_table_visible false;
-              Lwt.return_unit
-            ); ()
-        )
       ?on_enter
       ?autofocus
-      q.search_bar;
-
+      q.search_bar
+  in
+  let table =
     tablex
       ~a:[
         R.a_class (
@@ -92,7 +94,26 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
           in Lwt.return (lines @ more_lines)
         );
       ]
-  ]
+  in
+  (* Add an event listener to hide the table by clicking outside of it. *)
+  ignore
+    (
+      let open Dom_html in
+      addEventListener
+        window
+        Event.click
+        (handler @@ fun event ->
+         Js.Opt.iter event##.target (fun target ->
+             if not (is_child_of target (To_dom.of_table table))
+             && not (is_child_of target (To_dom.of_input bar))
+             then
+               q.set_table_visible false
+           );
+         Js._true
+        )
+        Js._true
+    );
+  div ~a:[a_class ["search-bar"]] [bar; table]
 
 let make_and_render ?number_of_results ~placeholder ~search ~make_result ?on_enter ?more_lines ?autofocus () =
   render ~placeholder ~make_result ?on_enter ?more_lines ?autofocus (make ?number_of_results ~search ())
