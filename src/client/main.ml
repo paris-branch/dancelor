@@ -9,6 +9,12 @@ module Page = Dancelor_client_page
    desktop, no on mobile). *)
 let (show_menu, set_show_menu) = React.S.create None
 
+let path_explore_models m = Model.(
+    PageRouter.path @@ PageRouter.Explore (Some (
+        TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
+      ))
+  )
+
 let header =
   header [
     div ~a:[a_class ["content"]] [
@@ -52,6 +58,46 @@ let header =
             a ~a:[a_href PageRouter.(path (Explore None))] [
               i ~a:[a_class ["material-symbols-outlined"]] [txt "search"];
               txt " Explore";
+              i ~a:[a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
+            ];
+
+            ul ~a:[a_class ["subnav"]] [
+              li [
+                a ~a:[a_href (path_explore_models "person")] [
+                  i ~a:[a_class ["material-symbols-outlined"]] [txt "person"];
+                  txt " Persons";
+                ]
+              ];
+              li [
+                a ~a:[a_href (path_explore_models "dance")] [
+                  i ~a:[a_class ["material-symbols-outlined"]] [txt "directions_walk"];
+                  txt " Dances";
+                ]
+              ];
+              li [
+                a ~a:[a_href (path_explore_models "tune")] [
+                  i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
+                  txt " Tunes";
+                ]
+              ];
+              li [
+                a ~a:[a_href (path_explore_models "version")] [
+                  i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
+                  txt " Versions";
+                ];
+              ];
+              li [
+                a ~a:[a_href (path_explore_models "set")] [
+                  i ~a:[a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
+                  txt " Sets";
+                ];
+              ];
+              li [
+                a ~a:[a_href (path_explore_models "book")] [
+                  i ~a:[a_class ["material-symbols-outlined"]] [txt "library_books"];
+                  txt " Books";
+                ];
+              ];
             ];
           ];
 
