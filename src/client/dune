@@ -15,7 +15,7 @@
   dancelor.nes
   dancelor.common)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx))
+  (pps lwt_ppx js_of_ocaml-ppx ppx_monad_olwt ppx_monad_rlwt))
  (modules :standard \ dancelor_client_page))
 
 (install
