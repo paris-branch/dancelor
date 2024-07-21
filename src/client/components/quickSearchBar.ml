@@ -113,7 +113,7 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
         )
         Js._true
     );
-  div ~a:[a_class ["search-bar"]] [bar; table]
+  div ~a:[a_class ["quick-search-bar"]] [bar; table]
 
 let make_and_render ?number_of_results ~placeholder ~search ~make_result ?on_enter ?more_lines ?autofocus () =
   render ~placeholder ~make_result ?on_enter ?more_lines ?autofocus (make ?number_of_results ~search ())
