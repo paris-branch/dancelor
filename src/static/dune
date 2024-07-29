@@ -97,6 +97,9 @@
   (fonts/webfont/SourceSansPro-Extended.woff2
    as
    fonts/webfont/SourceSansPro-Extended.woff2)
+  (fonts/webfont/MaterialSymbolsOutlined.woff2
+   as
+   fonts/webfont/MaterialSymbolsOutlined.woff2)
   fonts.conf
   fonts.css
   index.html
