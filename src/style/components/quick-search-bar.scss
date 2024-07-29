@@ -45,6 +45,8 @@ div.quick-search-bar {
 // way for the header's style to apply more strategically.
 header div.quick-search-bar {
   vertical-align: middle;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 
   input {
     vertical-align: middle;
@@ -56,5 +58,10 @@ header div.quick-search-bar {
 
   table {
     color: $black;
+  }
+
+  a {
+    color: $red;
+    background: none;
   }
 }
