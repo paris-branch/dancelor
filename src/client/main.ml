@@ -77,8 +77,7 @@ let header =
 
           li [
             a ~a:[a_href PageRouter.(path (Explore None))] [
-              i ~a:[a_class ["material-symbols-outlined"]] [txt "search"];
-              txt " Explore";
+              txt "Explore";
               i ~a:[a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
             ];
 
@@ -123,7 +122,7 @@ let header =
           ];
 
           li [
-            txt "Add ";
+            txt "Add";
             i ~a:[a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
 
             ul ~a:[a_class ["subnav"]] [
