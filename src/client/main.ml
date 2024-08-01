@@ -66,12 +66,13 @@ let header =
         [
           li [
             Components.QuickSearchBar.make_and_render
-              ~placeholder: "Quick search"
+              ~placeholder: "Quick search (press '/')"
               ~search
               ~make_result: (Lwt.return % Utils.AnyResult.make_result)
               ~on_enter: (fun search_text ->
                   Dom_html.window##.location##.href := Js.string PageRouter.(path_explore (Some search_text))
                 )
+              ~focus_on_slash: true
               ()
           ];
 

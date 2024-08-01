@@ -32,6 +32,7 @@ val render :
   ?on_focus: (unit -> unit) ->
   ?more_lines: Html_types.tr Html.elt list ->
   ?autofocus: bool ->
+  ?focus_on_slash: bool ->
   'result t ->
   [> Html_types.div] Html.elt
 (** Wrapper around {!SearchBar.render}; refer to it for a description of the
@@ -46,6 +47,7 @@ val make_and_render :
   ?on_enter:(string -> unit) ->
   ?more_lines: Html_types.tr Html.elt list ->
   ?autofocus:bool ->
+  ?focus_on_slash: bool ->
   unit ->
   [> Html_types.div] Html.elt
 (** Short form of the composition of {!make} directly followed by {!render}. *)

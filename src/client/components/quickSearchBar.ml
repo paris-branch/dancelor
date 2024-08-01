@@ -10,6 +10,14 @@ let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t
      (Fun.const false)
      (fun p' -> is_child_of p' p))
 
+let js_opt_is_some_and o f =
+  Js.Opt.case o (Fun.const false) f
+
+let is_input : 'a. (#Dom.element as 'a) Js.t -> bool =
+  fun n ->
+  let tag = String.lowercase_ascii (Js.to_string n##.tagName) in
+  tag = "input" || tag = "textarea"
+
 (** Generic row showing an emoji on the left and a message on the right. *)
 let fa_row ?(onclick = fun () -> ()) icon message =
   tr ~a:[
@@ -54,7 +62,7 @@ let make ?(number_of_results=10) ~search () =
   let (table_visible, set_table_visible) = S.create false in
   {min_characters; search_bar; table_visible; set_table_visible}
 
-let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autofocus q =
+let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autofocus ?(focus_on_slash=false) q =
   let bar =
     SearchBar.render
       ~placeholder
@@ -113,7 +121,29 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
         )
         Js._true
     );
+  (* Add an event listener to focus the bar by pressing '/'. *)
+  if focus_on_slash then
+    (
+      ignore
+        (
+          let open Dom_html in
+          addEventListener
+            window
+            Event.keydown
+            (handler @@ fun event ->
+             if js_opt_is_some_and event##.target (not % is_input) && event##.keyCode = 191 then (* slash *)
+               (
+                 (To_dom.of_input bar)##focus;
+                 Js._false
+               )
+             else
+               Js._true
+            )
+            Js._true
+        )
+    );
+  (* Return *)
   div ~a:[a_class ["quick-search-bar"]] [bar; table]
 
-let make_and_render ?number_of_results ~placeholder ~search ~make_result ?on_enter ?more_lines ?autofocus () =
-  render ~placeholder ~make_result ?on_enter ?more_lines ?autofocus (make ?number_of_results ~search ())
+let make_and_render ?number_of_results ~placeholder ~search ~make_result ?on_enter ?more_lines ?autofocus ?focus_on_slash () =
+  render ~placeholder ~make_result ?on_enter ?more_lines ?autofocus ?focus_on_slash (make ?number_of_results ~search ())
