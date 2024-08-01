@@ -113,6 +113,23 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
         q.set_table_visible false;
       Js._true
     );
+  (* Add an event listener to unfocus the bar on Esc. *)
+  add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+    (fun event _target ->
+       if event##.keyCode = 27 then (* Esc *)
+         (
+           q.set_table_visible false;
+           (To_dom.of_input bar)##blur;
+         );
+       Js._true
+    );
+  (* Add an event listener to hide the table on Tab. *)
+  add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+    (fun event _target ->
+       if event##.keyCode = 9 then (* Tab *)
+         q.set_table_visible false;
+       Js._true
+    );
   (* Add an event listener to focus the bar by pressing '/'. *)
   if focus_on_slash then
     add_target_event_listener Dom_html.window Dom_html.Event.keydown
