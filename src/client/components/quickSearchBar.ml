@@ -10,13 +10,17 @@ let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t
      (Fun.const false)
      (fun p' -> is_child_of p' p))
 
-let js_opt_is_some_and o f =
-  Js.Opt.case o (Fun.const false) f
-
 let is_input : 'a. (#Dom.element as 'a) Js.t -> bool =
   fun n ->
   let tag = String.lowercase_ascii (Js.to_string n##.tagName) in
   tag = "input" || tag = "textarea"
+
+let add_target_event_listener n ev f =
+  let open Dom_html in
+  ignore @@ addEventListener n ev
+    (handler @@ fun event ->
+     Js.Opt.case event##.target (fun () -> Js._false) (fun target -> f event target)
+    ) Js._true
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let fa_row ?(onclick = fun () -> ()) icon message =
@@ -104,44 +108,23 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
       ]
   in
   (* Add an event listener to hide the table by clicking outside of it. *)
-  ignore
-    (
-      let open Dom_html in
-      addEventListener
-        window
-        Event.click
-        (handler @@ fun event ->
-         Js.Opt.iter event##.target (fun target ->
-             if not (is_child_of target (To_dom.of_table table))
-             && not (is_child_of target (To_dom.of_input bar))
-             then
-               q.set_table_visible false
-           );
-         Js._true
-        )
-        Js._true
+  add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
+      if not (is_child_of target (To_dom.of_table table)) && not (is_child_of target (To_dom.of_input bar)) then
+        q.set_table_visible false;
+      Js._true
     );
   (* Add an event listener to focus the bar by pressing '/'. *)
   if focus_on_slash then
-    (
-      ignore
-        (
-          let open Dom_html in
-          addEventListener
-            window
-            Event.keydown
-            (handler @@ fun event ->
-             if js_opt_is_some_and event##.target (not % is_input) && event##.keyCode = 191 then (* slash *)
-               (
-                 (To_dom.of_input bar)##focus;
-                 Js._false
-               )
-             else
-               Js._true
-            )
-            Js._true
-        )
-    );
+    add_target_event_listener Dom_html.window Dom_html.Event.keydown
+      (fun event target ->
+         if not (is_input target) && event##.keyCode = 191 then (* slash *)
+           (
+             (To_dom.of_input bar)##focus;
+             Js._false
+           )
+         else
+           Js._true
+      );
   (* Return *)
   div ~a:[a_class ["quick-search-bar"]] [bar; table]
 
