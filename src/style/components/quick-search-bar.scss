@@ -58,6 +58,16 @@ header div.quick-search-bar {
 
   table {
     color: $black;
+
+    // For desktop, we allow the bar to be bigger than the input, but not too
+    // big either. For mobile, we just use the whole width.
+    left: 20%;
+    width: 70%;
+    @media only screen and (max-width: 767px) {
+      left: 0;
+      right: 0;
+      width: 100%;
+    }
   }
 
   a {

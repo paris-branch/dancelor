@@ -63,7 +63,12 @@ header {
       a {
         display: block;
       }
-      position: relative;
+
+      /* If the <li> element contains an <ul.subnav>, then it is a dropdown menu and
+         it needs to be made relative. */
+      &:has(ul.subnav) {
+        position: relative;
+      }
     }
 
     /* Sub-navigation elements (aka dropdown menus) are hidden by default. They show
