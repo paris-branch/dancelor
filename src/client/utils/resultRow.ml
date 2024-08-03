@@ -17,6 +17,18 @@ type t = {
 let make ?(classes = []) ?(action = NoAction) cells =
   {action; cells; classes}
 
+(** Generic row showing an emoji on the left and a message on the right. *)
+let icon_row ?action icon message =
+  let open Dancelor_client_html in
+  make ?action
+    [
+      td ~a:[a_colspan 9999] [
+        i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
+        txt " ";
+        txt message;
+      ];
+    ]
+
 (* FIXME: this is very similar to [Dancelor_client_tables.clickable_row]; those
    two should be merged in a common notion (probably that ot
    [Dancelor_client_tables]). *)

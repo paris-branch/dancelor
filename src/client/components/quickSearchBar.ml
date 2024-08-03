@@ -23,18 +23,6 @@ let add_target_event_listener n ev f =
      Js.Opt.case event##.target (fun () -> Js._false) (fun target -> f event target)
     ) Js._true
 
-(** Generic row showing an emoji on the left and a message on the right. *)
-let fa_row ?action icon message =
-  Utils.ResultRow.make ?action
-    [
-      td ~a:[a_colspan 9999] [
-
-        i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
-        txt " ";
-        txt message;
-      ];
-    ]
-
 type 'result t = {
   min_characters : int;
   search_bar : 'result SearchBar.t;
@@ -88,17 +76,17 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
           S.bind_s' (SearchBar.state q.search_bar) [] @@ fun result ->
           let%lwt lines =
             match result with
-            | StartTyping -> Lwt.return [fa_row "keyboard" "Start typing to search."]
-            | ContinueTyping -> Lwt.return [fa_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string q.min_characters))]
-            | NoResults -> Lwt.return [fa_row "warning" "Your search returned no results."]
-            | Errors error -> Lwt.return [fa_row "error" error]
+            | StartTyping -> Lwt.return [Utils.ResultRow.icon_row "keyboard" "Start typing to search."]
+            | ContinueTyping -> Lwt.return [Utils.ResultRow.icon_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string q.min_characters))]
+            | NoResults -> Lwt.return [Utils.ResultRow.icon_row "warning" "Your search returned no results."]
+            | Errors error -> Lwt.return [Utils.ResultRow.icon_row "error" error]
             | Results results ->
               let%lwt results = Lwt_list.map_p make_result results in
               Lwt.return @@
               if on_enter = None then
                 results
               else
-                results @ [fa_row "info" "Press enter for more results."]
+                results @ [Utils.ResultRow.icon_row "info" "Press enter for more results."]
           in Lwt.return (List.map Utils.ResultRow.to_clickable_row (lines @ more_lines))
         );
       ]

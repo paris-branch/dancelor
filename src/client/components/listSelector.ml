@@ -113,7 +113,7 @@ let render
             person
         )
       ~more_lines: [
-        QuickSearchBar.fa_row
+        Utils.ResultRow.icon_row
           ~action: (Utils.ResultRow.callback @@ fun () ->
                     Lwt.async @@ fun () ->
                     let%lwt result = Dialog.open_ @@ fun return ->
