@@ -22,7 +22,7 @@ val clear : 'model t -> unit
 val render :
   make_result: (
     ?classes: string list ->
-    ?onclick: (unit -> unit) ->
+    ?action: Utils.ResultRow.action ->
     ?prefix: Html_types.td Html.elt list ->
     ?suffix: Html_types.td Html.elt list ->
     'model ->

@@ -53,8 +53,9 @@ val make_and_render :
   [> Html_types.div] Html.elt
 (** Short form of the composition of {!make} directly followed by {!render}. *)
 
+(* FIXME: should this just move to `ResultRow`? *)
 val fa_row :
-  ?onclick: (unit -> unit) ->
+  ?action: Utils.ResultRow.action ->
   string ->
   string ->
   Utils.ResultRow.t

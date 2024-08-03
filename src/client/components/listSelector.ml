@@ -40,7 +40,7 @@ let clear s =
 let render
     ~(make_result:
         ?classes: string list ->
-      ?onclick: (unit -> unit) ->
+      ?action: Utils.ResultRow.action ->
       ?prefix: Html_types.td Html.elt list ->
       ?suffix: Html_types.td Html.elt list ->
       'result ->
@@ -71,7 +71,7 @@ let render
           (fun n element ->
              make_result
                ~classes: ["row"]
-               ~onclick: (fun () -> ())
+               ~action: Utils.ResultRow.noAction
                ~suffix: [
                  td ~a:[a_class ["actions"]] [
                    button
@@ -105,30 +105,30 @@ let render
       ~placeholder: ("Add a " ^ snd field_name ^ " (magic search)")
       ~make_result: (fun person ->
           Lwt.return @@ make_result
-            ~onclick:(fun () ->
-                s.set (S.value s.signal @ [person]);
-                QuickSearchBar.clear s.search_bar;
-              )
+            ~action: (Utils.ResultRow.callback @@ fun () ->
+                      s.set (S.value s.signal @ [person]);
+                      QuickSearchBar.clear s.search_bar;
+                     )
             ~suffix:[]
             person
         )
       ~more_lines: [
         QuickSearchBar.fa_row
-          ~onclick:(fun () ->
-              Lwt.async @@ fun () ->
-              let%lwt result = Dialog.open_ @@ fun return ->
-                QuickSearchBar.clear s.search_bar;
-                [
-                  create_dialog_content
-                    ~on_save:return
-                    (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
-                ]
-              in
-              Result.iter (fun element ->
-                  s.set (S.value s.signal @ [element]);
-                ) result;
-              Lwt.return_unit
-            )
+          ~action: (Utils.ResultRow.callback @@ fun () ->
+                    Lwt.async @@ fun () ->
+                    let%lwt result = Dialog.open_ @@ fun return ->
+                      QuickSearchBar.clear s.search_bar;
+                      [
+                        create_dialog_content
+                          ~on_save:return
+                          (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
+                      ]
+                    in
+                    Result.iter (fun element ->
+                        s.set (S.value s.signal @ [element]);
+                      ) result;
+                    Lwt.return_unit
+                   )
           "add_circle" ("Create a new " ^ model_name)
       ]
       s.search_bar;

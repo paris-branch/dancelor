@@ -1,12 +1,11 @@
 open Nes
-open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 open Dancelor_client_html
 
-let make_person_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) person =
-  ResultRow.make ?classes ?action:onclick
+let make_person_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) person =
+  ResultRow.make ?classes ?action
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
@@ -15,17 +14,15 @@ let make_person_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) person =
 
 let make_person_result ?context ?prefix ?suffix person =
   make_person_result'
-    ~onclick: (fun () ->
-        let context = Option.map S.value context in
-        let href = PageRouter.path_person ?context @@ Person.slug person in
-        Dom_html.window##.location##.href := Js.string href
-      )
+    ~action: (ResultRow.link @@ Option.fold context
+                ~none: (S.const @@ PageRouter.path_person @@ Person.slug person)
+                ~some: (S.map (fun context -> PageRouter.path_person ~context @@ Person.slug person)))
     ?prefix
     ?suffix
     person
 
-let make_dance_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) dance =
-  ResultRow.make ?classes ?action:onclick
+let make_dance_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) dance =
+  ResultRow.make ?classes ?action
     (
       prefix @ [
         td [txt (Dance.name dance)];
@@ -36,17 +33,15 @@ let make_dance_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) dance =
 
 let make_dance_result ?context ?prefix ?suffix dance =
   make_dance_result'
-    ~onclick: (fun () ->
-        let context = Option.map S.value context in
-        let href = PageRouter.path_dance ?context @@ Dance.slug dance in
-        Dom_html.window##.location##.href := Js.string href
-      )
+    ~action: (ResultRow.link @@ Option.fold context
+                ~none: (S.const @@ PageRouter.path_dance @@ Dance.slug dance)
+                ~some: (S.map (fun context -> PageRouter.path_dance ~context @@ Dance.slug dance)))
     ?prefix
     ?suffix
     dance
 
-let make_book_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) book =
-  ResultRow.make ?classes ?action:onclick
+let make_book_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) book =
+  ResultRow.make ?classes ?action
     (
       prefix @ [
         td (Formatters.Book.title_and_subtitle book);
@@ -56,17 +51,15 @@ let make_book_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) book =
 
 let make_book_result ?context ?prefix ?suffix book =
   make_book_result'
-    ~onclick: (fun () ->
-        let context = Option.map S.value context in
-        let href = PageRouter.path_book ?context @@ Book.slug book in
-        Dom_html.window##.location##.href := Js.string href
-      )
+    ~action: (ResultRow.link @@ Option.fold context
+                ~none: (S.const @@ PageRouter.path_book @@ Book.slug book)
+                ~some: (S.map (fun context -> PageRouter.path_book ~context @@ Book.slug book)))
     ?prefix
     ?suffix
     book
 
-let make_set_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) set =
-  ResultRow.make ?classes ?action:onclick
+let make_set_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) set =
+  ResultRow.make ?classes ?action
     (
       prefix @ [
         td [txt @@ Set.name set];
@@ -77,17 +70,15 @@ let make_set_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) set =
 
 let make_set_result ?context ?prefix ?suffix set =
   make_set_result'
-    ~onclick: (fun () ->
-        let context = Option.map S.value context in
-        let href = PageRouter.path_set ?context @@ Set.slug set in
-        Dom_html.window##.location##.href := Js.string href
-      )
+    ~action: (ResultRow.link @@ Option.fold context
+                ~none: (S.const @@ PageRouter.path_set @@ Set.slug set)
+                ~some: (S.map (fun context -> PageRouter.path_set ~context @@ Set.slug set)))
     ?prefix
     ?suffix
     set
 
-let make_tune_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) tune =
-  ResultRow.make ?classes ?action:onclick
+let make_tune_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) tune =
+  ResultRow.make ?classes ?action
     (
       prefix @ [
         td [txt @@ Tune.name tune];
@@ -98,17 +89,15 @@ let make_tune_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) tune =
 
 let make_tune_result ?context ?prefix ?suffix tune =
   make_tune_result'
-    ~onclick: (fun () ->
-        let context = Option.map S.value context in
-        let href = PageRouter.path_tune ?context @@ Tune.slug tune in
-        Dom_html.window##.location##.href := Js.string href
-      )
+    ~action: (ResultRow.link @@ Option.fold context
+                ~none: (S.const @@ PageRouter.path_tune @@ Tune.slug tune)
+                ~some: (S.map (fun context -> PageRouter.path_tune ~context @@ Tune.slug tune)))
     ?prefix
     ?suffix
     tune
 
-let make_version_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) version =
-  ResultRow.make ?classes ?action:onclick
+let make_version_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) version =
+  ResultRow.make ?classes ?action
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);
@@ -126,11 +115,9 @@ let make_version_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) version =
 
 let make_version_result ?context ?prefix ?suffix version =
   make_version_result'
-    ~onclick: (fun () ->
-        let context = Option.map S.value context in
-        let href = PageRouter.path_version ?context @@ Version.slug version in
-        Dom_html.window##.location##.href := Js.string href
-      )
+    ~action: (ResultRow.link @@ Option.fold context
+                ~none: (S.const @@ PageRouter.path_version @@ Version.slug version)
+                ~some: (S.map (fun context -> PageRouter.path_version ~context @@ Version.slug version)))
     ?prefix
     ?suffix
     version

@@ -24,8 +24,8 @@ let add_target_event_listener n ev f =
     ) Js._true
 
 (** Generic row showing an emoji on the left and a message on the right. *)
-let fa_row ?onclick icon message =
-  Utils.ResultRow.make ?action:onclick
+let fa_row ?action icon message =
+  Utils.ResultRow.make ?action
     [
       td ~a:[a_colspan 9999] [
 
