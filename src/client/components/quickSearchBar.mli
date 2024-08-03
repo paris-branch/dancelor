@@ -7,6 +7,7 @@
 
 open Js_of_ocaml_tyxml.Tyxml_js
 open Dancelor_client_model
+module Utils = Dancelor_client_utils
 
 type 'result t
 (** Abstract type of a quick search bar, holding results of type ['result]. *)
@@ -27,10 +28,10 @@ val search_bar : 'result t -> 'result SearchBar.t
 
 val render :
   placeholder: string ->
-  make_result: ('result -> Html_types.tr Html.elt Lwt.t) ->
+  make_result: ('result -> Utils.ResultRow.t Lwt.t) ->
   ?on_enter: (string -> unit) ->
   ?on_focus: (unit -> unit) ->
-  ?more_lines: Html_types.tr Html.elt list ->
+  ?more_lines: Utils.ResultRow.t list ->
   ?autofocus: bool ->
   ?focus_on_slash: bool ->
   'result t ->
@@ -43,9 +44,9 @@ val make_and_render :
   ?number_of_results: int ->
   placeholder:string ->
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
-  make_result:('result -> Html_types.tr Html.elt Lwt.t) ->
+  make_result:('result -> Utils.ResultRow.t Lwt.t) ->
   ?on_enter:(string -> unit) ->
-  ?more_lines: Html_types.tr Html.elt list ->
+  ?more_lines: Utils.ResultRow.t list ->
   ?autofocus:bool ->
   ?focus_on_slash: bool ->
   unit ->
@@ -56,4 +57,4 @@ val fa_row :
   ?onclick: (unit -> unit) ->
   string ->
   string ->
-  Html_types.tr Html.elt
+  Utils.ResultRow.t

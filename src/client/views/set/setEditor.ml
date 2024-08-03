@@ -176,14 +176,16 @@ let create ?on_save ?text () =
         ListSelector.render
           ~make_result: AnyResult.make_version_result'
           ~make_more_results: (fun version -> [
-                tr ~a:[a_class ["small-previsualisation"]] [
-                  td ~a:[a_colspan 9999] [
-                    object_ ~a:[
-                      a_mime_type "image/svg+xml";
-                      a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
-                    ] [];
+                Dancelor_client_utils.ResultRow.make
+                  ~classes: ["small-previsualisation"]
+                  [
+                    td ~a:[a_colspan 9999] [
+                      object_ ~a:[
+                        a_mime_type "image/svg+xml";
+                        a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
+                      ] [];
+                    ]
                   ]
-                ]
               ]
             )
           ~field_name: ("Versions", "version")

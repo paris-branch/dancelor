@@ -2,6 +2,7 @@ open Nes
 open Js_of_ocaml_tyxml.Tyxml_js
 open Dancelor_client_html
 module Model = Dancelor_client_model
+module Utils = Dancelor_client_utils
 
 (* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)
@@ -43,12 +44,12 @@ let render
       ?prefix: Html_types.td Html.elt list ->
       ?suffix: Html_types.td Html.elt list ->
       'result ->
-      Html_types.tr Html.elt
+      Utils.ResultRow.t
      )
     ?(make_more_results =
       (Fun.const [] :
          'result ->
-       Html_types.tr Html.elt list)
+       Utils.ResultRow.t list)
      )
     ~field_name
     ~model_name
@@ -65,6 +66,7 @@ let render
     tablex ~a:[a_class ["container"]] [
       R.tbody (
         Fun.flip S.map s.signal @@ fun elements ->
+        List.map Utils.ResultRow.to_clickable_row @@
         List.concat @@ List.mapi
           (fun n element ->
              make_result

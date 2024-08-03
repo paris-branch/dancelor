@@ -2,6 +2,7 @@ open Nes
 open Js_of_ocaml
 open Dancelor_client_html
 open Dancelor_client_model
+module Utils = Dancelor_client_utils
 
 let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t) -> bool =
   fun c p ->
@@ -23,21 +24,16 @@ let add_target_event_listener n ev f =
     ) Js._true
 
 (** Generic row showing an emoji on the left and a message on the right. *)
-let fa_row ?(onclick = fun () -> ()) icon message =
-  tr ~a:[
-    a_onclick (fun _ -> onclick (); true)
-  ] [
-    td ~a:[a_colspan 9999] [
+let fa_row ?onclick icon message =
+  Utils.ResultRow.make ?action:onclick
+    [
+      td ~a:[a_colspan 9999] [
 
-      i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
-      txt " ";
-      txt message;
-    ];
-  ]
-
-(* FIXME: We should push the selection into the search bar, instead of
-   providing a [make_result] that gives a clickable row. That way, we could
-   improve the search bar to work with keys and not just clicks. *)
+        i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
+        txt " ";
+        txt message;
+      ];
+    ]
 
 type 'result t = {
   min_characters : int;
@@ -103,7 +99,7 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
                 results
               else
                 results @ [fa_row "info" "Press enter for more results."]
-          in Lwt.return (lines @ more_lines)
+          in Lwt.return (List.map Utils.ResultRow.to_clickable_row (lines @ more_lines))
         );
       ]
   in

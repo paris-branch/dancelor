@@ -5,22 +5,8 @@ open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 open Dancelor_client_html
 
-let js = Js.string
-
-(* FIXME: this is very similar to [Dancelor_client_tables.clickable_row]; those
-   two should be merged in a common notion (probably that ot
-   [Dancelor_client_tables]). *)
-(* FIXME: When [onclick] is used as an [a], we could do better and actually have
-   an [<a />] element *)
-let clickable_row ?(classes=[]) ?(onclick = fun () -> ()) =
-  tr
-    ~a:[
-      a_class (["clickable"] @ classes);
-      a_onclick (fun _ -> onclick (); true);
-    ]
-
 let make_person_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) person =
-  clickable_row ?classes ?onclick
+  ResultRow.make ?classes ?action:onclick
     (
       prefix @ [
         td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
@@ -39,7 +25,7 @@ let make_person_result ?context ?prefix ?suffix person =
     person
 
 let make_dance_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) dance =
-  clickable_row ?classes ?onclick
+  ResultRow.make ?classes ?action:onclick
     (
       prefix @ [
         td [txt (Dance.name dance)];
@@ -60,7 +46,7 @@ let make_dance_result ?context ?prefix ?suffix dance =
     dance
 
 let make_book_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) book =
-  clickable_row ?classes ?onclick
+  ResultRow.make ?classes ?action:onclick
     (
       prefix @ [
         td (Formatters.Book.title_and_subtitle book);
@@ -80,7 +66,7 @@ let make_book_result ?context ?prefix ?suffix book =
     book
 
 let make_set_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) set =
-  clickable_row ?classes ?onclick
+  ResultRow.make ?classes ?action:onclick
     (
       prefix @ [
         td [txt @@ Set.name set];
@@ -101,7 +87,7 @@ let make_set_result ?context ?prefix ?suffix set =
     set
 
 let make_tune_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) tune =
-  clickable_row ?classes ?onclick
+  ResultRow.make ?classes ?action:onclick
     (
       prefix @ [
         td [txt @@ Tune.name tune];
@@ -122,7 +108,7 @@ let make_tune_result ?context ?prefix ?suffix tune =
     tune
 
 let make_version_result' ?classes ?onclick ?(prefix=[]) ?(suffix=[]) version =
-  clickable_row ?classes ?onclick
+  ResultRow.make ?classes ?action:onclick
     (
       prefix @ [
         L.td (Formatters.Version.name_and_disambiguation ~link:false version);
