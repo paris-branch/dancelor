@@ -134,6 +134,10 @@ let render
       ]
   in
 
+  (* FIXME: A lot of these event listeners (the keydown on the bar) can be merged. *)
+  (* FIXME: Unfocusing the bar on Esc should go to `SearchBar`. Setting the
+     table invisible can be merged with the one for `Tab`. *)
+
   (* Add an event listener to hide the table by clicking outside of it. *)
   add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
       if not (is_child_of target (To_dom.of_table table)) && not (is_child_of target (To_dom.of_input bar)) then
