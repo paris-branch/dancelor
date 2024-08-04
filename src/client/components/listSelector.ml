@@ -103,8 +103,9 @@ let render
 
     QuickSearchBar.render
       ~placeholder: ("Add a " ^ snd field_name ^ " (magic search)")
-      ~make_result: (fun person ->
+      ~make_result: (fun ?classes person ->
           make_result
+            ?classes
             ~action: (Utils.ResultRow.callback @@ fun () ->
                       s.set (S.value s.signal @ [person]);
                       QuickSearchBar.clear s.search_bar;

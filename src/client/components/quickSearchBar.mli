@@ -28,7 +28,7 @@ val search_bar : 'result t -> 'result SearchBar.t
 
 val render :
   placeholder: string ->
-  make_result: ('result -> Utils.ResultRow.t) ->
+  make_result: (?classes:string list -> 'result -> Utils.ResultRow.t) ->
   ?on_enter: (string -> unit) ->
   ?on_focus: (unit -> unit) ->
   ?more_lines: Utils.ResultRow.t list ->
@@ -44,7 +44,7 @@ val make_and_render :
   ?number_of_results: int ->
   placeholder:string ->
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
-  make_result: ('result -> Utils.ResultRow.t) ->
+  make_result: (?classes:string list -> 'result -> Utils.ResultRow.t) ->
   ?on_enter:(string -> unit) ->
   ?more_lines: Utils.ResultRow.t list ->
   ?autofocus:bool ->

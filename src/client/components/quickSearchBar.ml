@@ -50,7 +50,16 @@ let make ?(number_of_results=10) ~search () =
   let (table_visible, set_table_visible) = S.create false in
   {min_characters; search_bar; table_visible; set_table_visible}
 
-let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autofocus ?(focus_on_slash=false) q =
+let render
+    ~placeholder
+    ~(make_result: ?classes:string list -> 'result -> Utils.ResultRow.t)
+    ?on_enter
+    ?on_focus
+    ?(more_lines=[])
+    ?autofocus
+    ?(focus_on_slash=false)
+    (q: 'result t)
+  =
   let bar =
     SearchBar.render
       ~placeholder

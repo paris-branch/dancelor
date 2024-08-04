@@ -12,8 +12,9 @@ let make_person_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) person =
       ] @ suffix
     )
 
-let make_person_result ?context ?prefix ?suffix person =
+let make_person_result ?classes ?context ?prefix ?suffix person =
   make_person_result'
+    ?classes
     ~action: (ResultRow.link @@ Option.fold context
                 ~none: (S.const @@ PageRouter.path_person @@ Person.slug person)
                 ~some: (S.map (fun context -> PageRouter.path_person ~context @@ Person.slug person)))
@@ -31,8 +32,9 @@ let make_dance_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) dance =
       ] @ suffix
     )
 
-let make_dance_result ?context ?prefix ?suffix dance =
+let make_dance_result ?classes ?context ?prefix ?suffix dance =
   make_dance_result'
+    ?classes
     ~action: (ResultRow.link @@ Option.fold context
                 ~none: (S.const @@ PageRouter.path_dance @@ Dance.slug dance)
                 ~some: (S.map (fun context -> PageRouter.path_dance ~context @@ Dance.slug dance)))
@@ -49,8 +51,9 @@ let make_book_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) book =
       ] @ suffix
     )
 
-let make_book_result ?context ?prefix ?suffix book =
+let make_book_result ?classes ?context ?prefix ?suffix book =
   make_book_result'
+    ?classes
     ~action: (ResultRow.link @@ Option.fold context
                 ~none: (S.const @@ PageRouter.path_book @@ Book.slug book)
                 ~some: (S.map (fun context -> PageRouter.path_book ~context @@ Book.slug book)))
@@ -68,8 +71,9 @@ let make_set_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) set =
       ] @ suffix
     )
 
-let make_set_result ?context ?prefix ?suffix set =
+let make_set_result ?classes ?context ?prefix ?suffix set =
   make_set_result'
+    ?classes
     ~action: (ResultRow.link @@ Option.fold context
                 ~none: (S.const @@ PageRouter.path_set @@ Set.slug set)
                 ~some: (S.map (fun context -> PageRouter.path_set ~context @@ Set.slug set)))
@@ -87,8 +91,9 @@ let make_tune_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) tune =
       ] @ suffix
     )
 
-let make_tune_result ?context ?prefix ?suffix tune =
+let make_tune_result ?classes ?context ?prefix ?suffix tune =
   make_tune_result'
+    ?classes
     ~action: (ResultRow.link @@ Option.fold context
                 ~none: (S.const @@ PageRouter.path_tune @@ Tune.slug tune)
                 ~some: (S.map (fun context -> PageRouter.path_tune ~context @@ Tune.slug tune)))
@@ -113,8 +118,9 @@ let make_version_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) version =
       ] @ suffix
     )
 
-let make_version_result ?context ?prefix ?suffix version =
+let make_version_result ?classes ?context ?prefix ?suffix version =
   make_version_result'
+    ?classes
     ~action: (ResultRow.link @@ Option.fold context
                 ~none: (S.const @@ PageRouter.path_version @@ Version.slug version)
                 ~some: (S.map (fun context -> PageRouter.path_version ~context @@ Version.slug version)))
@@ -130,7 +136,7 @@ let any_type_to_fa = function
   | Set -> "format_list_bulleted"
   | Book -> "library_books"
 
-let make_result ?context any =
+let make_result ?classes ?context any =
   let type_ = Any.type_of any in
   let prefix = [
     td [
@@ -141,9 +147,9 @@ let make_result ?context any =
   ]
   in
   match any with
-  | Person person   -> make_person_result  ?context ~prefix person
-  | Dance dance     -> make_dance_result   ?context ~prefix dance
-  | Book book       -> make_book_result    ?context ~prefix book
-  | Set set         -> make_set_result     ?context ~prefix set
-  | Tune tune       -> make_tune_result    ?context ~prefix tune
-  | Version version -> make_version_result ?context ~prefix version
+  | Person person   -> make_person_result  ?classes ?context ~prefix person
+  | Dance dance     -> make_dance_result   ?classes ?context ~prefix dance
+  | Book book       -> make_book_result    ?classes ?context ~prefix book
+  | Set set         -> make_set_result     ?classes ?context ~prefix set
+  | Tune tune       -> make_tune_result    ?classes ?context ~prefix tune
+  | Version version -> make_version_result ?classes ?context ~prefix version
