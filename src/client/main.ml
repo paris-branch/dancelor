@@ -68,7 +68,7 @@ let header =
             Components.QuickSearchBar.make_and_render
               ~placeholder: "Quick search (press '/')"
               ~search
-              ~make_result: (Lwt.return % Utils.AnyResult.make_result)
+              ~make_result: Utils.AnyResult.make_result
               ~on_enter: (fun search_text ->
                   Dom_html.window##.location##.href := Js.string PageRouter.(path_explore (Some search_text))
                 )

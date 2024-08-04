@@ -73,21 +73,20 @@ let render ~placeholder ~make_result ?on_enter ?on_focus ?(more_lines=[]) ?autof
       ]
       [
         R.tbody (
-          S.bind_s' (SearchBar.state q.search_bar) [] @@ fun result ->
-          let%lwt lines =
+          Fun.flip S.map (SearchBar.state q.search_bar) @@ fun result ->
+          let lines =
             match result with
-            | StartTyping -> Lwt.return [Utils.ResultRow.icon_row "keyboard" "Start typing to search."]
-            | ContinueTyping -> Lwt.return [Utils.ResultRow.icon_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string q.min_characters))]
-            | NoResults -> Lwt.return [Utils.ResultRow.icon_row "warning" "Your search returned no results."]
-            | Errors error -> Lwt.return [Utils.ResultRow.icon_row "error" error]
+            | StartTyping -> [Utils.ResultRow.icon_row "keyboard" "Start typing to search."]
+            | ContinueTyping -> [Utils.ResultRow.icon_row "keyboard" (spf "Type at least %s characters." (Int.to_english_string q.min_characters))]
+            | NoResults -> [Utils.ResultRow.icon_row "warning" "Your search returned no results."]
+            | Errors error -> [Utils.ResultRow.icon_row "error" error]
             | Results results ->
-              let%lwt results = Lwt_list.map_p make_result results in
-              Lwt.return @@
+              let results = List.map make_result results in
               if on_enter = None then
                 results
               else
                 results @ [Utils.ResultRow.icon_row "info" "Press enter for more results."]
-          in Lwt.return (List.map Utils.ResultRow.to_clickable_row (lines @ more_lines))
+          in List.map Utils.ResultRow.to_clickable_row (lines @ more_lines)
         );
       ]
   in

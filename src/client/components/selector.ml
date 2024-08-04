@@ -107,7 +107,7 @@ let render
         ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
         ~on_focus: s.set_interacted
         ~make_result: (fun person ->
-            Lwt.return @@ make_result
+            make_result
               ~action: (Utils.ResultRow.callback @@ fun () ->
                         s.set (Some person);
                         QuickSearchBar.clear s.search_bar;
