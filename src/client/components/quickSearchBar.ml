@@ -28,6 +28,8 @@ type 'result t = {
   search_bar : 'result SearchBar.t;
   table_visible : bool S.t;
   set_table_visible : bool -> unit;
+  selected_row : int option S.t;
+  set_selected_row : int option -> unit;
 }
 
 let search_bar q = q.search_bar
@@ -48,7 +50,9 @@ let make ?(number_of_results=10) ~search () =
   in
   (** A signal tracking whether the table is focused. *)
   let (table_visible, set_table_visible) = S.create false in
-  {min_characters; search_bar; table_visible; set_table_visible}
+  (** A signal tracking which row has been selected. *)
+  let (selected_row, set_selected_row) = S.create None in
+  {min_characters; search_bar; table_visible; set_table_visible; selected_row; set_selected_row}
 
 let render
     ~placeholder
@@ -67,7 +71,22 @@ let render
           Option.iter (fun on_focus -> on_focus ()) on_focus;
           q.set_table_visible true
         )
-      ?on_enter
+      ~on_enter: (fun input ->
+          match S.value (SearchBar.state q.search_bar) with
+          | Results results ->
+            (
+              let number_of_lines = (if on_enter = None then 0 else 1) + List.length results in
+              match S.value q.selected_row with
+              | Some selected_row ->
+                (
+                  match List.nth_opt results ((selected_row + number_of_lines) mod number_of_lines) with
+                  | Some result -> Utils.ResultRow.run_action @@ make_result result
+                  | None -> Option.value on_enter ~default:ignore input
+                )
+              | None -> Option.value on_enter ~default:ignore input
+            )
+          | _ -> Option.value on_enter ~default:ignore input
+        )
       ?autofocus
       q.search_bar
   in
@@ -82,6 +101,7 @@ let render
       ]
       [
         R.tbody (
+          S.bind q.selected_row @@ fun selected_row ->
           Fun.flip S.map (SearchBar.state q.search_bar) @@ fun result ->
           let lines =
             match result with
@@ -90,15 +110,30 @@ let render
             | NoResults -> [Utils.ResultRow.icon_row "warning" "Your search returned no results."]
             | Errors error -> [Utils.ResultRow.icon_row "error" error]
             | Results results ->
-              let results = List.map make_result results in
+              let number_of_lines = (if on_enter = None then 0 else 1) + List.length results in
+              let results = List.mapi (fun i result ->
+                  let classes = match selected_row with
+                    | Some selected_row when (selected_row + number_of_lines) mod number_of_lines = i -> Some ["selected"]
+                    | _ -> None
+                  in
+                  make_result ?classes result)
+                  results
+              in
               if on_enter = None then
                 results
               else
-                results @ [Utils.ResultRow.icon_row "info" "Press enter for more results."]
+                results @ [
+                  match selected_row with
+                  | Some selected_row when (selected_row + number_of_lines) mod number_of_lines = List.length results ->
+                    Utils.ResultRow.icon_row ~classes:["selected"] "info" "Press enter for more results."
+                  | None -> Utils.ResultRow.icon_row "info" "Press enter for more results."
+                  | _ -> Utils.ResultRow.icon_row "info" "Press enter to visit result."
+                ]
           in List.map Utils.ResultRow.to_clickable_row (lines @ more_lines)
         );
       ]
   in
+
   (* Add an event listener to hide the table by clicking outside of it. *)
   add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
       if not (is_child_of target (To_dom.of_table table)) && not (is_child_of target (To_dom.of_input bar)) then
@@ -134,6 +169,29 @@ let render
          else
            Js._true
       );
+  (* Add an event listener to change the selected row by pressing KeyUp or KeyDown. *)
+  add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+    (fun event _target ->
+       if event##.keyCode = 38 then (* KeyUp *)
+         (
+           q.set_selected_row (
+             match S.value q.selected_row with
+             | None -> Some (-1)
+             | Some i -> Some (i - 1)
+           );
+           Js._false
+         )
+       else if event##.keyCode = 40 then (* KeyDown *)
+         (
+           q.set_selected_row (
+             match S.value q.selected_row with
+             | None -> Some 0
+             | Some i -> Some (i + 1)
+           );
+           Js._false
+         )
+       else Js._true
+    );
   (* Return *)
   div ~a:[a_class ["quick-search-bar"]] [bar; table]
 

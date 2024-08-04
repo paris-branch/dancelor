@@ -18,9 +18,9 @@ let make ?(classes = []) ?(action = NoAction) cells =
   {action; cells; classes}
 
 (** Generic row showing an emoji on the left and a message on the right. *)
-let icon_row ?action icon message =
+let icon_row ?classes ?action icon message =
   let open Dancelor_client_html in
-  make ?action
+  make ?classes ?action
     [
       td ~a:[a_colspan 9999] [
         i ~a:[a_class ["material-symbols-outlined"]] [txt icon];
@@ -49,3 +49,9 @@ let to_clickable_row t =
       a_class (["clickable"] @ t.classes);
       a_onclick (fun _ -> f (); true);
     ] t.cells
+
+let run_action row =
+  match row.action with
+  | NoAction -> ()
+  | Link href -> Dom_html.window##.location##.href := Js.string (S.value href)
+  | Callback f -> f ()
