@@ -4,25 +4,6 @@ open Dancelor_client_html
 open Dancelor_client_model
 module Utils = Dancelor_client_utils
 
-let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t) -> bool =
-  fun c p ->
-  ((c :> Dom.node Js.t) = (p :> Dom.node Js.t)) ||
-  (Js.Opt.case c##.parentNode
-     (Fun.const false)
-     (fun p' -> is_child_of p' p))
-
-let is_input : 'a. (#Dom.element as 'a) Js.t -> bool =
-  fun n ->
-  let tag = String.lowercase_ascii (Js.to_string n##.tagName) in
-  tag = "input" || tag = "textarea"
-
-let add_target_event_listener n ev f =
-  let open Dom_html in
-  ignore @@ addEventListener n ev
-    (handler @@ fun event ->
-     Js.Opt.case event##.target (fun () -> Js._false) (fun target -> f event target)
-    ) Js._true
-
 type 'result t = {
   min_characters : int;
   search_bar : 'result SearchBar.t;
@@ -139,13 +120,13 @@ let render
      table invisible can be merged with the one for `Tab`. *)
 
   (* Add an event listener to hide the table by clicking outside of it. *)
-  add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
-      if not (is_child_of target (To_dom.of_table table)) && not (is_child_of target (To_dom.of_input bar)) then
+  Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
+      if not (Utils.is_child_of target (To_dom.of_table table)) && not (Utils.is_child_of target (To_dom.of_input bar)) then
         q.set_table_visible false;
       Js._true
     );
   (* Add an event listener to unfocus the bar on Esc. *)
-  add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
     (fun event _target ->
        if event##.keyCode = 27 then (* Esc *)
          (
@@ -155,7 +136,7 @@ let render
        Js._true
     );
   (* Add an event listener to hide the table on Tab. *)
-  add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
     (fun event _target ->
        if event##.keyCode = 9 then (* Tab *)
          q.set_table_visible false;
@@ -163,9 +144,9 @@ let render
     );
   (* Add an event listener to focus the bar by pressing '/'. *)
   if focus_on_slash then
-    add_target_event_listener Dom_html.window Dom_html.Event.keydown
+    Utils.add_target_event_listener Dom_html.window Dom_html.Event.keydown
       (fun event target ->
-         if not (is_input target) && event##.keyCode = 191 then (* slash *)
+         if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
            (
              (To_dom.of_input bar)##focus;
              Js._false
@@ -174,7 +155,7 @@ let render
            Js._true
       );
   (* Add an event listener to change the selected row by pressing KeyUp or KeyDown. *)
-  add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
     (fun event _target ->
        if event##.keyCode = 38 then (* KeyUp *)
          (
