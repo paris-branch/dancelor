@@ -1,6 +1,7 @@
 open Nes
 open Js_of_ocaml
 open Dancelor_client_html
+module Utils = Dancelor_client_utils
 
 type 'result state =
   | StartTyping
@@ -63,47 +64,49 @@ let render
   =
   (* FIXME: This looks awfully like {!Input.Text.render}. We should probably
      build {!SearchBar} on top of that. *)
-  input
-    ~a:(List.filter_map Fun.id [
-        Some (a_input_type `Text);
-        Some (a_placeholder placeholder);
-        Some (R.a_value search_bar.text);
-        Some (
-          a_oninput (fun event ->
-              (
-                Js.Opt.iter event##.target @@ fun elt ->
-                Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                let input = Js.to_string input##.value in
-                search_bar.set_text input;
-                Option.value ~default:ignore on_input input;
-              );
-              false
-            )
-        );
-        (
-          if autofocus then
-            Some (a_autofocus ())
-          else
-            None
-        );
-        Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
-        Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
-        (
-          Fun.flip Option.map on_enter @@ fun on_enter ->
-          a_onkeyup (fun event ->
-              (* NOTE: Enter is decimal key code 13. One could also use
-                 event##.key and check that it is ["Enter"] but it is somehow
-                 sometimes not set (eg. in Selenium or on mobile phones). *)
-              if event##.keyCode = 13 then
+  let bar =
+    input
+      ~a:(List.filter_map Fun.id [
+          Some (a_input_type `Text);
+          Some (a_placeholder placeholder);
+          Some (R.a_value search_bar.text);
+          Some (
+            a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  on_enter (Js.to_string input##.value)
+                  let input = Js.to_string input##.value in
+                  search_bar.set_text input;
+                  Option.value ~default:ignore on_input input;
                 );
-              true
-            )
-        );
-      ]) ()
+                false
+              )
+          );
+          (
+            if autofocus then
+              Some (a_autofocus ())
+            else
+              None
+          );
+          Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
+          Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
+        ]) ()
+  in
+  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keyup (fun event _target ->
+      (
+        match event##.keyCode with
+        | 13 (* Enter *) ->
+          (
+            Fun.flip Option.iter on_enter @@ fun on_enter ->
+            Js.Opt.iter event##.target @@ fun elt ->
+            Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+            on_enter (Js.to_string input##.value)
+          );
+        | _ -> ()
+      );
+      Js._true
+    );
+  bar
 
 let state search_bar = search_bar.state
 let text search_bar = search_bar.text
