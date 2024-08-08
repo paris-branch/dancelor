@@ -114,47 +114,40 @@ let render
         );
       ]
   in
+  let bar' = To_dom.of_input bar in
+  let table' = To_dom.of_table table in
 
-  (* FIXME: A lot of these event listeners (the keydown on the bar) can be merged. *)
-
-  (* Add an event listener to hide the table by clicking outside of it. *)
-  Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
-      if not (Utils.is_child_of target (To_dom.of_table table)) && not (Utils.is_child_of target (To_dom.of_input bar)) then
-        q.set_table_visible false;
-      Js._true
-    );
-  (* Add an event listener to unfocus the bar on Esc. *)
-  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
-    (fun event _target ->
-       if event##.keyCode = 27 then (* Esc *)
-         (
-           q.set_table_visible false;
-         );
-       Js._true
-    );
-  (* Add an event listener to hide the table on Tab. *)
-  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
-    (fun event _target ->
-       if event##.keyCode = 9 then (* Tab *)
-         q.set_table_visible false;
-       Js._true
-    );
   (* Add an event listener to focus the bar by pressing '/'. *)
   if focus_on_slash then
     Utils.add_target_event_listener Dom_html.window Dom_html.Event.keydown
       (fun event target ->
          if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
            (
-             (To_dom.of_input bar)##focus;
+             bar'##focus;
              Js._false
            )
          else
            Js._true
       );
-  (* Add an event listener to change the selected row by pressing KeyUp or KeyDown. *)
-  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keydown
+
+  (* Add an event listener to hide the table by clicking outside of it. *)
+  Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
+      if not (Utils.is_child_of target table') && not (Utils.is_child_of target bar') then
+        q.set_table_visible false;
+      Js._true
+    );
+
+  (* Add an event listener to hide the table on Tab or Esc, and to change the
+     selected row by pressing KeyUp or KeyDown. *)
+  Utils.add_target_event_listener bar' Dom_html.Event.keydown
     (fun event _target ->
-       if event##.keyCode = 38 then (* KeyUp *)
+       match event##.keyCode with
+       | 9 (* Tab *) | 27 (* Esc *) ->
+         (
+           q.set_table_visible false;
+           Js._true
+         )
+       | 38 (* KeyUp *) ->
          (
            q.set_selected_row (
              match S.value q.selected_row with
@@ -163,7 +156,7 @@ let render
            );
            Js._false
          )
-       else if event##.keyCode = 40 then (* KeyDown *)
+       | 40 (* KeyDown *) ->
          (
            q.set_selected_row (
              match S.value q.selected_row with
@@ -172,8 +165,9 @@ let render
            );
            Js._false
          )
-       else Js._true
+       | _ -> Js._true
     );
+
   (* Return *)
   div ~a:[a_class ["quick-search-bar"]] [bar; table]
 
