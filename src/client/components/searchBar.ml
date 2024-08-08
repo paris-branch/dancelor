@@ -93,20 +93,25 @@ let render
         ]) ()
   in
   let bar' = To_dom.of_input bar in
-  Utils.add_target_event_listener bar' Dom_html.Event.keyup (fun event _target ->
-      (
-        match event##.keyCode with
-        | 13 (* Enter *) ->
-          (
-            Fun.flip Option.iter on_enter @@ fun on_enter ->
-            Js.Opt.iter event##.target @@ fun elt ->
-            Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-            on_enter (Js.to_string input##.value)
-          );
-        | 27 (* Esc *) -> bar'##blur
-        | _ -> ()
-      );
-      Js._true
+
+  (* Because the following event prevents the default browser behaviour (in case
+     of `on_enter`), it must happen on `keydown` and not on `keyup`. *)
+  Utils.add_target_event_listener bar' Dom_html.Event.keydown (fun event _target ->
+      match event##.keyCode with
+      | 13 (* Enter *) ->
+        (
+          match on_enter with
+          | None -> Js._true
+          | Some on_enter ->
+            (
+              Js.Opt.iter event##.target @@ fun elt ->
+              Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+              on_enter (Js.to_string input##.value)
+            );
+            Js._false
+        );
+      | 27 (* Esc *) -> (bar'##blur; Js._true)
+      | _ -> Js._true
     );
   bar
 
