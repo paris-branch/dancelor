@@ -25,7 +25,7 @@ class TestContextLinks():
     ## From the explorer, type “tam”, then click on the set “Tam Lin Thrice” and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/explore")
-    self.driver.find_element(By.XPATH, "//input").send_keys("tam")
+    self.driver.find_element(By.XPATH, "//input[@id='explorer-search-bar']").send_keys("tam")
     time.sleep(1)
     self.driver.find_element(By.XPATH, "//td[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D"))

@@ -46,6 +46,7 @@ let create ?query () =
     h2 ~a:[a_class ["title"]] [txt title];
 
     SearchBar.render
+      ~id: "explorer-search-bar"
       ~placeholder:"Search for anything (it really is magic!)"
       ~autofocus:true
       ~on_input:update_uri

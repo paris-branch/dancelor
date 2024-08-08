@@ -55,6 +55,7 @@ let make
 
 let render
     ~placeholder
+    ?id
     ?(autofocus=false)
     ?on_focus
     ?on_blur
@@ -67,6 +68,7 @@ let render
   let bar =
     input
       ~a:(List.filter_map Fun.id [
+          Option.map a_id id;
           Some (a_input_type `Text);
           Some (a_placeholder placeholder);
           Some (R.a_value search_bar.text);
