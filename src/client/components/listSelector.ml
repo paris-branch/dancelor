@@ -2,6 +2,7 @@ open Nes
 open Js_of_ocaml_tyxml.Tyxml_js
 open Dancelor_client_html
 module Model = Dancelor_client_model
+module Utils = Dancelor_client_utils
 
 (* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)
@@ -39,16 +40,16 @@ let clear s =
 let render
     ~(make_result:
         ?classes: string list ->
-      ?onclick: (unit -> unit) ->
+      ?action: Utils.ResultRow.action ->
       ?prefix: Html_types.td Html.elt list ->
       ?suffix: Html_types.td Html.elt list ->
       'result ->
-      Html_types.tr Html.elt
+      Utils.ResultRow.t
      )
     ?(make_more_results =
       (Fun.const [] :
          'result ->
-       Html_types.tr Html.elt list)
+       Utils.ResultRow.t list)
      )
     ~field_name
     ~model_name
@@ -65,11 +66,12 @@ let render
     tablex ~a:[a_class ["container"]] [
       R.tbody (
         Fun.flip S.map s.signal @@ fun elements ->
+        List.map Utils.ResultRow.to_clickable_row @@
         List.concat @@ List.mapi
           (fun n element ->
              make_result
                ~classes: ["row"]
-               ~onclick: (fun () -> ())
+               ~action: Utils.ResultRow.noAction
                ~suffix: [
                  td ~a:[a_class ["actions"]] [
                    button
@@ -101,32 +103,33 @@ let render
 
     QuickSearchBar.render
       ~placeholder: ("Add a " ^ snd field_name ^ " (magic search)")
-      ~make_result: (fun person ->
-          Lwt.return @@ make_result
-            ~onclick:(fun () ->
-                s.set (S.value s.signal @ [person]);
-                QuickSearchBar.clear s.search_bar;
-              )
+      ~make_result: (fun ?classes person ->
+          make_result
+            ?classes
+            ~action: (Utils.ResultRow.callback @@ fun () ->
+                      s.set (S.value s.signal @ [person]);
+                      QuickSearchBar.clear s.search_bar;
+                     )
             ~suffix:[]
             person
         )
       ~more_lines: [
-        QuickSearchBar.fa_row
-          ~onclick:(fun () ->
-              Lwt.async @@ fun () ->
-              let%lwt result = Dialog.open_ @@ fun return ->
-                QuickSearchBar.clear s.search_bar;
-                [
-                  create_dialog_content
-                    ~on_save:return
-                    (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
-                ]
-              in
-              Result.iter (fun element ->
-                  s.set (S.value s.signal @ [element]);
-                ) result;
-              Lwt.return_unit
-            )
+        Utils.ResultRow.icon_row
+          ~action: (Utils.ResultRow.callback @@ fun () ->
+                    Lwt.async @@ fun () ->
+                    let%lwt result = Dialog.open_ @@ fun return ->
+                      QuickSearchBar.clear s.search_bar;
+                      [
+                        create_dialog_content
+                          ~on_save:return
+                          (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
+                      ]
+                    in
+                    Result.iter (fun element ->
+                        s.set (S.value s.signal @ [element]);
+                      ) result;
+                    Lwt.return_unit
+                   )
           "add_circle" ("Create a new " ^ model_name)
       ]
       s.search_bar;

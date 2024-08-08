@@ -3,7 +3,17 @@ open Js_of_ocaml
 open Dancelor_common
 open Dancelor_client_html
 open Dancelor_client_views
+module Components = Dancelor_client_components
 module Page = Dancelor_client_page
+module Utils = Dancelor_client_utils
+module Model = Dancelor_client_model
+
+(* FIXME: This search is duplicated in so many places. *)
+let search slice input =
+  let threshold = 0.4 in
+  let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in (* FIXME: AnyFilter.from_string should return a result lwt *)
+  let%lwt results = Model.Any.search ~threshold ~slice filter in
+  Lwt.return_ok results
 
 (* Whether to show the menu or not. [None] indicates the default (yes on
    desktop, no on mobile). *)
@@ -55,9 +65,20 @@ let header =
         ]
         [
           li [
+            Components.QuickSearchBar.make_and_render
+              ~placeholder: "Quick search (press '/')"
+              ~search
+              ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
+              ~on_enter: (fun search_text ->
+                  Dom_html.window##.location##.href := Js.string PageRouter.(path_explore (Some search_text))
+                )
+              ~focus_on_slash: true
+              ()
+          ];
+
+          li [
             a ~a:[a_href PageRouter.(path (Explore None))] [
-              i ~a:[a_class ["material-symbols-outlined"]] [txt "search"];
-              txt " Explore";
+              txt "Explore";
               i ~a:[a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
             ];
 
@@ -102,7 +123,7 @@ let header =
           ];
 
           li [
-            txt "Add ";
+            txt "Add";
             i ~a:[a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
 
             ul ~a:[a_class ["subnav"]] [

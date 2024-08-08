@@ -4,7 +4,7 @@
  (name dancelor_client_utils)
  (public_name dancelor.client.utils)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx))
+  (pps lwt_ppx js_of_ocaml-ppx ppx_variants_conv))
  (libraries
   js_of_ocaml-lwt
   cohttp-lwt-jsoo

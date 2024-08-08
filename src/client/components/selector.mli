@@ -2,6 +2,7 @@ open Nes
 open Js_of_ocaml_tyxml.Tyxml_js
 open Dancelor_client_model
 open Dancelor_client_html
+module Utils = Dancelor_client_utils
 
 type 'model t
 
@@ -22,11 +23,11 @@ val clear : 'model t -> unit
 val render :
   make_result: (
     ?classes: string list ->
-    ?onclick: (unit -> unit) ->
+    ?action: Utils.ResultRow.action ->
     ?prefix: Html_types.td Html.elt list ->
     ?suffix: Html_types.td Html.elt list ->
     'model ->
-    Html_types.tr Html.elt
+    Utils.ResultRow.t
   ) ->
   field_name: (string * string) ->
   model_name: string ->

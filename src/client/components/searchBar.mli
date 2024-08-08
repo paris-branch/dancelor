@@ -57,6 +57,7 @@ val make :
 
 val render :
   placeholder:string ->
+  ?id: string ->
   ?autofocus:bool ->
   ?on_focus:(unit -> unit) ->
   ?on_blur:(unit -> unit) ->
@@ -68,6 +69,8 @@ val render :
     follows:
 
     - [placeholder] shows in the bar when no text is entered yet;
+
+    - [id] is a string that specifies the id of the search bar;
 
     - [on_focus] is a function that fires when the bar gains focus;
 

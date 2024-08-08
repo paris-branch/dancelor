@@ -46,6 +46,7 @@ let create ?query () =
     h2 ~a:[a_class ["title"]] [txt title];
 
     SearchBar.render
+      ~id: "explorer-search-bar"
       ~placeholder:"Search for anything (it really is magic!)"
       ~autofocus:true
       ~on_input:update_uri
@@ -103,7 +104,7 @@ let create ?query () =
               match state with
               | Results results ->
                 let context = S.map PageRouter.inSearch @@ SearchBar.text search_bar in
-                List.map Utils.AnyResult.(make_result ~context) results
+                List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results
               | _ -> []
             )
           ];
