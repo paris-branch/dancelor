@@ -178,13 +178,15 @@ let render
     );
 
   (* Add an event listener to hide the table on Tab or Esc, and to change the
-     selected row by pressing KeyUp or KeyDown. *)
+     selected row by pressing KeyUp (or Ctrl+K) or KeyDown (or Ctrl+J). *)
   Utils.add_target_event_listener bar' Dom_html.Event.keydown
     (fun event _target ->
        match event##.keyCode with
        | 9 (* Tab *) | 27 (* Esc *) -> (q.set_table_visible false; Js._true)
        | 38 (* KeyUp *) -> (q.decr_inner_selected_row (); Js._false)
        | 40 (* KeyDown *) -> (q.incr_inner_selected_row (); Js._false)
+       | 75 when Js.to_bool event##.ctrlKey (* Ctrl+K *) -> (q.decr_inner_selected_row (); Js._false)
+       | 74 when Js.to_bool event##.ctrlKey (* Ctrl+J *) -> (q.incr_inner_selected_row (); Js._false)
        | _ -> Js._true
     );
 
