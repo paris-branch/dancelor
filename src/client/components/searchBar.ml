@@ -92,7 +92,8 @@ let render
           Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
         ]) ()
   in
-  Utils.add_target_event_listener (To_dom.of_input bar) Dom_html.Event.keyup (fun event _target ->
+  let bar' = To_dom.of_input bar in
+  Utils.add_target_event_listener bar' Dom_html.Event.keyup (fun event _target ->
       (
         match event##.keyCode with
         | 13 (* Enter *) ->
@@ -102,6 +103,7 @@ let render
             Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
             on_enter (Js.to_string input##.value)
           );
+        | 27 (* Esc *) -> bar'##blur
         | _ -> ()
       );
       Js._true
