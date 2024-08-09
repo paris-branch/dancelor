@@ -174,3 +174,11 @@ tr.small-previsualisation object {
   width: 65%;
   min-width: 300px;
 }
+
+.full-cell-link {
+  width: 100%;
+  display: block;
+  color: $black;
+  margin: -0.2rem; // compensate the padding of <td> and other .full-cell-link elements
+  padding: 0.2rem; // recreate the padding for the inner content
+}

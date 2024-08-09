@@ -13,4 +13,5 @@
   dancelor.client.page
   dancelor.client.html
   dancelor.client.formatters
+  dancelor.client.utils
   dancelor.nes))

@@ -3,21 +3,10 @@ open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
+module Utils = Dancelor_client_utils
 
 let clickable_row ~href cells =
-  tr
-    ~a:[
-      a_class ["clickable"];
-      a_onclick
-        (fun _ ->
-           let open Js_of_ocaml in
-           Dom_html.window##.location##.href := Js.string href;
-           true
-        );
-    ]
-    (
-      List.map L.td cells
-    )
+  Utils.ResultRow.(to_clickable_row @@ make ~href (List.map lcell cells))
 
 let map_table ~header list fun_ =
   tablex ~a:[a_class ["separated-table"; "visible"]]
@@ -36,7 +25,7 @@ let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
   let href = PageRouter.path_set @@ Set.slug set in
   clickable_row ~href [
-    (Formatters.Set.name_and_tunes ~link:true set);
+    (Formatters.Set.name_and_tunes ~link:false set);
     (Lwt.map Formatters.Person.names (Set.conceptors set));
     Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set];
   ]
@@ -45,7 +34,7 @@ let dances dances =
   map_table ~header:["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
   let href = PageRouter.path_dance @@ Dance.slug dance in
   clickable_row ~href [
-    (Lwt.return @@ Formatters.Dance.name dance);
+    (Lwt.return @@ Formatters.Dance.name ~link:false dance);
     (Lwt.map Formatters.Person.names (Dance.devisers dance));
     Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind dance];
   ]
@@ -54,7 +43,7 @@ let tunes tunes =
   map_table ~header:["Name"; "Kind"; "Composer"] tunes @@ fun tune ->
   let href = PageRouter.path_tune @@ Tune.slug tune in
   clickable_row ~href [
-    (Lwt.return @@ Formatters.Tune.name tune);
+    (Lwt.return @@ Formatters.Tune.name ~link:false tune);
     Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
     (Formatters.Tune.composers tune);
   ]

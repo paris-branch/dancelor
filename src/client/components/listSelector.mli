@@ -23,8 +23,8 @@ val render :
   make_result: (
     ?classes: string list ->
     ?action: Utils.ResultRow.action ->
-    ?prefix: Html_types.td Html.elt list ->
-    ?suffix: Html_types.td Html.elt list ->
+    ?prefix: Utils.ResultRow.cell list ->
+    ?suffix: Utils.ResultRow.cell list ->
     'model ->
     Utils.ResultRow.t
   ) ->

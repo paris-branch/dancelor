@@ -103,6 +103,8 @@ module R = struct
   let div ?a elts = R.div ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
   let ul ?a elts = R.ul ?a (RList.from_signal elts)
+  let td ?a elts = R.td ?a (RList.from_signal elts)
+  let a ?a elts = R.a ?a (RList.from_signal elts)
 end
 
 (** Lwt HTML nodes. *)

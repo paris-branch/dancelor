@@ -8,7 +8,7 @@ let make_person_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) person =
   ResultRow.make ?classes ?action
     (
       prefix @ [
-        td ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
+        ResultRow.cell ~a:[a_colspan 3] (Formatters.Person.name ~link:false person);
       ] @ suffix
     )
 
@@ -26,9 +26,9 @@ let make_dance_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) dance =
   ResultRow.make ?classes ?action
     (
       prefix @ [
-        td [txt (Dance.name dance)];
-        td [txt (Kind.Dance.to_string @@ Dance.kind dance)];
-        L.td (Lwt.map (Formatters.Person.names ~short:true) (Dance.devisers dance));
+        ResultRow.cell [txt (Dance.name dance)];
+        ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind dance)];
+        ResultRow.lcell (Lwt.map (Formatters.Person.names ~short:true) (Dance.devisers dance));
       ] @ suffix
     )
 
@@ -46,8 +46,8 @@ let make_book_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) book =
   ResultRow.make ?classes ?action
     (
       prefix @ [
-        td (Formatters.Book.title_and_subtitle book);
-        td ~a:[a_colspan 2] [txt (Option.fold ~none:"" ~some:PartialDate.to_pretty_string (Book.date book))];
+        ResultRow.cell (Formatters.Book.title_and_subtitle book);
+        ResultRow.cell ~a:[a_colspan 2] [txt (Option.fold ~none:"" ~some:PartialDate.to_pretty_string (Book.date book))];
       ] @ suffix
     )
 
@@ -65,9 +65,9 @@ let make_set_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) set =
   ResultRow.make ?classes ?action
     (
       prefix @ [
-        td [txt @@ Set.name set];
-        td [txt @@ Kind.Dance.to_string @@ Set.kind set];
-        L.td (Lwt.map (Formatters.Person.names ~short:true) (Set.conceptors set));
+        ResultRow.cell [txt @@ Set.name set];
+        ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind set];
+        ResultRow.lcell (Lwt.map (Formatters.Person.names ~short:true) (Set.conceptors set));
       ] @ suffix
     )
 
@@ -85,9 +85,9 @@ let make_tune_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) tune =
   ResultRow.make ?classes ?action
     (
       prefix @ [
-        td [txt @@ Tune.name tune];
-        td [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
-        L.td (Formatters.Tune.composers tune);
+        ResultRow.cell [txt @@ Tune.name tune];
+        ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
+        ResultRow.lcell (Formatters.Tune.composers tune);
       ] @ suffix
     )
 
@@ -105,8 +105,8 @@ let make_version_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) version =
   ResultRow.make ?classes ?action
     (
       prefix @ [
-        L.td (Formatters.Version.name_and_disambiguation ~link:false version);
-        td [
+        ResultRow.lcell (Formatters.Version.name_and_disambiguation ~link:false version);
+        ResultRow.cell [
           L.txt (
             let bars = Version.bars version in
             let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
@@ -114,7 +114,7 @@ let make_version_result' ?classes ?action ?(prefix=[]) ?(suffix=[]) version =
             Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
           )
         ];
-        L.td (Formatters.Version.composer_and_arranger ~short:true version);
+        ResultRow.lcell (Formatters.Version.composer_and_arranger ~short:true version);
       ] @ suffix
     )
 
@@ -139,7 +139,7 @@ let any_type_to_fa = function
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
   let prefix = [
-    td [
+    ResultRow.cell [
       i ~a:[a_class ["material-symbols-outlined"]] [txt @@ any_type_to_fa type_];
       txt " ";
       txt (Any.Type.to_string type_);
