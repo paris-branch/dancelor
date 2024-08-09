@@ -41,8 +41,8 @@ let render
     ~(make_result:
         ?classes: string list ->
       ?action: Utils.ResultRow.action ->
-      ?prefix: Html_types.td Html.elt list ->
-      ?suffix: Html_types.td Html.elt list ->
+      ?prefix: Utils.ResultRow.cell list ->
+      ?suffix: Utils.ResultRow.cell list ->
       'result ->
       Utils.ResultRow.t
      )
@@ -73,7 +73,7 @@ let render
                ~classes: ["row"]
                ~action: Utils.ResultRow.noAction
                ~suffix: [
-                 td ~a:[a_class ["actions"]] [
+                 Utils.ResultRow.cell ~a:[a_class ["actions"]] [
                    button
                      ~a: [
                        a_class (if n = List.length elements - 1 then ["disabled"] else []);

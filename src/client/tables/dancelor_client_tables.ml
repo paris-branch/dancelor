@@ -6,7 +6,7 @@ module Formatters = Dancelor_client_formatters
 module Utils = Dancelor_client_utils
 
 let clickable_row ~href cells =
-  Utils.ResultRow.(to_clickable_row @@ make ~href (List.map L.td cells))
+  Utils.ResultRow.(to_clickable_row @@ make ~href (List.map lcell cells))
 
 let map_table ~header list fun_ =
   tablex ~a:[a_class ["separated-table"; "visible"]]

@@ -179,7 +179,7 @@ let create ?on_save ?text () =
                 Dancelor_client_utils.ResultRow.make
                   ~classes: ["small-previsualisation"]
                   [
-                    td ~a:[a_colspan 9999] [
+                    Dancelor_client_utils.ResultRow.cell ~a:[a_colspan 9999] [
                       object_ ~a:[
                         a_mime_type "image/svg+xml";
                         a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
