@@ -104,6 +104,9 @@ module Filter : sig
   (** Matches if the given version appears at any depth in the book, that is
       directly in the book or in a set of the book. *)
 
+  val existsTuneDeep' : TuneCore.Filter.t -> t
+  val existsVersionDeep' : VersionCore.Filter.t -> t
+
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
   val from_string : ?filename:string -> string -> (t, string) Result.t

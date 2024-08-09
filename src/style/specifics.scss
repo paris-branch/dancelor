@@ -182,3 +182,12 @@ tr.small-previsualisation object {
   margin: -0.2rem; // compensate the padding of <td> and other .full-cell-link elements
   padding: 0.2rem; // recreate the padding for the inner content
 }
+
+ul.bullet-list {
+  list-style-type: disc;
+  margin-top: 0.7rem;
+
+  li {
+    margin-left: 2rem;
+  }
+}

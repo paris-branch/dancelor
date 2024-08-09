@@ -1,5 +1,7 @@
 open Nes
 open Js_of_ocaml
+module Model = Dancelor_client_model
+module PageRouter = Dancelor_common_pageRouter
 
 module AnyResult = AnyResult
 module ResultRow = ResultRow
@@ -23,3 +25,28 @@ let add_target_event_listener n ev f =
     (handler @@ fun event ->
      Js.Opt.case event##.target (fun () -> Js._true) (f event))
     Js._false (* default: run in bubbling phase *)
+
+let quick_explorer_links links =
+  let open Dancelor_client_html in
+  div ~a:[a_class ["section"]] [
+    txt "Quick links to:";
+    ul ~a:[a_class ["bullet-list"]] (
+      List.map
+        (fun (text, filter_lwt) ->
+           li [
+             a ~a:[L.a_href @@ Lwt.map (PageRouter.path_explore % Option.some % Model.Any.Filter.to_string) filter_lwt]
+               [txt text];
+             L.txt (
+               let%lwt filter = filter_lwt in
+               let%lwt n = Model.Any.count filter in
+               Lwt.return @@ spf " (%d)" n
+             );
+             txt ",";
+           ]
+        )
+        links
+    );
+  ]
+
+let quick_explorer_links' model_lwt links =
+  quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, Lwt.map mk_filter model_lwt)) links

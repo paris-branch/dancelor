@@ -3,6 +3,7 @@ open Dancelor_common
 open Dancelor_client_model
 module Components = Dancelor_client_components
 module Page = Dancelor_client_page
+module Utils = Dancelor_client_utils
 open Dancelor_client_html
 
 let create ?context slug =
@@ -33,57 +34,9 @@ let create ?context slug =
         ]
     );
 
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Tunes Composed"];
-
-      L.div (
-        let%lwt tunes =
-          let%lwt person = person_lwt in
-          Tune.search' @@ Tune.Filter.existsComposerIs' person
-        in
-
-        Lwt.return [
-          if tunes = [] then
-            txt "There are no tunes composed by this person."
-          else
-            Dancelor_client_tables.tunes tunes
-        ]
-      );
+    Utils.quick_explorer_links' person_lwt [
+      ("tunes they composed", Any.Filter.tune' % Tune.Filter.existsComposer' % Person.Filter.is');
+      ("dances they devised", Any.Filter.dance' % Dance.Filter.existsDeviser' % Person.Filter.is');
+      ("sets they conceived", Any.Filter.set' % Set.Filter.existsConceptor' % Person.Filter.is');
     ];
-
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Sets Devised"];
-
-      L.div (
-        let%lwt sets =
-          let%lwt person = person_lwt in
-          Set.search' @@ Set.Filter.existsConceptor' (Person.Filter.is' person)
-        in
-
-        Lwt.return [
-          if sets = [] then
-            txt "There are no sets devised by this person."
-          else
-            Dancelor_client_tables.sets sets
-        ]
-      );
-    ];
-
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Dances Devised"];
-
-      L.div (
-        let%lwt dances =
-          let%lwt person = person_lwt in
-          Dance.search' @@ Dance.Filter.existsDeviser' (Person.Filter.is' person)
-        in
-
-        Lwt.return [
-          if dances = [] then
-            txt "There are no dances devised by this person."
-          else
-            Dancelor_client_tables.dances dances
-        ]
-      );
-    ]
   ]
