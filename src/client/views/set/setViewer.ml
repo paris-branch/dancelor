@@ -4,6 +4,7 @@ open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Components = Dancelor_client_components
 module Page = Dancelor_client_page
+module Utils = Dancelor_client_utils
 open Dancelor_client_html
 
 let create ?context slug =
@@ -87,22 +88,7 @@ let create ?context slug =
       );
     ];
 
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Books in Which This Set Appears"];
-
-      L.div (
-        let books_lwt =
-          let%lwt set = set_lwt in
-          Book.search' @@ Book.Filter.memSet' set
-        in
-        let%lwt books = books_lwt in
-
-        Lwt.return [
-          if books = [] then
-            p [txt "There are no books containing this set."]
-          else
-            Dancelor_client_tables.books books
-        ]
-      )
-    ]
+    Utils.quick_explorer_links' set_lwt [
+      ("books containing this set", Any.Filter.book' % Book.Filter.memSet');
+    ];
   ]

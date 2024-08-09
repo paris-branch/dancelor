@@ -5,6 +5,7 @@ open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Components = Dancelor_client_components
 module Page = Dancelor_client_page
+module Utils = Dancelor_client_utils
 open Dancelor_client_html
 
 let create ?context slug =
@@ -133,6 +134,13 @@ let create ?context slug =
       ]
     );
 
+    Utils.quick_explorer_links [
+      ("sets containing this version", Lwt.map (Any.Filter.set' % Set.Filter.memVersion') version_lwt);
+      ("books containing this version", Lwt.map (Any.Filter.book' % Book.Filter.memVersionDeep') version_lwt);
+      ("sets containing this tune", Lwt.map (Any.Filter.set' % Set.Filter.existsVersion' % Version.Filter.tuneIs') tune_lwt);
+      ("books containing this tune", Lwt.map (Any.Filter.book' % Book.Filter.existsVersionDeep' % Version.Filter.tuneIs') tune_lwt);
+    ];
+
     div ~a:[a_class ["section"]] [
       h3 [txt "Other Versions"];
 
@@ -171,69 +179,5 @@ let create ?context slug =
             Dancelor_client_tables.dances dances
         ]
       )
-    ];
-
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Sets in Which This Version Appears"];
-
-      L.div (
-        let%lwt sets =
-          let%lwt version = version_lwt in
-          Set.search' @@ Set.Filter.memVersion' version
-        in
-
-        Lwt.return [
-          if sets = [] then
-            txt "There are no sets containing this version."
-          else
-            Dancelor_client_tables.sets sets
-        ]
-      );
-
-      L.div (
-        Fun.flip Lwt.map other_versions_lwt @@ function
-        | [] -> []
-        | _ -> [
-            p [
-              txt "If you want to see the sets in which this version or ";
-              txt "any other appear, go to the ";
-              a ~a:[L.a_href @@ Lwt.map (PageRouter.path_tune % Tune.slug) tune_lwt]
-                [txt "page of the tune"];
-              txt "."
-            ]
-          ]
-      )
-    ];
-
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Books in Which This Version Appears"];
-
-      L.div (
-        let%lwt books =
-          let%lwt version = version_lwt in
-          Book.search' @@ Book.Filter.memVersionDeep' version
-        in
-
-        Lwt.return [
-          if books = [] then
-            txt "There are no books containing this version."
-          else
-            Dancelor_client_tables.books books
-        ]
-      );
-
-      L.div (
-        Fun.flip Lwt.map other_versions_lwt @@ function
-        | [] -> []
-        | _ -> [
-            p [
-              txt "If you want to see the books in which this version or ";
-              txt "any other appear, go to the ";
-              a ~a:[L.a_href @@ Lwt.map (PageRouter.path_tune % Tune.slug) tune_lwt]
-                [txt "page of the tune"];
-              txt "."
-            ]
-          ]
-      );
     ];
   ]

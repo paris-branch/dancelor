@@ -314,6 +314,7 @@ module Lift
 
     let memVersion' = Formula.pred % memVersion
     let memSet' = Formula.pred % memSet
+    let existsVersionDeep' = Formula.pred % existsVersionDeep
     let memVersionDeep' = Formula.pred % memVersionDeep
     let existsTuneDeep' = Formula.pred % existsTuneDeep
     let memTuneDeep' = Formula.pred % memTuneDeep

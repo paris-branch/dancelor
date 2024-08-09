@@ -34,9 +34,9 @@ let create ?context slug =
         ]
     );
 
-    Utils.quick_explorer_links person_lwt [
+    Utils.quick_explorer_links' person_lwt [
       ("tunes they composed", Any.Filter.tune' % Tune.Filter.existsComposer' % Person.Filter.is');
       ("dances they devised", Any.Filter.dance' % Dance.Filter.existsDeviser' % Person.Filter.is');
-      ("sets they created", Any.Filter.set' % Set.Filter.existsConceptor' % Person.Filter.is');
+      ("sets they conceived", Any.Filter.set' % Set.Filter.existsConceptor' % Person.Filter.is');
     ];
   ]

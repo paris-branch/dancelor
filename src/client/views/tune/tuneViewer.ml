@@ -4,6 +4,7 @@ open Dancelor_client_model
 module Formatters = Dancelor_client_formatters
 module Components = Dancelor_client_components
 module Page = Dancelor_client_page
+module Utils = Dancelor_client_utils
 open Dancelor_client_html
 
 let create ?context slug =
@@ -40,6 +41,11 @@ let create ?context slug =
         ]
     );
 
+    Utils.quick_explorer_links' tune_lwt [
+      ("sets containing this tune", Any.Filter.set' % Set.Filter.existsVersion' % Version.Filter.tuneIs');
+      ("books containing this tune", Any.Filter.book' % Book.Filter.memTuneDeep');
+    ];
+
     div ~a:[a_class ["section"]] [
       h3 [txt "Versions of This Tune"];
 
@@ -67,40 +73,4 @@ let create ?context slug =
         ]
       )
     ];
-
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Sets in Which This Tune Appears"];
-
-      L.div (
-        let%lwt sets =
-          let%lwt tune = tune_lwt in
-          Set.search' @@  Set.Filter.existsVersion' (Version.Filter.tuneIs' tune)
-        in
-
-        Lwt.return [
-          if sets = [] then
-            txt "There are no sets containing this tune."
-          else
-            Dancelor_client_tables.sets sets
-        ]
-      )
-    ];
-
-    div ~a:[a_class ["section"]] [
-      h3 [txt "Books in Which This Tune Appears"];
-
-      L.div (
-        let%lwt books =
-          let%lwt tune = tune_lwt in
-          Book.search' @@ Book.Filter.memTuneDeep' tune
-        in
-
-        Lwt.return [
-          if books = [] then
-            txt "There are no books containing this tune."
-          else
-            Dancelor_client_tables.books books
-        ]
-      )
-    ]
   ]
