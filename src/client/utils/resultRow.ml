@@ -65,9 +65,6 @@ let icon_row ?classes ?action icon message =
       ];
     ]
 
-(* FIXME: When [onclick] is used as an [a], we could do better and actually have
-   an [<a />] element *)
-
 let to_clickable_row t =
   let open Dancelor_client_html in
   match t.action with
@@ -77,14 +74,28 @@ let to_clickable_row t =
     )
   | Link href ->
     tr ~a:[
-      a_class (["clickable"] @ t.classes);
-      a_onclick (fun _ -> Dom_html.window##.location##.href := Js.string (S.value href); true);
+      a_class ("clickable" :: t.classes);
     ] (
-      List.map (fun cell -> R.td ~a:cell.a cell.content) t.cells
+      List.map
+        (fun cell ->
+           td ~a:cell.a [
+             a
+               ~a:[
+                 a_class ["full-cell-link"];
+                 R.a_href href;
+               ]
+               [
+                 R.div ~a:[a_class ["full-cell-link"]]
+                   (Fun.flip S.map cell.content @@ function
+                     | [] -> [txt " "] (* empty cells would not have their link fill 100% of the height *)
+                     | content -> content)
+               ]
+           ])
+        t.cells
     )
   | Callback f ->
     tr ~a:[
-      a_class (["clickable"] @ t.classes);
+      a_class ("clickable" :: t.classes);
       a_onclick (fun _ -> f (); true);
     ] (
       List.map (fun cell -> R.td ~a:cell.a cell.content) t.cells
