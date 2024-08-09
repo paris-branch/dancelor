@@ -3,21 +3,10 @@ open Dancelor_common
 open Dancelor_client_model
 open Dancelor_client_html
 module Formatters = Dancelor_client_formatters
+module Utils = Dancelor_client_utils
 
 let clickable_row ~href cells =
-  tr
-    ~a:[
-      a_class ["clickable"];
-      a_onclick
-        (fun _ ->
-           let open Js_of_ocaml in
-           Dom_html.window##.location##.href := Js.string href;
-           true
-        );
-    ]
-    (
-      List.map L.td cells
-    )
+  Utils.ResultRow.(to_clickable_row @@ make ~href (List.map L.td cells))
 
 let map_table ~header list fun_ =
   tablex ~a:[a_class ["separated-table"; "visible"]]

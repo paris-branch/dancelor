@@ -11,5 +11,4 @@
   dancelor.nes
   dancelor.client.formatters
   dancelor.client.page
-  dancelor.common
-  dancelor.client.tables))
+  dancelor.common))

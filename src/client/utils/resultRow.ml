@@ -14,7 +14,13 @@ type t = {
   classes : string list;
 }
 
-let make ?(classes = []) ?(action = NoAction) cells =
+let make ?(classes = []) ?action ?href cells =
+  let action = match (action, href) with
+    | (None, None) -> NoAction
+    | (Some a, None) -> a
+    | (None, Some href) -> Link (S.const href)
+    | (Some _, Some _) -> invalid_arg "Cannot have both action and href"
+  in
   {action; cells; classes}
 
 (** Generic row showing an emoji on the left and a message on the right. *)
@@ -29,9 +35,6 @@ let icon_row ?classes ?action icon message =
       ];
     ]
 
-(* FIXME: this is very similar to [Dancelor_client_tables.clickable_row]; those
-   two should be merged in a common notion (probably that ot
-   [Dancelor_client_tables]). *)
 (* FIXME: When [onclick] is used as an [a], we could do better and actually have
    an [<a />] element *)
 
