@@ -25,7 +25,7 @@ let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
   let href = PageRouter.path_set @@ Set.slug set in
   clickable_row ~href [
-    (Formatters.Set.name_and_tunes ~link:true set);
+    (Formatters.Set.name_and_tunes ~link:false set);
     (Lwt.map Formatters.Person.names (Set.conceptors set));
     Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set];
   ]
@@ -34,7 +34,7 @@ let dances dances =
   map_table ~header:["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
   let href = PageRouter.path_dance @@ Dance.slug dance in
   clickable_row ~href [
-    (Lwt.return @@ Formatters.Dance.name dance);
+    (Lwt.return @@ Formatters.Dance.name ~link:false dance);
     (Lwt.map Formatters.Person.names (Dance.devisers dance));
     Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind dance];
   ]
@@ -43,7 +43,7 @@ let tunes tunes =
   map_table ~header:["Name"; "Kind"; "Composer"] tunes @@ fun tune ->
   let href = PageRouter.path_tune @@ Tune.slug tune in
   clickable_row ~href [
-    (Lwt.return @@ Formatters.Tune.name tune);
+    (Lwt.return @@ Formatters.Tune.name ~link:false tune);
     Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised:true @@ Tune.kind tune];
     (Formatters.Tune.composers tune);
   ]
