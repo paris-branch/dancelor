@@ -23,7 +23,7 @@ type ('arity, 'model) t = {
   arity : 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 
-let make ~arity ?(has_interacted=S.const false) ~search ~serialise ~unserialise initial_value =
+let make ~arity ?(has_interacted=S.const false) ~search ~serialise ~unserialise (initial_input, initial_value) =
   let (has_interacted_locally, set_interacted) = S.create false in
   let has_interacted = S.l2 (||) has_interacted has_interacted_locally in
   let set_interacted () =
@@ -34,6 +34,7 @@ let make ~arity ?(has_interacted=S.const false) ~search ~serialise ~unserialise 
   let search_bar = QuickSearchBar.make
       ~number_of_results: 5
       ~search
+      ~initial_input
       ()
   in
   Lwt.async (fun () ->
@@ -43,7 +44,10 @@ let make ~arity ?(has_interacted=S.const false) ~search ~serialise ~unserialise 
     );
   {has_interacted; set_interacted; signal; set; search_bar; serialise; arity}
 
-let raw_signal s = S.map (List.map s.serialise) s.signal
+let raw_signal s =
+  S.bind (QuickSearchBar.text s.search_bar) @@ fun input ->
+  S.bind s.signal @@ fun elements ->
+  S.const (input, List.map s.serialise elements)
 
 let signal (s : ('arity, 'model) t) : ('model list, string) Result.t S.t =
   Fun.flip S.map s.signal @@ function

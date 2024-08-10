@@ -33,8 +33,8 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Slug.t list,
-    version Slug.t list,
+    (string * person Slug.t list),
+    (string * version Slug.t list),
     string
   ) gen
   [@@deriving yojson]
@@ -42,8 +42,8 @@ module RawState = struct
   let empty = {
     name = "";
     kind = "";
-    conceptors = [];
-    versions = [];
+    conceptors = ("", []);
+    versions = ("", []);
     order = ""
   }
 end
@@ -127,7 +127,7 @@ module Editor = struct
 
   let add_to_storage version =
     Utils.update "SetEditor" (module RawState) @@ fun state ->
-    { state with versions = state.versions @ [version] }
+    { state with versions = (fst state.versions, snd state.versions @ [version]) }
 
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;

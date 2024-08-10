@@ -20,12 +20,13 @@ type 'result t = {
 }
 
 let search_bar q = q.search_bar
+let text q = SearchBar.text @@ search_bar q
 
 let clear q =
   SearchBar.clear q.search_bar;
   q.set_table_visible false
 
-let make ?(number_of_results=10) ~search () =
+let make ?(number_of_results=10) ~search ?initial_input () =
   let min_characters = 3 in
   let slice = S.const @@ Slice.make ~start:0 ~end_excl:number_of_results () in
   let search_bar =
@@ -33,6 +34,7 @@ let make ?(number_of_results=10) ~search () =
       ~search
       ~min_characters
       ~slice
+      ?initial_input
       ()
   in
   (** A signal tracking whether the table is focused. *)

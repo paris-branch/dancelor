@@ -18,6 +18,7 @@ val clear : 'result t -> unit
 val make :
   ?number_of_results: int ->
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
+  ?initial_input: string ->
   unit ->
   'result t
 (** Wrapper around {!SearchBar.make}; refer to it for a description of the
@@ -25,6 +26,9 @@ val make :
 
 val search_bar : 'result t -> 'result SearchBar.t
 (** Access the underlying search bar. *)
+
+val text : 'result t -> string React.signal
+(** Short for [SearchBar.text % search_bar]*)
 
 val render :
   placeholder: string ->

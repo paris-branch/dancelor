@@ -32,9 +32,9 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Slug.t list,
+    (string * person Slug.t list),
     string,
-    dance Slug.t list,
+    (string * dance Slug.t list),
     string,
     string
   ) gen
@@ -43,9 +43,9 @@ module RawState = struct
   let empty : t = {
     name = "";
     kind = "";
-    composers = [];
+    composers = ("", []);
     date = "";
-    dances = [];
+    dances = ("", []);
     remark = "";
     scddb_id = "";
   }

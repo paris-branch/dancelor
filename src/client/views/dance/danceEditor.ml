@@ -29,7 +29,7 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Slug.t list,
+    (string * person Slug.t list),
     string,
     string,
     (* bool, *)
@@ -41,7 +41,7 @@ module RawState = struct
   let empty : t = {
     name = "";
     kind = "";
-    devisers = [];
+    devisers = ("", []);
     date = "";
     disambiguation = "";
     two_chords = ();

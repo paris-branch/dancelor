@@ -31,11 +31,11 @@ module RawState = struct
   let person_of_yojson _ = assert false
 
   type t = (
-    tune Slug.t list,
+    (string * tune Slug.t list),
     string,
     string,
     string,
-    person Slug.t list,
+    (string * person Slug.t list),
     string,
     string,
     string
@@ -43,11 +43,11 @@ module RawState = struct
   [@@deriving yojson]
 
   let empty = {
-    tune = [];
+    tune = ("", []);
     bars = "";
     key = "";
     structure = "";
-    arrangers = [];
+    arrangers = ("", []);
     remark = "";
     disambiguation = "";
     content = ""
@@ -94,15 +94,10 @@ module Editor = struct
 
   let with_or_without_local_storage ~text ~tune f =
     match text, tune with
-    | (Some _, _) -> (* NOTE: We are ignoring the actual value of the text because
-                        there is nowhere where we can actually put it; we could if
-                        the selector accepted an initial text for the search bar. *)
-      Lwt.return @@ f RawState.empty
-    | (_, Some tune) ->
-      Lwt.return @@ f {RawState.empty with tune = [tune]}
+    | (None, None) ->
+      Lwt.return @@ Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
-      Lwt.return @@
-      Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
+      Lwt.return @@ f {RawState.empty with tune = (Option.value ~default:"" text, Option.value ~default:[] tune)}
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->

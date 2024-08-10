@@ -23,12 +23,12 @@ val make  :
   search: (Slice.t -> string -> (int * 'model list, string) Result.t Lwt.t) ->
   serialise: ('model -> 'model Slug.t) ->
   unserialise: ('model Slug.t -> 'model Lwt.t) ->
-  'model Slug.t list ->
+  (string * 'model Slug.t list) ->
   ('arity, 'model) t
 
-val raw_signal : ('arity, 'model) t -> 'model Slug.t list S.t
-(** The raw signal of elements contained in the selector. Independently from the
-    arity, it contains a list. *)
+val raw_signal : ('arity, 'model) t -> (string * 'model Slug.t list) S.t
+(** The raw signal of the current input of the bar and the elements contained in
+    the selector. Independently from the arity, it contains a list. *)
 
 val signal_one : (one, 'model) t -> ('model, string) Result.t S.t
 (** The actual signal for an arity-one selector. This contains exactly one
