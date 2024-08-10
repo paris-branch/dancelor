@@ -89,7 +89,6 @@ let render
             (fun element ->
                make_result
                  ~classes: ["row"]
-                 ~action: Utils.ResultRow.noAction
                  ~suffix: [
                    Utils.ResultRow.cell ~a:[a_class ["actions"]] [
                      button
@@ -106,39 +105,49 @@ let render
         )
       ];
 
-      QuickSearchBar.render
-        ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
-        ~on_focus: s.set_interacted
-        ~make_result: (fun ?classes person ->
-            make_result
-              ?classes
-              ~action: (Utils.ResultRow.callback @@ fun () ->
-                        s.set (Some person);
-                        QuickSearchBar.clear s.search_bar;
-                       )
-              ~suffix:[]
-              person
+      div
+        ~a: [
+          R.a_class (
+            Fun.flip S.map s.signal @@ function
+            | Some _ -> ["hidden"]
+            | _ -> []
           )
-        ~more_lines: [
-          Utils.ResultRow.icon_row
-            ~action: (Utils.ResultRow.callback @@ fun () ->
-                      Lwt.async @@ fun () ->
-                      let%lwt result = Dialog.open_ @@ fun return ->
-                        QuickSearchBar.clear s.search_bar;
-                        [
-                          create_dialog_content
-                            ~on_save:return
-                            (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
-                        ]
-                      in
-                      Result.iter (fun element ->
-                          s.set (Some element);
-                        ) result;
-                      Lwt.return_unit
-                     )
-            "add_circle" ("Create a new " ^ model_name)
         ]
-        s.search_bar;
+        [
+          QuickSearchBar.render
+            ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
+            ~on_focus: s.set_interacted
+            ~make_result: (fun ?classes person ->
+                make_result
+                  ?classes
+                  ~action: (Utils.ResultRow.callback @@ fun () ->
+                            s.set (Some person);
+                            QuickSearchBar.clear s.search_bar;
+                           )
+                  ~suffix:[]
+                  person
+              )
+            ~more_lines: [
+              Utils.ResultRow.icon_row
+                ~action: (Utils.ResultRow.callback @@ fun () ->
+                          Lwt.async @@ fun () ->
+                          let%lwt result = Dialog.open_ @@ fun return ->
+                            QuickSearchBar.clear s.search_bar;
+                            [
+                              create_dialog_content
+                                ~on_save:return
+                                (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
+                            ]
+                          in
+                          Result.iter (fun element ->
+                              s.set (Some element);
+                            ) result;
+                          Lwt.return_unit
+                         )
+                "add_circle" ("Create a new " ^ model_name)
+            ]
+            s.search_bar;
+        ];
 
       R.div ~a:[a_class ["message-box"]] (
         case_errored ~no:[] ~yes:(List.singleton % txt) s
