@@ -31,7 +31,7 @@ module RawState = struct
   let person_of_yojson _ = assert false
 
   type t = (
-    tune Slug.t option,
+    tune Slug.t list,
     string,
     string,
     string,
@@ -43,7 +43,7 @@ module RawState = struct
   [@@deriving yojson]
 
   let empty = {
-    tune = None;
+    tune = [];
     bars = "";
     key = "";
     structure = "";
@@ -57,7 +57,7 @@ end
 module Editor = struct
   type t = {
     elements : (
-      Model.Tune.t Selector.t,
+      (Selector.one, Model.Tune.t) Selector.t,
       int Input.Text.t,
       Model.Music.key Input.Text.t,
       string Input.Text.t,
@@ -82,7 +82,7 @@ module Editor = struct
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Selector.signal editor.elements.tune) @@ fun tune ->
+    RS.bind (Selector.signal_one editor.elements.tune) @@ fun tune ->
     RS.bind (Input.Text.signal editor.elements.bars) @@ fun bars ->
     RS.bind (Input.Text.signal editor.elements.key) @@ fun key ->
     RS.bind (Input.Text.signal editor.elements.structure) @@ fun structure ->
@@ -99,7 +99,7 @@ module Editor = struct
                         the selector accepted an initial text for the search bar. *)
       Lwt.return @@ f RawState.empty
     | (_, Some tune) ->
-      Lwt.return @@ f {RawState.empty with tune = Some tune}
+      Lwt.return @@ f {RawState.empty with tune = [tune]}
     | _ ->
       Lwt.return @@
       Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
@@ -109,6 +109,7 @@ module Editor = struct
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let tune = Selector.make
+        ~arity: Selector.one
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in

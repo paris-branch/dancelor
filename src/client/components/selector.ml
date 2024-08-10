@@ -7,39 +7,58 @@ module Utils = Dancelor_client_utils
 (* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)
 
-type 'model t = {
+type one
+type many
+type 'any arity = One | Many
+let one : one arity = One
+let many : many arity = Many
+
+type ('arity, 'model) t = {
   has_interacted : bool S.t;
   set_interacted : unit -> unit;
-  signal : 'model option S.t;
-  set : 'model option -> unit;
+  signal : 'model list S.t;
+  set : 'model list -> unit;
   search_bar : 'model QuickSearchBar.t;
   serialise : 'model -> 'model Slug.t;
+  arity : 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 
-let make ?(has_interacted=S.const false) ~search ~serialise ~unserialise initial_value =
+let make ~arity ?(has_interacted=S.const false) ~search ~serialise ~unserialise initial_value =
   let (has_interacted_locally, set_interacted) = S.create false in
   let has_interacted = S.l2 (||) has_interacted has_interacted_locally in
   let set_interacted () =
     set_interacted true;
     S.stop ~strong:true has_interacted
   in
-  let (signal, set) = S.create None in
+  let (signal, set) = S.create [] in
   let search_bar = QuickSearchBar.make
       ~number_of_results: 5
       ~search
       ()
   in
   Lwt.async (fun () ->
-      let%lwt initial_value = Option.fold ~none:Lwt.return_none ~some:(Lwt.map Option.some % unserialise) initial_value in
+      let%lwt initial_value = Lwt_list.map_p unserialise initial_value in
       set initial_value;
       Lwt.return_unit
     );
-  {has_interacted; set_interacted; signal; set; search_bar; serialise}
+  {has_interacted; set_interacted; signal; set; search_bar; serialise; arity}
 
-let raw_signal s = S.map (Option.map s.serialise) s.signal
+let raw_signal s = S.map (List.map s.serialise) s.signal
 
-let signal (s : 'model t) : ('model, string) Result.t S.t =
-  S.map (Option.to_result ~none:"Must select something") s.signal
+let signal (s : ('arity, 'model) t) : ('model list, string) Result.t S.t =
+  Fun.flip S.map s.signal @@ function
+  | [x] -> Ok [x]
+  | [] when s.arity = One -> Error "You must select an element."
+  | _ when s.arity = One -> Error "You must select exactly one element."
+  | xs -> Ok xs
+
+let signal_one (s : (one, 'model) t) : ('model, string) Result.t S.t =
+  assert (s.arity = One);
+  S.map (Result.map List.hd) (signal s)
+
+let signal_many (s : (many, 'model) t) : ('model list, 'bottom) Result.t S.t =
+  assert (s.arity = Many);
+  S.map (Result.ok % Result.get_ok) (signal s)
 
 let has_interacted state = state.has_interacted
 
@@ -50,11 +69,8 @@ let case_errored ~no ~yes state =
   | _ -> no
 
 let clear s =
-  s.set None;
+  s.set [];
   QuickSearchBar.clear s.search_bar
-
-(* FIXME: Selector should hide the search bar once something is selected,
-   forcing the user to press “trash” before being allowed to enter a new one. *)
 
 let render
     ~(make_result:
@@ -64,6 +80,11 @@ let render
       ?suffix: Utils.ResultRow.cell list ->
       'result ->
       Utils.ResultRow.t
+     )
+    ?(make_more_results =
+      (Fun.const [] :
+         'result ->
+       Utils.ResultRow.t list)
      )
     ~field_name
     ~model_name
@@ -83,25 +104,38 @@ let render
 
       tablex ~a:[a_class ["container"]] [
         R.tbody (
-          Fun.flip S.map s.signal @@ fun maybe_element ->
+          Fun.flip S.map s.signal @@ fun elements ->
           List.map Utils.ResultRow.to_clickable_row @@
-          List.map
-            (fun element ->
+          List.concat @@ List.mapi
+            (fun n element ->
                make_result
                  ~classes: ["row"]
                  ~suffix: [
                    Utils.ResultRow.cell ~a:[a_class ["actions"]] [
                      button
                        ~a: [
-                         a_onclick (fun _ -> s.set None; true);
+                         a_class (if n = List.length elements - 1 then ["disabled"] else []);
+                         a_onclick (fun _ -> s.set @@ List.swap n (n+1) @@ S.value s.signal; true);
+                       ]
+                       [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_down"]];
+                     button
+                       ~a: [
+                         a_class (if n = 0 then ["disabled"] else []);
+                         a_onclick (fun _ -> s.set @@ List.swap (n-1) n @@ S.value s.signal; true);
+                       ]
+                       [i ~a:[a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_up"]];
+                     button
+                       ~a: [
+                         a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.signal; true);
                          a_class ["btn-danger"];
                        ]
                        [i ~a:[a_class ["material-symbols-outlined"]] [txt "delete"]];
                    ]
                  ]
                  element
+               :: make_more_results element
             )
-            (Option.to_list maybe_element)
+            elements
         )
       ];
 
@@ -109,19 +143,19 @@ let render
         ~a: [
           R.a_class (
             Fun.flip S.map s.signal @@ function
-            | Some _ -> ["hidden"]
+            | [_] when s.arity = One -> ["hidden"]
             | _ -> []
           )
         ]
         [
           QuickSearchBar.render
-            ~placeholder: ("Select a " ^ snd field_name ^ " (magic search)")
+            ~placeholder: ((if s.arity = One then "Select" else "Add") ^ " a " ^ snd field_name ^ " (magic search)")
             ~on_focus: s.set_interacted
             ~make_result: (fun ?classes person ->
                 make_result
                   ?classes
                   ~action: (Utils.ResultRow.callback @@ fun () ->
-                            s.set (Some person);
+                            s.set (S.value s.signal @ [person]);
                             QuickSearchBar.clear s.search_bar;
                            )
                   ~suffix:[]
@@ -140,7 +174,7 @@ let render
                             ]
                           in
                           Result.iter (fun element ->
-                              s.set (Some element);
+                              s.set (S.value s.signal @ [element]);
                             ) result;
                           Lwt.return_unit
                          )
