@@ -54,7 +54,7 @@ module Editor = struct
     elements : (
       string Input.Text.t,
       Model.Kind.Dance.t Input.Text.t,
-      Model.Person.t ListSelector.t,
+      (Selector.many, Model.Person.t) Selector.t,
       PartialDate.t option Input.Text.t,
       string option Input.Text.t,
       bool option Choices.t,
@@ -66,7 +66,7 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Input.Text.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (ListSelector.raw_signal editor.elements.devisers) @@ fun devisers ->
+    S.bind (Selector.raw_signal editor.elements.devisers) @@ fun devisers ->
     S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
     S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     (* S.bind (Choices.raw_signal editor.elements.two_chords) @@ fun two_chords -> *)
@@ -78,7 +78,7 @@ module Editor = struct
     S.map Result.to_option @@
     RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
     RS.bind (Input.Text.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (ListSelector.signal editor.elements.devisers) @@ fun devisers ->
+    RS.bind (Selector.signal_many editor.elements.devisers) @@ fun devisers ->
     RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
     RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
     RS.bind (S.map Result.ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
@@ -103,7 +103,8 @@ module Editor = struct
     let kind = Input.Text.make ~has_interacted initial_state.kind @@
       Option.to_result ~none:"Not a valid kind" % Model.Kind.Dance.of_string_opt
     in
-    let devisers = ListSelector.make
+    let devisers = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
@@ -143,7 +144,7 @@ module Editor = struct
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.kind;
-    ListSelector.clear editor.elements.devisers;
+    Selector.clear editor.elements.devisers;
     Input.Text.clear editor.elements.date;
     Input.Text.clear editor.elements.disambiguation;
     (* FIXME: clear two chords *)
@@ -184,7 +185,7 @@ let create ?on_save ?text () =
           editor.elements.kind
           ~label: "Kind"
           ~placeholder: "eg. 8x32R or 2x(16R+16S))";
-        ListSelector.render
+        Selector.render
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Devisers", "deviser")
           ~model_name: "person"

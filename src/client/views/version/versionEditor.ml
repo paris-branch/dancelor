@@ -61,7 +61,7 @@ module Editor = struct
       int Input.Text.t,
       Model.Music.key Input.Text.t,
       string Input.Text.t,
-      Model.Person.t ListSelector.t,
+      (Selector.many, Model.Person.t) Selector.t,
       string Input.Text.t,
       string Input.Text.t,
       string Input.Text.t
@@ -74,7 +74,7 @@ module Editor = struct
     S.bind (Input.Text.raw_signal editor.elements.bars) @@ fun bars ->
     S.bind (Input.Text.raw_signal editor.elements.key) @@ fun key ->
     S.bind (Input.Text.raw_signal editor.elements.structure) @@ fun structure ->
-    S.bind (ListSelector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
+    S.bind (Selector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
     S.bind (Input.Text.raw_signal editor.elements.remark) @@ fun remark ->
     S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     S.bind (Input.Text.raw_signal editor.elements.content) @@ fun content ->
@@ -86,7 +86,7 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.bars) @@ fun bars ->
     RS.bind (Input.Text.signal editor.elements.key) @@ fun key ->
     RS.bind (Input.Text.signal editor.elements.structure) @@ fun structure ->
-    RS.bind (ListSelector.signal editor.elements.arrangers) @@ fun arrangers ->
+    RS.bind (Selector.signal_many editor.elements.arrangers) @@ fun arrangers ->
     RS.bind (Input.Text.signal editor.elements.remark) @@ fun remark ->
     RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
     RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
@@ -127,7 +127,8 @@ module Editor = struct
       Option.to_result ~none:"Must be a valid key" % Model.Music.key_of_string_opt
     in
     let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
-    let arrangers = ListSelector.make
+    let arrangers = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
@@ -152,7 +153,7 @@ module Editor = struct
     Input.Text.clear editor.elements.bars;
     Input.Text.clear editor.elements.key;
     Input.Text.clear editor.elements.structure;
-    ListSelector.clear editor.elements.arrangers;
+    Selector.clear editor.elements.arrangers;
     Input.Text.clear editor.elements.remark;
     Input.Text.clear editor.elements.disambiguation;
     Input.Text.clear editor.elements.content
@@ -203,7 +204,7 @@ let create ?on_save ?text ?tune () =
           editor.elements.structure
           ~label: "Structure"
           ~placeholder: "eg. AABB or ABAB";
-        ListSelector.render
+        Selector.render
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Arrangers", "arranger")
           ~model_name: "person"

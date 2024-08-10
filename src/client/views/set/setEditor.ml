@@ -53,8 +53,8 @@ module Editor = struct
     elements : (
       string Input.Text.t,
       Model.Kind.Dance.t Input.Text.t,
-      Model.Person.t ListSelector.t,
-      Model.Version.t ListSelector.t,
+      (Selector.many, Model.Person.t) Selector.t,
+      (Selector.many, Model.Version.t) Selector.t,
       Model.SetOrder.t Input.Text.t
     ) gen;
     set_interacted : unit -> unit;
@@ -63,8 +63,8 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Input.Text.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (ListSelector.raw_signal editor.elements.conceptors) @@ fun conceptors ->
-    S.bind (ListSelector.raw_signal editor.elements.versions) @@ fun versions ->
+    S.bind (Selector.raw_signal editor.elements.conceptors) @@ fun conceptors ->
+    S.bind (Selector.raw_signal editor.elements.versions) @@ fun versions ->
     S.bind (Input.Text.raw_signal editor.elements.order) @@ fun order ->
     S.const {name; kind; conceptors; versions; order}
 
@@ -72,8 +72,8 @@ module Editor = struct
     S.map Result.to_option @@
     RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
     RS.bind (Input.Text.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (ListSelector.signal editor.elements.conceptors) @@ fun conceptors ->
-    RS.bind (ListSelector.signal editor.elements.versions) @@ fun versions ->
+    RS.bind (Selector.signal_many editor.elements.conceptors) @@ fun conceptors ->
+    RS.bind (Selector.signal_many editor.elements.versions) @@ fun versions ->
     RS.bind (Input.Text.signal editor.elements.order) @@ fun order ->
     RS.pure {name; kind; conceptors; versions; order}
 
@@ -95,7 +95,8 @@ module Editor = struct
     let kind = Input.Text.make ~has_interacted initial_state.kind @@
       Option.to_result ~none: "Not a valid kind." % Model.Kind.Dance.of_string_opt
     in
-    let conceptors = ListSelector.make
+    let conceptors = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
@@ -105,7 +106,8 @@ module Editor = struct
         ~unserialise: Model.Person.get
         initial_state.conceptors
     in
-    let versions = ListSelector.make
+    let versions = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
@@ -130,8 +132,8 @@ module Editor = struct
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.kind;
-    ListSelector.clear editor.elements.conceptors;
-    ListSelector.clear editor.elements.versions;
+    Selector.clear editor.elements.conceptors;
+    Selector.clear editor.elements.versions;
     Input.Text.clear editor.elements.order
 
   let submit (editor : t) =
@@ -167,13 +169,13 @@ let create ?on_save ?text () =
           editor.elements.kind
           ~label: "Kind"
           ~placeholder: "eg. 8x32R or 2x(16R+16S))";
-        ListSelector.render
+        Selector.render
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Conceptors", "conceptor")
           ~model_name: "person"
           ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
           editor.elements.conceptors;
-        ListSelector.render
+        Selector.render
           ~make_result: AnyResult.make_version_result'
           ~make_more_results: (fun version -> [
                 Dancelor_client_utils.ResultRow.make

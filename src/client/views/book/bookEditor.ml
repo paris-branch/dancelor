@@ -73,7 +73,7 @@ module Editor = struct
     elements : (
       string Input.Text.t,
       PartialDate.t option Input.Text.t,
-      Model.Set.t ListSelector.t
+      (Selector.many, Model.Set.t) Selector.t
     ) gen;
     set_interacted : unit -> unit;
   }
@@ -81,14 +81,14 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
-    S.bind (ListSelector.raw_signal editor.elements.sets) @@ fun sets ->
+    S.bind (Selector.raw_signal editor.elements.sets) @@ fun sets ->
     S.const {name; date; sets}
 
   let state (editor : t) : State.t option S.t =
     S.map Result.to_option @@
     RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
     RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
-    RS.bind (ListSelector.signal editor.elements.sets) @@ fun sets ->
+    RS.bind (Selector.signal_many editor.elements.sets) @@ fun sets ->
     RS.pure {name; date; sets}
 
   let with_or_without_local_storage ~text ~edit f =
@@ -116,7 +116,8 @@ module Editor = struct
         ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
       % Option.of_string_nonempty
     in
-    let sets = ListSelector.make
+    let sets = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
@@ -138,7 +139,7 @@ module Editor = struct
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.date;
-    ListSelector.clear editor.elements.sets
+    Selector.clear editor.elements.sets
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -172,7 +173,7 @@ let create ?on_save ?text ?edit () =
             editor.elements.date
             ~label: "Date of devising"
             ~placeholder: "eg. 2019 or 2012-03-14";
-          ListSelector.render
+          Selector.render
             ~make_result: AnyResult.make_set_result'
             ~make_more_results: (fun set -> [Dancelor_client_utils.ResultRow.(make [lcell ~a:[a_colspan 9999] (Formatters.Set.tunes set)])])
             ~field_name: ("Sets", "set")
