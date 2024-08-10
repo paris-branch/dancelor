@@ -53,6 +53,9 @@ let clear s =
   s.set None;
   QuickSearchBar.clear s.search_bar
 
+(* FIXME: Selector should hide the search bar once something is selected,
+   forcing the user to press “trash” before being allowed to enter a new one. *)
+
 let render
     ~(make_result:
         ?classes: string list ->

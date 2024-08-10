@@ -50,11 +50,19 @@ let create ?context slug =
       h3 [txt "Versions of This Tune"];
 
       L.div (
+        let%lwt tune = tune_lwt in
         let%lwt versions =
-          let%lwt tune = tune_lwt in
           Version.search' @@ Version.Filter.tuneIs' tune
         in
-        Lwt.return [Dancelor_client_tables.versions versions]
+        Lwt.return @@
+        if versions = [] then
+          [
+            txt "There are no versions for this tune. Maybe you want to ";
+            a ~a:[a_href (PageRouter.path_versionAdd ~tune:(Tune.slug tune) ())] [txt "add one"];
+            txt "?";
+          ]
+        else
+          [Dancelor_client_tables.versions versions]
       )
     ];
 

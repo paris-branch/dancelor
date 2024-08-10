@@ -29,7 +29,7 @@ type page =
   | Set of {slug: SetCore.t Slug.t; context: context option}
   | TuneAdd
   | Tune of {slug: TuneCore.t Slug.t; context: context option}
-  | VersionAdd
+  | VersionAdd of {tune: TuneCore.t Slug.t option}
   | Version of {slug : VersionCore.t Slug.t; context: context option}
 [@@deriving variants]
 
@@ -44,6 +44,8 @@ let dance ?context slug = dance ~context ~slug
 let set ?context slug = set ~context ~slug
 let tune ?context slug = tune ~context ~slug
 let version ?context slug = version ~context ~slug
+
+let versionAdd ?tune () = versionAdd ~tune
 
 open Madge_router
 module MQ = Madge_query
@@ -95,7 +97,12 @@ let routes =
       (fun slug query -> tune slug ?context:(context_of_query query))
       (function Tune {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
 
-    direct    `GET "/version/add"     VersionAdd ;
+    with_query `GET "/version/add"
+      (fun query -> versionAdd ?tune:(Option.map Slug.unsafe_of_string @@ MQ.get_string "tune" query) ())
+      (function
+        | VersionAdd {tune = None} -> Some MQ.empty
+        | VersionAdd {tune = Some tune} -> Option.some @@ MQ.singleton "tune" @@ `String (Slug.to_string tune)
+        | _ -> None);
 
     with_slug_and_query `GET "/version"
       (fun slug query -> version slug ?context:(context_of_query query))
@@ -117,6 +124,8 @@ let path_explore = path % explore
 let path_set ?context slug = path @@ set ?context slug
 let path_tune ?context slug = path @@ tune ?context slug
 let path_version ?context slug = path @@ version ?context slug
+
+let path_versionAdd ?tune () = path @@ versionAdd ?tune ()
 
 let path_any ?context any =
   let open Dancelor_common_model in

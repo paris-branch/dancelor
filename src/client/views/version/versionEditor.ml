@@ -92,18 +92,20 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
 
-  let with_or_without_local_storage ~text f =
-    match text with
-    | Some _ -> (* NOTE: We are ignoring the actual value of the text because
-                   there is nowhere where we can actually put it; we could if
-                   the selector accepted an initial text for the search bar. *)
+  let with_or_without_local_storage ~text ~tune f =
+    match text, tune with
+    | (Some _, _) -> (* NOTE: We are ignoring the actual value of the text because
+                        there is nowhere where we can actually put it; we could if
+                        the selector accepted an initial text for the search bar. *)
       Lwt.return @@ f RawState.empty
-    | None ->
+    | (_, Some tune) ->
+      Lwt.return @@ f {RawState.empty with tune = Some tune}
+    | _ ->
       Lwt.return @@
       Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
 
-  let create ~text : t Lwt.t =
-    with_or_without_local_storage ~text @@ fun initial_state ->
+  let create ~text ~tune : t Lwt.t =
+    with_or_without_local_storage ~text ~tune @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
     let tune = Selector.make
@@ -173,11 +175,11 @@ module Editor = struct
         ()
 end
 
-let create ?on_save ?text () =
+let create ?on_save ?text ?tune () =
   let title = "Add a version" in
   Page.make ~title:(S.const title) @@
   L.div (
-    let%lwt editor = Editor.create ~text in
+    let%lwt editor = Editor.create ~text ~tune in
     Lwt.return @@ [
       h2 ~a:[a_class ["title"]] [txt title];
 
