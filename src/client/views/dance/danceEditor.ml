@@ -101,7 +101,7 @@ module Editor = struct
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind = Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none:"Not a valid kind" % Model.Kind.Dance.of_string_opt
+      Option.to_result ~none:"Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Model.Kind.Dance.of_string_opt
     in
     let devisers = Selector.make
         ~arity: Selector.many
@@ -184,7 +184,7 @@ let create ?on_save ?text () =
         Input.Text.render
           editor.elements.kind
           ~label: "Kind"
-          ~placeholder: "eg. 8x32R or 2x(16R+16S))";
+          ~placeholder: "eg. 8x32R or 2x(16R+16S)";
         Selector.render
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Devisers", "deviser")

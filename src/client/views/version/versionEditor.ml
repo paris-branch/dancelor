@@ -121,10 +121,10 @@ module Editor = struct
         initial_state.tune
     in
     let bars = Input.Text.make ~has_interacted initial_state.bars @@
-      Option.to_result ~none:"Must be an integer" % int_of_string_opt
+      Option.to_result ~none:"The number of bars has to be an integer." % int_of_string_opt
     in
     let key = Input.Text.make ~has_interacted initial_state.key @@
-      Option.to_result ~none:"Must be a valid key" % Model.Music.key_of_string_opt
+      Option.to_result ~none:"Enter a valid key, eg. A of F#m." % Model.Music.key_of_string_opt
     in
     let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
     let arrangers = Selector.make

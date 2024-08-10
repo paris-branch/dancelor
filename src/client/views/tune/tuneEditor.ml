@@ -102,7 +102,7 @@ module Editor = struct
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind = Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none:"Not a valid kind" % Model.Kind.Base.of_string_opt
+      Option.to_result ~none:"Enter a valid kind, eg. R or Strathspey." % Model.Kind.Base.of_string_opt
     in
     let composers = Selector.make
         ~arity: Selector.many
@@ -118,7 +118,7 @@ module Editor = struct
     let date = Input.Text.make ~has_interacted initial_state.date @@
       Option.fold
         ~none: (Ok None)
-        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
+        ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string)
       % Option.of_string_nonempty
     in
     let dances = Selector.make
