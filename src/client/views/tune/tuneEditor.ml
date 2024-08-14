@@ -32,9 +32,9 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Slug.t list,
+    (string * person Slug.t list),
     string,
-    dance Slug.t list,
+    (string * dance Slug.t list),
     string,
     string
   ) gen
@@ -43,9 +43,9 @@ module RawState = struct
   let empty : t = {
     name = "";
     kind = "";
-    composers = [];
+    composers = ("", []);
     date = "";
-    dances = [];
+    dances = ("", []);
     remark = "";
     scddb_id = "";
   }
@@ -56,9 +56,9 @@ module Editor = struct
     elements : (
       string Input.Text.t,
       Model.Kind.Base.t Input.Text.t,
-      Model.Person.t ListSelector.t,
+      (Selector.many, Model.Person.t) Selector.t,
       PartialDate.t option Input.Text.t,
-      Model.Dance.t ListSelector.t,
+      (Selector.many, Model.Dance.t) Selector.t,
       string option Input.Text.t,
       SCDDB.entry_id option Input.Text.t
     ) gen;
@@ -68,9 +68,9 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Input.Text.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (ListSelector.raw_signal editor.elements.composers) @@ fun composers ->
+    S.bind (Selector.raw_signal editor.elements.composers) @@ fun composers ->
     S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
-    S.bind (ListSelector.raw_signal editor.elements.dances) @@ fun dances ->
+    S.bind (Selector.raw_signal editor.elements.dances) @@ fun dances ->
     S.bind (Input.Text.raw_signal editor.elements.remark) @@ fun remark ->
     S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; kind; composers; date; dances; remark; scddb_id}
@@ -79,9 +79,9 @@ module Editor = struct
     S.map Result.to_option @@
     RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
     RS.bind (Input.Text.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (ListSelector.signal editor.elements.composers) @@ fun composers ->
+    RS.bind (Selector.signal_many editor.elements.composers) @@ fun composers ->
     RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
-    RS.bind (ListSelector.signal editor.elements.dances) @@ fun dances ->
+    RS.bind (Selector.signal_many editor.elements.dances) @@ fun dances ->
     RS.bind (Input.Text.signal editor.elements.remark) @@ fun remark ->
     RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; composers; date; dances; remark; scddb_id}
@@ -102,9 +102,10 @@ module Editor = struct
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind = Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none:"Not a valid kind" % Model.Kind.Base.of_string_opt
+      Option.to_result ~none:"Enter a valid kind, eg. R or Strathspey." % Model.Kind.Base.of_string_opt
     in
-    let composers = ListSelector.make
+    let composers = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
@@ -117,10 +118,11 @@ module Editor = struct
     let date = Input.Text.make ~has_interacted initial_state.date @@
       Option.fold
         ~none: (Ok None)
-        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string)
+        ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string)
       % Option.of_string_nonempty
     in
-    let dances = ListSelector.make
+    let dances = Selector.make
+        ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
@@ -147,9 +149,9 @@ module Editor = struct
   let clear (editor : t) : unit =
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.kind;
-    ListSelector.clear editor.elements.composers;
+    Selector.clear editor.elements.composers;
     Input.Text.clear editor.elements.date;
-    ListSelector.clear editor.elements.dances;
+    Selector.clear editor.elements.dances;
     Input.Text.clear editor.elements.remark;
     Input.Text.clear editor.elements.scddb_id
 
@@ -188,7 +190,7 @@ let create ?on_save ?text () =
           editor.elements.kind
           ~label: "Kind"
           ~placeholder:"eg. R or Strathspey";
-        ListSelector.render
+        Selector.render
           ~make_result: AnyResult.make_person_result'
           ~field_name: ("Composers", "composer")
           ~model_name: "person"
@@ -198,11 +200,11 @@ let create ?on_save ?text () =
           editor.elements.date
           ~label: "Date of devising"
           ~placeholder:"eg. 2019 or 2012-03-14";
-        ListSelector.render
+        Selector.render
           ~make_result: AnyResult.make_dance_result'
           ~field_name: ("Dances", "dance")
           ~model_name: "dance"
-          ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ DanceEditor.create ?on_save ~text ()) (* FIXME: ListSelector should just take a page *)
+          ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ DanceEditor.create ?on_save ~text ()) (* FIXME: Selector should just take a page *)
           editor.elements.dances;
         Input.Text.render
           editor.elements.remark

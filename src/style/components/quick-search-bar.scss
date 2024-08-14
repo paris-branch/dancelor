@@ -27,6 +27,7 @@ div.quick-search-bar {
     border: 1px solid #ced4da;
     margin-top: 4pt;
     position: absolute;
+    z-index: 1;
     background-color: #ffffff;
 
     tbody {

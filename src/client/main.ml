@@ -146,7 +146,7 @@ let header =
                 ];
               ];
               li [
-                a ~a:[a_href PageRouter.(path VersionAdd)] [
+                a ~a:[a_href PageRouter.(path_versionAdd ())] [
                   i ~a:[a_class ["material-symbols-outlined"]] [txt "music_note"];
                   txt " Version";
                 ];
@@ -175,7 +175,7 @@ let dispatch url =
   match Option.get page with
   | PageRouter.Index -> Index.create ()
   | Explore query -> Explorer.create ?query ()
-  | VersionAdd -> VersionEditor.create ()
+  | VersionAdd {tune} -> VersionEditor.create ~tune:(Option.to_list tune) ()
   | Version {slug; context} -> VersionViewer.create slug ?context
   | TuneAdd -> TuneEditor.create ()
   | Tune {slug; context} -> TuneViewer.create slug ?context

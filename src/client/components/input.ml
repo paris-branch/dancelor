@@ -18,7 +18,8 @@ module Text = struct
       set_interacted true;
       S.stop ~strong:true has_interacted
     in
-    let (raw_signal, set) = S.create initial_value in
+    let (raw_signal, set_immediately) = S.create initial_value in
+    let set = S.delayed_setter 0.30 set_immediately in
     {has_interacted; set_interacted; validator; raw_signal; set}
 
   let raw_signal state = state.raw_signal
