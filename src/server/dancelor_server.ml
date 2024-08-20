@@ -76,7 +76,9 @@ let callback _ request body =
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
       Log.debug (fun m -> m "Serving static file.");
-      Server.respond_file ~fname:full_path ()
+      (* Keep static files in cache for 30 days. *)
+      let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
+      Server.respond_file ~headers ~fname:full_path ()
     )
   else
     (
