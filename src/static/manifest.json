@@ -1,0 +1,8 @@
+{
+  "name": "Dancelor - Music for Scottihs Country Dancing",
+  "short_name": "Dancelor",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#960010",
+  "theme_color": "#ffffff"
+}
