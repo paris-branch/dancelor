@@ -33,16 +33,28 @@ let quick_explorer_links links =
     ul ~a:[a_class ["bullet-list"]] (
       List.map
         (fun (text, filter_lwt) ->
-           li [
-             a ~a:[L.a_href @@ Lwt.map (PageRouter.path_explore % Option.some % Model.Any.Filter.to_string) filter_lwt]
-               [txt text];
-             L.txt (
-               let%lwt filter = filter_lwt in
-               let%lwt n = Model.Any.count filter in
-               Lwt.return @@ spf " (%d)" n
-             );
-             txt ",";
-           ]
+           let count_lwt = Lwt.bind filter_lwt Model.Any.count in
+           li
+             ~a: [
+               L.a_class (
+                 Fun.flip Lwt.map count_lwt @@ function
+                 | 0 -> ["disabled"]
+                 | _ -> []
+               );
+             ]
+             [
+               a
+                 ~a: [
+                   L.a_href (
+                     Lwt.map
+                       (PageRouter.path_explore % Option.some % Model.Any.Filter.to_string)
+                       filter_lwt
+                   );
+                 ]
+                 [txt text];
+               L.txt (Lwt.map (spf " (%d)") count_lwt);
+               txt ",";
+             ]
         )
         links
     );

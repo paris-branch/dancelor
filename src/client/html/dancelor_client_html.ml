@@ -121,6 +121,7 @@ module L = struct
   let txt str = R.txt (S.from' "" str)
 
   let a_href uri = R.a_href (S.from' "" uri)
+  let a_class cls = R.a_class (S.from' [] cls)
 
   let div ?a elts = R.div ?a (RList.from_lwt' [] elts)
   let h1 ?a elts = R.h1 ?a (RList.from_lwt' [] elts)

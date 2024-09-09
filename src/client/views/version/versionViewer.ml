@@ -136,8 +136,8 @@ let create ?context slug =
 
     Utils.quick_explorer_links [
       ("sets containing this version", Lwt.map (Any.Filter.set' % Set.Filter.memVersion') version_lwt);
-      ("books containing this version", Lwt.map (Any.Filter.book' % Book.Filter.memVersionDeep') version_lwt);
       ("sets containing this tune", Lwt.map (Any.Filter.set' % Set.Filter.existsVersion' % Version.Filter.tuneIs') tune_lwt);
+      ("books containing this version", Lwt.map (Any.Filter.book' % Book.Filter.memVersionDeep') version_lwt);
       ("books containing this tune", Lwt.map (Any.Filter.book' % Book.Filter.existsVersionDeep' % Version.Filter.tuneIs') tune_lwt);
     ];
 

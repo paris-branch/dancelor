@@ -147,3 +147,11 @@ div#page_nav .active button {
 div#page_nav li.active {
   background-color: #910010;
 }
+
+li.disabled {
+  color: #7c7c7c;
+  a {
+    color: #7c7c7c;
+  }
+  text-decoration: line-through;
+}
