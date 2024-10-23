@@ -39,7 +39,7 @@
       };
 
       perSystem = { system, pkgs, ... }: {
-        formatter = pkgs.nixfmt;
+        formatter = pkgs.nixfmt-rfc-style;
 
         _module.args.pkgs = import inputs.nixpkgs {
           inherit system;
@@ -51,7 +51,7 @@
         };
 
         pre-commit.settings.hooks = {
-          nixfmt.enable = true;
+          nixfmt-rfc-style.enable = true;
           deadnix.enable = true;
           prettier.enable = true;
           dune-fmt.enable = true;
