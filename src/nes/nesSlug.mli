@@ -37,6 +37,6 @@ val unsafe_of_string : string -> 'any t
     [unsafe_of_string] allows to change the type associated to the slug, which
     can violate interface properties. This should be avoided. *)
 
-val compare_slugs_or : fallback:('a -> 'a -> int) -> ('a -> 'a t) -> 'a -> 'a -> int
+val compare_slugs_or : fallback: ('a -> 'a -> int) -> ('a -> 'a t) -> 'a -> 'a -> int
 (** Compare two objects by their slug if they are defined. If at least one of
     the two slugs is undefined, falls back on given comparison function. *)

@@ -4,7 +4,8 @@ open Nes
 
 val _key : string
 
-type t = Jig | Polka | Reel | Strathspey | Waltz
+type t =
+  Jig | Polka | Reel | Strathspey | Waltz
 [@@deriving eq, show]
 
 val all : t list
@@ -16,7 +17,7 @@ val to_string : t -> string
 val of_string : string -> t
 val of_string_opt : string -> t option
 
-val to_pretty_string : ?capitalised:bool -> t -> string
+val to_pretty_string : ?capitalised: bool -> t -> string
 (** Pretty version. Capitalised if the corresponding boolean is set to true
     (default: false). *)
 

@@ -1,22 +1,22 @@
 open Nes
 
 module Lift
-    (Person : module type of PersonSignature)
-    (Dance : module type of DanceSignature)
-    (Book : module type of BookSignature)
-    (Set : module type of SetSignature)
-    (Tune : module type of TuneSignature)
-    (Version : module type of VersionSignature)
+  (Person : module type of PersonSignature)
+  (Dance : module type of DanceSignature)
+  (Book : module type of BookSignature)
+  (Set : module type of SetSignature)
+  (Tune : module type of TuneSignature)
+  (Version : module type of VersionSignature)
 = struct
   include AnyCore
 
   let equal any1 any2 =
     match any1, any2 with
-    |  Person c1,  Person c2 -> Person.equal c1 c2
-    |   Dance d1,   Dance d2 -> Dance.equal d1 d2
-    |    Book b1,    Book b2 -> Book.equal b1 b2
-    |     Set s1,     Set s2 -> Set.equal s1 s2
-    |    Tune t1,    Tune t2 -> Tune.equal t1 t2
+    | Person c1, Person c2 -> Person.equal c1 c2
+    | Dance d1, Dance d2 -> Dance.equal d1 d2
+    | Book b1, Book b2 -> Book.equal b1 b2
+    | Set s1, Set s2 -> Set.equal s1 s2
+    | Tune t1, Tune t2 -> Tune.equal t1 t2
     | Version v1, Version v2 -> Version.equal v1 v2
     | _ -> false
 
@@ -31,13 +31,13 @@ module Lift
   module Type = struct
     include AnyCore.Type
 
-    let all = [ Person; Dance; Book; Set; Tune; Version ]
+    let all = [Person; Dance; Book; Set; Tune; Version]
 
     module Set = struct
       include Stdlib.Set.Make(struct
-          type nonrec t = t
-          let compare = compare
-        end)
+        type nonrec t = t
+        let compare = compare
+      end)
 
       let all = of_list all
       let comp = diff all
@@ -48,36 +48,38 @@ module Lift
     let equal = (=)
 
     let to_string = function
-      | Person  -> "Person"
-      | Dance   -> "Dance"
-      | Book    -> "Book"
-      | Set     -> "Set"
-      | Tune    -> "Tune"
+      | Person -> "Person"
+      | Dance -> "Dance"
+      | Book -> "Book"
+      | Set -> "Set"
+      | Tune -> "Tune"
       | Version -> "Version"
 
     exception NotAType of string
 
     let of_string str =
       match String.lowercase_ascii str with
-      | "person"  -> Person
-      | "dance"   -> Dance
-      | "book"    -> Book
-      | "set"     -> Set
-      | "tune"    -> Tune
+      | "person" -> Person
+      | "dance" -> Dance
+      | "book" -> Book
+      | "set" -> Set
+      | "tune" -> Tune
       | "version" -> Version
       | _ -> raise (NotAType str)
 
     let of_string_opt str =
-      try Some (of_string str)
-      with NotAType _ -> None
+      try
+        Some (of_string str)
+      with
+        | NotAType _ -> None
   end
 
   let type_of = function
-    |  Person _ -> Type.Person
-    |   Dance _ -> Type.Dance
-    |    Book _ -> Type.Book
-    |     Set _ -> Type.Set
-    |    Tune _ -> Type.Tune
+    | Person _ -> Type.Person
+    | Dance _ -> Type.Dance
+    | Book _ -> Type.Book
+    | Set _ -> Type.Set
+    | Tune _ -> Type.Tune
     | Version _ -> Type.Version
 
   module Filter = struct
@@ -85,92 +87,97 @@ module Lift
 
     let rec accepts filter any =
       Formula.interpret filter @@ function
-
-      | Raw string ->
-        let lift_raw lift from_text_formula str =
-          lift (Result.get_ok (from_text_formula (TextFormula.raw' str)))
-        in
-        Fun.flip accepts any @@ Formula.or_l [
-          lift_raw person' Person.Filter.from_text_formula string;
-          lift_raw dance' Dance.Filter.from_text_formula string;
-          lift_raw book' Book.Filter.from_text_formula string;
-          lift_raw set' Set.Filter.from_text_formula string;
-          lift_raw tune' Tune.Filter.from_text_formula string;
-          lift_raw version' Version.Filter.from_text_formula string;
-        ]
-
-      | Type type_ ->
-        Type.equal (type_of any) type_
-        |> Formula.interpret_bool
-        |> Lwt.return
-
-      | Person cfilter ->
-        (match any with
-         | Person person -> Person.Filter.accepts cfilter person
-         | _ -> Lwt.return Formula.interpret_false)
-
-      | Dance dfilter ->
-        (match any with
-         | Dance dance -> Dance.Filter.accepts dfilter dance
-         | _ -> Lwt.return Formula.interpret_false)
-
-      | Book bfilter ->
-        (match any with
-         | Book book -> Book.Filter.accepts bfilter book
-         | _ -> Lwt.return Formula.interpret_false)
-
-      | Set sfilter ->
-        (match any with
-         | Set set -> Set.Filter.accepts sfilter set
-         | _ -> Lwt.return Formula.interpret_false)
-
-      | Tune tfilter ->
-        (match any with
-         | Tune tune -> Tune.Filter.accepts tfilter tune
-         | _ -> Lwt.return Formula.interpret_false)
-
-      | Version vfilter ->
-        (match any with
-         | Version version -> Version.Filter.accepts vfilter version
-         | _ -> Lwt.return Formula.interpret_false)
+        | Raw string ->
+          let lift_raw lift from_text_formula str =
+            lift (Result.get_ok (from_text_formula (TextFormula.raw' str)))
+          in
+          Fun.flip accepts any @@
+            Formula.or_l
+              [
+                lift_raw person' Person.Filter.from_text_formula string;
+                lift_raw dance' Dance.Filter.from_text_formula string;
+                lift_raw book' Book.Filter.from_text_formula string;
+                lift_raw set' Set.Filter.from_text_formula string;
+                lift_raw tune' Tune.Filter.from_text_formula string;
+                lift_raw version' Version.Filter.from_text_formula string;
+              ]
+        | Type type_ ->
+          Type.equal (type_of any) type_
+          |> Formula.interpret_bool
+          |> Lwt.return
+        | Person cfilter ->
+          (
+            match any with
+            | Person person -> Person.Filter.accepts cfilter person
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Dance dfilter ->
+          (
+            match any with
+            | Dance dance -> Dance.Filter.accepts dfilter dance
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Book bfilter ->
+          (
+            match any with
+            | Book book -> Book.Filter.accepts bfilter book
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Set sfilter ->
+          (
+            match any with
+            | Set set -> Set.Filter.accepts sfilter set
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Tune tfilter ->
+          (
+            match any with
+            | Tune tune -> Tune.Filter.accepts tfilter tune
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Version vfilter ->
+          (
+            match any with
+            | Version version -> Version.Filter.accepts vfilter version
+            | _ -> Lwt.return Formula.interpret_false
+          )
 
     (** The [?human] flag specifies whether we should print eg. [Version
         <vfilter>] as ["type:version <vfilter>"]. This is correct but it will
         not generate the correct inverse of [of_string]. *)
-    let make_text_formula_converter ?(human=false) () =
+    let make_text_formula_converter ?(human = false) () =
       TextFormulaConverter.(
         (* We find formulas of the form [type:version predicate-on-version]
            better for humans than [version:predicate-on-version]. *)
         let wrap_back = if human then Never else Always in
-        merge ~tiebreaker:Left
+        merge
+          ~tiebreaker: Left
           (
             (* Any-specific converter *)
             make
               [
                 raw (Result.ok % AnyCore.Filter.raw');
-
-                unary_string ~name:"raw" (AnyCore.Filter.raw, unRaw) ~wrap_back:Never;
-
-                unary_raw ~name:"type" (type_, unType) ~cast:(Type.of_string_opt, Type.to_string) ~type_:"valid type";
-
-                unary_lift ~name:"person" (person, unPerson) ~converter:Person.Filter.text_formula_converter ~wrap_back;
-                unary_lift ~name:"dance" (dance, unDance) ~converter:Dance.Filter.text_formula_converter ~wrap_back;
-                unary_lift ~name:"book" (book, unBook) ~converter:Book.Filter.text_formula_converter ~wrap_back;
-                unary_lift ~name:"set" (set, unSet) ~converter:Set.Filter.text_formula_converter ~wrap_back;
-                unary_lift ~name:"tune" (tune, unTune) ~converter:Tune.Filter.text_formula_converter ~wrap_back;
-                unary_lift ~name:"version" (version, unVersion) ~converter:Version.Filter.text_formula_converter ~wrap_back;
+                unary_string ~name: "raw" (AnyCore.Filter.raw, unRaw) ~wrap_back: Never;
+                unary_raw ~name: "type" (type_, unType) ~cast: (Type.of_string_opt, Type.to_string) ~type_: "valid type";
+                unary_lift ~name: "person" (person, unPerson) ~converter: Person.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name: "dance" (dance, unDance) ~converter: Dance.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name: "book" (book, unBook) ~converter: Book.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name: "set" (set, unSet) ~converter: Set.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name: "tune" (tune, unTune) ~converter: Tune.Filter.text_formula_converter ~wrap_back;
+                unary_lift ~name: "version" (version, unVersion) ~converter: Version.Filter.text_formula_converter ~wrap_back;
               ];
           )
           (
-            merge_l [
-              (* Other converters, lifted to Any *)
-              map person Person.Filter.text_formula_converter ~error:((^) "As person: ");
-              map dance Dance.Filter.text_formula_converter ~error:((^) "As dance: ");
-              map book Book.Filter.text_formula_converter ~error:((^) "As book: ");
-              map set Set.Filter.text_formula_converter ~error:((^) "As set: ");
-              map tune Tune.Filter.text_formula_converter ~error:((^) "As tune: ");
-              map version Version.Filter.text_formula_converter ~error:((^) "As version: ");
-            ]
+            merge_l
+              [
+                (* Other converters, lifted to Any *)
+                map person Person.Filter.text_formula_converter ~error: ((^) "As person: ");
+                map dance Dance.Filter.text_formula_converter ~error: ((^) "As dance: ");
+                map book Book.Filter.text_formula_converter ~error: ((^) "As book: ");
+                map set Set.Filter.text_formula_converter ~error: ((^) "As set: ");
+                map tune Tune.Filter.text_formula_converter ~error: ((^) "As tune: ");
+                map version Version.Filter.text_formula_converter ~error: ((^) "As version: ");
+              ]
           )
       )
     let text_formula_converter = make_text_formula_converter ()
@@ -209,7 +216,7 @@ module Lift
         | And (f1, f2) ->
           (* Refine [t] on [f1], the refine it again while cleaning up [f2],
              then come back and clean up [f1]. *)
-          let (t,  _) = refine_types_and_cleanup t f1 in
+          let (t, _) = refine_types_and_cleanup t f1 in
           let (t, f2) = refine_types_and_cleanup t f2 in
           let (t, f1) = refine_types_and_cleanup t f1 in
           (t, and_ f1 f2)
@@ -224,10 +231,11 @@ module Lift
       snd % refine_types_and_cleanup Type.Set.all
 
     (* Little trick to convince OCaml that polymorphism is OK. *)
-    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+    type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
     let optimise =
-      let lift {op} f1 f2 = match (f1, f2) with
+      let lift {op} f1 f2 =
+        match (f1, f2) with
         (* [person:] eats [type:person] *)
         | (Type Person, Person f) | (Person f, Type Person) -> Option.some @@ person f
         | (Type Dance, Dance f) | (Dance f, Type Dance) -> Option.some @@ dance f
@@ -258,8 +266,9 @@ module Lift
               | Book bfilter -> book @@ Book.Filter.optimise bfilter
               | Set sfilter -> set @@ Set.Filter.optimise sfilter
               | Tune tfilter -> tune @@ Tune.Filter.optimise tfilter
-              | Version vfilter -> version @@ Version.Filter.optimise vfilter)
-          % type_based_cleanup
+              | Version vfilter -> version @@ Version.Filter.optimise vfilter
+            ) %
+            type_based_cleanup
         )
 
     let to_pretty_string =
@@ -267,18 +276,19 @@ module Lift
         | Formula.True -> type_' t
         | f -> Formula.and_ (type_' t) (lift f)
       in
-      let add_explicit_type = Formula.convert @@ function
-        | Person f -> type_and Person person' f
-        | Dance f -> type_and Dance dance' f
-        | Book f -> type_and Book book' f
-        | Set f -> type_and Set set' f
-        | Tune f -> type_and Tune tune' f
-        | Version f -> type_and Version version' f
-        | p -> Formula.pred p
+      let add_explicit_type =
+        Formula.convert @@ function
+          | Person f -> type_and Person person' f
+          | Dance f -> type_and Dance dance' f
+          | Book f -> type_and Book book' f
+          | Set f -> type_and Set set' f
+          | Tune f -> type_and Tune tune' f
+          | Version f -> type_and Version version' f
+          | p -> Formula.pred p
       in
-      TextFormula.to_string
-      % TextFormula.of_formula (make_text_formula_converter ~human:true ())
-      % add_explicit_type
-      % optimise
+      TextFormula.to_string %
+        TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
+        add_explicit_type %
+        optimise
   end
 end
