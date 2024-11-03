@@ -10,6 +10,9 @@ val empty : t
 (** Get the parameter whose key is given. *)
 val get : key -> t -> Yojson.Safe.t option
 
+(** Same as {!get} but also returns the query without the key. *)
+val extract : key -> t -> (Yojson.Safe.t * t) option
+
 (** Exception raised when a parameter is expected of a certain type (first
     string) but has another one (second string). *)
 exception WrongType of string * string

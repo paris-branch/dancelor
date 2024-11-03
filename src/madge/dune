@@ -31,6 +31,19 @@
   (pps ppx_deriving_yojson lwt_ppx dancelor.ppx_monad_olwt)))
 
 (library
+ (name madge_new_router)
+ (modules madge_new_router)
+ (public_name dancelor.madge.new-router)
+ (libraries
+  dancelor.nes
+  cohttp
+  dancelor.madge.query
+  dancelor.madge.common
+  cohttp-lwt-unix)
+ (preprocess
+  (pps ppx_deriving_yojson lwt_ppx dancelor.ppx_monad_olwt ppx_variants_conv)))
+
+(library
  (name madge_query)
  (modules madge_query)
  (public_name dancelor.madge.query)
