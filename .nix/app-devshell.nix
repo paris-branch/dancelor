@@ -5,6 +5,7 @@
       pkgs,
       pkgs2211,
       config,
+      inputs',
       ...
     }:
     let
@@ -29,6 +30,7 @@
             ocp-indent
             utop
           ])
+          ++ [ inputs'.topiary.packages.topiary-cli ]
           ## System testing environment
           ++ (with pkgs; [
             firefox

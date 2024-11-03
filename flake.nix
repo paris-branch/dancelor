@@ -16,6 +16,8 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    topiary.url = "github:tweag/topiary/v0.5.1";
   };
 
   outputs =
@@ -39,7 +41,12 @@
       };
 
       perSystem =
-        { system, pkgs, ... }:
+        {
+          system,
+          pkgs,
+          inputs',
+          ...
+        }:
         {
           formatter = pkgs.nixfmt-rfc-style;
 
@@ -59,6 +66,12 @@
             dune-fmt.enable = true;
             dune-opam-sync.enable = true;
             opam-lint.enable = true;
+
+            topiary-custom = {
+              enable = true;
+              entry = "${inputs'.topiary.packages.topiary-cli}/bin/topiary format";
+              types = [ "ocaml" ];
+            };
           };
         };
 
@@ -72,10 +85,12 @@
     extra-trusted-substituters = [
       "https://dancelor.cachix.org/"
       "https://pre-commit-hooks.cachix.org/"
+      "https://tweag-topiary.cachix.org/"
     ];
     extra-trusted-public-keys = [
       "dancelor.cachix.org-1:Q2pAI0MA6jIccQQeT8JEsY+Wfwb/751zmoUHddZmDyY="
       "pre-commit-hooks.cachix.org-1:Pkk3Panw5AW24TOv6kz3PvLhlH8puAsJTBbOPmBo7Rc="
+      "tweag-topiary.cachix.org-1:8TKqya43LAfj4qNHnljLpuBnxAY/YwEBfzo3kzXxNY0="
     ];
   };
 }
