@@ -1,20 +1,23 @@
 open Dancelor_common_model
 
-type victor_level = One | Two | Three | Four
+(** {2 New Routes} *)
 
-(** Existing endpoints in Dancelor's API. *)
-type endpoint =
-  | Book of BookEndpoints.t
-  | Set of SetEndpoints.t
-  | Version of VersionEndpoints.t
-  | Dance of DanceEndpoints.t
-  | Victor of victor_level
-[@@deriving variants]
+(* FIXME: All the MString should be a Something Slug.t *)
+
+let bookPdf = literal "book" @@ capture ~ext: "pdf" (module MString) @@ query "parameters" (module BookParameters) @@ returnFile
+
+let setPdf = literal "set" @@ capture ~ext: "pdf" (module MString) @@ query "parameters" (module SetParameters) @@ returnFile
+
+let versionLy = literal "version" @@ capture ~ext: "ly" (module MString) @@ returnFile
+let versionOgg = literal "version" @@ capture ~ext: "ogg" (module MString) @@ returnFile
+let versionSvg = literal "version" @@ capture ~ext: "svg" (module MString) @@ query "parameters" (module VersionParameters) @@ returnFile
+let versionPdf = literal "version" @@ capture ~ext: "pdf" (module MString) @@ query "parameters" (module VersionParameters) @@ returnFile
+
+let dancePdf = literal "dance" @@ capture ~ext: "pdf" (module MString) @@ query "parameters" (module SetParameters) @@ returnFile
+
+let victor = literal "victor" @@ returnFile (* FIXME: not exactly true *)
 
 (** {2 Routes} *)
-
-open Madge_router
-module MQ = Madge_query
 
 let routes : endpoint route list =
   [

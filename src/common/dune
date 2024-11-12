@@ -5,6 +5,7 @@
  (libraries
   dancelor.nes
   dancelor.madge.router
+  dancelor.madge.new-router
   dancelor.common.model
   dancelor.common.page-router
   cohttp

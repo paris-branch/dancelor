@@ -7,6 +7,14 @@ let empty = []
 
 let get = List.assoc_opt
 
+let rec extract k = function
+  | [] -> None
+  | (key, value) :: query when key = k -> Some (value, query)
+  | (key, value) :: query ->
+     match extract k query with
+     | None -> None
+     | Some (result, query) -> Some (result, (key, value) :: query)
+
 exception WrongType of string * string
 let wrong_type ~expected provided =
   let provided =
