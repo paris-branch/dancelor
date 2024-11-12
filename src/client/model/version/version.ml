@@ -12,7 +12,6 @@ let make_and_save
     ?arrangers
     ?remark
     ?disambiguation
-    ?broken
     ~content
     ~modified_at
     ~created_at
@@ -28,7 +27,6 @@ let make_and_save
     o A.arrangers arrangers;
     o A.remark remark;
     o A.disambiguation disambiguation;
-    o A.broken broken;
     a A.content content;
     a A.modified_at modified_at;
     a A.created_at created_at;
@@ -47,15 +45,3 @@ let search' ?slice ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
-
-let mark_fixed version =
-  Madge_client.(
-    call ~endpoint: E.mark_fixed @@ fun {a} _ ->
-    a A.version version
-  )
-
-let mark_broken version =
-  Madge_client.(
-    call ~endpoint: E.mark_broken @@ fun {a} _ ->
-    a A.version version
-  )

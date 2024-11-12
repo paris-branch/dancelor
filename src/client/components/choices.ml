@@ -28,7 +28,14 @@ let signal c = c.values
 let value c = S.value (signal c)
 let render c = c.box
 
-let make_gen_unsafe ?name: nam ~validate ~post_validate ~radios choices =
+let make_gen_unsafe
+    ?name: nam
+    ?(has_interacted = S.const false)
+    ~validate
+    ~post_validate
+    ~radios
+    choices
+  =
   let name = unique () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
   let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
@@ -37,6 +44,12 @@ let make_gen_unsafe ?name: nam ~validate ~post_validate ~radios choices =
     let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
     set_values @@ gather_values_such_that @@ fun choice -> Js.to_bool (choice_inputElement choice)##.checked
   in
+  let case_errored ~no ~yes =
+    S.bind has_interacted @@ fun has_interacted ->
+    Fun.flip S.map values @@ function
+      | Error msg when has_interacted -> yes msg
+      | _ -> no
+  in
   let box =
     div
       ~a: [a_class ["form-element"]]
@@ -44,12 +57,7 @@ let make_gen_unsafe ?name: nam ~validate ~post_validate ~radios choices =
         label (Option.to_list (Option.map txt nam));
         div
           ~a: [
-            R.a_class
-              (
-                Fun.flip S.map values @@ function
-                  | Ok _ -> ["choices"]
-                  | Error _ -> ["choices"; "invalid"]
-              );
+            R.a_class (case_errored ~no: ["choices"] ~yes: (Fun.const ["choices"; "invalid"]));
             a_onchange (fun _ -> update_values (); true);
           ]
           (
@@ -73,19 +81,18 @@ let make_gen_unsafe ?name: nam ~validate ~post_validate ~radios choices =
         R.div
           ~a: [a_class ["message-box"]]
           (
-            Fun.flip S.map values @@ function
-              | Ok _ -> []
-              | Error msg -> [txt msg]
+            case_errored ~no: [] ~yes: (List.singleton % txt)
           )
       ]
   in
   {box; values = S.map post_validate values}
 
-let make_radios_gen ?name ~validate ~post_validate choices =
+let make_radios_gen ?name ?has_interacted ~validate ~post_validate choices =
   make_gen_unsafe
     ?name
     ~radios: true
     choices
+    ?has_interacted
     ~validate: (function
       | [] -> validate None
       | [x] -> validate x
@@ -93,7 +100,9 @@ let make_radios_gen ?name ~validate ~post_validate choices =
     )
     ~post_validate
 
-let make_radios ?name choices = make_radios_gen ?name ~validate: Result.ok ~post_validate: Result.get_ok choices
+let make_radios ?name ?has_interacted choices =
+  make_radios_gen ?name ?has_interacted ~validate: Result.ok ~post_validate: Result.get_ok choices
+
 let make_radios' = make_radios_gen ~post_validate: Fun.id
 
 let make_checkboxes choices =
