@@ -42,18 +42,32 @@
                   'test "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true'
               )
 
-              if [ -e /var/lib/dancelor/database ]; then
-                if ! is_dancelor_git_repository /var/lib/dancelor/database; then
-                  echo "The directory '/var/lib/dancelor/database' exists but is not a Git repository." >&2
-                  exit 1
-                fi
-              else
+              ## If the repository does not exist, then we clone it.
+              if ! [ -e /var/lib/dancelor/database ]; then
+                echo 'Cloning the repository to /var/lib/dancelor/database...'
                 git clone "$(cat ${cfg.databaseRepositoryFile})" /var/lib/dancelor/database
+                echo 'done.'
+              fi
+
+              ## Once the repository exists and is a Git repository, we
+              ## configure it. Most of these will not change, but they might
+              ## sometimes (in particular the repository) and it will not hurt
+              ## to do that again.
+              if is_dancelor_git_repository /var/lib/dancelor/database; then
                 (
+                  echo 'Setting up the git repository...'
                   cd /var/lib/dancelor/database
-                  git config user.name Auto
-                  git config user.email noreply@dancelor.org
+                  echo '  - username...'
+                  git -c safe.directory=/var/lib/dancelor/database config user.name Auto
+                  echo '  - email...'
+                  git -c safe.directory=/var/lib/dancelor/database config user.email noreply@dancelor.org
+                  echo '  - remote...'
+                  git -c safe.directory=/var/lib/dancelor/database remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
+                  echo 'done.'
                 )
+              else
+                echo "The directory '/var/lib/dancelor/database' exists but is not a Git repository." >&2
+                exit 1
               fi
 
               chown -R dancelor:dancelor /var/cache/dancelor
