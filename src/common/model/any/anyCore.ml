@@ -3,11 +3,11 @@ open Nes
 let _key = "any"
 
 type t =
-  | Person  of  PersonCore.t
-  | Dance   of   DanceCore.t
-  | Book    of    BookCore.t
-  | Set     of     SetCore.t
-  | Tune    of    TuneCore.t
+  | Person of PersonCore.t
+  | Dance of DanceCore.t
+  | Book of BookCore.t
+  | Set of SetCore.t
+  | Tune of TuneCore.t
   | Version of VersionCore.t
 [@@deriving show {with_path = false}, yojson, variants]
 
@@ -49,11 +49,11 @@ module Filter = struct
     | Raw of string
     | Type of Type.t
     (* lifting predicates: *)
-    | Person  of  PersonCore.Filter.t
-    | Dance   of   DanceCore.Filter.t
-    | Book    of    BookCore.Filter.t
-    | Set     of     SetCore.Filter.t
-    | Tune    of    TuneCore.Filter.t
+    | Person of PersonCore.Filter.t
+    | Dance of DanceCore.Filter.t
+    | Book of BookCore.Filter.t
+    | Set of SetCore.Filter.t
+    | Tune of TuneCore.Filter.t
     | Version of VersionCore.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 

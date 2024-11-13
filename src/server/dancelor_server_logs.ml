@@ -1,7 +1,7 @@
 open Nes
 
 let log_src = Logs.Src.create "dancelor.server.logs"
-module Log = (val Logs.src_log log_src : Logs.LOG)
+module Log = (val Logs.src_log log_src: Logs.LOG)
 
 let create unit =
   Log.debug (fun m -> m "Creating log unit dancelor.server.%s" unit);
@@ -17,16 +17,17 @@ let level_to_string = function
 
 let level_to_color = function
   | Logs.Debug -> "\027[37m" (* gray *)
-  | Info -> ""               (* white *)
-  | Warning -> "\027[33m"    (* yellow *)
-  | Error -> "\027[31m"      (* red *)
-  | App -> "\027[1m"         (* white bold *)
+  | Info -> "" (* white *)
+  | Warning -> "\027[33m" (* yellow *)
+  | Error -> "\027[31m" (* red *)
+  | App -> "\027[1m" (* white bold *)
 
 let my_reporter () =
   let report src level ~over k msgf =
     let k _ = over (); k () in
     msgf @@ fun ?header ?tags fmt ->
-    ignore tags; ignore header;
+    ignore tags;
+    ignore header;
     let ppf = Format.err_formatter in
     let time =
       let open Unix in
@@ -36,39 +37,44 @@ let my_reporter () =
     let name =
       let name = Logs.Src.name src in
       let needle = "dancelor.server." in
-      if String.starts_with ~needle name
-      then "ds." ^ String.remove_prefix_exn ~needle name
+      if String.starts_with ~needle name then "ds." ^ String.remove_prefix_exn ~needle name
       else name
     in
-    Format.kfprintf k ppf ("@[<h 2>%s%s %s %s | " ^^ fmt ^^ "\027[0m@]@.")
+    Format.kfprintf
+      k
+      ppf
+      ("@[<h 2>%s%s %s %s | " ^^ fmt ^^ "\027[0m@]@.")
       (level_to_color level)
       time
       (level_to_string level)
       name
   in
-  { Logs.report }
+  {Logs.report}
 
 let update_past_loglevel loglevel =
   (* Crawl through all defined sources, handle the one for this module before
      all others. *)
-  (log_src :: Logs.Src.list ()) |> List.iter @@ fun src ->
-  let name = Logs.Src.name src in
-  let level =
-    (* If the source comes from us, set loglevel to the given one. Otherwise,
-       set to None. *)
-    if name = "dancelor" || String.starts_with ~needle:"dancelor." name
-       || name = "lilypond" || String.starts_with ~needle:"lilypond." name
-       || name = "nes" || String.starts_with ~needle:"nes." name
-    then
-      Some loglevel
-    else
-      None
-  in
-  Logs.Src.set_level src level;
-  Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
+  (log_src :: Logs.Src.list ())
+  |> List.iter @@ fun src ->
+    let name = Logs.Src.name src in
+    let level =
+      (* If the source comes from us, set loglevel to the given one. Otherwise,
+         set to None. *)
+      if name = "dancelor"
+        || String.starts_with ~needle: "dancelor." name
+        || name = "lilypond"
+        || String.starts_with ~needle: "lilypond." name
+        || name = "nes"
+        || String.starts_with ~needle: "nes." name then
+        Some loglevel
+      else
+        None
+    in
+    Logs.Src.set_level src level;
+    Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
 
 let initialise_future_loglevel loglevel =
-  Logs.set_level ~all:false (Some loglevel)
+  Logs.set_level ~all: false (Some loglevel)
 
 let () =
   (* This has to be done before anything else, so that even if early things

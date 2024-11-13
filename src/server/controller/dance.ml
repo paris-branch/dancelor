@@ -1,6 +1,6 @@
 open NesUnix
 module Model = Dancelor_server_model
-module Log = (val Dancelor_server_logs.create "controller.dance" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "controller.dance": Logs.LOG)
 
 module Pdf = struct
   let render ?parameters dance =
@@ -9,13 +9,14 @@ module Pdf = struct
     let name = Model.Dance.name dance in
     let%lwt versions =
       (* All the versions of all the tunes attached to this dance *)
-      Model.Version.search'
-      @@ Model.Version.Filter.tune'
-      @@ Model.Tune.Filter.existsDance'
-      @@ Model.Dance.Filter.is' dance
+      Model.Version.search' @@
+      Model.Version.Filter.tune' @@
+      Model.Tune.Filter.existsDance' @@
+      Model.Dance.Filter.is' dance
     in
-    let%lwt set_parameters = Model.SetParameters.make ~show_order:false () in
-    let parameters = Option.fold
+    let%lwt set_parameters = Model.SetParameters.make ~show_order: false () in
+    let parameters =
+      Option.fold
         ~none: set_parameters
         ~some: (Model.SetParameters.compose set_parameters)
         parameters
@@ -36,5 +37,5 @@ module Pdf = struct
   let get dance_slug parameters =
     let%lwt dance = Model.Dance.get dance_slug in
     let%lwt path_pdf = render ?parameters dance in
-    Cohttp_lwt_unix.Server.respond_file ~fname:path_pdf ()
+    Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end

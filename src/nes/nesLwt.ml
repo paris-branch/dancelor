@@ -1,7 +1,7 @@
 include Lwt
 
-let compose f g =
-  fun x -> bind (f x) g
+let compose f g = fun x ->
+  bind (f x) g
 
 (** Poor man's sleep: same as {!Lwt_unix.sleep} except that it is less efficient
     but it does not depend on [lwt.unix], which matters when compiling to eg.

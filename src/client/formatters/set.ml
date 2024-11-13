@@ -8,12 +8,12 @@ let works set =
   | [] -> Lwt.return_nil
   | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map M.Dance.name dances)]
 
-let name ?(link=true) set =
+let name ?(link = true) set =
   let name_text = [txt (M.Set.name set)] in
   if link && not (M.Set.is_slug_none set) then
     [
       a
-        ~a:[a_href @@ PageRouter.path_set @@ M.Set.slug set]
+        ~a: [a_href @@ PageRouter.path_set @@ M.Set.slug set]
         name_text
     ]
   else
@@ -21,11 +21,11 @@ let name ?(link=true) set =
 
 let tunes ?tunes_link set =
   let%lwt contents = M.Set.contents set in
-  List.map (Version.name ?link:tunes_link % fst) contents
+  List.map (Version.name ?link: tunes_link % fst) contents
   |> List.interspersei (fun _ -> [txt " - "])
   |> List.flatten
   |> List.cons (txt "Tunes: ")
-  |> span ~a:[a_class ["dim"; "details"]]
+  |> span ~a: [a_class ["dim"; "details"]]
   |> List.singleton
   |> Lwt.return
 
@@ -38,11 +38,15 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
   let%lwt dance =
     match%lwt M.SetParameters.for_dance parameters with
     | None -> Lwt.return_nil
-    | Some dance -> Lwt.return [
-        span ~a:[a_class ["dim"; "details"]] [
-          txt "For dance: ";
-          span (Dance.name ?link:dance_link dance)
+    | Some dance ->
+      Lwt.return
+        [
+          span
+            ~a: [a_class ["dim"; "details"]]
+            [
+              txt "For dance: ";
+              span (Dance.name ?link: dance_link dance)
+            ]
         ]
-      ]
   in
   Lwt.return (name_and_tunes @ dance)

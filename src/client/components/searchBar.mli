@@ -29,9 +29,9 @@ val clear : 'result t -> unit
 
 val make :
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
-  ?min_characters:int ->
+  ?min_characters: int ->
   slice: Slice.t React.signal ->
-  ?on_number_of_entries:(int -> unit) ->
+  ?on_number_of_entries: (int -> unit) ->
   ?initial_input: string ->
   unit ->
   'result t
@@ -56,13 +56,13 @@ val make :
 *)
 
 val render :
-  placeholder:string ->
+  placeholder: string ->
   ?id: string ->
-  ?autofocus:bool ->
-  ?on_focus:(unit -> unit) ->
-  ?on_blur:(unit -> unit) ->
-  ?on_input:(string -> unit) ->
-  ?on_enter:(string -> unit) ->
+  ?autofocus: bool ->
+  ?on_focus: (unit -> unit) ->
+  ?on_blur: (unit -> unit) ->
+  ?on_input: (string -> unit) ->
+  ?on_enter: (string -> unit) ->
   'result t ->
   [> Html_types.input] Html.elt
 (** Renders a search bar as an HTML node. The arguments are to be used as

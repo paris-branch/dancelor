@@ -14,7 +14,7 @@ val remark : t -> string
 val disambiguation : t -> string
 val broken : t -> bool
 val modified_at : t -> Datetime.t
-val created_at  : t -> Datetime.t
+val created_at : t -> Datetime.t
 
 val content : t -> string Lwt.t
 
@@ -55,7 +55,7 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
-  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string
 
   val optimise : t -> t
@@ -66,23 +66,24 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  tune:TuneCore.t ->
-  bars:int ->
-  key:Music.key ->
-  structure:string ->
+  ?status: Status.t ->
+  tune: TuneCore.t ->
+  bars: int ->
+  key: Music.key ->
+  structure: string ->
   ?arrangers: PersonCore.t list ->
-  ?remark:string ->
-  ?disambiguation:string ->
-  ?broken:bool ->
-  content:string ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?remark: string ->
+  ?disambiguation: string ->
+  ?broken: bool ->
+  content: string ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val search :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   (int * t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the versions
@@ -92,13 +93,13 @@ val search :
 
 val search' :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)

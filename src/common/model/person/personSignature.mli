@@ -37,7 +37,7 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
-  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string
 
   val optimise : t -> t
@@ -50,16 +50,17 @@ val get : t Slug.t -> t Lwt.t
     involves an API call. *)
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
-  ?scddb_id:int ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  name: string ->
+  ?scddb_id: int ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val search :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   (int * t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the persons
@@ -69,13 +70,13 @@ val search :
 
 val search' :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)

@@ -9,6 +9,6 @@ let get = Dancelor_server_database.Tune.get
 
 let () =
   Madge_server.(
-    register ~endpoint:E.get @@ fun {a} _ ->
+    register ~endpoint: E.get @@ fun {a} _ ->
     get (a A.slug)
   )

@@ -32,7 +32,7 @@ val text : 'result t -> string React.signal
 
 val render :
   placeholder: string ->
-  make_result: (?classes:string list -> 'result -> Utils.ResultRow.t) ->
+  make_result: (?classes: string list -> 'result -> Utils.ResultRow.t) ->
   ?on_enter: (string -> unit) ->
   ?on_focus: (unit -> unit) ->
   ?more_lines: Utils.ResultRow.t list ->
@@ -46,12 +46,12 @@ val render :
 
 val make_and_render :
   ?number_of_results: int ->
-  placeholder:string ->
+  placeholder: string ->
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
-  make_result: (?classes:string list -> 'result -> Utils.ResultRow.t) ->
-  ?on_enter:(string -> unit) ->
+  make_result: (?classes: string list -> 'result -> Utils.ResultRow.t) ->
+  ?on_enter: (string -> unit) ->
   ?more_lines: Utils.ResultRow.t list ->
-  ?autofocus:bool ->
+  ?autofocus: bool ->
   ?focus_on_slash: bool ->
   unit ->
   [> Html_types.div] Html.elt

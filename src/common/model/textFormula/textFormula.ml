@@ -48,7 +48,7 @@ module Parser = struct
     let indication = E.show (show text) buffer in
     Error (start, end_, indication)
 
-  let from_string_internal ?(filename="-") text =
+  let from_string_internal ?(filename = "-") text =
     let lexbuf = L.init filename (Lexing.from_string text) in
     let supplier = I.lexer_lexbuf_to_supplier Lexer.token lexbuf in
     let (buffer, supplier) = E.wrap_supplier supplier in
@@ -60,13 +60,23 @@ module Parser = struct
     | Ok formula -> Ok formula
     | Error (_, _, where) -> kspf Result.error "There is a syntax error %s in your request." where
     | exception Lexer.UnexpectedCharacter char ->
-      kspf Result.error ("There is an unexpected character in your request: '%c'. "
-                         ^^ "If you really want to type it, protect it with quotes, "
-                         ^^ "eg. \"foo%cbar\".") char char
+      kspf
+        Result.error
+        (
+          "There is an unexpected character in your request: '%c'. " ^^
+          "If you really want to type it, protect it with quotes, " ^^
+          "eg. \"foo%cbar\"."
+        )
+        char
+        char
     | exception Lexer.UnterminatedQuote ->
-      kspf Result.error ("There is an unterminated quote in your request. "
-                         ^^ "If you just want to type a quote character, "
-                         ^^ "whether inside quotes or not, escape it, eg. \"foo\\\"bar\".")
+      kspf
+        Result.error
+        (
+          "There is an unterminated quote in your request. " ^^
+          "If you just want to type a quote character, " ^^
+          "whether inside quotes or not, escape it, eg. \"foo\\\"bar\"."
+        )
 end
 let from_string = Parser.from_string
 

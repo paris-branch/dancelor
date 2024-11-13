@@ -5,7 +5,7 @@ module A = E.Arguments
 
 let make_and_save ?status ~name ?scddb_id ~modified_at ~created_at () =
   Madge_client.(
-    call ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    call ~endpoint: E.make_and_save @@ fun {a} {o} ->
     o A.status status;
     a A.name name;
     o A.scddb_id scddb_id;
@@ -15,7 +15,7 @@ let make_and_save ?status ~name ?scddb_id ~modified_at ~created_at () =
 
 let search ?slice ?threshold filter =
   Madge_client.(
-    call ~endpoint:E.search @@ fun {a} {o} ->
+    call ~endpoint: E.search @@ fun {a} {o} ->
     o A.slice slice;
     o A.threshold threshold;
     a A.filter filter

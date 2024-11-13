@@ -7,9 +7,23 @@ let for_dance p =
   Lwt.return_some dance
 
 let make
-    ?forced_pages ?show_deviser ?show_order
-    ?display_name ?for_dance ?every_version ()
+    ?forced_pages
+    ?show_deviser
+    ?show_order
+    ?display_name
+    ?for_dance
+    ?every_version
+    ()
   =
   let for_dance = Option.map Dance.slug for_dance in
-  Lwt.return (make ?forced_pages ?show_deviser ?show_order
-                ?display_name ?for_dance ?every_version ())
+  Lwt.return
+    (
+      make
+        ?forced_pages
+        ?show_deviser
+        ?show_order
+        ?display_name
+        ?for_dance
+        ?every_version
+        ()
+    )

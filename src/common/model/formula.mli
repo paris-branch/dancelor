@@ -7,7 +7,7 @@ type 'p t =
   | True
   | Not of 'p t
   | And of 'p t * 'p t
-  | Or  of 'p t * 'p t
+  | Or of 'p t * 'p t
   | Pred of 'p
 [@@deriving eq, yojson]
 (** Type of formulas carrying predicates of type ['p]. *)
@@ -76,7 +76,8 @@ val optimise :
   ?lift_and: ('p -> 'p -> 'p option) ->
   ?lift_or: ('p -> 'p -> 'p option) ->
   ('p -> 'p) ->
-  'p t -> 'p t
+  'p t ->
+  'p t
 (** Optimise a formula, for instance with rules such as [⊥ ∧ ... → ⊥], given a
     function to optimise predicates. Optionally, one can also give [?lift_and]
     and [?lift_or] functions that can be used to lift the
@@ -102,5 +103,6 @@ val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
     more usual representation of formulas. *)
 
 module Make_Serialisable :
-  functor (M : Madge_common.SERIALISABLE) -> Madge_common.SERIALISABLE
-  with type t = M.t t
+  functor (M : Madge_common.SERIALISABLE) ->
+  Madge_common.SERIALISABLE with
+  type t = M.t t

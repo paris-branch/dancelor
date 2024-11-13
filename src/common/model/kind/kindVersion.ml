@@ -11,16 +11,20 @@ let to_string (repeats, base) =
 let of_string s =
   let s = NesString.remove_char ' ' s in
   try
-    ssf s "%d%[a-zA-Z]"
+    ssf
+      s
+      "%d%[a-zA-Z]"
       (fun repeats base -> (repeats, KindBase.of_string base))
   with
-  | End_of_file | Scanf.Scan_failure _ ->
-    try
-      ssf s "%[a-zA-Z]%d"
-        (fun base repeats -> (repeats, KindBase.of_string base))
-    with
     | End_of_file | Scanf.Scan_failure _ ->
-      invalid_arg "Dancelor_common_model.Kind.version_of_string"
+      try
+        ssf
+          s
+          "%[a-zA-Z]%d"
+          (fun base repeats -> (repeats, KindBase.of_string base))
+      with
+        | End_of_file | Scanf.Scan_failure _ ->
+          invalid_arg "Dancelor_common_model.Kind.version_of_string"
 
 let%test _ = to_string (32, Waltz) = "32 W"
 let%test _ = to_string (64, Reel) = "64 R"
@@ -33,27 +37,37 @@ let%test _ = of_string "JIG 24" = (24, Jig)
 let%test _ = of_string "48 sTrathPEY" = (48, Strathspey)
 
 let%test _ =
-  try ignore (of_string "R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (of_string "R"); false
+  with
+    | Invalid_argument _ -> true
 let%test _ =
-  try ignore (of_string "8x32R"); false
-  with Invalid_argument _ -> true
+  try
+    ignore (of_string "8x32R"); false
+  with
+    | Invalid_argument _ -> true
 
 let of_string_opt string =
-  try Some (of_string string)
-  with Invalid_argument _ -> None
+  try
+    Some (of_string string)
+  with
+    | Invalid_argument _ -> None
 
 let to_yojson t =
   `String (to_string t)
 
 let of_yojson = function
   | `String s ->
-    (try Ok (of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind")
+    (
+      try
+        Ok (of_string s)
+      with
+        | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
 
 let to_pretty_string (repeats, base) =
-  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised:true base)
+  spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised: true base)
 
 (* Filters  *)
 
@@ -89,37 +103,29 @@ module Filter = struct
 
   let accepts filter kind =
     Formula.interpret filter @@ function
-
-    | Is kind' ->
-      Lwt.return (Formula.interpret_bool (kind = kind'))
-
-    | BarsEq bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars = bars'))
-
-    | BarsNe bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars <> bars'))
-
-    | BarsGt bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars > bars'))
-
-    | BarsGe bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars >= bars'))
-
-    | BarsLt bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars < bars'))
-
-    | BarsLe bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars <= bars'))
-
-    | Base bfilter ->
-      let (_bars, bkind) = kind in
-      KindBase.Filter.accepts bfilter bkind
+      | Is kind' ->
+        Lwt.return (Formula.interpret_bool (kind = kind'))
+      | BarsEq bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars = bars'))
+      | BarsNe bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars <> bars'))
+      | BarsGt bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars > bars'))
+      | BarsGe bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars >= bars'))
+      | BarsLt bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars < bars'))
+      | BarsLe bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars <= bars'))
+      | Base bfilter ->
+        let (_bars, bkind) = kind in
+        KindBase.Filter.accepts bfilter bkind
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -130,19 +136,19 @@ module Filter = struct
             [
               raw
                 (fun string ->
-                   Option.fold
-                     ~some: (Result.ok % is')
-                     ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
-                     (of_string_opt string)
+                  Option.fold
+                    ~some: (Result.ok % is')
+                    ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
+                    (of_string_opt string)
                 );
-              unary_int ~name:"bars-eq" (barsEq, unBarsEq);
-              unary_int ~name:"bars-ne" (barsNe, unBarsNe);
-              unary_int ~name:"bars-gt" (barsGt, unBarsGt);
-              unary_int ~name:"bars-ge" (barsGe, unBarsGe);
-              unary_int ~name:"bars-lt" (barsLt, unBarsLt);
-              unary_int ~name:"bars-le" (barsLe, unBarsLe);
-              unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"version kind";
-              unary_lift ~wrap_back:NotPred ~name:"base" (base, unBase) ~converter:KindBase.Filter.text_formula_converter;
+              unary_int ~name: "bars-eq" (barsEq, unBarsEq);
+              unary_int ~name: "bars-ne" (barsNe, unBarsNe);
+              unary_int ~name: "bars-gt" (barsGt, unBarsGt);
+              unary_int ~name: "bars-ge" (barsGe, unBarsGe);
+              unary_int ~name: "bars-lt" (barsLt, unBarsLt);
+              unary_int ~name: "bars-le" (barsLe, unBarsLe);
+              unary_raw ~wrap_back: Never ~name: "is" (is, unIs) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
+              unary_lift ~wrap_back: NotPred ~name: "base" (base, unBase) ~converter: KindBase.Filter.text_formula_converter;
             ]
         )
         (
@@ -156,10 +162,11 @@ module Filter = struct
     Result.bind (TextFormula.from_string ?filename input) from_text_formula
 
   (* Little trick to convince OCaml that polymorphism is OK. *)
-  type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+  type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
   let optimise =
-    let lift {op} f1 f2 = match (f1, f2) with
+    let lift {op} f1 f2 =
+      match (f1, f2) with
       | (Base f1, Base f2) -> Option.some @@ base (op f1 f2)
       | _ -> None
     in
@@ -167,7 +174,14 @@ module Filter = struct
       ~lift_and: (lift {op = Formula.and_})
       ~lift_or: (lift {op = Formula.or_})
       (function
-        | (Is _ as p) | (BarsEq _ as p) | (BarsNe _ as p) | (BarsGt _ as p)
-        | (BarsGe _ as p) | (BarsLt _ as p) | (BarsLe _ as p) -> p
-        | Base bfilter -> base @@ KindBase.Filter.optimise bfilter)
+        | (Is _ as p)
+        | (BarsEq _ as p)
+        | (BarsNe _ as p)
+        | (BarsGt _ as p)
+        | (BarsGe _ as p)
+        | (BarsLt _ as p)
+        | (BarsLe _ as p) ->
+          p
+        | Base bfilter -> base @@ KindBase.Filter.optimise bfilter
+      )
 end

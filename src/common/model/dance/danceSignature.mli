@@ -16,7 +16,7 @@ val scddb_id : t -> int option
 val disambiguation : t -> string
 val date : t -> PartialDate.t option
 val modified_at : t -> Datetime.t
-val created_at  : t -> Datetime.t
+val created_at : t -> Datetime.t
 
 val equal : t -> t -> bool
 
@@ -40,7 +40,7 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
-  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string
 
   val optimise : t -> t
@@ -51,21 +51,22 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
-  kind:Kind.Dance.t ->
+  ?status: Status.t ->
+  name: string ->
+  kind: Kind.Dance.t ->
   ?devisers: PersonCore.t list ->
-  ?two_chords:bool ->
-  ?scddb_id:int ->
-  ?disambiguation:string ->
+  ?two_chords: bool ->
+  ?scddb_id: int ->
+  ?disambiguation: string ->
   ?date: PartialDate.t ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val search :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   (int * t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the dances
@@ -75,13 +76,13 @@ val search :
 
 val search' :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)

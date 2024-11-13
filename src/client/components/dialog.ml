@@ -24,16 +24,18 @@ let open_ content =
   (* The HTML dialog box. FIXME: make it a <dialog>. *)
   let box =
     div
-      ~a:[a_class ["dialog"]]
+      ~a: [a_class ["dialog"]]
       [
         div
-          ~a:[
+          ~a: [
             a_class ["content"];
           ]
           [
-            span ~a:[a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)] [
-              i ~a:[a_class ["material-symbols-outlined"]] [txt "close"];
-            ];
+            span
+              ~a: [a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)]
+              [
+                i ~a: [a_class ["material-symbols-outlined"]] [txt "close"];
+              ];
             div (content (return % Result.ok))
           ]
       ]
@@ -51,10 +53,11 @@ let open_ content =
       addEventListener
         window
         Event.click
-        (handler @@ fun event ->
-         if event##.target = Js.some dom_box then
-           return (Error Closed);
-         Js._true
+        (
+          handler @@ fun event ->
+          if event##.target = Js.some dom_box then
+            return (Error Closed);
+          Js._true
         )
         Js._true
     );

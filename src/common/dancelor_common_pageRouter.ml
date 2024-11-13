@@ -30,7 +30,7 @@ type page =
   | TuneAdd
   | Tune of {slug: TuneCore.t Slug.t; context: context option}
   | VersionAdd of {tune: TuneCore.t Slug.t option}
-  | Version of {slug : VersionCore.t Slug.t; context: context option}
+  | Version of {slug: VersionCore.t Slug.t; context: context option}
 [@@deriving variants]
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
@@ -51,63 +51,69 @@ open Madge_router
 module MQ = Madge_query
 
 let context_of_query = MQ.get_ "context" context_of_yojson
-let context_to_query = Option.fold ~none:MQ.empty ~some:(MQ.singleton "context" % context_to_yojson)
+let context_to_query = Option.fold ~none: MQ.empty ~some: (MQ.singleton "context" % context_to_yojson)
 
 let routes =
-  (* NOTE: It is important that [with_slug] instances come after more specific
-     ones. For instance, the [with_slug] corresponding to "/book/{slug}" should
-     come after "/book/all", so as to avoid matching "all" as a slug. *)
-  [
-    direct    `GET "/"                Index ;
-    direct    `GET "/book/compose"    BookCompose ;
-    with_slug `GET "/book/edit"      (bookEdit, unBookEdit) ;
-
-    with_slug_and_query `GET "/book"
-      (fun slug query -> book slug ?context:(context_of_query query))
-      (function Book {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
-
-    direct    `GET "/person/add"      PersonAdd ;
-
-    with_slug_and_query `GET "/person"
-      (fun slug query -> person slug ?context:(context_of_query query))
-      (function Person {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
-
-    direct    `GET "/dance/add"      DanceAdd ;
-
-    with_slug_and_query `GET "/dance"
-      (fun slug query -> dance slug ?context:(context_of_query query))
-      (function Dance {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
-
-    with_query `GET "/explore"
-      (fun query -> explore @@ MQ.get_string "q" query)
-      (function
-        | Explore None -> Some MQ.empty
-        | Explore (Some q) -> Option.some @@ MQ.singleton "q" (`String q)
-        | _ -> None) ;
-
-    direct    `GET "/set/compose"     SetCompose ;
-
-    with_slug_and_query `GET "/set"
-      (fun slug query -> set slug ?context:(context_of_query query))
-      (function Set {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
-
-    direct    `GET "/tune/add"     TuneAdd ;
-
-    with_slug_and_query `GET "/tune"
-      (fun slug query -> tune slug ?context:(context_of_query query))
-      (function Tune {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
-
-    with_query `GET "/version/add"
-      (fun query -> versionAdd ?tune:(Option.map Slug.unsafe_of_string @@ MQ.get_string "tune" query) ())
-      (function
-        | VersionAdd {tune = None} -> Some MQ.empty
-        | VersionAdd {tune = Some tune} -> Option.some @@ MQ.singleton "tune" @@ `String (Slug.to_string tune)
-        | _ -> None);
-
-    with_slug_and_query `GET "/version"
-      (fun slug query -> version slug ?context:(context_of_query query))
-      (function Version {slug; context} -> Some (slug, context_to_query context) | _ -> None) ;
-  ]
+(* NOTE: It is important that [with_slug] instances come after more specific
+   ones. For instance, the [with_slug] corresponding to "/book/{slug}" should
+   come after "/book/all", so as to avoid matching "all" as a slug. *)
+[
+  direct `GET "/" Index;
+  direct `GET "/book/compose" BookCompose;
+  with_slug `GET "/book/edit" (bookEdit, unBookEdit);
+  with_slug_and_query
+    `GET
+    "/book"
+    (fun slug query -> book slug ?context: (context_of_query query))
+    (function Book {slug; context} -> Some (slug, context_to_query context) | _ -> None);
+  direct `GET "/person/add" PersonAdd;
+  with_slug_and_query
+    `GET
+    "/person"
+    (fun slug query -> person slug ?context: (context_of_query query))
+    (function Person {slug; context} -> Some (slug, context_to_query context) | _ -> None);
+  direct `GET "/dance/add" DanceAdd;
+  with_slug_and_query
+    `GET
+    "/dance"
+    (fun slug query -> dance slug ?context: (context_of_query query))
+    (function Dance {slug; context} -> Some (slug, context_to_query context) | _ -> None);
+  with_query
+    `GET
+    "/explore"
+    (fun query -> explore @@ MQ.get_string "q" query)
+    (function
+      | Explore None -> Some MQ.empty
+      | Explore (Some q) -> Option.some @@ MQ.singleton "q" (`String q)
+      | _ -> None
+    );
+  direct `GET "/set/compose" SetCompose;
+  with_slug_and_query
+    `GET
+    "/set"
+    (fun slug query -> set slug ?context: (context_of_query query))
+    (function Set {slug; context} -> Some (slug, context_to_query context) | _ -> None);
+  direct `GET "/tune/add" TuneAdd;
+  with_slug_and_query
+    `GET
+    "/tune"
+    (fun slug query -> tune slug ?context: (context_of_query query))
+    (function Tune {slug; context} -> Some (slug, context_to_query context) | _ -> None);
+  with_query
+    `GET
+    "/version/add"
+    (fun query -> versionAdd ?tune: (Option.map Slug.unsafe_of_string @@ MQ.get_string "tune" query) ())
+    (function
+      | VersionAdd {tune = None} -> Some MQ.empty
+      | VersionAdd {tune = Some tune} -> Option.some @@ MQ.singleton "tune" @@ `String (Slug.to_string tune)
+      | _ -> None
+    );
+  with_slug_and_query
+    `GET
+    "/version"
+    (fun slug query -> version slug ?context: (context_of_query query))
+    (function Version {slug; context} -> Some (slug, context_to_query context) | _ -> None);
+]
 
 let path page =
   Madge_router.resource_to_request page routes

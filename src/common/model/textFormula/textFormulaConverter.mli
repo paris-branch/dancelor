@@ -30,7 +30,7 @@ val raw :
     baguette:oui monsieur :chocolat"], the {!raw} case will apply to ["bonjour"]
     and ["monsieur"]. *)
 
-val nullary : name:string -> 'p -> 'p case
+val nullary : name: string -> 'p -> 'p case
 (** Make a case for a nullary predicate of the given name converting to the
     given predicate. For instance, in the formula ["bonjour baguette:oui
     monsieur :chocolat"], a [nullary ~name:"chocolat" p] case will apply to
@@ -100,7 +100,7 @@ val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
 
 type tiebreaker = Left | Right | Both
 
-val merge : ?tiebreaker:tiebreaker -> 'p t -> 'p t -> 'p t
+val merge : ?tiebreaker: tiebreaker -> 'p t -> 'p t -> 'p t
 (** Merge two converters together. When predicates exist on both sides,
     [~tiebreaker] is used to choose which one to keep. If it is [Both] (the
     default), then the result is the disjunction of the two formulas. *)

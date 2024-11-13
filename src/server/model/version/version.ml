@@ -8,16 +8,36 @@ module E = Common.Model.VersionEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~tune ~bars ~key ~structure ?arrangers ?remark
-    ?disambiguation ?broken ~content ~modified_at ~created_at
+    ?status
+    ~tune
+    ~bars
+    ~key
+    ~structure
+    ?arrangers
+    ?remark
+    ?disambiguation
+    ?broken
+    ~content
+    ~modified_at
+    ~created_at
     ()
   =
   let name = Tune.name tune in
   let%lwt version =
-    Database.Version.save ~slug_hint:name @@ fun slug ->
+    Database.Version.save ~slug_hint: name @@ fun slug ->
     make
-      ~slug ?status ~tune ~bars ~key ~structure ?arrangers ?remark
-      ?disambiguation ?broken ~modified_at ~created_at
+      ~slug
+      ?status
+      ~tune
+      ~bars
+      ~key
+      ~structure
+      ?arrangers
+      ?remark
+      ?disambiguation
+      ?broken
+      ~modified_at
+      ~created_at
       ()
   in
   Database.Version.write_content version content;%lwt
@@ -25,20 +45,20 @@ let make_and_save
 
 let () =
   Madge_server.(
-    register ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    register ~endpoint: E.make_and_save @@ fun {a} {o} ->
     make_and_save
-      ?status:   (o A.status)
-      ~tune:     (a A.tune)
-      ~bars:     (a A.bars)
-      ~key:      (a A.key)
-      ~structure:(a A.structure)
+      ?status: (o A.status)
+      ~tune: (a A.tune)
+      ~bars: (a A.bars)
+      ~key: (a A.key)
+      ~structure: (a A.structure)
       ?arrangers: (o A.arrangers)
-      ?remark:   (o A.remark)
-      ?disambiguation:(o A.disambiguation)
-      ?broken:   (o A.broken)
-      ~content:  (a A.content)
-      ~modified_at:(a A.modified_at)
-      ~created_at:(a A.created_at)
+      ?remark: (o A.remark)
+      ?disambiguation: (o A.disambiguation)
+      ?broken: (o A.broken)
+      ~content: (a A.content)
+      ~modified_at: (a A.modified_at)
+      ~created_at: (a A.created_at)
       ()
   )
 
@@ -55,20 +75,22 @@ let rec search_and_extract acc s regexp =
     let rem, l = search_and_extract acc rem regexp in
     rem, gp_words @ l
   with
-    Not_found | Invalid_argument _ -> rem, acc
+    | Not_found | Invalid_argument _ -> rem, acc
 
 let score_list_vs_word words needle =
-  List.map (String.inclusion_proximity ~char_equal:Char.Sensible.equal ~needle) words
+  List.map (String.inclusion_proximity ~char_equal: Char.Sensible.equal ~needle) words
   |> List.fold_left max 0.
 
 let score_list_vs_list words needles =
   if needles = [] then 1.
-  else begin
-    List.map (score_list_vs_word words) needles
-    |> List.fold_left max 0.
-  end
+  else
+    begin
+      List.map (score_list_vs_word words) needles
+      |> List.fold_left max 0.
+    end
 
-let tiebreakers = Lwt_list.[
+let tiebreakers =
+  Lwt_list.[
     increasing (Lwt.map Tune.name % tune) String.Sensible.compare
   ]
 
@@ -81,7 +103,7 @@ let search =
 
 let () =
   Madge_server.(
-    register ~endpoint:E.search @@ fun {a} {o} ->
+    register ~endpoint: E.search @@ fun {a} {o} ->
     search
       ?slice: (o A.slice)
       ?threshold: (o A.threshold)
@@ -99,7 +121,7 @@ let mark_fixed version =
 
 let () =
   Madge_server.(
-    register ~endpoint:E.mark_fixed @@ fun {a} _ ->
+    register ~endpoint: E.mark_fixed @@ fun {a} _ ->
     mark_fixed (a A.version)
   )
 
@@ -108,6 +130,6 @@ let mark_broken version =
 
 let () =
   Madge_server.(
-    register ~endpoint:E.mark_broken @@ fun {a} _ ->
+    register ~endpoint: E.mark_broken @@ fun {a} _ ->
     mark_broken (a A.version)
   )
