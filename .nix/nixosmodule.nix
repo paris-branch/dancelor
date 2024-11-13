@@ -66,7 +66,7 @@
                   echo 'done.'
                 )
               else
-                echo "The directory '$dbrepo' exists but is not a Git repository." >&2
+                echo "The directory '/var/lib/dancelor/database' exists but is not a Git repository." >&2
                 exit 1
               fi
 
