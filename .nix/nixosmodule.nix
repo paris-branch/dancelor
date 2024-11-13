@@ -35,7 +35,6 @@
             text = ''
               mkdir -p /var/cache/dancelor/{version,set,book}
               mkdir -p /var/lib/dancelor
-              dbrepo=/var/lib/dancelor/database
 
               ## Test whether the given path is a Git repository owned by 'dancelor'.
               is_dancelor_git_repository () (
@@ -46,7 +45,7 @@
               ## If the repository does not exist, then we clone it.
               if ! [ -e /var/lib/dancelor/database ]; then
                 echo 'Cloning the repository to /var/lib/dancelor/database...'
-                git clone "$(cat ${cfg.databaseRepositoryFile})" "$dbrepo"
+                git clone "$(cat ${cfg.databaseRepositoryFile})" /var/lib/dancelor/database
                 echo 'done.'
               fi
 
@@ -54,16 +53,16 @@
               ## configure it. Most of these will not change, but they might
               ## sometimes (in particular the repository) and it will not hurt
               ## to do that again.
-              if is_dancelor_git_repository "$dbrepo"; then
+              if is_dancelor_git_repository /var/lib/dancelor/database; then
                 (
                   echo 'Setting up the git repository...'
-                  cd "$dbrepo"
+                  cd /var/lib/dancelor/database
                   echo '  - username...'
-                  git -c safe.directory="$dbrepo" config user.name Auto
+                  git -c safe.directory=/var/lib/dancelor/database config user.name Auto
                   echo '  - email...'
-                  git -c safe.directory="$dbrepo" config user.email noreply@dancelor.org
+                  git -c safe.directory=/var/lib/dancelor/database config user.email noreply@dancelor.org
                   echo '  - remote...'
-                  git -c safe.directory="$dbrepo" remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
+                  git -c safe.directory=/var/lib/dancelor/database remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
                   echo 'done.'
                 )
               else
