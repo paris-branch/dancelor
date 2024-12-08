@@ -55,7 +55,10 @@
           pre-commit.settings.hooks = {
             nixfmt-rfc-style.enable = true;
             deadnix.enable = true;
-            prettier.enable = true;
+            prettier = {
+              enable = true;
+              excludes = [ "^flake\\.lock$" ];
+            };
             dune-fmt.enable = true;
             dune-opam-sync.enable = true;
             ocp-indent.enable = true;
