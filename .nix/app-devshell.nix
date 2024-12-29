@@ -21,6 +21,7 @@
           ## Runtime inputs
           runtimeInputs
           ## Development environment
+          ++ (with pkgs; [ topiary ])
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
