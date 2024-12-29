@@ -3,17 +3,17 @@ open Dancelor_common_model
 open Dancelor_client_html
 
 type state = {
-  current_page : int; (* first page is [1] *)
-  entries_per_page : int;
-  number_of_entries : int option; (* not sure that we know *)
+  current_page: int; (* first page is [1] *)
+  entries_per_page: int;
+  number_of_entries: int option; (* not sure that we know *)
 }
 
-let number_of_pages { entries_per_page; number_of_entries; _ } =
-  let number_of_entries = Option.value ~default:entries_per_page number_of_entries in
+let number_of_pages {entries_per_page; number_of_entries; _} =
+  let number_of_entries = Option.value ~default: entries_per_page number_of_entries in
   (number_of_entries + entries_per_page - 1) / entries_per_page
 
-let current_slice { current_page; entries_per_page; number_of_entries } =
-  let number_of_entries = Option.value ~default:entries_per_page number_of_entries in
+let current_slice {current_page; entries_per_page; number_of_entries} =
+  let number_of_entries = Option.value ~default: entries_per_page number_of_entries in
   Slice.make
     (* NOTE: Our page numbers start at 1. *)
     ~start: ((current_page - 1) * entries_per_page)
@@ -21,8 +21,8 @@ let current_slice { current_page; entries_per_page; number_of_entries } =
     ()
 
 type t = {
-  state : state React.signal;
-  update_current_page : (int -> int) -> unit;
+  state: state React.signal;
+  update_current_page: (int -> int) -> unit;
 }
 
 let create ~number_of_entries ~entries_per_page =
@@ -34,13 +34,14 @@ let create ~number_of_entries ~entries_per_page =
   let state =
     S.bind current_page @@ fun current_page ->
     S.bind number_of_entries @@ fun number_of_entries ->
-    S.const {
-      current_page;
-      entries_per_page;
-      number_of_entries;
-    }
+    S.const
+      {
+        current_page;
+        entries_per_page;
+        number_of_entries;
+      }
   in
-  { state; update_current_page }
+  {state; update_current_page}
 
 let status_text pagination =
   Fun.flip S.map pagination.state @@ fun state ->
@@ -49,7 +50,8 @@ let status_text pagination =
   | Some 0 -> "No entries"
   | Some number_of_entries ->
     let slice = current_slice state in
-    spf "Showing %d to %d of %d entries"
+    spf
+      "Showing %d to %d of %d entries"
       (Slice.start slice + 1)
       (Slice.end_excl slice)
       number_of_entries
@@ -63,66 +65,69 @@ module Button = struct
       of [target] applied on the [pagination] state. *)
   let make ~active ~enabled ~target ~text pagination =
     li
-      ~a:[
-        R.a_class (
-          Fun.flip S.map pagination.state @@ fun state ->
-          if active state then ["active"] else []
-        )
+      ~a: [
+        R.a_class
+          (
+            Fun.flip S.map pagination.state @@ fun state ->
+            if active state then ["active"] else []
+          )
       ]
       [
-        button ~a: [
-          a_button_type `Button;
-          R.a_class (
-            Fun.flip S.map pagination.state @@ fun state ->
-            if enabled state then ["clickable"] else ["disabled"]
-          );
-          a_onclick
-            (fun _ ->
-               let state = S.value pagination.state in
-               if enabled state then
-                 pagination.update_current_page (fun current_page -> target current_page);
-               false
-            )
-        ]
+        button
+          ~a: [
+            a_button_type `Button;
+            R.a_class
+              (
+                Fun.flip S.map pagination.state @@ fun state ->
+                if enabled state then ["clickable"] else ["disabled"]
+              );
+            a_onclick
+              (fun _ ->
+                 let state = S.value pagination.state in
+                 if enabled state then
+                   pagination.update_current_page (fun current_page -> target current_page);
+                 false
+              )
+          ]
           [txt text]
       ]
 
   (** A value that can be passed to [make]'s [~target] argument when the button
       is never be enabled. *)
-  let no_target =
-    fun _ -> failwith "Dancelor_client.Eleents.Pagination.no_target"
+  let no_target = fun _ ->
+    failwith "Dancelor_client.Eleents.Pagination.no_target"
 
   (** A button that is never enabled and shows three dots. *)
   let ellipsis =
     make
-      ~active:(Fun.const false)
-      ~enabled:(Fun.const false)
-      ~target:no_target
-      ~text:"..."
+      ~active: (Fun.const false)
+      ~enabled: (Fun.const false)
+      ~target: no_target
+      ~text: "..."
 
   (** A button that is constantly linked to a page number. *)
   let numbered page =
     make
-      ~active:(fun state -> state.current_page = page)
-      ~enabled:(Fun.const true)
-      ~target:(Fun.const page)
-      ~text:(string_of_int page)
+      ~active: (fun state -> state.current_page = page)
+      ~enabled: (Fun.const true)
+      ~target: (Fun.const page)
+      ~text: (string_of_int page)
 
   (** A button that brings to the previous page. *)
   let previous =
     make
-      ~active:(Fun.const false)
-      ~enabled:(fun state -> state.current_page <> 1)
-      ~target:(fun current_page -> current_page - 1)
-      ~text:"Previous"
+      ~active: (Fun.const false)
+      ~enabled: (fun state -> state.current_page <> 1)
+      ~target: (fun current_page -> current_page - 1)
+      ~text: "Previous"
 
   (** A button that brings to the next page. *)
   let next =
     make
-      ~active:(Fun.const false)
-      ~enabled:(fun state -> state.current_page <> number_of_pages state)
-      ~target:(fun current_page -> current_page + 1)
-      ~text:"Next"
+      ~active: (Fun.const false)
+      ~enabled: (fun state -> state.current_page <> number_of_pages state)
+      ~target: (fun current_page -> current_page + 1)
+      ~text: "Next"
 end
 
 let button_list pagination =
@@ -144,22 +149,24 @@ let button_list pagination =
   let rec numbered_buttons previous = function
     | [] -> []
     | page_number :: page_numbers ->
-      (if page_number <> previous + 1 then [Button.ellipsis] else [])
-      @ [Button.numbered page_number]
-      @ numbered_buttons page_number page_numbers
+      (if page_number <> previous + 1 then [Button.ellipsis] else []) @
+      [Button.numbered page_number] @
+      numbered_buttons page_number page_numbers
   in
   List.map
     (fun button -> button pagination)
     (
-      [Button.previous]
-      @ numbered_buttons 0 relevant_page_numbers @
+      [Button.previous] @
+      numbered_buttons 0 relevant_page_numbers @
       [Button.next]
     )
 
 let render pagination =
-  div ~a:[a_id "page_nav"] [
-    div [R.txt (status_text pagination)];
-    R.ul (button_list pagination);
-  ]
+  div
+    ~a: [a_id "page_nav"]
+    [
+      div [R.txt (status_text pagination)];
+      R.ul (button_list pagination);
+    ]
 
 let slice page_nav = S.map current_slice page_nav.state

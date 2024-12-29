@@ -32,7 +32,8 @@ let head = function
   | Or _ -> `Or
   | Pred _ -> `Pred
 
-let needs_parentheses ~parent head = match (parent, head) with
+let needs_parentheses ~parent head =
+  match (parent, head) with
   | (`False, _) | (`True, _) -> assert false
   | (`Not, `And) | (`Not, `Or) -> true
   | (`And, `Or) | (`Or, `And) -> true
@@ -44,7 +45,7 @@ let rec pp fmt = function
   | True -> fpf fmt ":true"
   | Not f -> fpf fmt ":not %a" (pp_pars `Not) f
   | And (f1, f2) -> fpf fmt "%a %a" (pp_pars `And) f1 (pp_pars `And) f2
-  | Or  (f1, f2) -> fpf fmt "%a :or %a" (pp_pars `Or) f1 (pp_pars `Or) f2
+  | Or (f1, f2) -> fpf fmt "%a :or %a" (pp_pars `Or) f1 (pp_pars `Or) f2
   | Pred pred -> pp_predicate fmt pred
 
 and pp_predicate fmt = function

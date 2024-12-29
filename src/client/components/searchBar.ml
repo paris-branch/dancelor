@@ -11,16 +11,16 @@ type 'result state =
   | Errors of string
 
 type 'result t = {
-  text : string S.t; (* prefer [state] *)
-  state : 'result state S.t;
-  set_text : (string -> unit);
+  text: string S.t; (* prefer [state] *)
+  state: 'result state S.t;
+  set_text: (string -> unit);
 }
 
 let make
     ~search
-    ?(min_characters=0)
+    ?(min_characters = 0)
     ~slice
-    ?(on_number_of_entries=(Fun.const ()))
+    ?(on_number_of_entries = (Fun.const ()))
     ?(initial_input = "")
     ()
   =
@@ -50,13 +50,12 @@ let make
       | Ok (total, results) ->
         on_number_of_entries total; Results results
   in
-
-  { text; state; set_text }
+  {text; state; set_text}
 
 let render
     ~placeholder
     ?id
-    ?(autofocus=false)
+    ?(autofocus = false)
     ?on_focus
     ?on_blur
     ?on_input
@@ -67,32 +66,38 @@ let render
      build {!SearchBar} on top of that. *)
   let bar =
     input
-      ~a:(List.filter_map Fun.id [
-          Option.map a_id id;
-          Some (a_input_type `Text);
-          Some (a_placeholder placeholder);
-          Some (R.a_value search_bar.text);
-          Some (
-            a_oninput (fun event ->
-                (
-                  Js.Opt.iter event##.target @@ fun elt ->
-                  Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  let input = Js.to_string input##.value in
-                  search_bar.set_text input;
-                  Option.value ~default:ignore on_input input;
-                );
-                false
-              )
-          );
-          (
-            if autofocus then
-              Some (a_autofocus ())
-            else
-              None
-          );
-          Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
-          Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
-        ]) ()
+      ~a: (
+        List.filter_map
+          Fun.id
+          [
+            Option.map a_id id;
+            Some (a_input_type `Text);
+            Some (a_placeholder placeholder);
+            Some (R.a_value search_bar.text);
+            Some
+              (
+                a_oninput (fun event ->
+                    (
+                      Js.Opt.iter event##.target @@ fun elt ->
+                      Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                      let input = Js.to_string input##.value in
+                      search_bar.set_text input;
+                      Option.value ~default: ignore on_input input;
+                    );
+                    false
+                  )
+              );
+            (
+              if autofocus then
+                Some (a_autofocus ())
+              else
+                None
+            );
+            Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
+            Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
+          ]
+      )
+      ()
   in
   let bar' = To_dom.of_input bar in
 

@@ -126,7 +126,7 @@ module Filter : sig
 
   (** {3 Destructors} *)
 
-  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val from_string : ?filename: string -> string -> (t, string) Result.t
   (** Parse a text formula into a filter on “any” elements. *)
 
   val to_string : t -> string
@@ -153,7 +153,7 @@ end
 
 val search :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   (int * t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the objects
@@ -163,7 +163,7 @@ val search :
 
 val search' :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   t list Lwt.t
 (** Like {!val-search} but returns only the list. *)
@@ -179,7 +179,7 @@ val search_context :
     and the element after [elt], but it does this much more efficiently. *)
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 (** Like {!val-search} but returns only the number of items. *)

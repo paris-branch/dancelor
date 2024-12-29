@@ -16,7 +16,7 @@ let check_full_date ~year ~month ~day =
     ignore (Dates_calc.Dates.make_date ~year ~month ~day);
     true
   with
-    Dates_calc.Dates.InvalidDate -> false
+  | Dates_calc.Dates.InvalidDate -> false
 
 let check = function
   | YearMonthDay (year, month, day) -> check_full_date ~year ~month ~day
@@ -44,14 +44,26 @@ let to_yojson date =
   `String (to_string date)
 
 let of_yojson = function
-  | `String s -> Option.to_result ~none:"NesPartialDate.of_yojson: not a valid date" @@ from_string s
+  | `String s -> Option.to_result ~none: "NesPartialDate.of_yojson: not a valid date" @@ from_string s
   | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
 
 let month_to_pretty_string month =
-  [| "January"; "February"; "March"; "April"; "May"; "June"; "July";
-     "August"; "September"; "October"; "November"; "December" |].(month - 1)
+  [|
+    "January";
+    "February";
+    "March";
+    "April";
+    "May";
+    "June";
+    "July";
+    "August";
+    "September";
+    "October";
+    "November";
+    "December"
+  |].(month - 1)
 
-let to_pretty_string ?(at=false) = function
+let to_pretty_string ?(at = false) = function
   | Year year -> spf "%s%d" (if at then "in " else "") year
   | YearMonth (year, month) -> spf "%s%s %d" (if at then "in " else "") (month_to_pretty_string month) year
   | YearMonthDay (year, month, day) -> spf "%s%d %s %d" (if at then "on " else "") day (month_to_pretty_string month) year

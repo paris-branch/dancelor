@@ -4,12 +4,19 @@ module E = Dancelor_common_model.SetEndpoints
 module A = E.Arguments
 
 let make_and_save
-    ?status ~name ?conceptors ~kind ?contents
-    ~order ?dances ~modified_at ~created_at
+    ?status
+    ~name
+    ?conceptors
+    ~kind
+    ?contents
+    ~order
+    ?dances
+    ~modified_at
+    ~created_at
     ()
   =
   Madge_client.(
-    call ~endpoint:E.make_and_save @@ fun {a} {o} ->
+    call ~endpoint: E.make_and_save @@ fun {a} {o} ->
     o A.status status;
     a A.name name;
     o A.conceptors conceptors;
@@ -23,13 +30,13 @@ let make_and_save
 
 let delete s =
   Madge_client.(
-    call ~endpoint:E.delete @@ fun {a} _ ->
+    call ~endpoint: E.delete @@ fun {a} _ ->
     a A.slug (slug s)
   )
 
 let search ?slice ?threshold filter =
   Madge_client.(
-    call ~endpoint:E.search @@ fun {a} {o} ->
+    call ~endpoint: E.search @@ fun {a} {o} ->
     o A.slice slice;
     o A.threshold threshold;
     a A.filter filter;

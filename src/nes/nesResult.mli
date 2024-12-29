@@ -9,5 +9,5 @@ include module type of Stdlib.Result
 
 (** {2 Additional Contents} *)
 
-val of_string_nonempty : empty:string -> string -> (string, string) result
+val of_string_nonempty : empty: string -> string -> (string, string) result
 (** Maps [""] to [Error empty] and other strings to [Ok]. *)

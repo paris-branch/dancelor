@@ -17,7 +17,8 @@ let get_blob ~loc file_name =
     let s = String.init (in_channel_length c) (fun _ -> input_char c) in
     close_in c;
     s
-  with _ ->
+  with
+  | _ ->
     location_errorf ~loc "[%%blob] could not find or load file %s" file_name
 
 let expand ~ctxt file_name =
@@ -25,11 +26,13 @@ let expand ~ctxt file_name =
   Ast_builder.Default.estring ~loc (get_blob ~loc file_name)
 
 let extension =
-  Extension.V3.declare "blob" Extension.Context.expression
+  Extension.V3.declare
+    "blob"
+    Extension.Context.expression
     Ast_pattern.(single_expr_payload (estring __))
     expand
 
 let rule = Ppxlib.Context_free.Rule.extension extension
 
 ;;
-Driver.register_transformation ~rules:[rule] "ppx_blob"
+Driver.register_transformation ~rules: [rule] "ppx_blob"

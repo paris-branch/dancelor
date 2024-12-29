@@ -8,15 +8,16 @@ module E = Common.Model.AnyEndpoints
 module A = E.Arguments
 
 let get_all () =
-  let%lwt persons  = Database.Person.get_all ()  >|=| List.map (fun c -> Person c) in
-  let%lwt dances   = Database.Dance.get_all ()   >|=| List.map (fun d -> Dance d) in
-  let%lwt books    = Database.Book.get_all ()    >|=| List.map (fun b -> Book b) in
-  let%lwt sets     = Database.Set.get_all ()     >|=| List.map (fun s -> Set s) in
-  let%lwt tunes    = Database.Tune.get_all ()    >|=| List.map (fun t -> Tune t) in
+  let%lwt persons = Database.Person.get_all () >|=| List.map (fun c -> Person c) in
+  let%lwt dances = Database.Dance.get_all () >|=| List.map (fun d -> Dance d) in
+  let%lwt books = Database.Book.get_all () >|=| List.map (fun b -> Book b) in
+  let%lwt sets = Database.Set.get_all () >|=| List.map (fun s -> Set s) in
+  let%lwt tunes = Database.Tune.get_all () >|=| List.map (fun t -> Tune t) in
   let%lwt versions = Database.Version.get_all () >|=| List.map (fun v -> Version v) in
   (Lwt.return (persons @ dances @ books @ sets @ tunes @ versions))
 
-let tiebreaker = curry @@ function
+let tiebreaker =
+  curry @@ function
   | Person p1, Person p2 -> Lwt_list.compare_multiple Person.tiebreakers p1 p2
   | Dance d1, Dance d2 -> Lwt_list.compare_multiple Dance.tiebreakers d1 d2
   | Book b1, Book b2 -> Lwt_list.compare_multiple Book.tiebreakers b1 b2
@@ -34,10 +35,10 @@ let search =
 
 let () =
   Madge_server.(
-    register ~endpoint:E.search @@ fun {a} {o} ->
+    register ~endpoint: E.search @@ fun {a} {o} ->
     search
       ?slice: (o A.slice)
-      ?threshold:(o A.threshold)
+      ?threshold: (o A.threshold)
       (a A.filter)
   )
 
@@ -55,9 +56,9 @@ let search_context ?threshold filter element =
 
 let () =
   Madge_server.(
-    register ~endpoint:E.search_context @@ fun {a} {o} ->
+    register ~endpoint: E.search_context @@ fun {a} {o} ->
     search_context
-      ?threshold:(o A.threshold)
+      ?threshold: (o A.threshold)
       (a A.filter)
       (a A.element)
   )

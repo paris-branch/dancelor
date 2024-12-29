@@ -13,25 +13,31 @@ let save ~disabled ~onclick () =
   let (processing, set_processing) = React.S.create false in
   button
     [
-      i ~a:[a_class ["material-symbols-outlined"]] [
-        R.txt  (
-          Fun.flip S.map processing @@ function
-          | true -> "pending"
-          | false -> "save"
-        )
-      ];
+      i
+        ~a: [a_class ["material-symbols-outlined"]]
+        [
+          R.txt
+            (
+              Fun.flip S.map processing @@ function
+              | true -> "pending"
+              | false -> "save"
+            )
+        ];
       txt " ";
-      R.txt (
-        Fun.flip S.map processing @@ function
-        | true -> "Saving..."
-        | false -> "Save"
-      );
+      R.txt
+        (
+          Fun.flip S.map processing @@ function
+          | true -> "Saving..."
+          | false -> "Save"
+        );
     ]
     ~a: [
-      R.a_class (
-        Fun.flip S.map (S.l2 (||) disabled processing) @@ function
-        | true -> ["btn-success"; "disabled"]
-        | false -> ["btn-success"]);
+      R.a_class
+        (
+          Fun.flip S.map (S.l2 (||) disabled processing) @@ function
+          | true -> ["btn-success"; "disabled"]
+          | false -> ["btn-success"]
+        );
       a_onclick (fun _event ->
           Lwt.async (fun () ->
               set_processing true;
@@ -46,7 +52,7 @@ let save ~disabled ~onclick () =
 let clear ~onclick () =
   button
     [
-      i ~a:[a_class ["material-symbols-outlined"]] [txt "cancel"];
+      i ~a: [a_class ["material-symbols-outlined"]] [txt "cancel"];
       txt " Clear";
     ]
     ~a: [

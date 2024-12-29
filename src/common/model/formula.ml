@@ -5,7 +5,7 @@ type 'p t =
   | True
   | Not of 'p t
   | And of 'p t * 'p t
-  | Or  of 'p t * 'p t
+  | Or of 'p t * 'p t
   | Pred of 'p
 [@@deriving yojson, variants]
 
@@ -22,7 +22,8 @@ let rec normalise = function
   | Or (f1, f2) -> Or (normalise f1, normalise f2)
 
 let equal eq_pred f1 f2 =
-  let rec eq f g = match (f, g) with
+  let rec eq f g =
+    match (f, g) with
     | True, True -> true
     | False, False -> true
     | Pred p1, Pred p2 -> eq_pred p1 p2
@@ -51,11 +52,11 @@ let pp pp_pred fmt formula =
 
 let and_l = function
   | [] -> True
-  | h::t -> List.fold_left and_ h t
+  | h :: t -> List.fold_left and_ h t
 
 let or_l = function
   | [] -> False
-  | h::t -> List.fold_left or_ h t
+  | h :: t -> List.fold_left or_ h t
 
 let pred value = Pred value
 
@@ -91,11 +92,13 @@ let interpret formula interpret_predicate =
       Lwt.return (interpret_not score)
     | And (formula1, formula2) ->
       let%lwt score1 = interpret formula1
-      and     score2 = interpret formula2 in
+      and score2 = interpret formula2
+      in
       Lwt.return (interpret_and score1 score2)
     | Or (formula1, formula2) ->
       let%lwt score1 = interpret formula1
-      and     score2 = interpret formula2 in
+      and score2 = interpret formula2
+      in
       Lwt.return (interpret_or score1 score2)
     | Pred predicate ->
       interpret_predicate predicate
@@ -110,7 +113,7 @@ let rec convert_res f = function
   | Or (e1, e2) -> Result.bind (convert_res f e1) (fun e1' -> Result.map (fun e2' -> Or (e1', e2')) (convert_res f e2))
   | Pred pred -> f pred
 
-let convert_opt f = Result.to_option % convert_res (Option.to_result ~none:"" % f)
+let convert_opt f = Result.to_option % convert_res (Option.to_result ~none: "" % f)
 let convert f = Result.get_ok % convert_res (Result.ok % f)
 
 let rec conjuncts = function
@@ -136,7 +139,7 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       (
         match (List.bd_ft (conjuncts f1), List.hd_tl (conjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none:f ~some:(fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
+          Option.fold ~none: f ~some: (fun p12 -> optimise @@ and_l (f1 @ [pred p12] @ f2)) (lift_and p1 p2)
         | _ -> f
       )
     | Or (True, _) | Or (_, True) -> True
@@ -145,12 +148,13 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
       (
         match (List.bd_ft (disjuncts f1), List.hd_tl (disjuncts f2)) with
         | ((f1, Pred p1), (Pred p2, f2)) ->
-          Option.fold ~none:f ~some:(fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
+          Option.fold ~none: f ~some: (fun p12 -> optimise @@ or_l (f1 @ [pred p12] @ f2)) (lift_or p1 p2)
         | _ -> f
       )
     | head -> head
   and optimise f =
-    optimise_head @@ match f with
+    optimise_head @@
+    match f with
     | True -> True
     | False -> False
     | Not f -> Not (optimise f)

@@ -6,17 +6,38 @@ module Lift
   include DanceCore
 
   let make
-      ?status ~slug ~name ~kind ?devisers ?two_chords ?scddb_id
-      ?disambiguation ?date ~modified_at ~created_at
+      ?status
+      ~slug
+      ~name
+      ~kind
+      ?devisers
+      ?two_chords
+      ?scddb_id
+      ?disambiguation
+      ?date
+      ~modified_at
+      ~created_at
       ()
     =
-    let name = String.remove_duplicates ~char:' ' name in
-    let disambiguation = Option.map (String.remove_duplicates ~char:' ') disambiguation in
+    let name = String.remove_duplicates ~char: ' ' name in
+    let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
     let devisers = Option.map (List.map Person.slug) devisers in
-    Lwt.return (make
-                  ?status ~slug ~name ~kind ?devisers ~two_chords ~scddb_id
-                  ?disambiguation ~date ~modified_at ~created_at
-                  ())
+    Lwt.return
+      (
+        make
+          ?status
+          ~slug
+          ~name
+          ~kind
+          ?devisers
+          ~two_chords
+          ~scddb_id
+          ?disambiguation
+          ~date
+          ~modified_at
+          ~created_at
+          ()
+      )
 
   let devisers dance = Lwt_list.map_p Person.get (devisers dance)
 
@@ -28,19 +49,14 @@ module Lift
     let accepts filter dance =
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
-
       | Is dance' ->
         Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug dance) dance'
-
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ DanceCore.name dance
-
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle:string @@ DanceCore.name dance
-
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ DanceCore.name dance
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ DanceCore.kind dance
-
       | ExistsDeviser pfilter ->
         let%lwt devisers = devisers dance in
         let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) devisers in
@@ -51,12 +67,12 @@ module Lift
         make
           [
             raw (Result.ok % nameMatches');
-            unary_string ~name: "name"         (name, unName);
+            unary_string ~name: "name" (name, unName);
             unary_string ~name: "name-matches" (nameMatches, unNameMatches);
-            unary_lift   ~name: "kind"         (kind, unKind)                ~converter: Kind.Dance.Filter.text_formula_converter;
-            unary_lift   ~name: "exists-deviser" (existsDeviser, unExistsDeviser)          ~converter: Person.Filter.text_formula_converter;
-            unary_lift   ~name: "by"           (existsDeviser, unExistsDeviser)          ~converter: Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
-            unary_string ~name:"is"           (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+            unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Dance.Filter.text_formula_converter;
+            unary_lift ~name: "exists-deviser" (existsDeviser, unExistsDeviser) ~converter: Person.Filter.text_formula_converter;
+            unary_lift ~name: "by" (existsDeviser, unExistsDeviser) ~converter: Person.Filter.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+            unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
           ]
       )
 
@@ -71,10 +87,11 @@ module Lift
     let is' = Formula.pred % is
 
     (* Little trick to convince OCaml that polymorphism is OK. *)
-    type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+    type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
     let optimise =
-      let lift {op} f1 f2 = match (f1, f2) with
+      let lift {op} f1 f2 =
+        match (f1, f2) with
         | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
         | (ExistsDeviser f1, ExistsDeviser f2) -> Option.some @@ existsDeviser (op f1 f2)
         | _ -> None
@@ -85,6 +102,7 @@ module Lift
         (function
           | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
           | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-          | ExistsDeviser pfilter -> existsDeviser @@ Person.Filter.optimise pfilter)
+          | ExistsDeviser pfilter -> existsDeviser @@ Person.Filter.optimise pfilter
+        )
   end
 end

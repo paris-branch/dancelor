@@ -7,9 +7,8 @@ module Slug = struct
   let gen _ =
     Gen.map
       NesSlug.unsafe_of_string
-      Gen.(string_size ~gen:(char_range 'a' 'z') (int_range 1 10))
+      Gen.(string_size ~gen: (char_range 'a' 'z') (int_range 1 10))
 end
-
 
 module Music = struct
   (* FIXME: Should be able to go in the [@@deriving] block. *)
@@ -42,22 +41,24 @@ module TextFormula = struct
     let open Gen in
     fix
       (fun self () ->
-         let* name = string_size ~gen:(char_range 'a' 'z') (int_range 1 10) in
+         let* name = string_size ~gen: (char_range 'a' 'z') (int_range 1 10) in
          if name = "or" || name = "and" || name = "not" then
            self ()
          else
-           pure name)
+           pure name
+      )
       ()
 
   let gen_predicate =
     let open Gen in
     fix
       (fun self () ->
-         oneof [
-           (Dancelor_common_model.TextFormula.raw <$> string_printable);
-           (Dancelor_common_model.TextFormula.nullary <$> gen_predicate_name);
-           (Dancelor_common_model.TextFormula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
-         ]
+         oneof
+           [
+             (Dancelor_common_model.TextFormula.raw <$> string_printable);
+             (Dancelor_common_model.TextFormula.nullary <$> gen_predicate_name);
+             (Dancelor_common_model.TextFormula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
+           ]
       )
       ()
 
@@ -71,10 +72,9 @@ module Kind = struct
     module Filter = struct
       type predicate = [%import: Dancelor_common_model.Kind.Base.Filter.predicate] [@@deriving qcheck2]
 
-      type t = [%import: Dancelor_common_model.Kind.Base.Filter.t
-                       [@with
-                         Dancelor_common_model__.Formula.t := Formula.t;
-        ]] [@@deriving qcheck2]
+      type t = [%import: Dancelor_common_model.Kind.Base.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+      ]
+      [@@deriving qcheck2]
     end
   end
 
@@ -84,15 +84,13 @@ module Kind = struct
     let gen = Gen.(pair nat Base.gen)
 
     module Filter = struct
-      type predicate = [%import: Dancelor_common_model.Kind.Version.Filter.predicate
-                               [@with
-                                 Dancelor_common_model__.KindBase.Filter.t := Base.Filter.t;
-        ]] [@@deriving qcheck2]
+      type predicate = [%import: Dancelor_common_model.Kind.Version.Filter.predicate [@with Dancelor_common_model__.KindBase.Filter.t := Base.Filter.t;]
+      ]
+      [@@deriving qcheck2]
 
-      type t = [%import: Dancelor_common_model.Kind.Version.Filter.t
-                       [@with
-                         Dancelor_common_model__.Formula.t := Formula.t;
-        ]] [@@deriving qcheck2]
+      type t = [%import: Dancelor_common_model.Kind.Version.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+      ]
+      [@@deriving qcheck2]
     end
   end
 
@@ -102,23 +100,25 @@ module Kind = struct
     let gen =
       let open Gen in
       let open Dancelor_common_model.Kind.Dance in
-      sized @@ fix @@ fun self -> function
+      sized @@
+      fix @@ fun self ->
+      function
       | 0 -> version <$> Version.gen
-      | n -> oneof [
-          (add <$> self (n/2) <*> self (n/2));
-          (mul <$> nat <*> self (n-1));
-        ]
+      | n ->
+        oneof
+          [
+            (add <$> self (n / 2) <*> self (n / 2));
+            (mul <$> nat <*> self (n - 1));
+          ]
 
     module Filter = struct
-      type predicate = [%import: Dancelor_common_model.Kind.Dance.Filter.predicate
-                               [@with
-                                 Dancelor_common_model__.KindVersion.Filter.t := Version.Filter.t;
-        ]] [@@deriving qcheck2]
+      type predicate = [%import: Dancelor_common_model.Kind.Dance.Filter.predicate [@with Dancelor_common_model__.KindVersion.Filter.t := Version.Filter.t;]
+      ]
+      [@@deriving qcheck2]
 
-      type t = [%import: Dancelor_common_model.Kind.Dance.Filter.t
-                       [@with
-                         Dancelor_common_model__.Formula.t := Formula.t;
-        ]] [@@deriving qcheck2]
+      type t = [%import: Dancelor_common_model.Kind.Dance.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+      ]
+      [@@deriving qcheck2]
     end
   end
 end
@@ -131,15 +131,13 @@ module Person = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.PersonCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
-      ]] [@@deriving qcheck2]
+    type predicate = [%import: Dancelor_common_model.PersonCore.Filter.predicate [@with Nes.Slug.t := Slug.t;]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.PersonCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.PersonCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 end
 
@@ -151,17 +149,16 @@ module Dance = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.DanceCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
+    type predicate = [%import: Dancelor_common_model.DanceCore.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Dancelor_common_model__.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
                                Dancelor_common_model__.PersonCore.Filter.t := Person.Filter.t;
-      ]] [@@deriving qcheck2]
+      ]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.DanceCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.DanceCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t]
+    ]
+    [@@deriving qcheck2]
   end
 end
 
@@ -173,18 +170,17 @@ module Tune = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.TuneCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
+    type predicate = [%import: Dancelor_common_model.TuneCore.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Dancelor_common_model__.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Dancelor_common_model__.PersonCore.Filter.t := Person.Filter.t;
                                Dancelor_common_model__.DanceCore.Filter.t := Dance.Filter.t;
-      ]] [@@deriving qcheck2]
+      ]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.TuneCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.TuneCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 end
 
@@ -196,21 +192,20 @@ module Version = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.VersionCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
+    type predicate = [%import: Dancelor_common_model.VersionCore.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Dancelor_common_model__.Music.key := Music.key;
                                Dancelor_common_model__.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Dancelor_common_model__.Kind.Version.Filter.t := Kind.Version.Filter.t;
                                Dancelor_common_model__.PersonCore.Filter.t := Person.Filter.t;
                                Dancelor_common_model__.DanceCore.Filter.t := Dance.Filter.t;
                                Dancelor_common_model__.TuneCore.Filter.t := Tune.Filter.t;
-      ]] [@@deriving qcheck2]
+      ]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.VersionCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.VersionCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 end
 
@@ -222,9 +217,7 @@ module Set = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.SetCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
+    type predicate = [%import: Dancelor_common_model.SetCore.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Dancelor_common_model__.Music.key := Music.key;
                                Dancelor_common_model__.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Dancelor_common_model__.Kind.Version.Filter.t := Kind.Version.Filter.t;
@@ -233,12 +226,13 @@ module Set = struct
                                Dancelor_common_model__.DanceCore.Filter.t := Dance.Filter.t;
                                Dancelor_common_model__.TuneCore.Filter.t := Tune.Filter.t;
                                Dancelor_common_model__.VersionCore.Filter.t := Version.Filter.t;
-      ]] [@@deriving qcheck2]
+      ]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.SetCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.SetCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 end
 
@@ -250,9 +244,7 @@ module Book = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.BookCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
+    type predicate = [%import: Dancelor_common_model.BookCore.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Dancelor_common_model__.Music.key := Music.key;
                                Dancelor_common_model__.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Dancelor_common_model__.Kind.Version.Filter.t := Kind.Version.Filter.t;
@@ -262,27 +254,25 @@ module Book = struct
                                Dancelor_common_model__.TuneCore.Filter.t := Tune.Filter.t;
                                Dancelor_common_model__.VersionCore.Filter.t := Version.Filter.t;
                                Dancelor_common_model__.SetCore.Filter.t := Set.Filter.t;
-      ]] [@@deriving qcheck2]
+      ]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.BookCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.BookCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 end
 
 module Any = struct
   module Type = struct
-    type t = [%import: Dancelor_common_model.AnyCore.Type.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.AnyCore.Type.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 
   module Filter = struct
-    type predicate = [%import: Dancelor_common_model.AnyCore.Filter.predicate
-                             [@with
-                               Nes.Slug.t := Slug.t;
+    type predicate = [%import: Dancelor_common_model.AnyCore.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Dancelor_common_model__.Music.key := Music.key;
                                Dancelor_common_model__.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Dancelor_common_model__.Kind.Version.Filter.t := Kind.Version.Filter.t;
@@ -293,11 +283,12 @@ module Any = struct
                                Dancelor_common_model__.VersionCore.Filter.t := Version.Filter.t;
                                Dancelor_common_model__.SetCore.Filter.t := Set.Filter.t;
                                Dancelor_common_model__.BookCore.Filter.t := Book.Filter.t;
-      ]] [@@deriving qcheck2]
+      ]
+    ]
+    [@@deriving qcheck2]
 
-    type t = [%import: Dancelor_common_model.AnyCore.Filter.t
-                     [@with
-                       Dancelor_common_model__.Formula.t := Formula.t;
-      ]] [@@deriving qcheck2]
+    type t = [%import: Dancelor_common_model.AnyCore.Filter.t [@with Dancelor_common_model__.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
   end
 end

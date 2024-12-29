@@ -46,16 +46,13 @@ let to_pretty_string order =
     let rec components_to_pretty_strings ~previous = function
       | [] -> []
       | (Internal n) :: rest when n < previous && rest <> [] ->
-        (" " ^ component_to_pretty_string (Internal n))
-        :: components_to_pretty_strings ~previous:n rest
+        (" " ^ component_to_pretty_string (Internal n)) :: components_to_pretty_strings ~previous: n rest
       | (External n) :: rest ->
-        (" " ^ component_to_pretty_string (External n))
-        :: components_to_pretty_strings ~previous:max_int rest
+        (" " ^ component_to_pretty_string (External n)) :: components_to_pretty_strings ~previous: max_int rest
       | (Internal n) :: rest ->
-        component_to_pretty_string (Internal n)
-        :: components_to_pretty_strings ~previous:n rest
+        component_to_pretty_string (Internal n) :: components_to_pretty_strings ~previous: n rest
     in
-    components_to_pretty_strings ~previous:0 order
+    components_to_pretty_strings ~previous: 0 order
     |> String.concat ""
   else
     to_string order
@@ -87,12 +84,17 @@ let check ?number s =
       List.iter
         (function
           | External _ -> ()
-          | Internal i -> present.(i-1) <- true)
+          | Internal i -> present.(i - 1) <- true
+        )
         o;
       Array.for_all Fun.id present
 
 let of_yojson = function
   | `String string ->
-    (try Ok (of_string string)
-     with _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a valid set order")
+    (
+      try
+        Ok (of_string string)
+      with
+      | _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a valid set order"
+    )
   | _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a JSON string"

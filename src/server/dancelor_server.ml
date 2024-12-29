@@ -2,11 +2,12 @@ open Nes
 open Dancelor_common
 open Dancelor_server_controller
 open Cohttp_lwt_unix
-module Log = (val Dancelor_server_logs.create "main" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "main": Logs.LOG)
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->
-  let repr = match exn with
+  let repr =
+    match exn with
     | Error.Exn error ->
       "Dancelor_common.Error." ^ Error.show error
     | exn -> Printexc.to_string exn
@@ -22,8 +23,9 @@ let apply_controller path query =
   | None ->
     let message = spf "Page `%s` was not found" path in
     let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
-    Server.respond_error ~status:`Not_found ~body ()
-  | Some endpoint -> match endpoint with
+    Server.respond_error ~status: `Not_found ~body ()
+  | Some endpoint ->
+    match endpoint with
     | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
     | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
     | Version (Ly slug) -> Version.get_ly slug
@@ -31,10 +33,10 @@ let apply_controller path query =
     | Version (Ogg slug) -> Version.Ogg.get slug
     | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
     | Dance (Pdf (slug, params)) -> Dance.Pdf.get slug params
-    | Victor One   -> log_exit 101
-    | Victor Two   -> log_exit 102
+    | Victor One -> log_exit 101
+    | Victor Two -> log_exit 102
     | Victor Three -> log_exit 103
-    | Victor Four  -> log_exit 104
+    | Victor Four -> log_exit 104
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
@@ -50,12 +52,12 @@ let catchall ~place ~die fun_ =
     try%lwt
       fun_ ()
     with
-      exn ->
-      log_exn ~msg:("Uncaught Lwt exception in "^place) exn;
+    | exn ->
+      log_exn ~msg: ("Uncaught Lwt exception in " ^ place) exn;
       die ()
   with
-    exn ->
-    log_exn ~msg:("Uncaught exception in "^place) exn;
+  | exn ->
+    log_exn ~msg: ("Uncaught exception in " ^ place) exn;
     die ()
 
 (** Callback handling one client request. It is in charge of trying to find what
@@ -63,8 +65,8 @@ let catchall ~place ~die fun_ =
     standard main JS file. *)
 let callback _ request body =
   catchall
-    ~place:"the callback"
-    ~die:(Server.respond_error ~status:`Internal_server_error ~body:"{}")
+    ~place: "the callback"
+    ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
   @@ fun () ->
   let uri = Request.uri request in
   let meth = Request.meth request in
@@ -78,7 +80,7 @@ let callback _ request body =
       Log.debug (fun m -> m "Serving static file.");
       (* Keep static files in cache for 30 days. *)
       let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
-      Server.respond_file ~headers ~fname:full_path ()
+      Server.respond_file ~headers ~fname: full_path ()
     )
   else
     (
@@ -86,7 +88,7 @@ let callback _ request body =
       match%lwt Madge_server.handle meth path (Madge_query.to_list query_parameters) with
       | Some response -> Lwt.return response
       | None ->
-        if String.starts_with ~needle:"/api/" path then
+        if String.starts_with ~needle: "/api/" path then
           (
             let path = String.sub path 4 (String.length path - 4) in
             Log.debug (fun m -> m "Looking for an API controller for %s." path);
@@ -95,17 +97,18 @@ let callback _ request body =
         else
           (
             Log.debug (fun m -> m "Serving main file.");
-            Server.respond_file ~fname:(Filename.concat !Dancelor_server_config.share "index.html") ()
+            Server.respond_file ~fname: (Filename.concat !Dancelor_server_config.share "index.html") ()
           )
     )
 
 let () =
   Lwt.async_exception_hook :=
     (function
-      | Unix.Unix_error(Unix.EPIPE, _, _) ->
+      | Unix.Unix_error (Unix.EPIPE, _, _) ->
         Log.warn (fun m -> m "Connection closed by the client")
       | exn ->
-        log_exn ~msg:"Uncaught asynchronous exception" exn)
+        log_exn ~msg: "Uncaught asynchronous exception" exn
+    )
 
 let read_configuration () =
   Log.info (fun m -> m "Reading configuration");
@@ -118,7 +121,7 @@ let write_pid () =
   let pid = Unix.getpid () in
   if !Dancelor_server_config.pid_file <> "" then
     Lwt_io.(
-      with_file ~mode:output !Dancelor_server_config.pid_file @@ fun ochan ->
+      with_file ~mode: output !Dancelor_server_config.pid_file @@ fun ochan ->
       fprintlf ochan "%d" pid
     )
   else
@@ -152,12 +155,12 @@ let start_routines () =
 let run_server () =
   Log.info (fun m -> m "Starting server");
   catchall
-    ~place:"the server"
-    ~die:log_die
+    ~place: "the server"
+    ~die: log_die
   @@ fun () ->
   let server =
     Server.create
-      ~mode:(`TCP (`Port !Dancelor_server_config.port))
+      ~mode: (`TCP (`Port !Dancelor_server_config.port))
       (Server.make ~callback ())
   in
   Log.info (fun m -> m "Server is up and running");
@@ -165,8 +168,8 @@ let run_server () =
 
 let main =
   catchall
-    ~place:"main"
-    ~die:log_die
+    ~place: "main"
+    ~die: log_die
   @@ fun () ->
   read_configuration ();
   initialise_logs ();

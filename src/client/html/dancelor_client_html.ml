@@ -13,7 +13,7 @@ module S = struct
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves, and changes every time [promise] resolves
       again after that. *)
-  let from (placeholder: 'a) (promise : unit -> 'a Lwt.t) : 'a Lwt_react.signal =
+  let from (placeholder : 'a) (promise : unit -> 'a Lwt.t) : 'a Lwt_react.signal =
     let result, send_result = create placeholder in
     let rec loop () =
       Lwt.bind (promise ()) @@ fun result ->
@@ -26,7 +26,7 @@ module S = struct
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves. This is similar to {!from} except it does
       only one update. *)
-  let from' (placeholder: 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
+  let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
     let result, send_result = create placeholder in
     Lwt.on_success promise (fun value -> send_result value; stop result);
     result
@@ -40,7 +40,7 @@ module S = struct
       while before the first value is computed. For this reason, {!bind_s}
       returns a ['b signal Lwt.t]. We prefer to return simply a signal and
       therefore we choose the placeholder approach. *)
-  let bind_s' (signal: 'a Lwt_react.signal) (placeholder: 'b) (promise: 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
+  let bind_s' (signal : 'a Lwt_react.signal) (placeholder : 'b) (promise : 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
     switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
 
   let delayed_setter delay set_immediately =

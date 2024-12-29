@@ -10,14 +10,14 @@ module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
 
 type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
-  tune : 'tune;
-  bars : 'bars;
-  key : 'key;
-  structure : 'structure;
-  arrangers : 'arrangers;
-  remark : 'remark;
-  disambiguation : 'disambiguation;
-  content : 'content;
+  tune: 'tune;
+  bars: 'bars;
+  key: 'key;
+  structure: 'structure;
+  arrangers: 'arrangers;
+  remark: 'remark;
+  disambiguation: 'disambiguation;
+  content: 'content;
 }
 [@@deriving yojson]
 
@@ -30,16 +30,8 @@ module RawState = struct
   let person_to_yojson _ = assert false
   let person_of_yojson _ = assert false
 
-  type t = (
-    (string * tune Slug.t list),
-    string,
-    string,
-    string,
-    (string * person Slug.t list),
-    string,
-    string,
-    string
-  ) gen
+  type t =
+    ((string * tune Slug.t list), string, string, string, (string * person Slug.t list), string, string, string) gen
   [@@deriving yojson]
 
   let empty = {
@@ -56,17 +48,9 @@ end
 
 module Editor = struct
   type t = {
-    elements : (
-      (Selector.one, Model.Tune.t) Selector.t,
-      int Input.Text.t,
-      Model.Music.key Input.Text.t,
-      string Input.Text.t,
-      (Selector.many, Model.Person.t) Selector.t,
-      string Input.Text.t,
-      string Input.Text.t,
-      string Input.Text.t
-    ) gen;
-    set_interacted : unit -> unit;
+    elements:
+      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Model.Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
+    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -97,13 +81,14 @@ module Editor = struct
     | (None, None) ->
       Lwt.return @@ Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
-      Lwt.return @@ f {RawState.empty with tune = (Option.value ~default:"" text, Option.value ~default:[] tune)}
+      Lwt.return @@ f {RawState.empty with tune = (Option.value ~default: "" text, Option.value ~default: [] tune)}
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
-    let tune = Selector.make
+    let tune =
+      Selector.make
         ~arity: Selector.one
         ~search: (fun slice input ->
             let threshold = 0.4 in
@@ -115,14 +100,17 @@ module Editor = struct
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
-    let bars = Input.Text.make ~has_interacted initial_state.bars @@
-      Option.to_result ~none:"The number of bars has to be an integer." % int_of_string_opt
+    let bars =
+      Input.Text.make ~has_interacted initial_state.bars @@
+      Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
     in
-    let key = Input.Text.make ~has_interacted initial_state.key @@
-      Option.to_result ~none:"Enter a valid key, eg. A of F#m." % Model.Music.key_of_string_opt
+    let key =
+      Input.Text.make ~has_interacted initial_state.key @@
+      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Model.Music.key_of_string_opt
     in
     let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
-    let arrangers = Selector.make
+    let arrangers =
+      Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
             let threshold = 0.4 in
@@ -135,7 +123,8 @@ module Editor = struct
     in
     let remark = Input.Text.make ~has_interacted initial_state.remark @@ Result.ok in
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
-    let content = Input.Text.make ~has_interacted initial_state.content @@
+    let content =
+      Input.Text.make ~has_interacted initial_state.content @@
       Result.of_string_nonempty ~empty: "Cannot be empty."
     in
     {
@@ -167,73 +156,78 @@ module Editor = struct
         ~remark
         ~disambiguation
         ~content
-        ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
+        ~modified_at: (Datetime.now ())
+        (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ())
+        (* FIXME: not even optional *)
         ()
 end
 
 let create ?on_save ?text ?tune () =
   let title = "Add a version" in
-  Page.make ~title:(S.const title) @@
-  L.div (
-    let%lwt editor = Editor.create ~text ~tune in
-    Lwt.return @@ [
-      h2 ~a:[a_class ["title"]] [txt title];
-
-      form [
-        Selector.render
-          ~make_result: AnyResult.make_tune_result'
-          ~field_name: ("Tune", "tune")
-          ~model_name: "tune"
-          ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ TuneEditor.create ?on_save ~text ())
-          editor.elements.tune;
-        Input.Text.render
-          editor.elements.bars
-          ~label: "Number of bars"
-          ~placeholder: "eg. 32 or 48";
-        Input.Text.render
-          editor.elements.key
-          ~label: "Key"
-          ~placeholder: "eg. A or F#m";
-        Input.Text.render
-          editor.elements.structure
-          ~label: "Structure"
-          ~placeholder: "eg. AABB or ABAB";
-        Selector.render
-          ~make_result: AnyResult.make_person_result'
-          ~field_name: ("Arrangers", "arranger")
-          ~model_name: "person"
-          ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
-          editor.elements.arrangers;
-        Input.Text.render
-          editor.elements.disambiguation
-          ~label: "Disambiguation"
-          ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
-        Input.Text.render
-          editor.elements.remark
-          ~label: "Remark"
-          ~placeholder: "Any additional information that doesn't fit in the other fields.";
-        Input.Text.render_as_textarea
-          editor.elements.content
-          ~label: "LilyPond content"
-          ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
-
-        Button.group [
-          Button.save
-            ~disabled: (S.map Option.is_none (Editor.state editor))
-            ~onclick: (fun () ->
-                editor.set_interacted ();
-                Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun version ->
-                Editor.clear editor;
-                match on_save with
-                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
-                | Some on_save -> on_save version
-              )
-            ();
-          Button.clear
-            ~onclick: (fun () -> Editor.clear editor)
-            ();
-        ]
+  Page.make ~title: (S.const title) @@
+  L.div
+    (
+      let%lwt editor = Editor.create ~text ~tune in
+      Lwt.return @@
+      [
+        h2 ~a: [a_class ["title"]] [txt title];
+        form
+          [
+            Selector.render
+              ~make_result: AnyResult.make_tune_result'
+              ~field_name: ("Tune", "tune")
+              ~model_name: "tune"
+              ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ TuneEditor.create ?on_save ~text ())
+              editor.elements.tune;
+            Input.Text.render
+              editor.elements.bars
+              ~label: "Number of bars"
+              ~placeholder: "eg. 32 or 48";
+            Input.Text.render
+              editor.elements.key
+              ~label: "Key"
+              ~placeholder: "eg. A or F#m";
+            Input.Text.render
+              editor.elements.structure
+              ~label: "Structure"
+              ~placeholder: "eg. AABB or ABAB";
+            Selector.render
+              ~make_result: AnyResult.make_person_result'
+              ~field_name: ("Arrangers", "arranger")
+              ~model_name: "person"
+              ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
+              editor.elements.arrangers;
+            Input.Text.render
+              editor.elements.disambiguation
+              ~label: "Disambiguation"
+              ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
+            Input.Text.render
+              editor.elements.remark
+              ~label: "Remark"
+              ~placeholder: "Any additional information that doesn't fit in the other fields.";
+            Input.Text.render_as_textarea
+              editor.elements.content
+              ~label: "LilyPond content"
+              ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
+            Button.group
+              [
+                Button.save
+                  ~disabled: (S.map Option.is_none (Editor.state editor))
+                  ~onclick: (fun () ->
+                      editor.set_interacted ();
+                      Fun.flip Lwt.map (Editor.submit editor) @@
+                      Option.iter @@ fun version ->
+                      Editor.clear editor;
+                      match on_save with
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
+                      | Some on_save -> on_save version
+                    )
+                  ();
+                Button.clear
+                  ~onclick: (fun () -> Editor.clear editor)
+                  ();
+              ]
+          ]
       ]
-    ]
-  )
+    )
