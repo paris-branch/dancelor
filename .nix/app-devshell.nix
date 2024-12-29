@@ -3,18 +3,16 @@
     {
       self',
       pkgs,
-      pkgs2211,
       config,
       ...
     }:
     let
-      runtimeInputs =
-        (with pkgs; [
-          git
-          freepats
-          timidity
-        ])
-        ++ [ pkgs2211.lilypond ];
+      runtimeInputs = with pkgs; [
+        git
+        freepats
+        timidity
+        lilypond
+      ];
 
     in
     {

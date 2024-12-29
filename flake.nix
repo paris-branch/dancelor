@@ -7,11 +7,6 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    timidity = {
-      url = "github:niols/nixpkg-timidity";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,7 +14,7 @@
   };
 
   outputs =
-    inputs@{ self, flake-parts, ... }:
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.pre-commit-hooks.flakeModule
@@ -30,14 +25,6 @@
 
       systems = [ "x86_64-linux" ];
 
-      ## Overwrite the package `timidity` by a custom version coming from our
-      ## custom `github:niols/nixpkg-timidity` flake that provides a version of
-      ## TiMidity++ with Ogg Vorbis support.
-      ##
-      flake.overlays.timidityWithVorbis = _final: prev: {
-        timidity = inputs.timidity.packages.${prev.stdenv.hostPlatform.system}.timidityWithVorbis;
-      };
-
       perSystem =
         { system, pkgs, ... }:
         {
@@ -45,11 +32,12 @@
 
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
-            overlays = [ self.overlays.timidityWithVorbis ];
-          };
-          _module.args.pkgs2211 = import inputs.nixpkgs2211 {
-            inherit system;
-            overlays = [ self.overlays.timidityWithVorbis ];
+            overlays = [
+              (_final: prev: {
+                timidity = prev.timidity.override { enableVorbis = true; };
+                lilypond = inputs.nixpkgs2211.legacyPackages.${prev.stdenv.hostPlatform.system}.lilypond;
+              })
+            ];
           };
 
           pre-commit.settings.hooks = {

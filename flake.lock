@@ -34,21 +34,6 @@
         "type": "github"
       }
     },
-    "flake-utils": {
-      "locked": {
-        "lastModified": 1667395993,
-        "narHash": "sha256-nuEHfE/LcWyuSWnS8t12N1wc105Qtau+/OdUAjtQ0rA=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "5aed5285a952e0b949eb3ba02c12fa4fcfef535f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
     "gitignore": {
       "inputs": {
         "nixpkgs": [
@@ -72,11 +57,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1733581040,
-        "narHash": "sha256-Qn3nPMSopRQJgmvHzVqPcE3I03zJyl8cSbgnnltfFDY=",
+        "lastModified": 1735291276,
+        "narHash": "sha256-NYVcA06+blsLG6wpAbSPTCyLvxD/92Hy4vlY9WxFI1M=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "22c3f2cf41a0e70184334a958e6b124fb0ce3e01",
+        "rev": "634fd46801442d760e09493a794c4f15db2d0cbb",
         "type": "github"
       },
       "original": {
@@ -158,29 +143,7 @@
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
         "nixpkgs2211": "nixpkgs2211",
-        "pre-commit-hooks": "pre-commit-hooks",
-        "timidity": "timidity"
-      }
-    },
-    "timidity": {
-      "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1668556386,
-        "narHash": "sha256-TH4LM+ywysRusQmeePJMRVTcdGqLHTgjxhMDc6zAIDU=",
-        "owner": "niols",
-        "repo": "nixpkg-timidity",
-        "rev": "0f1df4065720718dc3138b8823410a79c6421be3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "niols",
-        "repo": "nixpkg-timidity",
-        "type": "github"
+        "pre-commit-hooks": "pre-commit-hooks"
       }
     }
   },
