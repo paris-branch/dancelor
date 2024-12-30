@@ -18,9 +18,9 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.pre-commit-hooks.flakeModule
-        ./.nix/app-devshell.nix
-        ./.nix/nixosmodule.nix
-        ./.nix/package.nix
+        ./nix/app-devshell.nix
+        ./nix/nixosmodule.nix
+        ./nix/package.nix
       ];
 
       systems = [ "x86_64-linux" ];
