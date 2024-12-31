@@ -17,42 +17,14 @@
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        inputs.pre-commit-hooks.flakeModule
-        ./nix/app-devshell.nix
+        ./nix/application.nix
+        ./nix/environment.nix
         ./nix/nixosmodule.nix
+        ./nix/nixpkgs.nix
         ./nix/package.nix
       ];
 
       systems = [ "x86_64-linux" ];
-
-      perSystem =
-        { system, pkgs, ... }:
-        {
-          formatter = pkgs.nixfmt-rfc-style;
-
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = [
-              (_final: prev: {
-                timidity = prev.timidity.override { enableVorbis = true; };
-                lilypond = inputs.nixpkgs2211.legacyPackages.${prev.stdenv.hostPlatform.system}.lilypond;
-              })
-            ];
-          };
-
-          pre-commit.settings.hooks = {
-            nixfmt-rfc-style.enable = true;
-            deadnix.enable = true;
-            prettier = {
-              enable = true;
-              excludes = [ "^flake\\.lock$" ];
-            };
-            dune-fmt.enable = true;
-            dune-opam-sync.enable = true;
-            ocp-indent.enable = true;
-            opam-lint.enable = true;
-          };
-        };
 
       ## Improve the way `inputs'` are computed by also handling the case of
       ## flakes having a `lib.${system}` attribute.
