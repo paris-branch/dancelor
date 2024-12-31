@@ -1,35 +1,40 @@
 open NesUnix
-module Log = (val Dancelor_server_logs.create "database.storage" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "database.storage": Logs.LOG)
 
 let prefix = Dancelor_server_config.database
 
 module Git = struct
   let add path =
     Log.debug (fun m -> m "Running git add");
-    Process.run_ignore ~cwd:!prefix ~on_wrong_status:Logs.Error ["git"; "add"; path]
+    Process.run_ignore ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "add"; path]
 
   let commit ~msg =
     Log.debug (fun m -> m "Running git commit");
-    Process.run_ignore ~cwd:!prefix ~on_wrong_status:Logs.Error [
-      "git"; "commit";
-      "--author=Auto <noreply@dancelor.org>";
-      ("--message="^msg)
-    ]
+    Process.run_ignore
+      ~cwd: !prefix
+      ~on_wrong_status: Logs.Error
+      [
+        "git";
+        "commit";
+        "--author=Auto <noreply@dancelor.org>";
+        ("--message=" ^ msg)
+      ]
 
   let push () =
     Log.debug (fun m -> m "Running git push");
-    Process.run_ignore ~cwd:!prefix ~on_wrong_status:Logs.Error ["git"; "push"]
+    Process.run_ignore ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "push"]
 
   let pull_rebase () =
     Log.debug (fun m -> m "Running git pull rebase");
-    Process.run_ignore ~cwd:!prefix ~on_wrong_status:Logs.Error ["git"; "pull"; "--rebase"]
+    Process.run_ignore ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "pull"; "--rebase"]
 
   let status_clean () =
     Log.debug (fun m -> m "Checking for clean git status");
     let%lwt out =
       Process.run
-        ~cwd:!prefix
-        ~on_wrong_status:Logs.Error ~on_nonempty_stderr:Logs.Warning
+        ~cwd: !prefix
+        ~on_wrong_status: Logs.Error
+        ~on_nonempty_stderr: Logs.Warning
         ["git"; "status"]
     in
     Lwt.return (out.Process.stdout = "")
@@ -97,10 +102,12 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
   let id = Random.int (1 lsl 28) in
   Log.debug (fun m -> m "Waiting for lock[%x] on storage" id);
   let%lwt a =
-    Lwt_mutex.with_lock lock
+    Lwt_mutex.with_lock
+      lock
       (fun () ->
          Log.debug (fun m -> m "Got lock[%x] on storage" id);
-         f ())
+         f ()
+      )
   in
   Log.debug (fun m -> m "Released lock[%x] on storage" id);
   Lwt.return a
@@ -163,7 +170,7 @@ let write_entry_file table entry file content =
   if !Dancelor_server_config.write_storage then
     (
       let path = Filename.concat_l [!prefix; table; entry] in
-      Filesystem.create_directory ~fail_if_exists:false path;
+      Filesystem.create_directory ~fail_if_exists: false path;
       let path = Filename.concat path file in
       Filesystem.write_file path content
     );
@@ -192,7 +199,7 @@ let save_changes_on_entry ~msg table entry =
   if !Dancelor_server_config.write_storage then
     (
       (* no prefix for git! *)
-      let path = Filename.concat_l [(*!prefix;*) table; entry] in
+      let path = Filename.concat_l [ (*!prefix;*) table; entry] in
       Git.add path;%lwt
       Git.commit ~msg;%lwt
       Lwt.return_unit

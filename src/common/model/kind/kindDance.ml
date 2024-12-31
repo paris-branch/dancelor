@@ -9,14 +9,18 @@ let rec pp ppf = function
   | Add (kind1, kind2) -> fpf ppf "%a + %a" pp kind1 pp kind2
   | Mul (n, kind) ->
     (match kind with Add _ -> fpf ppf "%d x (%a)" | _ -> fpf ppf "%d x %a")
-      n pp kind
+      n
+      pp
+      kind
 
 let to_string kind =
   Format.with_formatter_to_string (fun ppf -> pp ppf kind)
 
 let of_string_opt s =
-  try Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
-  with KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
+  try
+    Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
+  with
+  | KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
@@ -37,8 +41,12 @@ let to_yojson d =
 
 let of_yojson = function
   | `String s ->
-    (try Ok (of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.of_yojson: not a valid dance kind")
+    (
+      try
+        Ok (of_string s)
+      with
+      | _ -> Error "Dancelor_common_model.Kind.of_yojson: not a valid dance kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.of_yojson: not a JSON string"
 
 let rec to_pretty_string = function
@@ -46,7 +54,8 @@ let rec to_pretty_string = function
   | Add (kind1, kind2) -> spf "%s + %s" (to_pretty_string kind1) (to_pretty_string kind2)
   | Mul (n, kind) ->
     (match kind with Add _ -> spf "%d x (%s)" | _ -> spf "%d x %s")
-      n (to_pretty_string kind)
+      n
+      (to_pretty_string kind)
 
 let rec version_kinds = function
   | Version vkind -> [vkind]
@@ -76,25 +85,27 @@ module Filter = struct
 
   let accepts filter kind =
     Formula.interpret filter @@ function
-
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
-
     | Simple ->
-      (match kind with
-       | Mul (_, Version _) -> Lwt.return Formula.interpret_true
-       | _ -> Lwt.return Formula.interpret_false)
-
+      (
+        match kind with
+        | Mul (_, Version _) -> Lwt.return Formula.interpret_true
+        | _ -> Lwt.return Formula.interpret_false
+      )
     | Version vfilter ->
       Lwt.map
         Formula.interpret_and_l
-        (Lwt_list.map_s
-           (KindVersion.Filter.accepts vfilter)
-           (version_kinds kind))
+        (
+          Lwt_list.map_s
+            (KindVersion.Filter.accepts vfilter)
+            (version_kinds kind)
+        )
 
   let text_formula_converter =
     TextFormulaConverter.(
-      merge ~tiebreaker:Left
+      merge
+        ~tiebreaker: Left
         (
           (* Dance kind-specific converter *)
           make
@@ -104,11 +115,11 @@ module Filter = struct
                    Option.fold
                      ~some: (Result.ok % is')
                      ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
-                     (of_string_opt string));
-
-              nullary ~name:"simple"  Simple;
-              unary_lift ~name:"version" (version, unVersion) ~converter:KindVersion.Filter.text_formula_converter;
-              unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string) ~type_:"dance kind";
+                     (of_string_opt string)
+                );
+              nullary ~name: "simple" Simple;
+              unary_lift ~name: "version" (version, unVersion) ~converter: KindVersion.Filter.text_formula_converter;
+              unary_raw ~wrap_back: Never ~name: "is" (is, unIs) ~cast: (of_string_opt, to_pretty_string) ~type_: "dance kind";
             ]
         )
         (
@@ -122,10 +133,11 @@ module Filter = struct
     Result.bind (TextFormula.from_string ?filename input) from_text_formula
 
   (* Little trick to convince OCaml that polymorphism is OK. *)
-  type op = { op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t }
+  type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
   let optimise =
-    let lift {op} f1 f2 = match (f1, f2) with
+    let lift {op} f1 f2 =
+      match (f1, f2) with
       | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
       | _ -> None
     in
@@ -134,5 +146,6 @@ module Filter = struct
       ~lift_or: (lift {op = Formula.or_})
       (function
         | (Is _ as p) | (Simple as p) -> p
-        | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter)
+        | Version vfilter -> version @@ KindVersion.Filter.optimise vfilter
+      )
 end

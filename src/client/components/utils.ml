@@ -32,8 +32,7 @@ let update (type t) (key : string) (module V : Storable with type t = t) (f : t 
     argument to create the value of type “state”. From that state, [signal] is
     called to get storable representations of the “state”; whenever those
     representation change, the new one will be stored. *)
-let with_local_storage
-    (type t)
+let with_local_storage (type t)
     (key : string)
     (module V : Storable with type t = t)
     (signal : 'a -> t S.t)
@@ -43,5 +42,5 @@ let with_local_storage
   let value = retrieve key (module V) in
   let result = make value in
   let iter = S.map (store key (module V)) @@ signal result in
-  Depart.depends ~on:result iter;
+  Depart.depends ~on: result iter;
   result

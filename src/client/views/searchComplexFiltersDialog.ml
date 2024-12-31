@@ -6,11 +6,11 @@ open Dancelor_client_components
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
 type restricted_predicate =
-  | Person  of  Person.Filter.predicate list list
-  | Dance   of   Dance.Filter.predicate list list
-  | Book    of    Book.Filter.predicate list list
-  | Set     of     Set.Filter.predicate list list
-  | Tune    of    Tune.Filter.predicate list list
+  | Person of Person.Filter.predicate list list
+  | Dance of Dance.Filter.predicate list list
+  | Book of Book.Filter.predicate list list
+  | Set of Set.Filter.predicate list list
+  | Tune of Tune.Filter.predicate list list
   | Version of Version.Filter.predicate list list
 [@@deriving variants]
 
@@ -26,40 +26,41 @@ let restrict_formula (text : string) : restricted_formula option =
   (* special case for the formula that is just true *)
   if filter = Formula.True then
     Some ([], None)
-  else (
-    (* we only support conjunctions of predicates (after optimisation) *)
-    let (preds, non_preds) =
-      List.partition_map
-        (function Formula.Pred p -> Left p | f -> Right f)
-        (Formula.conjuncts filter)
-    in
-    (* assert%opt (non_preds = []);%opt *)
-    let%opt () = if non_preds = [] then Some () else None in
-    (* we separate the predicates between raw ones and non-raw ones *)
-    let (raws, non_raws) =
-      List.partition_map (function Any.Filter.Raw s -> Left s | p -> Right p) preds
-    in
-    (* there can be at most one non-raw predicate which must lift a model CNF *)
-    let%opt pred =
-      match non_raws with
-      | [] -> Some None
-      | [Type Person] -> Some (Some (person []))
-      | [Person filter] -> Some (Option.map person (Formula.unCnf filter))
-      | [Type Dance] -> Some (Some (dance []))
-      | [Dance filter] -> Some (Option.map dance (Formula.unCnf filter))
-      | [Type Book] -> Some (Some (book []))
-      | [Book filter] -> Some (Option.map book (Formula.unCnf filter))
-      | [Type Set] -> Some (Some (set []))
-      | [Set filter] -> Some (Option.map set (Formula.unCnf filter))
-      | [Type Tune] -> Some (Some (tune []))
-      | [Tune filter] -> Some (Option.map tune (Formula.unCnf filter))
-      | [Type Version] -> Some (Some (version []))
-      | [Version filter] -> Some (Option.map version (Formula.unCnf filter))
-      | _ -> None
-    in
-    (* return the raw predicates and the restricted lifted one *)
-    Option.return (raws, pred)
-  )
+  else
+    (
+      (* we only support conjunctions of predicates (after optimisation) *)
+      let (preds, non_preds) =
+        List.partition_map
+          (function Formula.Pred p -> Left p | f -> Right f)
+          (Formula.conjuncts filter)
+      in
+      (* assert%opt (non_preds = []);%opt *)
+      let%opt () = if non_preds = [] then Some () else None in
+      (* we separate the predicates between raw ones and non-raw ones *)
+      let (raws, non_raws) =
+        List.partition_map (function Any.Filter.Raw s -> Left s | p -> Right p) preds
+      in
+      (* there can be at most one non-raw predicate which must lift a model CNF *)
+      let%opt pred =
+        match non_raws with
+        | [] -> Some None
+        | [Type Person] -> Some (Some (person []))
+        | [Person filter] -> Some (Option.map person (Formula.unCnf filter))
+        | [Type Dance] -> Some (Some (dance []))
+        | [Dance filter] -> Some (Option.map dance (Formula.unCnf filter))
+        | [Type Book] -> Some (Some (book []))
+        | [Book filter] -> Some (Option.map book (Formula.unCnf filter))
+        | [Type Set] -> Some (Some (set []))
+        | [Set filter] -> Some (Option.map set (Formula.unCnf filter))
+        | [Type Tune] -> Some (Some (tune []))
+        | [Tune filter] -> Some (Option.map tune (Formula.unCnf filter))
+        | [Type Version] -> Some (Some (version []))
+        | [Version filter] -> Some (Option.map version (Formula.unCnf filter))
+        | _ -> None
+      in
+      (* return the raw predicates and the restricted lifted one *)
+      Option.return (raws, pred)
+    )
 
 (** Takes a [~s]ignal to elements and a [~f]unction to map on those and return a
     signal to a filter representing those elements. *)
@@ -71,7 +72,8 @@ let type_choices filter =
     match filter with
     | None -> Fun.const false
     | Some filter ->
-      fun type_ -> match (type_, filter) with
+      fun type_ ->
+        match (type_, filter) with
         | (Any.Type.Person, Person _) -> true
         | (Any.Type.Dance, Dance _) -> true
         | (Any.Type.Book, Book _) -> true
@@ -80,13 +82,16 @@ let type_choices filter =
         | (Any.Type.Version, Version _) -> true
         | _ -> false
   in
-  Choices.(make_radios (
-      choice' [txt "All"] ~checked:(filter = None) ::
-      List.map
-        (fun type_ ->
-           choice' [txt (Any.Type.to_string type_)] ~value:type_ ~checked:(checked type_))
-        Any.Type.all
-    ))
+  Choices.(
+    make_radios
+      (
+        choice' [txt "All"] ~checked: (filter = None) :: List.map
+          (fun type_ ->
+             choice' [txt (Any.Type.to_string type_)] ~value: type_ ~checked: (checked type_)
+          )
+          Any.Type.all
+      )
+  )
 
 let kind_choices filter =
   let checked kind =
@@ -98,12 +103,16 @@ let kind_choices filter =
     | Some (Version filter) -> List.exists (List.mem (Version.Filter.kind @@ Kind.Version.Filter.baseIs' kind)) filter
     | _ -> false
   in
-  Choices.(make_checkboxes (
-      List.map
-        (fun kind ->
-           choice [txt (Kind.Base.to_pretty_string ~capitalised:true kind)] ~value:kind ~checked:(checked kind))
-        Kind.Base.all
-    ))
+  Choices.(
+    make_checkboxes
+      (
+        List.map
+          (fun kind ->
+             choice [txt (Kind.Base.to_pretty_string ~capitalised: true kind)] ~value: kind ~checked: (checked kind)
+          )
+          Kind.Base.all
+      )
+  )
 
 (* person-specific choices *)
 
@@ -113,17 +122,17 @@ let person_bundled_choices _filter = (S.const Formula.true_, [])
 
 let dance_bundled_choices ~kind_choices _filter =
   let formula =
-    S.map (Any.Filter.dance' % Formula.and_l) @@ S.all
+    S.map (Any.Filter.dance' % Formula.and_l) @@
+    S.all
       [
         choices_formula
-          ~s:(Choices.signal kind_choices)
-          ~f:(Dance.Filter.kind' % Kind.Dance.Filter.baseIs');
+          ~s: (Choices.signal kind_choices)
+          ~f: (Dance.Filter.kind' % Kind.Dance.Filter.baseIs');
       ]
   in
-  let html =
-    [
-      Choices.render kind_choices;
-    ]
+  let html = [
+    Choices.render kind_choices;
+  ]
   in
   (formula, html)
 
@@ -135,17 +144,17 @@ let book_bundled_choices _filter = (S.const Formula.true_, [])
 
 let set_bundled_choices ~kind_choices _filter =
   let formula =
-    S.map (Any.Filter.set' % Formula.and_l) @@ S.all
+    S.map (Any.Filter.set' % Formula.and_l) @@
+    S.all
       [
         choices_formula
-          ~s:(Choices.signal kind_choices)
-          ~f:(Set.Filter.kind' % Kind.Dance.Filter.baseIs');
+          ~s: (Choices.signal kind_choices)
+          ~f: (Set.Filter.kind' % Kind.Dance.Filter.baseIs');
       ]
   in
-  let html =
-    [
-      Choices.render kind_choices;
-    ]
+  let html = [
+    Choices.render kind_choices;
+  ]
   in
   (formula, html)
 
@@ -153,17 +162,17 @@ let set_bundled_choices ~kind_choices _filter =
 
 let tune_bundled_choices ~kind_choices _filter =
   let formula =
-    S.map (Any.Filter.tune' % Formula.and_l) @@ S.all
+    S.map (Any.Filter.tune' % Formula.and_l) @@
+    S.all
       [
         choices_formula
-          ~s:(Choices.signal kind_choices)
-          ~f:(Tune.Filter.kind' % Kind.Base.Filter.is');
+          ~s: (Choices.signal kind_choices)
+          ~f: (Tune.Filter.kind' % Kind.Base.Filter.is');
       ]
   in
-  let html =
-    [
-      Choices.render kind_choices;
-    ]
+  let html = [
+    Choices.render kind_choices;
+  ]
   in
   (formula, html)
 
@@ -171,7 +180,8 @@ let tune_bundled_choices ~kind_choices _filter =
 
 let major_keys =
   let open Music in
-  List.map (Fun.flip make_key Major)
+  List.map
+    (Fun.flip make_key Major)
     [
       make_pitch C Natural 0;
       make_pitch G Natural 0;
@@ -195,16 +205,21 @@ let major_key_choices filter =
     | Some (Version filter) -> List.exists (List.mem (Version.Filter.key key)) filter
     | _ -> false
   in
-  Choices.(make_checkboxes (
-      List.map
-        (fun key ->
-           choice [txt (Music.key_to_pretty_string key)] ~value:key ~checked:(checked key))
-        major_keys
-    ))
+  Choices.(
+    make_checkboxes
+      (
+        List.map
+          (fun key ->
+             choice [txt (Music.key_to_pretty_string key)] ~value: key ~checked: (checked key)
+          )
+          major_keys
+      )
+  )
 
 let minor_keys =
   let open Music in
-  List.map (Fun.flip make_key Minor)
+  List.map
+    (Fun.flip make_key Minor)
     [
       make_pitch A Natural 0;
       make_pitch E Natural 0;
@@ -228,34 +243,37 @@ let minor_key_choices filter =
     | Some (Version filter) -> List.exists (List.mem (Version.Filter.key key)) filter
     | _ -> false
   in
-  Choices.(make_checkboxes (
-      List.map
-        (fun key ->
-           choice [txt (Music.key_to_pretty_string key)] ~value:key ~checked:(checked key))
-        minor_keys
-    ))
+  Choices.(
+    make_checkboxes
+      (
+        List.map
+          (fun key ->
+             choice [txt (Music.key_to_pretty_string key)] ~value: key ~checked: (checked key)
+          )
+          minor_keys
+      )
+  )
 
 let version_bundled_choices ~kind_choices filter =
   let major_key_choices = major_key_choices filter in
   let minor_key_choices = minor_key_choices filter in
   let formula =
-    S.map (Any.Filter.version' % Formula.and_l) @@ S.all
+    S.map (Any.Filter.version' % Formula.and_l) @@
+    S.all
       [
         choices_formula
-          ~s:(Choices.signal kind_choices)
-          ~f:(Version.Filter.kind' % Kind.Version.Filter.baseIs');
-
+          ~s: (Choices.signal kind_choices)
+          ~f: (Version.Filter.kind' % Kind.Version.Filter.baseIs');
         choices_formula
-          ~s:(S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
-          ~f:Version.Filter.key';
+          ~s: (S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
+          ~f: Version.Filter.key';
       ]
   in
-  let html =
-    [
-      Choices.render kind_choices;
-      Choices.render major_key_choices;
-      Choices.render minor_key_choices;
-    ]
+  let html = [
+    Choices.render kind_choices;
+    Choices.render major_key_choices;
+    Choices.render minor_key_choices;
+  ]
   in
   (formula, html)
 
@@ -274,86 +292,101 @@ let open_ text raws filter =
   let (set_formula, set_html) = set_bundled_choices filter ~kind_choices in
   let (tune_formula, tune_html) = tune_bundled_choices filter ~kind_choices in
   let (version_formula, version_html) = version_bundled_choices filter ~kind_choices in
-
   let new_filter =
     (* big conjunction *)
-    S.map Formula.and_l @@ S.all [
-      (
-        (* [type:version] if any type has been selected *)
-        Fun.flip S.map (Choices.signal type_choices) @@ function
-        | None -> Formula.true_
-        | Some type_ -> Any.Filter.type_' type_
-      );
+    S.map Formula.and_l @@
+    S.all
+      [
+        (
+          (* [type:version] if any type has been selected *)
+          Fun.flip S.map (Choices.signal type_choices) @@ function
+          | None -> Formula.true_
+          | Some type_ -> Any.Filter.type_' type_
+        );
 
-      (* model-specific formulas *)
-      (
-        S.bind (Choices.signal type_choices) @@ function
-        | None -> S.const Formula.true_
-        | Some Person -> person_formula
-        | Some Dance -> dance_formula
-        | Some Book -> book_formula
-        | Some Set -> set_formula
-        | Some Tune -> tune_formula
-        | Some Version -> version_formula
-      );
+        (* model-specific formulas *)
+        (
+          S.bind (Choices.signal type_choices) @@ function
+          | None -> S.const Formula.true_
+          | Some Person -> person_formula
+          | Some Dance -> dance_formula
+          | Some Book -> book_formula
+          | Some Set -> set_formula
+          | Some Tune -> tune_formula
+          | Some Version -> version_formula
+        );
 
-      (* a conjunction of the raw strings *)
-      S.const (Formula.and_l (List.map Any.Filter.raw' raws));
-    ]
+        (* a conjunction of the raw strings *)
+        S.const (Formula.and_l (List.map Any.Filter.raw' raws));
+      ]
   in
-
   Dialog.open_ @@ fun return ->
   [
     h2 [txt "Complex filters"];
-    form ~a:[a_class ["center"]] [
-      div [Choices.render type_choices];
-
-      R.div (
-        Fun.flip S.map (Choices.signal type_choices) @@ function
-        | None -> []
-        | Some Person -> person_html
-        | Some Dance -> dance_html
-        | Some Book -> book_html
-        | Some Set -> set_html
-        | Some Tune -> tune_html
-        | Some Version -> version_html
-      );
-
-      div [
-        a ~a:[
-          a_class ["button"];
-          a_onclick (fun _ -> return text; false);
-        ] [txt "Cancel"];
-
-        a ~a:[
-          a_class ["button"];
-          a_onclick (fun _ -> return ""; false);
-        ] [txt "Clear"];
-
-        a ~a:[
-          a_class ["button"; "button-success"];
-          a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
-        ] [txt "Apply"];
+    form
+      ~a: [a_class ["center"]]
+      [
+        div [Choices.render type_choices];
+        R.div
+          (
+            Fun.flip S.map (Choices.signal type_choices) @@ function
+            | None -> []
+            | Some Person -> person_html
+            | Some Dance -> dance_html
+            | Some Book -> book_html
+            | Some Set -> set_html
+            | Some Tune -> tune_html
+            | Some Version -> version_html
+          );
+        div
+          [
+            a
+              ~a: [
+                a_class ["button"];
+                a_onclick (fun _ -> return text; false);
+              ]
+              [txt "Cancel"];
+            a
+              ~a: [
+                a_class ["button"];
+                a_onclick (fun _ -> return ""; false);
+              ]
+              [txt "Clear"];
+            a
+              ~a: [
+                a_class ["button"; "button-success"];
+                a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
+              ]
+              [txt "Apply"];
+          ]
       ]
-    ]
   ]
 
 let open_error () =
   Dialog.open_ @@ fun return ->
   [
     h2 [txt "Complex filters"];
-    form ~a:[a_class ["center"]] [
-      p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
-      p [txt "The formula is too complex for the complex filter dialog to \
-              understand. If you think that this is a mistake, contact your \
-              administrator."];
-      div [
-        a ~a:[
-          a_class ["button"];
-          a_onclick (fun _ -> return (); false);
-        ] [txt "OK"];
+    form
+      ~a: [a_class ["center"]]
+      [
+        p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
+        p
+          [
+            txt
+              "The formula is too complex for the complex filter dialog to \
+               understand. If you think that this is a mistake, contact your \
+               administrator."
+          ];
+        div
+          [
+            a
+              ~a: [
+                a_class ["button"];
+                a_onclick (fun _ -> return (); false);
+              ]
+              [txt "OK"];
+          ]
       ]
-    ]
   ]
 
 let open_ text =

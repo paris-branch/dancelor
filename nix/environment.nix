@@ -1,28 +1,40 @@
+## Everything that has to do with the development environment: pre-commit hooks,
+## development Shell, formatter, etc.
+
+{ self, inputs, ... }:
+
 {
+  imports = [ inputs.pre-commit-hooks.flakeModule ];
+
   perSystem =
     {
       self',
       pkgs,
-      pkgs2211,
       config,
       ...
     }:
-    let
-      runtimeInputs =
-        (with pkgs; [
-          git
-          freepats
-          timidity
-        ])
-        ++ [ pkgs2211.lilypond ];
-
-    in
     {
+      formatter = pkgs.nixfmt-rfc-style;
+
+      pre-commit.settings.hooks = {
+        nixfmt-rfc-style.enable = true;
+        deadnix.enable = true;
+        prettier = {
+          enable = true;
+          excludes = [ "^flake\\.lock$" ];
+        };
+        dune-fmt.enable = true;
+        dune-opam-sync.enable = true;
+        ocp-indent.enable = true;
+        opam-lint.enable = true;
+      };
+
       devShells.default = pkgs.mkShell {
         buildInputs =
           ## Runtime inputs
-          runtimeInputs
+          (self.makeRuntimeInputs pkgs)
           ## Development environment
+          ++ (with pkgs; [ topiary ])
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
@@ -43,23 +55,6 @@
           ]);
         inputsFrom = [ self'.packages.default ];
         shellHook = config.pre-commit.installationScript;
-      };
-
-      apps.default = {
-        type = "app";
-        program =
-          let
-            dancelor = pkgs.writeShellApplication {
-              name = "dancelor";
-              inherit runtimeInputs;
-              text = ''
-                ${self'.packages.default}/bin/dancelor \
-                  --share ${self'.packages.default}/share/dancelor \
-                  "$@"
-              '';
-            };
-          in
-          "${dancelor}/bin/dancelor";
       };
     };
 }

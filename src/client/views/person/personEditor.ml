@@ -8,16 +8,14 @@ module PageRouter = Dancelor_common.PageRouter
 module Page = Dancelor_client_page
 
 type ('name, 'scddb_id) gen = {
-  name : 'name;
-  scddb_id : 'scddb_id;
+  name: 'name;
+  scddb_id: 'scddb_id;
 }
 [@@deriving yojson]
 
 module RawState = struct
-  type t = (
-    string,
-    string
-  ) gen
+  type t =
+    (string, string) gen
   [@@deriving yojson]
 
   let empty : t = {
@@ -28,11 +26,9 @@ end
 
 module Editor = struct
   type t = {
-    elements : (
-      string Input.Text.t,
-      SCDDB.entry_id option Input.Text.t
-    ) gen;
-    set_interacted : unit -> unit;
+    elements:
+      (string Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
+    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -58,14 +54,16 @@ module Editor = struct
     with_or_without_local_storage ~text @@ fun initial_state ->
     let (has_interacted, set_interacted) = S.create false in
     let set_interacted () = set_interacted true in
-    let name = Input.Text.make ~has_interacted initial_state.name @@
-      Result.of_string_nonempty ~empty:"The name cannot be empty."
+    let name =
+      Input.Text.make ~has_interacted initial_state.name @@
+      Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
-    let scddb_id = Input.Text.make ~has_interacted initial_state.scddb_id @@
+    let scddb_id =
+      Input.Text.make ~has_interacted initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
-        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person)
-      % Option.of_string_nonempty
+        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person) %
+      Option.of_string_nonempty
     in
     {
       elements = {name; scddb_id};
@@ -91,36 +89,41 @@ end
 
 let create ?on_save ?text () =
   let title = "Add a person" in
-  Page.make ~title:(S.const title) @@
-  L.div (
-    let%lwt editor = Editor.create ~text in
-    Lwt.return @@ [
-      h2 ~a:[a_class ["title"]] [txt title];
-      form [
-        Input.Text.render
-          editor.elements.name
-          ~label: "Name"
-          ~placeholder: "eg. John Doe";
-        Input.Text.render
-          editor.elements.scddb_id
-          ~label: "SCDDB ID"
-          ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
-        Button.group [
-          Button.save
-            ~disabled: (S.map Option.is_none (Editor.state editor))
-            ~onclick: (fun () ->
-                editor.set_interacted ();
-                Fun.flip Lwt.map (Editor.submit editor) @@ Option.iter @@ fun person ->
-                Editor.clear editor;
-                match on_save with
-                | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
-                | Some on_save -> on_save person
-              )
-            ();
-          Button.clear
-            ~onclick: (fun () -> Editor.clear editor)
-            ();
-        ];
+  Page.make ~title: (S.const title) @@
+  L.div
+    (
+      let%lwt editor = Editor.create ~text in
+      Lwt.return @@
+      [
+        h2 ~a: [a_class ["title"]] [txt title];
+        form
+          [
+            Input.Text.render
+              editor.elements.name
+              ~label: "Name"
+              ~placeholder: "eg. John Doe";
+            Input.Text.render
+              editor.elements.scddb_id
+              ~label: "SCDDB ID"
+              ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
+            Button.group
+              [
+                Button.save
+                  ~disabled: (S.map Option.is_none (Editor.state editor))
+                  ~onclick: (fun () ->
+                      editor.set_interacted ();
+                      Fun.flip Lwt.map (Editor.submit editor) @@
+                      Option.iter @@ fun person ->
+                      Editor.clear editor;
+                      match on_save with
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_person (Model.Person.slug person))
+                      | Some on_save -> on_save person
+                    )
+                  ();
+                Button.clear
+                  ~onclick: (fun () -> Editor.clear editor)
+                  ();
+              ];
+          ]
       ]
-    ]
-  )
+    )

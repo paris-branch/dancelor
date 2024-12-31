@@ -9,11 +9,12 @@ let rec map_filter f = function
 
 let rec sub n l =
   if n <= 0 then []
-  else begin
-    match l with
-    | [] -> []
-    | h::t -> h::(sub (n-1) t)
-  end
+  else
+    begin
+      match l with
+      | [] -> []
+      | h :: t -> h :: (sub (n - 1) t)
+    end
 
 let hd_opt = function
   | [] -> None
@@ -29,7 +30,7 @@ let bd_ft_opt xs =
   let rec bd_ft_opt acc = function
     | [] -> None
     | [x] -> Some (List.rev acc, x)
-    | x::xs -> bd_ft_opt (x :: acc) xs
+    | x :: xs -> bd_ft_opt (x :: acc) xs
   in
   bd_ft_opt [] xs
 
@@ -56,22 +57,22 @@ let interspersei ?last mid l =
   let rec interspersei i = function
     | [] -> []
     | [e] -> [e]
-    | [e; f] -> [e; Option.value ~default:mid last i; f]
+    | [e; f] -> [e; Option.value ~default: mid last i; f]
     | h :: t -> h :: mid i :: interspersei (i + 1) t
   in
   interspersei 0 l
 
 let intersperse ?last mid =
-  interspersei ?last:(Option.map Fun.const last) (Fun.const mid)
+  interspersei ?last: (Option.map Fun.const last) (Fun.const mid)
 
 let singleton x = [x]
 
 let rec compare_lwt cmp l1 l2 =
   match l1, l2 with
   | [], [] -> Lwt.return 0
-  | [], _::_ -> Lwt.return (-1)
-  | _::_, [] -> Lwt.return 1
-  | a1::l1, a2::l2 ->
+  | [], _ :: _ -> Lwt.return (-1)
+  | _ :: _, [] -> Lwt.return 1
+  | a1 :: l1, a2 :: l2 ->
     let%lwt c = cmp a1 a2 in
     if c <> 0 then Lwt.return c
     else compare_lwt cmp l1 l2
@@ -82,13 +83,13 @@ let sort_count cmp l =
     | [] -> rev ((prev, nb) :: acc)
     | h :: t ->
       if cmp h prev = 0 then
-        count_duplicates acc (prev, nb+1) t
+        count_duplicates acc (prev, nb + 1) t
       else
-        count_duplicates ((prev,nb)::acc) (h,1) t
+        count_duplicates ((prev, nb) :: acc) (h, 1) t
   in
   match sort cmp l with
   | [] -> []
-  | h :: t -> count_duplicates [] (h,1) t
+  | h :: t -> count_duplicates [] (h, 1) t
 
 (******************************************************************************)
 (* Lwt-Aware Sorting functions                                                *)
@@ -99,35 +100,35 @@ let sort_count cmp l =
 
 let cons_lwt h l =
   let%lwt l' = l in
-  Lwt.return (h::l')
+  Lwt.return (h :: l')
 
 let rec merge_lwt compare l1 l2 =
   match (l1, l2) with
   | [], l | l, [] ->
     Lwt.return l
-  | h1::t1, h2::t2 ->
+  | h1 :: t1, h2 :: t2 ->
     let%lwt cmp = compare h1 h2 in
-    if cmp <= 0 then cons_lwt h1 (merge_lwt compare t1 (h2::t2))
-    else cons_lwt h2 (merge_lwt compare (h1::t1) t2)
+    if cmp <= 0 then cons_lwt h1 (merge_lwt compare t1 (h2 :: t2))
+    else cons_lwt h2 (merge_lwt compare (h1 :: t1) t2)
 
 (* Same as {!merge_lwt} but merges equal occurrences and counts them. *)
 let rec merge_count_lwt compare l1 l2 =
   match (l1, l2) with
   | [], l | l, [] ->
     Lwt.return l
-  | (h1,n1) :: t1, (h2,n2) :: t2 ->
+  | (h1, n1) :: t1, (h2, n2) :: t2 ->
     let%lwt cmp = compare h1 h2 in
-    if cmp < 0 then cons_lwt (h1,n1) (merge_count_lwt compare t1 ((h2,n2) :: t2))
-    else if cmp = 0 then cons_lwt (h1,n1+n2) (merge_count_lwt compare t1 t2)
-    else cons_lwt (h2,n2) (merge_count_lwt compare ((h1,n1) :: t1) t2)
+    if cmp < 0 then cons_lwt (h1, n1) (merge_count_lwt compare t1 ((h2, n2) :: t2))
+    else if cmp = 0 then cons_lwt (h1, n1 + n2) (merge_count_lwt compare t1 t2)
+    else cons_lwt (h2, n2) (merge_count_lwt compare ((h1, n1) :: t1) t2)
 
 (* morally, this could be called split, but the name is already taken *)
 let rec untangle = function
   | [] -> [], []
-  | [h] -> [h],[]
-  | h1::h2::t ->
-    let l1,l2 = untangle t in
-    h1::l1, h2::l2
+  | [h] -> [h], []
+  | h1 :: h2 :: t ->
+    let l1, l2 = untangle t in
+    h1 :: l1, h2 :: l2
 
 let sort_lwt compare l =
   let rec sort_aux = function
@@ -160,11 +161,11 @@ let sort_uniq_lwt compare l =
 let snoc l x = l @ [x]
 
 type 'a context = {
-  element : 'a;
-  index : int;
-  previous : 'a option;
-  next : 'a option;
-  total : int;
+  element: 'a;
+  index: int;
+  previous: 'a option;
+  next: 'a option;
+  total: int;
 }
 
 let findi_context p l =

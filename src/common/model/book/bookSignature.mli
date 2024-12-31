@@ -9,9 +9,9 @@ open Nes
 (** {2 Types} *)
 
 type page = BookCore.page =
-  | Version   of VersionCore.t * VersionParameters.t
-  | Set       of     SetCore.t *     SetParameters.t
-  | InlineSet of     SetCore.t *     SetParameters.t
+  | Version of VersionCore.t * VersionParameters.t
+  | Set of SetCore.t * SetParameters.t
+  | InlineSet of SetCore.t * SetParameters.t
   (** The type of one page in a book. A page either consists of a version (eg.
       in a book of tunes), or a set (eg. in a dance program) or a so-called
       “inline set”. Inline sets are simply a way to define a set on-the-fly in
@@ -25,18 +25,18 @@ type t = BookCore.t
 
 (** {2 Field Getters} *)
 
-val slug        : t -> t Slug.t
-val status      : t -> Status.t
-val title       : t -> string
-val subtitle    : t -> string
+val slug : t -> t Slug.t
+val status : t -> Status.t
+val title : t -> string
+val subtitle : t -> string
 val short_title : t -> string
-val date        : t -> PartialDate.t option
-val contents    : t -> page list Lwt.t
-val source      : t -> bool
-val remark      : t -> string
-val scddb_id    : t -> int option
+val date : t -> PartialDate.t option
+val contents : t -> page list Lwt.t
+val source : t -> bool
+val remark : t -> string
+val scddb_id : t -> int option
 val modified_at : t -> Datetime.t
-val created_at  : t -> Datetime.t
+val created_at : t -> Datetime.t
 
 (** {2 Advanced Field Getters} *)
 
@@ -109,7 +109,7 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
-  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string
 
   val optimise : t -> t
@@ -120,28 +120,30 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  title:string ->
-  ?date:PartialDate.t ->
-  ?contents:page list ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  title: string ->
+  ?date: PartialDate.t ->
+  ?contents: page list ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val make :
-  ?status:Status.t ->
-  slug:t Slug.t ->
-  title:string ->
-  ?date:PartialDate.t ->
-  ?contents:page list ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  ?status: Status.t ->
+  slug: t Slug.t ->
+  title: string ->
+  ?date: PartialDate.t ->
+  ?contents: page list ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 (** Low-level unsafe book creation. Prefer {!make_and_save} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   (int * t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the books
@@ -151,23 +153,24 @@ val search :
 
 val search' :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)
 
 val update :
-  ?status:Status.t ->
-  slug:t Slug.t ->
-  title:string ->
-  ?date:PartialDate.t ->
-  ?contents:page list ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> unit Lwt.t
+  ?status: Status.t ->
+  slug: t Slug.t ->
+  title: string ->
+  ?date: PartialDate.t ->
+  ?contents: page list ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  unit Lwt.t

@@ -32,24 +32,32 @@ let to_string b =
   String.make 1 (to_char b)
 
 let of_string s =
-  try of_char s.[0]
-  with Invalid_argument _ | Failure _ ->
+  try
+    of_char s.[0]
+  with
+  | Invalid_argument _ | Failure _ ->
     invalid_arg "Dancelor_common_model.Kind.base_of_string"
 
 let of_string_opt s =
-  try Some (of_string s)
-  with Invalid_argument _ -> None
+  try
+    Some (of_string s)
+  with
+  | Invalid_argument _ -> None
 
 let to_yojson b =
   `String (to_string b)
 
 let of_yojson = function
   | `String s ->
-    (try Ok (of_string s)
-     with _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind")
+    (
+      try
+        Ok (of_string s)
+      with
+      | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a valid base kind"
+    )
   | _ -> Error "Dancelor_common_model.Kind.base_of_yojson: not a JSON string"
 
-let to_pretty_string ?(capitalised=false) base =
+let to_pretty_string ?(capitalised = false) base =
   (
     match base with
     | Jig -> "jig"
@@ -80,7 +88,6 @@ module Filter = struct
 
   let accepts filter kind =
     Formula.interpret filter @@ function
-
     | Is kind' ->
       Lwt.return (Formula.interpret_bool (kind = kind'))
 
@@ -93,13 +100,15 @@ module Filter = struct
                Option.fold
                  ~some: (Result.ok % is')
                  ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
-                 (of_string_opt string));
-          unary_raw ~wrap_back:Never ~name:"is" (is, unIs) ~cast:(of_string_opt, to_pretty_string ~capitalised:true) ~type_:"base kind";
+                 (of_string_opt string)
+            );
+          unary_raw ~wrap_back: Never ~name: "is" (is, unIs) ~cast: (of_string_opt, to_pretty_string ~capitalised: true) ~type_: "base kind";
         ]
     )
 
   let from_text_formula = TextFormula.to_formula text_formula_converter
 
-  let optimise = Formula.optimise @@ function
+  let optimise =
+    Formula.optimise @@ function
     | (Is _ as p) -> p
 end

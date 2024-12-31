@@ -14,7 +14,8 @@ let bind e f =
     e
     (function
       | Some x -> f x
-      | None -> Lwt.return_none)
+      | None -> Lwt.return_none
+    )
 
 let catch e f =
   Lwt.backtrace_bind
@@ -22,7 +23,8 @@ let catch e f =
     e
     (function
       | Some x -> Lwt.return_some x
-      | None -> f ())
+      | None -> f ()
+    )
 
 (* Other utilities *)
 

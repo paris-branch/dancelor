@@ -68,7 +68,7 @@ module Filter : sig
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
-  val from_string : ?filename:string -> string -> (t, string) Result.t
+  val from_string : ?filename: string -> string -> (t, string) Result.t
   val to_string : t -> string
 
   val optimise : t -> t
@@ -79,35 +79,37 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make :
-  ?status:Status.t ->
-  ?slug:t Slug.t ->
-  name:string ->
+  ?status: Status.t ->
+  ?slug: t Slug.t ->
+  name: string ->
   ?conceptors: PersonCore.t list ->
-  kind:Kind.Dance.t ->
+  kind: Kind.Dance.t ->
   ?contents: (VersionCore.t * VersionParameters.t) list ->
-  order:SetOrder.t ->
-  ?dances:DanceCore.t list ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  order: SetOrder.t ->
+  ?dances: DanceCore.t list ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val make_and_save :
-  ?status:Status.t ->
-  name:string ->
+  ?status: Status.t ->
+  name: string ->
   ?conceptors: PersonCore.t list ->
-  kind:Kind.Dance.t ->
+  kind: Kind.Dance.t ->
   ?contents: (VersionCore.t * VersionParameters.t) list ->
-  order:SetOrder.t ->
-  ?dances:DanceCore.t list ->
-  modified_at:Datetime.t ->
-  created_at:Datetime.t ->
-  unit -> t Lwt.t
+  order: SetOrder.t ->
+  ?dances: DanceCore.t list ->
+  modified_at: Datetime.t ->
+  created_at: Datetime.t ->
+  unit ->
+  t Lwt.t
 
 val delete : t -> unit Lwt.t
 
 val search :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   (int * t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the sets
@@ -117,13 +119,13 @@ val search :
 
 val search' :
   ?slice: Slice.t ->
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :
-  ?threshold:float ->
+  ?threshold: float ->
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)

@@ -14,7 +14,7 @@ let write_file file content =
 let remove_file file =
   Sys.remove file
 
-let create_directory ?(fail_if_exists=true) path =
+let create_directory ?(fail_if_exists = true) path =
   if not (Sys.file_exists path) then
     Unix.mkdir path 0o777
   else if fail_if_exists then

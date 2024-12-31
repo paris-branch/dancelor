@@ -19,8 +19,8 @@ type _ t =
   | Merge : tiebreaker * 'p t * 'p t -> 'p t
 
 let make cs = Cases cs
-let map ?(error=Fun.id) f c = Map (f, error, c)
-let merge ?(tiebreaker=Both) c1 c2 = Merge (tiebreaker, c1, c2)
+let map ?(error = Fun.id) f c = Map (f, error, c)
+let merge ?(tiebreaker = Both) c1 c2 = Merge (tiebreaker, c1, c2)
 
 let merge_l = function
   | [] -> invalid_arg "TextFormulaConverter.merge_l"
@@ -29,7 +29,7 @@ let merge_l = function
 
 let predicate_to_formula c tp =
   let rec aux : type p. p t -> (p Formula.t, string) Result.t = function
-    | Cases cases -> Link.link' ~default:(kaspf Result.error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
+    | Cases cases -> Link.link' ~default: (kaspf Result.error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
     | Map (f, error, c) -> Result.map_error error @@ Result.map (Formula.pred % f) @@ aux c
     | Merge (tiebreaker, c1, c2) ->
       match (aux c1, aux c2) with
@@ -76,7 +76,8 @@ let nullary ~name p =
     | _ -> None
   in
   (* FIXME: predicate equality *)
-  let from p' = match p = p' with
+  let from p' =
+    match p = p' with
     | true -> Some (Type.nullary' name)
     | false -> None
   in
@@ -98,22 +99,28 @@ let apply_wrap_back ~name = function
   | NotRaw -> (function Pred (Raw _) as f -> f | f -> Type.unary' name f)
   | Custom c -> c
 
-let unary_raw ?(wrap_back=Always) ~name ~cast:(cast, uncast) ~type_ (to_predicate, from_predicate) =
-  unary ~name
+let unary_raw ?(wrap_back = Always) ~name ~cast: (cast, uncast) ~type_ (to_predicate, from_predicate) =
+  unary
+    ~name
     (function
       | Pred (Raw s) ->
-        Result.map to_predicate
-          (Option.to_result
-             ~none: (spf "the unary predicate \"%s:\" only accepts %s arguments." name type_)
-             (cast s))
+        Result.map
+          to_predicate
+          (
+            Option.to_result
+              ~none: (spf "the unary predicate \"%s:\" only accepts %s arguments." name type_)
+              (cast s)
+          )
       | _ ->
-        Error (spf "the unary predicate \"%s:\" only accepts a %s arguments." name type_))
+        Error (spf "the unary predicate \"%s:\" only accepts a %s arguments." name type_)
+    )
     (Option.map (apply_wrap_back ~name wrap_back % Type.raw' % uncast) % from_predicate)
 
-let unary_string = unary_raw ~cast:(Option.some, Fun.id) ~type_:"string"
-let unary_int = unary_raw ~cast:(int_of_string_opt, string_of_int) ~type_:"int"
+let unary_string = unary_raw ~cast: (Option.some, Fun.id) ~type_: "string"
+let unary_int = unary_raw ~cast: (int_of_string_opt, string_of_int) ~type_: "int"
 
-let unary_lift ?(wrap_back=Always) ~name ~converter (lift, unlift) =
-  unary ~name
+let unary_lift ?(wrap_back = Always) ~name ~converter (lift, unlift) =
+  unary
+    ~name
     (Result.map lift % to_formula converter)
     (Option.map (apply_wrap_back ~name wrap_back % of_formula converter) % unlift)

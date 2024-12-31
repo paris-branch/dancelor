@@ -12,7 +12,7 @@ include module type of Stdlib.Option
 val compare_lwt : ('a -> 'a -> int Lwt.t) -> 'a t -> 'a t -> int Lwt.t
 (** Same as {!compare} when the comparison function returns an Lwt value. *)
 
-val choose : tie:('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
+val choose : tie: ('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
 (** [choose ~tie first second] returns [Some x] when one of [first] or [second]
     is [Some x] and the other is bottom. If they are both [None], [None] is
     returned. If they are both [Some], [tie] is called. *)

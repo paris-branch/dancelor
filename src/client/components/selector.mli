@@ -17,7 +17,7 @@ val many : many arity
 (** Type trickeries to keep track of the arity of a selector. You only need to
     care about passing values {!one} or {!many} to {!make}. *)
 
-val make  :
+val make :
   arity: 'arity arity ->
   ?has_interacted: bool S.t ->
   search: (Slice.t -> string -> (int * 'model list, string) Result.t Lwt.t) ->
@@ -41,26 +41,23 @@ val signal_many : (many, 'model) t -> ('model list, 'bottom) Result.t S.t
 val clear : ('arity, 'model) t -> unit
 
 val render :
-  make_result: (
-    ?classes: string list ->
-    ?action: Utils.ResultRow.action ->
-    ?prefix: Utils.ResultRow.cell list ->
-    ?suffix: Utils.ResultRow.cell list ->
-    'model ->
-    Utils.ResultRow.t
-  ) ->
-  ?make_more_results: (
-    'model ->
-    Utils.ResultRow.t list
-  ) ->
+  make_result:
+    (?classes: string list ->
+     ?action: Utils.ResultRow.action ->
+     ?prefix: Utils.ResultRow.cell list ->
+     ?suffix: Utils.ResultRow.cell list ->
+     'model ->
+     Utils.ResultRow.t) ->
+  ?make_more_results:
+    ('model ->
+     Utils.ResultRow.t list) ->
   field_name: (string * string) ->
   model_name: string ->
-  create_dialog_content: (
-    ?on_save:('model -> unit) ->
-    string ->
-    Html_types.div Html.elt
-  ) ->
+  create_dialog_content:
+    (?on_save: ('model -> unit) ->
+     string ->
+     Html_types.div Html.elt) ->
   ('arity, 'model) t ->
-  [> Html_types.div ] Html.elt
+  [> Html_types.div] Html.elt
 (** The optional argument [?make_more_results] adds rows to the table after the
     result. This only happens in the result, not in the quick search. *)

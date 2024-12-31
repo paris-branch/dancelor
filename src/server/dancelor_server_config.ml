@@ -1,5 +1,5 @@
 open Nes
-module Log = (val Dancelor_server_logs.create "config" : Logs.LOG)
+module Log = (val Dancelor_server_logs.create "config": Logs.LOG)
 
 let int = Json.int
 let string = Json.string
@@ -10,7 +10,8 @@ let bool x =
     (function
       | "true" | "yes" | "on" -> Some true
       | "false" | "no" | "off" -> Some false
-      | _ -> None)
+      | _ -> None
+    )
 
 let loglevel_of_string = function
   | "error" -> Logs.Error
@@ -58,27 +59,27 @@ let load_from_file filename =
       close_in ichan;
       config
     with
-      Sys_error _ ->
+    | Sys_error _ ->
       Log.err (fun m -> m "Could not find config file \"%s\"" filename);
       Dancelor_server_logs.log_die (module Log)
   in
   let field config ~type_ ~default path =
-    match Json.(get_opt ~k:type_ path config) with
+    match Json.(get_opt ~k: type_ path config) with
     | None -> default
     | Some value -> value
   in
-  cache         := field config ~type_:string ~default:!cache         ["cache"];
-  database      := field config ~type_:string ~default:!database      ["database"];
-  init_only     := field config ~type_:bool   ~default:!init_only     ["init_only"];
-  lilypond      := field config ~type_:string ~default:!lilypond      ["lilypond"];
-  loglevel      := field config ~type_:loglevel_of_json_string ~default:!loglevel  ["loglevel"];
-  pid_file      := field config ~type_:string ~default:!pid_file      ["pid_file"];
-  port          := field config ~type_:int    ~default:!port          ["port"];
-  routines      := field config ~type_:bool   ~default:!routines      ["routines"];
-  heavy_routines:= field config ~type_:bool   ~default:!heavy_routines["heavy_routines"];
-  share         := field config ~type_:string ~default:!share         ["share"];
-  sync_storage  := field config ~type_:bool   ~default:!sync_storage  ["sync_storage"];
-  write_storage := field config ~type_:bool   ~default:!write_storage ["write_storage"];
+  cache := field config ~type_: string ~default: !cache ["cache"];
+  database := field config ~type_: string ~default: !database ["database"];
+  init_only := field config ~type_: bool ~default: !init_only ["init_only"];
+  lilypond := field config ~type_: string ~default: !lilypond ["lilypond"];
+  loglevel := field config ~type_: loglevel_of_json_string ~default: !loglevel ["loglevel"];
+  pid_file := field config ~type_: string ~default: !pid_file ["pid_file"];
+  port := field config ~type_: int ~default: !port ["port"];
+  routines := field config ~type_: bool ~default: !routines ["routines"];
+  heavy_routines := field config ~type_: bool ~default: !heavy_routines ["heavy_routines"];
+  share := field config ~type_: string ~default: !share ["share"];
+  sync_storage := field config ~type_: bool ~default: !sync_storage ["sync_storage"];
+  write_storage := field config ~type_: bool ~default: !write_storage ["write_storage"];
   ()
 
 let parse_cmd_line () =
@@ -87,26 +88,28 @@ let parse_cmd_line () =
     | true -> fpf fmt " (default)"
     | false -> ()
   in
-  let specs = align [
-      "--cache",            Set_string cache,          spf   "DIR Set cache directory (default: %s)"    !cache;
-      "--config",           String load_from_file,     spf  "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
-      "--database",         Set_string database,       spf   "DIR Set database directory (default: %s)" !database;
-      "--init-only",        Set        init_only,     aspf      " Stop after initialisation%a" pp_default !init_only;
-      "--no-init-only",     Clear      init_only,     aspf      " Do not stop after initialisation%a" pp_default (not !init_only);
-      "--lilypond",         Set_string lilypond,       spf  "PATH Set path to the LilyPond binary (default: %s)" !lilypond;
-      "--loglevel",         String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
-      "--pid-file",         Set_string pid_file,       spf  "FILE Write process id to the given file.";
-      "--port",             Set_int    port,           spf    "NB Set the port (default: %d)" !port;
-      "--routines",         Set        routines,      aspf      " Start routines%a" pp_default !routines;
-      "--no-routines",      Clear      routines,      aspf      " Do not start routines%a" pp_default (not !routines);
-      "--heavy-routines",   Set        heavy_routines,aspf      " Allow heavy load for routines%a" pp_default !heavy_routines;
-      "--no-heavy-routines",Clear      heavy_routines,aspf      " Disallow heavy load for routines%a" pp_default (not !heavy_routines);
-      "--share",            Set_string share,          spf   "DIR Set share directory (default: %s)" !share;
-      "--sync-storage",     Set        sync_storage,  aspf      " Sync storage using git%a" pp_default !sync_storage;
-      "--no-sync-storage",  Clear      sync_storage,  aspf      " Do not sync storage using git%a" pp_default (not !sync_storage);
-      "--write-storage",    Set        write_storage, aspf      " Reflect storage on filesystem%a" pp_default !write_storage;
-      "--no-write-storage", Clear      write_storage, aspf      " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
-    ]
+  let specs =
+    align
+      [
+        "--cache", Set_string cache, spf "DIR Set cache directory (default: %s)" !cache;
+        "--config", String load_from_file, spf "FILE Load configuration from FILE. This overrides all previous command-line settings but is overriden by the next ones.";
+        "--database", Set_string database, spf "DIR Set database directory (default: %s)" !database;
+        "--init-only", Set init_only, aspf " Stop after initialisation%a" pp_default !init_only;
+        "--no-init-only", Clear init_only, aspf " Do not stop after initialisation%a" pp_default (not !init_only);
+        "--lilypond", Set_string lilypond, spf "PATH Set path to the LilyPond binary (default: %s)" !lilypond;
+        "--loglevel", String (loglevel_of_string ||> (:=) loglevel), spf "LEVEL Set the log level (default: %s)" (loglevel_to_string !loglevel);
+        "--pid-file", Set_string pid_file, spf "FILE Write process id to the given file.";
+        "--port", Set_int port, spf "NB Set the port (default: %d)" !port;
+        "--routines", Set routines, aspf " Start routines%a" pp_default !routines;
+        "--no-routines", Clear routines, aspf " Do not start routines%a" pp_default (not !routines);
+        "--heavy-routines", Set heavy_routines, aspf " Allow heavy load for routines%a" pp_default !heavy_routines;
+        "--no-heavy-routines", Clear heavy_routines, aspf " Disallow heavy load for routines%a" pp_default (not !heavy_routines);
+        "--share", Set_string share, spf "DIR Set share directory (default: %s)" !share;
+        "--sync-storage", Set sync_storage, aspf " Sync storage using git%a" pp_default !sync_storage;
+        "--no-sync-storage", Clear sync_storage, aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
+        "--write-storage", Set write_storage, aspf " Reflect storage on filesystem%a" pp_default !write_storage;
+        "--no-write-storage", Clear write_storage, aspf " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
+      ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in
   let usage = spf "Usage: %s [OPTIONS...]" Sys.argv.(0) in

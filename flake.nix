@@ -7,11 +7,6 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
-    timidity = {
-      url = "github:niols/nixpkg-timidity";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,52 +14,17 @@
   };
 
   outputs =
-    inputs@{ self, flake-parts, ... }:
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        inputs.pre-commit-hooks.flakeModule
-        ./.nix/app-devshell.nix
-        ./.nix/nixosmodule.nix
-        ./.nix/package.nix
+        ./nix/application.nix
+        ./nix/environment.nix
+        ./nix/nixosmodule.nix
+        ./nix/nixpkgs.nix
+        ./nix/package.nix
       ];
 
       systems = [ "x86_64-linux" ];
-
-      ## Overwrite the package `timidity` by a custom version coming from our
-      ## custom `github:niols/nixpkg-timidity` flake that provides a version of
-      ## TiMidity++ with Ogg Vorbis support.
-      ##
-      flake.overlays.timidityWithVorbis = _final: prev: {
-        timidity = inputs.timidity.packages.${prev.stdenv.hostPlatform.system}.timidityWithVorbis;
-      };
-
-      perSystem =
-        { system, pkgs, ... }:
-        {
-          formatter = pkgs.nixfmt-rfc-style;
-
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            overlays = [ self.overlays.timidityWithVorbis ];
-          };
-          _module.args.pkgs2211 = import inputs.nixpkgs2211 {
-            inherit system;
-            overlays = [ self.overlays.timidityWithVorbis ];
-          };
-
-          pre-commit.settings.hooks = {
-            nixfmt-rfc-style.enable = true;
-            deadnix.enable = true;
-            prettier = {
-              enable = true;
-              excludes = [ "^flake\\.lock$" ];
-            };
-            dune-fmt.enable = true;
-            dune-opam-sync.enable = true;
-            ocp-indent.enable = true;
-            opam-lint.enable = true;
-          };
-        };
 
       ## Improve the way `inputs'` are computed by also handling the case of
       ## flakes having a `lib.${system}` attribute.
