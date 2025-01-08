@@ -3,7 +3,6 @@ module Model = Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
 
 module Ly = struct
-
   let kind set set_parmeters =
     let%lwt kind =
       match%lwt Model.SetParameters.for_dance set_parmeters with
@@ -290,4 +289,29 @@ module Pdf = struct
 end
 
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
+  | Get -> Model.Book.get % NesSlug.unsafe_of_string
+  | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
+  | MakeAndSave ->
+    (fun status title date contents modified_at created_at ->
+       let%lwt contents =
+         match contents with
+         | None -> Lwt.return_none
+         | Some contents ->
+           let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
+           Lwt.return_some contents
+       in
+       Model.Book.make_and_save ?status ~title ?date ?contents ~modified_at ~created_at ()
+    )
+  | Update ->
+    (fun status title date contents modified_at created_at slug ->
+       let slug = NesSlug.unsafe_of_string slug in
+       let%lwt contents =
+         match contents with
+         | None -> Lwt.return_none
+         | Some contents ->
+           let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
+           Lwt.return_some contents
+       in
+       Model.Book.update ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
+    )
   | Pdf -> (fun parameters book -> Pdf.get (NesSlug.unsafe_of_string book) parameters)

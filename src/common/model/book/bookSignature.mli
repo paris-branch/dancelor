@@ -174,3 +174,6 @@ val update :
   created_at: Datetime.t ->
   unit ->
   unit Lwt.t
+
+val page_core_to_page : BookCore.PageCore.t -> page Lwt.t
+(** Exposed for use in the book controller. *)

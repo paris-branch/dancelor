@@ -1,11 +1,7 @@
-open Dancelor_common_model
+open Dancelor_common
+open Model
 
 include BookLifter.Lift(Dance)(Set)(Tune)(Version)
 
-let get the_slug =
-  let open BookEndpoints in
-  let open Arguments in
-  Madge_client.(
-    call ~endpoint: get @@ fun {a} _ ->
-    a slug the_slug
-  )
+let get slug =
+  Madge_client_new.call ApiRouter.(route @@ Book Get) (NesSlug.to_string slug)
