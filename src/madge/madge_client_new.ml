@@ -1,7 +1,10 @@
-include Madge_common_new
+include Madge
 
-let call : type a r. (a, r Lwt.t, r) Route.t -> a = fun route ->
-  Route.process route @@ fun (module R) uri ->
+(* FIXME: This is not just client, but a very specific type of client. Either
+   make it Dancelor-specific, or rename in eg. Madge_yojson_cohttp_client. *)
+
+let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
+  process route @@ fun (module R) uri ->
   let body = Cohttp_lwt.Body.of_string "" in
   let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call `GET uri ~body in
   if Cohttp.(Code.(is_success (code_of_status (Response.status response)))) then

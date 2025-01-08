@@ -60,7 +60,7 @@ let all_endpoints =
       List.map (fun (PersonEndpoints.W e) -> W (Person e)) PersonEndpoints.all;
     ]
 
-open Madge_common_new
+open Madge
 
 (* FIXME: fix the handling of Slugs in the Madge routes:
 
@@ -70,7 +70,5 @@ open Madge_common_new
    annoying. Ideally, we'd manage to keep it and add it to an endpoint, though. *)
 
 (* FIXME: Factorise adding the `/api` prefix. *)
-let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) Route.t =
-  let open Route in
-  function
+let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) route = function
   | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint
