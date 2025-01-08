@@ -1,3 +1,5 @@
+open Nes
+
 type serialised = Yojson.Safe.t
 type 'a serialiser = 'a -> serialised
 type 'a unserialiser = serialised -> ('a, string) result
@@ -62,6 +64,13 @@ exception BadQuery of string
 let bad_query string = raise (BadQuery string)
 
 let prefix = ref "/madge"
+
+module MVoid : SERIALISABLE with
+  type t = Void.t
+= struct
+  type t = Void.t [@@deriving yojson]
+  let _key = "void"
+end
 
 module MUnit : SERIALISABLE with
   type t = unit

@@ -1,3 +1,5 @@
+open Nes
+
 type serialised = Yojson.Safe.t
 type 'a serialiser = 'a -> serialised
 type 'a unserialiser = serialised -> ('a, string) result
@@ -40,6 +42,9 @@ exception BadQuery of string
 val bad_query : string -> 'a
 
 val prefix : string ref
+
+module MVoid : SERIALISABLE with
+  type t = Void.t
 
 module MUnit : SERIALISABLE with
   type t = unit

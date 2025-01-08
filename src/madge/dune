@@ -1,4 +1,28 @@
 (library
+ (name madge_common_new)
+ (modules madge_common_new)
+ (public_name dancelor.madge.common-new)
+ (libraries dancelor.nes cohttp yojson)
+ (preprocess
+  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
+
+(library
+ (name madge_client_new)
+ (modules madge_client_new)
+ (public_name dancelor.madge.client-new)
+ (libraries dancelor.nes cohttp-lwt-jsoo yojson dancelor.madge.common-new)
+ (preprocess
+  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
+
+(library
+ (name madge_server_new)
+ (modules madge_server_new)
+ (public_name dancelor.madge.server-new)
+ (libraries dancelor.madge.common-new cohttp-lwt-unix)
+ (preprocess
+  (pps ppx_deriving_yojson lwt_ppx)))
+
+(library
  (name madge_common)
  (modules madge_common)
  (public_name dancelor.madge.common)
