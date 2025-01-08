@@ -40,6 +40,8 @@ val to_strings : t -> (string * string list) list
 val from_uri : Uri.t -> t
 val from_body : Cohttp_lwt.Body.t -> t Lwt.t
 
+val add : key -> Yojson.Safe.t -> t -> t
+
 (** Append query parameters together. The resulting query parameters are taken
     from the input ones with priority [high] and [low]. *)
 val append : high: t -> low: t -> t

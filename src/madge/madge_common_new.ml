@@ -41,8 +41,12 @@ module Route = struct
     | Return : (module JSON_SERIALISABLE with type t = 'r) -> ('w, 'w, 'r) t
     | Literal : string * ('a, 'w, 'r) t -> ('a, 'w, 'r) t
     | Variable : 'a PathComponent.t * ('b, 'w, 'r) t -> (('a -> 'b), 'w, 'r) t
+    | Query : string * (module JSON_SERIALISABLE with type t = 'a) * ('b, 'w, 'r) t -> (('a -> 'b), 'w, 'r) t
+    | QueryOpt : string * (module JSON_SERIALISABLE with type t = 'a) * ('b, 'w, 'r) t -> (('a option -> 'b), 'w, 'r) t
 
   let return rt = Return rt
   let literal str route = Literal (str, route)
   let variable rt route = Variable (rt, route)
+  let query name rt route = Query (name, rt, route)
+  let query_opt name rt route = QueryOpt (name, rt, route)
 end
