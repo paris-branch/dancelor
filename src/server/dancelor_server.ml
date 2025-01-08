@@ -52,9 +52,7 @@ let apply_controller path query =
       (* FIXME: We remove it before only to add it here again - avoid this. *)
       (* FIXME: We should just get a URI. *)
       match madge_match_apply_all (Uri.make ~path: ("/api/" ^ path) ~query: (Madge_query.to_strings query) ()) with
-      | Some body ->
-        Lwt.bind body @@ fun body ->
-        Server.respond_string ~status: `OK ~body ()
+      | Some response -> response
       | None ->
         let message = spf "Page `%s` was not found" path in
         let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
