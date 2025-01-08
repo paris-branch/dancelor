@@ -61,13 +61,6 @@ let all_endpoints =
 
 open Madge
 
-(* FIXME: fix the handling of Slugs in the Madge routes:
-
-   Because [Slug.t] carries a (ghost) type argument, I am not managing to type
-   an endpoint with a slug in it. Maybe it is time to give up the ghost type
-   argument entirely? The idea is good but there are so many places where it is
-   annoying. Ideally, we'd manage to keep it and add it to an endpoint, though. *)
-
 (* FIXME: Factorise adding the `/api` prefix. *)
 let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) route = function
   | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint

@@ -289,7 +289,7 @@ module Pdf = struct
 end
 
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
-  | Get -> Model.Book.get % NesSlug.unsafe_of_string
+  | Get -> Model.Book.get
   | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
   | MakeAndSave ->
     (fun status title date contents modified_at created_at ->
@@ -304,7 +304,6 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -
     )
   | Update ->
     (fun status title date contents modified_at created_at slug ->
-       let slug = NesSlug.unsafe_of_string slug in
        let%lwt contents =
          match contents with
          | None -> Lwt.return_none
@@ -314,4 +313,4 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -
        in
        Model.Book.update ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
     )
-  | Pdf -> (fun parameters book -> Pdf.get (NesSlug.unsafe_of_string book) parameters)
+  | Pdf -> (fun parameters book -> Pdf.get book parameters)

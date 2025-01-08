@@ -26,6 +26,15 @@ module JVoid : JSONABLE with type t = Void.t = struct
   type t = Void.t [@@deriving yojson]
 end
 
+(* For the slugs, we can stringify them just like strings, no matter what type
+   they carry. *)
+module type TYPEABLE = sig type t end
+module SSlug (A : TYPEABLE) : STRINGABLE with type t = A.t Slug.t = struct
+  type t = A.t Slug.t
+  let to_string = Slug.to_string
+  let of_string = Option.some % Slug.unsafe_of_string
+end
+
 (** Abstract type of a route. The type arguments are (1) the function type
     corresponding to the route, (2) the return value of that function type, (3)
     the return value from the route. *)

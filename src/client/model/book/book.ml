@@ -48,4 +48,4 @@ let update
     contents
     modified_at
     created_at
-    (NesSlug.to_string slug)
+    slug
