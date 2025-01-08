@@ -2,7 +2,7 @@
  (name madge_common_new)
  (modules madge_common_new)
  (public_name dancelor.madge.common-new)
- (libraries dancelor.nes cohttp yojson)
+ (libraries dancelor.nes dancelor.madge.query cohttp yojson)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 
@@ -10,12 +10,7 @@
  (name madge_client_new)
  (modules madge_client_new)
  (public_name dancelor.madge.client-new)
- (libraries
-  dancelor.nes
-  dancelor.madge.common-new
-  dancelor.madge.query
-  cohttp-lwt-jsoo
-  yojson)
+ (libraries dancelor.nes dancelor.madge.common-new cohttp-lwt-jsoo yojson)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 
