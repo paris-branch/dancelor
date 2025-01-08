@@ -45,3 +45,25 @@ let path_dancePdf ?params slug = path @@ dance @@ DanceEndpoints.pdf slug params
 
 let endpoint method_ path query =
   Madge_router.request_to_resource {method_; path; query} routes
+
+(** NEW-NEW STYLE *)
+
+type (_, _, _) endpoint_new =
+  | Person : ('a, 'w, 'r) PersonEndpoints.t -> ('a, 'w, 'r) endpoint_new
+
+type endpoint_new_wrapped =
+  | W : ('a, 'r Lwt.t, 'r) endpoint_new -> endpoint_new_wrapped
+
+let all_endpoints =
+  List.flatten
+    [
+      List.map (fun (PersonEndpoints.W e) -> W (Person e)) PersonEndpoints.all;
+    ]
+
+open Madge_common_new
+
+(* FIXME: Factorise adding the `/api` prefix. *)
+let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) Route.t =
+  let open Route in
+  function
+  | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint

@@ -17,26 +17,49 @@ let log_exn ~msg exn =
 let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
+let madge_match_apply_all path =
+  let rec madge_match_apply_all = function
+    | [] -> None
+    | ApiRouter.W endpoint :: wrapped_endpoints ->
+      (
+        match Madge_server_new.match_apply (ApiRouter.route endpoint) (dispatch endpoint) path with
+        | None -> madge_match_apply_all wrapped_endpoints
+        | Some f -> Some f
+      )
+  in
+  madge_match_apply_all ApiRouter.all_endpoints
+
 let apply_controller path query =
   (* FIXME: not necessarily `GET *)
   match ApiRouter.endpoint `GET path query with
-  | None ->
-    let message = spf "Page `%s` was not found" path in
-    let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
-    Server.respond_error ~status: `Not_found ~body ()
   | Some endpoint ->
-    match endpoint with
-    | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
-    | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
-    | Version (Ly slug) -> Version.get_ly slug
-    | Version (Svg (slug, params)) -> Version.Svg.get slug params
-    | Version (Ogg slug) -> Version.Ogg.get slug
-    | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
-    | Dance (Pdf (slug, params)) -> Dance.Pdf.get slug params
-    | Victor One -> log_exit 101
-    | Victor Two -> log_exit 102
-    | Victor Three -> log_exit 103
-    | Victor Four -> log_exit 104
+    (
+      match endpoint with
+      | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
+      | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
+      | Version (Ly slug) -> Version.get_ly slug
+      | Version (Svg (slug, params)) -> Version.Svg.get slug params
+      | Version (Ogg slug) -> Version.Ogg.get slug
+      | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
+      | Dance (Pdf (slug, params)) -> Dance.Pdf.get slug params
+      | Victor One -> log_exit 101
+      | Victor Two -> log_exit 102
+      | Victor Three -> log_exit 103
+      | Victor Four -> log_exit 104
+    )
+  | None ->
+    (
+      (* FIXME: We remove it before only to add it here again - avoid this. *)
+      (* FIXME: We should just get a URI. *)
+      match madge_match_apply_all (Uri.make ~path: ("/api/" ^ path) ~query: (Madge_query.to_strings query) ()) with
+      | Some body ->
+        Lwt.bind body @@ fun body ->
+        Server.respond_string ~status: `OK ~body ()
+      | None ->
+        let message = spf "Page `%s` was not found" path in
+        let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
+        Server.respond_error ~status: `Not_found ~body ()
+    )
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =

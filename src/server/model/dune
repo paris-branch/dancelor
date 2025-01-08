@@ -6,6 +6,7 @@
  (libraries
   dancelor.common.model
   dancelor.server.database
-  dancelor.madge.server)
+  dancelor.madge.server
+  dancelor.madge.server-new)
  (preprocess
   (pps lwt_ppx ppx_monad ppx_monad_olwt ppx_monad_rlwt)))

@@ -1,12 +1,7 @@
-open Dancelor_common_model
+open Dancelor_common
+open Model
 
 include PersonLifter.Lift ()
 
-module E = PersonEndpoints
-module A = E.Arguments
-
 let get slug =
-  Madge_client.(
-    call ~endpoint: E.get @@ fun {a} _ ->
-    a A.slug slug
-  )
+  Madge_client_new.call ApiRouter.(route @@ Person Get) (NesSlug.to_string slug)
