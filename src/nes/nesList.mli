@@ -124,3 +124,14 @@ val all_some : 'a option list -> 'a list option
 
 val apply : ('a -> 'b) list -> 'a -> 'b list
 (** [apply \[f1; f2; f3\] x = \[f1 x; f2 x; f3 x\]]. *)
+
+(** {3 Association lists} *)
+
+val extract_assoc : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
+(** Same as [fun a l -> (assoc a l, remove_assoc a l)]. Not tail-recursive.
+
+    @raise Not_found if there is no value associated with a in the list l. *)
+
+val extract_assoc_opt : 'a -> ('a * 'b) list -> ('b * ('a * 'b) list) option
+(** Same as {!extract_assoc} but returns [None] instead of raising
+    [Not_found]. *)

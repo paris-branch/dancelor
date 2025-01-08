@@ -7,8 +7,14 @@ type key = string
 
 val empty : t
 
+val is_empty : t -> bool
+
 (** Get the parameter whose key is given. *)
 val get : key -> t -> Yojson.Safe.t option
+
+(** Get the parameter whose key is given, and return the query without that
+    parameter. *)
+val extract : key -> t -> (Yojson.Safe.t * t) option
 
 (** Exception raised when a parameter is expected of a certain type (first
     string) but has another one (second string). *)

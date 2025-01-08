@@ -5,7 +5,10 @@ type t = (key * Yojson.Safe.t) list
 
 let empty = []
 
+let is_empty = (=) []
+
 let get = List.assoc_opt
+let extract = List.extract_assoc_opt
 
 exception WrongType of string * string
 let wrong_type ~expected provided =
