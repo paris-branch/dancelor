@@ -24,21 +24,13 @@ let update = endpoint ~path: "/book/update" (module MUnit)
 
 (* New-style Endpoints *)
 
-open Madge_router
-module MQ = Madge_query
+open Madge
 
-type t =
-  | Pdf of BookCore.t Slug.t * BookParameters.t option
-[@@deriving variants]
+type (_, _, _) t =
+  | Pdf : ((BookParameters.t option -> string -> 'w), 'w, MVoid.t) t
 
-let routes : t route list = [
-  with_slug_and_query
-    `GET
-    "/"
-    ~ext: "pdf"
-    (fun slug query -> Pdf (slug, MQ.get_ "parameters" BookParameters.of_yojson query))
-    (function
-      | Pdf (slug, None) -> Some (slug, MQ.empty)
-      | Pdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ BookParameters.to_yojson params)
-    );
-]
+type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
+let all = [W Pdf]
+
+let route : type a w r. (a, w, r) t -> (a, w, r) route = function
+  | Pdf -> literal "pdf" @@ query_opt "parameters" (module BookParameters) @@ variable (module SString) @@ return (module JVoid)

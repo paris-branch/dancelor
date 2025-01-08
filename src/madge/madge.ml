@@ -22,6 +22,10 @@ module SString : STRINGABLE with type t = string = struct
   let of_string = Option.some
 end
 
+module JVoid : JSONABLE with type t = Void.t = struct
+  type t = Void.t [@@deriving yojson]
+end
+
 (** Abstract type of a route. The type arguments are (1) the function type
     corresponding to the route, (2) the return value of that function type, (3)
     the return value from the route. *)
@@ -85,14 +89,14 @@ let rec match_
     (unit -> a) ->
     string list ->
     Madge_query.t ->
-    ((module JSONABLE with type t = r) -> (unit -> w) -> z) ->
-    z option
+    ((module JSONABLE with type t = r) -> w -> z) ->
+    (unit -> z) option
   = fun route controller path query return ->
     match route with
     | Return(module R) ->
       (
         if path = [] && Madge_query.is_empty query then
-          Some (return (module R) controller)
+          Some (fun () -> return (module R) (controller ()))
         else
           None
       )
@@ -140,8 +144,8 @@ let match_
   : type a w r z. (a, w, r) route ->
     a ->
     Uri.t ->
-    ((module JSONABLE with type t = r) -> (unit -> w) -> z) ->
-    z option
+    ((module JSONABLE with type t = r) -> w -> z) ->
+    (unit -> z) option
   = fun route controller uri return ->
     let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
     match_ route (fun () -> controller) path (Madge_query.from_uri uri) return

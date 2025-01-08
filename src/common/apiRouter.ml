@@ -4,7 +4,6 @@ type victor_level = One | Two | Three | Four
 
 (** Existing endpoints in Dancelor's API. *)
 type endpoint =
-  | Book of BookEndpoints.t
   | Set of SetEndpoints.t
   | Version of VersionEndpoints.t
   | Dance of DanceEndpoints.t
@@ -23,7 +22,6 @@ let routes : endpoint route list =
     direct `GET "/victor3" @@ Victor Three;
     direct `GET "/victor4" @@ Victor Four
   ] @
-  wrap_routes ~prefix: "/book" ~wrap: book ~unwrap: unBook BookEndpoints.routes @
   wrap_routes ~prefix: "/set" ~wrap: set ~unwrap: unSet SetEndpoints.routes @
   wrap_routes ~prefix: "/version" ~wrap: version ~unwrap: unVersion VersionEndpoints.routes @
   wrap_routes ~prefix: "/dance" ~wrap: dance ~unwrap: unDance DanceEndpoints.routes
@@ -40,7 +38,6 @@ let path_versionSvg ?params slug = path @@ version @@ VersionEndpoints.svg slug 
 let path_versionOgg slug = path @@ version @@ VersionEndpoints.ogg slug
 let path_versionPdf ?params slug = path @@ version @@ VersionEndpoints.pdf slug params
 let path_setPdf ?params slug = path @@ set @@ SetEndpoints.pdf slug params
-let path_bookPdf ?params slug = path @@ book @@ BookEndpoints.pdf slug params
 let path_dancePdf ?params slug = path @@ dance @@ DanceEndpoints.pdf slug params
 
 let endpoint method_ path query =
@@ -50,6 +47,7 @@ let endpoint method_ path query =
 
 type (_, _, _) endpoint_new =
   | Person : ('a, 'w, 'r) PersonEndpoints.t -> ('a, 'w, 'r) endpoint_new
+  | Book : ('a, 'w, 'r) BookEndpoints.t -> ('a, 'w, 'r) endpoint_new
 
 type endpoint_new_wrapped =
   | W : ('a, 'r Lwt.t, 'r) endpoint_new -> endpoint_new_wrapped
@@ -58,6 +56,7 @@ let all_endpoints =
   List.flatten
     [
       List.map (fun (PersonEndpoints.W e) -> W (Person e)) PersonEndpoints.all;
+      List.map (fun (BookEndpoints.W e) -> W (Book e)) BookEndpoints.all;
     ]
 
 open Madge
@@ -72,3 +71,7 @@ open Madge
 (* FIXME: Factorise adding the `/api` prefix. *)
 let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) route = function
   | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint
+  | Book endpoint -> literal "api" @@ literal "book" @@ BookEndpoints.route endpoint
+
+let path : type a r. (a, string, r) route -> a = fun route ->
+  process route (fun (module _) uri -> Uri.to_string uri)

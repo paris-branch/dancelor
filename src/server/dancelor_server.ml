@@ -35,7 +35,6 @@ let apply_controller path query =
   | Some endpoint ->
     (
       match endpoint with
-      | ApiRouter.Book (Pdf (slug, params)) -> Book.Pdf.get slug params
       | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
       | Version (Ly slug) -> Version.get_ly slug
       | Version (Svg (slug, params)) -> Version.Svg.get slug params
@@ -52,7 +51,13 @@ let apply_controller path query =
       (* FIXME: We remove it before only to add it here again - avoid this. *)
       (* FIXME: We should just get a URI. *)
       match madge_match_apply_all (Uri.make ~path: ("/api/" ^ path) ~query: (Madge_query.to_strings query) ()) with
-      | Some response -> response
+      | Some thunk ->
+        (
+          try%lwt
+            thunk ()
+          with
+          | Madge_server_new.Shortcut response -> Lwt.return response
+        )
       | None ->
         let message = spf "Page `%s` was not found" path in
         let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in

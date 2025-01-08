@@ -286,5 +286,8 @@ module Pdf = struct
   let get book parameters =
     let%lwt book = Model.Book.get book in
     let%lwt path_pdf = render ?parameters book in
-    Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_server_new.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
+
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
+  | Pdf -> (fun parameters book -> Pdf.get (NesSlug.unsafe_of_string book) parameters)
