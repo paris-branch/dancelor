@@ -85,6 +85,74 @@ module Route = struct
       a
     = fun route return ->
       process "" Madge_query.empty route return
+
+  (* NOTE: The [controller] is in a thunk to avoid it being ran halfway as we find
+     its last argument. It is actually run at the end when all is green. *)
+  let rec match_
+    : type a w r z. (a, w, r) t ->
+      (unit -> a) ->
+      string list ->
+      Madge_query.t ->
+      ((module JSON_SERIALISABLE with type t = r) -> (unit -> w) -> z) ->
+      z option
+    = fun route controller path query return ->
+      match route with
+      | Return(module R) ->
+        (
+          if path = [] && Madge_query.is_empty query then
+            Some (return (module R) controller)
+          else
+            None
+        )
+      | Literal (str, route) ->
+        (
+          match path with
+          | comp :: path when comp = str -> match_ route controller path query return
+          | _ -> None
+        )
+      | Variable (rt, route) ->
+        (
+          match path with
+          | comp :: path ->
+            (
+              match rt.of_string comp with
+              | Some comp -> match_ route (fun () -> controller () comp) path query return
+              | _ -> None
+            )
+          | _ -> None
+        )
+      | Query (name, (module R), route) ->
+        (
+          match Madge_query.extract name query with
+          | Some (value, query) ->
+            (
+              match R.of_yojson value with
+              | Ok value -> match_ route (fun () -> controller () value) path query return
+              | _ -> None
+            )
+          | None -> None
+        )
+      | QueryOpt (name, (module R), route) ->
+        (
+          match Madge_query.extract name query with
+          | Some (value, query) ->
+            (
+              match R.of_yojson value with
+              | Ok value -> match_ route (fun () -> controller () (Some value)) path query return
+              | _ -> None
+            )
+          | None -> match_ route (fun () -> controller () None) path query return
+        )
+
+  let match_
+    : type a w r z. (a, w, r) t ->
+      a ->
+      Uri.t ->
+      ((module JSON_SERIALISABLE with type t = r) -> (unit -> w) -> z) ->
+      z option
+    = fun route controller uri return ->
+      let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
+      match_ route (fun () -> controller) path (Madge_query.from_uri uri) return
 end
 
 let uri : type a r. (a, Uri.t, r) Route.t -> a = fun route ->
