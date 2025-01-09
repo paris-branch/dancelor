@@ -42,17 +42,29 @@ type (_, _, _) route =
   | Return : (module JSONABLE with type t = 'r) -> ('w, 'w, 'r) route
   | Literal : string * ('a, 'w, 'r) route -> ('a, 'w, 'r) route
   | Variable : (module STRINGABLE with type t = 'a) * ('b, 'w, 'r) route -> (('a -> 'b), 'w, 'r) route
-  | Query : string * (module JSONABLE with type t = 'a) * ('b, 'w, 'r) route -> (('a -> 'b), 'w, 'r) route
-  | QueryOpt : string * (module JSONABLE with type t = 'a) * ('b, 'w, 'r) route -> (('a option -> 'b), 'w, 'r) route
+  | Query :
+      string
+      * ('b option -> (('c -> 'a) -> 'a) option) (* proxy *)
+      * (('b option -> 'a) -> ('c -> 'a)) (* unproxy *)
+      * (module JSONABLE with type t = 'b)
+      * ('a, 'w, 'r) route ->
+      (('c -> 'a), 'w, 'r) route
 
 let return rt = Return rt
 let literal str route = Literal (str, route)
 let variable rt route = Variable (rt, route)
-let query name rt route = Query (name, rt, route)
-let query_opt name rt route = QueryOpt (name, rt, route)
+
+let query_opt name rt route =
+  let proxy = Option.some % (fun x f -> f x) in
+  Query (name, proxy, Fun.id, rt, route)
+
+let query name rt route =
+  let proxy = Option.map (fun x f -> f x) in
+  let unproxy = fun f x -> f (Some x) in
+  Query (name, proxy, unproxy, rt, route)
 
 let rec process
-  : type a w r. Buffer.t ->
+  : type a w r. string ->
     Madge_query.t ->
     (a, w, r) route ->
     ((module JSONABLE with type t = r) -> Uri.t -> w) ->
@@ -60,36 +72,30 @@ let rec process
   = fun path query route return ->
     match route with
     | Return(module R) ->
-      let uri = Uri.make ~path: (Buffer.contents path) ~query: (Madge_query.to_strings query) () in
+      let uri = Uri.make ~path ~query: (Madge_query.to_strings query) () in
       return (module R) uri
     | Literal (str, route) ->
-      Buffer.add_char path '/';
-      Buffer.add_string path str;
-      process path query route return
+      process (path ^ "/" ^ str) query route return
     | Variable ((module R), route) ->
       fun x ->
-        Buffer.add_char path '/';
         (* FIXME: url encode *)
-        Buffer.add_string path (R.to_string x);
-        process path query route return
-    | Query (name, (module R), route) ->
-      fun x ->
-        let query = Madge_query.add name (R.to_yojson x) query in
-        process path query route return
-    | QueryOpt (name, (module R), route) ->
-      function
-      | None ->
-        process path query route return
-      | Some x ->
-        let query = Madge_query.add name (R.to_yojson x) query in
-        process path query route return
+        process (path ^ "/" ^ R.to_string x) query route return
+    | Query (name, _, unproxy, (module R), route) ->
+      (
+        unproxy @@ function
+        | None ->
+          process path query route return
+        | Some x ->
+          let query = Madge_query.add name (R.to_yojson x) query in
+          process path query route return
+      )
 
 let process
   : type a w r. (a, w, r) route ->
     ((module JSONABLE with type t = r) -> Uri.t -> w) ->
     a
   = fun route return ->
-    process (Buffer.create 8) Madge_query.empty route return
+    process "" Madge_query.empty route return
 
 (* NOTE: The [controller] is in a thunk to avoid it being ran halfway as we find
    its last argument. It is actually run at the end when all is green. *)
@@ -126,27 +132,22 @@ let rec match_
           )
         | _ -> None
       )
-    | Query (name, (module R), route) ->
+    | Query (name, proxy, _, (module R), route) ->
       (
-        match Madge_query.extract name query with
-        | Some (value, query) ->
-          (
+        let extract_and_parse =
+          match Madge_query.extract name query with
+          | None -> Ok (None, query) (* absent: OK *)
+          | Some (value, query) ->
             match R.of_yojson value with
-            | Ok value -> match_ route (fun () -> controller () value) path query return
-            | _ -> None
-          )
-        | None -> None
-      )
-    | QueryOpt (name, (module R), route) ->
-      (
-        match Madge_query.extract name query with
-        | Some (value, query) ->
-          (
-            match R.of_yojson value with
-            | Ok value -> match_ route (fun () -> controller () (Some value)) path query return
-            | _ -> None
-          )
-        | None -> match_ route (fun () -> controller () None) path query return
+            | Ok value -> Ok (Some value, query)
+            | Error _ -> Error "unparseable" (* present but unparseable: error *)
+        in
+        match extract_and_parse with
+        | Error _ -> None (* unparseable: the route does not match *)
+        | Ok (maybe_value, query) ->
+          match proxy maybe_value with
+          | None -> None
+          | Some f -> match_ route (fun () -> f (controller ())) path query return
       )
 
 let match_
