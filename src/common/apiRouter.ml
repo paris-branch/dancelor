@@ -48,6 +48,7 @@ let endpoint method_ path query =
 type (_, _, _) endpoint_new =
   | Person : ('a, 'w, 'r) PersonEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Book : ('a, 'w, 'r) BookEndpoints.t -> ('a, 'w, 'r) endpoint_new
+  | Tune : ('a, 'w, 'r) TuneEndpoints.t -> ('a, 'w, 'r) endpoint_new
 
 type endpoint_new_wrapped =
   | W : ('a, 'r Lwt.t, 'r) endpoint_new -> endpoint_new_wrapped
@@ -57,6 +58,7 @@ let all_endpoints =
     [
       List.map (fun (PersonEndpoints.W e) -> W (Person e)) PersonEndpoints.all;
       List.map (fun (BookEndpoints.W e) -> W (Book e)) BookEndpoints.all;
+      List.map (fun (TuneEndpoints.W e) -> W (Tune e)) TuneEndpoints.all;
     ]
 
 open Madge
@@ -65,6 +67,7 @@ open Madge
 let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) route = function
   | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint
   | Book endpoint -> literal "api" @@ literal "book" @@ BookEndpoints.route endpoint
+  | Tune endpoint -> literal "api" @@ literal "tune" @@ TuneEndpoints.route endpoint
 
 let path : type a r. (a, string, r) route -> a = fun route ->
   process route (fun (module _) uri -> Uri.to_string uri)

@@ -1,24 +1,16 @@
 open Nes
 open Madge_common
+open Madge
 
-module Arguments = struct
-  let slug = arg ~key: "slug" (module MSlug(TuneCore))
-  let status = optarg (module Status)
-  let filter = arg (module TuneCore.Filter)
-  let slice = optarg (module Slice)
-  let threshold = optarg ~key: "threshold" (module MFloat)
-  let name = arg ~key: "name" (module MString)
-  let alternative_names = optarg ~key: "alternative-names" (module MList(MString))
-  let kind = arg ~key: "kind" (module Kind.Base)
-  let composers = optarg ~key: "composers" (module MList(PersonCore))
-  let dances = optarg ~key: "dances" (module MList(DanceCore))
-  let remark = optarg ~key: "remark" (module MString)
-  let scddb_id = optarg ~key: "scddb-id" (module MInteger)
-  let date = optarg ~key: "date" (module PartialDate)
-  let modified_at = arg ~key: "modified-at" (module NesDatetime)
-  let created_at = arg ~key: "created-at" (module NesDatetime)
-end
+type (_, _, _) t =
+  | Get : ((TuneCore.t Slug.t -> 'w), 'w, TuneCore.t) t
+  | Search : ((Slice.t option -> float option -> TuneCore.Filter.t -> 'w), 'w, (int * TuneCore.t list)) t
+  | MakeAndSave : ((Status.t option -> string -> string list option -> Kind.Base.t -> PersonCore.t list option -> DanceCore.t list option -> string option -> int option -> PartialDate.t option -> Datetime.t -> Datetime.t -> 'w), 'w, TuneCore.t) t
 
-let get = endpoint ~path: "/tune" (module TuneCore)
-let make_and_save = endpoint ~path: "/tune/save" (module TuneCore)
-let search = endpoint ~path: "/tune/search" (module MPair(MInteger)(MList(TuneCore)))
+type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
+let all = [W Get; W Search; W MakeAndSave]
+
+let route : type a w r. (a, w, r) t -> (a, w, r) route = function
+  | Get -> literal "get" @@ variable (module SSlug(TuneCore)) @@ return (module TuneCore)
+  | Search -> literal "search" @@ query_opt "slice" (module Slice) @@ query_opt "threshold" (module MFloat) @@ query "filter" (module TuneCore.Filter) @@ return (module MPair(MInteger)(MList(TuneCore)))
+  | MakeAndSave -> literal "make-and-save" @@ query_opt "status" (module Status) @@ query "name" (module MString) @@ query_opt "alternative-names" (module MList(MString)) @@ query "kind" (module Kind.Base) @@ query_opt "composers" (module MList(PersonCore)) @@ query_opt "dances" (module MList(DanceCore)) @@ query_opt "remark" (module MString) @@ query_opt "scddb-id" (module MInteger) @@ query_opt "date" (module PartialDate) @@ query "modified-at" (module Datetime) @@ query "created-at" (module Datetime) @@ return (module TuneCore)
