@@ -4,7 +4,6 @@ type victor_level = One | Two | Three | Four
 
 (** Existing endpoints in Dancelor's API. *)
 type endpoint =
-  | Set of SetEndpoints.t
   | Version of VersionEndpoints.t
   | Dance of DanceEndpoints.t
   | Victor of victor_level
@@ -22,7 +21,6 @@ let routes : endpoint route list =
     direct `GET "/victor3" @@ Victor Three;
     direct `GET "/victor4" @@ Victor Four
   ] @
-  wrap_routes ~prefix: "/set" ~wrap: set ~unwrap: unSet SetEndpoints.routes @
   wrap_routes ~prefix: "/version" ~wrap: version ~unwrap: unVersion VersionEndpoints.routes @
   wrap_routes ~prefix: "/dance" ~wrap: dance ~unwrap: unDance DanceEndpoints.routes
 
@@ -37,7 +35,6 @@ let path_versionLy slug = path @@ version @@ VersionEndpoints.ly slug
 let path_versionSvg ?params slug = path @@ version @@ VersionEndpoints.svg slug params
 let path_versionOgg slug = path @@ version @@ VersionEndpoints.ogg slug
 let path_versionPdf ?params slug = path @@ version @@ VersionEndpoints.pdf slug params
-let path_setPdf ?params slug = path @@ set @@ SetEndpoints.pdf slug params
 let path_dancePdf ?params slug = path @@ dance @@ DanceEndpoints.pdf slug params
 
 let endpoint method_ path query =
@@ -48,6 +45,7 @@ let endpoint method_ path query =
 type (_, _, _) endpoint_new =
   | Person : ('a, 'w, 'r) PersonEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Book : ('a, 'w, 'r) BookEndpoints.t -> ('a, 'w, 'r) endpoint_new
+  | Set : ('a, 'w, 'r) SetEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Tune : ('a, 'w, 'r) TuneEndpoints.t -> ('a, 'w, 'r) endpoint_new
 
 type endpoint_new_wrapped =
@@ -58,6 +56,7 @@ let all_endpoints =
     [
       List.map (fun (PersonEndpoints.W e) -> W (Person e)) PersonEndpoints.all;
       List.map (fun (BookEndpoints.W e) -> W (Book e)) BookEndpoints.all;
+      List.map (fun (SetEndpoints.W e) -> W (Set e)) SetEndpoints.all;
       List.map (fun (TuneEndpoints.W e) -> W (Tune e)) TuneEndpoints.all;
     ]
 
@@ -67,6 +66,7 @@ open Madge
 let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) route = function
   | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint
   | Book endpoint -> literal "api" @@ literal "book" @@ BookEndpoints.route endpoint
+  | Set endpoint -> literal "api" @@ literal "set" @@ SetEndpoints.route endpoint
   | Tune endpoint -> literal "api" @@ literal "tune" @@ TuneEndpoints.route endpoint
 
 let path : type a r. (a, string, r) route -> a = fun route ->

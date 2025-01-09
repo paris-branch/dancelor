@@ -35,7 +35,6 @@ let apply_controller path query =
   | Some endpoint ->
     (
       match endpoint with
-      | Set (Pdf (slug, params)) -> Set.Pdf.get slug params
       | Version (Ly slug) -> Version.get_ly slug
       | Version (Svg (slug, params)) -> Version.Svg.get slug params
       | Version (Ogg slug) -> Version.Ogg.get slug
