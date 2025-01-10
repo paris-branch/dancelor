@@ -4,41 +4,7 @@
 
 open Nes
 
-module type STRINGABLE = sig
-  type t
-  val to_string : t -> string
-  val of_string : string -> t option
-end
-
-module type JSONABLE = sig
-  type t
-  val to_yojson : t -> Yojson.Safe.t
-  val of_yojson : Yojson.Safe.t -> (t, string) result
-end
-
-module SString : STRINGABLE with type t = string = struct
-  type t = string
-  let to_string = Fun.id
-  let of_string = Option.some
-end
-
-module JVoid : JSONABLE with type t = Void.t = struct
-  type t = Void.t [@@deriving yojson]
-end
-
-(* For the slugs, we can stringify them just like strings, no matter what type
-   they carry. *)
-module type TYPEABLE = sig type t end
-module SSlug (A : TYPEABLE) : STRINGABLE with type t = A.t Slug.t = struct
-  type t = A.t Slug.t
-  let to_string = Slug.to_string
-  let of_string = Option.some % Slug.unsafe_of_string
-end
-module JSlug (A : TYPEABLE) : JSONABLE with type t = A.t Slug.t = struct
-  type t = A.t Slug.t
-  let to_yojson x = `String (Slug.to_string x)
-  let of_yojson = function `String s -> Ok (Slug.unsafe_of_string s) | _ -> Error "JSlug.of_yojson"
-end
+include Serialisation
 
 (** Abstract type of a route. The type arguments are (1) the function type
     corresponding to the route, (2) the return value of that function type, (3)
