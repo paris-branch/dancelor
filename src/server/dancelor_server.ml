@@ -30,33 +30,20 @@ let madge_match_apply_all path =
   madge_match_apply_all ApiRouter.all_endpoints
 
 let apply_controller path query =
-  (* FIXME: not necessarily `GET *)
-  match ApiRouter.endpoint `GET path query with
-  | Some endpoint ->
+  (* FIXME: We remove it before only to add it here again - avoid this. *)
+  (* FIXME: We should just get a URI. *)
+  match madge_match_apply_all (Uri.make ~path: ("/api/" ^ path) ~query: (Madge_query.to_strings query) ()) with
+  | Some thunk ->
     (
-      match endpoint with
-      | Victor One -> log_exit 101
-      | Victor Two -> log_exit 102
-      | Victor Three -> log_exit 103
-      | Victor Four -> log_exit 104
+      try%lwt
+        thunk ()
+      with
+      | Madge_server_new.Shortcut response -> Lwt.return response
     )
   | None ->
-    (
-      (* FIXME: We remove it before only to add it here again - avoid this. *)
-      (* FIXME: We should just get a URI. *)
-      match madge_match_apply_all (Uri.make ~path: ("/api/" ^ path) ~query: (Madge_query.to_strings query) ()) with
-      | Some thunk ->
-        (
-          try%lwt
-            thunk ()
-          with
-          | Madge_server_new.Shortcut response -> Lwt.return response
-        )
-      | None ->
-        let message = spf "Page `%s` was not found" path in
-        let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
-        Server.respond_error ~status: `Not_found ~body ()
-    )
+    let message = spf "Page `%s` was not found" path in
+    let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
+    Server.respond_error ~status: `Not_found ~body ()
 
 (** Consider the query and the body to build a consolidated query. *)
 let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
