@@ -43,8 +43,8 @@ end
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.DanceEndpoints.t -> a = function
   | Get -> Model.Dance.get
   | Search -> (fun slice threshold filter -> Model.Dance.search ?slice ?threshold filter)
-  | MakeAndSave ->
+  | Save ->
     (fun status name kind devisers two_chords scddb_id disambiguation date modified_at created_at ->
-       Model.Dance.make_and_save ?status ~name ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date ~modified_at ~created_at ()
+       Model.Dance.save ?status ~name ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date ~modified_at ~created_at ()
     )
   | Pdf -> (fun parameters dance -> Pdf.get dance parameters)

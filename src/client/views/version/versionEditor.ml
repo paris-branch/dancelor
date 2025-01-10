@@ -147,7 +147,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
       Lwt.map Option.some @@
-      Model.Version.make_and_save
+      Model.Version.save
         ~tune
         ~bars
         ~key

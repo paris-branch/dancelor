@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 include VersionLifted
 
-let make_and_save
+let save
     ?status
     ~tune
     ~bars
@@ -18,7 +18,7 @@ let make_and_save
     ()
   =
   Madge_client_new.call
-    ApiRouter.(route @@ Version MakeAndSave)
+    ApiRouter.(route @@ Version Save)
     status
     tune
     bars

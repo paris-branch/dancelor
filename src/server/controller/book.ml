@@ -291,7 +291,7 @@ end
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
   | Get -> Model.Book.get
   | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
-  | MakeAndSave ->
+  | Save ->
     (fun status title date contents modified_at created_at ->
        let%lwt contents =
          match contents with
@@ -300,7 +300,7 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -
            let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
            Lwt.return_some contents
        in
-       Model.Book.make_and_save ?status ~title ?date ?contents ~modified_at ~created_at ()
+       Model.Book.save ?status ~title ?date ?contents ~modified_at ~created_at ()
     )
   | Update ->
     (fun status title date contents modified_at created_at slug ->

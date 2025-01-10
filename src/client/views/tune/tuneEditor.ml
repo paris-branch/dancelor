@@ -153,7 +153,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Tune.make_and_save
+      Model.Tune.save
         ~name
         ~kind
         ~composers

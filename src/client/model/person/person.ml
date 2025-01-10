@@ -1,9 +1,9 @@
 open Dancelor_common
 include PersonLifted
 
-let make_and_save ?status ~name ?scddb_id ~modified_at ~created_at () =
+let save ?status ~name ?scddb_id ~modified_at ~created_at () =
   Madge_client_new.call
-    ApiRouter.(route @@ Person MakeAndSave)
+    ApiRouter.(route @@ Person Save)
     status
     name
     scddb_id

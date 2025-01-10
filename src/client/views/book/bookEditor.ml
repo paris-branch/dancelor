@@ -141,7 +141,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; date; sets} ->
       Lwt.map Option.some @@
-      Model.Book.make_and_save
+      Model.Book.save
         ~title: name
         ?date
         ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)

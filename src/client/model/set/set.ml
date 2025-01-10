@@ -1,7 +1,7 @@
 open Dancelor_common
 include SetLifted
 
-let make_and_save
+let save
     ?status
     ~name
     ?conceptors
@@ -14,7 +14,7 @@ let make_and_save
     ()
   =
   Madge_client_new.call
-    ApiRouter.(route @@ Set MakeAndSave)
+    ApiRouter.(route @@ Set Save)
     status
     name
     conceptors

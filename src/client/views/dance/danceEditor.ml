@@ -151,7 +151,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Dance.make_and_save
+      Model.Dance.save
         ~name
         ~kind
         ~devisers

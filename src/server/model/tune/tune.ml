@@ -4,7 +4,7 @@ module Database = Dancelor_server_database
 
 include TuneLifted
 
-let make_and_save
+let save
     ?status
     ~name
     ?alternative_names

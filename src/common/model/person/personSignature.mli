@@ -49,7 +49,7 @@ val get : t Slug.t -> t Lwt.t
 (** Look up a person in the database given its slug. On the client-side, this
     involves an API call. *)
 
-val make_and_save :
+val save :
   ?status: Status.t ->
   name: string ->
   ?scddb_id: int ->

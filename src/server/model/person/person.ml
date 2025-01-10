@@ -4,7 +4,7 @@ module Database = Dancelor_server_database
 
 include PersonLifted
 
-let make_and_save ?status ~name ?scddb_id ~modified_at ~created_at () =
+let save ?status ~name ?scddb_id ~modified_at ~created_at () =
   Database.Person.save ~slug_hint: name @@ fun slug ->
   Lwt.return (make ?status ~slug ~name ~scddb_id ~modified_at ~created_at ()) (* FIXME: status should probably go in save *)
 

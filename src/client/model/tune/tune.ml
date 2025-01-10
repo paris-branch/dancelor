@@ -1,7 +1,7 @@
 open Dancelor_common
 include TuneLifted
 
-let make_and_save
+let save
     ?status
     ~name
     ?alternative_names
@@ -16,7 +16,7 @@ let make_and_save
     ()
   =
   Madge_client_new.call
-    ApiRouter.(route @@ Tune MakeAndSave)
+    ApiRouter.(route @@ Tune Save)
     status
     name
     alternative_names

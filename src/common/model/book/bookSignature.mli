@@ -119,7 +119,7 @@ end
 
 val get : t Slug.t -> t Lwt.t
 
-val make_and_save :
+val save :
   ?status: Status.t ->
   title: string ->
   ?date: PartialDate.t ->
@@ -139,7 +139,7 @@ val make :
   created_at: Datetime.t ->
   unit ->
   t Lwt.t
-(** Low-level unsafe book creation. Prefer {!make_and_save} or {!update}. *)
+(** Low-level unsafe book creation. Prefer {!save} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->

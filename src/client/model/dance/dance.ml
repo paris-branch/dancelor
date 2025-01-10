@@ -1,7 +1,7 @@
 open Dancelor_common
 include DanceLifted
 
-let make_and_save
+let save
     ?status
     ~name
     ~kind
@@ -15,7 +15,7 @@ let make_and_save
     ()
   =
   Madge_client_new.call
-    ApiRouter.(route @@ Dance MakeAndSave)
+    ApiRouter.(route @@ Dance Save)
     status
     name
     kind

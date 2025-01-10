@@ -1,7 +1,7 @@
 open Dancelor_common
 include BookLifted
 
-let make_and_save
+let save
     ?status
     ~title
     ?date
@@ -12,7 +12,7 @@ let make_and_save
   =
   let contents = Option.map (List.map page_to_page_core) contents in
   Madge_client_new.call
-    ApiRouter.(route @@ Book MakeAndSave)
+    ApiRouter.(route @@ Book Save)
     status
     title
     date

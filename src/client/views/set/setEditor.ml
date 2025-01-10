@@ -136,7 +136,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; conceptors; versions; order} ->
       Lwt.map Option.some @@
-      Model.Set.make_and_save
+      Model.Set.save
         ~name
         ~kind
         ~conceptors
