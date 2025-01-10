@@ -10,5 +10,6 @@ open Dancelor_common
 let dispatch : type a r. (a, r Lwt.t, r) ApiRouter.endpoint_new -> a = function
   | Person endpoint -> Person.dispatch endpoint
   | Book endpoint -> Book.dispatch endpoint
+  | Dance endpoint -> Dance.dispatch endpoint
   | Set endpoint -> Set.dispatch endpoint
   | Tune endpoint -> Tune.dispatch endpoint
