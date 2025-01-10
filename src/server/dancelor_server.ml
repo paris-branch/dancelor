@@ -17,22 +17,18 @@ let log_exn ~msg exn =
 let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
-let madge_match_apply_all path =
+let apply_controller uri =
   let rec madge_match_apply_all = function
     | [] -> None
     | ApiRouter.W endpoint :: wrapped_endpoints ->
       (
-        match Madge_server_new.match_apply (ApiRouter.route endpoint) (dispatch endpoint) path with
+        match Madge_server_new.match_apply (ApiRouter.route endpoint) (dispatch endpoint) uri with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
   in
-  madge_match_apply_all ApiRouter.all_endpoints
-
-let apply_controller path query =
-  (* FIXME: We remove it before only to add it here again - avoid this. *)
   (* FIXME: We should just get a URI. *)
-  match madge_match_apply_all (Uri.make ~path: ("/api/" ^ path) ~query: (Madge_query.to_strings query) ()) with
+  match madge_match_apply_all ApiRouter.all_endpoints with
   | Some thunk ->
     (
       try%lwt
@@ -41,15 +37,9 @@ let apply_controller path query =
       | Madge_server_new.Shortcut response -> Lwt.return response
     )
   | None ->
-    let message = spf "Page `%s` was not found" path in
+    let message = spf "Page `%s` was not found" (Uri.path uri) in
     let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
     Server.respond_error ~status: `Not_found ~body ()
-
-(** Consider the query and the body to build a consolidated query. *)
-let consolidate_query_parameters (uri : Uri.t) (body : Cohttp_lwt.Body.t) : Madge_query.t Lwt.t =
-  let%lwt high = Madge_query.from_body body in
-  let low = Madge_query.from_uri uri in
-  Lwt.return (Madge_query.append ~high ~low)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function
@@ -70,16 +60,14 @@ let catchall ~place ~die fun_ =
 (** Callback handling one client request. It is in charge of trying to find what
     will answer to the request: a static file, or a Madge API point, or the
     standard main JS file. *)
-let callback _ request body =
+let callback _ request _body =
   catchall
     ~place: "the callback"
     ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
   @@ fun () ->
   let uri = Request.uri request in
-  let meth = Request.meth request in
   let path = Uri.path uri in
   Log.info (fun m -> m "Request for %s" path);
-  let%lwt query_parameters = consolidate_query_parameters uri body in
   let full_path = Filename.concat !Dancelor_server_config.share path in
   Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
@@ -92,20 +80,16 @@ let callback _ request body =
   else
     (
       Log.debug (fun m -> m "Asking Madge for %s." path);
-      match%lwt Madge_server.handle meth path (Madge_query.to_list query_parameters) with
-      | Some response -> Lwt.return response
-      | None ->
-        if String.starts_with ~needle: "/api/" path then
-          (
-            let path = String.sub path 4 (String.length path - 4) in
-            Log.debug (fun m -> m "Looking for an API controller for %s." path);
-            apply_controller path query_parameters
-          )
-        else
-          (
-            Log.debug (fun m -> m "Serving main file.");
-            Server.respond_file ~fname: (Filename.concat !Dancelor_server_config.share "index.html") ()
-          )
+      if String.starts_with ~needle: "/api/" path then
+        (
+          Log.debug (fun m -> m "Looking for an API controller for %s." path);
+          apply_controller uri
+        )
+      else
+        (
+          Log.debug (fun m -> m "Serving main file.");
+          Server.respond_file ~fname: (Filename.concat !Dancelor_server_config.share "index.html") ()
+        )
     )
 
 let () =

@@ -31,22 +31,6 @@
   (pps ppx_deriving_yojson lwt_ppx)))
 
 (library
- (name madge_client)
- (modules madge_client)
- (public_name dancelor.madge.client)
- (libraries dancelor.madge.common cohttp-lwt-jsoo)
- (preprocess
-  (pps ppx_deriving_yojson lwt_ppx)))
-
-(library
- (name madge_server)
- (modules madge_server)
- (public_name dancelor.madge.server)
- (libraries dancelor.madge.common cohttp-lwt-unix)
- (preprocess
-  (pps ppx_deriving_yojson lwt_ppx)))
-
-(library
  (name madge_router)
  (modules madge_router)
  (public_name dancelor.madge.router)
