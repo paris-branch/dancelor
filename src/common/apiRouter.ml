@@ -8,6 +8,7 @@ type (_, _, _) endpoint =
   | Dance : ('a, 'w, 'r) DanceEndpoints.t -> ('a, 'w, 'r) endpoint
   | Set : ('a, 'w, 'r) SetEndpoints.t -> ('a, 'w, 'r) endpoint
   | Tune : ('a, 'w, 'r) TuneEndpoints.t -> ('a, 'w, 'r) endpoint
+  | Any : ('a, 'w, 'r) AnyEndpoints.t -> ('a, 'w, 'r) endpoint
   | Victor : ('w, 'w, Void.t) endpoint
 
 type endpoint_wrapped =
@@ -22,6 +23,7 @@ let all_endpoints =
       List.map (fun (DanceEndpoints.W e) -> W (Dance e)) DanceEndpoints.all;
       List.map (fun (SetEndpoints.W e) -> W (Set e)) SetEndpoints.all;
       List.map (fun (TuneEndpoints.W e) -> W (Tune e)) TuneEndpoints.all;
+      List.map (fun (AnyEndpoints.W e) -> W (Any e)) AnyEndpoints.all;
       [W Victor];
     ]
 
@@ -35,6 +37,7 @@ let route : type a w r. (a, w, r) endpoint -> (a, w, r) route = function
   | Dance endpoint -> literal "api" @@ literal "dance" @@ DanceEndpoints.route endpoint
   | Set endpoint -> literal "api" @@ literal "set" @@ SetEndpoints.route endpoint
   | Tune endpoint -> literal "api" @@ literal "tune" @@ TuneEndpoints.route endpoint
+  | Any endpoint -> literal "api" @@ literal "any" @@ AnyEndpoints.route endpoint
   | Victor -> literal "api" @@ literal "victor" @@ return (module Void)
 
 let path : type a r. (a, string, r) route -> a = fun route ->
