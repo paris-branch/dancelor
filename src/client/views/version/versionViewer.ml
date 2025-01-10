@@ -53,7 +53,7 @@ let create ?context slug =
             a
               ~a: [
                 a_class ["button"];
-                a_href ApiRouter.(path_versionLy slug);
+                a_href (ApiRouter.(path @@ route @@ Version Ly) slug);
               ]
               [
                 i ~a: [a_class ["material-symbols-outlined"]] [txt "article"];
@@ -112,7 +112,7 @@ let create ?context slug =
               object_
                 ~a: [
                   a_mime_type "image/svg+xml";
-                  a_data ApiRouter.(path_versionSvg slug)
+                  a_data (ApiRouter.(path @@ route @@ Version Svg) None slug)
                 ]
                 [];
             ]
@@ -122,7 +122,7 @@ let create ?context slug =
         [
           audio
             ~a: [a_controls ()]
-            ~src: ApiRouter.(path_versionOgg slug)
+            ~src: (ApiRouter.(path @@ route @@ Version Ogg) slug)
             []
         ];
       L.div

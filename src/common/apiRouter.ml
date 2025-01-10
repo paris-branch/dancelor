@@ -4,7 +4,6 @@ type victor_level = One | Two | Three | Four
 
 (** Existing endpoints in Dancelor's API. *)
 type endpoint =
-  | Version of VersionEndpoints.t
   | Victor of victor_level
 [@@deriving variants]
 
@@ -13,26 +12,12 @@ type endpoint =
 open Madge_router
 module MQ = Madge_query
 
-let routes : endpoint route list =
-  [
-    direct `GET "/victor" @@ Victor One;
-    direct `GET "/victor2" @@ Victor Two;
-    direct `GET "/victor3" @@ Victor Three;
-    direct `GET "/victor4" @@ Victor Four
-  ] @
-  wrap_routes ~prefix: "/version" ~wrap: version ~unwrap: unVersion VersionEndpoints.routes
-
-let path ?(api_prefix = true) endpoint =
-  let request = Madge_router.resource_to_request endpoint routes in
-  assert (request.method_ = `GET);
-  let path = Uri.(to_string @@ make ~path: request.path ~query: (MQ.to_strings request.query) ()) in
-  (* FIXME: a bit stupid to convert it to string, we should just carry [Uri.t] around! *)
-  if api_prefix then "/" ^ Constant.api_prefix ^ path else path
-
-let path_versionLy slug = path @@ version @@ VersionEndpoints.ly slug
-let path_versionSvg ?params slug = path @@ version @@ VersionEndpoints.svg slug params
-let path_versionOgg slug = path @@ version @@ VersionEndpoints.ogg slug
-let path_versionPdf ?params slug = path @@ version @@ VersionEndpoints.pdf slug params
+let routes : endpoint route list = [
+  direct `GET "/victor" @@ Victor One;
+  direct `GET "/victor2" @@ Victor Two;
+  direct `GET "/victor3" @@ Victor Three;
+  direct `GET "/victor4" @@ Victor Four
+]
 
 let endpoint method_ path query =
   Madge_router.request_to_resource {method_; path; query} routes
@@ -42,6 +27,7 @@ let endpoint method_ path query =
 type (_, _, _) endpoint_new =
   | Person : ('a, 'w, 'r) PersonEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Book : ('a, 'w, 'r) BookEndpoints.t -> ('a, 'w, 'r) endpoint_new
+  | Version : ('a, 'w, 'r) VersionEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Dance : ('a, 'w, 'r) DanceEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Set : ('a, 'w, 'r) SetEndpoints.t -> ('a, 'w, 'r) endpoint_new
   | Tune : ('a, 'w, 'r) TuneEndpoints.t -> ('a, 'w, 'r) endpoint_new
@@ -54,6 +40,7 @@ let all_endpoints =
     [
       List.map (fun (PersonEndpoints.W e) -> W (Person e)) PersonEndpoints.all;
       List.map (fun (BookEndpoints.W e) -> W (Book e)) BookEndpoints.all;
+      List.map (fun (VersionEndpoints.W e) -> W (Version e)) VersionEndpoints.all;
       List.map (fun (DanceEndpoints.W e) -> W (Dance e)) DanceEndpoints.all;
       List.map (fun (SetEndpoints.W e) -> W (Set e)) SetEndpoints.all;
       List.map (fun (TuneEndpoints.W e) -> W (Tune e)) TuneEndpoints.all;
@@ -65,6 +52,7 @@ open Madge
 let route : type a w r. (a, w, r) endpoint_new -> (a, w, r) route = function
   | Person endpoint -> literal "api" @@ literal "person" @@ PersonEndpoints.route endpoint
   | Book endpoint -> literal "api" @@ literal "book" @@ BookEndpoints.route endpoint
+  | Version endpoint -> literal "api" @@ literal "version" @@ VersionEndpoints.route endpoint
   | Dance endpoint -> literal "api" @@ literal "dance" @@ DanceEndpoints.route endpoint
   | Set endpoint -> literal "api" @@ literal "set" @@ SetEndpoints.route endpoint
   | Tune endpoint -> literal "api" @@ literal "tune" @@ TuneEndpoints.route endpoint

@@ -187,7 +187,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
+                                a_data (ApiRouter.(path @@ route @@ Version Svg) None (Model.Version.slug version));
                               ]
                               [];
                           ]

@@ -105,5 +105,4 @@ val count :
 (** Like {!search} but returns only the number of items. *)
 
 val mark_broken : t -> unit Lwt.t
-
 val mark_fixed : t -> unit Lwt.t

@@ -1,14 +1,8 @@
-open Dancelor_common_model
+open Dancelor_common
+open Model
 
 include VersionLifter.Lift(Person)(Tune)
 
 let content _version = assert false (* FIXME *)
 
-module E = VersionEndpoints
-module A = E.Arguments
-
-let get slug =
-  Madge_client.(
-    call ~endpoint: E.get @@ fun {a} _ ->
-    a A.slug slug
-  )
+let get = Madge_client_new.call ApiRouter.(route @@ Version Get)

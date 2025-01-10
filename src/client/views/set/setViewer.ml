@@ -88,7 +88,7 @@ let create ?context slug =
                            object_
                              ~a: [
                                a_mime_type "image/svg+xml";
-                               a_data ApiRouter.(path_versionSvg slug);
+                               a_data (ApiRouter.(path @@ route @@ Version Svg) None slug);
                              ]
                              [];
                          ]

@@ -35,10 +35,6 @@ let apply_controller path query =
   | Some endpoint ->
     (
       match endpoint with
-      | Version (Ly slug) -> Version.get_ly slug
-      | Version (Svg (slug, params)) -> Version.Svg.get slug params
-      | Version (Ogg slug) -> Version.Ogg.get slug
-      | Version (Pdf (slug, params)) -> Version.Pdf.get slug params
       | Victor One -> log_exit 101
       | Victor Two -> log_exit 102
       | Victor Three -> log_exit 103
