@@ -1,5 +1,4 @@
 open Nes
-open Madge_common
 open Madge
 
 type (_, _, _) t =
@@ -12,5 +11,5 @@ let all = [W Get; W Search; W Save]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Get -> literal "get" @@ variable (module SSlug(TuneCore)) @@ return (module TuneCore)
-  | Search -> literal "search" @@ query_opt "slice" (module Slice) @@ query_opt "threshold" (module MFloat) @@ query "filter" (module TuneCore.Filter) @@ return (module MPair(MInteger)(MList(TuneCore)))
-  | Save -> literal "make-and-save" @@ query_opt "status" (module Status) @@ query "name" (module MString) @@ query_opt "alternative-names" (module MList(MString)) @@ query "kind" (module Kind.Base) @@ query_opt "composers" (module MList(PersonCore)) @@ query_opt "dances" (module MList(DanceCore)) @@ query_opt "remark" (module MString) @@ query_opt "scddb-id" (module MInteger) @@ query_opt "date" (module PartialDate) @@ query "modified-at" (module Datetime) @@ query "created-at" (module Datetime) @@ return (module TuneCore)
+  | Search -> literal "search" @@ query_opt "slice" (module Slice) @@ query_opt "threshold" (module JFloat) @@ query "filter" (module TuneCore.Filter) @@ return (module JPair(JInt)(JList(TuneCore)))
+  | Save -> literal "make-and-save" @@ query_opt "status" (module Status) @@ query "name" (module JString) @@ query_opt "alternative-names" (module JList(JString)) @@ query "kind" (module Kind.Base) @@ query_opt "composers" (module JList(PersonCore)) @@ query_opt "dances" (module JList(DanceCore)) @@ query_opt "remark" (module JString) @@ query_opt "scddb-id" (module JInt) @@ query_opt "date" (module PartialDate) @@ query "modified-at" (module Datetime) @@ query "created-at" (module Datetime) @@ return (module TuneCore)

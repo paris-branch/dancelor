@@ -80,7 +80,7 @@ let route : type a w r. (a, w, r) page -> (a, w, r) route = function
   | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(VersionCore)) @@ return (module Void)
   | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(TuneCore)) @@ return (module Void)
   | Index -> return (module Void)
-  | Explore -> literal "explore" @@ query_opt "q" (module Madge_common.MString) @@ return (module Void)
+  | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ return (module Void)
 
 let path_new : type a r. (a, string, r) route -> a = fun route ->
   process route (fun (module _) uri -> Uri.to_string uri)

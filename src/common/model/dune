@@ -8,7 +8,6 @@
   lwt
   dancelor.nes
   dancelor.madge
-  dancelor.madge.common
   menhirLib
   yojson
   ppx_deriving_yojson.runtime)
