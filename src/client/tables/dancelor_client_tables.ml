@@ -16,9 +16,8 @@ let map_table ~header list fun_ =
 
 let books books =
   map_table ~header: ["Book"; "Date"] books @@ fun book ->
-  let href = PageRouter.path_book @@ Book.slug book in
   clickable_row
-    ~href
+    ~href: (PageRouter.path_book @@ Book.slug book)
     [
       (Lwt.return @@ Formatters.Book.title_and_subtitle book);
       Lwt.return [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date book]

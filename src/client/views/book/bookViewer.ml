@@ -189,7 +189,7 @@ let create ?context slug =
           a
             ~a: [
               a_class ["button"];
-              a_href PageRouter.(path (BookEdit slug))
+              a_href (PageRouter.(path_new @@ route BookEdit) slug)
             ]
             [
               i ~a: [a_class ["material-symbols-outlined"]] [txt "edit"];

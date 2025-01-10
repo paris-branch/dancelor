@@ -34,6 +34,11 @@ module SSlug (A : TYPEABLE) : STRINGABLE with type t = A.t Slug.t = struct
   let to_string = Slug.to_string
   let of_string = Option.some % Slug.unsafe_of_string
 end
+module JSlug (A : TYPEABLE) : JSONABLE with type t = A.t Slug.t = struct
+  type t = A.t Slug.t
+  let to_yojson x = `String (Slug.to_string x)
+  let of_yojson = function `String s -> Ok (Slug.unsafe_of_string s) | _ -> Error "JSlug.of_yojson"
+end
 
 (** Abstract type of a route. The type arguments are (1) the function type
     corresponding to the route, (2) the return value of that function type, (3)
@@ -159,6 +164,14 @@ let match_
   = fun route controller uri return ->
     let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
     match_ route (fun () -> controller) path (Madge_query.from_uri uri) return
+
+let match_'
+  : type a w r. (a, w, r) route ->
+    a ->
+    Uri.t ->
+    (unit -> w) option
+  = fun route controller uri ->
+    match_ route controller uri (fun _ x -> x)
 
 let uri : type a r. (a, Uri.t, r) route -> a = fun route ->
   process route (fun (module _) uri -> uri)

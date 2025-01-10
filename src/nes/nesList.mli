@@ -135,3 +135,7 @@ val extract_assoc : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
 val extract_assoc_opt : 'a -> ('a * 'b) list -> ('b * ('a * 'b) list) option
 (** Same as {!extract_assoc} but returns [None] instead of raising
     [Not_found]. *)
+
+val map_first_some : ('a -> 'b option) -> 'a list -> 'b option
+(** [map_first_some f l] maps [f] over [l] but stops the very first time that
+    [f] returns [Some], and returns this value. *)

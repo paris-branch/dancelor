@@ -48,7 +48,7 @@ let create ?context slug =
           a
             ~a: [
               a_class ["button"];
-              a_href PageRouter.(path BookCompose);
+              a_href PageRouter.(path_new @@ route BookAdd);
               a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
             ]
             [

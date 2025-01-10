@@ -21,14 +21,13 @@ let (show_menu, set_show_menu) = React.S.create None
 
 let path_explore_models m =
   Model.(
-    PageRouter.path @@
-    PageRouter.Explore
-      (
-        Some
-          (
-            TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
-          )
-      )
+    PageRouter.(path_new @@ route Explore) @@
+    (
+      Some
+        (
+          TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
+        )
+    )
   )
 
 let header =
@@ -82,7 +81,7 @@ let header =
                     ~search
                     ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
                     ~on_enter: (fun search_text ->
-                        Dom_html.window##.location##.href := Js.string PageRouter.(path_explore (Some search_text))
+                        Dom_html.window##.location##.href := Js.string (PageRouter.(path_new @@ route Explore) (Some search_text))
                       )
                     ~focus_on_slash: true
                     ()
@@ -90,7 +89,7 @@ let header =
               li
                 [
                   a
-                    ~a: [a_href PageRouter.(path (Explore None))]
+                    ~a: [a_href PageRouter.(path_new (route Explore) None)]
                     [
                       txt "Explore";
                       i ~a: [a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
@@ -164,7 +163,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path PersonAdd)]
+                            ~a: [a_href PageRouter.(path_new @@ route PersonAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "person"];
                               txt " Person";
@@ -173,7 +172,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path DanceAdd)]
+                            ~a: [a_href PageRouter.(path_new @@ route DanceAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "directions_walk"];
                               txt " Dance";
@@ -182,7 +181,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path TuneAdd)]
+                            ~a: [a_href PageRouter.(path_new @@ route TuneAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
                               txt " Tune";
@@ -200,7 +199,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path SetCompose)]
+                            ~a: [a_href PageRouter.(path_new @@ route SetAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
                               txt " Set";
@@ -209,7 +208,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path BookCompose)]
+                            ~a: [a_href PageRouter.(path_new @@ route BookAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "library_books"];
                               txt " Book";
@@ -221,25 +220,31 @@ let header =
         ]
     ]
 
-let dispatch url =
-  let request = Madge_router.{method_ = `GET; path = Uri.path url; query = Madge_query.from_uri url} in
-  let page = Madge_router.request_to_resource request PageRouter.routes in
-  match Option.get page with
-  | PageRouter.Index -> Index.create ()
-  | Explore query -> Explorer.create ?query ()
-  | VersionAdd {tune} -> VersionEditor.create ~tune: (Option.to_list tune) ()
-  | Version {slug; context} -> VersionViewer.create slug ?context
-  | TuneAdd -> TuneEditor.create ()
-  | Tune {slug; context} -> TuneViewer.create slug ?context
-  | SetCompose -> SetEditor.create ()
-  | Set {slug; context} -> SetViewer.create slug ?context
-  | BookCompose -> BookEditor.create ()
-  | BookEdit slug -> BookEditor.create ~edit: slug ()
-  | Book {slug; context} -> BookViewer.create slug ?context
-  | PersonAdd -> PersonEditor.create ()
-  | Person {slug; context} -> PersonViewer.create slug ?context
-  | DanceAdd -> DanceEditor.create ()
-  | Dance {slug; context} -> DanceViewer.create slug ?context
+let dispatch uri =
+  let dispatch : type a r. (a, Page.t, r) PageRouter.page -> a = function
+    | Index -> Index.create ()
+    | Explore -> (fun query -> Explorer.create ?query ())
+    | Book -> (fun context slug -> BookViewer.create ?context slug)
+    | BookAdd -> BookEditor.create ()
+    | BookEdit -> (fun slug -> BookEditor.create ~edit: slug ())
+    | Dance -> (fun context slug -> DanceViewer.create ?context slug)
+    | DanceAdd -> DanceEditor.create ()
+    | Person -> (fun context slug -> PersonViewer.create ?context slug)
+    | PersonAdd -> PersonEditor.create ()
+    | Version -> (fun context slug -> VersionViewer.create ?context slug)
+    | VersionAdd -> (fun tune -> VersionEditor.create ~tune: (Option.to_list tune) ())
+    | Tune -> (fun context slug -> TuneViewer.create ?context slug)
+    | TuneAdd -> TuneEditor.create ()
+    | Set -> (fun context slug -> SetViewer.create ?context slug)
+    | SetAdd -> SetEditor.create ()
+  in
+  let madge_match_apply_all : Page.t PageRouter.page_wrapped' list -> (unit -> Page.t) option =
+    List.map_first_some @@ fun (PageRouter.W endpoint) ->
+    Madge.match_' (PageRouter.route endpoint) (dispatch endpoint) uri
+  in
+  match madge_match_apply_all PageRouter.all_endpoints' with
+  | Some page -> page ()
+  | None -> (* FIXME: 404 page *) assert false
 
 let set_title title =
   Dom_html.document##.title :=

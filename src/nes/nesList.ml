@@ -229,3 +229,7 @@ let rec extract_assoc x = function
 
 let extract_assoc_opt x l =
   try Some (extract_assoc x l) with Not_found -> None
+
+let rec map_first_some f = function
+  | [] -> None
+  | x :: xs -> match f x with None -> map_first_some f xs | Some y -> Some y

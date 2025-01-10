@@ -37,7 +37,7 @@ let make_context_link_banner ~context ~this_page =
   let parent_href =
     let open PageRouter in
     match context with
-    | InSearch query -> path_explore (Some query)
+    | InSearch query -> path_new (route Explore) (Some query)
     | InSet (slug, _) -> path_set slug
     | InBook (slug, _) -> path_book slug
   in
