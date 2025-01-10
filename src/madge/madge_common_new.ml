@@ -51,7 +51,7 @@ module Route = struct
   let query_opt name rt route = QueryOpt (name, rt, route)
 
   let rec process
-    : type a w r. Buffer.t ->
+    : type a w r. string ->
       Madge_query.t ->
       (a, w, r) t ->
       ((module JSON_SERIALISABLE with type t = r) -> Uri.t -> w) ->
@@ -59,18 +59,14 @@ module Route = struct
     = fun path query route return ->
       match route with
       | Return(module R) ->
-        let uri = Uri.make ~path: (Buffer.contents path) ~query: (Madge_query.to_strings query) () in
+        let uri = Uri.make ~path ~query: (Madge_query.to_strings query) () in
         return (module R) uri
       | Literal (str, route) ->
-        Buffer.add_char path '/';
-        Buffer.add_string path str;
-        process path query route return
+        process (path ^ "/" ^ str) query route return
       | Variable (rt, route) ->
         fun x ->
-          Buffer.add_char path '/';
           (* FIXME: url encode *)
-          Buffer.add_string path (rt.to_string x);
-          process path query route return
+          process (path ^ "/" ^ rt.to_string x) query route return
       | Query (name, (module R), route) ->
         fun x ->
           let query = Madge_query.add name (R.to_yojson x) query in
@@ -88,7 +84,7 @@ module Route = struct
       ((module JSON_SERIALISABLE with type t = r) -> Uri.t -> w) ->
       a
     = fun route return ->
-      process (Buffer.create 8) Madge_query.empty route return
+      process "" Madge_query.empty route return
 end
 
 let uri : type a r. (a, Uri.t, r) Route.t -> a = fun route ->
