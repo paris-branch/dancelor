@@ -21,7 +21,7 @@ let (show_menu, set_show_menu) = React.S.create None
 
 let path_explore_models m =
   Model.(
-    PageRouter.(path_new @@ route Explore) @@
+    PageRouter.(href Explore) @@
     (
       Some
         (
@@ -81,7 +81,7 @@ let header =
                     ~search
                     ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
                     ~on_enter: (fun search_text ->
-                        Dom_html.window##.location##.href := Js.string (PageRouter.(path_new @@ route Explore) (Some search_text))
+                        Dom_html.window##.location##.href := Js.string (PageRouter.(href Explore) (Some search_text))
                       )
                     ~focus_on_slash: true
                     ()
@@ -89,7 +89,7 @@ let header =
               li
                 [
                   a
-                    ~a: [a_href PageRouter.(path_new (route Explore) None)]
+                    ~a: [a_href PageRouter.(href Explore None)]
                     [
                       txt "Explore";
                       i ~a: [a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
@@ -163,7 +163,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path_new @@ route PersonAdd)]
+                            ~a: [a_href PageRouter.(href PersonAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "person"];
                               txt " Person";
@@ -172,7 +172,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path_new @@ route DanceAdd)]
+                            ~a: [a_href PageRouter.(href DanceAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "directions_walk"];
                               txt " Dance";
@@ -181,7 +181,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path_new @@ route TuneAdd)]
+                            ~a: [a_href PageRouter.(href TuneAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
                               txt " Tune";
@@ -190,7 +190,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path_versionAdd ())]
+                            ~a: [a_href PageRouter.(href_versionAdd ())]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
                               txt " Version";
@@ -199,7 +199,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path_new @@ route SetAdd)]
+                            ~a: [a_href PageRouter.(href SetAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
                               txt " Set";
@@ -208,7 +208,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(path_new @@ route BookAdd)]
+                            ~a: [a_href PageRouter.(href BookAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "library_books"];
                               txt " Book";

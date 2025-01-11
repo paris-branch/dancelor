@@ -15,7 +15,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.path_set slug)
+        ~this_page: (PageRouter.href_set slug)
         (Lwt.map Any.set set_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
@@ -48,7 +48,7 @@ let create ?context slug =
           a
             ~a: [
               a_class ["button"];
-              a_href PageRouter.(path_new @@ route BookAdd);
+              a_href PageRouter.(href BookAdd);
               a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
             ]
             [
@@ -84,11 +84,11 @@ let create ?context slug =
                        div
                          ~a: [a_class ["image-container"]]
                          [
-                           h4 [a ~a: [a_href PageRouter.(path_version ~context slug)] [txt @@ Tune.name tune]];
+                           h4 [a ~a: [a_href (PageRouter.href_version ~context slug)] [txt @@ Tune.name tune]];
                            object_
                              ~a: [
                                a_mime_type "image/svg+xml";
-                               a_data (ApiRouter.(path @@ route @@ Version Svg) None slug);
+                               a_data (ApiRouter.(href @@ Version Svg) None slug);
                              ]
                              [];
                          ]
