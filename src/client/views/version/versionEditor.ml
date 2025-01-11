@@ -220,7 +220,7 @@ let create ?on_save ?text ?tune () =
                       Option.iter @@ fun version ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_version (Model.Version.slug version))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_version (Model.Version.slug version))
                       | Some on_save -> on_save version
                     )
                   ();

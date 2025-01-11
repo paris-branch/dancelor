@@ -14,7 +14,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.path_person slug)
+        ~this_page: (PageRouter.href_person slug)
         (Lwt.map Any.person person_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.div

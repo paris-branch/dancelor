@@ -81,25 +81,26 @@ let route : type a w r. (a, w, r) page -> (a, w, r) route = function
   | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(TuneCore)) @@ return (module Void)
   | Index -> return (module Void)
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ return (module Void)
+(* FIXME: short for `return (module Void)` *)
 
-let path_new : type a r. (a, string, r) route -> a = fun route ->
-  process route (fun (module _) uri -> Uri.to_string uri)
+let href : type a r. (a, string, r) page -> a = fun page ->
+  process (route page) (fun (module _) uri -> Uri.to_string uri)
 
-let path_book ?context book = path_new (route Book) context book
-let path_dance ?context dance = path_new (route Dance) context dance
-let path_person ?context person = path_new (route Person) context person
-let path_set ?context set = path_new (route Set) context set
-let path_tune ?context tune = path_new (route Tune) context tune
-let path_version ?context version = path_new (route Version) context version
-let path_versionAdd ?tune () = path_new (route VersionAdd) tune
+let href_book ?context book = href Book context book
+let href_dance ?context dance = href Dance context dance
+let href_person ?context person = href Person context person
+let href_set ?context set = href Set context set
+let href_tune ?context tune = href Tune context tune
+let href_version ?context version = href Version context version
+let href_versionAdd ?tune () = href VersionAdd tune
 
-let path_any ?context any =
+let href_any ?context any =
   let open Dancelor_common_model in
   let open AnyCore in
   match any with
-  | Version version -> path_version ?context (VersionCore.slug version)
-  | Set set -> path_set ?context (SetCore.slug set)
-  | Person person -> path_person ?context (PersonCore.slug person)
-  | Dance dance -> path_dance ?context (DanceCore.slug dance)
-  | Book book -> path_book ?context @@ BookCore.slug book
-  | Tune tune -> path_tune ?context (TuneCore.slug tune)
+  | Version version -> href_version ?context (VersionCore.slug version)
+  | Set set -> href_set ?context (SetCore.slug set)
+  | Person person -> href_person ?context (PersonCore.slug person)
+  | Dance dance -> href_dance ?context (DanceCore.slug dance)
+  | Book book -> href_book ?context @@ BookCore.slug book
+  | Tune tune -> href_tune ?context (TuneCore.slug tune)

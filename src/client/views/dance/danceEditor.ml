@@ -215,7 +215,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun dance ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_dance (Model.Dance.slug dance))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_dance (Model.Dance.slug dance))
                       | Some on_save -> on_save dance
                     )
                   ();

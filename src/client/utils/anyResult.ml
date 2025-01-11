@@ -23,8 +23,8 @@ let make_person_result ?classes ?context ?prefix ?suffix person =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.path_person @@ Person.slug person)
-        ~some: (S.map (fun context -> PageRouter.path_person ~context @@ Person.slug person))
+        ~none: (S.const @@ PageRouter.href_person @@ Person.slug person)
+        ~some: (S.map (fun context -> PageRouter.href_person ~context @@ Person.slug person))
     )
     ?prefix
     ?suffix
@@ -51,8 +51,8 @@ let make_dance_result ?classes ?context ?prefix ?suffix dance =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.path_dance @@ Dance.slug dance)
-        ~some: (S.map (fun context -> PageRouter.path_dance ~context @@ Dance.slug dance))
+        ~none: (S.const @@ PageRouter.href_dance @@ Dance.slug dance)
+        ~some: (S.map (fun context -> PageRouter.href_dance ~context @@ Dance.slug dance))
     )
     ?prefix
     ?suffix
@@ -78,8 +78,8 @@ let make_book_result ?classes ?context ?prefix ?suffix book =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.path_book @@ Book.slug book)
-        ~some: (S.map (fun context -> PageRouter.path_book ~context @@ Book.slug book))
+        ~none: (S.const @@ PageRouter.href_book @@ Book.slug book)
+        ~some: (S.map (fun context -> PageRouter.href_book ~context @@ Book.slug book))
     )
     ?prefix
     ?suffix
@@ -106,8 +106,8 @@ let make_set_result ?classes ?context ?prefix ?suffix set =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.path_set @@ Set.slug set)
-        ~some: (S.map (fun context -> PageRouter.path_set ~context @@ Set.slug set))
+        ~none: (S.const @@ PageRouter.href_set @@ Set.slug set)
+        ~some: (S.map (fun context -> PageRouter.href_set ~context @@ Set.slug set))
     )
     ?prefix
     ?suffix
@@ -134,8 +134,8 @@ let make_tune_result ?classes ?context ?prefix ?suffix tune =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.path_tune @@ Tune.slug tune)
-        ~some: (S.map (fun context -> PageRouter.path_tune ~context @@ Tune.slug tune))
+        ~none: (S.const @@ PageRouter.href_tune @@ Tune.slug tune)
+        ~some: (S.map (fun context -> PageRouter.href_tune ~context @@ Tune.slug tune))
     )
     ?prefix
     ?suffix
@@ -171,8 +171,8 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.path_version @@ Version.slug version)
-        ~some: (S.map (fun context -> PageRouter.path_version ~context @@ Version.slug version))
+        ~none: (S.const @@ PageRouter.href_version @@ Version.slug version)
+        ~some: (S.map (fun context -> PageRouter.href_version ~context @@ Version.slug version))
     )
     ?prefix
     ?suffix

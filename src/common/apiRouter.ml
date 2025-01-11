@@ -40,5 +40,5 @@ let route : type a w r. (a, w, r) endpoint -> (a, w, r) route = function
   | Any endpoint -> literal "api" @@ literal "any" @@ AnyEndpoints.route endpoint
   | Victor -> literal "api" @@ literal "victor" @@ return (module Void)
 
-let path : type a r. (a, string, r) route -> a = fun route ->
-  process route (fun (module _) uri -> Uri.to_string uri)
+let href : type a r. (a, string, r) endpoint -> a = fun endpoint ->
+  process (route endpoint) (fun (module _) uri -> Uri.to_string uri)

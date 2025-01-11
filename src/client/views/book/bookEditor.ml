@@ -189,7 +189,7 @@ let create ?on_save ?text ?edit () =
                         Option.iter @@ fun book ->
                         Editor.clear editor;
                         match on_save with
-                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_book (Model.Book.slug book))
+                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_book (Model.Book.slug book))
                         | Some on_save -> on_save book
                       )
                     ();

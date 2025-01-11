@@ -29,7 +29,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.path_version slug)
+        ~this_page: (PageRouter.href_version slug)
         (Lwt.map Any.version version_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
@@ -53,7 +53,7 @@ let create ?context slug =
             a
               ~a: [
                 a_class ["button"];
-                a_href (ApiRouter.(path @@ route @@ Version Ly) slug);
+                a_href (ApiRouter.(href @@ Version Ly) slug);
               ]
               [
                 i ~a: [a_class ["material-symbols-outlined"]] [txt "article"];
@@ -64,7 +64,7 @@ let create ?context slug =
             a
               ~a: [
                 a_class ["button"];
-                a_href PageRouter.(path_new @@ route SetAdd);
+                a_href PageRouter.(href SetAdd);
                 a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
               ]
               [
@@ -112,7 +112,7 @@ let create ?context slug =
               object_
                 ~a: [
                   a_mime_type "image/svg+xml";
-                  a_data (ApiRouter.(path @@ route @@ Version Svg) None slug)
+                  a_data (ApiRouter.(href @@ Version Svg) None slug)
                 ]
                 [];
             ]
@@ -122,7 +122,7 @@ let create ?context slug =
         [
           audio
             ~a: [a_controls ()]
-            ~src: (ApiRouter.(path @@ route @@ Version Ogg) slug)
+            ~src: (ApiRouter.(href @@ Version Ogg) slug)
             []
         ];
       L.div
@@ -175,7 +175,7 @@ let create ?context slug =
                         [
                           txt "You can also go to the ";
                           a
-                            ~a: [L.a_href @@ Lwt.map (PageRouter.path_tune % Tune.slug) tune_lwt]
+                            ~a: [L.a_href @@ Lwt.map (PageRouter.href_tune % Tune.slug) tune_lwt]
                             [txt "page of the tune"];
                           txt "."
                         ]

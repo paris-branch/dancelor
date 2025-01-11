@@ -222,7 +222,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun tune ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_tune (Model.Tune.slug tune))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_tune (Model.Tune.slug tune))
                       | Some on_save -> on_save tune
                     )
                   ();
