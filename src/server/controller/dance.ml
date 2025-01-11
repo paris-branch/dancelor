@@ -37,7 +37,7 @@ module Pdf = struct
   let get dance_slug parameters =
     let%lwt dance = Model.Dance.get dance_slug in
     let%lwt path_pdf = render ?parameters dance in
-    Madge_server_new.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.DanceEndpoints.t -> a = function

@@ -1,8 +1,5 @@
 include Madge
 
-(* FIXME: This is not just client, but a very specific type of client. Either
-   make it Dancelor-specific, or rename in eg. Madge_yojson_cohttp_client. *)
-
 let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
   process route @@ fun (module R) uri ->
   let body = Cohttp_lwt.Body.of_string "" in

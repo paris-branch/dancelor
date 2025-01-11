@@ -6,6 +6,6 @@
  (libraries
   dancelor.common.model
   dancelor.server.database
-  dancelor.madge.server-new)
+  dancelor.madge.cohttp-lwt-server)
  (preprocess
   (pps lwt_ppx ppx_monad ppx_monad_olwt ppx_monad_rlwt)))

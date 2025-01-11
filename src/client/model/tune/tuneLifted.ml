@@ -3,4 +3,4 @@ open Model
 
 include TuneLifter.Lift(Person)(Dance)
 
-let get = Madge_client_new.call ApiRouter.(route @@ Tune Get)
+let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Tune Get)

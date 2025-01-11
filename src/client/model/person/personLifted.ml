@@ -3,4 +3,4 @@ open Model
 
 include PersonLifter.Lift ()
 
-let get = Madge_client_new.call ApiRouter.(route @@ Person Get)
+let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Get)
