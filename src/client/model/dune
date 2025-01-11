@@ -3,6 +3,6 @@
 (library
  (name dancelor_client_model)
  (public_name dancelor.client.model)
- (libraries dancelor.common dancelor.madge.client-new)
+ (libraries dancelor.common dancelor.madge.cohttp-lwt-client)
  (preprocess
   (pps lwt_ppx ppx_monad ppx_monad_olwt ppx_monad_rlwt)))

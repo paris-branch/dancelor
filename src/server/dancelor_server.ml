@@ -22,7 +22,7 @@ let apply_controller uri =
     | [] -> None
     | ApiRouter.W endpoint :: wrapped_endpoints ->
       (
-        match Madge_server_new.match_apply (ApiRouter.route endpoint) (dispatch endpoint) uri with
+        match Madge_cohttp_lwt_server.match_apply (ApiRouter.route endpoint) (dispatch endpoint) uri with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
@@ -34,7 +34,7 @@ let apply_controller uri =
       try%lwt
         thunk ()
       with
-      | Madge_server_new.Shortcut response -> Lwt.return response
+      | Madge_cohttp_lwt_server.Shortcut response -> Lwt.return response
     )
   | None ->
     let message = spf "Page `%s` was not found" (Uri.path uri) in

@@ -13,7 +13,7 @@ let save
     ~created_at
     ()
   =
-  Madge_client_new.call
+  Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Set Save)
     status
     name
@@ -25,10 +25,10 @@ let save
     modified_at
     created_at
 
-let delete s = Madge_client_new.call ApiRouter.(route @@ Set Delete) (slug s)
+let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (slug s)
 
 let search ?slice ?threshold filter =
-  Madge_client_new.call ApiRouter.(route @@ Set Search) slice threshold filter
+  Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Search) slice threshold filter
 
 let search' ?slice ?threshold filter =
   Lwt.map snd @@ search ?slice ?threshold filter
