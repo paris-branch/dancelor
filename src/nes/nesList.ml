@@ -221,3 +221,15 @@ let swap i j l =
   if i = j then l
   else if i < j then swap i j [] l
   else swap j i [] l
+
+let rec extract_assoc x = function
+  | [] -> raise Not_found
+  | (k, v) :: xs when x = k -> (v, xs)
+  | kv :: xs -> NesPervasives.map_snd (List.cons kv) (extract_assoc x xs)
+
+let extract_assoc_opt x l =
+  try Some (extract_assoc x l) with Not_found -> None
+
+let rec map_first_some f = function
+  | [] -> None
+  | x :: xs -> match f x with None -> map_first_some f xs | Some y -> Some y

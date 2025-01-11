@@ -14,7 +14,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.path_dance slug)
+        ~this_page: (PageRouter.href_dance slug)
         (Lwt.map Any.dance dance_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3

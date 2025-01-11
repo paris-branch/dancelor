@@ -1,12 +1,6 @@
-open Dancelor_common_model
+open Dancelor_common
+open Model
 
 include DanceLifter.Lift(Person)
 
-module E = DanceEndpoints
-module A = E.Arguments
-
-let get slug =
-  Madge_client.(
-    call ~endpoint: E.get @@ fun {a} _ ->
-    a A.slug slug
-  )
+let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Dance Get)

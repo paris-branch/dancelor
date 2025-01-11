@@ -9,7 +9,7 @@ module Page = Dancelor_client_page
 open Dancelor_client_html
 
 let update_uri input =
-  let uri = PageRouter.path_explore (Some input) in
+  let uri = PageRouter.(href Explore) (Some input) in
   Dom_html.window##.history##replaceState
     "fixme-the-state"
     (Js.string "")

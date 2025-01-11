@@ -1,9 +1,7 @@
+open Dancelor_common
 include SetLifted
 
-module E = Dancelor_common_model.SetEndpoints
-module A = E.Arguments
-
-let make_and_save
+let save
     ?status
     ~name
     ?conceptors
@@ -15,32 +13,22 @@ let make_and_save
     ~created_at
     ()
   =
-  Madge_client.(
-    call ~endpoint: E.make_and_save @@ fun {a} {o} ->
-    o A.status status;
-    a A.name name;
-    o A.conceptors conceptors;
-    a A.kind kind;
-    o A.contents contents;
-    a A.order order;
-    o A.dances dances;
-    a A.modified_at modified_at;
-    a A.created_at created_at;
-  )
+  Madge_cohttp_lwt_client.call
+    ApiRouter.(route @@ Set Save)
+    status
+    name
+    conceptors
+    kind
+    contents
+    order
+    dances
+    modified_at
+    created_at
 
-let delete s =
-  Madge_client.(
-    call ~endpoint: E.delete @@ fun {a} _ ->
-    a A.slug (slug s)
-  )
+let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (slug s)
 
 let search ?slice ?threshold filter =
-  Madge_client.(
-    call ~endpoint: E.search @@ fun {a} {o} ->
-    o A.slice slice;
-    o A.threshold threshold;
-    a A.filter filter;
-  )
+  Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Search) slice threshold filter
 
 let search' ?slice ?threshold filter =
   Lwt.map snd @@ search ?slice ?threshold filter

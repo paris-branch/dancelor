@@ -4,9 +4,6 @@ module Database = Dancelor_server_database
 
 include AnyLifted
 
-module E = Common.Model.AnyEndpoints
-module A = E.Arguments
-
 let get_all () =
   let%lwt persons = Database.Person.get_all () >|=| List.map (fun c -> Person c) in
   let%lwt dances = Database.Dance.get_all () >|=| List.map (fun d -> Dance d) in
@@ -33,15 +30,6 @@ let search =
     ~scoring_function: Filter.accepts
     ~tiebreakers: [tiebreaker]
 
-let () =
-  Madge_server.(
-    register ~endpoint: E.search @@ fun {a} {o} ->
-    search
-      ?slice: (o A.slice)
-      ?threshold: (o A.threshold)
-      (a A.filter)
-  )
-
 let search' ?slice ?threshold filter =
   Lwt.map snd @@ search ?slice ?threshold filter
 
@@ -53,12 +41,3 @@ let search_context ?threshold filter element =
   let List.{total; previous; index; next; _} = Option.get @@ List.find_context (equal element) results in
   (* TODO: Return the context directly. *)
   Lwt.return (total, previous, index, next)
-
-let () =
-  Madge_server.(
-    register ~endpoint: E.search_context @@ fun {a} {o} ->
-    search_context
-      ?threshold: (o A.threshold)
-      (a A.filter)
-      (a A.element)
-  )

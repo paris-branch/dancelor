@@ -3,7 +3,6 @@ module Model = Dancelor_server_model
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
 
 module Ly = struct
-
   let kind set set_parmeters =
     let%lwt kind =
       match%lwt Model.SetParameters.for_dance set_parmeters with
@@ -286,5 +285,32 @@ module Pdf = struct
   let get book parameters =
     let%lwt book = Model.Book.get book in
     let%lwt path_pdf = render ?parameters book in
-    Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
+
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
+  | Get -> Model.Book.get
+  | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
+  | Save ->
+    (fun status title date contents modified_at created_at ->
+       let%lwt contents =
+         match contents with
+         | None -> Lwt.return_none
+         | Some contents ->
+           let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
+           Lwt.return_some contents
+       in
+       Model.Book.save ?status ~title ?date ?contents ~modified_at ~created_at ()
+    )
+  | Update ->
+    (fun status title date contents modified_at created_at slug ->
+       let%lwt contents =
+         match contents with
+         | None -> Lwt.return_none
+         | Some contents ->
+           let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
+           Lwt.return_some contents
+       in
+       Model.Book.update ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
+    )
+  | Pdf -> (fun parameters book -> Pdf.get book parameters)

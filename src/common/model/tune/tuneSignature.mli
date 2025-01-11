@@ -69,7 +69,7 @@ end
 
 val get : t Slug.t -> t Lwt.t
 
-val make_and_save :
+val save :
   ?status: Status.t ->
   name: string ->
   ?alternative_names: string list ->

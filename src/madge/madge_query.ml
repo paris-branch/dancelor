@@ -5,7 +5,10 @@ type t = (key * Yojson.Safe.t) list
 
 let empty = []
 
+let is_empty = (=) []
+
 let get = List.assoc_opt
+let extract = List.extract_assoc_opt
 
 exception WrongType of string * string
 let wrong_type ~expected provided =
@@ -58,6 +61,8 @@ let from_body body =
   let body = Yojson.Safe.from_string body in
   let body = match body with `Assoc body -> body | _ -> assert false in
   Lwt.return body
+
+let add k v = List.cons (k, v)
 
 let append ~high ~low =
   high @ low (** FIXME: remove duplicates *)

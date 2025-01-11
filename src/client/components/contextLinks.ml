@@ -37,9 +37,9 @@ let make_context_link_banner ~context ~this_page =
   let parent_href =
     let open PageRouter in
     match context with
-    | InSearch query -> path_explore (Some query)
-    | InSet (slug, _) -> path_set slug
-    | InBook (slug, _) -> path_book slug
+    | InSearch query -> href Explore (Some query)
+    | InSet (slug, _) -> href_set slug
+    | InBook (slug, _) -> href_book slug
   in
   let parent_a ?a: (as_ = []) content =
     a ~a: (a_href parent_href :: as_) content
@@ -108,7 +108,7 @@ let neighbour_context ~left = function
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
-  let href = PageRouter.path_any ~context: (neighbour_context ~left context) neighbour in
+  let href = PageRouter.href_any ~context: (neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
       if ev##.keyCode = (if left then 37 else 39) then
         Dom_html.window##.location##.href := Js.string href

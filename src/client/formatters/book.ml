@@ -19,7 +19,7 @@ let short_title ?(link = true) book =
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.path_book @@ M.Book.slug book]
+        ~a: [a_href @@ PageRouter.href_book @@ M.Book.slug book]
         short_title_text
     ]
   else

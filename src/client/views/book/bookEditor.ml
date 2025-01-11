@@ -141,7 +141,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; date; sets} ->
       Lwt.map Option.some @@
-      Model.Book.make_and_save
+      Model.Book.save
         ~title: name
         ?date
         ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
@@ -189,7 +189,7 @@ let create ?on_save ?text ?edit () =
                         Option.iter @@ fun book ->
                         Editor.clear editor;
                         match on_save with
-                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_book (Model.Book.slug book))
+                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_book (Model.Book.slug book))
                         | Some on_save -> on_save book
                       )
                     ();

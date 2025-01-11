@@ -136,7 +136,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; conceptors; versions; order} ->
       Lwt.map Option.some @@
-      Model.Set.make_and_save
+      Model.Set.save
         ~name
         ~kind
         ~conceptors
@@ -187,7 +187,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (ApiRouter.path_versionSvg (Model.Version.slug version))
+                                a_data (ApiRouter.(href @@ Version Svg) None (Model.Version.slug version));
                               ]
                               [];
                           ]
@@ -212,7 +212,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun set ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.path_set (Model.Set.slug set))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_set (Model.Set.slug set))
                       | Some on_save -> on_save set
                     )
                   ();

@@ -86,7 +86,7 @@ let table_contents ~this_slug contents =
                match page with
                | Book.Set (set, parameters) ->
                  (
-                   let href = PageRouter.path_set ~context @@ Set.slug set in
+                   let href = PageRouter.href_set ~context @@ Set.slug set in
                    Dancelor_client_tables.clickable_row
                      ~href
                      [
@@ -106,7 +106,7 @@ let table_contents ~this_slug contents =
                  )
                | Version (version, parameters) ->
                  (
-                   let href = PageRouter.path_version ~context @@ Version.slug version in
+                   let href = PageRouter.href_version ~context @@ Version.slug version in
                    Dancelor_client_tables.clickable_row
                      ~href
                      [
@@ -136,7 +136,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.path_book slug)
+        ~this_page: (PageRouter.href_book slug)
         (Lwt.map Any.book book_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       h3 ~a: [a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
@@ -189,7 +189,7 @@ let create ?context slug =
           a
             ~a: [
               a_class ["button"];
-              a_href PageRouter.(path (BookEdit slug))
+              a_href (PageRouter.(href BookEdit) slug)
             ]
             [
               i ~a: [a_class ["material-symbols-outlined"]] [txt "edit"];

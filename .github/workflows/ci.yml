@@ -68,7 +68,9 @@ jobs:
       - name: Set up OCaml
         uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 4.14.x
+          ## This OCaml compiler should be the minimum version required by the
+          ## OPAM file (up to the patch) so as to catch under-specification.
+          ocaml-compiler: 5.0.x
 
       - name: Install system dependencies
         run: sudo apt install --yes timidity freepats lilypond sassc

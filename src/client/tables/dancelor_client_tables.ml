@@ -16,9 +16,8 @@ let map_table ~header list fun_ =
 
 let books books =
   map_table ~header: ["Book"; "Date"] books @@ fun book ->
-  let href = PageRouter.path_book @@ Book.slug book in
   clickable_row
-    ~href
+    ~href: (PageRouter.href_book @@ Book.slug book)
     [
       (Lwt.return @@ Formatters.Book.title_and_subtitle book);
       Lwt.return [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date book]
@@ -26,7 +25,7 @@ let books books =
 
 let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
-  let href = PageRouter.path_set @@ Set.slug set in
+  let href = PageRouter.href_set @@ Set.slug set in
   clickable_row
     ~href
     [
@@ -37,7 +36,7 @@ let sets sets =
 
 let dances dances =
   map_table ~header: ["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
-  let href = PageRouter.path_dance @@ Dance.slug dance in
+  let href = PageRouter.href_dance @@ Dance.slug dance in
   clickable_row
     ~href
     [
@@ -48,7 +47,7 @@ let dances dances =
 
 let tunes tunes =
   map_table ~header: ["Name"; "Kind"; "Composer"] tunes @@ fun tune ->
-  let href = PageRouter.path_tune @@ Tune.slug tune in
+  let href = PageRouter.href_tune @@ Tune.slug tune in
   clickable_row
     ~href
     [
@@ -63,7 +62,7 @@ let versions versions =
     versions
   @@ fun version ->
   let tune_lwt = Version.tune version in
-  let href = PageRouter.path_version @@ Version.slug version in
+  let href = PageRouter.href_version @@ Version.slug version in
   clickable_row
     ~href
     [
@@ -80,7 +79,7 @@ let versions_with_names versions =
     versions
   @@ fun version ->
   let tune_lwt = Version.tune version in
-  let href = PageRouter.path_version @@ Version.slug version in
+  let href = PageRouter.href_version @@ Version.slug version in
   clickable_row
     ~href
     [
