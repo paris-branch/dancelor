@@ -5,43 +5,14 @@ module Model = Dancelor_client_model
 open Dancelor_client_html
 open Dancelor_client_components
 
-let describe uri =
-  let describe : type a r. (a, (string * string) option Lwt.t, r) PageRouter.page -> a = function
-    | Index -> Lwt.return None
-    | Explore -> (fun _ -> Lwt.return None)
-    | VersionAdd -> (fun _ -> Lwt.return None)
-    | TuneAdd -> Lwt.return None
-    | SetAdd -> Lwt.return None
-    | BookAdd -> Lwt.return None
-    | BookEdit -> (fun _ -> Lwt.return None)
-    | PersonAdd -> Lwt.return None
-    | DanceAdd -> Lwt.return None
-    | Version -> (fun _ slug ->
-        let%lwt name = Lwt.bind (Model.Version.get slug) Model.Version.name in
-        Lwt.return @@ Some ("version", name))
-    | Tune -> (fun _ slug ->
-        let%lwt name = Lwt.map Model.Tune.name (Model.Tune.get slug) in
-        Lwt.return @@ Some ("tune", name))
-    | Set -> (fun _ slug ->
-        let%lwt name = Lwt.map Model.Set.name (Model.Set.get slug) in
-        Lwt.return @@ Some ("set", name))
-    | Book -> (fun _ slug ->
-        let%lwt title = Lwt.map Model.Book.title (Model.Book.get slug) in
-        Lwt.return @@ Some ("book", title))
-    | Dance -> (fun _ slug ->
-        let%lwt name = Lwt.map Model.Dance.name (Model.Dance.get slug) in
-        Lwt.return @@ Some ("dance", name))
-    | Person -> (fun _ slug ->
-        let%lwt name = Lwt.map Model.Person.name (Model.Person.get slug) in
-        Lwt.return @@ Some ("person", name))
-  in
-  let madge_match_apply_all : (string * string) option Lwt.t PageRouter.page_wrapped' list -> (unit -> (string * string) option Lwt.t) option =
-    List.map_first_some @@ fun (PageRouter.W page) ->
-    Madge.match_' (PageRouter.route page) (describe page) uri
-  in
-  match madge_match_apply_all PageRouter.all_endpoints' with
-  | Some page -> page ()
-  | None -> (* FIXME: 404 page *) assert false
+let describe =
+  PageRouter.make_describe
+    ~get_version: Model.Version.get
+    ~get_tune: Model.Tune.get
+    ~get_set: Model.Set.get
+    ~get_book: Model.Book.get
+    ~get_dance: Model.Dance.get
+    ~get_person: Model.Person.get
 
 let open_dialog page =
   let (has_interacted, set_interacted) = S.create false in
@@ -83,40 +54,84 @@ let open_dialog page =
     Input.Text.make ~has_interacted "" @@
     Result.of_string_nonempty ~empty: "The description cannot be empty"
   in
+  let request_signal =
+    let page = Uri.to_string page in
+    S.map Result.to_option @@
+    RS.bind (Input.Text.signal reporter_input) @@ fun reporter ->
+    RS.bind (Input.Text.signal title_input) @@ fun title ->
+    RS.bind (Input.Text.signal description_input) @@ fun description ->
+    RS.bind (Choices.signal source) @@ fun source ->
+    RS.pure Model.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
+  in
+  let%lwt response =
+    Dialog.open_res @@ fun return ->
+    [
+      h2 [txt "Report an issue"];
+      form
+        [
+          Input.Text.render
+            reporter_input
+            ~placeholder: "Dr Jean Milligan"
+            ~label: "Reporter";
+          Choices.render source;
+          Input.Text.render
+            title_input
+            ~placeholder: "Blimey, 'tis not working!"
+            ~label: "Title";
+          Input.Text.render_as_textarea
+            description_input
+            ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+            ~label: "Description";
+          Button.group
+            [
+              Button.make
+                ~label: "Report"
+                ~label_processing: "Reporting..."
+                ~icon: "bug_report"
+                ~classes: ["btn-success"]
+                ~disabled: (S.map Option.is_none request_signal)
+                ~onclick: (fun () ->
+                    set_interacted ();
+                    Option.fold
+                      (S.value request_signal)
+                      ~none: Lwt.return_unit
+                      ~some: (fun request ->
+                          let%lwt response = Madge_cohttp_lwt_client.call ApiRouter.(route ReportIssue) request in
+                          return @@ Ok response;
+                          Lwt.return_unit
+                        )
+                  )
+                ();
+              Button.cancel ~return ()
+            ]
+        ]
+    ]
+  in
   Dialog.open_ @@ fun return ->
   [
-    h2 [txt "Report an issue"];
+    h2 [txt @@ match response with Ok _ -> "Issue reported" | Error _ -> "Error reporting issue"];
+    div
+      (
+        match response with
+        | Ok response ->
+          [
+            p [txt "Your issue has been reported as:"];
+            p [a ~a: [a_href response.uri; a_target "_blank"] [txt @@ spf "%s (#%d)" response.title response.id]];
+            p [txt "You can track its progress there."];
+          ]
+        | Error _ -> [p [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]]
+      );
     form
       [
-        Input.Text.render
-          reporter_input
-          ~placeholder: "Dr Jean Milligan"
-          ~label: "Reporter";
-        Choices.render source;
-        Input.Text.render
-          title_input
-          ~placeholder: "Blimey, 'tis not working!"
-          ~label: "Title";
-        Input.Text.render_as_textarea
-          description_input
-          ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-          ~label: "Description";
         Button.group
           [
             Button.make
-              ~label: "Report"
-              ~label_processing: "Reporting..."
-              ~icon: "save" (* FIXME *)
-              ~classes: ["btn-success"] (* FIXME *)
-              ~disabled: (S.const false)
-              ~onclick: (fun () ->
-                  set_interacted ();
-                  Lwt.pmsleep 2.;%lwt
-                  return (Ok ());
-                  Lwt.return_unit
-                )
-              ();
-            Button.cancel ~return ()
+              ~label: "Ok"
+              ~label_processing: "Closing..."
+              ~icon: "check_circle"
+              ~classes: ["btn-success"]
+              ~onclick: (fun () -> return (Ok ()); Lwt.return_unit)
+              ()
           ]
       ]
   ]
