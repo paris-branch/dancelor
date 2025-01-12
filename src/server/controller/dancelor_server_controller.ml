@@ -16,4 +16,5 @@ let dispatch : type a r. (a, r Lwt.t, r) ApiRouter.endpoint -> a = function
   | Set endpoint -> Set.dispatch endpoint
   | Tune endpoint -> Tune.dispatch endpoint
   | Any endpoint -> Any.dispatch endpoint
+  | ReportIssue -> IssueReport.report
   | Victor -> Dancelor_server_logs.log_exit (module Log) 101

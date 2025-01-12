@@ -58,8 +58,13 @@ module JPair (A : JSONABLE) (B : JSONABLE) : JSONABLE with type t = A.t * B.t = 
   type t = A.t * B.t [@@deriving yojson]
 end
 
-module JQuad (A : JSONABLE) (B : JSONABLE) (C : JSONABLE) (D : JSONABLE) : JSONABLE
-  with type t = A.t * B.t * C.t * D.t = struct
+module JQuad
+    (A : JSONABLE)
+    (B : JSONABLE)
+    (C : JSONABLE)
+    (D : JSONABLE) : JSONABLE with
+  type t = A.t * B.t * C.t * D.t
+= struct
   type t = A.t * B.t * C.t * D.t [@@deriving yojson]
 end
 
@@ -78,26 +83,6 @@ end
 (* = struct *)
 (*   type t = A.t NesSlug.t [@@deriving yojson] *)
 (* end *)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 (* Slugs *)
 

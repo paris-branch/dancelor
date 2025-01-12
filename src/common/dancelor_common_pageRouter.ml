@@ -104,3 +104,54 @@ let href_any ?context any =
   | Dance dance -> href_dance ?context (DanceCore.slug dance)
   | Book book -> href_book ?context @@ BookCore.slug book
   | Tune tune -> href_tune ?context (TuneCore.slug tune)
+
+let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person =
+  fun uri ->
+  let describe : type a r. (a, (string * string) option Lwt.t, r) page -> a = function
+    | Index -> Lwt.return None
+    | Explore -> (fun _ -> Lwt.return None)
+    | VersionAdd -> (fun _ -> Lwt.return None)
+    | TuneAdd -> Lwt.return None
+    | SetAdd -> Lwt.return None
+    | BookAdd -> Lwt.return None
+    | BookEdit -> (fun _ -> Lwt.return None)
+    | PersonAdd -> Lwt.return None
+    | DanceAdd -> Lwt.return None
+    | Version ->
+      (fun _ slug ->
+         let%lwt name = Lwt.bind (get_version slug) (Lwt.map TuneCore.name % (get_tune % VersionCore.tune)) in
+         Lwt.return @@ Some ("version", name)
+      )
+    | Tune ->
+      (fun _ slug ->
+         let%lwt name = Lwt.map TuneCore.name (get_tune slug) in
+         Lwt.return @@ Some ("tune", name)
+      )
+    | Set ->
+      (fun _ slug ->
+         let%lwt name = Lwt.map SetCore.name (get_set slug) in
+         Lwt.return @@ Some ("set", name)
+      )
+    | Book ->
+      (fun _ slug ->
+         let%lwt title = Lwt.map BookCore.title (get_book slug) in
+         Lwt.return @@ Some ("book", title)
+      )
+    | Dance ->
+      (fun _ slug ->
+         let%lwt name = Lwt.map DanceCore.name (get_dance slug) in
+         Lwt.return @@ Some ("dance", name)
+      )
+    | Person ->
+      (fun _ slug ->
+         let%lwt name = Lwt.map PersonCore.name (get_person slug) in
+         Lwt.return @@ Some ("person", name)
+      )
+  in
+  let madge_match_apply_all : (string * string) option Lwt.t page_wrapped' list -> (unit -> (string * string) option Lwt.t) option =
+    List.map_first_some @@ fun (W page) ->
+    Madge.match_' (route page) (describe page) uri
+  in
+  match madge_match_apply_all all_endpoints' with
+  | Some page -> page ()
+  | None -> (* FIXME: 404 page *) assert false

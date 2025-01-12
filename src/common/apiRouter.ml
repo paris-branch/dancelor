@@ -9,6 +9,7 @@ type (_, _, _) endpoint =
   | Set : ('a, 'w, 'r) SetEndpoints.t -> ('a, 'w, 'r) endpoint
   | Tune : ('a, 'w, 'r) TuneEndpoints.t -> ('a, 'w, 'r) endpoint
   | Any : ('a, 'w, 'r) AnyEndpoints.t -> ('a, 'w, 'r) endpoint
+  | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) endpoint
   | Victor : ('w, 'w, Void.t) endpoint
 
 type endpoint_wrapped =
@@ -24,7 +25,7 @@ let all_endpoints =
       List.map (fun (SetEndpoints.W e) -> W (Set e)) SetEndpoints.all;
       List.map (fun (TuneEndpoints.W e) -> W (Tune e)) TuneEndpoints.all;
       List.map (fun (AnyEndpoints.W e) -> W (Any e)) AnyEndpoints.all;
-      [W Victor];
+      [W ReportIssue; W Victor];
     ]
 
 open Madge
@@ -38,6 +39,7 @@ let route : type a w r. (a, w, r) endpoint -> (a, w, r) route = function
   | Set endpoint -> literal "api" @@ literal "set" @@ SetEndpoints.route endpoint
   | Tune endpoint -> literal "api" @@ literal "tune" @@ TuneEndpoints.route endpoint
   | Any endpoint -> literal "api" @@ literal "any" @@ AnyEndpoints.route endpoint
+  | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ return (module IssueReport.Response)
   | Victor -> literal "api" @@ literal "victor" @@ return (module Void)
 
 let href : type a r. (a, string, r) endpoint -> a = fun endpoint ->

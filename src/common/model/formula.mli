@@ -102,5 +102,6 @@ val pp : (Format.formatter -> 'p -> unit) -> Format.formatter -> 'p t -> unit
 (** For debugging purposes. This is compatible with [ppx_deriving_show] but is a
     more usual representation of formulas. *)
 
-module Make_Jsonable : functor (M : Madge.JSONABLE) -> Madge.JSONABLE
-  with type t = M.t t
+module Make_Jsonable : functor (M : Madge.JSONABLE) ->
+  Madge.JSONABLE with
+  type t = M.t t

@@ -36,7 +36,8 @@ let make_gen_unsafe
     ~radios
     choices
   =
-  ignore has_interacted; (* FIXME *)
+  ignore has_interacted;
+  (* FIXME *)
   let name = unique () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
   let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
