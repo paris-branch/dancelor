@@ -7,7 +7,7 @@ open Js_of_ocaml
 
 type error = Closed
 
-let open_ content =
+let open_res content =
   let (promise, resolver) = Lwt.wait () in
 
   (* The actual [return] function requires a handle of the box to work, but the
@@ -36,7 +36,7 @@ let open_ content =
               [
                 i ~a: [a_class ["material-symbols-outlined"]] [txt "close"];
               ];
-            div (content (return % Result.ok))
+            div (content return);
           ]
       ]
   in
@@ -64,3 +64,5 @@ let open_ content =
 
   (* Return the promise of a result. *)
   promise
+
+let open_ content = open_res (fun return -> content (return % Result.ok))
