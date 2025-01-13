@@ -13,7 +13,7 @@ homepage: "https://github.com/paris-branch/dancelor"
 bug-reports: "https://github.com/paris-branch/dancelor/issues"
 depends: [
   "dune" {>= "3.4"}
-  "ocaml" {build & >= "4.08.0"}
+  "ocaml" {build & >= "5.0"}
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
   "dates_calc"

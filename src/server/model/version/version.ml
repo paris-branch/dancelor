@@ -4,10 +4,7 @@ module Database = Dancelor_server_database
 
 include VersionLifted
 
-module E = Common.Model.VersionEndpoints
-module A = E.Arguments
-
-let make_and_save
+let save
     ?status
     ~tune
     ~bars
@@ -42,25 +39,6 @@ let make_and_save
   in
   Database.Version.write_content version content;%lwt
   Lwt.return version
-
-let () =
-  Madge_server.(
-    register ~endpoint: E.make_and_save @@ fun {a} {o} ->
-    make_and_save
-      ?status: (o A.status)
-      ~tune: (a A.tune)
-      ~bars: (a A.bars)
-      ~key: (a A.key)
-      ~structure: (a A.structure)
-      ?arrangers: (o A.arrangers)
-      ?remark: (o A.remark)
-      ?disambiguation: (o A.disambiguation)
-      ?broken: (o A.broken)
-      ~content: (a A.content)
-      ~modified_at: (a A.modified_at)
-      ~created_at: (a A.created_at)
-      ()
-  )
 
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
@@ -101,15 +79,6 @@ let search =
     ~scoring_function: Filter.accepts
     ~tiebreakers
 
-let () =
-  Madge_server.(
-    register ~endpoint: E.search @@ fun {a} {o} ->
-    search
-      ?slice: (o A.slice)
-      ?threshold: (o A.threshold)
-      (a A.filter)
-  )
-
 let search' ?slice ?threshold filter =
   Lwt.map snd @@ search ?slice ?threshold filter
 
@@ -119,17 +88,5 @@ let count ?threshold filter =
 let mark_fixed version =
   Database.Version.update (set_broken version false)
 
-let () =
-  Madge_server.(
-    register ~endpoint: E.mark_fixed @@ fun {a} _ ->
-    mark_fixed (a A.version)
-  )
-
 let mark_broken version =
   Database.Version.update (set_broken version true)
-
-let () =
-  Madge_server.(
-    register ~endpoint: E.mark_broken @@ fun {a} _ ->
-    mark_broken (a A.version)
-  )

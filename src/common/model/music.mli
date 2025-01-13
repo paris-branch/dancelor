@@ -63,7 +63,7 @@ val key_to_safe_string : key -> string
 val key_of_string : string -> key
 val key_of_string_opt : string -> key option
 
-module Key : Madge_common.SERIALISABLE with type t = key
+module Key : Madge.JSONABLE with type t = key
 
 (** {2 Clef} *)
 

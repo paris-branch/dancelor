@@ -5,7 +5,7 @@ module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
 let get_ly version =
   let%lwt version = Model.Version.get version in
   let%lwt body = Model.Version.content version in
-  Cohttp_lwt_unix.Server.respond_string ~status: `OK ~body ()
+  Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status: `OK ~body ()
 
 let prepare_ly_file ?(parameters = Model.VersionParameters.none) ?(show_meta = false) ?(meta_in_title = false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
@@ -157,7 +157,7 @@ module Svg = struct
     Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp' version);
     let%lwt version = Model.Version.get version in
     let%lwt path_svg = render ?parameters version in
-    Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
 end
 
 module Pdf = struct
@@ -192,7 +192,7 @@ module Pdf = struct
   let get version_slug parameters =
     let%lwt version = Model.Version.get version_slug in
     let%lwt path_pdf = render version ?parameters in
-    Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
 module Ogg = struct
@@ -223,5 +223,19 @@ module Ogg = struct
     Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp' version);
     let%lwt version = Model.Version.get version in
     let%lwt path_ogg = render version in
-    Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
+
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.VersionEndpoints.t -> a = function
+  | Get -> Model.Version.get
+  | Search -> (fun slice threshold filter -> Model.Version.search ?slice ?threshold filter)
+  | Save ->
+    (fun status tune bars key structure arrangers remark disambiguation broken content modified_at created_at ->
+       Model.Version.save ?status ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ?broken ~content ~modified_at ~created_at ()
+    )
+  | MarkBroken -> (fun slug -> Lwt.bind (Model.Version.get slug) Model.Version.mark_broken)
+  | MarkFixed -> (fun slug -> Lwt.bind (Model.Version.get slug) Model.Version.mark_fixed)
+  | Ly -> get_ly
+  | Svg -> (fun parameters version -> Svg.get version parameters)
+  | Ogg -> Ogg.get
+  | Pdf -> (fun parameters version -> Pdf.get version parameters)

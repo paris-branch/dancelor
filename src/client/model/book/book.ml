@@ -1,9 +1,7 @@
+open Dancelor_common
 include BookLifted
 
-module E = Dancelor_common_model.BookEndpoints
-module A = E.Arguments
-
-let make_and_save
+let save
     ?status
     ~title
     ?date
@@ -13,23 +11,17 @@ let make_and_save
     ()
   =
   let contents = Option.map (List.map page_to_page_core) contents in
-  Madge_client.(
-    call ~endpoint: E.make_and_save @@ fun {a} {o} ->
-    o A.status status;
-    a A.title title;
-    o A.date date;
-    o A.contents contents;
-    a A.modified_at modified_at;
-    a A.created_at created_at;
-  )
+  Madge_cohttp_lwt_client.call
+    ApiRouter.(route @@ Book Save)
+    status
+    title
+    date
+    contents
+    modified_at
+    created_at
 
 let search ?slice ?threshold filter =
-  Madge_client.(
-    call ~endpoint: E.search @@ fun {a} {o} ->
-    o A.slice slice;
-    o A.threshold threshold;
-    a A.filter filter;
-  )
+  Madge_cohttp_lwt_client.call ApiRouter.(route @@ Book Search) slice threshold filter
 
 let search' ?slice ?threshold filter =
   Lwt.map snd @@ search ?slice ?threshold filter
@@ -45,16 +37,15 @@ let update
     ?contents
     ~modified_at
     ~created_at
-    ()
+    () (* FIXME: slug as required argument *)
   =
   let contents = Option.map (List.map page_to_page_core) contents in
-  Madge_client.(
-    call ~endpoint: E.update @@ fun {a} {o} ->
-    o A.status status;
-    a A.slug slug;
-    a A.title title;
-    o A.date date;
-    o A.contents contents;
-    a A.modified_at modified_at;
-    a A.created_at created_at;
-  )
+  Madge_cohttp_lwt_client.call
+    ApiRouter.(route @@ Book Update)
+    status
+    title
+    date
+    contents
+    modified_at
+    created_at
+    slug

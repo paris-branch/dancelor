@@ -1,34 +1,26 @@
 (library
- (name madge_common)
- (modules madge_common)
- (public_name dancelor.madge.common)
- (libraries dancelor.nes cohttp yojson)
+ (name madge)
+ (modules madge serialisation)
+ (public_name dancelor.madge)
+ (libraries dancelor.nes dancelor.madge.query cohttp yojson)
  (preprocess
-  (pps ppx_deriving_yojson lwt_ppx)))
+  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 
 (library
- (name madge_client)
- (modules madge_client)
- (public_name dancelor.madge.client)
- (libraries dancelor.madge.common cohttp-lwt-jsoo)
+ (name madge_cohttp_lwt_client)
+ (modules madge_cohttp_lwt_client)
+ (public_name dancelor.madge.cohttp-lwt-client)
+ (libraries dancelor.nes dancelor.madge cohttp-lwt-jsoo yojson)
  (preprocess
-  (pps ppx_deriving_yojson lwt_ppx)))
+  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 
 (library
- (name madge_server)
- (modules madge_server)
- (public_name dancelor.madge.server)
- (libraries dancelor.madge.common cohttp-lwt-unix)
+ (name madge_cohttp_lwt_server)
+ (modules madge_cohttp_lwt_server)
+ (public_name dancelor.madge.cohttp-lwt-server)
+ (libraries dancelor.madge dancelor.madge.query cohttp-lwt-unix)
  (preprocess
   (pps ppx_deriving_yojson lwt_ppx)))
-
-(library
- (name madge_router)
- (modules madge_router)
- (public_name dancelor.madge.router)
- (libraries dancelor.nes cohttp dancelor.madge.query)
- (preprocess
-  (pps ppx_deriving_yojson lwt_ppx dancelor.ppx_monad_olwt)))
 
 (library
  (name madge_query)

@@ -1,44 +1,20 @@
 open Nes
-open Madge_common
+open Madge
 
-(* Old-style Endpoints *)
-(* FIXME: to be converted into new-style ones. *)
+type (_, _, _) t =
+  | Get : ((BookCore.t Slug.t -> 'w), 'w, BookCore.t) t
+  | Search : ((Slice.t option -> float option -> BookCore.Filter.t -> 'w), 'w, (int * BookCore.t list)) t
+  | Save : ((Status.t option -> string -> PartialDate.t option -> BookCore.PageCore.t list option -> Datetime.t -> Datetime.t -> 'w), 'w, BookCore.t) t
+  | Update : ((Status.t option -> string -> PartialDate.t option -> BookCore.PageCore.t list option -> Datetime.t -> Datetime.t -> BookCore.t Slug.t -> 'w), 'w, unit) t
+  | Pdf : ((BookParameters.t option -> BookCore.t Slug.t -> 'w), 'w, Void.t) t
 
-module Arguments = struct
-  let slug = arg ~key: "slug" (module MSlug(BookCore))
-  let status = optarg (module Status)
-  let title = arg ~key: "title" (module MString)
-  let date = optarg ~key: "date" (module NesPartialDate)
-  let contents = optarg ~key: "contents" (module MList(BookCore.PageCore))
-  let filter = arg (module BookCore.Filter)
-  let slice = optarg (module Slice)
-  let threshold = optarg ~key: "threshold" (module MFloat)
-  let modified_at = arg ~key: "modified-at" (module NesDatetime)
-  let created_at = arg ~key: "created-at" (module NesDatetime)
-end
+(* FIXME: make a simple PPX for the following *)
+type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
+let all = [W Get; W Search; W Save; W Update; W Pdf]
 
-let get = endpoint ~path: "/book" (module BookCore)
-let make_and_save = endpoint ~path: "/book/save" (module BookCore)
-let search = endpoint ~path: "/book/search" (module MPair(MInteger)(MList(BookCore)))
-let update = endpoint ~path: "/book/update" (module MUnit)
-
-(* New-style Endpoints *)
-
-open Madge_router
-module MQ = Madge_query
-
-type t =
-  | Pdf of BookCore.t Slug.t * BookParameters.t option
-[@@deriving variants]
-
-let routes : t route list = [
-  with_slug_and_query
-    `GET
-    "/"
-    ~ext: "pdf"
-    (fun slug query -> Pdf (slug, MQ.get_ "parameters" BookParameters.of_yojson query))
-    (function
-      | Pdf (slug, None) -> Some (slug, MQ.empty)
-      | Pdf (slug, Some params) -> Some (slug, MQ.singleton "parameters" @@ BookParameters.to_yojson params)
-    );
-]
+let route : type a w r. (a, w, r) t -> (a, w, r) route = function
+  | Get -> literal "get" @@ variable (module SSlug(BookCore)) @@ return (module BookCore)
+  | Pdf -> literal "pdf" @@ query_opt "parameters" (module BookParameters) @@ variable (module SSlug(BookCore)) @@ return (module JVoid)
+  | Search -> literal "search" @@ query_opt "slice" (module Slice) @@ query_opt "threshold" (module JFloat) @@ query "filter" (module BookCore.Filter) @@ return (module JPair(JInt)(JList(BookCore)))
+  | Save -> literal "make-and-save" @@ query_opt "status" (module Status) @@ query "title" (module JString) @@ query_opt "date" (module PartialDate) @@ query_opt "contents" (module JList(BookCore.PageCore)) @@ query "modified-at" (module Datetime) @@ query "created-at" (module Datetime) @@ return (module BookCore)
+  | Update -> literal "update" @@ query_opt "status" (module Status) @@ query "title" (module JString) @@ query_opt "date" (module PartialDate) @@ query_opt "contents" (module JList(BookCore.PageCore)) @@ query "modified-at" (module Datetime) @@ query "created-at" (module Datetime) @@ variable (module SSlug(BookCore)) @@ return (module JUnit)

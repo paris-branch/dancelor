@@ -25,6 +25,7 @@ module Filesystem = NesFilesystem
 module Json = NesJson
 module Slug = NesSlug
 module Link = NesLink
+module Void = NesVoid
 
 (* Monads *)
 

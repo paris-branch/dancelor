@@ -18,7 +18,8 @@
  (synopsis "A chancelor for Scottish country dance musicians")
 
  (depends
-  (ocaml               (and :build (>= 4.08.0)))
+  ;; Also change the OCaml version in CI.
+  (ocaml               (and :build (>= 5.0)))
 
   (cohttp-lwt-jsoo     (>= 4.0.0))
   (cohttp-lwt-unix     (>= 4.0.0))

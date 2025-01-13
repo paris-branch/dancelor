@@ -37,5 +37,14 @@ module Pdf = struct
   let get dance_slug parameters =
     let%lwt dance = Model.Dance.get dance_slug in
     let%lwt path_pdf = render ?parameters dance in
-    Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
+
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.DanceEndpoints.t -> a = function
+  | Get -> Model.Dance.get
+  | Search -> (fun slice threshold filter -> Model.Dance.search ?slice ?threshold filter)
+  | Save ->
+    (fun status name kind devisers two_chords scddb_id disambiguation date modified_at created_at ->
+       Model.Dance.save ?status ~name ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date ~modified_at ~created_at ()
+    )
+  | Pdf -> (fun parameters dance -> Pdf.get dance parameters)

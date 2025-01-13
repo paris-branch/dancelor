@@ -4,7 +4,6 @@
  (public_name dancelor.common)
  (libraries
   dancelor.nes
-  dancelor.madge.router
   dancelor.common.model
   dancelor.common.page-router
   cohttp
