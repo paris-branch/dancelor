@@ -6,6 +6,7 @@
 {
   flake.makeRuntimeInputs =
     pkgs: with pkgs; [
+      gh
       git
       freepats
       timidity
