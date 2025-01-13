@@ -38,6 +38,7 @@
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
+            ocamlformat # otherwise LSP complains
             ocp-indent
             utop
           ])
