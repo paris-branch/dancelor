@@ -15,11 +15,12 @@ let describe =
 let report issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
-      Lwt.return ("paris-branch/test-dancelor", issue.title)
+      Lwt.return (!Dancelor_server_config.github_repository, issue.title)
     else
       let%lwt (model, name) = Lwt.map Option.get @@ describe @@ Uri.of_string issue.page in
-      Lwt.return ("paris-branch/test-dancelor-database", Format.sprintf "%s “%s”: %s" model name issue.title)
+      Lwt.return (!Dancelor_server_config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
   in
+  assert (repo <> ""); (* otherwise this will pick up on the current Git repository *)
   let body =
     Format.sprintf
       {|

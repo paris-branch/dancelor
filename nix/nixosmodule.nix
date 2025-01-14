@@ -14,20 +14,30 @@
       options.services.dancelor = {
         enable = lib.mkEnableOption "Enable the Dancelor service";
 
-        databaseRepositoryFile = lib.mkOption rec {
+        databaseRepositoryFile = lib.mkOption {
           type = lib.types.str;
           description = "Path to a file that contains the link to the database repository.";
         };
 
-        listeningPort = lib.mkOption rec {
+        listeningPort = lib.mkOption {
           type = lib.types.int;
           default = 6872;
           description = "Port on which Dancelor will listen.";
         };
 
-        githubTokenFile = lib.mkOption rec {
+        githubTokenFile = lib.mkOption {
           type = lib.types.str;
           description = "Path to a file that contains the GitHub API token.";
+        };
+
+        githubRepository = lib.mkOption {
+          type = lib.types.str;
+          description = "Dancelor's GitHub repository - used by the error reporting mechanism.";
+        };
+
+        githubDatabaseRepository = lib.mkOption {
+          type = lib.types.str;
+          description = "Dancelor's database's GitHub repository - used by the error reporting mechanism.";
         };
       };
 
@@ -88,7 +98,9 @@
                 --database /var/lib/dancelor/database \
                 --loglevel info \
                 --port ${toString cfg.listeningPort} \
-                --github-token-file ${cfg.githubTokenFile}
+                --github-token-file ${cfg.githubTokenFile} \
+                --github-repository ${cfg.githubRepository} \
+                --github-database-repository ${cfg.githubDatabaseRepository}
             '';
           };
 
