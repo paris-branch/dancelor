@@ -8,5 +8,7 @@
   "routines": "false",
   "heavy_routines": "false",
   "sync_storage": "false",
-  "write_storage": "false"
+  "write_storage": "false",
+  "github-repository": "paris-branch/test-dancelor",
+  "github-database-repository": "paris-branch/test-dancelor-database"
 }

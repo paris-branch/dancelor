@@ -230,11 +230,9 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.VersionEndpoints.
   | Get -> Model.Version.get
   | Search -> (fun slice threshold filter -> Model.Version.search ?slice ?threshold filter)
   | Save ->
-    (fun status tune bars key structure arrangers remark disambiguation broken content modified_at created_at ->
-       Model.Version.save ?status ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ?broken ~content ~modified_at ~created_at ()
+    (fun status tune bars key structure arrangers remark disambiguation content modified_at created_at ->
+       Model.Version.save ?status ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ~content ~modified_at ~created_at ()
     )
-  | MarkBroken -> (fun slug -> Lwt.bind (Model.Version.get slug) Model.Version.mark_broken)
-  | MarkFixed -> (fun slug -> Lwt.bind (Model.Version.get slug) Model.Version.mark_fixed)
   | Ly -> get_ly
   | Svg -> (fun parameters version -> Svg.get version parameters)
   | Ogg -> Ogg.get

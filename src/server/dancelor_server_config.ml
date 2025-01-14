@@ -46,6 +46,23 @@ let heavy_routines = ref false
 let share = ref "share"
 let sync_storage = ref true
 let write_storage = ref true
+let github_token = ref ""
+let github_token_file = ref ""
+let github_repository = ref ""
+let github_database_repository = ref ""
+
+let check_config () =
+  if !github_token_file <> "" then
+    (
+      if !github_token <> "" then
+        failwith "Cannot specify both a GitHub token and a GitHub token file";
+      let%lwt ichan = Lwt_io.open_file ~mode: Lwt_io.input !github_token_file in
+      let%lwt content = Lwt_io.read ichan in
+      github_token := String.trim content;
+      Lwt.return_unit
+    )
+  else
+    Lwt.return_unit
 
 let load_from_file filename =
   Log.debug (fun m -> m "Reading configuration from file %s" filename);
@@ -80,6 +97,10 @@ let load_from_file filename =
   share := field config ~type_: string ~default: !share ["share"];
   sync_storage := field config ~type_: bool ~default: !sync_storage ["sync_storage"];
   write_storage := field config ~type_: bool ~default: !write_storage ["write_storage"];
+  github_token := field config ~type_: string ~default: !github_token ["github-token"];
+  github_token_file := field config ~type_: string ~default: !github_token_file ["github-token-file"];
+  github_repository := field config ~type_: string ~default: !github_repository ["github-repository"];
+  github_database_repository := field config ~type_: string ~default: !github_database_repository ["github-database-repository"];
   ()
 
 let parse_cmd_line () =
@@ -109,8 +130,13 @@ let parse_cmd_line () =
         "--no-sync-storage", Clear sync_storage, aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
         "--write-storage", Set write_storage, aspf " Reflect storage on filesystem%a" pp_default !write_storage;
         "--no-write-storage", Clear write_storage, aspf " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
+        "--github-token", Set_string github_token, spf "STR Set the Github API token to STR";
+        "--github-token-file", Set_string github_token_file, spf "FILE Read the GitHub API token from FILE";
+        "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR";
+        "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR";
       ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in
   let usage = spf "Usage: %s [OPTIONS...]" Sys.argv.(0) in
-  parse specs anon_fun usage
+  parse specs anon_fun usage;
+  check_config ()

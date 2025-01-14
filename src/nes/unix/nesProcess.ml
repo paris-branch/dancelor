@@ -90,7 +90,7 @@ let check_output
   (* Log everything with this loglevel now. *)
   (
     match command with
-    | Some command -> Log.msg loglevel (fun m -> m "Command: %s" command)
+    | Some command -> Log.msg loglevel (fun m -> m "Ran command: %s" command)
     | None -> ()
   );
   Log.msg loglevel (fun m -> m "Status: %a" pp_process_status out.status);
@@ -122,10 +122,11 @@ let run
     in
     pre ^ String.concat " " (List.map escape_shell_argument cmd) ^ post
   in
-  Log.debug (fun m -> m "Command: %s" strcmd);
+  Log.debug (fun m -> m "Running command: %s" strcmd);
   let cmd = Lwt_process.shell strcmd in
   Lwt_process.with_process_full ?timeout ?env cmd @@ fun process ->
   Lwt_io.write process#stdin stdin;%lwt
+  Lwt_io.close process#stdin;%lwt
   let%lwt status = process#status in
   let%lwt stdout = Lwt_io.read process#stdout in
   let%lwt stderr = Lwt_io.read process#stderr in

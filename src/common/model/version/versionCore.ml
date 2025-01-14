@@ -13,7 +13,6 @@ type t = {
   arrangers: PersonCore.t Slug.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
-  broken: bool; [@default false]
   modified_at: Datetime.t; [@key "modified-at"]
   created_at: Datetime.t [@key "created-at"]
 }
@@ -29,7 +28,6 @@ module Filter = struct
     | Tune of TuneCore.Filter.t
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
-    | Broken
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
@@ -38,5 +36,4 @@ module Filter = struct
   let tune' = Formula.pred % tune
   let key' = Formula.pred % key
   let kind' = Formula.pred % kind
-  let broken' = Formula.pred broken
 end
