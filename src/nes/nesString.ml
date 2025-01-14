@@ -42,8 +42,11 @@ let%test _ = not (ends_with ~needle: "elo" "hello")
 let%test _ = not (ends_with ~needle: "hello" "lo")
 
 let remove_prefix_exn ~needle haystack =
-  let l = length needle in
-  sub haystack l (length haystack - l)
+  let l_needle = length needle in
+  let l_haystack = length haystack in
+  if l_needle > l_haystack then
+    invalid_arg "remove_prefix_exn";
+  sub haystack l_needle (l_haystack - l_needle)
 
 let remove_prefix ~needle haystack =
   try
@@ -269,10 +272,12 @@ module Map = Map.Make(struct
     let compare = compare
   end)
 
-let ltrim ?(char_equal = Char.equal) ?(char = ' ') input =
+let whitespace_chars = [' '; '\x0C'; '\t'; '\n'; '\r']
+
+let ltrim ?(char_equal = Char.equal) ?(chars = whitespace_chars) input =
   let first = ref 0 in
   let length = length input in
-  while !first < length && char_equal input.[!first] char do
+  while !first < length && List.exists (char_equal input.[!first]) chars do
     incr first
   done;
   sub input !first (length - !first)
@@ -280,12 +285,12 @@ let ltrim ?(char_equal = Char.equal) ?(char = ' ') input =
 let%test _ = ltrim "" = ""
 let%test _ = ltrim "abc" = "abc"
 let%test _ = ltrim "   abc   " = "abc   "
-let%test _ = ltrim ~char: 'a' "abc" = "bc"
-let%test _ = ltrim ~char: 'a' "   abc   " = "   abc   "
+let%test _ = ltrim ~chars: ['a'] "abc" = "bc"
+let%test _ = ltrim ~chars: ['a'] "   abc   " = "   abc   "
 
-let rtrim ?(char_equal = Char.equal) ?(char = ' ') input =
+let rtrim ?(char_equal = Char.equal) ?(chars = whitespace_chars) input =
   let last = ref (length input - 1) in
-  while !last >= 0 && char_equal input.[!last] char do
+  while !last >= 0 && List.exists (char_equal input.[!last]) chars do
     decr last
   done;
   sub input 0 (!last + 1)
@@ -293,19 +298,19 @@ let rtrim ?(char_equal = Char.equal) ?(char = ' ') input =
 let%test _ = rtrim "" = ""
 let%test _ = rtrim "abc" = "abc"
 let%test _ = rtrim "   abc   " = "   abc"
-let%test _ = rtrim ~char: 'c' "abc" = "ab"
-let%test _ = rtrim ~char: 'c' "   abc   " = "   abc   "
+let%test _ = rtrim ~chars: ['c'] "abc" = "ab"
+let%test _ = rtrim ~chars: ['c'] "   abc   " = "   abc   "
 
-let trim ?char_equal ?char input =
+let trim ?char_equal ?chars input =
   input
-  |> rtrim ?char_equal ?char
-  |> ltrim ?char_equal ?char
+  |> rtrim ?char_equal ?chars
+  |> ltrim ?char_equal ?chars
 
 let%test _ = trim "" = ""
 let%test _ = trim "abc" = "abc"
 let%test _ = trim "   abc   " = "abc"
-let%test _ = trim ~char: 'c' "abc" = "ab"
-let%test _ = trim ~char: 'c' "   abc   " = "   abc   "
+let%test _ = trim ~chars: ['c'] "abc" = "ab"
+let%test _ = trim ~chars: ['c'] "   abc   " = "   abc   "
 
 let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
   let length = length input in
@@ -326,7 +331,7 @@ let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
         Buffer.add_char output input.[i]
       )
   done;
-  trim ~char_equal ~char (Buffer.contents output)
+  trim ~char_equal ~chars: [char] (Buffer.contents output)
 
 (** Richer version of [concat] that can also handle differently the last
     separator. For instance, [concat ~last:" & " ", " \["a"; "b"; "c"\] = "a, b
