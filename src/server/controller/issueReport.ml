@@ -35,7 +35,16 @@ let report issue =
       issue.page
       issue.description
   in
-  let%lwt output = NesProcess.run ["gh"; "issue"; "create"; "--repo"; repo; "--title"; title; "--body"; body] in
+  let%lwt output =
+    NesProcess.run
+      ~env: [|
+        "PATH=" ^ (Unix.getenv "PATH");
+        "GH_TOKEN=" ^ !Dancelor_server_config.github_token;
+      |]
+      ~on_wrong_status: Logs.Error
+      ~on_nonempty_stderr: Logs.Error
+      ["gh"; "issue"; "create"; "--repo"; repo; "--title"; title; "--body"; body]
+  in
   let uri = String.trim output.stdout in
   let id = int_of_string @@ String.remove_prefix_exn ~needle: ("/" ^ repo ^ "/issues/") @@ Uri.(path % of_string) uri in
   Lwt.return Response.{title; id; uri}

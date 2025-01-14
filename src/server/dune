@@ -10,7 +10,9 @@
  (name dancelor_server_config)
  (modules dancelor_server_config)
  (public_name dancelor.server.config)
- (libraries dancelor.nes dancelor.server.logs logs str))
+ (libraries dancelor.nes dancelor.server.logs logs str lwt.unix)
+ (preprocess
+  (pps lwt_ppx)))
 
 (library
  (name dancelor_server_logs)

@@ -162,7 +162,7 @@ let main =
     ~place: "main"
     ~die: log_die
   @@ fun () ->
-  read_configuration ();
+  read_configuration ();%lwt
   initialise_logs ();
   write_pid ();%lwt
   populate_caches ();%lwt

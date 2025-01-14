@@ -24,6 +24,11 @@
           default = 6872;
           description = "Port on which Dancelor will listen.";
         };
+
+        githubTokenFile = lib.mkOption rec {
+          type = lib.types.str;
+          description = "Path to a file that contains the GitHub API token.";
+        };
       };
 
       config =
@@ -82,7 +87,8 @@
                 --cache /var/cache/dancelor \
                 --database /var/lib/dancelor/database \
                 --loglevel info \
-                --port ${toString cfg.listeningPort}
+                --port ${toString cfg.listeningPort} \
+                --github-token-file ${cfg.githubTokenFile}
             '';
           };
 
