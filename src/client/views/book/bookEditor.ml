@@ -136,10 +136,10 @@ module Editor = struct
     Input.Text.clear editor.elements.date;
     Selector.clear editor.elements.sets
 
-  let submit (editor : t) =
-    match S.value (state editor) with
-    | None -> Lwt.return_none
-    | Some {name; date; sets} ->
+  let submit ~edit (editor : t) =
+    match (S.value (state editor), edit) with
+    | (None, _) -> Lwt.return_none
+    | (Some {name; date; sets}, None) ->
       Lwt.map Option.some @@
       Model.Book.save
         ~title: name
@@ -150,6 +150,16 @@ module Editor = struct
         ~created_at: (Datetime.now ())
         (* FIXME: not even optional *)
         ()
+    | (Some {name; date; sets}, Some slug) ->
+      Model.Book.update
+        ~slug
+        ~title: name
+        ?date
+        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
+        ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
+        ();%lwt
+      Lwt.map Option.some @@ Model.Book.get slug
 end
 
 let create ?on_save ?text ?edit () =
@@ -185,7 +195,7 @@ let create ?on_save ?text ?edit () =
                     ~disabled: (S.map Option.is_none (Editor.state editor))
                     ~onclick: (fun () ->
                         editor.set_interacted ();
-                        Fun.flip Lwt.map (Editor.submit editor) @@
+                        Fun.flip Lwt.map (Editor.submit ~edit editor) @@
                         Option.iter @@ fun book ->
                         Editor.clear editor;
                         match on_save with
