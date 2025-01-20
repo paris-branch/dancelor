@@ -75,7 +75,7 @@ module Editor = struct
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.scddb_id
 
-  let submit (editor : t) : Model.Person.t option Lwt.t =
+  let submit (editor : t) : Model.Person.t Database.Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; scddb_id} ->

@@ -36,7 +36,7 @@ end
 
 module State = struct
   type t =
-    (string, PartialDate.t option, Model.Set.t list) gen
+    (string, PartialDate.t option, Model.Set.t Database.Entry.t list) gen
 
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
@@ -46,7 +46,7 @@ module State = struct
 
   exception Non_convertible
 
-  let of_model (book : Model.Book.t) : t Lwt.t =
+  let of_model (book : Model.Book.t Database.Entry.t) : t Lwt.t =
     let%lwt contents = Model.Book.contents book in
     let sets =
       List.map

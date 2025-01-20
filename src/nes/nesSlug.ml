@@ -49,6 +49,7 @@ let pp' fmt slug =
 let pp _ = pp'
 
 let unsafe_coerce = Fun.id
+let unsafe_equal = equal'
 let unsafe_of_string = Option.some
 
 let compare_slugs_or ~fallback slug x y =

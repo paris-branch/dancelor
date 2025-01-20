@@ -149,7 +149,7 @@ module Editor = struct
     Input.Text.clear editor.elements.remark;
     Input.Text.clear editor.elements.scddb_id
 
-  let submit (editor : t) : Model.Tune.t option Lwt.t =
+  let submit (editor : t) : Model.Tune.t Database.Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->

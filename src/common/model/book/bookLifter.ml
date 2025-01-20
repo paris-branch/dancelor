@@ -13,7 +13,7 @@ module Lift
 
   let is_source book = source book
 
-  let compare : t -> t -> int =
+  let compare : t Entry.t -> t Entry.t -> int =
     Slug.compare_slugs_or
       ~fallback: (fun book1 book2 ->
           (* Compare first by date *)
@@ -23,7 +23,7 @@ module Lift
           else
             c
         )
-      Entry.slug
+      Entry.slug'
 
   let equal book1 book2 = compare book1 book2 = 0
 
@@ -104,7 +104,7 @@ module Lift
     let contents = Option.map (List.map page_to_page_core) contents in
     Lwt.return @@
     Entry.make ~slug ?status ~modified_at ~created_at @@
-    make_core ~title ?date ?contents ()
+    make ~title ?date ?contents ()
 
   module Warnings = struct
     (* The following functions all have the name of a warning of

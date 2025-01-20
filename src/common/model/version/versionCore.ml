@@ -3,7 +3,7 @@ open Dancelor_common_database
 
 let _key = "version"
 
-type core = {
+type t = {
   tune: TuneCore.t Slug.t;
   bars: int;
   key: Music.key;
@@ -13,10 +13,7 @@ type core = {
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
 }
-[@@deriving make, show {with_path = false}, yojson, fields]
-
-type t = core Entry.t
-[@@deriving yojson, show]
+[@@deriving yojson, make, show {with_path = false}, fields]
 
 let tune = tune % Entry.value
 let bars = bars % Entry.value

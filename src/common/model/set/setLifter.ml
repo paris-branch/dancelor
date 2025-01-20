@@ -29,10 +29,10 @@ module Lift
     Lwt.return
       (
         Entry.make ~slug ?status ~modified_at ~created_at @@
-        make_core ~name ?conceptors ~kind ?contents ~order ?dances ()
+        make ~name ?conceptors ~kind ?contents ~order ?dances ()
       )
 
-  let is_slug_none : t -> bool = Slug.is_none % Entry.slug
+  let is_slug_none : t Entry.t -> bool = Slug.is_none % Entry.slug
   let conceptors = Lwt_list.map_p Person.get % conceptors
   let dances = Lwt_list.map_p Dance.get % dances
 
@@ -44,8 +44,8 @@ module Lift
       ) %
     contents
 
-  let compare : t -> t -> int =
-    Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug
+  let compare : t Entry.t -> t Entry.t -> int =
+    Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug'
   let equal set1 set2 = compare set1 set2 = 0
 
   (* FIXME: use Version.equal *)

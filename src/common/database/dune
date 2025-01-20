@@ -1,7 +1,7 @@
 (library
  (name dancelor_common_database)
  (public_name dancelor.common.database)
- (libraries yaml dancelor.nes)
+ (libraries yaml dancelor.nes dancelor.madge)
  (preprocess
   (staged_pps
    lwt_ppx

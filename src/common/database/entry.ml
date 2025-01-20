@@ -1,20 +1,18 @@
 open Nes
 
-(* FIXME: We can get rid of this recursive type by getting rid of the ['a t
-   Slug.t] field, which I think we should do for cleanliness anyway. *)
-
 type 'a full = {
-  slug: 'a t Slug.t;
+  slug: 'a Slug.t;
   status: Status.t;
   created_at: Datetime.t; [@key "created-at"]
   modified_at: Datetime.t; [@key "modified-at"]
   value: 'a;
 }
+[@@deriving yojson, show {with_path = false}]
 
-and 'a t =
+type 'a t =
   | Full of 'a full
   | Dummy of 'a
-[@@deriving yojson, show {with_path = false}]
+[@@deriving show {with_path = false}]
 
 let is_dummy = function Dummy _ -> true | Full _ -> false
 
@@ -77,3 +75,9 @@ let of_yojson value_of_yojson json =
         ("value", json);
       ]
   | None -> Result.map (fun x -> Dummy x) (value_of_yojson json)
+
+module J (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t t = struct
+  type nonrec t = A.t t
+  let to_yojson = to_yojson A.to_yojson
+  let of_yojson = of_yojson A.of_yojson
+end

@@ -30,18 +30,18 @@ module type S = sig
   val report_without_accesses : unit -> unit
   val standalone : bool
 
-  val get : value Slug.t -> value Lwt.t
-  val get_opt : value Slug.t -> value option Lwt.t
-  val get_all : unit -> value list Lwt.t
+  val get : value Slug.t -> value Entry.t Lwt.t
+  val get_opt : value Slug.t -> value Entry.t option Lwt.t
+  val get_all : unit -> value Entry.t list Lwt.t
 
   val get_status : value Slug.t -> Status.t option Lwt.t
 
-  val save : slug_hint: string -> (value Slug.t -> value Lwt.t) -> value Lwt.t
-  val update : value -> unit Lwt.t
+  val save : slug_hint: string -> (value Slug.t -> value Entry.t Lwt.t) -> value Entry.t Lwt.t
+  val update : value Entry.t -> unit Lwt.t
   val delete : value Slug.t -> unit Lwt.t
 
-  val read_separated_file : value -> string -> string Lwt.t
-  val write_separated_file : value -> string -> string -> unit Lwt.t
+  val read_separated_file : value Entry.t -> string -> string Lwt.t
+  val write_separated_file : value Entry.t -> string -> string -> unit Lwt.t
 
   module Log : Logs.LOG
 end
@@ -58,10 +58,9 @@ let make_slug_and_table (type value) (module Table : S with type value = value) 
 (** {2 Type of a model} *)
 
 module type Model = sig
-  type core
-  type t = core Entry.t
+  type t
 
-  val dependencies : t -> slug_and_table list Lwt.t
+  val dependencies : t Entry.t -> slug_and_table list Lwt.t
 
   val standalone : bool
   (** Whether entries of this table make sense on their own. *)
@@ -84,14 +83,14 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   type t = value database_state
 
-  let table = Hashtbl.create 8
+  let (table : (Model.t Slug.t, (Stats.t * Model.t Entry.t)) Hashtbl.t) = Hashtbl.create 8
 
   let load () =
     Log.info (fun m -> m "Loading table: %s" _key);
     let load entry =
       Log.debug (fun m -> m "Loading %s %s" _key entry);
       Fun.flip Lwt.map (Storage.read_entry_yaml Model._key entry "meta.yaml") @@ fun json ->
-      match Model.of_yojson @@ Json.add_field "slug" (`String entry) json with
+      match Entry.of_yojson Model.of_yojson @@ Json.add_field "slug" (`String entry) json with
       | Ok model ->
         Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
         Log.debug (fun m -> m "Loaded %s %s" _key entry);
@@ -191,7 +190,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let save ~slug_hint with_slug =
     let slug = uniq_slug ~hint: slug_hint in
     let%lwt model = with_slug slug in
-    let json = Model.to_yojson model in
+    let json = Entry.to_yojson Model.to_yojson model in
     let json = Json.remove_field "slug" json in
     Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
@@ -204,7 +203,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   let update model : unit Lwt.t =
     let slug = Entry.slug model in
-    let json = Model.to_yojson model in
+    let json = Entry.to_yojson Model.to_yojson model in
     let json = Json.remove_field "slug" json in
     Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry

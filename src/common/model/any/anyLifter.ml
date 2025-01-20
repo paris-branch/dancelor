@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module Lift
     (Person : module type of PersonSignature)
@@ -12,7 +13,7 @@ module Lift
 
   let equal any1 any2 =
     match any1, any2 with
-    | Person c1, Person c2 -> Person.equal c1 c2
+    | Person c1, Person c2 -> Entry.equal' c1 c2
     | Dance d1, Dance d2 -> Dance.equal d1 d2
     | Book b1, Book b2 -> Book.equal b1 b2
     | Set s1, Set s2 -> Set.equal s1 s2

@@ -32,6 +32,9 @@ val pp' : Format.formatter -> 'any t -> unit
 val unsafe_coerce : 'a t -> 'b t
 (** Loses the type information from the slug. *)
 
+val unsafe_equal : 'a t -> 'b t -> bool
+(** Compare while losing type information. *)
+
 val unsafe_of_string : string -> 'any t
 (** Take the given string as a slug as-is. Using [to_string] followed by
     [unsafe_of_string] allows to change the type associated to the slug, which

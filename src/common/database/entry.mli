@@ -11,7 +11,7 @@ val is_dummy : 'a t -> bool
 (** {2 Builders} *)
 
 val make :
-  slug: 'a t Slug.t ->
+  slug: 'a Slug.t ->
   ?status: Status.t ->
   ?created_at: Datetime.t ->
   ?modified_at: Datetime.t ->
@@ -25,10 +25,10 @@ val make_dummy : 'a -> 'a t
 exception UsedGetterOnDummy
 (** Exception raised when trying to access field of a dummy entry. *)
 
-val slug : 'a t -> 'a t Slug.t
+val slug : 'a t -> 'a Slug.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
-val slug' : 'a t -> 'a Slug.t
+val slug' : 'a t -> 'a t Slug.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
 val status : 'a t -> Status.t
@@ -48,3 +48,9 @@ val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
 (** Comparison for ppx_deriving_yojson. The first argument is ignored. Use {!equal'}. *)
 
 val equal' : 'a t -> 'a t -> bool
+
+(** {2 Serialisation} *)
+
+module J : functor (M : Madge.JSONABLE) ->
+  Madge.JSONABLE with
+  type t = M.t t

@@ -3,7 +3,7 @@ open Dancelor_common_database
 
 let _key = "tune"
 
-type core = {
+type t = {
   name: string;
   alternative_names: string list; [@key "alternative-names"] [@default []]
   kind: Kind.Base.t;
@@ -13,10 +13,7 @@ type core = {
   scddb_id: int option; [@default None] [@key "scddb-id"]
   date: PartialDate.t option; [@default None] (** When the tune was composed. *)
 }
-[@@deriving make, show {with_path = false}, yojson, fields]
-
-type t = core Entry.t
-[@@deriving yojson, show]
+[@@deriving yojson, make, show {with_path = false}, fields]
 
 let name = name % Entry.value
 let alternative_names = alternative_names % Entry.value
@@ -28,7 +25,7 @@ let scddb_id = scddb_id % Entry.value
 let date = date % Entry.value
 
 (* FIXME: Can't we push this into TuneLifter? *)
-let compare : t -> t -> int = Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug
+let compare : t Entry.t -> t Entry.t -> int = Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug'
 let equal tune1 tune2 = compare tune1 tune2 = 0
 
 module Filter = struct

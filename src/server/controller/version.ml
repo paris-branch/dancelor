@@ -125,7 +125,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Svg = struct
-  let cache : ([`Svg] * Model.Version.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Svg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -197,7 +197,7 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : ([`Ogg] * Model.Version.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ogg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =

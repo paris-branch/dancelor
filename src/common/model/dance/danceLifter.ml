@@ -26,7 +26,7 @@ module Lift
     Lwt.return
       (
         Entry.make ~slug ?status ~modified_at ~created_at @@
-        make_core ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
+        make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
       )
 
   let devisers = Lwt_list.map_p Person.get % devisers

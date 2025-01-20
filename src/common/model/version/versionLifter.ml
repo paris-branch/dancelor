@@ -28,7 +28,7 @@ module Lift
     Lwt.return
       (
         Entry.make ~slug ?status ~modified_at ~created_at @@
-        make_core ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ()
+        make ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ()
       )
 
   let tune = Tune.get % tune

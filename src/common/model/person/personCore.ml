@@ -3,14 +3,11 @@ open Dancelor_common_database
 
 let _key = "person"
 
-type core = {
+type t = {
   name: string;
   scddb_id: int option; [@default None] [@key "scddb-id"]
 }
 [@@deriving yojson, make, show {with_path = false}, fields]
-
-type t = core Entry.t
-[@@deriving yojson, show]
 
 let name = name % Entry.value
 let scddb_id = scddb_id % Entry.value

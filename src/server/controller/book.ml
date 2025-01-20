@@ -44,7 +44,7 @@ module Ly = struct
       |> List.map_filter (function O.Internal n -> Some n | _ -> None)
       |> List.map (List.nth content % Fun.flip (-) 1)
 
-  let cache : ([`Ly] * Model.Book.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ly] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let render ?(parameters = Model.BookParameters.none) book =
@@ -255,7 +255,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Model.Book.t * Model.BookParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Model.Book.t Database.Entry.t * Model.BookParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =

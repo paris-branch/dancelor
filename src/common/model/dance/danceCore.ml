@@ -3,7 +3,7 @@ open Dancelor_common_database
 
 let _key = "dance"
 
-type core = {
+type t = {
   name: string;
   kind: Kind.Dance.t;
   devisers: PersonCore.t Slug.t list; [@default []]
@@ -13,9 +13,6 @@ type core = {
   date: PartialDate.t option; [@default None] (** When the dance was devised. *)
 }
 [@@deriving make, show {with_path = false}, yojson, fields]
-
-type t = core Entry.t
-[@@deriving yojson, show]
 
 let name = name % Entry.value
 let kind = kind % Entry.value

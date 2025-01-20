@@ -29,7 +29,7 @@ module Lift
     Lwt.return
       (
         Entry.make ~slug ?status ~modified_at ~created_at @@
-        make_core ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
+        make ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
       )
 
   let composers = Lwt_list.map_p Person.get % composers

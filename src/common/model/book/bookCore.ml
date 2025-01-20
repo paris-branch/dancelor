@@ -5,13 +5,13 @@ module PageCore = struct
   type t =
     | Version of VersionCore.t Slug.t * VersionParameters.t
     | Set of SetCore.t Slug.t * SetParameters.t
-    | InlineSet of SetCore.core * SetParameters.t
+    | InlineSet of SetCore.t * SetParameters.t
   [@@deriving show {with_path = false}, yojson]
 end
 
 let _key = "book"
 
-type core = {
+type t = {
   title: string;
   subtitle: string; [@default ""]
   short_title: string; [@default ""] [@key "short-title"]
@@ -23,7 +23,7 @@ type core = {
 }
 [@@deriving make, show {with_path = false}, yojson, fields]
 
-let make_core
+let make
     ~title
     ?subtitle
     ?short_title
@@ -34,7 +34,7 @@ let make_core
     ?scddb_id
     ()
   =
-  make_core
+  make
     ~title
     ?subtitle
     ?short_title
@@ -44,9 +44,6 @@ let make_core
     ?remark
     ~scddb_id
     ()
-
-type t = core Entry.t
-[@@deriving yojson, show]
 
 let title = title % Entry.value
 let subtitle = subtitle % Entry.value
@@ -67,11 +64,11 @@ let contains_set set1 book =
 
 type warning =
   | Empty
-  | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of TuneCore.t * (SetCore.t option * int) list
+  | DuplicateSet of SetCore.t Entry.t (* FIXME: duplicate dance? *)
+  | DuplicateVersion of TuneCore.t Entry.t * (SetCore.t Entry.t option * int) list
   (* DuplicateVersion contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
-  | SetDanceMismatch of SetCore.t * DanceCore.t
+  | SetDanceMismatch of SetCore.t Entry.t * DanceCore.t Entry.t
   (* SetDanceMismatch contains a set where one of the associated dances
      does not have the same kind *)
 [@@deriving show {with_path = false}, yojson]
@@ -80,9 +77,9 @@ type warnings = warning list
 [@@deriving show {with_path = false}, yojson]
 
 type page =
-  | Version of VersionCore.t * VersionParameters.t
-  | Set of SetCore.t * SetParameters.t
-  | InlineSet of SetCore.core * SetParameters.t
+  | Version of VersionCore.t Entry.t * VersionParameters.t
+  | Set of SetCore.t Entry.t * SetParameters.t
+  | InlineSet of SetCore.t * SetParameters.t
 [@@deriving show {with_path = false}]
 
 module Filter = struct

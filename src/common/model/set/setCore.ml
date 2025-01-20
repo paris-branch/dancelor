@@ -3,7 +3,7 @@ open Dancelor_common_database
 
 let _key = "set"
 
-type core = {
+type t = {
   name: string;
   conceptors: PersonCore.t Slug.t list; [@default []]
   kind: Kind.Dance.t;
@@ -13,10 +13,7 @@ type core = {
   dances: DanceCore.t Slug.t list; [@default []]
   remark: string; [@default ""]
 }
-[@@deriving make, show {with_path = false}, yojson, fields]
-
-type t = core Entry.t
-[@@deriving yojson, show]
+[@@deriving yojson, make, show {with_path = false}, fields]
 
 let name = name % Entry.value
 let conceptors = conceptors % Entry.value
@@ -30,9 +27,9 @@ let remark = remark % Entry.value
 type warning =
   | Empty
   | WrongKind
-  | WrongVersionBars of VersionCore.t
-  | WrongVersionKind of TuneCore.t
-  | DuplicateVersion of TuneCore.t
+  | WrongVersionBars of VersionCore.t Entry.t
+  | WrongVersionKind of TuneCore.t Entry.t
+  | DuplicateVersion of TuneCore.t Entry.t
 [@@deriving yojson]
 
 type warnings = warning list
