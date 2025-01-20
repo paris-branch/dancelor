@@ -155,6 +155,9 @@ module Editor = struct
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
       Lwt.map Option.some @@
       Model.Tune.save
+        ~modified_at: (Datetime.now ())
+        ~created_at: (Datetime.now ()) @@
+      Model.Tune.make
         ~name
         ~kind
         ~composers
@@ -162,10 +165,6 @@ module Editor = struct
         ~dances
         ?remark
         ?scddb_id
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 

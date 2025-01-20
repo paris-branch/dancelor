@@ -4,31 +4,16 @@ include VersionLifted
 
 let save
     ?status
-    ~tune
-    ~bars
-    ~key
-    ~structure
-    ?arrangers
-    ?remark
-    ?disambiguation
-    ~content
     ~modified_at
     ~created_at
-    ()
+    version
   =
   Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Version Save)
     status
-    tune
-    bars
-    key
-    structure
-    arrangers
-    remark
-    disambiguation
-    content
     modified_at
     created_at
+    version
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Search) slice threshold filter

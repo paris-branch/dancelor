@@ -4,35 +4,8 @@ module Database = Dancelor_server_database
 
 include TuneLifted
 
-let save
-    ?status
-    ~name
-    ?alternative_names
-    ~kind
-    ?composers
-    ?dances
-    ?remark
-    ?scddb_id
-    ?date
-    ~modified_at
-    ~created_at
-    ()
-  =
-  Database.Tune.save ~slug_hint: name @@ fun slug ->
-  make
-    ?status
-    ~slug
-    ~name
-    ?alternative_names
-    ~kind
-    ?composers
-    ?dances
-    ?remark
-    ?scddb_id
-    ?date
-    ~modified_at
-    ~created_at
-    ()
+let save ?status ~modified_at ~created_at tune =
+  Database.Tune.save ~slug_hint: tune.name ?status ~modified_at ~created_at tune
 
 let tiebreakers =
   Lwt_list.[

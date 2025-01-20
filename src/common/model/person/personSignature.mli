@@ -11,6 +11,8 @@ open Dancelor_common_database
 type t = PersonCore.t
 (** Abstract type for a person. *)
 
+val make : name: string -> ?scddb_id: int -> unit -> t
+
 (** {2 Field getters} *)
 
 val name : t Entry.t -> string
@@ -48,11 +50,9 @@ val get : t Slug.t -> t Entry.t Lwt.t
 
 val save :
   ?status: Dancelor_common_database.Status.t ->
-  name: string ->
-  ?scddb_id: int ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
-  unit ->
+  t ->
   t Entry.t Lwt.t
 
 val search :

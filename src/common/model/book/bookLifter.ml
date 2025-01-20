@@ -87,7 +87,7 @@ module Lift
     let%lwt contents =
       Lwt_list.map_p
         (function
-          | Version (version, _) -> Version.content version
+          | Version (version, _) -> Lwt.return @@ Version.content version
           | Set (set, _) -> Set.lilypond_content_cache_key set
           | InlineSet (set, _) -> Set.lilypond_content_cache_key @@ Entry.make_dummy set
         )
@@ -100,11 +100,9 @@ module Lift
     | (Set (set, params): page) -> PageCore.Set (Entry.slug set, params)
     | (InlineSet (set, params): page) -> PageCore.InlineSet (set, params)
 
-  let make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () =
+  let make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id () =
     let contents = Option.map (List.map page_to_page_core) contents in
-    Lwt.return @@
-    Entry.make ~slug ?status ~modified_at ~created_at @@
-    make ~title ?date ?contents ()
+    make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id ()
 
   module Warnings = struct
     (* The following functions all have the name of a warning of

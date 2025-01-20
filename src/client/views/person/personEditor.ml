@@ -81,10 +81,11 @@ module Editor = struct
     | Some {name; scddb_id} ->
       Lwt.map Option.some @@
       Model.Person.save
+        ~modified_at: (Datetime.now ())
+        ~created_at: (Datetime.now ()) @@
+      Model.Person.make
         ~name
         ?scddb_id
-        ~modified_at: (Datetime.now ())
-        ~created_at: (Datetime.now ())
         ()
 end
 

@@ -138,15 +138,17 @@ module Editor = struct
     | Some {name; kind; conceptors; versions; order} ->
       Lwt.map Option.some @@
       Model.Set.save
+        ~modified_at: (Datetime.now ())
+        (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ())
+      (* FIXME: not even optional *)
+      @@
+      Model.Set.make
         ~name
         ~kind
         ~conceptors
         ~contents: (List.map (fun version -> (version, Model.VersionParameters.none)) versions)
         ~order
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 

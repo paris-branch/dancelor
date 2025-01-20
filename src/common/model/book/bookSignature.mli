@@ -24,6 +24,18 @@ type t = BookCore.t
 (** The type of a book. Even if it is known that it is a record, it should never
     be manipulated explicitly. *)
 
+val make :
+  title: string ->
+  ?subtitle: string ->
+  ?short_title: string ->
+  ?date: PartialDate.t ->
+  ?contents: page list ->
+  ?source: bool ->
+  ?remark: string ->
+  ?scddb_id: int ->
+  unit ->
+  t
+
 (** {2 Field Getters} *)
 
 val title : t Entry.t -> string
@@ -118,25 +130,10 @@ val get : t Slug.t -> t Entry.t Lwt.t
 
 val save :
   ?status: Dancelor_common_database.Status.t ->
-  title: string ->
-  ?date: PartialDate.t ->
-  ?contents: page list ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
-  unit ->
+  t ->
   t Entry.t Lwt.t
-
-val make :
-  ?status: Dancelor_common_database.Status.t ->
-  slug: t Slug.t ->
-  title: string ->
-  ?date: PartialDate.t ->
-  ?contents: page list ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  unit ->
-  t Entry.t Lwt.t
-(** Low-level unsafe book creation. Prefer {!save} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->
@@ -163,13 +160,10 @@ val count :
 
 val update :
   ?status: Dancelor_common_database.Status.t ->
-  slug: t Slug.t ->
-  title: string ->
-  ?date: PartialDate.t ->
-  ?contents: page list ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
-  unit ->
+  t Slug.t ->
+  t ->
   unit Lwt.t
 
 val page_core_to_page : BookCore.PageCore.t -> page Lwt.t

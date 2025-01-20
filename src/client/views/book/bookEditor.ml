@@ -143,24 +143,27 @@ module Editor = struct
     | (Some {name; date; sets}, None) ->
       Lwt.map Option.some @@
       Model.Book.save
-        ~title: name
-        ?date
-        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
         ~modified_at: (Datetime.now ())
         (* FIXME: optional argument *)
         ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
+      (* FIXME: not even optional *)
+      @@
+      Model.Book.make
+        ~title: name
+        ?date
+        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
         ()
     | (Some {name; date; sets}, Some slug) ->
       Model.Book.update
-        ~slug
-        ~title: name
-        ?date
-        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
         ~modified_at: (Datetime.now ())
         (* FIXME: optional argument *)
         ~created_at: (Datetime.now ())
         (* FIXME: not even optional *)
+        slug @@
+      Model.Book.make
+        ~title: name
+        ?date
+        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
         ();%lwt
       Lwt.map Option.some @@ Model.Book.get slug
 end

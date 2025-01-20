@@ -8,8 +8,6 @@ module Lift
   include VersionCore
 
   let make
-      ~slug
-      ?status
       ~tune
       ~bars
       ~key
@@ -17,19 +15,14 @@ module Lift
       ?arrangers
       ?remark
       ?disambiguation
-      ~modified_at
-      ~created_at
+      ~content
       ()
     =
     let structure = String.remove_duplicates ~char: ' ' structure in
     let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
     let tune = Entry.slug tune in
     let arrangers = Option.map (List.map Entry.slug) arrangers in
-    Lwt.return
-      (
-        Entry.make ~slug ?status ~modified_at ~created_at @@
-        make ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ()
-      )
+    make ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ~content ()
 
   let tune = Tune.get % tune
   let arrangers = Lwt_list.map_p Person.get % arrangers

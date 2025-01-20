@@ -5,6 +5,7 @@ module Model = Dancelor_common_model
 module Person = Table.Make(struct
     include Model.PersonCore
 
+    let separate_fields = []
     let dependencies _ = Lwt.return []
     let standalone = false
   end)
@@ -12,6 +13,7 @@ module Person = Table.Make(struct
 module Dance = Table.Make(struct
     include Model.DanceCore
 
+    let separate_fields = []
     let dependencies dance =
       Lwt.return
         (
@@ -24,6 +26,7 @@ module Dance = Table.Make(struct
 module Tune = Table.Make(struct
     include Model.TuneCore
 
+    let separate_fields = []
     let dependencies tune =
       Lwt.return
         (
@@ -37,6 +40,7 @@ module Tune = Table.Make(struct
 module Version = Table.Make(struct
     include Model.VersionCore
 
+    let separate_fields = [("content", "content.ly")]
     let dependencies version =
       Lwt.return
         (
@@ -49,6 +53,7 @@ module Version = Table.Make(struct
 module SetModel = struct
   include Model.SetCore
 
+  let separate_fields = []
   let dependencies set =
     Lwt.return
       (
@@ -64,6 +69,7 @@ module Set = Table.Make(SetModel)
 module Book = Table.Make(struct
     include Model.BookCore
 
+    let separate_fields = []
     let dependencies book =
       let%lwt dependencies =
         Lwt_list.map_p

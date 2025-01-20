@@ -4,17 +4,7 @@ open Dancelor_common_database
 module Lift () = struct
   include PersonCore
 
-  let make
-      ~slug
-      ?status
-      ~name
-      ?scddb_id
-      ~modified_at
-      ~created_at
-      ()
-    =
-    let name = String.remove_duplicates ~char: ' ' name in
-    Entry.make ~slug ?status ~modified_at ~created_at @@ make ~name ?scddb_id ()
+  let make ~name ?scddb_id () = make ~name ~scddb_id ()
 
   let trad_slug : PersonCore.t Slug.t = Slug.unsafe_of_string "traditional"
   let is_trad c = Slug.equal' (Entry.slug c) trad_slug

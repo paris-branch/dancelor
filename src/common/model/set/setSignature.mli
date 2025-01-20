@@ -3,6 +3,16 @@ open Dancelor_common_database
 
 type t = SetCore.t
 
+val make :
+  name: string ->
+  ?conceptors: PersonCore.t Entry.t list ->
+  kind: Kind.Dance.t ->
+  ?contents: (VersionCore.t Entry.t * VersionParameters.t) list ->
+  order: SetOrder.t ->
+  ?dances: DanceCore.t Entry.t list ->
+  unit ->
+  t
+
 (* FIXME: remove? *)
 val is_slug_none : t Entry.t -> bool
 
@@ -76,31 +86,11 @@ end
 
 val get : t Slug.t -> t Entry.t Lwt.t
 
-val make :
-  ?status: Dancelor_common_database.Status.t ->
-  ?slug: t Slug.t ->
-  name: string ->
-  ?conceptors: PersonCore.t Entry.t list ->
-  kind: Kind.Dance.t ->
-  ?contents: (VersionCore.t Entry.t * VersionParameters.t) list ->
-  order: SetOrder.t ->
-  ?dances: DanceCore.t Entry.t list ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  unit ->
-  t Entry.t Lwt.t
-
 val save :
   ?status: Dancelor_common_database.Status.t ->
-  name: string ->
-  ?conceptors: PersonCore.t Entry.t list ->
-  kind: Kind.Dance.t ->
-  ?contents: (VersionCore.t Entry.t * VersionParameters.t) list ->
-  order: SetOrder.t ->
-  ?dances: DanceCore.t Entry.t list ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
-  unit ->
+  t ->
   t Entry.t Lwt.t
 
 val delete : t Entry.t -> unit Lwt.t

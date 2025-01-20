@@ -5,7 +5,7 @@ module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
 
 let get_ly version =
   let%lwt version = Model.Version.get version in
-  let%lwt body = Model.Version.content version in
+  let body = Model.Version.content version in
   Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status: `OK ~body ()
 
 let prepare_ly_file ?(parameters = Model.VersionParameters.none) ?(show_meta = false) ?(meta_in_title = false) ~fname version =
@@ -31,7 +31,7 @@ let prepare_ly_file ?(parameters = Model.VersionParameters.none) ?(show_meta = f
   let kind = Model.Tune.kind tune in
   let (tempo_unit, tempo_value) = Model.Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
-  let%lwt content = Model.Version.content version in
+  let content = Model.Version.content version in
 
   (* Handle parameters *)
   let content =
@@ -132,7 +132,7 @@ module Svg = struct
     populate_cache ~cache ~ext: ".svg" ~pp_ext: "svg"
 
   let render ?parameters version =
-    let%lwt body = Model.Version.content version in
+    let body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
@@ -164,7 +164,6 @@ end
 module Pdf = struct
   let render ?parameters version =
     let%lwt kind = Model.Version.kind version in
-    let slug = Slug.unsafe_coerce @@ Database.Entry.slug version in
     let%lwt name = Model.Version.name version in
     let%lwt set_parameters =
       Model.SetParameters.make
@@ -177,15 +176,13 @@ module Pdf = struct
       |> Option.value ~default: Model.VersionParameters.none
       |> Model.VersionParameters.set_display_name ""
     in
-    let%lwt set =
+    let set =
+      Database.Entry.make_dummy @@
       Model.Set.make
-        ~slug
         ~name
         ~kind: (Model.Kind.Dance.Version kind)
         ~contents: [(version, parameters)]
         ~order: [Internal 1]
-        ~modified_at: (Datetime.now ())
-        ~created_at: (Datetime.now ())
         ()
     in
     Set.Pdf.render set ~parameters: set_parameters
@@ -204,7 +201,7 @@ module Ogg = struct
     populate_cache ~cache ~ext: ".ogg" ~pp_ext: "ogg"
 
   let render ?parameters version =
-    let%lwt body = Model.Version.content version in
+    let body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
       let slug = Database.Entry.slug version in
@@ -230,10 +227,7 @@ end
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.VersionEndpoints.t -> a = function
   | Get -> Model.Version.get
   | Search -> (fun slice threshold filter -> Model.Version.search ?slice ?threshold filter)
-  | Save ->
-    (fun status tune bars key structure arrangers remark disambiguation content modified_at created_at ->
-       Model.Version.save ?status ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ~content ~modified_at ~created_at ()
-    )
+  | Save -> (fun status modified_at created_at version -> Model.Version.save ?status ~modified_at ~created_at version)
   | Ly -> get_ly
   | Svg -> (fun parameters version -> Svg.get version parameters)
   | Ogg -> Ogg.get

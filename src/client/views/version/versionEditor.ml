@@ -149,6 +149,12 @@ module Editor = struct
     | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
       Lwt.map Option.some @@
       Model.Version.save
+        ~modified_at: (Datetime.now ())
+        (* FIXME: optional argument *)
+        ~created_at: (Datetime.now ())
+      (* FIXME: not even optional *)
+      @@
+      Model.Version.make
         ~tune
         ~bars
         ~key
@@ -157,10 +163,6 @@ module Editor = struct
         ~remark
         ~disambiguation
         ~content
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 

@@ -3,27 +3,16 @@ include SetLifted
 
 let save
     ?status
-    ~name
-    ?conceptors
-    ~kind
-    ?contents
-    ~order
-    ?dances
     ~modified_at
     ~created_at
-    ()
+    set
   =
   Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Set Save)
     status
-    name
-    conceptors
-    kind
-    contents
-    order
-    dances
     modified_at
     created_at
+    set
 
 let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (Database.Entry.slug s)
 

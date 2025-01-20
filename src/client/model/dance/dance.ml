@@ -3,29 +3,16 @@ include DanceLifted
 
 let save
     ?status
-    ~name
-    ~kind
-    ?devisers
-    ?two_chords
-    ?scddb_id
-    ?disambiguation
-    ?date
     ~modified_at
     ~created_at
-    ()
+    dance
   =
   Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Dance Save)
     status
-    name
-    kind
-    devisers
-    two_chords
-    scddb_id
-    disambiguation
-    date
     modified_at
     created_at
+    dance
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Dance Search) slice threshold filter

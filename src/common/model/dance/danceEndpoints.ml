@@ -5,7 +5,7 @@ open Dancelor_common_database
 type (_, _, _) t =
   | Get : ((DanceCore.t Slug.t -> 'w), 'w, DanceCore.t Entry.t) t
   | Search : ((Slice.t option -> float option -> DanceCore.Filter.t -> 'w), 'w, (int * DanceCore.t Entry.t list)) t
-  | Save : ((Status.t option -> string -> Kind.Dance.t -> PersonCore.t Entry.t list option -> bool option -> int option -> string option -> PartialDate.t option -> Datetime.t -> Datetime.t -> 'w), 'w, DanceCore.t Entry.t) t
+  | Save : ((Status.t option -> Datetime.t -> Datetime.t -> DanceCore.t -> 'w), 'w, DanceCore.t Entry.t) t
   | Pdf : ((SetParameters.t option -> DanceCore.t Slug.t -> 'w), 'w, Void.t) t
 
 (* FIXME: make a simple PPX for the following *)
@@ -16,4 +16,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Get -> literal "get" @@ variable (module SSlug(DanceCore)) @@ return (module Entry.J(DanceCore))
   | Pdf -> literal "pdf" @@ query_opt "parameters" (module SetParameters) @@ variable (module SSlug(DanceCore)) @@ return (module JVoid)
   | Search -> literal "search" @@ query_opt "slice" (module Slice) @@ query_opt "threshold" (module JFloat) @@ query "filter" (module DanceCore.Filter) @@ return (module JPair(JInt)(JList(Entry.J(DanceCore))))
-  | Save -> literal "make-and-save" @@ query_opt "status" (module Status) @@ query "name" (module JString) @@ query "kind" (module Kind.Dance) @@ query_opt "devisers" (module JList(Entry.J(PersonCore))) @@ query_opt "two_chords" (module JBool) @@ query_opt "scddb_id" (module JInt) @@ query_opt "disambiguation" (module JString) @@ query_opt "date" (module PartialDate) @@ query "modified_at" (module Datetime) @@ query "created_at" (module Datetime) @@ return (module Entry.J(DanceCore))
+  | Save -> literal "save" @@ query_opt "status" (module Status) @@ query "modified_at" (module Datetime) @@ query "created_at" (module Datetime) @@ query "dance" (module DanceCore) @@ return (module Entry.J(DanceCore))

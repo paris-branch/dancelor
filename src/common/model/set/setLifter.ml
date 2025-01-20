@@ -10,27 +10,19 @@ module Lift
   include SetCore
 
   let make
-      ?status
-      ?(slug = Slug.none)
       ~name
       ?conceptors
       ~kind
       ?contents
       ~order
       ?dances
-      ~modified_at
-      ~created_at
       ()
     =
     let name = String.remove_duplicates ~char: ' ' name in
     let conceptors = Option.map (List.map Entry.slug) conceptors in
     let contents = Option.map (List.map (fun (version, parameters) -> (Entry.slug version, parameters))) contents in
     let dances = Option.map (List.map Entry.slug) dances in
-    Lwt.return
-      (
-        Entry.make ~slug ?status ~modified_at ~created_at @@
-        make ~name ?conceptors ~kind ?contents ~order ?dances ()
-      )
+    make ~name ?conceptors ~kind ?contents ~order ?dances ()
 
   let is_slug_none : t Entry.t -> bool = Slug.is_none % Entry.slug
   let conceptors = Lwt_list.map_p Person.get % conceptors
@@ -62,8 +54,7 @@ module Lift
 
   let lilypond_content_cache_key set =
     let%lwt contents = contents set in
-    let versions = List.map fst contents in
-    let%lwt contents = Lwt_list.map_p Version.content versions in
+    let contents = List.map (Version.content % fst) contents in
     Lwt.return (String.concat "\n" contents)
 
   let warnings s =

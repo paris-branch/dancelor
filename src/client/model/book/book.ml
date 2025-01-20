@@ -3,22 +3,16 @@ include BookLifted
 
 let save
     ?status
-    ~title
-    ?date
-    ?contents
     ~modified_at
     ~created_at
-    ()
+    book
   =
-  let contents = Option.map (List.map page_to_page_core) contents in
   Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Book Save)
     status
-    title
-    date
-    contents
     modified_at
     created_at
+    book
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Book Search) slice threshold filter
@@ -31,21 +25,15 @@ let count ?threshold filter =
 
 let update
     ?status
-    ~slug
-    ~title
-    ?date
-    ?contents
     ~modified_at
     ~created_at
-    () (* FIXME: slug as required argument *)
+    slug
+    book
   =
-  let contents = Option.map (List.map page_to_page_core) contents in
   Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Book Update)
     status
-    title
-    date
-    contents
     modified_at
     created_at
     slug
+    book

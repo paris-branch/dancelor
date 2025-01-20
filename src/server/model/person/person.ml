@@ -4,9 +4,8 @@ module Database = Dancelor_server_database
 
 include PersonLifted
 
-let save ?status ~name ?scddb_id ~modified_at ~created_at () =
-  Database.Person.save ~slug_hint: name @@ fun slug ->
-  Lwt.return (make ?status ~slug ~name ~scddb_id ~modified_at ~created_at ()) (* FIXME: status should probably go in save *)
+let save ?status ~modified_at ~created_at person =
+  Database.Person.save ~slug_hint: person.name ?status ~modified_at ~created_at person
 
 let tiebreakers =
   Lwt_list.[

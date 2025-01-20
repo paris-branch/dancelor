@@ -1,14 +1,13 @@
 open Dancelor_common
 include PersonLifted
 
-let save ?status ~name ?scddb_id ~modified_at ~created_at () =
+let save ?status ~modified_at ~created_at person =
   Madge_cohttp_lwt_client.call
     ApiRouter.(route @@ Person Save)
     status
-    name
-    scddb_id
     modified_at
     created_at
+    person
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Search) slice threshold filter

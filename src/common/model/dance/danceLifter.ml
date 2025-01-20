@@ -7,8 +7,6 @@ module Lift
   include DanceCore
 
   let make
-      ?status
-      ~slug
       ~name
       ~kind
       ?devisers
@@ -16,18 +14,12 @@ module Lift
       ?scddb_id
       ?disambiguation
       ?date
-      ~modified_at
-      ~created_at
       ()
     =
     let name = String.remove_duplicates ~char: ' ' name in
     let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
     let devisers = Option.map (List.map Entry.slug) devisers in
-    Lwt.return
-      (
-        Entry.make ~slug ?status ~modified_at ~created_at @@
-        make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
-      )
+    make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
 
   let devisers = Lwt_list.map_p Person.get % devisers
 

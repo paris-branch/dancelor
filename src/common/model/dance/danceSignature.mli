@@ -5,6 +5,17 @@ open Dancelor_common_database
 
 type t = DanceCore.t
 
+val make :
+  name: string ->
+  kind: Kind.Dance.t ->
+  ?devisers: PersonCore.t Entry.t list ->
+  ?two_chords: bool ->
+  ?scddb_id: int ->
+  ?disambiguation: string ->
+  ?date: PartialDate.t ->
+  unit ->
+  t
+
 (** {2 Field getters} *)
 
 val name : t Entry.t -> string
@@ -49,16 +60,9 @@ val get : t Slug.t -> t Entry.t Lwt.t
 
 val save :
   ?status: Dancelor_common_database.Status.t ->
-  name: string ->
-  kind: Kind.Dance.t ->
-  ?devisers: PersonCore.t Entry.t list ->
-  ?two_chords: bool ->
-  ?scddb_id: int ->
-  ?disambiguation: string ->
-  ?date: PartialDate.t ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
-  unit ->
+  t ->
   t Entry.t Lwt.t
 
 val search :

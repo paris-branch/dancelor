@@ -36,12 +36,11 @@ module type S = sig
 
   val get_status : value Slug.t -> Status.t option Lwt.t
 
-  val save : slug_hint: string -> (value Slug.t -> value Entry.t Lwt.t) -> value Entry.t Lwt.t
-  val update : value Entry.t -> unit Lwt.t
+  val save : slug_hint: string -> ?status: Status.t -> created_at: Datetime.t -> modified_at: Datetime.t -> value -> value Entry.t Lwt.t
+  val update : ?status: Status.t -> created_at: Datetime.t -> modified_at: Datetime.t -> value Slug.t -> value -> unit Lwt.t
   val delete : value Slug.t -> unit Lwt.t
 
-  val read_separated_file : value Entry.t -> string -> string Lwt.t
-  val write_separated_file : value Entry.t -> string -> string -> unit Lwt.t
+  (* FIXME: remove [save] and [update]; merge [save'] and [update'] *)
 
   module Log : Logs.LOG
 end
@@ -68,6 +67,11 @@ module type Model = sig
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
 
+  val separate_fields : (string * string) list
+  (** Fields that must not be serialised in the [meta.yaml] file but instead be
+      put in an independent file. The file name is given as second element of
+      the pair. *)
+
   val _key : string
 end
 
@@ -89,8 +93,17 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Log.info (fun m -> m "Loading table: %s" _key);
     let load entry =
       Log.debug (fun m -> m "Loading %s %s" _key entry);
-      Fun.flip Lwt.map (Storage.read_entry_yaml Model._key entry "meta.yaml") @@ fun json ->
-      match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.of_yojson json with
+      Lwt.bind (Storage.read_entry_yaml Model._key entry "meta.yaml") @@ fun json ->
+      let json = ref json in
+      Lwt_list.iter_s
+        (fun (field, filename) ->
+           let%lwt value = Storage.read_entry_file Model._key entry filename in
+           json := Json.add_field field (`String value) !json;
+           Lwt.return_unit
+        )
+        Model.separate_fields;%lwt
+      Lwt.return @@
+      match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.of_yojson !json with
       | Ok model ->
         Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
         Log.debug (fun m -> m "Loaded %s %s" _key entry);
@@ -187,11 +200,20 @@ module Make (Model : Model) : S with type value = Model.t = struct
     else
       slug
 
-  let save ~slug_hint with_slug =
+  let save ~slug_hint ?status ~created_at ~modified_at model =
     let slug = uniq_slug ~hint: slug_hint in
-    let%lwt model = with_slug slug in
-    let json = Entry.to_yojson' Model.to_yojson model in
-    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
+    let model = Entry.make ~slug ?status ~modified_at ~created_at model in
+    let json = ref @@ Entry.to_yojson' Model.to_yojson model in
+    Lwt_list.iter_s
+      (fun (field, filename) ->
+         match Json.extract_field field !json with
+         | (`String value, new_json) ->
+           json := new_json;
+           Storage.write_entry_file Model._key (Slug.to_string slug) filename value
+         | _ -> assert false
+      )
+      Model.separate_fields;%lwt
+    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" !json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "save %s / %s" Model._key (Slug.to_string slug))
       Model._key
@@ -200,10 +222,20 @@ module Make (Model : Model) : S with type value = Model.t = struct
     (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
-  let update model : unit Lwt.t =
+  let update ?status ~created_at ~modified_at slug model =
+    let model = Entry.make ~slug ?status ~modified_at ~created_at model in
     let slug = Entry.slug model in
-    let json = Entry.to_yojson' Model.to_yojson model in
-    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
+    let json = ref @@ Entry.to_yojson' Model.to_yojson model in
+    Lwt_list.iter_s
+      (fun (field, filename) ->
+         match Json.extract_field field !json with
+         | (`String value, new_json) ->
+           json := new_json;
+           Storage.write_entry_file Model._key (Slug.to_string slug) filename value
+         | _ -> assert false
+      )
+      Model.separate_fields;%lwt
+    Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" !json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "update %s / %s" Model._key (Slug.to_string slug))
       Model._key
@@ -220,13 +252,4 @@ module Make (Model : Model) : S with type value = Model.t = struct
       (Slug.to_string slug);%lwt
     Hashtbl.remove table slug;
     Lwt.return_unit
-
-  let read_separated_file model file =
-    let slug = Slug.to_string @@ Entry.slug model in
-    Storage.read_entry_file Model._key slug file
-
-  let write_separated_file model file content =
-    let slug = Slug.to_string @@ Entry.slug model in
-    Storage.write_entry_file Model._key slug file content;%lwt
-    Storage.save_changes_on_entry ~msg: (spf "save %s / %s" Model._key slug) Model._key slug
 end

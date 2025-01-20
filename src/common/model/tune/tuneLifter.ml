@@ -8,8 +8,6 @@ module Lift
   include TuneCore
 
   let make
-      ?status
-      ~slug
       ~name
       ?alternative_names
       ~kind
@@ -18,19 +16,13 @@ module Lift
       ?remark
       ?scddb_id
       ?date
-      ~modified_at
-      ~created_at
       ()
     =
     let name = String.remove_duplicates ~char: ' ' name in
     let alternative_names = Option.map (List.map (String.remove_duplicates ~char: ' ')) alternative_names in
     let composers = Option.map (List.map Entry.slug) composers in
     let dances = Option.map (List.map Entry.slug) dances in
-    Lwt.return
-      (
-        Entry.make ~slug ?status ~modified_at ~created_at @@
-        make ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
-      )
+    make ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
 
   let composers = Lwt_list.map_p Person.get % composers
   let dances = Lwt_list.map_p Dance.get % dances

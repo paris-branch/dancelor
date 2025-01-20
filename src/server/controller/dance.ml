@@ -6,7 +6,6 @@ module Log = (val Dancelor_server_logs.create "controller.dance": Logs.LOG)
 module Pdf = struct
   let render ?parameters dance =
     let kind = Model.Dance.kind dance in
-    let slug = Slug.unsafe_coerce @@ Database.Entry.slug dance in
     let name = Model.Dance.name dance in
     let%lwt versions =
       (* All the versions of all the tunes attached to this dance *)
@@ -22,15 +21,13 @@ module Pdf = struct
         ~some: (Model.SetParameters.compose set_parameters)
         parameters
     in
-    let%lwt set =
+    let set =
+      Database.Entry.make_dummy @@
       Model.Set.make
-        ~slug
         ~name: ("Dance: " ^ name)
         ~kind
         ~contents: (List.map (fun v -> (v, Model.VersionParameters.none)) versions)
         ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)
-        ~modified_at: (Datetime.now ())
-        ~created_at: (Datetime.now ())
         ()
     in
     Set.Pdf.render set ~parameters
@@ -44,8 +41,5 @@ end
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.DanceEndpoints.t -> a = function
   | Get -> Model.Dance.get
   | Search -> (fun slice threshold filter -> Model.Dance.search ?slice ?threshold filter)
-  | Save ->
-    (fun status name kind devisers two_chords scddb_id disambiguation date modified_at created_at ->
-       Model.Dance.save ?status ~name ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date ~modified_at ~created_at ()
-    )
+  | Save -> (fun status modified_at created_at dance -> Model.Dance.save ?status ~modified_at ~created_at dance)
   | Pdf -> (fun parameters dance -> Pdf.get dance parameters)

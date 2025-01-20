@@ -3,6 +3,18 @@ open Dancelor_common_database
 
 type t = VersionCore.t
 
+val make :
+  tune: TuneCore.t Entry.t ->
+  bars: int ->
+  key: Music.key ->
+  structure: string ->
+  ?arrangers: PersonCore.t Entry.t list ->
+  ?remark: string ->
+  ?disambiguation: string ->
+  content: string ->
+  unit ->
+  t
+
 val tune : t Entry.t -> TuneCore.t Entry.t Lwt.t
 val bars : t Entry.t -> int
 val key : t Entry.t -> Music.key
@@ -11,8 +23,7 @@ val sources : t Entry.t -> string list
 val arrangers : t Entry.t -> PersonCore.t Entry.t list Lwt.t
 val remark : t Entry.t -> string
 val disambiguation : t Entry.t -> string
-
-val content : t Entry.t -> string Lwt.t
+val content : t Entry.t -> string
 
 val kind : t Entry.t -> Kind.Version.t Lwt.t
 (** Convenient wrapper around {!bars} and {!Tune.kind}. *)
@@ -60,17 +71,9 @@ val get : t Slug.t -> t Entry.t Lwt.t
 
 val save :
   ?status: Dancelor_common_database.Status.t ->
-  tune: TuneCore.t Entry.t ->
-  bars: int ->
-  key: Music.key ->
-  structure: string ->
-  ?arrangers: PersonCore.t Entry.t list ->
-  ?remark: string ->
-  ?disambiguation: string ->
-  content: string ->
   modified_at: Datetime.t ->
   created_at: Datetime.t ->
-  unit ->
+  t ->
   t Entry.t Lwt.t
 
 val search :
