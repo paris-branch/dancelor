@@ -30,11 +30,32 @@ let map_field key fun_ = function
       )
   | _ -> failwith "NesJson.map_field"
 
-let remove_field key = function
-  | `Assoc fields when List.mem_assoc key fields ->
-    `Assoc (List.remove_assoc key fields)
-  | _ ->
-    failwith "NesJson.remove_field"
+let extract_field_opt key = function
+  | `Assoc fields ->
+    (
+      match NesList.extract_assoc_opt key fields with
+      | None -> None
+      | Some (value, fields) -> Some (value, `Assoc fields)
+    )
+  | _ -> invalid_arg "NesJson.extract_field_opt: not an `Assoc"
+
+let extract_field key json =
+  match extract_field_opt key json with
+  | None -> failwith @@ "extract_field: no such field: " ^ key
+  | Some (value, json) -> (value, json)
+
+let extract_fields keys = function
+  | `Assoc fields ->
+    (
+      let (extracted, left) = NesList.extract_assoc_several keys fields in
+      (`Assoc extracted, `Assoc left)
+    )
+  | _ -> invalid_arg "NesJson.extract_fields: not an `Assoc"
+
+let remove_field key json =
+  match extract_field_opt key json with
+  | None -> failwith @@ "remove_field: no such field: " ^ key
+  | Some (_, json) -> json
 
 let from_string str = Yojson.Safe.from_string str
 let to_string json = Yojson.Safe.pretty_to_string ~std: true json
@@ -93,3 +114,8 @@ let strings = function
 let list cast = function
   | `List values -> Some (List.map cast values)
   | _ -> None
+
+let merge_assoc j1 j2 =
+  match (j1, j2) with
+  | `Assoc a1, `Assoc a2 -> `Assoc (a1 @ a2)
+  | _ -> invalid_arg "NesJson.merge_assoc"

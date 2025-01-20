@@ -1,0 +1,16 @@
+(library
+ (name dancelor_common_database)
+ (public_name dancelor.common.database)
+ (libraries yaml dancelor.nes)
+ (preprocess
+  (staged_pps
+   lwt_ppx
+   ppx_inline_test
+   ppx_deriving_yojson
+   ppx_deriving.std
+   ppx_monad
+   ppx_monad_olwt
+   ppx_monad_rlwt
+   ppx_fields_conv
+   ppx_variants_conv
+   ppx_import)))
