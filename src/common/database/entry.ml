@@ -16,6 +16,8 @@ and 'a t =
   | Dummy of 'a
 [@@deriving yojson, show {with_path = false}]
 
+let is_dummy = function Dummy _ -> true | Full _ -> false
+
 let make ~slug ?(status = Status.bot) ?created_at ?modified_at value =
   let now = Datetime.now () in
   Full

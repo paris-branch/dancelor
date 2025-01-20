@@ -55,7 +55,8 @@ module Lift
     Lwt_list.filter_map_p
       (function
         | Version _ -> Lwt.return_none
-        | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set
+        | Set (set, _) -> Lwt.return_some set
+        | InlineSet (set, _) -> Lwt.return_some @@ Entry.make_dummy set
       )
       contents
 
@@ -66,8 +67,8 @@ module Lift
     let%lwt contents = contents book in
     Lwt_list.filter_map_p
       (function
-        | Set (set, parameters) | InlineSet (set, parameters) ->
-          Lwt.return_some (set, parameters)
+        | Set (set, parameters) -> Lwt.return_some (set, parameters)
+        | InlineSet (set, parameters) -> Lwt.return_some (Entry.make_dummy set, parameters)
         | Version _ -> Lwt.return_none
       )
       contents
@@ -87,7 +88,8 @@ module Lift
       Lwt_list.map_p
         (function
           | Version (version, _) -> Version.content version
-          | Set (set, _) | InlineSet (set, _) -> Set.lilypond_content_cache_key set
+          | Set (set, _) -> Set.lilypond_content_cache_key set
+          | InlineSet (set, _) -> Set.lilypond_content_cache_key @@ Entry.make_dummy set
         )
         pages
     in
@@ -280,7 +282,7 @@ module Lift
             )
             content
         in
-        Formula.interpret_exists (Set.Filter.accepts sfilter) isets
+        Formula.interpret_exists (Set.Filter.accepts sfilter % Entry.make_dummy) isets
       | ExistsVersionDeep vfilter ->
         (* recursive call to check the compound formula *)
         Fun.flip accepts book @@

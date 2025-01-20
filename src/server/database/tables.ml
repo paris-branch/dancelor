@@ -85,7 +85,7 @@ module Book = Table.Make(struct
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
             | PageCore.InlineSet (set, parameters) ->
-              let%lwt set_dependencies = SetModel.dependencies set in
+              let%lwt set_dependencies = SetModel.dependencies @@ Entry.make_dummy set in
               Lwt.return
                 (
                   set_dependencies @

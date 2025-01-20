@@ -144,8 +144,8 @@ module Ly = struct
                 ()
             in
             Lwt.return (set, set_parameters)
-          | Set (set, parameters) | InlineSet (set, parameters) ->
-            Lwt.return (set, parameters)
+          | Set (set, parameters) -> Lwt.return (set, parameters)
+          | InlineSet (set, parameters) -> Lwt.return (Database.Entry.make_dummy set, parameters)
         in
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in

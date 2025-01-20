@@ -5,7 +5,7 @@ module PageCore = struct
   type t =
     | Version of VersionCore.t Slug.t * VersionParameters.t
     | Set of SetCore.t Slug.t * SetParameters.t
-    | InlineSet of SetCore.t * SetParameters.t
+    | InlineSet of SetCore.core * SetParameters.t
   [@@deriving show {with_path = false}, yojson]
 end
 
@@ -82,7 +82,7 @@ type warnings = warning list
 type page =
   | Version of VersionCore.t * VersionParameters.t
   | Set of SetCore.t * SetParameters.t
-  | InlineSet of SetCore.t * SetParameters.t
+  | InlineSet of SetCore.core * SetParameters.t
 [@@deriving show {with_path = false}]
 
 module Filter = struct

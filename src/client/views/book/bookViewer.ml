@@ -100,8 +100,8 @@ let table_contents ~this_slug contents =
                    tr
                      [
                        td [txt "Set (inline)"];
-                       L.td (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                       td [txt @@ Kind.Dance.to_string @@ Set.kind set];
+                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Database.Entry.make_dummy set) parameters);
+                       td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Database.Entry.make_dummy set];
                      ]
                  )
                | Version (version, parameters) ->

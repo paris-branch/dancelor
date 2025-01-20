@@ -8,7 +8,7 @@ module Pdf = struct
       Model.Book.make
         ~slug: (Slug.unsafe_coerce @@ Database.Entry.slug set)
         ~title: ""
-        ~contents: [InlineSet (set, Option.value ~default: Model.SetParameters.none parameters)]
+        ~contents: [InlineSet (Database.Entry.value set, Option.value ~default: Model.SetParameters.none parameters)]
         ~modified_at: (Datetime.now ())
         ~created_at: (Datetime.now ())
         ()

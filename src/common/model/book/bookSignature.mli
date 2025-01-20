@@ -11,7 +11,7 @@ open Nes
 type page = BookCore.page =
   | Version of VersionCore.t * VersionParameters.t
   | Set of SetCore.t * SetParameters.t
-  | InlineSet of SetCore.t * SetParameters.t
+  | InlineSet of SetCore.core * SetParameters.t
   (** The type of one page in a book. A page either consists of a version (eg.
       in a book of tunes), or a set (eg. in a dance program) or a so-called
       “inline set”. Inline sets are simply a way to define a set on-the-fly in

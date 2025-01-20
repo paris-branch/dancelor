@@ -1,6 +1,12 @@
 open Nes
 
 type 'a t [@@deriving yojson, show]
+(** A database entry. Can either be a full database entry or a dummy. Dummies
+    should be avoided, and the getters will fail when dealing with them, but can
+    be used in places that require dealing with a database table. *)
+
+val is_dummy : 'a t -> bool
+(** Test whether the given entry is a dummy. *)
 
 (** {2 Builders} *)
 
