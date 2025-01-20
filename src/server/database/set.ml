@@ -16,4 +16,4 @@ let usedInBook book = UsedInBook book
 let delete (set : Model.SetCore.t Slug.t) =
   match%lwt get_books_that_contain set with
   | [] -> delete set
-  | book :: _ -> Lwt.fail @@ usedInBook @@ Model.BookCore.slug book
+  | book :: _ -> Lwt.fail @@ usedInBook @@ Entry.slug book

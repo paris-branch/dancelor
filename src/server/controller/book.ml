@@ -1,5 +1,6 @@
 open NesUnix
 module Model = Dancelor_server_model
+module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
 
 module Ly = struct
@@ -266,7 +267,7 @@ module Pdf = struct
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let%lwt (fname_ly, fname_pdf) =
-      let slug = Model.Book.slug book in
+      let slug = Database.Entry.slug book in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".pdf")
     in

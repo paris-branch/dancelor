@@ -1,11 +1,12 @@
 open NesUnix
 module Model = Dancelor_server_model
+module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.dance": Logs.LOG)
 
 module Pdf = struct
   let render ?parameters dance =
     let kind = Model.Dance.kind dance in
-    let slug = Slug.unsafe_coerce @@ Model.Dance.slug dance in
+    let slug = Slug.unsafe_coerce @@ Database.Entry.slug dance in
     let name = Model.Dance.name dance in
     let%lwt versions =
       (* All the versions of all the tunes attached to this dance *)

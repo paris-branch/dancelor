@@ -34,7 +34,7 @@ module type S = sig
   val get_opt : value Slug.t -> value option Lwt.t
   val get_all : unit -> value list Lwt.t
 
-  val get_status : value Slug.t -> Dancelor_common_model.Status.t option Lwt.t
+  val get_status : value Slug.t -> Status.t option Lwt.t
 
   val save : slug_hint: string -> (value Slug.t -> value Lwt.t) -> value Lwt.t
   val update : value -> unit Lwt.t
@@ -58,9 +58,8 @@ let make_slug_and_table (type value) (module Table : S with type value = value) 
 (** {2 Type of a model} *)
 
 module type Model = sig
-  type t
-  val slug : t -> t Slug.t
-  val status : t -> Dancelor_common_model.Status.t
+  type core
+  type t = core Entry.t
 
   val dependencies : t -> slug_and_table list Lwt.t
 
@@ -88,17 +87,22 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let table = Hashtbl.create 8
 
   let load () =
+    Log.info (fun m -> m "Loading table: %s" _key);
     let load entry =
+      Log.debug (fun m -> m "Loading %s %s" _key entry);
       Fun.flip Lwt.map (Storage.read_entry_yaml Model._key entry "meta.yaml") @@ fun json ->
       match Model.of_yojson @@ Json.add_field "slug" (`String entry) json with
       | Ok model ->
-        Hashtbl.add table (Model.slug model) (Stats.empty (), model);
+        Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
+        Log.debug (fun m -> m "Loaded %s %s" _key entry);
       | Error msg ->
         Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.yaml" msg);
         exit 1
     in
     let%lwt entries = Storage.list_entries Model._key in
-    Lwt_list.iter_p load entries
+    Lwt_list.iter_s load entries;%lwt
+    Log.info (fun m -> m "Loaded table: %s" _key);
+    Lwt.return_unit
 
   let get_opt slug =
     match Hashtbl.find_opt table slug with
@@ -108,7 +112,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | None ->
       Lwt.return_none
 
-  let get_status = Lwt.map (Option.map Model.status) % get_opt
+  let get_status = Lwt.map (Option.map Entry.status) % get_opt
 
   let list_dependency_problems_for slug status = function
     | Boxed (dep_slug, (module Dep_table)) ->
@@ -117,7 +121,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         [Dancelor_common.Error.DependencyDoesNotExist ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
         |> Lwt.return
       | Some dep_status ->
-        if Dancelor_common_model.Status.ge dep_status status then
+        if Status.ge dep_status status then
           Lwt.return_nil
         else
           [Dancelor_common.Error.DependencyViolatesStatus ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
@@ -128,8 +132,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> List.of_seq
     |> Lwt_list.fold_left_s
       (fun problems (_, model) ->
-         let slug = Model.slug model in
-         let status = Model.status model in
+         let slug = Entry.slug model in
+         let status = Entry.status model in
          let%lwt deps = Model.dependencies model in
          let%lwt new_problems =
            deps
@@ -148,7 +152,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       (fun (stats, model) ->
          if Stats.get_accesses stats = 0 then
            Lwt.async (fun () ->
-               let slug = Model.slug model in
+               let slug = Entry.slug model in
                Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp' slug);
                Lwt.return ()
              )
@@ -199,7 +203,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Lwt.return model
 
   let update model : unit Lwt.t =
-    let slug = Model.slug model in
+    let slug = Entry.slug model in
     let json = Model.to_yojson model in
     let json = Json.remove_field "slug" json in
     Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" json;%lwt
@@ -221,11 +225,11 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Lwt.return_unit
 
   let read_separated_file model file =
-    let slug = Slug.to_string @@ Model.slug model in
+    let slug = Slug.to_string @@ Entry.slug model in
     Storage.read_entry_file Model._key slug file
 
   let write_separated_file model file content =
-    let slug = Slug.to_string @@ Model.slug model in
+    let slug = Slug.to_string @@ Entry.slug model in
     Storage.write_entry_file Model._key slug file content;%lwt
     Storage.save_changes_on_entry ~msg: (spf "save %s / %s" Model._key slug) Model._key slug
 end

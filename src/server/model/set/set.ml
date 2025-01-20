@@ -30,7 +30,7 @@ let save
     ~created_at
     ()
 
-let delete = Database.Set.delete % slug
+let delete = Database.(Set.delete % Entry.slug)
 
 let tiebreakers =
   Lwt_list.[

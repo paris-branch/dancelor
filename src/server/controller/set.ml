@@ -1,11 +1,12 @@
 open Nes
 module Model = Dancelor_server_model
+module Database = Dancelor_server_database
 
 module Pdf = struct
   let render ?parameters set =
     let%lwt book =
       Model.Book.make
-        ~slug: (Slug.unsafe_coerce @@ Model.Set.slug set)
+        ~slug: (Slug.unsafe_coerce @@ Database.Entry.slug set)
         ~title: ""
         ~contents: [InlineSet (set, Option.value ~default: Model.SetParameters.none parameters)]
         ~modified_at: (Datetime.now ())

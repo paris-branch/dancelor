@@ -1,5 +1,6 @@
 open NesUnix
 module Model = Dancelor_server_model
+module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
 
 let get_ly version =
@@ -135,7 +136,7 @@ module Svg = struct
     StorageCache.use ~cache ~key: (`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
-      let slug = Model.Version.slug version in
+      let slug = Database.Entry.slug version in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".svg")
     in
@@ -163,7 +164,7 @@ end
 module Pdf = struct
   let render ?parameters version =
     let%lwt kind = Model.Version.kind version in
-    let slug = Slug.unsafe_coerce @@ Model.Version.slug version in
+    let slug = Slug.unsafe_coerce @@ Database.Entry.slug version in
     let%lwt name = Model.Version.name version in
     let%lwt set_parameters =
       Model.SetParameters.make
@@ -206,7 +207,7 @@ module Ogg = struct
     let%lwt body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
-      let slug = Model.Version.slug version in
+      let slug = Database.Entry.slug version in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".ogg")
     in
