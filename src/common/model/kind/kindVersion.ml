@@ -1,7 +1,5 @@
 open Nes
 
-let _key = "kind-version"
-
 type t = int * KindBase.t
 [@@deriving eq, show {with_path = false}]
 

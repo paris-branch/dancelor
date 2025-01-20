@@ -2,8 +2,6 @@ open Nes
 
 (** {1 Base Kind} *)
 
-val _key : string
-
 type t =
     Jig | Polka | Reel | Strathspey | Waltz
 [@@deriving eq, show]

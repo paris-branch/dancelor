@@ -1,7 +1,5 @@
 open Nes
 
-let _key = "set-order"
-
 type component =
   | External of int
   | Internal of int

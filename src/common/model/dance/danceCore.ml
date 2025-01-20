@@ -18,8 +18,6 @@ type t = {
 [@@deriving make, show {with_path = false}, yojson, fields]
 
 module Filter = struct
-  let _key = "dance-filter"
-
   (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
      of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false

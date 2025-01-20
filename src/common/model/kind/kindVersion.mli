@@ -2,8 +2,6 @@ open Nes
 
 (** {1 Version Kind} *)
 
-val _key : string
-
 type t = int * KindBase.t
 [@@deriving eq, show]
 (** The kind of a version. For instance, [32R]. *)

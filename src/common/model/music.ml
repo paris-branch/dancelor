@@ -199,7 +199,6 @@ let key_to_yojson = to_yojson__of__to_string key_to_string
 let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common_model.Music.key_of_yojson"
 
 module Key = struct
-  let _key = "key"
   type t = key
   let to_yojson = key_to_yojson
   let of_yojson = key_of_yojson

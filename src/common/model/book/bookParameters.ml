@@ -25,8 +25,6 @@ module Self = struct
     every_set: SetParameters.t; [@default SetParameters.none] [@key "every-set"]
   }
   [@@deriving make, yojson]
-
-  let _key = "book-parameters"
 end
 include Self
 

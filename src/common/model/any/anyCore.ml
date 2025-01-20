@@ -1,7 +1,5 @@
 open Nes
 
-let _key = "any"
-
 type t =
   | Person of PersonCore.t
   | Dance of DanceCore.t
@@ -12,8 +10,6 @@ type t =
 [@@deriving show {with_path = false}, yojson, variants]
 
 module Type = struct
-  let _key = "type"
-
   type t =
     | Person
     | Dance
@@ -39,8 +35,6 @@ module Type = struct
 end
 
 module Filter = struct
-  let _key = "any-filter"
-
   (* NOTE: This [Raw] variant is a bit artificial, when we could already be
      inheriting the various [raw] cases, of the other filters. However, this
      would unfold text formulas into a big disjunction at the syntactic level,

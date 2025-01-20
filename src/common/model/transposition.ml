@@ -5,8 +5,6 @@ module Self = struct
     | Relative of Music.pitch * Music.pitch
     | Absolute of Music.pitch
   [@@deriving show {with_path = false}, yojson]
-
-  let _key = "transposition"
 end
 include Self
 

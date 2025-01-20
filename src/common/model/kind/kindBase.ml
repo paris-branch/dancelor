@@ -1,7 +1,5 @@
 open Nes
 
-let _key = "kind-base"
-
 type t =
   | Jig
   | Polka

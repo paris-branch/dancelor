@@ -2,8 +2,6 @@
 
     This module implements the notion of date with year, month and day. *)
 
-val _key : string
-
 type t [@@deriving yojson]
 (** The type of a date. *)
 

@@ -49,7 +49,6 @@
 
 (* FIXME: all the things that are not technically models should probably move to
    something else. Maybe Dancelor_common_utils? *)
-module Date = Date
 module Music = Music
 module Slice = Slice
 module Status = Status

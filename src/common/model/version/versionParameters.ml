@@ -16,8 +16,6 @@ module Self = struct
     display_composer: string option [@default None] [@key "display-composer"]
   }
   [@@deriving make, show {with_path = false}, yojson]
-
-  let _key = "version-parameters"
 end
 include Self
 

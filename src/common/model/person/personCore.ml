@@ -13,8 +13,6 @@ type t = {
 [@@deriving yojson, make, show {with_path = false}, fields]
 
 module Filter = struct
-  let _key = "person-filter"
-
   (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
      of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false

@@ -1,7 +1,5 @@
 (** {1 Datetime} *)
 
-val _key : string
-
 type t [@@deriving yojson]
 
 val of_string : string -> t

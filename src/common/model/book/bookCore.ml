@@ -1,8 +1,6 @@
 open Nes
 
 module PageCore = struct
-  let _key = "book-page"
-
   type t =
     | Version of VersionCore.t Slug.t * VersionParameters.t
     | Set of SetCore.t Slug.t * SetParameters.t
@@ -87,8 +85,6 @@ type page =
 [@@deriving show {with_path = false}]
 
 module Filter = struct
-  let _key = "book-filter"
-
   (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
      of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false

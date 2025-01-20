@@ -21,8 +21,6 @@ type t = {
 let equal version1 version2 = Slug.equal' (slug version1) (slug version2)
 
 module Filter = struct
-  let _key = "version-filter"
-
   type predicate =
     | Is of t Slug.t
     | Tune of TuneCore.Filter.t

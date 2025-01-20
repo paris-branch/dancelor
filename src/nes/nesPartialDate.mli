@@ -3,8 +3,6 @@
     This module implements the notion of partial date, that is a date from which
     the day or the month may be missing. *)
 
-val _key : string
-
 type t [@@deriving show, yojson]
 (** The type of a partial date. *)
 

@@ -22,8 +22,6 @@ let compare = Slug.compare_slugs_or ~fallback: Stdlib.compare slug
 let equal tune1 tune2 = compare tune1 tune2 = 0
 
 module Filter = struct
-  let _key = "tune-filter"
-
   (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
      of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false
