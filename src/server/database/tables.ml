@@ -122,28 +122,18 @@ module Initialise = struct
     else
       Lwt.return_unit
 
-  let create_new_db_version () =
-    Log.info (fun m -> m "Creating new database version");
-    Table.Version.create ()
-
-  let create_tables version =
-    Log.info (fun m -> m "Creating tables for this version");
-    tables
-    |> List.iter @@ fun (module Table : Table.S) ->
-    Table.create_version ~version
-
-  let load_tables version =
-    Log.info (fun m -> m "Loading tables for this version");
+  let load_tables () =
+    Log.info (fun m -> m "Loading tables");
     tables
     |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
-    Table.load_version ~version
+    Table.load ()
 
-  let check_dependency_problems version =
+  let check_dependency_problems () =
     Log.info (fun m -> m "Checking for dependency problems");
     let%lwt found_problem =
       Lwt_list.fold_left_s
         (fun found_problem (module Table : Table.S) ->
-           let%lwt problems = Table.list_dependency_problems ~version in
+           let%lwt problems = Table.list_dependency_problems () in
            (
              problems
              |> List.iter @@ function
@@ -165,33 +155,21 @@ module Initialise = struct
     | None -> Lwt.return ()
     | Some problem -> Dancelor_common.Error.fail problem
 
-  let report_without_accesses version =
+  let report_without_accesses () =
     Log.info (fun m -> m "Checking for unaccessible entries");
     List.iter
       (fun (module Table : Table.S) ->
          if not Table.standalone then
-           Table.report_without_accesses ~version
+           Table.report_without_accesses ()
       )
       tables;
     Lwt.return ()
 
-  let establish_version version =
-    Log.info (fun m -> m "Establishing new version");
-    let () =
-      tables
-      |> List.iter @@ fun (module Table : Table.S) ->
-      Table.establish_version ~version
-    in
-    Log.info (fun m -> m "New version is in place")
-
   let initialise () =
     sync_db ();%lwt
-    let version = create_new_db_version () in
-    create_tables version;
-    load_tables version;%lwt
-    check_dependency_problems version;%lwt
-    report_without_accesses version;%lwt
-    establish_version version;
+    load_tables ();%lwt
+    check_dependency_problems ();%lwt
+    report_without_accesses ();%lwt
     Lwt.return_unit
 end
 
