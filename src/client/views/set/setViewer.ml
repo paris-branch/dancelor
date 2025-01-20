@@ -6,6 +6,7 @@ module Components = Dancelor_client_components
 module Page = Dancelor_client_page
 module Utils = Dancelor_client_utils
 open Dancelor_client_html
+module Database = Dancelor_common_database
 
 let create ?context slug =
   let set_lwt = Set.get slug in
@@ -78,7 +79,7 @@ let create ?context slug =
                    let context = PageRouter.inSet slug index in
                    (* FIXME: use parameters *)
                    let%lwt tune = Version.tune version in
-                   let slug = Version.slug version in
+                   let slug = Database.Entry.slug version in
                    Lwt.return
                      (
                        div

@@ -8,6 +8,7 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
+module Database = Dancelor_common_database
 
 type ('name, 'date, 'sets) gen = {
   name: 'name;
@@ -40,7 +41,7 @@ module State = struct
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date;
-    sets = ("", List.map Model.Set.slug state.sets);
+    sets = ("", List.map Database.Entry.slug state.sets);
   }
 
   exception Non_convertible
@@ -57,8 +58,8 @@ module State = struct
     in
     Lwt.return
       {
-        name = book.title;
-        date = book.date;
+        name = (Database.Entry.value book).title;
+        date = (Database.Entry.value book).date;
         sets;
       }
 end
@@ -118,7 +119,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Set.search ~threshold ~slice filter
           )
-        ~serialise: Model.Set.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Set.get
         initial_state.sets
     in
@@ -201,7 +202,7 @@ let create ?on_save ?text ?edit () =
                         Option.iter @@ fun book ->
                         Editor.clear editor;
                         match on_save with
-                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_book (Model.Book.slug book))
+                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_book (Database.Entry.slug book))
                         | Some on_save -> on_save book
                       )
                     ();

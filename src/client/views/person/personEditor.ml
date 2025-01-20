@@ -6,6 +6,7 @@ module SCDDB = Dancelor_common.SCDDB
 module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
 module Page = Dancelor_client_page
+module Database = Dancelor_common.Database
 
 type ('name, 'scddb_id) gen = {
   name: 'name;
@@ -116,7 +117,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun person ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_person (Model.Person.slug person))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_person (Database.Entry.slug person))
                       | Some on_save -> on_save person
                     )
                   ();

@@ -13,7 +13,7 @@ let name ?(link = true) set =
   if link && not (M.Set.is_slug_none set) then
     [
       a
-        ~a: [a_href @@ PageRouter.href_set @@ M.Set.slug set]
+        ~a: [a_href @@ PageRouter.href_set @@ Database.Entry.slug set]
         name_text
     ]
   else

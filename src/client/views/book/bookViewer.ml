@@ -86,7 +86,7 @@ let table_contents ~this_slug contents =
                match page with
                | Book.Set (set, parameters) ->
                  (
-                   let href = PageRouter.href_set ~context @@ Set.slug set in
+                   let href = PageRouter.href_set ~context @@ Database.Entry.slug set in
                    Dancelor_client_tables.clickable_row
                      ~href
                      [
@@ -106,7 +106,7 @@ let table_contents ~this_slug contents =
                  )
                | Version (version, parameters) ->
                  (
-                   let href = PageRouter.href_version ~context @@ Version.slug version in
+                   let href = PageRouter.href_version ~context @@ Database.Entry.slug version in
                    Dancelor_client_tables.clickable_row
                      ~href
                      [

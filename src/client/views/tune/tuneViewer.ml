@@ -64,7 +64,7 @@ let create ?context slug =
               if versions = [] then
                 [
                   txt "There are no versions for this tune. Maybe you want to ";
-                  a ~a: [a_href (PageRouter.href_versionAdd ~tune: (Tune.slug tune) ())] [txt "add one"];
+                  a ~a: [a_href (PageRouter.href_versionAdd ~tune: (Database.Entry.slug tune) ())] [txt "add one"];
                   txt "?";
                 ]
               else

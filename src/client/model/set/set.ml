@@ -25,7 +25,7 @@ let save
     modified_at
     created_at
 
-let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (slug s)
+let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (Database.Entry.slug s)
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Search) slice threshold filter
