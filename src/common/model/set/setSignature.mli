@@ -2,10 +2,9 @@ open Nes
 
 type t = SetCore.t
 
-val slug : t -> t Slug.t
+(* FIXME: remove? *)
 val is_slug_none : t -> bool
 
-val status : t -> Status.t
 val name : t -> string
 val conceptors : t -> PersonCore.t list Lwt.t
 val kind : t -> Kind.Dance.t
@@ -14,8 +13,6 @@ val order : t -> SetOrder.t
 val instructions : t -> string
 val dances : t -> DanceCore.t list Lwt.t
 val remark : t -> string
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
 
 val contains_version : VersionCore.t Slug.t -> t -> bool
 (** REVIEW: This really takes a slug? *)
@@ -79,7 +76,7 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val make :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   ?slug: t Slug.t ->
   name: string ->
   ?conceptors: PersonCore.t list ->
@@ -93,7 +90,7 @@ val make :
   t Lwt.t
 
 val save :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   name: string ->
   ?conceptors: PersonCore.t list ->
   kind: Kind.Dance.t ->

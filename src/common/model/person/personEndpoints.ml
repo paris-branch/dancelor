@@ -1,5 +1,6 @@
 open Nes
 open Madge
+open Dancelor_common_database
 
 type (_, _, _) t =
   | Get : ((PersonCore.t Slug.t -> 'w), 'w, PersonCore.t) t

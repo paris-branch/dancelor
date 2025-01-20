@@ -12,12 +12,8 @@ type t = PersonCore.t
 
 (** {2 Field getters} *)
 
-val slug : t -> t Slug.t
-val status : t -> Status.t
 val name : t -> string
 val scddb_id : t -> int option
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
 
 val is_trad : t -> bool
 
@@ -50,7 +46,7 @@ val get : t Slug.t -> t Lwt.t
     involves an API call. *)
 
 val save :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   name: string ->
   ?scddb_id: int ->
   modified_at: Datetime.t ->

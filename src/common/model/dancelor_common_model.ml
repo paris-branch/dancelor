@@ -51,7 +51,6 @@
    something else. Maybe Dancelor_common_utils? *)
 module Music = Music
 module Slice = Slice
-module Status = Status
 module Transposition = Transposition
 module IssueReport = IssueReport
 module Kind = Kind

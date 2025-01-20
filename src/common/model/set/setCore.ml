@@ -1,24 +1,31 @@
 open Nes
+open Dancelor_common_database
 
 let _key = "set"
 
-type t = {
-  slug: t Slug.t; [@default Slug.none]
-  status: Status.t; [@default Status.bot]
+type core = {
   name: string;
   conceptors: PersonCore.t Slug.t list; [@default []]
   kind: Kind.Dance.t;
-  contents: (VersionCore.t Slug.t * VersionParameters.t) list;
-  [@key "versions-and-parameters"]
-  [@default []]
+  contents: (VersionCore.t Slug.t * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
   order: SetOrder.t;
   instructions: string; [@default ""]
   dances: DanceCore.t Slug.t list; [@default []]
   remark: string; [@default ""]
-  modified_at: Datetime.t; [@key "modified-at"]
-  created_at: Datetime.t [@key "created-at"]
 }
 [@@deriving make, show {with_path = false}, yojson, fields]
+
+type t = core Entry.t
+[@@deriving yojson, show]
+
+let name = name % Entry.value
+let conceptors = conceptors % Entry.value
+let kind = kind % Entry.value
+let contents = contents % Entry.value
+let order = order % Entry.value
+let instructions = instructions % Entry.value
+let dances = dances % Entry.value
+let remark = remark % Entry.value
 
 type warning =
   | Empty

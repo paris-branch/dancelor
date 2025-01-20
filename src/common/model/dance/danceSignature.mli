@@ -6,8 +6,6 @@ type t = DanceCore.t
 
 (** {2 Field getters} *)
 
-val slug : t -> t Slug.t
-val status : t -> Status.t
 val name : t -> string
 val kind : t -> Kind.Dance.t
 val devisers : t -> PersonCore.t list Lwt.t
@@ -15,8 +13,6 @@ val two_chords : t -> bool option
 val scddb_id : t -> int option
 val disambiguation : t -> string
 val date : t -> PartialDate.t option
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
 
 val equal : t -> t -> bool
 
@@ -51,7 +47,7 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val save :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   name: string ->
   kind: Kind.Dance.t ->
   ?devisers: PersonCore.t list ->

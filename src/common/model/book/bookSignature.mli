@@ -25,8 +25,6 @@ type t = BookCore.t
 
 (** {2 Field Getters} *)
 
-val slug : t -> t Slug.t
-val status : t -> Status.t
 val title : t -> string
 val subtitle : t -> string
 val short_title : t -> string
@@ -35,8 +33,6 @@ val contents : t -> page list Lwt.t
 val source : t -> bool
 val remark : t -> string
 val scddb_id : t -> int option
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
 
 (** {2 Advanced Field Getters} *)
 
@@ -120,7 +116,7 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val save :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   title: string ->
   ?date: PartialDate.t ->
   ?contents: page list ->
@@ -130,7 +126,7 @@ val save :
   t Lwt.t
 
 val make :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   slug: t Slug.t ->
   title: string ->
   ?date: PartialDate.t ->
@@ -165,7 +161,7 @@ val count :
 (** Like {!search} but returns only the number of items. *)
 
 val update :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   slug: t Slug.t ->
   title: string ->
   ?date: PartialDate.t ->

@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module PageCore = struct
   type t =
@@ -10,9 +11,7 @@ end
 
 let _key = "book"
 
-type t = {
-  slug: t Slug.t;
-  status: Status.t; [@default Status.bot]
+type core = {
   title: string;
   subtitle: string; [@default ""]
   short_title: string; [@default ""] [@key "short-title"]
@@ -21,14 +20,10 @@ type t = {
   source: bool; [@default false]
   remark: string; [@default ""]
   scddb_id: int option; [@default None] [@key "scddb-id"]
-  modified_at: Datetime.t; [@key "modified-at"]
-  created_at: Datetime.t [@key "created-at"]
 }
 [@@deriving make, show {with_path = false}, yojson, fields]
 
-let make
-    ~slug
-    ?status
+let make_core
     ~title
     ?subtitle
     ?short_title
@@ -37,13 +32,9 @@ let make
     ?source
     ?remark
     ?scddb_id
-    ~modified_at
-    ~created_at
     ()
   =
-  make
-    ~slug
-    ?status
+  make_core
     ~title
     ?subtitle
     ?short_title
@@ -52,9 +43,19 @@ let make
     ?source
     ?remark
     ~scddb_id
-    ~modified_at
-    ~created_at
     ()
+
+type t = core Entry.t
+[@@deriving yojson, show]
+
+let title = title % Entry.value
+let subtitle = subtitle % Entry.value
+let short_title = short_title % Entry.value
+let date = date % Entry.value
+let contents = contents % Entry.value
+let source = source % Entry.value
+let remark = remark % Entry.value
+let scddb_id = scddb_id % Entry.value
 
 let contains_set set1 book =
   List.exists
@@ -62,7 +63,7 @@ let contains_set set1 book =
       | PageCore.Set (set2, _) -> Slug.equal' set1 set2
       | _ -> false
     )
-    book.contents
+    (Entry.value book).contents
 
 type warning =
   | Empty

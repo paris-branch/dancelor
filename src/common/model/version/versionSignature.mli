@@ -2,8 +2,6 @@ open Nes
 
 type t = VersionCore.t
 
-val slug : t -> t Slug.t
-val status : t -> Status.t
 val tune : t -> TuneCore.t Lwt.t
 val bars : t -> int
 val key : t -> Music.key
@@ -12,8 +10,6 @@ val sources : t -> string list
 val arrangers : t -> PersonCore.t list Lwt.t
 val remark : t -> string
 val disambiguation : t -> string
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
 
 val content : t -> string Lwt.t
 
@@ -62,7 +58,7 @@ end
 val get : t Slug.t -> t Lwt.t
 
 val save :
-  ?status: Status.t ->
+  ?status: Dancelor_common_database.Status.t ->
   tune: TuneCore.t ->
   bars: int ->
   key: Music.key ->
