@@ -1,18 +1,7 @@
 open Dancelor_common
 include TuneLifted
 
-let save
-    ?status
-    ~modified_at
-    ~created_at
-    tune
-  =
-  Madge_cohttp_lwt_client.call
-    ApiRouter.(route @@ Tune Save)
-    status
-    modified_at
-    created_at
-    tune
+let save = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Tune Save)
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Tune Search) slice threshold filter

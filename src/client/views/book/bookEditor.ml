@@ -142,12 +142,7 @@ module Editor = struct
     | (None, _) -> Lwt.return_none
     | (Some {name; date; sets}, None) ->
       Lwt.map Option.some @@
-      Model.Book.save
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-      (* FIXME: not even optional *)
-      @@
+      Model.Book.save @@
       Model.Book.make
         ~title: name
         ?date
@@ -155,10 +150,6 @@ module Editor = struct
         ()
     | (Some {name; date; sets}, Some slug) ->
       Model.Book.update
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         slug @@
       Model.Book.make
         ~title: name

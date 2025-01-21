@@ -58,12 +58,7 @@ end
 
 val get : t Slug.t -> t Entry.t Lwt.t
 
-val save :
-  ?status: Dancelor_common_database.Status.t ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  t ->
-  t Entry.t Lwt.t
+val save : t -> t Entry.t Lwt.t
 
 val search :
   ?slice: Slice.t ->

@@ -4,10 +4,7 @@ module Database = Dancelor_server_database
 
 include VersionLifted
 
-let save ?status ~modified_at ~created_at version =
-  let%lwt tune = Tune.get version.tune in
-  let name = Tune.name tune in
-  Database.Version.save ~slug_hint: name ?status ~modified_at ~created_at version
+let save = Database.Version.save
 
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in

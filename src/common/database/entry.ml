@@ -5,7 +5,7 @@ type meta = {
   created_at: Datetime.t; [@key "created-at"]
   modified_at: Datetime.t; [@key "modified-at"]
 }
-[@@deriving yojson, show {with_path = false}]
+[@@deriving yojson, show {with_path = false}, fields]
 
 let make_meta ?(status = Status.bot) ?created_at ?modified_at () =
   let now = Datetime.now () in
@@ -14,6 +14,12 @@ let make_meta ?(status = Status.bot) ?created_at ?modified_at () =
     created_at = Option.value ~default: now created_at;
     modified_at = Option.value ~default: now modified_at;
   }
+
+let update_meta ?status ?created_at ?modified_at meta = {
+  status = Option.value ~default: meta.status status;
+  created_at = Option.value ~default: meta.created_at created_at;
+  modified_at = Option.value ~default: meta.modified_at modified_at;
+}
 
 type 'a t =
   | Full of 'a Slug.t * meta * 'a
@@ -33,16 +39,9 @@ let make_dummy value = Dummy value
 
 exception UsedGetterOnDummy
 
-let on_full e f =
-  match e with
-  | Full (slug, meta, _value) -> f slug meta
-  | Dummy _ -> raise UsedGetterOnDummy
-
-let slug e = on_full e @@ fun slug _ -> Slug.unsafe_coerce slug
-let slug' = slug
-let status e = on_full e @@ fun _ {status; _} -> status
-let created_at e = on_full e @@ fun _ {created_at; _} -> created_at
-let modified_at e = on_full e @@ fun _ {modified_at; _} -> modified_at
+let slug = function Full (slug, _, _) -> slug | _ -> raise UsedGetterOnDummy
+let slug' e = Slug.unsafe_coerce (slug e)
+let meta = function Full (_, meta, _) -> meta | _ -> raise UsedGetterOnDummy
 let value = function Full (_, _, value) | Dummy value -> value
 
 let equal' e f = Slug.equal' (slug e) (slug f)

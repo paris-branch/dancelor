@@ -27,6 +27,13 @@ val make_meta :
   unit ->
   meta
 
+val update_meta :
+  ?status: Status.t ->
+  ?created_at: Datetime.t ->
+  ?modified_at: Datetime.t ->
+  meta ->
+  meta
+
 val make' :
   slug: 'a Slug.t ->
   ?meta: meta ->
@@ -46,16 +53,16 @@ val slug : 'a t -> 'a Slug.t
 val slug' : 'a t -> 'a t Slug.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
-val status : 'a t -> Status.t
-(** @raise UsedGetterOnDummy if the entry is a dummy. *)
-
-val created_at : 'a t -> Datetime.t
-(** @raise UsedGetterOnDummy if the entry is a dummy. *)
-
-val modified_at : 'a t -> Datetime.t
-(** @raise UsedGetterOnDummy if the entry is a dummy. *)
-
 val value : 'a t -> 'a
+
+val meta : 'a t -> meta
+(** @raise UsedGetterOnDummy if the entry is a dummy. *)
+
+val status : meta -> Status.t
+
+val created_at : meta -> Datetime.t
+
+val modified_at : meta -> Datetime.t
 
 (** {2 Comparison} *)
 

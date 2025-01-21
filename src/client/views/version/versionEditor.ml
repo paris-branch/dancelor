@@ -148,12 +148,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
       Lwt.map Option.some @@
-      Model.Version.save
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-      (* FIXME: not even optional *)
-      @@
+      Model.Version.save @@
       Model.Version.make
         ~tune
         ~bars

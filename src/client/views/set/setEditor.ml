@@ -137,12 +137,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; conceptors; versions; order} ->
       Lwt.map Option.some @@
-      Model.Set.save
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-      (* FIXME: not even optional *)
-      @@
+      Model.Set.save @@
       Model.Set.make
         ~name
         ~kind

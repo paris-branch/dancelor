@@ -152,12 +152,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Dance.save
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-      (* FIXME: not even optional *)
-      @@
+      Model.Dance.save @@
       Model.Dance.make
         ~name
         ~kind

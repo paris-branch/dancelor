@@ -128,12 +128,9 @@ end
 
 val get : t Slug.t -> t Entry.t Lwt.t
 
-val save :
-  ?status: Dancelor_common_database.Status.t ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  t ->
-  t Entry.t Lwt.t
+val save : t -> t Entry.t Lwt.t
+
+val update : t Slug.t -> t -> unit Lwt.t
 
 val search :
   ?slice: Slice.t ->
@@ -157,14 +154,6 @@ val count :
   Filter.t ->
   int Lwt.t
 (** Like {!search} but returns only the number of items. *)
-
-val update :
-  ?status: Dancelor_common_database.Status.t ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  t Slug.t ->
-  t ->
-  unit Lwt.t
 
 val page_core_to_page : BookCore.PageCore.t -> page Lwt.t
 (** Exposed for use in the book controller. *)

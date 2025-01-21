@@ -291,6 +291,6 @@ end
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
   | Get -> Model.Book.get
   | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
-  | Save -> (fun status modified_at created_at book -> Model.Book.save ?status ~modified_at ~created_at book)
-  | Update -> (fun status modified_at created_at slug book -> Model.Book.update ?status ~modified_at ~created_at slug book)
+  | Save -> Model.Book.save
+  | Update -> Model.Book.update
   | Pdf -> (fun parameters book -> Pdf.get book parameters)

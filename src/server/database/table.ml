@@ -36,8 +36,8 @@ module type S = sig
 
   val get_status : value Slug.t -> Status.t option Lwt.t
 
-  val save : slug_hint: string -> ?status: Status.t -> created_at: Datetime.t -> modified_at: Datetime.t -> value -> value Entry.t Lwt.t
-  val update : ?status: Status.t -> created_at: Datetime.t -> modified_at: Datetime.t -> value Slug.t -> value -> unit Lwt.t
+  val save : value -> value Entry.t Lwt.t
+  val update : value Slug.t -> value -> unit Lwt.t
   val delete : value Slug.t -> unit Lwt.t
 
   (* FIXME: remove [save] and [update]; merge [save'] and [update'] *)
@@ -58,6 +58,8 @@ let make_slug_and_table (type value) (module Table : S with type value = value) 
 
 module type Model = sig
   type t
+
+  val slug_hint : t -> string Lwt.t
 
   val dependencies : t Entry.t -> slug_and_table list Lwt.t
 
@@ -124,7 +126,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | None ->
       Lwt.return_none
 
-  let get_status = Lwt.map (Option.map Entry.status) % get_opt
+  let get_status = Lwt.map (Option.map Entry.(status % meta)) % get_opt
 
   let list_dependency_problems_for slug status = function
     | Boxed (dep_slug, (module Dep_table)) ->
@@ -145,7 +147,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> Lwt_list.fold_left_s
       (fun problems (_, model) ->
          let slug = Entry.slug model in
-         let status = Entry.status model in
+         let status = Entry.(status % meta) model in
          let%lwt deps = Model.dependencies model in
          let%lwt new_problems =
            deps
@@ -200,9 +202,10 @@ module Make (Model : Model) : S with type value = Model.t = struct
     else
       slug
 
-  let save ~slug_hint ?status ~created_at ~modified_at model =
+  let save model =
+    let%lwt slug_hint = Model.slug_hint model in
     let slug = uniq_slug ~hint: slug_hint in
-    let model = Entry.make ~slug ?status ~modified_at ~created_at model in
+    let model = Entry.make ~slug model in
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
       (fun (field, filename) ->
@@ -222,9 +225,9 @@ module Make (Model : Model) : S with type value = Model.t = struct
     (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
 
-  let update ?status ~created_at ~modified_at slug model =
-    let model = Entry.make ~slug ?status ~modified_at ~created_at model in
-    let slug = Entry.slug model in
+  let update slug model =
+    let%lwt old_model = get slug in
+    let model = Entry.make' ~slug ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model)) model in
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
       (fun (field, filename) ->

@@ -48,12 +48,7 @@ val get : t Slug.t -> t Entry.t Lwt.t
 (** Look up a person in the database given its slug. On the client-side, this
     involves an API call. *)
 
-val save :
-  ?status: Dancelor_common_database.Status.t ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  t ->
-  t Entry.t Lwt.t
+val save : t -> t Entry.t Lwt.t
 
 val search :
   ?slice: Slice.t ->

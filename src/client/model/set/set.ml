@@ -1,18 +1,7 @@
 open Dancelor_common
 include SetLifted
 
-let save
-    ?status
-    ~modified_at
-    ~created_at
-    set
-  =
-  Madge_cohttp_lwt_client.call
-    ApiRouter.(route @@ Set Save)
-    status
-    modified_at
-    created_at
-    set
+let save = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Save)
 
 let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (Database.Entry.slug s)
 

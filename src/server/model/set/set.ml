@@ -4,8 +4,7 @@ module Database = Dancelor_server_database
 
 include SetLifted
 
-let save ?status ~modified_at ~created_at set =
-  Database.Set.save ~slug_hint: set.name ?status ~modified_at ~created_at set
+let save = Database.Set.save
 
 let delete = Database.(Set.delete % Entry.slug)
 

@@ -4,8 +4,7 @@ module Database = Dancelor_server_database
 
 include DanceLifted
 
-let save ?status ~modified_at ~created_at dance =
-  Database.Dance.save ~slug_hint: dance.name ?status ~modified_at ~created_at dance
+let save = Database.Dance.save
 
 let tiebreakers =
   Lwt_list.[

@@ -30,5 +30,5 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.SetEndpoints.t ->
   | Get -> Model.Set.get
   | Delete -> (fun slug -> Lwt.bind (Model.Set.get slug) Model.Set.delete)
   | Search -> (fun slice threshold filter -> Model.Set.search ?slice ?threshold filter)
-  | Save -> (fun status modified_at created_at set -> Model.Set.save ?status ~modified_at ~created_at set)
+  | Save -> Model.Set.save
   | Pdf -> (fun parameters set -> Pdf.get set parameters)
