@@ -28,7 +28,6 @@ module Formula = Formula
 module Kind = Kind
 module Music = Music
 module Slice = Slice
-module Status = Status
 module TextFormula = TextFormula
 module Transposition = Transposition
 module IssueReport = IssueReport

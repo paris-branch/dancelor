@@ -1,26 +1,35 @@
 (** {1 Tune} *)
 
 open Nes
+open Dancelor_common_database
 
 type t = TuneCore.t
 
+val make :
+  name: string ->
+  ?alternative_names: string list ->
+  kind: Kind.Base.t ->
+  ?composers: PersonCore.t Entry.t list ->
+  ?dances: DanceCore.t Entry.t list ->
+  ?remark: string ->
+  ?scddb_id: int ->
+  ?date: PartialDate.t ->
+  unit ->
+  t
+
 (** {2 Field getters} *)
 
-val slug : t -> t Slug.t
-val status : t -> Status.t
-val name : t -> string
-val alternative_names : t -> string list
-val kind : t -> Kind.Base.t
-val composers : t -> PersonCore.t list Lwt.t
-val dances : t -> DanceCore.t list Lwt.t
-val remark : t -> string
-val scddb_id : t -> int option
-val date : t -> PartialDate.t option
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
+val name : t Entry.t -> string
+val alternative_names : t Entry.t -> string list
+val kind : t Entry.t -> Kind.Base.t
+val composers : t Entry.t -> PersonCore.t Entry.t list Lwt.t
+val dances : t Entry.t -> DanceCore.t Entry.t list Lwt.t
+val remark : t Entry.t -> string
+val scddb_id : t Entry.t -> int option
+val date : t Entry.t -> PartialDate.t option
 
-val compare : t -> t -> int
-val equal : t -> t -> bool
+val compare : t Entry.t -> t Entry.t -> int
+val equal : t Entry.t -> t Entry.t -> bool
 
 (** {2 Filters} *)
 
@@ -29,14 +38,14 @@ module Filter : sig
   type t = [%import: TuneCore.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> TuneCore.t -> float Lwt.t
+  val accepts : t -> TuneCore.t Entry.t -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]
       returns a float between [0.] and [1.] representing how much the filter
       accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
       meaning that the tune is fully rejected. *)
 
-  val is : TuneCore.t -> predicate
-  val is' : TuneCore.t -> t
+  val is : TuneCore.t Entry.t -> predicate
+  val is' : TuneCore.t Entry.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
   val kind : KindBase.Filter.t -> predicate
@@ -45,8 +54,8 @@ module Filter : sig
   val existsComposer : PersonCore.Filter.t -> predicate
   val existsComposer' : PersonCore.Filter.t -> t
 
-  val existsComposerIs : PersonCore.t -> predicate
-  val existsComposerIs' : PersonCore.t -> t
+  val existsComposerIs : PersonCore.t Entry.t -> predicate
+  val existsComposerIs' : PersonCore.t Entry.t -> t
 
   val existsDance : DanceCore.Filter.t -> predicate
   val existsDance' : DanceCore.Filter.t -> t
@@ -67,28 +76,22 @@ end
 
 (** {2 Getters and setters} *)
 
-val get : t Slug.t -> t Lwt.t
+val get : t Slug.t -> t Entry.t Lwt.t
 
-val save :
-  ?status: Status.t ->
-  name: string ->
-  ?alternative_names: string list ->
-  kind: Kind.Base.t ->
-  ?composers: PersonCore.t list ->
-  ?dances: DanceCore.t list ->
-  ?remark: string ->
-  ?scddb_id: int ->
-  ?date: PartialDate.t ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  unit ->
-  t Lwt.t
+val create : t -> t Entry.t Lwt.t
+(** Create a new database entry for the given tune. *)
+
+val update : t Slug.t -> t -> t Entry.t Lwt.t
+(** Update an existing database entry with the given tune. *)
+
+val save : ?slug: t Slug.t -> t -> t Entry.t Lwt.t
+(** Either {!create} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->
   ?threshold: float ->
   Filter.t ->
-  (int * t list) Lwt.t
+  (int * t Entry.t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the tunes
     that match [filter] with a score higher than [threshold] (if any). The first
     element of the pair is the number of tunes. The second element of the pair
@@ -98,7 +101,7 @@ val search' :
   ?slice: Slice.t ->
   ?threshold: float ->
   Filter.t ->
-  t list Lwt.t
+  t Entry.t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :

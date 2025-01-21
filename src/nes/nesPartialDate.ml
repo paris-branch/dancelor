@@ -1,7 +1,5 @@
 open NesPervasives
 
-let _key = "partial-date"
-
 type t =
   | YearMonthDay of int * int * int
   | YearMonth of int * int

@@ -8,6 +8,7 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
+module Database = Dancelor_common_database
 
 type ('name, 'date, 'sets) gen = {
   name: 'name;
@@ -35,17 +36,17 @@ end
 
 module State = struct
   type t =
-    (string, PartialDate.t option, Model.Set.t list) gen
+    (string, PartialDate.t option, Model.Set.t Database.Entry.t list) gen
 
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date;
-    sets = ("", List.map Model.Set.slug state.sets);
+    sets = ("", List.map Database.Entry.slug state.sets);
   }
 
   exception Non_convertible
 
-  let of_model (book : Model.Book.t) : t Lwt.t =
+  let of_model (book : Model.Book.t Database.Entry.t) : t Lwt.t =
     let%lwt contents = Model.Book.contents book in
     let sets =
       List.map
@@ -57,8 +58,8 @@ module State = struct
     in
     Lwt.return
       {
-        name = book.title;
-        date = book.date;
+        name = (Database.Entry.value book).title;
+        date = (Database.Entry.value book).date;
         sets;
       }
 end
@@ -118,7 +119,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Set.search ~threshold ~slice filter
           )
-        ~serialise: Model.Set.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Set.get
         initial_state.sets
     in
@@ -139,27 +140,14 @@ module Editor = struct
   let submit ~edit (editor : t) =
     match (S.value (state editor), edit) with
     | (None, _) -> Lwt.return_none
-    | (Some {name; date; sets}, None) ->
+    | (Some {name; date; sets}, slug) ->
       Lwt.map Option.some @@
-      Model.Book.save
+      Model.Book.save ?slug @@
+      Model.Book.make
         ~title: name
         ?date
         ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
-    | (Some {name; date; sets}, Some slug) ->
-      Model.Book.update
-        ~slug
-        ~title: name
-        ?date
-        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
-        ~modified_at: (Datetime.now ()) (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ()) (* FIXME: not even optional *)
-        ();%lwt
-      Lwt.map Option.some @@ Model.Book.get slug
 end
 
 let create ?on_save ?text ?edit () =
@@ -199,7 +187,7 @@ let create ?on_save ?text ?edit () =
                         Option.iter @@ fun book ->
                         Editor.clear editor;
                         match on_save with
-                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_book (Model.Book.slug book))
+                        | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_book (Database.Entry.slug book))
                         | Some on_save -> on_save book
                       )
                     ();

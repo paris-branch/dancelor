@@ -20,7 +20,8 @@ let report issue =
       let%lwt (model, name) = Lwt.map Option.get @@ describe @@ Uri.of_string issue.page in
       Lwt.return (!Dancelor_server_config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
   in
-  assert (repo <> ""); (* otherwise this will pick up on the current Git repository *)
+  assert (repo <> "");
+  (* otherwise this will pick up on the current Git repository *)
   let body =
     Format.sprintf
       {|

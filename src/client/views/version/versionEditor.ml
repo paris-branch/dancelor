@@ -8,6 +8,7 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
+module Database = Dancelor_common_database
 
 type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
   tune: 'tune;
@@ -96,7 +97,7 @@ module Editor = struct
             Lwt.map Result.ok @@ Model.Tune.search ~threshold ~slice filter
           )
         ~has_interacted
-        ~serialise: Model.Tune.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
@@ -117,7 +118,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        ~serialise: Model.Person.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
@@ -147,7 +148,8 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
       Lwt.map Option.some @@
-      Model.Version.save
+      Model.Version.save @@
+      Model.Version.make
         ~tune
         ~bars
         ~key
@@ -156,10 +158,6 @@ module Editor = struct
         ~remark
         ~disambiguation
         ~content
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 
@@ -220,7 +218,7 @@ let create ?on_save ?text ?tune () =
                       Option.iter @@ fun version ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_version (Model.Version.slug version))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_version (Database.Entry.slug version))
                       | Some on_save -> on_save version
                     )
                   ();

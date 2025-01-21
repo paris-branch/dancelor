@@ -2,33 +2,9 @@ open Nes
 open Dancelor_common
 include VersionLifted
 
-let save
-    ?status
-    ~tune
-    ~bars
-    ~key
-    ~structure
-    ?arrangers
-    ?remark
-    ?disambiguation
-    ~content
-    ~modified_at
-    ~created_at
-    ()
-  =
-  Madge_cohttp_lwt_client.call
-    ApiRouter.(route @@ Version Save)
-    status
-    tune
-    bars
-    key
-    structure
-    arrangers
-    remark
-    disambiguation
-    content
-    modified_at
-    created_at
+let create = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Create)
+let update = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Update)
+let save ?slug = match slug with None -> create | Some slug -> update slug
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Search) slice threshold filter

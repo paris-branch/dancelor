@@ -2,8 +2,6 @@ open Nes
 
 (** {1 Dance Kind} *)
 
-val _key : string
-
 include module type of KindDanceType
 (** The kind of a dance. For instance, [7x(32R + 2x64S + 128J)]. *)
 

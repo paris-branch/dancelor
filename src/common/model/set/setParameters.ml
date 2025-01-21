@@ -31,8 +31,6 @@ module Self = struct
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
   [@@deriving make, show {with_path = false}, yojson]
-
-  let _key = "set-parameters"
 end
 include Self
 

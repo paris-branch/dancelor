@@ -4,33 +4,11 @@ module Database = Dancelor_server_database
 
 include SetLifted
 
-let save
-    ?status
-    ~name
-    ?conceptors
-    ~kind
-    ?contents
-    ~order
-    ?dances
-    ~modified_at
-    ~created_at
-    ()
-  =
-  Database.Set.save ~slug_hint: name @@ fun slug ->
-  make
-    ?status
-    ~slug
-    ~name
-    ?conceptors
-    ~kind
-    ?contents
-    ~order
-    ?dances
-    ~modified_at
-    ~created_at
-    ()
+let create = Database.Set.create
+let update = Database.Set.update
+let save = Database.Set.save
 
-let delete = Database.Set.delete % slug
+let delete = Database.(Set.delete % Entry.slug)
 
 let tiebreakers =
   Lwt_list.[

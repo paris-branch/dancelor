@@ -10,10 +10,10 @@ let works set =
 
 let name ?(link = true) set =
   let name_text = [txt (M.Set.name set)] in
-  if link && not (M.Set.is_slug_none set) then
+  if link && not (Database.Entry.is_dummy set) then
     [
       a
-        ~a: [a_href @@ PageRouter.href_set @@ M.Set.slug set]
+        ~a: [a_href @@ PageRouter.href_set @@ Database.Entry.slug set]
         name_text
     ]
   else

@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module Lift
     (Person : module type of PersonSignature)
@@ -9,51 +10,34 @@ module Lift
   include SetCore
 
   let make
-      ?status
-      ?(slug = Slug.none)
       ~name
       ?conceptors
       ~kind
       ?contents
       ~order
       ?dances
-      ~modified_at
-      ~created_at
       ()
     =
     let name = String.remove_duplicates ~char: ' ' name in
-    let conceptors = Option.map (List.map Person.slug) conceptors in
-    let contents = Option.map (List.map (fun (version, parameters) -> (Version.slug version, parameters))) contents in
-    let dances = Option.map (List.map Dance.slug) dances in
-    Lwt.return
-      (
-        make
-          ?status
-          ~slug
-          ~name
-          ?conceptors
-          ~kind
-          ?contents
-          ~order
-          ?dances
-          ~modified_at
-          ~created_at
-          ()
-      )
+    let conceptors = Option.map (List.map Entry.slug) conceptors in
+    let contents = Option.map (List.map (fun (version, parameters) -> (Entry.slug version, parameters))) contents in
+    let dances = Option.map (List.map Entry.slug) dances in
+    make ~name ?conceptors ~kind ?contents ~order ?dances ()
 
-  let is_slug_none = Slug.is_none % slug
+  let is_slug_none : t Entry.t -> bool = Slug.is_none % Entry.slug
   let conceptors = Lwt_list.map_p Person.get % conceptors
   let dances = Lwt_list.map_p Dance.get % dances
 
-  let contents set =
+  let contents =
     Lwt_list.map_s
       (fun (slug, parameters) ->
          let%lwt version = Version.get slug in
          Lwt.return (version, parameters)
-      )
-      set.contents
+      ) %
+    contents
 
-  let compare = Slug.compare_slugs_or ~fallback: Stdlib.compare slug
+  let compare : t Entry.t -> t Entry.t -> int =
+    Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug'
   let equal set1 set2 = compare set1 set2 = 0
 
   (* FIXME: use Version.equal *)
@@ -62,7 +46,7 @@ module Lift
       (fun (slug2, _parameters) ->
          Slug.equal' slug1 slug2
       )
-      set.contents
+      (Entry.value set).contents
 
   let find_context index set =
     let%lwt versions = Lwt.map (List.map fst) @@ contents set in
@@ -70,8 +54,7 @@ module Lift
 
   let lilypond_content_cache_key set =
     let%lwt contents = contents set in
-    let versions = List.map fst contents in
-    let%lwt contents = Lwt_list.map_p Version.content versions in
+    let contents = List.map (Version.content % fst) contents in
     Lwt.return (String.concat "\n" contents)
 
   let warnings s =
@@ -133,7 +116,7 @@ module Lift
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
       | Is set' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug set) set'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug set) set'
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ SetCore.name set
       | NameMatches string ->
@@ -174,7 +157,7 @@ module Lift
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula
 
-    let is = is % slug
+    let is = is % Entry.slug
     let is' = Formula.pred % is
 
     let memVersion = existsVersion % Version.Filter.is'

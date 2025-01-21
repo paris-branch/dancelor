@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module Lift
     (Person : module type of PersonSignature)
@@ -7,8 +8,6 @@ module Lift
   include VersionCore
 
   let make
-      ~slug
-      ?status
       ~tune
       ~bars
       ~key
@@ -16,33 +15,17 @@ module Lift
       ?arrangers
       ?remark
       ?disambiguation
-      ~modified_at
-      ~created_at
+      ~content
       ()
     =
     let structure = String.remove_duplicates ~char: ' ' structure in
     let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
-    let tune = Tune.slug tune in
-    let arrangers = Option.map (List.map Person.slug) arrangers in
-    Lwt.return
-      (
-        make
-          ~slug
-          ?status
-          ~tune
-          ~bars
-          ~key
-          ~structure
-          ?arrangers
-          ?remark
-          ?disambiguation
-          ~modified_at
-          ~created_at
-          ()
-      )
+    let tune = Entry.slug tune in
+    let arrangers = Option.map (List.map Entry.slug) arrangers in
+    make ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ~content ()
 
-  let tune version = Tune.get (tune version)
-  let arrangers version = Lwt_list.map_p Person.get version.arrangers
+  let tune = Tune.get % tune
+  let arrangers = Lwt_list.map_p Person.get % arrangers
 
   let kind version =
     Fun.flip Lwt.map (tune version) @@ fun tune ->
@@ -58,7 +41,7 @@ module Lift
     let accepts filter version =
       Formula.interpret filter @@ function
       | Is version' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug version) version'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug version) version'
       | Tune tfilter ->
         let%lwt tune = versionCore_tune version in
         Tune.Filter.accepts tfilter tune
@@ -97,7 +80,7 @@ module Lift
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula
 
-    let is = is % slug
+    let is = is % Entry.slug
     let is' = Formula.pred % is
 
     let tuneIs = tune % Tune.Filter.is'

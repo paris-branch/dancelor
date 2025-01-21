@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module Lift
     (Dance : module type of DanceSignature)
@@ -12,17 +13,17 @@ module Lift
 
   let is_source book = source book
 
-  let compare =
+  let compare : t Entry.t -> t Entry.t -> int =
     Slug.compare_slugs_or
       ~fallback: (fun book1 book2 ->
           (* Compare first by date *)
-          let c = compare book1.date book2.date in
+          let c = compare (Entry.value book1).date (Entry.value book2).date in
           if c = 0 then
             compare book1 book2
           else
             c
         )
-      slug
+      Entry.slug'
 
   let equal book1 book2 = compare book1 book2 = 0
 
@@ -54,7 +55,8 @@ module Lift
     Lwt_list.filter_map_p
       (function
         | Version _ -> Lwt.return_none
-        | Set (set, _) | InlineSet (set, _) -> Lwt.return_some set
+        | Set (set, _) -> Lwt.return_some set
+        | InlineSet (set, _) -> Lwt.return_some @@ Entry.make_dummy set
       )
       contents
 
@@ -65,8 +67,8 @@ module Lift
     let%lwt contents = contents book in
     Lwt_list.filter_map_p
       (function
-        | Set (set, parameters) | InlineSet (set, parameters) ->
-          Lwt.return_some (set, parameters)
+        | Set (set, parameters) -> Lwt.return_some (set, parameters)
+        | InlineSet (set, parameters) -> Lwt.return_some (Entry.make_dummy set, parameters)
         | Version _ -> Lwt.return_none
       )
       contents
@@ -85,21 +87,22 @@ module Lift
     let%lwt contents =
       Lwt_list.map_p
         (function
-          | Version (version, _) -> Version.content version
-          | Set (set, _) | InlineSet (set, _) -> Set.lilypond_content_cache_key set
+          | Version (version, _) -> Lwt.return @@ Version.content version
+          | Set (set, _) -> Set.lilypond_content_cache_key set
+          | InlineSet (set, _) -> Set.lilypond_content_cache_key @@ Entry.make_dummy set
         )
         pages
     in
     Lwt.return (String.concat "\n" contents)
 
   let page_to_page_core = function
-    | (Version (version, params): page) -> PageCore.Version (Version.slug version, params)
-    | (Set (set, params): page) -> PageCore.Set (Set.slug set, params)
+    | (Version (version, params): page) -> PageCore.Version (Entry.slug version, params)
+    | (Set (set, params): page) -> PageCore.Set (Entry.slug set, params)
     | (InlineSet (set, params): page) -> PageCore.InlineSet (set, params)
 
-  let make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () =
+  let make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id () =
     let contents = Option.map (List.map page_to_page_core) contents in
-    Lwt.return @@ make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
+    make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id ()
 
   module Warnings = struct
     (* The following functions all have the name of a warning of
@@ -234,7 +237,7 @@ module Lift
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
       | Is book' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug book) book'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug book) book'
       | Title string ->
         Lwt.return @@ String.proximity ~char_equal string @@ BookCore.title book
       | TitleMatches string ->
@@ -277,7 +280,7 @@ module Lift
             )
             content
         in
-        Formula.interpret_exists (Set.Filter.accepts sfilter) isets
+        Formula.interpret_exists (Set.Filter.accepts sfilter % Entry.make_dummy) isets
       | ExistsVersionDeep vfilter ->
         (* recursive call to check the compound formula *)
         Fun.flip accepts book @@
@@ -313,7 +316,7 @@ module Lift
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula
 
-    let is = is % slug
+    let is = is % Entry.slug
     let is' = Formula.pred % is
 
     let memVersion = existsVersion % Version.Filter.is'

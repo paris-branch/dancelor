@@ -24,8 +24,6 @@ let gt a b =
 
 let ge a b = eq a b || gt a b
 
-let _key = "status"
-
 let to_string = function
   | Locked -> "locked"
   | ToBeConfirmed -> "to-be-confirmed"

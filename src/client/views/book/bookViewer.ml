@@ -86,7 +86,7 @@ let table_contents ~this_slug contents =
                match page with
                | Book.Set (set, parameters) ->
                  (
-                   let href = PageRouter.href_set ~context @@ Set.slug set in
+                   let href = PageRouter.href_set ~context @@ Database.Entry.slug set in
                    Dancelor_client_tables.clickable_row
                      ~href
                      [
@@ -100,13 +100,13 @@ let table_contents ~this_slug contents =
                    tr
                      [
                        td [txt "Set (inline)"];
-                       L.td (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                       td [txt @@ Kind.Dance.to_string @@ Set.kind set];
+                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Database.Entry.make_dummy set) parameters);
+                       td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Database.Entry.make_dummy set];
                      ]
                  )
                | Version (version, parameters) ->
                  (
-                   let href = PageRouter.href_version ~context @@ Version.slug version in
+                   let href = PageRouter.href_version ~context @@ Database.Entry.slug version in
                    Dancelor_client_tables.clickable_row
                      ~href
                      [

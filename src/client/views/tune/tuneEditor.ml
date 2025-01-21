@@ -8,6 +8,7 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
+module Database = Dancelor_common_database
 
 type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
   name: 'name;
@@ -100,7 +101,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        ~serialise: Model.Person.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.composers
     in
@@ -119,7 +120,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Dance.search ~threshold ~slice filter
           )
-        ~serialise: Model.Dance.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Dance.get
         initial_state.dances
     in
@@ -148,12 +149,13 @@ module Editor = struct
     Input.Text.clear editor.elements.remark;
     Input.Text.clear editor.elements.scddb_id
 
-  let submit (editor : t) : Model.Tune.t option Lwt.t =
+  let submit (editor : t) : Model.Tune.t Database.Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Tune.save
+      Model.Tune.save @@
+      Model.Tune.make
         ~name
         ~kind
         ~composers
@@ -161,10 +163,6 @@ module Editor = struct
         ~dances
         ?remark
         ?scddb_id
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 
@@ -222,7 +220,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun tune ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_tune (Model.Tune.slug tune))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_tune (Database.Entry.slug tune))
                       | Some on_save -> on_save tune
                     )
                   ();

@@ -1,24 +1,32 @@
 (** {1 Dance} *)
 
 open Nes
+open Dancelor_common_database
 
 type t = DanceCore.t
 
+val make :
+  name: string ->
+  kind: Kind.Dance.t ->
+  ?devisers: PersonCore.t Entry.t list ->
+  ?two_chords: bool ->
+  ?scddb_id: int ->
+  ?disambiguation: string ->
+  ?date: PartialDate.t ->
+  unit ->
+  t
+
 (** {2 Field getters} *)
 
-val slug : t -> t Slug.t
-val status : t -> Status.t
-val name : t -> string
-val kind : t -> Kind.Dance.t
-val devisers : t -> PersonCore.t list Lwt.t
-val two_chords : t -> bool option
-val scddb_id : t -> int option
-val disambiguation : t -> string
-val date : t -> PartialDate.t option
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
+val name : t Entry.t -> string
+val kind : t Entry.t -> Kind.Dance.t
+val devisers : t Entry.t -> PersonCore.t Entry.t list Lwt.t
+val two_chords : t Entry.t -> bool option
+val scddb_id : t Entry.t -> int option
+val disambiguation : t Entry.t -> string
+val date : t Entry.t -> PartialDate.t option
 
-val equal : t -> t -> bool
+val equal : t Entry.t -> t Entry.t -> bool
 
 (** {2 Filters} *)
 
@@ -27,10 +35,10 @@ module Filter : sig
   type t = [%import: DanceCore.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> DanceCore.t -> float Lwt.t
+  val accepts : t -> DanceCore.t Entry.t -> float Lwt.t
 
-  val is : DanceCore.t -> predicate
-  val is' : DanceCore.t -> t
+  val is : DanceCore.t Entry.t -> predicate
+  val is' : DanceCore.t Entry.t -> t
 
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
@@ -48,27 +56,22 @@ end
 
 (** {2 Getters and setters} *)
 
-val get : t Slug.t -> t Lwt.t
+val get : t Slug.t -> t Entry.t Lwt.t
 
-val save :
-  ?status: Status.t ->
-  name: string ->
-  kind: Kind.Dance.t ->
-  ?devisers: PersonCore.t list ->
-  ?two_chords: bool ->
-  ?scddb_id: int ->
-  ?disambiguation: string ->
-  ?date: PartialDate.t ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  unit ->
-  t Lwt.t
+val create : t -> t Entry.t Lwt.t
+(** Create a new database entry for the given dance. *)
+
+val update : t Slug.t -> t -> t Entry.t Lwt.t
+(** Update an existing database entry with the given dance. *)
+
+val save : ?slug: t Slug.t -> t -> t Entry.t Lwt.t
+(** Either {!create} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->
   ?threshold: float ->
   Filter.t ->
-  (int * t list) Lwt.t
+  (int * t Entry.t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the dances
     that match [filter] with a score higher than [threshold] (if any). The first
     element of the pair is the number of dances. The second element of the pair
@@ -78,7 +81,7 @@ val search' :
   ?slice: Slice.t ->
   ?threshold: float ->
   Filter.t ->
-  t list Lwt.t
+  t Entry.t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :

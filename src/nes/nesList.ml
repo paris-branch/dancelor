@@ -233,3 +233,15 @@ let extract_assoc_opt x l =
 let rec map_first_some f = function
   | [] -> None
   | x :: xs -> match f x with None -> map_first_some f xs | Some y -> Some y
+
+let extract_assoc_several xs l =
+  let (xys, l) =
+    List.fold_left
+      (fun (xys, l) x ->
+         let (y, l) = extract_assoc x l in
+         ((x, y) :: xys, l)
+      )
+      ([], l)
+      xs
+  in
+  (List.rev xys, l)

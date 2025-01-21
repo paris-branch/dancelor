@@ -95,15 +95,15 @@ let href_version ?context version = href Version context version
 let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
-  let open Dancelor_common_model in
+  let open Dancelor_common_database in
   let open AnyCore in
   match any with
-  | Version version -> href_version ?context (VersionCore.slug version)
-  | Set set -> href_set ?context (SetCore.slug set)
-  | Person person -> href_person ?context (PersonCore.slug person)
-  | Dance dance -> href_dance ?context (DanceCore.slug dance)
-  | Book book -> href_book ?context @@ BookCore.slug book
-  | Tune tune -> href_tune ?context (TuneCore.slug tune)
+  | Version version -> href_version ?context (Entry.slug version)
+  | Set set -> href_set ?context (Entry.slug set)
+  | Person person -> href_person ?context (Entry.slug person)
+  | Dance dance -> href_dance ?context (Entry.slug dance)
+  | Book book -> href_book ?context (Entry.slug book)
+  | Tune tune -> href_tune ?context (Entry.slug tune)
 
 let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person = fun uri ->
   let describe : type a r. (a, (string * string) option Lwt.t, r) page -> a = function

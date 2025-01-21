@@ -1,8 +1,7 @@
 open Nes
+open Dancelor_common_database
 
 module PageCore = struct
-  let _key = "book-page"
-
   type t =
     | Version of VersionCore.t Slug.t * VersionParameters.t
     | Set of SetCore.t Slug.t * SetParameters.t
@@ -13,8 +12,6 @@ end
 let _key = "book"
 
 type t = {
-  slug: t Slug.t;
-  status: Status.t; [@default Status.bot]
   title: string;
   subtitle: string; [@default ""]
   short_title: string; [@default ""] [@key "short-title"]
@@ -23,14 +20,10 @@ type t = {
   source: bool; [@default false]
   remark: string; [@default ""]
   scddb_id: int option; [@default None] [@key "scddb-id"]
-  modified_at: Datetime.t; [@key "modified-at"]
-  created_at: Datetime.t [@key "created-at"]
 }
 [@@deriving make, show {with_path = false}, yojson, fields]
 
 let make
-    ~slug
-    ?status
     ~title
     ?subtitle
     ?short_title
@@ -39,13 +32,9 @@ let make
     ?source
     ?remark
     ?scddb_id
-    ~modified_at
-    ~created_at
     ()
   =
   make
-    ~slug
-    ?status
     ~title
     ?subtitle
     ?short_title
@@ -54,9 +43,16 @@ let make
     ?source
     ?remark
     ~scddb_id
-    ~modified_at
-    ~created_at
     ()
+
+let title = title % Entry.value
+let subtitle = subtitle % Entry.value
+let short_title = short_title % Entry.value
+let date = date % Entry.value
+let contents = contents % Entry.value
+let source = source % Entry.value
+let remark = remark % Entry.value
+let scddb_id = scddb_id % Entry.value
 
 let contains_set set1 book =
   List.exists
@@ -64,15 +60,15 @@ let contains_set set1 book =
       | PageCore.Set (set2, _) -> Slug.equal' set1 set2
       | _ -> false
     )
-    book.contents
+    (Entry.value book).contents
 
 type warning =
   | Empty
-  | DuplicateSet of SetCore.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of TuneCore.t * (SetCore.t option * int) list
+  | DuplicateSet of SetCore.t Entry.t (* FIXME: duplicate dance? *)
+  | DuplicateVersion of TuneCore.t Entry.t * (SetCore.t Entry.t option * int) list
   (* DuplicateVersion contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
-  | SetDanceMismatch of SetCore.t * DanceCore.t
+  | SetDanceMismatch of SetCore.t Entry.t * DanceCore.t Entry.t
   (* SetDanceMismatch contains a set where one of the associated dances
      does not have the same kind *)
 [@@deriving show {with_path = false}, yojson]
@@ -81,14 +77,12 @@ type warnings = warning list
 [@@deriving show {with_path = false}, yojson]
 
 type page =
-  | Version of VersionCore.t * VersionParameters.t
-  | Set of SetCore.t * SetParameters.t
+  | Version of VersionCore.t Entry.t * VersionParameters.t
+  | Set of SetCore.t Entry.t * SetParameters.t
   | InlineSet of SetCore.t * SetParameters.t
 [@@deriving show {with_path = false}]
 
 module Filter = struct
-  let _key = "book-filter"
-
   (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
      of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
   let equal _ _ = assert false

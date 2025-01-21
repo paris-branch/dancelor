@@ -27,7 +27,7 @@ let name ?(link = true) version =
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_version @@ M.Version.slug version]
+        ~a: [a_href @@ PageRouter.href_version @@ Database.Entry.slug version]
         name_text
     ]
   else

@@ -5,6 +5,8 @@ module Model = Dancelor_common_model
 module Person = Table.Make(struct
     include Model.PersonCore
 
+    let slug_hint person = Lwt.return person.name
+    let separate_fields = []
     let dependencies _ = Lwt.return []
     let standalone = false
   end)
@@ -12,6 +14,8 @@ module Person = Table.Make(struct
 module Dance = Table.Make(struct
     include Model.DanceCore
 
+    let slug_hint dance = Lwt.return dance.name
+    let separate_fields = []
     let dependencies dance =
       Lwt.return
         (
@@ -24,6 +28,8 @@ module Dance = Table.Make(struct
 module Tune = Table.Make(struct
     include Model.TuneCore
 
+    let slug_hint tune = Lwt.return tune.name
+    let separate_fields = []
     let dependencies tune =
       Lwt.return
         (
@@ -37,6 +43,8 @@ module Tune = Table.Make(struct
 module Version = Table.Make(struct
     include Model.VersionCore
 
+    let slug_hint version = Lwt.bind (Tune.get version.tune) (fun tune -> Lwt.return (Entry.value tune).name)
+    let separate_fields = [("content", "content.ly")]
     let dependencies version =
       Lwt.return
         (
@@ -49,6 +57,8 @@ module Version = Table.Make(struct
 module SetModel = struct
   include Model.SetCore
 
+  let slug_hint set = Lwt.return set.name
+  let separate_fields = []
   let dependencies set =
     Lwt.return
       (
@@ -64,6 +74,8 @@ module Set = Table.Make(SetModel)
 module Book = Table.Make(struct
     include Model.BookCore
 
+    let slug_hint book = Lwt.return book.title
+    let separate_fields = []
     let dependencies book =
       let%lwt dependencies =
         Lwt_list.map_p
@@ -85,7 +97,7 @@ module Book = Table.Make(struct
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
             | PageCore.InlineSet (set, parameters) ->
-              let%lwt set_dependencies = SetModel.dependencies set in
+              let%lwt set_dependencies = SetModel.dependencies @@ Entry.make_dummy set in
               Lwt.return
                 (
                   set_dependencies @
@@ -122,28 +134,18 @@ module Initialise = struct
     else
       Lwt.return_unit
 
-  let create_new_db_version () =
-    Log.info (fun m -> m "Creating new database version");
-    Table.Version.create ()
-
-  let create_tables version =
-    Log.info (fun m -> m "Creating tables for this version");
-    tables
-    |> List.iter @@ fun (module Table : Table.S) ->
-    Table.create_version ~version
-
-  let load_tables version =
-    Log.info (fun m -> m "Loading tables for this version");
+  let load_tables () =
+    Log.info (fun m -> m "Loading tables");
     tables
     |> Lwt_list.iter_s @@ fun (module Table : Table.S) ->
-    Table.load_version ~version
+    Table.load ()
 
-  let check_dependency_problems version =
+  let check_dependency_problems () =
     Log.info (fun m -> m "Checking for dependency problems");
     let%lwt found_problem =
       Lwt_list.fold_left_s
         (fun found_problem (module Table : Table.S) ->
-           let%lwt problems = Table.list_dependency_problems ~version in
+           let%lwt problems = Table.list_dependency_problems () in
            (
              problems
              |> List.iter @@ function
@@ -165,33 +167,21 @@ module Initialise = struct
     | None -> Lwt.return ()
     | Some problem -> Dancelor_common.Error.fail problem
 
-  let report_without_accesses version =
+  let report_without_accesses () =
     Log.info (fun m -> m "Checking for unaccessible entries");
     List.iter
       (fun (module Table : Table.S) ->
          if not Table.standalone then
-           Table.report_without_accesses ~version
+           Table.report_without_accesses ()
       )
       tables;
     Lwt.return ()
 
-  let establish_version version =
-    Log.info (fun m -> m "Establishing new version");
-    let () =
-      tables
-      |> List.iter @@ fun (module Table : Table.S) ->
-      Table.establish_version ~version
-    in
-    Log.info (fun m -> m "New version is in place")
-
   let initialise () =
     sync_db ();%lwt
-    let version = create_new_db_version () in
-    create_tables version;
-    load_tables version;%lwt
-    check_dependency_problems version;%lwt
-    report_without_accesses version;%lwt
-    establish_version version;
+    load_tables ();%lwt
+    check_dependency_problems ();%lwt
+    report_without_accesses ();%lwt
     Lwt.return_unit
 end
 

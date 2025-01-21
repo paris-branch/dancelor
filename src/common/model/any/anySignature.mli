@@ -1,6 +1,7 @@
 (** {1 Any} *)
 
 open Nes
+open Dancelor_common_database
 
 type t = [%import: AnyCore.t]
 (** Type of an “any” element, that is simply a sum type of all the other
@@ -8,22 +9,22 @@ type t = [%import: AnyCore.t]
 
 (** {3 Constructors} *)
 
-val person : PersonCore.t -> t
+val person : PersonCore.t Entry.t -> t
 (** Function equivalent of the [Person] constructor. *)
 
-val dance : DanceCore.t -> t
+val dance : DanceCore.t Entry.t -> t
 (** Function equivalent of the [Dance] constructor. *)
 
-val book : BookCore.t -> t
+val book : BookCore.t Entry.t -> t
 (** Function equivalent of the [Book] constructor. *)
 
-val set : SetCore.t -> t
+val set : SetCore.t Entry.t -> t
 (** Function equivalent of the [Set] constructor. *)
 
-val tune : TuneCore.t -> t
+val tune : TuneCore.t Entry.t -> t
 (** Function equivalent of the [Tune] constructor. *)
 
-val version : VersionCore.t -> t
+val version : VersionCore.t Entry.t -> t
 (** Function equivalent of the [Version] constructor. *)
 
 (** {3 Destructors} *)

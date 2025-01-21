@@ -1,7 +1,5 @@
 open Nes
 
-let _key = "kind-dance"
-
 include KindDanceType
 
 let rec pp ppf = function

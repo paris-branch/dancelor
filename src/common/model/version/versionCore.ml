@@ -1,10 +1,9 @@
 open Nes
+open Dancelor_common_database
 
 let _key = "version"
 
 type t = {
-  slug: t Slug.t;
-  status: Status.t; [@default Status.bot]
   tune: TuneCore.t Slug.t;
   bars: int;
   key: Music.key;
@@ -13,15 +12,26 @@ type t = {
   arrangers: PersonCore.t Slug.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
-  modified_at: Datetime.t; [@key "modified-at"]
-  created_at: Datetime.t [@key "created-at"]
+  content: string;
 }
-[@@deriving make, show {with_path = false}, yojson, fields]
+[@@deriving yojson, make, show {with_path = false}, fields]
 
-let equal version1 version2 = Slug.equal' (slug version1) (slug version2)
+let tune = tune % Entry.value
+let bars = bars % Entry.value
+let key = key % Entry.value
+let structure = structure % Entry.value
+let sources = sources % Entry.value
+let arrangers = arrangers % Entry.value
+let remark = remark % Entry.value
+let disambiguation = disambiguation % Entry.value
+let content = content % Entry.value
+
+let equal version1 version2 = Slug.equal' (Entry.slug version1) (Entry.slug version2)
 
 module Filter = struct
-  let _key = "version-filter"
+  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
+     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
+  let equal _ _ = assert false
 
   type predicate =
     | Is of t Slug.t

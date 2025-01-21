@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module Lift
     (Person : module type of PersonSignature)
@@ -7,8 +8,6 @@ module Lift
   include TuneCore
 
   let make
-      ?status
-      ~slug
       ~name
       ?alternative_names
       ~kind
@@ -17,34 +16,16 @@ module Lift
       ?remark
       ?scddb_id
       ?date
-      ~modified_at
-      ~created_at
       ()
     =
     let name = String.remove_duplicates ~char: ' ' name in
     let alternative_names = Option.map (List.map (String.remove_duplicates ~char: ' ')) alternative_names in
-    let composers = Option.map (List.map Person.slug) composers in
-    let dances = Option.map (List.map Dance.slug) dances in
-    Lwt.return
-      (
-        make
-          ?status
-          ~slug
-          ~name
-          ?alternative_names
-          ~kind
-          ?composers
-          ?dances
-          ?remark
-          ~scddb_id
-          ~date
-          ~modified_at
-          ~created_at
-          ()
-      )
+    let composers = Option.map (List.map Entry.slug) composers in
+    let dances = Option.map (List.map Entry.slug) dances in
+    make ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
 
   let composers = Lwt_list.map_p Person.get % composers
-  let dances tune = Lwt_list.map_p Dance.get (dances tune)
+  let dances = Lwt_list.map_p Dance.get % dances
 
   module Filter = struct
     (* NOTE: [include TuneCore.Filter] shadows the accessors of [TuneCore]. *)
@@ -56,7 +37,7 @@ module Lift
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
       | Is tune' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug tune) tune'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug tune) tune'
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ TuneCore.name tune
       | NameMatches string ->
@@ -94,7 +75,7 @@ module Lift
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula
 
-    let is = is % slug
+    let is = is % Entry.slug
     let is' = Formula.pred % is
 
     let existsComposerIs = existsComposer % Person.Filter.is'

@@ -6,6 +6,7 @@ module Components = Dancelor_client_components
 module Page = Dancelor_client_page
 module Utils = Dancelor_client_utils
 open Dancelor_client_html
+module Database = Dancelor_common_database
 
 let create ?context slug =
   let version_lwt = Version.get slug in
@@ -149,7 +150,7 @@ let create ?context slug =
                         [
                           txt "You can also go to the ";
                           a
-                            ~a: [L.a_href @@ Lwt.map (PageRouter.href_tune % Tune.slug) tune_lwt]
+                            ~a: [L.a_href @@ Lwt.map (PageRouter.href_tune % Database.Entry.slug) tune_lwt]
                             [txt "page of the tune"];
                           txt "."
                         ]

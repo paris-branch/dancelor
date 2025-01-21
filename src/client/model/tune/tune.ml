@@ -1,33 +1,9 @@
 open Dancelor_common
 include TuneLifted
 
-let save
-    ?status
-    ~name
-    ?alternative_names
-    ~kind
-    ?composers
-    ?dances
-    ?remark
-    ?scddb_id
-    ?date
-    ~modified_at
-    ~created_at
-    ()
-  =
-  Madge_cohttp_lwt_client.call
-    ApiRouter.(route @@ Tune Save)
-    status
-    name
-    alternative_names
-    kind
-    composers
-    dances
-    remark
-    scddb_id
-    date
-    modified_at
-    created_at
+let create = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Tune Create)
+let update = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Tune Update)
+let save ?slug = match slug with None -> create | Some slug -> update slug
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Tune Search) slice threshold filter

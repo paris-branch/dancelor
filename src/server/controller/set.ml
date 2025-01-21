@@ -1,15 +1,14 @@
 open Nes
 module Model = Dancelor_server_model
+module Database = Dancelor_server_database
 
 module Pdf = struct
   let render ?parameters set =
-    let%lwt book =
+    let book =
+      Database.Entry.make_dummy @@
       Model.Book.make
-        ~slug: (Slug.unsafe_coerce @@ Model.Set.slug set)
         ~title: ""
-        ~contents: [InlineSet (set, Option.value ~default: Model.SetParameters.none parameters)]
-        ~modified_at: (Datetime.now ())
-        ~created_at: (Datetime.now ())
+        ~contents: [InlineSet (Database.Entry.value set, Option.value ~default: Model.SetParameters.none parameters)]
         ()
     in
     let parameters =
@@ -31,8 +30,6 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.SetEndpoints.t ->
   | Get -> Model.Set.get
   | Delete -> (fun slug -> Lwt.bind (Model.Set.get slug) Model.Set.delete)
   | Search -> (fun slice threshold filter -> Model.Set.search ?slice ?threshold filter)
-  | Save ->
-    (fun status name conceptors kind contents order dances modified_at created_at ->
-       Model.Set.save ?status ~name ?conceptors ~kind ?contents ~order ?dances ~modified_at ~created_at ()
-    )
+  | Create -> Model.Set.create
+  | Update -> Model.Set.update
   | Pdf -> (fun parameters set -> Pdf.get set parameters)

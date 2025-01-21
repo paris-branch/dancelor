@@ -1,4 +1,5 @@
 open Nes
+open Dancelor_common_database
 
 module Lift
     (Person : module type of PersonSignature)
@@ -6,8 +7,6 @@ module Lift
   include DanceCore
 
   let make
-      ?status
-      ~slug
       ~name
       ~kind
       ?devisers
@@ -15,33 +14,16 @@ module Lift
       ?scddb_id
       ?disambiguation
       ?date
-      ~modified_at
-      ~created_at
       ()
     =
     let name = String.remove_duplicates ~char: ' ' name in
     let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
-    let devisers = Option.map (List.map Person.slug) devisers in
-    Lwt.return
-      (
-        make
-          ?status
-          ~slug
-          ~name
-          ~kind
-          ?devisers
-          ~two_chords
-          ~scddb_id
-          ?disambiguation
-          ~date
-          ~modified_at
-          ~created_at
-          ()
-      )
+    let devisers = Option.map (List.map Entry.slug) devisers in
+    make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
 
-  let devisers dance = Lwt_list.map_p Person.get (devisers dance)
+  let devisers = Lwt_list.map_p Person.get % devisers
 
-  let equal dance1 dance2 = Slug.equal' (slug dance1) (slug dance2)
+  let equal dance1 dance2 = Slug.equal' (Entry.slug dance1) (Entry.slug dance2)
 
   module Filter = struct
     include DanceCore.Filter
@@ -50,7 +32,7 @@ module Lift
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
       | Is dance' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug dance) dance'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug dance) dance'
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ DanceCore.name dance
       | NameMatches string ->
@@ -83,7 +65,7 @@ module Lift
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula
 
-    let is = is % slug
+    let is = is % Entry.slug
     let is' = Formula.pred % is
 
     (* Little trick to convince OCaml that polymorphism is OK. *)

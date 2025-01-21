@@ -1,46 +1,54 @@
 open Nes
+open Dancelor_common_database
 
 type t = SetCore.t
 
-val slug : t -> t Slug.t
-val is_slug_none : t -> bool
+val make :
+  name: string ->
+  ?conceptors: PersonCore.t Entry.t list ->
+  kind: Kind.Dance.t ->
+  ?contents: (VersionCore.t Entry.t * VersionParameters.t) list ->
+  order: SetOrder.t ->
+  ?dances: DanceCore.t Entry.t list ->
+  unit ->
+  t
 
-val status : t -> Status.t
-val name : t -> string
-val conceptors : t -> PersonCore.t list Lwt.t
-val kind : t -> Kind.Dance.t
-val contents : t -> (VersionCore.t * VersionParameters.t) list Lwt.t
-val order : t -> SetOrder.t
-val instructions : t -> string
-val dances : t -> DanceCore.t list Lwt.t
-val remark : t -> string
-val modified_at : t -> Datetime.t
-val created_at : t -> Datetime.t
+(* FIXME: remove? *)
+val is_slug_none : t Entry.t -> bool
 
-val contains_version : VersionCore.t Slug.t -> t -> bool
+val name : t Entry.t -> string
+val conceptors : t Entry.t -> PersonCore.t Entry.t list Lwt.t
+val kind : t Entry.t -> Kind.Dance.t
+val contents : t Entry.t -> (VersionCore.t Entry.t * VersionParameters.t) list Lwt.t
+val order : t Entry.t -> SetOrder.t
+val instructions : t Entry.t -> string
+val dances : t Entry.t -> DanceCore.t Entry.t list Lwt.t
+val remark : t Entry.t -> string
+
+val contains_version : VersionCore.t Slug.t -> t Entry.t -> bool
 (** REVIEW: This really takes a slug? *)
 
-val find_context : int -> t -> VersionCore.t List.context option Lwt.t
+val find_context : int -> t Entry.t -> VersionCore.t Entry.t List.context option Lwt.t
 (** Given an indice and a set, find the context around that indice in the
     set. *)
 
-val compare : t -> t -> int
-val equal : t -> t -> bool
+val compare : t Entry.t -> t Entry.t -> int
+val equal : t Entry.t -> t Entry.t -> bool
 
-val lilypond_content_cache_key : t -> string Lwt.t
+val lilypond_content_cache_key : t Entry.t -> string Lwt.t
 
 (* {2 Warnings} *)
 
 type warning = SetCore.warning =
   | Empty
   | WrongKind
-  | WrongVersionBars of VersionCore.t
-  | WrongVersionKind of TuneCore.t
-  | DuplicateVersion of TuneCore.t
+  | WrongVersionBars of VersionCore.t Entry.t
+  | WrongVersionKind of TuneCore.t Entry.t
+  | DuplicateVersion of TuneCore.t Entry.t
 
 type warnings = warning list
 
-val warnings : t -> warnings Lwt.t
+val warnings : t Entry.t -> warnings Lwt.t
 
 (** {2 Filters} *)
 
@@ -49,10 +57,10 @@ module Filter : sig
   type t = [%import: SetCore.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> SetCore.t -> float Lwt.t
+  val accepts : t -> SetCore.t Entry.t -> float Lwt.t
 
-  val is : SetCore.t -> predicate
-  val is' : SetCore.t -> t
+  val is : SetCore.t Entry.t -> predicate
+  val is' : SetCore.t Entry.t -> t
 
   val existsVersion : VersionCore.Filter.t -> predicate
   val existsVersion' : VersionCore.Filter.t -> t
@@ -63,8 +71,8 @@ module Filter : sig
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
 
-  val memVersion : VersionCore.t -> predicate
-  val memVersion' : VersionCore.t -> t
+  val memVersion : VersionCore.t Entry.t -> predicate
+  val memVersion' : VersionCore.t Entry.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
@@ -76,42 +84,24 @@ end
 
 (** {2 Getters and setters} *)
 
-val get : t Slug.t -> t Lwt.t
+val get : t Slug.t -> t Entry.t Lwt.t
 
-val make :
-  ?status: Status.t ->
-  ?slug: t Slug.t ->
-  name: string ->
-  ?conceptors: PersonCore.t list ->
-  kind: Kind.Dance.t ->
-  ?contents: (VersionCore.t * VersionParameters.t) list ->
-  order: SetOrder.t ->
-  ?dances: DanceCore.t list ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  unit ->
-  t Lwt.t
+val create : t -> t Entry.t Lwt.t
+(** Create a new database entry for the given set. *)
 
-val save :
-  ?status: Status.t ->
-  name: string ->
-  ?conceptors: PersonCore.t list ->
-  kind: Kind.Dance.t ->
-  ?contents: (VersionCore.t * VersionParameters.t) list ->
-  order: SetOrder.t ->
-  ?dances: DanceCore.t list ->
-  modified_at: Datetime.t ->
-  created_at: Datetime.t ->
-  unit ->
-  t Lwt.t
+val update : t Slug.t -> t -> t Entry.t Lwt.t
+(** Update an existing database entry with the given set. *)
 
-val delete : t -> unit Lwt.t
+val save : ?slug: t Slug.t -> t -> t Entry.t Lwt.t
+(** Either {!create} or {!update}. *)
+
+val delete : t Entry.t -> unit Lwt.t
 
 val search :
   ?slice: Slice.t ->
   ?threshold: float ->
   Filter.t ->
-  (int * t list) Lwt.t
+  (int * t Entry.t list) Lwt.t
 (** [search ?slice ?threshold filter] returns the list of all the sets
     that match [filter] with a score higher than [threshold] (if any). The first
     element of the pair is the number of sets. The second element of the pair
@@ -121,7 +111,7 @@ val search' :
   ?slice: Slice.t ->
   ?threshold: float ->
   Filter.t ->
-  t list Lwt.t
+  t Entry.t list Lwt.t
 (** Like {!search} but returns only the list. *)
 
 val count :

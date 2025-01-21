@@ -1,25 +1,15 @@
 open Nes
+open Dancelor_common_database
 
 module Lift () = struct
   include PersonCore
 
-  let make
-      ~slug
-      ?status
-      ~name
-      ?scddb_id
-      ~modified_at
-      ~created_at
-      ()
-    =
-    let name = String.remove_duplicates ~char: ' ' name in
-    make ~slug ?status ~name ?scddb_id ~modified_at ~created_at ()
+  let make ~name ?scddb_id () = make ~name ~scddb_id ()
 
-  let trad_slug = Slug.unsafe_of_string "traditional"
-  let is_trad c = Slug.equal' c.slug trad_slug
+  let trad_slug : PersonCore.t Slug.t = Slug.unsafe_of_string "traditional"
+  let is_trad c = Slug.equal' (Entry.slug c) trad_slug
 
-  let equal person1 person2 =
-    Slug.equal' (slug person1) (slug person2)
+  let equal = Entry.equal'
 
   module Filter = struct
     include PersonCore.Filter
@@ -28,7 +18,7 @@ module Lift () = struct
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
       | Is person' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (slug person) person'
+        Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
       | Name string ->
         Lwt.return @@ String.proximity ~char_equal string @@ PersonCore.name person
       | NameMatches string ->
@@ -52,7 +42,7 @@ module Lift () = struct
     let to_text_formula = TextFormula.of_formula text_formula_converter
     let to_string = TextFormula.to_string % to_text_formula
 
-    let is = is % slug
+    let is = is % Entry.slug
     let is' = Formula.pred % is
 
     let optimise =

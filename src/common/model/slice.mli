@@ -29,6 +29,3 @@ val list : ?strict: bool -> t -> 'a list -> 'a list
     the length of the list. If [strict] is set (the default), also raises
     {!Invalid_argument} if [end_excl] is strictly bigger than the length of the
     list; otherwise, silently include everything until the end of the list. *)
-
-val _key : string
-(** Serialisation key for slices. *)

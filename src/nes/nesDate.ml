@@ -1,5 +1,3 @@
-let _key = "date"
-
 type t = int * int * int
 
 let to_string date =

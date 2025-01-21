@@ -6,6 +6,7 @@ module SCDDB = Dancelor_common.SCDDB
 module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
 module Page = Dancelor_client_page
+module Database = Dancelor_common.Database
 
 type ('name, 'scddb_id) gen = {
   name: 'name;
@@ -74,16 +75,15 @@ module Editor = struct
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.scddb_id
 
-  let submit (editor : t) : Model.Person.t option Lwt.t =
+  let submit (editor : t) : Model.Person.t Database.Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Person.save
+      Model.Person.save @@
+      Model.Person.make
         ~name
         ?scddb_id
-        ~modified_at: (Datetime.now ())
-        ~created_at: (Datetime.now ())
         ()
 end
 
@@ -116,7 +116,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun person ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_person (Model.Person.slug person))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_person (Database.Entry.slug person))
                       | Some on_save -> on_save person
                     )
                   ();

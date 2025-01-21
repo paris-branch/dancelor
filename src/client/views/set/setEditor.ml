@@ -8,6 +8,7 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
+module Database = Dancelor_common_database
 
 type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
   name: 'name;
@@ -95,7 +96,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        ~serialise: Model.Person.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.conceptors
     in
@@ -107,7 +108,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Version.search ~threshold ~slice filter
           )
-        ~serialise: Model.Version.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Version.get
         initial_state.versions
     in
@@ -136,16 +137,13 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; conceptors; versions; order} ->
       Lwt.map Option.some @@
-      Model.Set.save
+      Model.Set.save @@
+      Model.Set.make
         ~name
         ~kind
         ~conceptors
         ~contents: (List.map (fun version -> (version, Model.VersionParameters.none)) versions)
         ~order
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 
@@ -187,7 +185,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (ApiRouter.(href @@ Version Svg) None (Model.Version.slug version));
+                                a_data (ApiRouter.(href @@ Version Svg) None (Database.Entry.slug version));
                               ]
                               [];
                           ]
@@ -212,7 +210,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun set ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_set (Model.Set.slug set))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_set (Database.Entry.slug set))
                       | Some on_save -> on_save set
                     )
                   ();

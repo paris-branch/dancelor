@@ -1,19 +1,16 @@
 open Nes
-
-let _key = "any"
+open Dancelor_common_database
 
 type t =
-  | Person of PersonCore.t
-  | Dance of DanceCore.t
-  | Book of BookCore.t
-  | Set of SetCore.t
-  | Tune of TuneCore.t
-  | Version of VersionCore.t
+  | Person of PersonCore.t Entry.t
+  | Dance of DanceCore.t Entry.t
+  | Book of BookCore.t Entry.t
+  | Set of SetCore.t Entry.t
+  | Tune of TuneCore.t Entry.t
+  | Version of VersionCore.t Entry.t
 [@@deriving show {with_path = false}, yojson, variants]
 
 module Type = struct
-  let _key = "type"
-
   type t =
     | Person
     | Dance
@@ -39,8 +36,6 @@ module Type = struct
 end
 
 module Filter = struct
-  let _key = "any-filter"
-
   (* NOTE: This [Raw] variant is a bit artificial, when we could already be
      inheriting the various [raw] cases, of the other filters. However, this
      would unfold text formulas into a big disjunction at the syntactic level,

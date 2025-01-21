@@ -4,17 +4,9 @@ module Database = Dancelor_server_database
 
 include BookLifted
 
-let save
-    ?status
-    ~title
-    ?date
-    ?contents
-    ~modified_at
-    ~created_at
-    ()
-  =
-  Database.Book.save ~slug_hint: title @@ fun slug ->
-  make ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
+let create = Database.Book.create
+let update = Database.Book.update
+let save = Database.Book.save
 
 let tiebreakers =
   Lwt_list.[
@@ -37,16 +29,3 @@ let search' ?slice ?threshold filter =
 
 let count ?threshold filter =
   Lwt.map fst @@ search ?threshold filter
-
-let update
-    ?status
-    ~slug
-    ~title
-    ?date
-    ?contents
-    ~modified_at
-    ~created_at
-    ()
-  =
-  let%lwt book = make ?status ~slug ~title ?date ?contents ~modified_at ~created_at () in
-  Database.Book.update book

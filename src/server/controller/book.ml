@@ -1,5 +1,6 @@
 open NesUnix
 module Model = Dancelor_server_model
+module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
 
 module Ly = struct
@@ -43,7 +44,7 @@ module Ly = struct
       |> List.map_filter (function O.Internal n -> Some n | _ -> None)
       |> List.map (List.nth content % Fun.flip (-) 1)
 
-  let cache : ([`Ly] * Model.Book.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ly] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let render ?(parameters = Model.BookParameters.none) book =
@@ -124,14 +125,12 @@ module Ly = struct
             let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name tune) parameters in
             let trivia = Model.VersionParameters.trivia' ~default: " " parameters in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
-            let%lwt set =
+            let set =
               Model.Set.make
                 ~name
                 ~kind: (Model.Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
                 ~contents: [version, parameters]
                 ~order: [Internal 1]
-                ~modified_at: (NesDatetime.now ())
-                ~created_at: (NesDatetime.now ())
                 ()
             in
             let%lwt for_dance = Model.VersionParameters.for_dance parameters in
@@ -142,10 +141,12 @@ module Ly = struct
                 ~show_order: false
                 ()
             in
-            Lwt.return (set, set_parameters)
-          | Set (set, parameters) | InlineSet (set, parameters) ->
-            Lwt.return (set, parameters)
+            Lwt.return (Database.Entry.make_dummy set, set_parameters)
+          | Set (set, parameters) -> Lwt.return (set, parameters)
+          | InlineSet (set, parameters) -> Lwt.return (Database.Entry.make_dummy set, parameters)
         in
+        (* FIXME: none of the above need to be dummy; I think we can just return
+           a SetCore.t; do we need the slug anyway? *)
         Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
         let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
         let name = Model.SetParameters.display_name' ~default: (Model.Set.name set) set_parameters in
@@ -182,8 +183,8 @@ module Ly = struct
           in
           Fun.flip Lwt_list.iter_s contents @@ fun (version, version_parameters) ->
           let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
-          let%lwt content = Model.Version.content version in
           let content =
+            let content = Model.Version.content version in
             match Model.VersionParameters.clef version_parameters with
             | None -> content
             | Some clef_parameter ->
@@ -254,7 +255,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Model.Book.t * Model.BookParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Model.Book.t Database.Entry.t * Model.BookParameters.t option * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -265,10 +266,9 @@ module Pdf = struct
     StorageCache.use ~cache ~key: (`Pdf, book, parameters, body) @@ fun hash ->
     let%lwt lilypond = Ly.render ?parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
-    let%lwt (fname_ly, fname_pdf) =
-      let slug = Model.Book.slug book in
-      let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
-      Lwt.return (fname ^ ".ly", fname ^ ".pdf")
+    let (fname_ly, fname_pdf) =
+      let fname = StorageCache.hash_to_string hash in
+      (fname ^ ".ly", fname ^ ".pdf")
     in
     Lwt_io.with_file
       ~mode: Output
@@ -291,26 +291,6 @@ end
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
   | Get -> Model.Book.get
   | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
-  | Save ->
-    (fun status title date contents modified_at created_at ->
-       let%lwt contents =
-         match contents with
-         | None -> Lwt.return_none
-         | Some contents ->
-           let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
-           Lwt.return_some contents
-       in
-       Model.Book.save ?status ~title ?date ?contents ~modified_at ~created_at ()
-    )
-  | Update ->
-    (fun status title date contents modified_at created_at slug ->
-       let%lwt contents =
-         match contents with
-         | None -> Lwt.return_none
-         | Some contents ->
-           let%lwt contents = Lwt_list.map_s Model.Book.page_core_to_page contents in
-           Lwt.return_some contents
-       in
-       Model.Book.update ?status ~slug ~title ?date ?contents ~modified_at ~created_at ()
-    )
+  | Create -> Model.Book.create
+  | Update -> Model.Book.update
   | Pdf -> (fun parameters book -> Pdf.get book parameters)

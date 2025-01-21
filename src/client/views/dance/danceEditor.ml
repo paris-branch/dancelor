@@ -8,6 +8,7 @@ module PageRouter = Dancelor_common.PageRouter
 open Dancelor_client_utils
 module Formatters = Dancelor_client_formatters
 module Page = Dancelor_client_page
+module Database = Dancelor_common_database
 
 type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) gen = {
   name: 'name;
@@ -101,7 +102,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
           )
-        ~serialise: Model.Person.slug
+        ~serialise: Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.devisers
     in
@@ -151,7 +152,8 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Dance.save
+      Model.Dance.save @@
+      Model.Dance.make
         ~name
         ~kind
         ~devisers
@@ -159,10 +161,6 @@ module Editor = struct
         ?scddb_id
         ?disambiguation
         ?date
-        ~modified_at: (Datetime.now ())
-        (* FIXME: optional argument *)
-        ~created_at: (Datetime.now ())
-        (* FIXME: not even optional *)
         ()
 end
 
@@ -215,7 +213,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun dance ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_dance (Model.Dance.slug dance))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_dance (Database.Entry.slug dance))
                       | Some on_save -> on_save dance
                     )
                   ();
