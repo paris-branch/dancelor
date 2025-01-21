@@ -4,6 +4,8 @@ module Database = Dancelor_server_database
 
 include VersionLifted
 
+let create = Database.Version.create
+let update = Database.Version.update
 let save = Database.Version.save
 
 let rec search_and_extract acc s regexp =

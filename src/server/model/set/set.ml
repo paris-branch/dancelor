@@ -4,6 +4,8 @@ module Database = Dancelor_server_database
 
 include SetLifted
 
+let create = Database.Set.create
+let update = Database.Set.update
 let save = Database.Set.save
 
 let delete = Database.(Set.delete % Entry.slug)

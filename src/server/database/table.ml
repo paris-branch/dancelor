@@ -36,11 +36,17 @@ module type S = sig
 
   val get_status : value Slug.t -> Status.t option Lwt.t
 
-  val save : value -> value Entry.t Lwt.t
-  val update : value Slug.t -> value -> unit Lwt.t
-  val delete : value Slug.t -> unit Lwt.t
+  val create : value -> value Entry.t Lwt.t
+  (** Create a new database entry for the given value. *)
 
-  (* FIXME: remove [save] and [update]; merge [save'] and [update'] *)
+  val update : value Slug.t -> value -> value Entry.t Lwt.t
+  (** Update an existing database entry with the given value. *)
+
+  val save : ?slug: value Slug.t -> value -> value Entry.t Lwt.t
+  (** If the slug is provided, then we {!update} an existing entry; otherwise,
+      we {!create} a new one. *)
+
+  val delete : value Slug.t -> unit Lwt.t
 
   module Log : Logs.LOG
 end
@@ -202,7 +208,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     else
       slug
 
-  let save model =
+  let create model =
     let%lwt slug_hint = Model.slug_hint model in
     let slug = uniq_slug ~hint: slug_hint in
     let model = Entry.make ~slug model in
@@ -245,7 +251,12 @@ module Make (Model : Model) : S with type value = Model.t = struct
       (Slug.to_string slug);%lwt
     (* FIXME: Make more robust and maybe update stats*)
     Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
-    Lwt.return_unit
+    Lwt.return model
+
+  let save ?slug model =
+    match slug with
+    | None -> create model
+    | Some slug -> update slug model
 
   let delete slug : unit Lwt.t =
     Storage.delete_entry Model._key (Slug.to_string slug);%lwt

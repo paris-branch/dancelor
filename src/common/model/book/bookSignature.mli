@@ -128,9 +128,14 @@ end
 
 val get : t Slug.t -> t Entry.t Lwt.t
 
-val save : t -> t Entry.t Lwt.t
+val create : t -> t Entry.t Lwt.t
+(** Create a new database entry for the given book. *)
 
-val update : t Slug.t -> t -> unit Lwt.t
+val update : t Slug.t -> t -> t Entry.t Lwt.t
+(** Update an existing database entry with the given book. *)
+
+val save : ?slug: t Slug.t -> t -> t Entry.t Lwt.t
+(** Either {!create} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->

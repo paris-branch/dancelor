@@ -1,7 +1,9 @@
 open Dancelor_common
 include PersonLifted
 
-let save = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Save)
+let create = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Create)
+let update = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Update)
+let save ?slug = match slug with None -> create | Some slug -> update slug
 
 let search ?slice ?threshold filter =
   Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Search) slice threshold filter

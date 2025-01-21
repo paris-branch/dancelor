@@ -1,7 +1,9 @@
 open Dancelor_common
 include SetLifted
 
-let save = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Save)
+let create = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Create)
+let update = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Update)
+let save ?slug = match slug with None -> create | Some slug -> update slug
 
 let delete s = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Set Delete) (Database.Entry.slug s)
 

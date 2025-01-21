@@ -4,8 +4,9 @@ module Database = Dancelor_server_database
 
 include BookLifted
 
-let save = Database.Book.save
+let create = Database.Book.create
 let update = Database.Book.update
+let save = Database.Book.save
 
 let tiebreakers =
   Lwt_list.[

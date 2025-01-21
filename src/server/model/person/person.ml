@@ -4,6 +4,8 @@ module Database = Dancelor_server_database
 
 include PersonLifted
 
+let create = Database.Person.create
+let update = Database.Person.update
 let save = Database.Person.save
 
 let tiebreakers =

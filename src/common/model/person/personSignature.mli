@@ -48,7 +48,14 @@ val get : t Slug.t -> t Entry.t Lwt.t
 (** Look up a person in the database given its slug. On the client-side, this
     involves an API call. *)
 
-val save : t -> t Entry.t Lwt.t
+val create : t -> t Entry.t Lwt.t
+(** Create a new database entry for the given person. *)
+
+val update : t Slug.t -> t -> t Entry.t Lwt.t
+(** Update an existing database entry with the given person. *)
+
+val save : ?slug: t Slug.t -> t -> t Entry.t Lwt.t
+(** Either {!create} or {!update}. *)
 
 val search :
   ?slice: Slice.t ->

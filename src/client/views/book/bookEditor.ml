@@ -140,23 +140,14 @@ module Editor = struct
   let submit ~edit (editor : t) =
     match (S.value (state editor), edit) with
     | (None, _) -> Lwt.return_none
-    | (Some {name; date; sets}, None) ->
+    | (Some {name; date; sets}, slug) ->
       Lwt.map Option.some @@
-      Model.Book.save @@
+      Model.Book.save ?slug @@
       Model.Book.make
         ~title: name
         ?date
         ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
         ()
-    | (Some {name; date; sets}, Some slug) ->
-      Model.Book.update
-        slug @@
-      Model.Book.make
-        ~title: name
-        ?date
-        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
-        ();%lwt
-      Lwt.map Option.some @@ Model.Book.get slug
 end
 
 let create ?on_save ?text ?edit () =

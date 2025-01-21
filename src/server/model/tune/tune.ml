@@ -4,6 +4,8 @@ module Database = Dancelor_server_database
 
 include TuneLifted
 
+let create = Database.Tune.create
+let update = Database.Tune.update
 let save = Database.Tune.save
 
 let tiebreakers =
