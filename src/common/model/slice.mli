@@ -17,6 +17,12 @@ val make :
     than the start, or if more than one of [end_incl], [end_excl] and
     [length] are specified. *)
 
+val nothing : t
+(** The slice that contains nothing. *)
+
+val everything : t
+(** The slice that contains everything. *)
+
 val start : t -> int
 val length : t -> int
 val end_incl : t -> int

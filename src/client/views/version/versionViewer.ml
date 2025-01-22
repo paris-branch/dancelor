@@ -112,7 +112,7 @@ let create ?context slug =
               object_
                 ~a: [
                   a_mime_type "image/svg+xml";
-                  a_data (ApiRouter.(href @@ Version Svg) None slug)
+                  a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none slug)
                 ]
                 [];
             ]
@@ -122,7 +122,7 @@ let create ?context slug =
         [
           audio
             ~a: [a_controls ()]
-            ~src: (ApiRouter.(href @@ Version Ogg) slug)
+            ~src: (ApiRouter.(href @@ Version Ogg) Model.VersionParameters.none slug)
             []
         ];
       Utils.quick_explorer_links

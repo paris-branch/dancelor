@@ -8,20 +8,16 @@ let create = Database.Dance.create
 let update = Database.Dance.update
 let save = Database.Dance.save
 
-let tiebreakers =
-  Lwt_list.[
-    increasing (Lwt.return % name) String.Sensible.compare
-  ]
+include Common.Model.Search.Make(struct
+    type value = t Database.Entry.t
+    type filter = Filter.t
 
-let search =
-  Search.search
-    ~cache: (Cache.create ~lifetime: 600 ())
-    ~values_getter: Database.Dance.get_all
-    ~scoring_function: Filter.accepts
-    ~tiebreakers
+    let cache = Cache.create ~lifetime: 600 ()
+    let get_all = Database.Dance.get_all
+    let filter_accepts = Filter.accepts
 
-let search' ?slice ?threshold filter =
-  Lwt.map snd @@ search ?slice ?threshold filter
-
-let count ?threshold filter =
-  Lwt.map fst @@ search ?threshold filter
+    let tiebreakers =
+      Lwt_list.[
+        increasing (Lwt.return % name) String.Sensible.compare
+      ]
+  end)

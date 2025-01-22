@@ -47,7 +47,7 @@ module Ly = struct
   let cache : ([`Ly] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
-  let render ?(parameters = Model.BookParameters.none) book =
+  let render parameters book =
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key: (`Ly, book, parameters, body) @@ fun _hash ->
     let (res, prom) =
@@ -255,16 +255,16 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Model.Book.t Database.Entry.t * Model.BookParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
     populate_cache ~cache ~ext: ".pdf" ~pp_ext: "pdf"
 
-  let render ?parameters book =
+  let render parameters book =
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key: (`Pdf, book, parameters, body) @@ fun hash ->
-    let%lwt lilypond = Ly.render ?parameters book in
+    let%lwt lilypond = Ly.render parameters book in
     let path = Filename.concat !Dancelor_server_config.cache "book" in
     let (fname_ly, fname_pdf) =
       let fname = StorageCache.hash_to_string hash in
@@ -282,15 +282,15 @@ module Pdf = struct
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf
 
-  let get book parameters =
+  let get parameters book =
     let%lwt book = Model.Book.get book in
-    let%lwt path_pdf = render ?parameters book in
+    let%lwt path_pdf = render parameters book in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
   | Get -> Model.Book.get
-  | Search -> (fun slice threshold filter -> Model.Book.search ?slice ?threshold filter)
+  | Search -> Model.Book.search
   | Create -> Model.Book.create
   | Update -> Model.Book.update
-  | Pdf -> (fun parameters book -> Pdf.get book parameters)
+  | Pdf -> Pdf.get

@@ -8,7 +8,7 @@ open Dancelor_client_components
    factorisation here. *)
 type t = {
   choice_rows: Html_types.tr elt list;
-  parameters_signal: SetParameters.t option React.signal;
+  parameters_signal: SetParameters.t React.signal;
 }
 
 let lift_version_parameters every_version =
@@ -18,12 +18,12 @@ let create () =
   let version_dialog = VersionDownloadDialog.create () in
   {
     choice_rows = version_dialog.choice_rows;
-    parameters_signal =
+    parameters_signal = S.map (Option.value ~default: SetParameters.none) @@
       S.merge
         (Option.concat SetParameters.compose)
         None
         [
-          S.map (Option.map lift_version_parameters) version_dialog.parameters_signal;
+          S.map (Option.some % lift_version_parameters) version_dialog.parameters_signal;
           (* feels a bit silly at this point but will make more sense once we have set-specific options *)
         ];
   }
