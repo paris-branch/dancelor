@@ -1,35 +1,68 @@
 open Nes
 
-let search
-    ~cache
-    ~values_getter
-    ~scoring_function
-    ~tiebreakers
-    (* typically will be partially applied until here *)
-    ?slice
-    ?(threshold = Float.min_float)
-    filter
-  =
-  (* We cache the computation of the results but not the computation of the
-     slice because that really isn't the expensive part. *)
-  let%lwt results =
-    Cache.use ~cache ~key: (threshold, filter) @@ fun () ->
-    let%lwt values = values_getter () in
-    (* For each value, compute its score and return the pair (value, score). *)
-    let%lwt values = Lwt_list.map_s (fun value -> Lwt.map (pair value) (scoring_function filter value)) values in
-    (* Keep only values whose score is above the given threshold. *)
-    let values = List.filter (fun value -> snd value >= threshold) values in
-    (* Sort by score, decreasing, falling back on the tiebreakers otherwise. *)
-    let comparisons =
-      Lwt_list.decreasing (Lwt.return % snd) Float.compare :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) tiebreakers
+module type Searchable = sig
+  type value
+  type filter
+
+  val cache : (float * filter, value list Lwt.t) Cache.t
+
+  val get_all : unit -> value list Lwt.t
+
+  val filter_accepts : filter -> value -> float Lwt.t
+
+  val tiebreakers : (value -> value -> int Lwt.t) list
+end
+
+module type S = sig
+  type value
+  type filter
+
+  val search : ?slice: Slice.t -> ?threshold: float -> filter -> (int * value list) Lwt.t
+
+  val search' : ?slice: Slice.t -> ?threshold: float -> filter -> value list Lwt.t
+  val count : ?threshold: float -> filter -> int Lwt.t
+
+  val tiebreakers : (value -> value -> int Lwt.t) list
+end
+
+module Make (M : Searchable) : S with type value = M.value and type filter = M.filter = struct
+  type value = M.value
+  type filter = M.filter
+
+  let search
+      ?slice
+      ?(threshold = Float.min_float)
+      filter
+    =
+    (* We cache the computation of the results but not the computation of the
+       slice because that really isn't the expensive part. *)
+    let%lwt results =
+      Cache.use ~cache: M.cache ~key: (threshold, filter) @@ fun () ->
+      let%lwt values = M.get_all () in
+      (* For each value, compute its score and return the pair (value, score). *)
+      let%lwt values = Lwt_list.map_s (fun value -> Lwt.map (pair value) (M.filter_accepts filter value)) values in
+      (* Keep only values whose score is above the given threshold. *)
+      let values = List.filter (fun value -> snd value >= threshold) values in
+      (* Sort by score, decreasing, falling back on the tiebreakers otherwise. *)
+      let comparisons =
+        Lwt_list.decreasing (Lwt.return % snd) Float.compare :: List.map (fun compare -> fun x y -> compare (fst x) (fst y)) M.tiebreakers
+      in
+      let%lwt values = Lwt_list.sort_multiple comparisons values in
+      (* Remove the scores again. *)
+      Lwt.return @@ List.map fst values
     in
-    let%lwt values = Lwt_list.sort_multiple comparisons values in
-    (* Remove the scores again. *)
-    Lwt.return @@ List.map fst values
-  in
-  (* Return the pair of the total number of results and the requested slice. *)
-  Lwt.return
-    (
-      List.length results,
-      Option.fold ~none: Fun.id ~some: (Slice.list ~strict: false) slice results
-    )
+    (* Return the pair of the total number of results and the requested slice. *)
+    Lwt.return
+      (
+        List.length results,
+        Option.fold ~none: Fun.id ~some: (Slice.list ~strict: false) slice results
+      )
+
+  let search' ?slice ?threshold filter =
+    Lwt.map snd @@ search ?slice ?threshold filter
+
+  let count ?threshold filter =
+    Lwt.map fst @@ search ?threshold filter
+
+  let tiebreakers = M.tiebreakers
+end

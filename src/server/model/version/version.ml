@@ -35,20 +35,16 @@ let score_list_vs_list words needles =
       |> List.fold_left max 0.
     end
 
-let tiebreakers =
-  Lwt_list.[
-    increasing (Lwt.map Tune.name % tune) String.Sensible.compare
-  ]
+include Common.Model.Search.Make(struct
+    type value = t Database.Entry.t
+    type filter = Filter.t
 
-let search =
-  Common.Model.Search.search
-    ~cache: (Cache.create ~lifetime: 600 ())
-    ~values_getter: Database.Version.get_all
-    ~scoring_function: Filter.accepts
-    ~tiebreakers
+    let cache = Cache.create ~lifetime: 600 ()
+    let get_all = Database.Version.get_all
+    let filter_accepts = Filter.accepts
 
-let search' ?slice ?threshold filter =
-  Lwt.map snd @@ search ?slice ?threshold filter
-
-let count ?threshold filter =
-  Lwt.map fst @@ search ?threshold filter
+    let tiebreakers =
+      Lwt_list.[
+        increasing (Lwt.map Tune.name % tune) String.Sensible.compare
+      ]
+  end)

@@ -8,24 +8,20 @@ let create = Database.Book.create
 let update = Database.Book.update
 let save = Database.Book.save
 
-let tiebreakers =
-  Lwt_list.[
-    decreasing (Lwt.return % date) (NesOption.compare NesPartialDate.compare);
-    increasing (Lwt.return % title) String.Sensible.compare;
-    increasing (Lwt.return % title) String.compare_lengths;
-    increasing (Lwt.return % subtitle) String.Sensible.compare;
-    increasing (Lwt.return % subtitle) String.compare_lengths;
-  ]
+include Common.Model.Search.Make(struct
+    type value = t Database.Entry.t
+    type filter = Filter.t
 
-let search =
-  Common.Model.Search.search
-    ~cache: (Cache.create ~lifetime: 600 ())
-    ~values_getter: Database.Book.get_all
-    ~scoring_function: Filter.accepts
-    ~tiebreakers
+    let cache = Cache.create ~lifetime: 600 ()
+    let get_all = Database.Book.get_all
+    let filter_accepts = Filter.accepts
 
-let search' ?slice ?threshold filter =
-  Lwt.map snd @@ search ?slice ?threshold filter
-
-let count ?threshold filter =
-  Lwt.map fst @@ search ?threshold filter
+    let tiebreakers =
+      Lwt_list.[
+        decreasing (Lwt.return % date) (Option.compare PartialDate.compare);
+        increasing (Lwt.return % title) String.Sensible.compare;
+        increasing (Lwt.return % title) String.compare_lengths;
+        increasing (Lwt.return % subtitle) String.Sensible.compare;
+        increasing (Lwt.return % subtitle) String.compare_lengths;
+      ]
+  end)
