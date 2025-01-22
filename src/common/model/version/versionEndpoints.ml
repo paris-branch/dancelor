@@ -8,9 +8,9 @@ type (_, _, _) t =
   | Create : ((VersionCore.t -> 'w), 'w, VersionCore.t Entry.t) t
   | Update : ((VersionCore.t Slug.t -> VersionCore.t -> 'w), 'w, VersionCore.t Entry.t) t
   | Ly : ((VersionCore.t Slug.t -> 'w), 'w, Void.t) t
-  | Svg : ((VersionParameters.t option -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
-  | Ogg : ((VersionCore.t Slug.t -> 'w), 'w, Void.t) t
-  | Pdf : ((VersionParameters.t option -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
+  | Svg : ((VersionParameters.t -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
+  | Ogg : ((VersionParameters.t -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
+  | Pdf : ((VersionParameters.t -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
 
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
@@ -22,6 +22,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Create -> literal "create" @@ query "version" (module VersionCore) @@ return (module Entry.J(VersionCore))
   | Update -> literal "update" @@ variable (module SSlug(VersionCore)) @@ query "version" (module VersionCore) @@ return (module Entry.J(VersionCore))
   | Ly -> literal "ly" @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
-  | Svg -> literal "svg" @@ query_opt "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
-  | Ogg -> literal "ogg" @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
-  | Pdf -> literal "pdf" @@ query_opt "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
+  | Svg -> literal "svg" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
+  | Ogg -> literal "ogg" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
+  | Pdf -> literal "pdf" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)

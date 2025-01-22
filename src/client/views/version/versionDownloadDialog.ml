@@ -6,7 +6,7 @@ open Dancelor_client_components
 
 type t = {
   choice_rows: Html_types.tr elt list;
-  parameters_signal: VersionParameters.t option React.signal;
+  parameters_signal: VersionParameters.t React.signal;
 }
 
 let create () =
@@ -38,6 +38,7 @@ let create () =
 
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
+    S.map (Option.value ~default: VersionParameters.none) @@
     S.merge
       (Option.concat VersionParameters.compose)
       None

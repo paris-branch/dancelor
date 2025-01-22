@@ -8,7 +8,7 @@ let get_ly version =
   let body = Model.Version.content version in
   Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status: `OK ~body ()
 
-let prepare_ly_file ?(parameters = Model.VersionParameters.none) ?(show_meta = false) ?(meta_in_title = false) ~fname version =
+let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Model.Version.tune version in
@@ -125,13 +125,13 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Svg = struct
-  let cache : ([`Svg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Svg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
     populate_cache ~cache ~ext: ".svg" ~pp_ext: "svg"
 
-  let render ?parameters version =
+  let render parameters version =
     let body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
@@ -144,7 +144,7 @@ module Svg = struct
     Log.debug (fun m -> m "SVG file name: %s" fname_svg);
     let path = Filename.concat !Dancelor_server_config.cache "version" in
     Log.debug (fun m -> m "Preparing lilypond file");
-    prepare_ly_file ?parameters ~show_meta: false ~fname: (Filename.concat path fname_ly) version;%lwt
+    prepare_ly_file parameters ~show_meta: false ~fname: (Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Generate score");
     LilyPond.svg
       ~exec_path: path
@@ -154,28 +154,24 @@ module Svg = struct
     Log.debug (fun m -> m "done!");
     Lwt.return (Filename.concat path fname_svg)
 
-  let get version parameters =
+  let get parameters version =
     Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp' version);
     let%lwt version = Model.Version.get version in
-    let%lwt path_svg = render ?parameters version in
+    let%lwt path_svg = render parameters version in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
 end
 
 module Pdf = struct
-  let render ?parameters version =
+  let render parameters version =
     let%lwt kind = Model.Version.kind version in
     let%lwt name = Model.Version.name version in
     let%lwt set_parameters =
       Model.SetParameters.make
         ~show_order: false
-        ?display_name: (Option.bind parameters Model.VersionParameters.display_name)
+        ?display_name: (Model.VersionParameters.display_name parameters)
         ()
     in
-    let parameters =
-      parameters
-      |> Option.value ~default: Model.VersionParameters.none
-      |> Model.VersionParameters.set_display_name ""
-    in
+    let parameters = Model.VersionParameters.set_display_name "" parameters in
     let set =
       Database.Entry.make_dummy @@
       Model.Set.make
@@ -185,22 +181,22 @@ module Pdf = struct
         ~order: [Internal 1]
         ()
     in
-    Set.Pdf.render set ~parameters: set_parameters
+    Set.Pdf.render set_parameters set
 
-  let get version_slug parameters =
-    let%lwt version = Model.Version.get version_slug in
-    let%lwt path_pdf = render version ?parameters in
+  let get parameters version =
+    let%lwt version = Model.Version.get version in
+    let%lwt path_pdf = render parameters version in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
 module Ogg = struct
-  let cache : ([`Ogg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t option * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ogg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
     populate_cache ~cache ~ext: ".ogg" ~pp_ext: "ogg"
 
-  let render ?parameters version =
+  let render parameters version =
     let body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
@@ -209,7 +205,7 @@ module Ogg = struct
       Lwt.return (fname ^ ".ly", fname ^ ".ogg")
     in
     let path = Filename.concat !Dancelor_server_config.cache "version" in
-    prepare_ly_file ~fname: (Filename.concat path fname_ly) version;%lwt
+    prepare_ly_file ~fname: (Filename.concat path fname_ly) parameters version;%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.ogg
       ~exec_path: path
@@ -217,10 +213,10 @@ module Ogg = struct
       fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 
-  let get version =
+  let get parameters version =
     Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp' version);
     let%lwt version = Model.Version.get version in
-    let%lwt path_ogg = render version in
+    let%lwt path_ogg = render parameters version in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
 
@@ -230,6 +226,6 @@ let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.VersionEndpoints.
   | Create -> Model.Version.create
   | Update -> Model.Version.update
   | Ly -> get_ly
-  | Svg -> (fun parameters version -> Svg.get version parameters)
+  | Svg -> Svg.get
   | Ogg -> Ogg.get
-  | Pdf -> (fun parameters version -> Pdf.get version parameters)
+  | Pdf -> Pdf.get

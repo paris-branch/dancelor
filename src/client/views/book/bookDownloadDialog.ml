@@ -8,7 +8,7 @@ open Dancelor_client_components
    factorisation here. *)
 type t = {
   choice_rows: Html_types.tr elt list;
-  parameters_signal: BookParameters.t option React.signal;
+  parameters_signal: BookParameters.t React.signal;
 }
 
 let lift_set_parameters every_set =
@@ -41,12 +41,12 @@ let create () =
         tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
       ]
     );
-    parameters_signal =
+    parameters_signal = S.map (Option.value ~default: BookParameters.none) @@
       S.merge
         (Option.concat BookParameters.compose)
         None
         [
-          S.map (Option.map lift_set_parameters) set_dialog.parameters_signal;
+          S.map (Option.some % lift_set_parameters) set_dialog.parameters_signal;
           Choices.signal booklet_choices;
         ]
   }

@@ -183,7 +183,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (ApiRouter.(href @@ Version Svg) None (Database.Entry.slug version));
+                                a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none (Database.Entry.slug version));
                               ]
                               [];
                           ]

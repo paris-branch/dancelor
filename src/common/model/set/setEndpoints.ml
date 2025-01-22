@@ -8,7 +8,7 @@ type (_, _, _) t =
   | Create : ((SetCore.t -> 'w), 'w, SetCore.t Entry.t) t
   | Update : ((SetCore.t Slug.t -> SetCore.t -> 'w), 'w, SetCore.t Entry.t) t
   | Delete : ((SetCore.t Slug.t -> 'w), 'w, unit) t
-  | Pdf : ((SetParameters.t option -> SetCore.t Slug.t -> 'w), 'w, Void.t) t
+  | Pdf : ((SetParameters.t -> SetCore.t Slug.t -> 'w), 'w, Void.t) t
 
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
@@ -20,4 +20,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Create -> literal "create" @@ query "set" (module SetCore) @@ return (module Entry.J(SetCore))
   | Update -> literal "update" @@ variable (module SSlug(SetCore)) @@ query "set" (module SetCore) @@ return (module Entry.J(SetCore))
   | Delete -> literal "delete" @@ variable (module SSlug(SetCore)) @@ return (module JUnit)
-  | Pdf -> literal "pdf" @@ query_opt "parameters" (module SetParameters) @@ variable (module SSlug(SetCore)) @@ return (module JVoid)
+  | Pdf -> literal "pdf" @@ query "parameters" (module SetParameters) @@ variable (module SSlug(SetCore)) @@ return (module JVoid)
