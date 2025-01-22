@@ -1,14 +1,10 @@
+open Nes
 open Dancelor_common
+
 include AnyLifted
 
-let search ?slice ?threshold filter =
-  Madge_cohttp_lwt_client.call ApiRouter.(route @@ Any Search) slice threshold filter
+let search = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Any Search)
+let search' = Lwt.map snd % search Model.Slice.everything
+let count = Lwt.map fst % search Model.Slice.nothing
 
-let search' ?slice ?threshold filter =
-  Lwt.map snd @@ search ?slice ?threshold filter
-
-let count ?threshold filter =
-  Lwt.map fst @@ search ?threshold filter
-
-let search_context ?threshold filter element =
-  Madge_cohttp_lwt_client.call ApiRouter.(route @@ Any SearchContext) threshold filter element
+let search_context = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Any SearchContext)

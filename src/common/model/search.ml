@@ -17,10 +17,10 @@ module type S = sig
   type value
   type filter
 
-  val search : ?slice: Slice.t -> ?threshold: float -> filter -> (int * value list) Lwt.t
+  val search : Slice.t -> filter -> (int * value list) Lwt.t
 
-  val search' : ?slice: Slice.t -> ?threshold: float -> filter -> value list Lwt.t
-  val count : ?threshold: float -> filter -> int Lwt.t
+  val search' : filter -> value list Lwt.t
+  val count : filter -> int Lwt.t
 
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
@@ -29,11 +29,10 @@ module Make (M : Searchable) : S with type value = M.value and type filter = M.f
   type value = M.value
   type filter = M.filter
 
-  let search
-      ?slice
-      ?(threshold = Float.min_float)
-      filter
-    =
+  (* Hardcoded threshold for all of Dancelor. *)
+  let threshold = 0.4
+
+  let search slice filter =
     (* We cache the computation of the results but not the computation of the
        slice because that really isn't the expensive part. *)
     let%lwt results =
@@ -52,17 +51,10 @@ module Make (M : Searchable) : S with type value = M.value and type filter = M.f
       Lwt.return @@ List.map fst values
     in
     (* Return the pair of the total number of results and the requested slice. *)
-    Lwt.return
-      (
-        List.length results,
-        Option.fold ~none: Fun.id ~some: (Slice.list ~strict: false) slice results
-      )
+    Lwt.return (List.length results, Slice.list ~strict: false slice results)
 
-  let search' ?slice ?threshold filter =
-    Lwt.map snd @@ search ?slice ?threshold filter
-
-  let count ?threshold filter =
-    Lwt.map fst @@ search ?threshold filter
+  let search' = Lwt.map snd % search Slice.everything
+  let count = Lwt.map fst % search Slice.nothing
 
   let tiebreakers = M.tiebreakers
 end

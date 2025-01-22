@@ -33,8 +33,8 @@ include Common.Model.Search.Make(struct
     ]
   end)
 
-let search_context ?threshold filter element =
-  let%lwt results = search' ?threshold filter in
+let search_context filter element =
+  let%lwt results = search' filter in
   let List.{total; previous; index; next; _} = Option.get @@ List.find_context (equal element) results in
   (* TODO: Return the context directly. *)
   Lwt.return (total, previous, index, next)

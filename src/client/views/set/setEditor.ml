@@ -92,9 +92,8 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search ~threshold ~slice filter
+            Lwt.map Result.ok @@ Model.Person.search slice filter
           )
         ~serialise: Database.Entry.slug
         ~unserialise: Model.Person.get
@@ -104,9 +103,8 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let threshold = 0.4 in
             let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Version.search ~threshold ~slice filter
+            Lwt.map Result.ok @@ Model.Version.search slice filter
           )
         ~serialise: Database.Entry.slug
         ~unserialise: Model.Version.get

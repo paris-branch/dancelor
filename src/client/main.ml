@@ -8,13 +8,6 @@ module Page = Dancelor_client_page
 module Utils = Dancelor_client_utils
 module Model = Dancelor_client_model
 
-(* FIXME: This search is duplicated in so many places. *)
-let search slice input =
-  let threshold = 0.4 in
-  let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in (* FIXME: AnyFilter.from_string should return a result lwt *)
-  let%lwt results = Model.Any.search ~threshold ~slice filter in
-  Lwt.return_ok results
-
 let set_title title =
   Dom_html.document##.title :=
     Js.string @@
@@ -87,7 +80,10 @@ let header =
                 [
                   Components.QuickSearchBar.make_and_render
                     ~placeholder: "Quick search (press '/')"
-                    ~search
+                    ~search: (fun slice input ->
+                        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+                        Lwt.map Result.ok @@ Model.Any.search slice filter
+                      )
                     ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
                     ~on_enter: (fun search_text ->
                         Dom_html.window##.location##.href := Js.string (PageRouter.(href Explore) (Some search_text))

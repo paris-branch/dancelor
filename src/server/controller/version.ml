@@ -226,7 +226,7 @@ end
 
 let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.VersionEndpoints.t -> a = function
   | Get -> Model.Version.get
-  | Search -> (fun slice threshold filter -> Model.Version.search ?slice ?threshold filter)
+  | Search -> Model.Version.search
   | Create -> Model.Version.create
   | Update -> Model.Version.update
   | Ly -> get_ly

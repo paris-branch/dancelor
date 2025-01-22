@@ -15,10 +15,9 @@ let update_uri input =
     (Js.string "")
     (Js.some (Js.string uri))
 
-let search ?slice input =
-  let threshold = 0.4 in
+let search slice input =
   let%rlwt filter = Lwt.return (Any.Filter.from_string input) in
-  Lwt.map Result.ok @@ Any.search ~threshold ?slice filter
+  Lwt.map Result.ok @@ Any.search slice filter
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let emoji_row emoji message =
@@ -37,7 +36,7 @@ let create ?query () =
   in
   let search_bar =
     SearchBar.make
-      ~search: (fun slice input -> search ~slice input)
+      ~search
       ~slice: (Pagination.slice pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input: query

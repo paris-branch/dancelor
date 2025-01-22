@@ -16,9 +16,8 @@ let book_page_to_any = function
 let get_neighbours any = function
   | PageRouter.InSearch query ->
     (* TODO: Unify with [Explorer.search]. *)
-    let threshold = 0.4 in
     let filter = Result.get_ok (Any.Filter.from_string query) in
-    let%lwt (total, previous, index, next) = Any.search_context ~threshold filter any in
+    let%lwt (total, previous, index, next) = Any.search_context filter any in
     Lwt.return List.{total; previous; index; next; element = any}
   | PageRouter.InSet (set, index) ->
     let%lwt set = Set.get set in

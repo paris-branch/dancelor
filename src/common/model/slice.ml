@@ -28,6 +28,9 @@ let make
     invalid_arg "Slice.make";
   {start; end_incl}
 
+let nothing = make ~end_excl: 0 ()
+let everything = make ~end_incl: max_int ()
+
 let list ?(strict = true) s xs =
   let rec list i = function
     | [] when strict && s.end_incl <> i - 1 -> invalid_arg "Slice.list"

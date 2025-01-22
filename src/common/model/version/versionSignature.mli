@@ -78,25 +78,14 @@ val update : t Slug.t -> t -> t Entry.t Lwt.t
 val save : ?slug: t Slug.t -> t -> t Entry.t Lwt.t
 (** Either {!create} or {!update}. *)
 
-val search :
-  ?slice: Slice.t ->
-  ?threshold: float ->
-  Filter.t ->
-  (int * t Entry.t list) Lwt.t
-(** [search ?slice ?threshold filter] returns the list of all the versions
-    that match [filter] with a score higher than [threshold] (if any). The first
-    element of the pair is the number of versions. The second element of the pair
-    is a slice of the list, taken as per the [slice] (if any). *)
+val search : Slice.t -> Filter.t -> (int * t Entry.t list) Lwt.t
+(** Returns the list of all the versions that match the filter with a score
+    higher than the hardcoded threshold. The first element of the pair is the
+    number of versions. The second element of the pair is a slice of the list,
+    taken as per the slice. *)
 
-val search' :
-  ?slice: Slice.t ->
-  ?threshold: float ->
-  Filter.t ->
-  t Entry.t list Lwt.t
-(** Like {!search} but returns only the list. *)
+val search' : Filter.t -> t Entry.t list Lwt.t
+(** Like {!search} but returns only the list of all values. *)
 
-val count :
-  ?threshold: float ->
-  Filter.t ->
-  int Lwt.t
+val count : Filter.t -> int Lwt.t
 (** Like {!search} but returns only the number of items. *)

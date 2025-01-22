@@ -17,10 +17,10 @@ module type S = sig
   type value
   type filter
 
-  val search : ?slice: Slice.t -> ?threshold: float -> filter -> (int * value list) Lwt.t
+  val search : Slice.t -> filter -> (int * value list) Lwt.t
 
-  val search' : ?slice: Slice.t -> ?threshold: float -> filter -> value list Lwt.t
-  val count : ?threshold: float -> filter -> int Lwt.t
+  val search' : filter -> value list Lwt.t
+  val count : filter -> int Lwt.t
 
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
