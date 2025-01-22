@@ -1,5 +1,3 @@
-open Dancelor_common_model
-
 val search :
   cache: (float * 'filter, 'value list Lwt.t) NesCache.t ->
   values_getter: (unit -> 'value list Lwt.t) ->

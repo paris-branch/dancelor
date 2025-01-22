@@ -18,7 +18,7 @@ let tiebreakers =
   ]
 
 let search =
-  Search.search
+  Common.Model.Search.search
     ~cache: (Cache.create ~lifetime: 600 ())
     ~values_getter: Database.Book.get_all
     ~scoring_function: Filter.accepts

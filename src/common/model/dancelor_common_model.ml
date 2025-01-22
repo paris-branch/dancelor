@@ -54,6 +54,7 @@ module Slice = Slice
 module Transposition = Transposition
 module IssueReport = IssueReport
 module Kind = Kind
+module Search = Search
 
 module PersonCore = PersonCore
 module type PERSON = module type of PersonSignature

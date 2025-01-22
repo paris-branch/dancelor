@@ -31,5 +31,5 @@ let search
   Lwt.return
     (
       List.length results,
-      Option.fold ~none: Fun.id ~some: (Dancelor_common.Model.Slice.list ~strict: false) slice results
+      Option.fold ~none: Fun.id ~some: (Slice.list ~strict: false) slice results
     )

@@ -24,7 +24,7 @@ let tiebreaker =
   | a1, a2 -> Lwt.return (Type.compare (type_of a1) (type_of a2))
 
 let search =
-  Search.search
+  Common.Model.Search.search
     ~cache: (Cache.create ~lifetime: 600 ())
     ~values_getter: get_all
     ~scoring_function: Filter.accepts
