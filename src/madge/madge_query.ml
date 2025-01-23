@@ -56,11 +56,10 @@ let from_uri uri =
     (Uri.query uri)
 
 let from_body body =
-  let%lwt body = Cohttp_lwt.Body.to_string body in
   let body = if body = "" then "{}" else body in
-  let body = Yojson.Safe.from_string body in
-  let body = match body with `Assoc body -> body | _ -> assert false in
-  Lwt.return body
+  match Yojson.Safe.from_string body with
+  | `Assoc body -> body
+  | _ -> assert false
 
 let add k v = List.cons (k, v)
 
