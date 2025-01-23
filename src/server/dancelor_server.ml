@@ -65,9 +65,10 @@ let callback _ request body =
     ~place: "the callback"
     ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
   @@ fun () ->
+  let meth = Madge_cohttp_lwt_server.cohttp_code_meth_to_meth @@ Request.meth request in
   let uri = Request.uri request in
   let path = Uri.path uri in
-  Log.info (fun m -> m "Request for %s" path);
+  Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
   let full_path = Filename.concat !Dancelor_server_config.share path in
   Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
@@ -79,17 +80,11 @@ let callback _ request body =
     )
   else
     (
-      Log.debug (fun m -> m "Asking Madge for %s." path);
       if String.starts_with ~needle: "/api/" path then
         (
           Log.debug (fun m -> m "Looking for an API controller for %s." path);
           let%lwt body = Cohttp_lwt.Body.to_string body in
-          apply_controller
-            {
-              meth = Madge_cohttp_lwt_server.cohttp_code_meth_to_meth (Request.meth request);
-              uri;
-              body;
-            }
+          apply_controller {meth; uri; body}
         )
       else
         (
