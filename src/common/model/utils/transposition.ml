@@ -4,7 +4,7 @@ module Self = struct
   type t =
     | Relative of Music.pitch * Music.pitch
     | Absolute of Music.pitch
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 end
 include Self
 

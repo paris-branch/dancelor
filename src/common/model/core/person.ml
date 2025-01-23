@@ -7,7 +7,7 @@ type t = {
   name: string;
   scddb_id: int option; [@default None] [@key "scddb-id"]
 }
-[@@deriving yojson, make, show {with_path = false}, fields]
+[@@deriving eq, yojson, make, show {with_path = false}, fields]
 
 let name = name % Entry.value
 let scddb_id = scddb_id % Entry.value

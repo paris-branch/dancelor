@@ -2,29 +2,30 @@
 
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
-type t = [%import: AnyCore.t]
+type t = [%import: Dancelor_common_model_core.Any.t]
 (** Type of an “any” element, that is simply a sum type of all the other
     models. *)
 
 (** {3 Constructors} *)
 
-val person : PersonCore.t Entry.t -> t
+val person : Dancelor_common_model_core.Person.t Entry.t -> t
 (** Function equivalent of the [Person] constructor. *)
 
-val dance : DanceCore.t Entry.t -> t
+val dance : Dancelor_common_model_core.Dance.t Entry.t -> t
 (** Function equivalent of the [Dance] constructor. *)
 
-val book : BookCore.t Entry.t -> t
+val book : Dancelor_common_model_core.Book.t Entry.t -> t
 (** Function equivalent of the [Book] constructor. *)
 
-val set : SetCore.t Entry.t -> t
+val set : Dancelor_common_model_core.Set.t Entry.t -> t
 (** Function equivalent of the [Set] constructor. *)
 
-val tune : TuneCore.t Entry.t -> t
+val tune : Dancelor_common_model_core.Tune.t Entry.t -> t
 (** Function equivalent of the [Tune] constructor. *)
 
-val version : VersionCore.t Entry.t -> t
+val version : Dancelor_common_model_core.Version.t Entry.t -> t
 (** Function equivalent of the [Version] constructor. *)
 
 (** {3 Destructors} *)
@@ -38,7 +39,7 @@ val name : t -> string Lwt.t
 (** {2 Type} *)
 
 module Type : sig
-  type t = [%import: AnyCore.Type.t]
+  type t = [%import: Dancelor_common_model_core.Any.Type.t]
   (** Type to represent the type of an “any”. There is basically one type per
       model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,
       in Dancelor parlance, is eg. [Reel] or [8 x 32 Strathspey]. *)
@@ -73,15 +74,15 @@ val type_of : t -> Type.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: AnyCore.Filter.predicate]
+  type predicate = [%import: Dancelor_common_model_filter.Any.predicate]
   (** Type of predicates on “any” elements. *)
 
-  type t = [%import: AnyCore.Filter.t]
+  type t = [%import: Dancelor_common_model_filter.Any.t]
   [@@deriving eq, show]
   (** Type of a filter on “any” element, that is a formula over
       {!predicate}s. *)
 
-  val accepts : t -> AnyCore.t -> float Lwt.t
+  val accepts : t -> Dancelor_common_model_core.Any.t -> float Lwt.t
   (** Whether the given filter accepts the given element. *)
 
   (** {3 Constructors} *)
@@ -95,33 +96,33 @@ module Filter : sig
   val type_' : Type.t -> t
   (** A filter that asserts that the element has the given type. *)
 
-  val person : PersonSignature.Filter.t -> predicate
-  val person' : PersonSignature.Filter.t -> t
+  val person : Person.Filter.t -> predicate
+  val person' : Person.Filter.t -> t
   (** Lift a filter on persons to make a filter on “any”. This filter asserts
       that the “any” element is a person that matches the given filter. *)
 
-  val dance : DanceSignature.Filter.t -> predicate
-  val dance' : DanceSignature.Filter.t -> t
+  val dance : Dance.Filter.t -> predicate
+  val dance' : Dance.Filter.t -> t
   (** Lift a filter on dances to make a filter on “any”. This filter asserts
       that the “any” element is a dance that matches the given filter. *)
 
-  val book : BookSignature.Filter.t -> predicate
-  val book' : BookSignature.Filter.t -> t
+  val book : Book.Filter.t -> predicate
+  val book' : Book.Filter.t -> t
   (** Lift a filter on books to make a filter on “any”. This filter asserts that
       the “any” element is a book that matches the given filter. *)
 
-  val set : SetSignature.Filter.t -> predicate
-  val set' : SetSignature.Filter.t -> t
+  val set : Set.Filter.t -> predicate
+  val set' : Set.Filter.t -> t
   (** Lift a filter on sets to make a filter on “any”. This filter asserts that
       the “any” element is a set that matches the given filter. *)
 
-  val tune : TuneSignature.Filter.t -> predicate
-  val tune' : TuneSignature.Filter.t -> t
+  val tune : Tune.Filter.t -> predicate
+  val tune' : Tune.Filter.t -> t
   (** Lift a filter on tunes to make a filter on “any”. This filter asserts that
       the “any” element is a tune that matches the given filter. *)
 
-  val version : VersionSignature.Filter.t -> predicate
-  val version' : VersionSignature.Filter.t -> t
+  val version : Version.Filter.t -> predicate
+  val version' : Version.Filter.t -> t
   (** Lift a filter on versions to make a filter on “any”. This filter asserts
       that the “any” element is a version that matches the given filter. *)
 

@@ -15,7 +15,7 @@ type t = {
   disambiguation: string; [@default ""]
   content: string;
 }
-[@@deriving yojson, make, show {with_path = false}, fields]
+[@@deriving eq, yojson, make, show {with_path = false}, fields]
 
 let tune = tune % Entry.value
 let bars = bars % Entry.value
@@ -26,5 +26,3 @@ let arrangers = arrangers % Entry.value
 let remark = remark % Entry.value
 let disambiguation = disambiguation % Entry.value
 let content = content % Entry.value
-
-let equal version1 version2 = Slug.equal' (Entry.slug version1) (Entry.slug version2)

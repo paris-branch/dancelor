@@ -16,7 +16,7 @@ module Self = struct
     display_name: string option; [@default None] [@key "display-name"]
     display_composer: string option [@default None] [@key "display-composer"]
   }
-  [@@deriving make, show {with_path = false}, yojson]
+  [@@deriving eq, make, show {with_path = false}, yojson]
 end
 include Self
 

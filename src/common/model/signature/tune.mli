@@ -36,8 +36,8 @@ val equal : t Entry.t -> t Entry.t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: Tune.Filter.predicate]
-  type t = [%import: Tune.Filter.t]
+  type predicate = [%import: Dancelor_common_model_filter.Tune.predicate]
+  type t = [%import: Dancelor_common_model_filter.Tune.t]
   [@@deriving eq, show]
 
   val accepts : t -> Tune.t Entry.t -> float Lwt.t
@@ -53,14 +53,14 @@ module Filter : sig
   val kind : KindBase.Filter.t -> predicate
   val kind' : KindBase.Filter.t -> t
 
-  val existsComposer : Person.Filter.t -> predicate
-  val existsComposer' : Person.Filter.t -> t
+  val existsComposer : Dancelor_common_model_filter.Person.t -> predicate
+  val existsComposer' : Dancelor_common_model_filter.Person.t -> t
 
   val existsComposerIs : Person.t Entry.t -> predicate
   val existsComposerIs' : Person.t Entry.t -> t
 
-  val existsDance : Dance.Filter.t -> predicate
-  val existsDance' : Dance.Filter.t -> t
+  val existsDance : Dancelor_common_model_filter.Dance.t -> predicate
+  val existsDance' : Dancelor_common_model_filter.Dance.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   (** Converter from text formulas to formulas on tunes. *)

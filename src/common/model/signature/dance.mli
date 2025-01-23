@@ -33,8 +33,8 @@ val equal : t Entry.t -> t Entry.t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: Dance.Filter.predicate]
-  type t = [%import: Dance.Filter.t]
+  type predicate = [%import: Dancelor_common_model_filter.Dance.predicate]
+  type t = [%import: Dancelor_common_model_filter.Dance.t]
   [@@deriving eq, show]
 
   val accepts : t -> Dance.t Entry.t -> float Lwt.t
@@ -45,8 +45,8 @@ module Filter : sig
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
 
-  val existsDeviser : Person.Filter.t -> predicate
-  val existsDeviser' : Person.Filter.t -> t
+  val existsDeviser : Dancelor_common_model_filter.Person.t -> predicate
+  val existsDeviser' : Dancelor_common_model_filter.Person.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

@@ -14,7 +14,7 @@ type t = {
   dances: Dance.t Slug.t list; [@default []]
   remark: string; [@default ""]
 }
-[@@deriving yojson, make, show {with_path = false}, fields]
+[@@deriving eq, yojson, make, show {with_path = false}, fields]
 
 let name = name % Entry.value
 let conceptors = conceptors % Entry.value

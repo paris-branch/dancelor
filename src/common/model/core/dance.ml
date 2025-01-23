@@ -13,7 +13,7 @@ type t = {
   disambiguation: string; [@default ""]
   date: PartialDate.t option; [@default None] (** When the dance was devised. *)
 }
-[@@deriving make, show {with_path = false}, yojson, fields]
+[@@deriving eq, make, show {with_path = false}, yojson, fields]
 
 let name = name % Entry.value
 let kind = kind % Entry.value

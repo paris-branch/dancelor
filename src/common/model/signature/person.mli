@@ -27,8 +27,8 @@ val equal : t Entry.t -> t Entry.t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: Person.Filter.predicate]
-  type t = [%import: Person.Filter.t]
+  type predicate = [%import: Dancelor_common_model_filter.Person.predicate]
+  type t = [%import: Dancelor_common_model_filter.Person.t]
   [@@deriving eq, show]
 
   val accepts : t -> Person.t Entry.t -> float Lwt.t

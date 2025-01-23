@@ -1,13 +1,8 @@
 open Nes
 open Dancelor_common_model_utils
-module Core = Dancelor_common_model_core
-
-(* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
-   of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
-module VersionCore = struct include Core.Version let equal _ _ = assert false end
 
 type predicate =
-  | Is of VersionCore.t Slug.t
+  | Is of Dancelor_common_model_core.Version.t Slug.t
   | Tune of Tune.t
   | Key of Music.key
   | Kind of Kind.Version.t

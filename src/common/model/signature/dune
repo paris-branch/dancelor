@@ -8,6 +8,7 @@
   dancelor.madge
   dancelor.common.database
   dancelor.common.model.core
+  dancelor.common.model.filter
   menhirLib
   yojson
   ppx_deriving_yojson.runtime)

@@ -95,8 +95,8 @@ val warnings : t Entry.t -> warnings Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: Book.Filter.predicate]
-  type t = [%import: Book.Filter.t]
+  type predicate = [%import: Dancelor_common_model_filter.Book.predicate]
+  type t = [%import: Dancelor_common_model_filter.Book.t]
   [@@deriving eq, show]
 
   val accepts : t -> Book.t Entry.t -> float Lwt.t
@@ -115,8 +115,8 @@ module Filter : sig
   (** Matches if the given version appears at any depth in the book, that is
       directly in the book or in a set of the book. *)
 
-  val existsTuneDeep' : Tune.Filter.t -> t
-  val existsVersionDeep' : Version.Filter.t -> t
+  val existsTuneDeep' : Dancelor_common_model_filter.Tune.t -> t
+  val existsVersionDeep' : Dancelor_common_model_filter.Version.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

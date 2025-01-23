@@ -1,13 +1,8 @@
 open Nes
 open Dancelor_common_model_utils
-module Core = Dancelor_common_model_core
-
-(* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
-   of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
-module TuneCore = struct include Core.Tune let equal _ _ = assert false end
 
 type predicate =
-  | Is of TuneCore.t Slug.t
+  | Is of Dancelor_common_model_core.Tune.t Slug.t
   | Name of string
   | NameMatches of string
   | ExistsComposer of Person.t (** one of the composers of the list passes the filter *)

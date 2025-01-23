@@ -4,7 +4,7 @@ type t =
   | YearMonthDay of int * int * int
   | YearMonth of int * int
   | Year of int
-[@@deriving show {with_path = false}]
+[@@deriving eq, show {with_path = false}]
 
 let compare = compare
 
