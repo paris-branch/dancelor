@@ -16,12 +16,22 @@ type (_, _, _) t =
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
 let all = [W Get; W Search; W Create; W Update; W Ly; W Svg; W Ogg; W Pdf]
 
+(* NOTE: The version model contains its LilyPond content. This is a big string
+   that is not used in the client. It would be better to have a clean way to
+   describe fields that are not included by default, but for now we will just
+   redact it from the HTTP responses. *)
+module JVersionCore = struct
+  type t = VersionCore.t
+  let of_yojson = VersionCore.of_yojson % Json.add_field "content" (`String "")
+  let to_yojson = Json.remove_field "content" % VersionCore.to_yojson
+end
+
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
-  | Get -> literal "get" @@ variable (module SSlug(VersionCore)) @@ return (module Entry.J(VersionCore))
-  | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module VersionCore.Filter) @@ return (module JPair(JInt)(JList(Entry.J(VersionCore))))
-  | Create -> literal "create" @@ query "version" (module VersionCore) @@ return (module Entry.J(VersionCore))
-  | Update -> literal "update" @@ variable (module SSlug(VersionCore)) @@ query "version" (module VersionCore) @@ return (module Entry.J(VersionCore))
-  | Ly -> literal "ly" @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
-  | Svg -> literal "svg" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
-  | Ogg -> literal "ogg" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
-  | Pdf -> literal "pdf" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(VersionCore)) @@ return (module JVoid)
+  | Get -> literal "get" @@ variable (module SSlug(JVersionCore)) @@ return (module Entry.J(JVersionCore))
+  | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module VersionCore.Filter) @@ return (module JPair(JInt)(JList(Entry.J(JVersionCore))))
+  | Create -> literal "create" @@ query "version" (module JVersionCore) @@ return (module Entry.J(JVersionCore))
+  | Update -> literal "update" @@ variable (module SSlug(JVersionCore)) @@ query "version" (module JVersionCore) @@ return (module Entry.J(JVersionCore))
+  | Ly -> literal "ly" @@ variable (module SSlug(JVersionCore)) @@ return (module JVoid)
+  | Svg -> literal "svg" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) @@ return (module JVoid)
+  | Ogg -> literal "ogg" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) @@ return (module JVoid)
+  | Pdf -> literal "pdf" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) @@ return (module JVoid)
