@@ -245,7 +245,7 @@ let dispatch uri =
   in
   let madge_match_apply_all : Page.t PageRouter.page_wrapped' list -> (unit -> Page.t) option =
     List.map_first_some @@ fun (PageRouter.W endpoint) ->
-    Madge.match_' (PageRouter.route endpoint) (dispatch endpoint) uri
+    Madge.match_' (PageRouter.route endpoint) (dispatch endpoint) {meth = GET; uri; body = ""}
   in
   match madge_match_apply_all PageRouter.all_endpoints' with
   | Some page -> page ()

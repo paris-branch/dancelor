@@ -27,11 +27,11 @@ module JVersionCore = struct
 end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
-  | Get -> literal "get" @@ variable (module SSlug(JVersionCore)) @@ return (module Entry.J(JVersionCore))
-  | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module VersionCore.Filter) @@ return (module JPair(JInt)(JList(Entry.J(JVersionCore))))
-  | Create -> literal "create" @@ query "version" (module JVersionCore) @@ return (module Entry.J(JVersionCore))
-  | Update -> literal "update" @@ variable (module SSlug(JVersionCore)) @@ query "version" (module JVersionCore) @@ return (module Entry.J(JVersionCore))
-  | Ly -> literal "get" @@ variable (module SSlug(JVersionCore)) ~suffix: ".ly" @@ return (module JVoid)
-  | Svg -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".svg" @@ return (module JVoid)
-  | Ogg -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".ogg" @@ return (module JVoid)
-  | Pdf -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".pdf" @@ return (module JVoid)
+  | Get -> literal "get" @@ variable (module SSlug(JVersionCore)) @@ get (module Entry.J(JVersionCore))
+  | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module VersionCore.Filter) @@ get (module JPair(JInt)(JList(Entry.J(JVersionCore))))
+  | Create -> literal "create" @@ query "version" (module JVersionCore) @@ get (module Entry.J(JVersionCore))
+  | Update -> literal "update" @@ variable (module SSlug(JVersionCore)) @@ query "version" (module JVersionCore) @@ get (module Entry.J(JVersionCore))
+  | Ly -> literal "get" @@ variable (module SSlug(JVersionCore)) ~suffix: ".ly" @@ get (module JVoid)
+  | Svg -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".svg" @@ get (module JVoid)
+  | Ogg -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".ogg" @@ get (module JVoid)
+  | Pdf -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".pdf" @@ get (module JVoid)
