@@ -1,16 +1,17 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 let _key = "set"
 
 type t = {
   name: string;
-  conceptors: PersonCore.t Slug.t list; [@default []]
+  conceptors: Person.t Slug.t list; [@default []]
   kind: Kind.Dance.t;
-  contents: (VersionCore.t Slug.t * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
+  contents: (Version.t Slug.t * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
   order: SetOrder.t;
   instructions: string; [@default ""]
-  dances: DanceCore.t Slug.t list; [@default []]
+  dances: Dance.t Slug.t list; [@default []]
   remark: string; [@default ""]
 }
 [@@deriving yojson, make, show {with_path = false}, fields]
@@ -27,9 +28,9 @@ let remark = remark % Entry.value
 type warning =
   | Empty
   | WrongKind
-  | WrongVersionBars of VersionCore.t Entry.t
-  | WrongVersionKind of TuneCore.t Entry.t
-  | DuplicateVersion of TuneCore.t Entry.t
+  | WrongVersionBars of Version.t Entry.t
+  | WrongVersionKind of Tune.t Entry.t
+  | DuplicateVersion of Tune.t Entry.t
 [@@deriving yojson]
 
 type warnings = warning list
@@ -44,8 +45,8 @@ module Filter = struct
     | Is of t Slug.t
     | Name of string
     | NameMatches of string
-    | ExistsConceptor of PersonCore.Filter.t (** conceptor is defined and passes the filter *)
-    | ExistsVersion of VersionCore.Filter.t
+    | ExistsConceptor of Person.Filter.t (** conceptor is defined and passes the filter *)
+    | ExistsVersion of Version.Filter.t
     | Kind of Kind.Dance.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 

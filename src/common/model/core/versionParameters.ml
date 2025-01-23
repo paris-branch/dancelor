@@ -3,12 +3,13 @@
     This module defines parameters that make sense at the level of a version. *)
 
 open Nes
+open Dancelor_common_model_utils
 
 module Self = struct
   type t = {
     transposition: Transposition.t option; [@default None]
     first_bar: int option; [@default None] [@key "first-bar"]
-    for_dance: DanceCore.t Slug.t option; [@default None] [@key "for-dance"]
+    for_dance: Dance.t Slug.t option; [@default None] [@key "for-dance"]
     instruments: string option; [@default None]
     clef: Music.clef option; [@default None]
     trivia: string option; [@default None]

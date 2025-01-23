@@ -27,7 +27,7 @@ module Self = struct
     order_type: order_type option; [@default None] [@key "order-type"]
     display_name: string option; [@default None] [@key "display-name"]
     paper_size: paper_size option; [@default None] [@key "paper-size"]
-    for_dance: DanceCore.t Slug.t option; [@default None] [@key "for-dance"]
+    for_dance: Dance.t Slug.t option; [@default None] [@key "for-dance"]
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
   [@@deriving make, show {with_path = false}, yojson]

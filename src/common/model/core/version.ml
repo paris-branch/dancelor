@@ -1,15 +1,16 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 let _key = "version"
 
 type t = {
-  tune: TuneCore.t Slug.t;
+  tune: Tune.t Slug.t;
   bars: int;
   key: Music.key;
   structure: string;
   sources: string list; [@default []] (* FIXME: remove from DB *)
-  arrangers: PersonCore.t Slug.t list; [@default []]
+  arrangers: Person.t Slug.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
   content: string;
@@ -35,7 +36,7 @@ module Filter = struct
 
   type predicate =
     | Is of t Slug.t
-    | Tune of TuneCore.Filter.t
+    | Tune of Tune.Filter.t
     | Key of Music.key
     | Kind of Kind.Version.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]

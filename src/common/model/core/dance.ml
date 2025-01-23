@@ -1,12 +1,13 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 let _key = "dance"
 
 type t = {
   name: string;
   kind: Kind.Dance.t;
-  devisers: PersonCore.t Slug.t list; [@default []]
+  devisers: Person.t Slug.t list; [@default []]
   two_chords: bool option; [@default None] [@key "two-chords"]
   scddb_id: int option; [@default None] [@key "scddb-id"]
   disambiguation: string; [@default ""]
@@ -32,7 +33,7 @@ module Filter = struct
     | Name of string
     | NameMatches of string
     | Kind of Kind.Dance.Filter.t
-    | ExistsDeviser of PersonCore.Filter.t (** deviser is defined and passes the filter *)
+    | ExistsDeviser of Person.Filter.t (** deviser is defined and passes the filter *)
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t

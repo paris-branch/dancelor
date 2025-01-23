@@ -1,11 +1,12 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
-module PageCore = struct
+module Page = struct
   type t =
-    | Version of VersionCore.t Slug.t * VersionParameters.t
-    | Set of SetCore.t Slug.t * SetParameters.t
-    | InlineSet of SetCore.t * SetParameters.t
+    | Version of Version.t Slug.t * VersionParameters.t
+    | Set of Set.t Slug.t * SetParameters.t
+    | InlineSet of Set.t * SetParameters.t
   [@@deriving show {with_path = false}, yojson]
 end
 
@@ -16,7 +17,7 @@ type t = {
   subtitle: string; [@default ""]
   short_title: string; [@default ""] [@key "short-title"]
   date: PartialDate.t option; [@default None]
-  contents: PageCore.t list;
+  contents: Page.t list;
   source: bool; [@default false]
   remark: string; [@default ""]
   scddb_id: int option; [@default None] [@key "scddb-id"]
@@ -57,18 +58,18 @@ let scddb_id = scddb_id % Entry.value
 let contains_set set1 book =
   List.exists
     (function
-      | PageCore.Set (set2, _) -> Slug.equal' set1 set2
+      | Page.Set (set2, _) -> Slug.equal' set1 set2
       | _ -> false
     )
     (Entry.value book).contents
 
 type warning =
   | Empty
-  | DuplicateSet of SetCore.t Entry.t (* FIXME: duplicate dance? *)
-  | DuplicateVersion of TuneCore.t Entry.t * (SetCore.t Entry.t option * int) list
+  | DuplicateSet of Set.t Entry.t (* FIXME: duplicate dance? *)
+  | DuplicateVersion of Tune.t Entry.t * (Set.t Entry.t option * int) list
   (* DuplicateVersion contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
-  | SetDanceMismatch of SetCore.t Entry.t * DanceCore.t Entry.t
+  | SetDanceMismatch of Set.t Entry.t * Dance.t Entry.t
   (* SetDanceMismatch contains a set where one of the associated dances
      does not have the same kind *)
 [@@deriving show {with_path = false}, yojson]
@@ -77,9 +78,9 @@ type warnings = warning list
 [@@deriving show {with_path = false}, yojson]
 
 type page =
-  | Version of VersionCore.t Entry.t * VersionParameters.t
-  | Set of SetCore.t Entry.t * SetParameters.t
-  | InlineSet of SetCore.t * SetParameters.t
+  | Version of Version.t Entry.t * VersionParameters.t
+  | Set of Set.t Entry.t * SetParameters.t
+  | InlineSet of Set.t * SetParameters.t
 [@@deriving show {with_path = false}]
 
 module Filter = struct
@@ -94,10 +95,10 @@ module Filter = struct
     | TitleMatches of string
     | Subtitle of string
     | SubtitleMatches of string
-    | ExistsVersion of VersionCore.Filter.t
-    | ExistsSet of SetCore.Filter.t
-    | ExistsInlineSet of SetCore.Filter.t
-    | ExistsVersionDeep of VersionCore.Filter.t
+    | ExistsVersion of Version.Filter.t
+    | ExistsSet of Set.Filter.t
+    | ExistsInlineSet of Set.Filter.t
+    | ExistsVersionDeep of Version.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t

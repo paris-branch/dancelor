@@ -1,13 +1,14 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 type t =
-  | Person of PersonCore.t Entry.t
-  | Dance of DanceCore.t Entry.t
-  | Book of BookCore.t Entry.t
-  | Set of SetCore.t Entry.t
-  | Tune of TuneCore.t Entry.t
-  | Version of VersionCore.t Entry.t
+  | Person of Person.t Entry.t
+  | Dance of Dance.t Entry.t
+  | Book of Book.t Entry.t
+  | Set of Set.t Entry.t
+  | Tune of Tune.t Entry.t
+  | Version of Version.t Entry.t
 [@@deriving show {with_path = false}, yojson, variants]
 
 module Type = struct
@@ -44,12 +45,12 @@ module Filter = struct
     | Raw of string
     | Type of Type.t
     (* lifting predicates: *)
-    | Person of PersonCore.Filter.t
-    | Dance of DanceCore.Filter.t
-    | Book of BookCore.Filter.t
-    | Set of SetCore.Filter.t
-    | Tune of TuneCore.Filter.t
-    | Version of VersionCore.Filter.t
+    | Person of Person.Filter.t
+    | Dance of Dance.Filter.t
+    | Book of Book.Filter.t
+    | Set of Set.Filter.t
+    | Tune of Tune.Filter.t
+    | Version of Version.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t

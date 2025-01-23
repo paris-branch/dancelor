@@ -1,5 +1,6 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 let _key = "tune"
 
@@ -7,8 +8,8 @@ type t = {
   name: string;
   alternative_names: string list; [@key "alternative-names"] [@default []]
   kind: Kind.Base.t;
-  composers: PersonCore.t Slug.t list; [@default []]
-  dances: DanceCore.t Slug.t list; [@default []]
+  composers: Person.t Slug.t list; [@default []]
+  dances: Dance.t Slug.t list; [@default []]
   remark: string; [@default ""]
   scddb_id: int option; [@default None] [@key "scddb-id"]
   date: PartialDate.t option; [@default None] (** When the tune was composed. *)
@@ -37,9 +38,9 @@ module Filter = struct
     | Is of t Slug.t
     | Name of string
     | NameMatches of string
-    | ExistsComposer of PersonCore.Filter.t (** one of the composers of the list passes the filter *)
+    | ExistsComposer of Person.Filter.t (** one of the composers of the list passes the filter *)
     | Kind of Kind.Base.Filter.t
-    | ExistsDance of DanceCore.Filter.t
+    | ExistsDance of Dance.Filter.t
   [@@deriving eq, show {with_path = false}, yojson, variants]
 
   type t = predicate Formula.t
