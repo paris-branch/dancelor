@@ -2,15 +2,17 @@
 
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
+open Dancelor_common_model_core
 
-type t = TuneCore.t
+type t = Tune.t
 
 val make :
   name: string ->
   ?alternative_names: string list ->
   kind: Kind.Base.t ->
-  ?composers: PersonCore.t Entry.t list ->
-  ?dances: DanceCore.t Entry.t list ->
+  ?composers: Person.t Entry.t list ->
+  ?dances: Dance.t Entry.t list ->
   ?remark: string ->
   ?scddb_id: int ->
   ?date: PartialDate.t ->
@@ -22,8 +24,8 @@ val make :
 val name : t Entry.t -> string
 val alternative_names : t Entry.t -> string list
 val kind : t Entry.t -> Kind.Base.t
-val composers : t Entry.t -> PersonCore.t Entry.t list Lwt.t
-val dances : t Entry.t -> DanceCore.t Entry.t list Lwt.t
+val composers : t Entry.t -> Person.t Entry.t list Lwt.t
+val dances : t Entry.t -> Dance.t Entry.t list Lwt.t
 val remark : t Entry.t -> string
 val scddb_id : t Entry.t -> int option
 val date : t Entry.t -> PartialDate.t option
@@ -34,31 +36,31 @@ val equal : t Entry.t -> t Entry.t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: TuneCore.Filter.predicate]
-  type t = [%import: TuneCore.Filter.t]
+  type predicate = [%import: Tune.Filter.predicate]
+  type t = [%import: Tune.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> TuneCore.t Entry.t -> float Lwt.t
+  val accepts : t -> Tune.t Entry.t -> float Lwt.t
   (** The main function for filters: given a filter and a tune, [accepts]
       returns a float between [0.] and [1.] representing how much the filter
       accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
       meaning that the tune is fully rejected. *)
 
-  val is : TuneCore.t Entry.t -> predicate
-  val is' : TuneCore.t Entry.t -> t
+  val is : Tune.t Entry.t -> predicate
+  val is' : Tune.t Entry.t -> t
   (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
 
   val kind : KindBase.Filter.t -> predicate
   val kind' : KindBase.Filter.t -> t
 
-  val existsComposer : PersonCore.Filter.t -> predicate
-  val existsComposer' : PersonCore.Filter.t -> t
+  val existsComposer : Person.Filter.t -> predicate
+  val existsComposer' : Person.Filter.t -> t
 
-  val existsComposerIs : PersonCore.t Entry.t -> predicate
-  val existsComposerIs' : PersonCore.t Entry.t -> t
+  val existsComposerIs : Person.t Entry.t -> predicate
+  val existsComposerIs' : Person.t Entry.t -> t
 
-  val existsDance : DanceCore.Filter.t -> predicate
-  val existsDance' : DanceCore.Filter.t -> t
+  val existsDance : Dance.Filter.t -> predicate
+  val existsDance' : Dance.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   (** Converter from text formulas to formulas on tunes. *)

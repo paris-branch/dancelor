@@ -6,13 +6,15 @@
 
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
+open Dancelor_common_model_core
 
 (** {2 Types} *)
 
-type page = BookCore.page =
-  | Version of VersionCore.t Entry.t * VersionParameters.t
-  | Set of SetCore.t Entry.t * SetParameters.t
-  | InlineSet of SetCore.t * SetParameters.t
+type page = Book.page =
+  | Version of Version.t Entry.t * VersionParameters.t
+  | Set of Set.t Entry.t * SetParameters.t
+  | InlineSet of Set.t * SetParameters.t
   (** The type of one page in a book. A page either consists of a version (eg.
       in a book of tunes), or a set (eg. in a dance program) or a so-called
       “inline set”. Inline sets are simply a way to define a set on-the-fly in
@@ -20,7 +22,7 @@ type page = BookCore.page =
       entry. It can be useful to put several versions on the same page, for
       instance, when they do not particularly make sense together. *)
 
-type t = BookCore.t
+type t = Book.t
 (** The type of a book. Even if it is known that it is a record, it should never
     be manipulated explicitly. *)
 
@@ -51,16 +53,16 @@ val scddb_id : t Entry.t -> int option
 
 val is_source : t Entry.t -> bool
 
-val versions_from_contents : t Entry.t -> VersionCore.t Entry.t list Lwt.t
+val versions_from_contents : t Entry.t -> Version.t Entry.t list Lwt.t
 (** Extract only the versions from the book's contents. *)
 
-val sets_from_contents : t Entry.t -> SetCore.t Entry.t list Lwt.t
+val sets_from_contents : t Entry.t -> Set.t Entry.t list Lwt.t
 (** Extract the sets (both normal and inline) from the book's contents. *)
 
-val unique_sets_from_contents : t Entry.t -> SetCore.t Entry.t list Lwt.t
+val unique_sets_from_contents : t Entry.t -> Set.t Entry.t list Lwt.t
 (** Same as {!sets_from_contents} but without duplicate sets. *)
 
-val sets_and_parameters_from_contents : t Entry.t -> (SetCore.t Entry.t * SetParameters.t) list Lwt.t
+val sets_and_parameters_from_contents : t Entry.t -> (Set.t Entry.t * SetParameters.t) list Lwt.t
 (** Same as {!sets_from_contents} but also includes parameters. *)
 
 val find_context_no_inline : int -> t Entry.t -> page List.context option Lwt.t
@@ -70,7 +72,7 @@ val find_context_no_inline : int -> t Entry.t -> page List.context option Lwt.t
 
 (** {2 Utilities} *)
 
-val contains_set : SetCore.t Slug.t -> t Entry.t -> bool
+val contains_set : Set.t Slug.t -> t Entry.t -> bool
 val compare : t Entry.t -> t Entry.t -> int
 val equal : t Entry.t -> t Entry.t -> bool
 
@@ -78,12 +80,12 @@ val lilypond_contents_cache_key : t Entry.t -> string Lwt.t
 
 (** {2 Warnings} *)
 
-type warning = BookCore.warning =
+type warning = Book.warning =
   | Empty
-  | DuplicateSet of SetCore.t Entry.t
-  | DuplicateVersion of TuneCore.t Entry.t * (SetCore.t Entry.t option * int) list
-  | SetDanceMismatch of SetCore.t Entry.t * DanceCore.t Entry.t
-  (* FIXME: a more specific type for (SetCore.t option * int) list. Maybe
+  | DuplicateSet of Set.t Entry.t
+  | DuplicateVersion of Tune.t Entry.t * (Set.t Entry.t option * int) list
+  | SetDanceMismatch of Set.t Entry.t * Dance.t Entry.t
+  (* FIXME: a more specific type for (Set.t option * int) list. Maybe
      “occurrences”? And maybe with a record so that this “int” has a name? *)
 
 type warnings = warning list
@@ -93,28 +95,28 @@ val warnings : t Entry.t -> warnings Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: BookCore.Filter.predicate]
-  type t = [%import: BookCore.Filter.t]
+  type predicate = [%import: Book.Filter.predicate]
+  type t = [%import: Book.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> BookCore.t Entry.t -> float Lwt.t
+  val accepts : t -> Book.t Entry.t -> float Lwt.t
 
   val isSource : predicate
   val isSource' : t
 
-  val memSet : SetCore.t Entry.t -> predicate
-  val memSet' : SetCore.t Entry.t -> t
+  val memSet : Set.t Entry.t -> predicate
+  val memSet' : Set.t Entry.t -> t
 
-  val memTuneDeep' : TuneCore.t Entry.t -> t
+  val memTuneDeep' : Tune.t Entry.t -> t
   (** Matches if the given tune appears in any version at any depth in the book,
       that is directly in the book or in a set of the book. *)
 
-  val memVersionDeep' : VersionCore.t Entry.t -> t
+  val memVersionDeep' : Version.t Entry.t -> t
   (** Matches if the given version appears at any depth in the book, that is
       directly in the book or in a set of the book. *)
 
-  val existsTuneDeep' : TuneCore.Filter.t -> t
-  val existsVersionDeep' : VersionCore.Filter.t -> t
+  val existsTuneDeep' : Tune.Filter.t -> t
+  val existsVersionDeep' : Version.Filter.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t
@@ -149,5 +151,5 @@ val search' : Filter.t -> t Entry.t list Lwt.t
 val count : Filter.t -> int Lwt.t
 (** Like {!search} but returns only the number of items. *)
 
-val page_core_to_page : BookCore.PageCore.t -> page Lwt.t
+val page_core_to_page : Book.Page.t -> page Lwt.t
 (** Exposed for use in the book controller. *)

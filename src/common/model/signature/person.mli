@@ -7,8 +7,10 @@
 
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
+open Dancelor_common_model_core
 
-type t = PersonCore.t
+type t = Person.t
 (** Abstract type for a person. *)
 
 val make : name: string -> ?scddb_id: int -> unit -> t
@@ -25,14 +27,14 @@ val equal : t Entry.t -> t Entry.t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: PersonCore.Filter.predicate]
-  type t = [%import: PersonCore.Filter.t]
+  type predicate = [%import: Person.Filter.predicate]
+  type t = [%import: Person.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> PersonCore.t Entry.t -> float Lwt.t
+  val accepts : t -> Person.t Entry.t -> float Lwt.t
 
-  val is : PersonCore.t Entry.t -> predicate
-  val is' : PersonCore.t Entry.t -> t
+  val is : Person.t Entry.t -> predicate
+  val is' : Person.t Entry.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

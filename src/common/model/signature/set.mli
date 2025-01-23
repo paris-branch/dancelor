@@ -1,15 +1,17 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
+open Dancelor_common_model_core
 
-type t = SetCore.t
+type t = Set.t
 
 val make :
   name: string ->
-  ?conceptors: PersonCore.t Entry.t list ->
+  ?conceptors: Person.t Entry.t list ->
   kind: Kind.Dance.t ->
-  ?contents: (VersionCore.t Entry.t * VersionParameters.t) list ->
+  ?contents: (Version.t Entry.t * VersionParameters.t) list ->
   order: SetOrder.t ->
-  ?dances: DanceCore.t Entry.t list ->
+  ?dances: Dance.t Entry.t list ->
   unit ->
   t
 
@@ -17,18 +19,18 @@ val make :
 val is_slug_none : t Entry.t -> bool
 
 val name : t Entry.t -> string
-val conceptors : t Entry.t -> PersonCore.t Entry.t list Lwt.t
+val conceptors : t Entry.t -> Person.t Entry.t list Lwt.t
 val kind : t Entry.t -> Kind.Dance.t
-val contents : t Entry.t -> (VersionCore.t Entry.t * VersionParameters.t) list Lwt.t
+val contents : t Entry.t -> (Version.t Entry.t * VersionParameters.t) list Lwt.t
 val order : t Entry.t -> SetOrder.t
 val instructions : t Entry.t -> string
-val dances : t Entry.t -> DanceCore.t Entry.t list Lwt.t
+val dances : t Entry.t -> Dance.t Entry.t list Lwt.t
 val remark : t Entry.t -> string
 
-val contains_version : VersionCore.t Slug.t -> t Entry.t -> bool
+val contains_version : Version.t Slug.t -> t Entry.t -> bool
 (** REVIEW: This really takes a slug? *)
 
-val find_context : int -> t Entry.t -> VersionCore.t Entry.t List.context option Lwt.t
+val find_context : int -> t Entry.t -> Version.t Entry.t List.context option Lwt.t
 (** Given an indice and a set, find the context around that indice in the
     set. *)
 
@@ -39,12 +41,12 @@ val lilypond_content_cache_key : t Entry.t -> string Lwt.t
 
 (* {2 Warnings} *)
 
-type warning = SetCore.warning =
+type warning = Set.warning =
   | Empty
   | WrongKind
-  | WrongVersionBars of VersionCore.t Entry.t
-  | WrongVersionKind of TuneCore.t Entry.t
-  | DuplicateVersion of TuneCore.t Entry.t
+  | WrongVersionBars of Version.t Entry.t
+  | WrongVersionKind of Tune.t Entry.t
+  | DuplicateVersion of Tune.t Entry.t
 
 type warnings = warning list
 
@@ -53,26 +55,26 @@ val warnings : t Entry.t -> warnings Lwt.t
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: SetCore.Filter.predicate]
-  type t = [%import: SetCore.Filter.t]
+  type predicate = [%import: Set.Filter.predicate]
+  type t = [%import: Set.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> SetCore.t Entry.t -> float Lwt.t
+  val accepts : t -> Set.t Entry.t -> float Lwt.t
 
-  val is : SetCore.t Entry.t -> predicate
-  val is' : SetCore.t Entry.t -> t
+  val is : Set.t Entry.t -> predicate
+  val is' : Set.t Entry.t -> t
 
-  val existsVersion : VersionCore.Filter.t -> predicate
-  val existsVersion' : VersionCore.Filter.t -> t
+  val existsVersion : Version.Filter.t -> predicate
+  val existsVersion' : Version.Filter.t -> t
 
-  val existsConceptor : PersonCore.Filter.t -> predicate
-  val existsConceptor' : PersonCore.Filter.t -> t
+  val existsConceptor : Person.Filter.t -> predicate
+  val existsConceptor' : Person.Filter.t -> t
 
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
 
-  val memVersion : VersionCore.t Entry.t -> predicate
-  val memVersion' : VersionCore.t Entry.t -> t
+  val memVersion : Version.t Entry.t -> predicate
+  val memVersion' : Version.t Entry.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

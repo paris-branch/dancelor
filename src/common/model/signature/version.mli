@@ -1,26 +1,28 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
+open Dancelor_common_model_core
 
-type t = VersionCore.t
+type t = Version.t
 
 val make :
-  tune: TuneCore.t Entry.t ->
+  tune: Tune.t Entry.t ->
   bars: int ->
   key: Music.key ->
   structure: string ->
-  ?arrangers: PersonCore.t Entry.t list ->
+  ?arrangers: Person.t Entry.t list ->
   ?remark: string ->
   ?disambiguation: string ->
   content: string ->
   unit ->
   t
 
-val tune : t Entry.t -> TuneCore.t Entry.t Lwt.t
+val tune : t Entry.t -> Tune.t Entry.t Lwt.t
 val bars : t Entry.t -> int
 val key : t Entry.t -> Music.key
 val structure : t Entry.t -> string
 val sources : t Entry.t -> string list
-val arrangers : t Entry.t -> PersonCore.t Entry.t list Lwt.t
+val arrangers : t Entry.t -> Person.t Entry.t list Lwt.t
 val remark : t Entry.t -> string
 val disambiguation : t Entry.t -> string
 val content : t Entry.t -> string
@@ -36,20 +38,20 @@ val equal : t Entry.t -> t Entry.t -> bool
 (** {2 Filters} *)
 
 module Filter : sig
-  type predicate = [%import: VersionCore.Filter.predicate]
-  type t = [%import: VersionCore.Filter.t]
+  type predicate = [%import: Version.Filter.predicate]
+  type t = [%import: Version.Filter.t]
   [@@deriving eq, show]
 
-  val accepts : t -> VersionCore.t Entry.t -> float Lwt.t
+  val accepts : t -> Version.t Entry.t -> float Lwt.t
 
-  val is : VersionCore.t Entry.t -> predicate
-  val is' : VersionCore.t Entry.t -> t
+  val is : Version.t Entry.t -> predicate
+  val is' : Version.t Entry.t -> t
 
-  val tuneIs : TuneCore.t Entry.t -> predicate
-  val tuneIs' : TuneCore.t Entry.t -> t
+  val tuneIs : Tune.t Entry.t -> predicate
+  val tuneIs' : Tune.t Entry.t -> t
 
-  val tune : TuneCore.Filter.t -> predicate
-  val tune' : TuneCore.Filter.t -> t
+  val tune : Tune.Filter.t -> predicate
+  val tune' : Tune.Filter.t -> t
 
   val kind : Kind.Version.Filter.t -> predicate
   val kind' : Kind.Version.Filter.t -> t
