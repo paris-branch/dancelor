@@ -6,7 +6,7 @@ module Page = struct
     | Version of Version.t Slug.t * VersionParameters.t
     | Set of Set.t Slug.t * SetParameters.t
     | InlineSet of Set.t * SetParameters.t
-  [@@deriving show {with_path = false}, yojson]
+  [@@deriving eq, show {with_path = false}, yojson]
 end
 
 let _key = "book"
@@ -21,7 +21,7 @@ type t = {
   remark: string; [@default ""]
   scddb_id: int option; [@default None] [@key "scddb-id"]
 }
-[@@deriving make, show {with_path = false}, yojson, fields]
+[@@deriving eq, make, show {with_path = false}, yojson, fields]
 
 let make
     ~title

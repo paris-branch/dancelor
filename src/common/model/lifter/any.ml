@@ -1,15 +1,16 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 module Lift
-    (Person : module type of PersonSignature)
-    (Dance : module type of DanceSignature)
-    (Book : module type of BookSignature)
-    (Set : module type of SetSignature)
-    (Tune : module type of TuneSignature)
-    (Version : module type of VersionSignature)
+    (Person : module type of Dancelor_common_model_signature.Person)
+    (Dance : module type of Dancelor_common_model_signature.Dance)
+    (Book : module type of Dancelor_common_model_signature.Book)
+    (Set : module type of Dancelor_common_model_signature.Set)
+    (Tune : module type of Dancelor_common_model_signature.Tune)
+    (Version : module type of Dancelor_common_model_signature.Version)
 = struct
-  include AnyCore
+  include Dancelor_common_model_core.Any
 
   let equal any1 any2 =
     match any1, any2 with
@@ -30,7 +31,7 @@ module Lift
     | Version v -> Version.name v
 
   module Type = struct
-    include AnyCore.Type
+    include Dancelor_common_model_core.Any.Type
 
     let all = [Person; Dance; Book; Set; Tune; Version]
 
@@ -84,7 +85,7 @@ module Lift
     | Version _ -> Type.Version
 
   module Filter = struct
-    include AnyCore.Filter
+    include Dancelor_common_model_filter.Any
 
     let rec accepts filter any =
       Formula.interpret filter @@ function
@@ -157,8 +158,8 @@ module Lift
             (* Any-specific converter *)
             make
               [
-                raw (Result.ok % AnyCore.Filter.raw');
-                unary_string ~name: "raw" (AnyCore.Filter.raw, unRaw) ~wrap_back: Never;
+                raw (Result.ok % Dancelor_common_model_filter.Any.raw');
+                unary_string ~name: "raw" (Dancelor_common_model_filter.Any.raw, unRaw) ~wrap_back: Never;
                 unary_raw ~name: "type" (type_, unType) ~cast: (Type.of_string_opt, Type.to_string) ~type_: "valid type";
                 unary_lift ~name: "person" (person, unPerson) ~converter: Person.Filter.text_formula_converter ~wrap_back;
                 unary_lift ~name: "dance" (dance, unDance) ~converter: Dance.Filter.text_formula_converter ~wrap_back;

@@ -1,18 +1,19 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 module Lift () = struct
-  include PersonCore
+  include Dancelor_common_model_core.Person
 
   let make ~name ?scddb_id () = make ~name ~scddb_id ()
 
-  let trad_slug : PersonCore.t Slug.t = Slug.unsafe_of_string "traditional"
+  let trad_slug : Dancelor_common_model_core.Person.t Slug.t = Slug.unsafe_of_string "traditional"
   let is_trad c = Slug.equal' (Entry.slug c) trad_slug
 
   let equal = Entry.equal'
 
   module Filter = struct
-    include PersonCore.Filter
+    include Dancelor_common_model_filter.Person
 
     let accepts filter person =
       let char_equal = Char.Sensible.equal in
@@ -20,9 +21,9 @@ module Lift () = struct
       | Is person' ->
         Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ PersonCore.name person
+        Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Person.name person
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ PersonCore.name person
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Person.name person
 
     let text_formula_converter =
       TextFormulaConverter.(

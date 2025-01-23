@@ -1,11 +1,12 @@
 open Nes
 open Dancelor_common_database
+open Dancelor_common_model_utils
 
 module Lift
-    (Person : module type of PersonSignature)
-    (Dance : module type of DanceSignature)
+    (Person : module type of Dancelor_common_model_signature.Person)
+    (Dance : module type of Dancelor_common_model_signature.Dance)
 = struct
-  include TuneCore
+  include Dancelor_common_model_core.Tune
 
   let make
       ~name
@@ -28,10 +29,10 @@ module Lift
   let dances = Lwt_list.map_p Dance.get % dances
 
   module Filter = struct
-    (* NOTE: [include TuneCore.Filter] shadows the accessors of [TuneCore]. *)
+    (* NOTE: [include Dancelor_common_model_core.Tune.Filter] shadows the accessors of [Dancelor_common_model_core.Tune]. *)
     let tuneCore_dances = dances
 
-    include TuneCore.Filter
+    include Dancelor_common_model_filter.Tune
 
     let accepts filter tune =
       let char_equal = Char.Sensible.equal in
@@ -39,15 +40,15 @@ module Lift
       | Is tune' ->
         Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug tune) tune'
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ TuneCore.name tune
+        Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Tune.name tune
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ TuneCore.name tune
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Tune.name tune
       | ExistsComposer pfilter ->
         let%lwt composers = composers tune in
         let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) composers in
         Lwt.return (Formula.interpret_or_l scores)
       | Kind kfilter ->
-        Kind.Base.Filter.accepts kfilter @@ TuneCore.kind tune
+        Kind.Base.Filter.accepts kfilter @@ Dancelor_common_model_core.Tune.kind tune
       | ExistsDance dfilter ->
         let%lwt dances = tuneCore_dances tune in
         let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in

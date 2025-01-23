@@ -5,7 +5,7 @@ type predicate =
   | Is of Dancelor_common_model_core.Version.t Slug.t
   | Tune of Tune.t
   | Key of Music.key
-  | Kind of Kind.Version.t
+  | Kind of Kind.Version.Filter.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
