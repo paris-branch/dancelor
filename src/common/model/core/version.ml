@@ -28,23 +28,3 @@ let disambiguation = disambiguation % Entry.value
 let content = content % Entry.value
 
 let equal version1 version2 = Slug.equal' (Entry.slug version1) (Entry.slug version2)
-
-module Filter = struct
-  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
-     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
-  let equal _ _ = assert false
-
-  type predicate =
-    | Is of t Slug.t
-    | Tune of Tune.Filter.t
-    | Key of Music.key
-    | Kind of Kind.Version.Filter.t
-  [@@deriving eq, show {with_path = false}, yojson, variants]
-
-  type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  let tune' = Formula.pred % tune
-  let key' = Formula.pred % key
-  let kind' = Formula.pred % kind
-end

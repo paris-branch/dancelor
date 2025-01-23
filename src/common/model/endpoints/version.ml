@@ -3,11 +3,12 @@ open Madge
 open Dancelor_common_database
 open Dancelor_common_model_utils
 open Dancelor_common_model_core
+module Filter = Dancelor_common_model_filter
 
 type (_, _, _) t =
   (* Actions without specific version *)
   | Create : ((Version.t -> 'w), 'w, Version.t Entry.t) t
-  | Search : ((Slice.t -> Version.Filter.t -> 'w), 'w, (int * Version.t Entry.t list)) t
+  | Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.t Entry.t list)) t
   (* Actions on a specific version *)
   | Get : ((Version.t Slug.t -> 'w), 'w, Version.t Entry.t) t
   | Update : ((Version.t Slug.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
@@ -34,7 +35,7 @@ end
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   (* Actions without specific version *)
   | Create -> query "version" (module JVersion) @@ post (module Entry.J(JVersion))
-  | Search -> query "slice" (module Slice) @@ query "filter" (module Version.Filter) @@ get (module JPair(JInt)(JList(Entry.J(JVersion))))
+  | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.J(JVersion))))
   (* Actions on a specific version *)
   | Get -> variable (module SSlug(JVersion)) @@ get (module Entry.J(JVersion))
   | Update -> variable (module SSlug(JVersion)) @@ query "version" (module JVersion) @@ put (module Entry.J(JVersion))

@@ -22,25 +22,3 @@ let two_chords = two_chords % Entry.value
 let scddb_id = scddb_id % Entry.value
 let disambiguation = disambiguation % Entry.value
 let date = date % Entry.value
-
-module Filter = struct
-  (* Dirty trick to convince [ppx_deriving.std] that it can derive the equality
-     of [t Slug.t]. [Slug.equal] ignores its first argument anyways. *)
-  let equal _ _ = assert false
-
-  type predicate =
-    | Is of t Slug.t
-    | Name of string
-    | NameMatches of string
-    | Kind of Kind.Dance.Filter.t
-    | ExistsDeviser of Person.Filter.t (** deviser is defined and passes the filter *)
-  [@@deriving eq, show {with_path = false}, yojson, variants]
-
-  type t = predicate Formula.t
-  [@@deriving eq, show {with_path = false}, yojson]
-
-  let name' = Formula.pred % name
-  let nameMatches' = Formula.pred % nameMatches
-  let kind' = Formula.pred % kind
-  let existsDeviser' = Formula.pred % existsDeviser
-end
