@@ -59,7 +59,6 @@ module Search = Search
 
 module PersonCore = Dancelor_common_model_core.Person
 module type PERSON = module type of Dancelor_common_model_signature.Person
-module PersonLifter = Dancelor_common_model_lifter.Person
 module PersonEndpoints = Dancelor_common_model_endpoints.Person
 
 module DanceCore = Dancelor_common_model_core.Dance
