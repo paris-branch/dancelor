@@ -3,10 +3,10 @@ open Dancelor_common_database
 open Dancelor_common_model_utils
 
 module Liftq
-    (Person : module type of Dancelor_common_model_signature.Person)
-    (Dance : module type of Dancelor_common_model_signature.Dance)
-    (Tune : module type of Dancelor_common_model_signature.Tune)
-    (Version : module type of Dancelor_common_model_signature.Version)
+    (Person : Dancelor_common_model_signature.Person)
+    (Dance : Dancelor_common_model_signature.Dance)
+    (Tune : Dancelor_common_model_signature.Tune)
+    (Version : Dancelor_common_model_signature.Version)
 = struct
   include Dancelor_common_model_core.Set
 

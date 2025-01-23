@@ -3,8 +3,8 @@ open Dancelor_common_database
 open Dancelor_common_model_utils
 
 module Lift
-    (Person : module type of Dancelor_common_model_signature.Person)
-    (Dance : module type of Dancelor_common_model_signature.Dance)
+    (Person : Dancelor_common_model_signature.Person)
+    (Dance : Dancelor_common_model_signature.Dance)
 = struct
   include Dancelor_common_model_core.Tune
 

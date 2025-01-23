@@ -56,46 +56,13 @@ module Transposition = Transposition
 module IssueReport = IssueReport
 module Kind = Kind
 module Search = Search
-
-module PersonCore = Dancelor_common_model_core.Person
-module type PERSON = module type of Dancelor_common_model_signature.Person
-module PersonEndpoints = Dancelor_common_model_endpoints.Person
-
-module DanceCore = Dancelor_common_model_core.Dance
-module type DANCE = module type of Dancelor_common_model_signature.Dance
-module DanceLifter = Dancelor_common_model_lifter.Dance
-module DanceEndpoints = Dancelor_common_model_endpoints.Dance
-
-module TuneCore = Dancelor_common_model_core.Tune
-module type TUNE = module type of Dancelor_common_model_signature.Tune
-module TuneLifter = Dancelor_common_model_lifter.Tune
-module TuneEndpoints = Dancelor_common_model_endpoints.Tune
-
-module VersionCore = Dancelor_common_model_core.Version
-module type VERSION = module type of Dancelor_common_model_signature.Version
-module VersionLifter = Dancelor_common_model_lifter.Version
-module VersionEndpoints = Dancelor_common_model_endpoints.Version
-module VersionParameters = Dancelor_common_model_core.VersionParameters
-
-module SetOrder = SetOrder
-module SetCore = Dancelor_common_model_core.Set
-module type SET = module type of Dancelor_common_model_signature.Set
-module SetLifter = Dancelor_common_model_lifter.Set
-module SetEndpoints = Dancelor_common_model_endpoints.Set
-module SetParameters = Dancelor_common_model_core.SetParameters
-
-module BookCore = Dancelor_common_model_core.Book
-module type BOOK = module type of Dancelor_common_model_signature.Book
-module BookLifter = Dancelor_common_model_lifter.Book
-module BookEndpoints = Dancelor_common_model_endpoints.Book
-module BookParameters = Dancelor_common_model_core.BookParameters
-
-module AnyCore = Dancelor_common_model_core.Any
-module type ANY = module type of Dancelor_common_model_signature.Any
-module AnyLifter = Dancelor_common_model_lifter.Any
-module AnyEndpoints = Dancelor_common_model_endpoints.Any
-
 module Formula = Formula
 module TextFormula = TextFormula
 
+module Utils = Dancelor_common_model_utils
+module Core = Dancelor_common_model_core
+module Filter = Dancelor_common_model_filter
+module Lifter = Dancelor_common_model_lifter
+module Signature = Dancelor_common_model_signature
+module Endpoints = Dancelor_common_model_endpoints
 (* FIXME: move endpoints out of [Model] *)

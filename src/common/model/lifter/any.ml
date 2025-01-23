@@ -3,12 +3,12 @@ open Dancelor_common_database
 open Dancelor_common_model_utils
 
 module Lift
-    (Person : module type of Dancelor_common_model_signature.Person)
-    (Dance : module type of Dancelor_common_model_signature.Dance)
-    (Book : module type of Dancelor_common_model_signature.Book)
-    (Set : module type of Dancelor_common_model_signature.Set)
-    (Tune : module type of Dancelor_common_model_signature.Tune)
-    (Version : module type of Dancelor_common_model_signature.Version)
+    (Person : Dancelor_common_model_signature.Person)
+    (Dance : Dancelor_common_model_signature.Dance)
+    (Book : Dancelor_common_model_signature.Book)
+    (Set : Dancelor_common_model_signature.Set)
+    (Tune : Dancelor_common_model_signature.Tune)
+    (Version : Dancelor_common_model_signature.Version)
 = struct
   include Dancelor_common_model_core.Any
 

@@ -8,8 +8,8 @@ module Context = struct
       to simply use [page] here, having pages carry a “parent” [page option]. *)
   type t =
     | InSearch of string
-    | InSet of SetCore.t Slug.t * int
-    | InBook of BookCore.t Slug.t * int
+    | InSet of Core.Set.t Slug.t * int
+    | InBook of Core.Set.t Slug.t * int
   [@@deriving yojson, variants]
 
   let inSet' = inSet % Slug.unsafe_of_string
@@ -18,24 +18,24 @@ end
 include Context
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
-   [AnyCore.Filter.predicate Formula.t]. That however requires moving a lot of
+   [Core.Any.Filter.predicate Formula.t]. That however requires moving a lot of
    code from [*Lifter] to [*Core] for all models (basically everything but the
    [accepts] function, I would say), so, for now, we keep it as a string. *)
 
 type (_, _, _) page =
-  | Book : ((Context.t option -> BookCore.t Slug.t -> 'w), 'w, Void.t) page
+  | Book : ((Context.t option -> Core.Book.t Slug.t -> 'w), 'w, Void.t) page
   | BookAdd : ('w, 'w, Void.t) page
-  | BookEdit : ((BookCore.t Slug.t -> 'w), 'w, Void.t) page
-  | Dance : ((Context.t option -> DanceCore.t Slug.t -> 'w), 'w, Void.t) page
+  | BookEdit : ((Core.Book.t Slug.t -> 'w), 'w, Void.t) page
+  | Dance : ((Context.t option -> Core.Dance.t Slug.t -> 'w), 'w, Void.t) page
   | DanceAdd : ('w, 'w, Void.t) page
-  | Person : ((Context.t option -> PersonCore.t Slug.t -> 'w), 'w, Void.t) page
+  | Person : ((Context.t option -> Core.Person.t Slug.t -> 'w), 'w, Void.t) page
   | PersonAdd : ('w, 'w, Void.t) page
-  | Set : ((Context.t option -> SetCore.t Slug.t -> 'w), 'w, Void.t) page
+  | Set : ((Context.t option -> Core.Set.t Slug.t -> 'w), 'w, Void.t) page
   | SetAdd : ('w, 'w, Void.t) page
-  | Tune : ((Context.t option -> TuneCore.t Slug.t -> 'w), 'w, Void.t) page
+  | Tune : ((Context.t option -> Core.Tune.t Slug.t -> 'w), 'w, Void.t) page
   | TuneAdd : ('w, 'w, Void.t) page
-  | Version : ((Context.t option -> VersionCore.t Slug.t -> 'w), 'w, Void.t) page
-  | VersionAdd : ((TuneCore.t Slug.t option -> 'w), 'w, Void.t) page
+  | Version : ((Context.t option -> Core.Version.t Slug.t -> 'w), 'w, Void.t) page
+  | VersionAdd : ((Core.Tune.t Slug.t option -> 'w), 'w, Void.t) page
   | Index : ('w, 'w, Void.t) page
   | Explore : ((string option -> 'w), 'w, Void.t) page
 
@@ -66,19 +66,19 @@ open Madge
 
 (* FIXME: Factorise adding the model prefixes. *)
 let route : type a w r. (a, w, r) page -> (a, w, r) route = function
-  | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(BookCore)) @@ get (module Void)
+  | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Book)) @@ get (module Void)
   | BookAdd -> literal "book" @@ literal "add" @@ get (module Void)
-  | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(BookCore)) @@ get (module Void)
-  | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(DanceCore)) @@ get (module Void)
+  | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(Core.Book)) @@ get (module Void)
+  | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Dance)) @@ get (module Void)
   | DanceAdd -> literal "dance" @@ literal "add" @@ get (module Void)
-  | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(PersonCore)) @@ get (module Void)
+  | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Person)) @@ get (module Void)
   | PersonAdd -> literal "person" @@ literal "add" @@ get (module Void)
-  | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(SetCore)) @@ get (module Void)
+  | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Set)) @@ get (module Void)
   | SetAdd -> literal "set" @@ literal "add" @@ get (module Void)
-  | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(TuneCore)) @@ get (module Void)
+  | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Tune)) @@ get (module Void)
   | TuneAdd -> literal "tune" @@ literal "add" @@ get (module Void)
-  | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(VersionCore)) @@ get (module Void)
-  | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(TuneCore)) @@ get (module Void)
+  | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Version)) @@ get (module Void)
+  | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Core.Tune)) @@ get (module Void)
   | Index -> get (module Void)
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ get (module Void)
 (* FIXME: short for `get (module Void)` *)
@@ -96,7 +96,7 @@ let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
   let open Dancelor_common_database in
-  let open AnyCore in
+  let open Core.Any in
   match any with
   | Version version -> href_version ?context (Entry.slug version)
   | Set set -> href_set ?context (Entry.slug set)
@@ -118,32 +118,32 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | DanceAdd -> Lwt.return None
     | Version ->
       (fun _ slug ->
-         let%lwt name = Lwt.bind (get_version slug) (Lwt.map TuneCore.name % (get_tune % VersionCore.tune)) in
+         let%lwt name = Lwt.bind (get_version slug) (Lwt.map Core.Tune.name % (get_tune % Core.Version.tune)) in
          Lwt.return @@ Some ("version", name)
       )
     | Tune ->
       (fun _ slug ->
-         let%lwt name = Lwt.map TuneCore.name (get_tune slug) in
+         let%lwt name = Lwt.map Core.Tune.name (get_tune slug) in
          Lwt.return @@ Some ("tune", name)
       )
     | Set ->
       (fun _ slug ->
-         let%lwt name = Lwt.map SetCore.name (get_set slug) in
+         let%lwt name = Lwt.map Core.Set.name (get_set slug) in
          Lwt.return @@ Some ("set", name)
       )
     | Book ->
       (fun _ slug ->
-         let%lwt title = Lwt.map BookCore.title (get_book slug) in
+         let%lwt title = Lwt.map Core.Book.title (get_book slug) in
          Lwt.return @@ Some ("book", title)
       )
     | Dance ->
       (fun _ slug ->
-         let%lwt name = Lwt.map DanceCore.name (get_dance slug) in
+         let%lwt name = Lwt.map Core.Dance.name (get_dance slug) in
          Lwt.return @@ Some ("dance", name)
       )
     | Person ->
       (fun _ slug ->
-         let%lwt name = Lwt.map PersonCore.name (get_person slug) in
+         let%lwt name = Lwt.map Core.Person.name (get_person slug) in
          Lwt.return @@ Some ("person", name)
       )
   in
