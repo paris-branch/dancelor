@@ -1,12 +1,13 @@
 (library
- (name dancelor_common_model)
- (public_name dancelor.common.model)
+ (name dancelor_common_model_endpoints)
+ (public_name dancelor.common.model.endpoints)
  (libraries
   str
   lwt
   dancelor.nes
   dancelor.madge
   dancelor.common.database
+  dancelor.common.model.core
   menhirLib
   yojson
   ppx_deriving_yojson.runtime)

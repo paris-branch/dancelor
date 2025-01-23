@@ -1,6 +1,6 @@
 (library
- (name dancelor_common_model)
- (public_name dancelor.common.model)
+ (name dancelor_common_model_utils)
+ (public_name dancelor.common.model.utils)
  (libraries
   str
   lwt
@@ -23,3 +23,14 @@
    ppx_variants_conv
    ppx_import))
  (inline_tests))
+
+(ocamllex kindDanceLexer)
+
+(ocamllex textFormulaLexer)
+
+(menhir
+ (modules kindDanceParser))
+
+(menhir
+ (modules textFormulaParser)
+ (flags --table))

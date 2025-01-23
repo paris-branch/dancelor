@@ -1,12 +1,13 @@
 (library
- (name dancelor_common_model)
- (public_name dancelor.common.model)
+ (name dancelor_common_model_signature)
+ (public_name dancelor.common.model.signature)
  (libraries
   str
   lwt
   dancelor.nes
   dancelor.madge
   dancelor.common.database
+  dancelor.common.model.core
   menhirLib
   yojson
   ppx_deriving_yojson.runtime)
@@ -22,4 +23,5 @@
    ppx_fields_conv
    ppx_variants_conv
    ppx_import))
+ (modules_without_implementation person dance book any set tune version)
  (inline_tests))

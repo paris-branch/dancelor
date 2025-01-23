@@ -1,6 +1,6 @@
 (library
- (name dancelor_common_model)
- (public_name dancelor.common.model)
+ (name dancelor_common_model_core)
+ (public_name dancelor.common.model.core)
  (libraries
   str
   lwt
