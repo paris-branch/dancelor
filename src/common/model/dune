@@ -1,5 +1,3 @@
-(include_subdirs unqualified)
-
 (library
  (name dancelor_common_model)
  (public_name dancelor.common.model)
@@ -33,3 +31,14 @@
   tuneSignature
   versionSignature)
  (inline_tests))
+
+(ocamllex kindDanceLexer)
+
+(ocamllex textFormulaLexer)
+
+(menhir
+ (modules kindDanceParser))
+
+(menhir
+ (modules textFormulaParser)
+ (flags --table))

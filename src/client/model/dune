@@ -1,5 +1,3 @@
-(include_subdirs unqualified)
-
 (library
  (name dancelor_client_model)
  (public_name dancelor.client.model)
