@@ -2,9 +2,17 @@
  (name madge)
  (modules madge serialisation)
  (public_name dancelor.madge)
- (libraries dancelor.nes dancelor.madge.query cohttp yojson)
+ (libraries dancelor.nes dancelor.madge.query yojson uri)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
+
+(library
+ (name madge_query)
+ (modules madge_query)
+ (public_name dancelor.madge.query)
+ (libraries dancelor.nes uri)
+ (preprocess
+  (pps ppx_deriving_yojson)))
 
 (library
  (name madge_cohttp_lwt_client)
@@ -19,13 +27,5 @@
  (modules madge_cohttp_lwt_server)
  (public_name dancelor.madge.cohttp-lwt-server)
  (libraries dancelor.madge dancelor.madge.query cohttp-lwt-unix)
- (preprocess
-  (pps ppx_deriving_yojson lwt_ppx)))
-
-(library
- (name madge_query)
- (modules madge_query)
- (public_name dancelor.madge.query)
- (libraries dancelor.nes cohttp-lwt)
  (preprocess
   (pps ppx_deriving_yojson lwt_ppx)))

@@ -17,12 +17,12 @@ let log_exn ~msg exn =
 let log_exit = Dancelor_server_logs.log_exit (module Log)
 let log_die () = Dancelor_server_logs.log_die (module Log)
 
-let apply_controller uri =
+let apply_controller request =
   let rec madge_match_apply_all = function
     | [] -> None
     | ApiRouter.W endpoint :: wrapped_endpoints ->
       (
-        match Madge_cohttp_lwt_server.match_apply (ApiRouter.route endpoint) (dispatch endpoint) uri with
+        match Madge_cohttp_lwt_server.match_apply (ApiRouter.route endpoint) (dispatch endpoint) request with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
@@ -37,7 +37,7 @@ let apply_controller uri =
       | Madge_cohttp_lwt_server.Shortcut response -> Lwt.return response
     )
   | None ->
-    let message = spf "Page `%s` was not found" (Uri.path uri) in
+    let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.meth_to_string request.meth) request.body in
     let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
     Server.respond_error ~status: `Not_found ~body ()
 
@@ -60,14 +60,15 @@ let catchall ~place ~die fun_ =
 (** Callback handling one client request. It is in charge of trying to find what
     will answer to the request: a static file, or a Madge API point, or the
     standard main JS file. *)
-let callback _ request _body =
+let callback _ request body =
   catchall
     ~place: "the callback"
     ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
   @@ fun () ->
+  let meth = Madge_cohttp_lwt_server.cohttp_code_meth_to_meth @@ Request.meth request in
   let uri = Request.uri request in
   let path = Uri.path uri in
-  Log.info (fun m -> m "Request for %s" path);
+  Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
   let full_path = Filename.concat !Dancelor_server_config.share path in
   Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
@@ -79,11 +80,11 @@ let callback _ request _body =
     )
   else
     (
-      Log.debug (fun m -> m "Asking Madge for %s." path);
       if String.starts_with ~needle: "/api/" path then
         (
           Log.debug (fun m -> m "Looking for an API controller for %s." path);
-          apply_controller uri
+          let%lwt body = Cohttp_lwt.Body.to_string body in
+          apply_controller {meth; uri; body}
         )
       else
         (

@@ -38,7 +38,7 @@ val to_list : t -> (string * Yojson.Safe.t) list
 val to_strings : t -> (string * string list) list
 
 val from_uri : Uri.t -> t
-val from_body : Cohttp_lwt.Body.t -> t Lwt.t
+val from_body : string -> t
 
 val add : key -> Yojson.Safe.t -> t -> t
 

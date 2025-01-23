@@ -66,25 +66,25 @@ open Madge
 
 (* FIXME: Factorise adding the model prefixes. *)
 let route : type a w r. (a, w, r) page -> (a, w, r) route = function
-  | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(BookCore)) @@ return (module Void)
-  | BookAdd -> literal "book" @@ literal "add" @@ return (module Void)
-  | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(BookCore)) @@ return (module Void)
-  | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(DanceCore)) @@ return (module Void)
-  | DanceAdd -> literal "dance" @@ literal "add" @@ return (module Void)
-  | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(PersonCore)) @@ return (module Void)
-  | PersonAdd -> literal "person" @@ literal "add" @@ return (module Void)
-  | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(SetCore)) @@ return (module Void)
-  | SetAdd -> literal "set" @@ literal "add" @@ return (module Void)
-  | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(TuneCore)) @@ return (module Void)
-  | TuneAdd -> literal "tune" @@ literal "add" @@ return (module Void)
-  | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(VersionCore)) @@ return (module Void)
-  | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(TuneCore)) @@ return (module Void)
-  | Index -> return (module Void)
-  | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ return (module Void)
-(* FIXME: short for `return (module Void)` *)
+  | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(BookCore)) @@ get (module Void)
+  | BookAdd -> literal "book" @@ literal "add" @@ get (module Void)
+  | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(BookCore)) @@ get (module Void)
+  | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(DanceCore)) @@ get (module Void)
+  | DanceAdd -> literal "dance" @@ literal "add" @@ get (module Void)
+  | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(PersonCore)) @@ get (module Void)
+  | PersonAdd -> literal "person" @@ literal "add" @@ get (module Void)
+  | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(SetCore)) @@ get (module Void)
+  | SetAdd -> literal "set" @@ literal "add" @@ get (module Void)
+  | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(TuneCore)) @@ get (module Void)
+  | TuneAdd -> literal "tune" @@ literal "add" @@ get (module Void)
+  | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(VersionCore)) @@ get (module Void)
+  | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(TuneCore)) @@ get (module Void)
+  | Index -> get (module Void)
+  | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ get (module Void)
+(* FIXME: short for `get (module Void)` *)
 
 let href : type a r. (a, string, r) page -> a = fun page ->
-  process (route page) (fun (module _) uri -> Uri.to_string uri)
+  process (route page) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)
 
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance
@@ -149,7 +149,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
   in
   let madge_match_apply_all : (string * string) option Lwt.t page_wrapped' list -> (unit -> (string * string) option Lwt.t) option =
     List.map_first_some @@ fun (W page) ->
-    Madge.match_' (route page) (describe page) uri
+    Madge.match_' (route page) (describe page) {meth = GET; uri; body = ""}
   in
   match madge_match_apply_all all_endpoints' with
   | Some page -> page ()

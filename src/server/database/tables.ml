@@ -22,7 +22,7 @@ module Dance = Table.Make(struct
           List.map (Table.make_slug_and_table (module Person)) (devisers dance)
         )
 
-    let standalone = false
+    let standalone = true
   end)
 
 module Tune = Table.Make(struct

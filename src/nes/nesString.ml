@@ -44,26 +44,38 @@ let%test _ = not (ends_with ~needle: "hello" "lo")
 let remove_prefix_exn ~needle haystack =
   let l_needle = length needle in
   let l_haystack = length haystack in
-  if l_needle > l_haystack then
+  let l_diff = l_haystack - l_needle in
+  if l_diff < 0 then
     invalid_arg "remove_prefix_exn";
-  sub haystack l_needle (l_haystack - l_needle)
+  if sub haystack 0 l_needle <> needle then
+    failwith "remove_prefix_exn";
+  sub haystack l_needle l_diff
 
 let remove_prefix ~needle haystack =
   try
     Some (remove_prefix_exn ~needle haystack)
   with
-  | Invalid_argument _ -> None
+  | Invalid_argument _ | Failure _ -> None
 
 let%test _ = remove_prefix ~needle: "" "hello" = Some "hello"
 let%test _ = remove_prefix ~needle: "he" "hello" = Some "llo"
 let%test _ = remove_prefix ~needle: "hello" "hello" = Some ""
 let%test _ = remove_prefix ~needle: "helloo" "hello" = None
 
+let remove_suffix_exn ~needle haystack =
+  let l_needle = length needle in
+  let l_diff = length haystack - l_needle in
+  if l_diff < 0 then
+    invalid_arg "remove_suffix_exn";
+  if sub haystack l_diff l_needle <> needle then
+    failwith "remove_suffix_exn";
+  sub haystack 0 l_diff
+
 let remove_suffix ~needle haystack =
   try
-    Some (sub haystack 0 (length haystack - length needle))
+    Some (remove_suffix_exn ~needle haystack)
   with
-  | Invalid_argument _ -> None
+  | Invalid_argument _ | Failure _ -> None
 
 let%test _ = remove_suffix ~needle: "" "hello" = Some "hello"
 let%test _ = remove_suffix ~needle: "lo" "hello" = Some "hel"
