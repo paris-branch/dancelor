@@ -32,6 +32,7 @@ let return meth rt = Return (meth, rt)
 let literal str route = Literal (str, route)
 let variable ?(prefix = "") ?(suffix = "") rt route = Variable (prefix, rt, suffix, route)
 
+let void = return (module JVoid)
 let get rt = return GET rt
 
 let query_opt name rt route =

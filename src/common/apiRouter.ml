@@ -40,7 +40,7 @@ let route : type a w r. (a, w, r) endpoint -> (a, w, r) route = function
   | Tune endpoint -> literal "api" @@ literal "tune" @@ TuneEndpoints.route endpoint
   | Any endpoint -> literal "api" @@ literal "any" @@ AnyEndpoints.route endpoint
   | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ get (module IssueReport.Response)
-  | Victor -> literal "api" @@ literal "victor" @@ get (module Void)
+  | Victor -> literal "api" @@ literal "victor" @@ void ()
 
 let href : type a r. (a, string, r) endpoint -> a = fun endpoint ->
   process (route endpoint) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)

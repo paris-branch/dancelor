@@ -16,7 +16,7 @@ let all = [W Get; W Search; W Create; W Update; W Delete; W Pdf]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Get -> literal "get" @@ variable (module SSlug(SetCore)) @@ get (module Entry.J(SetCore))
-  | Pdf -> literal "get" @@ query "parameters" (module SetParameters) @@ variable (module SSlug(SetCore)) ~suffix: ".pdf" @@ get (module JVoid)
+  | Pdf -> literal "get" @@ query "parameters" (module SetParameters) @@ variable (module SSlug(SetCore)) ~suffix: ".pdf" @@ void ()
   | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module SetCore.Filter) @@ get (module JPair(JInt)(JList(Entry.J(SetCore))))
   | Create -> literal "create" @@ query "set" (module SetCore) @@ get (module Entry.J(SetCore))
   | Update -> literal "update" @@ variable (module SSlug(SetCore)) @@ query "set" (module SetCore) @@ get (module Entry.J(SetCore))
