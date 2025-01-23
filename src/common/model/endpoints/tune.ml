@@ -1,22 +1,24 @@
 open Nes
 open Madge
 open Dancelor_common_database
+open Dancelor_common_model_utils
+open Dancelor_common_model_core
 
 type (_, _, _) t =
   (* Actions without specific tune *)
-  | Create : ((TuneCore.t -> 'w), 'w, TuneCore.t Entry.t) t
-  | Search : ((Slice.t -> TuneCore.Filter.t -> 'w), 'w, (int * TuneCore.t Entry.t list)) t
+  | Create : ((Tune.t -> 'w), 'w, Tune.t Entry.t) t
+  | Search : ((Slice.t -> Tune.Filter.t -> 'w), 'w, (int * Tune.t Entry.t list)) t
   (* Actions on a specific tune *)
-  | Get : ((TuneCore.t Slug.t -> 'w), 'w, TuneCore.t Entry.t) t
-  | Update : ((TuneCore.t Slug.t -> TuneCore.t -> 'w), 'w, TuneCore.t Entry.t) t
+  | Get : ((Tune.t Slug.t -> 'w), 'w, Tune.t Entry.t) t
+  | Update : ((Tune.t Slug.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
 
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
 let all = [W Get; W Search; W Create; W Update]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   (* Actions without specific tune *)
-  | Create -> query "tune" (module TuneCore) @@ post (module Entry.J(TuneCore))
-  | Search -> query "slice" (module Slice) @@ query "filter" (module TuneCore.Filter) @@ get (module JPair(JInt)(JList(Entry.J(TuneCore))))
+  | Create -> query "tune" (module Tune) @@ post (module Entry.J(Tune))
+  | Search -> query "slice" (module Slice) @@ query "filter" (module Tune.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Tune))))
   (* Actions on a specific tune *)
-  | Get -> variable (module SSlug(TuneCore)) @@ get (module Entry.J(TuneCore))
-  | Update -> variable (module SSlug(TuneCore)) @@ query "tune" (module TuneCore) @@ put (module Entry.J(TuneCore))
+  | Get -> variable (module SSlug(Tune)) @@ get (module Entry.J(Tune))
+  | Update -> variable (module SSlug(Tune)) @@ query "tune" (module Tune) @@ put (module Entry.J(Tune))
