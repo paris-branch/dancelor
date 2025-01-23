@@ -15,7 +15,7 @@ let all = [W Get; W Search; W Create; W Update; W Pdf]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Get -> literal "get" @@ variable (module SSlug(DanceCore)) @@ return (module Entry.J(DanceCore))
-  | Pdf -> literal "pdf" @@ query "parameters" (module SetParameters) @@ variable (module SSlug(DanceCore)) @@ return (module JVoid)
+  | Pdf -> literal "get" @@ query "parameters" (module SetParameters) @@ variable (module SSlug(DanceCore)) ~suffix: ".pdf" @@ return (module JVoid)
   | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module DanceCore.Filter) @@ return (module JPair(JInt)(JList(Entry.J(DanceCore))))
   | Create -> literal "create" @@ query "dance" (module DanceCore) @@ return (module Entry.J(DanceCore))
   | Update -> literal "update" @@ variable (module SSlug(DanceCore)) @@ query "dance" (module DanceCore) @@ return (module Entry.J(DanceCore))
