@@ -12,7 +12,7 @@ include Serialisation
 type (_, _, _) route =
   | Return : (module JSONABLE with type t = 'r) -> ('w, 'w, 'r) route
   | Literal : string * ('a, 'w, 'r) route -> ('a, 'w, 'r) route
-  | Variable : (module STRINGABLE with type t = 'a) * ('b, 'w, 'r) route -> (('a -> 'b), 'w, 'r) route
+  | Variable : string * (module STRINGABLE with type t = 'a) * string * ('b, 'w, 'r) route -> (('a -> 'b), 'w, 'r) route
   | Query :
       string
       * ('b option -> (('c -> 'a) -> 'a) option) (* proxy *)
@@ -23,7 +23,7 @@ type (_, _, _) route =
 
 let return rt = Return rt
 let literal str route = Literal (str, route)
-let variable rt route = Variable (rt, route)
+let variable ?(prefix = "") ?(suffix = "") rt route = Variable (prefix, rt, suffix, route)
 
 let query_opt name rt route =
   let proxy = Option.some % (fun x f -> f x) in
@@ -47,10 +47,8 @@ let rec process
       return (module R) uri
     | Literal (str, route) ->
       process (path ^ "/" ^ str) query route return
-    | Variable ((module R), route) ->
-      fun x ->
-        (* FIXME: url encode *)
-        process (path ^ "/" ^ R.to_string x) query route return
+    | Variable (prefix, (module R), suffix, route) ->
+      fun x -> process (path ^ "/" ^ prefix ^ Uri.pct_encode (R.to_string x) ^ suffix) query route return
     | Query (name, _, unproxy, (module R), route) ->
       (
         unproxy @@ function
@@ -92,16 +90,15 @@ let rec match_
         | comp :: path when comp = str -> match_ route controller path query return
         | _ -> None
       )
-    | Variable ((module R), route) ->
+    | Variable (prefix, (module R), suffix, route) ->
       (
         match path with
+        | [] -> None
         | comp :: path ->
-          (
-            match R.of_string comp with
-            | Some comp -> match_ route (fun () -> controller () comp) path query return
-            | _ -> None
-          )
-        | _ -> None
+          Option.bind (String.remove_prefix ~needle: prefix comp) @@ fun comp ->
+          Option.bind (String.remove_suffix ~needle: suffix comp) @@ fun comp ->
+          Option.bind (R.of_string comp) @@ fun comp ->
+          match_ route (fun () -> controller () comp) path query return
       )
     | Query (name, proxy, _, (module R), route) ->
       (
