@@ -7,6 +7,10 @@
   dancelor.nes
   dancelor.madge
   dancelor.common.database
+  dancelor.common.model.core
+  dancelor.common.model.signature
+  dancelor.common.model.lifter
+  dancelor.common.model.endpoints
   menhirLib
   yojson
   ppx_deriving_yojson.runtime)

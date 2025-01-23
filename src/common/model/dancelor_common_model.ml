@@ -49,6 +49,7 @@
 
 (* FIXME: all the things that are not technically models should probably move to
    something else. Maybe Dancelor_common_utils? *)
+open Dancelor_common_model_utils
 module Music = Music
 module Slice = Slice
 module Transposition = Transposition
@@ -56,44 +57,46 @@ module IssueReport = IssueReport
 module Kind = Kind
 module Search = Search
 
-module PersonCore = PersonCore
-module type PERSON = module type of PersonSignature
-module PersonLifter = PersonLifter
-module PersonEndpoints = PersonEndpoints
+module PersonCore = Dancelor_common_model_core.Person
+module type PERSON = module type of Dancelor_common_model_signature.Person
+module PersonLifter = Dancelor_common_model_lifter.Person
+module PersonEndpoints = Dancelor_common_model_endpoints.Person
 
-module DanceCore = DanceCore
-module type DANCE = module type of DanceSignature
-module DanceLifter = DanceLifter
-module DanceEndpoints = DanceEndpoints
+module DanceCore = Dancelor_common_model_core.Dance
+module type DANCE = module type of Dancelor_common_model_signature.Dance
+module DanceLifter = Dancelor_common_model_lifter.Dance
+module DanceEndpoints = Dancelor_common_model_endpoints.Dance
 
-module TuneCore = TuneCore
-module type TUNE = module type of TuneSignature
-module TuneLifter = TuneLifter
-module TuneEndpoints = TuneEndpoints
+module TuneCore = Dancelor_common_model_core.Tune
+module type TUNE = module type of Dancelor_common_model_signature.Tune
+module TuneLifter = Dancelor_common_model_lifter.Tune
+module TuneEndpoints = Dancelor_common_model_endpoints.Tune
 
-module VersionCore = VersionCore
-module type VERSION = module type of VersionSignature
-module VersionLifter = VersionLifter
-module VersionEndpoints = VersionEndpoints
-module VersionParameters = VersionParameters
+module VersionCore = Dancelor_common_model_core.Version
+module type VERSION = module type of Dancelor_common_model_signature.Version
+module VersionLifter = Dancelor_common_model_lifter.Version
+module VersionEndpoints = Dancelor_common_model_endpoints.Version
+module VersionParameters = Dancelor_common_model_core.VersionParameters
 
 module SetOrder = SetOrder
-module SetCore = SetCore
-module type SET = module type of SetSignature
-module SetLifter = SetLifter
-module SetEndpoints = SetEndpoints
-module SetParameters = SetParameters
+module SetCore = Dancelor_common_model_core.Set
+module type SET = module type of Dancelor_common_model_signature.Set
+module SetLifter = Dancelor_common_model_lifter.Set
+module SetEndpoints = Dancelor_common_model_endpoints.Set
+module SetParameters = Dancelor_common_model_core.SetParameters
 
-module BookCore = BookCore
-module type BOOK = module type of BookSignature
-module BookLifter = BookLifter
-module BookEndpoints = BookEndpoints
-module BookParameters = BookParameters
+module BookCore = Dancelor_common_model_core.Book
+module type BOOK = module type of Dancelor_common_model_signature.Book
+module BookLifter = Dancelor_common_model_lifter.Book
+module BookEndpoints = Dancelor_common_model_endpoints.Book
+module BookParameters = Dancelor_common_model_core.BookParameters
 
-module AnyCore = AnyCore
-module type ANY = module type of AnySignature
-module AnyLifter = AnyLifter
-module AnyEndpoints = AnyEndpoints
+module AnyCore = Dancelor_common_model_core.Any
+module type ANY = module type of Dancelor_common_model_signature.Any
+module AnyLifter = Dancelor_common_model_lifter.Any
+module AnyEndpoints = Dancelor_common_model_endpoints.Any
 
 module Formula = Formula
 module TextFormula = TextFormula
+
+(* FIXME: move endpoints out of [Model] *)
