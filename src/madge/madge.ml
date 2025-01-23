@@ -6,11 +6,18 @@ open Nes
 
 include Serialisation
 
-type meth =
-  | GET
+type meth = GET | POST | HEAD | DELETE | PATCH | PUT | OPTIONS | TRACE | CONNECT
 
 let meth_to_string = function
   | GET -> "GET"
+  | POST -> "POST"
+  | HEAD -> "HEAD"
+  | DELETE -> "DELETE"
+  | PATCH -> "PATCH"
+  | PUT -> "PUT"
+  | OPTIONS -> "OPTIONS"
+  | TRACE -> "TRACE"
+  | CONNECT -> "CONNECT"
 
 (** Abstract type of a route. The type arguments are (1) the function type
     corresponding to the route, (2) the return value of that function type, (3)
@@ -32,8 +39,16 @@ let return meth rt = Return (meth, rt)
 let literal str route = Literal (str, route)
 let variable ?(prefix = "") ?(suffix = "") rt route = Variable (prefix, rt, suffix, route)
 
-let void = return (module JVoid)
+let void () = return GET (module JVoid)
 let get rt = return GET rt
+let post rt = return POST rt
+let head rt = return HEAD rt
+let delete rt = return DELETE rt
+let patch rt = return PATCH rt
+let put rt = return PUT rt
+let options rt = return OPTIONS rt
+let trace rt = return TRACE rt
+let connect rt = return CONNECT rt
 
 let query_opt name rt route =
   let proxy = Option.some % (fun x f -> f x) in

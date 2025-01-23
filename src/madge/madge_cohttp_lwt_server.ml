@@ -3,14 +3,14 @@ include Madge
 
 let cohttp_code_meth_to_meth = function
   | `GET -> GET
-  | `POST
-  | `HEAD
-  | `DELETE
-  | `PATCH
-  | `PUT
-  | `OPTIONS
-  | `TRACE
-  | `CONNECT
+  | `POST -> POST
+  | `HEAD -> HEAD
+  | `DELETE -> DELETE
+  | `PATCH -> PATCH
+  | `PUT -> PUT
+  | `OPTIONS -> OPTIONS
+  | `TRACE -> TRACE
+  | `CONNECT -> CONNECT
   | `Other _ ->
     assert false (* FIXME *)
 

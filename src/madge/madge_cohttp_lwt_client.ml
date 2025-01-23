@@ -2,6 +2,14 @@ include Madge
 
 let meth_to_cohttp_code_meth = function
   | GET -> `GET
+  | POST -> `POST
+  | HEAD -> `HEAD
+  | DELETE -> `DELETE
+  | PATCH -> `PATCH
+  | PUT -> `PUT
+  | OPTIONS -> `OPTIONS
+  | TRACE -> `TRACE
+  | CONNECT -> `CONNECT
 
 let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
   process route @@ fun (module R) {meth; uri; body} ->
