@@ -3,10 +3,13 @@ open Madge
 open Dancelor_common_database
 
 type (_, _, _) t =
-  | Get : ((VersionCore.t Slug.t -> 'w), 'w, VersionCore.t Entry.t) t
-  | Search : ((Slice.t -> VersionCore.Filter.t -> 'w), 'w, (int * VersionCore.t Entry.t list)) t
+  (* Actions without specific version *)
   | Create : ((VersionCore.t -> 'w), 'w, VersionCore.t Entry.t) t
+  | Search : ((Slice.t -> VersionCore.Filter.t -> 'w), 'w, (int * VersionCore.t Entry.t list)) t
+  (* Actions on a specific version *)
+  | Get : ((VersionCore.t Slug.t -> 'w), 'w, VersionCore.t Entry.t) t
   | Update : ((VersionCore.t Slug.t -> VersionCore.t -> 'w), 'w, VersionCore.t Entry.t) t
+  (* Files related to a version *)
   | Ly : ((VersionCore.t Slug.t -> 'w), 'w, Void.t) t
   | Svg : ((VersionParameters.t -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
   | Ogg : ((VersionParameters.t -> VersionCore.t Slug.t -> 'w), 'w, Void.t) t
@@ -27,11 +30,14 @@ module JVersionCore = struct
 end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
-  | Get -> literal "get" @@ variable (module SSlug(JVersionCore)) @@ get (module Entry.J(JVersionCore))
-  | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module VersionCore.Filter) @@ get (module JPair(JInt)(JList(Entry.J(JVersionCore))))
-  | Create -> literal "create" @@ query "version" (module JVersionCore) @@ get (module Entry.J(JVersionCore))
-  | Update -> literal "update" @@ variable (module SSlug(JVersionCore)) @@ query "version" (module JVersionCore) @@ get (module Entry.J(JVersionCore))
-  | Ly -> literal "get" @@ variable (module SSlug(JVersionCore)) ~suffix: ".ly" @@ void ()
-  | Svg -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".svg" @@ void ()
-  | Ogg -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".ogg" @@ void ()
-  | Pdf -> literal "get" @@ query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".pdf" @@ void ()
+  (* Actions without specific version *)
+  | Create -> query "version" (module JVersionCore) @@ post (module Entry.J(JVersionCore))
+  | Search -> query "slice" (module Slice) @@ query "filter" (module VersionCore.Filter) @@ get (module JPair(JInt)(JList(Entry.J(JVersionCore))))
+  (* Actions on a specific version *)
+  | Get -> variable (module SSlug(JVersionCore)) @@ get (module Entry.J(JVersionCore))
+  | Update -> variable (module SSlug(JVersionCore)) @@ query "version" (module JVersionCore) @@ put (module Entry.J(JVersionCore))
+  (* Files related to a version *)
+  | Ly -> variable (module SSlug(JVersionCore)) ~suffix: ".ly" @@ void ()
+  | Svg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".svg" @@ void ()
+  | Ogg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".ogg" @@ void ()
+  | Pdf -> query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersionCore)) ~suffix: ".pdf" @@ void ()

@@ -10,5 +10,5 @@ type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
 let all = [W Search; W SearchContext]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
-  | Search -> literal "search" @@ query "slice" (module Slice) @@ query "filter" (module AnyCore.Filter) @@ get (module JPair(JInt)(JList(AnyCore)))
-  | SearchContext -> literal "search-context" @@ query "filter" (module AnyCore.Filter) @@ query "element" (module AnyCore) @@ get (module JQuad(JInt)(JOption(AnyCore))(JInt)(JOption(AnyCore)))
+  | Search -> query "slice" (module Slice) @@ query "filter" (module AnyCore.Filter) @@ get (module JPair(JInt)(JList(AnyCore)))
+  | SearchContext -> literal "context" @@ query "filter" (module AnyCore.Filter) @@ query "element" (module AnyCore) @@ get (module JQuad(JInt)(JOption(AnyCore))(JInt)(JOption(AnyCore)))
