@@ -89,7 +89,7 @@ let create ?context slug =
                            object_
                              ~a: [
                                a_mime_type "image/svg+xml";
-                               a_data (ApiRouter.(href @@ Version Svg) Model.Core.VersionParameters.none slug);
+                               a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none slug);
                              ]
                              [];
                          ]

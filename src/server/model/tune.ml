@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Lifter.Tune.Lift(Person)(Dance)
+include Model.Tune.Lift(Person)(Dance)
 
 let get = Dancelor_server_database.Tune.get
 

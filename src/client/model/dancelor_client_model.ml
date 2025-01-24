@@ -10,15 +10,11 @@ include Dancelor_common_model_utils
 module Person : Signature.Person = Person
 module Dance : Signature.Dance = Dance
 module Tune : Signature.Tune = Tune
-
 module Version : Signature.Version = Version
 module VersionParameters = VersionParameters
-
 module SetOrder = SetOrder
 module Set : Signature.Set = Set
 module SetParameters = SetParameters
-
 module Book : Signature.Book = Book
 module BookParameters = BookParameters
-
 module Any : Signature.Any = Any

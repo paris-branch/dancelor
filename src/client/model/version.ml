@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-include Model.Lifter.Version.Lift(Person)(Tune)
+include Model.Version.Lift(Person)(Tune)
 
 let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Get)
 
@@ -12,3 +12,12 @@ let save ?slug = match slug with None -> create | Some slug -> update slug
 let search = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Search)
 let search' = Lwt.map snd % search Model.Slice.everything
 let count = Lwt.map fst % search Model.Slice.nothing
+
+module Parameters = struct
+  include Model.Version.Parameters
+
+  let for_dance p =
+    let%olwt dance_slug = Lwt.return (for_dance p) in
+    let%lwt dance = Dance.get dance_slug in
+    Lwt.return_some dance
+end

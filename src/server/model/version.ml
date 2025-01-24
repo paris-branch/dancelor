@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Lifter.Version.Lift(Person)(Tune)
+include Model.Version.Lift(Person)(Tune)
 
 let get = Dancelor_server_database.Version.get
 
@@ -50,3 +50,12 @@ include Model.Search.Make(struct
         increasing (Lwt.map Tune.name % tune) String.Sensible.compare
       ]
   end)
+
+module Parameters = struct
+  include Dancelor_common_model.Version.Parameters
+
+  let for_dance p =
+    let%olwt dance_slug = Lwt.return (for_dance p) in
+    let%lwt dance = Dance.get dance_slug in
+    Lwt.return_some dance
+end

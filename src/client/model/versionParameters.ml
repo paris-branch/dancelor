@@ -1,4 +1,4 @@
-include Dancelor_common_model.Core.VersionParameters
+include Dancelor_common_model.VersionParameters
 
 let for_dance p =
   let%olwt dance_slug = Lwt.return (for_dance p) in

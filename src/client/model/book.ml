@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-include Model.Lifter.Book.Lift(Dance)(Set)(Tune)(Version)
+include Model.Book.Lift(Dance)(Set)(Tune)(Version)
 
 let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Book Get)
 

@@ -1,8 +1,7 @@
 open Nes
 open Dancelor_common
 
-include Model.Core.Person
-module Filter = Model.Filter.Person
+include Model.Person.Lift()
 
 let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Person Get)
 

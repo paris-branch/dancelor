@@ -35,13 +35,11 @@ module Ly = struct
   (** Rearrange the content of a set. [Default] will leave the content as-is,
       while [Unfolded] will duplicate the tunes depending on the set order. *)
   let rearrange_set_content ~order_type ~order content =
-    let module P = Model.SetParameters in
-    let module O = Model.SetOrder in
     match order_type with
-    | P.Default -> content
-    | P.Unfolded ->
+    | Model.SetParameters.Default -> content
+    | Model.SetParameters.Unfolded ->
       order
-      |> List.map_filter (function O.Internal n -> Some n | _ -> None)
+      |> List.map_filter (function Model.SetOrder.Internal n -> Some n | _ -> None)
       |> List.map (List.nth content % Fun.flip (-) 1)
 
   let cache : ([`Ly] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
@@ -288,7 +286,7 @@ module Pdf = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.Endpoints.Book.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model_endpoints.Book.t -> a = function
   | Get -> Model.Book.get
   | Search -> Model.Book.search
   | Create -> Model.Book.create

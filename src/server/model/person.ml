@@ -2,8 +2,7 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Core.Person
-module Filter = Model.Filter.Person
+include Model.Person.Lift()
 
 let get = Dancelor_server_database.Person.get
 

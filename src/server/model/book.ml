@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Lifter.Book.Lift(Dance)(Set)(Tune)(Version)
+include Model.Book.Lift(Dance)(Set)(Tune)(Version)
 
 let get = Dancelor_server_database.Book.get
 
@@ -27,3 +27,5 @@ include Model.Search.Make(struct
         increasing (Lwt.return % subtitle) String.compare_lengths;
       ]
   end)
+
+module Parameters = Model.BookParameters

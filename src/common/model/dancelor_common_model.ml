@@ -47,22 +47,60 @@
     This convoluted construction ensures that code in the client and the server
     look alike, as they both manipulate models of type {!SetSignature}. *)
 
-(* FIXME: all the things that are not technically models should probably move to
-   something else. Maybe Dancelor_common_utils? *)
-open Dancelor_common_model_utils
-module Music = Music
-module Slice = Slice
-module Transposition = Transposition
-module IssueReport = IssueReport
-module Kind = Kind
-module Search = Search
-module Formula = Formula
-module TextFormula = TextFormula
+include Dancelor_common_model_utils
 
-module Utils = Dancelor_common_model_utils
-module Core = Dancelor_common_model_core
-module Filter = Dancelor_common_model_filter
-module Lifter = Dancelor_common_model_lifter
-module Signature = Dancelor_common_model_signature
-module Endpoints = Dancelor_common_model_endpoints
-(* FIXME: move endpoints out of [Model] *)
+module Any = struct
+  include Dancelor_common_model_core.Any
+  module Filter = Dancelor_common_model_filter.Any
+  include Dancelor_common_model_lifter.Any
+  module type Signature = Dancelor_common_model_signature.Any
+end
+
+module Book = struct
+  include Dancelor_common_model_core.Book
+  module Filter = Dancelor_common_model_filter.Book
+  include Dancelor_common_model_lifter.Book
+  module type Signature = Dancelor_common_model_signature.Book
+end
+module BookParameters = Dancelor_common_model_core.BookParameters
+
+module Dance = struct
+  include Dancelor_common_model_core.Dance
+  module Filter = Dancelor_common_model_filter.Dance
+  include Dancelor_common_model_lifter.Dance
+  module type Signature = Dancelor_common_model_signature.Dance
+end
+
+module Person = struct
+  include Dancelor_common_model_core.Person
+  module Filter = Dancelor_common_model_filter.Person
+  module Lift () = struct
+    include Dancelor_common_model_core.Person
+    module Filter = Filter
+  end
+  module type Signature = Dancelor_common_model_signature.Person
+end
+
+module Set = struct
+  include Dancelor_common_model_core.Set
+  module Filter = Dancelor_common_model_filter.Set
+  include Dancelor_common_model_lifter.Set
+  module type Signature = Dancelor_common_model_signature.Set
+end
+module SetParameters = Dancelor_common_model_core.SetParameters
+
+module Tune = struct
+  include Dancelor_common_model_core.Tune
+  module Filter = Dancelor_common_model_filter.Tune
+  include Dancelor_common_model_lifter.Tune
+  module type Signature = Dancelor_common_model_signature.Tune
+end
+
+module Version = struct
+  include Dancelor_common_model_core.Version
+  module Parameters = Dancelor_common_model_core.VersionParameters
+  module Filter = Dancelor_common_model_filter.Version
+  include Dancelor_common_model_lifter.Version
+  module type Signature = Dancelor_common_model_signature.Version
+end
+module VersionParameters = Dancelor_common_model_core.VersionParameters

@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Lifter.Any.Lift(Person)(Dance)(Book)(Set)(Tune)(Version)
+include Model.Any.Lift(Person)(Dance)(Book)(Set)(Tune)(Version)
 
 include Model.Search.Make(struct
     type value = t
