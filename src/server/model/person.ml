@@ -1,14 +1,17 @@
 open Nes
-module Common = Dancelor_common
+open Dancelor_common
 module Database = Dancelor_server_database
 
-include PersonLifted
+include Model.Core.Person
+module Filter = Model.Filter.Person
+
+let get = Dancelor_server_database.Person.get
 
 let create = Database.Person.create
 let update = Database.Person.update
 let save = Database.Person.save
 
-include Common.Model.Search.Make(struct
+include Model.Search.Make(struct
     type value = t Database.Entry.t
     type filter = Filter.t
 

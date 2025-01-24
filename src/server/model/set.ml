@@ -1,8 +1,10 @@
 open Nes
-module Common = Dancelor_common
+open Dancelor_common
 module Database = Dancelor_server_database
 
-include SetLifted
+include Model.Lifter.Set.Lift(Person)(Dance)(Tune)(Version)
+
+let get = Dancelor_server_database.Set.get
 
 let create = Database.Set.create
 let update = Database.Set.update
@@ -10,7 +12,7 @@ let save = Database.Set.save
 
 let delete = Database.(Set.delete % Entry.slug)
 
-include Common.Model.Search.Make(struct
+include Model.Search.Make(struct
     type value = t Database.Entry.t
     type filter = Filter.t
 

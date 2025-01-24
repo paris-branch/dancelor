@@ -1,10 +1,10 @@
 open Nes
-module Common = Dancelor_common
+open Dancelor_common
 module Database = Dancelor_server_database
 
-include AnyLifted
+include Model.Lifter.Any.Lift(Person)(Dance)(Book)(Set)(Tune)(Version)
 
-include Common.Model.Search.Make(struct
+include Model.Search.Make(struct
     type value = t
     type filter = Filter.t
 

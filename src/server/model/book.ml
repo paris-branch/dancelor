@@ -1,14 +1,16 @@
 open Nes
-module Common = Dancelor_common
+open Dancelor_common
 module Database = Dancelor_server_database
 
-include BookLifted
+include Model.Lifter.Book.Lift(Dance)(Set)(Tune)(Version)
+
+let get = Dancelor_server_database.Book.get
 
 let create = Database.Book.create
 let update = Database.Book.update
 let save = Database.Book.save
 
-include Common.Model.Search.Make(struct
+include Model.Search.Make(struct
     type value = t Database.Entry.t
     type filter = Filter.t
 

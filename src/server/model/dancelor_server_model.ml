@@ -1,33 +1,24 @@
 (** {1 Server-side models} *)
 
-module Common = Dancelor_common_model
+module Core = Dancelor_common_model_core
+module Signature = Dancelor_common_model_signature
 
-(** {2 Modules overriden on the server side} *)
+include Dancelor_common_model_utils
 
-module Person : Common.PERSON = Person
-module Dance : Common.DANCE = Dance
-module Tune : Common.TUNE = Tune
+(** {2 Modules overriden on the client side} *)
 
-module Version : Common.VERSION = Version
+module Person : Signature.Person = Person
+module Dance : Signature.Dance = Dance
+module Tune : Signature.Tune = Tune
+
+module Version : Signature.Version = Version
 module VersionParameters = VersionParameters
 
 module SetOrder = SetOrder
-module Set : Common.SET = Set
+module Set : Signature.Set = Set
 module SetParameters = SetParameters
 
-module Book : Common.BOOK = Book
+module Book : Signature.Book = Book
 module BookParameters = BookParameters
 
-module Any : Common.ANY = Any
-
-(** {2 Modules taken as-is from [Dancelor_common]} *)
-
-open Common
-
-module Formula = Formula
-module Kind = Kind
-module Music = Music
-module Slice = Slice
-module TextFormula = TextFormula
-module Transposition = Transposition
-module IssueReport = IssueReport
+module Any : Signature.Any = Any

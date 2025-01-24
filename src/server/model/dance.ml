@@ -1,14 +1,16 @@
 open Nes
-module Common = Dancelor_common
+open Dancelor_common
 module Database = Dancelor_server_database
 
-include DanceLifted
+include Model.Lifter.Dance.Lift(Person)
+
+let get = Dancelor_server_database.Dance.get
 
 let create = Database.Dance.create
 let update = Database.Dance.update
 let save = Database.Dance.save
 
-include Common.Model.Search.Make(struct
+include Model.Search.Make(struct
     type value = t Database.Entry.t
     type filter = Filter.t
 

@@ -3,7 +3,7 @@ open Nes
 module Model = Dancelor_common_model
 
 module Person = Table.Make(struct
-    include Model.PersonCore
+    include Model.Core.Person
 
     let slug_hint person = Lwt.return person.name
     let separate_fields = []
@@ -12,7 +12,7 @@ module Person = Table.Make(struct
   end)
 
 module Dance = Table.Make(struct
-    include Model.DanceCore
+    include Model.Core.Dance
 
     let slug_hint dance = Lwt.return dance.name
     let separate_fields = []
@@ -26,7 +26,7 @@ module Dance = Table.Make(struct
   end)
 
 module Tune = Table.Make(struct
-    include Model.TuneCore
+    include Model.Core.Tune
 
     let slug_hint tune = Lwt.return tune.name
     let separate_fields = []
@@ -41,7 +41,7 @@ module Tune = Table.Make(struct
   end)
 
 module Version = Table.Make(struct
-    include Model.VersionCore
+    include Model.Core.Version
 
     let slug_hint version = Lwt.bind (Tune.get version.tune) (fun tune -> Lwt.return (Entry.value tune).name)
     let separate_fields = [("content", "content.ly")]
@@ -55,7 +55,7 @@ module Version = Table.Make(struct
   end)
 
 module SetModel = struct
-  include Model.SetCore
+  include Model.Core.Set
 
   let slug_hint set = Lwt.return set.name
   let separate_fields = []
@@ -72,7 +72,7 @@ end
 module Set = Table.Make(SetModel)
 
 module Book = Table.Make(struct
-    include Model.BookCore
+    include Model.Core.Book
 
     let slug_hint book = Lwt.return book.title
     let separate_fields = []
@@ -80,28 +80,28 @@ module Book = Table.Make(struct
       let%lwt dependencies =
         Lwt_list.map_p
           (function
-            | PageCore.Version (version, parameters) ->
+            | Model.Core.Book.Page.Version (version, parameters) ->
               Lwt.return
                 (
                   [Table.make_slug_and_table (module Version) version] @
-                  match Model.VersionParameters.for_dance parameters with
+                  match Model.Core.VersionParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
-            | PageCore.Set (set, parameters) ->
+            | Model.Core.Book.Page.Set (set, parameters) ->
               Lwt.return
                 (
                   [Table.make_slug_and_table (module Set) set] @
-                  match Model.SetParameters.for_dance parameters with
+                  match Model.Core.SetParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
-            | PageCore.InlineSet (set, parameters) ->
+            | Model.Core.Book.Page.InlineSet (set, parameters) ->
               let%lwt set_dependencies = SetModel.dependencies @@ Entry.make_dummy set in
               Lwt.return
                 (
                   set_dependencies @
-                  match Model.SetParameters.for_dance parameters with
+                  match Model.Core.SetParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )

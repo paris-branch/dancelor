@@ -1,8 +1,10 @@
 open Nes
-module Common = Dancelor_common
+open Dancelor_common
 module Database = Dancelor_server_database
 
-include VersionLifted
+include Model.Lifter.Version.Lift(Person)(Tune)
+
+let get = Dancelor_server_database.Version.get
 
 let create = Database.Version.create
 let update = Database.Version.update
@@ -35,7 +37,7 @@ let score_list_vs_list words needles =
       |> List.fold_left max 0.
     end
 
-include Common.Model.Search.Make(struct
+include Model.Search.Make(struct
     type value = t Database.Entry.t
     type filter = Filter.t
 
