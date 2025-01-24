@@ -3,30 +3,30 @@ module type S = sig
 
   open Nes
   open Dancelor_common_database
-  open Dancelor_common_model_utils
 
-  type t = [%import: Dancelor_common_model_core.Any.t]
+
+  type t = [%import: Core.Any.t]
   (** Type of an “any” element, that is simply a sum type of all the other
       models. *)
 
   (** {3 Constructors} *)
 
-  val person : Dancelor_common_model_core.Person.t Entry.t -> t
+  val person : Core.Person.t Entry.t -> t
   (** Function equivalent of the [Person] constructor. *)
 
-  val dance : Dancelor_common_model_core.Dance.t Entry.t -> t
+  val dance : Core.Dance.t Entry.t -> t
   (** Function equivalent of the [Dance] constructor. *)
 
-  val book : Dancelor_common_model_core.Book.t Entry.t -> t
+  val book : Core.Book.t Entry.t -> t
   (** Function equivalent of the [Book] constructor. *)
 
-  val set : Dancelor_common_model_core.Set.t Entry.t -> t
+  val set : Core.Set.t Entry.t -> t
   (** Function equivalent of the [Set] constructor. *)
 
-  val tune : Dancelor_common_model_core.Tune.t Entry.t -> t
+  val tune : Core.Tune.t Entry.t -> t
   (** Function equivalent of the [Tune] constructor. *)
 
-  val version : Dancelor_common_model_core.Version.t Entry.t -> t
+  val version : Core.Version.t Entry.t -> t
   (** Function equivalent of the [Version] constructor. *)
 
   (** {3 Destructors} *)
@@ -40,10 +40,16 @@ module type S = sig
   (** {2 Type} *)
 
   module Type : sig
-    type t = [%import: Dancelor_common_model_core.Any.Type.t]
-    (** Type to represent the type of an “any”. There is basically one type per
-        model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,
-        in Dancelor parlance, is eg. [Reel] or [8 x 32 Strathspey]. *)
+    type t = Core.Any.Type.t =
+      | Person
+      | Dance
+      | Book
+      | Set
+      | Tune
+      | Version
+      (** Type to represent the type of an “any”. There is basically one type per
+          model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,
+          in Dancelor parlance, is eg. [Reel] or [8 x 32 Strathspey]. *)
 
     val all : t list
     (** All the existing types, as a list. There is no guarantee on the order in
@@ -75,15 +81,23 @@ module type S = sig
   (** {2 Filters} *)
 
   module Filter : sig
-    type predicate = [%import: Dancelor_common_model_filter.Any.predicate]
-    (** Type of predicates on “any” elements. *)
+    type predicate = Filter.Any.predicate =
+      | Raw of string
+      | Type of Core.Any.Type.t
+      (* lifting predicates: *)
+      | Person of Filter.Person.t
+      | Dance of Filter.Dance.t
+      | Book of Filter.Book.t
+      | Set of Filter.Set.t
+      | Tune of Filter.Tune.t
+      | Version of Filter.Version.t
+      (** Type of predicates on “any” elements. *)
 
-    type t = [%import: Dancelor_common_model_filter.Any.t]
-    [@@deriving eq, show]
+    type t = predicate Formula.t
     (** Type of a filter on “any” element, that is a formula over
         {!predicate}s. *)
 
-    val accepts : t -> Dancelor_common_model_core.Any.t -> float Lwt.t
+    val accepts : t -> Core.Any.t -> float Lwt.t
     (** Whether the given filter accepts the given element. *)
 
     (** {3 Constructors} *)
@@ -97,33 +111,33 @@ module type S = sig
     val type_' : Type.t -> t
     (** A filter that asserts that the element has the given type. *)
 
-    val person : Dancelor_common_model_filter.Person.t -> predicate
-    val person' : Dancelor_common_model_filter.Person.t -> t
+    val person : Filter.Person.t -> predicate
+    val person' : Filter.Person.t -> t
     (** Lift a filter on persons to make a filter on “any”. This filter asserts
         that the “any” element is a person that matches the given filter. *)
 
-    val dance : Dancelor_common_model_filter.Dance.t -> predicate
-    val dance' : Dancelor_common_model_filter.Dance.t -> t
+    val dance : Filter.Dance.t -> predicate
+    val dance' : Filter.Dance.t -> t
     (** Lift a filter on dances to make a filter on “any”. This filter asserts
         that the “any” element is a dance that matches the given filter. *)
 
-    val book : Dancelor_common_model_filter.Book.t -> predicate
-    val book' : Dancelor_common_model_filter.Book.t -> t
+    val book : Filter.Book.t -> predicate
+    val book' : Filter.Book.t -> t
     (** Lift a filter on books to make a filter on “any”. This filter asserts that
         the “any” element is a book that matches the given filter. *)
 
-    val set : Dancelor_common_model_filter.Set.t -> predicate
-    val set' : Dancelor_common_model_filter.Set.t -> t
+    val set : Filter.Set.t -> predicate
+    val set' : Filter.Set.t -> t
     (** Lift a filter on sets to make a filter on “any”. This filter asserts that
         the “any” element is a set that matches the given filter. *)
 
-    val tune : Dancelor_common_model_filter.Tune.t -> predicate
-    val tune' : Dancelor_common_model_filter.Tune.t -> t
+    val tune : Filter.Tune.t -> predicate
+    val tune' : Filter.Tune.t -> t
     (** Lift a filter on tunes to make a filter on “any”. This filter asserts that
         the “any” element is a tune that matches the given filter. *)
 
-    val version : Dancelor_common_model_filter.Version.t -> predicate
-    val version' : Dancelor_common_model_filter.Version.t -> t
+    val version : Filter.Version.t -> predicate
+    val version' : Filter.Version.t -> t
     (** Lift a filter on versions to make a filter on “any”. This filter asserts
         that the “any” element is a version that matches the given filter. *)
 

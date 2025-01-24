@@ -1,12 +1,12 @@
 open Nes
 open Dancelor_common_database
-open Dancelor_common_model_utils
+
 
 module Lift
-    (Person : Dancelor_common_model_signature.Person.S)
-    (Tune : Dancelor_common_model_signature.Tune.S)
+    (Person : Signature.Person.S)
+    (Tune : Signature.Tune.S)
 = struct
-  include Dancelor_common_model_core.Version
+  include Core.Version
 
   let make
       ~tune
@@ -37,7 +37,7 @@ module Lift
   module Filter = struct
     let versionCore_tune = tune
 
-    include Dancelor_common_model_filter.Version
+    include Filter.Version
 
     let accepts filter version =
       Formula.interpret filter @@ function
@@ -47,10 +47,10 @@ module Lift
         let%lwt tune = versionCore_tune version in
         Tune.Filter.accepts tfilter tune
       | Key key' ->
-        Lwt.return @@ Formula.interpret_bool (Dancelor_common_model_core.Version.key version = key')
+        Lwt.return @@ Formula.interpret_bool (Core.Version.key version = key')
       | Kind kfilter ->
         let%lwt tune = versionCore_tune version in
-        Kind.Version.Filter.accepts kfilter (Dancelor_common_model_core.Version.bars version, Tune.kind tune)
+        Kind.Version.Filter.accepts kfilter (Core.Version.bars version, Tune.kind tune)
 
     let text_formula_converter =
       TextFormulaConverter.(

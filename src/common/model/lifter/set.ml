@@ -1,14 +1,14 @@
 open Nes
 open Dancelor_common_database
-open Dancelor_common_model_utils
+
 
 module Lift
-    (Dance : Dancelor_common_model_signature.Dance.S)
-    (Person : Dancelor_common_model_signature.Person.S)
-    (Tune : Dancelor_common_model_signature.Tune.S)
-    (Version : Dancelor_common_model_signature.Version.S)
+    (Dance : Signature.Dance.S)
+    (Person : Signature.Person.S)
+    (Tune : Signature.Tune.S)
+    (Version : Signature.Version.S)
 = struct
-  include Dancelor_common_model_core.Set
+  include Core.Set
 
   let make
       ~name
@@ -111,7 +111,7 @@ module Lift
     Lwt.return !warnings
 
   module Filter = struct
-    include Dancelor_common_model_filter.Set
+    include Filter.Set
 
     let accepts filter set =
       let char_equal = Char.Sensible.equal in
@@ -119,9 +119,9 @@ module Lift
       | Is set' ->
         Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug set) set'
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Set.name set
+        Lwt.return @@ String.proximity ~char_equal string @@ Core.Set.name set
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Set.name set
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Set.name set
       | ExistsConceptor pfilter ->
         let%lwt conceptors = conceptors set in
         let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) conceptors in
@@ -134,7 +134,7 @@ module Lift
           )
           contents
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ Dancelor_common_model_core.Set.kind set
+        Kind.Dance.Filter.accepts kfilter @@ Core.Set.kind set
 
     let text_formula_converter =
       TextFormulaConverter.(

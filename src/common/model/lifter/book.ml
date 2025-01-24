@@ -1,14 +1,14 @@
 open Nes
 open Dancelor_common_database
-open Dancelor_common_model_utils
+
 
 module Lift
-    (Dance : Dancelor_common_model_signature.Dance.S)
-    (Set : Dancelor_common_model_signature.Set.S)
-    (Tune : Dancelor_common_model_signature.Tune.S)
-    (Version : Dancelor_common_model_signature.Version.S)
+    (Dance : Signature.Dance.S)
+    (Set : Signature.Set.S)
+    (Tune : Signature.Tune.S)
+    (Version : Signature.Version.S)
 = struct
-  include Dancelor_common_model_core.Book
+  include Core.Book
 
   let short_title book = if short_title book = "" then title book else short_title book
 
@@ -31,13 +31,13 @@ module Lift
   let contents book =
     Lwt_list.map_p
       (function
-        | Dancelor_common_model_core.Book.Page.Version (version, parameters) ->
+        | Core.Book.Page.Version (version, parameters) ->
           let%lwt version = Version.get version in
           Lwt.return (Version (version, parameters))
-        | Dancelor_common_model_core.Book.Page.Set (set, parameters) ->
+        | Core.Book.Page.Set (set, parameters) ->
           let%lwt set = Set.get set in
           Lwt.return (Set (set, parameters))
-        | Dancelor_common_model_core.Book.Page.InlineSet (set, parameters) ->
+        | Core.Book.Page.InlineSet (set, parameters) ->
           Lwt.return (InlineSet (set, parameters))
       )
       (contents book)
@@ -97,9 +97,9 @@ module Lift
     Lwt.return (String.concat "\n" contents)
 
   let page_to_page_core = function
-    | (Version (version, params): page) -> Dancelor_common_model_core.Book.Page.Version (Entry.slug version, params)
-    | (Set (set, params): page) -> Dancelor_common_model_core.Book.Page.Set (Entry.slug set, params)
-    | (InlineSet (set, params): page) -> Dancelor_common_model_core.Book.Page.InlineSet (set, params)
+    | (Version (version, params): page) -> Core.Book.Page.Version (Entry.slug version, params)
+    | (Set (set, params): page) -> Core.Book.Page.Set (Entry.slug set, params)
+    | (InlineSet (set, params): page) -> Core.Book.Page.InlineSet (set, params)
 
   let make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id () =
     let contents = Option.map (List.map page_to_page_core) contents in
@@ -107,7 +107,7 @@ module Lift
 
   module Warnings = struct
     (* The following functions all have the name of a warning of
-       {!Dancelor_common_model.Dancelor_common_model_core.Book.warning}. They all are in charge of
+       {!Dancelor_common_model.Core.Book.warning}. They all are in charge of
        generating a list of the associated warning corresponding to the given
        book. The {!all} function then gathers all these warnings in a common list. *)
 
@@ -193,7 +193,7 @@ module Lift
       let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
       Lwt_list.filter_map_p
         (fun (set, parameters) ->
-           let%olwt dance_slug = Lwt.return (Dancelor_common_model_core.SetParameters.for_dance parameters) in
+           let%olwt dance_slug = Lwt.return (Core.SetParameters.for_dance parameters) in
            (* FIXME: SetParameters should be hidden behind the same kind of
               mechanism as the rest; and this step should not be necessary *)
            let%lwt dance = Dance.get dance_slug in
@@ -222,17 +222,17 @@ module Lift
   let warnings book = Warnings.all book
 
   let page_core_to_page = function
-    | Dancelor_common_model_core.Book.Page.Version (version, params) ->
+    | Core.Book.Page.Version (version, params) ->
       let%lwt version = Version.get version in
       Lwt.return @@ Version (version, params)
-    | Dancelor_common_model_core.Book.Page.Set (set, params) ->
+    | Core.Book.Page.Set (set, params) ->
       let%lwt set = Set.get set in
       Lwt.return @@ Set (set, params)
-    | Dancelor_common_model_core.Book.Page.InlineSet (set, params) ->
+    | Core.Book.Page.InlineSet (set, params) ->
       Lwt.return @@ InlineSet (set, params)
 
   module Filter = struct
-    include Dancelor_common_model_filter.Book
+    include Filter.Book
 
     let rec accepts filter book =
       let char_equal = Char.Sensible.equal in
@@ -240,13 +240,13 @@ module Lift
       | Is book' ->
         Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug book) book'
       | Title string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Book.title book
+        Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.title book
       | TitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Book.title book
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.title book
       | Subtitle string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Book.subtitle book
+        Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.subtitle book
       | SubtitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Book.subtitle book
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.subtitle book
       | IsSource ->
         Lwt.return @@ Formula.interpret_bool @@ is_source book
       | ExistsVersion vfilter ->

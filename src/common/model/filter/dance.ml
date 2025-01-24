@@ -1,9 +1,9 @@
 open Nes
-open Dancelor_common_model_utils
-module Core = Dancelor_common_model_core
+
+module Core = Core
 
 type predicate =
-  | Is of Dancelor_common_model_core.Dance.t Slug.t
+  | Is of Core.Dance.t Slug.t
   | Name of string
   | NameMatches of string
   | Kind of Kind.Dance.Filter.t

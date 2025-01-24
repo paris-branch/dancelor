@@ -3,7 +3,7 @@
     This module defines parameters that make sense at the level of a version. *)
 
 open Nes
-open Dancelor_common_model_utils
+
 
 module Self = struct
   type t = {

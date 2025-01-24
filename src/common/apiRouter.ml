@@ -1,6 +1,6 @@
 open Nes
-open Dancelor_common_model_utils
-open Dancelor_common_model_endpoints
+open Dancelor_common_model
+open Endpoints
 
 type (_, _, _) endpoint =
   | Person : ('a, 'w, 'r) Person.t -> ('a, 'w, 'r) endpoint

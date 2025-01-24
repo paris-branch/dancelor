@@ -1,8 +1,8 @@
 module type S = sig
   open Nes
   open Dancelor_common_database
-  open Dancelor_common_model_utils
-  open Dancelor_common_model_core
+
+  open Core
 
   type t = Set.t
 
@@ -56,20 +56,19 @@ module type S = sig
   (** {2 Filters} *)
 
   module Filter : sig
-    type predicate = [%import: Dancelor_common_model_filter.Set.predicate]
-    type t = [%import: Dancelor_common_model_filter.Set.t]
-    [@@deriving eq, show]
+    type predicate = Filter.Set.predicate
+    type t = Filter.Set.t
 
     val accepts : t -> Set.t Entry.t -> float Lwt.t
 
     val is : Set.t Entry.t -> predicate
     val is' : Set.t Entry.t -> t
 
-    val existsVersion : Dancelor_common_model_filter.Version.t -> predicate
-    val existsVersion' : Dancelor_common_model_filter.Version.t -> t
+    val existsVersion : Filter.Version.t -> predicate
+    val existsVersion' : Filter.Version.t -> t
 
-    val existsConceptor : Dancelor_common_model_filter.Person.t -> predicate
-    val existsConceptor' : Dancelor_common_model_filter.Person.t -> t
+    val existsConceptor : Filter.Person.t -> predicate
+    val existsConceptor' : Filter.Person.t -> t
 
     val kind : KindDance.Filter.t -> predicate
     val kind' : KindDance.Filter.t -> t

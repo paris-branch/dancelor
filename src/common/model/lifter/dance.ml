@@ -1,11 +1,11 @@
 open Nes
 open Dancelor_common_database
-open Dancelor_common_model_utils
+
 
 module Lift
-    (Person : Dancelor_common_model_signature.Person.S)
+    (Person : Signature.Person.S)
 = struct
-  include Dancelor_common_model_core.Dance
+  include Core.Dance
 
   let make
       ~name
@@ -27,7 +27,7 @@ module Lift
   let equal dance1 dance2 = Slug.equal' (Entry.slug dance1) (Entry.slug dance2)
 
   module Filter = struct
-    include Dancelor_common_model_filter.Dance
+    include Filter.Dance
 
     let accepts filter dance =
       let char_equal = Char.Sensible.equal in
@@ -35,11 +35,11 @@ module Lift
       | Is dance' ->
         Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug dance) dance'
       | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Dance.name dance
+        Lwt.return @@ String.proximity ~char_equal string @@ Core.Dance.name dance
       | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Dance.name dance
+        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Dance.name dance
       | Kind kfilter ->
-        Kind.Dance.Filter.accepts kfilter @@ Dancelor_common_model_core.Dance.kind dance
+        Kind.Dance.Filter.accepts kfilter @@ Core.Dance.kind dance
       | ExistsDeviser pfilter ->
         let%lwt devisers = devisers dance in
         let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) devisers in

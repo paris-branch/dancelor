@@ -1,7 +1,15 @@
 (** {1 Server-side models} *)
 
 module Common = Dancelor_common
-include Dancelor_common_model_utils
+
+(* FIXME: out of model (into Utils) or out of Dancelor itself (into Nes) *)
+module Formula = Common.Model.Formula
+module IssueReport = Common.Model.IssueReport
+module Kind = Common.Model.Kind
+module Music = Common.Model.Music
+module Search = Common.Model.Search
+module Slice = Common.Model.Slice
+module TextFormula = Common.Model.TextFormula
 
 (** {2 Modules overriden on the client side} *)
 

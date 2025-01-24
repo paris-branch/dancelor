@@ -1,8 +1,8 @@
 open Nes
-open Dancelor_common_model_utils
+
 
 type predicate =
-  | Is of Dancelor_common_model_core.Book.t Slug.t
+  | Is of Core.Book.t Slug.t
   | IsSource
   | Title of string
   | TitleMatches of string

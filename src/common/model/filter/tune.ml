@@ -1,8 +1,8 @@
 open Nes
-open Dancelor_common_model_utils
+
 
 type predicate =
-  | Is of Dancelor_common_model_core.Tune.t Slug.t
+  | Is of Core.Tune.t Slug.t
   | Name of string
   | NameMatches of string
   | ExistsComposer of Person.t (** one of the composers of the list passes the filter *)

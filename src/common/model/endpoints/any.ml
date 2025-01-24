@@ -1,8 +1,7 @@
 open Nes
 open Madge
-open Dancelor_common_model_utils
-open Dancelor_common_model_core
-module Filter = Dancelor_common_model_filter
+
+open Core
 
 type (_, _, _) t =
   | Search : ((Slice.t -> Filter.Any.t -> 'w), 'w, (int * Any.t list)) t

@@ -8,8 +8,8 @@ module type S = sig
 
   open Nes
   open Dancelor_common_database
-  open Dancelor_common_model_utils
-  open Dancelor_common_model_core
+
+  open Core
 
   type t = Person.t
   (** Abstract type for a person. *)
@@ -28,9 +28,8 @@ module type S = sig
   (** {2 Filters} *)
 
   module Filter : sig
-    type predicate = [%import: Dancelor_common_model_filter.Person.predicate]
-    type t = [%import: Dancelor_common_model_filter.Person.t]
-    [@@deriving eq, show]
+    type predicate = Filter.Person.predicate
+    type t = Filter.Person.t
 
     val accepts : t -> Person.t Entry.t -> float Lwt.t
 

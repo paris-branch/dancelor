@@ -1,16 +1,16 @@
 open Nes
 open Dancelor_common_database
-open Dancelor_common_model_utils
+
 
 module Lift
-    (Book : Dancelor_common_model_signature.Book.S)
-    (Dance : Dancelor_common_model_signature.Dance.S)
-    (Person : Dancelor_common_model_signature.Person.S)
-    (Set : Dancelor_common_model_signature.Set.S)
-    (Tune : Dancelor_common_model_signature.Tune.S)
-    (Version : Dancelor_common_model_signature.Version.S)
+    (Book : Signature.Book.S)
+    (Dance : Signature.Dance.S)
+    (Person : Signature.Person.S)
+    (Set : Signature.Set.S)
+    (Tune : Signature.Tune.S)
+    (Version : Signature.Version.S)
 = struct
-  include Dancelor_common_model_core.Any
+  include Core.Any
 
   let equal any1 any2 =
     match any1, any2 with
@@ -31,7 +31,7 @@ module Lift
     | Version v -> Version.name v
 
   module Type = struct
-    include Dancelor_common_model_core.Any.Type
+    include Core.Any.Type
 
     let all = [Person; Dance; Book; Set; Tune; Version]
 
@@ -85,7 +85,7 @@ module Lift
     | Version _ -> Type.Version
 
   module Filter = struct
-    include Dancelor_common_model_filter.Any
+    include Filter.Any
 
     let rec accepts filter any =
       Formula.interpret filter @@ function
@@ -158,8 +158,8 @@ module Lift
             (* Any-specific converter *)
             make
               [
-                raw (Result.ok % Dancelor_common_model_filter.Any.raw');
-                unary_string ~name: "raw" (Dancelor_common_model_filter.Any.raw, unRaw) ~wrap_back: Never;
+                raw (Result.ok % Filter.Any.raw');
+                unary_string ~name: "raw" (Filter.Any.raw, unRaw) ~wrap_back: Never;
                 unary_raw ~name: "type" (type_, unType) ~cast: (Type.of_string_opt, Type.to_string) ~type_: "valid type";
                 unary_lift ~name: "person" (person, unPerson) ~converter: Person.Filter.text_formula_converter ~wrap_back;
                 unary_lift ~name: "dance" (dance, unDance) ~converter: Dance.Filter.text_formula_converter ~wrap_back;

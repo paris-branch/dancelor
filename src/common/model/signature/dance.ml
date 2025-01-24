@@ -3,8 +3,8 @@ module type S = sig
 
   open Nes
   open Dancelor_common_database
-  open Dancelor_common_model_utils
-  open Dancelor_common_model_core
+
+  open Core
 
   type t = Dance.t
 
@@ -34,8 +34,8 @@ module type S = sig
   (** {2 Filters} *)
 
   module Filter : sig
-    type predicate = [%import: Dancelor_common_model_filter.Dance.predicate]
-    type t = [%import: Dancelor_common_model_filter.Dance.t]
+    type predicate = Filter.Dance.predicate
+    type t = Filter.Dance.t
     [@@deriving eq, show]
 
     val accepts : t -> Dance.t Entry.t -> float Lwt.t
@@ -46,8 +46,8 @@ module type S = sig
     val kind : KindDance.Filter.t -> predicate
     val kind' : KindDance.Filter.t -> t
 
-    val existsDeviser : Dancelor_common_model_filter.Person.t -> predicate
-    val existsDeviser' : Dancelor_common_model_filter.Person.t -> t
+    val existsDeviser : Filter.Person.t -> predicate
+    val existsDeviser' : Filter.Person.t -> t
 
     val text_formula_converter : predicate TextFormulaConverter.t
     val from_text_formula : TextFormula.t -> (t, string) Result.t

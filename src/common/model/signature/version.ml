@@ -1,8 +1,8 @@
 module type S = sig
   open Nes
   open Dancelor_common_database
-  open Dancelor_common_model_utils
-  open Dancelor_common_model_core
+
+  open Core
 
   type t = Version.t
 
@@ -39,9 +39,8 @@ module type S = sig
   (** {2 Filters} *)
 
   module Filter : sig
-    type predicate = [%import: Dancelor_common_model_filter.Version.predicate]
-    type t = [%import: Dancelor_common_model_filter.Version.t]
-    [@@deriving eq, show]
+    type predicate = Filter.Version.predicate
+    type t = Filter.Version.t
 
     val accepts : t -> Version.t Entry.t -> float Lwt.t
 
@@ -51,8 +50,8 @@ module type S = sig
     val tuneIs : Tune.t Entry.t -> predicate
     val tuneIs' : Tune.t Entry.t -> t
 
-    val tune : Dancelor_common_model_filter.Tune.t -> predicate
-    val tune' : Dancelor_common_model_filter.Tune.t -> t
+    val tune : Filter.Tune.t -> predicate
+    val tune' : Filter.Tune.t -> t
 
     val kind : Kind.Version.Filter.t -> predicate
     val kind' : Kind.Version.Filter.t -> t

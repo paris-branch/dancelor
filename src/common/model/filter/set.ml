@@ -1,8 +1,8 @@
 open Nes
-open Dancelor_common_model_utils
+
 
 type predicate =
-  | Is of Dancelor_common_model_core.Set.t Slug.t
+  | Is of Core.Set.t Slug.t
   | Name of string
   | NameMatches of string
   | ExistsConceptor of Person.t (** conceptor is defined and passes the filter *)

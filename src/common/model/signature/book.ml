@@ -7,8 +7,8 @@ module type S = sig
 
   open Nes
   open Dancelor_common_database
-  open Dancelor_common_model_utils
-  open Dancelor_common_model_core
+
+  open Core
 
   (** {2 Types} *)
 
@@ -96,9 +96,8 @@ module type S = sig
   (** {2 Filters} *)
 
   module Filter : sig
-    type predicate = [%import: Dancelor_common_model_filter.Book.predicate]
-    type t = [%import: Dancelor_common_model_filter.Book.t]
-    [@@deriving eq, show]
+    type predicate = Filter.Book.predicate
+    type t = Filter.Book.t
 
     val accepts : t -> Book.t Entry.t -> float Lwt.t
 
@@ -116,8 +115,8 @@ module type S = sig
     (** Matches if the given version appears at any depth in the book, that is
         directly in the book or in a set of the book. *)
 
-    val existsTuneDeep' : Dancelor_common_model_filter.Tune.t -> t
-    val existsVersionDeep' : Dancelor_common_model_filter.Version.t -> t
+    val existsTuneDeep' : Filter.Tune.t -> t
+    val existsVersionDeep' : Filter.Version.t -> t
 
     val text_formula_converter : predicate TextFormulaConverter.t
     val from_text_formula : TextFormula.t -> (t, string) Result.t

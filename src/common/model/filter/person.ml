@@ -1,9 +1,8 @@
 open Nes
 open Dancelor_common_database
-open Dancelor_common_model_utils
 
 type predicate =
-  | Is of Dancelor_common_model_core.Person.t Slug.t
+  | Is of Core.Person.t Slug.t
   | Name of string
   | NameMatches of string
 [@@deriving eq, show {with_path = false}, yojson, variants]
@@ -20,9 +19,9 @@ let accepts filter person =
   | Is person' ->
     Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
   | Name string ->
-    Lwt.return @@ String.proximity ~char_equal string @@ Dancelor_common_model_core.Person.name person
+    Lwt.return @@ String.proximity ~char_equal string @@ Core.Person.name person
   | NameMatches string ->
-    Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Dancelor_common_model_core.Person.name person
+    Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Person.name person
 
 let text_formula_converter =
   TextFormulaConverter.(

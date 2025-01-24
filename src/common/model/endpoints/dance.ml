@@ -1,9 +1,8 @@
 open Nes
 open Madge
 open Dancelor_common_database
-open Dancelor_common_model_utils
-open Dancelor_common_model_core
-module Filter = Dancelor_common_model_filter
+
+open Core
 
 type (_, _, _) t =
   (* Actions without a specific dance *)

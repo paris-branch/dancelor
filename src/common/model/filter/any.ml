@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common_model_utils
+
 
 (* NOTE: This [Raw] variant is a bit artificial, when we could already be
    inheriting the various [raw] cases, of the other filters. However, this
@@ -7,7 +7,7 @@ open Dancelor_common_model_utils
    and we would rather avoid that. *)
 type predicate =
   | Raw of string
-  | Type of Dancelor_common_model_core.Any.Type.t
+  | Type of Core.Any.Type.t
   (* lifting predicates: *)
   | Person of Person.t
   | Dance of Dance.t

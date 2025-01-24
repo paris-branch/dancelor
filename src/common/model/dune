@@ -1,3 +1,5 @@
+(include_subdirs qualified)
+
 (library
  (name dancelor_common_model)
  (public_name dancelor.common.model)
@@ -7,10 +9,6 @@
   dancelor.nes
   dancelor.madge
   dancelor.common.database
-  dancelor.common.model.core
-  dancelor.common.model.signature
-  dancelor.common.model.lifter
-  dancelor.common.model.endpoints
   menhirLib
   yojson
   ppx_deriving_yojson.runtime)
@@ -27,3 +25,14 @@
    ppx_variants_conv
    ppx_import))
  (inline_tests))
+
+(ocamllex kindDanceLexer)
+
+(ocamllex textFormulaLexer)
+
+(menhir
+ (modules kindDanceParser))
+
+(menhir
+ (modules textFormulaParser)
+ (flags --table))
