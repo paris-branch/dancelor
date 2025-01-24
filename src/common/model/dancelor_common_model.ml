@@ -53,14 +53,14 @@ module Any = struct
   include Dancelor_common_model_core.Any
   module Filter = Dancelor_common_model_filter.Any
   include Dancelor_common_model_lifter.Any
-  module type Signature = Dancelor_common_model_signature.Any
+  include Dancelor_common_model_signature.Any
 end
 
 module Book = struct
   include Dancelor_common_model_core.Book
   module Filter = Dancelor_common_model_filter.Book
   include Dancelor_common_model_lifter.Book
-  module type Signature = Dancelor_common_model_signature.Book
+  include Dancelor_common_model_signature.Book
 end
 module BookParameters = Dancelor_common_model_core.BookParameters
 
@@ -68,7 +68,7 @@ module Dance = struct
   include Dancelor_common_model_core.Dance
   module Filter = Dancelor_common_model_filter.Dance
   include Dancelor_common_model_lifter.Dance
-  module type Signature = Dancelor_common_model_signature.Dance
+  include Dancelor_common_model_signature.Dance
 end
 
 module Person = struct
@@ -78,14 +78,14 @@ module Person = struct
     include Dancelor_common_model_core.Person
     module Filter = Filter
   end
-  module type Signature = Dancelor_common_model_signature.Person
+  include Dancelor_common_model_signature.Person
 end
 
 module Set = struct
   include Dancelor_common_model_core.Set
   module Filter = Dancelor_common_model_filter.Set
   include Dancelor_common_model_lifter.Set
-  module type Signature = Dancelor_common_model_signature.Set
+  include Dancelor_common_model_signature.Set
 end
 module SetParameters = Dancelor_common_model_core.SetParameters
 
@@ -93,7 +93,7 @@ module Tune = struct
   include Dancelor_common_model_core.Tune
   module Filter = Dancelor_common_model_filter.Tune
   include Dancelor_common_model_lifter.Tune
-  module type Signature = Dancelor_common_model_signature.Tune
+  include Dancelor_common_model_signature.Tune
 end
 
 module Version = struct
@@ -101,6 +101,6 @@ module Version = struct
   module Parameters = Dancelor_common_model_core.VersionParameters
   module Filter = Dancelor_common_model_filter.Version
   include Dancelor_common_model_lifter.Version
-  module type Signature = Dancelor_common_model_signature.Version
+  include Dancelor_common_model_signature.Version
 end
 module VersionParameters = Dancelor_common_model_core.VersionParameters

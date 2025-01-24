@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-include Model.Any.Lift(Person)(Dance)(Book)(Set)(Tune)(Version)
+include Model.Any.Lift(Book)(Dance)(Person)(Set)(Tune)(Version)
 
 let search = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Any Search)
 let search' = Lwt.map snd % search Model.Slice.everything

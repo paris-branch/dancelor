@@ -3,10 +3,10 @@ open Dancelor_common_database
 open Dancelor_common_model_utils
 
 module Lift
-    (Dance : Dancelor_common_model_signature.Dance)
-    (Set : Dancelor_common_model_signature.Set)
-    (Tune : Dancelor_common_model_signature.Tune)
-    (Version : Dancelor_common_model_signature.Version)
+    (Dance : Dancelor_common_model_signature.Dance.S)
+    (Set : Dancelor_common_model_signature.Set.S)
+    (Tune : Dancelor_common_model_signature.Tune.S)
+    (Version : Dancelor_common_model_signature.Version.S)
 = struct
   include Dancelor_common_model_core.Book
 

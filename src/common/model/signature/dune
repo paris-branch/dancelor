@@ -24,5 +24,4 @@
    ppx_fields_conv
    ppx_variants_conv
    ppx_import))
- (modules_without_implementation person dance book any set tune version)
  (inline_tests))
