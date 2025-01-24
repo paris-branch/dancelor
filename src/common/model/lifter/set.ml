@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common_database
 open Dancelor_common_model_utils
 
-module Liftq
+module Lift
     (Person : Dancelor_common_model_signature.Person)
     (Dance : Dancelor_common_model_signature.Dance)
     (Tune : Dancelor_common_model_signature.Tune)

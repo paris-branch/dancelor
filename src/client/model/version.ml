@@ -1,7 +1,9 @@
 open Nes
 open Dancelor_common
 
-include VersionLifted
+include Model.Lifter.Version.Lift(Person)(Tune)
+
+let get = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Get)
 
 let create = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Create)
 let update = Madge_cohttp_lwt_client.call ApiRouter.(route @@ Version Update)

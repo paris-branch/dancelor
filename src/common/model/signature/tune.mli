@@ -30,8 +30,9 @@ val remark : t Entry.t -> string
 val scddb_id : t Entry.t -> int option
 val date : t Entry.t -> PartialDate.t option
 
-val compare : t Entry.t -> t Entry.t -> int
-val equal : t Entry.t -> t Entry.t -> bool
+val equal : t -> t -> bool
+
+val compare : t Entry.t -> t Entry.t -> int (* FIXME: sounds hackish *)
 
 (** {2 Filters} *)
 

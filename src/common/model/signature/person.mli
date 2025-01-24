@@ -22,7 +22,7 @@ val scddb_id : t Entry.t -> int option
 
 val is_trad : t Entry.t -> bool
 
-val equal : t Entry.t -> t Entry.t -> bool
+val equal : t -> t -> bool
 
 (** {2 Filters} *)
 

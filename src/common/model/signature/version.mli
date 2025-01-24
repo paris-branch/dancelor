@@ -33,7 +33,7 @@ val kind : t Entry.t -> Kind.Version.t Lwt.t
 val name : t Entry.t -> string Lwt.t
 (** Convenient wrapper around {!tune} and {!Tune.name}. *)
 
-val equal : t Entry.t -> t Entry.t -> bool
+val equal : t -> t -> bool
 
 (** {2 Filters} *)
 

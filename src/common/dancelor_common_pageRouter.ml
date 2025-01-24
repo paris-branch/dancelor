@@ -9,7 +9,7 @@ module Context = struct
   type t =
     | InSearch of string
     | InSet of Core.Set.t Slug.t * int
-    | InBook of Core.Set.t Slug.t * int
+    | InBook of Core.Book.t Slug.t * int
   [@@deriving yojson, variants]
 
   let inSet' = inSet % Slug.unsafe_of_string

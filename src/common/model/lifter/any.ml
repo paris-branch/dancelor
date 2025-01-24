@@ -18,8 +18,8 @@ module Lift
     | Dance d1, Dance d2 -> Dance.equal d1 d2
     | Book b1, Book b2 -> Book.equal b1 b2
     | Set s1, Set s2 -> Set.equal s1 s2
-    | Tune t1, Tune t2 -> Tune.equal t1 t2
-    | Version v1, Version v2 -> Version.equal v1 v2
+    | Tune t1, Tune t2 -> Entry.equal Tune.equal t1 t2
+    | Version v1, Version v2 -> Entry.equal Version.equal v1 v2
     | _ -> false
 
   let name = function
