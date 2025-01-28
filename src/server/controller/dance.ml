@@ -1,7 +1,6 @@
 open NesUnix
 open Common
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
+
 module Log = (val Dancelor_server_logs.create "controller.dance": Logs.LOG)
 
 module Pdf = struct

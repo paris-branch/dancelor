@@ -1,8 +1,6 @@
 open Nes
 open Common
 
-module Database = Dancelor_server_database
-
 include ModelBuilder.SetParameters
 
 let for_dance p =

@@ -1,7 +1,6 @@
 open NesUnix
 open Common
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
+
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
 
 module Ly = struct
@@ -55,8 +54,8 @@ module Ly = struct
       fpf fmt [%blob "template/lyversion.ly"];
       (
         match Model.BookParameters.paper_size' parameters with
-        | A n -> fpf fmt [%blob "template/paper-size/a.ly"] n;
-        | Custom (width, height, unit) -> fpf fmt [%blob "template/paper-size/custom.ly"] width unit height unit;
+        | A n -> fpf fmt [%blob "template/paper_size/a.ly"] n;
+        | Custom (width, height, unit) -> fpf fmt [%blob "template/paper_size/custom.ly"] width unit height unit;
       );
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
@@ -69,12 +68,12 @@ module Ly = struct
       fpf fmt [%blob "template/book/paper.ly"];
       if Model.BookParameters.two_sided' parameters then
         (
-          fpf fmt [%blob "template/book/two-sided.ly"];
+          fpf fmt [%blob "template/book/two_sided.ly"];
           fpf
             fmt
             (
               if Model.BookParameters.running_header' parameters then
-                [%blob "template/book/header/two-sided.ly"]
+                [%blob "template/book/header/two_sided.ly"]
               else
                 [%blob "template/book/header/none.ly"]
             );
@@ -82,7 +81,7 @@ module Ly = struct
             fmt
             (
               if Model.BookParameters.running_footer' parameters then
-                [%blob "template/book/footer/two-sided.ly"]
+                [%blob "template/book/footer/two_sided.ly"]
               else
                 [%blob "template/book/footer/none.ly"]
             )
@@ -93,7 +92,7 @@ module Ly = struct
             fmt
             (
               if Model.BookParameters.running_header' parameters then
-                [%blob "template/book/header/one-sided.ly"]
+                [%blob "template/book/header/one_sided.ly"]
               else
                 [%blob "template/book/header/none.ly"]
             );
@@ -101,15 +100,15 @@ module Ly = struct
             fmt
             (
               if Model.BookParameters.running_footer' parameters then
-                [%blob "template/book/footer/one-sided.ly"]
+                [%blob "template/book/footer/one_sided.ly"]
               else
                 [%blob "template/book/footer/none.ly"]
             )
         );
-      fpf fmt [%blob "template/repeat-volta-fancy.ly"];
-      fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
-      fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
-      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
+      fpf fmt [%blob "template/repeat_volta_fancy.ly"];
+      fpf fmt [%blob "template/bar_numbering/repeat_aware.ly"];
+      fpf fmt [%blob "template/bar_numbering/bar_number_in_instrument_name_engraver.ly"];
+      fpf fmt [%blob "template/bar_numbering/beginning_of_line.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
       if Model.BookParameters.front_page' parameters then
         fpf fmt [%blob "template/book/book_front_page.ly"];
@@ -170,7 +169,7 @@ module Ly = struct
         (
           match Model.SetParameters.forced_pages' set_parameters with
           | 0 -> ()
-          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n
+          | n -> fpf fmt [%blob "template/book/set_forced_pages.ly"] n
         );
         let%lwt () =
           let%lwt contents = Model.Set.contents set in
@@ -227,7 +226,7 @@ end
 
 let populate_cache ~cache ~ext ~pp_ext =
   Log.info (fun m -> m "Populating the book %s cache" pp_ext);
-  let path = Filename.concat !Dancelor_server_config.cache "book" in
+  let path = Filename.concat !Config.cache "book" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
     (fun x ->
@@ -264,7 +263,7 @@ module Pdf = struct
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key: (`Pdf, book, parameters, body) @@ fun hash ->
     let%lwt lilypond = Ly.render parameters book in
-    let path = Filename.concat !Dancelor_server_config.cache "book" in
+    let path = Filename.concat !Config.cache "book" in
     let (fname_ly, fname_pdf) =
       let fname = StorageCache.hash_to_string hash in
       (fname ^ ".ly", fname ^ ".pdf")
@@ -276,7 +275,7 @@ module Pdf = struct
     Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.run
       ~exec_path: path
-      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
       fname_ly;%lwt
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf

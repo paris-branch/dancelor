@@ -1,10 +1,9 @@
 open Nes
 open Common
-module Database = Dancelor_server_database
 
 include ModelBuilder.Person.Build()
 
-let get = Dancelor_server_database.Person.get
+let get = Database.Person.get
 
 let create = Database.Person.create
 let update = Database.Person.update

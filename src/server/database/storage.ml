@@ -3,7 +3,7 @@ open Common
 
 module Log = (val Dancelor_server_logs.create "database.storage": Logs.LOG)
 
-let prefix = Dancelor_server_config.database
+let prefix = Config.database
 
 module Git = struct
   let add path =
@@ -169,7 +169,7 @@ let read_entry_yaml table entry file =
 let write_entry_file table entry file content =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Writing %s / %s / %s" table entry file);
-  if !Dancelor_server_config.write_storage then
+  if !Config.write_storage then
     (
       let path = Filename.concat_l [!prefix; table; entry] in
       Filesystem.create_directory ~fail_if_exists: false path;
@@ -186,7 +186,7 @@ let write_entry_yaml table entry file content =
 let delete_entry table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Deleting %s / %s" table entry);
-  if !Dancelor_server_config.write_storage then
+  if !Config.write_storage then
     (
       let path = Filename.concat_l [!prefix; table; entry] in
       Filesystem.read_directory path
@@ -198,7 +198,7 @@ let delete_entry table entry =
 let save_changes_on_entry ~msg table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Saving %s / %s" table entry);
-  if !Dancelor_server_config.write_storage then
+  if !Config.write_storage then
     (
       (* no prefix for git! *)
       let path = Filename.concat_l [ (*!prefix;*) table; entry] in
@@ -212,7 +212,7 @@ let save_changes_on_entry ~msg table entry =
 let sync_changes () =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Syncing");
-  if !Dancelor_server_config.sync_storage then
+  if !Config.sync_storage then
     (
       Git.pull_rebase ();%lwt
       Git.push ();%lwt

@@ -1,6 +1,6 @@
 open Nes
 open Common
-module Model = Dancelor_server_model
+
 open Endpoints.IssueReport
 open Request
 
@@ -16,10 +16,10 @@ let describe =
 let report issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
-      Lwt.return (!Dancelor_server_config.github_repository, issue.title)
+      Lwt.return (!Config.github_repository, issue.title)
     else
       let%lwt (model, name) = Lwt.map Option.get @@ describe @@ Uri.of_string issue.page in
-      Lwt.return (!Dancelor_server_config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
+      Lwt.return (!Config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
   in
   assert (repo <> "");
   (* otherwise this will pick up on the current Git repository *)
@@ -42,7 +42,7 @@ let report issue =
     NesProcess.run
       ~env: [|
         "PATH=" ^ (Unix.getenv "PATH");
-        "GH_TOKEN=" ^ !Dancelor_server_config.github_token;
+        "GH_TOKEN=" ^ !Config.github_token;
       |]
       ~on_wrong_status: Logs.Error
       ~on_nonempty_stderr: Logs.Error

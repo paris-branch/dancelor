@@ -1,7 +1,5 @@
 open Nes
 open Common
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
 
 module Pdf = struct
   let render parameters set =

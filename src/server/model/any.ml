@@ -1,6 +1,5 @@
 open Nes
 open Common
-module Database = Dancelor_server_database
 
 include ModelBuilder.Any.Build(Book)(Dance)(Person)(Set)(Tune)(Version)
 

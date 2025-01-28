@@ -1,7 +1,8 @@
+open Cohttp_lwt_unix
+
 open Nes
 open Common
-open Dancelor_server_controller
-open Cohttp_lwt_unix
+
 module Log = (val Dancelor_server_logs.create "main": Logs.LOG)
 
 let log_exn ~msg exn =
@@ -22,7 +23,7 @@ let apply_controller request =
     | [] -> None
     | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
-        match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (dispatch endpoint) request with
+        match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (Controller.dispatch endpoint) request with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
@@ -69,7 +70,7 @@ let callback _ request body =
   let uri = Request.uri request in
   let path = Uri.path uri in
   Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
-  let full_path = Filename.concat !Dancelor_server_config.share path in
+  let full_path = Filename.concat !Config.share path in
   Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
@@ -89,7 +90,7 @@ let callback _ request body =
       else
         (
           Log.debug (fun m -> m "Serving main file.");
-          Server.respond_file ~fname: (Filename.concat !Dancelor_server_config.share "index.html") ()
+          Server.respond_file ~fname: (Filename.concat !Config.share "index.html") ()
         )
     )
 
@@ -104,39 +105,39 @@ let () =
 
 let read_configuration () =
   Log.info (fun m -> m "Reading configuration");
-  Dancelor_server_config.parse_cmd_line ()
+  Config.parse_cmd_line ()
 
 let initialise_logs () =
-  Dancelor_server_logs.initialise !Dancelor_server_config.loglevel
+  Dancelor_server_logs.initialise !Config.loglevel
 
 let write_pid () =
   let pid = Unix.getpid () in
-  if !Dancelor_server_config.pid_file <> "" then
+  if !Config.pid_file <> "" then
     Lwt_io.(
-      with_file ~mode: output !Dancelor_server_config.pid_file @@ fun ochan ->
+      with_file ~mode: output !Config.pid_file @@ fun ochan ->
       fprintlf ochan "%d" pid
     )
   else
     Lwt.return_unit
 
 let populate_caches () =
-  Dancelor_server_controller.Version.Svg.populate_cache ();%lwt
-  Dancelor_server_controller.Version.Ogg.populate_cache ();%lwt
-  Dancelor_server_controller.Book.Pdf.populate_cache ()
+  Controller.Version.Svg.populate_cache ();%lwt
+  Controller.Version.Ogg.populate_cache ();%lwt
+  Controller.Book.Pdf.populate_cache ()
 
 let initialise_database () =
   Log.info (fun m -> m "Initialising database");
-  Dancelor_server_database.Tables.initialise ()
+  Database.Tables.initialise ()
 
 let check_init_only () =
-  if !Dancelor_server_config.init_only then
+  if !Config.init_only then
     (
       Log.info (fun m -> m "Init only mode. Stopping now.");
       log_exit 0
     )
 
 let start_routines () =
-  if !Dancelor_server_config.routines then
+  if !Config.routines then
     (
       Log.info (fun m -> m "Starting routines");
       Routine.initialise ()
@@ -152,7 +153,7 @@ let run_server () =
   @@ fun () ->
   let server =
     Server.create
-      ~mode: (`TCP (`Port !Dancelor_server_config.port))
+      ~mode: (`TCP (`Port !Config.port))
       (Server.make ~callback ())
   in
   Log.info (fun m -> m "Server is up and running");

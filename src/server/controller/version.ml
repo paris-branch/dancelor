@@ -1,7 +1,6 @@
 open NesUnix
 open Common
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
+
 module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
 
 let get_ly version =
@@ -60,12 +59,12 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/cropped.ly"];
-    fpf fmt [%blob "template/repeat-volta-fancy.ly"];
-    fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
-    fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
-    fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
-    fpf fmt [%blob "template/scottish-chords.ly"];
-    fpf fmt [%blob "template/fancy-unfold-repeats.ly"];
+    fpf fmt [%blob "template/repeat_volta_fancy.ly"];
+    fpf fmt [%blob "template/bar_numbering/repeat_aware.ly"];
+    fpf fmt [%blob "template/bar_numbering/bar_number_in_instrument_name_engraver.ly"];
+    fpf fmt [%blob "template/bar_numbering/beginning_of_line.ly"];
+    fpf fmt [%blob "template/scottish_chords.ly"];
+    fpf fmt [%blob "template/fancy_unfold_repeats.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/version/header.ly"];
     fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.Base.to_pretty_string ~capitalised: false kind) source target content
@@ -74,18 +73,18 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/scheme/extlib.scm"];
     fpf fmt [%blob "template/scheme/extlylib.scm"];
-    fpf fmt [%blob "template/scheme/get-partial.scm"];
-    fpf fmt [%blob "template/scheme/duration-of-music.scm"];
-    fpf fmt [%blob "template/scheme/skip-as-repeat.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/jig-chords.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/reel-chords.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/waltz-chords.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/chords.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/unfold-first-volta-repeat.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/extract-span.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/split-rhythmic-event-at.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/add-trailing-silence.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/fancy-unfold-repeats.scm"]
+    fpf fmt [%blob "template/scheme/get_partial.scm"];
+    fpf fmt [%blob "template/scheme/duration_of_music.scm"];
+    fpf fmt [%blob "template/scheme/skip_as_repeat.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/jig_chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/reel_chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/waltz_chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/chords.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/unfold_first_volta_repeat.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/extract_span.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/split_rhythmic_event_at.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/add_trailing_silence.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/fancy_unfold_repeats.scm"]
   in
   Log.debug (fun m -> m "Writing them to filesystem");
   Lwt_io.with_file
@@ -99,7 +98,7 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
 
 let populate_cache ~cache ~ext ~pp_ext =
   Log.info (fun m -> m "Populating the version %s cache" pp_ext);
-  let path = Filename.concat !Dancelor_server_config.cache "version" in
+  let path = Filename.concat !Config.cache "version" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
     (fun x ->
@@ -143,13 +142,13 @@ module Svg = struct
     in
     Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
     Log.debug (fun m -> m "SVG file name: %s" fname_svg);
-    let path = Filename.concat !Dancelor_server_config.cache "version" in
+    let path = Filename.concat !Config.cache "version" in
     Log.debug (fun m -> m "Preparing lilypond file");
     prepare_ly_file parameters ~show_meta: false ~fname: (Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Generate score");
     LilyPond.svg
       ~exec_path: path
-      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
       ~stylesheet: "/fonts.css"
       fname_ly;%lwt
     Log.debug (fun m -> m "done!");
@@ -205,12 +204,12 @@ module Ogg = struct
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".ogg")
     in
-    let path = Filename.concat !Dancelor_server_config.cache "version" in
+    let path = Filename.concat !Config.cache "version" in
     prepare_ly_file ~fname: (Filename.concat path fname_ly) parameters version;%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.ogg
       ~exec_path: path
-      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
       fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 

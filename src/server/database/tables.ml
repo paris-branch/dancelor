@@ -128,7 +128,7 @@ module Log = (val Dancelor_server_logs.create "database": Logs.LOG)
 module Initialise = struct
   let sync_db () =
     Log.info (fun m -> m "Syncing database changes");
-    if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
+    if (not !Config.init_only) && !Config.sync_storage then
       Storage.sync_changes ()
     else
       Lwt.return_unit
