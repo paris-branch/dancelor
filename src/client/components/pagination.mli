@@ -1,5 +1,6 @@
 (** {1 Page Navigation} *)
 
+open Nes
 open Html
 
 type t
@@ -15,5 +16,5 @@ val create :
 val render : t -> [> Html_types.div] elt
 (** HTML rendering of a page navigation. *)
 
-val slice : t -> Model.Slice.t React.signal
+val slice : t -> Slice.t React.signal
 (** Signal giving a {!Model.Slice.t} out of a page navigation. *)

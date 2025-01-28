@@ -1,5 +1,4 @@
 open Nes
-open Model
 open Html
 
 type state = {

@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
 open Html
-open Model
 
 type 'result t = {
   min_characters: int;

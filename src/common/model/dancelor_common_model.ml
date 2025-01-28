@@ -59,7 +59,6 @@ module IssueReport = IssueReport
 module Kind = Kind
 module Music = Music
 module Search = Search
-module Slice = Slice
 module TextFormula = TextFormula
 
 module Any = struct

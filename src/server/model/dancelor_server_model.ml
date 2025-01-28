@@ -8,7 +8,6 @@ module IssueReport = Common.Model.IssueReport
 module Kind = Common.Model.Kind
 module Music = Common.Model.Music
 module Search = Common.Model.Search
-module Slice = Common.Model.Slice
 module TextFormula = Common.Model.TextFormula
 
 (** {2 Modules overriden on the client side} *)

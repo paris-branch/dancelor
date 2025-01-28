@@ -1,7 +1,7 @@
 (** {1 SearchBar} *)
 
+open Nes
 open Js_of_ocaml_tyxml.Tyxml_js
-open Model
 
 (** Abstraction of the possible states of the search bar. *)
 type 'result state =

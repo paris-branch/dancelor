@@ -10,9 +10,6 @@ module Music = Common.Model.Music
 module Search = Common.Model.Search
 module TextFormula = Common.Model.TextFormula
 
-(* reproduced in the client models *)
-module Slice = Slice
-
 (** {2 Modules overriden on the client side} *)
 
 module Person : Common.Model.Person.S = Person
