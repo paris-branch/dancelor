@@ -2,7 +2,7 @@ open Nes
 module Entry = Dancelor_common.Entry
 module Database = Dancelor_server_database
 
-include Dancelor_common.Model.SetParameters
+include Dancelor_common.ModelBuilder.SetParameters
 
 let for_dance p =
   let%olwt dance_slug = Lwt.return (for_dance p) in

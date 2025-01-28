@@ -25,4 +25,4 @@ module type S = sig
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
 
-module Make : functor (M : Searchable) -> S with type value = M.value and type filter = M.filter
+module Build : functor (M : Searchable) -> S with type value = M.value and type filter = M.filter

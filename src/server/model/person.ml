@@ -2,7 +2,7 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Person.Lift()
+include ModelBuilder.Person.Build()
 
 let get = Dancelor_server_database.Person.get
 
@@ -10,7 +10,7 @@ let create = Database.Person.create
 let update = Database.Person.update
 let save = Database.Person.save
 
-include Model.Search.Make(struct
+include ModelBuilder.Search.Build(struct
     type value = t Entry.t
     type filter = Filter.t
 

@@ -1,6 +1,6 @@
 open Nes
 
-module Lift
+module Build
     (Dance : Signature.Dance.S)
     (Set : Signature.Set.S)
     (Tune : Signature.Tune.S)

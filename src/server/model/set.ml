@@ -2,9 +2,9 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Set.Lift(Dance)(Person)(Tune)(Version)
+include ModelBuilder.Set.Build(Dance)(Person)(Tune)(Version)
 
-let get = Dancelor_server_database.Set.get
+let get = Database.Set.get
 
 let create = Database.Set.create
 let update = Database.Set.update
@@ -12,7 +12,7 @@ let save = Database.Set.save
 
 let delete = Database.(Set.delete % Entry.slug)
 
-include Model.Search.Make(struct
+include ModelBuilder.Search.Build(struct
     type value = t Entry.t
     type filter = Filter.t
 
@@ -28,7 +28,7 @@ include Model.Search.Make(struct
   end)
 
 module Parameters = struct
-  include Dancelor_common.Model.SetParameters
+  include ModelBuilder.SetParameters
 
   let for_dance p =
     let%olwt dance_slug = Lwt.return (for_dance p) in

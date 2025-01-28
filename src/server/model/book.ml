@@ -2,15 +2,15 @@ open Nes
 open Dancelor_common
 module Database = Dancelor_server_database
 
-include Model.Book.Lift(Dance)(Set)(Tune)(Version)
+include ModelBuilder.Book.Build(Dance)(Set)(Tune)(Version)
 
-let get = Dancelor_server_database.Book.get
+let get = Database.Book.get
 
 let create = Database.Book.create
 let update = Database.Book.update
 let save = Database.Book.save
 
-include Model.Search.Make(struct
+include ModelBuilder.Search.Build(struct
     type value = t Entry.t
     type filter = Filter.t
 
@@ -28,4 +28,4 @@ include Model.Search.Make(struct
       ]
   end)
 
-module Parameters = Model.BookParameters
+module Parameters = ModelBuilder.BookParameters

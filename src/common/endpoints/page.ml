@@ -1,7 +1,7 @@
 (** {1 Client Router} *)
 
 open Nes
-open Model
+open ModelBuilder
 
 (** Context in which a page might exist. TODO: I wonder whether it'd be possible
     to simply use [page] here, having pages carry a “parent” [page option]. *)

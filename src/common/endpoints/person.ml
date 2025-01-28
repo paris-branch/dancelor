@@ -1,6 +1,6 @@
 open Nes
 open Madge
-open Model
+open ModelBuilder
 
 type (_, _, _) t =
   (* Actions without specific person *)

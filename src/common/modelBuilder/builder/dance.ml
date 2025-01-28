@@ -1,6 +1,6 @@
 open Nes
 
-module Lift
+module Build
     (Person : Signature.Person.S)
 = struct
   include Core.Dance

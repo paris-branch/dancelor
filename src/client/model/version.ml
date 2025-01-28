@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-include Dancelor_common.Model.Version.Lift(Person)(Tune)
+include ModelBuilder.Version.Build(Person)(Tune)
 
 let get = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Version Get)
 
@@ -14,7 +14,7 @@ let search' = Lwt.map snd % search Slice.everything
 let count = Lwt.map fst % search Slice.nothing
 
 module Parameters = struct
-  include Dancelor_common.Model.Version.Parameters
+  include ModelBuilder.Version.Parameters
 
   let for_dance p =
     let%olwt dance_slug = Lwt.return (for_dance p) in

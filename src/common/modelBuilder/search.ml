@@ -25,7 +25,7 @@ module type S = sig
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
 
-module Make (M : Searchable) : S with type value = M.value and type filter = M.filter = struct
+module Build (M : Searchable) : S with type value = M.value and type filter = M.filter = struct
   type value = M.value
   type filter = M.filter
 

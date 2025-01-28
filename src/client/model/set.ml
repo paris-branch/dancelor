@@ -1,7 +1,7 @@
 open Nes
 open Dancelor_common
 
-include Dancelor_common.Model.Set.Lift(Dance)(Person)(Tune)(Version)
+include ModelBuilder.Set.Build(Dance)(Person)(Tune)(Version)
 
 let get = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Get)
 

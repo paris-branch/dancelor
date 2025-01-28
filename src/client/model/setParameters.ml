@@ -1,4 +1,6 @@
-include Dancelor_common.Model.SetParameters
+open Dancelor_common
+
+include ModelBuilder.SetParameters
 
 let for_dance p =
   let%olwt dance_slug = Lwt.return (for_dance p) in

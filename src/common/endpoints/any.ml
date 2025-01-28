@@ -1,6 +1,6 @@
 open Nes
 open Madge
-open Model
+open ModelBuilder
 
 type (_, _, _) t =
   | Search : ((Slice.t -> Any.Filter.t -> 'w), 'w, (int * Any.t list)) t

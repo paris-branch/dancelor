@@ -1,6 +1,6 @@
 open Nes
 
-module Lift
+module Build
     (Person : Signature.Person.S)
     (Tune : Signature.Tune.S)
 = struct
