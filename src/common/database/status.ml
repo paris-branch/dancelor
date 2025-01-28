@@ -39,7 +39,7 @@ let from_string = function
   | "locked" -> Locked
   | "to-be-confirmed" -> ToBeConfirmed
   | "unlocked" -> Unlocked
-  | _ -> failwith "Dancelor_common_model.Status.from_string"
+  | _ -> failwith "Dancelor_common.Model.Status.from_string"
 
 let of_yojson = function
   | `String string ->
@@ -47,6 +47,6 @@ let of_yojson = function
       try
         Ok (from_string string)
       with
-      | _ -> Error "Dancelor_common_model.Status.of_yojson: not a valid status"
+      | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a valid status"
     )
-  | _ -> Error "Dancelor_common_model.Status.of_yojson: not a JSON string"
+  | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a JSON string"

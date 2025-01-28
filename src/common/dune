@@ -1,33 +1,34 @@
+(include_subdirs qualified)
+
 (library
  (name dancelor_common)
- (modules :standard \ dancelor_common_pageRouter)
  (public_name dancelor.common)
  (libraries
-  dancelor.nes
-  dancelor.common.model
-  dancelor.common.page-router
   cohttp
   cohttp-lwt
+  dancelor.madge
+  dancelor.nes
   logs
-  yojson
-  ppx_deriving_yojson.runtime)
+  lwt
+  menhirLib
+  ppx_deriving_yojson.runtime
+  str
+  yojson)
  (preprocess
   (pps
    lwt_ppx
-   ppx_deriving_yojson
    ppx_deriving.std
    ppx_deriving_yojson
+   ppx_fields_conv
    ppx_inline_test
-   ppx_variants_conv
    ppx_monad
    ppx_monad_olwt
-   ppx_monad_rlwt))
+   ppx_monad_rlwt
+   ppx_variants_conv))
  (inline_tests))
 
-(library
- (name dancelor_common_pageRouter)
- (modules dancelor_common_pageRouter)
- (public_name dancelor.common.page-router)
- (libraries dancelor.nes dancelor.common.model)
- (preprocess
-  (pps lwt_ppx ppx_deriving_yojson ppx_variants_conv)))
+(ocamllex kindDanceLexer textFormulaLexer)
+
+(menhir
+ (modules kindDanceParser textFormulaParser)
+ (flags --table))

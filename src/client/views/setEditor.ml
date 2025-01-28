@@ -4,7 +4,6 @@ open Components
 open Html
 open Utils
 module PageRouter = Dancelor_common.PageRouter
-module Database = Dancelor_common_database
 module ApiRouter = Dancelor_common.ApiRouter
 
 type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
@@ -92,7 +91,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Database.Entry.slug
+        ~serialise: Dancelor_common.Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.conceptors
     in
@@ -103,7 +102,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Version.search slice filter
           )
-        ~serialise: Database.Entry.slug
+        ~serialise: Dancelor_common.Database.Entry.slug
         ~unserialise: Model.Version.get
         initial_state.versions
     in
@@ -180,7 +179,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none (Database.Entry.slug version));
+                                a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none (Dancelor_common.Database.Entry.slug version));
                               ]
                               [];
                           ]
@@ -205,7 +204,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun set ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_set (Database.Entry.slug set))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_set (Dancelor_common.Database.Entry.slug set))
                       | Some on_save -> on_save set
                     )
                   ();

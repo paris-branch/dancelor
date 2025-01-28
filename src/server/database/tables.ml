@@ -1,6 +1,6 @@
 open Nes
 
-module Model = Dancelor_common_model
+module Model = Dancelor_common.Model
 
 module Person = Table.Make(struct
     include Model.Person

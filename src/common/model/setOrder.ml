@@ -21,7 +21,7 @@ let component_of_string =
       if Str.string_match regexp string 0 then
         External (int_of_string (Str.matched_group 1 string))
       else
-        invalid_arg "Dancelor_common_model.SetOrder.component_of_string"
+        invalid_arg "Dancelor_common.Model.SetOrder.component_of_string"
 
 type t = component list
 [@@deriving eq, show {with_path = false}]
@@ -93,6 +93,6 @@ let of_yojson = function
       try
         Ok (of_string string)
       with
-      | _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a valid set order"
+      | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a valid set order"
     )
-  | _ -> Error "Dancelor_common_model.SetOrder.of_yojson: not a JSON string"
+  | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a JSON string"

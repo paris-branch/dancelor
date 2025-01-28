@@ -22,7 +22,7 @@ let of_string s =
         (fun base repeats -> (repeats, KindBase.of_string base))
     with
     | End_of_file | Scanf.Scan_failure _ ->
-      invalid_arg "Dancelor_common_model.Kind.version_of_string"
+      invalid_arg "Dancelor_common.Model.Kind.version_of_string"
 
 let%test _ = to_string (32, Waltz) = "32 W"
 let%test _ = to_string (64, Reel) = "64 R"
@@ -60,9 +60,9 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-      | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a valid version kind"
+      | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a valid version kind"
     )
-  | _ -> Error "Dancelor_common_model.Kind.version_of_yojson: not a JSON string"
+  | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a JSON string"
 
 let to_pretty_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised: true base)

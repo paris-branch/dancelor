@@ -1,1 +1,1 @@
-include Dancelor_common_database.Entry
+include Dancelor_common.Database.Entry

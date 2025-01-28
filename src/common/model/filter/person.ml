@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common_database
+open Database
 
 type predicate =
   | Is of Core.Person.t Slug.t

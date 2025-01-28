@@ -5,7 +5,6 @@ open Html
 open Utils
 module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
-module Database = Dancelor_common_database
 
 type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) gen = {
   name: 'name;
@@ -98,7 +97,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Database.Entry.slug
+        ~serialise: Dancelor_common.Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.devisers
     in
@@ -209,7 +208,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun dance ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_dance (Database.Entry.slug dance))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_dance (Dancelor_common.Database.Entry.slug dance))
                       | Some on_save -> on_save dance
                     )
                   ();

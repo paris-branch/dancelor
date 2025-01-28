@@ -7,7 +7,7 @@
     - {!SetCore} contains the core definitions of set, including its actual
       low-level implementation, getters and setters. This definition and these
       functions are at the core of all the other set modules and therefore they
-      belongs to {!Dancelor_common_model}. Being low-level, they manipulate actual
+      belongs to {!Dancelor_common.Model}. Being low-level, they manipulate actual
       slugs of other models. The {!SetCore} module should never be used except in
       other core modules and in {!SetLifter}. It should certainly not appear in
       {!Dancelor_client} and {!Dancelor_server}.
@@ -19,13 +19,13 @@
       {!SetSignature} defines other helpers as well as API points belonging to the
       set model. The set model in {!Dancelor_client_model} and
       {!Dancelor_server_model} share this signature; therefore, it belongs to
-      {!Dancelor_common_model}.
+      {!Dancelor_common.Model}.
 
     - {!SetLifter} contains a unique functor, {!SetLifter.Lift} which lifts
       aforementioned low-level getters and setters, basically generating a module
       of type {!SetSignature}. Each functor depends on the lifted form of other
       models but, apart from that, the code is the same on both {!Dancelor_client}
-      and {!Dancelor_server}. Therefore, it belongs to {!Dancelor_common_model}.
+      and {!Dancelor_server}. Therefore, it belongs to {!Dancelor_common.Model}.
 
     - [SetLifted] contains the application of {!SetLifter.Lift}, giving a module
       providing most of the functions of {!SetSignature}. In addition to the result

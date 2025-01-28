@@ -5,7 +5,6 @@ open Html
 open Utils
 module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
-module Database = Dancelor_common_database
 
 type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
   tune: 'tune;
@@ -93,7 +92,7 @@ module Editor = struct
             Lwt.map Result.ok @@ Model.Tune.search slice filter
           )
         ~has_interacted
-        ~serialise: Database.Entry.slug
+        ~serialise: Dancelor_common.Database.Entry.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
@@ -113,7 +112,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Database.Entry.slug
+        ~serialise: Dancelor_common.Database.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
@@ -213,7 +212,7 @@ let create ?on_save ?text ?tune () =
                       Option.iter @@ fun version ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_version (Database.Entry.slug version))
+                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_version (Dancelor_common.Database.Entry.slug version))
                       | Some on_save -> on_save version
                     )
                   ();

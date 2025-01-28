@@ -7,7 +7,7 @@ module type S = sig
       This is a notion similar to that of the SCDDB. *)
 
   open Nes
-  open Dancelor_common_database
+  open Database
 
   open Core
 

@@ -220,7 +220,7 @@ module Ogg = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.Endpoints.Version.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common.Model.Endpoints.Version.t -> a = function
   | Get -> Model.Version.get
   | Search -> Model.Version.search
   | Create -> Model.Version.create

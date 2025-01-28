@@ -42,7 +42,7 @@ let note_of_char c =
   | 'e' -> E
   | 'f' -> F
   | 'g' -> G
-  | _ -> failwith "Dancelor_common_model.Music.note_of_char"
+  | _ -> failwith "Dancelor_common.Model.Music.note_of_char"
 
 (* Alteration *)
 
@@ -59,13 +59,13 @@ let alteration_of_string = function
   | "b" -> Flat
   | "#" -> Sharp
   | "" -> Natural
-  | _ -> failwith "Dancelor_common_model.Music.alteration_of_string"
+  | _ -> failwith "Dancelor_common.Model.Music.alteration_of_string"
 
 (* let alteration_of_lilypond_string = function
  *   | "es" -> Flat
  *   | "is" -> Sharp
  *   | "" -> Natural
- *   | _ -> failwith "Dancelor_common_model.Music.alteration_of_lilypond_string" *)
+ *   | _ -> failwith "Dancelor_common.Model.Music.alteration_of_lilypond_string" *)
 
 (* Octave *)
 
@@ -84,11 +84,11 @@ let octave_of_string = function
   | str ->
     let chr = str.[0] in
     if String.exists ((<>) chr) str then
-      failwith "Dancelor_common_model.Music.octave_of_string";
+      failwith "Dancelor_common.Model.Music.octave_of_string";
     match chr with
     | '\'' -> String.length str
     | ',' -> -(String.length str)
-    | _ -> failwith "Dancelor_common_model.Music.octave_of_string"
+    | _ -> failwith "Dancelor_common.Model.Music.octave_of_string"
 
 (* Pitch *)
 
@@ -123,12 +123,12 @@ let pitch_to_lilypond_string pitch =
 
 let pitch_to_safe_string ?(strict_octave = true) pitch =
   if strict_octave && pitch.octave <> 0 then
-    failwith "Dancelor_common_model.Music.pitch_to_safe_string";
+    failwith "Dancelor_common.Model.Music.pitch_to_safe_string";
   note_to_safe_string pitch.note ^
   alteration_to_safe_string pitch.alteration
 
 let pitch_of_string = function
-  | "" -> failwith "Dancelor_common_model.Music.pitch_of_string"
+  | "" -> failwith "Dancelor_common.Model.Music.pitch_of_string"
   | s ->
     let note_alteration_str, octave_str =
       (* FIXME: Dirty as fuck *)
@@ -151,7 +151,7 @@ let pitch_of_string = function
     }
 
 let pitch_to_yojson = to_yojson__of__to_string pitch_to_string
-let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common_model.Music.pitch_of_yojson"
+let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common.Model.Music.pitch_of_yojson"
 
 (* Mode *)
 
@@ -178,7 +178,7 @@ let key_to_lilypond_string key = pitch_to_lilypond_string key.pitch ^ mode_to_li
 let key_to_safe_string key = pitch_to_safe_string key.pitch ^ mode_to_safe_string key.mode
 
 let key_of_string = function
-  | "" -> failwith "Dancelor_common_model.Music.key_of_string"
+  | "" -> failwith "Dancelor_common.Model.Music.key_of_string"
   | str ->
     (* FIXME: dirty; does not use mode_of_string *)
     let pitch_str, mode =
@@ -196,7 +196,7 @@ let key_of_string_opt s =
   | Failure _ -> None
 
 let key_to_yojson = to_yojson__of__to_string key_to_string
-let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common_model.Music.key_of_yojson"
+let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common.Model.Music.key_of_yojson"
 
 module Key = struct
   type t = key
@@ -222,4 +222,4 @@ let clef_of_string = function
 let clef_to_symbol = function Treble -> "𝄞" | Bass -> "𝄢"
 
 let clef_to_yojson = to_yojson__of__to_string clef_to_string
-let clef_of_yojson = of_yojson__of__of_string clef_of_string "Dancelor_common_model.Music.clef_of_yojson"
+let clef_of_yojson = of_yojson__of__of_string clef_of_string "Dancelor_common.Model.Music.clef_of_yojson"

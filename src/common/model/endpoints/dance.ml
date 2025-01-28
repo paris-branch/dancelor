@@ -1,6 +1,6 @@
 open Nes
 open Madge
-open Dancelor_common_database
+open Database
 
 open Core
 

@@ -1,1 +1,1 @@
-include Dancelor_common_model.BookParameters
+include Dancelor_common.Model.BookParameters

@@ -1,7 +1,7 @@
 (** {1 Client Router} *)
 
 open Nes
-open Dancelor_common_model
+open Model
 
 module Context = struct
   (** Context in which a page might exist. TODO: I wonder whether it'd be possible
@@ -95,7 +95,7 @@ let href_version ?context version = href Version context version
 let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
-  let open Dancelor_common_database in
+  let open Database in
   let open Any in
   match any with
   | Version version -> href_version ?context (Entry.slug version)

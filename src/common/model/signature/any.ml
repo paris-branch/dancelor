@@ -2,12 +2,17 @@ module type S = sig
   (** {1 Any} *)
 
   open Nes
-  open Dancelor_common_database
+  open Database
 
-
-  type t = [%import: Core.Any.t]
-  (** Type of an “any” element, that is simply a sum type of all the other
-      models. *)
+  type t = Core.Any.t =
+    | Person of Core.Person.t Entry.t
+    | Dance of Core.Dance.t Entry.t
+    | Book of Core.Book.t Entry.t
+    | Set of Core.Set.t Entry.t
+    | Tune of Core.Tune.t Entry.t
+    | Version of Core.Version.t Entry.t
+    (** Type of an “any” element, that is simply a sum type of all the other
+        models. *)
 
   (** {3 Constructors} *)
 

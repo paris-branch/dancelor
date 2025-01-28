@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common_model
+open Model
 open Endpoints
 
 type (_, _, _) endpoint =

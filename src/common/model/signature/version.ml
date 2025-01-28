@@ -1,6 +1,6 @@
 module type S = sig
   open Nes
-  open Dancelor_common_database
+  open Database
 
   open Core
 

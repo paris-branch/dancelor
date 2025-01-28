@@ -2,7 +2,7 @@
  (name dancelor_server_model)
  (public_name dancelor.server.model)
  (libraries
-  dancelor.common.model
+  dancelor.common
   dancelor.server.database
   dancelor.madge.cohttp-lwt-server)
  (preprocess

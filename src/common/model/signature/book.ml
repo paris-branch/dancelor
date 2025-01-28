@@ -6,7 +6,7 @@ module type S = sig
       accesses; on the client side, network calls. *)
 
   open Nes
-  open Dancelor_common_database
+  open Database
 
   open Core
 

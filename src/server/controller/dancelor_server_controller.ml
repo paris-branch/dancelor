@@ -6,9 +6,7 @@ module Version = Version
 module Tune = Tune
 module Log = (val Dancelor_server_logs.create "controller": Logs.LOG)
 
-open Dancelor_common
-
-let dispatch : type a r. (a, r Lwt.t, r) ApiRouter.endpoint -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common.ApiRouter.endpoint -> a = function
   | Person endpoint -> Person.dispatch endpoint
   | Book endpoint -> Book.dispatch endpoint
   | Version endpoint -> Version.dispatch endpoint

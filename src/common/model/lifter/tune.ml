@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common_database
+open Database
 
 
 module Lift
@@ -29,7 +29,7 @@ module Lift
   let dances = Lwt_list.map_p Dance.get % dances
 
   module Filter = struct
-    (* NOTE: [include Core.Tune.Filter] shadows the accessors of [Dancelor_common_model_core.Tune]. *)
+    (* NOTE: [include Core.Tune.Filter] shadows the accessors of [Dancelor_common.Model_core.Tune]. *)
     let tuneCore_dances = dances
 
     include Filter.Tune

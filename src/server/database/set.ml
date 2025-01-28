@@ -1,6 +1,6 @@
 open Nes
-module Model = Dancelor_common_model
-module Database = Dancelor_common_database
+module Model = Dancelor_common.Model
+module Database = Dancelor_common.Database
 
 include Tables.Set
 

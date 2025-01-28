@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common_database
+open Database
 
 module Page = struct
   type t =

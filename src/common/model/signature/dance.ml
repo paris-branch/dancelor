@@ -2,7 +2,7 @@ module type S = sig
   (** {1 Dance} *)
 
   open Nes
-  open Dancelor_common_database
+  open Database
 
   open Core
 

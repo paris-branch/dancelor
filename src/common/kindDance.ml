@@ -43,9 +43,9 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-      | _ -> Error "Dancelor_common_model.Kind.of_yojson: not a valid dance kind"
+      | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a valid dance kind"
     )
-  | _ -> Error "Dancelor_common_model.Kind.of_yojson: not a JSON string"
+  | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a JSON string"
 
 let rec to_pretty_string = function
   | Version vkind -> KindVersion.to_pretty_string vkind

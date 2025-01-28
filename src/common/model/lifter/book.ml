@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common_database
+open Database
 
 
 module Lift
@@ -107,7 +107,7 @@ module Lift
 
   module Warnings = struct
     (* The following functions all have the name of a warning of
-       {!Dancelor_common_model.Core.Book.warning}. They all are in charge of
+       {!Dancelor_common.Model.Core.Book.warning}. They all are in charge of
        generating a list of the associated warning corresponding to the given
        book. The {!all} function then gathers all these warnings in a common list. *)
 
