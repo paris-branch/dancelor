@@ -2,8 +2,6 @@ module type S = sig
   (** {1 Dance} *)
 
   open Nes
-  open Database
-
   open Core
 
   type t = Dance.t

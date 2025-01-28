@@ -4,7 +4,7 @@ open Components
 open Html
 module SCDDB = Dancelor_common.SCDDB
 module Endpoints = Dancelor_common.Endpoints
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 type ('name, 'scddb_id) gen = {
   name: 'name;
@@ -73,7 +73,7 @@ module Editor = struct
     Input.Text.clear editor.elements.name;
     Input.Text.clear editor.elements.scddb_id
 
-  let submit (editor : t) : Model.Person.t Database.Entry.t option Lwt.t =
+  let submit (editor : t) : Model.Person.t Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; scddb_id} ->
@@ -114,7 +114,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun person ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Database.Entry.slug person))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
                       | Some on_save -> on_save person
                     )
                   ();

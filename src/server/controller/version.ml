@@ -1,4 +1,5 @@
 open NesUnix
+module Entry = Dancelor_common.Entry
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
@@ -125,7 +126,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Svg = struct
-  let cache : ([`Svg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Svg] * Model.Version.t Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -136,7 +137,7 @@ module Svg = struct
     StorageCache.use ~cache ~key: (`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
-      let slug = Database.Entry.slug version in
+      let slug = Entry.slug version in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".svg")
     in
@@ -173,7 +174,7 @@ module Pdf = struct
     in
     let parameters = Model.VersionParameters.set_display_name "" parameters in
     let set =
-      Database.Entry.make_dummy @@
+      Entry.make_dummy @@
       Model.Set.make
         ~name
         ~kind: (Dancelor_common.Kind.Dance.Version kind)
@@ -190,7 +191,7 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : ([`Ogg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ogg] * Model.Version.t Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -200,7 +201,7 @@ module Ogg = struct
     let body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
-      let slug = Database.Entry.slug version in
+      let slug = Entry.slug version in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".ogg")
     in

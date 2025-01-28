@@ -1,6 +1,4 @@
 open Nes
-open Database
-
 
 module Lift
     (Dance : Signature.Dance.S)

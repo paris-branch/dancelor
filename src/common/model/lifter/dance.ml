@@ -1,6 +1,4 @@
 open Nes
-open Database
-
 
 module Lift
     (Person : Signature.Person.S)

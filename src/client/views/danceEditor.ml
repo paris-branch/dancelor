@@ -97,7 +97,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Dancelor_common.Database.Entry.slug
+        ~serialise: Dancelor_common.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.devisers
     in
@@ -208,7 +208,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun dance ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Dancelor_common.Database.Entry.slug dance))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Dancelor_common.Entry.slug dance))
                       | Some on_save -> on_save dance
                     )
                   ();

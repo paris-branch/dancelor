@@ -38,7 +38,7 @@ let score_list_vs_list words needles =
     end
 
 include Model.Search.Make(struct
-    type value = t Database.Entry.t
+    type value = t Entry.t
     type filter = Filter.t
 
     let cache = Cache.create ~lifetime: 600 ()

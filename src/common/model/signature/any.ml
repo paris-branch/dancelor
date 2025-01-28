@@ -2,36 +2,36 @@ module type S = sig
   (** {1 Any} *)
 
   open Nes
-  open Database
+  open Core
 
-  type t = Core.Any.t =
-    | Person of Core.Person.t Entry.t
-    | Dance of Core.Dance.t Entry.t
-    | Book of Core.Book.t Entry.t
-    | Set of Core.Set.t Entry.t
-    | Tune of Core.Tune.t Entry.t
-    | Version of Core.Version.t Entry.t
+  type t = Any.t =
+    | Person of Person.t Entry.t
+    | Dance of Dance.t Entry.t
+    | Book of Book.t Entry.t
+    | Set of Set.t Entry.t
+    | Tune of Tune.t Entry.t
+    | Version of Version.t Entry.t
     (** Type of an “any” element, that is simply a sum type of all the other
         models. *)
 
   (** {3 Constructors} *)
 
-  val person : Core.Person.t Entry.t -> t
+  val person : Person.t Entry.t -> t
   (** Function equivalent of the [Person] constructor. *)
 
-  val dance : Core.Dance.t Entry.t -> t
+  val dance : Dance.t Entry.t -> t
   (** Function equivalent of the [Dance] constructor. *)
 
-  val book : Core.Book.t Entry.t -> t
+  val book : Book.t Entry.t -> t
   (** Function equivalent of the [Book] constructor. *)
 
-  val set : Core.Set.t Entry.t -> t
+  val set : Set.t Entry.t -> t
   (** Function equivalent of the [Set] constructor. *)
 
-  val tune : Core.Tune.t Entry.t -> t
+  val tune : Tune.t Entry.t -> t
   (** Function equivalent of the [Tune] constructor. *)
 
-  val version : Core.Version.t Entry.t -> t
+  val version : Version.t Entry.t -> t
   (** Function equivalent of the [Version] constructor. *)
 
   (** {3 Destructors} *)

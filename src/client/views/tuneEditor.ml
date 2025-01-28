@@ -96,7 +96,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Dancelor_common.Database.Entry.slug
+        ~serialise: Dancelor_common.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.composers
     in
@@ -114,7 +114,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Dance.search slice filter
           )
-        ~serialise: Dancelor_common.Database.Entry.slug
+        ~serialise: Dancelor_common.Entry.slug
         ~unserialise: Model.Dance.get
         initial_state.dances
     in
@@ -143,7 +143,7 @@ module Editor = struct
     Input.Text.clear editor.elements.remark;
     Input.Text.clear editor.elements.scddb_id
 
-  let submit (editor : t) : Model.Tune.t Dancelor_common.Database.Entry.t option Lwt.t =
+  let submit (editor : t) : Model.Tune.t Dancelor_common.Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
@@ -214,7 +214,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun tune ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_tune (Dancelor_common.Database.Entry.slug tune))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_tune (Dancelor_common.Entry.slug tune))
                       | Some on_save -> on_save tune
                     )
                   ();

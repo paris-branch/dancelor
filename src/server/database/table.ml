@@ -1,4 +1,6 @@
 open Nes
+module Entry = Dancelor_common.Entry
+module Status = Dancelor_common.Status
 
 (** {2 Type of database statistics} *)
 

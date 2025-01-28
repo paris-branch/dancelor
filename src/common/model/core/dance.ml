@@ -1,5 +1,4 @@
 open Nes
-open Database
 
 let _key = "dance"
 

@@ -6,7 +6,7 @@ let name ?(link = true) dance =
   if link then
     [
       a
-        ~a: [a_href @@ Endpoints.Page.href_dance @@ Database.Entry.slug dance]
+        ~a: [a_href @@ Endpoints.Page.href_dance @@ Entry.slug dance]
         name_text
     ]
   else

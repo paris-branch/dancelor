@@ -1,6 +1,6 @@
 open Nes
 open Html
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 (* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)
@@ -14,10 +14,10 @@ let many : many arity = Many
 type ('arity, 'model) t = {
   has_interacted: bool S.t;
   set_interacted: unit -> unit;
-  signal: 'model Database.Entry.t list S.t;
-  set: 'model Database.Entry.t list -> unit;
-  search_bar: 'model Database.Entry.t QuickSearchBar.t;
-  serialise: 'model Database.Entry.t -> 'model Slug.t;
+  signal: 'model Entry.t list S.t;
+  set: 'model Entry.t list -> unit;
+  search_bar: 'model Entry.t QuickSearchBar.t;
+  serialise: 'model Entry.t -> 'model Slug.t;
   arity: 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 
@@ -48,18 +48,18 @@ let raw_signal s =
   S.bind s.signal @@ fun elements ->
   S.const (input, List.map s.serialise elements)
 
-let signal (s : ('arity, 'model) t) : ('model Database.Entry.t list, string) Result.t S.t =
+let signal (s : ('arity, 'model) t) : ('model Entry.t list, string) Result.t S.t =
   Fun.flip S.map s.signal @@ function
   | [x] -> Ok [x]
   | [] when s.arity = One -> Error "You must select an element."
   | _ when s.arity = One -> Error "You must select exactly one element."
   | xs -> Ok xs
 
-let signal_one (s : (one, 'model) t) : ('model Database.Entry.t, string) Result.t S.t =
+let signal_one (s : (one, 'model) t) : ('model Entry.t, string) Result.t S.t =
   assert (s.arity = One);
   S.map (Result.map List.hd) (signal s)
 
-let signal_many (s : (many, 'model) t) : ('model Database.Entry.t list, 'bottom) Result.t S.t =
+let signal_many (s : (many, 'model) t) : ('model Entry.t list, 'bottom) Result.t S.t =
   assert (s.arity = Many);
   S.map (Result.ok % Result.get_ok) (signal s)
 

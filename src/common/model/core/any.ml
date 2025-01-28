@@ -1,5 +1,4 @@
 open Nes
-open Database
 
 type t =
   | Person of Person.t Entry.t

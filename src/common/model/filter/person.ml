@@ -1,5 +1,4 @@
 open Nes
-open Database
 
 type predicate =
   | Is of Core.Person.t Slug.t

@@ -13,7 +13,7 @@ let save = Database.Set.save
 let delete = Database.(Set.delete % Entry.slug)
 
 include Model.Search.Make(struct
-    type value = t Database.Entry.t
+    type value = t Entry.t
     type filter = Filter.t
 
     let cache = Cache.create ~lifetime: 600 ()
@@ -44,7 +44,7 @@ module Parameters = struct
       ?every_version
       ()
     =
-    let for_dance = Option.map Database.Entry.slug for_dance in
+    let for_dance = Option.map Entry.slug for_dance in
     Lwt.return
       (
         make

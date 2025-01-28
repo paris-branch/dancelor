@@ -95,7 +95,6 @@ let href_version ?context version = href Version context version
 let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
-  let open Database in
   let open Any in
   match any with
   | Version version -> href_version ?context (Entry.slug version)

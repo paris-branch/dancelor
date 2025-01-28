@@ -1,4 +1,5 @@
 open Nes
+module Entry = Dancelor_common.Entry
 module Database = Dancelor_server_database
 
 include Dancelor_common.Model.SetParameters
@@ -17,7 +18,7 @@ let make
     ?every_version
     ()
   =
-  let for_dance = Option.map Database.Entry.slug for_dance in
+  let for_dance = Option.map Entry.slug for_dance in
   Lwt.return
     (
       make

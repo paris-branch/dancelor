@@ -1,4 +1,5 @@
 open NesUnix
+module Entry = Dancelor_common.Entry
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
@@ -42,7 +43,7 @@ module Ly = struct
       |> List.map_filter (function Model.SetOrder.Internal n -> Some n | _ -> None)
       |> List.map (List.nth content % Fun.flip (-) 1)
 
-  let cache : ([`Ly] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ly] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let render parameters book =
@@ -139,9 +140,9 @@ module Ly = struct
                 ~show_order: false
                 ()
             in
-            Lwt.return (Database.Entry.make_dummy set, set_parameters)
+            Lwt.return (Entry.make_dummy set, set_parameters)
           | Set (set, parameters) -> Lwt.return (set, parameters)
-          | InlineSet (set, parameters) -> Lwt.return (Database.Entry.make_dummy set, parameters)
+          | InlineSet (set, parameters) -> Lwt.return (Entry.make_dummy set, parameters)
         in
         (* FIXME: none of the above need to be dummy; I think we can just return
            a SetCore.t; do we need the slug anyway? *)
@@ -253,7 +254,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =

@@ -3,7 +3,7 @@ open Model
 open Html
 module SCDDB = Dancelor_common.SCDDB
 module Endpoints = Dancelor_common.Endpoints
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 let create ?context slug =
   let tune_lwt = Tune.get slug in
@@ -62,7 +62,7 @@ let create ?context slug =
               if versions = [] then
                 [
                   txt "There are no versions for this tune. Maybe you want to ";
-                  a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Database.Entry.slug tune) ())] [txt "add one"];
+                  a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Entry.slug tune) ())] [txt "add one"];
                   txt "?";
                 ]
               else

@@ -1,6 +1,5 @@
 open Nes
 open Madge
-open Database
 open Model
 
 type (_, _, _) t =

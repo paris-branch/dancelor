@@ -1,7 +1,7 @@
 open Nes
 open Html
 module Endpoints = Dancelor_common.Endpoints
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 let description ?link version =
   let bars = Model.Version.bars version in
@@ -27,7 +27,7 @@ let name ?(link = true) version =
   if link then
     [
       a
-        ~a: [a_href @@ Endpoints.Page.href_version @@ Database.Entry.slug version]
+        ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.slug version]
         name_text
     ]
   else

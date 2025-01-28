@@ -1,14 +1,14 @@
 open Nes
 open Html
 module Endpoints = Dancelor_common.Endpoints
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 let name ?(link = true) tune =
   let name_text = [txt @@ Model.Tune.name tune] in
   if link then
     [
       a
-        ~a: [a_href @@ Endpoints.Page.href_tune @@ Database.Entry.slug tune]
+        ~a: [a_href @@ Endpoints.Page.href_tune @@ Entry.slug tune]
         name_text
     ]
   else

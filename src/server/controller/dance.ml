@@ -1,4 +1,5 @@
 open NesUnix
+module Entry = Dancelor_common.Entry
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.dance": Logs.LOG)
@@ -16,7 +17,7 @@ module Pdf = struct
     in
     let parameters = Model.SetParameters.set_show_order false parameters in
     let set =
-      Database.Entry.make_dummy @@
+      Entry.make_dummy @@
       Model.Set.make
         ~name: ("Dance: " ^ name)
         ~kind

@@ -1,7 +1,7 @@
 open Nes
 open Model
 module Endpoints = Dancelor_common.Endpoints
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 module SCDDB = Dancelor_common.SCDDB
 
 let display_warnings warnings =
@@ -84,7 +84,7 @@ let table_contents ~this_slug contents =
                match page with
                | Book.Set (set, parameters) ->
                  (
-                   let href = Endpoints.Page.href_set ~context @@ Database.Entry.slug set in
+                   let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
                    Tables.clickable_row
                      ~href
                      [
@@ -98,13 +98,13 @@ let table_contents ~this_slug contents =
                    tr
                      [
                        td [txt "Set (inline)"];
-                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Database.Entry.make_dummy set) parameters);
-                       td [txt @@ Dancelor_common.Kind.Dance.to_string @@ Set.kind @@ Database.Entry.make_dummy set];
+                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
+                       td [txt @@ Dancelor_common.Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
                      ]
                  )
                | Version (version, parameters) ->
                  (
-                   let href = Endpoints.Page.href_version ~context @@ Database.Entry.slug version in
+                   let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
                    Tables.clickable_row
                      ~href
                      [

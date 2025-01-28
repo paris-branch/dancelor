@@ -1,13 +1,13 @@
 open Nes
 module Model = Dancelor_common.Model
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 include Tables.Set
 
 let get slug = get slug
 let get_all () = get_all ()
 
-let get_books_that_contain (slug : Model.Set.t Slug.t) : Model.Book.t Database.Entry.t list Lwt.t =
+let get_books_that_contain (slug : Model.Set.t Slug.t) : Model.Book.t Entry.t list Lwt.t =
   let%lwt all = Tables.Book.get_all () in
   Lwt.return (List.filter (Model.Book.contains_set slug) all)
 

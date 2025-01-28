@@ -1,7 +1,5 @@
 module type S = sig
   open Nes
-  open Database
-
   open Core
 
   type t = Version.t

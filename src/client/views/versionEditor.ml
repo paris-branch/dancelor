@@ -92,7 +92,7 @@ module Editor = struct
             Lwt.map Result.ok @@ Model.Tune.search slice filter
           )
         ~has_interacted
-        ~serialise: Dancelor_common.Database.Entry.slug
+        ~serialise: Dancelor_common.Entry.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
@@ -112,7 +112,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Dancelor_common.Database.Entry.slug
+        ~serialise: Dancelor_common.Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
@@ -212,7 +212,7 @@ let create ?on_save ?text ?tune () =
                       Option.iter @@ fun version ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Dancelor_common.Database.Entry.slug version))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Dancelor_common.Entry.slug version))
                       | Some on_save -> on_save version
                     )
                   ();

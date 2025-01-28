@@ -1,7 +1,7 @@
 open Nes
 open Model
 open Html
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 module Endpoints = Dancelor_common.Endpoints
 
 let create ?context slug =
@@ -75,7 +75,7 @@ let create ?context slug =
                    let context = Endpoints.Page.inSet slug index in
                    (* FIXME: use parameters *)
                    let%lwt tune = Version.tune version in
-                   let slug = Database.Entry.slug version in
+                   let slug = Entry.slug version in
                    Lwt.return
                      (
                        div

@@ -1,7 +1,7 @@
 open Nes
 open Model
 open Html
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 module Endpoints = Dancelor_common.Endpoints
 module SCDDB = Dancelor_common.SCDDB
 
@@ -147,7 +147,7 @@ let create ?context slug =
                         [
                           txt "You can also go to the ";
                           a
-                            ~a: [L.a_href @@ Lwt.map (Endpoints.Page.href_tune % Database.Entry.slug) tune_lwt]
+                            ~a: [L.a_href @@ Lwt.map (Endpoints.Page.href_tune % Entry.slug) tune_lwt]
                             [txt "page of the tune"];
                           txt "."
                         ]

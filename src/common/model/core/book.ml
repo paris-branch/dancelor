@@ -1,5 +1,4 @@
 open Nes
-open Database
 
 module Page = struct
   type t =

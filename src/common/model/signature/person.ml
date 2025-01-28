@@ -7,8 +7,6 @@ module type S = sig
       This is a notion similar to that of the SCDDB. *)
 
   open Nes
-  open Database
-
   open Core
 
   type t = Person.t

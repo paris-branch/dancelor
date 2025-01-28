@@ -9,7 +9,7 @@ let create = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Create)
 let update = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Update)
 let save ?slug = match slug with None -> create | Some slug -> update slug
 
-let delete s = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Delete) (Database.Entry.slug s)
+let delete s = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Delete) (Entry.slug s)
 
 let search = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Search)
 let search' = Lwt.map snd % search Slice.everything

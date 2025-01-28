@@ -6,8 +6,6 @@ module type S = sig
       accesses; on the client side, network calls. *)
 
   open Nes
-  open Database
-
   open Core
 
   (** {2 Types} *)

@@ -1,12 +1,13 @@
 open Nes
+module Entry =Dancelor_common.Entry
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 
 module Pdf = struct
   let render parameters set =
     let book =
-      Database.Entry.make_dummy @@
-      Model.Book.make ~title: "" ~contents: [InlineSet (Database.Entry.value set, parameters)] ()
+      Entry.make_dummy @@
+      Model.Book.make ~title: "" ~contents: [InlineSet (Entry.value set, parameters)] ()
     in
     let parameters =
       (* FIXME: the fact that we need to transfer this is just wrong. see

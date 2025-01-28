@@ -1,7 +1,7 @@
 open Nes
 open Html
 module Endpoints = Dancelor_common.Endpoints
-module Database = Dancelor_common.Database
+module Entry = Dancelor_common.Entry
 
 let works set =
   match%lwt Model.Set.dances set with
@@ -10,10 +10,10 @@ let works set =
 
 let name ?(link = true) set =
   let name_text = [txt (Model.Set.name set)] in
-  if link && not (Database.Entry.is_dummy set) then
+  if link && not (Entry.is_dummy set) then
     [
       a
-        ~a: [a_href @@ Endpoints.Page.href_set @@ Database.Entry.slug set]
+        ~a: [a_href @@ Endpoints.Page.href_set @@ Entry.slug set]
         name_text
     ]
   else
