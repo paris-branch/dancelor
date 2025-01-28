@@ -1,9 +1,8 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-open Dancelor_client_html
-module Formatters = Dancelor_client_formatters
-module Utils = Dancelor_client_utils
+open Model
+open Html
+module PageRouter = Dancelor_common.PageRouter
+module Database = Dancelor_common.Database
 
 let clickable_row ~href cells =
   Utils.ResultRow.(to_clickable_row @@ make ~href (List.map lcell cells))

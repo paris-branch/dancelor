@@ -1,13 +1,10 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_components
-open Dancelor_client_html
-module Model = Dancelor_client_model
+open Components
+open Html
+open Utils
 module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
-open Dancelor_client_utils
-module Formatters = Dancelor_client_formatters
-module Page = Dancelor_client_page
 module Database = Dancelor_common_database
 
 type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
@@ -80,7 +77,7 @@ module Editor = struct
   let with_or_without_local_storage ~text ~tune f =
     match text, tune with
     | (None, None) ->
-      Lwt.return @@ Utils.with_local_storage "VersionEditor" (module RawState) raw_state f
+      Lwt.return @@ Cutils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
       Lwt.return @@ f {RawState.empty with tune = (Option.value ~default: "" text, Option.value ~default: [] tune)}
 

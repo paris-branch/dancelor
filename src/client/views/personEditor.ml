@@ -1,11 +1,9 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_components
-open Dancelor_client_html
+open Components
+open Html
 module SCDDB = Dancelor_common.SCDDB
-module Model = Dancelor_client_model
 module PageRouter = Dancelor_common.PageRouter
-module Page = Dancelor_client_page
 module Database = Dancelor_common.Database
 
 type ('name, 'scddb_id) gen = {
@@ -49,7 +47,7 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Utils.with_local_storage "PersonEditor" (module RawState) raw_state f
+      Cutils.with_local_storage "PersonEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->

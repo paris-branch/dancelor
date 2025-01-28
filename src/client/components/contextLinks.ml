@@ -1,10 +1,9 @@
 open Nes
-open Dancelor_client_html
-open Dancelor_client_model
+open Html
+open Model
 open Js_of_ocaml
 open Js_of_ocaml_lwt
-module PageRouter = Dancelor_common_pageRouter
-module Utils = Dancelor_client_utils
+module PageRouter = Dancelor_common.PageRouter
 
 let book_page_to_any = function
   | Book.Set (set, _) -> Any.Set set

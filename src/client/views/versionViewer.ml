@@ -1,12 +1,10 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Formatters = Dancelor_client_formatters
-module Components = Dancelor_client_components
-module Page = Dancelor_client_page
-module Utils = Dancelor_client_utils
-open Dancelor_client_html
-module Database = Dancelor_common_database
+open Model
+open Html
+module Database = Dancelor_common.Database
+module PageRouter = Dancelor_common.PageRouter
+module ApiRouter = Dancelor_common.ApiRouter
+module SCDDB = Dancelor_common.SCDDB
 
 let create ?context slug =
   let version_lwt = Version.get slug in
@@ -145,7 +143,7 @@ let create ?context slug =
                     [p [txt "There are no other versions available for this tune."]]
                   else
                     [
-                      Dancelor_client_tables.versions other_versions;
+                      Tables.versions other_versions;
                       p
                         [
                           txt "You can also go to the ";
@@ -171,7 +169,7 @@ let create ?context slug =
                   if dances = [] then
                     txt "There are no dances that recommend this tune."
                   else
-                    Dancelor_client_tables.dances dances
+                    Tables.dances dances
                 ]
             )
         ];

@@ -1,6 +1,6 @@
-open Dancelor_common
-open Dancelor_client_html
-open Dancelor_client_components
+open Html
+open Components
+module ApiRouter = Dancelor_common.ApiRouter
 
 let create = SetDownloadDialog.create
 

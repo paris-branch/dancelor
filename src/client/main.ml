@@ -1,12 +1,8 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_common
-open Dancelor_client_html
-open Dancelor_client_views
-module Components = Dancelor_client_components
-module Page = Dancelor_client_page
-module Utils = Dancelor_client_utils
-module Model = Dancelor_client_model
+open Html
+open Views
+module PageRouter = Dancelor_common.PageRouter
 
 let set_title title =
   Dom_html.document##.title :=

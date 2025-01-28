@@ -1,12 +1,9 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Formatters = Dancelor_client_formatters
-module Components = Dancelor_client_components
-module Page = Dancelor_client_page
-module Utils = Dancelor_client_utils
-open Dancelor_client_html
-module Database = Dancelor_common_database
+open Model
+open Html
+module Database = Dancelor_common.Database
+module PageRouter = Dancelor_common.PageRouter
+module ApiRouter = Dancelor_common.ApiRouter
 
 let create ?context slug =
   let set_lwt = Set.get slug in

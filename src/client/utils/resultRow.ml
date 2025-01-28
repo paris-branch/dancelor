@@ -1,7 +1,5 @@
 open Nes
 open React
-open Js_of_ocaml
-open Js_of_ocaml_tyxml.Tyxml_js
 
 type action =
   | NoAction
@@ -34,7 +32,7 @@ let rcell
     }
 
 let cell ?a content = rcell ?a (S.const content)
-let lcell ?a content = rcell ?a (Dancelor_client_html.S.from' [] content)
+let lcell ?a content = rcell ?a (Html.S.from' [] content)
 
 type t = {
   action: action;
@@ -54,7 +52,7 @@ let make ?(classes = []) ?action ?href cells =
 
 (** Generic row showing an emoji on the left and a message on the right. *)
 let icon_row ?classes ?action icon message =
-  let open Dancelor_client_html in
+  let open Html in
   make
     ?classes
     ?action
@@ -69,7 +67,7 @@ let icon_row ?classes ?action icon message =
     ]
 
 let to_clickable_row t =
-  let open Dancelor_client_html in
+  let open Html in
   match t.action with
   | NoAction ->
     tr
@@ -117,6 +115,7 @@ let to_clickable_row t =
       )
 
 let run_action row =
+  let open Js_of_ocaml in
   match row.action with
   | NoAction -> ()
   | Link href -> Dom_html.window##.location##.href := Js.string (S.value href)

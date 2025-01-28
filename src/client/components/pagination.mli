@@ -1,7 +1,6 @@
 (** {1 Page Navigation} *)
 
-open Dancelor_common_model
-open Dancelor_client_html
+open Html
 
 type t
 (** The abstract type of a page navigation. *)
@@ -16,5 +15,5 @@ val create :
 val render : t -> [> Html_types.div] elt
 (** HTML rendering of a page navigation. *)
 
-val slice : t -> Slice.t React.signal
-(** Signal giving a {!Slice} out of a page navigation. *)
+val slice : t -> Model.Slice.t React.signal
+(** Signal giving a {!Model.Slice.t} out of a page navigation. *)

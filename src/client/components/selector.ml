@@ -1,9 +1,6 @@
 open Nes
-open Js_of_ocaml_tyxml.Tyxml_js
-open Dancelor_client_html
-module Model = Dancelor_client_model
-module Utils = Dancelor_client_utils
-module Database = Dancelor_common_database
+open Html
+module Database = Dancelor_common.Database
 
 (* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)

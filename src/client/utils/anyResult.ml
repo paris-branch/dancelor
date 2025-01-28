@@ -1,8 +1,8 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Formatters = Dancelor_client_formatters
-open Dancelor_client_html
+open Model
+open Html
+module PageRouter = Dancelor_common.PageRouter
+module Database = Dancelor_common.Database
 
 let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
   ResultRow.make

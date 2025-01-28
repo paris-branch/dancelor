@@ -1,12 +1,9 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_model
-open Dancelor_client_components
-module Formatters = Dancelor_client_formatters
-module Utils = Dancelor_client_utils
-module PageRouter = Dancelor_common_pageRouter
-module Page = Dancelor_client_page
-open Dancelor_client_html
+open Model
+open Components
+module PageRouter = Dancelor_common.PageRouter
+open Html
 
 let update_uri input =
   let uri = PageRouter.(href Explore) (Some input) in

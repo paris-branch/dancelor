@@ -1,4 +1,4 @@
-open Dancelor_client_html
+open Html
 
 (** The type of errors that can terminate a dialog. *)
 type error = Closed

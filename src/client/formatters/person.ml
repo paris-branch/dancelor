@@ -1,10 +1,9 @@
 open Nes
 open Dancelor_common
-open Dancelor_client_html
-module M = Dancelor_client_model
+open Html
 
 let name ?(link = true) person =
-  let name_text = [txt (M.Person.name person)] in
+  let name_text = [txt (Model.Person.name person)] in
   if link then
     [
       a

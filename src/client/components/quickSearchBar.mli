@@ -6,8 +6,7 @@
     entries. *)
 
 open Js_of_ocaml_tyxml.Tyxml_js
-open Dancelor_client_model
-module Utils = Dancelor_client_utils
+open Model
 
 type 'result t
 (** Abstract type of a quick search bar, holding results of type ['result]. *)

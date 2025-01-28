@@ -1,29 +1,29 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_html
-module M = Dancelor_client_model
+open Html
+module PageRouter = Dancelor_common.PageRouter
+module Database = Dancelor_common.Database
 
 let description ?link version =
-  let bars = M.Version.bars version in
-  let structure = M.Version.structure version in
-  let key = M.Version.key version in
-  let shape = spf "%d-bar %s version in %s" bars structure (M.Music.key_to_pretty_string key) in
+  let bars = Model.Version.bars version in
+  let structure = Model.Version.structure version in
+  let key = Model.Version.key version in
+  let shape = spf "%d-bar %s version in %s" bars structure (Model.Music.key_to_pretty_string key) in
   let%lwt arranger_block =
-    match%lwt M.Version.arrangers version with
+    match%lwt Model.Version.arrangers version with
     | [] -> Lwt.return_nil
     | arrangers ->
       let name_block = Person.names ?link arrangers in
       Lwt.return ([txt " arranged by "] @ name_block)
   in
   let disambiguation_block =
-    match M.Version.disambiguation version with
+    match Model.Version.disambiguation version with
     | "" -> []
     | disambiguation -> [txt (spf " (%s)" disambiguation)]
   in
   Lwt.return ([txt shape] @ arranger_block @ disambiguation_block)
 
 let name ?(link = true) version =
-  let name_text = [L.txt (M.Version.name version)] in
+  let name_text = [L.txt (Model.Version.name version)] in
   if link then
     [
       a
@@ -35,7 +35,7 @@ let name ?(link = true) version =
 
 let name_and_dance ?link ?dance_link version parameters =
   let%lwt dance =
-    match%lwt M.VersionParameters.for_dance parameters with
+    match%lwt Model.VersionParameters.for_dance parameters with
     | None -> Lwt.return_nil
     | Some dance ->
       Lwt.return
@@ -52,7 +52,7 @@ let name_and_dance ?link ?dance_link version parameters =
 
 let name_and_disambiguation ?link version =
   let disambiguation_block =
-    match M.Version.disambiguation version with
+    match Model.Version.disambiguation version with
     | "" -> []
     | disambiguation -> [span ~a: [a_class ["dim"]] [txt (spf " (%s)" disambiguation)]]
   in
@@ -61,10 +61,10 @@ let name_and_disambiguation ?link version =
 let name_disambiguation_and_sources ?link version =
   let sources_lwt =
     let%lwt sources =
-      M.Book.(
+      Model.Book.(
         search'
           Filter.(
-            M.Formula.and_ (memVersionDeep' version) isSource'
+            Model.Formula.and_ (memVersionDeep' version) isSource'
           )
       )
     in
@@ -88,10 +88,10 @@ let name_disambiguation_and_sources ?link version =
 let disambiguation_and_sources version =
   let sources_lwt =
     let%lwt sources =
-      M.Book.(
+      Model.Book.(
         search'
           Filter.(
-            M.Formula.and_ (memVersionDeep' version) isSource'
+            Model.Formula.and_ (memVersionDeep' version) isSource'
           )
       )
     in
@@ -107,14 +107,14 @@ let disambiguation_and_sources version =
   in
   Lwt.return
     [
-      txt (M.Version.disambiguation version);
+      txt (Model.Version.disambiguation version);
       L.span ~a: [a_class ["dim"; "details"]] sources_lwt;
     ]
 
 let composer_and_arranger ?(short = false) ?link version =
-  let%lwt composer_block = Lwt.bind (M.Version.tune version) (Tune.composers ~short) in
+  let%lwt composer_block = Lwt.bind (Model.Version.tune version) (Tune.composers ~short) in
   let%lwt arranger_block =
-    match%lwt M.Version.arrangers version with
+    match%lwt Model.Version.arrangers version with
     | [] -> Lwt.return_nil
     | arrangers ->
       let comma = if composer_block <> [] then ", " else "" in

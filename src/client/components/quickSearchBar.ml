@@ -1,8 +1,7 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_html
-open Dancelor_client_model
-module Utils = Dancelor_client_utils
+open Html
+open Model
 
 type 'result t = {
   min_characters: int;

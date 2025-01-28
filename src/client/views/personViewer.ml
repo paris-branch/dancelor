@@ -1,10 +1,8 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Components = Dancelor_client_components
-module Page = Dancelor_client_page
-module Utils = Dancelor_client_utils
-open Dancelor_client_html
+open Model
+open Html
+module SCDDB = Dancelor_common.SCDDB
+module PageRouter = Dancelor_common.PageRouter
 
 let create ?context slug =
   let person_lwt = Person.get slug in

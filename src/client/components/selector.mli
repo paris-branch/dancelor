@@ -1,9 +1,7 @@
 open Nes
-open Js_of_ocaml_tyxml.Tyxml_js
-open Dancelor_client_model
-open Dancelor_client_html
-module Utils = Dancelor_client_utils
-module Database = Dancelor_common_database
+open Dancelor_common
+open Model
+open Html
 
 type ('arity, 'model) t
 (** The type of a selector of arity ['arity] and carrying ['model]s. The arity

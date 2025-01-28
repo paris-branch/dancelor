@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_client_html
+open Html
 open Js_of_ocaml
 
 (* FIXME: Should actually be a <dialog> element. This is only available from

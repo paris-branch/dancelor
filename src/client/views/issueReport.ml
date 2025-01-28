@@ -1,9 +1,9 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_common
-module Model = Dancelor_client_model
-open Dancelor_client_html
-open Dancelor_client_components
+open Html
+open Components
+module PageRouter = Dancelor_common.PageRouter
+module ApiRouter = Dancelor_common.ApiRouter
 
 let describe =
   PageRouter.make_describe

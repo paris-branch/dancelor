@@ -1,10 +1,8 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Formatters = Dancelor_client_formatters
-module Components = Dancelor_client_components
-module Page = Dancelor_client_page
-open Dancelor_client_html
+open Model
+open Html
+module PageRouter = Dancelor_common.PageRouter
+module SCDDB = Dancelor_common.SCDDB
 
 let create ?context slug =
   let dance_lwt = Dance.get slug in
@@ -93,7 +91,7 @@ let create ?context slug =
                         "And if you find something that is not known here, report it to someone."
                       )
                   else
-                    Dancelor_client_tables.tunes tunes
+                    Tables.tunes tunes
                 ]
             )
         ];

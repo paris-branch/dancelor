@@ -1,5 +1,5 @@
 open Js_of_ocaml
-open Dancelor_client_html
+open Html
 
 let group content =
   div

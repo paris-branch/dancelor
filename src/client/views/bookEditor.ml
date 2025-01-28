@@ -1,13 +1,10 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_components
-open Dancelor_client_html
-module Model = Dancelor_client_model
+open Components
+open Html
+open Utils
 module SCDDB = Dancelor_common.SCDDB
 module PageRouter = Dancelor_common.PageRouter
-open Dancelor_client_utils
-module Formatters = Dancelor_client_formatters
-module Page = Dancelor_client_page
 module Database = Dancelor_common_database
 
 type ('name, 'date, 'sets) gen = {
@@ -94,7 +91,7 @@ module Editor = struct
       Lwt.return @@ f raw_state
     | _, None ->
       Lwt.return @@
-      Utils.with_local_storage "BookEditor" (module RawState) raw_state f
+      Cutils.with_local_storage "BookEditor" (module RawState) raw_state f
 
   let create ~text ~edit : t Lwt.t =
     with_or_without_local_storage ~text ~edit @@ fun initial_state ->
@@ -128,7 +125,7 @@ module Editor = struct
     }
 
   let add_to_storage set =
-    Utils.update "BookEditor" (module RawState) @@ fun state ->
+    Cutils.update "BookEditor" (module RawState) @@ fun state ->
     {state with sets = (fst state.sets, snd state.sets @ [set])}
 
   let clear (editor : t) =
@@ -171,7 +168,7 @@ let create ?on_save ?text ?edit () =
                 ~placeholder: "eg. 2019 or 2012-03-14";
               Selector.render
                 ~make_result: AnyResult.make_set_result'
-                ~make_more_results: (fun set -> [Dancelor_client_utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
+                ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
                 ~field_name: ("Sets", "set")
                 ~model_name: "set"
                 ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ SetEditor.create ?on_save ~text ())

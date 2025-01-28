@@ -8,8 +8,10 @@ module IssueReport = Common.Model.IssueReport
 module Kind = Common.Model.Kind
 module Music = Common.Model.Music
 module Search = Common.Model.Search
-module Slice = Common.Model.Slice
 module TextFormula = Common.Model.TextFormula
+
+(* reproduced in the client models *)
+module Slice = Slice
 
 (** {2 Modules overriden on the client side} *)
 

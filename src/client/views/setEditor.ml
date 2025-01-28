@@ -1,14 +1,11 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_components
-open Dancelor_client_html
-open Dancelor_common
-module Model = Dancelor_client_model
+open Components
+open Html
+open Utils
 module PageRouter = Dancelor_common.PageRouter
-open Dancelor_client_utils
-module Formatters = Dancelor_client_formatters
-module Page = Dancelor_client_page
 module Database = Dancelor_common_database
+module ApiRouter = Dancelor_common.ApiRouter
 
 type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
   name: 'name;
@@ -74,7 +71,7 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Utils.with_local_storage "SetEditor" (module RawState) raw_state f
+      Cutils.with_local_storage "SetEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
@@ -120,7 +117,7 @@ module Editor = struct
     }
 
   let add_to_storage version =
-    Utils.update "SetEditor" (module RawState) @@ fun state ->
+    Cutils.update "SetEditor" (module RawState) @@ fun state ->
     {state with versions = (fst state.versions, snd state.versions @ [version])}
 
   let clear (editor : t) =
@@ -174,10 +171,10 @@ let create ?on_save ?text () =
               ~make_result: AnyResult.make_version_result'
               ~make_more_results: (fun version ->
                   [
-                    Dancelor_client_utils.ResultRow.make
+                    Utils.ResultRow.make
                       ~classes: ["small-previsualisation"]
                       [
-                        Dancelor_client_utils.ResultRow.cell
+                        Utils.ResultRow.cell
                           ~a: [a_colspan 9999]
                           [
                             object_

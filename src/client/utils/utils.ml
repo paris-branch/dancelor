@@ -1,7 +1,7 @@
 open Nes
 open Js_of_ocaml
-module Model = Dancelor_client_model
-module PageRouter = Dancelor_common_pageRouter
+
+module PageRouter = Dancelor_common.PageRouter
 
 module AnyResult = AnyResult
 module ResultRow = ResultRow
@@ -32,7 +32,7 @@ let add_target_event_listener n ev f =
     Js._false (* default: run in bubbling phase *)
 
 let quick_explorer_links links =
-  let open Dancelor_client_html in
+  let open Html in
   div
     ~a: [a_class ["section"]]
     [

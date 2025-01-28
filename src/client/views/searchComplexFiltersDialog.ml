@@ -1,7 +1,7 @@
 open Nes
-open Dancelor_client_model
-open Dancelor_client_html
-open Dancelor_client_components
+open Model
+open Html
+open Components
 
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)

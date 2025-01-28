@@ -1,8 +1,8 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-open Dancelor_client_html
-open Dancelor_client_components
+open Model
+open Html
+open Components
+module ApiRouter = Dancelor_common.ApiRouter
 
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)

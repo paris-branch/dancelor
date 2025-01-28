@@ -1,13 +1,11 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Formatters = Dancelor_client_formatters
-module Components = Dancelor_client_components
-module Page = Dancelor_client_page
-open Dancelor_client_html
+open Model
+module PageRouter = Dancelor_common.PageRouter
+module Database = Dancelor_common.Database
+module SCDDB = Dancelor_common.SCDDB
 
 let display_warnings warnings =
-  let open Dancelor_client_html in
+  let open Html in
   let display_times n =
     if n = 1 then []
     else [txt " ("; txt (Int.to_english_string_times n); txt ")"]
@@ -62,7 +60,7 @@ let display_warnings warnings =
   List.map display_warning warnings
 
 let table_contents ~this_slug contents =
-  let open Dancelor_client_html in
+  let open Html in
   tablex
     ~a: [a_class ["separated-table"]]
     ~thead: (
@@ -87,7 +85,7 @@ let table_contents ~this_slug contents =
                | Book.Set (set, parameters) ->
                  (
                    let href = PageRouter.href_set ~context @@ Database.Entry.slug set in
-                   Dancelor_client_tables.clickable_row
+                   Tables.clickable_row
                      ~href
                      [
                        Lwt.return [txt "Set"];
@@ -107,7 +105,7 @@ let table_contents ~this_slug contents =
                | Version (version, parameters) ->
                  (
                    let href = PageRouter.href_version ~context @@ Database.Entry.slug version in
-                   Dancelor_client_tables.clickable_row
+                   Tables.clickable_row
                      ~href
                      [
                        Lwt.return [txt "Tune"];
@@ -129,6 +127,7 @@ let table_contents ~this_slug contents =
     ]
 
 let create ?context slug =
+  let open Html in
   let book_lwt = Book.get slug in
   let title = S.from' "" (Lwt.map Book.title book_lwt) in
   Page.make ~title: (Page.sub_title "Book" title) @@
