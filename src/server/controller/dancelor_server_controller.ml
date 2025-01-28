@@ -1,12 +1,15 @@
+open Common
+
 module Person = Person
 module Set = Set
 module Book = Book
 module Dance = Dance
 module Version = Version
 module Tune = Tune
+
 module Log = (val Dancelor_server_logs.create "controller": Logs.LOG)
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common.Endpoints.Api.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Api.t -> a = function
   | Person endpoint -> Person.dispatch endpoint
   | Book endpoint -> Book.dispatch endpoint
   | Version endpoint -> Version.dispatch endpoint

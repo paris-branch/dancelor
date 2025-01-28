@@ -1,8 +1,8 @@
 open Nes
+open Common
+
 open Model
 open Html
-module Endpoints = Dancelor_common.Endpoints
-module SCDDB = Dancelor_common.SCDDB
 
 let create ?context slug =
   let dance_lwt = Dance.get slug in
@@ -18,7 +18,7 @@ let create ?context slug =
       L.h3
         ~a: [a_class ["title"]]
         (
-          let kind = [L.txt @@ Lwt.map (Dancelor_common.Kind.Dance.to_pretty_string % Dance.kind) dance_lwt] in
+          let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind) dance_lwt] in
           let%lwt by =
             match%lwt dance_lwt >>=| Dance.devisers with
             | [] -> Lwt.return_nil

@@ -1,10 +1,10 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Components
 open Html
 open Utils
-module SCDDB = Dancelor_common.SCDDB
-module Endpoints = Dancelor_common.Endpoints
 
 type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
   tune: 'tune;
@@ -46,7 +46,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Dancelor_common.Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
+      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -92,7 +92,7 @@ module Editor = struct
             Lwt.map Result.ok @@ Model.Tune.search slice filter
           )
         ~has_interacted
-        ~serialise: Dancelor_common.Entry.slug
+        ~serialise: Entry.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
@@ -102,7 +102,7 @@ module Editor = struct
     in
     let key =
       Input.Text.make ~has_interacted initial_state.key @@
-      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Dancelor_common.Music.key_of_string_opt
+      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
     in
     let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
     let arrangers =
@@ -112,7 +112,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Dancelor_common.Entry.slug
+        ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
@@ -212,7 +212,7 @@ let create ?on_save ?text ?tune () =
                       Option.iter @@ fun version ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Dancelor_common.Entry.slug version))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
                       | Some on_save -> on_save version
                     )
                   ();

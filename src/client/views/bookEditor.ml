@@ -1,10 +1,10 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Components
 open Html
 open Utils
-module SCDDB = Dancelor_common.SCDDB
-module Endpoints = Dancelor_common.Endpoints
 
 type ('name, 'date, 'sets) gen = {
   name: 'name;
@@ -32,17 +32,17 @@ end
 
 module State = struct
   type t =
-    (string, PartialDate.t option, Model.Set.t Dancelor_common.Entry.t list) gen
+    (string, PartialDate.t option, Model.Set.t Entry.t list) gen
 
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date;
-    sets = ("", List.map Dancelor_common.Entry.slug state.sets);
+    sets = ("", List.map Entry.slug state.sets);
   }
 
   exception Non_convertible
 
-  let of_model (book : Model.Book.t Dancelor_common.Entry.t) : t Lwt.t =
+  let of_model (book : Model.Book.t Entry.t) : t Lwt.t =
     let%lwt contents = Model.Book.contents book in
     let sets =
       List.map
@@ -54,8 +54,8 @@ module State = struct
     in
     Lwt.return
       {
-        name = (Dancelor_common.Entry.value book).title;
-        date = (Dancelor_common.Entry.value book).date;
+        name = (Entry.value book).title;
+        date = (Entry.value book).date;
         sets;
       }
 end
@@ -114,7 +114,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Set.search slice filter
           )
-        ~serialise: Dancelor_common.Entry.slug
+        ~serialise: Entry.slug
         ~unserialise: Model.Set.get
         initial_state.sets
     in
@@ -182,7 +182,7 @@ let create ?on_save ?text ?edit () =
                         Option.iter @@ fun book ->
                         Editor.clear editor;
                         match on_save with
-                        | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Dancelor_common.Entry.slug book))
+                        | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
                         | Some on_save -> on_save book
                       )
                     ();

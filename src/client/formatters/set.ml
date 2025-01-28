@@ -1,7 +1,7 @@
 open Nes
+open Common
+
 open Html
-module Endpoints = Dancelor_common.Endpoints
-module Entry = Dancelor_common.Entry
 
 let works set =
   match%lwt Model.Set.dances set with

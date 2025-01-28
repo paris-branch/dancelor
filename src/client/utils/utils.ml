@@ -1,7 +1,7 @@
 open Nes
-open Js_of_ocaml
+open Common
 
-module Endpoints = Dancelor_common.Endpoints
+open Js_of_ocaml
 
 module AnyResult = AnyResult
 module ResultRow = ResultRow

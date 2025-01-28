@@ -1,7 +1,7 @@
 open Nes
+open Common
+
 open Html
-module Endpoints = Dancelor_common.Endpoints
-module Entry = Dancelor_common.Entry
 
 let name ?(link = true) tune =
   let name_text = [txt @@ Model.Tune.name tune] in
@@ -17,7 +17,7 @@ let name ?(link = true) tune =
 let composers ?short = Lwt.map (Person.names ?short) % Model.Tune.composers
 
 let description tune =
-  let kind = Dancelor_common.Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
+  let kind = Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
   match%lwt Model.Tune.composers tune with
   | [] ->
     Lwt.return

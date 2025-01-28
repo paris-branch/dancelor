@@ -1,8 +1,8 @@
 open Nes
+open Common
+
 open Model
 open Html
-module Endpoints = Dancelor_common.Endpoints
-module Entry = Dancelor_common.Entry
 
 let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
   ResultRow.make
@@ -38,7 +38,7 @@ let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
       prefix @
       [
         ResultRow.cell [txt (Dance.name dance)];
-        ResultRow.cell [txt (Dancelor_common.Kind.Dance.to_string @@ Dance.kind dance)];
+        ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind dance)];
         ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Dance.devisers dance));
       ] @
       suffix
@@ -93,7 +93,7 @@ let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
       prefix @
       [
         ResultRow.cell [txt @@ Set.name set];
-        ResultRow.cell [txt @@ Dancelor_common.Kind.Dance.to_string @@ Set.kind set];
+        ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind set];
         ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Set.conceptors set));
       ] @
       suffix
@@ -121,7 +121,7 @@ let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
       prefix @
       [
         ResultRow.cell [txt @@ Tune.name tune];
-        ResultRow.cell [txt @@ Dancelor_common.Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
+        ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
         ResultRow.lcell (Formatters.Tune.composers tune);
       ] @
       suffix
@@ -156,7 +156,7 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
                 let bars = Version.bars version in
                 let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
                 let structure = Version.structure version in
-                Lwt.return (Dancelor_common.Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
+                Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
               )
           ];
         ResultRow.lcell (Formatters.Version.composer_and_arranger ~short: true version);

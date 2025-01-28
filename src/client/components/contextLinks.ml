@@ -1,9 +1,10 @@
 open Nes
+open Common
+
 open Html
 open Model
 open Js_of_ocaml
 open Js_of_ocaml_lwt
-module Endpoints = Dancelor_common.Endpoints
 
 let book_page_to_any = function
   | Book.Set (set, _) -> Any.Set set

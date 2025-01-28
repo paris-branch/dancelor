@@ -1,8 +1,8 @@
 open Nes
+open Common
+
 open Model
 open Html
-module SCDDB = Dancelor_common.SCDDB
-module Endpoints = Dancelor_common.Endpoints
 
 let create ?context slug =
   let person_lwt = Person.get slug in

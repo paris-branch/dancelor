@@ -1,9 +1,10 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Components
 open Html
 open Utils
-module Endpoints = Dancelor_common.Endpoints
 
 type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
   name: 'name;
@@ -42,7 +43,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, Dancelor_common.Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
+      (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -81,7 +82,7 @@ module Editor = struct
     in
     let kind =
       Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Dancelor_common.Kind.Dance.of_string_opt
+      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
     in
     let conceptors =
       Selector.make
@@ -90,7 +91,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Person.search slice filter
           )
-        ~serialise: Dancelor_common.Entry.slug
+        ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.conceptors
     in
@@ -101,7 +102,7 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Version.search slice filter
           )
-        ~serialise: Dancelor_common.Entry.slug
+        ~serialise: Entry.slug
         ~unserialise: Model.Version.get
         initial_state.versions
     in
@@ -178,7 +179,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Dancelor_common.Entry.slug version));
+                                a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
                               ]
                               [];
                           ]
@@ -203,7 +204,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun set ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Dancelor_common.Entry.slug set))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
                       | Some on_save -> on_save set
                     )
                   ();

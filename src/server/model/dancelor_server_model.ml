@@ -1,6 +1,6 @@
 (** {1 Server-side models} *)
 
-open Dancelor_common
+open Common
 
 module Person : ModelBuilder.Person.S = Person
 module Dance : ModelBuilder.Dance.S = Dance

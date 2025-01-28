@@ -1,8 +1,9 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Html
 open Components
-module Endpoints = Dancelor_common.Endpoints
 
 let describe =
   Endpoints.Page.make_describe
@@ -60,7 +61,7 @@ let open_dialog page =
     RS.bind (Input.Text.signal title_input) @@ fun title ->
     RS.bind (Input.Text.signal description_input) @@ fun description ->
     RS.bind (Choices.signal source) @@ fun source ->
-    RS.pure Dancelor_common.Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
+    RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
     Dialog.open_res @@ fun return ->

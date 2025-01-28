@@ -1,10 +1,9 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Components
 open Html
-module SCDDB = Dancelor_common.SCDDB
-module Endpoints = Dancelor_common.Endpoints
-module Entry = Dancelor_common.Entry
 
 type ('name, 'scddb_id) gen = {
   name: 'name;

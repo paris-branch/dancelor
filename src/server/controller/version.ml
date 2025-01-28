@@ -1,5 +1,5 @@
 open NesUnix
-module Entry = Dancelor_common.Entry
+open Common
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
@@ -30,7 +30,7 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
       "", ""
   in
   let kind = Model.Tune.kind tune in
-  let (tempo_unit, tempo_value) = Dancelor_common.Kind.Base.tempo kind in
+  let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
   let content = Model.Version.content version in
 
@@ -40,16 +40,16 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     | None -> content
     | Some clef_parameter ->
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-      Str.global_replace clef_regex ("\\clef " ^ Dancelor_common.Music.clef_to_lilypond_string clef_parameter) content
+      Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
   in
   let source, target =
     match Model.VersionParameters.transposition' parameters with
     | Relative (source, target) -> (source, target)
-    | Absolute target -> (Dancelor_common.Music.key_pitch key, target)
+    | Absolute target -> (Music.key_pitch key, target)
     (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
   in
-  let source = Dancelor_common.Music.pitch_to_lilypond_string source in
-  let target = Dancelor_common.Music.pitch_to_lilypond_string target in
+  let source = Music.pitch_to_lilypond_string source in
+  let target = Music.pitch_to_lilypond_string target in
 
   (* Create the Lilypond file *)
   Log.debug (fun m -> m "Generating Scheme & LilyPond string");
@@ -68,7 +68,7 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     fpf fmt [%blob "template/fancy-unfold-repeats.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Dancelor_common.Kind.Base.to_pretty_string ~capitalised: false kind) source target content
+    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.Base.to_pretty_string ~capitalised: false kind) source target content
   in
   let scheme =
     Format.with_formatter_to_string @@ fun fmt ->
@@ -177,7 +177,7 @@ module Pdf = struct
       Entry.make_dummy @@
       Model.Set.make
         ~name
-        ~kind: (Dancelor_common.Kind.Dance.Version kind)
+        ~kind: (Kind.Dance.Version kind)
         ~contents: [(version, parameters)]
         ~order: [Internal 1]
         ()
@@ -221,7 +221,7 @@ module Ogg = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common.Endpoints.Version.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Version.t -> a = function
   | Get -> Model.Version.get
   | Search -> Model.Version.search
   | Create -> Model.Version.create

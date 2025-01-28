@@ -1,7 +1,7 @@
 (include_subdirs qualified)
 
 (library
- (name dancelor_common)
+ (name common)
  (public_name dancelor.common)
  (libraries
   cohttp

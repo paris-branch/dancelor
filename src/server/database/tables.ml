@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common
+open Common
 
 module Person = Table.Make(struct
     include ModelBuilder.Person
@@ -148,7 +148,7 @@ module Initialise = struct
            (
              problems
              |> List.iter @@ function
-             | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
+             | Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
              | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
@@ -164,7 +164,7 @@ module Initialise = struct
     in
     match found_problem with
     | None -> Lwt.return ()
-    | Some problem -> Dancelor_common.Error.fail problem
+    | Some problem -> Error.fail problem
 
   let report_without_accesses () =
     Log.info (fun m -> m "Checking for unaccessible entries");

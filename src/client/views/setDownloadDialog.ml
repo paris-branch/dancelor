@@ -1,8 +1,9 @@
 open Nes
+open Common
+
 open Html
 open Components
 open Model
-module Endpoints = Dancelor_common.Endpoints
 
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)

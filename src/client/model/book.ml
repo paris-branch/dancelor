@@ -1,5 +1,5 @@
 open Nes
-open Dancelor_common
+open Common
 
 include ModelBuilder.Book.Build(Dance)(Set)(Tune)(Version)
 

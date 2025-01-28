@@ -1,6 +1,7 @@
 open Nes
+open Common
+
 open Html
-module Entry = Dancelor_common.Entry
 
 (* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)

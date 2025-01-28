@@ -1,8 +1,9 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Model
 open Components
-module Endpoints = Dancelor_common.Endpoints
 open Html
 
 let update_uri input =

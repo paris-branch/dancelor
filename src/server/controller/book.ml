@@ -1,5 +1,5 @@
 open NesUnix
-module Entry = Dancelor_common.Entry
+open Common
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
@@ -11,7 +11,7 @@ module Ly = struct
       | None -> Lwt.return @@ Model.Set.kind set
       | Some dance -> Lwt.return @@ Model.Dance.kind dance
     in
-    Lwt.return (Dancelor_common.Kind.Dance.to_pretty_string kind)
+    Lwt.return (Kind.Dance.to_pretty_string kind)
 
   let details_line set set_parameters =
     let%lwt dance =
@@ -127,7 +127,7 @@ module Ly = struct
             let set =
               Model.Set.make
                 ~name
-                ~kind: (Dancelor_common.Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
+                ~kind: (Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
                 ~contents: [version, parameters]
                 ~order: [Internal 1]
                 ()
@@ -188,7 +188,7 @@ module Ly = struct
             | None -> content
             | Some clef_parameter ->
               let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-              Str.global_replace clef_regex ("\\clef " ^ Dancelor_common.Music.clef_to_string clef_parameter) content
+              Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
           in
           let%lwt tune = Model.Version.tune version in
           let key = Model.Version.key version in
@@ -199,7 +199,7 @@ module Ly = struct
           let source, target =
             match Model.VersionParameters.transposition' version_parameters with
             | Relative (source, target) -> (source, target)
-            | Absolute target -> (Dancelor_common.Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
+            | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
           in
           fpf
             fmt
@@ -208,8 +208,8 @@ module Ly = struct
             composer
             first_bar
             name
-            (Dancelor_common.Music.pitch_to_lilypond_string source)
-            (Dancelor_common.Music.pitch_to_lilypond_string target)
+            (Music.pitch_to_lilypond_string source)
+            (Music.pitch_to_lilypond_string target)
             content;
           Lwt.return ()
         in
@@ -287,7 +287,7 @@ module Pdf = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common.Endpoints.Book.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Book.t -> a = function
   | Get -> Model.Book.get
   | Search -> Model.Book.search
   | Create -> Model.Book.create

@@ -1,6 +1,5 @@
 open Nes
-module Entry = Dancelor_common.Entry
-module Status = Dancelor_common.Status
+open Common
 
 (** {2 Type of database statistics} *)
 
@@ -28,7 +27,7 @@ module type S = sig
   type t = value database_state
 
   val load : unit -> unit Lwt.t
-  val list_dependency_problems : unit -> Dancelor_common.Error.t list Lwt.t
+  val list_dependency_problems : unit -> Error.t list Lwt.t
   val report_without_accesses : unit -> unit
   val standalone : bool
 
@@ -140,13 +139,13 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | Boxed (dep_slug, (module Dep_table)) ->
       match%lwt Dep_table.get_status dep_slug with
       | None ->
-        [Dancelor_common.Error.DependencyDoesNotExist ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
+        [Error.DependencyDoesNotExist ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
         |> Lwt.return
       | Some dep_status ->
         if Status.ge dep_status status then
           Lwt.return_nil
         else
-          [Dancelor_common.Error.DependencyViolatesStatus ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
+          [Error.DependencyViolatesStatus ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
           |> Lwt.return
 
   let list_dependency_problems () =
@@ -183,7 +182,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let get slug =
     match%lwt get_opt slug with
     | Some model -> Lwt.return model
-    | None -> Lwt.fail Dancelor_common.Error.(Exn (EntityDoesNotExist (Model._key, Slug.to_string slug)))
+    | None -> Lwt.fail Error.(Exn (EntityDoesNotExist (Model._key, Slug.to_string slug)))
 
   let get_all () =
     Hashtbl.to_seq_values table

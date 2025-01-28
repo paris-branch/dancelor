@@ -1,6 +1,7 @@
+open Common
+
 open Html
 open Components
-module Endpoints = Dancelor_common.Endpoints
 
 let create = SetDownloadDialog.create
 

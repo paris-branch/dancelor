@@ -1,5 +1,5 @@
 open Nes
-module Entry =Dancelor_common.Entry
+open Common
 module Model = Dancelor_server_model
 module Database = Dancelor_server_database
 
@@ -22,7 +22,7 @@ module Pdf = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common.Endpoints.Set.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Set.t -> a = function
   | Get -> Model.Set.get
   | Delete -> (fun slug -> Lwt.bind (Model.Set.get slug) Model.Set.delete)
   | Search -> Model.Set.search

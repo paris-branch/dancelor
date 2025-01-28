@@ -1,9 +1,8 @@
 open Nes
+open Common
+
 open Model
 open Html
-module Entry = Dancelor_common.Entry
-module Endpoints = Dancelor_common.Endpoints
-module SCDDB = Dancelor_common.SCDDB
 
 let create ?context slug =
   let version_lwt = Version.get slug in
@@ -12,7 +11,7 @@ let create ?context slug =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in
     Version.search'
-      Dancelor_common.Formula.(
+      Formula.(
         and_l
           [
             Version.Filter.tuneIs' tune;

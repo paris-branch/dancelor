@@ -1,10 +1,9 @@
 open Nes
+open Common
+
 open Js_of_ocaml
 open Html
 open Views
-module Endpoints = Dancelor_common.Endpoints
-module Formula = Dancelor_common.Formula
-module TextFormula = Dancelor_common.TextFormula
 
 let set_title title =
   Dom_html.document##.title :=

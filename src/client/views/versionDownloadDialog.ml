@@ -1,5 +1,6 @@
 open Nes
-open Dancelor_common
+open Common
+
 open Model
 open Html
 open Components

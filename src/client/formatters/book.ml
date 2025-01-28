@@ -1,4 +1,5 @@
-open Dancelor_common
+open Common
+
 open Html
 
 let title_and_subtitle ?(link = true) book =
