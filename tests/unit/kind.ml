@@ -1,4 +1,4 @@
-open Dancelor_server_model
+open Common
 
 let kindDance_to_string_of_string_roundtrip =
   QCheck_alcotest.to_alcotest
