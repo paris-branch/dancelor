@@ -32,4 +32,54 @@ module Type = struct
       0
     else
       Int.compare (to_int t1) (to_int t2)
+
+  let all = [Person; Dance; Book; Set; Tune; Version]
+
+  module Set = struct
+    include Stdlib.Set.Make(struct
+        type nonrec t = t
+        let compare = compare
+      end)
+
+    let all = of_list all
+    let comp = diff all
+  end
+
+  let are_all l = Set.(equal (of_list l) all)
+
+  let equal = (=)
+
+  let to_string = function
+    | Person -> "Person"
+    | Dance -> "Dance"
+    | Book -> "Book"
+    | Set -> "Set"
+    | Tune -> "Tune"
+    | Version -> "Version"
+
+  exception NotAType of string
+
+  let of_string str =
+    match String.lowercase_ascii str with
+    | "person" -> Person
+    | "dance" -> Dance
+    | "book" -> Book
+    | "set" -> Set
+    | "tune" -> Tune
+    | "version" -> Version
+    | _ -> raise (NotAType str)
+
+  let of_string_opt str =
+    try
+      Some (of_string str)
+    with
+    | NotAType _ -> None
 end
+
+let type_of = function
+  | Person _ -> Type.Person
+  | Dance _ -> Type.Dance
+  | Book _ -> Type.Book
+  | Set _ -> Type.Set
+  | Tune _ -> Type.Tune
+  | Version _ -> Type.Version
