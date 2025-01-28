@@ -87,7 +87,7 @@ end
 (** {2 Database Functor} *)
 
 module Make (Model : Model) : S with type value = Model.t = struct
-  module Log = (val Dancelor_server_logs.create ("database." ^ Model._key): Logs.LOG)
+  module Log = (val Logger.create ("database." ^ Model._key): Logs.LOG)
 
   let _key = Model._key
   let standalone = Model.standalone

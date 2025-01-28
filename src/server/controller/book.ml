@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
+module Log = (val Logger.create "controller.book": Logs.LOG)
 
 module Ly = struct
   let kind set set_parmeters =

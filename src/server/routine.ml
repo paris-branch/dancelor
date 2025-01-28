@@ -1,4 +1,4 @@
-module Log = (val Dancelor_server_logs.create "routine": Logs.LOG)
+module Log = (val Logger.create "routine": Logs.LOG)
 
 let preload_versions ?max_concurrency () =
   let%lwt all = Database.Version.get_all () in

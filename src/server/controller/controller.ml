@@ -7,7 +7,7 @@ module Dance = Dance
 module Version = Version
 module Tune = Tune
 
-module Log = (val Dancelor_server_logs.create "controller": Logs.LOG)
+module Log = (val Logger.create "controller": Logs.LOG)
 
 let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Api.t -> a = function
   | Person endpoint -> Person.dispatch endpoint
@@ -18,4 +18,4 @@ let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Api.t -> a = function
   | Tune endpoint -> Tune.dispatch endpoint
   | Any endpoint -> Any.dispatch endpoint
   | ReportIssue -> IssueReport.report
-  | Victor -> Dancelor_server_logs.log_exit (module Log) 101
+  | Victor -> Logger.log_exit (module Log) 101

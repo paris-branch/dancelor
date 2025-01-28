@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Dancelor_server_logs.create "controller.dance": Logs.LOG)
+module Log = (val Logger.create "controller.dance": Logs.LOG)
 
 module Pdf = struct
   let render parameters dance =

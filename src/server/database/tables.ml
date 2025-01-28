@@ -123,7 +123,7 @@ let tables : (module Table.S)list = [
   (module Book)
 ]
 
-module Log = (val Dancelor_server_logs.create "database": Logs.LOG)
+module Log = (val Logger.create "database": Logs.LOG)
 
 module Initialise = struct
   let sync_db () =

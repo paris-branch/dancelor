@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
+module Log = (val Logger.create "controller.version": Logs.LOG)
 
 let get_ly version =
   let%lwt version = Model.Version.get version in

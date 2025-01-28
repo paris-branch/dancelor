@@ -3,7 +3,7 @@ open Cohttp_lwt_unix
 open Nes
 open Common
 
-module Log = (val Dancelor_server_logs.create "main": Logs.LOG)
+module Log = (val Logger.create "main": Logs.LOG)
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->
@@ -15,8 +15,8 @@ let log_exn ~msg exn =
   in
   m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))
 
-let log_exit = Dancelor_server_logs.log_exit (module Log)
-let log_die () = Dancelor_server_logs.log_die (module Log)
+let log_exit = Logger.log_exit (module Log)
+let log_die () = Logger.log_die (module Log)
 
 let apply_controller request =
   let rec madge_match_apply_all = function
@@ -108,7 +108,7 @@ let read_configuration () =
   Config.parse_cmd_line ()
 
 let initialise_logs () =
-  Dancelor_server_logs.initialise !Config.loglevel
+  Logger.initialise !Config.loglevel
 
 let write_pid () =
   let pid = Unix.getpid () in

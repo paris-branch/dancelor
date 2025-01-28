@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Dancelor_server_logs.create "database.storage": Logs.LOG)
+module Log = (val Logger.create "database.storage": Logs.LOG)
 
 let prefix = Config.database
 

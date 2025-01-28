@@ -1,7 +1,7 @@
 (include_subdirs qualified)
 
 (executable
- (name dancelor_server)
+ (name server)
  (public_name dancelor)
  (libraries
   cohttp-lwt-unix

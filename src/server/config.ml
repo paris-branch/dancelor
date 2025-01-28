@@ -1,5 +1,5 @@
 open Nes
-module Log = (val Dancelor_server_logs.create "config": Logs.LOG)
+module Log = (val Logger.create "config": Logs.LOG)
 
 let int = Json.int
 let string = Json.string
@@ -78,7 +78,7 @@ let load_from_file filename =
     with
     | Sys_error _ ->
       Log.err (fun m -> m "Could not find config file \"%s\"" filename);
-      Dancelor_server_logs.log_die (module Log)
+      Logger.log_die (module Log)
   in
   let field config ~type_ ~default path =
     match Json.(get_opt ~k: type_ path config) with

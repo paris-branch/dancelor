@@ -1,7 +1,9 @@
 open Nes
 
-let log_src = Logs.Src.create "dancelor.server.logs"
-module Log = (val Logs.src_log log_src: Logs.LOG)
+module type LOG = Logs.LOG
+
+let log_src = Logs.Src.create "dancelor.server.logger"
+module Log = (val Logs.src_log log_src: LOG)
 
 let create unit =
   Log.debug (fun m -> m "Creating log unit dancelor.server.%s" unit);
@@ -90,10 +92,10 @@ let initialise loglevel =
   update_past_loglevel loglevel;
   initialise_future_loglevel loglevel
 
-let log_exit (module Log : Logs.LOG) n =
+let log_exit (module Log : LOG) n =
   Log.info (fun m -> m "Exiting with return code %d" n);
   (* no need to flush as all logging messages are flushed individually already *)
   exit n
 
-let log_die (module Log : Logs.LOG) =
+let log_die (module Log : LOG) =
   log_exit (module Log) 1
