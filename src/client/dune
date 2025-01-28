@@ -1,7 +1,7 @@
 (include_subdirs qualified)
 
 (executables
- (names main)
+ (names client)
  (modes js)
  (libraries
   cohttp-lwt-jsoo
@@ -25,4 +25,4 @@
 (install
  (section share)
  (files
-  (main.bc.js as client.js)))
+  (client.bc.js as client.js)))
