@@ -2,7 +2,7 @@ open Nes
 open Model
 open Html
 module SCDDB = Dancelor_common.SCDDB
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Database = Dancelor_common.Database
 
 let create ?context slug =
@@ -13,7 +13,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.href_tune slug)
+        ~this_page: (Endpoints.Page.href_tune slug)
         (Lwt.map Any.tune tune_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
@@ -62,7 +62,7 @@ let create ?context slug =
               if versions = [] then
                 [
                   txt "There are no versions for this tune. Maybe you want to ";
-                  a ~a: [a_href (PageRouter.href_versionAdd ~tune: (Database.Entry.slug tune) ())] [txt "add one"];
+                  a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Database.Entry.slug tune) ())] [txt "add one"];
                   txt "?";
                 ]
               else

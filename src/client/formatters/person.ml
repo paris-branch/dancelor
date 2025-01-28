@@ -7,7 +7,7 @@ let name ?(link = true) person =
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_person @@ Database.Entry.slug person]
+        ~a: [a_href @@ Endpoints.Page.href_person @@ Database.Entry.slug person]
         name_text
     ]
   else

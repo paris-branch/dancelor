@@ -18,7 +18,7 @@ let short_title ?(link = true) book =
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_book @@ Database.Entry.slug book]
+        ~a: [a_href @@ Endpoints.Page.href_book @@ Database.Entry.slug book]
         short_title_text
     ]
   else

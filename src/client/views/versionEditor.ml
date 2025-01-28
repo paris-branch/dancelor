@@ -4,7 +4,7 @@ open Components
 open Html
 open Utils
 module SCDDB = Dancelor_common.SCDDB
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 
 type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
   tune: 'tune;
@@ -212,7 +212,7 @@ let create ?on_save ?text ?tune () =
                       Option.iter @@ fun version ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_version (Dancelor_common.Database.Entry.slug version))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Dancelor_common.Database.Entry.slug version))
                       | Some on_save -> on_save version
                     )
                   ();

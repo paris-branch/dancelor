@@ -4,7 +4,7 @@ open Components
 open Html
 open Utils
 module SCDDB = Dancelor_common.SCDDB
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 
 type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) gen = {
   name: 'name;
@@ -208,7 +208,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun dance ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_dance (Dancelor_common.Database.Entry.slug dance))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Dancelor_common.Database.Entry.slug dance))
                       | Some on_save -> on_save dance
                     )
                   ();

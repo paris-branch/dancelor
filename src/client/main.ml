@@ -2,7 +2,7 @@ open Nes
 open Js_of_ocaml
 open Html
 open Views
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Formula = Dancelor_common.Formula
 module TextFormula = Dancelor_common.TextFormula
 
@@ -20,7 +20,7 @@ let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 let (show_menu, set_show_menu) = React.S.create None
 
 let path_explore_models m =
-  PageRouter.(href Explore) @@
+  Endpoints.Page.(href Explore) @@
   Option.some @@
   TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
 
@@ -78,7 +78,7 @@ let header =
                       )
                     ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
                     ~on_enter: (fun search_text ->
-                        Dom_html.window##.location##.href := Js.string (PageRouter.(href Explore) (Some search_text))
+                        Dom_html.window##.location##.href := Js.string (Endpoints.Page.(href Explore) (Some search_text))
                       )
                     ~focus_on_slash: true
                     ()
@@ -86,7 +86,7 @@ let header =
               li
                 [
                   a
-                    ~a: [a_href PageRouter.(href Explore None)]
+                    ~a: [a_href Endpoints.Page.(href Explore None)]
                     [
                       txt "Explore";
                       i ~a: [a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
@@ -160,7 +160,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(href PersonAdd)]
+                            ~a: [a_href Endpoints.Page.(href PersonAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "person"];
                               txt " Person";
@@ -169,7 +169,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(href DanceAdd)]
+                            ~a: [a_href Endpoints.Page.(href DanceAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "directions_walk"];
                               txt " Dance";
@@ -178,7 +178,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(href TuneAdd)]
+                            ~a: [a_href Endpoints.Page.(href TuneAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
                               txt " Tune";
@@ -187,7 +187,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(href_versionAdd ())]
+                            ~a: [a_href Endpoints.Page.(href_versionAdd ())]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
                               txt " Version";
@@ -196,7 +196,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(href SetAdd)]
+                            ~a: [a_href Endpoints.Page.(href SetAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
                               txt " Set";
@@ -205,7 +205,7 @@ let header =
                       li
                         [
                           a
-                            ~a: [a_href PageRouter.(href BookAdd)]
+                            ~a: [a_href Endpoints.Page.(href BookAdd)]
                             [
                               i ~a: [a_class ["material-symbols-outlined"]] [txt "library_books"];
                               txt " Book";
@@ -218,7 +218,7 @@ let header =
     ]
 
 let dispatch uri =
-  let dispatch : type a r. (a, Page.t, r) PageRouter.page -> a = function
+  let dispatch : type a r. (a, Page.t, r) Endpoints.Page.t -> a = function
     | Index -> Index.create ()
     | Explore -> (fun query -> Explorer.create ?query ())
     | Book -> (fun context slug -> BookViewer.create ?context slug)
@@ -235,11 +235,11 @@ let dispatch uri =
     | Set -> (fun context slug -> SetViewer.create ?context slug)
     | SetAdd -> SetEditor.create ()
   in
-  let madge_match_apply_all : Page.t PageRouter.page_wrapped' list -> (unit -> Page.t) option =
-    List.map_first_some @@ fun (PageRouter.W endpoint) ->
-    Madge.match_' (PageRouter.route endpoint) (dispatch endpoint) {meth = GET; uri; body = ""}
+  let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
+    List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
+    Madge.match_' (Endpoints.Page.route endpoint) (dispatch endpoint) {meth = GET; uri; body = ""}
   in
-  match madge_match_apply_all PageRouter.all_endpoints' with
+  match madge_match_apply_all Endpoints.Page.all_endpoints' with
   | Some page -> page ()
   | None -> (* FIXME: 404 page *) assert false
 

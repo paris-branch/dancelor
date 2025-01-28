@@ -1,6 +1,6 @@
 open Nes
 open Model
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Database = Dancelor_common.Database
 module SCDDB = Dancelor_common.SCDDB
 
@@ -80,11 +80,11 @@ let table_contents ~this_slug contents =
           let%lwt contents = contents in
           List.mapi
             (fun index page ->
-               let context = PageRouter.inBook this_slug index in
+               let context = Endpoints.Page.inBook this_slug index in
                match page with
                | Book.Set (set, parameters) ->
                  (
-                   let href = PageRouter.href_set ~context @@ Database.Entry.slug set in
+                   let href = Endpoints.Page.href_set ~context @@ Database.Entry.slug set in
                    Tables.clickable_row
                      ~href
                      [
@@ -104,7 +104,7 @@ let table_contents ~this_slug contents =
                  )
                | Version (version, parameters) ->
                  (
-                   let href = PageRouter.href_version ~context @@ Database.Entry.slug version in
+                   let href = Endpoints.Page.href_version ~context @@ Database.Entry.slug version in
                    Tables.clickable_row
                      ~href
                      [
@@ -135,7 +135,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.href_book slug)
+        ~this_page: (Endpoints.Page.href_book slug)
         (Lwt.map Any.book book_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       h3 ~a: [a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
@@ -188,7 +188,7 @@ let create ?context slug =
           a
             ~a: [
               a_class ["button"];
-              a_href (PageRouter.(href BookEdit) slug)
+              a_href (Endpoints.Page.(href BookEdit) slug)
             ]
             [
               i ~a: [a_class ["material-symbols-outlined"]] [txt "edit"];

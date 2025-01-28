@@ -1,7 +1,7 @@
 open Nes
 open Model
 open Html
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module SCDDB = Dancelor_common.SCDDB
 
 let create ?context slug =
@@ -12,7 +12,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.href_dance slug)
+        ~this_page: (Endpoints.Page.href_dance slug)
         (Lwt.map Any.dance dance_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3

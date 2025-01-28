@@ -2,11 +2,11 @@ open Nes
 open Js_of_ocaml
 open Model
 open Components
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 open Html
 
 let update_uri input =
-  let uri = PageRouter.(href Explore) (Some input) in
+  let uri = Endpoints.Page.(href Explore) (Some input) in
   Dom_html.window##.history##replaceState
     "fixme-the-state"
     (Js.string "")
@@ -106,7 +106,7 @@ let create ?query () =
                   @@ fun (_, state) ->
                   match state with
                   | Results results ->
-                    let context = S.map PageRouter.inSearch @@ SearchBar.text search_bar in
+                    let context = S.map Endpoints.Page.inSearch @@ SearchBar.text search_bar in
                     List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results
                   | _ -> []
                 )

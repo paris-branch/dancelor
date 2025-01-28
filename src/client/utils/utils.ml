@@ -1,7 +1,7 @@
 open Nes
 open Js_of_ocaml
 
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 
 module AnyResult = AnyResult
 module ResultRow = ResultRow
@@ -58,7 +58,7 @@ let quick_explorer_links links =
                        L.a_href
                          (
                            Lwt.map
-                             (PageRouter.(href Explore) % Option.some % Model.Any.Filter.to_string)
+                             (Endpoints.Page.(href Explore) % Option.some % Model.Any.Filter.to_string)
                              filter_lwt
                          );
                      ]

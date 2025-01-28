@@ -3,8 +3,7 @@ open Js_of_ocaml
 open Components
 open Html
 open Utils
-module PageRouter = Dancelor_common.PageRouter
-module ApiRouter = Dancelor_common.ApiRouter
+module Endpoints = Dancelor_common.Endpoints
 
 type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
   name: 'name;
@@ -179,7 +178,7 @@ let create ?on_save ?text () =
                             object_
                               ~a: [
                                 a_mime_type "image/svg+xml";
-                                a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none (Dancelor_common.Database.Entry.slug version));
+                                a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Dancelor_common.Database.Entry.slug version));
                               ]
                               [];
                           ]
@@ -204,7 +203,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun set ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_set (Dancelor_common.Database.Entry.slug set))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Dancelor_common.Database.Entry.slug set))
                       | Some on_save -> on_save set
                     )
                   ();

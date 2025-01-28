@@ -2,7 +2,7 @@ open Nes
 open Html
 open Components
 open Model
-module ApiRouter = Dancelor_common.ApiRouter
+module Endpoints = Dancelor_common.Endpoints
 
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)
@@ -41,7 +41,7 @@ let open_ slug dialog =
           ~a: [
             a_class ["button"];
             a_target "_blank";
-            R.a_href (S.map (fun params -> ApiRouter.(href @@ Set Pdf) params slug) dialog.parameters_signal);
+            R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) params slug) dialog.parameters_signal);
             a_onclick (fun _ -> return (); true);
           ]
           [txt "Download"];

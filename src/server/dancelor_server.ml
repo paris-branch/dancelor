@@ -20,15 +20,15 @@ let log_die () = Dancelor_server_logs.log_die (module Log)
 let apply_controller request =
   let rec madge_match_apply_all = function
     | [] -> None
-    | ApiRouter.W endpoint :: wrapped_endpoints ->
+    | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
-        match Madge_cohttp_lwt_server.match_apply (ApiRouter.route endpoint) (dispatch endpoint) request with
+        match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (dispatch endpoint) request with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
   in
   (* FIXME: We should just get a URI. *)
-  match madge_match_apply_all ApiRouter.all_endpoints with
+  match madge_match_apply_all Endpoints.Api.all_endpoints with
   | Some thunk ->
     (
       try%lwt

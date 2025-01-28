@@ -3,7 +3,7 @@ open Html
 open Model
 open Js_of_ocaml
 open Js_of_ocaml_lwt
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 
 let book_page_to_any = function
   | Book.Set (set, _) -> Any.Set set
@@ -13,17 +13,17 @@ let book_page_to_any = function
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
 let get_neighbours any = function
-  | PageRouter.InSearch query ->
+  | Endpoints.Page.InSearch query ->
     (* TODO: Unify with [Explorer.search]. *)
     let filter = Result.get_ok (Any.Filter.from_string query) in
     let%lwt (total, previous, index, next) = Any.search_context filter any in
     Lwt.return List.{total; previous; index; next; element = any}
-  | PageRouter.InSet (set, index) ->
+  | Endpoints.Page.InSet (set, index) ->
     let%lwt set = Set.get set in
     let%lwt context = Lwt.map Option.get @@ Set.find_context index set in
     assert (any = Any.Version context.element);
     Lwt.return @@ List.map_context Any.version context
-  | PageRouter.InBook (book, index) ->
+  | Endpoints.Page.InBook (book, index) ->
     let%lwt book = Book.get book in
     let%lwt context =
       Lwt.map (List.map_context book_page_to_any % Option.get) @@
@@ -33,7 +33,7 @@ let get_neighbours any = function
 
 let make_context_link_banner ~context ~this_page =
   let parent_href =
-    let open PageRouter in
+    let open Endpoints.Page in
     match context with
     | InSearch query -> href Explore (Some query)
     | InSet (slug, _) -> href_set slug
@@ -48,7 +48,7 @@ let make_context_link_banner ~context ~this_page =
     ]
     (
       (
-        let open PageRouter in
+        let open Endpoints.Page in
         match context with
         | InSearch query ->
           [
@@ -100,13 +100,13 @@ let register_body_keydown_listener f =
   Lwt.async body_keydown_listener
 
 let neighbour_context ~left = function
-  | PageRouter.InSearch query -> PageRouter.InSearch query
-  | PageRouter.InSet (slug, index) -> PageRouter.InSet (slug, index + if left then (-1) else 1)
-  | PageRouter.InBook (slug, index) -> PageRouter.InBook (slug, index + if left then (-1) else 1)
+  | Endpoints.Page.InSearch query -> Endpoints.Page.InSearch query
+  | Endpoints.Page.InSet (slug, index) -> Endpoints.Page.InSet (slug, index + if left then (-1) else 1)
+  | Endpoints.Page.InBook (slug, index) -> Endpoints.Page.InBook (slug, index + if left then (-1) else 1)
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
-  let href = PageRouter.href_any ~context: (neighbour_context ~left context) neighbour in
+  let href = Endpoints.Page.href_any ~context: (neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
       if ev##.keyCode = (if left then 37 else 39) then
         Dom_html.window##.location##.href := Js.string href

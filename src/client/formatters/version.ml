@@ -1,6 +1,6 @@
 open Nes
 open Html
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Database = Dancelor_common.Database
 
 let description ?link version =
@@ -27,7 +27,7 @@ let name ?(link = true) version =
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_version @@ Database.Entry.slug version]
+        ~a: [a_href @@ Endpoints.Page.href_version @@ Database.Entry.slug version]
         name_text
     ]
   else

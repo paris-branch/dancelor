@@ -1,6 +1,6 @@
 open Nes
 open Html
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Database = Dancelor_common.Database
 
 let works set =
@@ -13,7 +13,7 @@ let name ?(link = true) set =
   if link && not (Database.Entry.is_dummy set) then
     [
       a
-        ~a: [a_href @@ PageRouter.href_set @@ Database.Entry.slug set]
+        ~a: [a_href @@ Endpoints.Page.href_set @@ Database.Entry.slug set]
         name_text
     ]
   else

@@ -1,10 +1,10 @@
 open Nes
 module Model = Dancelor_server_model
-open Dancelor_common.IssueReport
+open Dancelor_common.Endpoints.IssueReport
 open Request
 
 let describe =
-  Dancelor_common.PageRouter.make_describe
+  Dancelor_common.Endpoints.Page.make_describe
     ~get_version: Model.Version.get
     ~get_tune: Model.Tune.get
     ~get_set: Model.Set.get

@@ -1,6 +1,6 @@
 open Html
 open Components
-module ApiRouter = Dancelor_common.ApiRouter
+module Endpoints = Dancelor_common.Endpoints
 
 let create = SetDownloadDialog.create
 
@@ -15,7 +15,7 @@ let open_ slug dialog =
           ~a: [
             a_class ["button"];
             a_target "_blank";
-            R.a_href (S.map (fun params -> ApiRouter.(href @@ Dance Pdf) params slug) dialog.parameters_signal);
+            R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Dance Pdf) params slug) dialog.parameters_signal);
             a_onclick (fun _ -> return (); true);
           ]
           [txt "Download"];

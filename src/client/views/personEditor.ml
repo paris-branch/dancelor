@@ -3,7 +3,7 @@ open Js_of_ocaml
 open Components
 open Html
 module SCDDB = Dancelor_common.SCDDB
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Database = Dancelor_common.Database
 
 type ('name, 'scddb_id) gen = {
@@ -114,7 +114,7 @@ let create ?on_save ?text () =
                       Option.iter @@ fun person ->
                       Editor.clear editor;
                       match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (PageRouter.href_person (Database.Entry.slug person))
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Database.Entry.slug person))
                       | Some on_save -> on_save person
                     )
                   ();

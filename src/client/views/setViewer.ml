@@ -2,8 +2,7 @@ open Nes
 open Model
 open Html
 module Database = Dancelor_common.Database
-module PageRouter = Dancelor_common.PageRouter
-module ApiRouter = Dancelor_common.ApiRouter
+module Endpoints = Dancelor_common.Endpoints
 
 let create ?context slug =
   let set_lwt = Set.get slug in
@@ -13,7 +12,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.href_set slug)
+        ~this_page: (Endpoints.Page.href_set slug)
         (Lwt.map Any.set set_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
@@ -46,7 +45,7 @@ let create ?context slug =
           a
             ~a: [
               a_class ["button"];
-              a_href PageRouter.(href BookAdd);
+              a_href Endpoints.Page.(href BookAdd);
               a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
             ]
             [
@@ -73,7 +72,7 @@ let create ?context slug =
               let%lwt contents = Set.contents set in
               Lwt_list.mapi_p
                 (fun index (version, _parameters) ->
-                   let context = PageRouter.inSet slug index in
+                   let context = Endpoints.Page.inSet slug index in
                    (* FIXME: use parameters *)
                    let%lwt tune = Version.tune version in
                    let slug = Database.Entry.slug version in
@@ -82,11 +81,11 @@ let create ?context slug =
                        div
                          ~a: [a_class ["image-container"]]
                          [
-                           h4 [a ~a: [a_href (PageRouter.href_version ~context slug)] [txt @@ Tune.name tune]];
+                           h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
                            object_
                              ~a: [
                                a_mime_type "image/svg+xml";
-                               a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none slug);
+                               a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug);
                              ]
                              [];
                          ]

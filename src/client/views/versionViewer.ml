@@ -2,8 +2,7 @@ open Nes
 open Model
 open Html
 module Database = Dancelor_common.Database
-module PageRouter = Dancelor_common.PageRouter
-module ApiRouter = Dancelor_common.ApiRouter
+module Endpoints = Dancelor_common.Endpoints
 module SCDDB = Dancelor_common.SCDDB
 
 let create ?context slug =
@@ -27,7 +26,7 @@ let create ?context slug =
     [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (PageRouter.href_version slug)
+        ~this_page: (Endpoints.Page.href_version slug)
         (Lwt.map Any.version version_lwt);
       h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
@@ -51,7 +50,7 @@ let create ?context slug =
             a
               ~a: [
                 a_class ["button"];
-                a_href (ApiRouter.(href @@ Version Ly) slug);
+                a_href (Endpoints.Api.(href @@ Version Ly) slug);
               ]
               [
                 i ~a: [a_class ["material-symbols-outlined"]] [txt "article"];
@@ -62,7 +61,7 @@ let create ?context slug =
             a
               ~a: [
                 a_class ["button"];
-                a_href PageRouter.(href SetAdd);
+                a_href Endpoints.Page.(href SetAdd);
                 a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
               ]
               [
@@ -110,7 +109,7 @@ let create ?context slug =
               object_
                 ~a: [
                   a_mime_type "image/svg+xml";
-                  a_data (ApiRouter.(href @@ Version Svg) Model.VersionParameters.none slug)
+                  a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug)
                 ]
                 [];
             ]
@@ -120,7 +119,7 @@ let create ?context slug =
         [
           audio
             ~a: [a_controls ()]
-            ~src: (ApiRouter.(href @@ Version Ogg) Model.VersionParameters.none slug)
+            ~src: (Endpoints.Api.(href @@ Version Ogg) Model.VersionParameters.none slug)
             []
         ];
       Utils.quick_explorer_links
@@ -148,7 +147,7 @@ let create ?context slug =
                         [
                           txt "You can also go to the ";
                           a
-                            ~a: [L.a_href @@ Lwt.map (PageRouter.href_tune % Database.Entry.slug) tune_lwt]
+                            ~a: [L.a_href @@ Lwt.map (Endpoints.Page.href_tune % Database.Entry.slug) tune_lwt]
                             [txt "page of the tune"];
                           txt "."
                         ]

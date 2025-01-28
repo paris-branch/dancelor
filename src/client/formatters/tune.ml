@@ -1,6 +1,6 @@
 open Nes
 open Html
-module PageRouter = Dancelor_common.PageRouter
+module Endpoints = Dancelor_common.Endpoints
 module Database = Dancelor_common.Database
 
 let name ?(link = true) tune =
@@ -8,7 +8,7 @@ let name ?(link = true) tune =
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_tune @@ Database.Entry.slug tune]
+        ~a: [a_href @@ Endpoints.Page.href_tune @@ Database.Entry.slug tune]
         name_text
     ]
   else

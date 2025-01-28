@@ -47,15 +47,6 @@
     This convoluted construction ensures that code in the client and the server
     look alike, as they both manipulate models of type {!SetSignature}. *)
 
-(* FIXME: out of model *)
-module Endpoints = Endpoints
-
-(* FIXME: into Set *)
-module SetOrder = SetOrder
-
-(** Helper to make search controllers. *)
-module Search = Search
-
 module Any = struct
   include Core.Any
   module Filter = Filter.Any
@@ -94,6 +85,7 @@ module Set = struct
   include Lifter.Set
   include Signature.Set
 end
+module SetOrder = SetOrder
 module SetParameters = Core.SetParameters
 
 module Tune = struct
@@ -111,3 +103,6 @@ module Version = struct
   include Signature.Version
 end
 module VersionParameters = Core.VersionParameters
+
+(** Helper to make search controllers. *)
+module Search = Search

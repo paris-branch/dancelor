@@ -3,44 +3,44 @@
 open Nes
 open Model
 
-module Context = struct
-  (** Context in which a page might exist. TODO: I wonder whether it'd be possible
-      to simply use [page] here, having pages carry a “parent” [page option]. *)
-  type t =
-    | InSearch of string
-    | InSet of Set.t Slug.t * int
-    | InBook of Book.t Slug.t * int
-  [@@deriving yojson, variants]
+(** Context in which a page might exist. TODO: I wonder whether it'd be possible
+    to simply use [page] here, having pages carry a “parent” [page option]. *)
+type context =
+  | InSearch of string
+  | InSet of Set.t Slug.t * int
+  | InBook of Book.t Slug.t * int
+[@@deriving yojson, variants]
 
-  let inSet' = inSet % Slug.unsafe_of_string
-  let inBook' = inBook % Slug.unsafe_of_string
-end
-include Context
+let inSet' = inSet % Slug.unsafe_of_string
+let inBook' = inBook % Slug.unsafe_of_string
+
+(* For serialisation *)
+module Context = struct type t = context [@@deriving yojson] end
 
 (* FIXME: It would be so much nicer if [Search] could carry an actual
    [Any.Filter.predicate Formula.t]. That however requires moving a lot of
    code from [*Lifter] to [* for.Core all models (basically everything but the
    [accepts] function, I would say), so, for now, we keep it as a string. *)
 
-type (_, _, _) page =
-  | Book : ((Context.t option -> Book.t Slug.t -> 'w), 'w, Void.t) page
-  | BookAdd : ('w, 'w, Void.t) page
-  | BookEdit : ((Book.t Slug.t -> 'w), 'w, Void.t) page
-  | Dance : ((Context.t option -> Dance.t Slug.t -> 'w), 'w, Void.t) page
-  | DanceAdd : ('w, 'w, Void.t) page
-  | Person : ((Context.t option -> Person.t Slug.t -> 'w), 'w, Void.t) page
-  | PersonAdd : ('w, 'w, Void.t) page
-  | Set : ((Context.t option -> Set.t Slug.t -> 'w), 'w, Void.t) page
-  | SetAdd : ('w, 'w, Void.t) page
-  | Tune : ((Context.t option -> Tune.t Slug.t -> 'w), 'w, Void.t) page
-  | TuneAdd : ('w, 'w, Void.t) page
-  | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) page
-  | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) page
-  | Index : ('w, 'w, Void.t) page
-  | Explore : ((string option -> 'w), 'w, Void.t) page
+type (_, _, _) t =
+  | Book : ((Context.t option -> Book.t Slug.t -> 'w), 'w, Void.t) t
+  | BookAdd : ('w, 'w, Void.t) t
+  | BookEdit : ((Book.t Slug.t -> 'w), 'w, Void.t) t
+  | Dance : ((Context.t option -> Dance.t Slug.t -> 'w), 'w, Void.t) t
+  | DanceAdd : ('w, 'w, Void.t) t
+  | Person : ((Context.t option -> Person.t Slug.t -> 'w), 'w, Void.t) t
+  | PersonAdd : ('w, 'w, Void.t) t
+  | Set : ((Context.t option -> Set.t Slug.t -> 'w), 'w, Void.t) t
+  | SetAdd : ('w, 'w, Void.t) t
+  | Tune : ((Context.t option -> Tune.t Slug.t -> 'w), 'w, Void.t) t
+  | TuneAdd : ('w, 'w, Void.t) t
+  | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) t
+  | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
+  | Index : ('w, 'w, Void.t) t
+  | Explore : ((string option -> 'w), 'w, Void.t) t
 
-type 'w page_wrapped' =
-  | W : ('a, 'w, 'r) page -> 'w page_wrapped'
+type 'w wrapped' =
+  | W : ('a, 'w, 'r) t -> 'w wrapped'
 
 (* FIXME: The order matters, which means that we should fix the routes; right
    now, they are just ambiguous. *)
@@ -65,7 +65,7 @@ let all_endpoints' = [
 open Madge
 
 (* FIXME: Factorise adding the model prefixes. *)
-let route : type a w r. (a, w, r) page -> (a, w, r) route = function
+let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(Book)) @@ get (module Void)
   | BookAdd -> literal "book" @@ literal "add" @@ get (module Void)
   | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(Book)) @@ get (module Void)
@@ -83,7 +83,7 @@ let route : type a w r. (a, w, r) page -> (a, w, r) route = function
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ get (module Void)
 (* FIXME: short for `get (module Void)` *)
 
-let href : type a r. (a, string, r) page -> a = fun page ->
+let href : type a r. (a, string, r) t -> a = fun page ->
   process (route page) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)
 
 let href_book ?context book = href Book context book
@@ -106,7 +106,7 @@ let href_any ?context any =
   | Tune tune -> href_tune ?context (Entry.slug tune)
 
 let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person = fun uri ->
-  let describe : type a r. (a, (string * string) option Lwt.t, r) page -> a = function
+  let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
     | Index -> Lwt.return None
     | Explore -> (fun _ -> Lwt.return None)
     | VersionAdd -> (fun _ -> Lwt.return None)
@@ -147,7 +147,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
          Lwt.return @@ Some ("person", name)
       )
   in
-  let madge_match_apply_all : (string * string) option Lwt.t page_wrapped' list -> (unit -> (string * string) option Lwt.t) option =
+  let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
     List.map_first_some @@ fun (W page) ->
     Madge.match_' (route page) (describe page) {meth = GET; uri; body = ""}
   in
