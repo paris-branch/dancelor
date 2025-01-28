@@ -44,7 +44,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, Model.Kind.Base.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
+      (string Input.Text.t, Dancelor_common.Kind.Base.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -87,7 +87,7 @@ module Editor = struct
     in
     let kind =
       Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Model.Kind.Base.of_string_opt
+      Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Dancelor_common.Kind.Base.of_string_opt
     in
     let composers =
       Selector.make

@@ -30,7 +30,7 @@ let sets sets =
     [
       (Formatters.Set.name_and_tunes ~link: false set);
       (Lwt.map Formatters.Person.names (Set.conceptors set));
-      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set];
+      Lwt.return [txt @@ Dancelor_common.Kind.Dance.to_string @@ Set.kind set];
     ]
 
 let dances dances =
@@ -41,7 +41,7 @@ let dances dances =
     [
       (Lwt.return @@ Formatters.Dance.name ~link: false dance);
       (Lwt.map Formatters.Person.names (Dance.devisers dance));
-      Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind dance];
+      Lwt.return [txt @@ Dancelor_common.Kind.Dance.to_string @@ Dance.kind dance];
     ]
 
 let tunes tunes =
@@ -51,7 +51,7 @@ let tunes tunes =
     ~href
     [
       (Lwt.return @@ Formatters.Tune.name ~link: false tune);
-      Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
+      Lwt.return [txt @@ Dancelor_common.Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
       (Formatters.Tune.composers tune);
     ]
 
@@ -68,7 +68,7 @@ let versions versions =
       (Formatters.Version.disambiguation_and_sources version);
       (Lwt.map Formatters.Person.names (Version.arrangers version));
       (tune_lwt >>=| Formatters.Kind.full_string version);
-      Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
+      Lwt.return [txt @@ Dancelor_common.Music.key_to_pretty_string @@ Version.key version];
       Lwt.return [txt @@ Version.structure version];
     ]
 
@@ -84,6 +84,6 @@ let versions_with_names versions =
     [
       Lwt.return [L.txt @@ Lwt.map Tune.name tune_lwt];
       (tune_lwt >>=| Formatters.Kind.full_string version);
-      Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
+      Lwt.return [txt @@ Dancelor_common.Music.key_to_pretty_string @@ Version.key version];
       Lwt.return [txt @@ Version.structure version];
     ]

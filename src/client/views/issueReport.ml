@@ -61,7 +61,7 @@ let open_dialog page =
     RS.bind (Input.Text.signal title_input) @@ fun title ->
     RS.bind (Input.Text.signal description_input) @@ fun description ->
     RS.bind (Choices.signal source) @@ fun source ->
-    RS.pure Model.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
+    RS.pure Dancelor_common.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
     Dialog.open_res @@ fun return ->

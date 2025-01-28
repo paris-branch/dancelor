@@ -13,7 +13,7 @@ let create ?context slug =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in
     Version.search'
-      Formula.(
+      Dancelor_common.Formula.(
         and_l
           [
             Version.Filter.tuneIs' tune;

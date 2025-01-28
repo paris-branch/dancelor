@@ -17,7 +17,7 @@ let name ?(link = true) tune =
 let composers ?short = Lwt.map (Person.names ?short) % Model.Tune.composers
 
 let description tune =
-  let kind = Model.Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
+  let kind = Dancelor_common.Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
   match%lwt Model.Tune.composers tune with
   | [] ->
     Lwt.return

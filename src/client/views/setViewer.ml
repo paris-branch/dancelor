@@ -20,7 +20,7 @@ let create ?context slug =
       h3
         ~a: [a_class ["title"]]
         [
-          L.txt (Lwt.map (Kind.Dance.to_pretty_string % Set.kind) set_lwt);
+          L.txt (Lwt.map (Dancelor_common.Kind.Dance.to_pretty_string % Set.kind) set_lwt);
           txt " — Play ";
           L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order) set_lwt);
         ];

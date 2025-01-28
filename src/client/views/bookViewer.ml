@@ -90,7 +90,7 @@ let table_contents ~this_slug contents =
                      [
                        Lwt.return [txt "Set"];
                        (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                       Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
+                       Lwt.return [txt @@ Dancelor_common.Kind.Dance.to_string @@ Set.kind set]
                      ]
                  )
                | InlineSet (set, parameters) ->
@@ -99,7 +99,7 @@ let table_contents ~this_slug contents =
                      [
                        td [txt "Set (inline)"];
                        L.td (Formatters.Set.name_tunes_and_dance ~link: false (Database.Entry.make_dummy set) parameters);
-                       td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Database.Entry.make_dummy set];
+                       td [txt @@ Dancelor_common.Kind.Dance.to_string @@ Set.kind @@ Database.Entry.make_dummy set];
                      ]
                  )
                | Version (version, parameters) ->
@@ -115,7 +115,7 @@ let table_contents ~this_slug contents =
                            L.txt
                              (
                                let%lwt tune = Version.tune version in
-                               Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
+                               Lwt.return (Dancelor_common.Kind.Version.to_string (Version.bars version, Tune.kind tune))
                              )
                          ];
                      ]

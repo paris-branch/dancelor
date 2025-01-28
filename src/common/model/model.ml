@@ -53,13 +53,8 @@ module Endpoints = Endpoints
 (* FIXME: into Set *)
 module SetOrder = SetOrder
 
-(* FIXME: out of model (into Utils) or out of Dancelor itself (into Nes) *)
-module Formula = Formula
-module IssueReport = IssueReport
-module Kind = Kind
-module Music = Music
+(** Helper to make search controllers. *)
 module Search = Search
-module TextFormula = TextFormula
 
 module Any = struct
   include Core.Any

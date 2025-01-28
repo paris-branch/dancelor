@@ -7,7 +7,7 @@ let description ?link version =
   let bars = Model.Version.bars version in
   let structure = Model.Version.structure version in
   let key = Model.Version.key version in
-  let shape = spf "%d-bar %s version in %s" bars structure (Model.Music.key_to_pretty_string key) in
+  let shape = spf "%d-bar %s version in %s" bars structure (Dancelor_common.Music.key_to_pretty_string key) in
   let%lwt arranger_block =
     match%lwt Model.Version.arrangers version with
     | [] -> Lwt.return_nil
@@ -64,7 +64,7 @@ let name_disambiguation_and_sources ?link version =
       Model.Book.(
         search'
           Filter.(
-            Model.Formula.and_ (memVersionDeep' version) isSource'
+            Dancelor_common.Formula.and_ (memVersionDeep' version) isSource'
           )
       )
     in
@@ -91,7 +91,7 @@ let disambiguation_and_sources version =
       Model.Book.(
         search'
           Filter.(
-            Model.Formula.and_ (memVersionDeep' version) isSource'
+            Dancelor_common.Formula.and_ (memVersionDeep' version) isSource'
           )
       )
     in

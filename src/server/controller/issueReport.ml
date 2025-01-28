@@ -1,6 +1,6 @@
 open Nes
 module Model = Dancelor_server_model
-open Model.IssueReport
+open Dancelor_common.IssueReport
 open Request
 
 let describe =

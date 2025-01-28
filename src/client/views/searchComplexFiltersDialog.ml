@@ -2,6 +2,7 @@ open Nes
 open Model
 open Html
 open Components
+module Formula = Dancelor_common.Formula
 
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
@@ -97,10 +98,10 @@ let kind_choices filter =
   let checked kind =
     (* NOTE: Will stop working when we push the disjunction inside the kind filters *)
     match filter with
-    | Some (Dance filter) -> List.exists (List.mem (Dance.Filter.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
-    | Some (Set filter) -> List.exists (List.mem (Set.Filter.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
-    | Some (Tune filter) -> List.exists (List.mem (Tune.Filter.kind @@ Kind.Base.Filter.is' kind)) filter
-    | Some (Version filter) -> List.exists (List.mem (Version.Filter.kind @@ Kind.Version.Filter.baseIs' kind)) filter
+    | Some (Dance filter) -> List.exists (List.mem (Dance.Filter.kind @@ Dancelor_common.Kind.Dance.Filter.baseIs' kind)) filter
+    | Some (Set filter) -> List.exists (List.mem (Set.Filter.kind @@ Dancelor_common.Kind.Dance.Filter.baseIs' kind)) filter
+    | Some (Tune filter) -> List.exists (List.mem (Tune.Filter.kind @@ Dancelor_common.Kind.Base.Filter.is' kind)) filter
+    | Some (Version filter) -> List.exists (List.mem (Version.Filter.kind @@ Dancelor_common.Kind.Version.Filter.baseIs' kind)) filter
     | _ -> false
   in
   Choices.(
@@ -108,9 +109,12 @@ let kind_choices filter =
       (
         List.map
           (fun kind ->
-             choice [txt (Kind.Base.to_pretty_string ~capitalised: true kind)] ~value: kind ~checked: (checked kind)
+             choice
+               [txt (Dancelor_common.Kind.Base.to_pretty_string ~capitalised: true kind)]
+               ~value: kind
+               ~checked: (checked kind)
           )
-          Kind.Base.all
+          Dancelor_common.Kind.Base.all
       )
   )
 
@@ -127,7 +131,7 @@ let dance_bundled_choices ~kind_choices _filter =
       [
         choices_formula
           ~s: (Choices.signal kind_choices)
-          ~f: (Dance.Filter.kind' % Kind.Dance.Filter.baseIs');
+          ~f: (Dance.Filter.kind' % Dancelor_common.Kind.Dance.Filter.baseIs');
       ]
   in
   let html = [
@@ -149,7 +153,7 @@ let set_bundled_choices ~kind_choices _filter =
       [
         choices_formula
           ~s: (Choices.signal kind_choices)
-          ~f: (Set.Filter.kind' % Kind.Dance.Filter.baseIs');
+          ~f: (Set.Filter.kind' % Dancelor_common.Kind.Dance.Filter.baseIs');
       ]
   in
   let html = [
@@ -167,7 +171,7 @@ let tune_bundled_choices ~kind_choices _filter =
       [
         choices_formula
           ~s: (Choices.signal kind_choices)
-          ~f: (Tune.Filter.kind' % Kind.Base.Filter.is');
+          ~f: (Tune.Filter.kind' % Dancelor_common.Kind.Base.Filter.is');
       ]
   in
   let html = [
@@ -179,7 +183,7 @@ let tune_bundled_choices ~kind_choices _filter =
 (* version-specific choices *)
 
 let major_keys =
-  let open Music in
+  let open Dancelor_common.Music in
   List.map
     (Fun.flip make_key Major)
     [
@@ -210,14 +214,17 @@ let major_key_choices filter =
       (
         List.map
           (fun key ->
-             choice [txt (Music.key_to_pretty_string key)] ~value: key ~checked: (checked key)
+             choice
+               [txt (Dancelor_common.Music.key_to_pretty_string key)]
+               ~value: key
+               ~checked: (checked key)
           )
           major_keys
       )
   )
 
 let minor_keys =
-  let open Music in
+  let open Dancelor_common.Music in
   List.map
     (Fun.flip make_key Minor)
     [
@@ -248,7 +255,10 @@ let minor_key_choices filter =
       (
         List.map
           (fun key ->
-             choice [txt (Music.key_to_pretty_string key)] ~value: key ~checked: (checked key)
+             choice
+               [txt (Dancelor_common.Music.key_to_pretty_string key)]
+               ~value: key
+               ~checked: (checked key)
           )
           minor_keys
       )
@@ -263,7 +273,7 @@ let version_bundled_choices ~kind_choices filter =
       [
         choices_formula
           ~s: (Choices.signal kind_choices)
-          ~f: (Version.Filter.kind' % Kind.Version.Filter.baseIs');
+          ~f: (Version.Filter.kind' % Dancelor_common.Kind.Version.Filter.baseIs');
         choices_formula
           ~s: (S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
           ~f: Version.Filter.key';

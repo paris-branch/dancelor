@@ -46,7 +46,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Model.Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
+      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Dancelor_common.Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -102,7 +102,7 @@ module Editor = struct
     in
     let key =
       Input.Text.make ~has_interacted initial_state.key @@
-      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Model.Music.key_of_string_opt
+      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Dancelor_common.Music.key_of_string_opt
     in
     let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
     let arrangers =

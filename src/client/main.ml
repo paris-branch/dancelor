@@ -3,6 +3,8 @@ open Js_of_ocaml
 open Html
 open Views
 module PageRouter = Dancelor_common.PageRouter
+module Formula = Dancelor_common.Formula
+module TextFormula = Dancelor_common.TextFormula
 
 let set_title title =
   Dom_html.document##.title :=
@@ -18,15 +20,9 @@ let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 let (show_menu, set_show_menu) = React.S.create None
 
 let path_explore_models m =
-  Model.(
-    PageRouter.(href Explore) @@
-    (
-      Some
-        (
-          TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
-        )
-    )
-  )
+  PageRouter.(href Explore) @@
+  Option.some @@
+  TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
 
 let header =
   header
