@@ -1,4 +1,5 @@
-module Model = Dancelor_server_model
+open Common
+
 module Gen = QCheckGenerators
 
 let to_string_no_exn ~name ~show ~gen ~to_string =
@@ -63,21 +64,21 @@ let optimise_idempotent ~name ~gen ~show ~optimise ~equal =
 
 module type MODEL = sig
   type predicate
-  type t = predicate Model.Formula.t
+  type t = predicate Formula.t
   val equal : t -> t -> bool
   val show : t -> string
 end
 
 module type TOFROMSTRING = sig
   type predicate
-  type t = predicate Model.Formula.t
+  type t = predicate Formula.t
   val to_string : t -> string
   val from_string : ?filename: string -> string -> (t, string) result
 end
 
 module type OPTIMISE = sig
   type predicate
-  type t = predicate Model.Formula.t
+  type t = predicate Formula.t
   val optimise : t -> t
 end
 
@@ -128,16 +129,16 @@ let optimise_idempotent' (type p)
 
 module FormulaUnit = struct
   type predicate = unit
-  type t = unit Model.Formula.t
+  type t = unit Formula.t
   [@@deriving eq, show]
 
   let gen = Gen.Formula.gen (QCheck2.Gen.pure ())
-  let optimise = Model.Formula.optimise Fun.id
+  let optimise = Formula.optimise Fun.id
 end
 
 module FormulaInt = struct
   type predicate = int
-  type t = int Model.Formula.t
+  type t = int Formula.t
   [@@deriving eq, show]
 
   let gen = Gen.Formula.gen QCheck2.Gen.int
@@ -145,7 +146,7 @@ module FormulaInt = struct
   let lift_and x y = Some (min x y)
   let lift_or x y = Some (max x y)
   let optimise =
-    Model.Formula.optimise ~lift_and ~lift_or @@ function
+    Formula.optimise ~lift_and ~lift_or @@ function
     | n when n mod 2 = 1 -> n - 1
     | n -> n
 end
@@ -157,28 +158,28 @@ let () =
       (
         "to_string raises no exception",
         [
-          to_string_no_exn' ~name: "TextFormula" (module Model.TextFormula) (module Gen.TextFormula);
-          to_string_no_exn' ~name: "Person.Filter" (module Model.Person.Filter) (module Gen.Person.Filter);
-          to_string_no_exn' ~name: "Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
-          to_string_no_exn' ~name: "Tune.Filter" (module Model.Tune.Filter) (module Gen.Tune.Filter);
-          to_string_no_exn' ~name: "Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
-          to_string_no_exn' ~name: "Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
-          to_string_no_exn' ~name: "Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
-          to_string_no_exn' ~name: "Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
-          to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Any.Filter.gen ~show: Model.Any.Filter.show ~to_string: Model.Any.Filter.to_pretty_string;
+          to_string_no_exn' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+          to_string_no_exn' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
+          to_string_no_exn' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
+          to_string_no_exn' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
+          to_string_no_exn' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
+          to_string_no_exn' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
+          to_string_no_exn' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
+          to_string_no_exn' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
+          to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~to_string: ModelBuilder.Any.Filter.to_pretty_string;
         ]
       );
       (
         "from_string % to_string = id",
         [
-          to_string_from_string_roundtrip' ~name: "TextFormula" (module Model.TextFormula) (module Gen.TextFormula);
-          to_string_from_string_roundtrip' ~name: "Person.Filter" (module Model.Person.Filter) (module Gen.Person.Filter);
-          to_string_from_string_roundtrip' ~name: "Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
-          to_string_from_string_roundtrip' ~name: "Tune.Filter" (module Model.Tune.Filter) (module Gen.Tune.Filter);
-          to_string_from_string_roundtrip' ~name: "Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
-          to_string_from_string_roundtrip' ~name: "Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
-          to_string_from_string_roundtrip' ~name: "Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
-          to_string_from_string_roundtrip' ~name: "Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
+          to_string_from_string_roundtrip' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+          to_string_from_string_roundtrip' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
+          to_string_from_string_roundtrip' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
+          to_string_from_string_roundtrip' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
+          to_string_from_string_roundtrip' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
+          to_string_from_string_roundtrip' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
+          to_string_from_string_roundtrip' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
+          to_string_from_string_roundtrip' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
           (* FIXME: Does not actually hold. *)
           (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
           (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
@@ -193,14 +194,14 @@ let () =
         [
           optimise_idempotent' ~name: "Formula (unit)" (module FormulaUnit) (module FormulaUnit);
           optimise_idempotent' ~name: "Formula (int)" (module FormulaInt) (module FormulaInt);
-          optimise_idempotent' ~name: "Person.Filter" (module Model.Person.Filter) (module Gen.Person.Filter);
-          optimise_idempotent' ~name: "Dance.Filter" (module Model.Dance.Filter) (module Gen.Dance.Filter);
-          optimise_idempotent' ~name: "Tune.Filter" (module Model.Tune.Filter) (module Gen.Tune.Filter);
-          optimise_idempotent' ~name: "Version.Filter" (module Model.Version.Filter) (module Gen.Version.Filter);
-          optimise_idempotent' ~name: "Set.Filter" (module Model.Set.Filter) (module Gen.Set.Filter);
-          optimise_idempotent' ~name: "Book.Filter" (module Model.Book.Filter) (module Gen.Book.Filter);
-          optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: Model.Any.Filter.type_based_cleanup ~gen: Gen.Any.Filter.gen ~show: Model.Any.Filter.show ~equal: Model.Any.Filter.equal;
-          optimise_idempotent' ~name: "Any.Filter" (module Model.Any.Filter) (module Gen.Any.Filter);
+          optimise_idempotent' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
+          optimise_idempotent' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
+          optimise_idempotent' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
+          optimise_idempotent' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
+          optimise_idempotent' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
+          optimise_idempotent' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
+          optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: ModelBuilder.Any.Filter.type_based_cleanup ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~equal: ModelBuilder.Any.Filter.equal;
+          optimise_idempotent' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
         ]
       );
     ]

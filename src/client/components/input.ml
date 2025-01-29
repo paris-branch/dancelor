@@ -1,6 +1,6 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_html
+open Html
 
 module Text = struct
   type 'a t = {

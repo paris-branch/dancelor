@@ -1,8 +1,8 @@
 open Nes
-open Dancelor_common
-open Dancelor_client_model
-module Formatters = Dancelor_client_formatters
-open Dancelor_client_html
+open Common
+
+open Model
+open Html
 
 let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
   ResultRow.make
@@ -23,8 +23,8 @@ let make_person_result ?classes ?context ?prefix ?suffix person =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.href_person @@ Database.Entry.slug person)
-        ~some: (S.map (fun context -> PageRouter.href_person ~context @@ Database.Entry.slug person))
+        ~none: (S.const @@ Endpoints.Page.href_person @@ Entry.slug person)
+        ~some: (S.map (fun context -> Endpoints.Page.href_person ~context @@ Entry.slug person))
     )
     ?prefix
     ?suffix
@@ -51,8 +51,8 @@ let make_dance_result ?classes ?context ?prefix ?suffix dance =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.href_dance @@ Database.Entry.slug dance)
-        ~some: (S.map (fun context -> PageRouter.href_dance ~context @@ Database.Entry.slug dance))
+        ~none: (S.const @@ Endpoints.Page.href_dance @@ Entry.slug dance)
+        ~some: (S.map (fun context -> Endpoints.Page.href_dance ~context @@ Entry.slug dance))
     )
     ?prefix
     ?suffix
@@ -78,8 +78,8 @@ let make_book_result ?classes ?context ?prefix ?suffix book =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.href_book @@ Database.Entry.slug book)
-        ~some: (S.map (fun context -> PageRouter.href_book ~context @@ Database.Entry.slug book))
+        ~none: (S.const @@ Endpoints.Page.href_book @@ Entry.slug book)
+        ~some: (S.map (fun context -> Endpoints.Page.href_book ~context @@ Entry.slug book))
     )
     ?prefix
     ?suffix
@@ -106,8 +106,8 @@ let make_set_result ?classes ?context ?prefix ?suffix set =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.href_set @@ Database.Entry.slug set)
-        ~some: (S.map (fun context -> PageRouter.href_set ~context @@ Database.Entry.slug set))
+        ~none: (S.const @@ Endpoints.Page.href_set @@ Entry.slug set)
+        ~some: (S.map (fun context -> Endpoints.Page.href_set ~context @@ Entry.slug set))
     )
     ?prefix
     ?suffix
@@ -134,8 +134,8 @@ let make_tune_result ?classes ?context ?prefix ?suffix tune =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.href_tune @@ Database.Entry.slug tune)
-        ~some: (S.map (fun context -> PageRouter.href_tune ~context @@ Database.Entry.slug tune))
+        ~none: (S.const @@ Endpoints.Page.href_tune @@ Entry.slug tune)
+        ~some: (S.map (fun context -> Endpoints.Page.href_tune ~context @@ Entry.slug tune))
     )
     ?prefix
     ?suffix
@@ -171,8 +171,8 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
       ResultRow.link @@
       Option.fold
         context
-        ~none: (S.const @@ PageRouter.href_version @@ Database.Entry.slug version)
-        ~some: (S.map (fun context -> PageRouter.href_version ~context @@ Database.Entry.slug version))
+        ~none: (S.const @@ Endpoints.Page.href_version @@ Entry.slug version)
+        ~some: (S.map (fun context -> Endpoints.Page.href_version ~context @@ Entry.slug version))
     )
     ?prefix
     ?suffix

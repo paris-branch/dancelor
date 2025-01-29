@@ -1,12 +1,12 @@
-open Dancelor_common
-open Dancelor_client_html
-module M = Dancelor_client_model
+open Common
+
+open Html
 
 let title_and_subtitle ?(link = true) book =
-  let title_text = [txt (M.Book.title book)] in
+  let title_text = [txt (Model.Book.title book)] in
   if link then
     let subtitle_block =
-      match M.Book.subtitle book with
+      match Model.Book.subtitle book with
       | "" -> []
       | subtitle -> [span ~a: [a_class ["details"]] [txt subtitle]]
     in
@@ -15,11 +15,11 @@ let title_and_subtitle ?(link = true) book =
     title_text
 
 let short_title ?(link = true) book =
-  let short_title_text = [txt (M.Book.short_title book)] in
+  let short_title_text = [txt (Model.Book.short_title book)] in
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_book @@ Database.Entry.slug book]
+        ~a: [a_href @@ Endpoints.Page.href_book @@ Entry.slug book]
         short_title_text
     ]
   else

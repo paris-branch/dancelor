@@ -1,32 +1,28 @@
-(include_subdirs no)
+(include_subdirs qualified)
 
 (executables
- (names main)
+ (names client)
  (modes js)
  (libraries
-  js_of_ocaml-lwt
   cohttp-lwt-jsoo
-  dancelor.client.html
-  dancelor.client.tables
-  dancelor.client.formatters
-  dancelor.client.model
-  dancelor.client.views
-  dancelor.client.utils
+  dancelor.common
+  dancelor.madge.cohttp-lwt-client
   dancelor.nes
-  dancelor.common)
+  js_of_ocaml-lwt
+  js_of_ocaml-tyxml
+  lwt_react
+  react)
  (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx ppx_monad_olwt ppx_monad_rlwt))
- (modules :standard \ dancelor_client_page))
+  (pps
+   js_of_ocaml-ppx
+   lwt_ppx
+   ppx_deriving_yojson
+   ppx_monad
+   ppx_monad_olwt
+   ppx_monad_rlwt
+   ppx_variants_conv)))
 
 (install
  (section share)
  (files
-  (main.bc.js as client.js)))
-
-(library
- (name dancelor_client_page)
- (public_name dancelor.client.page)
- (libraries js_of_ocaml-tyxml js_of_ocaml-lwt react)
- (preprocess
-  (pps lwt_ppx js_of_ocaml-ppx))
- (modules dancelor_client_page))
+  (client.bc.js as client.js)))

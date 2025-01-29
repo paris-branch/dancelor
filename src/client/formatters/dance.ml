@@ -1,13 +1,13 @@
-open Dancelor_common
-open Dancelor_client_html
-module M = Dancelor_client_model
+open Common
+
+open Html
 
 let name ?(link = true) dance =
-  let name_text = [txt (M.Dance.name dance)] in
+  let name_text = [txt (Model.Dance.name dance)] in
   if link then
     [
       a
-        ~a: [a_href @@ PageRouter.href_dance @@ Database.Entry.slug dance]
+        ~a: [a_href @@ Endpoints.Page.href_dance @@ Entry.slug dance]
         name_text
     ]
   else

@@ -1,4 +1,4 @@
-(lang dune 3.4)
+(lang dune 3.17)
 
 (name dancelor)
 (version 0.1)

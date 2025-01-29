@@ -1,8 +1,1 @@
-(library
- (name dancelor_server_controller)
- (public_name dancelor.server.controller)
- (libraries nes dancelor.lilypond dancelor.server.model cohttp-lwt-unix)
- (preprocess
-  (pps lwt_ppx ppx_blob ppx_monad ppx_monad_olwt ppx_monad_rlwt))
- (preprocessor_deps
-  (source_tree template)))
+(data_only_dirs template)

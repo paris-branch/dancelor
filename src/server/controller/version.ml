@@ -1,7 +1,7 @@
 open NesUnix
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
-module Log = (val Dancelor_server_logs.create "controller.version": Logs.LOG)
+open Common
+
+module Log = (val Logger.create "controller.version": Logs.LOG)
 
 let get_ly version =
   let%lwt version = Model.Version.get version in
@@ -29,7 +29,7 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
       "", ""
   in
   let kind = Model.Tune.kind tune in
-  let (tempo_unit, tempo_value) = Model.Kind.Base.tempo kind in
+  let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
   let content = Model.Version.content version in
 
@@ -39,16 +39,16 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     | None -> content
     | Some clef_parameter ->
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-      Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_lilypond_string clef_parameter) content
+      Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
   in
   let source, target =
     match Model.VersionParameters.transposition' parameters with
     | Relative (source, target) -> (source, target)
-    | Absolute target -> (Model.Music.key_pitch key, target)
+    | Absolute target -> (Music.key_pitch key, target)
     (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
   in
-  let source = Model.Music.pitch_to_lilypond_string source in
-  let target = Model.Music.pitch_to_lilypond_string target in
+  let source = Music.pitch_to_lilypond_string source in
+  let target = Music.pitch_to_lilypond_string target in
 
   (* Create the Lilypond file *)
   Log.debug (fun m -> m "Generating Scheme & LilyPond string");
@@ -59,32 +59,32 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     fpf fmt [%blob "template/layout.ly"];
     fpf fmt [%blob "template/paper.ly"];
     fpf fmt [%blob "template/cropped.ly"];
-    fpf fmt [%blob "template/repeat-volta-fancy.ly"];
-    fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
-    fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
-    fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
-    fpf fmt [%blob "template/scottish-chords.ly"];
-    fpf fmt [%blob "template/fancy-unfold-repeats.ly"];
+    fpf fmt [%blob "template/repeat_volta_fancy.ly"];
+    fpf fmt [%blob "template/bar_numbering/repeat_aware.ly"];
+    fpf fmt [%blob "template/bar_numbering/bar_number_in_instrument_name_engraver.ly"];
+    fpf fmt [%blob "template/bar_numbering/beginning_of_line.ly"];
+    fpf fmt [%blob "template/scottish_chords.ly"];
+    fpf fmt [%blob "template/fancy_unfold_repeats.ly"];
     fpf fmt [%blob "template/header.ly"] title subtitle;
     fpf fmt [%blob "template/version/header.ly"];
-    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Model.Kind.Base.to_pretty_string ~capitalised: false kind) source target content
+    fpf fmt [%blob "template/version.ly"] piece opus source target content tempo_unit tempo_value (Kind.Base.to_pretty_string ~capitalised: false kind) source target content
   in
   let scheme =
     Format.with_formatter_to_string @@ fun fmt ->
     fpf fmt [%blob "template/scheme/extlib.scm"];
     fpf fmt [%blob "template/scheme/extlylib.scm"];
-    fpf fmt [%blob "template/scheme/get-partial.scm"];
-    fpf fmt [%blob "template/scheme/duration-of-music.scm"];
-    fpf fmt [%blob "template/scheme/skip-as-repeat.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/jig-chords.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/reel-chords.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/waltz-chords.scm"];
-    fpf fmt [%blob "template/scheme/scottish-chords/chords.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/unfold-first-volta-repeat.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/extract-span.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/split-rhythmic-event-at.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/add-trailing-silence.scm"];
-    fpf fmt [%blob "template/scheme/fancy-unfold-repeats/fancy-unfold-repeats.scm"]
+    fpf fmt [%blob "template/scheme/get_partial.scm"];
+    fpf fmt [%blob "template/scheme/duration_of_music.scm"];
+    fpf fmt [%blob "template/scheme/skip_as_repeat.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/jig_chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/reel_chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/waltz_chords.scm"];
+    fpf fmt [%blob "template/scheme/scottish_chords/chords.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/unfold_first_volta_repeat.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/extract_span.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/split_rhythmic_event_at.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/add_trailing_silence.scm"];
+    fpf fmt [%blob "template/scheme/fancy_unfold_repeats/fancy_unfold_repeats.scm"]
   in
   Log.debug (fun m -> m "Writing them to filesystem");
   Lwt_io.with_file
@@ -98,7 +98,7 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
 
 let populate_cache ~cache ~ext ~pp_ext =
   Log.info (fun m -> m "Populating the version %s cache" pp_ext);
-  let path = Filename.concat !Dancelor_server_config.cache "version" in
+  let path = Filename.concat !Config.cache "version" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
     (fun x ->
@@ -125,7 +125,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Svg = struct
-  let cache : ([`Svg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Svg] * Model.Version.t Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -136,19 +136,19 @@ module Svg = struct
     StorageCache.use ~cache ~key: (`Svg, version, parameters, body) @@ fun hash ->
     Log.debug (fun m -> m "Rendering the LilyPond version");
     let%lwt (fname_ly, fname_svg) =
-      let slug = Database.Entry.slug version in
+      let slug = Entry.slug version in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".svg")
     in
     Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
     Log.debug (fun m -> m "SVG file name: %s" fname_svg);
-    let path = Filename.concat !Dancelor_server_config.cache "version" in
+    let path = Filename.concat !Config.cache "version" in
     Log.debug (fun m -> m "Preparing lilypond file");
     prepare_ly_file parameters ~show_meta: false ~fname: (Filename.concat path fname_ly) version;%lwt
     Log.debug (fun m -> m "Generate score");
     LilyPond.svg
       ~exec_path: path
-      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
       ~stylesheet: "/fonts.css"
       fname_ly;%lwt
     Log.debug (fun m -> m "done!");
@@ -173,10 +173,10 @@ module Pdf = struct
     in
     let parameters = Model.VersionParameters.set_display_name "" parameters in
     let set =
-      Database.Entry.make_dummy @@
+      Entry.make_dummy @@
       Model.Set.make
         ~name
-        ~kind: (Model.Kind.Dance.Version kind)
+        ~kind: (Kind.Dance.Version kind)
         ~contents: [(version, parameters)]
         ~order: [Internal 1]
         ()
@@ -190,7 +190,7 @@ module Pdf = struct
 end
 
 module Ogg = struct
-  let cache : ([`Ogg] * Model.Version.t Database.Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ogg] * Model.Version.t Entry.t * Model.VersionParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -200,16 +200,16 @@ module Ogg = struct
     let body = Model.Version.content version in
     StorageCache.use ~cache ~key: (`Ogg, version, parameters, body) @@ fun hash ->
     let%lwt (fname_ly, fname_ogg) =
-      let slug = Database.Entry.slug version in
+      let slug = Entry.slug version in
       let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
       Lwt.return (fname ^ ".ly", fname ^ ".ogg")
     in
-    let path = Filename.concat !Dancelor_server_config.cache "version" in
+    let path = Filename.concat !Config.cache "version" in
     prepare_ly_file ~fname: (Filename.concat path fname_ly) parameters version;%lwt
     Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.ogg
       ~exec_path: path
-      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
       fname_ly;%lwt
     Lwt.return (Filename.concat path fname_ogg)
 
@@ -220,7 +220,7 @@ module Ogg = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.VersionEndpoints.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Version.t -> a = function
   | Get -> Model.Version.get
   | Search -> Model.Version.search
   | Create -> Model.Version.create

@@ -1,5 +1,4 @@
-module Page = Dancelor_client_page
-open Dancelor_client_html
+open Html
 
 let create () =
   Page.make ~title: (S.const "") @@

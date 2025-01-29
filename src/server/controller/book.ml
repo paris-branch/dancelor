@@ -1,7 +1,7 @@
 open NesUnix
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
-module Log = (val Dancelor_server_logs.create "controller.book": Logs.LOG)
+open Common
+
+module Log = (val Logger.create "controller.book": Logs.LOG)
 
 module Ly = struct
   let kind set set_parmeters =
@@ -10,7 +10,7 @@ module Ly = struct
       | None -> Lwt.return @@ Model.Set.kind set
       | Some dance -> Lwt.return @@ Model.Dance.kind dance
     in
-    Lwt.return (Model.Kind.Dance.to_pretty_string kind)
+    Lwt.return (Kind.Dance.to_pretty_string kind)
 
   let details_line set set_parameters =
     let%lwt dance =
@@ -35,16 +35,14 @@ module Ly = struct
   (** Rearrange the content of a set. [Default] will leave the content as-is,
       while [Unfolded] will duplicate the tunes depending on the set order. *)
   let rearrange_set_content ~order_type ~order content =
-    let module P = Model.SetParameters in
-    let module O = Model.SetOrder in
     match order_type with
-    | P.Default -> content
-    | P.Unfolded ->
+    | Model.SetParameters.Default -> content
+    | Model.SetParameters.Unfolded ->
       order
-      |> List.map_filter (function O.Internal n -> Some n | _ -> None)
+      |> List.map_filter (function Model.SetOrder.Internal n -> Some n | _ -> None)
       |> List.map (List.nth content % Fun.flip (-) 1)
 
-  let cache : ([`Ly] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Ly] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let render parameters book =
@@ -56,8 +54,8 @@ module Ly = struct
       fpf fmt [%blob "template/lyversion.ly"];
       (
         match Model.BookParameters.paper_size' parameters with
-        | A n -> fpf fmt [%blob "template/paper-size/a.ly"] n;
-        | Custom (width, height, unit) -> fpf fmt [%blob "template/paper-size/custom.ly"] width unit height unit;
+        | A n -> fpf fmt [%blob "template/paper_size/a.ly"] n;
+        | Custom (width, height, unit) -> fpf fmt [%blob "template/paper_size/custom.ly"] width unit height unit;
       );
       fpf fmt [%blob "template/book/macros.ly"];
       fpf fmt [%blob "template/layout.ly"];
@@ -70,12 +68,12 @@ module Ly = struct
       fpf fmt [%blob "template/book/paper.ly"];
       if Model.BookParameters.two_sided' parameters then
         (
-          fpf fmt [%blob "template/book/two-sided.ly"];
+          fpf fmt [%blob "template/book/two_sided.ly"];
           fpf
             fmt
             (
               if Model.BookParameters.running_header' parameters then
-                [%blob "template/book/header/two-sided.ly"]
+                [%blob "template/book/header/two_sided.ly"]
               else
                 [%blob "template/book/header/none.ly"]
             );
@@ -83,7 +81,7 @@ module Ly = struct
             fmt
             (
               if Model.BookParameters.running_footer' parameters then
-                [%blob "template/book/footer/two-sided.ly"]
+                [%blob "template/book/footer/two_sided.ly"]
               else
                 [%blob "template/book/footer/none.ly"]
             )
@@ -94,7 +92,7 @@ module Ly = struct
             fmt
             (
               if Model.BookParameters.running_header' parameters then
-                [%blob "template/book/header/one-sided.ly"]
+                [%blob "template/book/header/one_sided.ly"]
               else
                 [%blob "template/book/header/none.ly"]
             );
@@ -102,15 +100,15 @@ module Ly = struct
             fmt
             (
               if Model.BookParameters.running_footer' parameters then
-                [%blob "template/book/footer/one-sided.ly"]
+                [%blob "template/book/footer/one_sided.ly"]
               else
                 [%blob "template/book/footer/none.ly"]
             )
         );
-      fpf fmt [%blob "template/repeat-volta-fancy.ly"];
-      fpf fmt [%blob "template/bar-numbering/repeat-aware.ly"];
-      fpf fmt [%blob "template/bar-numbering/bar-number-in-instrument-name-engraver.ly"];
-      fpf fmt [%blob "template/bar-numbering/beginning-of-line.ly"];
+      fpf fmt [%blob "template/repeat_volta_fancy.ly"];
+      fpf fmt [%blob "template/bar_numbering/repeat_aware.ly"];
+      fpf fmt [%blob "template/bar_numbering/bar_number_in_instrument_name_engraver.ly"];
+      fpf fmt [%blob "template/bar_numbering/beginning_of_line.ly"];
       fpf fmt [%blob "template/book/book_beginning.ly"];
       if Model.BookParameters.front_page' parameters then
         fpf fmt [%blob "template/book/book_front_page.ly"];
@@ -128,7 +126,7 @@ module Ly = struct
             let set =
               Model.Set.make
                 ~name
-                ~kind: (Model.Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
+                ~kind: (Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
                 ~contents: [version, parameters]
                 ~order: [Internal 1]
                 ()
@@ -141,9 +139,9 @@ module Ly = struct
                 ~show_order: false
                 ()
             in
-            Lwt.return (Database.Entry.make_dummy set, set_parameters)
+            Lwt.return (Entry.make_dummy set, set_parameters)
           | Set (set, parameters) -> Lwt.return (set, parameters)
-          | InlineSet (set, parameters) -> Lwt.return (Database.Entry.make_dummy set, parameters)
+          | InlineSet (set, parameters) -> Lwt.return (Entry.make_dummy set, parameters)
         in
         (* FIXME: none of the above need to be dummy; I think we can just return
            a SetCore.t; do we need the slug anyway? *)
@@ -171,7 +169,7 @@ module Ly = struct
         (
           match Model.SetParameters.forced_pages' set_parameters with
           | 0 -> ()
-          | n -> fpf fmt [%blob "template/book/set-forced-pages.ly"] n
+          | n -> fpf fmt [%blob "template/book/set_forced_pages.ly"] n
         );
         let%lwt () =
           let%lwt contents = Model.Set.contents set in
@@ -189,7 +187,7 @@ module Ly = struct
             | None -> content
             | Some clef_parameter ->
               let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-              Str.global_replace clef_regex ("\\clef " ^ Model.Music.clef_to_string clef_parameter) content
+              Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
           in
           let%lwt tune = Model.Version.tune version in
           let key = Model.Version.key version in
@@ -200,7 +198,7 @@ module Ly = struct
           let source, target =
             match Model.VersionParameters.transposition' version_parameters with
             | Relative (source, target) -> (source, target)
-            | Absolute target -> (Model.Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
+            | Absolute target -> (Music.key_pitch key, target) (* FIXME: probably an octave to fix here *)
           in
           fpf
             fmt
@@ -209,8 +207,8 @@ module Ly = struct
             composer
             first_bar
             name
-            (Model.Music.pitch_to_lilypond_string source)
-            (Model.Music.pitch_to_lilypond_string target)
+            (Music.pitch_to_lilypond_string source)
+            (Music.pitch_to_lilypond_string target)
             content;
           Lwt.return ()
         in
@@ -228,7 +226,7 @@ end
 
 let populate_cache ~cache ~ext ~pp_ext =
   Log.info (fun m -> m "Populating the book %s cache" pp_ext);
-  let path = Filename.concat !Dancelor_server_config.cache "book" in
+  let path = Filename.concat !Config.cache "book" in
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
     (fun x ->
@@ -255,7 +253,7 @@ let populate_cache ~cache ~ext ~pp_ext =
     files
 
 module Pdf = struct
-  let cache : ([`Pdf] * Model.Book.t Database.Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+  let cache : ([`Pdf] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
@@ -265,7 +263,7 @@ module Pdf = struct
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
     StorageCache.use ~cache ~key: (`Pdf, book, parameters, body) @@ fun hash ->
     let%lwt lilypond = Ly.render parameters book in
-    let path = Filename.concat !Dancelor_server_config.cache "book" in
+    let path = Filename.concat !Config.cache "book" in
     let (fname_ly, fname_pdf) =
       let fname = StorageCache.hash_to_string hash in
       (fname ^ ".ly", fname ^ ".pdf")
@@ -277,7 +275,7 @@ module Pdf = struct
     Log.debug (fun m -> m "Processing with LilyPond");
     LilyPond.run
       ~exec_path: path
-      ~fontconfig_file: (Filename.concat !Dancelor_server_config.share "fonts.conf")
+      ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
       fname_ly;%lwt
     let path_pdf = Filename.concat path fname_pdf in
     Lwt.return path_pdf
@@ -288,7 +286,7 @@ module Pdf = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.BookEndpoints.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Book.t -> a = function
   | Get -> Model.Book.get
   | Search -> Model.Book.search
   | Create -> Model.Book.create

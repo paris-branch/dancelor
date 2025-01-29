@@ -1,12 +1,11 @@
 open Nes
-module Model = Dancelor_server_model
-module Database = Dancelor_server_database
+open Common
 
 module Pdf = struct
   let render parameters set =
     let book =
-      Database.Entry.make_dummy @@
-      Model.Book.make ~title: "" ~contents: [InlineSet (Database.Entry.value set, parameters)] ()
+      Entry.make_dummy @@
+      Model.Book.make ~title: "" ~contents: [InlineSet (Entry.value set, parameters)] ()
     in
     let parameters =
       (* FIXME: the fact that we need to transfer this is just wrong. see
@@ -21,7 +20,7 @@ module Pdf = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Dancelor_common_model.SetEndpoints.t -> a = function
+let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Set.t -> a = function
   | Get -> Model.Set.get
   | Delete -> (fun slug -> Lwt.bind (Model.Set.get slug) Model.Set.delete)
   | Search -> Model.Set.search

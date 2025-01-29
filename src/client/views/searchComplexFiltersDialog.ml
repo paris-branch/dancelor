@@ -1,7 +1,9 @@
 open Nes
-open Dancelor_client_model
-open Dancelor_client_html
-open Dancelor_client_components
+open Common
+
+open Model
+open Html
+open Components
 
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
@@ -108,7 +110,10 @@ let kind_choices filter =
       (
         List.map
           (fun kind ->
-             choice [txt (Kind.Base.to_pretty_string ~capitalised: true kind)] ~value: kind ~checked: (checked kind)
+             choice
+               [txt (Kind.Base.to_pretty_string ~capitalised: true kind)]
+               ~value: kind
+               ~checked: (checked kind)
           )
           Kind.Base.all
       )
@@ -210,7 +215,10 @@ let major_key_choices filter =
       (
         List.map
           (fun key ->
-             choice [txt (Music.key_to_pretty_string key)] ~value: key ~checked: (checked key)
+             choice
+               [txt (Music.key_to_pretty_string key)]
+               ~value: key
+               ~checked: (checked key)
           )
           major_keys
       )
@@ -248,7 +256,10 @@ let minor_key_choices filter =
       (
         List.map
           (fun key ->
-             choice [txt (Music.key_to_pretty_string key)] ~value: key ~checked: (checked key)
+             choice
+               [txt (Music.key_to_pretty_string key)]
+               ~value: key
+               ~checked: (checked key)
           )
           minor_keys
       )

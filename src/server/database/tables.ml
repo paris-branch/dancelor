@@ -1,9 +1,8 @@
 open Nes
-
-module Model = Dancelor_common_model
+open Common
 
 module Person = Table.Make(struct
-    include Model.PersonCore
+    include ModelBuilder.Person
 
     let slug_hint person = Lwt.return person.name
     let separate_fields = []
@@ -12,7 +11,7 @@ module Person = Table.Make(struct
   end)
 
 module Dance = Table.Make(struct
-    include Model.DanceCore
+    include ModelBuilder.Dance
 
     let slug_hint dance = Lwt.return dance.name
     let separate_fields = []
@@ -26,7 +25,7 @@ module Dance = Table.Make(struct
   end)
 
 module Tune = Table.Make(struct
-    include Model.TuneCore
+    include ModelBuilder.Tune
 
     let slug_hint tune = Lwt.return tune.name
     let separate_fields = []
@@ -41,7 +40,7 @@ module Tune = Table.Make(struct
   end)
 
 module Version = Table.Make(struct
-    include Model.VersionCore
+    include ModelBuilder.Version
 
     let slug_hint version = Lwt.bind (Tune.get version.tune) (fun tune -> Lwt.return (Entry.value tune).name)
     let separate_fields = [("content", "content.ly")]
@@ -55,7 +54,7 @@ module Version = Table.Make(struct
   end)
 
 module SetModel = struct
-  include Model.SetCore
+  include ModelBuilder.Set
 
   let slug_hint set = Lwt.return set.name
   let separate_fields = []
@@ -72,7 +71,7 @@ end
 module Set = Table.Make(SetModel)
 
 module Book = Table.Make(struct
-    include Model.BookCore
+    include ModelBuilder.Book
 
     let slug_hint book = Lwt.return book.title
     let separate_fields = []
@@ -80,28 +79,28 @@ module Book = Table.Make(struct
       let%lwt dependencies =
         Lwt_list.map_p
           (function
-            | PageCore.Version (version, parameters) ->
+            | ModelBuilder.Book.Page.Version (version, parameters) ->
               Lwt.return
                 (
                   [Table.make_slug_and_table (module Version) version] @
-                  match Model.VersionParameters.for_dance parameters with
+                  match ModelBuilder.Version.Parameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
-            | PageCore.Set (set, parameters) ->
+            | ModelBuilder.Book.Page.Set (set, parameters) ->
               Lwt.return
                 (
                   [Table.make_slug_and_table (module Set) set] @
-                  match Model.SetParameters.for_dance parameters with
+                  match ModelBuilder.SetParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
-            | PageCore.InlineSet (set, parameters) ->
+            | ModelBuilder.Book.Page.InlineSet (set, parameters) ->
               let%lwt set_dependencies = SetModel.dependencies @@ Entry.make_dummy set in
               Lwt.return
                 (
                   set_dependencies @
-                  match Model.SetParameters.for_dance parameters with
+                  match ModelBuilder.SetParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
                 )
@@ -124,12 +123,12 @@ let tables : (module Table.S)list = [
   (module Book)
 ]
 
-module Log = (val Dancelor_server_logs.create "database": Logs.LOG)
+module Log = (val Logger.create "database": Logs.LOG)
 
 module Initialise = struct
   let sync_db () =
     Log.info (fun m -> m "Syncing database changes");
-    if (not !Dancelor_server_config.init_only) && !Dancelor_server_config.sync_storage then
+    if (not !Config.init_only) && !Config.sync_storage then
       Storage.sync_changes ()
     else
       Lwt.return_unit
@@ -149,7 +148,7 @@ module Initialise = struct
            (
              problems
              |> List.iter @@ function
-             | Dancelor_common.Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
+             | Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
              | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
                Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
@@ -165,7 +164,7 @@ module Initialise = struct
     in
     match found_problem with
     | None -> Lwt.return ()
-    | Some problem -> Dancelor_common.Error.fail problem
+    | Some problem -> Error.fail problem
 
   let report_without_accesses () =
     Log.info (fun m -> m "Checking for unaccessible entries");

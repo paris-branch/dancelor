@@ -10,7 +10,7 @@
     visible. Under the hood, it is a bunch of <radio> elements.
 *)
 
-open Dancelor_client_html
+open Html
 
 (** {2 Single choice} *)
 

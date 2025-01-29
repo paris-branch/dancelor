@@ -1,12 +1,12 @@
 open Nes
+open Common
+
 open Js_of_ocaml
-open Dancelor_common
-module Model = Dancelor_client_model
-open Dancelor_client_html
-open Dancelor_client_components
+open Html
+open Components
 
 let describe =
-  PageRouter.make_describe
+  Endpoints.Page.make_describe
     ~get_version: Model.Version.get
     ~get_tune: Model.Tune.get
     ~get_set: Model.Set.get
@@ -61,7 +61,7 @@ let open_dialog page =
     RS.bind (Input.Text.signal title_input) @@ fun title ->
     RS.bind (Input.Text.signal description_input) @@ fun description ->
     RS.bind (Choices.signal source) @@ fun source ->
-    RS.pure Model.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
+    RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
     Dialog.open_res @@ fun return ->
@@ -96,7 +96,7 @@ let open_dialog page =
                       (S.value request_signal)
                       ~none: Lwt.return_unit
                       ~some: (fun request ->
-                          let%lwt response = Madge_cohttp_lwt_client.call ApiRouter.(route ReportIssue) request in
+                          let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
                           return @@ Ok response;
                           Lwt.return_unit
                         )

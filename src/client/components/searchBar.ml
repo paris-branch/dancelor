@@ -1,7 +1,6 @@
 open Nes
 open Js_of_ocaml
-open Dancelor_client_html
-module Utils = Dancelor_client_utils
+open Html
 
 type 'result state =
   | StartTyping
