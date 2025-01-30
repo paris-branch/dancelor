@@ -3,7 +3,7 @@ open Cohttp_lwt_unix
 open Nes
 open Common
 
-module Log = (val Logger.create "main": Logs.LOG)
+module Log = (val Logger.create "": Logs.LOG)
 
 let log_exn ~msg exn =
   Log.err @@ fun m ->
@@ -71,27 +71,23 @@ let callback _ request body =
   let path = Uri.path uri in
   Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
   let full_path = Filename.concat !Config.share path in
-  Log.debug (fun m -> m "Looking for %s" full_path);
   if Sys.file_exists full_path && not (Sys.is_directory full_path) then
     (
-      Log.debug (fun m -> m "Serving static file.");
+      Log.debug (fun m -> m "Serving static file: <share>/%s" @@ String.ltrim ~chars: ['/'] path);
       (* Keep static files in cache for 30 days. *)
       let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
       Server.respond_file ~headers ~fname: full_path ()
     )
+  else if String.starts_with ~needle: "/api/" path then
+    (
+      Log.debug (fun m -> m "Looking for an API controller for %s." path);
+      let%lwt body = Cohttp_lwt.Body.to_string body in
+      apply_controller {meth; uri; body}
+    )
   else
     (
-      if String.starts_with ~needle: "/api/" path then
-        (
-          Log.debug (fun m -> m "Looking for an API controller for %s." path);
-          let%lwt body = Cohttp_lwt.Body.to_string body in
-          apply_controller {meth; uri; body}
-        )
-      else
-        (
-          Log.debug (fun m -> m "Serving main file.");
-          Server.respond_file ~fname: (Filename.concat !Config.share "index.html") ()
-        )
+      Log.debug (fun m -> m "Serving main file.");
+      Server.respond_file ~fname: (Filename.concat !Config.share "index.html") ()
     )
 
 let () =

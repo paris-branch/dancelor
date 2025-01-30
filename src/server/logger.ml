@@ -2,13 +2,17 @@ open Nes
 
 module type LOG = Logs.LOG
 
-let log_src = Logs.Src.create "dancelor.server.logger"
+let log_src = Logs.Src.create "server.logger"
 module Log = (val Logs.src_log log_src: LOG)
 
 let create unit =
-  Log.debug (fun m -> m "Creating log unit dancelor.server.%s" unit);
-  let src = Logs.Src.create ("dancelor.server." ^ unit) in
-  Logs.src_log src
+  let unit =
+    match unit with
+    | "" -> "server"
+    | _ -> "server." ^ unit
+  in
+  Log.debug (fun m -> m "Creating log unit %s" unit);
+  Logs.src_log @@ Logs.Src.create unit
 
 let level_to_string = function
   | Logs.Debug -> "DBG"
@@ -31,25 +35,17 @@ let my_reporter () =
     ignore tags;
     ignore header;
     let ppf = Format.err_formatter in
-    let time =
-      let open Unix in
-      let tm = (gettimeofday () |> localtime) in
-      spf "%02d:%02d:%02d" tm.tm_hour tm.tm_min tm.tm_sec
-    in
-    let name =
-      let name = Logs.Src.name src in
-      let needle = "dancelor.server." in
-      if String.starts_with ~needle name then "ds." ^ String.remove_prefix_exn ~needle name
-      else name
-    in
+    let time = Unix.(gettimeofday () |> localtime) in
     Format.kfprintf
       k
       ppf
-      ("@[<h 2>%s%s %s %s | " ^^ fmt ^^ "\027[0m@]@.")
+      ("@[<h 2>%s%02d:%02d:%02d %s %s | " ^^ fmt ^^ "\027[0m@]@.")
       (level_to_color level)
-      time
+      time.tm_hour
+      time.tm_min
+      time.tm_sec
       (level_to_string level)
-      name
+      (Logs.Src.name src)
   in
   {Logs.report}
 
@@ -62,8 +58,8 @@ let update_past_loglevel loglevel =
   let level =
     (* If the source comes from us, set loglevel to the given one. Otherwise,
        set to None. *)
-    if name = "dancelor"
-    || String.starts_with ~needle: "dancelor." name
+    if name = "server"
+    || String.starts_with ~needle: "server." name
     || name = "lilypond"
     || String.starts_with ~needle: "lilypond." name
     || name = "nes"
