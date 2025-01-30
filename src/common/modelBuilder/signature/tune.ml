@@ -31,7 +31,8 @@ module type S = sig
 
   val equal : t -> t -> bool
 
-  val compare : t Entry.t -> t Entry.t -> int (* FIXME: sounds hackish *)
+  val compare : t Entry.t -> t Entry.t -> int
+  (* FIXME: sounds hackish *)
 
   (** {2 Filters} *)
 

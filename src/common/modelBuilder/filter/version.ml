@@ -1,6 +1,5 @@
 open Nes
 
-
 type predicate =
   | Is of Core.Version.t Slug.t
   | Tune of Tune.t
