@@ -16,6 +16,8 @@ val make :
 (** Page maker. The [?parent_title] argument is used to build a title of the
     form ["page | parent page"]. It is empty by default. *)
 
-val get_title : t -> string S.t
+val full_title : t -> string S.t
+(** Full title, that is the title with the parent component. *)
 
-val get_content : t -> Html_types.div_content_fun elt list
+val content : t -> Html_types.div_content_fun elt list
+(** Content of the back. *)

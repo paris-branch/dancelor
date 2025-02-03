@@ -171,7 +171,7 @@ let create ?on_save ?text ?tune () =
                     ~make_result: AnyResult.make_tune_result'
                     ~field_name: ("Tune", "tune")
                     ~model_name: "tune"
-                    ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ TuneEditor.create ?on_save ~text ())
+                    ~create_dialog_content: (fun ?on_save text -> Page.content @@ TuneEditor.create ?on_save ~text ())
                     editor.elements.tune;
                   Input.Text.render
                     editor.elements.bars
@@ -189,7 +189,7 @@ let create ?on_save ?text ?tune () =
                     ~make_result: AnyResult.make_person_result'
                     ~field_name: ("Arrangers", "arranger")
                     ~model_name: "person"
-                    ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
+                    ~create_dialog_content: (fun ?on_save text -> Page.content @@ PersonEditor.create ?on_save ~text ())
                     editor.elements.arrangers;
                   Input.Text.render
                     editor.elements.disambiguation

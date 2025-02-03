@@ -165,7 +165,7 @@ let create ?on_save ?text () =
                   ~make_result: AnyResult.make_person_result'
                   ~field_name: ("Conceptors", "conceptor")
                   ~model_name: "person"
-                  ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
+                  ~create_dialog_content: (fun ?on_save text -> Page.content @@ PersonEditor.create ?on_save ~text ())
                   editor.elements.conceptors;
                 Selector.render
                   ~make_result: AnyResult.make_version_result'
@@ -189,7 +189,7 @@ let create ?on_save ?text () =
                     )
                   ~field_name: ("Versions", "version")
                   ~model_name: "versions"
-                  ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ VersionEditor.create ?on_save ~text ())
+                  ~create_dialog_content: (fun ?on_save text -> Page.content @@ VersionEditor.create ?on_save ~text ())
                   editor.elements.versions;
                 Input.Text.render
                   editor.elements.order

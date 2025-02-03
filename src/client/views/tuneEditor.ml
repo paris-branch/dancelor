@@ -184,7 +184,7 @@ let create ?on_save ?text () =
                   ~make_result: AnyResult.make_person_result'
                   ~field_name: ("Composers", "composer")
                   ~model_name: "person"
-                  ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
+                  ~create_dialog_content: (fun ?on_save text -> Page.content @@ PersonEditor.create ?on_save ~text ())
                   editor.elements.composers;
                 Input.Text.render
                   editor.elements.date
@@ -194,7 +194,7 @@ let create ?on_save ?text () =
                   ~make_result: AnyResult.make_dance_result'
                   ~field_name: ("Dances", "dance")
                   ~model_name: "dance"
-                  ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ DanceEditor.create ?on_save ~text ())
+                  ~create_dialog_content: (fun ?on_save text -> Page.content @@ DanceEditor.create ?on_save ~text ())
                   (* FIXME: Selector should just take a page *)
                   editor.elements.dances;
                 Input.Text.render

@@ -244,14 +244,14 @@ let dispatch uri =
 
 let on_load _ev =
   let page = dispatch @@ get_uri () in
-  let iter_title = React.S.map set_title (Page.get_title page) in
+  let iter_title = React.S.map set_title (Page.full_title page) in
   Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
   let content =
     To_dom.of_div @@
     Html.div
       ~a: [a_class ["content"; "page-body"]]
-      (Page.get_content page)
+      (Page.content page)
   in
   Dom.appendChild Dom_html.document##.body content;
   Dom.appendChild Dom_html.document##.body (To_dom.of_div IssueReport.button);

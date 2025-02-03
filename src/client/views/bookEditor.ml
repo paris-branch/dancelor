@@ -171,7 +171,7 @@ let create ?on_save ?text ?edit () =
                     ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
                     ~field_name: ("Sets", "set")
                     ~model_name: "set"
-                    ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ SetEditor.create ?on_save ~text ())
+                    ~create_dialog_content: (fun ?on_save text -> Page.content @@ SetEditor.create ?on_save ~text ())
                     editor.elements.sets;
                   Button.group
                     [
