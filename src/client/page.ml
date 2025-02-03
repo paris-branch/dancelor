@@ -1,21 +1,19 @@
-open Js_of_ocaml_tyxml.Tyxml_js
+open Html
 
 type t = {
-  title: string React.S.t;
-  content: Html_types.div_content_fun Html.elt list;
+  parent_title: string;
+  title: string S.t;
+  content: Html_types.div_content_fun elt list;
 }
 
-let get_title p = p.title
+let get_title p =
+  Fun.flip S.map p.title @@ function
+  | "" -> p.parent_title
+  | title ->
+    match p.parent_title with
+    | "" -> title
+    | _ -> title ^ " | " ^ p.parent_title
 
-let get_content p = p.content
+let get_content p = [h2 ~a: [a_class ["title"]] [R.txt p.title]] @ p.content
 
-let make ?(parent_title = "") ~title content =
-  let title =
-    Fun.flip React.S.map title @@ function
-    | "" -> parent_title
-    | title ->
-      match parent_title with
-      | "" -> title
-      | _ -> title ^ " | " ^ parent_title
-  in
-  {title; content}
+let make ?(parent_title = "") ~title content = {parent_title; title; content}

@@ -169,7 +169,6 @@ let create ?on_save ?text () =
           let%lwt editor = Editor.create ~text in
           Lwt.return @@
           [
-            h2 ~a: [a_class ["title"]] [txt title];
             form
               [
                 Input.Text.render

@@ -15,7 +15,6 @@ let create ?context slug =
         ?context
         ~this_page: (Endpoints.Page.href_set slug)
         (Lwt.map Any.set set_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3
         ~a: [a_class ["title"]]

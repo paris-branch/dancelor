@@ -15,7 +15,6 @@ let create ?context slug =
         ?context
         ~this_page: (Endpoints.Page.href_person slug)
         (Lwt.map Any.person person_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
       L.div
         ~a: [a_class ["section"]]
         (

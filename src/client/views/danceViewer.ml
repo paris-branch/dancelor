@@ -15,7 +15,6 @@ let create ?context slug =
         ?context
         ~this_page: (Endpoints.Page.href_dance slug)
         (Lwt.map Any.dance dance_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3
         ~a: [a_class ["title"]]
         (

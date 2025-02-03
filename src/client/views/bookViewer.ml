@@ -137,7 +137,6 @@ let create ?context slug =
         ?context
         ~this_page: (Endpoints.Page.href_book slug)
         (Lwt.map Any.book book_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
       h3 ~a: [a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
       L.div
         (

@@ -15,7 +15,6 @@ let create ?context slug =
         ?context
         ~this_page: (Endpoints.Page.href_tune slug)
         (Lwt.map Any.tune tune_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
       L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a: [a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
       L.div
