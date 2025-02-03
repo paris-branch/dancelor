@@ -2,7 +2,7 @@ open Js_of_ocaml_tyxml.Tyxml_js
 
 type t = {
   title: string React.S.t;
-  content: Html_types.div Html.elt;
+  content: Html_types.div_content_fun Html.elt list;
 }
 
 let get_title p = p.title

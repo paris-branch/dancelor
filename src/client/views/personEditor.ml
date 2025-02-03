@@ -86,41 +86,44 @@ end
 
 let create ?on_save ?text () =
   let title = "Add a person" in
-  Page.make ~title: (S.const title) @@
-  L.div
-    (
-      let%lwt editor = Editor.create ~text in
-      Lwt.return @@
-      [
-        h2 ~a: [a_class ["title"]] [txt title];
-        form
+  Page.make
+    ~title: (S.const title)
+    [
+      L.div
+        (
+          let%lwt editor = Editor.create ~text in
+          Lwt.return @@
           [
-            Input.Text.render
-              editor.elements.name
-              ~label: "Name"
-              ~placeholder: "eg. John Doe";
-            Input.Text.render
-              editor.elements.scddb_id
-              ~label: "SCDDB ID"
-              ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
-            Button.group
+            h2 ~a: [a_class ["title"]] [txt title];
+            form
               [
-                Button.save
-                  ~disabled: (S.map Option.is_none (Editor.state editor))
-                  ~onclick: (fun () ->
-                      editor.set_interacted ();
-                      Fun.flip Lwt.map (Editor.submit editor) @@
-                      Option.iter @@ fun person ->
-                      Editor.clear editor;
-                      match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
-                      | Some on_save -> on_save person
-                    )
-                  ();
-                Button.clear
-                  ~onclick: (fun () -> Editor.clear editor)
-                  ();
-              ];
+                Input.Text.render
+                  editor.elements.name
+                  ~label: "Name"
+                  ~placeholder: "eg. John Doe";
+                Input.Text.render
+                  editor.elements.scddb_id
+                  ~label: "SCDDB ID"
+                  ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
+                Button.group
+                  [
+                    Button.save
+                      ~disabled: (S.map Option.is_none (Editor.state editor))
+                      ~onclick: (fun () ->
+                          editor.set_interacted ();
+                          Fun.flip Lwt.map (Editor.submit editor) @@
+                          Option.iter @@ fun person ->
+                          Editor.clear editor;
+                          match on_save with
+                          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
+                          | Some on_save -> on_save person
+                        )
+                      ();
+                    Button.clear
+                      ~onclick: (fun () -> Editor.clear editor)
+                      ();
+                  ];
+              ]
           ]
-      ]
-    )
+        )
+    ]

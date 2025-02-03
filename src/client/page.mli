@@ -9,11 +9,11 @@ type t
 val make :
   ?parent_title: string ->
   title: string React.S.t ->
-  Html_types.div Html.elt ->
+  Html_types.div_content_fun Html.elt list ->
   t
 (** Page maker. The [?parent_title] argument is used to build a title of the
     form ["page | parent page"]. It is empty by default. *)
 
 val get_title : t -> string React.S.t
 
-val get_content : t -> Html_types.div Html.elt
+val get_content : t -> Html_types.div_content_fun Html.elt list

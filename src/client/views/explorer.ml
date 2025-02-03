@@ -41,8 +41,8 @@ let create ?query () =
       ()
   in
   let title = "Explore" in
-  Page.make ~title: (S.const title) @@
-  div
+  Page.make
+    ~title: (S.const title)
     [
       h2 ~a: [a_class ["title"]] [txt title];
       SearchBar.render

@@ -20,8 +20,9 @@ let create ?context slug =
       )
   in
   let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
-  Page.make ~parent_title: "Version" ~title @@
-  div
+  Page.make
+    ~parent_title: "Version"
+    ~title
     [
       Components.ContextLinks.make_and_render
         ?context

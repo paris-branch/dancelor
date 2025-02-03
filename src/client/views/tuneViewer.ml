@@ -7,8 +7,9 @@ open Html
 let create ?context slug =
   let tune_lwt = Tune.get slug in
   let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
-  Page.make ~parent_title: "Tune" ~title @@
-  div
+  Page.make
+    ~parent_title: "Tune"
+    ~title
     [
       Components.ContextLinks.make_and_render
         ?context
