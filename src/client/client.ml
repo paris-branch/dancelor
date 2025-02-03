@@ -23,23 +23,35 @@ let path_explore_models m =
   Option.some @@
   TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
 
+let smartphone_menu_toggle =
+  a
+    ~a: [
+      a_id "to_nav";
+      a_onclick (fun _ ->
+          set_show_menu % Option.some % not @@ (S.value show_menu = Some true);
+          false
+        )
+    ]
+    [
+      i
+        ~a: [a_class ["material-symbols-outlined"]]
+        [
+          R.txt
+            (
+              Fun.flip S.map show_menu @@ function
+              | Some true -> "close"
+              | _ -> "menu"
+            )
+        ]
+    ]
+
 let header =
   header
     [
       div
         ~a: [a_class ["content"]]
         [
-
-          (* Toggle for smartphone devices. *)
-          a
-            ~a: [
-              a_id "to_nav";
-              a_onclick (fun _ ->
-                  set_show_menu % Option.some % not @@ (S.value show_menu = Some true);
-                  false
-                )
-            ]
-            [i ~a: [a_class ["material-symbols-outlined"]] [txt "menu"]];
+          smartphone_menu_toggle;
 
           (* A glorious title. *)
           a
