@@ -9,9 +9,13 @@ let get_title p = p.title
 
 let get_content p = p.content
 
-let make ~title content = {title; content}
-
-let sub_title category title =
-  Fun.flip React.S.map title @@ function
-  | "" -> category
-  | title -> title ^ " | " ^ category
+let make ?(parent_title = "") ~title content =
+  let title =
+    Fun.flip React.S.map title @@ function
+    | "" -> parent_title
+    | title ->
+      match parent_title with
+      | "" -> title
+      | _ -> title ^ " | " ^ parent_title
+  in
+  {title; content}

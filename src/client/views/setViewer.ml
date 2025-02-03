@@ -7,7 +7,7 @@ open Html
 let create ?context slug =
   let set_lwt = Set.get slug in
   let title = S.from' "" (Lwt.map Set.name set_lwt) in
-  Page.make ~title: (Page.sub_title "Set" title) @@
+  Page.make ~parent_title: "Set" ~title @@
   div
     [
       Components.ContextLinks.make_and_render
