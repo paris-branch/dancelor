@@ -5,6 +5,7 @@ type t = {
   before_title: Html_types.div_content_fun elt list;
   title: string S.t;
   content: Html_types.div_content_fun elt list;
+  footer: Html_types.div_content_fun elt list;
 }
 
 let full_title p =
@@ -17,6 +18,20 @@ let full_title p =
 
 let content p =
   p.before_title @
-  [h2 ~a: [a_class ["title"]] [R.txt p.title]] @ p.content
+  [h2 ~a: [a_class ["title"]] [R.txt p.title]] @
+  p.content @
+  p.footer
 
-let make ?(parent_title = "") ~title ?(before_title = []) content = {parent_title; before_title; title; content}
+let make
+    ?(parent_title = "")
+    ~title
+    ?(before_title = [])
+    ?(footer = [])
+    content
+  = {
+    parent_title;
+    before_title;
+    title;
+    content;
+    footer
+  }
