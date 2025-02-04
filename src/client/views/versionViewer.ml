@@ -23,11 +23,13 @@ let create ?context slug =
   Page.make
     ~parent_title: "Version"
     ~title
-    [
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version slug)
         (Lwt.map Any.version version_lwt);
+    ]
+    [
       L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a: [a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
       L.h3 ~a: [a_class ["title"]] (version_lwt >>=| Formatters.Version.description ~link: true);

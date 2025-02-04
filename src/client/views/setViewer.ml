@@ -10,11 +10,13 @@ let create ?context slug =
   Page.make
     ~parent_title: "Set"
     ~title
-    [
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_set slug)
         (Lwt.map Any.set set_lwt);
+    ]
+    [
       L.h3 ~a: [a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3
         ~a: [a_class ["title"]]

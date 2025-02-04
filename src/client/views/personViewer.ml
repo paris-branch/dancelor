@@ -10,11 +10,13 @@ let create ?context slug =
   Page.make
     ~parent_title: "Person"
     ~title
-    [
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_person slug)
         (Lwt.map Any.person person_lwt);
+    ]
+    [
       L.div
         ~a: [a_class ["section"]]
         (

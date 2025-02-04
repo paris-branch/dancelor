@@ -10,11 +10,13 @@ let create ?context slug =
   Page.make
     ~parent_title: "Dance"
     ~title
-    [
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_dance slug)
         (Lwt.map Any.dance dance_lwt);
+    ]
+    [
       L.h3
         ~a: [a_class ["title"]]
         (
