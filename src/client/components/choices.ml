@@ -20,7 +20,7 @@ let choice ?(checked = false) ~value contents = {id = unique (); value; checked;
 let choice' ?checked ?value contents = choice ?checked ~value contents
 
 type 'value t = {
-  box: Html_types.div elt;
+  box: 'a. ([> Html_types.div] as 'a) elt;
   values: 'value S.t;
 }
 

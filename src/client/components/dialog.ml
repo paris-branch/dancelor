@@ -4,7 +4,7 @@ open Js_of_ocaml
 
 type error = Closed
 
-let open_res content =
+let open_res make_page =
   let (promise, resolver) = Lwt.wait () in
 
   (* The actual [return] function requires a handle of the box to work, but the
@@ -18,6 +18,7 @@ let open_res content =
       box##close;
       Dom.removeChild Dom_html.document##.body box
   in
+  let page = make_page return in
 
   (* The HTML dialog box. *)
   let box =
@@ -28,7 +29,7 @@ let open_res content =
           [
             i ~a: [a_class ["material-symbols-outlined"]] [txt "close"];
           ];
-        div (content return);
+        div (Page.content page);
       ]
   in
   let dom_box = To_dom.of_dialog box in
@@ -57,4 +58,5 @@ let open_res content =
   (* Return the promise of a result. *)
   promise
 
-let open_ content = open_res (fun return -> content (return % Result.ok))
+let open_ make_page =
+  open_res (fun return -> make_page (return % Result.ok))

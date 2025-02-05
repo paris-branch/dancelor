@@ -332,73 +332,65 @@ let open_ text raws filter =
       ]
   in
   Dialog.open_ @@ fun return ->
-  [
-    h2 [txt "Complex filters"];
-    form
-      ~a: [a_class ["center"]]
-      [
-        div [Choices.render type_choices];
-        R.div
-          (
-            Fun.flip S.map (Choices.signal type_choices) @@ function
-            | None -> []
-            | Some Person -> person_html
-            | Some Dance -> dance_html
-            | Some Book -> book_html
-            | Some Set -> set_html
-            | Some Tune -> tune_html
-            | Some Version -> version_html
-          );
-        div
-          [
-            a
-              ~a: [
-                a_class ["button"];
-                a_onclick (fun _ -> return text; false);
-              ]
-              [txt "Cancel"];
-            a
-              ~a: [
-                a_class ["button"];
-                a_onclick (fun _ -> return ""; false);
-              ]
-              [txt "Clear"];
-            a
-              ~a: [
-                a_class ["button"; "button-success"];
-                a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
-              ]
-              [txt "Apply"];
-          ]
-      ]
-  ]
+  Page.make
+    ~title: (S.const "Complex filters")
+    [
+      div [Choices.render type_choices];
+      R.div
+        (
+          Fun.flip S.map (Choices.signal type_choices) @@ function
+          | None -> []
+          | Some Person -> person_html
+          | Some Dance -> dance_html
+          | Some Book -> book_html
+          | Some Set -> set_html
+          | Some Tune -> tune_html
+          | Some Version -> version_html
+        );
+    ]
+    ~buttons: [
+      a
+        ~a: [
+          a_class ["button"];
+          a_onclick (fun _ -> return text; false);
+        ]
+        [txt "Cancel"];
+      a
+        ~a: [
+          a_class ["button"];
+          a_onclick (fun _ -> return ""; false);
+        ]
+        [txt "Clear"];
+      a
+        ~a: [
+          a_class ["button"; "button-success"];
+          a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
+        ]
+        [txt "Apply"];
+    ]
 
 let open_error () =
   Dialog.open_ @@ fun return ->
-  [
-    h2 [txt "Complex filters"];
-    form
-      ~a: [a_class ["center"]]
-      [
-        p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
-        p
-          [
-            txt
-              "The formula is too complex for the complex filter dialog to \
-               understand. If you think that this is a mistake, contact your \
-               administrator."
-          ];
-        div
-          [
-            a
-              ~a: [
-                a_class ["button"];
-                a_onclick (fun _ -> return (); false);
-              ]
-              [txt "OK"];
-          ]
-      ]
-  ]
+  Page.make
+    ~title: (S.const "Complex filters")
+    [
+      p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
+      p
+        [
+          txt
+            "The formula is too complex for the complex filter dialog to \
+             understand. If you think that this is a mistake, contact your \
+             administrator."
+        ];
+    ]
+    ~buttons: [
+      a
+        ~a: [
+          a_class ["button"];
+          a_onclick (fun _ -> return (); false);
+        ]
+        [txt "OK"];
+    ]
 
 let open_ text =
   match restrict_formula text with

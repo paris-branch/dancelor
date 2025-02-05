@@ -5,7 +5,7 @@ type t = {
   before_title: Html_types.div_content_fun elt list;
   title: string S.t;
   content: Html_types.div_content_fun elt list;
-  footer: Html_types.div_content_fun elt list;
+  buttons: Html_types.div_content_fun elt list;
 }
 
 let full_title p =
@@ -20,18 +20,18 @@ let content p =
   p.before_title @
   [h2 ~a: [a_class ["title"]] [R.txt p.title]] @
   p.content @
-  p.footer
+  p.buttons (* FIXME: Components.Button.group? *)
 
 let make
     ?(parent_title = "")
     ~title
     ?(before_title = [])
-    ?(footer = [])
+    ?(buttons = [])
     content
   = {
     parent_title;
     before_title;
     title;
     content;
-    footer
+    buttons;
   }

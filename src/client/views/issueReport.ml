@@ -65,76 +65,70 @@ let open_dialog page =
   in
   let%lwt response =
     Dialog.open_res @@ fun return ->
-    [
-      h2 [txt "Report an issue"];
-      form
-        [
-          Input.Text.render
-            reporter_input
-            ~placeholder: "Dr Jean Milligan"
-            ~label: "Reporter";
-          Choices.render source;
-          Input.Text.render
-            title_input
-            ~placeholder: "Blimey, 'tis not working!"
-            ~label: "Title";
-          Input.Text.render_as_textarea
-            description_input
-            ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-            ~label: "Description";
-          Button.group
-            [
-              Button.make
-                ~label: "Report"
-                ~label_processing: "Reporting..."
-                ~icon: "bug_report"
-                ~classes: ["btn-success"]
-                ~disabled: (S.map Option.is_none request_signal)
-                ~onclick: (fun () ->
-                    set_interacted ();
-                    Option.fold
-                      (S.value request_signal)
-                      ~none: Lwt.return_unit
-                      ~some: (fun request ->
-                          let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
-                          return @@ Ok response;
-                          Lwt.return_unit
-                        )
+    Page.make
+      ~title: (S.const "Report an issue")
+      [
+        Input.Text.render
+          reporter_input
+          ~placeholder: "Dr Jean Milligan"
+          ~label: "Reporter";
+        Choices.render source;
+        Input.Text.render
+          title_input
+          ~placeholder: "Blimey, 'tis not working!"
+          ~label: "Title";
+        Input.Text.render_as_textarea
+          description_input
+          ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+          ~label: "Description";
+      ]
+      ~buttons: [
+        Button.make
+          ~label: "Report"
+          ~label_processing: "Reporting..."
+          ~icon: "bug_report"
+          ~classes: ["btn-success"]
+          ~disabled: (S.map Option.is_none request_signal)
+          ~onclick: (fun () ->
+              set_interacted ();
+              Option.fold
+                (S.value request_signal)
+                ~none: Lwt.return_unit
+                ~some: (fun request ->
+                    let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
+                    return @@ Ok response;
+                    Lwt.return_unit
                   )
-                ();
-              Button.cancel ~return ()
-            ]
-        ]
-    ]
+            )
+          ();
+        Button.cancel ~return ()
+      ]
   in
   Dialog.open_ @@ fun return ->
-  [
-    h2 [txt @@ match response with Ok _ -> "Issue reported" | Error _ -> "Error reporting issue"];
-    div
-      (
-        match response with
-        | Ok response ->
-          [
-            p [txt "Your issue has been reported as:"];
-            p [a ~a: [a_href response.uri; a_target "_blank"] [txt @@ spf "%s (#%d)" response.title response.id]];
-            p [txt "You can track its progress there."];
-          ]
-        | Error _ -> [p [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]]
-      );
-    form
-      [
-        Button.group
-          [
-            Button.make
-              ~label: "Ok"
-              ~label_processing: "Closing..."
-              ~icon: "check_circle"
-              ~classes: ["btn-success"]
-              ~onclick: (fun () -> return (Ok ()); Lwt.return_unit)
-              ()
-          ]
-      ]
-  ]
+  Page.make
+    ~title: (S.const (match response with Ok _ -> "Issue reported" | Error _ -> "Error reporting issue"))
+    [
+      div
+        (
+          match response with
+          | Ok response ->
+            [
+              p [txt "Your issue has been reported as:"];
+              p [a ~a: [a_href response.uri; a_target "_blank"] [txt @@ spf "%s (#%d)" response.title response.id]];
+              p [txt "You can track its progress there."];
+            ]
+          | Error _ -> [p [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]]
+        );
+    ]
+    ~buttons: [
+      Button.make
+        ~label: "Ok"
+        ~label_processing: "Closing..."
+        ~icon: "check_circle"
+        ~classes: ["btn-success"]
+        ~onclick: (fun () -> return (Ok ()); Lwt.return_unit)
+        ()
+    ]
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 

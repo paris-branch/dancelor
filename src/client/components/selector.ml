@@ -93,7 +93,7 @@ let render
     ~(create_dialog_content :
         ?on_save: ('result -> unit) ->
       string ->
-      Html_types.div_content_fun Html.elt list
+      Page.t
      )
     s
   =

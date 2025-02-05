@@ -12,7 +12,7 @@ val make :
   ?parent_title: string ->
   title: string S.t ->
   ?before_title: Html_types.div_content_fun elt list ->
-  ?footer: Html_types.div_content_fun elt list ->
+  ?buttons: Html_types.div_content_fun elt list ->
   Html_types.div_content_fun elt list ->
   t
 (** Page maker. The [?parent_title] argument is used to build a title of the

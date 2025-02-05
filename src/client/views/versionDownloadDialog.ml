@@ -58,20 +58,18 @@ let create () =
 
 let open_ slug dialog =
   Dialog.open_ @@ fun return ->
-  [
-    h2 ~a: [a_class ["title"]] [txt "Download a PDF"];
-    form
-      [
-        table dialog.choice_rows;
-        a
-          ~a: [
-            a_class ["button"];
-            a_target "_blank";
-            R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) params slug) dialog.parameters_signal);
-            a_onclick (fun _ -> return (); true);
-          ]
-          [txt "Download"];
-      ];
-  ]
+  Page.make
+    ~title: (S.const "Download a PDF")
+    [table dialog.choice_rows]
+    ~buttons: [
+      a
+        ~a: [
+          a_class ["button"];
+          a_target "_blank";
+          R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) params slug) dialog.parameters_signal);
+          a_onclick (fun _ -> return (); true);
+        ]
+        [txt "Download"];
+    ]
 
 let create_and_open slug = open_ slug (create ())

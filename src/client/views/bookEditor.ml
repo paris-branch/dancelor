@@ -147,52 +147,32 @@ end
 
 let create ?on_save ?text ?edit () =
   let title = (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book" in
+  let editor = Editor.create ~text ~edit in
   Page.make
     ~title: (S.const title)
     [
       L.div
         (
           try%lwt
-            let%lwt editor = Editor.create ~text ~edit in
-            Lwt.return @@
-            [
-              form
-                [
-                  Input.Text.render
-                    editor.elements.name
-                    ~label: "Name"
-                    ~placeholder: "eg. The Dusty Miller Book";
-                  Input.Text.render
-                    editor.elements.date
-                    ~label: "Date of devising"
-                    ~placeholder: "eg. 2019 or 2012-03-14";
-                  Selector.render
-                    ~make_result: AnyResult.make_set_result'
-                    ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
-                    ~field_name: ("Sets", "set")
-                    ~model_name: "set"
-                    ~create_dialog_content: (fun ?on_save text -> Page.content @@ SetEditor.create ?on_save ~text ())
-                    editor.elements.sets;
-                  Button.group
-                    [
-                      Button.save
-                        ~disabled: (S.map Option.is_none (Editor.state editor))
-                        ~onclick: (fun () ->
-                            editor.set_interacted ();
-                            Fun.flip Lwt.map (Editor.submit ~edit editor) @@
-                            Option.iter @@ fun book ->
-                            Editor.clear editor;
-                            match on_save with
-                            | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
-                            | Some on_save -> on_save book
-                          )
-                        ();
-                      Button.clear
-                        ~onclick: (fun () -> Editor.clear editor)
-                        ();
-                    ]
-                ]
-            ]
+            let%lwt editor = editor in
+            Lwt.return
+              [
+                Input.Text.render
+                  editor.elements.name
+                  ~label: "Name"
+                  ~placeholder: "eg. The Dusty Miller Book";
+                Input.Text.render
+                  editor.elements.date
+                  ~label: "Date of devising"
+                  ~placeholder: "eg. 2019 or 2012-03-14";
+                Selector.render
+                  ~make_result: AnyResult.make_set_result'
+                  ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
+                  ~field_name: ("Sets", "set")
+                  ~model_name: "set"
+                  ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
+                  editor.elements.sets;
+              ]
           with
           | State.Non_convertible ->
             Lwt.return
@@ -200,5 +180,32 @@ let create ?on_save ?text ?edit () =
                 h2 ~a: [a_class ["title"]] [txt "Error"];
                 p [txt "This book cannot be edited."];
               ]
+        )
+    ]
+    ~buttons: [
+      L.div
+        (
+          try%lwt
+            let%lwt editor = editor in
+            Lwt.return
+              [
+                Button.save
+                  ~disabled: (S.map Option.is_none (Editor.state editor))
+                  ~onclick: (fun () ->
+                      editor.set_interacted ();
+                      Fun.flip Lwt.map (Editor.submit ~edit editor) @@
+                      Option.iter @@ fun book ->
+                      Editor.clear editor;
+                      match on_save with
+                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
+                      | Some on_save -> on_save book
+                    )
+                  ();
+                Button.clear
+                  ~onclick: (fun () -> Editor.clear editor)
+                  ();
+              ]
+          with
+          | State.Non_convertible -> Lwt.return []
         )
     ]
