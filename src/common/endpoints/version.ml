@@ -22,8 +22,9 @@ let all = [W Get; W Search; W Create; W Update; W Ly; W Svg; W Ogg; W Pdf]
 (* NOTE: The version model contains its LilyPond content. This is a big string
    that is not used in the client. It would be better to have a clean way to
    describe fields that are not included by default, but for now we will just
-   redact it from the HTTP responses. *)
-module JVersion = struct
+   redact it from the HTTP responses. NOTE: We only redact it from the HTTP
+   _responses_, but not from the requests! *)
+module VersionNoContent = struct
   type t = Version.t
   let of_yojson = Version.of_yojson % Json.add_field "content" (`String "")
   let to_yojson = Json.remove_field "content" % Version.to_yojson
@@ -31,13 +32,13 @@ end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   (* Actions without specific version *)
-  | Create -> query "version" (module JVersion) @@ post (module Entry.J(JVersion))
-  | Search -> query "slice" (module Slice) @@ query "filter" (module Version.Filter) @@ get (module JPair(JInt)(JList(Entry.J(JVersion))))
+  | Create -> query "version" (module Version) @@ post (module Entry.J(VersionNoContent))
+  | Search -> query "slice" (module Slice) @@ query "filter" (module Version.Filter) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoContent))))
   (* Actions on a specific version *)
-  | Get -> variable (module SSlug(JVersion)) @@ get (module Entry.J(JVersion))
-  | Update -> variable (module SSlug(JVersion)) @@ query "version" (module JVersion) @@ put (module Entry.J(JVersion))
+  | Get -> variable (module SSlug(Version)) @@ get (module Entry.J(VersionNoContent))
+  | Update -> variable (module SSlug(Version)) @@ query "version" (module Version) @@ put (module Entry.J(VersionNoContent))
   (* Files related to a version *)
-  | Ly -> variable (module SSlug(JVersion)) ~suffix: ".ly" @@ void ()
-  | Svg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersion)) ~suffix: ".svg" @@ void ()
-  | Ogg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersion)) ~suffix: ".ogg" @@ void ()
-  | Pdf -> query "parameters" (module VersionParameters) @@ variable (module SSlug(JVersion)) ~suffix: ".pdf" @@ void ()
+  | Ly -> variable (module SSlug(Version)) ~suffix: ".ly" @@ void ()
+  | Svg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".svg" @@ void ()
+  | Ogg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".ogg" @@ void ()
+  | Pdf -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".pdf" @@ void ()
