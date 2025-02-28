@@ -143,75 +143,81 @@ end
 
 let create ?on_save ?text () =
   let title = "Add a set" in
-  Page.make ~title: (S.const title) @@
-  L.div
-    (
-      let%lwt editor = Editor.create ~text in
-      Lwt.return @@
-      [
-        h2 ~a: [a_class ["title"]] [txt title];
-        form
-          [
-            Input.Text.render
-              editor.elements.name
-              ~label: "Name"
-              ~placeholder: "eg. The Dusty Miller";
-            Input.Text.render
-              editor.elements.kind
-              ~label: "Kind"
-              ~placeholder: "eg. 8x32R or 2x(16R+16S)";
-            Selector.render
-              ~make_result: AnyResult.make_person_result'
-              ~field_name: ("Conceptors", "conceptor")
-              ~model_name: "person"
-              ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ PersonEditor.create ?on_save ~text ())
-              editor.elements.conceptors;
-            Selector.render
-              ~make_result: AnyResult.make_version_result'
-              ~make_more_results: (fun version ->
-                  [
-                    Utils.ResultRow.make
-                      ~classes: ["small-previsualisation"]
-                      [
-                        Utils.ResultRow.cell
-                          ~a: [a_colspan 9999]
-                          [
-                            object_
-                              ~a: [
-                                a_mime_type "image/svg+xml";
-                                a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
-                              ]
-                              [];
-                          ]
-                      ]
-                  ]
-                )
-              ~field_name: ("Versions", "version")
-              ~model_name: "versions"
-              ~create_dialog_content: (fun ?on_save text -> Page.get_content @@ VersionEditor.create ?on_save ~text ())
-              editor.elements.versions;
-            Input.Text.render
-              editor.elements.order
-              ~label: "Order"
-              ~placeholder: "eg. 1,2,3,4,2,3,4,1";
-            Button.group
-              [
-                Button.save
-                  ~disabled: (S.map Option.is_none (Editor.state editor))
-                  ~onclick: (fun () ->
-                      editor.set_interacted ();
-                      Fun.flip Lwt.map (Editor.submit editor) @@
-                      Option.iter @@ fun set ->
-                      Editor.clear editor;
-                      match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
-                      | Some on_save -> on_save set
-                    )
-                  ();
-                Button.clear
-                  ~onclick: (fun () -> Editor.clear editor)
-                  ();
-              ]
-          ]
-      ]
-    )
+  let editor = Editor.create ~text in
+  Page.make
+    ~title: (S.const title)
+    [
+      L.div
+        (
+          let%lwt editor = editor in
+          Lwt.return
+            [
+              Input.Text.render
+                editor.elements.name
+                ~label: "Name"
+                ~placeholder: "eg. The Dusty Miller";
+              Input.Text.render
+                editor.elements.kind
+                ~label: "Kind"
+                ~placeholder: "eg. 8x32R or 2x(16R+16S)";
+              Selector.render
+                ~make_result: AnyResult.make_person_result'
+                ~field_name: ("Conceptors", "conceptor")
+                ~model_name: "person"
+                ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+                editor.elements.conceptors;
+              Selector.render
+                ~make_result: AnyResult.make_version_result'
+                ~make_more_results: (fun version ->
+                    [
+                      Utils.ResultRow.make
+                        ~classes: ["small-previsualisation"]
+                        [
+                          Utils.ResultRow.cell
+                            ~a: [a_colspan 9999]
+                            [
+                              object_
+                                ~a: [
+                                  a_mime_type "image/svg+xml";
+                                  a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
+                                ]
+                                [];
+                            ]
+                        ]
+                    ]
+                  )
+                ~field_name: ("Versions", "version")
+                ~model_name: "versions"
+                ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
+                editor.elements.versions;
+              Input.Text.render
+                editor.elements.order
+                ~label: "Order"
+                ~placeholder: "eg. 1,2,3,4,2,3,4,1";
+            ]
+        )
+    ]
+    ~buttons: [
+      L.div
+        (
+          let%lwt editor = editor in
+          Lwt.return
+            [
+              Button.save
+                ~disabled: (S.map Option.is_none (Editor.state editor))
+                ~onclick: (fun () ->
+                    editor.set_interacted ();
+                    Fun.flip Lwt.map (Editor.submit editor) @@
+                    Option.iter @@ fun set ->
+                    Editor.clear editor;
+                    match on_save with
+                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
+                    | Some on_save -> on_save set
+                  )
+                ();
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
+            ]
+        )
+    ]

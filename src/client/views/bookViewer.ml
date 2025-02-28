@@ -129,14 +129,16 @@ let create ?context slug =
   let open Html in
   let book_lwt = Book.get slug in
   let title = S.from' "" (Lwt.map Book.title book_lwt) in
-  Page.make ~title: (Page.sub_title "Book" title) @@
-  div
-    [
+  Page.make
+    ~parent_title: "Book"
+    ~title
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_book slug)
         (Lwt.map Any.book book_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
+    ]
+    [
       h3 ~a: [a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
       L.div
         (

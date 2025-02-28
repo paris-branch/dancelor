@@ -7,14 +7,16 @@ open Html
 let create ?context slug =
   let set_lwt = Set.get slug in
   let title = S.from' "" (Lwt.map Set.name set_lwt) in
-  Page.make ~title: (Page.sub_title "Set" title) @@
-  div
-    [
+  Page.make
+    ~parent_title: "Set"
+    ~title
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_set slug)
         (Lwt.map Any.set set_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
+    ]
+    [
       L.h3 ~a: [a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
       h3
         ~a: [a_class ["title"]]

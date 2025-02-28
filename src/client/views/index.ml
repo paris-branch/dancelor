@@ -1,8 +1,8 @@
 open Html
 
 let create () =
-  Page.make ~title: (S.const "") @@
-  div
+  Page.make
+    ~title: (S.const "")
     [
       h2 [txt "Welcome to Dancelor!"];
       txt

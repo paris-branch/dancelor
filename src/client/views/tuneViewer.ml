@@ -7,14 +7,16 @@ open Html
 let create ?context slug =
   let tune_lwt = Tune.get slug in
   let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
-  Page.make ~title: (Page.sub_title "Tune" title) @@
-  div
-    [
+  Page.make
+    ~parent_title: "Tune"
+    ~title
+    ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_tune slug)
         (Lwt.map Any.tune tune_lwt);
-      h2 ~a: [a_class ["title"]] [R.txt title];
+    ]
+    [
       L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
       L.h3 ~a: [a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
       L.div

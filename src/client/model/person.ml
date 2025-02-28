@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-include ModelBuilder.Person.Build()
+include ModelBuilder.Person.Build ()
 
 let get = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Person Get)
 

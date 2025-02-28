@@ -2,12 +2,9 @@ open Nes
 open Html
 open Js_of_ocaml
 
-(* FIXME: Should actually be a <dialog> element. This is only available from
-   TyXML 4.5 though. *)
-
 type error = Closed
 
-let open_res content =
+let open_res make_page =
   let (promise, resolver) = Lwt.wait () in
 
   (* The actual [return] function requires a handle of the box to work, but the
@@ -18,33 +15,29 @@ let open_res content =
     | None -> failwith "Dialog.open_: use of `return` before full initialisation"
     | Some box ->
       Lwt.wakeup_later resolver v;
+      box##close;
       Dom.removeChild Dom_html.document##.body box
   in
+  let page = make_page return in
 
-  (* The HTML dialog box. FIXME: make it a <dialog>. *)
+  (* The HTML dialog box. *)
   let box =
-    div
-      ~a: [a_class ["dialog"]]
+    dialog
       [
-        div
-          ~a: [
-            a_class ["content"];
-          ]
+        span
+          ~a: [a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)]
           [
-            span
-              ~a: [a_class ["close"]; a_onclick (fun _ -> return (Error Closed); false)]
-              [
-                i ~a: [a_class ["material-symbols-outlined"]] [txt "close"];
-              ];
-            div (content return);
-          ]
+            i ~a: [a_class ["material-symbols-outlined"]] [txt "close"];
+          ];
+        div (Page.content page);
       ]
   in
-  let dom_box = To_dom.of_div box in
+  let dom_box = To_dom.of_dialog box in
   box_handle := Some dom_box;
 
   (* Add the box as a child of `<body>`. *)
   Dom.appendChild Dom_html.document##.body dom_box;
+  dom_box##showModal;
 
   (* Add an event listener to close the box by clicking outside of it. *)
   ignore
@@ -55,7 +48,7 @@ let open_res content =
         Event.click
         (
           handler @@ fun event ->
-          if event##.target = Js.some dom_box then
+          if event##.target = Js.some (dom_box :> element Js.t) then
             return (Error Closed);
           Js._true
         )
@@ -65,4 +58,5 @@ let open_res content =
   (* Return the promise of a result. *)
   promise
 
-let open_ content = open_res (fun return -> content (return % Result.ok))
+let open_ make_page =
+  open_res (fun return -> make_page (return % Result.ok))

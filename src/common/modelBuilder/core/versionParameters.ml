@@ -4,7 +4,6 @@
 
 open Nes
 
-
 module Self = struct
   type t = {
     transposition: Transposition.t option; [@default None]

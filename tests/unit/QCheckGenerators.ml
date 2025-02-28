@@ -130,8 +130,7 @@ module Person = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Person.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Person.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                (* Core *)
                                Common__ModelBuilder__.Core.Person.t := t;
       ]
@@ -152,8 +151,7 @@ module Dance = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Dance.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Dance.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                (* Core *)
                                Common__ModelBuilder__.Core.Dance.t := t;
                                (* Filter *)
@@ -177,8 +175,7 @@ module Tune = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Tune.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Tune.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                (* Core *)
                                Common__ModelBuilder__.Core.Tune.t := t;
                                Common__ModelBuilder__.Core.Dance.t := Dance.t;
@@ -204,8 +201,7 @@ module Version = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Version.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Version.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Common.Music.key := Music.key;
                                (* Core *)
                                Common__ModelBuilder__.Core.Version.t := t;
@@ -233,8 +229,7 @@ module Set = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Set.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Set.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Common.Music.key := Music.key;
                                (* Core *)
                                Common__ModelBuilder__.Core.Set.t := t;
@@ -262,8 +257,7 @@ module Book = struct
   let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Book.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Book.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Common.Music.key := Music.key;
                                (* Core *)
                                Common__ModelBuilder__.Core.Book.t := t;
@@ -291,8 +285,7 @@ module Any = struct
   end
 
   module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Any.Filter.predicate
-                             [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.ModelBuilder.Any.Filter.predicate [@with Nes.Slug.t := Slug.t;
                                Common.Music.key := Music.key;
                                (* Core *)
                                Common__ModelBuilder__.Core.Any.Type.t := Type.t;

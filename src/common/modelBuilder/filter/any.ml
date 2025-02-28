@@ -1,6 +1,5 @@
 open Nes
 
-
 (* NOTE: This [Raw] variant is a bit artificial, when we could already be
    inheriting the various [raw] cases, of the other filters. However, this
    would unfold text formulas into a big disjunction at the syntactic level,
