@@ -17,7 +17,11 @@ type (_, _, _) t =
 
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Get; W Search; W Create; W Update; W Ly; W Svg; W Ogg; W Pdf]
+let all = [
+  W Search; W Create; W Update; W Ly; W Svg; W Ogg; W Pdf;
+  (* WARNING: THE ORDER MATTERS *)
+  W Get;
+]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
    that is not used in the client. It would be better to have a clean way to
