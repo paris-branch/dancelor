@@ -208,7 +208,16 @@ let%test _ = escape ~chars: "\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\
 let exists p s = to_seq s |> NesSeq.exists p
 let for_all p s = to_seq s |> NesSeq.for_all p
 
-let slugify ?sep string = Slug.slugify ?sep string
+let slugify ?(sep = '-') string =
+  Slug.slugify ~sep: (String.make 1 sep) string
+(* FIXME: [Slug.slugify] is not idempotent?! *)
+
+let is_slug ?(sep = '-') string =
+  String.for_all
+    (fun c ->
+       ('a' <= c && c <= 'z') || c = sep || ('0' <= c && c <= '9')
+    )
+    string
 
 module Sensible = struct
 
@@ -255,8 +264,8 @@ module Sensible = struct
           ]
 
   let compare fs1 fs2 =
-    let s1 = slugify ~sep: " " fs1 in
-    let s2 = slugify ~sep: " " fs2 in
+    let s1 = slugify ~sep: ' ' fs1 in
+    let s2 = slugify ~sep: ' ' fs2 in
     let (p1, s1) = extract_prefix s1 in
     let (p2, s2) = extract_prefix s2 in
     first_non_zero
