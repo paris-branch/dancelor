@@ -1,7 +1,3 @@
-(** {1 Madge}
-
-    Simple GADT-based routing. *)
-
 open Nes
 module Log = (val Logs.(src_log (Src.create "madge")): Logs.LOG)
 
@@ -20,9 +16,9 @@ let meth_to_string = function
   | TRACE -> "TRACE"
   | CONNECT -> "CONNECT"
 
-(** Abstract type of a route. The type arguments are (1) the function type
-    corresponding to the route, (2) the return value of that function type, (3)
-    the return value from the route. *)
+(* NOTE: The type arguments are (1) the function type corresponding to the
+   route, (2) the return value of that function type, (3) the return value from
+   the route. *)
 type (_, _, _) route =
   | Return : meth * (module JSONABLE with type t = 'r) -> ('w, 'w, 'r) route
   | Literal : string * ('a, 'w, 'r) route -> ('a, 'w, 'r) route
