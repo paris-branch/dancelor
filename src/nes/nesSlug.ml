@@ -17,11 +17,13 @@ let check_string_exn s =
   | Some s -> s
   | None -> raise NotASlug
 
-let to_yojson _ = function
+let to_yojson' = function
   | Some s -> `String s
   | None -> `Null
 
-let of_yojson _ = function
+let to_yojson _ = to_yojson'
+
+let of_yojson' = function
   | `String s ->
     (
       match check_string s with
@@ -30,6 +32,8 @@ let of_yojson _ = function
     )
   | `Null -> Ok None
   | _ -> Error "NesSlug.of_yojson: is neither a string nor null"
+
+let of_yojson _ = of_yojson'
 
 let from_string string =
   if string = "" then
