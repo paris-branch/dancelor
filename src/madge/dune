@@ -2,7 +2,7 @@
  (name madge)
  (modules madge serialisation)
  (public_name dancelor.madge)
- (libraries dancelor.nes dancelor.madge.query yojson uri)
+ (libraries dancelor.nes dancelor.madge.query yojson uri logs)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 

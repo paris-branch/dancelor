@@ -11,6 +11,17 @@ type (_, _, _) t =
   | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
   | Victor : ('w, 'w, Void.t) t
 
+let to_string : type a w r. (a, w, r) t -> string = function
+  | Person endpoint -> "Person " ^ Person.to_string endpoint
+  | Book endpoint -> "Book " ^ Book.to_string endpoint
+  | Version endpoint -> "Version " ^ Version.to_string endpoint
+  | Dance endpoint -> "Dance " ^ Dance.to_string endpoint
+  | Set endpoint -> "Set " ^ Set.to_string endpoint
+  | Tune endpoint -> "Tune " ^ Tune.to_string endpoint
+  | Any endpoint -> "Any " ^ Any.to_string endpoint
+  | ReportIssue -> "ReportIssue"
+  | Victor -> "Victor"
+
 type wrapped =
   | W : ('a, 'r Lwt.t, 'r) t -> wrapped
 

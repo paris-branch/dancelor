@@ -3,6 +3,7 @@
     Simple GADT-based routing. *)
 
 open Nes
+module Log = (val Logs.(src_log (Src.create "madge")): Logs.LOG)
 
 include Serialisation
 
@@ -127,6 +128,7 @@ let rec match_
     match route with
     | Return (meth', (module R)) ->
       (
+        Log.debug (fun m -> m "  Return (%s, <module R>)" (meth_to_string meth'));
         if meth' = meth && path = [] && Madge_query.is_empty query && Madge_query.is_empty body then
           Some (fun () -> return (module R) (controller ()))
         else
@@ -134,12 +136,21 @@ let rec match_
       )
     | Literal (str, route) ->
       (
+        Log.debug (fun m -> m "  Literal (\"%s\", <route>)" str);
         match path with
         | comp :: path when comp = str -> match_ route controller meth path query body return
         | _ -> None
       )
     | Variable (prefix, (module R), suffix, route) ->
       (
+        Log.debug (fun m ->
+            m
+              "  Variable (\"%s\", <module R>, \"%s\", <route>) [path = %a]"
+              prefix
+              suffix
+              Format.(pp_print_list ~pp_sep: (fun fmt () -> fprintf fmt " ") pp_print_string)
+              path
+          );
         match path with
         | [] -> None
         | comp :: path ->
@@ -150,6 +161,7 @@ let rec match_
       )
     | Query (name, proxy, _, (module R), route) ->
       (
+        Log.debug (fun m -> m "  Query (\"%s\", <proxy>, ???, <module R>, <route>)" name);
         let extract_and_parse =
           match Madge_query.extract name query with
           | None -> Ok (None, query) (* absent: OK *)
@@ -173,6 +185,7 @@ let match_
     ((module JSONABLE with type t = r) -> w -> z) ->
     (unit -> z) option
   = fun route controller {meth; uri; body} return ->
+    Log.debug (fun m -> m "Madge.match_ <route> <controller> <request> <return>");
     let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
     match_ route (fun () -> controller) meth path (Madge_query.from_uri uri) (Madge_query.from_body body) return
 

@@ -10,6 +10,12 @@ type (_, _, _) t =
   | Get : ((Tune.t Slug.t -> 'w), 'w, Tune.t Entry.t) t
   | Update : ((Tune.t Slug.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
 
+let to_string : type a w r. (a, w, r) t -> string = function
+  | Create -> "Create"
+  | Search -> "Search"
+  | Get -> "Get"
+  | Update -> "Update"
+
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
 let all = [W Get; W Search; W Create; W Update]
 

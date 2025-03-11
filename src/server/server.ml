@@ -23,6 +23,7 @@ let apply_controller request =
     | [] -> None
     | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
+        Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.to_string endpoint));
         match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (Controller.dispatch endpoint) request with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
