@@ -219,6 +219,12 @@ let is_slug ?(sep = '-') string =
     )
     string
 
+let%test _ = is_slug "this-is-a-slug"
+let%test _ = is_slug "this-is-a-slug-2"
+let%test _ = is_slug "this-is-7-a-slug"
+let%test _ = not @@ is_slug "this-is-NOT-a-slug"
+let%test _ = not @@ is_slug "this is not a slug"
+
 module Sensible = struct
 
   let extract_prefix s =
