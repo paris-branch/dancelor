@@ -4,14 +4,36 @@ let none = None
 
 let is_none = (=) None
 
-let to_yojson _ = function
+let check_string s =
+  if NesString.is_slug s then
+    Some (Some s)
+  else
+    None
+
+exception NotASlug
+
+let check_string_exn s =
+  match check_string s with
+  | Some s -> s
+  | None -> raise NotASlug
+
+let to_yojson' = function
   | Some s -> `String s
   | None -> `Null
 
-let of_yojson _ = function
-  | `String s -> Ok (Some s)
+let to_yojson _ = to_yojson'
+
+let of_yojson' = function
+  | `String s ->
+    (
+      match check_string s with
+      | Some s -> Ok s
+      | None -> Error ("NesSlug.of_yojson: '" ^ s ^ "' is a string but not a slug")
+    )
   | `Null -> Ok None
-  | _ -> Error "NesSlug.of_yojson"
+  | _ -> Error "NesSlug.of_yojson: is neither a string nor null"
+
+let of_yojson _ = of_yojson'
 
 let from_string string =
   if string = "" then

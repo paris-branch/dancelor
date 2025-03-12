@@ -12,6 +12,13 @@ type (_, _, _) t =
   (* Files related to a dance *)
   | Pdf : ((SetParameters.t -> Dance.t Slug.t -> 'w), 'w, Void.t) t
 
+let to_string : type a w r. (a, w, r) t -> string = function
+  | Create -> "Create"
+  | Search -> "Search"
+  | Get -> "Get"
+  | Update -> "Update"
+  | Pdf -> "Pdf"
+
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
 let all = [W Get; W Search; W Create; W Update; W Pdf]

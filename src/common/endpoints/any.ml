@@ -6,6 +6,10 @@ type (_, _, _) t =
   | Search : ((Slice.t -> Any.Filter.t -> 'w), 'w, (int * Any.t list)) t
   | SearchContext : ((Any.Filter.t -> Any.t -> 'w), 'w, (int * Any.t option * int * Any.t option)) t
 
+let to_string : type a w r. (a, w, r) t -> string = function
+  | Search -> "Search"
+  | SearchContext -> "SearchContext"
+
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
 let all = [W Search; W SearchContext]

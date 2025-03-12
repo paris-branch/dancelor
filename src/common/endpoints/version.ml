@@ -15,9 +15,29 @@ type (_, _, _) t =
   | Ogg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
   | Pdf : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
 
+let to_string : type a w r. (a, w, r) t -> string = function
+  | Create -> "Create"
+  | Search -> "Search"
+  | Get -> "Get"
+  | Update -> "Update"
+  | Ly -> "Ly"
+  | Svg -> "Svg"
+  | Ogg -> "Ogg"
+  | Pdf -> "Pdf"
+
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Get; W Search; W Create; W Update; W Ly; W Svg; W Ogg; W Pdf]
+let all = [
+  W Search;
+  W Create;
+  W Update;
+  W Ly;
+  W Svg;
+  W Ogg;
+  W Pdf;
+  (* WARNING: THE ORDER MATTERS *)
+  W Get;
+]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
    that is not used in the client. It would be better to have a clean way to

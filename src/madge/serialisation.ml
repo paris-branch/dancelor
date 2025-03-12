@@ -74,10 +74,10 @@ module type TYPEABLE = sig type t end
 module SSlug (A : TYPEABLE) : STRINGABLE with type t = A.t Slug.t = struct
   type t = A.t Slug.t
   let to_string = Slug.to_string
-  let of_string = Option.some % Slug.unsafe_of_string
+  let of_string = Slug.check_string
 end
 module JSlug (A : TYPEABLE) : JSONABLE with type t = A.t Slug.t = struct
   type t = A.t Slug.t
-  let to_yojson x = `String (Slug.to_string x)
-  let of_yojson = function `String s -> Ok (Slug.unsafe_of_string s) | _ -> Error "JSlug.of_yojson"
+  let to_yojson = Slug.to_yojson'
+  let of_yojson = Slug.of_yojson'
 end

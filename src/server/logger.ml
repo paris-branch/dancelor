@@ -63,7 +63,9 @@ let update_past_loglevel loglevel =
     || name = "lilypond"
     || String.starts_with ~needle: "lilypond." name
     || name = "nes"
-    || String.starts_with ~needle: "nes." name then
+    || String.starts_with ~needle: "nes." name
+    || name = "madge"
+    || String.starts_with ~needle: "madge." name then
       Some loglevel
     else
       None
