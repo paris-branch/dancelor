@@ -13,6 +13,9 @@ let describe =
     ~get_dance: Model.Dance.get
     ~get_person: Model.Person.get
 
+(* used at the end of the {!report} function below *)
+let id_regexp = Str.regexp ".*/issues/\\(.*\\)"
+
 let report issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
@@ -49,5 +52,6 @@ let report issue =
       ["gh"; "issue"; "create"; "--repo"; repo; "--title"; title; "--body"; body]
   in
   let uri = String.trim output.stdout in
-  let id = int_of_string @@ String.remove_prefix_exn ~needle: ("/" ^ repo ^ "/issues/") @@ Uri.(path % of_string) uri in
+  assert (Str.string_match id_regexp uri 0);
+  let id = int_of_string @@ Str.matched_group 1 uri in
   Lwt.return Response.{title; id; uri}
