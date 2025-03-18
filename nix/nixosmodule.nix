@@ -27,17 +27,31 @@
 
         githubTokenFile = lib.mkOption {
           type = lib.types.str;
-          description = "Path to a file that contains the GitHub API token.";
+          description = ''
+            Path to a file that contains the GitHub API token.
+
+            This is used by the issue report mechanism and must therefore be allowed to open issues on the repositories.
+          '';
         };
 
         githubRepository = lib.mkOption {
           type = lib.types.str;
-          description = "Dancelor's GitHub repository - used by the error reporting mechanism.";
+          description = ''
+            Dancelor's GitHub repository
+
+            This is used by the issue report mechanism. It must contain the host, owner, and repository.
+          '';
+          example = "github.com/paris-branch/dancelor";
         };
 
         githubDatabaseRepository = lib.mkOption {
           type = lib.types.str;
-          description = "Dancelor's database's GitHub repository - used by the error reporting mechanism.";
+          description = ''
+            Dancelor's database's GitHub repository - used by the error reporting mechanism.
+
+            This is used by the issue report mechanism. It must contain the host, owner, and repository.
+          '';
+          example = "github.com/paris-branch/dancelor-database";
         };
       };
 
