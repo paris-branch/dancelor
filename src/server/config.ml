@@ -130,10 +130,10 @@ let parse_cmd_line () =
         "--no-sync-storage", Clear sync_storage, aspf " Do not sync storage using git%a" pp_default (not !sync_storage);
         "--write-storage", Set write_storage, aspf " Reflect storage on filesystem%a" pp_default !write_storage;
         "--no-write-storage", Clear write_storage, aspf " Do not reflect storage on filesystem%a" pp_default (not !write_storage);
-        "--github-token", Set_string github_token, spf "STR Set the Github API token to STR";
-        "--github-token-file", Set_string github_token_file, spf "FILE Read the GitHub API token from FILE";
-        "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR";
-        "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR";
+        "--github-token", Set_string github_token, spf "STR Set the GitHub API token to STR. This is used by the issue report mechanism and must therefore be allowed to open issues on the repositories.";
+        "--github-token-file", Set_string github_token_file, spf "FILE Read the GitHub API token from FILE. This is used by the issue report mechanism and must therefore be allowed to open issues on the repositories.";
+        "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
+        "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
       ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in
