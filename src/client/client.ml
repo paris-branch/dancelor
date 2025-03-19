@@ -110,7 +110,7 @@ let header =
                           a
                             ~a: [a_href (path_explore_models "person")]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "person"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Person];
                               txt " Persons";
                             ]
                         ];
@@ -119,7 +119,7 @@ let header =
                           a
                             ~a: [a_href (path_explore_models "dance")]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "directions_walk"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Dance];
                               txt " Dances";
                             ]
                         ];
@@ -128,7 +128,7 @@ let header =
                           a
                             ~a: [a_href (path_explore_models "tune")]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Tune];
                               txt " Tunes";
                             ]
                         ];
@@ -137,7 +137,7 @@ let header =
                           a
                             ~a: [a_href (path_explore_models "version")]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Version];
                               txt " Versions";
                             ];
                         ];
@@ -146,7 +146,7 @@ let header =
                           a
                             ~a: [a_href (path_explore_models "set")]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Set];
                               txt " Sets";
                             ];
                         ];
@@ -155,7 +155,7 @@ let header =
                           a
                             ~a: [a_href (path_explore_models "book")]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "library_books"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Book];
                               txt " Books";
                             ];
                         ];
@@ -173,7 +173,7 @@ let header =
                           a
                             ~a: [a_href Endpoints.Page.(href PersonAdd)]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "person"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Person];
                               txt " Person";
                             ]
                         ];
@@ -182,7 +182,7 @@ let header =
                           a
                             ~a: [a_href Endpoints.Page.(href DanceAdd)]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "directions_walk"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Dance];
                               txt " Dance";
                             ]
                         ];
@@ -191,7 +191,7 @@ let header =
                           a
                             ~a: [a_href Endpoints.Page.(href TuneAdd)]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Tune];
                               txt " Tune";
                             ];
                         ];
@@ -200,7 +200,7 @@ let header =
                           a
                             ~a: [a_href Endpoints.Page.(href_versionAdd ())]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "music_note"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Version];
                               txt " Version";
                             ];
                         ];
@@ -209,7 +209,7 @@ let header =
                           a
                             ~a: [a_href Endpoints.Page.(href SetAdd)]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "format_list_bulleted"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Set];
                               txt " Set";
                             ];
                         ];
@@ -218,7 +218,7 @@ let header =
                           a
                             ~a: [a_href Endpoints.Page.(href BookAdd)]
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt "library_books"];
+                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Book];
                               txt " Book";
                             ];
                         ];

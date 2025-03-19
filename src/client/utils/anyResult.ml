@@ -181,7 +181,7 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
 let any_type_to_fa = function
   | Any.Type.Person -> "person"
   | Dance -> "directions_walk"
-  | Tune -> "music_note"
+  | Tune -> "genres"
   | Version -> "music_note"
   | Set -> "format_list_bulleted"
   | Book -> "library_books"
