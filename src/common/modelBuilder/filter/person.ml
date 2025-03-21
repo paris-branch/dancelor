@@ -15,12 +15,12 @@ let nameMatches' = Formula.pred % nameMatches
 let accepts filter person =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
-  | Is person' ->
-    Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
-  | Name string ->
-    Lwt.return @@ String.proximity ~char_equal string @@ Core.Person.name person
-  | NameMatches string ->
-    Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Person.name person
+    | Is person' ->
+      Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
+    | Name string ->
+      Lwt.return @@ String.proximity ~char_equal string @@ Core.Person.name person
+    | NameMatches string ->
+      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Person.name person
 
 let text_formula_converter =
   TextFormulaConverter.(
@@ -45,4 +45,4 @@ let is' = Formula.pred % is
 
 let optimise =
   Formula.optimise @@ function
-  | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+    | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p

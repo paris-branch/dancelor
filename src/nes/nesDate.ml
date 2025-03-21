@@ -20,7 +20,7 @@ let of_yojson = function
       try
         Ok (from_string s)
       with
-      | _ -> Error "NesDate.of_yojson: not a valid date"
+        | _ -> Error "NesDate.of_yojson: not a valid date"
     )
   | _ -> Error "NesDate.of_yojson: not a JSON string"
 

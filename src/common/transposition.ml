@@ -24,13 +24,13 @@ let music_pitch_to_int pitch =
     | A -> 9
     | B -> 11
   ) +
-  (
-    match Music.pitch_alteration pitch with
-    | Flat -> -1
-    | Natural -> 0
-    | Sharp -> +1
-  ) +
-  (Music.pitch_octave pitch * 12)
+    (
+      match Music.pitch_alteration pitch with
+      | Flat -> -1
+      | Natural -> 0
+      | Sharp -> +1
+    ) +
+    (Music.pitch_octave pitch * 12)
 
 let music_pitch_of_int_array = [|
   Music.make_pitch C Natural;
@@ -70,8 +70,8 @@ let music_pitch_transpose ~source ~target p =
   music_pitch_of_int
     (
       music_pitch_to_int target -
-      music_pitch_to_int source +
-      music_pitch_to_int p
+        music_pitch_to_int source +
+        music_pitch_to_int p
     )
 
 let compose trans1 trans2 =

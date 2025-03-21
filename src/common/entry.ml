@@ -50,7 +50,7 @@ let equal _ = equal'
 let to_yojson value_to_yojson = function
   | Full (slug, meta, value) ->
     Json.add_field "slug" (Slug.to_yojson value_to_yojson slug) @@
-    Json.merge_assoc (value_to_yojson value) (meta_to_yojson meta)
+      Json.merge_assoc (value_to_yojson value) (meta_to_yojson meta)
   | Dummy v ->
     value_to_yojson v
 

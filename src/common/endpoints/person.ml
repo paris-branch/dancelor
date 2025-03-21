@@ -3,12 +3,12 @@ open Madge
 open ModelBuilder
 
 type (_, _, _) t =
-  (* Actions without specific person *)
-  | Create : ((Person.t -> 'w), 'w, Person.t Entry.t) t
-  | Search : ((Slice.t -> Person.Filter.t -> 'w), 'w, (int * Person.t Entry.t list)) t
-  (* Actions on a specific person *)
-  | Get : ((Person.t Slug.t -> 'w), 'w, Person.t Entry.t) t
-  | Update : ((Person.t Slug.t -> Person.t -> 'w), 'w, Person.t Entry.t) t
+(* Actions without specific person *)
+| Create : ((Person.t -> 'w), 'w, Person.t Entry.t) t
+| Search : ((Slice.t -> Person.Filter.t -> 'w), 'w, (int * Person.t Entry.t list)) t
+(* Actions on a specific person *)
+| Get : ((Person.t Slug.t -> 'w), 'w, Person.t Entry.t) t
+| Update : ((Person.t Slug.t -> Person.t -> 'w), 'w, Person.t Entry.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"

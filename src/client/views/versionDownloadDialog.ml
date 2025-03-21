@@ -40,13 +40,13 @@ let create () =
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
     S.map (Option.value ~default: VersionParameters.none) @@
-    S.merge
-      (Option.concat VersionParameters.compose)
-      None
-      [
-        Choices.signal key_choices;
-        Choices.signal clef_choices;
-      ]
+      S.merge
+        (Option.concat VersionParameters.compose)
+        None
+        [
+          Choices.signal key_choices;
+          Choices.signal clef_choices;
+        ]
   in
   {
     choice_rows = [
@@ -63,13 +63,13 @@ let open_ slug dialog =
     [table dialog.choice_rows]
     ~buttons: [
       a
-        ~a: [
-          a_class ["button"];
-          a_target "_blank";
-          R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) params slug) dialog.parameters_signal);
-          a_onclick (fun _ -> return (); true);
-        ]
-        [txt "Download"];
-    ]
+        ~a:
+          [a_class ["button"];
+            a_target "_blank";
+            R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) params slug) dialog.parameters_signal);
+            a_onclick (fun _ -> return (); true);
+          ]
+          [txt "Download"];
+      ]
 
-let create_and_open slug = open_ slug (create ())
+  let create_and_open slug = open_ slug (create ())

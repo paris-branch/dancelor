@@ -8,12 +8,12 @@ let preload_versions ?max_concurrency () =
     Lwt_stream.iter_n
       ?max_concurrency
       (fun version ->
-         let%lwt tune = Model.Version.tune version in
-         let name = Model.Tune.name tune in
-         Log.debug (fun m -> m "Prerendering %s" name);
-         let%lwt _ = Controller.Version.Svg.render Model.VersionParameters.none version in
-         let%lwt _ = Controller.Version.Ogg.render Model.VersionParameters.none version in
-         Lwt.return ()
+        let%lwt tune = Model.Version.tune version in
+        let name = Model.Tune.name tune in
+        Log.debug (fun m -> m "Prerendering %s" name);
+        let%lwt _ = Controller.Version.Svg.render Model.VersionParameters.none version in
+        let%lwt _ = Controller.Version.Ogg.render Model.VersionParameters.none version in
+        Lwt.return ()
       )
       all
   in

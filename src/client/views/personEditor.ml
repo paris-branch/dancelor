@@ -13,7 +13,7 @@ type ('name, 'scddb_id) gen = {
 
 module RawState = struct
   type t =
-    (string, string) gen
+  (string, string) gen
   [@@deriving yojson]
 
   let empty : t = {
@@ -25,7 +25,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
+    (string Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -46,7 +46,7 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Cutils.with_local_storage "PersonEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "PersonEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
@@ -54,14 +54,14 @@ module Editor = struct
     let set_interacted () = set_interacted true in
     let name =
       Input.Text.make ~has_interacted initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let scddb_id =
       Input.Text.make ~has_interacted initial_state.scddb_id @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person) %
+          Option.of_string_nonempty
     in
     {
       elements = {name; scddb_id};
@@ -89,40 +89,41 @@ let create ?on_save ?text () =
   let editor = Editor.create ~text in
   Page.make
     ~title: (S.const title)
-    [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Input.Text.render
-                editor.elements.name
-                ~label: "Name"
-                ~placeholder: "eg. John Doe";
-              Input.Text.render
-                editor.elements.scddb_id
-                ~label: "SCDDB ID"
-                ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
-            ]
-        )
-    ]
-    ~buttons: [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Button.save
-                ~disabled: (S.map Option.is_none (Editor.state editor))
-                ~onclick: (fun () ->
-                    editor.set_interacted ();
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun person ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
-                    | Some on_save -> on_save person
-                  )
+  [
+    L.div
+      (
+        let%lwt editor = editor in
+        Lwt.return
+          [
+            Input.Text.render
+              editor.elements.name
+              ~label: "Name"
+              ~placeholder: "eg. John Doe";
+            Input.Text.render
+              editor.elements.scddb_id
+              ~label: "SCDDB ID"
+              ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
+          ]
+      )
+  ]
+  ~buttons: [
+    L.div
+      (
+        let%lwt editor = editor in
+        Lwt.return
+          [
+            Button.save
+              ~disabled: (S.map Option.is_none (Editor.state editor))
+              ~onclick:
+                (fun () ->
+                  editor.set_interacted ();
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun person ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
+                  | Some on_save -> on_save person
+                )
                 ();
               Button.clear
                 ~onclick: (fun () -> Editor.clear editor)

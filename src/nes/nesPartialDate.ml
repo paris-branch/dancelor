@@ -14,7 +14,7 @@ let check_full_date ~year ~month ~day =
     ignore (Dates_calc.Dates.make_date ~year ~month ~day);
     true
   with
-  | Dates_calc.Dates.InvalidDate -> false
+    | Dates_calc.Dates.InvalidDate -> false
 
 let check = function
   | YearMonthDay (year, month, day) -> check_full_date ~year ~month ~day
@@ -46,8 +46,7 @@ let of_yojson = function
   | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
 
 let month_to_pretty_string month =
-  [|
-    "January";
+  [|"January";
     "February";
     "March";
     "April";
@@ -58,8 +57,7 @@ let month_to_pretty_string month =
     "September";
     "October";
     "November";
-    "December"
-  |].(month - 1)
+    "December"|].(month - 1)
 
 let to_pretty_string ?(at = false) = function
   | Year year -> spf "%s%d" (if at then "in " else "") year

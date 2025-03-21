@@ -106,19 +106,19 @@ module Make (Model : Model) : S with type value = Model.t = struct
       let json = ref json in
       Lwt_list.iter_s
         (fun (field, filename) ->
-           let%lwt value = Storage.read_entry_file Model._key entry filename in
-           json := Json.add_field field (`String value) !json;
-           Lwt.return_unit
+          let%lwt value = Storage.read_entry_file Model._key entry filename in
+          json := Json.add_field field (`String value) !json;
+          Lwt.return_unit
         )
         Model.separate_fields;%lwt
       Lwt.return @@
-      match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.of_yojson !json with
-      | Ok model ->
-        Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
-        Log.debug (fun m -> m "Loaded %s %s" _key entry);
-      | Error msg ->
-        Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.yaml" msg);
-        exit 1
+        match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.of_yojson !json with
+        | Ok model ->
+          Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
+          Log.debug (fun m -> m "Loaded %s %s" _key entry);
+        | Error msg ->
+          Log.err (fun m -> m "Could not unserialize %s > %s > %s: %s" Model._key entry "meta.yaml" msg);
+          exit 1
     in
     let%lwt entries = Storage.list_entries Model._key in
     Lwt_list.iter_s load entries;%lwt
@@ -152,32 +152,32 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Hashtbl.to_seq_values table
     |> List.of_seq
     |> Lwt_list.fold_left_s
-      (fun problems (_, model) ->
-         let slug = Entry.slug model in
-         let status = Entry.(status % meta) model in
-         let%lwt deps = Model.dependencies model in
-         let%lwt new_problems =
-           deps
-           |> Lwt_list.map_s (list_dependency_problems_for slug status)
-         in
-         new_problems
-         |> List.flatten
-         |> (fun new_problems -> new_problems @ problems)
-         |> Lwt.return
-      )
-      []
+        (fun problems (_, model) ->
+          let slug = Entry.slug model in
+          let status = Entry.(status % meta) model in
+          let%lwt deps = Model.dependencies model in
+          let%lwt new_problems =
+            deps
+            |> Lwt_list.map_s (list_dependency_problems_for slug status)
+          in
+          new_problems
+          |> List.flatten
+          |> (fun new_problems -> new_problems @ problems)
+          |> Lwt.return
+        )
+        []
 
   let report_without_accesses () =
     Hashtbl.to_seq_values table
     |> Seq.iter
-      (fun (stats, model) ->
-         if Stats.get_accesses stats = 0 then
-           Lwt.async (fun () ->
-               let slug = Entry.slug model in
-               Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp' slug);
-               Lwt.return ()
-             )
-      )
+        (fun (stats, model) ->
+          if Stats.get_accesses stats = 0 then
+            Lwt.async (fun () ->
+              let slug = Entry.slug model in
+              Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp' slug);
+              Lwt.return ()
+            )
+        )
 
   let get slug =
     match%lwt get_opt slug with
@@ -187,10 +187,10 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let get_all () =
     Hashtbl.to_seq_values table
     |> Seq.map
-      (fun (stats, model) ->
-         Stats.add_access stats;
-         model
-      )
+        (fun (stats, model) ->
+          Stats.add_access stats;
+          model
+        )
     |> List.of_seq
     |> Lwt.return
 
@@ -216,11 +216,11 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
       (fun (field, filename) ->
-         match Json.extract_field field !json with
-         | (`String value, new_json) ->
-           json := new_json;
-           Storage.write_entry_file Model._key (Slug.to_string slug) filename value
-         | _ -> assert false
+        match Json.extract_field field !json with
+        | (`String value, new_json) ->
+          json := new_json;
+          Storage.write_entry_file Model._key (Slug.to_string slug) filename value
+        | _ -> assert false
       )
       Model.separate_fields;%lwt
     Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" !json;%lwt
@@ -238,11 +238,11 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
       (fun (field, filename) ->
-         match Json.extract_field field !json with
-         | (`String value, new_json) ->
-           json := new_json;
-           Storage.write_entry_file Model._key (Slug.to_string slug) filename value
-         | _ -> assert false
+        match Json.extract_field field !json with
+        | (`String value, new_json) ->
+          json := new_json;
+          Storage.write_entry_file Model._key (Slug.to_string slug) filename value
+        | _ -> assert false
       )
       Model.separate_fields;%lwt
     Storage.write_entry_yaml Model._key (Slug.to_string slug) "meta.yaml" !json;%lwt

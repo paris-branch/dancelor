@@ -37,8 +37,7 @@ let create () =
   in
   {
     choice_rows = (
-      set_dialog.choice_rows @
-      [
+      set_dialog.choice_rows @ [
         tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
       ]
     );
@@ -61,13 +60,13 @@ let open_ slug dialog =
     [table dialog.choice_rows]
     ~buttons: [
       a
-        ~a: [
-          a_class ["button"];
-          a_target "_blank";
-          R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Book Pdf) params slug) dialog.parameters_signal);
-          a_onclick (fun _ -> return (); true);
-        ]
-        [txt "Download"];
-    ]
+        ~a:
+          [a_class ["button"];
+            a_target "_blank";
+            R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Book Pdf) params slug) dialog.parameters_signal);
+            a_onclick (fun _ -> return (); true);
+          ]
+          [txt "Download"];
+      ]
 
-let create_and_open slug = open_ slug (create ())
+  let create_and_open slug = open_ slug (create ())
