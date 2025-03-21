@@ -9,10 +9,38 @@
   perSystem =
     {
       self',
+      inputs',
       pkgs,
       config,
       ...
     }:
+
+    let
+      inherit (pkgs.callPackage "${inputs.topiary}/prefetchLanguages.nix" { })
+        prefetchLanguages
+        fromNickelFile
+        toNickelFile
+        ;
+
+      defaultTopiaryConfig = fromNickelFile "${inputs.topiary}/languages.ncl";
+
+      topiaryWrappedWithPrefetchedConfig =
+        topiaryConfig:
+        pkgs.writeShellApplication {
+          name = "topiary";
+          text = ''
+            exec ${inputs'.topiary.packages.topiary-cli}/bin/topiary \
+                -C ${toNickelFile "languages-prefetched.ncl" (prefetchLanguages topiaryConfig)} \
+                "$@"
+          '';
+        };
+
+      ## Keep only OCaml as a language for Topiary.
+      myTopiaryConfig = defaultTopiaryConfig // {
+        languages = { inherit (defaultTopiaryConfig.languages) ocaml ocaml_interface; };
+      };
+    in
+
     {
       formatter = pkgs.nixfmt-rfc-style;
 
@@ -34,7 +62,7 @@
           ## Runtime inputs
           (self.makeRuntimeInputs pkgs)
           ## Development environment
-          ++ (with pkgs; [ topiary ])
+          ++ [ (topiaryWrappedWithPrefetchedConfig myTopiaryConfig) ]
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
