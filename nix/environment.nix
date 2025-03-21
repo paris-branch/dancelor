@@ -11,6 +11,7 @@
       self',
       inputs',
       pkgs,
+      lib,
       config,
       ...
     }:
@@ -39,6 +40,17 @@
           '';
         };
 
+      topiaryGitHook = topiaryConfig: {
+        name = "Topiary";
+        entry = "${topiaryWrappedWithPrefetchedConfig topiaryConfig}/bin/topiary format";
+        files =
+          let
+            inherit (lib) concatMap attrValues concatStringsSep;
+            extensions = concatMap (c: c.extensions) (attrValues topiaryConfig.languages);
+          in
+          "\\.(" + concatStringsSep "|" extensions + ")$";
+      };
+
       ## Keep only OCaml as a language for Topiary.
       myTopiaryConfig = defaultTopiaryConfig // {
         languages = { inherit (defaultTopiaryConfig.languages) ocaml ocaml_interface; };
@@ -57,8 +69,11 @@
         };
         dune-fmt.enable = true;
         dune-opam-sync.enable = true;
-        ocp-indent.enable = true;
         opam-lint.enable = true;
+
+        topiary-latest = topiaryGitHook myTopiaryConfig // {
+          enable = true;
+        };
       };
 
       devShells.default = pkgs.mkShell {
