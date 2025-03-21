@@ -14,15 +14,15 @@ let of_string s =
       "%d%[a-zA-Z]"
       (fun repeats base -> (repeats, KindBase.of_string base))
   with
-  | End_of_file | Scanf.Scan_failure _ ->
-    try
-      ssf
-        s
-        "%[a-zA-Z]%d"
-        (fun base repeats -> (repeats, KindBase.of_string base))
-    with
     | End_of_file | Scanf.Scan_failure _ ->
-      invalid_arg "Dancelor_common.Model.Kind.version_of_string"
+      try
+        ssf
+          s
+          "%[a-zA-Z]%d"
+          (fun base repeats -> (repeats, KindBase.of_string base))
+      with
+        | End_of_file | Scanf.Scan_failure _ ->
+          invalid_arg "Dancelor_common.Model.Kind.version_of_string"
 
 let%test _ = to_string (32, Waltz) = "32 W"
 let%test _ = to_string (64, Reel) = "64 R"
@@ -38,18 +38,18 @@ let%test _ =
   try
     ignore (of_string "R"); false
   with
-  | Invalid_argument _ -> true
+    | Invalid_argument _ -> true
 let%test _ =
   try
     ignore (of_string "8x32R"); false
   with
-  | Invalid_argument _ -> true
+    | Invalid_argument _ -> true
 
 let of_string_opt string =
   try
     Some (of_string string)
   with
-  | Invalid_argument _ -> None
+    | Invalid_argument _ -> None
 
 let to_yojson t =
   `String (to_string t)
@@ -60,7 +60,7 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-      | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a valid version kind"
+        | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a valid version kind"
     )
   | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a JSON string"
 
@@ -101,29 +101,29 @@ module Filter = struct
 
   let accepts filter kind =
     Formula.interpret filter @@ function
-    | Is kind' ->
-      Lwt.return (Formula.interpret_bool (kind = kind'))
-    | BarsEq bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars = bars'))
-    | BarsNe bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars <> bars'))
-    | BarsGt bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars > bars'))
-    | BarsGe bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars >= bars'))
-    | BarsLt bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars < bars'))
-    | BarsLe bars' ->
-      let (bars, _) = kind in
-      Lwt.return (Formula.interpret_bool (bars <= bars'))
-    | Base bfilter ->
-      let (_bars, bkind) = kind in
-      KindBase.Filter.accepts bfilter bkind
+      | Is kind' ->
+        Lwt.return (Formula.interpret_bool (kind = kind'))
+      | BarsEq bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars = bars'))
+      | BarsNe bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars <> bars'))
+      | BarsGt bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars > bars'))
+      | BarsGe bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars >= bars'))
+      | BarsLt bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars < bars'))
+      | BarsLe bars' ->
+        let (bars, _) = kind in
+        Lwt.return (Formula.interpret_bool (bars <= bars'))
+      | Base bfilter ->
+        let (_bars, bkind) = kind in
+        KindBase.Filter.accepts bfilter bkind
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -134,10 +134,10 @@ module Filter = struct
             [
               raw
                 (fun string ->
-                   Option.fold
-                     ~some: (Result.ok % is')
-                     ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
-                     (of_string_opt string)
+                  Option.fold
+                    ~some: (Result.ok % is')
+                    ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
+                    (of_string_opt string)
                 );
               unary_int ~name: "bars-eq" (barsEq, unBarsEq);
               unary_int ~name: "bars-ne" (barsNe, unBarsNe);

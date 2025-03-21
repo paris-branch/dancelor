@@ -57,16 +57,16 @@ let create ?query () =
             ~a: [
               a_class ["button"];
               a_onclick (fun _ ->
-                  Lwt.async (fun () ->
-                      let search_text = S.value (SearchBar.text search_bar) in
-                      (* TODO: On return, add a space and focus the search bar. *)
-                      Fun.flip
-                        Lwt.map
-                        (SearchComplexFiltersDialog.open_ search_text)
-                        (Result.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
-                    );
-                  false
+                Lwt.async (fun () ->
+                  let search_text = S.value (SearchBar.text search_bar) in
+                  (* TODO: On return, add a space and focus the search bar. *)
+                  Fun.flip
+                    Lwt.map
+                    (SearchComplexFiltersDialog.open_ search_text)
+                    (Result.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
                 );
+                false
+              );
             ]
             [
               i ~a: [a_class ["material-symbols-outlined"]] [txt "filter_alt"];
@@ -76,17 +76,17 @@ let create ?query () =
       R.div
         (
           Fun.flip S.map (SearchBar.state search_bar) @@ function
-          | NoResults -> [div ~a: [a_class ["warning"]] [txt "Your search returned no results."]]
-          | Errors error -> [div ~a: [a_class ["error"]] [txt error]]
-          | StartTyping | ContinueTyping | Results _ -> []
+            | NoResults -> [div ~a: [a_class ["warning"]] [txt "Your search returned no results."]]
+            | Errors error -> [div ~a: [a_class ["error"]] [txt error]]
+            | StartTyping | ContinueTyping | Results _ -> []
         );
       div
         ~a: [
           R.a_class
             (
               Fun.flip S.map (SearchBar.state search_bar) @@ function
-              | Results _ -> []
-              | _ -> ["hidden"]
+                | Results _ -> []
+                | _ -> ["hidden"]
             )
         ]
         [
@@ -103,12 +103,12 @@ let create ?query () =
               R.tbody
                 (
                   Fun.flip S.map (S.Pair.pair (Pagination.slice pagination) (SearchBar.state search_bar))
-                  @@ fun (_, state) ->
-                  match state with
-                  | Results results ->
-                    let context = S.map Endpoints.Page.inSearch @@ SearchBar.text search_bar in
-                    List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results
-                  | _ -> []
+                    @@ fun (_, state) ->
+                    match state with
+                    | Results results ->
+                      let context = S.map Endpoints.Page.inSearch @@ SearchBar.text search_bar in
+                      List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results
+                    | _ -> []
                 )
             ];
           Pagination.render pagination;

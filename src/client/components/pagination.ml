@@ -82,10 +82,10 @@ module Button = struct
               );
             a_onclick
               (fun _ ->
-                 let state = S.value pagination.state in
-                 if enabled state then
-                   pagination.update_current_page (fun current_page -> target current_page);
-                 false
+                let state = S.value pagination.state in
+                if enabled state then
+                  pagination.update_current_page (fun current_page -> target current_page);
+                false
               )
           ]
           [txt text]
@@ -139,11 +139,11 @@ let button_list pagination =
     number_of_pages
     |> Fun.flip List.init ((+) 1)
     |> List.filter
-      (fun i ->
-         i = 1
-         || i = number_of_pages
-         || abs (current_page - i) <= 2
-      )
+        (fun i ->
+          i = 1
+          || i = number_of_pages
+          || abs (current_page - i) <= 2
+        )
   in
   let rec numbered_buttons previous = function
     | [] -> []

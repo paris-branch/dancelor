@@ -63,7 +63,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Set.t) Selector.t) gen;
+    (string Input.Text.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Set.t) Selector.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -90,7 +90,7 @@ module Editor = struct
       Lwt.return @@ f raw_state
     | _, None ->
       Lwt.return @@
-      Cutils.with_local_storage "BookEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "BookEditor" (module RawState) raw_state f
 
   let create ~text ~edit : t Lwt.t =
     with_or_without_local_storage ~text ~edit @@ fun initial_state ->
@@ -98,22 +98,22 @@ module Editor = struct
     let set_interacted () = set_interacted true in
     let name =
       Input.Text.make ~has_interacted initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let date =
       Input.Text.make ~has_interacted initial_state.date @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+          Option.of_string_nonempty
     in
     let sets =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Set.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Set.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Set.get
         initial_state.sets
@@ -174,12 +174,12 @@ let create ?on_save ?text ?edit () =
                   editor.elements.sets;
               ]
           with
-          | State.Non_convertible ->
-            Lwt.return
-              [
-                h2 ~a: [a_class ["title"]] [txt "Error"];
-                p [txt "This book cannot be edited."];
-              ]
+            | State.Non_convertible ->
+              Lwt.return
+                [
+                  h2 ~a: [a_class ["title"]] [txt "Error"];
+                  p [txt "This book cannot be edited."];
+                ]
         )
     ]
     ~buttons: [
@@ -192,20 +192,20 @@ let create ?on_save ?text ?edit () =
                 Button.save
                   ~disabled: (S.map Option.is_none (Editor.state editor))
                   ~onclick: (fun () ->
-                      editor.set_interacted ();
-                      Fun.flip Lwt.map (Editor.submit ~edit editor) @@
-                      Option.iter @@ fun book ->
-                      Editor.clear editor;
-                      match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
-                      | Some on_save -> on_save book
-                    )
+                    editor.set_interacted ();
+                    Fun.flip Lwt.map (Editor.submit ~edit editor) @@
+                    Option.iter @@ fun book ->
+                    Editor.clear editor;
+                    match on_save with
+                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
+                    | Some on_save -> on_save book
+                  )
                   ();
                 Button.clear
                   ~onclick: (fun () -> Editor.clear editor)
                   ();
               ]
           with
-          | State.Non_convertible -> Lwt.return []
+            | State.Non_convertible -> Lwt.return []
         )
     ]

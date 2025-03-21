@@ -2,8 +2,8 @@ open Ppxlib
 
 let location_errorf ~loc =
   Format.ksprintf (fun err ->
-      raise (Ocaml_common.Location.Error (Ocaml_common.Location.error ~loc err))
-    )
+    raise (Ocaml_common.Location.Error (Ocaml_common.Location.error ~loc err))
+  )
 
 let find_file_path ~loc file_name =
   let dirname = loc.Ocaml_common.Location.loc_start.pos_fname |> Filename.dirname in
@@ -18,8 +18,8 @@ let get_blob ~loc file_name =
     close_in c;
     s
   with
-  | _ ->
-    location_errorf ~loc "[%%blob] could not find or load file %s" file_name
+    | _ ->
+      location_errorf ~loc "[%%blob] could not find or load file %s" file_name
 
 let expand ~ctxt file_name =
   let loc = Expansion_context.Extension.extension_point_loc ctxt in

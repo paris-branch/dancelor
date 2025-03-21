@@ -25,9 +25,10 @@ module RawState = struct
 
   type t =
     (string, string, (string * person Slug.t list), string, string,
-     (* bool, *)
-     unit, (* FIXME *)
-     string) gen
+    (* bool, *)
+    unit,
+    (* FIXME *)
+    string) gen
   [@@deriving yojson]
 
   let empty : t = {
@@ -44,7 +45,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, string option Input.Text.t, bool option Choices.t, SCDDB.entry_id option Input.Text.t) gen;
+    (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, string option Input.Text.t, bool option Choices.t, SCDDB.entry_id option Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -55,7 +56,8 @@ module Editor = struct
     S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
     S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     (* S.bind (Choices.raw_signal editor.elements.two_chords) @@ fun two_chords -> *)
-    let two_chords = () in (* FIXME *)
+    let two_chords = () in
+    (* FIXME *)
     S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
@@ -76,7 +78,7 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Cutils.with_local_storage "DanceEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "DanceEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
@@ -84,33 +86,33 @@ module Editor = struct
     let set_interacted () = set_interacted true in
     let name =
       Input.Text.make ~has_interacted initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
       Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
+        Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
     in
     let devisers =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Person.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.devisers
     in
     let date =
       Input.Text.make ~has_interacted initial_state.date @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+          Option.of_string_nonempty
     in
     let disambiguation =
       Input.Text.make ~has_interacted initial_state.disambiguation @@
-      Result.ok % Option.of_string_nonempty
+        Result.ok % Option.of_string_nonempty
     in
     let two_chords =
       Choices.make_radios
@@ -123,10 +125,10 @@ module Editor = struct
     in
     let scddb_id =
       Input.Text.make ~has_interacted initial_state.scddb_id @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Dance) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Dance) %
+          Option.of_string_nonempty
     in
     {
       elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id};
@@ -210,14 +212,14 @@ let create ?on_save ?text () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun dance ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Entry.slug dance))
-                    | Some on_save -> on_save dance
-                  )
+                  editor.set_interacted ();
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun dance ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Entry.slug dance))
+                  | Some on_save -> on_save dance
+                )
                 ();
               Button.clear
                 ~onclick: (fun () -> Editor.clear editor)

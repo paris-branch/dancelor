@@ -8,9 +8,9 @@ open Views
 let set_title title =
   Dom_html.document##.title :=
     Js.string @@
-    match title with
-    | "" -> "Dancelor"
-    | title -> title ^ " | Dancelor"
+      match title with
+      | "" -> "Dancelor"
+      | title -> title ^ " | Dancelor"
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
@@ -28,9 +28,9 @@ let smartphone_menu_toggle =
     ~a: [
       a_id "to_nav";
       a_onclick (fun _ ->
-          set_show_menu % Option.some % not @@ (S.value show_menu = Some true);
-          false
-        )
+        set_show_menu % Option.some % not @@ (S.value show_menu = Some true);
+        false
+      )
     ]
     [
       i
@@ -39,8 +39,8 @@ let smartphone_menu_toggle =
           R.txt
             (
               Fun.flip S.map show_menu @@ function
-              | Some true -> "close"
-              | _ -> "menu"
+                | Some true -> "close"
+                | _ -> "menu"
             )
         ]
     ]
@@ -73,9 +73,9 @@ let header =
               R.a_style
                 (
                   Fun.flip S.map show_menu @@ function
-                  | None -> ""
-                  | Some true -> "display: block;"
-                  | Some false -> "display: none;"
+                    | None -> ""
+                    | Some true -> "display: block;"
+                    | Some false -> "display: none;"
                 )
             ]
             [
@@ -84,13 +84,13 @@ let header =
                   Components.QuickSearchBar.make_and_render
                     ~placeholder: "Quick search (press '/')"
                     ~search: (fun slice input ->
-                        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
-                        Lwt.map Result.ok @@ Model.Any.search slice filter
-                      )
+                      let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+                      Lwt.map Result.ok @@ Model.Any.search slice filter
+                    )
                     ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
                     ~on_enter: (fun search_text ->
-                        Dom_html.window##.location##.href := Js.string (Endpoints.Page.(href Explore) (Some search_text))
-                      )
+                      Dom_html.window##.location##.href := Js.string (Endpoints.Page.(href Explore) (Some search_text))
+                    )
                     ~focus_on_slash: true
                     ()
                 ];
@@ -261,9 +261,9 @@ let on_load _ev =
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
   let content =
     To_dom.of_div @@
-    Html.div
-      ~a: [a_class ["content"; "page-body"]]
-      (Page.content page)
+      Html.div
+        ~a: [a_class ["content"; "page-body"]]
+        (Page.content page)
   in
   Dom.appendChild Dom_html.document##.body content;
   Dom.appendChild Dom_html.document##.body (To_dom.of_div IssueReport.button);

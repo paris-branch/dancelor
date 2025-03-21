@@ -31,8 +31,8 @@ module Text = struct
   let case_errored ~no ~yes state =
     S.bind (has_interacted state) @@ fun has_interacted ->
     Fun.flip S.map (signal state) @@ function
-    | Error msg when has_interacted -> yes msg
-    | _ -> no
+      | Error msg when has_interacted -> yes msg
+      | _ -> no
 
   let clear state = state.set ""
 
@@ -49,14 +49,14 @@ module Text = struct
             R.a_value state.raw_signal;
             R.a_class (case_errored ~no: [] ~yes: (Fun.const ["invalid"]) state);
             a_oninput (fun event ->
-                (
-                  Js.Opt.iter event##.target @@ fun elt ->
-                  Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                  let input = Js.to_string input##.value in
-                  state.set input
-                );
-                false
+              (
+                Js.Opt.iter event##.target @@ fun elt ->
+                Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                let input = Js.to_string input##.value in
+                state.set input
               );
+              false
+            );
             a_onfocus (fun _ -> state.set_interacted (); false);
           ];
         R.div
@@ -78,14 +78,14 @@ module Text = struct
             a_placeholder placeholder;
             R.a_class (case_errored ~no: [] ~yes: (Fun.const ["invalid"]) state);
             a_oninput (fun event ->
-                (
-                  Js.Opt.iter event##.target @@ fun elt ->
-                  Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
-                  let input = Js.to_string input##.value in
-                  state.set input
-                );
-                false
+              (
+                Js.Opt.iter event##.target @@ fun elt ->
+                Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
+                let input = Js.to_string input##.value in
+                state.set input
               );
+              false
+            );
             a_onfocus (fun _ -> state.set_interacted (); false);
           ];
         R.div

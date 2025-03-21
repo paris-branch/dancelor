@@ -40,13 +40,13 @@ let create () =
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
     S.map (Option.value ~default: VersionParameters.none) @@
-    S.merge
-      (Option.concat VersionParameters.compose)
-      None
-      [
-        Choices.signal key_choices;
-        Choices.signal clef_choices;
-      ]
+      S.merge
+        (Option.concat VersionParameters.compose)
+        None
+        [
+          Choices.signal key_choices;
+          Choices.signal clef_choices;
+        ]
   in
   {
     choice_rows = [

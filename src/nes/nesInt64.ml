@@ -3,26 +3,65 @@ include Int64
 let nums_to_english_string =
   let nums = [|
     (* 0 -> 19  *)
-    [];
-    ["one"];
-    ["two"];
-    ["three"];
-    ["four"];
-    ["five"];
-    ["six"];
-    ["seven"];
-    ["eight"];
-    ["nine"];
-    ["ten"];
-    ["eleven"];
-    ["twelve"];
-    ["thirteen"];
-    ["fourteen"];
-    ["fifteen"];
-    ["sixteen"];
-    ["seventeen"];
-    ["eighteen"];
-    ["nineteen"]
+    [
+    ];
+    [
+      "one"
+    ];
+    [
+      "two"
+    ];
+    [
+      "three"
+    ];
+    [
+      "four"
+    ];
+    [
+      "five"
+    ];
+    [
+      "six"
+    ];
+    [
+      "seven"
+    ];
+    [
+      "eight"
+    ];
+    [
+      "nine"
+    ];
+    [
+      "ten"
+    ];
+    [
+      "eleven"
+    ];
+    [
+      "twelve"
+    ];
+    [
+      "thirteen"
+    ];
+    [
+      "fourteen"
+    ];
+    [
+      "fifteen"
+    ];
+    [
+      "sixteen"
+    ];
+    [
+      "seventeen"
+    ];
+    [
+      "eighteen"
+    ];
+    [
+      "nineteen"
+    ]
   |]
   in
   fun n -> nums.(to_int n)
@@ -30,16 +69,35 @@ let nums_to_english_string =
 let tens_to_english_string =
   let tens = [|
     (* 0, 10 -> 90 *)
-    [];
-    ["ten"];
-    ["twenty"];
-    ["thirty"];
-    ["forty"];
-    ["fifty"];
-    ["sixty"];
-    ["seventy"];
-    ["eighty"];
-    ["ninety"]
+    [
+    ];
+    [
+      "ten"
+    ];
+    [
+      "twenty"
+    ];
+    [
+      "thirty"
+    ];
+    [
+      "forty"
+    ];
+    [
+      "fifty"
+    ];
+    [
+      "sixty"
+    ];
+    [
+      "seventy"
+    ];
+    [
+      "eighty"
+    ];
+    [
+      "ninety"
+    ]
   |]
   in
   fun n -> tens.(to_int n)
@@ -51,7 +109,7 @@ let ones_to_english_string number =
       nums_to_english_string (rem number 100L)
     else
       tens_to_english_string (rem (div number 10L) 10L) @
-      nums_to_english_string (rem number 10L)
+        nums_to_english_string (rem number 10L)
   in
   if number < 100L then
     ones_and_tens
@@ -123,7 +181,7 @@ let to_english_string number =
   (* note: abs min_int = min_int but it is okay because min_int = max_int + 1 so
      the unsigned function will work just fine *)
   (if number >= 0L then "" else "minus ") ^
-  to_english_string_unsigned (abs number)
+    to_english_string_unsigned (abs number)
 
 let%test _ = to_english_string 0L = "zero"
 let%test _ = to_english_string 1L = "one"

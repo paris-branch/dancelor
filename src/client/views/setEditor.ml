@@ -43,7 +43,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
+    (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -70,7 +70,7 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Cutils.with_local_storage "SetEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "SetEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
@@ -78,19 +78,19 @@ module Editor = struct
     let set_interacted () = set_interacted true in
     let name =
       Input.Text.make ~has_interacted initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
       Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
+        Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
     in
     let conceptors =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Person.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.conceptors
@@ -99,16 +99,16 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Version.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Version.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Version.get
         initial_state.versions
     in
     let order =
       Input.Text.make ~has_interacted initial_state.order @@
-      Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
+        Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
     in
     {
       elements = {name; kind; conceptors; versions; order};
@@ -169,23 +169,23 @@ let create ?on_save ?text () =
               Selector.render
                 ~make_result: AnyResult.make_version_result'
                 ~make_more_results: (fun version ->
-                    [
-                      Utils.ResultRow.make
-                        ~classes: ["small-previsualisation"]
-                        [
-                          Utils.ResultRow.cell
-                            ~a: [a_colspan 9999]
-                            [
-                              object_
-                                ~a: [
-                                  a_mime_type "image/svg+xml";
-                                  a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
-                                ]
-                                [];
-                            ]
-                        ]
-                    ]
-                  )
+                  [
+                    Utils.ResultRow.make
+                      ~classes: ["small-previsualisation"]
+                      [
+                        Utils.ResultRow.cell
+                          ~a: [a_colspan 9999]
+                          [
+                            object_
+                              ~a: [
+                                a_mime_type "image/svg+xml";
+                                a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
+                              ]
+                              [];
+                          ]
+                      ]
+                  ]
+                )
                 ~field_name: ("Versions", "version")
                 ~model_name: "versions"
                 ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
@@ -206,14 +206,14 @@ let create ?on_save ?text () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun set ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
-                    | Some on_save -> on_save set
-                  )
+                  editor.set_interacted ();
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun set ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
+                  | Some on_save -> on_save set
+                )
                 ();
               Button.clear
                 ~onclick: (fun () -> Editor.clear editor)

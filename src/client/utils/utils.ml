@@ -22,14 +22,14 @@ let is_input : 'a. (#Dom.element as 'a) Js.t -> bool = fun n ->
 let add_target_event_listener n ev f =
   let open Dom_html in
   ignore @@
-  addEventListener
-    n
-    ev
-    (
-      handler @@ fun event ->
-      Js.Opt.case event##.target (fun () -> Js._true) (f event)
-    )
-    Js._false (* default: run in bubbling phase *)
+    addEventListener
+      n
+      ev
+      (
+        handler @@ fun event ->
+        Js.Opt.case event##.target (fun () -> Js._true) (f event)
+      )
+      Js._false (* default: run in bubbling phase *)
 
 let quick_explorer_links links =
   let open Html in
@@ -42,30 +42,30 @@ let quick_explorer_links links =
         (
           List.map
             (fun (text, filter_lwt) ->
-               let count_lwt = Lwt.bind filter_lwt Model.Any.count in
-               li
-                 ~a: [
-                   L.a_class
-                     (
-                       Fun.flip Lwt.map count_lwt @@ function
-                       | 0 -> ["disabled"]
-                       | _ -> []
-                     );
-                 ]
-                 [
-                   a
-                     ~a: [
-                       L.a_href
-                         (
-                           Lwt.map
-                             (Endpoints.Page.(href Explore) % Option.some % Model.Any.Filter.to_string)
-                             filter_lwt
-                         );
-                     ]
-                     [txt text];
-                   L.txt (Lwt.map (spf " (%d)") count_lwt);
-                   txt ",";
-                 ]
+              let count_lwt = Lwt.bind filter_lwt Model.Any.count in
+              li
+                ~a: [
+                  L.a_class
+                    (
+                      Fun.flip Lwt.map count_lwt @@ function
+                        | 0 -> ["disabled"]
+                        | _ -> []
+                    );
+                ]
+                [
+                  a
+                    ~a: [
+                      L.a_href
+                        (
+                          Lwt.map
+                            (Endpoints.Page.(href Explore) % Option.some % Model.Any.Filter.to_string)
+                            filter_lwt
+                        );
+                    ]
+                    [txt text];
+                  L.txt (Lwt.map (spf " (%d)") count_lwt);
+                  txt ",";
+                ]
             )
             links
         );

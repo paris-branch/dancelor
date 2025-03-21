@@ -18,18 +18,18 @@ type cell = {
    use this little trick instead. *)
 let coerce_content
   : 'a. ([< Html_types.td_content_fun] as 'a) Html.elt list ->
-    Html_types.td_content_fun Html.elt list
-  = fun x -> (x :> Html_types.td_content_fun Html.elt list)
+  Html_types.td_content_fun Html.elt list
+= fun x -> (x :> Html_types.td_content_fun Html.elt list)
 
 let rcell
   : 'a 'b. ?a: ([< Html_types.td_attrib] as 'a) Html.attrib list ->
-    ([< Html_types.td_content_fun] as 'b) Html.elt list S.t ->
-    cell
-  = fun ?(a = []) content ->
-    {
-      a = (a :> Html_types.td_attrib Html.attrib list);
-      content = (S.map coerce_content content);
-    }
+  ([< Html_types.td_content_fun] as 'b) Html.elt list S.t ->
+  cell
+= fun ?(a = []) content ->
+  {
+    a = (a :> Html_types.td_attrib Html.attrib list);
+    content = (S.map coerce_content content);
+  }
 
 let cell ?a content = rcell ?a (S.const content)
 let lcell ?a content = rcell ?a (Html.S.from' [] content)
@@ -83,24 +83,24 @@ let to_clickable_row t =
       (
         List.map
           (fun cell ->
-             td
-               ~a: cell.a
-               [
-                 a
-                   ~a: [
-                     a_class ["full-cell-link"];
-                     R.a_href href;
-                   ]
-                   [
-                     R.div
-                       ~a: [a_class ["full-cell-link"]]
-                       (
-                         Fun.flip S.map cell.content @@ function
-                         | [] -> [txt " "] (* empty cells would not have their link fill 100% of the height *)
-                         | content -> content
-                       )
-                   ]
-               ]
+            td
+              ~a: cell.a
+              [
+                a
+                  ~a: [
+                    a_class ["full-cell-link"];
+                    R.a_href href;
+                  ]
+                  [
+                    R.div
+                      ~a: [a_class ["full-cell-link"]]
+                      (
+                        Fun.flip S.map cell.content @@ function
+                          | [] -> [txt " "] (* empty cells would not have their link fill 100% of the height *)
+                          | content -> content
+                      )
+                  ]
+              ]
           )
           t.cells
       )
