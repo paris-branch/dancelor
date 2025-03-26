@@ -25,8 +25,8 @@ let cleanup ~cache =
   let now = now () in
   Hashtbl.filter_map_inplace
     (fun _ entry ->
-       if entry_age ~now entry > cache.entry_lifetime then None
-       else Some entry
+      if entry_age ~now entry > cache.entry_lifetime then None
+      else Some entry
     )
     cache.entries;
   cache.last_cleanup <- now

@@ -27,34 +27,34 @@ let make
           R.txt
             (
               Fun.flip S.map processing @@ function
-              | true -> "pending"
-              | false -> icon
+                | true -> "pending"
+                | false -> icon
             )
         ];
       txt " ";
       R.txt
         (
           Fun.flip S.map processing @@ function
-          | true -> label_processing
-          | false -> label
+            | true -> label_processing
+            | false -> label
         );
     ]
     ~a: [
       R.a_class
         (
           Fun.flip S.map (S.l2 (||) disabled processing) @@ function
-          | true -> "disabled" :: classes
-          | false -> classes
+            | true -> "disabled" :: classes
+            | false -> classes
         );
       a_onclick (fun _event ->
-          Lwt.async (fun () ->
-              set_processing true;
-              onclick ();%lwt
-              set_processing false;
-              Lwt.return_unit
-            );
-          false
+        Lwt.async (fun () ->
+          set_processing true;
+          onclick ();%lwt
+          set_processing false;
+          Lwt.return_unit
         );
+        false
+      );
     ]
 
 let save ?disabled ~onclick () =
@@ -76,10 +76,10 @@ let clear ~onclick () =
     ~a: [
       a_class ["btn-danger"];
       a_onclick (fun _event ->
-          if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
-            onclick ();
-          false
-        );
+        if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
+          onclick ();
+        false
+      );
     ]
 
 let cancel ~return () =
@@ -91,7 +91,7 @@ let cancel ~return () =
     ~a: [
       a_class ["btn-danger"];
       a_onclick (fun _event ->
-          return (Error Dialog.Closed);
-          false
-        );
+        return (Error Dialog.Closed);
+        false
+      );
     ]

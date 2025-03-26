@@ -66,16 +66,16 @@ let check_output
   let checks =
     List.map_filter
       (fun (ok, on_error, msg) ->
-         match on_error with
-         | Some loglevel when not ok -> Some (loglevel, msg)
-         | _ -> None
+        match on_error with
+        | Some loglevel when not ok -> Some (loglevel, msg)
+        | _ -> None
       )
       checks
   in
   (* Log all things that went wrong *)
   List.iter
     (fun (loglevel, msg) ->
-       Log.msg loglevel (fun m -> m "The command %s" msg)
+      Log.msg loglevel (fun m -> m "The command %s" msg)
     )
     checks;
   (* Find the highest loglevel among the things that went wrong. *)

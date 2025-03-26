@@ -40,11 +40,11 @@ module TextFormula = struct
     let open Gen in
     fix
       (fun self () ->
-         let* name = string_size ~gen: (char_range 'a' 'z') (int_range 1 10) in
-         if name = "or" || name = "and" || name = "not" then
-           self ()
-         else
-           pure name
+        let* name = string_size ~gen: (char_range 'a' 'z') (int_range 1 10) in
+        if name = "or" || name = "and" || name = "not" then
+          self ()
+        else
+          pure name
       )
       ()
 
@@ -52,12 +52,12 @@ module TextFormula = struct
     let open Gen in
     fix
       (fun self () ->
-         oneof
-           [
-             (Common.TextFormula.raw <$> string_printable);
-             (Common.TextFormula.nullary <$> gen_predicate_name);
-             (Common.TextFormula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
-           ]
+        oneof
+          [
+            (Common.TextFormula.raw <$> string_printable);
+            (Common.TextFormula.nullary <$> gen_predicate_name);
+            (Common.TextFormula.unary <$> gen_predicate_name <*> Formula.gen (self ()));
+          ]
       )
       ()
 
@@ -102,13 +102,13 @@ module Kind = struct
       sized @@
       fix @@ fun self ->
       function
-      | 0 -> version <$> Version.gen
-      | n ->
-        oneof
-          [
-            (add <$> self (n / 2) <*> self (n / 2));
-            (mul <$> nat <*> self (n - 1));
-          ]
+        | 0 -> version <$> Version.gen
+        | n ->
+          oneof
+            [
+              (add <$> self (n / 2) <*> self (n / 2));
+              (mul <$> nat <*> self (n - 1));
+            ]
 
     module Filter = struct
       type predicate = [%import: Common.Kind.Dance.Filter.predicate [@with Common.KindVersion.Filter.t := Version.Filter.t;]
@@ -131,8 +131,8 @@ module Person = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Person.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Person.t := t;
+      (* Core *)
+      Common__ModelBuilder__.Core.Person.t := t;
       ]
     ]
     [@@deriving qcheck2]
@@ -152,11 +152,11 @@ module Dance = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Dance.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Dance.t := t;
-                               (* Filter *)
-                               Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-                               Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
+      (* Core *)
+      Common__ModelBuilder__.Core.Dance.t := t;
+      (* Filter *)
+      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
       ]
     ]
     [@@deriving qcheck2]
@@ -176,13 +176,13 @@ module Tune = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Tune.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Tune.t := t;
-                               Common__ModelBuilder__.Core.Dance.t := Dance.t;
-                               (* Filter *)
-                               Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-                               Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-                               Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
+      (* Core *)
+      Common__ModelBuilder__.Core.Tune.t := t;
+      Common__ModelBuilder__.Core.Dance.t := Dance.t;
+      (* Filter *)
+      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
+      Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
       ]
     ]
     [@@deriving qcheck2]
@@ -202,15 +202,15 @@ module Version = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Version.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               Common.Music.key := Music.key;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Version.t := t;
-                               (* Filter *)
-                               Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-                               Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-                               Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-                               Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
-                               Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
+      Common.Music.key := Music.key;
+      (* Core *)
+      Common__ModelBuilder__.Core.Version.t := t;
+      (* Filter *)
+      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
+      Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
+      Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
       ]
     ]
     [@@deriving qcheck2]
@@ -230,15 +230,15 @@ module Set = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Set.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               Common.Music.key := Music.key;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Set.t := t;
-                               (* Filter *)
-                               Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-                               Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-                               Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-                               Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-                               Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
+      Common.Music.key := Music.key;
+      (* Core *)
+      Common__ModelBuilder__.Core.Set.t := t;
+      (* Filter *)
+      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
+      Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
       ]
     ]
     [@@deriving qcheck2]
@@ -258,15 +258,15 @@ module Book = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Book.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               Common.Music.key := Music.key;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Book.t := t;
-                               (* Filter *)
-                               Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-                               Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-                               Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-                               Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
-                               Common__ModelBuilder__Filter.Set.t := Set.Filter.t;
+      Common.Music.key := Music.key;
+      (* Core *)
+      Common__ModelBuilder__.Core.Book.t := t;
+      (* Filter *)
+      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
+      Common__ModelBuilder__Filter.Set.t := Set.Filter.t;
       ]
     ]
     [@@deriving qcheck2]
@@ -286,19 +286,19 @@ module Any = struct
 
   module Filter = struct
     type predicate = [%import: Common.ModelBuilder.Any.Filter.predicate [@with Nes.Slug.t := Slug.t;
-                               Common.Music.key := Music.key;
-                               (* Core *)
-                               Common__ModelBuilder__.Core.Any.Type.t := Type.t;
-                               (* Filter *)
-                               Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-                               Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-                               Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-                               Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-                               Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
-                               Common__ModelBuilder__Filter.Book.t := Book.Filter.t;
-                               Common__ModelBuilder__Filter.Set.t := Set.Filter.t;
-                               Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
-                               Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
+      Common.Music.key := Music.key;
+      (* Core *)
+      Common__ModelBuilder__.Core.Any.Type.t := Type.t;
+      (* Filter *)
+      Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
+      Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+      Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
+      Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
+      Common__ModelBuilder__Filter.Book.t := Book.Filter.t;
+      Common__ModelBuilder__Filter.Set.t := Set.Filter.t;
+      Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
+      Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
       ]
     ]
     [@@deriving qcheck2]

@@ -28,7 +28,7 @@ let get_neighbours any = function
     let%lwt book = Book.get book in
     let%lwt context =
       Lwt.map (List.map_context book_page_to_any % Option.get) @@
-      Book.find_context_no_inline index book
+        Book.find_context_no_inline index book
     in
     Lwt.return context
 
@@ -67,29 +67,29 @@ let make_context_link_banner ~context ~this_page =
             parent_a [L.txt (Lwt.map Book.title @@ Book.get slug)];
           ]
       ) @
-      [
-        div
-          ~a: [a_class ["context-links-actions"]]
-          [
-            parent_a
-              ~a: [
-                a_class ["context-links-action"];
-                a_title "Return to the parent of this page.";
-              ]
-              [i ~a: [a_class ["material-symbols-outlined"]] [txt "undo"]];
-            a
-              ~a: [
-                a_class ["context-links-action"];
-                a_href this_page;
-                a_title
-                  "Reload the current page without the context. This \
+        [
+          div
+            ~a: [a_class ["context-links-actions"]]
+            [
+              parent_a
+                ~a: [
+                  a_class ["context-links-action"];
+                  a_title "Return to the parent of this page.";
+                ]
+                [i ~a: [a_class ["material-symbols-outlined"]] [txt "undo"]];
+              a
+                ~a: [
+                  a_class ["context-links-action"];
+                  a_href this_page;
+                  a_title
+                    "Reload the current page without the context. This \
                    will get rid of this banner and of the side links.";
-              ]
-              [i ~a: [a_class ["material-symbols-outlined"]] [txt "close"]];
-            div ~a: [a_class ["context-links-aligner"]] [];
-          ];
-        div ~a: [a_class ["context-links-aligner"]] [];
-      ]
+                ]
+                [i ~a: [a_class ["material-symbols-outlined"]] [txt "close"]];
+              div ~a: [a_class ["context-links-aligner"]] [];
+            ];
+          div ~a: [a_class ["context-links-aligner"]] [];
+        ]
     )
 
 let register_body_keydown_listener f =
@@ -109,9 +109,9 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
   let href = Endpoints.Page.href_any ~context: (neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
-      if ev##.keyCode = (if left then 37 else 39) then
-        Dom_html.window##.location##.href := Js.string href
-    );
+    if ev##.keyCode = (if left then 37 else 39) then
+      Dom_html.window##.location##.href := Js.string href
+  );
   a
     ~a: [
       a_href href;
@@ -124,7 +124,7 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
           [txt Any.(Type.to_string (type_of neighbour))];
           [L.txt @@ Any.name neighbour];
         ] @
-        (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
+          (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
       in
       div
         (
@@ -151,13 +151,13 @@ let make_and_render ?context ~this_page any_lwt =
         let%lwt any = any_lwt in
         let%lwt {total; previous; index; next; _} = get_neighbours any context in
         Lwt.return @@
-        List.filter_map
-          Fun.id
-          [
-            make_context_link ~context ~left: true ~neighbour: previous ~number_of_others: (index - 1);
-            make_context_link ~context ~left: false ~neighbour: next ~number_of_others: (total - index - 2);
-            (* The banner must be placed after the side-links so as to be appear on
-               top in the HTML rendering. *)
-            Some (make_context_link_banner ~context ~this_page);
-          ]
+          List.filter_map
+            Fun.id
+            [
+              make_context_link ~context ~left: true ~neighbour: previous ~number_of_others: (index - 1);
+              make_context_link ~context ~left: false ~neighbour: next ~number_of_others: (total - index - 2);
+              (* The banner must be placed after the side-links so as to be appear on
+                 top in the HTML rendering. *)
+              Some (make_context_link_banner ~context ~this_page);
+            ]
       );

@@ -9,10 +9,54 @@
   perSystem =
     {
       self',
+      inputs',
       pkgs,
+      lib,
       config,
       ...
     }:
+
+    let
+      inherit (pkgs.callPackage "${inputs.topiary}/prefetchLanguages.nix" { })
+        prefetchLanguages
+        fromNickelFile
+        toNickelFile
+        ;
+
+      defaultTopiaryConfig = fromNickelFile "${inputs.topiary}/languages.ncl";
+
+      topiaryWrappedWithPrefetchedConfig =
+        topiaryConfig:
+        ## FIXME: We use Topiary from nixpkgs because the version of the main
+        ## repository has some bugs on OCaml formatting at this point. We should
+        ## just track the Topiary repository and stay on commits that do not
+        ## fail.
+        pkgs.writeShellApplication {
+          name = "topiary";
+          text = ''
+            exec ${inputs'.packages.topiary-cli}/bin/topiary \
+                -C ${toNickelFile "languages-prefetched.ncl" (prefetchLanguages topiaryConfig)} \
+                "$@"
+          '';
+        };
+
+      topiaryGitHook = topiaryConfig: {
+        name = "Topiary";
+        entry = "${topiaryWrappedWithPrefetchedConfig topiaryConfig}/bin/topiary format";
+        files =
+          let
+            inherit (lib) concatMap attrValues concatStringsSep;
+            extensions = concatMap (c: c.extensions) (attrValues topiaryConfig.languages);
+          in
+          "\\.(" + concatStringsSep "|" extensions + ")$";
+      };
+
+      ## Keep only OCaml as a language for Topiary.
+      myTopiaryConfig = defaultTopiaryConfig // {
+        languages = { inherit (defaultTopiaryConfig.languages) ocaml ocaml_interface; };
+      };
+    in
+
     {
       formatter = pkgs.nixfmt-rfc-style;
 
@@ -25,8 +69,11 @@
         };
         dune-fmt.enable = true;
         dune-opam-sync.enable = true;
-        ocp-indent.enable = true;
         opam-lint.enable = true;
+
+        topiary-latest = topiaryGitHook myTopiaryConfig // {
+          enable = true;
+        };
       };
 
       devShells.default = pkgs.mkShell {
@@ -34,7 +81,7 @@
           ## Runtime inputs
           (self.makeRuntimeInputs pkgs)
           ## Development environment
-          ++ (with pkgs; [ topiary ])
+          ++ [ (topiaryWrappedWithPrefetchedConfig myTopiaryConfig) ]
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.

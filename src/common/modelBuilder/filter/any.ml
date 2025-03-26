@@ -157,7 +157,7 @@ let optimise =
           | Tune tfilter -> tune @@ Tune.optimise tfilter
           | Version vfilter -> version @@ Version.optimise vfilter
         ) %
-      type_based_cleanup
+        type_based_cleanup
     )
 
 let to_pretty_string =
@@ -167,15 +167,15 @@ let to_pretty_string =
   in
   let add_explicit_type =
     Formula.convert @@ function
-    | Person f -> type_and Person person' f
-    | Dance f -> type_and Dance dance' f
-    | Book f -> type_and Book book' f
-    | Set f -> type_and Set set' f
-    | Tune f -> type_and Tune tune' f
-    | Version f -> type_and Version version' f
-    | p -> Formula.pred p
+      | Person f -> type_and Person person' f
+      | Dance f -> type_and Dance dance' f
+      | Book f -> type_and Book book' f
+      | Set f -> type_and Set set' f
+      | Tune f -> type_and Tune tune' f
+      | Version f -> type_and Version version' f
+      | p -> Formula.pred p
   in
   TextFormula.to_string %
-  TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
-  add_explicit_type %
-  optimise
+    TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
+    add_explicit_type %
+    optimise

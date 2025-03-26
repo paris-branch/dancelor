@@ -14,12 +14,12 @@ module type S = sig
     | Version of Version.t Entry.t * VersionParameters.t
     | Set of Set.t Entry.t * SetParameters.t
     | InlineSet of Set.t * SetParameters.t
-    (** The type of one page in a book. A page either consists of a version (eg.
-        in a book of tunes), or a set (eg. in a dance program) or a so-called
-        “inline set”. Inline sets are simply a way to define a set on-the-fly in
-        the database for books without actually giving it a corresponding set
-        entry. It can be useful to put several versions on the same page, for
-        instance, when they do not particularly make sense together. *)
+  (** The type of one page in a book. A page either consists of a version (eg.
+      in a book of tunes), or a set (eg. in a dance program) or a so-called
+      “inline set”. Inline sets are simply a way to define a set on-the-fly in
+      the database for books without actually giving it a corresponding set
+      entry. It can be useful to put several versions on the same page, for
+      instance, when they do not particularly make sense together. *)
 
   type t = Book.t
   (** The type of a book. Even if it is known that it is a record, it should never
@@ -84,8 +84,8 @@ module type S = sig
     | DuplicateSet of Set.t Entry.t
     | DuplicateVersion of Tune.t Entry.t * (Set.t Entry.t option * int) list
     | SetDanceMismatch of Set.t Entry.t * Dance.t Entry.t
-    (* FIXME: a more specific type for (Set.t option * int) list. Maybe
-       “occurrences”? And maybe with a record so that this “int” has a name? *)
+  (* FIXME: a more specific type for (Set.t option * int) list. Maybe
+     “occurrences”? And maybe with a record so that this “int” has a name? *)
 
   type warnings = warning list
 

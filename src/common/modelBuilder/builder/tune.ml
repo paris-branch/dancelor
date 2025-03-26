@@ -1,8 +1,8 @@
 open Nes
 
 module Build
-    (Dance : Signature.Dance.S)
-    (Person : Signature.Person.S)
+  (Dance : Signature.Dance.S)
+  (Person : Signature.Person.S)
 = struct
   include Core.Tune
 
@@ -35,21 +35,21 @@ module Build
     let accepts filter tune =
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
-      | Is tune' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug tune) tune'
-      | Name string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Core.Tune.name tune
-      | NameMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Tune.name tune
-      | ExistsComposer pfilter ->
-        let%lwt composers = composers tune in
-        let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) composers in
-        Lwt.return (Formula.interpret_or_l scores)
-      | Kind kfilter ->
-        Kind.Base.Filter.accepts kfilter @@ Core.Tune.kind tune
-      | ExistsDance dfilter ->
-        let%lwt dances = tuneCore_dances tune in
-        let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
-        Lwt.return (Formula.interpret_or_l scores)
+        | Is tune' ->
+          Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug tune) tune'
+        | Name string ->
+          Lwt.return @@ String.proximity ~char_equal string @@ Core.Tune.name tune
+        | NameMatches string ->
+          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Tune.name tune
+        | ExistsComposer pfilter ->
+          let%lwt composers = composers tune in
+          let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) composers in
+          Lwt.return (Formula.interpret_or_l scores)
+        | Kind kfilter ->
+          Kind.Base.Filter.accepts kfilter @@ Core.Tune.kind tune
+        | ExistsDance dfilter ->
+          let%lwt dances = tuneCore_dances tune in
+          let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
+          Lwt.return (Formula.interpret_or_l scores)
   end
 end

@@ -38,9 +38,9 @@ let create () =
   {
     choice_rows = (
       set_dialog.choice_rows @
-      [
-        tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
-      ]
+        [
+          tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
+        ]
     );
     parameters_signal = S.map (Option.value ~default: BookParameters.none) @@
       S.merge

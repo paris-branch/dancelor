@@ -107,8 +107,8 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
     Lwt_mutex.with_lock
       lock
       (fun () ->
-         Log.debug (fun m -> m "Got lock[%x] on storage" id);
-         f ()
+        Log.debug (fun m -> m "Got lock[%x] on storage" id);
+        f ()
       )
   in
   Log.debug (fun m -> m "Released lock[%x] on storage" id);

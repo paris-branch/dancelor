@@ -35,19 +35,19 @@ let make
     if String.length text < min_characters then
       (
         Lwt.return @@
-        if text = "" then
-          StartTyping
-        else
-          ContinueTyping
+          if text = "" then
+            StartTyping
+          else
+            ContinueTyping
       )
     else
       Fun.flip Lwt.map (search slice text) @@ function
-      | Error messages ->
-        Errors messages
-      | Ok (_, []) ->
-        NoResults
-      | Ok (total, results) ->
-        on_number_of_entries total; Results results
+        | Error messages ->
+          Errors messages
+        | Ok (_, []) ->
+          NoResults
+        | Ok (total, results) ->
+          on_number_of_entries total; Results results
   in
   {text; state; set_text}
 
@@ -76,15 +76,15 @@ let render
             Some
               (
                 a_oninput (fun event ->
-                    (
-                      Js.Opt.iter event##.target @@ fun elt ->
-                      Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                      let input = Js.to_string input##.value in
-                      search_bar.set_text input;
-                      Option.value ~default: ignore on_input input;
-                    );
-                    false
-                  )
+                  (
+                    Js.Opt.iter event##.target @@ fun elt ->
+                    Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                    let input = Js.to_string input##.value in
+                    search_bar.set_text input;
+                    Option.value ~default: ignore on_input input;
+                  );
+                  false
+                )
               );
             (
               if autofocus then
@@ -103,22 +103,22 @@ let render
   (* Because the following event prevents the default browser behaviour (in case
      of `on_enter`), it must happen on `keydown` and not on `keyup`. *)
   Utils.add_target_event_listener bar' Dom_html.Event.keydown (fun event _target ->
-      match event##.keyCode with
-      | 13 (* Enter *) ->
-        (
-          match on_enter with
-          | None -> Js._true
-          | Some on_enter ->
-            (
-              Js.Opt.iter event##.target @@ fun elt ->
-              Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-              on_enter (Js.to_string input##.value)
-            );
-            Js._false
-        );
-      | 27 (* Esc *) -> (bar'##blur; Js._true)
-      | _ -> Js._true
-    );
+    match event##.keyCode with
+    | 13 (* Enter *) ->
+      (
+        match on_enter with
+        | None -> Js._true
+        | Some on_enter ->
+          (
+            Js.Opt.iter event##.target @@ fun elt ->
+            Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+            on_enter (Js.to_string input##.value)
+          );
+          Js._false
+      );
+    | 27 (* Esc *) -> (bar'##blur; Js._true)
+    | _ -> Js._true
+  );
   bar
 
 let state search_bar = search_bar.state

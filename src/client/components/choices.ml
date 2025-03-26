@@ -56,8 +56,8 @@ let make_gen_unsafe
             R.a_class
               (
                 Fun.flip S.map values @@ function
-                | Ok _ -> ["choices"]
-                | Error _ -> ["choices"; "invalid"]
+                  | Ok _ -> ["choices"]
+                  | Error _ -> ["choices"; "invalid"]
               );
             a_onchange (fun _ -> update_values (); true);
           ]
@@ -83,8 +83,8 @@ let make_gen_unsafe
           ~a: [a_class ["message-box"]]
           (
             Fun.flip S.map values @@ function
-            | Ok _ -> []
-            | Error msg -> [txt msg]
+              | Ok _ -> []
+              | Error msg -> [txt msg]
           )
       ]
   in
@@ -97,10 +97,10 @@ let make_radios_gen ?name ?has_interacted ~validate ~post_validate choices =
     choices
     ?has_interacted
     ~validate: (function
-        | [] -> validate None
-        | [x] -> validate x
-        | _ -> Error "Cannot select multiple options" (* should never happen *)
-      )
+      | [] -> validate None
+      | [x] -> validate x
+      | _ -> Error "Cannot select multiple options" (* should never happen *)
+    )
     ~post_validate
 
 let make_radios ?name ?has_interacted choices =

@@ -9,7 +9,7 @@ let add_field key value = function
 let add_fields fields json =
   List.fold_left
     (fun json (field, value) ->
-       add_field field value json
+      add_field field value json
     )
     json
     fields
@@ -20,11 +20,11 @@ let map_field key fun_ = function
       (
         List.map
           (fun (key', value) ->
-             (
-               key',
-               if key = key' then fun_ value
-               else value
-             )
+            (
+              key',
+              if key = key' then fun_ value
+              else value
+            )
           )
           fields
       )
@@ -102,9 +102,9 @@ let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option = functio
     Option.bind
       (f x)
       (fun x' ->
-         Option.bind
-           (list_map_opt f l)
-           (fun l' -> Some (x' :: l'))
+        Option.bind
+          (list_map_opt f l)
+          (fun l' -> Some (x' :: l'))
       )
 
 let strings = function

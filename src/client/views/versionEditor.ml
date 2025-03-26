@@ -46,7 +46,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
+    ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
     set_interacted: unit -> unit;
   }
 
@@ -88,9 +88,9 @@ module Editor = struct
       Selector.make
         ~arity: Selector.one
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Tune.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Tune.search slice filter
+        )
         ~has_interacted
         ~serialise: Entry.slug
         ~unserialise: Model.Tune.get
@@ -98,20 +98,20 @@ module Editor = struct
     in
     let bars =
       Input.Text.make ~has_interacted initial_state.bars @@
-      Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
+        Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
     in
     let key =
       Input.Text.make ~has_interacted initial_state.key @@
-      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
+        Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
     in
     let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
     let arrangers =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Person.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
@@ -120,7 +120,7 @@ module Editor = struct
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
     let content =
       Input.Text.make ~has_interacted initial_state.content @@
-      Result.of_string_nonempty ~empty: "Cannot be empty."
+        Result.of_string_nonempty ~empty: "Cannot be empty."
     in
     {
       elements = {tune; bars; key; structure; arrangers; remark; disambiguation; content};
@@ -214,14 +214,14 @@ let create ?on_save ?text ?tune () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun version ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
-                    | Some on_save -> on_save version
-                  )
+                  editor.set_interacted ();
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun version ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                  | Some on_save -> on_save version
+                )
                 ();
               Button.clear
                 ~onclick: (fun () -> Editor.clear editor)

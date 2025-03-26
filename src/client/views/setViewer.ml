@@ -74,24 +74,24 @@ let create ?context slug =
               let%lwt contents = Set.contents set in
               Lwt_list.mapi_p
                 (fun index (version, _parameters) ->
-                   let context = Endpoints.Page.inSet slug index in
-                   (* FIXME: use parameters *)
-                   let%lwt tune = Version.tune version in
-                   let slug = Entry.slug version in
-                   Lwt.return
-                     (
-                       div
-                         ~a: [a_class ["image-container"]]
-                         [
-                           h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
-                           object_
-                             ~a: [
-                               a_mime_type "image/svg+xml";
-                               a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug);
-                             ]
-                             [];
-                         ]
-                     )
+                  let context = Endpoints.Page.inSet slug index in
+                  (* FIXME: use parameters *)
+                  let%lwt tune = Version.tune version in
+                  let slug = Entry.slug version in
+                  Lwt.return
+                    (
+                      div
+                        ~a: [a_class ["image-container"]]
+                        [
+                          h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
+                          object_
+                            ~a: [
+                              a_mime_type "image/svg+xml";
+                              a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug);
+                            ]
+                            [];
+                        ]
+                    )
                 )
                 contents
             );

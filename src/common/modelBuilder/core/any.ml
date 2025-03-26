@@ -37,9 +37,9 @@ module Type = struct
 
   module Set = struct
     include Stdlib.Set.Make(struct
-        type nonrec t = t
-        let compare = compare
-      end)
+      type nonrec t = t
+      let compare = compare
+    end)
 
     let all = of_list all
     let comp = diff all
@@ -73,7 +73,7 @@ module Type = struct
     try
       Some (of_string str)
     with
-    | NotAType _ -> None
+      | NotAType _ -> None
 end
 
 let type_of = function

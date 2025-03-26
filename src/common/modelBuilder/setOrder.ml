@@ -93,6 +93,6 @@ let of_yojson = function
       try
         Ok (of_string string)
       with
-      | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a valid set order"
+        | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a valid set order"
     )
   | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a JSON string"

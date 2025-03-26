@@ -85,34 +85,34 @@ let render
   let selected_row =
     S.bind q.inner_selected_row @@ fun inner_selected_row ->
     Fun.flip S.map (SearchBar.state q.search_bar) @@ function
-    | Results results ->
-      let number_of_lines = (if on_enter = None then 0 else 1) + List.length results in
-      Fun.flip Option.map inner_selected_row @@ fun qsr ->
-      (qsr + number_of_lines) mod number_of_lines
-    | _ -> None
+      | Results results ->
+        let number_of_lines = (if on_enter = None then 0 else 1) + List.length results in
+        Fun.flip Option.map inner_selected_row @@ fun qsr ->
+        (qsr + number_of_lines) mod number_of_lines
+      | _ -> None
   in
   let bar =
     SearchBar.render
       ~placeholder
       ~on_focus: (fun () ->
-          Option.iter (fun on_focus -> on_focus ()) on_focus;
-          q.set_table_visible true
-        )
+        Option.iter (fun on_focus -> on_focus ()) on_focus;
+        q.set_table_visible true
+      )
       ~on_enter: (fun input ->
-          match S.value (SearchBar.state q.search_bar) with
-          | Results results ->
-            (
-              match S.value selected_row with
-              | Some selected_row ->
-                (
-                  match List.nth_opt results selected_row with
-                  | Some result -> Utils.ResultRow.run_action @@ make_result result
-                  | None -> Option.value on_enter ~default: ignore input
-                )
-              | None -> Option.value on_enter ~default: ignore input
-            )
-          | _ -> Option.value on_enter ~default: ignore input
-        )
+        match S.value (SearchBar.state q.search_bar) with
+        | Results results ->
+          (
+            match S.value selected_row with
+            | Some selected_row ->
+              (
+                match List.nth_opt results selected_row with
+                | Some result -> Utils.ResultRow.run_action @@ make_result result
+                | None -> Option.value on_enter ~default: ignore input
+              )
+            | None -> Option.value on_enter ~default: ignore input
+          )
+        | _ -> Option.value on_enter ~default: ignore input
+      )
       ~on_input: (fun _ -> q.reset_inner_selected_row ())
       ?autofocus
       q.search_bar
@@ -123,8 +123,8 @@ let render
         R.a_class
           (
             Fun.flip S.map q.table_visible @@ function
-            | false -> ["dropdown-table"]
-            | true -> ["dropdown-table"; "visible"]
+              | false -> ["dropdown-table"]
+              | true -> ["dropdown-table"; "visible"]
           );
       ]
       [
@@ -142,12 +142,12 @@ let render
                 let results =
                   List.mapi
                     (fun i result ->
-                       let classes =
-                         match selected_row with
-                         | Some selected_row when selected_row = i -> Some ["selected"]
-                         | _ -> None
-                       in
-                       make_result ?classes result
+                      let classes =
+                        match selected_row with
+                        | Some selected_row when selected_row = i -> Some ["selected"]
+                        | _ -> None
+                      in
+                      make_result ?classes result
                     )
                     results
                 in
@@ -155,13 +155,13 @@ let render
                   results
                 else
                   results @
-                  [
-                    match selected_row with
-                    | Some selected_row when selected_row = List.length results ->
-                      Utils.ResultRow.icon_row ~classes: ["selected"] "info" "Press enter for more results."
-                    | None -> Utils.ResultRow.icon_row "info" "Press enter for more results."
-                    | _ -> Utils.ResultRow.icon_row "info" "Press enter to visit result."
-                  ]
+                    [
+                      match selected_row with
+                      | Some selected_row when selected_row = List.length results ->
+                        Utils.ResultRow.icon_row ~classes: ["selected"] "info" "Press enter for more results."
+                      | None -> Utils.ResultRow.icon_row "info" "Press enter for more results."
+                      | _ -> Utils.ResultRow.icon_row "info" "Press enter to visit result."
+                    ]
             in
             List.map Utils.ResultRow.to_clickable_row (lines @ more_lines)
           );
@@ -176,21 +176,21 @@ let render
       Dom_html.window
       Dom_html.Event.keydown
       (fun event target ->
-         if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
-           (
-             bar'##focus;
-             Js._false
-           )
-         else
-           Js._true
+        if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
+          (
+            bar'##focus;
+            Js._false
+          )
+        else
+          Js._true
       );
 
   (* Add an event listener to hide the table by clicking outside of it. *)
   Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
-      if not (Utils.is_child_of target table') && not (Utils.is_child_of target bar') then
-        q.set_table_visible false;
-      Js._true
-    );
+    if not (Utils.is_child_of target table') && not (Utils.is_child_of target bar') then
+      q.set_table_visible false;
+    Js._true
+  );
 
   (* Add an event listener to hide the table on Tab or Esc, and to change the
      selected row by pressing KeyUp (or Ctrl+K) or KeyDown (or Ctrl+J). *)
@@ -198,13 +198,13 @@ let render
     bar'
     Dom_html.Event.keydown
     (fun event _target ->
-       match event##.keyCode with
-       | 9 (* Tab *) | 27 (* Esc *) -> (q.set_table_visible false; Js._true)
-       | 38 (* KeyUp *) -> (q.decr_inner_selected_row (); Js._false)
-       | 40 (* KeyDown *) -> (q.incr_inner_selected_row (); Js._false)
-       | 75 when Js.to_bool event##.ctrlKey (* Ctrl+K *) -> (q.decr_inner_selected_row (); Js._false)
-       | 74 when Js.to_bool event##.ctrlKey (* Ctrl+J *) -> (q.incr_inner_selected_row (); Js._false)
-       | _ -> Js._true
+      match event##.keyCode with
+      | 9 (* Tab *) | 27 (* Esc *) -> (q.set_table_visible false; Js._true)
+      | 38 (* KeyUp *) -> (q.decr_inner_selected_row (); Js._false)
+      | 40 (* KeyDown *) -> (q.incr_inner_selected_row (); Js._false)
+      | 75 when Js.to_bool event##.ctrlKey (* Ctrl+K *) -> (q.decr_inner_selected_row (); Js._false)
+      | 74 when Js.to_bool event##.ctrlKey (* Ctrl+J *) -> (q.incr_inner_selected_row (); Js._false)
+      | _ -> Js._true
     );
 
   (* Return *)

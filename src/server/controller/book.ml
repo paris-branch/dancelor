@@ -118,30 +118,30 @@ module Ly = struct
         let%lwt sets_and_parameters =
           let%lwt contents = Model.Book.contents book in
           Fun.flip Lwt_list.map_p contents @@ function
-          | Model.Book.Version (version, parameters) ->
-            let%lwt tune = Model.Version.tune version in
-            let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name tune) parameters in
-            let trivia = Model.VersionParameters.trivia' ~default: " " parameters in
-            let parameters = Model.VersionParameters.set_display_name trivia parameters in
-            let set =
-              Model.Set.make
-                ~name
-                ~kind: (Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
-                ~contents: [version, parameters]
-                ~order: [Internal 1]
-                ()
-            in
-            let%lwt for_dance = Model.VersionParameters.for_dance parameters in
-            let%lwt set_parameters =
-              Model.SetParameters.make
-                ~display_name: name
-                ?for_dance
-                ~show_order: false
-                ()
-            in
-            Lwt.return (Entry.make_dummy set, set_parameters)
-          | Set (set, parameters) -> Lwt.return (set, parameters)
-          | InlineSet (set, parameters) -> Lwt.return (Entry.make_dummy set, parameters)
+            | Model.Book.Version (version, parameters) ->
+              let%lwt tune = Model.Version.tune version in
+              let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name tune) parameters in
+              let trivia = Model.VersionParameters.trivia' ~default: " " parameters in
+              let parameters = Model.VersionParameters.set_display_name trivia parameters in
+              let set =
+                Model.Set.make
+                  ~name
+                  ~kind: (Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
+                  ~contents: [version, parameters]
+                  ~order: [Internal 1]
+                  ()
+              in
+              let%lwt for_dance = Model.VersionParameters.for_dance parameters in
+              let%lwt set_parameters =
+                Model.SetParameters.make
+                  ~display_name: name
+                  ?for_dance
+                  ~show_order: false
+                  ()
+              in
+              Lwt.return (Entry.make_dummy set, set_parameters)
+            | Set (set, parameters) -> Lwt.return (set, parameters)
+            | InlineSet (set, parameters) -> Lwt.return (Entry.make_dummy set, parameters)
         in
         (* FIXME: none of the above need to be dummy; I think we can just return
            a SetCore.t; do we need the slug anyway? *)
@@ -230,25 +230,25 @@ let populate_cache ~cache ~ext ~pp_ext =
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
     (fun x ->
-       if Filename.check_suffix x ext then
-         try
-           Log.debug (fun m -> m "Found %s file %s" pp_ext x);
-           let base = Filename.chop_suffix x ext in
-           let hash =
-             String.split_on_char '-' base
-             |> List.ft
-             |> StorageCache.hash_from_string
-           in
-           StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
-         with
-         | exn ->
-           Log.err (fun m ->
-               m
-                 "%a"
-                 (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
-                 ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
-             );
-           exit 7
+      if Filename.check_suffix x ext then
+        try
+          Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+          let base = Filename.chop_suffix x ext in
+          let hash =
+            String.split_on_char '-' base
+            |> List.ft
+            |> StorageCache.hash_from_string
+          in
+          StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
+        with
+          | exn ->
+            Log.err (fun m ->
+              m
+                "%a"
+                (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
+                ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
+            );
+            exit 7
     )
     files
 

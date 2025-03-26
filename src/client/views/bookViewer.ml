@@ -20,7 +20,7 @@ let display_warnings warnings =
           span (Formatters.Set.name set);
           txt "”"
         ] @
-        display_times n
+          display_times n
       ) :: display_sets tl
   in
   let rec format_set_list = function
@@ -79,46 +79,46 @@ let table_contents ~this_slug contents =
           let%lwt contents = contents in
           List.mapi
             (fun index page ->
-               let context = Endpoints.Page.inBook this_slug index in
-               match page with
-               | Book.Set (set, parameters) ->
-                 (
-                   let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
-                   Tables.clickable_row
-                     ~href
-                     [
-                       Lwt.return [txt "Set"];
-                       (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                       Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
-                     ]
-                 )
-               | InlineSet (set, parameters) ->
-                 (
-                   tr
-                     [
-                       td [txt "Set (inline)"];
-                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
-                       td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
-                     ]
-                 )
-               | Version (version, parameters) ->
-                 (
-                   let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
-                   Tables.clickable_row
-                     ~href
-                     [
-                       Lwt.return [txt "Tune"];
-                       (Formatters.Version.name_and_dance ~link: false version parameters);
-                       Lwt.return
-                         [
-                           L.txt
-                             (
-                               let%lwt tune = Version.tune version in
-                               Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
-                             )
-                         ];
-                     ]
-                 )
+              let context = Endpoints.Page.inBook this_slug index in
+              match page with
+              | Book.Set (set, parameters) ->
+                (
+                  let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
+                  Tables.clickable_row
+                    ~href
+                    [
+                      Lwt.return [txt "Set"];
+                      (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
+                      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
+                    ]
+                )
+              | InlineSet (set, parameters) ->
+                (
+                  tr
+                    [
+                      td [txt "Set (inline)"];
+                      L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
+                      td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
+                    ]
+                )
+              | Version (version, parameters) ->
+                (
+                  let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
+                  Tables.clickable_row
+                    ~href
+                    [
+                      Lwt.return [txt "Tune"];
+                      (Formatters.Version.name_and_dance ~link: false version parameters);
+                      Lwt.return
+                        [
+                          L.txt
+                            (
+                              let%lwt tune = Version.tune version in
+                              Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
+                            )
+                        ];
+                    ]
+                )
             )
             contents
           |> Lwt.return

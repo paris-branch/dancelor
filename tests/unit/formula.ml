@@ -22,22 +22,22 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~eq
         ~long_factor: 100
         ~name
         ~print: (fun f ->
-            "Filter:\n\n  " ^
-            show f ^
-            "\n\nText formula:\n\n  " ^
-            to_string f ^
-            "\n\nOutput:\n\n  " ^
-            match from_string (to_string f) with
-            | Ok f -> show f
-            | Error err -> "Error: " ^ err
-          )
+          "Filter:\n\n  " ^
+          show f ^
+          "\n\nText formula:\n\n  " ^
+          to_string f ^
+          "\n\nOutput:\n\n  " ^
+          match from_string (to_string f) with
+          | Ok f -> show f
+          | Error err -> "Error: " ^ err
+        )
         gen
         (fun f ->
-           Result.equal
-             ~ok: equal
-             ~error: (=)
-             (from_string (to_string f))
-             (Ok f)
+          Result.equal
+            ~ok: equal
+            ~error: (=)
+            (from_string (to_string f))
+            (Ok f)
         )
     )
 
@@ -49,16 +49,16 @@ let optimise_idempotent ~name ~gen ~show ~optimise ~equal =
         ~long_factor: 100
         ~name
         ~print: (fun f ->
-            "Input:\n\n  " ^
-            show f ^
-            "\n\nOptimised:\n\n  " ^
-            show (optimise f) ^
-            "\n\nOptimised twice:\n\n  " ^ show (optimise (optimise f))
-          )
+          "Input:\n\n  " ^
+          show f ^
+          "\n\nOptimised:\n\n  " ^
+          show (optimise f) ^
+          "\n\nOptimised twice:\n\n  " ^ show (optimise (optimise f))
+        )
         gen
         (fun f ->
-           let f1 = optimise f in
-           equal (optimise f1) f1
+          let f1 = optimise f in
+          equal (optimise f1) f1
         )
     )
 
@@ -147,8 +147,8 @@ module FormulaInt = struct
   let lift_or x y = Some (max x y)
   let optimise =
     Formula.optimise ~lift_and ~lift_or @@ function
-    | n when n mod 2 = 1 -> n - 1
-    | n -> n
+      | n when n mod 2 = 1 -> n - 1
+      | n -> n
 end
 
 let () =
