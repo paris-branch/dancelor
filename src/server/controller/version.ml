@@ -159,6 +159,13 @@ module Svg = struct
     let%lwt version = Model.Version.get version in
     let%lwt path_svg = render parameters version in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
+
+  let preview_slug = Slug.check_string_exn "preview"
+  let preview parameters version =
+    Log.debug (fun m -> m "Model.Version.Svg.preview");
+    let version = Entry.make ~slug: preview_slug version in
+    let%lwt path_svg = render parameters version in
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
 end
 
 module Pdf = struct
@@ -229,3 +236,4 @@ let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Version.t -> a = function
   | Svg -> Svg.get
   | Ogg -> Ogg.get
   | Pdf -> Pdf.get
+  | PreviewSvg -> Svg.preview
