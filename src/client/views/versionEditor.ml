@@ -137,12 +137,11 @@ module Editor = struct
     Input.Text.clear editor.elements.disambiguation;
     Input.Text.clear editor.elements.content
 
-  let submit (editor : t) =
+  let value (editor : t) =
     match S.value (state editor) with
     | None -> Lwt.return_none
     | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
-      Lwt.map Option.some @@
-      Model.Version.save @@
+      Lwt.return_some @@
       Model.Version.make
         ~tune
         ~bars
@@ -215,12 +214,36 @@ let create ?on_save ?text ?tune () =
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
                     editor.set_interacted ();
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun version ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
-                    | Some on_save -> on_save version
+                    match%lwt Editor.value editor with
+                    | None -> Lwt.return_unit
+                    | Some version ->
+                      Lwt.map ignore @@
+                      Dialog.open_ @@ fun return ->
+                      Page.make
+                        ~title: (S.const "Preview")
+                        [
+                          object_
+                            ~a: [
+                              a_mime_type "image/svg+xml";
+                              a_data (Endpoints.Api.(href @@ Version PreviewSvg) Model.VersionParameters.none version)
+                            ]
+                            [];
+                        ]
+                        ~buttons: [
+                          Button.save
+                            ~onclick: (fun () ->
+                                let%lwt version = Model.Version.save version in
+                                Editor.clear editor;
+                                (
+                                  match on_save with
+                                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                                  | Some on_save -> on_save version
+                                );
+                                Lwt.return_unit
+                              )
+                            ();
+                          Button.cancel ~return ();
+                        ]
                   )
                 ();
               Button.clear
