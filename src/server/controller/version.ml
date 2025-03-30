@@ -225,6 +225,13 @@ module Ogg = struct
     let%lwt version = Model.Version.get version in
     let%lwt path_ogg = render parameters version in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
+
+  let preview_slug = Slug.check_string_exn "preview"
+  let preview parameters version =
+    Log.debug (fun m -> m "Model.Version.Ogg.preview");
+    let version = Entry.make ~slug: preview_slug version in
+    let%lwt path_ogg = render parameters version in
+    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
 
 let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Version.t -> a = function
@@ -237,3 +244,4 @@ let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Version.t -> a = function
   | Ogg -> Ogg.get
   | Pdf -> Pdf.get
   | PreviewSvg -> Svg.preview
+  | PreviewOgg -> Ogg.preview

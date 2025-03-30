@@ -16,6 +16,7 @@ type (_, _, _) t =
   | Pdf : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
   (* Files related to an anonymous version *)
   | PreviewSvg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
+  | PreviewOgg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"
@@ -27,6 +28,7 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Ogg -> "Ogg"
   | Pdf -> "Pdf"
   | PreviewSvg -> "PreviewSvg"
+  | PreviewOgg -> "PreviewOgg"
 
 (* FIXME: make a simple PPX for the following *)
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
@@ -39,6 +41,7 @@ let all = [
   W Ogg;
   W Pdf;
   W PreviewSvg;
+  W PreviewOgg;
   (* WARNING: THE ORDER MATTERS *)
   W Get;
 ]
@@ -68,3 +71,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Pdf -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".pdf" @@ void ()
   (* Files related to an anonymous version *)
   | PreviewSvg -> query "parameters" (module VersionParameters) @@ query "version" (module Version) @@ literal "preview.svg" @@ void ()
+  | PreviewOgg -> query "parameters" (module VersionParameters) @@ query "version" (module Version) @@ literal "preview.ogg" @@ void ()
