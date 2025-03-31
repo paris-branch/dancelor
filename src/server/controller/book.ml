@@ -105,6 +105,7 @@ module Ly = struct
                 [%blob "template/book/footer/none.ly"]
             )
         );
+      fpf fmt [%blob "template/helpers.ly"];
       fpf fmt [%blob "template/repeat_volta_fancy.ly"];
       fpf fmt [%blob "template/bar_numbering/repeat_aware.ly"];
       fpf fmt [%blob "template/bar_numbering/bar_number_in_instrument_name_engraver.ly"];
