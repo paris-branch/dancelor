@@ -9,6 +9,12 @@ build:
 	dune build $(DUNEJOBSARG) @install
 	ln -sf _build/install/default/bin .
 
+## The release profile will, among other things, eliminate dead code and minify
+## `client.js` and `server.exe`. The Nix module already does that.
+release:
+	dune build $(DUNEJOBSARG) --profile release @install
+	ln -sf _build/install/default/bin .
+
 doc:
 	dune build $(DUNEJOBSARG) @doc
 	ln -sf _build/default/_doc/_html doc
