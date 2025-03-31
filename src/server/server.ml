@@ -71,22 +71,14 @@ let callback _ request body =
   let uri = Request.uri request in
   let path = Uri.path uri in
   Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
-  let full_path = Filename.concat !Config.share path in
-  if Sys.file_exists full_path && not (Sys.is_directory full_path) then
-    (
-      Log.debug (fun m -> m "Serving static file: <share>/%s" @@ String.ltrim ~chars: ['/'] path);
-      (* Keep static files in cache for 30 days. *)
-      let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
-      Server.respond_file ~headers ~fname: full_path ()
-    )
-  else if String.starts_with ~needle: "/api/" path then
+  if String.starts_with ~needle: "/api/" path then
     (
       Log.debug (fun m -> m "Looking for an API controller for %s." path);
       let%lwt body = Cohttp_lwt.Body.to_string body in
       apply_controller {meth; uri; body}
     )
   else
-    Static.serve_index ()
+    Static.serve path
 
 let () =
   Lwt.async_exception_hook :=

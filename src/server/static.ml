@@ -1,4 +1,5 @@
 open Tyxml.Html
+open Nes
 
 module Log = (val Logger.create "static": Logs.LOG)
 
@@ -27,7 +28,18 @@ let index =
     )
     (body [])
 
-let serve_index () =
-  Log.debug (fun m -> m "Serving main file.");
-  let headers = Cohttp.Header.of_list [("Content-Type", "text/html")] in
-  Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: index ()
+let serve path =
+  let full_path = Filename.concat !Config.share path in
+  if Sys.file_exists full_path && not (Sys.is_directory full_path) then
+    (
+      Log.debug (fun m -> m "Serving static file: <share>/%s" @@ String.ltrim ~chars: ['/'] path);
+      (* Keep static files in cache for 30 days. *)
+      let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
+      Cohttp_lwt_unix.Server.respond_file ~headers ~fname: full_path ()
+    )
+  else
+    (
+      Log.debug (fun m -> m "Serving main file.");
+      let headers = Cohttp.Header.of_list [("Content-Type", "text/html")] in
+      Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: index ()
+    )
