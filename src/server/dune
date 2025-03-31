@@ -12,6 +12,7 @@
   logs
   lwt.unix
   str
+  tyxml
   yaml)
  (preprocess
   (pps

@@ -86,10 +86,7 @@ let callback _ request body =
       apply_controller {meth; uri; body}
     )
   else
-    (
-      Log.debug (fun m -> m "Serving main file.");
-      Server.respond_file ~fname: (Filename.concat !Config.share "index.html") ()
-    )
+    Static.serve_index ()
 
 let () =
   Lwt.async_exception_hook :=
