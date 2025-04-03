@@ -222,20 +222,22 @@ let create ?on_save ?text ?tune () =
                       Page.make
                         ~title: (S.const "Preview")
                         [
-                          div [
-                            object_
-                              ~a: [
-                                a_mime_type "image/svg+xml";
-                                a_data (Endpoints.Api.(href @@ Version PreviewSvg) Model.VersionParameters.none version)
-                              ]
-                              [];
-                          ];
-                          div [
-                            audio
-                              ~a: [a_controls ()]
-                              ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
-                              [];
-                          ];
+                          div
+                            [
+                              object_
+                                ~a: [
+                                  a_mime_type "image/svg+xml";
+                                  a_data (Endpoints.Api.(href @@ Version PreviewSvg) Model.VersionParameters.none version)
+                                ]
+                                [];
+                            ];
+                          div
+                            [
+                              audio
+                                ~a: [a_controls ()]
+                                ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
+                                [];
+                            ];
                         ]
                         ~buttons: [
                           Button.save

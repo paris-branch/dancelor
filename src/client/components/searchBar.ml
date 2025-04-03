@@ -70,6 +70,7 @@ let render
           Fun.id
           [
             Option.map a_id id;
+            Some (a_class ["form-control"]);
             Some (a_input_type `Text);
             Some (a_placeholder placeholder);
             Some (R.a_value search_bar.text);

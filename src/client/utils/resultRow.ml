@@ -84,16 +84,18 @@ let to_clickable_row t =
         List.map
           (fun cell ->
              td
+               (* FIXME: remove the padding; except if I add an `a_class
+                  ["p-0"]` it only works if `cell.a` does not contain an
+                  `a_class`. *)
                ~a: cell.a
                [
                  a
                    ~a: [
-                     a_class ["full-cell-link"];
+                     a_class ["text-reset"];
                      R.a_href href;
                    ]
                    [
                      R.div
-                       ~a: [a_class ["full-cell-link"]]
                        (
                          Fun.flip S.map cell.content @@ function
                          | [] -> [txt " "] (* empty cells would not have their link fill 100% of the height *)

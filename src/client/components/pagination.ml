@@ -68,18 +68,18 @@ module Button = struct
         R.a_class
           (
             Fun.flip S.map pagination.state @@ fun state ->
-            if active state then ["active"] else []
+            "page-item" :: if active state then
+              ["active"]
+            else if enabled state then
+              []
+            else
+              ["disabled"]
           )
       ]
       [
-        button
+        a
           ~a: [
-            a_button_type `Button;
-            R.a_class
-              (
-                Fun.flip S.map pagination.state @@ fun state ->
-                if enabled state then ["clickable"] else ["disabled"]
-              );
+            a_class ["page-link"];
             a_onclick
               (fun _ ->
                  let state = S.value pagination.state in
@@ -160,12 +160,14 @@ let button_list pagination =
       [Button.next]
     )
 
-let render pagination =
-  div
-    ~a: [a_id "page_nav"]
+let render ~is_below pagination =
+  nav
+    ~a: [a_class ["d-md-flex"; "justify-content-between"; (if is_below then "align-items-start" else "align-items-end")]]
     [
       div [R.txt (status_text pagination)];
-      R.ul (button_list pagination);
+      R.ul
+        ~a: [a_class ["pagination"; "mb-0"]]
+        (button_list pagination);
     ]
 
 let slice page_nav = S.map current_slice page_nav.state
