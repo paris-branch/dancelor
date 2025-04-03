@@ -3,8 +3,8 @@
 
   #(define fonts
     (set-global-fonts
-     #:roman "Source Sans Pro"
-     #:sans  "Source Sans Pro"))
+     #:roman "Source Sans 3"
+     #:sans  "Source Sans 3"))
 
   ragged-right = ##f
   ragged-bottom = ##t
