@@ -71,3 +71,8 @@ $font-family-base: "Source Sans";
 a {
   text-decoration: none;
 }
+
+.hover-opacity-50:hover {
+  opacity: 0.5 !important;
+  transition: opacity 0.3s ease;
+}

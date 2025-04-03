@@ -21,7 +21,7 @@ val make :
 val full_title : t -> string S.t
 (** Full title, that is the title with the parent component. *)
 
-val render : t -> Html_types.div_content_fun elt list
+val render : t -> Html_types.div elt
 (** Render the page. *)
 
 val open_dialog :
