@@ -14,218 +14,102 @@ let set_title title =
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
-(* Whether to show the menu or not. [None] indicates the default (yes on
-   desktop, no on mobile). *)
-let (show_menu, set_show_menu) = React.S.create None
+let a_data_bs_toggle = a_user_data "bs-toggle"
+let a_data_bs_target = a_user_data "bs-target"
 
-let path_explore_models m =
-  Endpoints.Page.(href Explore) @@
-  Option.some @@
-  TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw m)))))
-
-let smartphone_menu_toggle =
-  a
-    ~a: [
-      a_id "to_nav";
-      a_onclick (fun _ ->
-          set_show_menu % Option.some % not @@ (S.value show_menu = Some true);
-          false
-        )
-    ]
-    [
-      i
-        ~a: [a_class ["material-symbols-outlined"]]
-        [
-          R.txt
-            (
-              Fun.flip S.map show_menu @@ function
-              | Some true -> "close"
-              | _ -> "menu"
-            )
-        ]
-    ]
+let a_aria_controls = a_aria "controls" % List.singleton
+let a_aria_expanded = a_aria "expanded" % List.singleton % Bool.to_string
+let a_aria_label = a_aria "label" % List.singleton
 
 let header =
-  header
+  nav
+    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"]]
     [
       div
-        ~a: [a_class ["content"]]
+        ~a: [a_class ["container"]]
         [
-          smartphone_menu_toggle;
-
-          (* A glorious title. *)
           a
-            ~a: [
-              a_href "/";
-              a_class ["logo"];
-            ]
+            ~a: [a_class ["navbar-brand"]; a_href "/"]
             [
-              img
-                ~src: "/logo.svg"
-                ~alt: "Dancelor"
-                ()
+              img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
             ];
-
-          (* Navigation menu. *)
-          ul
-            ~a: [
-              a_id "nav";
-              R.a_style
-                (
-                  Fun.flip S.map show_menu @@ function
-                  | None -> ""
-                  | Some true -> "display: block;"
-                  | Some false -> "display: none;"
-                )
-            ]
+          button
+            ~a: [a_class ["navbar-toggler"]; a_button_type `Button; a_data_bs_toggle "collapse"; a_data_bs_target "#the-navigation"; a_aria_controls "the-navigation"; a_aria_expanded false; a_aria_label "Toggle navigation"]
             [
-              li
+              span ~a: [a_class ["navbar-toggler-icon"]] [];
+            ];
+          div
+            ~a: [a_class ["collapse"; "navbar-collapse"]; a_id "the-navigation"]
+            [
+              ul
+                ~a: [a_class ["navbar-nav"; "ms-auto"]]
                 [
-                  Components.QuickSearchBar.make_and_render
-                    ~placeholder: "Quick search (press '/')"
-                    ~search: (fun slice input ->
-                        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
-                        Lwt.map Result.ok @@ Model.Any.search slice filter
-                      )
-                    ~make_result: (fun ?classes any -> Utils.AnyResult.make_result ?classes any)
-                    ~on_enter: (fun search_text ->
-                        Dom_html.window##.location##.href := Js.string (Endpoints.Page.(href Explore) (Some search_text))
-                      )
-                    ~focus_on_slash: true
-                    ()
-                ];
-              li
-                [
-                  a
-                    ~a: [a_href Endpoints.Page.(href Explore None)]
+                  li
+                    ~a: [a_class ["nav-item"; "dropdown"]]
                     [
-                      txt "Explore";
-                      i ~a: [a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
+                      button
+                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_data_bs_toggle "dropdown"; a_aria_expanded false]
+                        [
+                          txt "Explore"
+                        ];
+                      ul
+                        ~a: [a_class ["dropdown-menu"]]
+                        (
+                          [
+                            li [a ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Page.(href Explore) None)] [txt "All"]];
+                            li [hr ~a: [a_class ["dropdown-divider"]] ()];
+                          ] @
+                          List.map
+                            (fun (key, text) ->
+                               let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                               li [a ~a: [a_class ["dropdown-item"]; a_href href] [txt text]]
+                            )
+                            [
+                              ("person", "Persons");
+                              ("dance", "Dances");
+                              ("tune", "Tunes");
+                              ("version", "Versions");
+                              ("set", "Sets");
+                              ("book", "Books");
+                            ]
+                        );
                     ];
-                  ul
-                    ~a: [a_class ["subnav"]]
+                  li
+                    ~a: [a_class ["nav-item"; "dropdown"]]
                     [
-                      li
+                      button
+                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_data_bs_toggle "dropdown"; a_aria_expanded false]
                         [
-                          a
-                            ~a: [a_href (path_explore_models "person")]
+                          txt "Add"
+                        ];
+                      ul
+                        ~a: [a_class ["dropdown-menu"]]
+                        (
+                          let open Endpoints.Page in
+                          List.map
+                            (fun (href, text) ->
+                               li [a ~a: [a_class ["dropdown-item"]; a_href href] [txt text]]
+                            )
                             [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Person];
-                              txt " Persons";
+                              (href PersonAdd, "Person");
+                              (href DanceAdd, "Dance");
+                              (href TuneAdd, "Tune");
+                              (href VersionAdd None, "Version");
+                              (href SetAdd, "Set");
+                              (href BookAdd, "Book");
                             ]
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href (path_explore_models "dance")]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Dance];
-                              txt " Dances";
-                            ]
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href (path_explore_models "tune")]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Tune];
-                              txt " Tunes";
-                            ]
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href (path_explore_models "version")]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Version];
-                              txt " Versions";
-                            ];
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href (path_explore_models "set")]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Set];
-                              txt " Sets";
-                            ];
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href (path_explore_models "book")]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Book];
-                              txt " Books";
-                            ];
-                        ];
+                        );
                     ];
                 ];
-              li
-                [
-                  txt "Add";
-                  i ~a: [a_class ["material-symbols-outlined"]] [txt "arrow_drop_down"];
-                  ul
-                    ~a: [a_class ["subnav"]]
-                    [
-                      li
-                        [
-                          a
-                            ~a: [a_href Endpoints.Page.(href PersonAdd)]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Person];
-                              txt " Person";
-                            ]
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href Endpoints.Page.(href DanceAdd)]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Dance];
-                              txt " Dance";
-                            ]
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href Endpoints.Page.(href TuneAdd)]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Tune];
-                              txt " Tune";
-                            ];
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href Endpoints.Page.(href_versionAdd ())]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Version];
-                              txt " Version";
-                            ];
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href Endpoints.Page.(href SetAdd)]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Set];
-                              txt " Set";
-                            ];
-                        ];
-                      li
-                        [
-                          a
-                            ~a: [a_href Endpoints.Page.(href BookAdd)]
-                            [
-                              i ~a: [a_class ["material-symbols-outlined"]] [txt @@ Utils.AnyResult.any_type_to_fa Book];
-                              txt " Book";
-                            ];
-                        ];
-                    ]
-                ]
-            ]
-        ]
+            ];
+          button
+            ~a: [a_button_type `Button; a_class ["btn"; "btn-light"; "ms-2"; "d-none"; "d-sm-block"]]
+            [
+              i ~a: [a_class ["bi"; "bi-search"]] [];
+              txt " Search ";
+              span ~a: [a_class ["badge"; "text-bg-secondary"]] [txt "/"];
+            ];
+        ];
     ]
 
 let dispatch uri =
@@ -262,7 +146,7 @@ let on_load _ev =
   let content =
     To_dom.of_div @@
     Html.div
-      ~a: [a_class ["content"; "page-body"]]
+      ~a: [a_class ["container"]]
       (Page.content page)
   in
   Dom.appendChild Dom_html.document##.body content;

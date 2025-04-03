@@ -31,7 +31,18 @@ let index =
           script ~a: [a_script_type `Javascript; a_src ("/client.js?" ^ boot_time)] (txt "");
         ]
     )
-    (body [])
+    (
+      body
+        [
+          script
+            ~a: [
+              a_src "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+              a_integrity "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz";
+              a_crossorigin `Anonymous;
+            ]
+            (txt "");
+        ]
+    )
 
 let serve path =
   let full_path = Filename.concat !Config.share path in
