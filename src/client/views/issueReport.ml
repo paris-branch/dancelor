@@ -64,7 +64,7 @@ let open_dialog page =
     RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
-    Dialog.open_res @@ fun return ->
+    Page.open_dialog @@ fun return ->
     Page.make
       ~title: (S.const "Report an issue")
       [
@@ -96,7 +96,7 @@ let open_dialog page =
                 ~none: Lwt.return_unit
                 ~some: (fun request ->
                     let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
-                    return @@ Ok response;
+                    return @@ Some response;
                     Lwt.return_unit
                   )
             )
@@ -104,20 +104,20 @@ let open_dialog page =
         Button.cancel ~return ()
       ]
   in
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
-    ~title: (S.const (match response with Ok _ -> "Issue reported" | Error _ -> "Error reporting issue"))
+    ~title: (S.const (match response with Some _ -> "Issue reported" | None -> "Error reporting issue"))
     [
       div
         (
           match response with
-          | Ok response ->
+          | Some response ->
             [
               p [txt "Your issue has been reported as:"];
               p [a ~a: [a_href response.uri; a_target "_blank"] [txt @@ spf "%s (#%d)" response.title response.id]];
               p [txt "You can track its progress there."];
             ]
-          | Error _ -> [p [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]]
+          | None -> [p [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]]
         );
     ]
     ~buttons: [

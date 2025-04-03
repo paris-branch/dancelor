@@ -90,8 +90,5 @@ let cancel ~return () =
     ]
     ~a: [
       a_class ["btn-danger"];
-      a_onclick (fun _event ->
-          return (Error Dialog.Closed);
-          false
-        );
+      a_onclick (fun _event -> return None; false);
     ]

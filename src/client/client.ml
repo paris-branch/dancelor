@@ -147,7 +147,7 @@ let on_load _ev =
     To_dom.of_div @@
     Html.div
       ~a: [a_class ["container"]]
-      (Page.content page)
+      (Page.render page)
   in
   Dom.appendChild Dom_html.document##.body content;
   Dom.appendChild Dom_html.document##.body (To_dom.of_div IssueReport.button);

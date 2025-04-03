@@ -2,7 +2,6 @@ open Nes
 open Common
 
 open Html
-open Components
 open Model
 
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
@@ -32,7 +31,7 @@ let create () =
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let open_ slug dialog =
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Download a PDF")
     [table dialog.choice_rows]

@@ -331,7 +331,7 @@ let open_ text raws filter =
         S.const (Formula.and_l (List.map Any.Filter.raw' raws));
       ]
   in
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Complex filters")
     [
@@ -349,28 +349,31 @@ let open_ text raws filter =
         );
     ]
     ~buttons: [
-      a
+      button
         ~a: [
-          a_class ["button"];
+          a_button_type `Button;
+          a_class ["btn"; "btn-secondary"];
           a_onclick (fun _ -> return text; false);
         ]
         [txt "Cancel"];
-      a
+      button
         ~a: [
-          a_class ["button"];
+          a_button_type `Button;
+          a_class ["btn"; "btn-warning"];
           a_onclick (fun _ -> return ""; false);
         ]
         [txt "Clear"];
-      a
+      button
         ~a: [
-          a_class ["button"; "button-success"];
+          a_button_type `Button;
+          a_class ["btn"; "btn-primary"];
           a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
         ]
         [txt "Apply"];
     ]
 
 let open_error () =
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Complex filters")
     [
@@ -394,5 +397,5 @@ let open_error () =
 
 let open_ text =
   match restrict_formula text with
-  | None -> Lwt.map (Fun.const (Error Dialog.Closed)) (open_error ())
+  | None -> Lwt.map (Fun.const None) (open_error ())
   | Some (raws, filter) -> open_ text raws filter

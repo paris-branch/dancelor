@@ -48,7 +48,6 @@ let make_gen_unsafe
   in
   let box =
     div
-      ~a: [a_class ["form-element"]]
       [
         label (Option.to_list (Option.map txt nam));
         div
@@ -70,13 +69,14 @@ let make_gen_unsafe
                     Fun.id
                     [
                       Some (a_input_type (if radios then `Radio else `Checkbox));
+                      Some (a_class ["btn-check"]);
                       Some (a_name name);
                       Some (a_id choice.id);
                       (if choice.checked then Some (a_checked ()) else None);
                     ]
                 )
                 ();
-              label ~a: [a_label_for choice.id] choice.contents;
+              label ~a: [a_class ["btn"; "btn-outline-secondary"]; a_label_for choice.id] choice.contents;
             ]
           );
         R.div
