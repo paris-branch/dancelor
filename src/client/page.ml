@@ -18,7 +18,7 @@ let full_title p =
 
 let content p =
   p.before_title @
-  [h2 ~a: [a_class ["title"]] [R.txt p.title]] @
+  [h2 ~a: [a_class ["text-center"; "mt-2"; "mb-4"]] [R.txt p.title]] @
   p.content @
   p.buttons (* FIXME: Components.Button.group? *)
 

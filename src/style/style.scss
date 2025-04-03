@@ -11,11 +11,11 @@ $primary: #960010;
 
 // FIXME: choose colours
 $secondary: #333333;
-$success: #2D8C3C;
-$info: #2C7DA0;
-$warning: #F5A623;
-$danger: #FF4136;
-$light: #F2F2F2;
+$success: #2d8c3c;
+$info: #2c7da0;
+$warning: #f5a623;
+$danger: #ff4136;
+$light: #f2f2f2;
 $dark: #242424;
 
 // // $font-family-base
@@ -65,3 +65,9 @@ $dark: #242424;
 
 // Bootstrap icons
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+
+// Custom
+
+a {
+  text-decoration: none;
+}

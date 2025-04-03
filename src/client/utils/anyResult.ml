@@ -150,6 +150,7 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
       [
         ResultRow.lcell (Formatters.Version.name_and_disambiguation ~link: false version);
         ResultRow.cell
+          ~a: [a_class ["text-nowrap"]]
           [
             L.txt
               (
@@ -178,20 +179,21 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
     ?suffix
     version
 
-let any_type_to_fa = function
-  | Any.Type.Person -> "person"
-  | Dance -> "directions_walk"
-  | Tune -> "genres"
-  | Version -> "music_note"
-  | Set -> "format_list_bulleted"
-  | Book -> "library_books"
+let any_type_to_bi = function
+  | Any.Type.Person -> "bi-person"
+  | Dance -> "bi-person-arms-up"
+  | Tune -> "bi-music-note-list"
+  | Version -> "bi-music-note-beamed"
+  | Set -> "bi-list-stars"
+  | Book -> "bi-book"
 
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
   let prefix = [
     ResultRow.cell
+      ~a: [a_class ["text-nowrap"]]
       [
-        i ~a: [a_class ["material-symbols-outlined"]] [txt @@ any_type_to_fa type_];
+        i ~a: [a_class ["bi"; any_type_to_bi type_]] [];
         txt " ";
         txt (Any.Type.to_string type_);
       ];

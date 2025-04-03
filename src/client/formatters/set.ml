@@ -25,7 +25,7 @@ let tunes ?tunes_link set =
   |> List.interspersei (fun _ -> [txt " - "])
   |> List.flatten
   |> List.cons (txt "Tunes: ")
-  |> span ~a: [a_class ["dim"; "details"]]
+  |> span ~a: [a_class ["opacity-50"]]
   |> List.singleton
   |> Lwt.return
 
@@ -42,7 +42,7 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
       Lwt.return
         [
           span
-            ~a: [a_class ["dim"; "details"]]
+            ~a: [a_class ["opacity-50"]]
             [
               txt "For dance: ";
               span (Dance.name ?link: dance_link dance)
