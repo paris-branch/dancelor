@@ -8,7 +8,7 @@ let title_and_subtitle ?(link = true) book =
     let subtitle_block =
       match Model.Book.subtitle book with
       | "" -> []
-      | subtitle -> [span ~a: [a_class ["details"]] [txt subtitle]]
+      | subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt subtitle]]
     in
     (title_text @ subtitle_block)
   else

@@ -40,7 +40,8 @@ let name_and_dance ?link ?dance_link version parameters =
     | Some dance ->
       Lwt.return
         [
-          span
+          br ();
+          small
             ~a: [a_class ["opacity-50"]]
             [
               txt "For dance: ";

@@ -31,7 +31,7 @@ let tunes ?tunes_link set =
 
 let name_and_tunes ?link ?tunes_link set =
   let%lwt tunes = tunes ?tunes_link set in
-  Lwt.return (name ?link set @ tunes)
+  Lwt.return (name ?link set @ [br (); small tunes])
 
 let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
   let%lwt name_and_tunes = name_and_tunes ?link ?tunes_link set in
@@ -49,4 +49,4 @@ let name_tunes_and_dance ?link ?tunes_link ?dance_link set parameters =
             ]
         ]
   in
-  Lwt.return (name_and_tunes @ dance)
+  Lwt.return (name_and_tunes @ [br (); small dance])
