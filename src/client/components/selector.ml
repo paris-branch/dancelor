@@ -174,13 +174,13 @@ let render
                   Utils.ResultRow.callback @@ fun () ->
                   Lwt.async @@ fun () ->
                   let%lwt result =
-                    Dialog.open_ @@ fun return ->
+                    Page.open_dialog' @@ fun return ->
                     QuickSearchBar.clear s.search_bar;
                     create_dialog_content
                       ~on_save: return
                       (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
                   in
-                  Result.iter
+                  Option.iter
                     (fun element ->
                        s.set (S.value s.signal @ [element]);
                     )

@@ -1,12 +1,11 @@
 open Common
 
 open Html
-open Components
 
 let create = SetDownloadDialog.create
 
 let open_ slug dialog =
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Download a PDF")
     [table dialog.SetDownloadDialog.choice_rows]

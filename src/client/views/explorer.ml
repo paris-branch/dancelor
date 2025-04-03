@@ -65,7 +65,7 @@ let create ?query () =
                       Fun.flip
                         Lwt.map
                         (SearchComplexFiltersDialog.open_ search_text)
-                        (Result.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
+                        (Option.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
                     );
                   false
                 );

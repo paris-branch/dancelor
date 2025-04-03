@@ -218,7 +218,7 @@ let create ?on_save ?text ?tune () =
                     | None -> Lwt.return_unit
                     | Some version ->
                       Lwt.map ignore @@
-                      Dialog.open_ @@ fun return ->
+                      Page.open_dialog' @@ fun return ->
                       Page.make
                         ~title: (S.const "Preview")
                         [

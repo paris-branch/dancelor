@@ -21,5 +21,18 @@ val make :
 val full_title : t -> string S.t
 (** Full title, that is the title with the parent component. *)
 
-val content : t -> Html_types.div_content_fun elt list
-(** Content of the back. *)
+val render : t -> Html_types.div_content_fun elt list
+(** Render the page. *)
+
+val open_dialog :
+  (('result option -> unit) -> t) ->
+  'result option Lwt.t
+(** [open_dialog f] opens a dialog. [f] is used to create the content of the
+    dialog; it receives a [return] function that destroys the dialog and make it
+    return. [open_dialog f] returns a promise of either a result or [None] if
+    the dialog was closed. *)
+
+val open_dialog' :
+  (('result -> unit) -> t) ->
+  'result option Lwt.t
+(** Variant of {!open_dialog} where there is always a result. *)

@@ -57,7 +57,7 @@ let create () =
   }
 
 let open_ slug dialog =
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Download a PDF")
     [table dialog.choice_rows]
