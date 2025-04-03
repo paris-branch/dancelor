@@ -1,15 +1,67 @@
-// Reset a lot of basic CSS properties of elements; start with a clean slate.
-@import "reset";
+/* How to update:
+ *
+ * - bump Bootstrap source files
+ * - copy everything from `<bootstrap>/scss/bootstrap.scss`
+ * - add colour overrides after functions but before everything else
+ * - add custom style after everything */
 
-// Define the Dancelor palette of colours.
-@import "palette";
+@import "./vendored/bootstrap-5.3.5/scss/functions";
 
-@import "buttons";
+$primary: #960010;
 
-// FIXME: the rest is a mess.
-@import "default";
-@import "menu";
-@import "sandbox";
-@import "specifics";
-@import "components";
-@import "issue-report";
+// FIXME: choose colours
+$secondary: #333333;
+$success: #2D8C3C;
+$info: #2C7DA0;
+$warning: #F5A623;
+$danger: #FF4136;
+$light: #F2F2F2;
+$dark: #242424;
+
+// // $font-family-base
+
+// // $link-color: $primary;
+
+@import "./vendored/bootstrap-5.3.5/scss/variables";
+@import "./vendored/bootstrap-5.3.5/scss/variables-dark";
+@import "./vendored/bootstrap-5.3.5/scss/maps";
+@import "./vendored/bootstrap-5.3.5/scss/mixins";
+@import "./vendored/bootstrap-5.3.5/scss/utilities";
+
+@import "./vendored/bootstrap-5.3.5/scss/root";
+@import "./vendored/bootstrap-5.3.5/scss/reboot";
+@import "./vendored/bootstrap-5.3.5/scss/type";
+@import "./vendored/bootstrap-5.3.5/scss/images";
+@import "./vendored/bootstrap-5.3.5/scss/containers";
+@import "./vendored/bootstrap-5.3.5/scss/grid";
+@import "./vendored/bootstrap-5.3.5/scss/tables";
+@import "./vendored/bootstrap-5.3.5/scss/forms";
+@import "./vendored/bootstrap-5.3.5/scss/buttons";
+@import "./vendored/bootstrap-5.3.5/scss/transitions";
+@import "./vendored/bootstrap-5.3.5/scss/dropdown";
+@import "./vendored/bootstrap-5.3.5/scss/button-group";
+@import "./vendored/bootstrap-5.3.5/scss/nav";
+@import "./vendored/bootstrap-5.3.5/scss/navbar";
+@import "./vendored/bootstrap-5.3.5/scss/card";
+@import "./vendored/bootstrap-5.3.5/scss/accordion";
+@import "./vendored/bootstrap-5.3.5/scss/breadcrumb";
+@import "./vendored/bootstrap-5.3.5/scss/pagination";
+@import "./vendored/bootstrap-5.3.5/scss/badge";
+@import "./vendored/bootstrap-5.3.5/scss/alert";
+@import "./vendored/bootstrap-5.3.5/scss/progress";
+@import "./vendored/bootstrap-5.3.5/scss/list-group";
+@import "./vendored/bootstrap-5.3.5/scss/close";
+@import "./vendored/bootstrap-5.3.5/scss/toasts";
+@import "./vendored/bootstrap-5.3.5/scss/modal";
+@import "./vendored/bootstrap-5.3.5/scss/tooltip";
+@import "./vendored/bootstrap-5.3.5/scss/popover";
+@import "./vendored/bootstrap-5.3.5/scss/carousel";
+@import "./vendored/bootstrap-5.3.5/scss/spinners";
+@import "./vendored/bootstrap-5.3.5/scss/offcanvas";
+@import "./vendored/bootstrap-5.3.5/scss/placeholders";
+
+@import "./vendored/bootstrap-5.3.5/scss/helpers";
+@import "./vendored/bootstrap-5.3.5/scss/utilities/api";
+
+// Bootstrap icons
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
