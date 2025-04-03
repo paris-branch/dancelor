@@ -30,52 +30,55 @@ let create ?context slug =
         (Lwt.map Any.version version_lwt);
     ]
     [
-      L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
-      L.h3 ~a: [a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
-      L.h3 ~a: [a_class ["title"]] (version_lwt >>=| Formatters.Version.description ~link: true);
+      L.h5 ~a: [a_class ["text-center"]] (Lwt.map Formatters.Tune.aka tune_lwt);
+      L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description);
+      L.h5 ~a: [a_class ["text-center"]] (version_lwt >>=| Formatters.Version.description ~link: true);
       div
-        ~a: [a_class ["buttons"]]
-        (
-          let download_dialog_button =
-            a
-              ~a: [
-                a_class ["button"];
-                a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (VersionDownloadDialog.create_and_open slug)); false);
-              ]
+        ~a: [a_class ["btn-group"; "d-flex"; "justify-content-end"]]
+        [
+          div
+            (
+              let download_dialog_button =
+                a
+                  ~a: [
+                    a_class ["btn"; "btn-secondary"];
+                    a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (VersionDownloadDialog.create_and_open slug)); false);
+                  ]
+                  [
+                    i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                    txt " PDF";
+                  ]
+              in
+              let ly_download_button =
+                a
+                  ~a: [
+                    a_class ["btn"; "btn-secondary"];
+                    a_href (Endpoints.Api.(href @@ Version Ly) slug);
+                  ]
+                  [
+                    i ~a: [a_class ["bi"; "bi-file-music"]] [];
+                    txt " LilyPond"
+                  ]
+              in
+              let add_to_current_set_button =
+                a
+                  ~a: [
+                    a_class ["btn"; "btn-secondary"];
+                    a_href Endpoints.Page.(href SetAdd);
+                    a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
+                  ]
+                  [
+                    i ~a: [a_class ["bi"; "bi-plus-square"]] [];
+                    txt " Add to current set";
+                  ]
+              in
               [
-                i ~a: [a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
-                txt " PDF";
+                download_dialog_button;
+                ly_download_button;
+                add_to_current_set_button;
               ]
-          in
-          let ly_download_button =
-            a
-              ~a: [
-                a_class ["button"];
-                a_href (Endpoints.Api.(href @@ Version Ly) slug);
-              ]
-              [
-                i ~a: [a_class ["material-symbols-outlined"]] [txt "article"];
-                txt " LilyPond"
-              ]
-          in
-          let add_to_current_set_button =
-            a
-              ~a: [
-                a_class ["button"];
-                a_href Endpoints.Page.(href SetAdd);
-                a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
-              ]
-              [
-                i ~a: [a_class ["material-symbols-outlined"]] [txt "add_box"];
-                txt " Add to current set";
-              ]
-          in
-          [
-            download_dialog_button;
-            ly_download_button;
-            add_to_current_set_button;
-          ]
-        );
+            );
+        ];
       L.div
         (
           match%lwt Lwt.map Tune.date tune_lwt with
@@ -100,23 +103,19 @@ let create ?context slug =
                 txt ".";
               ]
         );
-      div ~a: [a_class ["after-buttons"]] [];
       div
-        ~a: [a_class ["section"]]
+        ~a: [a_class ["text-center"; "w-100"]]
         [
-          div
-            ~a: [a_class ["image-container"]]
-            [
-              object_
-                ~a: [
-                  a_mime_type "image/svg+xml";
-                  a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug)
-                ]
-                [];
+          object_
+            ~a: [
+              a_class ["w-100"];
+              a_mime_type "image/svg+xml";
+              a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug)
             ]
+            [];
         ];
       div
-        ~a: [a_class ["audio-container"]]
+        ~a: [a_class ["d-flex"; "justify-content-end"]]
         [
           audio
             ~a: [a_controls ()]

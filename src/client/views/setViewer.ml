@@ -17,42 +17,45 @@ let create ?context slug =
         (Lwt.map Any.set set_lwt);
     ]
     [
-      L.h3 ~a: [a_class ["title"]] (set_lwt >>=| Formatters.Set.works);
-      h3
-        ~a: [a_class ["title"]]
+      L.h5 ~a: [a_class ["text-center"]] (set_lwt >>=| Formatters.Set.works);
+      h5
+        ~a: [a_class ["text-center"]]
         [
           L.txt (Lwt.map (Kind.Dance.to_pretty_string % Set.kind) set_lwt);
           txt " — Play ";
           L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order) set_lwt);
         ];
-      L.h3
-        ~a: [a_class ["title"]]
+      L.h5
+        ~a: [a_class ["text-center"]]
         (
           match%lwt set_lwt >>=| Set.conceptors with
           | [] -> Lwt.return_nil
           | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names ~link: true devisers)
         );
       div
-        ~a: [a_class ["buttons"]]
+        ~a: [a_class ["btn-group"; "d-flex"; "justify-content-end"]]
         [
-          a
-            ~a: [
-              a_class ["button"];
-              a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (SetDownloadDialog.create_and_open slug)); false);
-            ]
+          div
             [
-              i ~a: [a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
-              txt " PDF";
-            ];
-          a
-            ~a: [
-              a_class ["button"];
-              a_href Endpoints.Page.(href BookAdd);
-              a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
-            ]
-            [
-              i ~a: [a_class ["material-symbols-outlined"]] [txt "add_box"];
-              txt " Add to current book";
+              a
+                ~a: [
+                  a_class ["btn"; "btn-secondary"];
+                  a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (SetDownloadDialog.create_and_open slug)); false);
+                ]
+                [
+                  i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                  txt " PDF";
+                ];
+              a
+                ~a: [
+                  a_class ["btn"; "btn-secondary"];
+                  a_href Endpoints.Page.(href BookAdd);
+                  a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
+                ]
+                [
+                  i ~a: [a_class ["bi"; "bi-plus-square"]] [];
+                  txt " Add to current book";
+                ];
             ];
         ];
       p

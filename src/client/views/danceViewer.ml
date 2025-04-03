@@ -17,8 +17,8 @@ let create ?context slug =
         (Lwt.map Any.dance dance_lwt);
     ]
     [
-      L.h3
-        ~a: [a_class ["title"]]
+      L.h5
+        ~a: [a_class ["text-center"]]
         (
           let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind) dance_lwt] in
           let%lwt by =
@@ -33,20 +33,23 @@ let create ?context slug =
           Fun.flip Lwt.map dance_lwt @@ fun dance ->
           match Dance.two_chords dance with
           | Some false -> []
-          | Some true -> [h3 ~a: [a_class ["title"]] [txt "Two Chords"]]
-          | None -> [h3 ~a: [a_class ["title"]] [txt "Two Chords: unknown"]]
+          | Some true -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords"]]
+          | None -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords: unknown"]]
         );
       div
-        ~a: [a_class ["buttons"]]
+        ~a: [a_class ["btn-group"; "d-flex"; "justify-content-end"]]
         [
-          a
-            ~a: [
-              a_class ["button"];
-              a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (DanceDownloadDialog.create_and_open slug)); false);
-            ]
+          div
             [
-              i ~a: [a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
-              txt " PDF";
+              a
+                ~a: [
+                  a_class ["btn"; "btn-secondary"];
+                  a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (DanceDownloadDialog.create_and_open slug)); false);
+                ]
+                [
+                  i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                  txt " PDF";
+                ];
             ];
         ];
       L.div
@@ -74,7 +77,6 @@ let create ?context slug =
               ]
         );
       div
-        ~a: [a_class ["section"]]
         [
           h3 [txt "Recommended Tunes"];
           L.div

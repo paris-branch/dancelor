@@ -61,9 +61,10 @@ let display_warnings warnings =
 let table_contents ~this_slug contents =
   let open Html in
   tablex
-    ~a: [a_class ["separated-table"]]
+    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
     ~thead: (
       thead
+        ~a: [a_class ["table-primary"]]
         [
           tr
             [
@@ -96,7 +97,7 @@ let table_contents ~this_slug contents =
                  (
                    tr
                      [
-                       td [txt "Set (inline)"];
+                       td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
                        L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
                        td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
                      ]
@@ -139,7 +140,7 @@ let create ?context slug =
         (Lwt.map Any.book book_lwt);
     ]
     [
-      h3 ~a: [a_class ["title"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
+      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
       L.div
         (
           match%lwt Lwt.map Book.scddb_id book_lwt with
@@ -148,8 +149,8 @@ let create ?context slug =
             let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
             Lwt.return
               [
-                h3
-                  ~a: [a_class ["title"]]
+                h5
+                  ~a: [a_class ["text-center"]]
                   [
                     a
                       ~a: [a_href href; a_target "blank"]
@@ -163,7 +164,7 @@ let create ?context slug =
         (
           match%lwt book_lwt >>=| Book.warnings with
           | [] -> Lwt.return []
-          | warnings -> Lwt.return [div ~a: [a_class ["warning"]] [ul (display_warnings warnings)]]
+          | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
         );
       p
         [
@@ -175,26 +176,29 @@ let create ?context slug =
             )
         ];
       div
-        ~a: [a_class ["buttons"]]
+        ~a: [a_class ["btn-group"; "d-flex"; "justify-content-end"]]
         [
-          a
-            ~a: [
-              a_class ["button"];
-              a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
-            ]
+          div
             [
-              i ~a: [a_class ["material-symbols-outlined"]] [txt "picture_as_pdf"];
-              txt " PDF";
+              a
+                ~a: [
+                  a_class ["btn"; "btn-secondary"];
+                  a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
+                ]
+                [
+                  i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                  txt " PDF";
+                ];
+              a
+                ~a: [
+                  a_class ["btn"; "btn-secondary"];
+                  a_href (Endpoints.Page.(href BookEdit) slug)
+                ]
+                [
+                  i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
+                  txt " Edit"
+                ]
             ];
-          a
-            ~a: [
-              a_class ["button"];
-              a_href (Endpoints.Page.(href BookEdit) slug)
-            ]
-            [
-              i ~a: [a_class ["material-symbols-outlined"]] [txt "edit"];
-              txt " Edit"
-            ]
         ];
       div
         ~a: [a_class ["section"]]
