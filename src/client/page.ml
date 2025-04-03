@@ -33,10 +33,16 @@ let make
   }
 
 let render p =
-  p.before_title @
-  [h2 ~a: [a_class ["text-center"; "mt-2"; "mb-4"]] [R.txt p.title]] @
-  p.content @
-  p.buttons (* FIXME: Components.Button.group? *)
+  div
+    [
+      div p.before_title;
+      div
+        ~a: [a_class ["container"]]
+        (
+          [h2 ~a: [a_class ["text-center"; "mt-2"; "mb-4"]] [R.txt p.title]] @
+          p.content @ p.buttons
+        );
+    ]
 
 let open_dialog make_page =
   let (promise, resolver) = Lwt.wait () in

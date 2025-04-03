@@ -18,7 +18,6 @@ let create ?context slug =
     ]
     [
       L.div
-        ~a: [a_class ["section"]]
         (
           match%lwt Lwt.map Person.scddb_id person_lwt with
           | None -> Lwt.return_nil

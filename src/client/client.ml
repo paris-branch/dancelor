@@ -143,12 +143,7 @@ let on_load _ev =
   let iter_title = React.S.map set_title (Page.full_title page) in
   Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
-  let content =
-    To_dom.of_div @@
-    Html.div
-      ~a: [a_class ["container"]]
-      (Page.render page)
-  in
+  let content = To_dom.of_div @@ Page.render page in
   Dom.appendChild Dom_html.document##.body content;
   Dom.appendChild Dom_html.document##.body (To_dom.of_div IssueReport.button);
   Js._false
