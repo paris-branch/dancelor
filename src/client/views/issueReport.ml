@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Html
 open Components
 
@@ -83,11 +82,12 @@ let open_dialog page =
           ~label: "Description";
       ]
       ~buttons: [
+        Button.cancel ~return ();
         Button.make
           ~label: "Report"
           ~label_processing: "Reporting..."
-          ~icon: "bug_report"
-          ~classes: ["btn-success"]
+          ~icon: "bug"
+          ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)
           ~onclick: (fun () ->
               set_interacted ();
@@ -101,7 +101,6 @@ let open_dialog page =
                   )
             )
           ();
-        Button.cancel ~return ()
       ]
   in
   Page.open_dialog' @@ fun return ->
@@ -128,26 +127,4 @@ let open_dialog page =
         ~classes: ["btn-success"]
         ~onclick: (fun () -> return (Ok ()); Lwt.return_unit)
         ()
-    ]
-
-let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
-
-let button =
-  div
-    ~a: [a_class ["position-fixed"; "bottom-0"; "end-0"]]
-    [
-      button
-        ~a: [
-          a_class ["btn"; "btn-primary"; "btn-lg"; "rounded-pill"];
-          a_onclick (fun _ ->
-              Lwt.async (fun () ->
-                  Lwt.map ignore @@ open_dialog @@ get_uri ()
-                );
-              false
-            );
-        ]
-        [
-          i ~a: [a_class ["bi"; "bi-bug"]] [];
-          (* txt " Report an issue"; *)
-        ];
     ]

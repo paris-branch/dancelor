@@ -23,7 +23,7 @@ let a_aria_label = a_aria "label" % List.singleton
 
 let header =
   nav
-    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"]]
+    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mb-2"]]
     [
       div
         ~a: [a_class ["container"]]
@@ -112,6 +112,36 @@ let header =
         ];
     ]
 
+let footer =
+  nav
+    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
+    [
+      div
+        ~a: [a_class ["container"; "d-flex"; "flex-column"; "flex-sm-row"]]
+        [
+          a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
+          a
+            ~a: [
+              a_class ["icon-link"; "text-light"; "my-1"];
+              a_href "https://github.com/paris-branch/dancelor";
+              a_target "_blank";
+            ]
+            [
+              i ~a: [a_class ["bi"; "bi-github"]] [];
+              txt "github.com/paris-branch/dancelor";
+            ];
+          Components.Button.make
+            ~label: "Report an issue"
+            ~label_processing: "Reporting..."
+            ~icon: "bug"
+            ~classes: ["btn-light"; "my-1"]
+            ~onclick: (fun () ->
+                Lwt.map ignore @@ IssueReport.open_dialog @@ get_uri ()
+              )
+            ()
+        ];
+    ]
+
 let dispatch uri =
   let dispatch : type a r. (a, Page.t, r) Endpoints.Page.t -> a = function
     | Index -> Index.create ()
@@ -143,9 +173,8 @@ let on_load _ev =
   let iter_title = React.S.map set_title (Page.full_title page) in
   Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
-  let content = To_dom.of_div @@ Page.render page in
-  Dom.appendChild Dom_html.document##.body content;
-  Dom.appendChild Dom_html.document##.body (To_dom.of_div IssueReport.button);
+  Dom.appendChild Dom_html.document##.body (To_dom.of_div @@ Page.render page);
+  Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer);
   Js._false
 
 let _ =
