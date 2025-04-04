@@ -75,7 +75,7 @@ let open_dialog make_page =
                 div
                   ~a: [a_class ["modal-header"]]
                   [
-                    h3 ~a: [a_class ["modal-title"]] [R.txt page.title];
+                    h4 ~a: [a_class ["modal-title"]] [R.txt page.title];
                     button
                       ~a: [
                         a_button_type `Button;

@@ -1,14 +1,6 @@
 open Js_of_ocaml
 open Html
 
-let group content =
-  div
-    ~a: [
-      a_style "display: flex;";
-      a_class ["justify-content-space-between"; "form-element"];
-    ]
-    content
-
 let make
     ~label
     ~label_processing
@@ -18,19 +10,31 @@ let make
     ~onclick
     ()
   =
+  let classes = "btn" :: classes in
   let (processing, set_processing) = React.S.create false in
   button
     [
-      i
-        ~a: [a_class ["material-symbols-outlined"]]
-        [
-          R.txt
+      span
+        ~a: [
+          R.a_class
             (
               Fun.flip S.map processing @@ function
-              | true -> "pending"
-              | false -> icon
+              | true -> ["spinner-border"; "spinner-border-sm"]
+              | false -> ["d-none"]
+            );
+          a_aria "hidden" ["true"]
+        ]
+        [];
+      i
+        ~a: [
+          R.a_class
+            (
+              Fun.flip S.map processing @@ function
+              | true -> ["d-none"]
+              | false -> ["bi"; "bi-" ^ icon]
             )
-        ];
+        ]
+        [];
       txt " ";
       R.txt
         (
@@ -40,6 +44,7 @@ let make
         );
     ]
     ~a: [
+      a_button_type `Button;
       R.a_class
         (
           Fun.flip S.map (S.l2 (||) disabled processing) @@ function
@@ -68,27 +73,29 @@ let save ?disabled ~onclick () =
     ()
 
 let clear ~onclick () =
-  button
-    [
-      i ~a: [a_class ["material-symbols-outlined"]] [txt "cancel"];
-      txt " Clear";
-    ]
-    ~a: [
-      a_class ["btn-danger"];
-      a_onclick (fun _event ->
-          if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
-            onclick ();
-          false
-        );
-    ]
+  make
+    ~label: "Clear"
+    ~label_processing: "Clearing..."
+    ~icon: "x-lg"
+    ~classes: ["btn-warning"]
+    ~onclick: (fun () ->
+        if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
+          onclick ();
+        Lwt.return_unit
+      )
+    ()
 
-let cancel ~return () =
-  button
-    [
-      i ~a: [a_class ["material-symbols-outlined"]] [txt "cancel"];
-      txt " Cancel";
-    ]
-    ~a: [
-      a_class ["btn-danger"];
-      a_onclick (fun _event -> return None; false);
-    ]
+let cancel ?return ?onclick () =
+  let onclick =
+    match (return, onclick) with
+    | Some return, None -> (fun () -> return None; Lwt.return_unit)
+    | None, Some onclick -> onclick
+    | _ -> invalid_arg "Button.cancel: cannot have both ~return and ~onclick"
+  in
+  make
+    ~label: "Cancel"
+    ~label_processing: "Cancelling..."
+    ~icon: "x-lg"
+    ~classes: ["btn-secondary"]
+    ~onclick
+    ()
