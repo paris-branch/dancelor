@@ -335,8 +335,14 @@ let open_ text raws filter =
   Page.make
     ~title: (S.const "Complex filters")
     [
-      div [Choices.render type_choices];
+      div
+        ~a: [a_class ["d-flex"; "justify-content-center"]]
+        [
+          Choices.render type_choices
+        ];
+      hr ();
       R.div
+        ~a: [a_class ["d-flex"; "justify-content-center"]]
         (
           Fun.flip S.map (Choices.signal type_choices) @@ function
           | None -> []
