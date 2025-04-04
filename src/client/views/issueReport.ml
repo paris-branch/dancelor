@@ -98,28 +98,20 @@ let open_dialog page =
           ();
       ]
   in
-  Page.open_dialog' @@ fun return ->
-  Page.make
-    ~title: (S.const (match response with Some _ -> "Issue reported" | None -> "Error reporting issue"))
-    [
-      div
-        (
-          match response with
-          | Some response ->
-            [
-              p [txt "Your issue has been reported as:"];
-              p [a ~a: [a_href response.uri; a_target "_blank"] [txt @@ spf "%s (#%d)" response.title response.id]];
-              p [txt "You can track its progress there."];
-            ]
-          | None -> [p [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]]
-        );
-    ]
-    ~buttons: [
-      Button.make
-        ~label: "Ok"
-        ~label_processing: "Closing..."
-        ~icon: "check-circle"
-        ~classes: ["btn-success"]
-        ~onclick: (fun () -> return (Ok ()); Lwt.return_unit)
-        ()
-    ]
+  (
+    match response with
+    | Some response ->
+      Components.Toast.open_
+        ~title: "Issue reported"
+        [
+          txt "Your issue has been reported as: ";
+          a ~a: [a_href response.uri; a_target "_blank"] [txt @@ spf "%s (#%d)" response.title response.id];
+          txt " You can track its progress there.";
+        ]
+    | None ->
+      Components.Toast.open_
+        ~level: Warning
+        ~title: "Error reporting issue"
+        [txt "There was an error reporting the issue. Please contact your system administrator because this is really not supposed to happen."]
+  );
+  Lwt.return_unit

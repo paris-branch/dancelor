@@ -128,7 +128,7 @@ let footer =
             ]
             [
               i ~a: [a_class ["bi"; "bi-github"]] [];
-              txt "github.com/paris-branch/dancelor";
+              txt "paris-branch/dancelor";
             ];
           Components.Button.make
             ~label: "Report an issue"
