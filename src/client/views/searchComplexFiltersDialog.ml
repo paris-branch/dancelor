@@ -349,27 +349,15 @@ let open_ text raws filter =
         );
     ]
     ~buttons: [
-      button
-        ~a: [
-          a_button_type `Button;
-          a_class ["btn"; "btn-secondary"];
-          a_onclick (fun _ -> return text; false);
-        ]
-        [txt "Cancel"];
-      button
-        ~a: [
-          a_button_type `Button;
-          a_class ["btn"; "btn-warning"];
-          a_onclick (fun _ -> return ""; false);
-        ]
-        [txt "Clear"];
-      button
-        ~a: [
-          a_button_type `Button;
-          a_class ["btn"; "btn-primary"];
-          a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
-        ]
-        [txt "Apply"];
+      Button.cancel ~onclick: (fun () -> return text; Lwt.return_unit) ();
+      Button.clear ~onclick: (fun () -> return "") ();
+      Button.make
+        ~label: "Apply"
+        ~label_processing: "Applying..."
+        ~icon: "check-circle"
+        ~classes: ["btn-primary"]
+        ~onclick: (fun () -> return (Any.Filter.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
+        ()
     ]
 
 let open_error () =

@@ -124,7 +124,7 @@ let open_dialog page =
       Button.make
         ~label: "Ok"
         ~label_processing: "Closing..."
-        ~icon: "check_circle"
+        ~icon: "check-circle"
         ~classes: ["btn-success"]
         ~onclick: (fun () -> return (Ok ()); Lwt.return_unit)
         ()
@@ -134,10 +134,11 @@ let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let button =
   div
-    ~a: [a_id "issue-report-button"]
+    ~a: [a_class ["position-fixed"; "bottom-0"; "end-0"]]
     [
-      a
+      button
         ~a: [
+          a_class ["btn"; "btn-primary"; "btn-lg"; "rounded-pill"];
           a_onclick (fun _ ->
               Lwt.async (fun () ->
                   Lwt.map ignore @@ open_dialog @@ get_uri ()
@@ -146,7 +147,7 @@ let button =
             );
         ]
         [
-          i ~a: [a_class ["material-symbols-outlined"]] [txt "bug_report"];
-          span [txt " Report an issue"];
+          i ~a: [a_class ["bi"; "bi-bug"]] [];
+          (* txt " Report an issue"; *)
         ];
     ]

@@ -54,26 +54,20 @@ let create ?query () =
             ~autofocus: true
             ~on_input: update_uri
             search_bar;
-          button
-            ~a: [
-              a_class ["btn"; "btn-primary"];
-              a_button_type `Button;
-              a_onclick (fun _ ->
-                  Lwt.async (fun () ->
-                      let search_text = S.value (SearchBar.text search_bar) in
-                      (* TODO: On return, add a space and focus the search bar. *)
-                      Fun.flip
-                        Lwt.map
-                        (SearchComplexFiltersDialog.open_ search_text)
-                        (Option.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
-                    );
-                  false
-                );
-            ]
-            [
-              i ~a: [a_class ["bi"; "bi-filter"]] [];
-              txt " Filter"
-            ];
+          Button.make
+            ~label: "Filter"
+            ~label_processing: "Filtering..."
+            ~icon: "filter"
+            ~classes: ["btn-primary"]
+            ~onclick: (fun () ->
+                let search_text = S.value (SearchBar.text search_bar) in
+                (* TODO: On return, add a space and focus the search bar. *)
+                Fun.flip
+                  Lwt.map
+                  (SearchComplexFiltersDialog.open_ search_text)
+                  (Option.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
+              )
+            ();
         ];
       R.div
         (
