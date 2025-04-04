@@ -39,7 +39,7 @@ let render p =
       div
         ~a: [a_class ["container"]]
         (
-          [h2 ~a: [a_class ["text-center"; "mt-2"; "mb-4"]] [R.txt p.title]] @
+          [h2 ~a: [a_class ["text-center"; "mb-4"]] [R.txt p.title]] @
           p.content @ p.buttons
         );
     ]
