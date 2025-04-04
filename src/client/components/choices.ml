@@ -30,13 +30,11 @@ let render c = c.box
 
 let make_gen_unsafe
     ?name: nam
-    ?(has_interacted = S.const false)
     ~validate
     ~post_validate
     ~radios
     choices
   =
-  ignore has_interacted;
   (* FIXME *)
   let name = unique () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
@@ -48,18 +46,11 @@ let make_gen_unsafe
   in
   let box =
     div
+      ~a: [a_class ["mb-2"]]
       [
-        label (Option.to_list (Option.map txt nam));
+        label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt nam));
         div
-          ~a: [
-            R.a_class
-              (
-                Fun.flip S.map values @@ function
-                | Ok _ -> ["choices"]
-                | Error _ -> ["choices"; "invalid"]
-              );
-            a_onchange (fun _ -> update_values (); true);
-          ]
+          ~a: [a_onchange (fun _ -> update_values (); true)]
           (
             Fun.flip List.concat_map choices @@ fun choice ->
             [
@@ -69,7 +60,15 @@ let make_gen_unsafe
                     Fun.id
                     [
                       Some (a_input_type (if radios then `Radio else `Checkbox));
-                      Some (a_class ["btn-check"]);
+                      Some
+                        (
+                          R.a_class
+                            (
+                              Fun.flip S.map values @@ function
+                              | Ok _ -> ["btn-check"; "form-check-input"; "is-valid"]
+                              | Error _ -> ["btn-check"; "form-check-input"; "is-invalid"]
+                            )
+                        );
                       Some (a_name name);
                       Some (a_id choice.id);
                       (if choice.checked then Some (a_checked ()) else None);
@@ -80,22 +79,28 @@ let make_gen_unsafe
             ]
           );
         R.div
-          ~a: [a_class ["message-box"]]
+          ~a: [
+            R.a_class
+              (
+                Fun.flip S.map values @@ function
+                | Ok _ -> ["d-block"; "valid-feedback"]
+                | Error _ -> ["d-block"; "invalid-feedback"]
+              )
+          ]
           (
             Fun.flip S.map values @@ function
-            | Ok _ -> []
-            | Error msg -> [txt msg]
-          )
+            | Ok _ -> [txt "Looks good!"]
+            | Error msg -> [txt "Error: "; txt msg]
+          );
       ]
   in
   {box; values = S.map post_validate values}
 
-let make_radios_gen ?name ?has_interacted ~validate ~post_validate choices =
+let make_radios_gen ?name ~validate ~post_validate choices =
   make_gen_unsafe
     ?name
     ~radios: true
     choices
-    ?has_interacted
     ~validate: (function
         | [] -> validate None
         | [x] -> validate x
@@ -103,8 +108,8 @@ let make_radios_gen ?name ?has_interacted ~validate ~post_validate choices =
       )
     ~post_validate
 
-let make_radios ?name ?has_interacted choices =
-  make_radios_gen ?name ?has_interacted ~validate: Result.ok ~post_validate: Result.get_ok choices
+let make_radios ?name choices =
+  make_radios_gen ?name ~validate: Result.ok ~post_validate: Result.get_ok choices
 
 let make_radios' = make_radios_gen ~post_validate: Fun.id
 

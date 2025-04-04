@@ -13,8 +13,6 @@ let one : one arity = One
 let many : many arity = Many
 
 type ('arity, 'model) t = {
-  has_interacted: bool S.t;
-  set_interacted: unit -> unit;
   signal: 'model Entry.t list S.t;
   set: 'model Entry.t list -> unit;
   search_bar: 'model Entry.t QuickSearchBar.t;
@@ -22,13 +20,7 @@ type ('arity, 'model) t = {
   arity: 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 
-let make ~arity ?(has_interacted = S.const false) ~search ~serialise ~unserialise (initial_input, initial_value) =
-  let (has_interacted_locally, set_interacted) = S.create false in
-  let has_interacted = S.l2 (||) has_interacted has_interacted_locally in
-  let set_interacted () =
-    set_interacted true;
-    S.stop ~strong: true has_interacted
-  in
+let make ~arity ~search ~serialise ~unserialise (initial_input, initial_value) =
   let (signal, set) = S.create [] in
   let search_bar =
     QuickSearchBar.make
@@ -42,7 +34,7 @@ let make ~arity ?(has_interacted = S.const false) ~search ~serialise ~unserialis
       set initial_value;
       Lwt.return_unit
     );
-  {has_interacted; set_interacted; signal; set; search_bar; serialise; arity}
+  {signal; set; search_bar; serialise; arity}
 
 let raw_signal s =
   S.bind (QuickSearchBar.text s.search_bar) @@ fun input ->
@@ -64,12 +56,9 @@ let signal_many (s : (many, 'model) t) : ('model Entry.t list, 'bottom) Result.t
   assert (s.arity = Many);
   S.map (Result.ok % Result.get_ok) (signal s)
 
-let has_interacted state = state.has_interacted
-
 let case_errored ~no ~yes state =
-  S.bind (has_interacted state) @@ fun has_interacted ->
   Fun.flip S.map (signal state) @@ function
-  | Error msg when has_interacted -> yes msg
+  | Error msg -> yes msg
   | _ -> no
 
 let clear s =
@@ -156,7 +145,6 @@ let render
         [
           QuickSearchBar.render
             ~placeholder: ((if s.arity = One then "Select" else "Add") ^ " a " ^ snd field_name ^ " (magic search)")
-            ~on_focus: s.set_interacted
             ~make_result: (fun ?classes person ->
                 make_result
                   ?classes

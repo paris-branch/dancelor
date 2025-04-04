@@ -44,7 +44,6 @@ module Editor = struct
   type t = {
     elements:
       (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -74,15 +73,13 @@ module Editor = struct
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let name =
-      Input.Text.make ~has_interacted initial_state.name @@
+      Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
-      Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
+      Input.Text.make initial_state.kind @@
+      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
     in
     let conceptors =
       Selector.make
@@ -107,12 +104,11 @@ module Editor = struct
         initial_state.versions
     in
     let order =
-      Input.Text.make ~has_interacted initial_state.order @@
+      Input.Text.make initial_state.order @@
       Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
     in
     {
       elements = {name; kind; conceptors; versions; order};
-      set_interacted;
     }
 
   let add_to_storage version =
@@ -203,10 +199,12 @@ let create ?on_save ?text () =
           let%lwt editor = editor in
           Lwt.return
             [
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
                     Fun.flip Lwt.map (Editor.submit editor) @@
                     Option.iter @@ fun set ->
                     Editor.clear editor;
@@ -214,9 +212,6 @@ let create ?on_save ?text () =
                     | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
                     | Some on_save -> on_save set
                   )
-                ();
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
                 ();
             ]
         )

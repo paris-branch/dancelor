@@ -38,10 +38,11 @@ let render p =
       div p.before_title;
       div
         ~a: [a_class ["container"]]
-        (
-          [h2 ~a: [a_class ["text-center"; "mb-4"]] [R.txt p.title]] @
-          p.content @ p.buttons
-        );
+        [
+          h2 ~a: [a_class ["text-center"; "mb-4"]] [R.txt p.title];
+          div p.content;
+          div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] p.buttons
+        ];
     ]
 
 let open_dialog make_page =

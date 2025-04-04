@@ -26,7 +26,6 @@ module Editor = struct
   type t = {
     elements:
       (string Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -50,23 +49,18 @@ module Editor = struct
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let name =
-      Input.Text.make ~has_interacted initial_state.name @@
+      Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let scddb_id =
-      Input.Text.make ~has_interacted initial_state.scddb_id @@
+      Input.Text.make initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Person) %
       Option.of_string_nonempty
     in
-    {
-      elements = {name; scddb_id};
-      set_interacted;
-    }
+    {elements = {name; scddb_id}}
 
   let clear (editor : t) : unit =
     Input.Text.clear editor.elements.name;
@@ -112,10 +106,12 @@ let create ?on_save ?text () =
           let%lwt editor = editor in
           Lwt.return
             [
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
                     Fun.flip Lwt.map (Editor.submit editor) @@
                     Option.iter @@ fun person ->
                     Editor.clear editor;
@@ -123,9 +119,6 @@ let create ?on_save ?text () =
                     | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
                     | Some on_save -> on_save person
                   )
-                ();
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
                 ();
             ]
         )

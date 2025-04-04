@@ -67,7 +67,7 @@ let save ?disabled ~onclick () =
     ~label: "Save"
     ~label_processing: "Saving..."
     ~icon: "save"
-    ~classes: ["btn-success"]
+    ~classes: ["btn-primary"]
     ?disabled
     ~onclick
     ()

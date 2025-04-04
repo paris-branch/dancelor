@@ -45,7 +45,6 @@ module Editor = struct
   type t = {
     elements:
       (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, string option Input.Text.t, bool option Choices.t, SCDDB.entry_id option Input.Text.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -80,15 +79,13 @@ module Editor = struct
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let name =
-      Input.Text.make ~has_interacted initial_state.name @@
+      Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
-      Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
+      Input.Text.make initial_state.kind @@
+      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
     in
     let devisers =
       Selector.make
@@ -102,14 +99,14 @@ module Editor = struct
         initial_state.devisers
     in
     let date =
-      Input.Text.make ~has_interacted initial_state.date @@
+      Input.Text.make initial_state.date @@
       Option.fold
         ~none: (Ok None)
-        ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+        ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
       Option.of_string_nonempty
     in
     let disambiguation =
-      Input.Text.make ~has_interacted initial_state.disambiguation @@
+      Input.Text.make initial_state.disambiguation @@
       Result.ok % Option.of_string_nonempty
     in
     let two_chords =
@@ -122,16 +119,13 @@ module Editor = struct
         ~name: "Number of chords"
     in
     let scddb_id =
-      Input.Text.make ~has_interacted initial_state.scddb_id @@
+      Input.Text.make initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Dance) %
       Option.of_string_nonempty
     in
-    {
-      elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id};
-      set_interacted;
-    }
+    {elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id}}
 
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;
@@ -207,10 +201,12 @@ let create ?on_save ?text () =
           let%lwt editor = editor in
           Lwt.return
             [
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
                     Fun.flip Lwt.map (Editor.submit editor) @@
                     Option.iter @@ fun dance ->
                     Editor.clear editor;
@@ -218,9 +214,6 @@ let create ?on_save ?text () =
                     | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Entry.slug dance))
                     | Some on_save -> on_save dance
                   )
-                ();
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
                 ();
             ]
         )
