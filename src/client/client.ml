@@ -29,7 +29,7 @@ let header =
         ~a: [a_class ["container"]]
         [
           a
-            ~a: [a_class ["navbar-brand"]; a_href "/"]
+            ~a: [a_class ["navbar-brand"; "my-n2"; "py-0"]; a_href "/"]
             [
               img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
             ];
