@@ -10,14 +10,11 @@ module Text : sig
   (** Abstract type of a text input component. *)
 
   val make :
-    ?has_interacted: bool S.t ->
     string ->
     (string -> ('a, string) Result.t) ->
     'a t
   (** Make a text input component from the initial input string and a validator
-      function. Can receive an optional [?has_interacted] signal that describes
-      whether someone interacted with the global form. The interaction impacts
-      whether errors are reported or not. *)
+      function. *)
 
   val raw_signal : 'a t -> string S.t
   (** A signal to the raw value of the input text component. *)

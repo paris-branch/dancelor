@@ -18,7 +18,6 @@ val many : many arity
 
 val make :
   arity: 'arity arity ->
-  ?has_interacted: bool S.t ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
   serialise: ('model Entry.t -> 'model Slug.t) ->
   unserialise: ('model Slug.t -> 'model Entry.t Lwt.t) ->

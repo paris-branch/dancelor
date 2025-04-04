@@ -45,7 +45,6 @@ module Editor = struct
   type t = {
     elements:
       (string Input.Text.t, Kind.Base.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -79,14 +78,12 @@ module Editor = struct
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let name =
-      Input.Text.make ~has_interacted initial_state.name @@
+      Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
-      Input.Text.make ~has_interacted initial_state.kind @@
+      Input.Text.make initial_state.kind @@
       Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt
     in
     let composers =
@@ -101,7 +98,7 @@ module Editor = struct
         initial_state.composers
     in
     let date =
-      Input.Text.make ~has_interacted initial_state.date @@
+      Input.Text.make initial_state.date @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
@@ -119,11 +116,11 @@ module Editor = struct
         initial_state.dances
     in
     let remark =
-      Input.Text.make ~has_interacted initial_state.remark @@
+      Input.Text.make initial_state.remark @@
       Result.ok % Option.of_string_nonempty
     in
     let scddb_id =
-      Input.Text.make ~has_interacted initial_state.scddb_id @@
+      Input.Text.make initial_state.scddb_id @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Tune) %
@@ -131,7 +128,6 @@ module Editor = struct
     in
     {
       elements = {name; kind; composers; date; dances; remark; scddb_id};
-      set_interacted;
     }
 
   let clear (editor : t) : unit =
@@ -212,10 +208,12 @@ let create ?on_save ?text () =
           let%lwt editor = editor in
           Lwt.return
             [
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
                     Fun.flip Lwt.map (Editor.submit editor) @@
                     Option.iter @@ fun tune ->
                     Editor.clear editor;
@@ -223,9 +221,6 @@ let create ?on_save ?text () =
                     | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_tune (Entry.slug tune))
                     | Some on_save -> on_save tune
                   )
-                ();
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
                 ();
             ]
         )
