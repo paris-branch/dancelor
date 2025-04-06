@@ -5,23 +5,31 @@ let search slice input =
   let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
   Lwt.map Result.ok @@ Model.Any.search slice filter
 
+type 'p pagination_mode =
+  | Pagination of 'p
+  | FixedSlice of Slice.t
+
+let slice = function
+  | Pagination p -> Pagination.slice p
+  | FixedSlice s -> S.const s
+
 type t = {
-  pagination: Pagination.t;
+  pagination: Pagination.t pagination_mode;
   search_bar: Model.Any.t SearchBar.t;
 }
 [@@deriving fields]
 
-let make ?initial_input () =
+let make ?initial_input ~pagination_mode () =
   let (number_of_entries, set_number_of_entries) = S.create None in
   let pagination =
-    Pagination.create
-      ~entries_per_page: 25
-      ~number_of_entries
+    match pagination_mode with
+    | Pagination() -> Pagination (Pagination.create ~entries_per_page: 25 ~number_of_entries)
+    | FixedSlice slice -> FixedSlice slice
   in
   let search_bar =
     SearchBar.make
       ~search
-      ~slice: (Pagination.slice pagination)
+      ~slice: (slice pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
       ?initial_input
       ()
@@ -62,7 +70,11 @@ let render ?on_input ?(attached_buttons = []) t =
             )
         ]
         [
-          Pagination.render ~is_below: false t.pagination;
+          (
+            match t.pagination with
+            | Pagination p -> Pagination.render ~is_below: false p
+            | FixedSlice _ -> div []
+          );
           div
             ~a: [a_class ["table-responsive"]]
             [
@@ -85,7 +97,7 @@ let render ?on_input ?(attached_buttons = []) t =
                 [
                   R.tbody
                     (
-                      Fun.flip S.map (S.Pair.pair (Pagination.slice t.pagination) (SearchBar.state t.search_bar))
+                      Fun.flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
                       @@ fun (_, state) ->
                       match state with
                       | Results results ->
@@ -95,6 +107,10 @@ let render ?on_input ?(attached_buttons = []) t =
                     )
                 ];
             ];
-          Pagination.render ~is_below: true t.pagination;
+          (
+            match t.pagination with
+            | Pagination p -> Pagination.render ~is_below: false p
+            | FixedSlice _ -> div []
+          );
         ]
     ]

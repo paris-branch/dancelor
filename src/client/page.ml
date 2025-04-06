@@ -41,7 +41,11 @@ let render p =
         [
           h2 ~a: [a_class ["text-center"; "mb-4"]] [R.txt p.title];
           div p.content;
-          div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] p.buttons
+          (
+            match p.buttons with
+            | [] -> div []
+            | buttons -> div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] buttons
+          )
         ];
     ]
 

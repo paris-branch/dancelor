@@ -16,6 +16,7 @@ let create ?query () =
   let search =
     Search.make
       ?initial_input: query
+      ~pagination_mode: (Pagination ())
       ()
   in
   Page.make
