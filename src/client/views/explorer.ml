@@ -2,7 +2,6 @@ open Nes
 open Common
 
 open Js_of_ocaml
-open Model
 open Components
 open Html
 
@@ -13,112 +12,31 @@ let update_uri input =
     (Js.string "")
     (Js.some (Js.string uri))
 
-let search slice input =
-  let%rlwt filter = Lwt.return (Any.Filter.from_string input) in
-  Lwt.map Result.ok @@ Any.search slice filter
-
-(** Generic row showing an emoji on the left and a message on the right. *)
-let emoji_row emoji message =
-  tr
-    [
-      td [txt emoji];
-      td ~a: [a_colspan 4] [txt message];
-    ]
-
 let create ?query () =
-  let (number_of_entries, set_number_of_entries) = S.create None in
-  let pagination =
-    Pagination.create
-      ~entries_per_page: 25
-      ~number_of_entries
-  in
-  let search_bar =
-    SearchBar.make
-      ~search
-      ~slice: (Pagination.slice pagination)
-      ~on_number_of_entries: (set_number_of_entries % Option.some)
+  let search =
+    Search.make
       ?initial_input: query
       ()
   in
-  let title = "Explore" in
   Page.make
-    ~title: (S.const title)
+    ~title: (S.const "Explore")
     [
-      div
-        ~a: [a_class ["input-group"; "mb-4"]]
-        [
-          i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
-          SearchBar.render
-            ~id: "explorer-search-bar"
-            ~placeholder: "Search for anything (it really is magic!)"
-            ~autofocus: true
-            ~on_input: update_uri
-            search_bar;
+      Search.render
+        search
+        ~on_input: update_uri
+        ~attached_buttons: [
           Button.make
             ~label: "Filter"
             ~label_processing: "Filtering..."
             ~icon: "filter"
             ~classes: ["btn-primary"]
             ~onclick: (fun () ->
-                let search_text = S.value (SearchBar.text search_bar) in
+                let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
                 (* TODO: On return, add a space and focus the search bar. *)
-                Fun.flip
-                  Lwt.map
+                Lwt.map
+                  (Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text))
                   (SearchComplexFiltersDialog.open_ search_text)
-                  (Option.iter (fun text -> SearchBar.set_text search_bar text; update_uri text))
               )
             ();
-        ];
-      R.div
-        (
-          Fun.flip S.map (SearchBar.state search_bar) @@ function
-          | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
-          | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-          | StartTyping | ContinueTyping | Results _ -> []
-        );
-      div
-        ~a: [
-          R.a_class
-            (
-              Fun.flip S.map (SearchBar.state search_bar) @@ function
-              | Results _ -> []
-              | _ -> ["d-none"]
-            )
-        ]
-        [
-          Pagination.render ~is_below: false pagination;
-          div
-            ~a: [a_class ["table-responsive"]]
-            [
-              tablex
-                ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
-                ~thead: (
-                  thead
-                    ~a: [a_class ["table-primary"]]
-                    [
-                      tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
-                    ];
-                )
-                ~tfoot: (
-                  tfoot
-                    ~a: [a_class ["table-primary"]]
-                    [
-                      tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
-                    ];
-                )
-                [
-                  R.tbody
-                    (
-                      Fun.flip S.map (S.Pair.pair (Pagination.slice pagination) (SearchBar.state search_bar))
-                      @@ fun (_, state) ->
-                      match state with
-                      | Results results ->
-                        let context = S.map Endpoints.Page.inSearch @@ SearchBar.text search_bar in
-                        List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results
-                      | _ -> []
-                    )
-                ];
-            ];
-          Pagination.render ~is_below: true pagination;
         ]
     ]
