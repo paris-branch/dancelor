@@ -78,7 +78,7 @@ let open_dialog page =
           ~label: "Description";
       ]
       ~buttons: [
-        Button.cancel ~return ();
+        Button.cancel' ~return ();
         Button.make
           ~label: "Report"
           ~label_processing: "Reporting..."

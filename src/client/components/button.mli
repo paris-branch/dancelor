@@ -30,10 +30,13 @@ val clear :
 (** A button specialised in clearing a form. *)
 
 val cancel :
-  ?return: ('any option -> unit) ->
-  ?onclick: (unit -> unit Lwt.t) ->
+  onclick: (unit -> unit Lwt.t) ->
   unit ->
   [> Html_types.button] elt
-(** A button specialised in cancelling something. One cannot use both [return]
-    and [onclick] at the same time. If [return] is provided, the action is to
-    call [return None]. *)
+(** A button specialised in cancelling something. *)
+
+val cancel' :
+  return: ('any option -> unit) ->
+  unit ->
+  [> Html_types.button] elt
+(** Variant of {!cancel'} passing [None] to a [return] function. *)

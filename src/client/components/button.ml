@@ -85,13 +85,7 @@ let clear ~onclick () =
       )
     ()
 
-let cancel ?return ?onclick () =
-  let onclick =
-    match (return, onclick) with
-    | Some return, None -> (fun () -> return None; Lwt.return_unit)
-    | None, Some onclick -> onclick
-    | _ -> invalid_arg "Button.cancel: cannot have both ~return and ~onclick"
-  in
+let cancel ~onclick () =
   make
     ~label: "Cancel"
     ~label_processing: "Cancelling..."
@@ -99,3 +93,6 @@ let cancel ?return ?onclick () =
     ~classes: ["btn-secondary"]
     ~onclick
     ()
+
+let cancel' ~return () =
+  cancel ~onclick: (fun () -> return None; Lwt.return_unit) ()

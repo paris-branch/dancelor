@@ -249,7 +249,7 @@ let create ?on_save ?text ?tune () =
                                 Lwt.return_unit
                               )
                             ();
-                          Button.cancel ~return ();
+                          Button.cancel' ~return ();
                         ]
                   )
                 ();
