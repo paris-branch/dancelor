@@ -36,7 +36,7 @@ let make ?initial_input ~pagination_mode () =
   in
   {pagination; search_bar}
 
-let render ?on_input ?(attached_buttons = []) t =
+let render ?on_input ?(attached_buttons = []) ?(show_table_headers = true) t =
   div
     [
       div
@@ -80,19 +80,29 @@ let render ?on_input ?(attached_buttons = []) t =
             [
               tablex
                 ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
-                ~thead: (
-                  thead
-                    ~a: [a_class ["table-primary"]]
-                    [
-                      tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
-                    ];
+                ?thead: (
+                  if show_table_headers then
+                    Some
+                      (
+                        thead
+                          ~a: [a_class ["table-primary"]]
+                          [
+                            tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
+                          ]
+                      )
+                  else None
                 )
-                ~tfoot: (
-                  tfoot
-                    ~a: [a_class ["table-primary"]]
-                    [
-                      tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
-                    ];
+                ?tfoot: (
+                  if show_table_headers then
+                    Some
+                      (
+                        tfoot
+                          ~a: [a_class ["table-primary"]]
+                          [
+                            tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
+                          ]
+                      )
+                  else None
                 )
                 [
                   R.tbody

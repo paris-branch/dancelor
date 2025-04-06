@@ -18,5 +18,6 @@ val make :
 val render :
   ?on_input: (string -> unit) ->
   ?attached_buttons: [< Html_types.div_content_fun >`I `Input] elt list ->
+  ?show_table_headers: bool ->
   t ->
   [> Html_types.div] elt
