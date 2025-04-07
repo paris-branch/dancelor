@@ -45,7 +45,7 @@ module Search = struct
     div
       [
         div
-          ~a: [a_class ["input-group"; "mb-4"]]
+          ~a: [a_class ["input-group"; "mb-2"]]
           (
             [
               i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
@@ -72,6 +72,7 @@ module Search = struct
             R.a_class
               (
                 Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+                | Results _ when show_table_headers -> ["my-4"]
                 | Results _ -> []
                 | _ -> ["d-none"]
               )
@@ -86,7 +87,7 @@ module Search = struct
               ~a: [a_class ["table-responsive"]]
               [
                 tablex
-                  ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
+                  ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
                   ?thead: (
                     if show_table_headers then
                       Some

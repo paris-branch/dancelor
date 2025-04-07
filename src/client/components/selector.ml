@@ -80,7 +80,7 @@ let render
     [
       label [txt field_name];
       tablex
-        ~a: [a_class ["table"; "table-borderless"; "m-0"]]
+        ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
         [
           R.tbody
             (
@@ -130,8 +130,6 @@ let render
         ]
         [
           (
-            ignore model_name;
-            ignore create_dialog_content;
             let label = (if s.arity = One then "Select" else "Add") ^ " a " ^ model_name in
             let label_processing = (if s.arity = One then "Selecting" else "Adding") ^ " a " ^ model_name ^ "..." in
             div

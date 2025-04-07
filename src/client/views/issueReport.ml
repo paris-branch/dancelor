@@ -110,7 +110,7 @@ let open_dialog page =
         ]
     | None ->
       Components.Toast.open_
-        ~title: "Not reporting issue"
+        ~title: "Issue not reported"
         [txt "Your issue has not been reported, as you closed the dialog. If this is an error, please contact your system administrator."]
   );
   Lwt.return_unit
