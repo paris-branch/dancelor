@@ -104,19 +104,10 @@ let open_dialog make_page =
   Dom.appendChild Dom_html.document##.body dom_box;
 
   (* Add an event listener to close the box by clicking outside of it. *)
-  ignore
-    (
-      let open Dom_html in
-      addEventListener
-        window
-        Event.click
-        (
-          handler @@ fun event ->
-          if event##.target = Js.some (dom_box :> element Js.t) then
-            return None;
-          Js._true
-        )
-        Js._true
+  Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
+      if target = (dom_box :> Dom_html.element Js.t) then
+        return None;
+      Js._true
     );
 
   (* Return the promise of a result. *)
