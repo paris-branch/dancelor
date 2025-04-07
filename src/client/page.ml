@@ -103,6 +103,10 @@ let open_dialog make_page =
   (* Add the box as a child of `<body>`. *)
   Dom.appendChild Dom_html.document##.body dom_box;
 
+  (* FIXME: When the dialog disappears, this event will stick around. Avoid
+     EventListeners for elements that might disappear, unless really necessary.
+     In this case, we can probably track [onclick] on the whole modal, since the
+     background takes everything. *)
   (* Add an event listener to close the box by clicking outside of it. *)
   Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
       if target = (dom_box :> Dom_html.element Js.t) then
