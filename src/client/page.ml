@@ -49,7 +49,10 @@ let render p =
         ];
     ]
 
-let open_dialog make_page =
+let open_dialog
+    ?(hide_body_overflow_y = false)
+    make_page
+  =
   let (promise, resolver) = Lwt.wait () in
 
   (* The actual [return] function requires a handle of the box to work, but the
@@ -91,7 +94,9 @@ let open_dialog make_page =
                       ]
                       [];
                   ];
-                div ~a: [a_class ["modal-body"]] (page.before_title @ page.content);
+                div
+                  ~a: [a_class (["modal-body"] @ (if hide_body_overflow_y then ["overflow-y-hidden"] else []))]
+                  (page.before_title @ page.content);
                 div ~a: [a_class ["modal-footer"]] page.buttons;
               ];
           ];

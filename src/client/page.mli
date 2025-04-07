@@ -25,6 +25,7 @@ val render : t -> Html_types.div elt
 (** Render the page. *)
 
 val open_dialog :
+  ?hide_body_overflow_y: bool ->
   (('result option -> unit) -> t) ->
   'result option Lwt.t
 (** [open_dialog f] opens a dialog. [f] is used to create the content of the

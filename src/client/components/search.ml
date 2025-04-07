@@ -147,7 +147,7 @@ module Quick = struct
       search =
         Search.make
           ~search
-          ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 10 ()))
+          ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 20 ()))
           ~min_characters: 3
           ();
     }
