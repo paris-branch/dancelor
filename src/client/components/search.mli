@@ -12,6 +12,7 @@ val search_bar : t -> Model.Any.t SearchBar.t
 val make :
   ?initial_input: string ->
   pagination_mode: unit pagination_mode ->
+  ?min_characters: int ->
   unit ->
   t
 

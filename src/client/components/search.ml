@@ -16,10 +16,11 @@ let slice = function
 type t = {
   pagination: Pagination.t pagination_mode;
   search_bar: Model.Any.t SearchBar.t;
+  min_characters: int;
 }
 [@@deriving fields]
 
-let make ?initial_input ~pagination_mode () =
+let make ?initial_input ~pagination_mode ?(min_characters = 0) () =
   let (number_of_entries, set_number_of_entries) = S.create None in
   let pagination =
     match pagination_mode with
@@ -31,10 +32,11 @@ let make ?initial_input ~pagination_mode () =
       ~search
       ~slice: (slice pagination)
       ~on_number_of_entries: (set_number_of_entries % Option.some)
+      ~min_characters
       ?initial_input
       ()
   in
-  {pagination; search_bar}
+  {pagination; search_bar; min_characters}
 
 let render ?on_input ?(attached_buttons = []) ?(show_table_headers = true) t =
   div
@@ -58,7 +60,9 @@ let render ?on_input ?(attached_buttons = []) ?(show_table_headers = true) t =
           Fun.flip S.map (SearchBar.state t.search_bar) @@ function
           | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
           | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-          | StartTyping | ContinueTyping | Results _ -> []
+          | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
+          | ContinueTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
+          | _ -> []
         );
       div
         ~a: [
