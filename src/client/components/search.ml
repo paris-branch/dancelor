@@ -50,7 +50,6 @@ module Search = struct
             [
               i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
               SearchBar.render
-                ~id: "explorer-search-bar"
                 ~placeholder: "Search for anything (it really is magic!)"
                 ~autofocus: true
                 ?on_input

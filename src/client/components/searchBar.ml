@@ -56,7 +56,6 @@ let make
 
 let render
     ~placeholder
-    ?id
     ?(autofocus = false)
     ?on_focus
     ?on_input
@@ -71,7 +70,6 @@ let render
         List.filter_map
           Fun.id
           [
-            Option.map a_id id;
             Some (a_class ["form-control"]);
             Some (a_input_type `Text);
             Some (a_placeholder placeholder);

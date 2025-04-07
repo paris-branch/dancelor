@@ -57,7 +57,6 @@ val make :
 
 val render :
   placeholder: string ->
-  ?id: string ->
   ?autofocus: bool ->
   ?on_focus: (unit -> unit) ->
   ?on_input: (string -> unit) ->
