@@ -87,9 +87,9 @@
                   echo 'Setting up the git repository...'
                   cd /var/lib/dancelor/database
                   echo '  - username...'
-                  git -c safe.directory=/var/lib/dancelor/database config user.name Auto
+                  git -c safe.directory=/var/lib/dancelor/database config user.name Dancelor
                   echo '  - email...'
-                  git -c safe.directory=/var/lib/dancelor/database config user.email noreply@dancelor.org
+                  git -c safe.directory=/var/lib/dancelor/database config user.email dancelor@dancelor.org
                   echo '  - remote...'
                   git -c safe.directory=/var/lib/dancelor/database remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
                   echo 'done.'

@@ -18,7 +18,7 @@ module Git = struct
       [
         "git";
         "commit";
-        "--author=Auto <noreply@dancelor.org>";
+        "--author=Dancelor <dancelor@dancelor.org>";
         ("--message=" ^ msg)
       ]
 
