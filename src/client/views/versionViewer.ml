@@ -103,17 +103,7 @@ let create ?context slug =
                 txt ".";
               ]
         );
-      div
-        ~a: [a_class ["text-center"; "w-100"]]
-        [
-          object_
-            ~a: [
-              a_class ["w-100"];
-              a_mime_type "image/svg+xml";
-              a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none slug)
-            ]
-            [];
-        ];
+      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make slug];
       div
         ~a: [a_class ["d-flex"; "justify-content-end"]]
         [

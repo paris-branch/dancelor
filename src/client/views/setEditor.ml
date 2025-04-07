@@ -165,22 +165,7 @@ let create ?on_save ?text () =
               Selector.render
                 ~make_result: AnyResult.make_version_result'
                 ~make_more_results: (fun version ->
-                    [
-                      Utils.ResultRow.make
-                        ~classes: ["small-previsualisation"]
-                        [
-                          Utils.ResultRow.cell
-                            ~a: [a_colspan 9999]
-                            [
-                              object_
-                                ~a: [
-                                  a_mime_type "image/svg+xml";
-                                  a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
-                                ]
-                                [];
-                            ]
-                        ]
-                    ]
+                    [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.slug version)]]]
                   )
                 ~field_name: ("Versions", "version")
                 ~model_name: "versions"
