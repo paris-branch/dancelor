@@ -2,7 +2,7 @@ open Js_of_ocaml
 open Html
 
 let make
-    ~label
+    ?(label = "")
     ?label_processing
     ?icon
     ?badge
@@ -32,7 +32,9 @@ let make
                   a_aria "hidden" ["true"]
                 ]
                 [];
-              span ~a: [R.a_class (Fun.flip S.map processing @@ function true -> [] | false -> ["d-none"])] [txt " "];
+              span
+                ~a: [R.a_class (Fun.flip S.map processing @@ function true -> [] | false -> ["d-none"])]
+                [txt @@ if label <> "" then " " else ""];
             ];
           (
             Fun.flip Option.map icon @@ fun icon ->
@@ -47,7 +49,7 @@ let make
                     )
                 ]
                 [];
-              txt " ";
+              (txt @@ if label <> "" then " " else "");
             ]
           );
           Some

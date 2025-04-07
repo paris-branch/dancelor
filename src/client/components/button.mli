@@ -1,7 +1,7 @@
 open Html
 
 val make :
-  label: string ->
+  ?label: string ->
   ?label_processing: string ->
   ?icon: string ->
   ?badge: string ->
