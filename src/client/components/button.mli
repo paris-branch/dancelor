@@ -5,7 +5,7 @@ val make :
   ?label_processing: string ->
   ?icon: string ->
   ?badge: string ->
-  classes: string list ->
+  ?classes: string list ->
   ?disabled: bool S.t ->
   onclick: (unit -> unit Lwt.t) ->
   unit ->
@@ -16,6 +16,21 @@ val make :
     clicked, the button triggers [onclick] and considers its job done when
     [onclick] returns. It is possible to use [Lwt.async], but it is recommended
     to actually return when that makes sense. *)
+
+val make_a :
+  ?label: string ->
+  ?label_processing: string ->
+  ?icon: string ->
+  ?badge: string ->
+  ?disabled: bool S.t ->
+  ?classes: string list ->
+  href: string S.t ->
+  ?more_a: [< Html_types.a_attrib >`Class `Href] attrib list ->
+  unit ->
+  [> Html_types.a_] elt
+(** Variant of {!make} that creates an anchor element [<a/>] instead of a
+    [<button/>]. This makes sense when it is to be used as a link and not to
+    trigger an action. *)
 
 val make_icon :
   ?classes: string list ->
@@ -47,3 +62,8 @@ val cancel' :
   unit ->
   [> Html_types.button] elt
 (** Variant of {!cancel'} passing [None] to a [return] function. *)
+
+val download :
+  href: string S.t ->
+  unit ->
+  [> Html_types.a_] elt

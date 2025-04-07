@@ -1,79 +1,86 @@
 open Js_of_ocaml
 open Html
 
-let make
+let make_content
     ?(label = "")
     ?label_processing
     ?icon
     ?badge
-    ~classes
+    ?(processing = S.const false)
+    ()
+  =
+  List.concat @@
+  List.filter_map
+    Fun.id
+    [
+      Some
+        [
+          span
+            ~a: [
+              R.a_class
+                (
+                  Fun.flip S.map processing @@ function
+                  | true -> ["spinner-border"; "spinner-border-sm"]
+                  | false -> ["d-none"]
+                );
+              a_aria "hidden" ["true"]
+            ]
+            [];
+          span
+            ~a: [R.a_class (Fun.flip S.map processing @@ function true -> [] | false -> ["d-none"])]
+            [txt @@ if label <> "" then " " else ""];
+        ];
+      (
+        Fun.flip Option.map icon @@ fun icon ->
+        [
+          i
+            ~a: [
+              R.a_class
+                (
+                  Fun.flip S.map processing @@ function
+                  | true -> ["d-none"]
+                  | false -> ["bi"; "bi-" ^ icon]
+                )
+            ]
+            [];
+          (txt @@ if label <> "" then " " else "");
+        ]
+      );
+      Some
+        [
+          R.txt
+            (
+              Fun.flip S.map processing @@ function
+              | true -> Option.value ~default: label label_processing
+              | false -> label
+            );
+        ];
+      (
+        Fun.flip Option.map badge @@ fun badge ->
+        [
+          txt " ";
+          span ~a: [a_class ["badge"; "text-bg-secondary"]] [txt badge];
+        ]
+      )
+    ]
+
+let make
+    ?label
+    ?label_processing
+    ?icon
+    ?badge
+    ?classes
     ?(disabled = S.const false)
     ~onclick
     ()
   =
-  let classes = "btn" :: classes in
   let (processing, set_processing) = React.S.create false in
   button
-    (
-      List.concat @@
-      List.filter_map
-        Fun.id
-        [
-          Some
-            [
-              span
-                ~a: [
-                  R.a_class
-                    (
-                      Fun.flip S.map processing @@ function
-                      | true -> ["spinner-border"; "spinner-border-sm"]
-                      | false -> ["d-none"]
-                    );
-                  a_aria "hidden" ["true"]
-                ]
-                [];
-              span
-                ~a: [R.a_class (Fun.flip S.map processing @@ function true -> [] | false -> ["d-none"])]
-                [txt @@ if label <> "" then " " else ""];
-            ];
-          (
-            Fun.flip Option.map icon @@ fun icon ->
-            [
-              i
-                ~a: [
-                  R.a_class
-                    (
-                      Fun.flip S.map processing @@ function
-                      | true -> ["d-none"]
-                      | false -> ["bi"; "bi-" ^ icon]
-                    )
-                ]
-                [];
-              (txt @@ if label <> "" then " " else "");
-            ]
-          );
-          Some
-            [
-              R.txt
-                (
-                  Fun.flip S.map processing @@ function
-                  | true -> Option.value ~default: label label_processing
-                  | false -> label
-                );
-            ];
-          (
-            Fun.flip Option.map badge @@ fun badge ->
-            [
-              txt " ";
-              span ~a: [a_class ["badge"; "text-bg-secondary"]] [txt badge];
-            ]
-          )
-        ]
-    )
     ~a: [
       a_button_type `Button;
       R.a_class
         (
+          let classes = "btn" :: Option.value ~default: [] classes in
           Fun.flip S.map (S.l2 (||) disabled processing) @@ function
           | true -> "disabled" :: classes
           | false -> classes
@@ -88,6 +95,49 @@ let make
           false
         );
     ]
+    (
+      make_content
+        ?label
+        ?label_processing
+        ?icon
+        ?badge
+        ~processing
+        ()
+    )
+
+let make_a
+    ?label
+    ?label_processing
+    ?icon
+    ?badge
+    ?(disabled = S.const false)
+    ?classes
+    ~href
+    ?(more_a = [])
+    ()
+  =
+  a
+    ~a: (
+      [
+        R.a_class
+          (
+            let classes = "btn" :: Option.value ~default: [] classes in
+            Fun.flip S.map disabled @@ function
+            | true -> "disabled" :: classes
+            | false -> classes
+          );
+        R.a_href href;
+      ] @
+      more_a
+    )
+    (
+      make_content
+        ?label
+        ?label_processing
+        ?icon
+        ?badge
+        ()
+    )
 
 let make_icon ?(classes = []) icon =
   button
@@ -130,3 +180,12 @@ let cancel ~onclick () =
 
 let cancel' ~return () =
   cancel ~onclick: (fun () -> return None; Lwt.return_unit) ()
+
+let download ~href () =
+  make_a
+    ~label: "Download"
+    ~icon: "download"
+    ~classes: ["btn-primary"]
+    ~more_a: [a_target "_blank"]
+    ~href
+    ()

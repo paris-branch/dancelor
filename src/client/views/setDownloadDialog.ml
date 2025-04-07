@@ -3,6 +3,7 @@ open Common
 
 open Html
 open Model
+open Components
 
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)
@@ -31,19 +32,13 @@ let create () =
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
 let open_ slug dialog =
-  Page.open_dialog' @@ fun return ->
+  Page.open_dialog @@ fun return ->
   Page.make
     ~title: (S.const "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
-      a
-        ~a: [
-          a_class ["button"];
-          a_target "_blank";
-          R.a_href (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) params slug) dialog.parameters_signal);
-          a_onclick (fun _ -> return (); true);
-        ]
-        [txt "Download"];
+      Button.cancel' ~return ();
+      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) params slug) dialog.parameters_signal) ();
     ]
 
 let create_and_open slug = open_ slug (create ())
