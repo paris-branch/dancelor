@@ -22,3 +22,19 @@ val render :
   ?show_table_headers: bool ->
   t ->
   [> Html_types.div] elt
+
+module Quick : sig
+  type t
+
+  val text : t -> string S.t
+
+  val make :
+    unit ->
+    t
+
+  val open_ :
+    dialog_title: string S.t ->
+    ?dialog_buttons: Html_types.div_content_fun elt list ->
+    t ->
+    unit Lwt.t
+end
