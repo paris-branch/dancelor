@@ -106,7 +106,7 @@ let make_gen_unsafe
                       ]
                       (
                         Fun.flip S.map values @@ function
-                        | Ok _ -> [txt "Looks good!"]
+                        | Ok _ -> [txt " "]
                         | Error msg -> [txt "Error: "; txt msg]
                       )
                   )

@@ -77,9 +77,7 @@ let to_clickable_row t =
       )
   | Link href ->
     tr
-      ~a: [
-        a_class ("clickable" :: t.classes);
-      ]
+      ~a: [a_class t.classes]
       (
         List.map
           (fun cell ->
@@ -109,7 +107,7 @@ let to_clickable_row t =
   | Callback f ->
     tr
       ~a: [
-        a_class ("clickable" :: t.classes);
+        a_class t.classes;
         a_onclick (fun _ -> f (); true);
       ]
       (

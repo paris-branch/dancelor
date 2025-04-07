@@ -1,10 +1,6 @@
 open Nes
 open Html
 
-let search slice input =
-  let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
-  Lwt.map Result.ok @@ Model.Any.search slice filter
-
 module Search = struct
   type 'p pagination_mode =
     | Pagination of 'p
@@ -14,14 +10,14 @@ module Search = struct
     | Pagination p -> Pagination.slice p
     | FixedSlice s -> S.const s
 
-  type t = {
+  type 'result t = {
     pagination: Pagination.t pagination_mode;
-    search_bar: Model.Any.t SearchBar.t;
+    search_bar: 'result SearchBar.t;
     min_characters: int;
   }
   [@@deriving fields]
 
-  let make ?initial_input ~pagination_mode ?(min_characters = 0) () =
+  let make ?initial_input ~search ~pagination_mode ?(min_characters = 0) () =
     let (number_of_entries, set_number_of_entries) = S.create None in
     let pagination =
       match pagination_mode with
@@ -39,7 +35,13 @@ module Search = struct
     in
     {pagination; search_bar; min_characters}
 
-  let render ?on_input ?(attached_buttons = []) ?(show_table_headers = true) t =
+  let render
+      ~make_result
+      ?on_input
+      ?(attached_buttons = [])
+      ?(show_table_headers = true)
+      t
+    =
     div
       [
         div
@@ -117,7 +119,8 @@ module Search = struct
                         match state with
                         | Results results ->
                           let context = S.map Common.Endpoints.Page.inSearch @@ SearchBar.text t.search_bar in
-                          List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results
+                          List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
+                        (* List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results *)
                         | _ -> []
                       )
                   ];
@@ -133,29 +136,34 @@ end
 include Search
 
 module Quick = struct
-  type t = {search: Search.t}
+  type 'result t = {search: 'result Search.t}
 
   let text quick_search = SearchBar.text @@ Search.search_bar quick_search.search
 
-  let make () = {
-    search =
-      Search.make
-        ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 10 ()))
-        ~min_characters: 3
-        ();
-  }
+  let make
+      ~search
+      ()
+    = {
+      search =
+        Search.make
+          ~search
+          ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 10 ()))
+          ~min_characters: 3
+          ();
+    }
 
-  let open_
+  let render
+      ~return
       ~dialog_title
       ?(dialog_buttons = [])
+      ~make_result
       quick_search
     =
-    Lwt.map ignore @@
-    Page.open_dialog @@ fun return ->
     Page.make
       ~title: dialog_title
       [
         Search.render
+          ~make_result
           ~show_table_headers: false
           quick_search.search;
       ]

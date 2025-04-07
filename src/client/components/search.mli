@@ -5,36 +5,41 @@ type 'p pagination_mode =
   | Pagination of 'p
   | FixedSlice of Slice.t
 
-type t
+type 'result t
 
-val search_bar : t -> Model.Any.t SearchBar.t
+val search_bar : 'result t -> 'result SearchBar.t
 
 val make :
   ?initial_input: string ->
+  search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   pagination_mode: unit pagination_mode ->
   ?min_characters: int ->
   unit ->
-  t
+  'result t
 
 val render :
+  make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
   ?on_input: (string -> unit) ->
   ?attached_buttons: [< Html_types.div_content_fun >`I `Input] elt list ->
   ?show_table_headers: bool ->
-  t ->
+  'result t ->
   [> Html_types.div] elt
 
 module Quick : sig
-  type t
+  type 'result t
 
-  val text : t -> string S.t
+  val text : 'result t -> string S.t
 
   val make :
+    search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
     unit ->
-    t
+    'result t
 
-  val open_ :
+  val render :
+    return: ('dialog_result option -> unit) ->
     dialog_title: string S.t ->
     ?dialog_buttons: Html_types.div_content_fun elt list ->
-    t ->
-    unit Lwt.t
+    make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
+    'result t ->
+    Page.t
 end

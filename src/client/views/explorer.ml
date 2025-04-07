@@ -15,6 +15,10 @@ let update_uri input =
 let create ?query () =
   let search =
     Search.make
+      ~search: (fun slice input ->
+          let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Any.search slice filter
+        )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
       ()
@@ -24,6 +28,7 @@ let create ?query () =
     [
       Search.render
         search
+        ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
         ~on_input: update_uri
         ~attached_buttons: [
           Button.make

@@ -32,6 +32,7 @@ let make
                   a_aria "hidden" ["true"]
                 ]
                 [];
+              span ~a: [R.a_class (Fun.flip S.map processing @@ function true -> [] | false -> ["d-none"])] [txt " "];
             ];
           (
             Fun.flip Option.map icon @@ fun icon ->
@@ -84,6 +85,13 @@ let make
             );
           false
         );
+    ]
+
+let make_icon ?(classes = []) icon =
+  button
+    ~a: [a_button_type `Button; a_class (["btn"; "disabled"] @ classes); a_tabindex (-1)]
+    [
+      i ~a: [a_class ["bi"; "bi-" ^ icon]] []
     ]
 
 let save ?disabled ~onclick () =

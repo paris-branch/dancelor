@@ -50,7 +50,7 @@ module Text = struct
         R.div
           ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (Fun.const ["invalid-feedback"]) state)]
           (
-            case_errored ~no: [txt "Looks good!"] ~yes: (List.singleton % txt) state
+            case_errored ~no: [txt " "] ~yes: (List.singleton % txt) state
           );
       ]
 
@@ -78,7 +78,7 @@ module Text = struct
         R.div
           ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (Fun.const ["invalid-feedback"]) state)]
           (
-            case_errored ~no: [txt "Looks good!"] ~yes: (List.singleton % txt) state
+            case_errored ~no: [txt " "] ~yes: (List.singleton % txt) state
           );
       ]
 end

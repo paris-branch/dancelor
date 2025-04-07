@@ -17,6 +17,12 @@ val make :
     [onclick] returns. It is possible to use [Lwt.async], but it is recommended
     to actually return when that makes sense. *)
 
+val make_icon :
+  ?classes: string list ->
+  string ->
+  [> Html_types.button] elt
+(** Make a fake button showing an icon. Sometimes useful in button groups. *)
+
 val save :
   ?disabled: bool S.t ->
   onclick: (unit -> unit Lwt.t) ->
