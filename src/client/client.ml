@@ -14,12 +14,34 @@ let set_title title =
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
-let a_data_bs_toggle = a_user_data "bs-toggle"
-let a_data_bs_target = a_user_data "bs-target"
+let quick_search =
+  Components.Search.Quick.make
+    ~search: (fun slice input ->
+        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+        Lwt.map Result.ok @@ Model.Any.search slice filter
+      )
+    ()
 
-let a_aria_controls = a_aria "controls" % List.singleton
-let a_aria_expanded = a_aria "expanded" % List.singleton % Bool.to_string
-let a_aria_label = a_aria "label" % List.singleton
+let open_quick_search () =
+  Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
+  Components.Search.Quick.render
+    ~return
+    ~dialog_title: (S.const "Quick search")
+    ~dialog_buttons: [
+      Components.Button.make
+        ~label: "Explore"
+        ~label_processing: "Opening explorer..."
+        ~icon: "zoom-in"
+        ~classes: ["btn-primary"]
+        ~onclick: (fun () ->
+            let href = Endpoints.Page.(href Explore) (Option.some @@ S.value @@ Components.Search.Quick.text quick_search) in
+            Dom_html.window##.location##.href := Js.string href;
+            Lwt.pmsleep 10.
+          )
+        ();
+    ]
+    ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
+    quick_search
 
 let header =
   nav
@@ -29,12 +51,17 @@ let header =
         ~a: [a_class ["container"]]
         [
           a
-            ~a: [a_class ["navbar-brand"; "my-n2"; "py-0"]; a_href "/"]
+            ~a: [a_class ["navbar-brand"; "my-n2"; "py-0"; "flex-fill"]; a_href "/"]
             [
               img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
             ];
+          Components.Button.make
+            ~icon: "search"
+            ~classes: ["btn-light"; "me-2"; "d-block"; "d-sm-none"]
+            ~onclick: (Lwt.map ignore % open_quick_search)
+            ();
           button
-            ~a: [a_class ["navbar-toggler"]; a_button_type `Button; a_data_bs_toggle "collapse"; a_data_bs_target "#the-navigation"; a_aria_controls "the-navigation"; a_aria_expanded false; a_aria_label "Toggle navigation"]
+            ~a: [a_class ["navbar-toggler"]; a_button_type `Button; a_user_data "bs-toggle" "collapse"; a_user_data "bs-target" "#the-navigation"; a_aria "controls" ["the-navigation"]; a_aria "expanded" ["false"]; a_aria "label" ["Toggle navigation"]]
             [
               span ~a: [a_class ["navbar-toggler-icon"]] [];
             ];
@@ -48,7 +75,7 @@ let header =
                     ~a: [a_class ["nav-item"; "dropdown"]]
                     [
                       button
-                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_data_bs_toggle "dropdown"; a_aria_expanded false]
+                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
                         [
                           txt "Explore"
                         ];
@@ -60,17 +87,26 @@ let header =
                             li [hr ~a: [a_class ["dropdown-divider"]] ()];
                           ] @
                           List.map
-                            (fun (key, text) ->
+                            (fun (icon, key, text) ->
                                let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                               li [a ~a: [a_class ["dropdown-item"]; a_href href] [txt text]]
+                               li
+                                 [
+                                   a
+                                     ~a: [a_class ["dropdown-item"]; a_href href]
+                                     [
+                                       i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
+                                       txt " ";
+                                       txt text
+                                     ]
+                                 ]
                             )
                             [
-                              ("person", "Persons");
-                              ("dance", "Dances");
-                              ("tune", "Tunes");
-                              ("version", "Versions");
-                              ("set", "Sets");
-                              ("book", "Books");
+                              ("person", "person", "Persons");
+                              ("person-arms-up", "dance", "Dances");
+                              ("music-note-list", "tune", "Tunes");
+                              ("music-note-beamed", "version", "Versions");
+                              ("list-stars", "set", "Sets");
+                              ("book", "book", "Books");
                             ]
                         );
                     ];
@@ -78,7 +114,7 @@ let header =
                     ~a: [a_class ["nav-item"; "dropdown"]]
                     [
                       button
-                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_data_bs_toggle "dropdown"; a_aria_expanded false]
+                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
                         [
                           txt "Add"
                         ];
@@ -87,30 +123,51 @@ let header =
                         (
                           let open Endpoints.Page in
                           List.map
-                            (fun (href, text) ->
-                               li [a ~a: [a_class ["dropdown-item"]; a_href href] [txt text]]
+                            (fun (icon, href, text) ->
+                               li
+                                 [
+                                   a
+                                     ~a: [a_class ["dropdown-item"]; a_href href]
+                                     [
+                                       i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
+                                       txt " ";
+                                       txt text
+                                     ]
+                                 ]
                             )
                             [
-                              (href PersonAdd, "Person");
-                              (href DanceAdd, "Dance");
-                              (href TuneAdd, "Tune");
-                              (href VersionAdd None, "Version");
-                              (href SetAdd, "Set");
-                              (href BookAdd, "Book");
+                              ("person", href PersonAdd, "Person");
+                              ("person-arms-up", href DanceAdd, "Dance");
+                              ("music-note-list", href TuneAdd, "Tune");
+                              ("music-note-beamed", href VersionAdd None, "Version");
+                              ("list-stars", href SetAdd, "Set");
+                              ("book", href BookAdd, "Book");
                             ]
                         );
                     ];
                 ];
             ];
-          button
-            ~a: [a_button_type `Button; a_class ["btn"; "btn-light"; "ms-2"; "d-none"; "d-sm-block"]]
-            [
-              i ~a: [a_class ["bi"; "bi-search"]] [];
-              txt " Search ";
-              span ~a: [a_class ["badge"; "text-bg-secondary"]] [txt "/"];
-            ];
+          Components.Button.make
+            ~label: "Search"
+            ~icon: "search"
+            ~badge: "/"
+            ~classes: ["btn-light"; "ms-2"; "d-none"; "d-sm-block"]
+            ~onclick: (Lwt.map ignore % open_quick_search)
+            ();
         ];
     ]
+
+(* Add an event listener to open the quick search by pressing '/'. *)
+let add_slash_quick_search_event_listener () =
+  Utils.add_target_event_listener
+    Dom_html.window
+    Dom_html.Event.keydown
+    (fun event target ->
+       if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
+         (Lwt.async (Lwt.map ignore % open_quick_search); Js._false)
+       else
+         Js._true
+    )
 
 let footer =
   nav
@@ -173,6 +230,7 @@ let on_load _ev =
   let iter_title = React.S.map set_title (Page.full_title page) in
   Depart.keep_forever iter_title;
   Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
+  add_slash_quick_search_event_listener ();
   Dom.appendChild Dom_html.document##.body (To_dom.of_div @@ Page.render page);
   Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer);
   Js._false
