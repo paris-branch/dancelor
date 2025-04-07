@@ -22,6 +22,11 @@ let quick_search =
       )
     ()
 
+let quick_search_to_explorer value =
+  let href = Endpoints.Page.(href Explore) (Some value) in
+  Dom_html.window##.location##.href := Js.string href;
+  Lwt.pmsleep 10.
+
 let open_quick_search () =
   Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
   Components.Search.Quick.render
@@ -32,14 +37,12 @@ let open_quick_search () =
         ~label: "Explore"
         ~label_processing: "Opening explorer..."
         ~icon: "zoom-in"
+        ~badge: "↵"
         ~classes: ["btn-primary"]
-        ~onclick: (fun () ->
-            let href = Endpoints.Page.(href Explore) (Option.some @@ S.value @@ Components.Search.Quick.text quick_search) in
-            Dom_html.window##.location##.href := Js.string href;
-            Lwt.pmsleep 10.
-          )
+        ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
         ();
     ]
+    ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
     ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
     quick_search
 

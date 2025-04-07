@@ -38,6 +38,7 @@ module Search = struct
   let render
       ~make_result
       ?on_input
+      ?on_enter
       ?(attached_buttons = [])
       ?(show_table_headers = true)
       t
@@ -50,10 +51,11 @@ module Search = struct
             [
               i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
               SearchBar.render
+                t.search_bar
                 ~placeholder: "Search for anything (it really is magic!)"
                 ~autofocus: true
                 ?on_input
-                t.search_bar;
+                ?on_enter;
             ] @
             attached_buttons
           );
@@ -157,6 +159,7 @@ module Quick = struct
       ~dialog_title
       ?(dialog_buttons = [])
       ~make_result
+      ?on_enter
       quick_search
     =
     Page.make
@@ -165,6 +168,7 @@ module Quick = struct
         Search.render
           ~make_result
           ~show_table_headers: false
+          ?on_enter
           quick_search.search;
       ]
       ~buttons: (

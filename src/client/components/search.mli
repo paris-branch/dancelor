@@ -20,6 +20,7 @@ val make :
 val render :
   make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
   ?on_input: (string -> unit) ->
+  ?on_enter: (string -> unit) ->
   ?attached_buttons: [< Html_types.div_content_fun >`I `Input] elt list ->
   ?show_table_headers: bool ->
   'result t ->
@@ -40,6 +41,7 @@ module Quick : sig
     dialog_title: string S.t ->
     ?dialog_buttons: Html_types.div_content_fun elt list ->
     make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
+    ?on_enter: (string -> unit) ->
     'result t ->
     Page.t
 end
