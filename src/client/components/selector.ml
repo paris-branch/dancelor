@@ -78,7 +78,7 @@ let render
   div
     ~a: [a_class ["mb-2"]]
     [
-      label [txt (fst field_name)];
+      label [txt field_name];
       tablex
         ~a: [a_class ["table"; "table-borderless"; "m-0"]]
         [

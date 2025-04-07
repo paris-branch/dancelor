@@ -49,7 +49,7 @@ val render :
   ?make_more_results:
     ('model Entry.t ->
      Utils.ResultRow.t list) ->
-  field_name: (string * string) ->
+  field_name: string ->
   model_name: string ->
   create_dialog_content:
     (?on_save: ('model Entry.t -> unit) ->

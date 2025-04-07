@@ -174,7 +174,7 @@ let create ?on_save ?text () =
                 ~placeholder: "eg. 8x32R or 2x(16R+16S)";
               Selector.render
                 ~make_result: AnyResult.make_person_result'
-                ~field_name: ("Devisers", "deviser")
+                ~field_name: "Devisers"
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.devisers;

@@ -162,7 +162,7 @@ let create ?on_save ?text ?tune () =
             [
               Selector.render
                 ~make_result: AnyResult.make_tune_result'
-                ~field_name: ("Tune", "tune")
+                ~field_name: "Tune"
                 ~model_name: "tune"
                 ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
                 editor.elements.tune;
@@ -180,7 +180,7 @@ let create ?on_save ?text ?tune () =
                 ~placeholder: "eg. AABB or ABAB";
               Selector.render
                 ~make_result: AnyResult.make_person_result'
-                ~field_name: ("Arrangers", "arranger")
+                ~field_name: "Arrangers"
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.arrangers;

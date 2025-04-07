@@ -177,7 +177,7 @@ let create ?on_save ?text () =
                 ~placeholder: "eg. R or Strathspey";
               Selector.render
                 ~make_result: AnyResult.make_person_result'
-                ~field_name: ("Composers", "composer")
+                ~field_name: "Composers"
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.composers;
@@ -187,7 +187,7 @@ let create ?on_save ?text () =
                 ~placeholder: "eg. 2019 or 2012-03-14";
               Selector.render
                 ~make_result: AnyResult.make_dance_result'
-                ~field_name: ("Dances", "dance")
+                ~field_name: "Dances"
                 ~model_name: "dance"
                 ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
                 editor.elements.dances;

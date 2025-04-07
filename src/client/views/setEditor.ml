@@ -158,7 +158,7 @@ let create ?on_save ?text () =
                 ~placeholder: "eg. 8x32R or 2x(16R+16S)";
               Selector.render
                 ~make_result: AnyResult.make_person_result'
-                ~field_name: ("Conceptors", "conceptor")
+                ~field_name: "Conceptors"
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.conceptors;
@@ -167,7 +167,7 @@ let create ?on_save ?text () =
                 ~make_more_results: (fun version ->
                     [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.slug version)]]]
                   )
-                ~field_name: ("Versions", "version")
+                ~field_name: "Versions"
                 ~model_name: "versions"
                 ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
                 editor.elements.versions;
