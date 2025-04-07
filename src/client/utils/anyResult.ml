@@ -194,8 +194,7 @@ let make_result ?classes ?context any =
       ~a: [a_class ["text-nowrap"]]
       [
         i ~a: [a_class ["bi"; any_type_to_bi type_]] [];
-        txt " ";
-        txt (Any.Type.to_string type_);
+        span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt " "; txt (Any.Type.to_string type_)];
       ];
   ]
   in

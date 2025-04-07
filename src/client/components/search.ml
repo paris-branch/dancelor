@@ -91,7 +91,7 @@ let render ?on_input ?(attached_buttons = []) ?(show_table_headers = true) t =
                         thead
                           ~a: [a_class ["table-primary"]]
                           [
-                            tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
+                            tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
                           ]
                       )
                   else None
@@ -103,7 +103,7 @@ let render ?on_input ?(attached_buttons = []) ?(show_table_headers = true) t =
                         tfoot
                           ~a: [a_class ["table-primary"]]
                           [
-                            tr [th [txt "Type"]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"];]
+                            tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
                           ]
                       )
                   else None
