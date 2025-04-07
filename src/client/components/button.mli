@@ -2,8 +2,9 @@ open Html
 
 val make :
   label: string ->
-  label_processing: string ->
-  icon: string ->
+  ?label_processing: string ->
+  ?icon: string ->
+  ?badge: string ->
   classes: string list ->
   ?disabled: bool S.t ->
   onclick: (unit -> unit Lwt.t) ->

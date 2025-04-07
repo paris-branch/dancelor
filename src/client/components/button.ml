@@ -3,8 +3,9 @@ open Html
 
 let make
     ~label
-    ~label_processing
-    ~icon
+    ?label_processing
+    ?icon
+    ?badge
     ~classes
     ?(disabled = S.const false)
     ~onclick
@@ -13,36 +14,59 @@ let make
   let classes = "btn" :: classes in
   let (processing, set_processing) = React.S.create false in
   button
-    [
-      span
-        ~a: [
-          R.a_class
-            (
-              Fun.flip S.map processing @@ function
-              | true -> ["spinner-border"; "spinner-border-sm"]
-              | false -> ["d-none"]
-            );
-          a_aria "hidden" ["true"]
+    (
+      List.concat @@
+      List.filter_map
+        Fun.id
+        [
+          Some
+            [
+              span
+                ~a: [
+                  R.a_class
+                    (
+                      Fun.flip S.map processing @@ function
+                      | true -> ["spinner-border"; "spinner-border-sm"]
+                      | false -> ["d-none"]
+                    );
+                  a_aria "hidden" ["true"]
+                ]
+                [];
+            ];
+          (
+            Fun.flip Option.map icon @@ fun icon ->
+            [
+              i
+                ~a: [
+                  R.a_class
+                    (
+                      Fun.flip S.map processing @@ function
+                      | true -> ["d-none"]
+                      | false -> ["bi"; "bi-" ^ icon]
+                    )
+                ]
+                [];
+              txt " ";
+            ]
+          );
+          Some
+            [
+              R.txt
+                (
+                  Fun.flip S.map processing @@ function
+                  | true -> Option.value ~default: label label_processing
+                  | false -> label
+                );
+            ];
+          (
+            Fun.flip Option.map badge @@ fun badge ->
+            [
+              txt " ";
+              span ~a: [a_class ["badge"; "text-bg-secondary"]] [txt badge];
+            ]
+          )
         ]
-        [];
-      i
-        ~a: [
-          R.a_class
-            (
-              Fun.flip S.map processing @@ function
-              | true -> ["d-none"]
-              | false -> ["bi"; "bi-" ^ icon]
-            )
-        ]
-        [];
-      txt " ";
-      R.txt
-        (
-          Fun.flip S.map processing @@ function
-          | true -> label_processing
-          | false -> label
-        );
-    ]
+    )
     ~a: [
       a_button_type `Button;
       R.a_class
