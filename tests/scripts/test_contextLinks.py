@@ -14,6 +14,7 @@ class TestContextLinks():
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
+    self.driver.set_window_size(1080, 4320)
     self.driver.implicitly_wait(10)
     self.wait = WebDriverWait(self.driver, timeout=10)
     self.vars = {}
@@ -41,7 +42,7 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice”, click on the second “Tam Lin” version and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice")
-    self.driver.find_element(By.CSS_SELECTOR, "div.text-center:nth-child(2) a").click()
+    self.driver.find_element(By.XPATH, "//div[contains(@class, 'text-center') and position()=2]//a").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InSet%22%2C%22tam-lin-thrice%22%2C1%5D"))
 
   def test_fromBook(self):
