@@ -47,31 +47,31 @@ let my_reporter () =
       (level_to_string level)
       (Logs.Src.name src)
   in
-  {Logs.report}
+    {Logs.report}
 
 let update_past_loglevel loglevel =
   (* Crawl through all defined sources, handle the one for this module before
      all others. *)
   (log_src :: Logs.Src.list ())
   |> List.iter @@ fun src ->
-  let name = Logs.Src.name src in
-  let level =
-    (* If the source comes from us, set loglevel to the given one. Otherwise,
-       set to None. *)
-    if name = "server"
-    || String.starts_with ~needle: "server." name
-    || name = "lilypond"
-    || String.starts_with ~needle: "lilypond." name
-    || name = "nes"
-    || String.starts_with ~needle: "nes." name
-    || name = "madge"
-    || String.starts_with ~needle: "madge." name then
-      Some loglevel
-    else
-      None
-  in
-  Logs.Src.set_level src level;
-  Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
+    let name = Logs.Src.name src in
+    let level =
+      (* If the source comes from us, set loglevel to the given one. Otherwise,
+         set to None. *)
+      if name = "server"
+        || String.starts_with ~needle: "server." name
+        || name = "lilypond"
+        || String.starts_with ~needle: "lilypond." name
+        || name = "nes"
+        || String.starts_with ~needle: "nes." name
+        || name = "madge"
+        || String.starts_with ~needle: "madge." name then
+        Some loglevel
+      else
+        None
+    in
+    Logs.Src.set_level src level;
+    Log.debug (fun m -> m "Set '%s' to '%s'" name (Logs.level_to_string level))
 
 let initialise_future_loglevel loglevel =
   Logs.set_level ~all: false (Some loglevel)

@@ -6,7 +6,7 @@
 open Nes
 
 type where =
-    Beginning | End | Nowhere
+  Beginning | End | Nowhere
 [@@deriving yojson]
 
 (* FIXME: There are parameters that are really version-, set- or book-specific,

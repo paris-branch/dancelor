@@ -23,8 +23,8 @@ module Create = struct
       arg_tys
       ~init: body_ty
       ~f: (fun (label, arg_ty) acc ->
-          ptyp_arrow ~loc label arg_ty acc
-        )
+        ptyp_arrow ~loc label arg_ty acc
+      )
   ;;
 end
 
@@ -32,12 +32,11 @@ module Variant_constructor = struct
   type t = {
     name: string;
     loc: Location.t;
-    kind:
-      [
-        | `Normal of core_type list * core_type option
-        | `Normal_inline_record of label_declaration list * core_type option
-        | `Polymorphic of core_type option
-      ]
+    kind: [
+      | `Normal of core_type list * core_type option
+      | `Normal_inline_record of label_declaration list * core_type option
+      | `Polymorphic of core_type option
+    ]
   }
 
   let args t =
@@ -130,10 +129,10 @@ module Variant_constructor = struct
           List.mapi
             lds
             ~f: (fun i ld ->
-                let ident = "v" ^ Int.to_string i in
-                let field_pat = Located.map_lident ld.pld_name, pvar ident ~loc in
-                field_pat, `Labelled (ld.pld_name.txt, ident)
-              )
+              let ident = "v" ^ Int.to_string i in
+              let field_pat = Located.map_lident ld.pld_name, pvar ident ~loc in
+              field_pat, `Labelled (ld.pld_name.txt, ident)
+            )
           |> List.unzip
         in
         (
@@ -188,7 +187,7 @@ module Inspect = struct
       | Pcstr_tuple pcd_args -> `Normal (pcd_args, cd.pcd_res)
       | Pcstr_record fields -> `Normal_inline_record (fields, cd.pcd_res)
     in
-    {name = cd.pcd_name.txt; loc = cd.pcd_name.loc; kind}
+      {name = cd.pcd_name.txt; loc = cd.pcd_name.loc; kind}
   ;;
 
   let type_decl td =
@@ -200,17 +199,17 @@ module Inspect = struct
       List.iter
         cds
         ~f: (fun {name; loc; _} ->
-            let s = variant_name_to_string name in
-            match Hashtbl.find names_as_string s with
-            | None -> Hashtbl.add_exn names_as_string ~key: s ~data: name
-            | Some name' ->
-              Location.raise_errorf
-                ~loc
-                "ppx_variants_conv: constructors %S and %S both get mapped to value %S"
-                name
-                name'
-                s
-          );
+          let s = variant_name_to_string name in
+          match Hashtbl.find names_as_string s with
+          | None -> Hashtbl.add_exn names_as_string ~key: s ~data: name
+          | Some name' ->
+            Location.raise_errorf
+              ~loc
+              "ppx_variants_conv: constructors %S and %S both get mapped to value %S"
+              name
+              name'
+              s
+        );
       cds
     | Ptype_record _ | Ptype_open -> raise_unsupported loc
     | Ptype_abstract ->
@@ -345,27 +344,26 @@ module Gen_sig = struct
           List.map
             variants
             ~f: (fun v ->
-                let module V = Variant_constructor in
-                let return_ty = V.return_ty v ~variant_type in
-                let constructor_type = V.to_fun_type v ~rhs: return_ty in
-                let getter_type_opt = V.to_getter_type v ~lhs: return_ty in
-                let name = variant_name_to_string v.V.name in
+              let module V = Variant_constructor in
+              let return_ty = V.return_ty v ~variant_type in
+              let constructor_type = V.to_fun_type v ~rhs: return_ty in
+              let getter_type_opt = V.to_getter_type v ~lhs: return_ty in
+              let name = variant_name_to_string v.V.name in
+              (
                 (
-                  (
-                    val_ ~loc name constructor_type,
-                    val_ ~loc ("is" ^ v.V.name) tester_type,
-                    Option.map getter_type_opt ~f: (val_ ~loc ("un" ^ v.V.name))
-                  ),
-                  val_ ~loc name [%type: [%t constructor_type] Variantslib.Variant.t]
-                )
+                  val_ ~loc name constructor_type,
+                  val_ ~loc ("is" ^ v.V.name) tester_type,
+                  Option.map getter_type_opt ~f: (val_ ~loc ("un" ^ v.V.name))
+                ),
+                val_ ~loc name [%type: [%t constructor_type] Variantslib.Variant.t]
               )
+            )
         )
     in
     let constructors, testers, getters = List.unzip3 helpers in
     constructors @
     testers @
-    List.filter_opt getters @
-    [
+    List.filter_opt getters @ [
       psig_module
         ~loc
         (
@@ -377,16 +375,16 @@ module Gen_sig = struct
                 ~loc
                 (
                   variant_defs @
-                  List.filter_opt
-                    [
-                      Some (v_fold_fun ~variant_type loc variants);
-                      Some (v_iter_fun ~variant_type loc variants);
-                      v_map_fun_opt ~variant_type loc variants;
-                      v_make_matcher_fun_opt ~variant_type loc variants;
-                      Some (v_to_rank_fun ~variant_type loc variants);
-                      Some (v_to_name_fun ~variant_type loc variants);
-                      Some (v_descriptions ~variant_type loc variants)
-                    ]
+                    List.filter_opt
+                      [
+                        Some (v_fold_fun ~variant_type loc variants);
+                        Some (v_iter_fun ~variant_type loc variants);
+                        v_map_fun_opt ~variant_type loc variants;
+                        v_make_matcher_fun_opt ~variant_type loc variants;
+                        Some (v_to_rank_fun ~variant_type loc variants);
+                        Some (v_to_name_fun ~variant_type loc variants);
+                        Some (v_descriptions ~variant_type loc variants)
+                      ]
                 )
             )
         )
@@ -450,8 +448,8 @@ module Gen_str = struct
       lbls
       ~init: fun_expr
       ~f: (fun txt acc ->
-          pexp_newtype ~loc {txt; loc} acc
-        )
+        pexp_newtype ~loc {txt; loc} acc
+      )
   ;;
 
   let helpers_and_variants loc ~variant_ty variants =
@@ -461,98 +459,98 @@ module Gen_str = struct
       List.mapi
         variants
         ~f: (fun rank v ->
-            let uncapitalized = variant_name_to_string v.V.name in
-            let constructor =
-              let constructed_value =
-                match v.V.kind with
-                | `Normal _ ->
-                  let arg =
-                    pexp_tuple_opt ~loc (List.map (V.args v) ~f: (fun (_, v) -> evar ~loc v))
-                  in
-                  pexp_construct ~loc (Located.lident ~loc v.V.name) arg
-                | `Polymorphic _ ->
-                  let arg =
-                    pexp_tuple_opt ~loc (List.map (V.args v) ~f: (fun (_, v) -> evar ~loc v))
-                  in
-                  pexp_variant ~loc v.V.name arg
-                | `Normal_inline_record (fields, _) ->
-                  let arg =
-                    pexp_record
-                      ~loc
-                      (
-                        List.map2_exn
-                          fields
-                          (V.args v)
-                          ~f: (fun f (_, name) ->
-                              Located.lident ~loc f.pld_name.txt, evar ~loc name
-                            )
-                      )
-                      None
-                  in
-                  pexp_construct ~loc (Located.lident ~loc v.V.name) (Some arg)
-              in
-              pstr_value
-                ~loc
-                Nonrecursive
-                [
-                  value_binding
+          let uncapitalized = variant_name_to_string v.V.name in
+          let constructor =
+            let constructed_value =
+              match v.V.kind with
+              | `Normal _ ->
+                let arg =
+                  pexp_tuple_opt ~loc (List.map (V.args v) ~f: (fun (_, v) -> evar ~loc v))
+                in
+                pexp_construct ~loc (Located.lident ~loc v.V.name) arg
+              | `Polymorphic _ ->
+                let arg =
+                  pexp_tuple_opt ~loc (List.map (V.args v) ~f: (fun (_, v) -> evar ~loc v))
+                in
+                pexp_variant ~loc v.V.name arg
+              | `Normal_inline_record (fields, _) ->
+                let arg =
+                  pexp_record
                     ~loc
-                    ~pat: (pvar ~loc uncapitalized)
-                    ~expr: (
-                      List.fold_right
+                    (
+                      List.map2_exn
+                        fields
                         (V.args v)
-                        ~init: constructed_value
-                        ~f: (fun (label, v) e -> pexp_fun ~loc label None (pvar ~loc v) e)
+                        ~f: (fun f (_, name) ->
+                          Located.lident ~loc f.pld_name.txt, evar ~loc name
+                        )
                     )
-                ]
+                    None
+                in
+                pexp_construct ~loc (Located.lident ~loc v.V.name) (Some arg)
             in
-            let variant =
-              [%stri let [%p pvar ~loc uncapitalized] = {
-                  Variantslib.Variant.name = [%e estring ~loc v.V.name];
-                  rank = [%e eint ~loc rank];
-                  constructor = [%e evar ~loc uncapitalized]
-                };;
+            pstr_value
+              ~loc
+              Nonrecursive
+              [
+                value_binding
+                  ~loc
+                  ~pat: (pvar ~loc uncapitalized)
+                  ~expr: (
+                    List.fold_right
+                      (V.args v)
+                      ~init: constructed_value
+                      ~f: (fun (label, v) e -> pexp_fun ~loc label None (pvar ~loc v) e)
+                  )
               ]
+          in
+          let variant =
+            [%stri let [%p pvar ~loc uncapitalized] = {
+                Variantslib.Variant.name = [%e estring ~loc v.V.name];
+                rank = [%e eint ~loc rank];
+                constructor = [%e evar ~loc uncapitalized]
+              };;
+            ]
+          in
+          let match_fun ~name ~true_case ~false_expr =
+            let cases =
+              if multiple_cases then [true_case; case ~guard: None ~lhs: [%pat? _] ~rhs: false_expr]
+              else [true_case]
             in
-            let match_fun ~name ~true_case ~false_expr =
-              let cases =
-                if multiple_cases then [true_case; case ~guard: None ~lhs: [%pat? _] ~rhs: false_expr]
-                else [true_case]
-              in
-              let body =
-                if Variant_constructor.is_gadt v then locally_abstract_match loc cases ~variant_ty
-                else pexp_function ~loc cases
-              in
-              [%stri let [%p pvar ~loc name] = [%e body] [@@warning "-4"]]
+            let body =
+              if Variant_constructor.is_gadt v then locally_abstract_match loc cases ~variant_ty
+              else pexp_function ~loc cases
             in
-            let tester =
-              let name = "is" ^ v.V.name in
-              let true_case =
-                case
-                  ~guard: None
-                  ~lhs: (Variant_constructor.pattern_without_binding v)
-                  ~rhs: [%expr true]
-              in
-              match_fun ~name ~true_case ~false_expr: [%expr false]
+            [%stri let [%p pvar ~loc name] = [%e body] [@@warning "-4"]]
+          in
+          let tester =
+            let name = "is" ^ v.V.name in
+            let true_case =
+              case
+                ~guard: None
+                ~lhs: (Variant_constructor.pattern_without_binding v)
+                ~rhs: [%expr true]
             in
-            let getter_opt =
-              (* We cannot generate a getter for GADTs in the case that we have existentially
-                 quantified type vars. Further we can't generate _regular_ getter functions
-                 when the GADT is non-regular. For the time being we skip generating getters
-                 for GADTs altogether *)
-              if Variant_constructor.is_gadt v then None
-              else
-                (
-                  let name = "un" ^ v.V.name in
-                  let pat, expr = Variant_constructor.to_getter_case v in
-                  let true_case =
-                    case ~guard: None ~lhs: pat ~rhs: [%expr Stdlib.Option.Some [%e expr]]
-                  in
-                  Some (match_fun ~name ~true_case ~false_expr: [%expr Stdlib.Option.None])
-                )
-            in
-            (constructor, tester, getter_opt), variant
-          )
+            match_fun ~name ~true_case ~false_expr: [%expr false]
+          in
+          let getter_opt =
+            (* We cannot generate a getter for GADTs in the case that we have existentially
+               quantified type vars. Further we can't generate _regular_ getter functions
+               when the GADT is non-regular. For the time being we skip generating getters
+               for GADTs altogether *)
+            if Variant_constructor.is_gadt v then None
+            else
+              (
+                let name = "un" ^ v.V.name in
+                let pat, expr = Variant_constructor.to_getter_case v in
+                let true_case =
+                  case ~guard: None ~lhs: pat ~rhs: [%expr Stdlib.Option.Some [%e expr]]
+                in
+                Some (match_fun ~name ~true_case ~false_expr: [%expr Stdlib.Option.None])
+              )
+          in
+          (constructor, tester, getter_opt), variant
+        )
       |> List.unzip
     in
     let constructors, testers, getters = List.unzip3 helpers in
@@ -582,8 +580,8 @@ module Gen_str = struct
       List.map
         variants
         ~f: (fun variant ->
-            label_arg_fun loc (variant_name_to_string variant.V.name)
-          )
+          label_arg_fun loc (variant_name_to_string variant.V.name)
+        )
     in
     let init = label_arg ~label: "init" loc "init__" in
     let lambda = Create.lambda loc (init :: patterns) body in
@@ -632,8 +630,8 @@ module Gen_str = struct
                       fields
                       (V.args variant)
                       ~f: (fun f (_, v) ->
-                          Located.lident ~loc f.pld_name.txt, pvar ~loc v
-                        )
+                        Located.lident ~loc f.pld_name.txt, pvar ~loc v
+                      )
                   )
                   Closed
               in
@@ -650,8 +648,8 @@ module Gen_str = struct
                   [evar ~loc uncapitalized]
               )
               ~f: (fun acc_expr (label, var) ->
-                  pexp_apply ~loc acc_expr [label, evar ~loc var]
-                )
+                pexp_apply ~loc acc_expr [label, evar ~loc var]
+              )
           in
           case ~guard: None ~lhs: pattern ~rhs: value
         in
@@ -660,8 +658,8 @@ module Gen_str = struct
           List.map
             variants
             ~f: (fun variant ->
-                label_arg_fun loc (variant_name_to_string variant.V.name)
-              )
+              label_arg_fun loc (variant_name_to_string variant.V.name)
+            )
         in
         let lambda = Create.lambda loc ((Nolabel, [%pat? t__]) :: patterns) body in
         Some [%stri let map = [%e lambda]]
@@ -695,19 +693,19 @@ module Gen_str = struct
               variants
               ~init: [%expr map]
               ~f: (fun acc variant ->
-                  let variant_name = variant_name_to_string variant.V.name in
-                  pexp_apply
-                    ~loc
-                    acc
-                    [
-                      (
-                        Labelled variant_name,
-                        match V.args variant with
-                        | [] -> [%expr fun _ -> [%e evar ~loc (variant_name ^ "_gen__")] ()]
-                        | _ :: _ -> [%expr fun _ -> [%e evar ~loc (variant_name ^ "_gen__")]]
-                      )
-                    ]
-                )
+                let variant_name = variant_name_to_string variant.V.name in
+                pexp_apply
+                  ~loc
+                  acc
+                  [
+                    (
+                      Labelled variant_name,
+                      match V.args variant with
+                      | [] -> [%expr fun _ -> [%e evar ~loc (variant_name ^ "_gen__")] ()]
+                      | _ :: _ -> [%expr fun _ -> [%e evar ~loc (variant_name ^ "_gen__")]]
+                    )
+                  ]
+              )
           in
           [%expr [%e map], compile_acc__]
         in
@@ -716,35 +714,33 @@ module Gen_str = struct
             variants
             ~init: result
             ~f: (fun variant acc ->
-                let variant_name = variant_name_to_string variant.V.name in
-                pexp_let
+              let variant_name = variant_name_to_string variant.V.name in
+              pexp_let
+                ~loc
+                Nonrecursive
+                [value_binding
                   ~loc
-                  Nonrecursive
-                  [
-                    value_binding
+                  ~pat: (
+                    ppat_tuple
                       ~loc
-                      ~pat: (
-                        ppat_tuple
-                          ~loc
-                          [
-                            [%pat? [%p pvar ~loc (variant_name ^ "_gen__")]];
-                            [%pat? compile_acc__]
-                          ]
-                      )
-                      ~expr: [%expr [%e evar ~loc (variant_name ^ "_fun__")]
-                          [%e evar ~loc variant_name]
-                          compile_acc__
+                      [
+                        [%pat? [%p pvar ~loc (variant_name ^ "_gen__")]];
+                        [%pat? compile_acc__]
                       ]
-                  ]
-                  acc
-              )
+                  )
+                  ~expr: [%expr [%e evar ~loc (variant_name ^ "_fun__")]
+                      [%e evar ~loc variant_name]
+                      compile_acc__
+                  ]]
+                acc
+            )
         in
         let patterns =
           List.map
             variants
             ~f: (fun v ->
-                label_arg_fun loc (variant_name_to_string v.V.name)
-              )
+              label_arg_fun loc (variant_name_to_string v.V.name)
+            )
         in
         let lambda =
           Create.lambda loc (patterns @ [Nolabel, [%pat? compile_acc__]]) body
@@ -758,8 +754,8 @@ module Gen_str = struct
       List.mapi
         variants
         ~f: (fun rank v ->
-            Variant_constructor.pattern_without_binding v, f ~rank ~name: v.name
-          )
+          Variant_constructor.pattern_without_binding v, f ~rank ~name: v.name
+        )
     in
     List.map pattern_and_rhs ~f: (fun (pattern, rhs) -> case ~guard: None ~lhs: pattern ~rhs)
   ;;
@@ -792,8 +788,7 @@ module Gen_str = struct
     in
     constructors @
     testers @
-    getters @
-    [
+    getters @ [
       pstr_module
         ~loc
         (
@@ -805,16 +800,16 @@ module Gen_str = struct
                 ~loc
                 (
                   variants @
-                  List.filter_opt
-                    [
-                      Some (v_fold_fun loc ty);
-                      Some (v_iter_fun loc ty);
-                      v_map_fun_opt loc ty;
-                      v_make_matcher_fun_opt loc ty;
-                      Some (v_to_rank loc ty ~variant_ty);
-                      Some (v_to_name loc ty ~variant_ty);
-                      Some (v_descriptions loc ty)
-                    ]
+                    List.filter_opt
+                      [
+                        Some (v_fold_fun loc ty);
+                        Some (v_iter_fun loc ty);
+                        v_map_fun_opt loc ty;
+                        v_make_matcher_fun_opt loc ty;
+                        Some (v_to_rank loc ty ~variant_ty);
+                        Some (v_to_name loc ty ~variant_ty);
+                        Some (v_descriptions loc ty)
+                      ]
                 )
             )
         )

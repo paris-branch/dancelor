@@ -37,8 +37,7 @@ let create () =
   in
   {
     choice_rows = (
-      set_dialog.choice_rows @
-      [
+      set_dialog.choice_rows @ [
         tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
       ]
     );

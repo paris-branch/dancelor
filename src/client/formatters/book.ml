@@ -10,7 +10,7 @@ let title_and_subtitle ?(link = true) book =
       | "" -> []
       | subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt subtitle]]
     in
-    (title_text @ subtitle_block)
+      (title_text @ subtitle_block)
   else
     title_text
 

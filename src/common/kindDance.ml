@@ -18,7 +18,7 @@ let of_string_opt s =
   try
     Some (KindDanceParser.main KindDanceLexer.token (Lexing.from_string s))
   with
-  | KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
+    | KindDanceParser.Error | KindDanceLexer.UnexpectedCharacter _ -> None
 
 let of_string s =
   match of_string_opt s with Some k -> k | None -> failwith "Kind.Dance.of_string"
@@ -43,7 +43,7 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-      | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a valid dance kind"
+        | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a valid dance kind"
     )
   | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a JSON string"
 
@@ -83,22 +83,22 @@ module Filter = struct
 
   let accepts filter kind =
     Formula.interpret filter @@ function
-    | Is kind' ->
-      Lwt.return (Formula.interpret_bool (kind = kind'))
-    | Simple ->
-      (
-        match kind with
-        | Mul (_, Version _) -> Lwt.return Formula.interpret_true
-        | _ -> Lwt.return Formula.interpret_false
-      )
-    | Version vfilter ->
-      Lwt.map
-        Formula.interpret_and_l
+      | Is kind' ->
+        Lwt.return (Formula.interpret_bool (kind = kind'))
+      | Simple ->
         (
-          Lwt_list.map_s
-            (KindVersion.Filter.accepts vfilter)
-            (version_kinds kind)
+          match kind with
+          | Mul (_, Version _) -> Lwt.return Formula.interpret_true
+          | _ -> Lwt.return Formula.interpret_false
         )
+      | Version vfilter ->
+        Lwt.map
+          Formula.interpret_and_l
+          (
+            Lwt_list.map_s
+              (KindVersion.Filter.accepts vfilter)
+              (version_kinds kind)
+          )
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -110,10 +110,10 @@ module Filter = struct
             [
               raw
                 (fun string ->
-                   Option.fold
-                     ~some: (Result.ok % is')
-                     ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
-                     (of_string_opt string)
+                  Option.fold
+                    ~some: (Result.ok % is')
+                    ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
+                    (of_string_opt string)
                 );
               nullary ~name: "simple" Simple;
               unary_lift ~name: "version" (version, unVersion) ~converter: KindVersion.Filter.text_formula_converter;

@@ -25,7 +25,8 @@ let text_formula_converter =
         unary_string ~name: "name-matches" (nameMatches, unNameMatches);
         unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Dance.Filter.text_formula_converter;
         unary_lift ~name: "exists-deviser" (existsDeviser, unExistsDeviser) ~converter: Person.text_formula_converter;
-        unary_lift ~name: "by" (existsDeviser, unExistsDeviser) ~converter: Person.text_formula_converter; (* alias for deviser; FIXME: make this clearer *)
+        unary_lift ~name: "by" (existsDeviser, unExistsDeviser) ~converter: Person.text_formula_converter;
+        (* alias for deviser; FIXME: make this clearer *)
         unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
       ]
   )

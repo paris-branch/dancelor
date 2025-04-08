@@ -33,7 +33,7 @@ module Search = struct
         ?initial_input
         ()
     in
-    {pagination; search_bar; min_characters}
+      {pagination; search_bar; min_characters}
 
   let render
       ~make_result
@@ -48,34 +48,33 @@ module Search = struct
         div
           ~a: [a_class ["input-group"; "mb-2"]]
           (
-            [
-              i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
-              SearchBar.render
-                t.search_bar
-                ~placeholder: "Search for anything (it really is magic!)"
-                ~autofocus: true
-                ?on_input
-                ?on_enter;
+            [i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
+            SearchBar.render
+              t.search_bar
+              ~placeholder: "Search for anything (it really is magic!)"
+              ~autofocus: true
+              ?on_input
+              ?on_enter;
             ] @
-            attached_buttons
+              attached_buttons
           );
         R.div
           (
             Fun.flip S.map (SearchBar.state t.search_bar) @@ function
-            | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
-            | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-            | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
-            | ContinueTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
-            | _ -> []
+              | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
+              | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
+              | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
+              | ContinueTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
+              | _ -> []
           );
         div
           ~a: [
             R.a_class
               (
                 Fun.flip S.map (SearchBar.state t.search_bar) @@ function
-                | Results _ when show_table_headers -> ["my-4"]
-                | Results _ -> []
-                | _ -> ["d-none"]
+                  | Results _ when show_table_headers -> ["my-4"]
+                  | Results _ -> []
+                  | _ -> ["d-none"]
               )
           ]
           [
@@ -117,13 +116,13 @@ module Search = struct
                     R.tbody
                       (
                         Fun.flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
-                        @@ fun (_, state) ->
-                        match state with
-                        | Results results ->
-                          let context = S.map Common.Endpoints.Page.inSearch @@ SearchBar.text t.search_bar in
-                          List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
-                        (* List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results *)
-                        | _ -> []
+                          @@ fun (_, state) ->
+                          match state with
+                          | Results results ->
+                            let context = S.map Common.Endpoints.Page.inSearch @@ SearchBar.text t.search_bar in
+                            List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
+                          (* List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results *)
+                          | _ -> []
                       )
                   ];
               ];
@@ -143,16 +142,16 @@ module Quick = struct
   let text quick_search = SearchBar.text @@ Search.search_bar quick_search.search
 
   let make
+    ~search
+    ()
+  = {
+    search =
+    Search.make
       ~search
-      ()
-    = {
-      search =
-        Search.make
-          ~search
-          ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 20 ()))
-          ~min_characters: 3
-          ();
-    }
+      ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 20 ()))
+      ~min_characters: 3
+      ();
+  }
 
   let render
       ~return
@@ -164,12 +163,11 @@ module Quick = struct
     =
     Page.make
       ~title: dialog_title
-      [
-        Search.render
-          ~make_result
-          ~show_table_headers: false
-          ?on_enter
-          quick_search.search;
+      [Search.render
+        ~make_result
+        ~show_table_headers: false
+        ?on_enter
+        quick_search.search;
       ]
       ~buttons: (
         Button.cancel' ~return () :: dialog_buttons

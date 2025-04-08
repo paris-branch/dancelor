@@ -3,20 +3,20 @@ open Madge
 open ModelBuilder
 
 type (_, _, _) t =
-  (* Actions without specific version *)
-  | Create : ((Version.t -> 'w), 'w, Version.t Entry.t) t
-  | Search : ((Slice.t -> Version.Filter.t -> 'w), 'w, (int * Version.t Entry.t list)) t
-  (* Actions on a specific version *)
-  | Get : ((Version.t Slug.t -> 'w), 'w, Version.t Entry.t) t
-  | Update : ((Version.t Slug.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
-  (* Files related to a version *)
-  | Ly : ((Version.t Slug.t -> 'w), 'w, Void.t) t
-  | Svg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
-  | Ogg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
-  | Pdf : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
-  (* Files related to an anonymous version *)
-  | PreviewSvg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
-  | PreviewOgg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
+(* Actions without specific version *)
+| Create : ((Version.t -> 'w), 'w, Version.t Entry.t) t
+| Search : ((Slice.t -> Version.Filter.t -> 'w), 'w, (int * Version.t Entry.t list)) t
+(* Actions on a specific version *)
+| Get : ((Version.t Slug.t -> 'w), 'w, Version.t Entry.t) t
+| Update : ((Version.t Slug.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
+(* Files related to a version *)
+| Ly : ((Version.t Slug.t -> 'w), 'w, Void.t) t
+| Svg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
+| Ogg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
+| Pdf : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
+(* Files related to an anonymous version *)
+| PreviewSvg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
+| PreviewOgg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"

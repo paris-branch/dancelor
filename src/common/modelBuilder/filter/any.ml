@@ -108,14 +108,14 @@ let type_based_cleanup =
       let (t, _) = refine_types_and_cleanup t f1 in
       let (t, f2) = refine_types_and_cleanup t f2 in
       let (t, f1) = refine_types_and_cleanup t f1 in
-      (t, and_ f1 f2)
+        (t, and_ f1 f2)
     | Or (f1, f2) ->
       let (t1, f1) = refine_types_and_cleanup t f1 in
       let (t2, f2) = refine_types_and_cleanup t f2 in
-      (Core.Any.Type.Set.union t1 t2, or_ f1 f2)
+        (Core.Any.Type.Set.union t1 t2, or_ f1 f2)
     | Pred p ->
       let ts = Core.Any.Type.Set.inter (types_of_predicate p) t in
-      (ts, if Core.Any.Type.Set.is_empty ts then False else Pred p)
+        (ts, if Core.Any.Type.Set.is_empty ts then False else Pred p)
   in
   snd % refine_types_and_cleanup Core.Any.Type.Set.all
 
@@ -157,7 +157,7 @@ let optimise =
           | Tune tfilter -> tune @@ Tune.optimise tfilter
           | Version vfilter -> version @@ Version.optimise vfilter
         ) %
-      type_based_cleanup
+        type_based_cleanup
     )
 
 let to_pretty_string =
@@ -167,15 +167,15 @@ let to_pretty_string =
   in
   let add_explicit_type =
     Formula.convert @@ function
-    | Person f -> type_and Person person' f
-    | Dance f -> type_and Dance dance' f
-    | Book f -> type_and Book book' f
-    | Set f -> type_and Set set' f
-    | Tune f -> type_and Tune tune' f
-    | Version f -> type_and Version version' f
-    | p -> Formula.pred p
+      | Person f -> type_and Person person' f
+      | Dance f -> type_and Dance dance' f
+      | Book f -> type_and Book book' f
+      | Set f -> type_and Set set' f
+      | Tune f -> type_and Tune tune' f
+      | Version f -> type_and Version version' f
+      | p -> Formula.pred p
   in
   TextFormula.to_string %
-  TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
-  add_explicit_type %
-  optimise
+    TextFormula.of_formula (make_text_formula_converter ~human: true ()) %
+    add_explicit_type %
+    optimise

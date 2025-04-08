@@ -40,21 +40,21 @@ val clear : ('arity, 'model) t -> unit
 
 val render :
   make_result:
-    (?classes: string list ->
-     ?action: Utils.ResultRow.action ->
-     ?prefix: Utils.ResultRow.cell list ->
-     ?suffix: Utils.ResultRow.cell list ->
-     'model Entry.t ->
-     Utils.ResultRow.t) ->
+  (?classes: string list ->
+  ?action: Utils.ResultRow.action ->
+  ?prefix: Utils.ResultRow.cell list ->
+  ?suffix: Utils.ResultRow.cell list ->
+  'model Entry.t ->
+  Utils.ResultRow.t) ->
   ?make_more_results:
-    ('model Entry.t ->
-     Utils.ResultRow.t list) ->
+  ('model Entry.t ->
+  Utils.ResultRow.t list) ->
   field_name: string ->
   model_name: string ->
   create_dialog_content:
-    (?on_save: ('model Entry.t -> unit) ->
-     string ->
-     Page.t) ->
+  (?on_save: ('model Entry.t -> unit) ->
+  string ->
+  Page.t) ->
   ('arity, 'model) t ->
   [> Html_types.div] Html.elt
 (** The optional argument [?make_more_results] adds rows to the table after the

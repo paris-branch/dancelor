@@ -12,25 +12,25 @@ type t = {
 
 let full_title p =
   Fun.flip S.map p.title @@ function
-  | "" -> p.parent_title
-  | title ->
-    match p.parent_title with
-    | "" -> title
-    | _ -> title ^ " | " ^ p.parent_title
+    | "" -> p.parent_title
+    | title ->
+      match p.parent_title with
+      | "" -> title
+      | _ -> title ^ " | " ^ p.parent_title
 
 let make
-    ?(parent_title = "")
-    ~title
-    ?(before_title = [])
-    ?(buttons = [])
-    content
-  = {
-    parent_title;
-    before_title;
-    title;
-    content;
-    buttons;
-  }
+  ?(parent_title = "")
+  ~title
+  ?(before_title = [])
+  ?(buttons = [])
+  content
+= {
+  parent_title;
+  before_title;
+  title;
+  content;
+  buttons;
+}
 
 let render p =
   div
@@ -114,10 +114,10 @@ let open_dialog
      background takes everything. *)
   (* Add an event listener to close the box by clicking outside of it. *)
   Utils.add_target_event_listener Dom_html.window Dom_html.Event.click (fun _event target ->
-      if target = (dom_box :> Dom_html.element Js.t) then
-        return None;
-      Js._true
-    );
+    if target = (dom_box :> Dom_html.element Js.t) then
+      return None;
+    Js._true
+  );
 
   (* Return the promise of a result. *)
   promise

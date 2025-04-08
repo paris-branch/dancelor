@@ -16,9 +16,9 @@ let create ?query () =
   let search =
     Search.make
       ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Any.search slice filter
-        )
+        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+        Lwt.map Result.ok @@ Model.Any.search slice filter
+      )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
       ()
@@ -37,12 +37,12 @@ let create ?query () =
             ~icon: "filter"
             ~classes: ["btn-primary"]
             ~onclick: (fun () ->
-                let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
-                (* TODO: On return, add a space and focus the search bar. *)
-                Lwt.map
-                  (Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text))
-                  (SearchComplexFiltersDialog.open_ search_text)
-              )
+              let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
+              (* TODO: On return, add a space and focus the search bar. *)
+              Lwt.map
+                (Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text))
+                (SearchComplexFiltersDialog.open_ search_text)
+            )
             ();
         ]
     ]
