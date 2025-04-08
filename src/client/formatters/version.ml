@@ -70,20 +70,20 @@ let name_disambiguation_and_sources ?link version =
       )
     in
     Lwt.return @@
-    match List.map Book.short_title sources with
-    | [] -> []
-    | [title] -> txt "Source: " :: title
-    | titles ->
-      titles
-      |> List.interspersei (fun _ -> [txt " - "])
-      |> List.flatten
-      |> List.cons (txt "Sources: ")
+      match List.map Book.short_title sources with
+      | [] -> []
+      | [title] -> txt "Source: " :: title
+      | titles ->
+        titles
+        |> List.interspersei (fun _ -> [txt " - "])
+        |> List.flatten
+        |> List.cons (txt "Sources: ")
   in
   let%lwt name_and_disambiguation = name_and_disambiguation ?link version in
   Lwt.return
     (
       name_and_disambiguation @
-      [L.span ~a: [a_class ["opacity-50"]] sources_lwt]
+        [L.span ~a: [a_class ["opacity-50"]] sources_lwt]
     )
 
 let disambiguation_and_sources version =
@@ -97,14 +97,14 @@ let disambiguation_and_sources version =
       )
     in
     Lwt.return @@
-    match List.map Book.short_title sources with
-    | [] -> []
-    | [title] -> txt "Source: " :: title
-    | titles ->
-      titles
-      |> List.interspersei (fun _ -> [txt " - "])
-      |> List.flatten
-      |> List.cons (txt "Sources: ")
+      match List.map Book.short_title sources with
+      | [] -> []
+      | [title] -> txt "Source: " :: title
+      | titles ->
+        titles
+        |> List.interspersei (fun _ -> [txt " - "])
+        |> List.flatten
+        |> List.cons (txt "Sources: ")
   in
   Lwt.return
     [

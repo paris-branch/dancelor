@@ -26,7 +26,8 @@ let text_formula_converter =
         unary_string ~name: "name" (name, unName);
         unary_string ~name: "name-matches" (nameMatches, unNameMatches);
         unary_lift ~name: "exists-conceptor" (existsConceptor, unExistsConceptor) ~converter: Person.text_formula_converter;
-        unary_lift ~name: "by" (existsConceptor, unExistsConceptor) ~converter: Person.text_formula_converter; (* alias for exists-conceptor; FIXME: make this clearer *)
+        unary_lift ~name: "by" (existsConceptor, unExistsConceptor) ~converter: Person.text_formula_converter;
+        (* alias for exists-conceptor; FIXME: make this clearer *)
         unary_lift ~name: "exists-version" (existsVersion, unExistsVersion) ~converter: Version.text_formula_converter;
         unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Dance.Filter.text_formula_converter;
         unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);

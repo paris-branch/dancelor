@@ -8,8 +8,8 @@ let remove_char ?(char_equal = Char.equal) c s =
   let j = ref 0 in
   iter
     (fun c' ->
-       if not (char_equal c c') then
-         (Bytes.set b !j c'; incr j)
+      if not (char_equal c c') then
+          (Bytes.set b !j c'; incr j)
     )
     s;
   Bytes.sub_string b 0 !j
@@ -24,7 +24,7 @@ let starts_with ?(equal = equal) ~needle haystack =
   try
     equal (sub haystack 0 (length needle)) needle
   with
-  | Invalid_argument _ -> false
+    | Invalid_argument _ -> false
 
 let%test _ = starts_with ~needle: "he" "hello"
 let%test _ = not (starts_with ~needle: "hee" "hello")
@@ -35,7 +35,7 @@ let ends_with ?(equal = equal) ~needle haystack =
   try
     equal (sub haystack (length haystack - l) l) needle
   with
-  | Invalid_argument _ -> false
+    | Invalid_argument _ -> false
 
 let%test _ = ends_with ~needle: "lo" "hello"
 let%test _ = not (ends_with ~needle: "elo" "hello")
@@ -55,7 +55,7 @@ let remove_prefix ~needle haystack =
   try
     Some (remove_prefix_exn ~needle haystack)
   with
-  | Invalid_argument _ | Failure _ -> None
+    | Invalid_argument _ | Failure _ -> None
 
 let%test _ = remove_prefix ~needle: "" "hello" = Some "hello"
 let%test _ = remove_prefix ~needle: "he" "hello" = Some "llo"
@@ -75,7 +75,7 @@ let remove_suffix ~needle haystack =
   try
     Some (remove_suffix_exn ~needle haystack)
   with
-  | Invalid_argument _ | Failure _ -> None
+    | Invalid_argument _ | Failure _ -> None
 
 let%test _ = remove_suffix ~needle: "" "hello" = Some "hello"
 let%test _ = remove_suffix ~needle: "lo" "hello" = Some "hel"
@@ -125,12 +125,12 @@ let%test _ = distance "chou" "achauffe" = 5
 let proximity ?char_equal needle haystack =
   let l = max (length needle) (length haystack) in
   1. -.
-  (
-    if l = 0 then 0.
-    else
-      let d = distance ?char_equal needle haystack in
-      (foi d) /. (foi l)
-  )
+    (
+      if l = 0 then 0.
+      else
+        let d = distance ?char_equal needle haystack in
+        (foi d) /. (foi l)
+    )
 
 (** [inclusion_distance ~needle haystack] is similar to [distance needle
     haystack] except with the best sub-string of [haystack]. Note: this is not a
@@ -171,12 +171,12 @@ let%test _ = inclusion_distance ~needle: "chou" "achauffe" = 1
 let inclusion_proximity ?char_equal ~needle haystack =
   let l = length needle in
   1. -.
-  (
-    if l = 0 then 0.
-    else
-      let d = inclusion_distance ?char_equal ~needle haystack in
-      (foi d) /. (foi l)
-  )
+    (
+      if l = 0 then 0.
+      else
+        let d = inclusion_distance ?char_equal ~needle haystack in
+        (foi d) /. (foi l)
+    )
 
 let escape ?(esc = '\\') ~chars s =
   let l = length s in
@@ -215,7 +215,7 @@ let slugify ?(sep = '-') string =
 let is_slug ?(sep = '-') string =
   String.for_all
     (fun c ->
-       ('a' <= c && c <= 'z') || c = sep || ('0' <= c && c <= '9')
+      ('a' <= c && c <= 'z') || c = sep || ('0' <= c && c <= '9')
     )
     string
 
@@ -290,14 +290,14 @@ let compare_lengths s1 s2 =
   Int.compare (length s1) (length s2)
 
 module Set = Set.Make(struct
-    type nonrec t = t
-    let compare = compare
-  end)
+  type nonrec t = t
+  let compare = compare
+end)
 
 module Map = Map.Make(struct
-    type nonrec t = t
-    let compare = compare
-  end)
+  type nonrec t = t
+  let compare = compare
+end)
 
 let whitespace_chars = [' '; '\x0C'; '\t'; '\n'; '\r']
 

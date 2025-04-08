@@ -28,7 +28,7 @@ let get_neighbours any = function
     let%lwt book = Book.get book in
     let%lwt context =
       Lwt.map (List.map_context book_page_to_any % Option.get) @@
-      Book.find_context_no_inline index book
+        Book.find_context_no_inline index book
     in
     Lwt.return context
 
@@ -105,14 +105,13 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
   Fun.flip Option.map neighbour @@ fun neighbour ->
   let href = Endpoints.Page.href_any ~context: (neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
-      if ev##.keyCode = (if left then 37 else 39) then
-        Dom_html.window##.location##.href := Js.string href
-    );
+    if ev##.keyCode = (if left then 37 else 39) then
+      Dom_html.window##.location##.href := Js.string href
+  );
   a
     ~a: [
       a_href href;
-      a_class
-        [
+      a_class[
           "bg-secondary-subtle";
           "opacity-0";
           "hover-opacity-50";
@@ -123,44 +122,43 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
           "text-center";
           "p-2";
         ];
-    ]
-    [
+    ][
       div
         ~a: [
         ]
         [
           let element_repr =
-            [
-              [txt Any.(Type.to_string (type_of neighbour))];
-              [L.txt @@ Any.name neighbour];
+            [[txt Any.(Type.to_string (type_of neighbour))];
+            [L.txt @@ Any.name neighbour];
             ] @
-            (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
+              (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
           in
           div
             (
               (
-                i ~a: [a_class ["fs-1"; "bi"; ("bi-caret-" ^ (if left then "left" else "right") ^ "-fill")]] []
-              ) :: List.map div element_repr
-            );
-        ];
-    ]
+                i ~a: [a_class["fs-1"; "bi"; ("bi-caret-" ^ (if left then "left" else "right") ^ "-fill")]]
+                    []
+                ) :: List.map div element_repr
+              );
+          ];
+        ]
 
-let make_and_render ?context ~this_page any_lwt =
-  match context with
-  | None -> div []
-  | Some context ->
-    L.div
-      (
-        let%lwt any = any_lwt in
-        let%lwt {total; previous; index; next; _} = get_neighbours any context in
-        Lwt.return @@
-        List.filter_map
-          Fun.id
-          [
-            make_context_link ~context ~left: true ~neighbour: previous ~number_of_others: (index - 1);
-            make_context_link ~context ~left: false ~neighbour: next ~number_of_others: (total - index - 2);
-            (* The banner must be placed after the side-links so as to be appear on
-               top in the HTML rendering. *)
-            Some (make_context_link_banner ~context ~this_page);
-          ]
-      );
+      let make_and_render ?context ~this_page any_lwt =
+        match context with
+        | None -> div []
+        | Some context ->
+          L.div
+            (
+              let%lwt any = any_lwt in
+              let%lwt {total; previous; index; next; _} = get_neighbours any context in
+              Lwt.return @@
+                List.filter_map
+                  Fun.id
+                  [
+                    make_context_link ~context ~left: true ~neighbour: previous ~number_of_others: (index - 1);
+                    make_context_link ~context ~left: false ~neighbour: next ~number_of_others: (total - index - 2);
+                    (* The banner must be placed after the side-links so as to be appear on
+                       top in the HTML rendering. *)
+                    Some (make_context_link_banner ~context ~this_page);
+                  ]
+            );

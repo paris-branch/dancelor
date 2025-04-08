@@ -89,7 +89,7 @@ let type_choices filter =
       (
         choice' [txt "All"] ~checked: (filter = None) :: List.map
           (fun type_ ->
-             choice' [txt (Any.Type.to_string type_)] ~value: type_ ~checked: (checked type_)
+            choice' [txt (Any.Type.to_string type_)] ~value: type_ ~checked: (checked type_)
           )
           Any.Type.all
       )
@@ -110,10 +110,10 @@ let kind_choices filter =
       (
         List.map
           (fun kind ->
-             choice
-               [txt (Kind.Base.to_pretty_string ~capitalised: true kind)]
-               ~value: kind
-               ~checked: (checked kind)
+            choice
+              [txt (Kind.Base.to_pretty_string ~capitalised: true kind)]
+              ~value: kind
+              ~checked: (checked kind)
           )
           Kind.Base.all
       )
@@ -128,18 +128,18 @@ let person_bundled_choices _filter = (S.const Formula.true_, [])
 let dance_bundled_choices ~kind_choices _filter =
   let formula =
     S.map (Any.Filter.dance' % Formula.and_l) @@
-    S.all
-      [
-        choices_formula
-          ~s: (Choices.signal kind_choices)
-          ~f: (Dance.Filter.kind' % Kind.Dance.Filter.baseIs');
-      ]
+      S.all
+        [
+          choices_formula
+            ~s: (Choices.signal kind_choices)
+            ~f: (Dance.Filter.kind' % Kind.Dance.Filter.baseIs');
+        ]
   in
   let html = [
     Choices.render kind_choices;
   ]
   in
-  (formula, html)
+    (formula, html)
 
 (* book-specific choices *)
 
@@ -150,36 +150,36 @@ let book_bundled_choices _filter = (S.const Formula.true_, [])
 let set_bundled_choices ~kind_choices _filter =
   let formula =
     S.map (Any.Filter.set' % Formula.and_l) @@
-    S.all
-      [
-        choices_formula
-          ~s: (Choices.signal kind_choices)
-          ~f: (Set.Filter.kind' % Kind.Dance.Filter.baseIs');
-      ]
+      S.all
+        [
+          choices_formula
+            ~s: (Choices.signal kind_choices)
+            ~f: (Set.Filter.kind' % Kind.Dance.Filter.baseIs');
+        ]
   in
   let html = [
     Choices.render kind_choices;
   ]
   in
-  (formula, html)
+    (formula, html)
 
 (* tune-specific choices *)
 
 let tune_bundled_choices ~kind_choices _filter =
   let formula =
     S.map (Any.Filter.tune' % Formula.and_l) @@
-    S.all
-      [
-        choices_formula
-          ~s: (Choices.signal kind_choices)
-          ~f: (Tune.Filter.kind' % Kind.Base.Filter.is');
-      ]
+      S.all
+        [
+          choices_formula
+            ~s: (Choices.signal kind_choices)
+            ~f: (Tune.Filter.kind' % Kind.Base.Filter.is');
+        ]
   in
   let html = [
     Choices.render kind_choices;
   ]
   in
-  (formula, html)
+    (formula, html)
 
 (* version-specific choices *)
 
@@ -215,10 +215,10 @@ let major_key_choices filter =
       (
         List.map
           (fun key ->
-             choice
-               [txt (Music.key_to_pretty_string key)]
-               ~value: key
-               ~checked: (checked key)
+            choice
+              [txt (Music.key_to_pretty_string key)]
+              ~value: key
+              ~checked: (checked key)
           )
           major_keys
       )
@@ -256,10 +256,10 @@ let minor_key_choices filter =
       (
         List.map
           (fun key ->
-             choice
-               [txt (Music.key_to_pretty_string key)]
-               ~value: key
-               ~checked: (checked key)
+            choice
+              [txt (Music.key_to_pretty_string key)]
+              ~value: key
+              ~checked: (checked key)
           )
           minor_keys
       )
@@ -270,15 +270,15 @@ let version_bundled_choices ~kind_choices filter =
   let minor_key_choices = minor_key_choices filter in
   let formula =
     S.map (Any.Filter.version' % Formula.and_l) @@
-    S.all
-      [
-        choices_formula
-          ~s: (Choices.signal kind_choices)
-          ~f: (Version.Filter.kind' % Kind.Version.Filter.baseIs');
-        choices_formula
-          ~s: (S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
-          ~f: Version.Filter.key';
-      ]
+      S.all
+        [
+          choices_formula
+            ~s: (Choices.signal kind_choices)
+            ~f: (Version.Filter.kind' % Kind.Version.Filter.baseIs');
+          choices_formula
+            ~s: (S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
+            ~f: Version.Filter.key';
+        ]
   in
   let html = [
     Choices.render kind_choices;
@@ -286,7 +286,7 @@ let version_bundled_choices ~kind_choices filter =
     Choices.render minor_key_choices;
   ]
   in
-  (formula, html)
+    (formula, html)
 
 (* the dialog itself *)
 
@@ -306,45 +306,44 @@ let open_ text raws filter =
   let new_filter =
     (* big conjunction *)
     S.map Formula.and_l @@
-    S.all
-      [
-        (
-          (* [type:version] if any type has been selected *)
-          Fun.flip S.map (Choices.signal type_choices) @@ function
-          | None -> Formula.true_
-          | Some type_ -> Any.Filter.type_' type_
-        );
+      S.all
+        [
+          (
+            (* [type:version] if any type has been selected *)
+            Fun.flip S.map (Choices.signal type_choices) @@ function
+              | None -> Formula.true_
+              | Some type_ -> Any.Filter.type_' type_
+          );
 
-        (* model-specific formulas *)
-        (
-          S.bind (Choices.signal type_choices) @@ function
-          | None -> S.const Formula.true_
-          | Some Person -> person_formula
-          | Some Dance -> dance_formula
-          | Some Book -> book_formula
-          | Some Set -> set_formula
-          | Some Tune -> tune_formula
-          | Some Version -> version_formula
-        );
+          (* model-specific formulas *)
+          (
+            S.bind (Choices.signal type_choices) @@ function
+              | None -> S.const Formula.true_
+              | Some Person -> person_formula
+              | Some Dance -> dance_formula
+              | Some Book -> book_formula
+              | Some Set -> set_formula
+              | Some Tune -> tune_formula
+              | Some Version -> version_formula
+          );
 
-        (* a conjunction of the raw strings *)
-        S.const (Formula.and_l (List.map Any.Filter.raw' raws));
-      ]
+          (* a conjunction of the raw strings *)
+          S.const (Formula.and_l (List.map Any.Filter.raw' raws));
+        ]
   in
   Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Complex filters")
-    [
-      div
-        ~a: [a_class ["d-flex"; "justify-content-center"]]
-        [
-          Choices.render type_choices
-        ];
-      hr ();
-      R.div
-        ~a: [a_class ["d-flex"; "justify-content-center"]]
-        (
-          Fun.flip S.map (Choices.signal type_choices) @@ function
+    [div
+      ~a: [a_class ["d-flex"; "justify-content-center"]]
+      [
+        Choices.render type_choices
+      ];
+    hr ();
+    R.div
+      ~a: [a_class ["d-flex"; "justify-content-center"]]
+      (
+        Fun.flip S.map (Choices.signal type_choices) @@ function
           | None -> []
           | Some Person -> person_html
           | Some Dance -> dance_html
@@ -352,7 +351,7 @@ let open_ text raws filter =
           | Some Set -> set_html
           | Some Tune -> tune_html
           | Some Version -> version_html
-        );
+      );
     ]
     ~buttons: [
       Button.cancel ~onclick: (fun () -> return text; Lwt.return_unit) ();
@@ -370,15 +369,14 @@ let open_error () =
   Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Complex filters")
-    [
-      p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
-      p
-        [
-          txt
-            "The formula is too complex for the complex filter dialog to \
+    [p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
+    p
+      [
+        txt
+          "The formula is too complex for the complex filter dialog to \
              understand. If you think that this is a mistake, contact your \
              administrator."
-        ];
+      ];
     ]
     ~buttons: [
       a

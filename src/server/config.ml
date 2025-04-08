@@ -76,9 +76,9 @@ let load_from_file filename =
       close_in ichan;
       config
     with
-    | Sys_error _ ->
-      Log.err (fun m -> m "Could not find config file \"%s\"" filename);
-      Logger.log_die (module Log)
+      | Sys_error _ ->
+        Log.err (fun m -> m "Could not find config file \"%s\"" filename);
+        Logger.log_die (module Log)
   in
   let field config ~type_ ~default path =
     match Json.(get_opt ~k: type_ path config) with

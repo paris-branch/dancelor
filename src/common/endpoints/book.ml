@@ -3,14 +3,14 @@ open Madge
 open ModelBuilder
 
 type (_, _, _) t =
-  (* Actions without specific book *)
-  | Create : ((Book.t -> 'w), 'w, Book.t Entry.t) t
-  | Search : ((Slice.t -> Book.Filter.t -> 'w), 'w, (int * Book.t Entry.t list)) t
-  (* Actions on a specific book *)
-  | Get : ((Book.t Slug.t -> 'w), 'w, Book.t Entry.t) t
-  | Update : ((Book.t Slug.t -> Book.t -> 'w), 'w, Book.t Entry.t) t
-  (* Files related to a book *)
-  | Pdf : ((BookParameters.t -> Book.t Slug.t -> 'w), 'w, Void.t) t
+(* Actions without specific book *)
+| Create : ((Book.t -> 'w), 'w, Book.t Entry.t) t
+| Search : ((Slice.t -> Book.Filter.t -> 'w), 'w, (int * Book.t Entry.t list)) t
+(* Actions on a specific book *)
+| Get : ((Book.t Slug.t -> 'w), 'w, Book.t Entry.t) t
+| Update : ((Book.t Slug.t -> Book.t -> 'w), 'w, Book.t Entry.t) t
+(* Files related to a book *)
+| Pdf : ((BookParameters.t -> Book.t Slug.t -> 'w), 'w, Void.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"

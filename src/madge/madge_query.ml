@@ -46,12 +46,12 @@ let to_strings =
 let from_uri uri =
   List.map
     (fun (k, vs) ->
-       (
-         k,
-         match vs with
-         | [v] -> Yojson.Safe.from_string v
-         | vs -> `List (List.map Yojson.Safe.from_string vs)
-       )
+      (
+        k,
+        match vs with
+        | [v] -> Yojson.Safe.from_string v
+        | vs -> `List (List.map Yojson.Safe.from_string vs)
+      )
     )
     (Uri.query uri)
 

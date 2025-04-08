@@ -51,7 +51,7 @@ let ones_to_english_string number =
       nums_to_english_string (rem number 100L)
     else
       tens_to_english_string (rem (div number 10L) 10L) @
-      nums_to_english_string (rem number 10L)
+        nums_to_english_string (rem number 10L)
   in
   if number < 100L then
     ones_and_tens
@@ -65,7 +65,7 @@ let to_english_string_unsigned number =
   let rem = unsigned_rem in
   let div = unsigned_div in
   if number = 0L then
-    ["zero"]
+      ["zero"]
   else
     (
       (
@@ -109,8 +109,7 @@ let to_english_string_unsigned number =
         | 0L -> []
         | 1L -> ["one"; "thousand"]
         | _ -> ones_to_english_string thousands @ ["thousand"]
-      ) @
-      (
+      ) @ (
         let ones = rem number 1_000L in
         ones_to_english_string ones
       )
@@ -123,7 +122,7 @@ let to_english_string number =
   (* note: abs min_int = min_int but it is okay because min_int = max_int + 1 so
      the unsigned function will work just fine *)
   (if number >= 0L then "" else "minus ") ^
-  to_english_string_unsigned (abs number)
+    to_english_string_unsigned (abs number)
 
 let%test _ = to_english_string 0L = "zero"
 let%test _ = to_english_string 1L = "one"

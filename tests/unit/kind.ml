@@ -8,12 +8,12 @@ let kindDance_to_string_of_string_roundtrip =
         ~long_factor: 50
         ~name: "Kind.Dance"
         ~print: (fun k ->
-            "Kind:\n\n  " ^
-            Kind.Dance.show k ^
-            "\n\nRepr:\n\n  " ^
-            Kind.Dance.to_string k ^
-            "\n\nKind again:\n\n  " ^ Kind.Dance.(show (of_string (to_string k)))
-          )
+          "Kind:\n\n  " ^
+          Kind.Dance.show k ^
+          "\n\nRepr:\n\n  " ^
+          Kind.Dance.to_string k ^
+          "\n\nKind again:\n\n  " ^ Kind.Dance.(show (of_string (to_string k)))
+        )
         QCheckGenerators.Kind.Dance.gen
         (fun k -> Kind.Dance.(equal (of_string (to_string k)) k))
     )
@@ -24,8 +24,6 @@ let () =
     [
       (
         "of_string % to_string = id",
-        [
-          kindDance_to_string_of_string_roundtrip
-        ]
+        [kindDance_to_string_of_string_roundtrip]
       );
     ]
