@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-include ModelBuilder.Version.Build(Person)(Tune)
+include ModelBuilder.Version.Build(Source)(Person)(Tune)
 
 let get = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Version Get)
 

@@ -7,7 +7,7 @@ type t = {
   bars: int;
   key: Music.key;
   structure: string;
-  sources: string list; [@default []] (* FIXME: remove from DB *)
+  sources: Source.t Slug.t list; [@default []]
   arrangers: Person.t Slug.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]

@@ -32,6 +32,8 @@ type (_, _, _) t =
   | PersonAdd : ('w, 'w, Void.t) t
   | Set : ((Context.t option -> Set.t Slug.t -> 'w), 'w, Void.t) t
   | SetAdd : ('w, 'w, Void.t) t
+  | Source : ((Context.t option -> Source.t Slug.t -> 'w), 'w, Void.t) t
+  | SourceAdd : ('w, 'w, Void.t) t
   | Tune : ((Context.t option -> Tune.t Slug.t -> 'w), 'w, Void.t) t
   | TuneAdd : ('w, 'w, Void.t) t
   | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) t
@@ -54,6 +56,8 @@ let all_endpoints' = [
   W Person;
   W SetAdd;
   W Set;
+  W SourceAdd;
+  W Source;
   W TuneAdd;
   W Tune;
   W VersionAdd;
@@ -75,6 +79,8 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | PersonAdd -> literal "person" @@ literal "add" @@ void ()
   | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(Set)) @@ void ()
   | SetAdd -> literal "set" @@ literal "add" @@ void ()
+  | Source -> literal "source" @@ query_opt "context" (module Context) @@ variable (module SSlug(Source)) @@ void ()
+  | SourceAdd -> literal "source" @@ literal "add" @@ void ()
   | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(Tune)) @@ void ()
   | TuneAdd -> literal "tune" @@ literal "add" @@ void ()
   | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(Version)) @@ void ()
@@ -88,6 +94,7 @@ let href : type a r. (a, string, r) t -> a = fun page ->
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance
 let href_person ?context person = href Person context person
+let href_source ?context source = href Source context source
 let href_set ?context set = href Set context set
 let href_tune ?context tune = href Tune context tune
 let href_version ?context version = href Version context version
@@ -99,11 +106,12 @@ let href_any ?context any =
   | Version version -> href_version ?context (Entry.slug version)
   | Set set -> href_set ?context (Entry.slug set)
   | Person person -> href_person ?context (Entry.slug person)
+  | Source source -> href_source ?context (Entry.slug source)
   | Dance dance -> href_dance ?context (Entry.slug dance)
   | Book book -> href_book ?context (Entry.slug book)
   | Tune tune -> href_tune ?context (Entry.slug tune)
 
-let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person = fun uri ->
+let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person ~get_source = fun uri ->
   let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
     | Index -> Lwt.return None
     | Explore -> (fun _ -> Lwt.return None)
@@ -113,6 +121,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | BookAdd -> Lwt.return None
     | BookEdit -> (fun _ -> Lwt.return None)
     | PersonAdd -> Lwt.return None
+    | SourceAdd -> Lwt.return None
     | DanceAdd -> Lwt.return None
     | Version ->
       (fun _ slug ->
@@ -143,6 +152,11 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
       (fun _ slug ->
          let%lwt name = Lwt.map Person.name (get_person slug) in
          Lwt.return @@ Some ("person", name)
+      )
+    | Source ->
+      (fun _ slug ->
+         let%lwt name = Lwt.map Source.name (get_source slug) in
+         Lwt.return @@ Some ("source", name)
       )
   in
   let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =

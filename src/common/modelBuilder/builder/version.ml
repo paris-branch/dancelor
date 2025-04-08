@@ -1,6 +1,7 @@
 open Nes
 
 module Build
+    (Source : Signature.Source.S)
     (Person : Signature.Person.S)
     (Tune : Signature.Tune.S)
 = struct
@@ -11,6 +12,7 @@ module Build
       ~bars
       ~key
       ~structure
+      ?sources
       ?arrangers
       ?remark
       ?disambiguation
@@ -20,10 +22,12 @@ module Build
     let structure = String.remove_duplicates ~char: ' ' structure in
     let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
     let tune = Entry.slug tune in
+    let sources = Option.map (List.map Entry.slug) sources in
     let arrangers = Option.map (List.map Entry.slug) arrangers in
-    make ~tune ~bars ~key ~structure ?arrangers ?remark ?disambiguation ~content ()
+    make ~tune ~bars ~key ~structure ?sources ?arrangers ?remark ?disambiguation ~content ()
 
   let tune = Tune.get % tune
+  let sources = Lwt_list.map_p Source.get % sources
   let arrangers = Lwt_list.map_p Person.get % arrangers
 
   let kind version =

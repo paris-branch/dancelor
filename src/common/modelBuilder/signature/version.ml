@@ -9,6 +9,7 @@ module type S = sig
     bars: int ->
     key: Music.key ->
     structure: string ->
+    ?sources: Source.t Entry.t list ->
     ?arrangers: Person.t Entry.t list ->
     ?remark: string ->
     ?disambiguation: string ->
@@ -20,7 +21,7 @@ module type S = sig
   val bars : t Entry.t -> int
   val key : t Entry.t -> Music.key
   val structure : t Entry.t -> string
-  val sources : t Entry.t -> string list
+  val sources : t Entry.t -> Source.t Entry.t list Lwt.t
   val arrangers : t Entry.t -> Person.t Entry.t list Lwt.t
   val remark : t Entry.t -> string
   val disambiguation : t Entry.t -> string

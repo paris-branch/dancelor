@@ -104,6 +104,7 @@ let header =
                                  ]
                             )
                             [
+                              ("archive", "source", "Sources");
                               ("person", "person", "Persons");
                               ("person-arms-up", "dance", "Dances");
                               ("music-note-list", "tune", "Tunes");
@@ -139,6 +140,7 @@ let header =
                                  ]
                             )
                             [
+                              ("archive", href SourceAdd, "Source");
                               ("person", href PersonAdd, "Person");
                               ("person-arms-up", href DanceAdd, "Dance");
                               ("music-note-list", href TuneAdd, "Tune");
@@ -219,6 +221,8 @@ let dispatch uri =
     | TuneAdd -> TuneEditor.create ()
     | Set -> (fun context slug -> SetViewer.create ?context slug)
     | SetAdd -> SetEditor.create ()
+    | Source -> (fun context slug -> SourceViewer.create ?context slug)
+    | SourceAdd -> SourceEditor.create ()
   in
   let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->

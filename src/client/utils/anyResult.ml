@@ -4,6 +4,32 @@ open Common
 open Model
 open Html
 
+let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
+  ResultRow.make
+    ?classes
+    ?action
+    (
+      prefix @
+      [
+        ResultRow.cell ~a: [a_colspan 3] (Formatters.Source.name ~link: false source);
+      ] @
+      suffix
+    )
+
+let make_source_result ?classes ?context ?prefix ?suffix source =
+  make_source_result'
+    ?classes
+    ~action: (
+      ResultRow.link @@
+      Option.fold
+        context
+        ~none: (S.const @@ Endpoints.Page.href_source @@ Entry.slug source)
+        ~some: (S.map (fun context -> Endpoints.Page.href_source ~context @@ Entry.slug source))
+    )
+    ?prefix
+    ?suffix
+    source
+
 let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
   ResultRow.make
     ?classes
@@ -180,7 +206,8 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
     version
 
 let any_type_to_bi = function
-  | Any.Type.Person -> "bi-person"
+  | Any.Type.Source -> "bi-archive"
+  | Person -> "bi-person"
   | Dance -> "bi-person-arms-up"
   | Tune -> "bi-music-note-list"
   | Version -> "bi-music-note-beamed"
@@ -199,6 +226,7 @@ let make_result ?classes ?context any =
   ]
   in
   match any with
+  | Source source -> make_source_result ?classes ?context ~prefix source
   | Person person -> make_person_result ?classes ?context ~prefix person
   | Dance dance -> make_dance_result ?classes ?context ~prefix dance
   | Book book -> make_book_result ?classes ?context ~prefix book

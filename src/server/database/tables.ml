@@ -1,6 +1,15 @@
 open Nes
 open Common
 
+module Source = Table.Make(struct
+    include ModelBuilder.Source
+
+    let slug_hint source = Lwt.return source.name
+    let separate_fields = []
+    let dependencies _ = Lwt.return []
+    let standalone = false
+  end)
+
 module Person = Table.Make(struct
     include ModelBuilder.Person
 
@@ -47,7 +56,9 @@ module Version = Table.Make(struct
     let dependencies version =
       Lwt.return
         (
-          (Table.make_slug_and_table (module Tune) (tune version)) :: List.map (Table.make_slug_and_table (module Person)) (arrangers version)
+          [Table.make_slug_and_table (module Tune) (tune version)] @
+          List.map (Table.make_slug_and_table (module Source)) (sources version) @
+          List.map (Table.make_slug_and_table (module Person)) (arrangers version)
         )
 
     let standalone = true
@@ -115,6 +126,7 @@ module Book = Table.Make(struct
 module Storage = Storage
 
 let tables : (module Table.S)list = [
+  (module Source);
   (module Person);
   (module Dance);
   (module Version);

@@ -5,6 +5,7 @@ module type S = sig
   open Core
 
   type t = Any.t =
+    | Source of Source.t Entry.t
     | Person of Person.t Entry.t
     | Dance of Dance.t Entry.t
     | Book of Book.t Entry.t
@@ -15,6 +16,9 @@ module type S = sig
         models. *)
 
   (** {3 Constructors} *)
+
+  val source : Source.t Entry.t -> t
+  (** Function equivalent of the [Source] constructor. *)
 
   val person : Person.t Entry.t -> t
   (** Function equivalent of the [Person] constructor. *)
@@ -46,6 +50,7 @@ module type S = sig
 
   module Type : sig
     type t = Core.Any.Type.t =
+      | Source
       | Person
       | Dance
       | Book
@@ -90,6 +95,7 @@ module type S = sig
       | Raw of string
       | Type of Core.Any.Type.t
       (* lifting predicates: *)
+      | Source of Filter.Source.t
       | Person of Filter.Person.t
       | Dance of Filter.Dance.t
       | Book of Filter.Book.t
@@ -115,6 +121,11 @@ module type S = sig
     val type_ : Type.t -> predicate
     val type_' : Type.t -> t
     (** A filter that asserts that the element has the given type. *)
+
+    val source : Filter.Source.t -> predicate
+    val source' : Filter.Source.t -> t
+    (** Lift a filter on sources to make a filter on “any”. This filter asserts
+        that the “any” element is a source that matches the given filter. *)
 
     val person : Filter.Person.t -> predicate
     val person' : Filter.Person.t -> t

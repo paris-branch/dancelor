@@ -8,6 +8,7 @@ open Components
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
 type restricted_predicate =
+  | Source of Source.Filter.predicate list list
   | Person of Person.Filter.predicate list list
   | Dance of Dance.Filter.predicate list list
   | Book of Book.Filter.predicate list list
@@ -46,6 +47,8 @@ let restrict_formula (text : string) : restricted_formula option =
       let%opt pred =
         match non_raws with
         | [] -> Some None
+        | [Type Source] -> Some (Some (source []))
+        | [Source filter] -> Some (Option.map source (Formula.unCnf filter))
         | [Type Person] -> Some (Some (person []))
         | [Person filter] -> Some (Option.map person (Formula.unCnf filter))
         | [Type Dance] -> Some (Some (dance []))
@@ -76,6 +79,7 @@ let type_choices filter =
     | Some filter ->
       fun type_ ->
         match (type_, filter) with
+        | (Any.Type.Source, Source _) -> true
         | (Any.Type.Person, Person _) -> true
         | (Any.Type.Dance, Dance _) -> true
         | (Any.Type.Book, Book _) -> true
@@ -118,6 +122,10 @@ let kind_choices filter =
           Kind.Base.all
       )
   )
+
+(* source-specific choices *)
+
+let source_bundled_choices _filter = (S.const Formula.true_, [])
 
 (* person-specific choices *)
 
@@ -297,6 +305,7 @@ let open_ text raws filter =
   let kind_choices = kind_choices filter in
 
   (* model-specific bundled choices *)
+  let (source_formula, source_html) = source_bundled_choices filter in
   let (person_formula, person_html) = person_bundled_choices filter in
   let (dance_formula, dance_html) = dance_bundled_choices filter ~kind_choices in
   let (book_formula, book_html) = book_bundled_choices filter in
@@ -319,6 +328,7 @@ let open_ text raws filter =
         (
           S.bind (Choices.signal type_choices) @@ function
           | None -> S.const Formula.true_
+          | Some Source -> source_formula
           | Some Person -> person_formula
           | Some Dance -> dance_formula
           | Some Book -> book_formula
@@ -346,6 +356,7 @@ let open_ text raws filter =
         (
           Fun.flip S.map (Choices.signal type_choices) @@ function
           | None -> []
+          | Some Source -> source_html
           | Some Person -> person_html
           | Some Dance -> dance_html
           | Some Book -> book_html

@@ -1,5 +1,6 @@
 open Common
 
+module Source = Source
 module Person = Person
 module Set = Set
 module Book = Book
@@ -10,6 +11,7 @@ module Tune = Tune
 module Log = (val Logger.create "controller": Logs.LOG)
 
 let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Api.t -> a = function
+  | Source endpoint -> Source.dispatch endpoint
   | Person endpoint -> Person.dispatch endpoint
   | Book endpoint -> Book.dispatch endpoint
   | Version endpoint -> Version.dispatch endpoint
