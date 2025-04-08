@@ -20,6 +20,7 @@
 /cache
 /assets/config.json
 /database
+/src/style/vendored
 
 ## Test-specific
 geckodriver.log

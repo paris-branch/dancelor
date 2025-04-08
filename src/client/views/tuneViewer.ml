@@ -17,8 +17,8 @@ let create ?context slug =
         (Lwt.map Any.tune tune_lwt);
     ]
     [
-      L.h3 ~a: [a_class ["title"]] (Lwt.map Formatters.Tune.aka tune_lwt);
-      L.h3 ~a: [a_class ["title"]] (tune_lwt >>=| Formatters.Tune.description);
+      L.h5 ~a: [a_class ["text-center"]] (Lwt.map Formatters.Tune.aka tune_lwt);
+      L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description);
       L.div
         (
           match%lwt Lwt.map Tune.date tune_lwt with
@@ -26,23 +26,33 @@ let create ?context slug =
           | Some date ->
             Lwt.return [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         );
-      L.div
-        (
-          match%lwt Lwt.map Tune.scddb_id tune_lwt with
-          | None -> Lwt.return_nil
-          | Some scddb_id ->
-            let href = SCDDB.tune_uri scddb_id in
-            Lwt.return
-              [
-                txt "See on ";
-                a
-                  ~a: [a_href (Uri.to_string href); a_target "blank"]
-                  [
-                    txt "the Strathspey Database"
-                  ];
-                txt ".";
-              ]
-        );
+      div
+        ~a: [a_class ["text-end"; "dropdown"]]
+        [
+          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
+          ul
+            ~a: [a_class ["dropdown-menu"]]
+            [
+              L.li
+                (
+                  match%lwt Lwt.map Tune.scddb_id tune_lwt with
+                  | None -> Lwt.return_nil
+                  | Some scddb_id ->
+                    Lwt.return
+                      [
+                        a
+                          ~a: [
+                            a_class ["dropdown-item"];
+                            a_href (Uri.to_string @@ SCDDB.tune_uri scddb_id);
+                          ]
+                          [
+                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                            txt " See on SCDDB";
+                          ]
+                      ]
+                );
+            ];
+        ];
       Utils.quick_explorer_links'
         tune_lwt
         [

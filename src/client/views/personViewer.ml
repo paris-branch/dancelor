@@ -17,27 +17,33 @@ let create ?context slug =
         (Lwt.map Any.person person_lwt);
     ]
     [
-      L.div
-        ~a: [a_class ["section"]]
-        (
-          match%lwt Lwt.map Person.scddb_id person_lwt with
-          | None -> Lwt.return_nil
-          | Some scddb_id ->
-            let href = Uri.to_string @@ SCDDB.person_uri scddb_id in
-            Lwt.return
-              [
-                p
-                  [
-                    txt "You can ";
-                    a
-                      ~a: [a_href href; a_target "blank"]
+      div
+        ~a: [a_class ["text-end"; "dropdown"]]
+        [
+          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
+          ul
+            ~a: [a_class ["dropdown-menu"]]
+            [
+              L.li
+                (
+                  match%lwt Lwt.map Person.scddb_id person_lwt with
+                  | None -> Lwt.return_nil
+                  | Some scddb_id ->
+                    Lwt.return
                       [
-                        txt "see this person on the Strathspey Database"
-                      ];
-                    txt "."
-                  ]
-              ]
-        );
+                        a
+                          ~a: [
+                            a_class ["dropdown-item"];
+                            a_href (Uri.to_string @@ SCDDB.person_uri scddb_id);
+                          ]
+                          [
+                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                            txt " See on SCDDB";
+                          ]
+                      ]
+                );
+            ];
+        ];
       Utils.quick_explorer_links'
         person_lwt
         [

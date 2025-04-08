@@ -40,8 +40,9 @@ let name_and_dance ?link ?dance_link version parameters =
     | Some dance ->
       Lwt.return
         [
-          span
-            ~a: [a_class ["dim"; "details"]]
+          br ();
+          small
+            ~a: [a_class ["opacity-50"]]
             [
               txt "For dance: ";
               span (Dance.name ?link: dance_link dance);
@@ -54,7 +55,7 @@ let name_and_disambiguation ?link version =
   let disambiguation_block =
     match Model.Version.disambiguation version with
     | "" -> []
-    | disambiguation -> [span ~a: [a_class ["dim"]] [txt (spf " (%s)" disambiguation)]]
+    | disambiguation -> [span ~a: [a_class ["opacity-50"]] [txt (spf " (%s)" disambiguation)]]
   in
   Lwt.return (name ?link version @ disambiguation_block)
 
@@ -82,7 +83,7 @@ let name_disambiguation_and_sources ?link version =
   Lwt.return
     (
       name_and_disambiguation @
-      [L.span ~a: [a_class ["dim"; "details"]] sources_lwt]
+      [L.span ~a: [a_class ["opacity-50"]] sources_lwt]
     )
 
 let disambiguation_and_sources version =
@@ -108,7 +109,7 @@ let disambiguation_and_sources version =
   Lwt.return
     [
       txt (Model.Version.disambiguation version);
-      L.span ~a: [a_class ["dim"; "details"]] sources_lwt;
+      L.span ~a: [a_class ["opacity-50"]] sources_lwt;
     ]
 
 let composer_and_arranger ?(short = false) ?link version =
@@ -122,7 +123,7 @@ let composer_and_arranger ?(short = false) ?link version =
       let arranger_block = Person.names ~short ?link arrangers in
       Lwt.return
         [
-          span ~a: [a_class ["dim"]] (txt (spf "%s%s " comma arr) :: arranger_block)
+          span ~a: [a_class ["opacity-50"]] (txt (spf "%s%s " comma arr) :: arranger_block)
         ]
   in
   Lwt.return (composer_block @ arranger_block)

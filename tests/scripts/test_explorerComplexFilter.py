@@ -23,16 +23,16 @@ class TestExplorerComplexFilter():
 
   def test_explorerComplexFilter(self):
     self.driver.get("http://localhost:8080/explore?q=%22tam%22")
-    self.driver.find_element(By.LINK_TEXT, "filter_alt Complex filter").click()
-    self.driver.find_element(By.XPATH, "//label[contains(text(), \'Book\')]").click()
-    self.driver.find_element(By.LINK_TEXT, "Apply").click()
-    self.driver.find_element(By.CSS_SELECTOR, "body").click()
-    self.wait.until(EC.text_to_be_present_in_element((By.XPATH, "//div[@id=\'page_nav\']/div"), "Showing 1 to 1 of 1 entries"))
-    self.driver.find_element(By.LINK_TEXT, "filter_alt Complex filter").click()
-    self.driver.find_element(By.XPATH, "//label[contains(text(), \'Set\')]").click()
-    self.driver.find_element(By.XPATH, "//label[contains(text(), \'Polka\')]").click()
-    self.driver.find_element(By.XPATH, "//label[contains(text(), \'Waltz\')]").click()
-    self.driver.find_element(By.LINK_TEXT, "Apply").click()
-    self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, ".warning"), "Your search returned no results."))
-    assert self.driver.find_element(By.CSS_SELECTOR, "input:nth-child(2)").get_attribute("value") \
+    self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Filter')]]").click()
+    self.driver.find_element(By.XPATH, "//label[contains(text(), 'Book')]").click()
+    self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Apply')]]").click()
+    self.driver.find_element(By.XPATH, "//div[contains(text(), 'Showing 1 to 1 of 1 entries')]")
+    self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Filter')]]").click()
+    self.driver.find_element(By.XPATH, "//label[contains(text(), 'Set')]").click()
+    self.driver.find_element(By.XPATH, "//label[contains(text(), 'Polka')]").click()
+    self.driver.find_element(By.XPATH, "//label[contains(text(), 'Waltz')]").click()
+    self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Apply')]]").click()
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Your search returned no result')]")
+    self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, ".alert-warning"), "Your search returned no results."))
+    assert self.driver.find_element(By.XPATH, "//div[@class = 'container']//input").get_attribute("value") \
       == "type:Set kind:version:base:(Polka :or Waltz) tam"

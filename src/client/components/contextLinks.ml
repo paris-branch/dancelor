@@ -44,53 +44,49 @@ let make_context_link_banner ~context ~this_page =
     a ~a: (a_href parent_href :: as_) content
   in
   div
-    ~a: [
-      a_class ["context-links"; "context-links-banner"]
+    ~a: [a_class ["bg-secondary-subtle"; "p-2"; "mt-n2"; (* keep in sync with header's margin *) "mb-2"; "opacity-75"]]
+    [
+      div
+        ~a: [a_class ["container"; "d-flex"; "justify-content-between"]]
+        [
+          div
+            (
+              (
+                let open Endpoints.Page in
+                match context with
+                | InSearch query ->
+                  [
+                    txt "In search for: ";
+                    parent_a [txt query];
+                  ]
+                | InSet (slug, _) ->
+                  [
+                    txt "In set: ";
+                    parent_a [L.txt (Lwt.map Set.name @@ Set.get slug)];
+                  ]
+                | InBook (slug, _) ->
+                  [
+                    txt "In book: ";
+                    parent_a [L.txt (Lwt.map Book.title @@ Book.get slug)];
+                  ]
+              )
+            );
+          div
+            [
+              parent_a
+                ~a: [a_title "Return to the parent of this page."]
+                [i ~a: [a_class ["bi"; "bi-arrow-counterclockwise"]] []];
+              a
+                ~a: [
+                  a_href this_page;
+                  a_title
+                    "Reload the current page without the context. This \
+                     will get rid of this banner and of the side links.";
+                ]
+                [i ~a: [a_class ["bi"; "bi-x-lg"]] []];
+            ];
+        ];
     ]
-    (
-      (
-        let open Endpoints.Page in
-        match context with
-        | InSearch query ->
-          [
-            txt "In search for: ";
-            parent_a [txt query];
-          ]
-        | InSet (slug, _) ->
-          [
-            txt "In set: ";
-            parent_a [L.txt (Lwt.map Set.name @@ Set.get slug)];
-          ]
-        | InBook (slug, _) ->
-          [
-            txt "In book: ";
-            parent_a [L.txt (Lwt.map Book.title @@ Book.get slug)];
-          ]
-      ) @
-      [
-        div
-          ~a: [a_class ["context-links-actions"]]
-          [
-            parent_a
-              ~a: [
-                a_class ["context-links-action"];
-                a_title "Return to the parent of this page.";
-              ]
-              [i ~a: [a_class ["material-symbols-outlined"]] [txt "undo"]];
-            a
-              ~a: [
-                a_class ["context-links-action"];
-                a_href this_page;
-                a_title
-                  "Reload the current page without the context. This \
-                   will get rid of this banner and of the side links.";
-              ]
-              [i ~a: [a_class ["material-symbols-outlined"]] [txt "close"]];
-            div ~a: [a_class ["context-links-aligner"]] [];
-          ];
-        div ~a: [a_class ["context-links-aligner"]] [];
-      ]
-    )
 
 let register_body_keydown_listener f =
   let rec body_keydown_listener () =
@@ -115,31 +111,38 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
   a
     ~a: [
       a_href href;
-      a_class ["context-links"; (if left then "context-links-left" else "context-links-right")];
+      a_class
+        [
+          "bg-secondary-subtle";
+          "opacity-0";
+          "hover-opacity-50";
+          "position-fixed";
+          "top-50";
+          (if left then "start-0" else "end-0");
+          "translate-middle-y";
+          "text-center";
+          "p-2";
+        ];
     ]
     [
-      div ~a: [a_class ["context-links-aligner"]] [];
-      let element_repr =
-        [
-          [txt Any.(Type.to_string (type_of neighbour))];
-          [L.txt @@ Any.name neighbour];
-        ] @
-        (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
-      in
       div
-        (
-          (
-            div
-              ~a: [a_class ["context-links-main"]]
-              [
-                i
-                  ~a: [a_class ["material-symbols-outlined"]]
-                  [
-                    txt @@ if left then "navigate_before" else "navigate_next"
-                  ]
-              ]
-          ) :: List.map (div ~a: [a_class ["context-links-details"]]) element_repr
-        );
+        ~a: [
+        ]
+        [
+          let element_repr =
+            [
+              [txt Any.(Type.to_string (type_of neighbour))];
+              [L.txt @@ Any.name neighbour];
+            ] @
+            (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
+          in
+          div
+            (
+              (
+                i ~a: [a_class ["fs-1"; "bi"; ("bi-caret-" ^ (if left then "left" else "right") ^ "-fill")]] []
+              ) :: List.map div element_repr
+            );
+        ];
     ]
 
 let make_and_render ?context ~this_page any_lwt =

@@ -9,8 +9,8 @@ let clickable_row ~href cells =
 
 let map_table ~header list fun_ =
   tablex
-    ~a: [a_class ["separated-table"; "visible"]]
-    ~thead: (thead [tr (List.map (fun str -> th [txt str]) header)])
+    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
+    ~thead: (thead ~a: [a_class ["table-primary"]] [tr (List.map (fun str -> th [txt str]) header)])
     [tbody (List.map fun_ list)]
 
 let books books =

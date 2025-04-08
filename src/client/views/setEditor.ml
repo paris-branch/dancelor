@@ -44,7 +44,6 @@ module Editor = struct
   type t = {
     elements:
       (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -74,15 +73,13 @@ module Editor = struct
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let name =
-      Input.Text.make ~has_interacted initial_state.name @@
+      Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
-      Input.Text.make ~has_interacted initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)" % Kind.Dance.of_string_opt
+      Input.Text.make initial_state.kind @@
+      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
     in
     let conceptors =
       Selector.make
@@ -107,12 +104,11 @@ module Editor = struct
         initial_state.versions
     in
     let order =
-      Input.Text.make ~has_interacted initial_state.order @@
+      Input.Text.make initial_state.order @@
       Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
     in
     {
       elements = {name; kind; conceptors; versions; order};
-      set_interacted;
     }
 
   let add_to_storage version =
@@ -162,31 +158,16 @@ let create ?on_save ?text () =
                 ~placeholder: "eg. 8x32R or 2x(16R+16S)";
               Selector.render
                 ~make_result: AnyResult.make_person_result'
-                ~field_name: ("Conceptors", "conceptor")
+                ~field_name: "Conceptors"
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.conceptors;
               Selector.render
                 ~make_result: AnyResult.make_version_result'
                 ~make_more_results: (fun version ->
-                    [
-                      Utils.ResultRow.make
-                        ~classes: ["small-previsualisation"]
-                        [
-                          Utils.ResultRow.cell
-                            ~a: [a_colspan 9999]
-                            [
-                              object_
-                                ~a: [
-                                  a_mime_type "image/svg+xml";
-                                  a_data (Endpoints.Api.(href @@ Version Svg) Model.VersionParameters.none (Entry.slug version));
-                                ]
-                                [];
-                            ]
-                        ]
-                    ]
+                    [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.slug version)]]]
                   )
-                ~field_name: ("Versions", "version")
+                ~field_name: "Versions"
                 ~model_name: "versions"
                 ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
                 editor.elements.versions;
@@ -203,10 +184,12 @@ let create ?on_save ?text () =
           let%lwt editor = editor in
           Lwt.return
             [
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
                     Fun.flip Lwt.map (Editor.submit editor) @@
                     Option.iter @@ fun set ->
                     Editor.clear editor;
@@ -214,9 +197,6 @@ let create ?on_save ?text () =
                     | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
                     | Some on_save -> on_save set
                   )
-                ();
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
                 ();
             ]
         )

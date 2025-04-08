@@ -13,41 +13,24 @@ let one : one arity = One
 let many : many arity = Many
 
 type ('arity, 'model) t = {
-  has_interacted: bool S.t;
-  set_interacted: unit -> unit;
   signal: 'model Entry.t list S.t;
   set: 'model Entry.t list -> unit;
-  search_bar: 'model Entry.t QuickSearchBar.t;
+  quick_search: 'model Entry.t Search.Quick.t;
   serialise: 'model Entry.t -> 'model Slug.t;
   arity: 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 
-let make ~arity ?(has_interacted = S.const false) ~search ~serialise ~unserialise (initial_input, initial_value) =
-  let (has_interacted_locally, set_interacted) = S.create false in
-  let has_interacted = S.l2 (||) has_interacted has_interacted_locally in
-  let set_interacted () =
-    set_interacted true;
-    S.stop ~strong: true has_interacted
-  in
+let make ~arity ~search ~serialise ~unserialise (_fixme_unused_initial_text, initial_value) =
   let (signal, set) = S.create [] in
-  let search_bar =
-    QuickSearchBar.make
-      ~number_of_results: 5
-      ~search
-      ~initial_input
-      ()
-  in
+  let quick_search = Search.Quick.make ~search () in
   Lwt.async (fun () ->
       let%lwt initial_value = Lwt_list.map_p unserialise initial_value in
       set initial_value;
       Lwt.return_unit
     );
-  {has_interacted; set_interacted; signal; set; search_bar; serialise; arity}
+  {signal; set; quick_search; serialise; arity}
 
-let raw_signal s =
-  S.bind (QuickSearchBar.text s.search_bar) @@ fun input ->
-  S.bind s.signal @@ fun elements ->
-  S.const (input, List.map s.serialise elements)
+let raw_signal s = S.map (fun elts -> ("fixme-unused", List.map s.serialise elts)) s.signal
 
 let signal (s : ('arity, 'model) t) : ('model Entry.t list, string) Result.t S.t =
   Fun.flip S.map s.signal @@ function
@@ -64,17 +47,12 @@ let signal_many (s : (many, 'model) t) : ('model Entry.t list, 'bottom) Result.t
   assert (s.arity = Many);
   S.map (Result.ok % Result.get_ok) (signal s)
 
-let has_interacted state = state.has_interacted
-
 let case_errored ~no ~yes state =
-  S.bind (has_interacted state) @@ fun has_interacted ->
   Fun.flip S.map (signal state) @@ function
-  | Error msg when has_interacted -> yes msg
+  | Error msg -> yes msg
   | _ -> no
 
-let clear s =
-  s.set [];
-  QuickSearchBar.clear s.search_bar
+let clear s = s.set []
 
 let render
     ~(make_result :
@@ -98,13 +76,11 @@ let render
     s
   =
   div
-    ~a: [
-      R.a_class (case_errored ~no: ["form-element"] ~yes: (Fun.const ["form-element"; "invalid"]) s);
-    ]
+    ~a: [a_class ["mb-2"]]
     [
-      label [txt (fst field_name)];
+      label [txt field_name];
       tablex
-        ~a: [a_class ["container"]]
+        ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
         [
           R.tbody
             (
@@ -114,29 +90,28 @@ let render
               List.mapi
                 (fun n element ->
                    make_result
-                     ~classes: ["row"]
                      ~suffix: [
                        Utils.ResultRow.cell
-                         ~a: [a_class ["actions"]]
+                         ~a: [a_class ["btn-group"; "p-0"]]
                          [
                            button
                              ~a: [
-                               a_class (if n = List.length elements - 1 then ["disabled"] else []);
+                               a_class (["btn"; "btn-outline-secondary"] @ (if n = List.length elements - 1 then ["disabled"] else []));
                                a_onclick (fun _ -> s.set @@ List.swap n (n + 1) @@ S.value s.signal; true);
                              ]
-                             [i ~a: [a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_down"]];
+                             [i ~a: [a_class ["bi"; "bi-arrow-down"]] []];
                            button
                              ~a: [
-                               a_class (if n = 0 then ["disabled"] else []);
+                               a_class (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []));
                                a_onclick (fun _ -> s.set @@ List.swap (n - 1) n @@ S.value s.signal; true);
                              ]
-                             [i ~a: [a_class ["material-symbols-outlined"]] [txt "keyboard_arrow_up"]];
+                             [i ~a: [a_class ["bi"; "bi-arrow-up"]] []];
                            button
                              ~a: [
                                a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.signal; true);
-                               a_class ["btn-danger"];
+                               a_class ["btn"; "btn-warning"];
                              ]
-                             [i ~a: [a_class ["material-symbols-outlined"]] [txt "delete"]];
+                             [i ~a: [a_class ["bi"; "bi-trash"]] []];
                          ]
                      ]
                      element :: make_more_results element
@@ -149,52 +124,60 @@ let render
           R.a_class
             (
               Fun.flip S.map s.signal @@ function
-              | [_] when s.arity = One -> ["hidden"]
+              | [_] when s.arity = One -> ["d-none"]
               | _ -> []
             )
         ]
         [
-          QuickSearchBar.render
-            ~placeholder: ((if s.arity = One then "Select" else "Add") ^ " a " ^ snd field_name ^ " (magic search)")
-            ~on_focus: s.set_interacted
-            ~make_result: (fun ?classes person ->
-                make_result
-                  ?classes
-                  ~action: (
-                    Utils.ResultRow.callback @@ fun () ->
-                    s.set (S.value s.signal @ [person]);
-                    QuickSearchBar.clear s.search_bar;
-                  )
-                  ~suffix: []
-                  person
-              )
-            ~more_lines: [
-              Utils.ResultRow.icon_row
-                ~action: (
-                  Utils.ResultRow.callback @@ fun () ->
-                  Lwt.async @@ fun () ->
-                  let%lwt result =
-                    Dialog.open_ @@ fun return ->
-                    QuickSearchBar.clear s.search_bar;
-                    create_dialog_content
-                      ~on_save: return
-                      (S.value (SearchBar.text (QuickSearchBar.search_bar s.search_bar)))
-                  in
-                  Result.iter
-                    (fun element ->
-                       s.set (S.value s.signal @ [element]);
+          (
+            let label = (if s.arity = One then "Select" else "Add") ^ " a " ^ model_name in
+            let label_processing = (if s.arity = One then "Selecting" else "Adding") ^ " a " ^ model_name ^ "..." in
+            div
+              ~a: [a_class ["btn-group"; "w-100"]]
+              [
+                Button.make_icon "search" ~classes: ["btn-light"];
+                Button.make
+                  ~label
+                  ~label_processing
+                  ~classes: ["btn-outline-secondary"; "w-100"; "text-start"]
+                  ~onclick: (fun () ->
+                      let%lwt quick_search_result =
+                        Page.open_dialog @@ fun quick_search_return ->
+                        Search.Quick.render
+                          s.quick_search
+                          ~return: quick_search_return
+                          ~dialog_title: (S.const label)
+                          ~make_result: (fun ~context: _ result ->
+                              make_result
+                                ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
+                                result
+                            )
+                          ~dialog_buttons: [
+                            Button.make
+                              ~label: ("Create new " ^ model_name)
+                              ~label_processing: ("Creating new " ^ model_name ^ "...")
+                              ~icon: "plus-circle"
+                              ~classes: ["btn-primary"]
+                              ~onclick: (fun () ->
+                                  Lwt.map quick_search_return @@
+                                  Page.open_dialog' @@ fun sub_dialog_return ->
+                                  create_dialog_content
+                                    ~on_save: sub_dialog_return
+                                    (S.value (Search.Quick.text s.quick_search))
+                                )
+                              ();
+                          ]
+                      in
+                      Fun.flip Option.iter quick_search_result (fun r -> s.set (S.value s.signal @ [r]));
+                      Lwt.return_unit
                     )
-                    result;
-                  Lwt.return_unit
-                )
-                "add_circle"
-                ("Create a new " ^ model_name)
-            ]
-            s.search_bar;
+                  ()
+              ];
+          )
         ];
       R.div
-        ~a: [a_class ["message-box"]]
+        ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (Fun.const ["d-block"; "invalid-feedback"]) s)]
         (
-          case_errored ~no: [] ~yes: (List.singleton % txt) s
+          case_errored ~no: [txt " "] ~yes: (List.singleton % txt) s
         );
     ]

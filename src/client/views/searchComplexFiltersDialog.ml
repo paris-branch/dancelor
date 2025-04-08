@@ -331,12 +331,18 @@ let open_ text raws filter =
         S.const (Formula.and_l (List.map Any.Filter.raw' raws));
       ]
   in
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Complex filters")
     [
-      div [Choices.render type_choices];
+      div
+        ~a: [a_class ["d-flex"; "justify-content-center"]]
+        [
+          Choices.render type_choices
+        ];
+      hr ();
       R.div
+        ~a: [a_class ["d-flex"; "justify-content-center"]]
         (
           Fun.flip S.map (Choices.signal type_choices) @@ function
           | None -> []
@@ -349,28 +355,19 @@ let open_ text raws filter =
         );
     ]
     ~buttons: [
-      a
-        ~a: [
-          a_class ["button"];
-          a_onclick (fun _ -> return text; false);
-        ]
-        [txt "Cancel"];
-      a
-        ~a: [
-          a_class ["button"];
-          a_onclick (fun _ -> return ""; false);
-        ]
-        [txt "Clear"];
-      a
-        ~a: [
-          a_class ["button"; "button-success"];
-          a_onclick (fun _ -> return (Any.Filter.to_pretty_string @@ S.value new_filter); false);
-        ]
-        [txt "Apply"];
+      Button.cancel ~onclick: (fun () -> return text; Lwt.return_unit) ();
+      Button.clear ~onclick: (fun () -> return "") ();
+      Button.make
+        ~label: "Apply"
+        ~label_processing: "Applying..."
+        ~icon: "check-circle"
+        ~classes: ["btn-primary"]
+        ~onclick: (fun () -> return (Any.Filter.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
+        ()
     ]
 
 let open_error () =
-  Dialog.open_ @@ fun return ->
+  Page.open_dialog' @@ fun return ->
   Page.make
     ~title: (S.const "Complex filters")
     [
@@ -394,5 +391,5 @@ let open_error () =
 
 let open_ text =
   match restrict_formula text with
-  | None -> Lwt.map (Fun.const (Error Dialog.Closed)) (open_error ())
+  | None -> Lwt.map (Fun.const None) (open_error ())
   | Some (raws, filter) -> open_ text raws filter

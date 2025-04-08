@@ -64,7 +64,6 @@ module Editor = struct
   type t = {
     elements:
       (string Input.Text.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Set.t) Selector.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -94,14 +93,12 @@ module Editor = struct
 
   let create ~text ~edit : t Lwt.t =
     with_or_without_local_storage ~text ~edit @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let name =
-      Input.Text.make ~has_interacted initial_state.name @@
+      Input.Text.make initial_state.name @@
       Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let date =
-      Input.Text.make ~has_interacted initial_state.date @@
+      Input.Text.make initial_state.date @@
       Option.fold
         ~none: (Ok None)
         ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
@@ -120,7 +117,6 @@ module Editor = struct
     in
     {
       elements = {name; date; sets};
-      set_interacted;
     }
 
   let add_to_storage set =
@@ -168,7 +164,7 @@ let create ?on_save ?text ?edit () =
                 Selector.render
                   ~make_result: AnyResult.make_set_result'
                   ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
-                  ~field_name: ("Sets", "set")
+                  ~field_name: "Sets"
                   ~model_name: "set"
                   ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
                   editor.elements.sets;
@@ -189,10 +185,12 @@ let create ?on_save ?text ?edit () =
             let%lwt editor = editor in
             Lwt.return
               [
+                Button.clear
+                  ~onclick: (fun () -> Editor.clear editor)
+                  ();
                 Button.save
                   ~disabled: (S.map Option.is_none (Editor.state editor))
                   ~onclick: (fun () ->
-                      editor.set_interacted ();
                       Fun.flip Lwt.map (Editor.submit ~edit editor) @@
                       Option.iter @@ fun book ->
                       Editor.clear editor;
@@ -200,9 +198,6 @@ let create ?on_save ?text ?edit () =
                       | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
                       | Some on_save -> on_save book
                     )
-                  ();
-                Button.clear
-                  ~onclick: (fun () -> Editor.clear editor)
                   ();
               ]
           with

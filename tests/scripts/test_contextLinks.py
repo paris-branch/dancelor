@@ -14,6 +14,7 @@ class TestContextLinks():
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
+    self.driver.set_window_size(1080, 4320)
     self.driver.implicitly_wait(10)
     self.wait = WebDriverWait(self.driver, timeout=10)
     self.vars = {}
@@ -25,7 +26,7 @@ class TestContextLinks():
     ## From the explorer, type “tam”, then click on the set “Tam Lin Thrice” and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/explore")
-    self.driver.find_element(By.XPATH, "//input[@id='explorer-search-bar']").send_keys("tam")
+    self.driver.find_element(By.XPATH, "//div[@class = 'container']//input").send_keys("tam")
     time.sleep(1)
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Tam Lin Thrice')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D"))
@@ -41,21 +42,21 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice”, click on the second “Tam Lin” version and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice")
-    self.driver.find_element(By.CSS_SELECTOR, ".image-container:nth-child(2) a").click()
+    self.driver.find_element(By.XPATH, "//div[contains(@class, 'text-center') and position()=2]//a").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InSet%22%2C%22tam-lin-thrice%22%2C1%5D"))
 
   def test_fromBook(self):
     ## From the book “The Tam Lin Book”, click on the set “Tam Lin Thrice” and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/book/the-tam-lin-book")
-    self.driver.find_element(By.CSS_SELECTOR, ".clickable:nth-child(1) > td:nth-child(2)").click()
+    self.driver.find_element(By.CSS_SELECTOR, "tr:nth-child(1) > td:nth-child(2)").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InBook%22%2C%22the-tam-lin-book%22%2C0%5D"))
 
   def test_sideArrowGoesToNeighbour(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking on the arrow to the left goes to “The Tam Lin Book”.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D")
-    self.driver.find_element(By.CSS_SELECTOR, ".context-links-left .context-links-main").click()
+    self.driver.find_element(By.XPATH, "//i[contains(@class, 'bi-caret-left-fill')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
   def test_keyGoesToNeighbour(self):
@@ -70,12 +71,12 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking the banner's “undo” icon goes back to the explorer.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D")
-    self.driver.find_element(By.LINK_TEXT, "undo").click()
+    self.driver.find_element(By.XPATH, "//i[contains(@class, 'bi-arrow-counterclockwise')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/explore?q=%22tam%22"))
 
   def test_bannerCloseRemovesContext(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking the banner's “close” icon removes the context.
     self.driver.get("http://localhost:8080/set/tam-lin-thrice?context=%5B%22InSearch%22%2C%22tam%22%5D")
-    self.driver.find_element(By.LINK_TEXT, "close").click()
+    self.driver.find_element(By.XPATH, "//i[contains(@class, 'bi-x-lg')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/tam-lin-thrice"))

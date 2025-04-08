@@ -40,7 +40,6 @@ type 'value t
 
 val make_radios :
   ?name: string ->
-  ?has_interacted: bool S.t ->
   'value option choice list ->
   'value option t
 (** Make a radio-based “choices” component that can hold at most one value at
@@ -48,7 +47,6 @@ val make_radios :
 
 val make_radios' :
   ?name: string ->
-  ?has_interacted: bool S.t ->
   validate: ('cvalue option -> ('value, string) Result.t) ->
   'cvalue option choice list ->
   ('value, string) Result.t t

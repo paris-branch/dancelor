@@ -51,12 +51,13 @@ let make
   in
   {text; state; set_text}
 
+(** FIXME: get rid of [on_focus] and [on_enter] that are probably not used
+    anymore. *)
+
 let render
     ~placeholder
-    ?id
     ?(autofocus = false)
     ?on_focus
-    ?on_blur
     ?on_input
     ?on_enter
     search_bar
@@ -69,7 +70,7 @@ let render
         List.filter_map
           Fun.id
           [
-            Option.map a_id id;
+            Some (a_class ["form-control"]);
             Some (a_input_type `Text);
             Some (a_placeholder placeholder);
             Some (R.a_value search_bar.text);
@@ -93,12 +94,20 @@ let render
                 None
             );
             Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
-            Option.map (fun f -> a_onblur (fun _ -> f (); false)) on_blur;
           ]
       )
       ()
   in
   let bar' = To_dom.of_input bar in
+
+  (* FIXME: This is a disgusting way to handle auto-focus. Instead, we should
+     return some type that has a [focus] function and call it in client code. *)
+  if autofocus then
+    Lwt.async (fun () ->
+        Lwt.pmsleep 1.;%lwt
+        bar'##focus;
+        Lwt.return_unit
+      );
 
   (* Because the following event prevents the default browser behaviour (in case
      of `on_enter`), it must happen on `keydown` and not on `keyup`. *)

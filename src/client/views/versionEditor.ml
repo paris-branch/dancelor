@@ -47,7 +47,6 @@ module Editor = struct
   type t = {
     elements:
       ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
-    set_interacted: unit -> unit;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -82,8 +81,6 @@ module Editor = struct
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->
-    let (has_interacted, set_interacted) = S.create false in
-    let set_interacted () = set_interacted true in
     let tune =
       Selector.make
         ~arity: Selector.one
@@ -91,20 +88,19 @@ module Editor = struct
             let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
             Lwt.map Result.ok @@ Model.Tune.search slice filter
           )
-        ~has_interacted
         ~serialise: Entry.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
     let bars =
-      Input.Text.make ~has_interacted initial_state.bars @@
+      Input.Text.make initial_state.bars @@
       Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
     in
     let key =
-      Input.Text.make ~has_interacted initial_state.key @@
+      Input.Text.make initial_state.key @@
       Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
     in
-    let structure = Input.Text.make ~has_interacted initial_state.structure @@ Result.ok in
+    let structure = Input.Text.make initial_state.structure @@ Result.ok in
     let arrangers =
       Selector.make
         ~arity: Selector.many
@@ -116,15 +112,14 @@ module Editor = struct
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
-    let remark = Input.Text.make ~has_interacted initial_state.remark @@ Result.ok in
+    let remark = Input.Text.make initial_state.remark @@ Result.ok in
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
     let content =
-      Input.Text.make ~has_interacted initial_state.content @@
+      Input.Text.make initial_state.content @@
       Result.of_string_nonempty ~empty: "Cannot be empty."
     in
     {
       elements = {tune; bars; key; structure; arrangers; remark; disambiguation; content};
-      set_interacted;
     }
 
   let clear (editor : t) =
@@ -167,7 +162,7 @@ let create ?on_save ?text ?tune () =
             [
               Selector.render
                 ~make_result: AnyResult.make_tune_result'
-                ~field_name: ("Tune", "tune")
+                ~field_name: "Tune"
                 ~model_name: "tune"
                 ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
                 editor.elements.tune;
@@ -185,7 +180,7 @@ let create ?on_save ?text ?tune () =
                 ~placeholder: "eg. AABB or ABAB";
               Selector.render
                 ~make_result: AnyResult.make_person_result'
-                ~field_name: ("Arrangers", "arranger")
+                ~field_name: "Arrangers"
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.arrangers;
@@ -210,32 +205,28 @@ let create ?on_save ?text ?tune () =
           let%lwt editor = editor in
           Lwt.return
             [
+              Button.clear
+                ~onclick: (fun () -> Editor.clear editor)
+                ();
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    editor.set_interacted ();
                     match%lwt Editor.value editor with
                     | None -> Lwt.return_unit
                     | Some version ->
                       Lwt.map ignore @@
-                      Dialog.open_ @@ fun return ->
+                      Page.open_dialog' @@ fun return ->
                       Page.make
                         ~title: (S.const "Preview")
                         [
-                          div [
-                            object_
-                              ~a: [
-                                a_mime_type "image/svg+xml";
-                                a_data (Endpoints.Api.(href @@ Version PreviewSvg) Model.VersionParameters.none version)
-                              ]
-                              [];
-                          ];
-                          div [
-                            audio
-                              ~a: [a_controls ()]
-                              ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
-                              [];
-                          ];
+                          div [VersionSvg.make_preview version];
+                          div
+                            [
+                              audio
+                                ~a: [a_controls ()]
+                                ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
+                                [];
+                            ];
                         ]
                         ~buttons: [
                           Button.save
@@ -250,12 +241,9 @@ let create ?on_save ?text ?tune () =
                                 Lwt.return_unit
                               )
                             ();
-                          Button.cancel ~return ();
+                          Button.cancel' ~return ();
                         ]
                   )
-                ();
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
                 ();
             ]
         )
