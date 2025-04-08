@@ -176,28 +176,37 @@ let create ?context slug =
             )
         ];
       div
-        ~a: [a_class ["btn-group"; "d-flex"; "justify-content-end"]]
+        ~a: [a_class ["text-end"; "dropdown"]]
         [
-          div
+          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
+          ul
+            ~a: [a_class ["dropdown-menu"]]
             [
-              a
-                ~a: [
-                  a_class ["btn"; "btn-secondary"];
-                  a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
-                ]
+              li
                 [
-                  i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                  txt " PDF";
+                  a
+                    ~a: [
+                      a_class ["dropdown-item"];
+                      a_href "#";
+                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
+                    ]
+                    [
+                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                      txt " Download PDF";
+                    ];
                 ];
-              a
-                ~a: [
-                  a_class ["btn"; "btn-secondary"];
-                  a_href (Endpoints.Page.(href BookEdit) slug)
-                ]
+              li
                 [
-                  i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
-                  txt " Edit"
-                ]
+                  a
+                    ~a: [
+                      a_class ["dropdown-item"];
+                      a_href (Endpoints.Page.(href BookEdit) slug)
+                    ]
+                    [
+                      i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
+                      txt " Edit"
+                    ]
+                ];
             ];
         ];
       div

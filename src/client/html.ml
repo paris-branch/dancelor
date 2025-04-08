@@ -133,6 +133,7 @@ module L = struct
   let span ?a elts = R.span ?a (RList.from_lwt' [] elts)
   let tbody ?a elts = R.tbody ?a (RList.from_lwt' [] elts)
   let td ?a elts = R.td ?a (RList.from_lwt' [] elts)
+  let li ?a elts = R.li ?a (RList.from_lwt' [] elts)
 end
 
 (* FIXME: Add an [LL] module for Lwt-loop-based builders. *)

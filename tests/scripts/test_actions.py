@@ -25,6 +25,7 @@ class TestVersionLyDownload():
 
   def test_versionLyDownload(self):
     self.driver.get("http://localhost:8080/version/tam-lin-niols")
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Actions')]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'LilyPond')]").click()
     ## NOTE: Check that the URL is what we expect.
     assert(urlparse(self.driver.current_url).path == "/api/version/tam-lin-niols.ly")

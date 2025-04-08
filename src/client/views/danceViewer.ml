@@ -37,19 +37,43 @@ let create ?context slug =
           | None -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords: unknown"]]
         );
       div
-        ~a: [a_class ["btn-group"; "d-flex"; "justify-content-end"]]
+        ~a: [a_class ["text-end"; "dropdown"]]
         [
-          div
+          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
+          ul
+            ~a: [a_class ["dropdown-menu"]]
             [
-              a
-                ~a: [
-                  a_class ["btn"; "btn-secondary"];
-                  a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (DanceDownloadDialog.create_and_open slug)); false);
-                ]
+              li
                 [
-                  i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                  txt " PDF";
+                  a
+                    ~a: [
+                      a_class ["dropdown-item"];
+                      a_href "#";
+                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (DanceDownloadDialog.create_and_open slug)); false);
+                    ]
+                    [
+                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                      txt " Download PDF";
+                    ];
                 ];
+              L.li
+                (
+                  match%lwt Lwt.map Dance.scddb_id dance_lwt with
+                  | None -> Lwt.return_nil
+                  | Some scddb_id ->
+                    Lwt.return
+                      [
+                        a
+                          ~a: [
+                            a_class ["dropdown-item"];
+                            a_href (Uri.to_string @@ SCDDB.dance_uri scddb_id);
+                          ]
+                          [
+                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                            txt " See on SCDDB";
+                          ]
+                      ]
+                );
             ];
         ];
       L.div
@@ -58,23 +82,6 @@ let create ?context slug =
           | None -> Lwt.return_nil
           | Some date ->
             Lwt.return [txt "Devised "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
-        );
-      L.div
-        (
-          match%lwt Lwt.map Dance.scddb_id dance_lwt with
-          | None -> Lwt.return_nil
-          | Some scddb_id ->
-            let href = Uri.to_string @@ SCDDB.dance_uri scddb_id in
-            Lwt.return
-              [
-                txt "See on ";
-                a
-                  ~a: [a_href href; a_target "blank"]
-                  [
-                    txt "the Strathspey Database"
-                  ];
-                txt ".";
-              ]
         );
       div
         [
