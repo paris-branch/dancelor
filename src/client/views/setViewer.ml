@@ -76,7 +76,6 @@ let create ?context slug =
               | instructions -> Lwt.return ("Instructions: " ^ instructions)
             )
         ];
-      div ~a: [a_class ["after-buttons"]] [];
       div
         ~a: [a_class ["section"]]
         [
@@ -92,7 +91,7 @@ let create ?context slug =
                    let slug = Entry.slug version in
                    Lwt.return @@
                    div
-                     ~a: [a_class ["text-center"]]
+                     ~a: [a_class ["text-center"; "mt-4"]]
                      [
                        h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
                        Components.VersionSvg.make slug;
