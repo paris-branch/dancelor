@@ -229,6 +229,7 @@ let create ?on_save ?text ?tune () =
                             ];
                         ]
                         ~buttons: [
+                          Button.cancel' ~return ();
                           Button.save
                             ~onclick: (fun () ->
                                 let%lwt version = Model.Version.save version in
@@ -241,7 +242,6 @@ let create ?on_save ?text ?tune () =
                                 Lwt.return_unit
                               )
                             ();
-                          Button.cancel' ~return ();
                         ]
                   )
                 ();
