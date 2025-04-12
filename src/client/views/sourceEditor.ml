@@ -92,11 +92,11 @@ let create ?on_save ?text () =
               Input.Text.render
                 editor.elements.name
                 ~label: "Name"
-                ~placeholder: "eg. John Doe";
+                ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
               Input.Text.render
                 editor.elements.scddb_id
                 ~label: "SCDDB ID"
-                ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/source/9999/";
+                ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
             ]
         )
     ]
