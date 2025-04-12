@@ -10,12 +10,18 @@ module type S = sig
   type t = Source.t
   (** Abstract type for a source. *)
 
-  val make : name: string -> ?scddb_id: int -> unit -> t
+  val make :
+    name: string ->
+    ?scddb_id: int ->
+    ?description: string ->
+    unit ->
+    t
 
   (** {2 Field getters} *)
 
   val name : t Entry.t -> string
   val scddb_id : t Entry.t -> int option
+  val description : t Entry.t -> string option
 
   val equal : t -> t -> bool
 

@@ -51,9 +51,8 @@ module Json = struct
   let of_yaml_scalar (sc : Yaml.scalar) : t =
     match sc.style with
     | `Any -> invalid_arg "NesJson.of_yaml_scalar: unsupported scalar type: `Any"
-    | `Literal -> invalid_arg "NesJson.of_yaml_scalar: unsupported scalar type: `Literal"
     | `Folded -> invalid_arg "NesJson.of_yaml_scalar: unsupported scalar type: `Folded"
-    | `Single_quoted | `Double_quoted -> `String sc.value
+    | `Literal | `Single_quoted | `Double_quoted -> `String sc.value
     | `Plain ->
       match int_of_string_opt sc.value with
       | Some i -> `Int i
@@ -163,6 +162,13 @@ let read_entry_file table entry file =
   Filename.concat_l [!prefix; table; entry; file]
   |> Filesystem.read_file
   |> Lwt.return
+
+(** Variant of {!read_entry_file} for controllers that want to eg. serve a
+    file directly from the database. *)
+let with_entry_file table entry file f =
+  with_locks @@ fun () ->
+  Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
+  f @@ Filename.concat_l [!prefix; table; entry; file]
 
 let read_entry_yaml table entry file =
   (* no lock because using read_entry_file *)

@@ -44,4 +44,26 @@ let create ?context slug =
                 );
             ];
         ];
+      div
+        ~a: [a_class ["d-flex"; "flex-column"; "flex-sm-row"; "mt-2"]]
+        [
+          div
+            ~a: [a_class ["flex-shrink-1"]]
+            [
+              img ~a: [a_style "max-width: 100%;"] ~alt: "Cover" ~src: (Endpoints.Api.(href @@ Source Cover) slug) ()
+            ];
+          div
+            ~a: [a_class ["mt-2"; "mt-sm-0"; "ms-sm-2"]]
+            [
+              p
+                [
+                  L.txt
+                    (
+                      match%lwt Lwt.map Source.description source_lwt with
+                      | None -> Lwt.return "no description available"
+                      | Some description -> Lwt.return description
+                    )
+                ];
+            ];
+        ];
     ]
