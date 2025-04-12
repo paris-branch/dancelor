@@ -27,15 +27,15 @@ module RawState = struct
   let dance_of_yojson _ = assert false
 
   type t =
-    (string, string, (string * person Slug.t list), string, (string * dance Slug.t list), string, string) gen
+    (string, string, person Slug.t list, string, dance Slug.t list, string, string) gen
   [@@deriving yojson]
 
   let empty : t = {
     name = "";
     kind = "";
-    composers = ("", []);
+    composers = [];
     date = "";
-    dances = ("", []);
+    dances = [];
     remark = "";
     scddb_id = "";
   }

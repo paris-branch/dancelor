@@ -24,7 +24,7 @@ module RawState = struct
   let person_of_yojson _ = assert false
 
   type t =
-    (string, string, (string * person Slug.t list), string, string,
+    (string, string, person Slug.t list, string, string,
      (* bool, *)
      unit, (* FIXME *)
      string) gen
@@ -33,7 +33,7 @@ module RawState = struct
   let empty : t = {
     name = "";
     kind = "";
-    devisers = ("", []);
+    devisers = [];
     date = "";
     disambiguation = "";
     two_chords = ();

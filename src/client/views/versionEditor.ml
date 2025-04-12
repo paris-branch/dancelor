@@ -32,17 +32,17 @@ module RawState = struct
   let source_of_yojson _ = assert false
 
   type t =
-    ((string * tune Slug.t list), string, string, string, (string * person Slug.t list), string, (string * source Slug.t list), string, string) gen
+    (tune Slug.t list, string, string, string, person Slug.t list, string, source Slug.t list, string, string) gen
   [@@deriving yojson]
 
   let empty = {
-    tune = ("", []);
+    tune = [];
     bars = "";
     key = "";
     structure = "";
-    arrangers = ("", []);
+    arrangers = [];
     remark = "";
-    sources = ("", []);
+    sources = [];
     disambiguation = "";
     content = ""
   }
@@ -84,7 +84,7 @@ module Editor = struct
     | (None, None) ->
       Lwt.return @@ Cutils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
-      Lwt.return @@ f {RawState.empty with tune = (Option.value ~default: "" text, Option.value ~default: [] tune)}
+      Lwt.return @@ f {RawState.empty with tune = Option.value ~default: [] tune}
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->

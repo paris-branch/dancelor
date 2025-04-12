@@ -20,13 +20,13 @@ module RawState = struct
   let set_of_yojson _ = assert false
 
   type t =
-    (string, string, (string * set Slug.t list)) gen
+    (string, string, set Slug.t list) gen
   [@@deriving yojson]
 
   let empty = {
     name = "";
     date = "";
-    sets = ("", []);
+    sets = [];
   }
 end
 
@@ -37,7 +37,7 @@ module State = struct
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date;
-    sets = ("", List.map Entry.slug state.sets);
+    sets = List.map Entry.slug state.sets;
   }
 
   exception Non_convertible
@@ -121,7 +121,7 @@ module Editor = struct
 
   let add_to_storage set =
     Cutils.update "BookEditor" (module RawState) @@ fun state ->
-    {state with sets = (fst state.sets, snd state.sets @ [set])}
+    {state with sets = state.sets @ [set]}
 
   let clear (editor : t) =
     Input.Text.clear editor.elements.name;
