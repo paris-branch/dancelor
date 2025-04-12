@@ -143,7 +143,11 @@ let list_entries table =
   Log.debug (fun m -> m "Listing entries in %s" table);
   Filename.concat !prefix table
   |> Filesystem.read_directory
-  |> List.filter (fun dir -> Filename.concat_l [!prefix; table; dir] |> Sys.is_directory)
+  |> List.filter (fun dir ->
+      let fname = Filename.concat_l [!prefix; table; dir] in
+      Sys.is_directory fname
+      && Filesystem.read_directory fname <> []
+    )
   |> Lwt.return
 
 let list_entry_files table entry =
