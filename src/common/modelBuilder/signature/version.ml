@@ -58,6 +58,12 @@ module type S = sig
     val key : Music.Key.t -> predicate
     val key' : Music.Key.t -> t
 
+    val existsSource : Filter.Source.t -> predicate
+    val existsSource' : Filter.Source.t -> t
+
+    val memSource : Source.t Entry.t -> predicate
+    val memSource' : Source.t Entry.t -> t
+
     val text_formula_converter : predicate TextFormulaConverter.t
     val from_text_formula : TextFormula.t -> (t, string) Result.t
     val from_string : ?filename: string -> string -> (t, string) Result.t

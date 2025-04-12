@@ -53,5 +53,8 @@ module Build
       | Kind kfilter ->
         let%lwt tune = versionCore_tune version in
         Kind.Version.Filter.accepts kfilter (Core.Version.bars version, Tune.kind tune)
+      | ExistsSource sfilter ->
+        let%lwt sources = sources version in
+        Formula.interpret_exists (Source.Filter.accepts sfilter) sources
   end
 end

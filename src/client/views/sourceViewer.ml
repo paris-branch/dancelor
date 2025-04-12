@@ -66,4 +66,21 @@ let create ?context slug =
                 ];
             ];
         ];
+      div
+        ~a: [a_class ["mt-2"; "mt-sm-0"; "ms-sm-2"]]
+        [
+          p
+            [
+              L.txt
+                (
+                  match%lwt Lwt.map Source.description source_lwt with
+                  | None -> Lwt.return "no description available"
+                  | Some description -> Lwt.return description
+                )
+            ];
+          Utils.quick_explorer_links
+            [
+              ("versions from this source", Lwt.map (Any.Filter.version' % Version.Filter.memSource') source_lwt);
+            ];
+        ];
     ]

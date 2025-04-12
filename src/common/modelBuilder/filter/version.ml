@@ -5,6 +5,7 @@ type predicate =
   | Tune of Tune.t
   | Key of Music.key
   | Kind of Kind.Version.Filter.t
+  | ExistsSource of Source.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -13,6 +14,7 @@ type t = predicate Formula.t
 let tune' = Formula.pred % tune
 let key' = Formula.pred % key
 let kind' = Formula.pred % kind
+let existsSource' = Formula.pred % existsSource
 
 let text_formula_converter =
   TextFormulaConverter.(
@@ -26,6 +28,7 @@ let text_formula_converter =
             unary_raw ~name: "key" (key, unKey) ~cast: (Music.key_of_string_opt, Music.key_to_string) ~type_: "key";
             unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Version.Filter.text_formula_converter;
             unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+            unary_lift ~name: "exists-source" (existsSource, unExistsSource) ~converter: Source.text_formula_converter;
           ]
       )
       (
@@ -49,6 +52,9 @@ let is' = Formula.pred % is
 let tuneIs = tune % Tune.is'
 let tuneIs' = Formula.pred % tuneIs
 
+let memSource = existsSource % Source.is'
+let memSource' = Formula.pred % memSource
+
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 
@@ -66,4 +72,5 @@ let optimise =
       | (Is _ as p) | (Key _ as p) -> p
       | Tune tfilter -> tune @@ Tune.optimise tfilter
       | Kind kfilter -> kind @@ Kind.Version.Filter.optimise kfilter
+      | ExistsSource sfilter -> existsSource @@ Source.optimise sfilter
     )
