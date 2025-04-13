@@ -70,14 +70,14 @@ let create ?context slug =
                 Version.search' @@ Version.Filter.tuneIs' tune
               in
               Lwt.return @@
-              if versions = [] then
-                [
-                  txt "There are no versions for this tune. Maybe you want to ";
-                  a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Entry.slug tune) ())] [txt "add one"];
-                  txt "?";
-                ]
-              else
-                [Tables.versions versions]
+                if versions = [] then
+                  [
+                    txt "There are no versions for this tune. Maybe you want to ";
+                    a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Entry.slug tune) ())] [txt "add one"];
+                    txt "?";
+                  ]
+                else
+                    [Tables.versions versions]
             )
         ];
       div

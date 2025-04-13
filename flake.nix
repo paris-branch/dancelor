@@ -6,6 +6,7 @@
     nixpkgs2211.url = "github:nixos/nixpkgs/nixos-22.11";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
+    topiary.url = "github:tweag/topiary";
 
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";

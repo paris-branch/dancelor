@@ -17,12 +17,12 @@ module Pdf = struct
     let parameters = Model.SetParameters.set_show_order false parameters in
     let set =
       Entry.make_dummy @@
-      Model.Set.make
-        ~name: ("Dance: " ^ name)
-        ~kind
-        ~contents: (List.map (fun v -> (v, Model.VersionParameters.none)) versions)
-        ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)
-        ()
+        Model.Set.make
+          ~name: ("Dance: " ^ name)
+          ~kind
+          ~contents: (List.map (fun v -> (v, Model.VersionParameters.none)) versions)
+          ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)
+          ()
     in
     Set.Pdf.render parameters set
 

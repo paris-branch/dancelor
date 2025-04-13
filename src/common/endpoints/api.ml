@@ -38,7 +38,8 @@ let all_endpoints =
       List.map (fun (Set.W e) -> W (Set e)) Set.all;
       List.map (fun (Tune.W e) -> W (Tune e)) Tune.all;
       List.map (fun (Any.W e) -> W (Any e)) Any.all;
-      [W ReportIssue; W Victor];
+      [W ReportIssue;
+      W Victor];
     ]
 
 open Madge

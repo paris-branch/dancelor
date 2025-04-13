@@ -5,11 +5,11 @@
 (** {2 Pitch} *)
 
 type note =
-    A | B | C | D | E | F | G
+  A | B | C | D | E | F | G
 [@@deriving eq, show]
 
 type alteration =
-    Flat | Sharp | Natural
+  Flat | Sharp | Natural
 [@@deriving eq, show]
 
 type octave = int
@@ -39,10 +39,11 @@ val pitch_to_lilypond_string : pitch -> string
 (** {2 Key} *)
 
 type mode =
-    Major | Minor
+  Major | Minor
 [@@deriving eq, show]
 
-type key = {pitch: pitch; mode: mode}
+type key =
+  {pitch: pitch; mode: mode}
 [@@deriving eq, show, yojson]
 
 val make_key : pitch -> mode -> key
@@ -68,7 +69,7 @@ module Key : Madge.JSONABLE with type t = key
 (** {2 Clef} *)
 
 type clef =
-    Treble | Bass
+  Treble | Bass
 [@@deriving eq, show, yojson]
 
 val clef_to_string : clef -> string

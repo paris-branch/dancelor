@@ -35,21 +35,21 @@ let make
     if String.length text < min_characters then
       (
         Lwt.return @@
-        if text = "" then
-          StartTyping
-        else
-          ContinueTyping
+          if text = "" then
+            StartTyping
+          else
+            ContinueTyping
       )
     else
       Fun.flip Lwt.map (search slice text) @@ function
-      | Error messages ->
-        Errors messages
-      | Ok (_, []) ->
-        NoResults
-      | Ok (total, results) ->
-        on_number_of_entries total; Results results
+        | Error messages ->
+          Errors messages
+        | Ok (_, []) ->
+          NoResults
+        | Ok (total, results) ->
+          on_number_of_entries total; Results results
   in
-  {text; state; set_text}
+    {text; state; set_text}
 
 (** FIXME: get rid of [on_focus] and [on_enter] that are probably not used
     anymore. *)
@@ -67,9 +67,7 @@ let render
   let bar =
     input
       ~a: (
-        List.filter_map
-          Fun.id
-          [
+        List.filter_map Fun.id[
             Some (a_class ["form-control"]);
             Some (a_input_type `Text);
             Some (a_placeholder placeholder);
@@ -77,15 +75,15 @@ let render
             Some
               (
                 a_oninput (fun event ->
-                    (
-                      Js.Opt.iter event##.target @@ fun elt ->
-                      Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
-                      let input = Js.to_string input##.value in
-                      search_bar.set_text input;
-                      Option.value ~default: ignore on_input input;
-                    );
-                    false
-                  )
+                  (
+                    Js.Opt.iter event##.target @@ fun elt ->
+                    Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
+                    let input = Js.to_string input##.value in
+                    search_bar.set_text input;
+                    Option.value ~default: ignore on_input input;
+                  );
+                  false
+                )
               );
             (
               if autofocus then
@@ -95,23 +93,22 @@ let render
             );
             Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
           ]
-      )
-      ()
-  in
-  let bar' = To_dom.of_input bar in
+      )()
+    in
+    let bar' = To_dom.of_input bar in
 
-  (* FIXME: This is a disgusting way to handle auto-focus. Instead, we should
-     return some type that has a [focus] function and call it in client code. *)
-  if autofocus then
-    Lwt.async (fun () ->
+    (* FIXME: This is a disgusting way to handle auto-focus. Instead, we should
+       return some type that has a [focus] function and call it in client code. *)
+    if autofocus then
+      Lwt.async (fun () ->
         Lwt.pmsleep 1.;%lwt
         bar'##focus;
         Lwt.return_unit
       );
 
-  (* Because the following event prevents the default browser behaviour (in case
-     of `on_enter`), it must happen on `keydown` and not on `keyup`. *)
-  Utils.add_target_event_listener bar' Dom_html.Event.keydown (fun event _target ->
+    (* Because the following event prevents the default browser behaviour (in case
+       of `on_enter`), it must happen on `keydown` and not on `keyup`. *)
+    Utils.add_target_event_listener bar' Dom_html.Event.keydown (fun event _target ->
       match event##.keyCode with
       | 13 (* Enter *) ->
         (
@@ -128,9 +125,9 @@ let render
       | 27 (* Esc *) -> (bar'##blur; Js._true)
       | _ -> Js._true
     );
-  bar
+    bar
 
-let state search_bar = search_bar.state
-let text search_bar = search_bar.text
-let set_text search_bar text = search_bar.set_text text
-let clear search_bar = search_bar.set_text ""
+  let state search_bar = search_bar.state
+  let text search_bar = search_bar.text
+  let set_text search_bar text = search_bar.set_text text
+  let clear search_bar = search_bar.set_text ""

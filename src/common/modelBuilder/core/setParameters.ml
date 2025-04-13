@@ -9,7 +9,7 @@ open Nes
     set. [Unfolded] follows the order, duplicating the tunes if they are to be
     played several times. *)
 type order_type =
-    Default | Unfolded
+  Default | Unfolded
 [@@deriving eq, show {with_path = false}, yojson]
 
 (** The size of the paper to use. [A] allows to select the ISO 216 “A” format.

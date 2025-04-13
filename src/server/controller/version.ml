@@ -45,9 +45,8 @@ let prepare_ly_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fn
     match Model.VersionParameters.transposition' parameters with
     | Relative (source, target) -> (source, target)
     | Absolute target -> (Music.key_pitch key, target)
-    (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
-  in
-  let source = Music.pitch_to_lilypond_string source in
+  (* FIXME: Similarly to version.ml, probably need to fix an octave in Absolue *)
+  in let source = Music.pitch_to_lilypond_string source in
   let target = Music.pitch_to_lilypond_string target in
 
   (* Create the Lilypond file *)
@@ -103,25 +102,25 @@ let populate_cache ~cache ~ext ~pp_ext =
   let files = Lwt_unix.files_of_directory path in
   Lwt_stream.iter
     (fun x ->
-       if Filename.check_suffix x ext then
-         try
-           Log.debug (fun m -> m "Found %s file %s" pp_ext x);
-           let base = Filename.chop_suffix x ext in
-           let hash =
-             String.split_on_char '-' base
-             |> List.ft
-             |> StorageCache.hash_from_string
-           in
-           StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
-         with
-         | exn ->
-           Log.err (fun m ->
-               m
-                 "%a"
-                 (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
-                 ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
-             );
-           exit 7
+      if Filename.check_suffix x ext then
+        try
+          Log.debug (fun m -> m "Found %s file %s" pp_ext x);
+          let base = Filename.chop_suffix x ext in
+          let hash =
+            String.split_on_char '-' base
+            |> List.ft
+            |> StorageCache.hash_from_string
+          in
+          StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
+        with
+          | exn ->
+            Log.err (fun m ->
+              m
+                "%a"
+                (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
+                ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
+            );
+            exit 7
     )
     files
 
@@ -182,12 +181,12 @@ module Pdf = struct
     let parameters = Model.VersionParameters.set_display_name "" parameters in
     let set =
       Entry.make_dummy @@
-      Model.Set.make
-        ~name
-        ~kind: (Kind.Dance.Version kind)
-        ~contents: [(version, parameters)]
-        ~order: [Internal 1]
-        ()
+        Model.Set.make
+          ~name
+          ~kind: (Kind.Dance.Version kind)
+          ~contents: [(version, parameters)]
+          ~order: [Internal 1]
+          ()
     in
     Set.Pdf.render set_parameters set
 

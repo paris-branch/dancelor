@@ -15,12 +15,10 @@ let display_warnings warnings =
       ([txt "standalone"] @ display_times n) :: display_sets tl
     | (Some set, n) :: tl ->
       (
-        [
-          txt "in “";
-          span (Formatters.Set.name set);
-          txt "”"
-        ] @
-        display_times n
+        [txt "in “";
+        span (Formatters.Set.name set);
+        txt "”"] @
+          display_times n
       ) :: display_sets tl
   in
   let rec format_set_list = function
@@ -80,141 +78,137 @@ let table_contents ~this_slug contents =
           let%lwt contents = contents in
           List.mapi
             (fun index page ->
-               let context = Endpoints.Page.inBook this_slug index in
-               match page with
-               | Book.Set (set, parameters) ->
-                 (
-                   let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
-                   Tables.clickable_row
-                     ~href
-                     [
-                       Lwt.return [txt "Set"];
-                       (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                       Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
-                     ]
-                 )
-               | InlineSet (set, parameters) ->
-                 (
-                   tr
-                     [
-                       td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
-                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
-                       td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
-                     ]
-                 )
-               | Version (version, parameters) ->
-                 (
-                   let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
-                   Tables.clickable_row
-                     ~href
-                     [
-                       Lwt.return [txt "Tune"];
-                       (Formatters.Version.name_and_dance ~link: false version parameters);
-                       Lwt.return
-                         [
-                           L.txt
-                             (
-                               let%lwt tune = Version.tune version in
-                               Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
-                             )
-                         ];
-                     ]
-                 )
+              let context = Endpoints.Page.inBook this_slug index in
+              match page with
+              | Book.Set (set, parameters) ->
+                (
+                  let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
+                  Tables.clickable_row ~href[
+                      Lwt.return [txt "Set"];
+                      (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
+                      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
+                    ]
+                )
+              | InlineSet (set, parameters) ->
+                (
+                  tr
+                    [
+                      td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
+                      L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
+                      td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
+                    ]
+                )
+              | Version (version, parameters) ->
+                (
+                  let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
+                  Tables.clickable_row ~href[
+                      Lwt.return [txt "Tune"];
+                      (Formatters.Version.name_and_dance ~link: false version parameters);
+                      Lwt.return
+                        [
+                          L.txt
+                            (
+                              let%lwt tune = Version.tune version in
+                              Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
+                            )
+                        ];
+                    ]
+                )
             )
             contents
           |> Lwt.return
         )
-    ]
+      ]
 
-let create ?context slug =
-  let open Html in
-  let book_lwt = Book.get slug in
-  let title = S.from' "" (Lwt.map Book.title book_lwt) in
-  Page.make
-    ~parent_title: "Book"
-    ~title
-    ~before_title: [
-      Components.ContextLinks.make_and_render
-        ?context
-        ~this_page: (Endpoints.Page.href_book slug)
-        (Lwt.map Any.book book_lwt);
-    ]
-    [
-      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
-      L.div
-        (
-          match%lwt Lwt.map Book.scddb_id book_lwt with
-          | None -> Lwt.return_nil
-          | Some scddb_id ->
-            let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
-            Lwt.return
-              [
-                h5
-                  ~a: [a_class ["text-center"]]
+    let create ?context slug =
+      let open Html in
+      let book_lwt = Book.get slug in
+      let title = S.from' "" (Lwt.map Book.title book_lwt) in
+      Page.make
+        ~parent_title: "Book"
+        ~title
+        ~before_title: [
+          Components.ContextLinks.make_and_render
+            ?context
+            ~this_page: (Endpoints.Page.href_book slug)
+            (Lwt.map Any.book book_lwt);
+        ]
+        [
+          h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
+          L.div
+            (
+              match%lwt Lwt.map Book.scddb_id book_lwt with
+              | None -> Lwt.return_nil
+              | Some scddb_id ->
+                let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
+                Lwt.return
                   [
-                    a
-                      ~a: [a_href href; a_target "blank"]
+                    h5
+                      ~a: [a_class ["text-center"]]
                       [
-                        txt "Link to the Strathspey Database"
+                        a
+                          ~a: [a_href href; a_target "blank"]
+                          [
+                            txt "Link to the Strathspey Database"
+                          ]
                       ]
                   ]
-              ]
-        );
-      L.div
-        (
-          match%lwt book_lwt >>=| Book.warnings with
-          | [] -> Lwt.return []
-          | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
-        );
-      p
-        [
-          L.txt
+            );
+          L.div
             (
-              match%lwt Lwt.map Book.date book_lwt with
-              | None -> Lwt.return ""
-              | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
-            )
-        ];
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
+              match%lwt book_lwt >>=| Book.warnings with
+              | [] -> Lwt.return []
+              | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
+            );
+          p
             [
-              li
+              L.txt
+                (
+                  match%lwt Lwt.map Book.date book_lwt with
+                  | None -> Lwt.return ""
+                  | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
+                )
+            ];
+          div
+            ~a: [a_class ["text-end"; "dropdown"]]
+            [
+              button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
+              ul
+                ~a: [a_class ["dropdown-menu"]]
                 [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
-                    ]
+                  li
                     [
-                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                      txt " Download PDF";
+                      a
+                        ~a: [
+                          a_class ["dropdown-item"];
+                          a_href "#";
+                          a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
+                        ]
+                        [
+                          i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                          txt " Download PDF";
+                        ];
+                    ];
+                  li
+                    [
+                      a
+                        ~a: [
+                          a_class ["dropdown-item"];
+                          a_href (Endpoints.Page.(href BookEdit) slug)
+                        ]
+                        [
+                          i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
+                          txt " Edit"
+                        ]
                     ];
                 ];
-              li
-                [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href (Endpoints.Page.(href BookEdit) slug)
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
-                      txt " Edit"
-                    ]
-                ];
             ];
-        ];
-      div
-        ~a: [a_class ["section"]]
-        [
-          h3 [txt "Contents"];
-          table_contents
-            ~this_slug: slug
-            (Lwt.bind book_lwt Book.contents);
-        ];
-    ]
+          div
+            ~a: [a_class ["section"]]
+            [
+              h3 [txt "Contents"];
+              table_contents
+                ~this_slug: slug
+                (Lwt.bind book_lwt Book.contents);
+            ];
+        ]

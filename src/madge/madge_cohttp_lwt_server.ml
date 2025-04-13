@@ -16,15 +16,15 @@ let cohttp_code_meth_to_meth = function
 
 let match_apply
   : type a r. (a, r Lwt.t, r) route ->
-    a ->
-    request ->
-    (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
-  = fun route controller request ->
-    match_ route controller request @@ fun (module R) promise ->
-    Lwt.bind promise @@ fun value ->
-    let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
-    let body = Yojson.Safe.to_string (R.to_yojson value) in
-    Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body ()
+  a ->
+  request ->
+  (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
+= fun route controller request ->
+  match_ route controller request @@ fun (module R) promise ->
+  Lwt.bind promise @@ fun value ->
+  let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
+  let body = Yojson.Safe.to_string (R.to_yojson value) in
+  Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body ()
 
 exception Shortcut of (Cohttp.Response.t * Cohttp_lwt.Body.t)
 

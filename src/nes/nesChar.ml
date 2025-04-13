@@ -66,22 +66,22 @@ module Sensible = struct
   let%test _ =
     List.init 256 Char.chr
     |> List.for_all @@ fun c1 ->
-    List.init 256 Char.chr
-    |> List.for_all @@ fun c2 ->
-    match kind c1, kind c2 with
-    | Space, Letter
-    | Space, Digit
-    | Space, Symbol
-    | Space, Other
-    | Letter, Digit
-    | Letter, Symbol
-    | Letter, Other
-    | Digit, Symbol
-    | Digit, Other
-    | Symbol, Other ->
-      compare c1 c2 < 0
-    | _ ->
-      true
+      List.init 256 Char.chr
+      |> List.for_all @@ fun c2 ->
+        match kind c1, kind c2 with
+        | Space, Letter
+        | Space, Digit
+        | Space, Symbol
+        | Space, Other
+        | Letter, Digit
+        | Letter, Symbol
+        | Letter, Other
+        | Digit, Symbol
+        | Digit, Other
+        | Symbol, Other ->
+          compare c1 c2 < 0
+        | _ ->
+          true
 
   let equal c1 c2 =
     compare c1 c2 = 0

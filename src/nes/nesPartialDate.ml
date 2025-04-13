@@ -14,7 +14,7 @@ let check_full_date ~year ~month ~day =
     ignore (Dates_calc.Dates.make_date ~year ~month ~day);
     true
   with
-  | Dates_calc.Dates.InvalidDate -> false
+    | Dates_calc.Dates.InvalidDate -> false
 
 let check = function
   | YearMonthDay (year, month, day) -> check_full_date ~year ~month ~day

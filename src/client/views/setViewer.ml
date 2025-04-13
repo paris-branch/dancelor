@@ -82,17 +82,17 @@ let create ?context slug =
           let%lwt contents = Set.contents set in
           Lwt_list.mapi_p
             (fun index (version, _parameters) ->
-               let context = Endpoints.Page.inSet slug index in
-               (* FIXME: use parameters *)
-               let%lwt tune = Version.tune version in
-               let slug = Entry.slug version in
-               Lwt.return @@
-               div
-                 ~a: [a_class ["text-center"; "mt-4"]]
-                 [
-                   h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
-                   Components.VersionSvg.make slug;
-                 ]
+              let context = Endpoints.Page.inSet slug index in
+              (* FIXME: use parameters *)
+              let%lwt tune = Version.tune version in
+              let slug = Entry.slug version in
+              Lwt.return @@
+                div
+                  ~a: [a_class ["text-center"; "mt-4"]]
+                  [
+                    h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
+                    Components.VersionSvg.make slug;
+                  ]
             )
             contents
         );

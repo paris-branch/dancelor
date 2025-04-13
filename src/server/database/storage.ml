@@ -106,8 +106,8 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
     Lwt_mutex.with_lock
       lock
       (fun () ->
-         Log.debug (fun m -> m "Got lock[%x] on storage" id);
-         f ()
+        Log.debug (fun m -> m "Got lock[%x] on storage" id);
+        f ()
       )
   in
   Log.debug (fun m -> m "Released lock[%x] on storage" id);
@@ -211,7 +211,7 @@ let save_changes_on_entry ~msg table entry =
   if !Config.write_storage then
     (
       (* no prefix for git! *)
-      let path = Filename.concat_l [ (*!prefix;*) table; entry] in
+      let path = Filename.concat_l [(*!prefix;*) table; entry] in
       Git.add path;%lwt
       Git.commit ~msg;%lwt
       Lwt.return_unit

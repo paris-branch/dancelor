@@ -154,13 +154,13 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
     | head -> head
   and optimise f =
     optimise_head @@
-    match f with
-    | True -> True
-    | False -> False
-    | Not f -> Not (optimise f)
-    | And (f1, f2) -> And (optimise f1, optimise f2)
-    | Or (f1, f2) -> Or (optimise f1, optimise f2)
-    | Pred p -> Pred (optimise_predicate p)
+      match f with
+      | True -> True
+      | False -> False
+      | Not f -> Not (optimise f)
+      | And (f1, f2) -> And (optimise f1, optimise f2)
+      | Or (f1, f2) -> Or (optimise f1, optimise f2)
+      | Pred p -> Pred (optimise_predicate p)
   in
   optimise formula
 

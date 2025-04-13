@@ -22,7 +22,7 @@ let rec search_and_extract acc s regexp =
     let rem, l = search_and_extract acc rem regexp in
     rem, gp_words @ l
   with
-  | Not_found | Invalid_argument _ -> rem, acc
+    | Not_found | Invalid_argument _ -> rem, acc
 
 let score_list_vs_word words needle =
   List.map (String.inclusion_proximity ~char_equal: Char.Sensible.equal ~needle) words
@@ -37,18 +37,16 @@ let score_list_vs_list words needles =
     end
 
 include ModelBuilder.Search.Build(struct
-    type value = t Entry.t
-    type filter = Filter.t
+  type value = t Entry.t
+  type filter = Filter.t
 
-    let cache = Cache.create ~lifetime: 600 ()
-    let get_all = Database.Version.get_all
-    let filter_accepts = Filter.accepts
+  let cache = Cache.create ~lifetime: 600 ()
+  let get_all = Database.Version.get_all
+  let filter_accepts = Filter.accepts
 
-    let tiebreakers =
-      Lwt_list.[
-        increasing (Lwt.map Tune.name % tune) String.Sensible.compare
-      ]
-  end)
+  let tiebreakers =
+    Lwt_list.[increasing (Lwt.map Tune.name % tune) String.Sensible.compare]
+end)
 
 module Parameters = struct
   include ModelBuilder.Version.Parameters

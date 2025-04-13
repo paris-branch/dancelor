@@ -15,12 +15,12 @@ let nameMatches' = Formula.pred % nameMatches
 let accepts filter source =
   let char_equal = Char.Sensible.equal in
   Formula.interpret filter @@ function
-  | Is source' ->
-    Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug source) source'
-  | Name string ->
-    Lwt.return @@ String.proximity ~char_equal string @@ Core.Source.name source
-  | NameMatches string ->
-    Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Source.name source
+    | Is source' ->
+      Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug source) source'
+    | Name string ->
+      Lwt.return @@ String.proximity ~char_equal string @@ Core.Source.name source
+    | NameMatches string ->
+      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Source.name source
 
 let text_formula_converter =
   TextFormulaConverter.(
@@ -45,4 +45,4 @@ let is' = Formula.pred % is
 
 let optimise =
   Formula.optimise @@ function
-  | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+    | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p

@@ -27,7 +27,7 @@ module RawState = struct
   let dance_of_yojson _ = assert false
 
   type t =
-    (string, string, person Slug.t list, string, dance Slug.t list, string, string) gen
+  (string, string, person Slug.t list, string, dance Slug.t list, string, string) gen
   [@@deriving yojson]
 
   let empty : t = {
@@ -44,7 +44,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, Kind.Base.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
+    (string Input.Text.t, Kind.Base.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -74,57 +74,57 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Cutils.with_local_storage "TuneEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "TuneEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
       Input.Text.make initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt
+        Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt
     in
     let composers =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Person.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.composers
     in
     let date =
       Input.Text.make initial_state.date @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
+          Option.of_string_nonempty
     in
     let dances =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Dance.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Dance.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Dance.get
         initial_state.dances
     in
     let remark =
       Input.Text.make initial_state.remark @@
-      Result.ok % Option.of_string_nonempty
+        Result.ok % Option.of_string_nonempty
     in
     let scddb_id =
       Input.Text.make initial_state.scddb_id @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Tune) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Tune) %
+          Option.of_string_nonempty
     in
     {
       elements = {name; kind; composers; date; dances; remark; scddb_id};
@@ -161,47 +161,45 @@ let create ?on_save ?text () =
   let editor = Editor.create ~text in
   Page.make
     ~title: (S.const title)
-    [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Input.Text.render
-                editor.elements.name
-                ~label: "Name"
-                ~placeholder: "eg. The Cairdin O't";
-              Input.Text.render
-                editor.elements.kind
-                ~label: "Kind"
-                ~placeholder: "eg. R or Strathspey";
-              Selector.render
-                ~make_result: AnyResult.make_person_result'
-                ~field_name: "Composers"
-                ~model_name: "person"
-                ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-                editor.elements.composers;
-              Input.Text.render
-                editor.elements.date
-                ~label: "Date of devising"
-                ~placeholder: "eg. 2019 or 2012-03-14";
-              Selector.render
-                ~make_result: AnyResult.make_dance_result'
-                ~field_name: "Dances"
-                ~model_name: "dance"
-                ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
-                editor.elements.dances;
-              Input.Text.render
-                editor.elements.remark
-                ~label: "Remark"
-                ~placeholder: "Any additional information that doesn't fit in the other fields.";
-              Input.Text.render
-                editor.elements.scddb_id
-                ~label: "SCDDB ID"
-                ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/";
-            ]
-        )
-    ]
+    [L.div
+      (
+        let%lwt editor = editor in
+        Lwt.return
+          [
+            Input.Text.render
+              editor.elements.name
+              ~label: "Name"
+              ~placeholder: "eg. The Cairdin O't";
+            Input.Text.render
+              editor.elements.kind
+              ~label: "Kind"
+              ~placeholder: "eg. R or Strathspey";
+            Selector.render
+              ~make_result: AnyResult.make_person_result'
+              ~field_name: "Composers"
+              ~model_name: "person"
+              ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+              editor.elements.composers;
+            Input.Text.render
+              editor.elements.date
+              ~label: "Date of devising"
+              ~placeholder: "eg. 2019 or 2012-03-14";
+            Selector.render
+              ~make_result: AnyResult.make_dance_result'
+              ~field_name: "Dances"
+              ~model_name: "dance"
+              ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
+              editor.elements.dances;
+            Input.Text.render
+              editor.elements.remark
+              ~label: "Remark"
+              ~placeholder: "Any additional information that doesn't fit in the other fields.";
+            Input.Text.render
+              editor.elements.scddb_id
+              ~label: "SCDDB ID"
+              ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/";
+          ]
+      )]
     ~buttons: [
       L.div
         (
@@ -214,13 +212,13 @@ let create ?on_save ?text () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun tune ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_tune (Entry.slug tune))
-                    | Some on_save -> on_save tune
-                  )
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun tune ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_tune (Entry.slug tune))
+                  | Some on_save -> on_save tune
+                )
                 ();
             ]
         )

@@ -28,7 +28,7 @@ module RawState = struct
   let version_of_yojson _ = assert false
 
   type t =
-    (string, string, person Slug.t list, version Slug.t list, string) gen
+  (string, string, person Slug.t list, version Slug.t list, string) gen
   [@@deriving yojson]
 
   let empty = {
@@ -43,7 +43,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
+    (string Input.Text.t, Kind.Dance.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.Text.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -69,25 +69,25 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Cutils.with_local_storage "SetEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "SetEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let kind =
       Input.Text.make initial_state.kind @@
-      Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
+        Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
     in
     let conceptors =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Person.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.conceptors
@@ -96,16 +96,16 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Version.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Version.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Version.get
         initial_state.versions
     in
     let order =
       Input.Text.make initial_state.order @@
-      Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
+        Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
     in
     {
       elements = {name; kind; conceptors; versions; order};
@@ -142,42 +142,40 @@ let create ?on_save ?text () =
   let editor = Editor.create ~text in
   Page.make
     ~title: (S.const title)
-    [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Input.Text.render
-                editor.elements.name
-                ~label: "Name"
-                ~placeholder: "eg. The Dusty Miller";
-              Input.Text.render
-                editor.elements.kind
-                ~label: "Kind"
-                ~placeholder: "eg. 8x32R or 2x(16R+16S)";
-              Selector.render
-                ~make_result: AnyResult.make_person_result'
-                ~field_name: "Conceptors"
-                ~model_name: "person"
-                ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-                editor.elements.conceptors;
-              Selector.render
-                ~make_result: AnyResult.make_version_result'
-                ~make_more_results: (fun version ->
-                    [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.slug version)]]]
-                  )
-                ~field_name: "Versions"
-                ~model_name: "versions"
-                ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
-                editor.elements.versions;
-              Input.Text.render
-                editor.elements.order
-                ~label: "Order"
-                ~placeholder: "eg. 1,2,3,4,2,3,4,1";
-            ]
-        )
-    ]
+    [L.div
+      (
+        let%lwt editor = editor in
+        Lwt.return
+          [
+            Input.Text.render
+              editor.elements.name
+              ~label: "Name"
+              ~placeholder: "eg. The Dusty Miller";
+            Input.Text.render
+              editor.elements.kind
+              ~label: "Kind"
+              ~placeholder: "eg. 8x32R or 2x(16R+16S)";
+            Selector.render
+              ~make_result: AnyResult.make_person_result'
+              ~field_name: "Conceptors"
+              ~model_name: "person"
+              ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+              editor.elements.conceptors;
+            Selector.render
+              ~make_result: AnyResult.make_version_result'
+              ~make_more_results: (fun version ->
+                [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.slug version)]]]
+              )
+              ~field_name: "Versions"
+              ~model_name: "versions"
+              ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
+              editor.elements.versions;
+            Input.Text.render
+              editor.elements.order
+              ~label: "Order"
+              ~placeholder: "eg. 1,2,3,4,2,3,4,1";
+          ]
+      )]
     ~buttons: [
       L.div
         (
@@ -190,13 +188,13 @@ let create ?on_save ?text () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun set ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
-                    | Some on_save -> on_save set
-                  )
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun set ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
+                  | Some on_save -> on_save set
+                )
                 ();
             ]
         )

@@ -8,18 +8,18 @@ open Views
 let set_title title =
   Dom_html.document##.title :=
     Js.string @@
-    match title with
-    | "" -> "Dancelor"
-    | title -> title ^ " | Dancelor"
+      match title with
+      | "" -> "Dancelor"
+      | title -> title ^ " | Dancelor"
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let quick_search =
   Components.Search.Quick.make
     ~search: (fun slice input ->
-        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
-        Lwt.map Result.ok @@ Model.Any.search slice filter
-      )
+      let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+      Lwt.map Result.ok @@ Model.Any.search slice filter
+    )
     ()
 
 let quick_search_to_explorer value =
@@ -85,33 +85,30 @@ let header =
                       ul
                         ~a: [a_class ["dropdown-menu"]]
                         (
-                          [
-                            li [a ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Page.(href Explore) None)] [txt "All"]];
-                            li [hr ~a: [a_class ["dropdown-divider"]] ()];
+                          [li [a ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Page.(href Explore) None)] [txt "All"]];
+                          li [hr ~a: [a_class ["dropdown-divider"]] ()];
                           ] @
-                          List.map
-                            (fun (icon, key, text) ->
-                               let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                               li
-                                 [
-                                   a
-                                     ~a: [a_class ["dropdown-item"]; a_href href]
-                                     [
-                                       i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
-                                       txt " ";
-                                       txt text
-                                     ]
-                                 ]
-                            )
-                            [
-                              ("archive", "source", "Sources");
-                              ("person", "person", "Persons");
-                              ("person-arms-up", "dance", "Dances");
-                              ("music-note-list", "tune", "Tunes");
-                              ("music-note-beamed", "version", "Versions");
-                              ("list-stars", "set", "Sets");
-                              ("book", "book", "Books");
-                            ]
+                            List.map (fun (icon, key, text) ->
+                                let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                                li
+                                  [
+                                    a
+                                      ~a: [a_class ["dropdown-item"]; a_href href]
+                                      [
+                                        i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
+                                        txt " ";
+                                        txt text
+                                      ]
+                                  ]
+                              )[
+                                ("archive", "source", "Sources");
+                                ("person", "person", "Persons");
+                                ("person-arms-up", "dance", "Dances");
+                                ("music-note-list", "tune", "Tunes");
+                                ("music-note-beamed", "version", "Versions");
+                                ("list-stars", "set", "Sets");
+                                ("book", "book", "Books");
+                              ]
                         );
                     ];
                   li
@@ -126,20 +123,18 @@ let header =
                         ~a: [a_class ["dropdown-menu"]]
                         (
                           let open Endpoints.Page in
-                          List.map
-                            (fun (icon, href, text) ->
-                               li
-                                 [
-                                   a
-                                     ~a: [a_class ["dropdown-item"]; a_href href]
-                                     [
-                                       i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
-                                       txt " ";
-                                       txt text
-                                     ]
-                                 ]
-                            )
-                            [
+                          List.map (fun (icon, href, text) ->
+                              li
+                                [
+                                  a
+                                    ~a: [a_class ["dropdown-item"]; a_href href]
+                                    [
+                                      i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
+                                      txt " ";
+                                      txt text
+                                    ]
+                                ]
+                            )[
                               ("archive", href SourceAdd, "Source");
                               ("person", href PersonAdd, "Person");
                               ("person-arms-up", href DanceAdd, "Dance");
@@ -160,87 +155,87 @@ let header =
             ~onclick: (Lwt.map ignore % open_quick_search)
             ();
         ];
-    ]
+      ]
 
-(* Add an event listener to open the quick search by pressing '/'. *)
-let add_slash_quick_search_event_listener () =
-  Utils.add_target_event_listener
-    Dom_html.window
-    Dom_html.Event.keydown
-    (fun event target ->
-       if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
-         (Lwt.async (Lwt.map ignore % open_quick_search); Js._false)
-       else
-         Js._true
-    )
+    (* Add an event listener to open the quick search by pressing '/'. *)
+    let add_slash_quick_search_event_listener () =
+      Utils.add_target_event_listener
+        Dom_html.window
+        Dom_html.Event.keydown
+        (fun event target ->
+          if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
+            (Lwt.async (Lwt.map ignore % open_quick_search); Js._false)
+          else
+            Js._true
+        )
 
-let footer =
-  nav
-    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
-    [
-      div
-        ~a: [a_class ["container"; "d-flex"; "flex-column"; "flex-sm-row"]]
+    let footer =
+      nav
+        ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
         [
-          a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
-          a
-            ~a: [
-              a_class ["icon-link"; "text-light"; "my-1"];
-              a_href "https://github.com/paris-branch/dancelor";
-              a_target "_blank";
-            ]
+          div
+            ~a: [a_class ["container"; "d-flex"; "flex-column"; "flex-sm-row"]]
             [
-              i ~a: [a_class ["bi"; "bi-github"]] [];
-              txt "paris-branch/dancelor";
+              a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
+              a
+                ~a: [
+                  a_class ["icon-link"; "text-light"; "my-1"];
+                  a_href "https://github.com/paris-branch/dancelor";
+                  a_target "_blank";
+                ]
+                [
+                  i ~a: [a_class ["bi"; "bi-github"]] [];
+                  txt "paris-branch/dancelor";
+                ];
+              Components.Button.make
+                ~label: "Report an issue"
+                ~label_processing: "Reporting..."
+                ~icon: "bug"
+                ~classes: ["btn-light"; "my-1"]
+                ~onclick: (fun () ->
+                  Lwt.map ignore @@ IssueReport.open_dialog @@ get_uri ()
+                )
+                ()
             ];
-          Components.Button.make
-            ~label: "Report an issue"
-            ~label_processing: "Reporting..."
-            ~icon: "bug"
-            ~classes: ["btn-light"; "my-1"]
-            ~onclick: (fun () ->
-                Lwt.map ignore @@ IssueReport.open_dialog @@ get_uri ()
-              )
-            ()
-        ];
-    ]
+        ]
 
-let dispatch uri =
-  let dispatch : type a r. (a, Page.t, r) Endpoints.Page.t -> a = function
-    | Index -> Index.create ()
-    | Explore -> (fun query -> Explorer.create ?query ())
-    | Book -> (fun context slug -> BookViewer.create ?context slug)
-    | BookAdd -> BookEditor.create ()
-    | BookEdit -> (fun slug -> BookEditor.create ~edit: slug ())
-    | Dance -> (fun context slug -> DanceViewer.create ?context slug)
-    | DanceAdd -> DanceEditor.create ()
-    | Person -> (fun context slug -> PersonViewer.create ?context slug)
-    | PersonAdd -> PersonEditor.create ()
-    | Version -> (fun context slug -> VersionViewer.create ?context slug)
-    | VersionAdd -> (fun tune -> VersionEditor.create ~tune: (Option.to_list tune) ())
-    | Tune -> (fun context slug -> TuneViewer.create ?context slug)
-    | TuneAdd -> TuneEditor.create ()
-    | Set -> (fun context slug -> SetViewer.create ?context slug)
-    | SetAdd -> SetEditor.create ()
-    | Source -> (fun context slug -> SourceViewer.create ?context slug)
-    | SourceAdd -> SourceEditor.create ()
-  in
-  let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
-    List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
-    Madge.match_' (Endpoints.Page.route endpoint) (dispatch endpoint) {meth = GET; uri; body = ""}
-  in
-  match madge_match_apply_all Endpoints.Page.all_endpoints' with
-  | Some page -> page ()
-  | None -> (* FIXME: 404 page *) assert false
+    let dispatch uri =
+      let dispatch : type a r. (a, Page.t, r) Endpoints.Page.t -> a = function
+        | Index -> Index.create ()
+        | Explore -> (fun query -> Explorer.create ?query ())
+        | Book -> (fun context slug -> BookViewer.create ?context slug)
+        | BookAdd -> BookEditor.create ()
+        | BookEdit -> (fun slug -> BookEditor.create ~edit: slug ())
+        | Dance -> (fun context slug -> DanceViewer.create ?context slug)
+        | DanceAdd -> DanceEditor.create ()
+        | Person -> (fun context slug -> PersonViewer.create ?context slug)
+        | PersonAdd -> PersonEditor.create ()
+        | Version -> (fun context slug -> VersionViewer.create ?context slug)
+        | VersionAdd -> (fun tune -> VersionEditor.create ~tune: (Option.to_list tune) ())
+        | Tune -> (fun context slug -> TuneViewer.create ?context slug)
+        | TuneAdd -> TuneEditor.create ()
+        | Set -> (fun context slug -> SetViewer.create ?context slug)
+        | SetAdd -> SetEditor.create ()
+        | Source -> (fun context slug -> SourceViewer.create ?context slug)
+        | SourceAdd -> SourceEditor.create ()
+      in
+      let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
+        List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
+        Madge.match_' (Endpoints.Page.route endpoint) (dispatch endpoint) {meth = GET; uri; body = ""}
+      in
+      match madge_match_apply_all Endpoints.Page.all_endpoints' with
+      | Some page -> page ()
+      | None -> (* FIXME: 404 page *) assert false
 
-let on_load _ev =
-  let page = dispatch @@ get_uri () in
-  let iter_title = React.S.map set_title (Page.full_title page) in
-  Depart.keep_forever iter_title;
-  Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
-  add_slash_quick_search_event_listener ();
-  Dom.appendChild Dom_html.document##.body (To_dom.of_div @@ Page.render page);
-  Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer);
-  Js._false
+    let on_load _ev =
+      let page = dispatch @@ get_uri () in
+      let iter_title = React.S.map set_title (Page.full_title page) in
+      Depart.keep_forever iter_title;
+      Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
+      add_slash_quick_search_event_listener ();
+      Dom.appendChild Dom_html.document##.body (To_dom.of_div @@ Page.render page);
+      Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer);
+      Js._false
 
-let _ =
-  Dom_html.window##.onload := Dom_html.handler on_load
+    let _ =
+      Dom_html.window##.onload := Dom_html.handler on_load

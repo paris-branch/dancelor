@@ -36,7 +36,7 @@ let apply_controller request =
       try%lwt
         thunk ()
       with
-      | Madge_cohttp_lwt_server.Shortcut response -> Lwt.return response
+        | Madge_cohttp_lwt_server.Shortcut response -> Lwt.return response
     )
   | None ->
     let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.meth_to_string request.meth) request.body in
@@ -51,13 +51,13 @@ let catchall ~place ~die fun_ =
     try%lwt
       fun_ ()
     with
-    | exn ->
-      log_exn ~msg: ("Uncaught Lwt exception in " ^ place) exn;
-      die ()
+      | exn ->
+        log_exn ~msg: ("Uncaught Lwt exception in " ^ place) exn;
+        die ()
   with
-  | exn ->
-    log_exn ~msg: ("Uncaught exception in " ^ place) exn;
-    die ()
+    | exn ->
+      log_exn ~msg: ("Uncaught exception in " ^ place) exn;
+      die ()
 
 (** Callback handling one client request. It is in charge of trying to find what
     will answer to the request: a static file, or a Madge API point, or the
@@ -66,19 +66,19 @@ let callback _ request body =
   catchall
     ~place: "the callback"
     ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
-  @@ fun () ->
-  let meth = Madge_cohttp_lwt_server.cohttp_code_meth_to_meth @@ Request.meth request in
-  let uri = Request.uri request in
-  let path = Uri.path uri in
-  Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
-  if String.starts_with ~needle: "/api/" path then
-    (
-      Log.debug (fun m -> m "Looking for an API controller for %s." path);
-      let%lwt body = Cohttp_lwt.Body.to_string body in
-      apply_controller {meth; uri; body}
-    )
-  else
-    Static.serve path
+    @@ fun () ->
+    let meth = Madge_cohttp_lwt_server.cohttp_code_meth_to_meth @@ Request.meth request in
+    let uri = Request.uri request in
+    let path = Uri.path uri in
+    Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
+    if String.starts_with ~needle: "/api/" path then
+      (
+        Log.debug (fun m -> m "Looking for an API controller for %s." path);
+        let%lwt body = Cohttp_lwt.Body.to_string body in
+        apply_controller {meth; uri; body}
+      )
+    else
+      Static.serve path
 
 let () =
   Lwt.async_exception_hook :=
@@ -136,27 +136,27 @@ let run_server () =
   catchall
     ~place: "the server"
     ~die: log_die
-  @@ fun () ->
-  let server =
-    Server.create
-      ~mode: (`TCP (`Port !Config.port))
-      (Server.make ~callback ())
-  in
-  Log.info (fun m -> m "Server is up and running");
-  server
+    @@ fun () ->
+    let server =
+      Server.create
+        ~mode: (`TCP (`Port !Config.port))
+        (Server.make ~callback ())
+    in
+    Log.info (fun m -> m "Server is up and running");
+    server
 
 let main =
   catchall
     ~place: "main"
     ~die: log_die
-  @@ fun () ->
-  read_configuration ();%lwt
-  initialise_logs ();
-  write_pid ();%lwt
-  populate_caches ();%lwt
-  initialise_database ();%lwt
-  check_init_only ();
-  start_routines ();
-  run_server ()
+    @@ fun () ->
+    read_configuration ();%lwt
+    initialise_logs ();
+    write_pid ();%lwt
+    populate_caches ();%lwt
+    initialise_database ();%lwt
+    check_init_only ();
+    start_routines ();
+    run_server ()
 
 let () = Lwt_main.run main

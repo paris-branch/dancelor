@@ -9,10 +9,50 @@
   perSystem =
     {
       self',
+      inputs',
       pkgs,
+      lib,
       config,
       ...
     }:
+
+    let
+      inherit (pkgs.callPackage "${inputs.topiary}/prefetchLanguages.nix" { })
+        prefetchLanguages
+        fromNickelFile
+        toNickelFile
+        ;
+
+      defaultTopiaryConfig = fromNickelFile "${inputs.topiary}/languages.ncl";
+
+      topiaryWrappedWithPrefetchedConfig =
+        topiaryConfig:
+        pkgs.writeShellApplication {
+          name = "topiary";
+          text = ''
+            exec ${inputs'.topiary.packages.topiary-cli}/bin/topiary \
+                -C ${toNickelFile "languages-prefetched.ncl" (prefetchLanguages topiaryConfig)} \
+                "$@"
+          '';
+        };
+
+      topiaryGitHook = topiaryConfig: {
+        name = "topiary";
+        entry = "${topiaryWrappedWithPrefetchedConfig topiaryConfig}/bin/topiary format";
+        files =
+          let
+            inherit (lib) concatMap attrValues concatStringsSep;
+            extensions = concatMap (c: c.extensions) (attrValues topiaryConfig.languages);
+          in
+          "\\.(" + concatStringsSep "|" extensions + ")$";
+      };
+
+      ## Keep only OCaml as a language for Topiary.
+      myTopiaryConfig = defaultTopiaryConfig // {
+        languages = { inherit (defaultTopiaryConfig.languages) ocaml ocaml_interface; };
+      };
+    in
+
     {
       formatter = pkgs.nixfmt-rfc-style;
 
@@ -25,8 +65,11 @@
         };
         dune-fmt.enable = true;
         dune-opam-sync.enable = true;
-        ocp-indent.enable = true;
         opam-lint.enable = true;
+
+        topiary-latest = topiaryGitHook myTopiaryConfig // {
+          enable = true;
+        };
       };
 
       devShells.default = pkgs.mkShell {
@@ -34,7 +77,7 @@
           ## Runtime inputs
           (self.makeRuntimeInputs pkgs)
           ## Development environment
-          ++ (with pkgs; [ topiary ])
+          ++ [ (topiaryWrappedWithPrefetchedConfig myTopiaryConfig) ]
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.

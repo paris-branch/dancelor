@@ -32,7 +32,7 @@ module RawState = struct
   let source_of_yojson _ = assert false
 
   type t =
-    (tune Slug.t list, string, string, string, person Slug.t list, string, source Slug.t list, string, string) gen
+  (tune Slug.t list, string, string, string, person Slug.t list, string, source Slug.t list, string, string) gen
   [@@deriving yojson]
 
   let empty = {
@@ -51,7 +51,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, (Selector.many, Model.Source.t) Selector.t, string Input.Text.t, string Input.Text.t) gen;
+    ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, (Selector.many, Model.Source.t) Selector.t, string Input.Text.t, string Input.Text.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -92,29 +92,29 @@ module Editor = struct
       Selector.make
         ~arity: Selector.one
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Tune.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Tune.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
     let bars =
       Input.Text.make initial_state.bars @@
-      Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
+        Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
     in
     let key =
       Input.Text.make initial_state.key @@
-      Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
+        Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
     in
     let structure = Input.Text.make initial_state.structure @@ Result.ok in
     let arrangers =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Person.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Person.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
@@ -124,9 +124,9 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-            let%rlwt filter = Lwt.return (Model.Source.Filter.from_string input) in
-            Lwt.map Result.ok @@ Model.Source.search slice filter
-          )
+          let%rlwt filter = Lwt.return (Model.Source.Filter.from_string input) in
+          Lwt.map Result.ok @@ Model.Source.search slice filter
+        )
         ~serialise: Entry.slug
         ~unserialise: Model.Source.get
         initial_state.sources
@@ -134,7 +134,7 @@ module Editor = struct
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
     let content =
       Input.Text.make initial_state.content @@
-      Result.of_string_nonempty ~empty: "Cannot be empty."
+        Result.of_string_nonempty ~empty: "Cannot be empty."
     in
     {
       elements = {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content};
@@ -156,17 +156,17 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content} ->
       Lwt.return_some @@
-      Model.Version.make
-        ~tune
-        ~bars
-        ~key
-        ~structure
-        ~arrangers
-        ~remark
-        ~sources
-        ~disambiguation
-        ~content
-        ()
+        Model.Version.make
+          ~tune
+          ~bars
+          ~key
+          ~structure
+          ~arrangers
+          ~remark
+          ~sources
+          ~disambiguation
+          ~content
+          ()
 end
 
 let create ?on_save ?text ?tune () =
@@ -174,57 +174,55 @@ let create ?on_save ?text ?tune () =
   let editor = Editor.create ~text ~tune in
   Page.make
     ~title: (S.const title)
-    [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Selector.render
-                ~make_result: AnyResult.make_tune_result'
-                ~field_name: "Tune"
-                ~model_name: "tune"
-                ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
-                editor.elements.tune;
-              Input.Text.render
-                editor.elements.bars
-                ~label: "Number of bars"
-                ~placeholder: "eg. 32 or 48";
-              Input.Text.render
-                editor.elements.key
-                ~label: "Key"
-                ~placeholder: "eg. A or F#m";
-              Input.Text.render
-                editor.elements.structure
-                ~label: "Structure"
-                ~placeholder: "eg. AABB or ABAB";
-              Selector.render
-                ~make_result: AnyResult.make_person_result'
-                ~field_name: "Arrangers"
-                ~model_name: "person"
-                ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-                editor.elements.arrangers;
-              Selector.render
-                ~make_result: AnyResult.make_source_result'
-                ~field_name: "Sources"
-                ~model_name: "source"
-                ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
-                editor.elements.sources;
-              Input.Text.render
-                editor.elements.disambiguation
-                ~label: "Disambiguation"
-                ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
-              Input.Text.render
-                editor.elements.remark
-                ~label: "Remark"
-                ~placeholder: "Any additional information that doesn't fit in the other fields.";
-              Input.Text.render_as_textarea
-                editor.elements.content
-                ~label: "LilyPond content"
-                ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
-            ]
-        )
-    ]
+    [L.div
+      (
+        let%lwt editor = editor in
+        Lwt.return
+          [
+            Selector.render
+              ~make_result: AnyResult.make_tune_result'
+              ~field_name: "Tune"
+              ~model_name: "tune"
+              ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
+              editor.elements.tune;
+            Input.Text.render
+              editor.elements.bars
+              ~label: "Number of bars"
+              ~placeholder: "eg. 32 or 48";
+            Input.Text.render
+              editor.elements.key
+              ~label: "Key"
+              ~placeholder: "eg. A or F#m";
+            Input.Text.render
+              editor.elements.structure
+              ~label: "Structure"
+              ~placeholder: "eg. AABB or ABAB";
+            Selector.render
+              ~make_result: AnyResult.make_person_result'
+              ~field_name: "Arrangers"
+              ~model_name: "person"
+              ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+              editor.elements.arrangers;
+            Selector.render
+              ~make_result: AnyResult.make_source_result'
+              ~field_name: "Sources"
+              ~model_name: "source"
+              ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
+              editor.elements.sources;
+            Input.Text.render
+              editor.elements.disambiguation
+              ~label: "Disambiguation"
+              ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
+            Input.Text.render
+              editor.elements.remark
+              ~label: "Remark"
+              ~placeholder: "Any additional information that doesn't fit in the other fields.";
+            Input.Text.render_as_textarea
+              editor.elements.content
+              ~label: "LilyPond content"
+              ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
+          ]
+      )]
     ~buttons: [
       L.div
         (
@@ -237,39 +235,38 @@ let create ?on_save ?text ?tune () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    match%lwt Editor.value editor with
-                    | None -> Lwt.return_unit
-                    | Some version ->
-                      Lwt.map ignore @@
-                      Page.open_dialog' @@ fun return ->
-                      Page.make
-                        ~title: (S.const "Preview")
+                  match%lwt Editor.value editor with
+                  | None -> Lwt.return_unit
+                  | Some version ->
+                    Lwt.map ignore @@
+                    Page.open_dialog' @@ fun return ->
+                    Page.make
+                      ~title: (S.const "Preview")
+                      [div [VersionSvg.make_preview version];
+                      div
                         [
-                          div [VersionSvg.make_preview version];
-                          div
-                            [
-                              audio
-                                ~a: [a_controls ()]
-                                ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
-                                [];
-                            ];
-                        ]
-                        ~buttons: [
-                          Button.cancel' ~return ();
-                          Button.save
-                            ~onclick: (fun () ->
-                                let%lwt version = Model.Version.save version in
-                                Editor.clear editor;
-                                (
-                                  match on_save with
-                                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
-                                  | Some on_save -> on_save version
-                                );
-                                Lwt.return_unit
-                              )
-                            ();
-                        ]
-                  )
+                          audio
+                            ~a: [a_controls ()]
+                            ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
+                            [];
+                        ];
+                      ]
+                      ~buttons: [
+                        Button.cancel' ~return ();
+                        Button.save
+                          ~onclick: (fun () ->
+                            let%lwt version = Model.Version.save version in
+                            Editor.clear editor;
+                            (
+                              match on_save with
+                              | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                              | Some on_save -> on_save version
+                            );
+                            Lwt.return_unit
+                          )
+                          ();
+                      ]
+                )
                 ();
             ]
         )

@@ -1,9 +1,9 @@
 open Nes
 
 module Build
-    (Source : Signature.Source.S)
-    (Person : Signature.Person.S)
-    (Tune : Signature.Tune.S)
+  (Source : Signature.Source.S)
+  (Person : Signature.Person.S)
+  (Tune : Signature.Tune.S)
 = struct
   include Core.Version
 
@@ -43,18 +43,18 @@ module Build
 
     let accepts filter version =
       Formula.interpret filter @@ function
-      | Is version' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug version) version'
-      | Tune tfilter ->
-        let%lwt tune = versionCore_tune version in
-        Tune.Filter.accepts tfilter tune
-      | Key key' ->
-        Lwt.return @@ Formula.interpret_bool (Core.Version.key version = key')
-      | Kind kfilter ->
-        let%lwt tune = versionCore_tune version in
-        Kind.Version.Filter.accepts kfilter (Core.Version.bars version, Tune.kind tune)
-      | ExistsSource sfilter ->
-        let%lwt sources = sources version in
-        Formula.interpret_exists (Source.Filter.accepts sfilter) sources
+        | Is version' ->
+          Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug version) version'
+        | Tune tfilter ->
+          let%lwt tune = versionCore_tune version in
+          Tune.Filter.accepts tfilter tune
+        | Key key' ->
+          Lwt.return @@ Formula.interpret_bool (Core.Version.key version = key')
+        | Kind kfilter ->
+          let%lwt tune = versionCore_tune version in
+          Kind.Version.Filter.accepts kfilter (Core.Version.bars version, Tune.kind tune)
+        | ExistsSource sfilter ->
+          let%lwt sources = sources version in
+          Formula.interpret_exists (Source.Filter.accepts sfilter) sources
   end
 end

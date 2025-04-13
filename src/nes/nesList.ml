@@ -238,10 +238,10 @@ let extract_assoc_several xs l =
   let (xys, l) =
     List.fold_left
       (fun (xys, l) x ->
-         let (y, l) = extract_assoc x l in
-         ((x, y) :: xys, l)
+        let (y, l) = extract_assoc x l in
+          ((x, y) :: xys, l)
       )
       ([], l)
       xs
   in
-  (List.rev xys, l)
+    (List.rev xys, l)

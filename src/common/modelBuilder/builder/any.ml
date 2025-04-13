@@ -1,13 +1,13 @@
 open Nes
 
 module Build
-    (Book : Signature.Book.S)
-    (Dance : Signature.Dance.S)
-    (Person : Signature.Person.S)
-    (Set : Signature.Set.S)
-    (Source : Signature.Source.S)
-    (Tune : Signature.Tune.S)
-    (Version : Signature.Version.S)
+  (Book : Signature.Book.S)
+  (Dance : Signature.Dance.S)
+  (Person : Signature.Person.S)
+  (Set : Signature.Set.S)
+  (Source : Signature.Source.S)
+  (Tune : Signature.Tune.S)
+  (Version : Signature.Version.S)
 = struct
   include Core.Any
 
@@ -38,66 +38,66 @@ module Build
 
     let rec accepts filter any =
       Formula.interpret filter @@ function
-      | Raw string ->
-        let lift_raw lift from_text_formula str =
-          lift (Result.get_ok (from_text_formula (TextFormula.raw' str)))
-        in
-        Fun.flip accepts any @@
-        Formula.or_l
-          [
-            lift_raw source' Source.Filter.from_text_formula string;
-            lift_raw person' Person.Filter.from_text_formula string;
-            lift_raw dance' Dance.Filter.from_text_formula string;
-            lift_raw book' Book.Filter.from_text_formula string;
-            lift_raw set' Set.Filter.from_text_formula string;
-            lift_raw tune' Tune.Filter.from_text_formula string;
-            lift_raw version' Version.Filter.from_text_formula string;
-          ]
-      | Type type_ ->
-        Type.equal (type_of any) type_
-        |> Formula.interpret_bool
-        |> Lwt.return
-      | Source cfilter ->
-        (
-          match any with
-          | Source source -> Source.Filter.accepts cfilter source
-          | _ -> Lwt.return Formula.interpret_false
-        )
-      | Person cfilter ->
-        (
-          match any with
-          | Person person -> Person.Filter.accepts cfilter person
-          | _ -> Lwt.return Formula.interpret_false
-        )
-      | Dance dfilter ->
-        (
-          match any with
-          | Dance dance -> Dance.Filter.accepts dfilter dance
-          | _ -> Lwt.return Formula.interpret_false
-        )
-      | Book bfilter ->
-        (
-          match any with
-          | Book book -> Book.Filter.accepts bfilter book
-          | _ -> Lwt.return Formula.interpret_false
-        )
-      | Set sfilter ->
-        (
-          match any with
-          | Set set -> Set.Filter.accepts sfilter set
-          | _ -> Lwt.return Formula.interpret_false
-        )
-      | Tune tfilter ->
-        (
-          match any with
-          | Tune tune -> Tune.Filter.accepts tfilter tune
-          | _ -> Lwt.return Formula.interpret_false
-        )
-      | Version vfilter ->
-        (
-          match any with
-          | Version version -> Version.Filter.accepts vfilter version
-          | _ -> Lwt.return Formula.interpret_false
-        )
+        | Raw string ->
+          let lift_raw lift from_text_formula str =
+            lift (Result.get_ok (from_text_formula (TextFormula.raw' str)))
+          in
+          Fun.flip accepts any @@
+            Formula.or_l
+              [
+                lift_raw source' Source.Filter.from_text_formula string;
+                lift_raw person' Person.Filter.from_text_formula string;
+                lift_raw dance' Dance.Filter.from_text_formula string;
+                lift_raw book' Book.Filter.from_text_formula string;
+                lift_raw set' Set.Filter.from_text_formula string;
+                lift_raw tune' Tune.Filter.from_text_formula string;
+                lift_raw version' Version.Filter.from_text_formula string;
+              ]
+        | Type type_ ->
+          Type.equal (type_of any) type_
+          |> Formula.interpret_bool
+          |> Lwt.return
+        | Source cfilter ->
+          (
+            match any with
+            | Source source -> Source.Filter.accepts cfilter source
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Person cfilter ->
+          (
+            match any with
+            | Person person -> Person.Filter.accepts cfilter person
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Dance dfilter ->
+          (
+            match any with
+            | Dance dance -> Dance.Filter.accepts dfilter dance
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Book bfilter ->
+          (
+            match any with
+            | Book book -> Book.Filter.accepts bfilter book
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Set sfilter ->
+          (
+            match any with
+            | Set set -> Set.Filter.accepts sfilter set
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Tune tfilter ->
+          (
+            match any with
+            | Tune tune -> Tune.Filter.accepts tfilter tune
+            | _ -> Lwt.return Formula.interpret_false
+          )
+        | Version vfilter ->
+          (
+            match any with
+            | Version version -> Version.Filter.accepts vfilter version
+            | _ -> Lwt.return Formula.interpret_false
+          )
   end
 end

@@ -19,7 +19,7 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-      | _ -> Error "NesDatetime.of_yojson: not a valid datetime"
+        | _ -> Error "NesDatetime.of_yojson: not a valid datetime"
     )
   | _ -> Error "NesDatetime.of_yojson: not a JSON string"
 

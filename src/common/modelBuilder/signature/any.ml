@@ -12,8 +12,8 @@ module type S = sig
     | Set of Set.t Entry.t
     | Tune of Tune.t Entry.t
     | Version of Version.t Entry.t
-    (** Type of an “any” element, that is simply a sum type of all the other
-        models. *)
+  (** Type of an “any” element, that is simply a sum type of all the other
+      models. *)
 
   (** {3 Constructors} *)
 
@@ -57,9 +57,9 @@ module type S = sig
       | Set
       | Tune
       | Version
-      (** Type to represent the type of an “any”. There is basically one type per
-          model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,
-          in Dancelor parlance, is eg. [Reel] or [8 x 32 Strathspey]. *)
+    (** Type to represent the type of an “any”. There is basically one type per
+        model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,
+        in Dancelor parlance, is eg. [Reel] or [8 x 32 Strathspey]. *)
 
     val all : t list
     (** All the existing types, as a list. There is no guarantee on the order in
@@ -102,7 +102,7 @@ module type S = sig
       | Set of Filter.Set.t
       | Tune of Filter.Tune.t
       | Version of Filter.Version.t
-      (** Type of predicates on “any” elements. *)
+    (** Type of predicates on “any” elements. *)
 
     type t = predicate Formula.t
     (** Type of a filter on “any” element, that is a formula over

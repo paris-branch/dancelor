@@ -17,38 +17,38 @@ let describe =
 let open_dialog page =
   let reporter_input =
     Input.Text.make "" @@
-    Result.of_string_nonempty ~empty: "You must specify the reporter."
+      Result.of_string_nonempty ~empty: "You must specify the reporter."
   in
   let%lwt source =
     Fun.flip Lwt.map (describe page) @@ function
-    | None ->
-      Choices.make_radios'
-        ~name: "Source of the issue"
-        ~validate: (Option.to_result ~none: "You must make a choice.")
-        [
-          Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
-        ]
-    | Some (kind, name) ->
-      Choices.make_radios'
-        ~name: "Source of the issue"
-        ~validate: (Option.to_result ~none: "You must make a choice.")
-        [
-          Choices.choice'
-            ~value: false
-            [
-              txt @@
-              spf "This %s: %s" kind name
-            ];
-          Choices.choice' ~value: true [txt "Dancelor itself"];
-        ]
+      | None ->
+        Choices.make_radios'
+          ~name: "Source of the issue"
+          ~validate: (Option.to_result ~none: "You must make a choice.")
+          [
+            Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
+          ]
+      | Some (kind, name) ->
+        Choices.make_radios'
+          ~name: "Source of the issue"
+          ~validate: (Option.to_result ~none: "You must make a choice.")
+          [
+            Choices.choice'
+              ~value: false
+              [
+                txt @@
+                  spf "This %s: %s" kind name
+              ];
+            Choices.choice' ~value: true [txt "Dancelor itself"];
+          ]
   in
   let title_input =
     Input.Text.make "" @@
-    Result.of_string_nonempty ~empty: "The title cannot be empty."
+      Result.of_string_nonempty ~empty: "The title cannot be empty."
   in
   let description_input =
     Input.Text.make "" @@
-    Result.of_string_nonempty ~empty: "The description cannot be empty."
+      Result.of_string_nonempty ~empty: "The description cannot be empty."
   in
   let request_signal =
     let page = Uri.to_string page in
@@ -63,20 +63,19 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Page.make
       ~title: (S.const "Report an issue")
-      [
-        Input.Text.render
-          reporter_input
-          ~placeholder: "Dr Jean Milligan"
-          ~label: "Reporter";
-        Choices.render source;
-        Input.Text.render
-          title_input
-          ~placeholder: "Blimey, 'tis not working!"
-          ~label: "Title";
-        Input.Text.render_as_textarea
-          description_input
-          ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-          ~label: "Description";
+      [Input.Text.render
+        reporter_input
+        ~placeholder: "Dr Jean Milligan"
+        ~label: "Reporter";
+      Choices.render source;
+      Input.Text.render
+        title_input
+        ~placeholder: "Blimey, 'tis not working!"
+        ~label: "Title";
+      Input.Text.render_as_textarea
+        description_input
+        ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+        ~label: "Description";
       ]
       ~buttons: [
         Button.cancel' ~return ();
@@ -87,15 +86,15 @@ let open_dialog page =
           ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)
           ~onclick: (fun () ->
-              Option.fold
-                (S.value request_signal)
-                ~none: Lwt.return_unit
-                ~some: (fun request ->
-                    let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
-                    return @@ Some response;
-                    Lwt.return_unit
-                  )
-            )
+            Option.fold
+              (S.value request_signal)
+              ~none: Lwt.return_unit
+              ~some: (fun request ->
+                let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
+                return @@ Some response;
+                Lwt.return_unit
+              )
+          )
           ();
       ]
   in
