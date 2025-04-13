@@ -159,6 +159,7 @@ let () =
         "to_string raises no exception",
         [
           to_string_no_exn' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+          to_string_no_exn' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
           to_string_no_exn' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
           to_string_no_exn' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
           to_string_no_exn' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
@@ -173,6 +174,7 @@ let () =
         "from_string % to_string = id",
         [
           to_string_from_string_roundtrip' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+          to_string_from_string_roundtrip' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
           to_string_from_string_roundtrip' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
           to_string_from_string_roundtrip' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
           to_string_from_string_roundtrip' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
@@ -194,6 +196,7 @@ let () =
         [
           optimise_idempotent' ~name: "Formula (unit)" (module FormulaUnit) (module FormulaUnit);
           optimise_idempotent' ~name: "Formula (int)" (module FormulaInt) (module FormulaInt);
+          optimise_idempotent' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
           optimise_idempotent' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
           optimise_idempotent' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
           optimise_idempotent' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
