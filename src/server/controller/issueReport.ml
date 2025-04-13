@@ -17,7 +17,7 @@ let describe =
 (* used at the end of the {!report} function below *)
 let id_regexp = Str.regexp ".*/issues/\\(.*\\)"
 
-let report issue =
+let report _env issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
       Lwt.return (!Config.github_repository, issue.title)

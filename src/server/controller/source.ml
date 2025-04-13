@@ -7,7 +7,8 @@ let get_cover source =
   let fname = Option.value fname ~default: (Filename.concat !Config.share "no-cover.webp") in
   Cohttp_lwt_unix.Server.respond_file ~fname ()
 
-let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Source.t -> a = function
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun _env endpoint ->
+  match endpoint with
   | Get -> Model.Source.get
   | Search -> Model.Source.search
   | Create -> Model.Source.create

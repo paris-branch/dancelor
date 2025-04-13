@@ -10,14 +10,15 @@ module Tune = Tune
 
 module Log = (val Logger.create "controller": Logs.LOG)
 
-let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Api.t -> a = function
-  | Source endpoint -> Source.dispatch endpoint
-  | Person endpoint -> Person.dispatch endpoint
-  | Book endpoint -> Book.dispatch endpoint
-  | Version endpoint -> Version.dispatch endpoint
-  | Dance endpoint -> Dance.dispatch endpoint
-  | Set endpoint -> Set.dispatch endpoint
-  | Tune endpoint -> Tune.dispatch endpoint
-  | Any endpoint -> Any.dispatch endpoint
-  | ReportIssue -> IssueReport.report
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a = fun env endpoint ->
+  match endpoint with
+  | Source endpoint -> Source.dispatch env endpoint
+  | Person endpoint -> Person.dispatch env endpoint
+  | Book endpoint -> Book.dispatch env endpoint
+  | Version endpoint -> Version.dispatch env endpoint
+  | Dance endpoint -> Dance.dispatch env endpoint
+  | Set endpoint -> Set.dispatch env endpoint
+  | Tune endpoint -> Tune.dispatch env endpoint
+  | Any endpoint -> Any.dispatch env endpoint
+  | ReportIssue -> IssueReport.report env
   | Victor -> Logger.log_exit (module Log) 101

@@ -20,7 +20,8 @@ module Pdf = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Set.t -> a = function
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun _env endpoint ->
+  match endpoint with
   | Get -> Model.Set.get
   | Delete -> (fun slug -> Lwt.bind (Model.Set.get slug) Model.Set.delete)
   | Search -> Model.Set.search

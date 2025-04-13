@@ -234,7 +234,8 @@ module Ogg = struct
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_ogg ()
 end
 
-let dispatch : type a r. (a, r Lwt.t, r) Endpoints.Version.t -> a = function
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun _env endpoint ->
+  match endpoint with
   | Get -> Model.Version.get
   | Search -> Model.Version.search
   | Create -> Model.Version.create

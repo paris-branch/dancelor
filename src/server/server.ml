@@ -18,13 +18,13 @@ let log_exn ~msg exn =
 let log_exit = Logger.log_exit (module Log)
 let log_die () = Logger.log_die (module Log)
 
-let apply_controller request =
+let apply_controller env request =
   let rec madge_match_apply_all = function
     | [] -> None
     | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
         Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.to_string endpoint));
-        match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (Controller.dispatch endpoint) request with
+        match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (Controller.dispatch env endpoint) request with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
@@ -75,7 +75,8 @@ let callback _ request body =
       (
         Log.debug (fun m -> m "Looking for an API controller for %s." path);
         let%lwt body = Cohttp_lwt.Body.to_string body in
-        apply_controller {meth; uri; body}
+        let env = Environment.make () in
+        apply_controller env {meth; uri; body}
       )
     else
       Static.serve path
