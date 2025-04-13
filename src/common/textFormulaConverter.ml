@@ -68,7 +68,7 @@ let raw f =
     | _ -> None
   in
   let from = Fun.const None in
-  {to_; from}
+    {to_; from}
 
 let nullary ~name p =
   let to_ = function
@@ -81,14 +81,14 @@ let nullary ~name p =
     | true -> Some (Type.nullary' name)
     | false -> None
   in
-  {to_; from}
+    {to_; from}
 
 let unary ~name f from =
   let to_ = function
     | Type.Unary (name', tp) when name = name' -> Some (Result.map Formula.pred (f tp))
     | _ -> None
   in
-  {to_; from}
+    {to_; from}
 
 type wrap_back = Always | Never | NotPred | NotRaw | Custom of (Type.t -> Type.t)
 

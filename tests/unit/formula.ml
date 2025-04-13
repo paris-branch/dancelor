@@ -22,22 +22,22 @@ let to_string_from_string_roundtrip ~name ~show ~to_string ~from_string ~gen ~eq
         ~long_factor: 100
         ~name
         ~print: (fun f ->
-            "Filter:\n\n  " ^
-            show f ^
-            "\n\nText formula:\n\n  " ^
-            to_string f ^
-            "\n\nOutput:\n\n  " ^
-            match from_string (to_string f) with
-            | Ok f -> show f
-            | Error err -> "Error: " ^ err
-          )
+          "Filter:\n\n  " ^
+          show f ^
+          "\n\nText formula:\n\n  " ^
+          to_string f ^
+          "\n\nOutput:\n\n  " ^
+          match from_string (to_string f) with
+          | Ok f -> show f
+          | Error err -> "Error: " ^ err
+        )
         gen
         (fun f ->
-           Result.equal
-             ~ok: equal
-             ~error: (=)
-             (from_string (to_string f))
-             (Ok f)
+          Result.equal
+            ~ok: equal
+            ~error: (=)
+            (from_string (to_string f))
+            (Ok f)
         )
     )
 
@@ -49,16 +49,16 @@ let optimise_idempotent ~name ~gen ~show ~optimise ~equal =
         ~long_factor: 100
         ~name
         ~print: (fun f ->
-            "Input:\n\n  " ^
-            show f ^
-            "\n\nOptimised:\n\n  " ^
-            show (optimise f) ^
-            "\n\nOptimised twice:\n\n  " ^ show (optimise (optimise f))
-          )
+          "Input:\n\n  " ^
+          show f ^
+          "\n\nOptimised:\n\n  " ^
+          show (optimise f) ^
+          "\n\nOptimised twice:\n\n  " ^ show (optimise (optimise f))
+        )
         gen
         (fun f ->
-           let f1 = optimise f in
-           equal (optimise f1) f1
+          let f1 = optimise f in
+          equal (optimise f1) f1
         )
     )
 
@@ -147,8 +147,8 @@ module FormulaInt = struct
   let lift_or x y = Some (max x y)
   let optimise =
     Formula.optimise ~lift_and ~lift_or @@ function
-    | n when n mod 2 = 1 -> n - 1
-    | n -> n
+      | n when n mod 2 = 1 -> n - 1
+      | n -> n
 end
 
 let () =
@@ -157,54 +157,51 @@ let () =
     [
       (
         "to_string raises no exception",
-        [
-          to_string_no_exn' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
-          to_string_no_exn' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
-          to_string_no_exn' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
-          to_string_no_exn' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
-          to_string_no_exn' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
-          to_string_no_exn' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
-          to_string_no_exn' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
-          to_string_no_exn' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
-          to_string_no_exn' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
-          to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~to_string: ModelBuilder.Any.Filter.to_pretty_string;
+        [to_string_no_exn' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+        to_string_no_exn' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
+        to_string_no_exn' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
+        to_string_no_exn' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
+        to_string_no_exn' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
+        to_string_no_exn' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
+        to_string_no_exn' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
+        to_string_no_exn' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
+        to_string_no_exn' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
+        to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~to_string: ModelBuilder.Any.Filter.to_pretty_string;
         ]
       );
       (
         "from_string % to_string = id",
-        [
-          to_string_from_string_roundtrip' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
-          to_string_from_string_roundtrip' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
-          to_string_from_string_roundtrip' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
-          to_string_from_string_roundtrip' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
-          to_string_from_string_roundtrip' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
-          to_string_from_string_roundtrip' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
-          to_string_from_string_roundtrip' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
-          to_string_from_string_roundtrip' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
-          to_string_from_string_roundtrip' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
-          (* FIXME: Does not actually hold. *)
-          (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
-          (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
-          (*   ~show: Model.Any.Filter.show *)
-          (*   ~to_string: Model.Any.Filter.to_pretty_string *)
-          (*   ~from_string: Model.Any.Filter.(Result.map optimise % from_string) *)
-          (*   ~equal: Model.Any.Filter.equal; *)
+        [to_string_from_string_roundtrip' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
+        to_string_from_string_roundtrip' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
+        to_string_from_string_roundtrip' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
+        to_string_from_string_roundtrip' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
+        to_string_from_string_roundtrip' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
+        to_string_from_string_roundtrip' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
+        to_string_from_string_roundtrip' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
+        to_string_from_string_roundtrip' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
+        to_string_from_string_roundtrip' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
+        (* FIXME: Does not actually hold. *)
+        (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
+        (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
+        (*   ~show: Model.Any.Filter.show *)
+        (*   ~to_string: Model.Any.Filter.to_pretty_string *)
+        (*   ~from_string: Model.Any.Filter.(Result.map optimise % from_string) *)
+        (*   ~equal: Model.Any.Filter.equal; *)
         ]
       );
       (
         "optimise is idempotent",
-        [
-          optimise_idempotent' ~name: "Formula (unit)" (module FormulaUnit) (module FormulaUnit);
-          optimise_idempotent' ~name: "Formula (int)" (module FormulaInt) (module FormulaInt);
-          optimise_idempotent' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
-          optimise_idempotent' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
-          optimise_idempotent' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
-          optimise_idempotent' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
-          optimise_idempotent' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
-          optimise_idempotent' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
-          optimise_idempotent' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
-          optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: ModelBuilder.Any.Filter.type_based_cleanup ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~equal: ModelBuilder.Any.Filter.equal;
-          optimise_idempotent' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
+        [optimise_idempotent' ~name: "Formula (unit)" (module FormulaUnit) (module FormulaUnit);
+        optimise_idempotent' ~name: "Formula (int)" (module FormulaInt) (module FormulaInt);
+        optimise_idempotent' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
+        optimise_idempotent' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
+        optimise_idempotent' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
+        optimise_idempotent' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
+        optimise_idempotent' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
+        optimise_idempotent' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
+        optimise_idempotent' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
+        optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: ModelBuilder.Any.Filter.type_based_cleanup ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~equal: ModelBuilder.Any.Filter.equal;
+        optimise_idempotent' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
         ]
       );
     ]

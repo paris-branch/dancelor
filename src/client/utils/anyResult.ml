@@ -10,8 +10,7 @@ let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
     ?action
     (
       prefix @
-      [
-        ResultRow.cell ~a: [a_colspan 3] (Formatters.Source.name ~link: false source);
+      [ResultRow.cell ~a: [a_colspan 3] (Formatters.Source.name ~link: false source);
       ] @
       suffix
     )
@@ -21,10 +20,10 @@ let make_source_result ?classes ?context ?prefix ?suffix source =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_source @@ Entry.slug source)
-        ~some: (S.map (fun context -> Endpoints.Page.href_source ~context @@ Entry.slug source))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_source @@ Entry.slug source)
+          ~some: (S.map (fun context -> Endpoints.Page.href_source ~context @@ Entry.slug source))
     )
     ?prefix
     ?suffix
@@ -36,8 +35,7 @@ let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
     ?action
     (
       prefix @
-      [
-        ResultRow.cell ~a: [a_colspan 3] (Formatters.Person.name ~link: false person);
+      [ResultRow.cell ~a: [a_colspan 3] (Formatters.Person.name ~link: false person);
       ] @
       suffix
     )
@@ -47,10 +45,10 @@ let make_person_result ?classes ?context ?prefix ?suffix person =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_person @@ Entry.slug person)
-        ~some: (S.map (fun context -> Endpoints.Page.href_person ~context @@ Entry.slug person))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_person @@ Entry.slug person)
+          ~some: (S.map (fun context -> Endpoints.Page.href_person ~context @@ Entry.slug person))
     )
     ?prefix
     ?suffix
@@ -62,10 +60,9 @@ let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
     ?action
     (
       prefix @
-      [
-        ResultRow.cell [txt (Dance.name dance)];
-        ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind dance)];
-        ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Dance.devisers dance));
+      [ResultRow.cell [txt (Dance.name dance)];
+      ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind dance)];
+      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Dance.devisers dance));
       ] @
       suffix
     )
@@ -75,10 +72,10 @@ let make_dance_result ?classes ?context ?prefix ?suffix dance =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_dance @@ Entry.slug dance)
-        ~some: (S.map (fun context -> Endpoints.Page.href_dance ~context @@ Entry.slug dance))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_dance @@ Entry.slug dance)
+          ~some: (S.map (fun context -> Endpoints.Page.href_dance ~context @@ Entry.slug dance))
     )
     ?prefix
     ?suffix
@@ -90,9 +87,8 @@ let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
     ?action
     (
       prefix @
-      [
-        ResultRow.cell (Formatters.Book.title_and_subtitle book);
-        ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date book))];
+      [ResultRow.cell (Formatters.Book.title_and_subtitle book);
+      ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date book))];
       ] @
       suffix
     )
@@ -102,10 +98,10 @@ let make_book_result ?classes ?context ?prefix ?suffix book =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_book @@ Entry.slug book)
-        ~some: (S.map (fun context -> Endpoints.Page.href_book ~context @@ Entry.slug book))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_book @@ Entry.slug book)
+          ~some: (S.map (fun context -> Endpoints.Page.href_book ~context @@ Entry.slug book))
     )
     ?prefix
     ?suffix
@@ -117,10 +113,9 @@ let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
     ?action
     (
       prefix @
-      [
-        ResultRow.cell [txt @@ Set.name set];
-        ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind set];
-        ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Set.conceptors set));
+      [ResultRow.cell [txt @@ Set.name set];
+      ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind set];
+      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Set.conceptors set));
       ] @
       suffix
     )
@@ -130,10 +125,10 @@ let make_set_result ?classes ?context ?prefix ?suffix set =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_set @@ Entry.slug set)
-        ~some: (S.map (fun context -> Endpoints.Page.href_set ~context @@ Entry.slug set))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_set @@ Entry.slug set)
+          ~some: (S.map (fun context -> Endpoints.Page.href_set ~context @@ Entry.slug set))
     )
     ?prefix
     ?suffix
@@ -145,10 +140,9 @@ let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
     ?action
     (
       prefix @
-      [
-        ResultRow.cell [txt @@ Tune.name tune];
-        ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
-        ResultRow.lcell (Formatters.Tune.composers tune);
+      [ResultRow.cell [txt @@ Tune.name tune];
+      ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
+      ResultRow.lcell (Formatters.Tune.composers tune);
       ] @
       suffix
     )
@@ -158,10 +152,10 @@ let make_tune_result ?classes ?context ?prefix ?suffix tune =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_tune @@ Entry.slug tune)
-        ~some: (S.map (fun context -> Endpoints.Page.href_tune ~context @@ Entry.slug tune))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_tune @@ Entry.slug tune)
+          ~some: (S.map (fun context -> Endpoints.Page.href_tune ~context @@ Entry.slug tune))
     )
     ?prefix
     ?suffix
@@ -173,20 +167,19 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
     ?action
     (
       prefix @
-      [
-        ResultRow.lcell (Formatters.Version.name_and_disambiguation ~link: false version);
-        ResultRow.cell
-          ~a: [a_class ["text-nowrap"]]
-          [
-            L.txt
-              (
-                let bars = Version.bars version in
-                let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
-                let structure = Version.structure version in
-                Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
-              )
-          ];
-        ResultRow.lcell (Formatters.Version.composer_and_arranger ~short: true version);
+      [ResultRow.lcell (Formatters.Version.name_and_disambiguation ~link: false version);
+      ResultRow.cell
+        ~a: [a_class ["text-nowrap"]]
+        [
+          L.txt
+            (
+              let bars = Version.bars version in
+              let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
+              let structure = Version.structure version in
+              Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
+            )
+        ];
+      ResultRow.lcell (Formatters.Version.composer_and_arranger ~short: true version);
       ] @
       suffix
     )
@@ -196,10 +189,10 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
     ?classes
     ~action: (
       ResultRow.link @@
-      Option.fold
-        context
-        ~none: (S.const @@ Endpoints.Page.href_version @@ Entry.slug version)
-        ~some: (S.map (fun context -> Endpoints.Page.href_version ~context @@ Entry.slug version))
+        Option.fold
+          context
+          ~none: (S.const @@ Endpoints.Page.href_version @@ Entry.slug version)
+          ~some: (S.map (fun context -> Endpoints.Page.href_version ~context @@ Entry.slug version))
     )
     ?prefix
     ?suffix

@@ -3,12 +3,12 @@ open Madge
 open ModelBuilder
 
 type (_, _, _) t =
-  (* Actions without specific tune *)
-  | Create : ((Tune.t -> 'w), 'w, Tune.t Entry.t) t
-  | Search : ((Slice.t -> Tune.Filter.t -> 'w), 'w, (int * Tune.t Entry.t list)) t
-  (* Actions on a specific tune *)
-  | Get : ((Tune.t Slug.t -> 'w), 'w, Tune.t Entry.t) t
-  | Update : ((Tune.t Slug.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
+(* Actions without specific tune *)
+| Create : ((Tune.t -> 'w), 'w, Tune.t Entry.t) t
+| Search : ((Slice.t -> Tune.Filter.t -> 'w), 'w, (int * Tune.t Entry.t list)) t
+(* Actions on a specific tune *)
+| Get : ((Tune.t Slug.t -> 'w), 'w, Tune.t Entry.t) t
+| Update : ((Tune.t Slug.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"

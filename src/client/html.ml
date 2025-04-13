@@ -150,6 +150,6 @@ module RS = struct
 
   let bind x f =
     S.bind x @@ function
-    | Ok x -> f x
-    | Error msg -> S.const @@ Error msg
+      | Ok x -> f x
+      | Error msg -> S.const @@ Error msg
 end

@@ -3,14 +3,14 @@ open Madge
 open ModelBuilder
 
 type (_, _, _) t =
-  (* Actions without a specific dance *)
-  | Create : ((Dance.t -> 'w), 'w, Dance.t Entry.t) t
-  | Search : ((Slice.t -> Dance.Filter.t -> 'w), 'w, (int * Dance.t Entry.t list)) t
-  (* Actions on a specific dance *)
-  | Get : ((Dance.t Slug.t -> 'w), 'w, Dance.t Entry.t) t
-  | Update : ((Dance.t Slug.t -> Dance.t -> 'w), 'w, Dance.t Entry.t) t
-  (* Files related to a dance *)
-  | Pdf : ((SetParameters.t -> Dance.t Slug.t -> 'w), 'w, Void.t) t
+(* Actions without a specific dance *)
+| Create : ((Dance.t -> 'w), 'w, Dance.t Entry.t) t
+| Search : ((Slice.t -> Dance.Filter.t -> 'w), 'w, (int * Dance.t Entry.t list)) t
+(* Actions on a specific dance *)
+| Get : ((Dance.t Slug.t -> 'w), 'w, Dance.t Entry.t) t
+| Update : ((Dance.t Slug.t -> Dance.t -> 'w), 'w, Dance.t Entry.t) t
+(* Files related to a dance *)
+| Pdf : ((SetParameters.t -> Dance.t Slug.t -> 'w), 'w, Void.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"

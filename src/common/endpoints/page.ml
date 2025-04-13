@@ -125,38 +125,38 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | DanceAdd -> Lwt.return None
     | Version ->
       (fun _ slug ->
-         let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in
-         Lwt.return @@ Some ("version", name)
+        let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in
+        Lwt.return @@ Some ("version", name)
       )
     | Tune ->
       (fun _ slug ->
-         let%lwt name = Lwt.map Tune.name (get_tune slug) in
-         Lwt.return @@ Some ("tune", name)
+        let%lwt name = Lwt.map Tune.name (get_tune slug) in
+        Lwt.return @@ Some ("tune", name)
       )
     | Set ->
       (fun _ slug ->
-         let%lwt name = Lwt.map Set.name (get_set slug) in
-         Lwt.return @@ Some ("set", name)
+        let%lwt name = Lwt.map Set.name (get_set slug) in
+        Lwt.return @@ Some ("set", name)
       )
     | Book ->
       (fun _ slug ->
-         let%lwt title = Lwt.map Book.title (get_book slug) in
-         Lwt.return @@ Some ("book", title)
+        let%lwt title = Lwt.map Book.title (get_book slug) in
+        Lwt.return @@ Some ("book", title)
       )
     | Dance ->
       (fun _ slug ->
-         let%lwt name = Lwt.map Dance.name (get_dance slug) in
-         Lwt.return @@ Some ("dance", name)
+        let%lwt name = Lwt.map Dance.name (get_dance slug) in
+        Lwt.return @@ Some ("dance", name)
       )
     | Person ->
       (fun _ slug ->
-         let%lwt name = Lwt.map Person.name (get_person slug) in
-         Lwt.return @@ Some ("person", name)
+        let%lwt name = Lwt.map Person.name (get_person slug) in
+        Lwt.return @@ Some ("person", name)
       )
     | Source ->
       (fun _ slug ->
-         let%lwt name = Lwt.map Source.name (get_source slug) in
-         Lwt.return @@ Some ("source", name)
+        let%lwt name = Lwt.map Source.name (get_source slug) in
+        Lwt.return @@ Some ("source", name)
       )
   in
   let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =

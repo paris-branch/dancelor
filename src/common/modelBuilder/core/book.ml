@@ -68,8 +68,8 @@ type warning =
   (* DuplicateVersion contains the list of sets in which the tune appears, as
      well as the number of times this set is present *)
   | SetDanceMismatch of Set.t Entry.t * Dance.t Entry.t
-  (* SetDanceMismatch contains a set where one of the associated dances
-     does not have the same kind *)
+(* SetDanceMismatch contains a set where one of the associated dances
+   does not have the same kind *)
 [@@deriving show {with_path = false}, yojson]
 
 type warnings = warning list

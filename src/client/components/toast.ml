@@ -26,22 +26,22 @@ let open_ ?(level = Normal) ~title content =
   let (class_header, class_body) = level_to_class level in
   let toast =
     To_dom.of_div @@
-    div
-      ~a: [a_class ["toast"; "fade"; "show"]; a_role ["alert"]; a_aria "live" ["assertive"]; a_aria "atomic" ["true"]]
-      [
-        div
-          ~a: [a_class (["toast-header"] @ class_header)]
-          [
-            h6 ~a: [a_class ["me-auto"; "my-0"]] [txt title];
-            small [R.txt (Time.ago_s start)];
-            button ~a: [a_button_type `Button; a_class ["btn-close"]; a_user_data "bs-dismiss" "toast"; a_aria "label" ["Close"]] [];
-          ];
-        div ~a: [a_class (["toast-body"] @ class_body)] content;
-      ]
+      div
+        ~a: [a_class ["toast"; "fade"; "show"]; a_role ["alert"]; a_aria "live" ["assertive"]; a_aria "atomic" ["true"]]
+        [
+          div
+            ~a: [a_class (["toast-header"] @ class_header)]
+            [
+              h6 ~a: [a_class ["me-auto"; "my-0"]] [txt title];
+              small [R.txt (Time.ago_s start)];
+              button ~a: [a_button_type `Button; a_class ["btn-close"]; a_user_data "bs-dismiss" "toast"; a_aria "label" ["Close"]] [];
+            ];
+          div ~a: [a_class (["toast-body"] @ class_body)] content;
+        ]
   in
   Lwt.async (fun () ->
-      Lwt.pmsleep 60.;%lwt
-      Dom.removeChild (stack ()) toast;
-      Lwt.return_unit
-    );
+    Lwt.pmsleep 60.;%lwt
+    Dom.removeChild (stack ()) toast;
+    Lwt.return_unit
+  );
   Dom.appendChild (stack ()) toast

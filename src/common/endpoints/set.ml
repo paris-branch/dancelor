@@ -3,15 +3,15 @@ open Madge
 open ModelBuilder
 
 type (_, _, _) t =
-  (* Actions without specific set *)
-  | Create : ((Set.t -> 'w), 'w, Set.t Entry.t) t
-  | Search : ((Slice.t -> Set.Filter.t -> 'w), 'w, (int * Set.t Entry.t list)) t
-  (* Actions on a specific set *)
-  | Get : ((Set.t Slug.t -> 'w), 'w, Set.t Entry.t) t
-  | Update : ((Set.t Slug.t -> Set.t -> 'w), 'w, Set.t Entry.t) t
-  | Delete : ((Set.t Slug.t -> 'w), 'w, unit) t
-  (* Files related to a set *)
-  | Pdf : ((SetParameters.t -> Set.t Slug.t -> 'w), 'w, Void.t) t
+(* Actions without specific set *)
+| Create : ((Set.t -> 'w), 'w, Set.t Entry.t) t
+| Search : ((Slice.t -> Set.Filter.t -> 'w), 'w, (int * Set.t Entry.t list)) t
+(* Actions on a specific set *)
+| Get : ((Set.t Slug.t -> 'w), 'w, Set.t Entry.t) t
+| Update : ((Set.t Slug.t -> Set.t -> 'w), 'w, Set.t Entry.t) t
+| Delete : ((Set.t Slug.t -> 'w), 'w, unit) t
+(* Files related to a set *)
+| Pdf : ((SetParameters.t -> Set.t Slug.t -> 'w), 'w, Void.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"

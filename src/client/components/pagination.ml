@@ -40,7 +40,7 @@ let create ~number_of_entries ~entries_per_page =
         number_of_entries;
       }
   in
-  {state; update_current_page}
+    {state; update_current_page}
 
 let status_text pagination =
   Fun.flip S.map pagination.state @@ fun state ->
@@ -69,11 +69,11 @@ module Button = struct
           (
             Fun.flip S.map pagination.state @@ fun state ->
             "page-item" :: if active state then
-              ["active"]
+                ["active"]
             else if enabled state then
-              []
+                []
             else
-              ["disabled"]
+                ["disabled"]
           )
       ]
       [
@@ -82,10 +82,10 @@ module Button = struct
             a_class ["page-link"];
             a_onclick
               (fun _ ->
-                 let state = S.value pagination.state in
-                 if enabled state then
-                   pagination.update_current_page (fun current_page -> target current_page);
-                 false
+                let state = S.value pagination.state in
+                if enabled state then
+                  pagination.update_current_page (fun current_page -> target current_page);
+                false
               )
           ]
           [txt text]
@@ -139,11 +139,11 @@ let button_list pagination =
     number_of_pages
     |> Fun.flip List.init ((+) 1)
     |> List.filter
-      (fun i ->
-         i = 1
-         || i = number_of_pages
-         || abs (current_page - i) <= 2
-      )
+        (fun i ->
+          i = 1
+          || i = number_of_pages
+          || abs (current_page - i) <= 2
+        )
   in
   let rec numbered_buttons previous = function
     | [] -> []
@@ -157,17 +157,16 @@ let button_list pagination =
     (
       [Button.previous] @
       numbered_buttons 0 relevant_page_numbers @
-      [Button.next]
+        [Button.next]
     )
 
 let render ~is_below pagination =
   nav
-    ~a: [a_class ["d-md-flex"; "justify-content-between"; (if is_below then "align-items-start" else "align-items-end")]]
-    [
+    ~a: [a_class["d-md-flex"; "justify-content-between"; (if is_below then "align-items-start" else "align-items-end")]][
       div [R.txt (status_text pagination)];
       R.ul
         ~a: [a_class ["pagination"; "mb-0"]]
         (button_list pagination);
     ]
 
-let slice page_nav = S.map current_slice page_nav.state
+  let slice page_nav = S.map current_slice page_nav.state

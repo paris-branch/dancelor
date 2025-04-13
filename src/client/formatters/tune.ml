@@ -33,7 +33,7 @@ let description tune =
     Lwt.return
       (
         [txt (String.capitalize_ascii kind ^ " by ")] @
-        (Person.names composers)
+          (Person.names composers)
       )
 
 let aka tune =

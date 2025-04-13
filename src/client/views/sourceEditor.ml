@@ -14,7 +14,7 @@ type ('name, 'scddb_id, 'description) gen = {
 
 module RawState = struct
   type t =
-    (string, string, string) gen
+  (string, string, string) gen
   [@@deriving yojson]
 
   let empty : t = {
@@ -27,7 +27,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      (string Input.Text.t, SCDDB.entry_id option Input.Text.t, string option Input.Text.t) gen
+    (string Input.Text.t, SCDDB.entry_id option Input.Text.t, string option Input.Text.t) gen
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -49,26 +49,26 @@ module Editor = struct
       Lwt.return @@ f {RawState.empty with name = text}
     | None ->
       Lwt.return @@
-      Cutils.with_local_storage "SourceEditor" (module RawState) raw_state f
+        Cutils.with_local_storage "SourceEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make initial_state.name @@
-      Result.of_string_nonempty ~empty: "The name cannot be empty."
+        Result.of_string_nonempty ~empty: "The name cannot be empty."
     in
     let scddb_id =
       Input.Text.make initial_state.scddb_id @@
-      Option.fold
-        ~none: (Ok None)
-        ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Publication) %
-      Option.of_string_nonempty
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Publication) %
+          Option.of_string_nonempty
     in
     let description =
       Input.Text.make initial_state.name @@
-      (function "" -> Ok None | s -> Ok (Some s))
+        (function "" -> Ok None | s -> Ok (Some s))
     in
-    {elements = {name; scddb_id; description}}
+      {elements = {name; scddb_id; description}}
 
   let clear (editor : t) : unit =
     Input.Text.clear editor.elements.name;
@@ -92,27 +92,25 @@ let create ?on_save ?text () =
   let editor = Editor.create ~text in
   Page.make
     ~title: (S.const title)
-    [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Input.Text.render
-                editor.elements.name
-                ~label: "Name"
-                ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
-              Input.Text.render
-                editor.elements.scddb_id
-                ~label: "SCDDB ID"
-                ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
-              Input.Text.render_as_textarea
-                editor.elements.description
-                ~label: "Description"
-                ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances.";
-            ]
-        )
-    ]
+    [L.div
+      (
+        let%lwt editor = editor in
+        Lwt.return
+          [
+            Input.Text.render
+              editor.elements.name
+              ~label: "Name"
+              ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
+            Input.Text.render
+              editor.elements.scddb_id
+              ~label: "SCDDB ID"
+              ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
+            Input.Text.render_as_textarea
+              editor.elements.description
+              ~label: "Description"
+              ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances.";
+          ]
+      )]
     ~buttons: [
       L.div
         (
@@ -125,13 +123,13 @@ let create ?on_save ?text () =
               Button.save
                 ~disabled: (S.map Option.is_none (Editor.state editor))
                 ~onclick: (fun () ->
-                    Fun.flip Lwt.map (Editor.submit editor) @@
-                    Option.iter @@ fun source ->
-                    Editor.clear editor;
-                    match on_save with
-                    | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_source (Entry.slug source))
-                    | Some on_save -> on_save source
-                  )
+                  Fun.flip Lwt.map (Editor.submit editor) @@
+                  Option.iter @@ fun source ->
+                  Editor.clear editor;
+                  match on_save with
+                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_source (Entry.slug source))
+                  | Some on_save -> on_save source
+                )
                 ();
             ]
         )

@@ -5,7 +5,7 @@ module Pdf = struct
   let render parameters set =
     let book =
       Entry.make_dummy @@
-      Model.Book.make ~title: "" ~contents: [InlineSet (Entry.value set, parameters)] ()
+        Model.Book.make ~title: "" ~contents: [InlineSet (Entry.value set, parameters)] ()
     in
     let parameters =
       (* FIXME: the fact that we need to transfer this is just wrong. see

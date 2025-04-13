@@ -47,6 +47,6 @@ let of_yojson = function
       try
         Ok (from_string string)
       with
-      | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a valid status"
+        | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a valid status"
     )
   | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a JSON string"

@@ -37,7 +37,7 @@ let with_local_storage (type t)
     (module V : Storable with type t = t)
     (signal : 'a -> t S.t)
     (make : t -> 'a)
-  : 'a
+    : 'a
   =
   let value = retrieve key (module V) in
   let result = make value in

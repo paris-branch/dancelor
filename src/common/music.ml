@@ -9,14 +9,14 @@ let of_yojson__of__of_string of_string message = function
       try
         Ok (of_string s)
       with
-      | _ -> Error message
+        | _ -> Error message
     )
   | _ -> Error message
 
 (* Note *)
 
 type note =
-    A | B | C | D | E | F | G
+  A | B | C | D | E | F | G
 [@@deriving eq, show {with_path = false}]
 
 let note_to_char = function
@@ -47,7 +47,7 @@ let note_of_char c =
 (* Alteration *)
 
 type alteration =
-    Flat | Sharp | Natural
+  Flat | Sharp | Natural
 [@@deriving eq, show {with_path = false}]
 
 let alteration_to_string = function Flat -> "b" | Sharp -> "#" | Natural -> ""
@@ -125,7 +125,7 @@ let pitch_to_safe_string ?(strict_octave = true) pitch =
   if strict_octave && pitch.octave <> 0 then
     failwith "Dancelor_common.Model.Music.pitch_to_safe_string";
   note_to_safe_string pitch.note ^
-  alteration_to_safe_string pitch.alteration
+    alteration_to_safe_string pitch.alteration
 
 let pitch_of_string = function
   | "" -> failwith "Dancelor_common.Model.Music.pitch_of_string"
@@ -156,7 +156,7 @@ let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common.
 (* Mode *)
 
 type mode =
-    Major | Minor
+  Major | Minor
 [@@deriving eq, show {with_path = false}]
 
 let mode_to_string = function Major -> "" | Minor -> "m"
@@ -166,7 +166,8 @@ let mode_to_safe_string = mode_to_string
 
 (* Key *)
 
-type key = {pitch: pitch; mode: mode}
+type key =
+  {pitch: pitch; mode: mode}
 [@@deriving eq, show {with_path = false}]
 
 let make_key pitch mode = {pitch; mode}
@@ -183,17 +184,17 @@ let key_of_string = function
     (* FIXME: dirty; does not use mode_of_string *)
     let pitch_str, mode =
       if str.[String.length str - 1] = 'm' then
-        (String.sub str 0 (String.length str - 1), Minor)
+          (String.sub str 0 (String.length str - 1), Minor)
       else
-        (str, Major)
+          (str, Major)
     in
-    {pitch = pitch_of_string pitch_str; mode}
+      {pitch = pitch_of_string pitch_str; mode}
 
 let key_of_string_opt s =
   try
     Some (key_of_string s)
   with
-  | Failure _ -> None
+    | Failure _ -> None
 
 let key_to_yojson = to_yojson__of__to_string key_to_string
 let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common.Model.Music.key_of_yojson"
@@ -207,7 +208,7 @@ end
 (* Clef*)
 
 type clef =
-    Treble | Bass
+  Treble | Bass
 [@@deriving eq, show {with_path = false}]
 
 let clef_to_string = function Treble -> "treble" | Bass -> "bass"

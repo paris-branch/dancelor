@@ -1,10 +1,10 @@
 open Nes
 
 module Build
-    (Dance : Signature.Dance.S)
-    (Set : Signature.Set.S)
-    (Tune : Signature.Tune.S)
-    (Version : Signature.Version.S)
+  (Dance : Signature.Dance.S)
+  (Set : Signature.Set.S)
+  (Tune : Signature.Tune.S)
+  (Version : Signature.Version.S)
 = struct
   include Core.Book
 
@@ -15,13 +15,13 @@ module Build
   let compare : t Entry.t -> t Entry.t -> int =
     Slug.compare_slugs_or
       ~fallback: (fun book1 book2 ->
-          (* Compare first by date *)
-          let c = compare (Entry.value book1).date (Entry.value book2).date in
-          if c = 0 then
-            compare book1 book2
-          else
-            c
-        )
+        (* Compare first by date *)
+        let c = compare (Entry.value book1).date (Entry.value book2).date in
+        if c = 0 then
+          compare book1 book2
+        else
+          c
+      )
       Entry.slug'
 
   let equal book1 book2 = compare book1 book2 = 0
@@ -124,13 +124,13 @@ module Build
         let (_, warnings) =
           List.fold_left
             (fun (previous_set, warnings) current_set ->
-               let warnings =
-                 if Set.equal current_set previous_set then
-                   ((DuplicateSet current_set) :: warnings)
-                 else
-                   warnings
-               in
-               (current_set, warnings)
+              let warnings =
+                if Set.equal current_set previous_set then
+                    ((DuplicateSet current_set) :: warnings)
+                else
+                  warnings
+              in
+                (current_set, warnings)
             )
             (first_set, [])
             other_sets
@@ -153,23 +153,23 @@ module Build
       (* register standalone tunes *)
       Lwt_list.iter_s
         (fun v ->
-           let%lwt tune = Version.tune v in
-           register_tune_to_set tune None;
-           Lwt.return ()
+          let%lwt tune = Version.tune v in
+          register_tune_to_set tune None;
+          Lwt.return ()
         )
         standalone_versions;%lwt
       (* register tunes in sets *)
       Lwt_list.iter_s
         (fun set ->
-           let%lwt contents = Set.contents set in
-           let versions = List.map fst contents in
-           Lwt_list.iter_s
-             (fun v ->
-                let%lwt tune = Version.tune v in
-                register_tune_to_set tune (Some set);
-                Lwt.return ()
-             )
-             versions
+          let%lwt contents = Set.contents set in
+          let versions = List.map fst contents in
+          Lwt_list.iter_s
+            (fun v ->
+              let%lwt tune = Version.tune v in
+              register_tune_to_set tune (Some set);
+              Lwt.return ()
+            )
+            versions
         )
         sets;%lwt
       (* crawl all registered tunes and see if they appear several times. if that is
@@ -177,36 +177,36 @@ module Build
       Hashtbl.to_seq tunes_to_sets
       |> List.of_seq
       |> List.fold_left
-        (fun warnings (tune, set_opts) ->
-           let set_opts = List.sort_count (Option.compare Set.compare) set_opts in
-           if List.length set_opts > 1 then
-             ((DuplicateVersion (tune, set_opts)) :: warnings)
-           else
-             warnings
-        )
-        []
+          (fun warnings (tune, set_opts) ->
+            let set_opts = List.sort_count (Option.compare Set.compare) set_opts in
+            if List.length set_opts > 1 then
+                ((DuplicateVersion (tune, set_opts)) :: warnings)
+            else
+              warnings
+          )
+          []
       |> Lwt.return
 
     let setDanceMismatch book =
       let%lwt sets_and_parameters = sets_and_parameters_from_contents book in
       Lwt_list.filter_map_p
         (fun (set, parameters) ->
-           let%olwt dance_slug = Lwt.return (Core.SetParameters.for_dance parameters) in
-           (* FIXME: SetParameters should be hidden behind the same kind of
-              mechanism as the rest; and this step should not be necessary *)
-           let%lwt dance = Dance.get dance_slug in
-           if Set.kind set = Dance.kind dance then
-             Lwt.return_none
-           else
-             Lwt.return_some (SetDanceMismatch (set, dance))
+          let%olwt dance_slug = Lwt.return (Core.SetParameters.for_dance parameters) in
+          (* FIXME: SetParameters should be hidden behind the same kind of
+             mechanism as the rest; and this step should not be necessary *)
+          let%lwt dance = Dance.get dance_slug in
+          if Set.kind set = Dance.kind dance then
+            Lwt.return_none
+          else
+            Lwt.return_some (SetDanceMismatch (set, dance))
         )
         sets_and_parameters
 
     let all book =
       Lwt_list.fold_left_s
         (fun warnings new_warnings_lwt ->
-           let%lwt new_warnings = new_warnings_lwt in
-           Lwt.return (warnings @ new_warnings)
+          let%lwt new_warnings = new_warnings_lwt in
+          Lwt.return (warnings @ new_warnings)
         )
         []
         [
@@ -235,59 +235,59 @@ module Build
     let rec accepts filter book =
       let char_equal = Char.Sensible.equal in
       Formula.interpret filter @@ function
-      | Is book' ->
-        Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug book) book'
-      | Title string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.title book
-      | TitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.title book
-      | Subtitle string ->
-        Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.subtitle book
-      | SubtitleMatches string ->
-        Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.subtitle book
-      | IsSource ->
-        Lwt.return @@ Formula.interpret_bool @@ is_source book
-      | ExistsVersion vfilter ->
-        let%lwt content = contents book in
-        let%lwt versions =
-          Lwt_list.filter_map_s
-            (function
-              | Version (v, _p) -> Lwt.return_some v
-              | _ -> Lwt.return_none
-            )
-            content
-        in
-        Formula.interpret_exists (Version.Filter.accepts vfilter) versions
-      | ExistsSet sfilter ->
-        let%lwt content = contents book in
-        let%lwt sets =
-          Lwt_list.filter_map_s
-            (function
-              | Set (s, _p) -> Lwt.return_some s
-              | _ -> Lwt.return_none
-            )
-            content
-        in
-        Formula.interpret_exists (Set.Filter.accepts sfilter) sets
-      | ExistsInlineSet sfilter ->
-        let%lwt content = contents book in
-        let%lwt isets =
-          Lwt_list.filter_map_s
-            (function
-              | InlineSet (s, _p) -> Lwt.return_some s
-              | _ -> Lwt.return_none
-            )
-            content
-        in
-        Formula.interpret_exists (Set.Filter.accepts sfilter % Entry.make_dummy) isets
-      | ExistsVersionDeep vfilter ->
-        (* recursive call to check the compound formula *)
-        Fun.flip accepts book @@
-        Formula.or_l
-          [
-            Formula.pred (ExistsVersion vfilter);
-            Formula.pred (ExistsSet (Set.Filter.existsVersion' vfilter));
-            Formula.pred (ExistsInlineSet (Set.Filter.existsVersion' vfilter));
-          ]
+        | Is book' ->
+          Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug book) book'
+        | Title string ->
+          Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.title book
+        | TitleMatches string ->
+          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.title book
+        | Subtitle string ->
+          Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.subtitle book
+        | SubtitleMatches string ->
+          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.subtitle book
+        | IsSource ->
+          Lwt.return @@ Formula.interpret_bool @@ is_source book
+        | ExistsVersion vfilter ->
+          let%lwt content = contents book in
+          let%lwt versions =
+            Lwt_list.filter_map_s
+              (function
+                | Version (v, _p) -> Lwt.return_some v
+                | _ -> Lwt.return_none
+              )
+              content
+          in
+          Formula.interpret_exists (Version.Filter.accepts vfilter) versions
+        | ExistsSet sfilter ->
+          let%lwt content = contents book in
+          let%lwt sets =
+            Lwt_list.filter_map_s
+              (function
+                | Set (s, _p) -> Lwt.return_some s
+                | _ -> Lwt.return_none
+              )
+              content
+          in
+          Formula.interpret_exists (Set.Filter.accepts sfilter) sets
+        | ExistsInlineSet sfilter ->
+          let%lwt content = contents book in
+          let%lwt isets =
+            Lwt_list.filter_map_s
+              (function
+                | InlineSet (s, _p) -> Lwt.return_some s
+                | _ -> Lwt.return_none
+              )
+              content
+          in
+          Formula.interpret_exists (Set.Filter.accepts sfilter % Entry.make_dummy) isets
+        | ExistsVersionDeep vfilter ->
+          (* recursive call to check the compound formula *)
+          Fun.flip accepts book @@
+            Formula.or_l
+              [
+                Formula.pred (ExistsVersion vfilter);
+                Formula.pred (ExistsSet (Set.Filter.existsVersion' vfilter));
+                Formula.pred (ExistsInlineSet (Set.Filter.existsVersion' vfilter));
+              ]
   end
 end

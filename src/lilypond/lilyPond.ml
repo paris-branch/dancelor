@@ -17,7 +17,7 @@ let run ?(lilypond_bin = "lilypond") ~exec_path ?(options = []) ~fontconfig_file
       ~on_nonempty_stderr: Logs.Warning
       ([lilypond_bin; "--loglevel=WARNING"; "-dno-point-and-click"] @ options @ [filename])
   with
-  | Failure _ -> Lwt.return_unit
+    | Failure _ -> Lwt.return_unit
 
 (** Wrapper around {!run} for SVG generation. Also allows injecting a custom
     stylesheet. *)
@@ -55,4 +55,4 @@ let ogg ?lilypond_bin ?(exec_path = ".") ~fontconfig_file filename =
         (Filename.chop_extension filename) ^ ".midi"
       ]
   with
-  | Failure _ -> Lwt.return_unit
+    | Failure _ -> Lwt.return_unit
