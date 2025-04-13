@@ -20,5 +20,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | Set endpoint -> Set.dispatch env endpoint
   | Tune endpoint -> Tune.dispatch env endpoint
   | Any endpoint -> Any.dispatch env endpoint
+  | User endpoint -> User.dispatch env endpoint
   | ReportIssue -> IssueReport.report env
   | Victor -> Logger.log_exit (module Log) 101

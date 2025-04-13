@@ -19,6 +19,18 @@ module Person = Table.Make(struct
   let standalone = false
 end)
 
+module User = Table.Make(struct
+  include ModelBuilder.User
+
+  let slug_hint user = Lwt.return user.name
+  let separate_fields = []
+  let dependencies user =
+    Lwt.return [
+      Table.make_slug_and_table (module Person) (person user)
+    ]
+  let standalone = false
+end)
+
 module Dance = Table.Make(struct
   include ModelBuilder.Dance
 
@@ -128,6 +140,7 @@ module Storage = Storage
 let tables : (module Table.S)list = [
   (module Source);
   (module Person);
+  (module User);
   (module Dance);
   (module Version);
   (module Tune);

@@ -9,6 +9,7 @@ type (_, _, _) t =
   | Set : ('a, 'w, 'r) Set.t -> ('a, 'w, 'r) t
   | Tune : ('a, 'w, 'r) Tune.t -> ('a, 'w, 'r) t
   | Any : ('a, 'w, 'r) Any.t -> ('a, 'w, 'r) t
+  | User : ('a, 'w, 'r) User.t -> ('a, 'w, 'r) t
   | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
   | Victor : ('w, 'w, Void.t) t
 
@@ -21,6 +22,7 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Set endpoint -> "Set " ^ Set.to_string endpoint
   | Tune endpoint -> "Tune " ^ Tune.to_string endpoint
   | Any endpoint -> "Any " ^ Any.to_string endpoint
+  | User endpoint -> "User " ^ User.to_string endpoint
   | ReportIssue -> "ReportIssue"
   | Victor -> "Victor"
 
@@ -38,6 +40,7 @@ let all_endpoints =
       List.map (fun (Set.W e) -> W (Set e)) Set.all;
       List.map (fun (Tune.W e) -> W (Tune e)) Tune.all;
       List.map (fun (Any.W e) -> W (Any e)) Any.all;
+      List.map (fun (User.W e) -> W (User e)) User.all;
       [W ReportIssue;
       W Victor];
     ]
@@ -54,6 +57,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Set endpoint -> literal "api" @@ literal "set" @@ Set.route endpoint
   | Tune endpoint -> literal "api" @@ literal "tune" @@ Tune.route endpoint
   | Any endpoint -> literal "api" @@ literal "any" @@ Any.route endpoint
+  | User endpoint -> literal "api" @@ literal "user" @@ User.route endpoint
   | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
   | Victor -> literal "api" @@ literal "victor" @@ void ()
 
