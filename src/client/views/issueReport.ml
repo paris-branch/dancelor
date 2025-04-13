@@ -12,6 +12,7 @@ let describe =
     ~get_book: Model.Book.get
     ~get_dance: Model.Dance.get
     ~get_person: Model.Person.get
+    ~get_source: Model.Source.get
 
 let open_dialog page =
   let reporter_input =

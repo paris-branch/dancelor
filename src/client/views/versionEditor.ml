@@ -6,13 +6,14 @@ open Components
 open Html
 open Utils
 
-type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'disambiguation, 'content) gen = {
+type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'sources, 'disambiguation, 'content) gen = {
   tune: 'tune;
   bars: 'bars;
   key: 'key;
   structure: 'structure;
   arrangers: 'arrangers;
   remark: 'remark;
+  sources: 'sources;
   disambiguation: 'disambiguation;
   content: 'content;
 }
@@ -26,18 +27,22 @@ module RawState = struct
   type person = Model.Person.t
   let person_to_yojson _ = assert false
   let person_of_yojson _ = assert false
+  type source = Model.Source.t
+  let source_to_yojson _ = assert false
+  let source_of_yojson _ = assert false
 
   type t =
-    ((string * tune Slug.t list), string, string, string, (string * person Slug.t list), string, string, string) gen
+    (tune Slug.t list, string, string, string, person Slug.t list, string, source Slug.t list, string, string) gen
   [@@deriving yojson]
 
   let empty = {
-    tune = ("", []);
+    tune = [];
     bars = "";
     key = "";
     structure = "";
-    arrangers = ("", []);
+    arrangers = [];
     remark = "";
+    sources = [];
     disambiguation = "";
     content = ""
   }
@@ -46,7 +51,7 @@ end
 module Editor = struct
   type t = {
     elements:
-      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, string Input.Text.t, string Input.Text.t) gen;
+      ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, (Selector.many, Model.Source.t) Selector.t, string Input.Text.t, string Input.Text.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -56,9 +61,10 @@ module Editor = struct
     S.bind (Input.Text.raw_signal editor.elements.structure) @@ fun structure ->
     S.bind (Selector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
     S.bind (Input.Text.raw_signal editor.elements.remark) @@ fun remark ->
+    S.bind (Selector.raw_signal editor.elements.sources) @@ fun sources ->
     S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     S.bind (Input.Text.raw_signal editor.elements.content) @@ fun content ->
-    S.const {tune; bars; key; structure; arrangers; remark; disambiguation; content}
+    S.const {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let state (editor : t) =
     S.map Result.to_option @@
@@ -68,16 +74,17 @@ module Editor = struct
     RS.bind (Input.Text.signal editor.elements.structure) @@ fun structure ->
     RS.bind (Selector.signal_many editor.elements.arrangers) @@ fun arrangers ->
     RS.bind (Input.Text.signal editor.elements.remark) @@ fun remark ->
+    RS.bind (Selector.signal_many editor.elements.sources) @@ fun sources ->
     RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
     RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
-    RS.pure {tune; bars; key; structure; arrangers; remark; disambiguation; content}
+    RS.pure {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let with_or_without_local_storage ~text ~tune f =
     match text, tune with
     | (None, None) ->
       Lwt.return @@ Cutils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
-      Lwt.return @@ f {RawState.empty with tune = (Option.value ~default: "" text, Option.value ~default: [] tune)}
+      Lwt.return @@ f {RawState.empty with tune = Option.value ~default: [] tune}
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->
@@ -113,13 +120,24 @@ module Editor = struct
         initial_state.arrangers
     in
     let remark = Input.Text.make initial_state.remark @@ Result.ok in
+    let sources =
+      Selector.make
+        ~arity: Selector.many
+        ~search: (fun slice input ->
+            let%rlwt filter = Lwt.return (Model.Source.Filter.from_string input) in
+            Lwt.map Result.ok @@ Model.Source.search slice filter
+          )
+        ~serialise: Entry.slug
+        ~unserialise: Model.Source.get
+        initial_state.sources
+    in
     let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
     let content =
       Input.Text.make initial_state.content @@
       Result.of_string_nonempty ~empty: "Cannot be empty."
     in
     {
-      elements = {tune; bars; key; structure; arrangers; remark; disambiguation; content};
+      elements = {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content};
     }
 
   let clear (editor : t) =
@@ -129,13 +147,14 @@ module Editor = struct
     Input.Text.clear editor.elements.structure;
     Selector.clear editor.elements.arrangers;
     Input.Text.clear editor.elements.remark;
+    Selector.clear editor.elements.sources;
     Input.Text.clear editor.elements.disambiguation;
     Input.Text.clear editor.elements.content
 
   let value (editor : t) =
     match S.value (state editor) with
     | None -> Lwt.return_none
-    | Some {tune; bars; key; structure; arrangers; remark; disambiguation; content} ->
+    | Some {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content} ->
       Lwt.return_some @@
       Model.Version.make
         ~tune
@@ -144,6 +163,7 @@ module Editor = struct
         ~structure
         ~arrangers
         ~remark
+        ~sources
         ~disambiguation
         ~content
         ()
@@ -184,6 +204,12 @@ let create ?on_save ?text ?tune () =
                 ~model_name: "person"
                 ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
                 editor.elements.arrangers;
+              Selector.render
+                ~make_result: AnyResult.make_source_result'
+                ~field_name: "Sources"
+                ~model_name: "source"
+                ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
+                editor.elements.sources;
               Input.Text.render
                 editor.elements.disambiguation
                 ~label: "Disambiguation"
@@ -229,6 +255,7 @@ let create ?on_save ?text ?tune () =
                             ];
                         ]
                         ~buttons: [
+                          Button.cancel' ~return ();
                           Button.save
                             ~onclick: (fun () ->
                                 let%lwt version = Model.Version.save version in
@@ -241,7 +268,6 @@ let create ?on_save ?text ?tune () =
                                 Lwt.return_unit
                               )
                             ();
-                          Button.cancel' ~return ();
                         ]
                   )
                 ();

@@ -8,6 +8,7 @@ type predicate =
   | Raw of string
   | Type of Core.Any.Type.t
   (* lifting predicates: *)
+  | Source of Source.t
   | Person of Person.t
   | Dance of Dance.t
   | Book of Book.t
@@ -24,6 +25,7 @@ type t = predicate Formula.t
 
 let raw' = Formula.pred % raw
 let type_' = Formula.pred % type_
+let source' = Formula.pred % source
 let person' = Formula.pred % person
 let dance' = Formula.pred % dance
 let book' = Formula.pred % book
@@ -48,6 +50,7 @@ let make_text_formula_converter ?(human = false) () =
             raw (Result.ok % raw');
             unary_string ~name: "raw" (predicate_Raw, unRaw) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, unType) ~cast: (Core.Any.Type.of_string_opt, Core.Any.Type.to_string) ~type_: "valid type";
+            unary_lift ~name: "source" (source, unSource) ~converter: Source.text_formula_converter ~wrap_back;
             unary_lift ~name: "person" (person, unPerson) ~converter: Person.text_formula_converter ~wrap_back;
             unary_lift ~name: "dance" (dance, unDance) ~converter: Dance.text_formula_converter ~wrap_back;
             unary_lift ~name: "book" (book, unBook) ~converter: Book.text_formula_converter ~wrap_back;
@@ -60,6 +63,7 @@ let make_text_formula_converter ?(human = false) () =
         merge_l
           [
             (* Other converters, lifted to Any *)
+            map source Source.text_formula_converter ~error: ((^) "As source: ");
             map person Person.text_formula_converter ~error: ((^) "As person: ");
             map dance Dance.text_formula_converter ~error: ((^) "As dance: ");
             map book Book.text_formula_converter ~error: ((^) "As book: ");
@@ -84,6 +88,7 @@ let type_based_cleanup =
   let types_of_predicate = function
     | Raw _ -> Core.Any.Type.Set.all
     | Type type_ -> Core.Any.Type.Set.singleton type_
+    | Source _ -> Core.Any.Type.Set.singleton Source
     | Person _ -> Core.Any.Type.Set.singleton Person
     | Dance _ -> Core.Any.Type.Set.singleton Dance
     | Book _ -> Core.Any.Type.Set.singleton Book
@@ -126,6 +131,7 @@ let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
     (* [person:] eats [type:person] *)
+    | (Type Source, Source f) | (Source f, Type Source) -> Option.some @@ source f
     | (Type Person, Person f) | (Person f, Type Person) -> Option.some @@ person f
     | (Type Dance, Dance f) | (Dance f, Type Dance) -> Option.some @@ dance f
     | (Type Book, Book f) | (Book f, Type Book) -> Option.some @@ book f
@@ -133,6 +139,7 @@ let optimise =
     | (Type Tune, Tune f) | (Tune f, Type Tune) -> Option.some @@ tune f
     | (Type Version, Version f) | (Version f, Type Version) -> Option.some @@ version f
     (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
+    | (Source f1, Source f2) -> Option.some @@ source (op f1 f2)
     | (Person f1, Person f2) -> Option.some @@ person (op f1 f2)
     | (Dance f1, Dance f2) -> Option.some @@ dance (op f1 f2)
     | (Book f1, Book f2) -> Option.some @@ book (op f1 f2)
@@ -150,6 +157,7 @@ let optimise =
         ~lift_or: (lift {op = Formula.or_})
         (function
           | (Raw _ as p) | (Type _ as p) -> p
+          | Source pfilter -> source @@ Source.optimise pfilter
           | Person pfilter -> person @@ Person.optimise pfilter
           | Dance dfilter -> dance @@ Dance.optimise dfilter
           | Book bfilter -> book @@ Book.optimise bfilter
@@ -167,6 +175,7 @@ let to_pretty_string =
   in
   let add_explicit_type =
     Formula.convert @@ function
+    | Source f -> type_and Source source' f
     | Person f -> type_and Person person' f
     | Dance f -> type_and Dance dance' f
     | Book f -> type_and Book book' f

@@ -122,6 +122,27 @@ module Kind = struct
   end
 end
 
+module Source = struct
+  type t = [%import: Common.ModelBuilder.Source.t]
+
+  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
+      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
+  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+
+  module Filter = struct
+    type predicate = [%import: Common.ModelBuilder.Source.Filter.predicate [@with Nes.Slug.t := Slug.t;
+                               (* Core *)
+                               Common__ModelBuilder__.Core.Source.t := t;
+      ]
+    ]
+    [@@deriving qcheck2]
+
+    type t = [%import: Common.ModelBuilder.Source.Filter.t [@with Common.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
+  end
+end
+
 module Person = struct
   type t = [%import: Common.ModelBuilder.Person.t]
 
@@ -208,6 +229,7 @@ module Version = struct
                                (* Filter *)
                                Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
+                               Common__ModelBuilder__Filter.Source.t := Source.Filter.t;
                                Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
                                Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
                                Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
@@ -293,6 +315,7 @@ module Any = struct
                                Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
                                Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
                                Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+                               Common__ModelBuilder__Filter.Source.t := Source.Filter.t;
                                Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
                                Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
                                Common__ModelBuilder__Filter.Book.t := Book.Filter.t;

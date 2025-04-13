@@ -88,6 +88,16 @@ end
 module SetOrder = SetOrder
 module SetParameters = Core.SetParameters
 
+module Source = struct
+  include Core.Source
+  module Filter = Filter.Source
+  module Build () = struct
+    include Core.Source
+    module Filter = Filter
+  end
+  include Signature.Source
+end
+
 module Tune = struct
   include Core.Tune
   module Filter = Filter.Tune

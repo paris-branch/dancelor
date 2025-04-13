@@ -20,7 +20,7 @@ type ('arity, 'model) t = {
   arity: 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 
-let make ~arity ~search ~serialise ~unserialise (_fixme_unused_initial_text, initial_value) =
+let make ~arity ~search ~serialise ~unserialise initial_value =
   let (signal, set) = S.create [] in
   let quick_search = Search.Quick.make ~search () in
   Lwt.async (fun () ->
@@ -30,7 +30,7 @@ let make ~arity ~search ~serialise ~unserialise (_fixme_unused_initial_text, ini
     );
   {signal; set; quick_search; serialise; arity}
 
-let raw_signal s = S.map (fun elts -> ("fixme-unused", List.map s.serialise elts)) s.signal
+let raw_signal s = S.map (List.map s.serialise) s.signal
 
 let signal (s : ('arity, 'model) t) : ('model Entry.t list, string) Result.t S.t =
   Fun.flip S.map s.signal @@ function
@@ -78,7 +78,7 @@ let render
   div
     ~a: [a_class ["mb-2"]]
     [
-      label [txt field_name];
+      label ~a: [a_class ["form-label"]] [txt field_name];
       tablex
         ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
         [

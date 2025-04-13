@@ -9,6 +9,7 @@ module type S = sig
     bars: int ->
     key: Music.key ->
     structure: string ->
+    ?sources: Source.t Entry.t list ->
     ?arrangers: Person.t Entry.t list ->
     ?remark: string ->
     ?disambiguation: string ->
@@ -20,7 +21,7 @@ module type S = sig
   val bars : t Entry.t -> int
   val key : t Entry.t -> Music.key
   val structure : t Entry.t -> string
-  val sources : t Entry.t -> string list
+  val sources : t Entry.t -> Source.t Entry.t list Lwt.t
   val arrangers : t Entry.t -> Person.t Entry.t list Lwt.t
   val remark : t Entry.t -> string
   val disambiguation : t Entry.t -> string
@@ -56,6 +57,12 @@ module type S = sig
 
     val key : Music.Key.t -> predicate
     val key' : Music.Key.t -> t
+
+    val existsSource : Filter.Source.t -> predicate
+    val existsSource' : Filter.Source.t -> t
+
+    val memSource : Source.t Entry.t -> predicate
+    val memSource' : Source.t Entry.t -> t
 
     val text_formula_converter : predicate TextFormulaConverter.t
     val from_text_formula : TextFormula.t -> (t, string) Result.t

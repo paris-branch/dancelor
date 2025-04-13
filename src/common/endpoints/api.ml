@@ -1,6 +1,7 @@
 open Nes
 
 type (_, _, _) t =
+  | Source : ('a, 'w, 'r) Source.t -> ('a, 'w, 'r) t
   | Person : ('a, 'w, 'r) Person.t -> ('a, 'w, 'r) t
   | Book : ('a, 'w, 'r) Book.t -> ('a, 'w, 'r) t
   | Version : ('a, 'w, 'r) Version.t -> ('a, 'w, 'r) t
@@ -12,6 +13,7 @@ type (_, _, _) t =
   | Victor : ('w, 'w, Void.t) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
+  | Source endpoint -> "Source " ^ Source.to_string endpoint
   | Person endpoint -> "Person " ^ Person.to_string endpoint
   | Book endpoint -> "Book " ^ Book.to_string endpoint
   | Version endpoint -> "Version " ^ Version.to_string endpoint
@@ -28,6 +30,7 @@ type wrapped =
 let all_endpoints =
   List.flatten
     [
+      List.map (fun (Source.W e) -> W (Source e)) Source.all;
       List.map (fun (Person.W e) -> W (Person e)) Person.all;
       List.map (fun (Book.W e) -> W (Book e)) Book.all;
       List.map (fun (Version.W e) -> W (Version e)) Version.all;
@@ -42,6 +45,7 @@ open Madge
 
 (* FIXME: Factorise adding the `/api` prefix. *)
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
+  | Source endpoint -> literal "api" @@ literal "source" @@ Source.route endpoint
   | Person endpoint -> literal "api" @@ literal "person" @@ Person.route endpoint
   | Book endpoint -> literal "api" @@ literal "book" @@ Book.route endpoint
   | Version endpoint -> literal "api" @@ literal "version" @@ Version.route endpoint

@@ -2,6 +2,7 @@
 
 open Common
 
+module Source : ModelBuilder.Source.S = Source
 module Person : ModelBuilder.Person.S = Person
 module Dance : ModelBuilder.Dance.S = Dance
 module Tune : ModelBuilder.Tune.S = Tune

@@ -5,6 +5,7 @@ module Build
     (Dance : Signature.Dance.S)
     (Person : Signature.Person.S)
     (Set : Signature.Set.S)
+    (Source : Signature.Source.S)
     (Tune : Signature.Tune.S)
     (Version : Signature.Version.S)
 = struct
@@ -12,6 +13,7 @@ module Build
 
   let equal any1 any2 =
     match any1, any2 with
+    | Source c1, Source c2 -> Entry.equal' c1 c2
     | Person c1, Person c2 -> Entry.equal' c1 c2
     | Dance d1, Dance d2 -> Dance.equal d1 d2
     | Book b1, Book b2 -> Book.equal b1 b2
@@ -21,6 +23,7 @@ module Build
     | _ -> false
 
   let name = function
+    | Source p -> Lwt.return @@ Source.name p
     | Person p -> Lwt.return @@ Person.name p
     | Dance d -> Lwt.return @@ Dance.name d
     | Book b -> Lwt.return @@ Book.title b
@@ -42,6 +45,7 @@ module Build
         Fun.flip accepts any @@
         Formula.or_l
           [
+            lift_raw source' Source.Filter.from_text_formula string;
             lift_raw person' Person.Filter.from_text_formula string;
             lift_raw dance' Dance.Filter.from_text_formula string;
             lift_raw book' Book.Filter.from_text_formula string;
@@ -53,6 +57,12 @@ module Build
         Type.equal (type_of any) type_
         |> Formula.interpret_bool
         |> Lwt.return
+      | Source cfilter ->
+        (
+          match any with
+          | Source source -> Source.Filter.accepts cfilter source
+          | _ -> Lwt.return Formula.interpret_false
+        )
       | Person cfilter ->
         (
           match any with

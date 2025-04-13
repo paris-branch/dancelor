@@ -1,6 +1,7 @@
 open Nes
 
 type t =
+  | Source of Source.t Entry.t
   | Person of Person.t Entry.t
   | Dance of Dance.t Entry.t
   | Book of Book.t Entry.t
@@ -11,6 +12,7 @@ type t =
 
 module Type = struct
   type t =
+    | Source
     | Person
     | Dance
     | Book
@@ -21,19 +23,20 @@ module Type = struct
 
   let compare t1 t2 =
     let to_int = function
-      | Person -> 0
-      | Dance -> 1
-      | Tune -> 2
-      | Version -> 3
-      | Set -> 4
-      | Book -> 5
+      | Source -> 0
+      | Person -> 1
+      | Dance -> 2
+      | Tune -> 3
+      | Version -> 4
+      | Set -> 5
+      | Book -> 6
     in
     if t1 = t2 then
       0
     else
       Int.compare (to_int t1) (to_int t2)
 
-  let all = [Person; Dance; Book; Set; Tune; Version]
+  let all = [Source; Person; Dance; Book; Set; Tune; Version]
 
   module Set = struct
     include Stdlib.Set.Make(struct
@@ -50,6 +53,7 @@ module Type = struct
   let equal = (=)
 
   let to_string = function
+    | Source -> "Source"
     | Person -> "Person"
     | Dance -> "Dance"
     | Book -> "Book"
@@ -61,6 +65,7 @@ module Type = struct
 
   let of_string str =
     match String.lowercase_ascii str with
+    | "source" -> Source
     | "person" -> Person
     | "dance" -> Dance
     | "book" -> Book
@@ -77,6 +82,7 @@ module Type = struct
 end
 
 let type_of = function
+  | Source _ -> Type.Source
   | Person _ -> Type.Person
   | Dance _ -> Type.Dance
   | Book _ -> Type.Book
