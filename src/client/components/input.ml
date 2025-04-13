@@ -4,19 +4,22 @@ open Html
 
 module Text = struct
   type 'a t = {
-    validator: string -> ('a, string) Result.t;
+    validator: string -> ('a, string) Result.t S.t;
     raw_signal: string S.t;
     set: string -> unit;
   }
 
-  let make initial_value validator =
+  let make' initial_value validator =
     let (raw_signal, set_immediately) = S.create initial_value in
     let set = S.delayed_setter 0.30 set_immediately in
       {validator; raw_signal; set}
 
+  let make initial_value validator =
+    make' initial_value (S.const % validator)
+
   let raw_signal state = state.raw_signal
 
-  let signal state = S.map state.validator state.raw_signal
+  let signal state = S.bind state.raw_signal state.validator
 
   let case_errored ~no ~yes state =
     Fun.flip S.map (signal state) @@ function
@@ -25,7 +28,7 @@ module Text = struct
 
   let clear state = state.set ""
 
-  let render ?label: lbl ?(placeholder = "") state =
+  let render ?label: lbl ?(placeholder = "") ?(oninput = ignore) state =
     div
       ~a: [a_class ["mb-2"]]
       [
@@ -42,7 +45,8 @@ module Text = struct
                 Js.Opt.iter event##.target @@ fun elt ->
                 Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
                 let input = Js.to_string input##.value in
-                state.set input
+                state.set input;
+                oninput input
               );
               false
             );
@@ -54,7 +58,7 @@ module Text = struct
           );
       ]
 
-  let render_as_textarea ?label: lbl ?(placeholder = "") state =
+  let render_as_textarea ?label: lbl ?(placeholder = "") ?(oninput = ignore) state =
     div
       ~a: [a_class ["mb-2"]]
       [
@@ -70,7 +74,8 @@ module Text = struct
                 Js.Opt.iter event##.target @@ fun elt ->
                 Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
                 let input = Js.to_string input##.value in
-                state.set input
+                state.set input;
+                oninput input
               );
               false
             );

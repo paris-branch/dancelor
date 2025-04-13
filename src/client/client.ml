@@ -145,6 +145,7 @@ let header =
                             ]
                         );
                     ];
+                  Auth.header_item;
                 ];
             ];
           Components.Button.make
