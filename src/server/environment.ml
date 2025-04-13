@@ -1,23 +1,46 @@
 open Nes
 
+type session = {
+  user: unit option;
+}
+[@@deriving fields]
+
+let make_session () = {
+  user = None;
+}
+
 type t = {
   session_id: string;
+  session: session;
 }
+[@@deriving fields]
 
 let uid () =
   Printf.sprintf "%Lx" @@
     Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int
 
+let sessions = Hashtbl.create 8
+
 let make ~request () =
   let headers = Cohttp.Request.headers request in
-  match Cohttp.Header.get headers "Cookie" with
-  | None -> {session_id = uid ()}
-  | Some cookies ->
-    let cookies = Str.split (Str.regexp "[ \t]*;[ \t]*") cookies in
-    let cookies = List.filter_map (String.split_on_first_char '=') cookies in
-    match List.assoc_opt "session" cookies with
-    | None -> {session_id = uid ()}
-    | Some session_id -> {session_id}
+  let cookies =
+    match Cohttp.Header.get headers "Cookie" with
+    | None -> []
+    | Some cookies ->
+      let cookies = Str.split (Str.regexp "[ \t]*;[ \t]*") cookies in
+      List.filter_map (String.split_on_first_char '=') cookies
+  in
+  let session_id = Option.value' (List.assoc_opt "session" cookies) ~default: uid in
+  let session =
+    Option.value'
+      (Hashtbl.find_opt sessions session_id)
+      ~default: (fun () ->
+        let session = make_session () in
+        Hashtbl.add sessions session_id session;
+        session
+      )
+  in
+    {session_id; session}
 
 let add_session_cookie env headers =
   Cohttp.Header.add headers "Set-Cookie" ("session=" ^ env.session_id)

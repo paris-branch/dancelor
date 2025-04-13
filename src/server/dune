@@ -19,6 +19,7 @@
    lwt_ppx
    ppx_blob
    ppx_deriving.std
+   ppx_fields_conv
    ppx_monad
    ppx_monad_olwt
    ppx_monad_rlwt))
