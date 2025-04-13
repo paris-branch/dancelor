@@ -17,8 +17,10 @@ let remove_char ?(char_equal = Char.equal) c s =
 let%test _ = remove_char '%' "Cou%cou, %%je s%ui%%s N%i%ols%" = "Coucou, je suis Niols"
 
 let split n s = (sub s 0 n, sub s n (length s - n))
+let split' n s = (sub s 0 n, sub s (n + 1) (length s - n - 1))
 
 let%test _ = split 2 "hello" = ("he", "llo")
+let%test _ = split' 2 "hello" = ("he", "lo")
 
 let starts_with ?(equal = equal) ~needle haystack =
   try
@@ -365,3 +367,9 @@ let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
     & c"]. *)
 let concat ?last sep strings =
   String.concat "" (NesList.intersperse ?last sep strings)
+
+let split_on_first_char sep string =
+  Option.map (Fun.flip split' string) (index_opt string sep)
+
+let%test _ = split_on_first_char '=' "abc=def" = Some ("abc", "def")
+let%test _ = split_on_first_char '=' "abcdef" = None

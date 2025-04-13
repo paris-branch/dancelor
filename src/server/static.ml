@@ -41,18 +41,20 @@ let index =
                     ]
                 )
 
-            let serve path =
+            let serve ?(post_process_headers = Fun.id) path =
               let full_path = Filename.concat !Config.share path in
               if Sys.file_exists full_path && not (Sys.is_directory full_path) then
                 (
                   Log.debug (fun m -> m "Serving static file: <share>/%s" @@ String.ltrim ~chars: ['/'] path);
                   (* Keep static files in cache for 30 days. *)
                   let headers = Cohttp.Header.init_with "Cache-Control" "max-age=2592000" in
+                  let headers = post_process_headers headers in
                   Cohttp_lwt_unix.Server.respond_file ~headers ~fname: full_path ()
                 )
               else
                 (
                   Log.debug (fun m -> m "Serving main file.");
                   let headers = Cohttp.Header.of_list [("Content-Type", "text/html")] in
+                  let headers = post_process_headers headers in
                   Cohttp_lwt_unix.Server.respond_string ~headers ~status: `OK ~body: index ()
                 )

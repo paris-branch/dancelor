@@ -24,7 +24,13 @@ let apply_controller env request =
     | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
         Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.to_string endpoint));
-        match Madge_cohttp_lwt_server.match_apply (Endpoints.Api.route endpoint) (Controller.dispatch env endpoint) request with
+        match Madge_cohttp_lwt_server.match_apply
+          (Endpoints.Api.route endpoint)
+          (Controller.dispatch env endpoint)
+          request
+          ~post_process: (fun response ->
+            {response with headers = Environment.add_session_cookie env response.headers}
+          ) with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
       )
@@ -71,15 +77,15 @@ let callback _ request body =
     let uri = Request.uri request in
     let path = Uri.path uri in
     Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
+    let env = Environment.make ~request () in
     if String.starts_with ~needle: "/api/" path then
       (
         Log.debug (fun m -> m "Looking for an API controller for %s." path);
         let%lwt body = Cohttp_lwt.Body.to_string body in
-        let env = Environment.make () in
         apply_controller env {meth; uri; body}
       )
     else
-      Static.serve path
+      Static.serve ~post_process_headers: (Environment.add_session_cookie env) path
 
 let () =
   Lwt.async_exception_hook :=
