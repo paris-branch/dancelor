@@ -12,12 +12,18 @@ module type S = sig
   type t = User.t
   (** Abstract type for a user. *)
 
-  val make : name: string -> person: Person.t Entry.t -> unit -> t
+  val make :
+    name: string ->
+    person: Person.t Entry.t ->
+    password: HashedPassword.t ->
+    unit ->
+    t
 
   (** {2 Field getters} *)
 
   val name : t Entry.t -> string
   val person : t Entry.t -> Person.t Entry.t Lwt.t
+  val password : t Entry.t -> HashedPassword.t
 
   (** {2 Getters and setters} *)
 

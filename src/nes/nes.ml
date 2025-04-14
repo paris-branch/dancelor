@@ -24,6 +24,7 @@ module PartialDate = NesPartialDate
 module Slice = NesSlice
 module Filesystem = NesFilesystem
 module Json = NesJson
+module HashedPassword = NesHashedPassword
 module Slug = NesSlug
 module Link = NesLink
 module Void = NesVoid

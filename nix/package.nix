@@ -30,6 +30,7 @@
           ppx_inline_test
           ppx_fields_conv
           ppx_monad
+          sha
           slug
           yaml
 

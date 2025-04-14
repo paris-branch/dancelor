@@ -37,6 +37,7 @@
    ppx_import
    ppx_fields_conv
   (ppx_monad           (and :build (>= 0.2.0)))
+   sha
    slug
    yaml
 
