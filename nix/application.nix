@@ -6,6 +6,7 @@
 {
   flake.makeRuntimeInputs =
     pkgs: with pkgs; [
+      busybox # provides `sed`
       gh
       git
       freepats
