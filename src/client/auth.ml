@@ -63,7 +63,7 @@ let open_login_dialog () =
               ~none: Lwt.return_unit
               ~some: (fun (username, password) ->
                 set_status_signal DontKnow;
-                match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ User (Auth Login)) username password with
+                match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Login) username password with
                 | None -> set_status_signal Invalid; Lwt.return_unit
                 | Some _ -> return (Some ()); Lwt.return_unit
               )
@@ -75,12 +75,12 @@ let open_login_dialog () =
   Lwt.return_unit
 
 let logout () =
-  Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ User (Auth Logout));%lwt
+  Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Logout);%lwt
   Js_of_ocaml.Dom_html.window##.location##reload;
   Lwt.return_unit
 
 let header_item =
-  let status_lwt = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ User (Auth Status)) in
+  let status_lwt = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Status) in
   L.li
     ~a: [
       L.a_class
