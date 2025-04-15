@@ -14,4 +14,3 @@ module SetParameters = SetParameters
 module Book : ModelBuilder.Book.S = Book
 module BookParameters = BookParameters
 module Any : ModelBuilder.Any.S = Any
-module User : ModelBuilder.User.S = User

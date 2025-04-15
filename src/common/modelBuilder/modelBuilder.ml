@@ -105,13 +105,6 @@ module Tune = struct
   include Signature.Tune
 end
 
-module User = struct
-  include Core.User
-  (* No filter for users; they are not searchable. *)
-  include Builder.User
-  include Signature.User
-end
-
 module Version = struct
   include Core.Version
   module Parameters = Core.VersionParameters

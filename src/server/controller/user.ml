@@ -7,7 +7,7 @@ module Auth = struct
   module Log = (val Logger.create "controller.user.auth": Logs.LOG)
 
   let status env =
-    Lwt.return Environment.(user @@ session env)
+    Lwt_option.map' Model.User.person Environment.(user @@ session env)
 
   let login env username password =
     Log.debug (fun m -> m "Attempt to login with username `%s`." username);
@@ -26,7 +26,7 @@ module Auth = struct
       else
         (
           ignore @@ Environment.set_session_user env (Some user);
-          Lwt.return_some user
+          Lwt.map Option.some @@ Model.User.person user
         )
 
   let logout env =
@@ -36,7 +36,6 @@ end
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
-  | Get -> Model.User.get
   | Auth Status -> Auth.status env
   | Auth Login -> Auth.login env
   | Auth Logout -> Auth.logout env
