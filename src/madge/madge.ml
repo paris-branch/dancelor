@@ -16,6 +16,8 @@ let meth_to_string = function
   | TRACE -> "TRACE"
   | CONNECT -> "CONNECT"
 
+type query_source = Uri | Body
+
 (* NOTE: The type arguments are (1) the function type corresponding to the
    route, (2) the return value of that function type, (3) the return value from
    the route. *)
@@ -24,7 +26,8 @@ type (_, _, _) route =
   | Literal : string * ('a, 'w, 'r) route -> ('a, 'w, 'r) route
   | Variable : string * (module STRINGABLE with type t = 'a) * string * ('b, 'w, 'r) route -> (('a -> 'b), 'w, 'r) route
   | Query :
-    string
+    query_source
+    * string
     *
       ('b option -> (('c -> 'a) -> 'a) option) (* proxy *)
     *
@@ -33,7 +36,6 @@ type (_, _, _) route =
       (module JSONABLE with type t = 'b)
     * ('a, 'w, 'r) route ->
       (('c -> 'a), 'w, 'r) route
-(* FIXME: way to construct body parameters *)
 
 let return meth rt = Return (meth, rt)
 let literal str route = Literal (str, route)
@@ -52,12 +54,21 @@ let connect rt = return CONNECT rt
 
 let query_opt name rt route =
   let proxy = Option.some % (fun x f -> f x) in
-  Query (name, proxy, Fun.id, rt, route)
+  Query (Uri, name, proxy, Fun.id, rt, route)
 
 let query name rt route =
   let proxy = Option.map (fun x f -> f x) in
   let unproxy = fun f x -> f (Some x) in
-  Query (name, proxy, unproxy, rt, route)
+  Query (Uri, name, proxy, unproxy, rt, route)
+
+let body_opt name rt route =
+  let proxy = Option.some % (fun x f -> f x) in
+  Query (Body, name, proxy, Fun.id, rt, route)
+
+let body name rt route =
+  let proxy = Option.map (fun x f -> f x) in
+  let unproxy = fun f x -> f (Some x) in
+  Query (Body, name, proxy, unproxy, rt, route)
 
 type request = {
   meth: meth;
@@ -95,13 +106,17 @@ let rec process
     process (path ^ "/" ^ str) query body route return
   | Variable (prefix, (module R), suffix, route) ->
     fun x -> process (path ^ "/" ^ prefix ^ Uri.pct_encode (R.to_string x) ^ suffix) query body route return
-  | Query (name, _, unproxy, (module R), route) ->
+  | Query (source, name, _, unproxy, (module R), route) ->
     (
       unproxy @@ function
         | None ->
           process path query body route return
         | Some x ->
-          let query = Madge_query.add name (R.to_yojson x) query in
+          let (query, body) =
+            match source with
+            | Uri -> (Madge_query.add name (R.to_yojson x) query, body)
+            | Body -> (query, Madge_query.add name (R.to_yojson x) body)
+          in
           process path query body route return
     )
 
@@ -158,24 +173,37 @@ let rec match_
         Option.bind (R.of_string comp) @@ fun comp ->
         match_ route (fun () -> controller () comp) meth path query body return
     )
-  | Query (name, proxy, _, (module R), route) ->
+  | Query (source, name, proxy, _, (module R), route) ->
     (
       Log.debug (fun m -> m "  Query (\"%s\", <proxy>, ???, <module R>, <route>)" name);
       let extract_and_parse =
-        match Madge_query.extract name query with
-        | None ->
+        match (source, Madge_query.extract name query, Madge_query.extract name body) with
+        | (Uri, None, _) ->
           Log.debug (fun m -> m "    Could not find query argument `%s`" name);
-          Ok (None, query) (* absent: OK *)
-        | Some (value, query) ->
-          match R.of_yojson value with
-          | Ok value -> Ok (Some value, query)
-          | Error msg ->
-            Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
-            Error "unparseable" (* present but unparseable: error *)
+          Ok (None, query, body) (* absent: OK *)
+        | (Body, _, None) ->
+          Log.debug (fun m -> m "    Could not find body argument `%s`" name);
+          Ok (None, query, body) (* absent: OK *)
+        | (Uri, Some (value, query), _) ->
+          (
+            match R.of_yojson value with
+            | Ok value -> Ok (Some value, query, body)
+            | Error msg ->
+              Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
+              Error "unparseable" (* present but unparseable: error *)
+          )
+        | (Body, _, Some (value, body)) ->
+          (
+            match R.of_yojson value with
+            | Ok value -> Ok (Some value, query, body)
+            | Error msg ->
+              Log.debug (fun m -> m "    Found body argument `%s` but failed to unserialise it: %s" name msg);
+              Error "unparseable" (* present but unparseable: error *)
+          )
       in
       match extract_and_parse with
       | Error _ -> None (* unparseable: the route does not match *)
-      | Ok (maybe_value, query) ->
+      | Ok (maybe_value, query, body) ->
         match proxy maybe_value with
         | None -> None
         | Some f -> match_ route (fun () -> f (controller ())) meth path query body return
