@@ -1,7 +1,8 @@
 open Nes
+open Common
 
 type session = {
-  user: unit option;
+  user: Model.User.t Entry.t option;
 }
 [@@deriving fields]
 
@@ -44,3 +45,11 @@ let make ~request () =
 
 let add_session_cookie env headers =
   Cohttp.Header.add headers "Set-Cookie" ("session=" ^ env.session_id)
+
+let update_session env f =
+  let new_session = f env.session in
+  Hashtbl.replace sessions env.session_id new_session;
+  {env with session = new_session}
+
+let set_session_user env user =
+  update_session env @@ fun _ -> {user}

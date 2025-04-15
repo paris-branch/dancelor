@@ -44,16 +44,20 @@ let to_strings =
   List.map (fun (key, value) -> (key, [Yojson.Safe.to_string value]))
 
 let from_uri uri =
-  List.map
-    (fun (k, vs) ->
-      (
-        k,
-        match vs with
-        | [v] -> Yojson.Safe.from_string v
-        | vs -> `List (List.map Yojson.Safe.from_string vs)
-      )
-    )
-    (Uri.query uri)
+  try
+    Option.some @@
+      List.map
+        (fun (k, vs) ->
+          (
+            k,
+            match vs with
+            | [v] -> Yojson.Safe.from_string v
+            | vs -> `List (List.map Yojson.Safe.from_string vs)
+          )
+        )
+        (Uri.query uri)
+  with
+    | Yojson.Json_error _ -> None
 
 let from_body body =
   let body = if body = "" then "{}" else body in

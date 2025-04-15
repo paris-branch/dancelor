@@ -22,4 +22,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | Any endpoint -> Any.dispatch env endpoint
   | User endpoint -> User.dispatch env endpoint
   | ReportIssue -> IssueReport.report env
-  | Victor -> Logger.log_exit (module Log) 101
+  | Victor ->
+    Log.debug (fun m -> m "Triggering controller for Victor");
+    Logger.log_exit (module Log) 101

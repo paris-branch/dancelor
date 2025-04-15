@@ -163,11 +163,15 @@ let rec match_
       Log.debug (fun m -> m "  Query (\"%s\", <proxy>, ???, <module R>, <route>)" name);
       let extract_and_parse =
         match Madge_query.extract name query with
-        | None -> Ok (None, query) (* absent: OK *)
+        | None ->
+          Log.debug (fun m -> m "    Could not find query argument `%s`" name);
+          Ok (None, query) (* absent: OK *)
         | Some (value, query) ->
           match R.of_yojson value with
           | Ok value -> Ok (Some value, query)
-          | Error _ -> Error "unparseable" (* present but unparseable: error *)
+          | Error msg ->
+            Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
+            Error "unparseable" (* present but unparseable: error *)
       in
       match extract_and_parse with
       | Error _ -> None (* unparseable: the route does not match *)
@@ -186,7 +190,8 @@ let match_
 = fun route controller {meth; uri; body} return ->
   Log.debug (fun m -> m "Madge.match_ <route> <controller> <request> <return>");
   let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
-  match_ route (fun () -> controller) meth path (Madge_query.from_uri uri) (Madge_query.from_body body) return
+  Option.bind (Madge_query.from_uri uri) @@ fun uri_query ->
+  match_ route (fun () -> controller) meth path uri_query (Madge_query.from_body body) return
 
 let match_'
   : type a w r. (a, w, r) route ->
