@@ -220,6 +220,7 @@ let header =
         | SetAdd -> SetEditor.create ()
         | Source -> (fun context slug -> SourceViewer.create ?context slug)
         | SourceAdd -> SourceEditor.create ()
+        | Oooops -> (fun origin status -> OooopsViewer.create ?origin status)
       in
       let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
         List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
@@ -227,7 +228,9 @@ let header =
       in
       match madge_match_apply_all Endpoints.Page.all_endpoints' with
       | Some page -> page ()
-      | None -> (* FIXME: 404 page *) assert false
+      | None ->
+        let origin = Uri.make ~path: (Uri.path uri) ~query: (Uri.query uri) ?fragment: (Uri.fragment uri) () in
+        OooopsViewer.soft_redirect ~origin `Not_found
 
     let on_load _ev =
       let page = dispatch @@ get_uri () in
@@ -235,8 +238,10 @@ let header =
       Depart.keep_forever iter_title;
       Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
       add_slash_quick_search_event_listener ();
-      Dom.appendChild Dom_html.document##.body (To_dom.of_div @@ Page.render page);
+      let (page_on_load, page_content) = Page.render page in
+      Dom.appendChild Dom_html.document##.body (To_dom.of_div page_content);
       Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer);
+      page_on_load ();
       Js._false
 
     let _ =

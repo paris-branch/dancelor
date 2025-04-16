@@ -40,6 +40,7 @@ type (_, _, _) t =
   | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
+  | Oooops : ((Uri.t option -> Cohttp.Code.status_code -> 'w), 'w, Void.t) t
 
 type 'w wrapped' =
   | W : ('a, 'w, 'r) t -> 'w wrapped'
@@ -64,6 +65,7 @@ let all_endpoints' = [
   W Version;
   W Index;
   W Explore;
+  W Oooops;
 ]
 
 open Madge
@@ -87,6 +89,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
   | Index -> void ()
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
+  | Oooops -> literal "ooops" @@ query_opt "origin" (module JUri) @@ variable (module SStatusCode) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   process (route page) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)
@@ -113,16 +116,17 @@ let href_any ?context any =
 
 let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person ~get_source = fun uri ->
   let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
-    | Index -> Lwt.return None
-    | Explore -> (fun _ -> Lwt.return None)
-    | VersionAdd -> (fun _ -> Lwt.return None)
-    | TuneAdd -> Lwt.return None
-    | SetAdd -> Lwt.return None
-    | BookAdd -> Lwt.return None
-    | BookEdit -> (fun _ -> Lwt.return None)
-    | PersonAdd -> Lwt.return None
-    | SourceAdd -> Lwt.return None
-    | DanceAdd -> Lwt.return None
+    | Index -> Lwt.return_none
+    | Explore -> Fun.const Lwt.return_none
+    | VersionAdd -> Fun.const Lwt.return_none
+    | TuneAdd -> Lwt.return_none
+    | SetAdd -> Lwt.return_none
+    | BookAdd -> Lwt.return_none
+    | BookEdit -> Fun.const Lwt.return_none
+    | PersonAdd -> Lwt.return_none
+    | SourceAdd -> Lwt.return_none
+    | DanceAdd -> Lwt.return_none
+    | Oooops -> (fun _ _ -> Lwt.return_none)
     | Version ->
       (fun _ slug ->
         let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in
