@@ -225,40 +225,12 @@ module Ly = struct
     Lwt.return res
 end
 
-let populate_cache ~cache ~ext ~pp_ext =
-  Log.info (fun m -> m "Populating the book %s cache" pp_ext);
-  let path = Filename.concat !Config.cache "book" in
-  let files = Lwt_unix.files_of_directory path in
-  Lwt_stream.iter
-    (fun x ->
-      if Filename.check_suffix x ext then
-        try
-          Log.debug (fun m -> m "Found %s file %s" pp_ext x);
-          let base = Filename.chop_suffix x ext in
-          let hash =
-            String.split_on_char '-' base
-            |> List.ft
-            |> StorageCache.hash_from_string
-          in
-          StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
-        with
-          | exn ->
-            Log.err (fun m ->
-              m
-                "%a"
-                (Format.pp_multiline_sensible ("Could not determine hash from file `" ^ x ^ "`"))
-                ((Printexc.to_string exn) ^ "\n" ^ (Printexc.get_backtrace ()))
-            );
-            exit 7
-    )
-    files
-
 module Pdf = struct
   let cache : ([`Pdf] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
     StorageCache.create ()
 
   let populate_cache () =
-    populate_cache ~cache ~ext: ".pdf" ~pp_ext: "pdf"
+    ControllerCache.populate ~cache ~type_: "book" ~ext: ".pdf" ~pp_ext: "pdf"
 
   let render parameters book =
     let%lwt body = Model.Book.lilypond_contents_cache_key book in
