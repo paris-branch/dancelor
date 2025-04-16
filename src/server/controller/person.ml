@@ -1,11 +1,18 @@
 open Nes
 open Common
 
-let get = Model.Person.get
+let get env slug =
+  Lwt.bind_return
+    (Model.Person.get slug)
+    (Permission.assert_can_get env)
 
-let create = Database.Person.create
-let update = Database.Person.update
-let save = Database.Person.save
+let create env person =
+  Permission.assert_can_create env;%lwt
+  Database.Person.create person
+
+let update env slug person =
+  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Database.Person.update slug person
 
 include ModelBuilder.Search.Build(struct
   type value = Model.Person.t Entry.t
@@ -19,9 +26,9 @@ include ModelBuilder.Search.Build(struct
     Lwt_list.[increasing (Lwt.return % Model.Person.name) String.Sensible.compare]
 end)
 
-let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> a = fun _env endpoint ->
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> a = fun env endpoint ->
   match endpoint with
-  | Get -> get
-  | Search -> search
-  | Create -> create
-  | Update -> update
+  | Get -> get env
+  | Search -> search (* FIXME *)
+  | Create -> create env
+  | Update -> update env

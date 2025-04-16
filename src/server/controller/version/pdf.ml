@@ -24,7 +24,8 @@ let render parameters version =
   in
   Set.Pdf.render set_parameters set
 
-let get parameters version =
+let get env parameters version =
   let%lwt version = Model.Version.get version in
+  Permission.assert_can_get env version;%lwt
   let%lwt path_pdf = render parameters version in
   Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()

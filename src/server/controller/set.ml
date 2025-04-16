@@ -1,13 +1,22 @@
 open Nes
 open Common
 
-let get = Model.Set.get
+let get env slug =
+  Lwt.bind_return
+    (Model.Set.get slug)
+    (Permission.assert_can_get env)
 
-let create = Database.Set.create
-let update = Database.Set.update
-let save = Database.Set.save
+let create env set =
+  Permission.assert_can_create env;%lwt
+  Database.Set.create set
 
-let delete = Database.Set.delete
+let update env slug set =
+  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Database.Set.update slug set
+
+let delete env slug =
+  Lwt.bind (get env slug) (Permission.assert_can_delete env);%lwt
+  Database.Set.delete slug
 
 include ModelBuilder.Search.Build(struct
   type value = Model.Set.t Entry.t
@@ -36,17 +45,18 @@ module Pdf = struct
     in
     Book.Pdf.render parameters book
 
-  let get parameters set =
+  let get env parameters set =
     let%lwt set = Model.Set.get set in
+    Permission.assert_can_get env set;%lwt
     let%lwt path_pdf = render parameters set in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
-let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun _env endpoint ->
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun env endpoint ->
   match endpoint with
-  | Get -> get
-  | Delete -> delete
-  | Search -> search
-  | Create -> create
-  | Update -> update
-  | Pdf -> Pdf.get
+  | Get -> get env
+  | Search -> search (* FIXME *)
+  | Create -> create env
+  | Update -> update env
+  | Delete -> delete env
+  | Pdf -> Pdf.get env

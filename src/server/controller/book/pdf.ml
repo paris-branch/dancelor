@@ -30,7 +30,8 @@ let render parameters book =
   let path_pdf = Filename.concat path fname_pdf in
   Lwt.return path_pdf
 
-let get parameters book =
+let get env parameters book =
   let%lwt book = Model.Book.get book in
+  Permission.assert_can_get env book;%lwt
   let%lwt path_pdf = render parameters book in
   Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()

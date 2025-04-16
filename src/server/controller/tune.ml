@@ -1,11 +1,18 @@
 open Nes
 open Common
 
-let get = Model.Tune.get
+let get env slug =
+  Lwt.bind_return
+    (Model.Tune.get slug)
+    (Permission.assert_can_get env)
 
-let create = Database.Tune.create
-let update = Database.Tune.update
-let save = Database.Tune.save
+let create env tune =
+  Permission.assert_can_create env;%lwt
+  Database.Tune.create tune
+
+let update env slug tune =
+  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Database.Tune.update slug tune
 
 include ModelBuilder.Search.Build(struct
   type value = Model.Tune.t Entry.t
@@ -21,9 +28,9 @@ include ModelBuilder.Search.Build(struct
     ]
 end)
 
-let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a = fun _env endpoint ->
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a = fun env endpoint ->
   match endpoint with
-  | Get -> get
-  | Search -> search
-  | Create -> create
-  | Update -> update
+  | Get -> get env
+  | Search -> search (* FIXME *)
+  | Create -> create env
+  | Update -> update env

@@ -40,5 +40,5 @@ let search_context filter element =
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun _env endpoint ->
   match endpoint with
-  | Search -> search
-  | SearchContext -> search_context
+  | Search -> search (* FIXME: transfer env to [get_all] *)
+  | SearchContext -> search_context (* FIXME: transfer env to [get_all] *)

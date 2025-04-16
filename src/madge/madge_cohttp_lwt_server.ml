@@ -41,4 +41,13 @@ let match_apply
 
 exception Shortcut of (Cohttp.Response.t * Cohttp_lwt.Body.t)
 
-let shortcut p : Void.t Lwt.t = Lwt.bind p @@ fun x -> raise (Shortcut x)
+let shortcut p : 'any Lwt.t = Lwt.bind p @@ fun x -> raise (Shortcut x)
+
+let shortcut' ?msg status =
+  let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
+  let body =
+    match msg with
+    | None -> "{}"
+    | Some msg -> Yojson.Safe.to_string @@ `Assoc ["message", `String msg]
+  in
+  shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status ~headers ~body ()

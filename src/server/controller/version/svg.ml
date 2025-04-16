@@ -32,15 +32,17 @@ let render parameters version =
   Log.debug (fun m -> m "done!");
   Lwt.return (Filename.concat path fname_svg)
 
-let get parameters version =
+let get env parameters version =
   Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp' version);
   let%lwt version = Model.Version.get version in
+  Permission.assert_can_get env version;%lwt
   let%lwt path_svg = render parameters version in
   Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
 
 let preview_slug = Slug.check_string_exn "preview"
-let preview parameters version =
+let preview env parameters version =
   Log.debug (fun m -> m "Model.Version.Svg.preview");
+  Permission.assert_can_create env;%lwt
   let version = Entry.make ~slug: preview_slug version in
   let%lwt path_svg = render parameters version in
   Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()

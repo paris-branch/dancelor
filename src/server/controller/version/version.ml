@@ -6,11 +6,18 @@ module Svg = Svg
 module Ogg = Ogg
 module Pdf = Pdf
 
-let get = Model.Version.get
+let get env slug =
+  Lwt.bind_return
+    (Model.Version.get slug)
+    (Permission.assert_can_get env)
 
-let create = Database.Version.create
-let update = Database.Version.update
-let save = Database.Version.save
+let create env version =
+  Permission.assert_can_create env;%lwt
+  Database.Version.create version
+
+let update env slug version =
+  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Database.Version.update slug version
 
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
@@ -51,15 +58,15 @@ include ModelBuilder.Search.Build(struct
     Lwt_list.[increasing (Lwt.map Model.Tune.name % Model.Version.tune) String.Sensible.compare]
 end)
 
-let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun _env endpoint ->
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
-  | Get -> get
-  | Search -> search
-  | Create -> create
-  | Update -> update
-  | Ly -> Ly.get
-  | Svg -> Svg.get
-  | Ogg -> Ogg.get
-  | Pdf -> Pdf.get
-  | PreviewSvg -> Svg.preview
-  | PreviewOgg -> Ogg.preview
+  | Get -> get env
+  | Search -> search (* FIXME: also filter search result *)
+  | Create -> create env
+  | Update -> update env
+  | Ly -> Ly.get env
+  | Svg -> Svg.get env
+  | Ogg -> Ogg.get env
+  | Pdf -> Pdf.get env
+  | PreviewSvg -> Svg.preview env
+  | PreviewOgg -> Ogg.preview env
