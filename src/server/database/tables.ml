@@ -37,7 +37,7 @@ module UserModel = struct
     Lwt.return [
       Table.make_slug_and_table (module Person) (person user)
     ]
-  let standalone = false
+  let standalone = true
 end
 module User = Table.Make(UserModel)
 
