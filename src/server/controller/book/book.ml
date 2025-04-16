@@ -17,7 +17,7 @@ let update env slug book =
   Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
   Database.Book.update slug book
 
-include ModelBuilder.Search.Build(struct
+include Search.Build(struct
   type value = Model.Book.t Entry.t
   type filter = Model.Book.Filter.t
 

@@ -18,7 +18,7 @@ let delete env slug =
   Lwt.bind (get env slug) (Permission.assert_can_delete env);%lwt
   Database.Set.delete slug
 
-include ModelBuilder.Search.Build(struct
+include Search.Build(struct
   type value = Model.Set.t Entry.t
   type filter = Model.Set.Filter.t
 

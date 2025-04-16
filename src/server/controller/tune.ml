@@ -14,7 +14,7 @@ let update env slug tune =
   Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
   Database.Tune.update slug tune
 
-include ModelBuilder.Search.Build(struct
+include Search.Build(struct
   type value = Model.Tune.t Entry.t
   type filter = Model.Tune.Filter.t
 

@@ -16,7 +16,7 @@ let update env slug dance =
   Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
   Database.Dance.update slug dance
 
-include ModelBuilder.Search.Build(struct
+include Search.Build(struct
   type value = Model.Dance.t Entry.t
   type filter = Model.Dance.Filter.t
 

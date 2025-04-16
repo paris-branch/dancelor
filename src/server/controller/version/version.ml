@@ -46,7 +46,7 @@ let score_list_vs_list words needles =
       |> List.fold_left max 0.
     end
 
-include ModelBuilder.Search.Build(struct
+include Search.Build(struct
   type value = Model.Version.t Entry.t
   type filter = Model.Version.Filter.t
 

@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-include ModelBuilder.Search.Build(struct
+include Search.Build(struct
   type value = Model.Any.t
   type filter = Model.Any.Filter.t
 

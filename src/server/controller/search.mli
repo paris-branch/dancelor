@@ -1,3 +1,5 @@
+(** {1 Search controller helpers} *)
+
 open Nes
 
 module type Searchable = sig
