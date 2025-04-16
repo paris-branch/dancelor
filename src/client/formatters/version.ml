@@ -62,12 +62,13 @@ let name_and_disambiguation ?link version =
 let name_disambiguation_and_sources ?link version =
   let sources_lwt =
     let%lwt sources =
-      Model.Book.(
-        search'
-          Filter.(
+      Lwt.map snd @@
+        Madge_cohttp_lwt_client.call
+          Endpoints.Api.(route @@ Book Search)
+          Slice.everything
+          Model.Book.Filter.(
             Formula.and_ (memVersionDeep' version) isSource'
           )
-      )
     in
     Lwt.return @@
       match List.map Book.short_title sources with
@@ -89,12 +90,13 @@ let name_disambiguation_and_sources ?link version =
 let disambiguation_and_sources version =
   let sources_lwt =
     let%lwt sources =
-      Model.Book.(
-        search'
-          Filter.(
+      Lwt.map snd @@
+        Madge_cohttp_lwt_client.call
+          Endpoints.Api.(route @@ Book Search)
+          Slice.everything
+          Model.Book.Filter.(
             Formula.and_ (memVersionDeep' version) isSource'
           )
-      )
     in
     Lwt.return @@
       match List.map Book.short_title sources with

@@ -1,6 +1,28 @@
 open Nes
 open Common
 
+let get = Model.Set.get
+
+let create = Database.Set.create
+let update = Database.Set.update
+let save = Database.Set.save
+
+let delete = Database.Set.delete
+
+include ModelBuilder.Search.Build(struct
+  type value = Model.Set.t Entry.t
+  type filter = Model.Set.Filter.t
+
+  let cache = Cache.create ~lifetime: 600 ()
+  let get_all = Database.Set.get_all
+  let filter_accepts = Model.Set.Filter.accepts
+
+  let tiebreakers =
+    Lwt_list.[increasing (Lwt.return % Model.Set.name) String.Sensible.compare;
+    increasing (Lwt.return % Model.Set.name) String.compare_lengths;
+    ]
+end)
+
 module Pdf = struct
   let render parameters set =
     let book =
@@ -22,9 +44,9 @@ end
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun _env endpoint ->
   match endpoint with
-  | Get -> Model.Set.get
-  | Delete -> (fun slug -> Lwt.bind (Model.Set.get slug) Model.Set.delete)
-  | Search -> Model.Set.search
-  | Create -> Model.Set.create
-  | Update -> Model.Set.update
+  | Get -> get
+  | Delete -> delete
+  | Search -> search
+  | Create -> create
+  | Update -> update
   | Pdf -> Pdf.get

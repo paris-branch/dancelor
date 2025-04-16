@@ -10,14 +10,17 @@ let create ?context slug =
   let other_versions_lwt =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in
-    Version.search'
-      Formula.(
-        and_l
-          [
-            Version.Filter.tuneIs' tune;
-            not (Version.Filter.is' version);
-          ]
-      )
+    Lwt.map snd @@
+      Madge_cohttp_lwt_client.call
+        Endpoints.Api.(route @@ Version Search)
+        Slice.everything
+        Formula.(
+          and_l
+            [
+              Version.Filter.tuneIs' tune;
+              not (Version.Filter.is' version);
+            ]
+        )
   in
   let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
   Page.make

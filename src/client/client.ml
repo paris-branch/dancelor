@@ -18,7 +18,8 @@ let quick_search =
   Components.Search.Quick.make
     ~search: (fun slice input ->
       let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
-      Lwt.map Result.ok @@ Model.Any.search slice filter
+      Lwt.map Result.ok @@
+        Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Any Search) slice filter
     )
     ()
 

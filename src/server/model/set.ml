@@ -5,26 +5,6 @@ include ModelBuilder.Set.Build(Dance)(Person)(Tune)(Version)
 
 let get = Database.Set.get
 
-let create = Database.Set.create
-let update = Database.Set.update
-let save = Database.Set.save
-
-let delete = Database.(Set.delete % Entry.slug)
-
-include ModelBuilder.Search.Build(struct
-  type value = t Entry.t
-  type filter = Filter.t
-
-  let cache = Cache.create ~lifetime: 600 ()
-  let get_all = Database.Set.get_all
-  let filter_accepts = Filter.accepts
-
-  let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % name) String.Sensible.compare;
-    increasing (Lwt.return % name) String.compare_lengths;
-    ]
-end)
-
 module Parameters = struct
   include ModelBuilder.SetParameters
 

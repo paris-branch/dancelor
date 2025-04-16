@@ -109,7 +109,8 @@ module Editor = struct
         ~arity: Selector.many
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Set.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Set.get
@@ -133,12 +134,18 @@ module Editor = struct
     | (None, _) -> Lwt.return_none
     | (Some {name; date; sets}, slug) ->
       Lwt.map Option.some @@
-      Model.Book.save ?slug @@
-      Model.Book.make
-        ~title: name
-        ?date
-        ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
-        ()
+        (
+          match slug with
+          | None -> Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Book Create)
+          | Some slug -> Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Book Update) slug
+        )
+          (
+            Model.Book.make
+              ~title: name
+              ?date
+              ~contents: (List.map (fun set -> Model.Book.Set (set, Model.SetParameters.none)) sets)
+              ()
+          )
 end
 
 let create ?on_save ?text ?edit () =

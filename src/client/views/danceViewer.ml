@@ -90,7 +90,11 @@ let create ?context slug =
             (
               let%lwt tunes =
                 let%lwt dance = dance_lwt in
-                Tune.search' @@ Tune.Filter.existsDance' @@ Dance.Filter.is' dance
+                Lwt.map snd @@
+                Madge_cohttp_lwt_client.call
+                  Endpoints.Api.(route @@ Tune Search)
+                  Slice.everything @@
+                Tune.Filter.existsDance' @@ Dance.Filter.is' dance
               in
               Lwt.return
                 [

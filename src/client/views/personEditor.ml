@@ -71,7 +71,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Person.save @@
+      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Person Create) @@
       Model.Person.make
         ~name
         ?scddb_id

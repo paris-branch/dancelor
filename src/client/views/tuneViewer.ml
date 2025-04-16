@@ -62,12 +62,14 @@ let create ?context slug =
       div
         ~a: [a_class ["section"]]
         [
-          h3 [txt "Versions of This Tune"];
+          h3 [txt "Versions of this tune"];
           L.div
             (
               let%lwt tune = tune_lwt in
               let%lwt versions =
-                Version.search' @@ Version.Filter.tuneIs' tune
+                Lwt.map snd @@
+                Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Version Search) Slice.everything @@
+                Version.Filter.tuneIs' tune
               in
               Lwt.return @@
                 if versions = [] then
@@ -83,7 +85,7 @@ let create ?context slug =
       div
         ~a: [a_class ["section"]]
         [
-          h3 [txt "Dances That Recommend This Tune"];
+          h3 [txt "Dances that recommend this tune"];
           L.div
             (
               let%lwt tune = tune_lwt in
