@@ -50,8 +50,11 @@ include Search.Build(struct
   type value = Model.Version.t Entry.t
   type filter = Model.Version.Filter.t
 
-  let cache = Cache.create ~lifetime: 600 ()
-  let get_all = Database.Version.get_all
+  let get_all env =
+    Lwt.map
+      (List.filter (Permission.can_get env))
+      (Database.Version.get_all ())
+
   let filter_accepts = Model.Version.Filter.accepts
 
   let tiebreakers =
@@ -61,7 +64,7 @@ end)
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
-  | Search -> search (* FIXME: also filter search result *)
+  | Search -> search env
   | Create -> create env
   | Update -> update env
   | Ly -> Ly.get env

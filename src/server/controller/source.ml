@@ -18,8 +18,11 @@ include Search.Build(struct
   type value = Model.Source.t Entry.t
   type filter = Model.Source.Filter.t
 
-  let cache = Cache.create ~lifetime: 600 ()
-  let get_all = Database.Source.get_all
+  let get_all env =
+    Lwt.map
+      (List.filter (Permission.can_get env))
+      (Database.Source.get_all ())
+
   let filter_accepts = Model.Source.Filter.accepts
 
   let tiebreakers =
@@ -36,7 +39,7 @@ let get_cover env slug =
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
-  | Search -> search (* FIXME *)
+  | Search -> search env
   | Create -> create env
   | Update -> update env
   | Cover -> get_cover env

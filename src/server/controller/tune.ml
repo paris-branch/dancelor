@@ -18,8 +18,11 @@ include Search.Build(struct
   type value = Model.Tune.t Entry.t
   type filter = Model.Tune.Filter.t
 
-  let cache = Cache.create ~lifetime: 600 ()
-  let get_all = Database.Tune.get_all
+  let get_all env =
+    Lwt.map
+      (List.filter (Permission.can_get env))
+      (Database.Tune.get_all ())
+
   let filter_accepts = Model.Tune.Filter.accepts
 
   let tiebreakers =
@@ -31,6 +34,6 @@ end)
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
-  | Search -> search (* FIXME *)
+  | Search -> search env
   | Create -> create env
   | Update -> update env

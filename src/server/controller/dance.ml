@@ -20,8 +20,11 @@ include Search.Build(struct
   type value = Model.Dance.t Entry.t
   type filter = Model.Dance.Filter.t
 
-  let cache = Cache.create ~lifetime: 600 ()
-  let get_all = Database.Dance.get_all
+  let get_all env =
+    Lwt.map
+      (List.filter (Permission.can_get env))
+      (Database.Dance.get_all ())
+
   let filter_accepts = Model.Dance.Filter.accepts
 
   let tiebreakers =
@@ -29,12 +32,13 @@ include Search.Build(struct
 end)
 
 module Pdf = struct
-  let render parameters dance =
+  let render env parameters dance =
     let kind = Model.Dance.kind dance in
     let name = Model.Dance.name dance in
     let%lwt versions =
       (* All the versions of all the tunes attached to this dance *)
-      Version.search' @@
+      Lwt.map snd @@
+      Version.search env Slice.everything @@
       Model.Version.Filter.tune' @@
       Model.Tune.Filter.existsDance' @@
       Model.Dance.Filter.is' dance
@@ -54,14 +58,14 @@ module Pdf = struct
   let get env parameters dance_slug =
     let%lwt dance = Model.Dance.get dance_slug in
     Permission.assert_can_get env dance;%lwt
-    let%lwt path_pdf = render parameters dance in
+    let%lwt path_pdf = render env parameters dance in
     Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
 end
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
-  | Search -> search (* FIXME *)
+  | Search -> search env
   | Create -> create env
   | Update -> update env
   | Pdf -> Pdf.get env

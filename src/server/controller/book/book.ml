@@ -21,8 +21,11 @@ include Search.Build(struct
   type value = Model.Book.t Entry.t
   type filter = Model.Book.Filter.t
 
-  let cache = Cache.create ~lifetime: 600 ()
-  let get_all = Database.Book.get_all
+  let get_all env =
+    Lwt.map
+      (List.filter (Permission.can_get env))
+      (Database.Book.get_all ())
+
   let filter_accepts = Model.Book.Filter.accepts
 
   let tiebreakers =
@@ -37,7 +40,7 @@ end)
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
-  | Search -> search (* FIXME *)
+  | Search -> search env
   | Create -> create env
   | Update -> update env
   | Pdf -> Pdf.get env
