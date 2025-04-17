@@ -1,3 +1,4 @@
+open Nes
 include Madge
 
 let meth_to_cohttp_code_meth = function
@@ -11,12 +12,16 @@ let meth_to_cohttp_code_meth = function
   | TRACE -> `TRACE
   | CONNECT -> `CONNECT
 
-exception HttpError of {status: Cohttp.Code.status_code; message: string option}
+exception HttpError of {
+    request: Madge.request;
+    status: Cohttp.Code.status_code;
+    message: string option;
+  }
 
-type error_response = {message: string option} [@@deriving yojson]
+type error_response = {message: string option [@default None]} [@@deriving yojson]
 
 let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
-  process route @@ fun (module R) {meth; uri; body} ->
+  process route @@ fun (module R) ({meth; uri; body} as request) ->
   let meth = meth_to_cohttp_code_meth meth in
   let body = Cohttp_lwt.Body.of_string body in
   let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth uri ~body in
@@ -38,5 +43,5 @@ let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
     (
       match error_response_of_yojson body with
       | Error msg -> failwith @@ "Madge_cohttp_lwt_client.call: error body cannot be unserialised: " ^ msg
-      | Ok {message} -> raise @@ HttpError {status; message}
+      | Ok {message} -> raise @@ HttpError {request; status; message}
     )

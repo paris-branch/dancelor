@@ -232,6 +232,33 @@ let header =
         let origin = Uri.make ~path: (Uri.path uri) ~query: (Uri.query uri) ?fragment: (Uri.fragment uri) () in
         OooopsViewer.soft_redirect ~origin `Not_found
 
+    let () =
+      Lwt.async_exception_hook :=
+        (function
+          | Madge_cohttp_lwt_client.HttpError {request; status; _} ->
+            Components.Toast.open_
+              ~title: "Uncaught API call error"
+              [
+                txt "While querying ";
+                a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
+                txt ", Dancelor encountered “";
+                txt (Cohttp.Code.string_of_status status);
+                txt
+                  "” and did not handle it gracefully. If the error persists, please \
+               contact your administrator or file a bug report.";
+              ]
+          | exn ->
+            Components.Toast.open_
+              ~title: "Uncaught exception"
+              [
+                txt "Dancelor encountered";
+                pre [txt @@ Printexc.to_string exn];
+                txt
+                  "and did not handle it gracefully. If the error persists, please \
+                   contact your administrator or file a bug report.";
+              ]
+        )
+
     let on_load _ev =
       let page = dispatch @@ get_uri () in
       let iter_title = React.S.map set_title (Page.full_title page) in
