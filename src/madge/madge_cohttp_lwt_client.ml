@@ -18,9 +18,15 @@ exception HttpError of {
     message: string option;
   }
 
+let httpError request status message = raise @@ HttpError {request; status; message}
+
 type error_response = {message: string option [@default None]} [@@deriving yojson]
 
-let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
+let call
+  : type a r. ?on_error: (Madge.request -> Cohttp.Code.status_code -> string option -> r Lwt.t) ->
+  (a, r Lwt.t, r) route ->
+  a
+= fun ?(on_error = httpError) route ->
   process route @@ fun (module R) ({meth; uri; body} as request) ->
   let meth = meth_to_cohttp_code_meth meth in
   let body = Cohttp_lwt.Body.of_string body in
@@ -43,5 +49,5 @@ let call : type a r. (a, r Lwt.t, r) route -> a = fun route ->
     (
       match error_response_of_yojson body with
       | Error msg -> failwith @@ "Madge_cohttp_lwt_client.call: error body cannot be unserialised: " ^ msg
-      | Ok {message} -> raise @@ HttpError {request; status; message}
+      | Ok {message} -> on_error request status message
     )
