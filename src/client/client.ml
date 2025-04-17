@@ -36,32 +36,39 @@ let dispatch uri =
   | None -> OooopsViewer.create `Not_found
 
 let () =
+  let previous_exn = ref (Failure "this is an exception that is never raised") in
   Lwt.async_exception_hook :=
-    (function
-      | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
-      | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
-      | Madge_cohttp_lwt_client.HttpError {request; status; _} ->
-        Components.Toast.open_
-          ~title: "Uncaught API call error"
-          [
-            txt "While querying ";
-            a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
-            txt ", Dancelor encountered “";
-            txt (Cohttp.Code.string_of_status status);
-            txt
-              "” and did not handle it gracefully. If the error persists, please \
+    (fun exn ->
+      if exn = !previous_exn then ()
+      else
+        (
+          previous_exn := exn;
+          match exn with
+          | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
+          | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
+          | Madge_cohttp_lwt_client.HttpError {request; status; _} ->
+            Components.Toast.open_
+              ~title: "Uncaught API call error"
+              [
+                txt "While querying ";
+                a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
+                txt ", Dancelor encountered “";
+                txt (Cohttp.Code.string_of_status status);
+                txt
+                  "” and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";
-          ]
-      | exn ->
-        Components.Toast.open_
-          ~title: "Uncaught exception"
-          [
-            txt "Dancelor encountered";
-            pre [txt @@ Printexc.to_string exn];
-            txt
-              "and did not handle it gracefully. If the error persists, please \
+              ]
+          | exn ->
+            Components.Toast.open_
+              ~title: "Uncaught exception"
+              [
+                txt "Dancelor encountered";
+                pre [txt @@ Printexc.to_string exn];
+                txt
+                  "and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";
-          ]
+              ]
+        )
     )
 
 let () =
