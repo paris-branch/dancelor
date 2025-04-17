@@ -33,9 +33,7 @@ let dispatch uri =
   in
   match madge_match_apply_all Endpoints.Page.all_endpoints' with
   | Some page -> page ()
-  | None ->
-    let origin = Uri.make ~path: (Uri.path uri) ~query: (Uri.query uri) ?fragment: (Uri.fragment uri) () in
-    OooopsViewer.create ~origin `Not_found
+  | None -> OooopsViewer.create `Not_found
 
 let () =
   Lwt.async_exception_hook :=
