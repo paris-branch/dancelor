@@ -39,6 +39,7 @@ let () =
   Lwt.async_exception_hook :=
     (function
       | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
+      | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
       | Madge_cohttp_lwt_client.HttpError {request; status; _} ->
         Components.Toast.open_
           ~title: "Uncaught API call error"

@@ -3,7 +3,6 @@ open Common
 
 open Js_of_ocaml
 open Html
-open Views
 
 let set_title title =
   Dom_html.document##.title :=
@@ -220,4 +219,22 @@ let header =
       let page_content = To_dom.of_div page_content in
       Dom.replaceChild Dom_html.document##.body page_content (Option.get !current_content);
       current_content := Some page_content;
-      page_on_load ();
+      page_on_load ()
+
+    exception ReplacementSuccessful
+    exception ReplacementFailed
+
+    (** Variant of {!load}, that, after loading, sleeps for a bit, then raises
+        either {!ReplacementFailed} or {!ReplacementSuccessful} dependending on the
+        status of things. It is intended to be used in an asynchronous promise that
+        loses meaning once the page replacement has taken place. The async exception
+        hook should ignore {!ReplacementSuccessful} and report
+        {!ReplacementFailed}. *)
+    let load_sleep_raise ?(delay = 1.) page =
+      let previous_content = !current_content in
+      load page;
+      Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
+      if !current_content = previous_content then
+        Lwt.fail ReplacementFailed
+      else
+        Lwt.fail ReplacementSuccessful
