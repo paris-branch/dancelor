@@ -26,7 +26,6 @@ let dispatch uri =
     | SetAdd -> SetEditor.create ()
     | Source -> (fun context slug -> SourceViewer.create ?context slug)
     | SourceAdd -> SourceEditor.create ()
-    | Oooops -> (fun origin status -> OooopsViewer.create ?origin status)
   in
   let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
@@ -36,7 +35,7 @@ let dispatch uri =
   | Some page -> page ()
   | None ->
     let origin = Uri.make ~path: (Uri.path uri) ~query: (Uri.query uri) ?fragment: (Uri.fragment uri) () in
-    OooopsViewer.soft_redirect ~origin `Not_found
+    OooopsViewer.create ~origin `Not_found
 
 let () =
   Lwt.async_exception_hook :=

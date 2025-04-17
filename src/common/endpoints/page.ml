@@ -40,7 +40,6 @@ type (_, _, _) t =
   | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
-  | Oooops : ((Uri.t option -> Cohttp.Code.status_code -> 'w), 'w, Void.t) t
 
 type 'w wrapped' =
   | W : ('a, 'w, 'r) t -> 'w wrapped'
@@ -65,7 +64,6 @@ let all_endpoints' = [
   W Version;
   W Index;
   W Explore;
-  W Oooops;
 ]
 
 open Madge
@@ -89,7 +87,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
   | Index -> void ()
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
-  | Oooops -> literal "ooops" @@ query_opt "origin" (module JUri) @@ variable (module SStatusCode) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   process (route page) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)
@@ -126,7 +123,6 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | PersonAdd -> Lwt.return_none
     | SourceAdd -> Lwt.return_none
     | DanceAdd -> Lwt.return_none
-    | Oooops -> (fun _ _ -> Lwt.return_none)
     | Version ->
       (fun _ slug ->
         let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in

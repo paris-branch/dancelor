@@ -1,5 +1,3 @@
-open Js_of_ocaml
-open Common
 open Html
 
 let create ?origin status =
@@ -43,8 +41,3 @@ let create ?origin status =
         ]
       ]
     )
-
-let soft_redirect ?origin status =
-  let uri = Endpoints.(Page.href Oooops origin status) in
-  Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string uri));
-  create ?origin status
