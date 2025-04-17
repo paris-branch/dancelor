@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let tune_lwt = Tune.get slug in
+  let tune_lwt = MainPage.get_model_or_404 (Tune Get) slug in
   let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
   Page.make
     ~parent_title: "Tune"

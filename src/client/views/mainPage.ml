@@ -238,3 +238,9 @@ let header =
         Lwt.fail ReplacementFailed
       else
         Lwt.fail ReplacementSuccessful
+
+    let get_model_or_404 endpoint slug =
+      Madge_cohttp_lwt_client.call
+        Endpoints.Api.(route @@ endpoint)
+        slug
+        ~on_error: (fun _ status _ -> load_sleep_raise (OooopsViewer.create status))

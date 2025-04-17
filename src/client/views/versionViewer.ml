@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let version_lwt = Version.get slug in
+  let version_lwt = MainPage.get_model_or_404 (Version Get) slug in
   let tune_lwt = version_lwt >>=| Version.tune in
   let other_versions_lwt =
     let%lwt tune = tune_lwt in

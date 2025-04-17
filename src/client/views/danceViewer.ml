@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let dance_lwt = Dance.get slug in
+  let dance_lwt = MainPage.get_model_or_404 (Dance Get) slug in
   let title = S.from' "" (Lwt.map Dance.name dance_lwt) in
   Page.make
     ~parent_title: "Dance"
