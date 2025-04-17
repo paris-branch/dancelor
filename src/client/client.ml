@@ -38,6 +38,7 @@ let dispatch uri =
 let () =
   Lwt.async_exception_hook :=
     (function
+      | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
       | Madge_cohttp_lwt_client.HttpError {request; status; _} ->
         Components.Toast.open_
           ~title: "Uncaught API call error"
