@@ -1,4 +1,5 @@
 open Nes
+open Common
 
 module Log = (val Logger.create "controller.permission": Logs.LOG)
 
@@ -7,8 +8,11 @@ let fold_user env =
 
 (** {2 Reading} *)
 
-let can_get env _entry =
-  fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
+let can_get env entry =
+  fold_user
+    env
+    ~none: (fun () -> Entry.(privacy % meta) entry = Public)
+    ~some: (fun _user -> true)
 
 let assert_can_get env entry =
   if can_get env entry then Lwt.return_unit
