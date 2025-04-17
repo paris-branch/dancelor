@@ -58,9 +58,7 @@ module S = struct
       Lwt.cancel (value setter);
       (* prepare the new search text setter *)
       let new_setter =
-        (* FIXME: here, we need to delay by something but [Lwt_unix] does not
-           seem to be the answer. *)
-        Lwt.pmsleep delay;%lwt
+        Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
         set_immediately x;
         Lwt.return_unit
       in

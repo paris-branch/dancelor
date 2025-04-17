@@ -25,7 +25,7 @@ let quick_search =
 let quick_search_to_explorer value =
   let href = Endpoints.Page.(href Explore) (Some value) in
   Dom_html.window##.location##.href := Js.string href;
-  Lwt.pmsleep 10.
+  Js_of_ocaml_lwt.Lwt_js.sleep 10.
 
 let open_quick_search () =
   Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
