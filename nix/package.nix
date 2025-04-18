@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, ... }:
+    { self', pkgs, ... }:
     {
       packages.default = pkgs.ocamlPackages.buildDunePackage {
         pname = "dancelor";
@@ -15,6 +15,8 @@
           ++ (with pkgs; [ sassc ]);
 
         buildInputs = with pkgs.ocamlPackages; [
+          self'.packages.ocaml-argon2
+
           cohttp-lwt-jsoo
           cohttp-lwt-unix
           dates_calc
@@ -30,7 +32,6 @@
           ppx_inline_test
           ppx_fields_conv
           ppx_monad
-          sha
           slug
           yaml
 
@@ -43,6 +44,29 @@
 
           # used for vendored `ppx_variants_conv`
           variantslib
+        ];
+      };
+
+      packages.ocaml-argon2 = pkgs.ocamlPackages.buildDunePackage {
+        pname = "argon2";
+        version = "dev";
+        src = pkgs.fetchFromGitHub {
+          owner = "khady";
+          repo = "ocaml-argon2";
+          rev = "1.0.2";
+          sha256 = "sha256-m5yOMT33Z9LfjQg6QRBW6mjHNyIySq6somTFuGmL9xI=";
+        };
+
+        propagatedBuildInputs =
+          (with pkgs; [ libargon2 ])
+          ++ (with pkgs.ocamlPackages; [
+            ctypes-foreign
+          ]);
+
+        buildInputs = with pkgs.ocamlPackages; [
+          ctypes
+          dune-configurator
+          result
         ];
       };
     };

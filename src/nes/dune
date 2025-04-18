@@ -8,7 +8,6 @@
   unix
   lwt
   slug
-  sha
   dates_calc
   ISO8601)
  (preprocess

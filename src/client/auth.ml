@@ -53,7 +53,7 @@ let open_login_dialog () =
         Button.cancel' ~return ();
         Button.make
           ~label: "Sign in"
-          ~label_processing: "Signin in..."
+          ~label_processing: "Signing in..."
           ~icon: "door-open"
           ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)

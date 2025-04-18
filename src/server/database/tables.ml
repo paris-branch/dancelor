@@ -1,4 +1,4 @@
-open Nes
+open NesUnix
 open Common
 
 module Source = Table.Make(struct

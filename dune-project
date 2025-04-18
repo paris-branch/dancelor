@@ -21,6 +21,7 @@
   ;; Also change the OCaml version in CI.
   (ocaml               (and :build (>= 5.0)))
 
+   argon2
   (cohttp-lwt-jsoo     (>= 4.0.0))
   (cohttp-lwt-unix     (>= 4.0.0))
    dates_calc
@@ -37,7 +38,6 @@
    ppx_import
    ppx_fields_conv
   (ppx_monad           (and :build (>= 0.2.0)))
-   sha
    slug
    yaml
 

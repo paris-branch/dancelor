@@ -14,6 +14,7 @@ bug-reports: "https://github.com/paris-branch/dancelor/issues"
 depends: [
   "dune" {>= "3.17"}
   "ocaml" {build & >= "5.0"}
+  "argon2"
   "cohttp-lwt-jsoo" {>= "4.0.0"}
   "cohttp-lwt-unix" {>= "4.0.0"}
   "dates_calc"
@@ -30,7 +31,6 @@ depends: [
   "ppx_import"
   "ppx_fields_conv"
   "ppx_monad" {build & >= "0.2.0"}
-  "sha"
   "slug"
   "yaml"
   "alcotest" {with-test}

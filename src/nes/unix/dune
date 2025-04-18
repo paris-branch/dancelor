@@ -2,6 +2,6 @@
  (name nesUnix)
  (public_name dancelor.nes.unix)
  (wrapped false)
- (libraries dancelor.nes lwt.unix logs)
+ (libraries dancelor.nes lwt.unix logs argon2)
  (preprocess
-  (pps ppx_deriving.std lwt_ppx)))
+  (staged_pps ppx_import ppx_deriving.std lwt_ppx ppx_deriving_yojson)))
