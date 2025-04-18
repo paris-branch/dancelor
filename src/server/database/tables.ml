@@ -24,7 +24,7 @@ module UserModel = struct
 
   type t = {
     person: ModelBuilder.Person.t Slug.t;
-    password: HashedPassword.t;
+    password: HashedPassword.t option; [@default None]
   }
   [@@deriving yojson, fields]
 

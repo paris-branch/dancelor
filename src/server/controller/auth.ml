@@ -23,17 +23,19 @@ let login env username password =
         Log.info (fun m -> m "Rejecting because of wrong username.");
         Lwt.return_none
       | Some user ->
-        if not @@ HashedPassword.is ~clear: password (Model.User.password user) then
-          (
+        (
+          match Model.User.password user with
+          | None ->
+            Log.info (fun m -> m "Rejecting because user has no password.");
+            Lwt.return_none
+          | Some hashedPassword when not @@ HashedPassword.is ~clear: password hashedPassword ->
             Log.info (fun m -> m "Rejecting because passwords do not match.");
             Lwt.return_none
-          )
-        else
-          (
+          | Some _ ->
             Log.info (fun m -> m "Accepting login.");
             ignore @@ Environment.set_session_user env (Some user);
             Lwt.map Option.some @@ Model.User.person user
-          )
+        )
 
 let logout env =
   ignore @@ Environment.set_session_user env None;
