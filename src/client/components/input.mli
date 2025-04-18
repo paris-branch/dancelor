@@ -50,3 +50,9 @@ module Text : sig
     [> Html_types.div] Html.elt
   (** Variant of {!render} that renders the input as a textarea. *)
 end
+
+val inactive :
+  ?label: string ->
+  string ->
+  [> Html_types.div] Html.elt
+(** An inactive text input, compatible graphically with {!Text.render}. *)

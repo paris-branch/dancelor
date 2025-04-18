@@ -87,3 +87,19 @@ module Text = struct
           );
       ]
 end
+
+let inactive ?label: lbl value =
+  div
+    ~a: [a_class ["mb-2"]]
+    [
+      label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt lbl));
+      input
+        ()
+        ~a: [
+          a_input_type `Text;
+          a_value value;
+          a_class ["form-control"];
+          a_disabled ();
+        ];
+      div ~a: [a_class ["valid-feedback"; "d-block"]] [txt " "];
+    ]
