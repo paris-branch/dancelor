@@ -40,13 +40,13 @@ let open_login_dialog () =
       ~title: (S.const "Sign in")
       [Input.Text.render
         username_input
-        ~placeholder: "jean"
+        ~placeholder: "jeanmilligan"
         ~label: "Username"
         ~oninput: (fun _ -> set_status_signal DontKnow);
       Input.Text.render
         password_input
         ~password: true
-        ~placeholder: "password"
+        ~placeholder: "1234567"
         ~label: "Password"
         ~oninput: (fun _ -> set_status_signal DontKnow);
       ]
