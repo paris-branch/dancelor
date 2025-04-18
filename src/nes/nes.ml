@@ -13,6 +13,7 @@ module Seq = NesSeq
 module String = NesString
 module Option = NesOption
 module Result = NesResult
+module Fun = NesFun
 
 (* New modules *)
 
