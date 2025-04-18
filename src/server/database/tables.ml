@@ -25,6 +25,7 @@ module UserModel = struct
   type t = {
     person: ModelBuilder.Person.t Slug.t;
     password: HashedPassword.t option; [@default None]
+    password_reset_token: (string * Datetime.t) option; [@default None] [@key "password-reset-token"]
   }
   [@@deriving yojson, fields]
 

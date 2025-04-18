@@ -13,3 +13,6 @@ val pp : Format.formatter -> t -> unit
 
 val now : unit -> t
 (** Returns the current date and time. *)
+
+val diff : t -> t -> float
+(** Number of seconds between two datetimes. *)

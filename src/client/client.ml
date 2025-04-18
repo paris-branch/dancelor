@@ -26,6 +26,7 @@ let dispatch uri =
     | SetAdd -> SetEditor.create ()
     | Source -> (fun context slug -> SourceViewer.create ?context slug)
     | SourceAdd -> SourceEditor.create ()
+    | AuthPasswordReset -> AuthPasswordResetViewer.create
   in
   let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
@@ -63,7 +64,7 @@ let () =
               ~title: "Uncaught exception"
               [
                 txt "Dancelor encountered";
-                pre [txt @@ Printexc.to_string exn];
+                pre ~a: [a_class ["text-wrap"; "my-2"]] [txt @@ Printexc.to_string exn];
                 txt
                   "and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";

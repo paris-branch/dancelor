@@ -40,6 +40,7 @@ type (_, _, _) t =
   | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
+  | AuthPasswordReset : ((string -> string -> 'w), 'w, Void.t) t
 
 type 'w wrapped' =
   | W : ('a, 'w, 'r) t -> 'w wrapped'
@@ -64,6 +65,7 @@ let all_endpoints' = [
   W Version;
   W Index;
   W Explore;
+  W AuthPasswordReset;
 ]
 
 open Madge
@@ -87,9 +89,13 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
   | Index -> void ()
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
+  | AuthPasswordReset -> literal "auth" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
-  process (route page) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)
+  process (route page) (fun (module _) {meth; uri; _} ->
+    assert (meth = GET);
+    match Uri.to_string uri with "" -> "/" | uri -> uri
+  )
 
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance
@@ -123,6 +129,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | PersonAdd -> Lwt.return_none
     | SourceAdd -> Lwt.return_none
     | DanceAdd -> Lwt.return_none
+    | AuthPasswordReset -> Fun.const2 Lwt.return_none
     | Version ->
       (fun _ slug ->
         let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in
