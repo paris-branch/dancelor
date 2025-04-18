@@ -45,6 +45,7 @@ let open_login_dialog () =
         ~oninput: (fun _ -> set_status_signal DontKnow);
       Input.Text.render
         password_input
+        ~password: true
         ~placeholder: "password"
         ~label: "Password"
         ~oninput: (fun _ -> set_status_signal DontKnow);

@@ -28,7 +28,7 @@ module Text = struct
 
   let clear state = state.set ""
 
-  let render ?label: lbl ?(placeholder = "") ?(oninput = ignore) state =
+  let render ?(password = false) ?label: lbl ?(placeholder = "") ?(oninput = ignore) state =
     div
       ~a: [a_class ["mb-2"]]
       [
@@ -36,7 +36,7 @@ module Text = struct
         input
           ()
           ~a: [
-            a_input_type `Text;
+            a_input_type (if password then `Password else `Text);
             a_placeholder placeholder;
             R.a_value state.raw_signal;
             R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (Fun.const ["form-control"; "is-invalid"]) state);

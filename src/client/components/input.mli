@@ -34,6 +34,7 @@ module Text : sig
   (** Clear a text input component to an empty value . *)
 
   val render :
+    ?password: bool ->
     ?label: string ->
     ?placeholder: string ->
     ?oninput: (string -> unit) ->
