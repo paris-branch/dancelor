@@ -99,7 +99,11 @@ module Editor = struct
         ~arity: Selector.many
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Person.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call
+              Endpoints.Api.(route @@ Person Search)
+              slice
+              filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
@@ -147,7 +151,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
       Lwt.map Option.some @@
-      Model.Dance.save @@
+      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Dance Create) @@
       Model.Dance.make
         ~name
         ~kind

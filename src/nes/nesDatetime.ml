@@ -24,3 +24,5 @@ let of_yojson = function
   | _ -> Error "NesDatetime.of_yojson: not a JSON string"
 
 let now = Unix.gettimeofday
+
+let diff = (-.)

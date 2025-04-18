@@ -13,6 +13,7 @@ module Seq = NesSeq
 module String = NesString
 module Option = NesOption
 module Result = NesResult
+module Fun = NesFun
 
 (* New modules *)
 
@@ -27,6 +28,8 @@ module Json = NesJson
 module Slug = NesSlug
 module Link = NesLink
 module Void = NesVoid
+module Lwt_option = NesLwt_option
+module Password = Password
 
 (* Monads *)
 

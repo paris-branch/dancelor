@@ -181,24 +181,4 @@ module type S = sig
     val type_based_cleanup : t -> t
     (** Part of {!optimise} exposed for testing purposes. *)
   end
-
-  (** {2 Search} *)
-
-  val search : Slice.t -> Filter.t -> (int * t list) Lwt.t
-  (** Returns the list of all the objects that match the filter with a score
-      higher than the hardcoded threshold. The first element of the pair is the
-      number of objects. The second element of the pair is a slice of the list,
-      taken as per the slice. *)
-
-  val search' : Filter.t -> t list Lwt.t
-  (** Like {!val-search} but returns only the list of all values. *)
-
-  val count : Filter.t -> int Lwt.t
-  (** Like {!val-search} but returns only the number of items. *)
-
-  val search_context : Filter.t -> t -> (int * t option * int * t option) Lwt.t
-  (** [search_context filter elt] is equivalent to running [search filter],
-      looking for [elt] in the resulting list and returning the total number of
-      elements, the element before [elt], the index of [elt], and the element
-      after [elt], but it does this much more efficiently. *)
 end

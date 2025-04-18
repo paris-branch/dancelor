@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let dance_lwt = Dance.get slug in
+  let dance_lwt = MainPage.get_model_or_404 (Dance Get) slug in
   let title = S.from' "" (Lwt.map Dance.name dance_lwt) in
   Page.make
     ~parent_title: "Dance"
@@ -90,7 +90,11 @@ let create ?context slug =
             (
               let%lwt tunes =
                 let%lwt dance = dance_lwt in
-                Tune.search' @@ Tune.Filter.existsDance' @@ Dance.Filter.is' dance
+                Lwt.map snd @@
+                Madge_cohttp_lwt_client.call
+                  Endpoints.Api.(route @@ Tune Search)
+                  Slice.everything @@
+                Tune.Filter.existsDance' @@ Dance.Filter.is' dance
               in
               Lwt.return
                 [

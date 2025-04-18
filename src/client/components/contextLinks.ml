@@ -17,7 +17,9 @@ let get_neighbours any = function
   | Endpoints.Page.InSearch query ->
     (* TODO: Unify with [Explorer.search]. *)
     let filter = Result.get_ok (Any.Filter.from_string query) in
-    let%lwt (total, previous, index, next) = Any.search_context filter any in
+    let%lwt (total, previous, index, next) =
+      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Any SearchContext) filter any
+    in
     Lwt.return List.{total; previous; index; next; element = any}
   | Endpoints.Page.InSet (set, index) ->
     let%lwt set = Set.get set in

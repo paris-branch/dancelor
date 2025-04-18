@@ -101,7 +101,7 @@ let render
        return some type that has a [focus] function and call it in client code. *)
     if autofocus then
       Lwt.async (fun () ->
-        Lwt.pmsleep 1.;%lwt
+        Js_of_ocaml_lwt.Lwt_js.sleep 1.;%lwt
         bar'##focus;
         Lwt.return_unit
       );

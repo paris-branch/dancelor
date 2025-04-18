@@ -11,3 +11,5 @@ include module type of Stdlib.Result
 
 val of_string_nonempty : empty: string -> string -> (string, string) result
 (** Maps [""] to [Error empty] and other strings to [Ok]. *)
+
+val map_both : ok: ('a -> 'b) -> error: ('e -> 'f) -> ('a, 'e) result -> ('b, 'f) result

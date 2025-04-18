@@ -7,7 +7,7 @@ let now_s =
   let (now_s, set_now) = S.create (now ()) in
   let rec run () =
     set_now (now ());
-    Lwt.pmsleep 1.;%lwt
+    Js_of_ocaml_lwt.Lwt_js.sleep 1.;%lwt
     run ()
   in
   Lwt.async run;

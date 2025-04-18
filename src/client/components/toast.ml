@@ -40,7 +40,7 @@ let open_ ?(level = Normal) ~title content =
         ]
   in
   Lwt.async (fun () ->
-    Lwt.pmsleep 60.;%lwt
+    Js_of_ocaml_lwt.Lwt_js.sleep 60.;%lwt
     Dom.removeChild (stack ()) toast;
     Lwt.return_unit
   );

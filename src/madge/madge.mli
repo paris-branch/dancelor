@@ -43,6 +43,18 @@ val query_opt :
   ('a, 'w, 'r) route ->
   (('b option -> 'a), 'w, 'r) route
 
+val body :
+  string ->
+  (module JSONABLE with type t = 'b) ->
+  ('a, 'w, 'r) route ->
+  (('b -> 'a), 'w, 'r) route
+
+val body_opt :
+  string ->
+  (module JSONABLE with type t = 'b) ->
+  ('a, 'w, 'r) route ->
+  (('b option -> 'a), 'w, 'r) route
+
 val void : unit -> ('w, 'w, Void.t) route
 (** Route that returns nothing usable for Madge. This is useful in particular
     for routes that only serve to resolve to a URI, or routes that return a

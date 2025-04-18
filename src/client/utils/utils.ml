@@ -42,7 +42,14 @@ let quick_explorer_links links =
         (
           List.map
             (fun (text, filter_lwt) ->
-              let count_lwt = Lwt.bind filter_lwt Model.Any.count in
+              let count_lwt =
+                Lwt.bind
+                  filter_lwt
+                  (
+                    Lwt.map fst %
+                      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Any Search) Slice.nothing
+                  )
+              in
               li
                 ~a: [
                   L.a_class

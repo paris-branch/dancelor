@@ -28,7 +28,15 @@ module S = struct
       only one update. *)
   let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
     let result, send_result = create placeholder in
-    Lwt.on_success promise (fun value -> send_result value; stop result);
+    (* NOTE: Exceptions during {!Lwt.async} are passed to the
+       {!Lwt.async_exception_hook}. *)
+    Lwt.async
+      (fun () ->
+        Lwt.bind promise @@ fun value ->
+        send_result value;
+        stop result;
+        Lwt.return_unit
+      );
     result
 
   (** [bind_s' signal placeholder promise] is a signal that begins by holding
@@ -50,9 +58,7 @@ module S = struct
       Lwt.cancel (value setter);
       (* prepare the new search text setter *)
       let new_setter =
-        (* FIXME: here, we need to delay by something but [Lwt_unix] does not
-           seem to be the answer. *)
-        Lwt.pmsleep delay;%lwt
+        Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
         set_immediately x;
         Lwt.return_unit
       in

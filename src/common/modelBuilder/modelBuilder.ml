@@ -113,6 +113,3 @@ module Version = struct
   include Signature.Version
 end
 module VersionParameters = Core.VersionParameters
-
-(** Helper to make search controllers. *)
-module Search = Search

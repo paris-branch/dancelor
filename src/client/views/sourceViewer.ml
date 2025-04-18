@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let source_lwt = Source.get slug in
+  let source_lwt = MainPage.get_model_or_404 (Source Get) slug in
   let title = S.from' "" (Lwt.map Source.name source_lwt) in
   Page.make
     ~parent_title: "Source"

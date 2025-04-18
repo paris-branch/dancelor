@@ -1,4 +1,4 @@
-open Nes
+open NesUnix
 open Common
 
 module Source = Table.Make(struct
@@ -18,6 +18,29 @@ module Person = Table.Make(struct
   let dependencies _ = Lwt.return []
   let standalone = false
 end)
+
+module UserModel = struct
+  let _key = "user"
+
+  type t = {
+    person: ModelBuilder.Person.t Slug.t;
+    password: HashedPassword.t option; [@default None]
+    password_reset_token: (string * Datetime.t) option; [@default None] [@key "password-reset-token"]
+  }
+  [@@deriving yojson, fields]
+
+  let person = person % Entry.value
+  let password = password % Entry.value
+
+  let slug_hint user = Lwt.bind (Person.get user.person) (fun person -> Lwt.return (Entry.value person).name)
+  let separate_fields = []
+  let dependencies user =
+    Lwt.return [
+      Table.make_slug_and_table (module Person) (person user)
+    ]
+  let standalone = true
+end
+module User = Table.Make(UserModel)
 
 module Dance = Table.Make(struct
   include ModelBuilder.Dance
@@ -128,6 +151,7 @@ module Storage = Storage
 let tables : (module Table.S)list = [
   (module Source);
   (module Person);
+  (module User);
   (module Dance);
   (module Version);
   (module Tune);
