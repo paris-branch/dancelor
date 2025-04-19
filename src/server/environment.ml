@@ -1,14 +1,31 @@
 open Nes
 open Common
 
+(* A helper to generate unique identifiers that are somewhat readable. It is not
+   cryptographically secure, but probably good enough. *)
+let uid () =
+  Format.sprintf
+    "%Lx%Lx"
+    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
+    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
+
+let session_max_age = 43200 (* 43200 seconds = 12 hours *)
+
 type session = {
   user: Model.User.t Entry.t option;
+  expires: Datetime.t;
 }
 [@@deriving fields]
 
-let make_session () = {
-  user = None;
-}
+let make_expires () =
+  (* One minute of margin to be sure that we are not lying to the client. *)
+  Datetime.make_in_the_future (float_of_int session_max_age)
+
+let make_new_session () =
+  {user = None; expires = make_expires ()}
+
+let update_session_expiration session =
+  {session with expires = make_expires ()}
 
 type t = {
   session_id: string;
@@ -16,13 +33,12 @@ type t = {
 }
 [@@deriving fields]
 
-let uid () =
-  Printf.sprintf "%Lx" @@
-    Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int
+let user = user % session
 
-let sessions = Hashtbl.create 8
+(* A hash table linking session ids to sessions. *)
+let sessions : (string, session) Hashtbl.t = Hashtbl.create 8
 
-let make ~request () =
+let make ~request =
   let headers = Cohttp.Request.headers request in
   let cookies =
     match Cohttp.Header.get headers "Cookie" with
@@ -33,23 +49,17 @@ let make ~request () =
   in
   let session_id = Option.value' (List.assoc_opt "session" cookies) ~default: uid in
   let session =
-    Option.value'
-      (Hashtbl.find_opt sessions session_id)
-      ~default: (fun () ->
-        let session = make_session () in
-        Hashtbl.add sessions session_id session;
-        session
-      )
+    match Hashtbl.find_opt sessions session_id with
+    | None -> make_new_session ()
+    | Some session when Datetime.in_the_past session.expires -> make_new_session ()
+    | Some session -> update_session_expiration session
   in
     {session_id; session}
 
-let add_session_cookie env headers =
-  Cohttp.Header.add headers "Set-Cookie" ("session=" ^ env.session_id)
+let add_cookies env headers =
+  Cohttp.Header.add headers "Set-Cookie" ("session=" ^ env.session_id ^ "; Path=/; Secure; HttpOnly")
 
-let update_session env f =
-  let new_session = f env.session in
-  Hashtbl.replace sessions env.session_id new_session;
-  {env with session = new_session}
-
-let set_session_user env user =
-  update_session env @@ fun _ -> {user}
+let set_user env user =
+  let session = {env.session with user} in
+  Hashtbl.replace sessions env.session_id session;
+  {env with session}

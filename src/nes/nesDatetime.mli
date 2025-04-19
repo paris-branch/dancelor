@@ -14,5 +14,14 @@ val pp : Format.formatter -> t -> unit
 val now : unit -> t
 (** Returns the current date and time. *)
 
+val plus : float -> t -> t
+(** Adds the given number of seconds to a datetime, producing a new one. *)
+
 val diff : t -> t -> float
 (** Number of seconds between two datetimes. *)
+
+val make_in_the_future : float -> t
+(** Make a datetime in the future by the given number of seconds. *)
+
+val in_the_past : t -> bool
+(** Whether the given datetime is in the past. *)

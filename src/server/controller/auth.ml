@@ -4,11 +4,11 @@ open Common
 module Log = (val Logger.create "controller.auth": Logs.LOG)
 
 let status env =
-  Lwt_option.map' Model.User.person Environment.(user @@ session env)
+  Lwt_option.map' Model.User.person (Environment.user env)
 
 let login env username password =
   Log.info (fun m -> m "Attempt to login with username `%s`." username);
-  match Environment.(user @@ session env) with
+  match Environment.user env with
   | Some _user ->
     Log.info (fun m -> m "Rejecting because already logged in.");
     Lwt.return_none
@@ -33,12 +33,12 @@ let login env username password =
             Lwt.return_none
           | Some _ ->
             Log.info (fun m -> m "Accepting login.");
-            ignore @@ Environment.set_session_user env (Some user);
+            ignore @@ Environment.set_user env (Some user);
             Lwt.map Option.some @@ Model.User.person user
         )
 
 let logout env =
-  ignore @@ Environment.set_session_user env None;
+  ignore @@ Environment.set_user env None;
   Lwt.return_unit
 
 let reset_password username token password =

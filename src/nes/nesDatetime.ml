@@ -25,4 +25,12 @@ let of_yojson = function
 
 let now = Unix.gettimeofday
 
+let plus = (+.)
+
 let diff = (-.)
+
+let in_the_past t =
+  (t -. now ()) < 0.
+
+let make_in_the_future d =
+  now () +. d

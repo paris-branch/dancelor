@@ -29,7 +29,7 @@ let apply_controller env request =
           (Controller.dispatch env endpoint)
           request
           ~post_process: (fun response ->
-            {response with headers = Environment.add_session_cookie env response.headers}
+            {response with headers = Environment.add_cookies env response.headers}
           ) with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f
@@ -77,7 +77,7 @@ let callback _ request body =
     let uri = Request.uri request in
     let path = Uri.path uri in
     Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
-    let env = Environment.make ~request () in
+    let env = Environment.make ~request in
     if String.starts_with ~needle: "/api/" path then
       (
         Log.debug (fun m -> m "Looking for an API controller for %s." path);
@@ -85,7 +85,7 @@ let callback _ request body =
         apply_controller env {meth; uri; body}
       )
     else
-      Static.serve ~post_process_headers: (Environment.add_session_cookie env) path
+      Static.serve ~post_process_headers: (Environment.add_cookies env) path
 
 let () =
   Lwt.async_exception_hook :=
@@ -151,6 +151,8 @@ let run_server () =
     in
     Log.info (fun m -> m "Server is up and running");
     server
+
+let () = Random.self_init ()
 
 let main =
   catchall

@@ -4,7 +4,7 @@ open Common
 module Log = (val Logger.create "controller.permission": Logs.LOG)
 
 let fold_user env =
-  Option.fold' Environment.(user @@ session env)
+  Option.fold' (Environment.user env)
 
 (** {2 Reading} *)
 
