@@ -31,3 +31,6 @@ class TestAuthAndPermissions():
     self.driver.find_element(By.XPATH, "//input[@placeholder = '1234567']").send_keys("test")
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Sign in')] and not(contains(@class, 'disabled'))]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'A Private Person')]")
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Niols')]").click()
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Logout')]").click()
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Oooops')]")
