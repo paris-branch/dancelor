@@ -56,6 +56,9 @@ val slug : 'a t -> 'a Slug.t
 val slug' : 'a t -> 'a t Slug.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
+val slug_as_string : 'a t -> string
+(** @raise UsedGetterOnDummy if the entry is a dummy. *)
+
 val value : 'a t -> 'a
 
 val meta : 'a t -> meta

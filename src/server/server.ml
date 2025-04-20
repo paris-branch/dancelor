@@ -77,7 +77,7 @@ let callback _ request body =
     let uri = Request.uri request in
     let path = Uri.path uri in
     Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
-    let env = Environment.make ~request in
+    let%lwt env = Environment.make ~request in
     if String.starts_with ~needle: "/api/" path then
       (
         Log.debug (fun m -> m "Looking for an API controller for %s." path);

@@ -10,6 +10,9 @@ let bind_return x f =
   f x >>= fun () ->
   return x
 
+let if_ b f = if%lwt b then f () else Lwt.return_unit
+let if_' b f = if b then f () else Lwt.return_unit
+
 module Syntax = struct
   let (>>=|) = bind
   let (>=>|) = compose

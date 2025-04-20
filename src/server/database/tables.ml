@@ -25,12 +25,14 @@ module UserModel = struct
   type t = {
     person: ModelBuilder.Person.t Slug.t;
     password: HashedPassword.t option; [@default None]
-    password_reset_token: (string * Datetime.t) option; [@default None] [@key "password-reset-token"]
+    password_reset_token: (HashedPassword.t * Datetime.t) option; [@default None] [@key "password-reset-token"]
+    remember_me_token: (HashedPassword.t * Datetime.t) option; [@default None] [@key "remember-me-token"]
   }
   [@@deriving yojson, fields]
 
   let person = person % Entry.value
   let password = password % Entry.value
+  let remember_me_token = remember_me_token % Entry.value
 
   let slug_hint user = Lwt.bind (Person.get user.person) (fun person -> Lwt.return (Entry.value person).name)
   let separate_fields = []

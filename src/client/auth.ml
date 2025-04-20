@@ -64,7 +64,7 @@ let open_login_dialog () =
               ~none: Lwt.return_unit
               ~some: (fun (username, password) ->
                 set_status_signal DontKnow;
-                match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Login) username password with
+                match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Login) username password true (*FIXME*) with
                 | None -> set_status_signal Invalid; Lwt.return_unit
                 | Some _ -> return (Some ()); Lwt.return_unit
               )

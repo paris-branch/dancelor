@@ -44,6 +44,7 @@ exception UsedGetterOnDummy
 
 let slug = function Full (slug, _, _) -> slug | _ -> raise UsedGetterOnDummy
 let slug' e = Slug.unsafe_coerce (slug e)
+let slug_as_string e = Slug.to_string (slug e)
 let meta = function Full (_, meta, _) -> meta | _ -> raise UsedGetterOnDummy
 let value = function Full (_, _, value) | Dummy value -> value
 
