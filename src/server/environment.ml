@@ -20,15 +20,11 @@ type session = {
 }
 [@@deriving fields]
 
-let make_expires () =
-  (* One minute of margin to be sure that we are not lying to the client. *)
-  Datetime.make_in_the_future (float_of_int session_max_age)
-
 let make_new_session () =
-  {user = None; expires = make_expires ()}
+  {user = None; expires = Datetime.make_in_the_future (float_of_int session_max_age)}
 
 let update_session_expiration session =
-  {session with expires = make_expires ()}
+  {session with expires = Datetime.make_in_the_future (float_of_int session_max_age)}
 
 type t = {
   session_id: string;
@@ -79,7 +75,7 @@ let process_remember_me_cookie session_id session remember_me_cookie =
           set_user session_id session user;
           Lwt.return_unit
 
-let make ~request =
+let from_request request =
   let headers = Cohttp.Request.headers request in
   let cookies =
     match Cohttp.Header.get headers "Cookie" with
@@ -105,7 +101,7 @@ let make ~request =
   let response_cookies = ref [] in
   Lwt.return {session_id; session; response_cookies}
 
-let add_response_cookie env cookie =
+let register_response_cookie env cookie =
   env.response_cookies := cookie :: !(env.response_cookies)
 
 let add_cookie ?max_age ?path ?(secure = false) ?(httpOnly = false) key value headers =
@@ -122,15 +118,34 @@ let delete_cookie ?path key headers =
   (match path with None -> "" | Some path -> "; Path=" ^ path) ^
   "; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
 
-let add_cookies env headers =
-  let headers = add_cookie ~path: "/" ~secure: true ~httpOnly: true "session" env.session_id headers in
-  List.fold_left (fun headers response_cookie -> response_cookie headers) headers !(env.response_cookies)
+let update_reponse_headers response f =
+  let open Cohttp in
+  (* FIXME: not super robust if fields get added to the response. *)
+  Response.make
+    ~version: (Response.version response)
+    ~status: (Response.status response)
+    ~encoding: (Response.encoding response)
+    ~headers: (f @@ Response.headers response)
+    ()
+
+let to_response env (response, body) = (
+  (
+    update_reponse_headers response @@ fun headers ->
+    let headers = add_cookie ~path: "/" ~secure: true ~httpOnly: true "session" env.session_id headers in
+    List.fold_left (fun headers response_cookie -> response_cookie headers) headers !(env.response_cookies)
+  ),
+  body
+)
+
+let with_ request f =
+  let%lwt env = from_request request in
+  Lwt.map (to_response env) (f env)
 
 (** Helper to update the user in the database. *)
 let database_update_user user f =
   Lwt.map ignore @@ Database.User.update (Entry.slug user) (f @@ Entry.value user)
 
-let set_user_and_remember_me env user remember_me =
+let login env user ~remember_me =
   set_user env.session_id env.session user;
   Lwt.if_' remember_me (fun () ->
     let token = uid () in
@@ -142,7 +157,7 @@ let set_user_and_remember_me env user remember_me =
       let remember_me_token = Some (hashed_token, max_date) in
       database_update_user user (fun user -> {user with remember_me_token})
     );%lwt
-    add_response_cookie
+    register_response_cookie
       env
       (
         add_cookie
@@ -156,10 +171,10 @@ let set_user_and_remember_me env user remember_me =
     Lwt.return_unit
   )
 
-let unset_user_and_remember_me env user =
+let logout env user =
   let session = {!(env.session) with user = None} in
   Hashtbl.replace sessions env.session_id session;
   env.session := session;
   database_update_user user (fun user -> {user with remember_me_token = None});%lwt
-  add_response_cookie env (delete_cookie ~path: "/" "rememberMe");
+  register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
   Lwt.return_unit

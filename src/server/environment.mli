@@ -1,17 +1,41 @@
+(** {1 Environment}
+
+    Persistent information on the user of Dancelor. This typically comprises
+    sessions and “remember me” manipulations. *)
+
 open Common
 
 (** The abstract type of an environment. *)
 type t
 
-(** Processes a request to set the environment accordingly. *)
-val make : request: Cohttp.Request.t -> t Lwt.t
+(** {2 Interface for the main server} *)
 
-(** Add cookies to a set of headers. This function is intended to be called when
-    creating a response; it adds the appropriate cookies to the environment. *)
-val add_cookies : t -> Cohttp.Header.t -> Cohttp.Header.t
+(** Processes a request to set the environment accordingly, then passes it to
+    the given function, get the response that it creates, and processes that
+    response.
 
+    This will grab the session and “remember me” cookies from the request,
+    restore the session if there is a recent-enough one (and create a new one
+    otherwise), and possibly log in the user if it is not logged-in but has a
+    “remember me” cookie. At the end, this will add the session cookie to the
+    response, and possibly add or delete a “remember me” cookie as well. *)
+val with_ :
+  Cohttp.Request.t ->
+  (t -> (Cohttp.Response.t * 'body) Lwt.t) ->
+  (Cohttp.Response.t * 'body) Lwt.t
+
+(** {2 Interface for controllers} *)
+
+(** Returns the user that is logged in in the current session. *)
 val user : t -> Model.User.t Entry.t option
 
-val set_user_and_remember_me : t -> Model.User.t Entry.t -> bool -> unit Lwt.t
+(** Set the user as logged in for the current session. Subsequent calls to
+    {!user} (across requests) will return that user. If the [~remember_me] flag
+    is set, then also set up the user to be remembered in the future, modifying
+    the database and registering the appropriate response cookie. *)
+val login : t -> Model.User.t Entry.t -> remember_me: bool -> unit Lwt.t
 
-val unset_user_and_remember_me : t -> Model.User.t Entry.t -> unit Lwt.t
+(** Set the user as logged out for the current session. Subsequent calls to
+    {!user} (across requests) will return [None]. Any “remember me” token will
+    be erased from the database and the client's cookies. *)
+val logout : t -> Model.User.t Entry.t -> unit Lwt.t

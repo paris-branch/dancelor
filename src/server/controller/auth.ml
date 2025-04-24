@@ -31,15 +31,13 @@ let login env username password remember_me =
           Lwt.return_none
         | Some _ ->
           Log.info (fun m -> m "Accepting login.");
-          Environment.set_user_and_remember_me env user remember_me;%lwt
+          Environment.login env user ~remember_me;%lwt
           Lwt.map Option.some @@ Model.User.person user
 
 let logout env =
   match Environment.user env with
   | None -> Lwt.return_unit
-  | Some user ->
-    Environment.unset_user_and_remember_me env user;%lwt
-    Lwt.return_unit
+  | Some user -> Environment.logout env user
 
 let reset_password username token password =
   Log.info (fun m -> m "Attempt to reset password for user `%s`." username);
