@@ -18,7 +18,6 @@ let open_login_dialog () =
     )
   in
   let password_input =
-    (* FIXME: Password field *)
     Input.Text.make' "" (fun password ->
       S.bind status_signal @@ fun status ->
       S.const @@
@@ -28,11 +27,23 @@ let open_login_dialog () =
         | _, DontKnow -> Ok password
     )
   in
+  let remember_me_input =
+    Choices.(
+      make_radios'
+        ~name: "Sign in..."
+        ~validate: (Option.to_result ~none: "You must make a choice.")
+        [
+          choice' [txt "Just this once"] ~value: false ~checked: true;
+          choice' [txt "Remember me"] ~value: true;
+        ]
+    )
+  in
   let request_signal =
     S.map Result.to_option @@
     RS.bind (Input.Text.signal username_input) @@ fun username ->
     RS.bind (Input.Text.signal password_input) @@ fun password ->
-    RS.pure (username, password)
+    RS.bind (Choices.signal remember_me_input) @@ fun remember_me ->
+    RS.pure (username, password, remember_me)
   in
   let%lwt _ =
     Page.open_dialog @@ fun return ->
@@ -49,6 +60,7 @@ let open_login_dialog () =
         ~placeholder: "1234567"
         ~label: "Password"
         ~oninput: (fun _ -> set_status_signal DontKnow);
+      Choices.render remember_me_input;
       ]
       ~buttons: [
         Button.cancel' ~return ();
@@ -62,9 +74,9 @@ let open_login_dialog () =
             Option.fold
               (S.value request_signal)
               ~none: Lwt.return_unit
-              ~some: (fun (username, password) ->
+              ~some: (fun (username, password, remember_me) ->
                 set_status_signal DontKnow;
-                match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Login) username password true (*FIXME*) with
+                match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Login) username password remember_me with
                 | None -> set_status_signal Invalid; Lwt.return_unit
                 | Some _ -> return (Some ()); Lwt.return_unit
               )
