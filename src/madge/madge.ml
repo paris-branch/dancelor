@@ -211,7 +211,7 @@ let rec match_
 
 let match_
   : type a w r z. (a, w, r) route ->
-  a ->
+  (unit -> a) ->
   request ->
   ((module JSONABLE with type t = r) -> w -> z) ->
   (unit -> z) option
@@ -219,11 +219,11 @@ let match_
   Log.debug (fun m -> m "Madge.match_ <route> <controller> <request> <return>");
   let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
   Option.bind (Madge_query.from_uri uri) @@ fun uri_query ->
-  match_ route (fun () -> controller) meth path uri_query (Madge_query.from_body body) return
+  match_ route controller meth path uri_query (Madge_query.from_body body) return
 
 let match_'
   : type a w r. (a, w, r) route ->
-  a ->
+  (unit -> a) ->
   request ->
   (unit -> w) option
 = fun route controller request ->

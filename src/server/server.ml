@@ -26,7 +26,7 @@ let apply_controller env request =
         Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.to_string endpoint));
         match Madge_cohttp_lwt_server.match_apply
           (Endpoints.Api.route endpoint)
-          (Controller.dispatch env endpoint)
+          (fun () -> Controller.dispatch env endpoint)
           request with
         | None -> madge_match_apply_all wrapped_endpoints
         | Some f -> Some f

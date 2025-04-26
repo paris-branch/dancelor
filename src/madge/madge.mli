@@ -106,7 +106,7 @@ val process :
 
 val match_' :
   ('a, 'w, 'r) route ->
-  'a ->
+  (unit -> 'a) ->
   request ->
   (unit -> 'w) option
 (** Given a route, a controller, and a request, check whether the route matches
@@ -116,7 +116,7 @@ val match_' :
 
 val match_ :
   ('a, 'w, 'r) route ->
-  'a ->
+  (unit -> 'a) ->
   request ->
   ((module JSONABLE with type t = 'r) -> 'w -> 'z) ->
   (unit -> 'z) option

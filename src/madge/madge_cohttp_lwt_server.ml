@@ -22,7 +22,7 @@ type response = {
 
 let match_apply
   : type a r. (a, r Lwt.t, r) route ->
-  a ->
+  (unit -> a) ->
   request ->
   (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
 = fun route controller request ->
