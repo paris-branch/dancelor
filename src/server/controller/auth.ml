@@ -39,15 +39,6 @@ let logout env =
   | None -> Lwt.return_unit
   | Some user -> Environment.logout env user
 
-(* A helper to generate unique identifiers that are somewhat readable. It is not
-   cryptographically secure, but probably good enough. *)
-(* FIXME: duplicate of {!Environment.uid} *)
-let uid () =
-  Format.sprintf
-    "%Lx%Lx"
-    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
-    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
-
 let create_user env username person =
   Permission.assert_can_admin env;%lwt
   let%lwt person = Person.get env person in

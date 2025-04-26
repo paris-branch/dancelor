@@ -3,14 +3,6 @@ open Common
 
 module Log = (val Logger.create "environment": Logs.LOG)
 
-(* A helper to generate unique identifiers that are somewhat readable. It is not
-   cryptographically secure, but probably good enough. *)
-let uid () =
-  Format.sprintf
-    "%Lx%Lx"
-    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
-    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
-
 let session_max_age = 43200 (* 43200 seconds = 12 hours *)
 let remember_me_token_max_age = 15552000 (* 15552000 seconds = 6 * 30 days *)
 

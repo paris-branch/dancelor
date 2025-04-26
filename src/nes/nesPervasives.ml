@@ -81,3 +81,11 @@ let rec fixpoint ?(eq = (=)) f x =
 let curry f = fun x y -> f (x, y)
 
 let uncurry f = fun (x, y) -> f x y
+
+(** A helper to generate unique identifiers that are somewhat readable. It is
+    not cryptographically secure, but probably good enough. *)
+let uid () =
+  Format.sprintf
+    "%Lx%Lx"
+    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
+    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
