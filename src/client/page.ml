@@ -8,6 +8,7 @@ type t = {
   title: string S.t;
   content: Html_types.div_content_fun elt list;
   buttons: Html_types.div_content_fun elt list;
+  on_load: unit -> unit;
 }
 
 let full_title p =
@@ -23,6 +24,7 @@ let make
   ~title
   ?(before_title = [])
   ?(buttons = [])
+  ?(on_load = Fun.id)
   content
 = {
   parent_title;
@@ -30,9 +32,11 @@ let make
   title;
   content;
   buttons;
+  on_load;
 }
 
-let render p =
+let render p = (
+  p.on_load,
   div
     [
       div p.before_title;
@@ -48,6 +52,7 @@ let render p =
           )
         ];
     ]
+)
 
 let open_dialog
     ?(hide_body_overflow_y = false)
@@ -118,6 +123,9 @@ let open_dialog
       return None;
     Js._true
   );
+
+  (* Trigger the [on_load] property of the page. *)
+  page.on_load ();
 
   (* Return the promise of a result. *)
   promise

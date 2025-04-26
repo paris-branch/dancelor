@@ -43,6 +43,18 @@ val query_opt :
   ('a, 'w, 'r) route ->
   (('b option -> 'a), 'w, 'r) route
 
+val body :
+  string ->
+  (module JSONABLE with type t = 'b) ->
+  ('a, 'w, 'r) route ->
+  (('b -> 'a), 'w, 'r) route
+
+val body_opt :
+  string ->
+  (module JSONABLE with type t = 'b) ->
+  ('a, 'w, 'r) route ->
+  (('b option -> 'a), 'w, 'r) route
+
 val void : unit -> ('w, 'w, Void.t) route
 (** Route that returns nothing usable for Madge. This is useful in particular
     for routes that only serve to resolve to a URI, or routes that return a
@@ -94,7 +106,7 @@ val process :
 
 val match_' :
   ('a, 'w, 'r) route ->
-  'a ->
+  (unit -> 'a) ->
   request ->
   (unit -> 'w) option
 (** Given a route, a controller, and a request, check whether the route matches
@@ -104,7 +116,7 @@ val match_' :
 
 val match_ :
   ('a, 'w, 'r) route ->
-  'a ->
+  (unit -> 'a) ->
   request ->
   ((module JSONABLE with type t = 'r) -> 'w -> 'z) ->
   (unit -> 'z) option

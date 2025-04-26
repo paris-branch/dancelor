@@ -1,5 +1,6 @@
 (** {1 Server-side models} *)
 
+open Nes
 open Common
 
 module Source : ModelBuilder.Source.S = Source
@@ -14,3 +15,10 @@ module SetParameters = SetParameters
 module Book : ModelBuilder.Book.S = Book
 module BookParameters = BookParameters
 module Any : ModelBuilder.Any.S = Any
+
+(** {2 Server-side only} *)
+
+module User = struct
+  include Database.UserModel
+  let person = Person.get % person
+end

@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let set_lwt = Set.get slug in
+  let set_lwt = MainPage.get_model_or_404 (Set Get) slug in
   let title = S.from' "" (Lwt.map Set.name set_lwt) in
   Page.make
     ~parent_title: "Set"

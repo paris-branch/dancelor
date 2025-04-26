@@ -40,12 +40,11 @@ module type S = sig
   val create : value -> value Entry.t Lwt.t
   (** Create a new database entry for the given value. *)
 
+  val create_with_slug : value Slug.t -> value -> value Entry.t Lwt.t
+  (** Variant of {!create} with a specific slug. *)
+
   val update : value Slug.t -> value -> value Entry.t Lwt.t
   (** Update an existing database entry with the given value. *)
-
-  val save : ?slug: value Slug.t -> value -> value Entry.t Lwt.t
-  (** If the slug is provided, then we {!update} an existing entry; otherwise,
-      we {!create} a new one. *)
 
   val delete : value Slug.t -> unit Lwt.t
 
@@ -194,24 +193,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> List.of_seq
     |> Lwt.return
 
-  let uniq_slug ~hint : 'any Slug.t =
-    let slug = Slug.from_string hint in
-    let rec aux i =
-      (* FIXME: cleaner way to do this *)
-      let slug = Slug.(unsafe_of_string (to_string slug ^ "-" ^ (string_of_int i))) in
-      if Hashtbl.mem table slug then
-        aux (i + 1)
-      else
-        slug
-    in
-    if Hashtbl.mem table slug then
-      aux 2
-    else
-      slug
-
-  let create model =
-    let%lwt slug_hint = Model.slug_hint model in
-    let slug = uniq_slug ~hint: slug_hint in
+  let create_with_slug slug model =
+    assert (not @@ Hashtbl.mem table slug);
     let model = Entry.make ~slug model in
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
@@ -231,6 +214,26 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Hashtbl.add table slug (Stats.empty (), model);
     (* FIXME: not add and not Stats.empty when editing. *)
     Lwt.return model
+
+  let uniq_slug ~hint : 'any Slug.t =
+    let slug = Slug.from_string hint in
+    let rec aux i =
+      (* FIXME: cleaner way to do this *)
+      let slug = Slug.(unsafe_of_string (to_string slug ^ "-" ^ (string_of_int i))) in
+      if Hashtbl.mem table slug then
+        aux (i + 1)
+      else
+        slug
+    in
+    if Hashtbl.mem table slug then
+      aux 2
+    else
+      slug
+
+  let create model =
+    let%lwt slug_hint = Model.slug_hint model in
+    let slug = uniq_slug ~hint: slug_hint in
+    create_with_slug slug model
 
   let update slug model =
     let%lwt old_model = get slug in
@@ -253,11 +256,6 @@ module Make (Model : Model) : S with type value = Model.t = struct
     (* FIXME: Make more robust and maybe update stats*)
     Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
     Lwt.return model
-
-  let save ?slug model =
-    match slug with
-    | None -> create model
-    | Some slug -> update slug model
 
   let delete slug : unit Lwt.t =
     Storage.delete_entry Model._key (Slug.to_string slug);%lwt

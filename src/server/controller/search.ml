@@ -4,9 +4,7 @@ module type Searchable = sig
   type value
   type filter
 
-  val cache : (float * filter, value list Lwt.t) Cache.t
-
-  val get_all : unit -> value list Lwt.t
+  val get_all : Environment.t -> value list Lwt.t
 
   val filter_accepts : filter -> value -> float Lwt.t
 
@@ -17,11 +15,10 @@ module type S = sig
   type value
   type filter
 
-  val search : Slice.t -> filter -> (int * value list) Lwt.t
+  val search : Environment.t -> Slice.t -> filter -> (int * value list) Lwt.t
 
-  val search' : filter -> value list Lwt.t
-  val count : filter -> int Lwt.t
-
+  (* Pass through for better composition *)
+  val get_all : Environment.t -> value list Lwt.t
   val tiebreakers : (value -> value -> int Lwt.t) list
 end
 
@@ -32,12 +29,14 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
   (* Hardcoded threshold for all of Dancelor. *)
   let threshold = 0.4
 
-  let search slice filter =
+  let cache = Cache.create ~lifetime: 600 ()
+
+  let search env slice filter =
     (* We cache the computation of the results but not the computation of the
        slice because that really isn't the expensive part. *)
     let%lwt results =
-      Cache.use ~cache: M.cache ~key: (threshold, filter) @@ fun () ->
-      let%lwt values = M.get_all () in
+      Cache.use ~cache ~key: (env, threshold, filter) @@ fun () ->
+      let%lwt values = M.get_all env in
       (* For each value, compute its score and return the pair (value, score). *)
       let%lwt values = Lwt_list.map_s (fun value -> Lwt.map (pair value) (M.filter_accepts filter value)) values in
       (* Keep only values whose score is above the given threshold. *)
@@ -53,8 +52,7 @@ module Build (M : Searchable) : S with type value = M.value and type filter = M.
     (* Return the pair of the total number of results and the requested slice. *)
     Lwt.return (List.length results, Slice.list ~strict: false slice results)
 
-  let search' = Lwt.map snd % search Slice.everything
-  let count = Lwt.map fst % search Slice.nothing
-
+  (* Pass through for better composition *)
+  let get_all = M.get_all
   let tiebreakers = M.tiebreakers
 end

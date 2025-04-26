@@ -70,7 +70,7 @@ jobs:
         with:
           ## This OCaml compiler should be the minimum version required by the
           ## OPAM file (up to the patch) so as to catch under-specification.
-          ocaml-compiler: 5.0.x
+          ocaml-compiler: 5.2.x
 
       - name: Install system dependencies
         run: sudo apt install --yes timidity freepats lilypond sassc

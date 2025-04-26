@@ -37,7 +37,7 @@ val singleton : key -> Yojson.Safe.t -> t
 val to_list : t -> (string * Yojson.Safe.t) list
 val to_strings : t -> (string * string list) list
 
-val from_uri : Uri.t -> t
+val from_uri : Uri.t -> t option
 val from_body : string -> t
 
 val add : key -> Yojson.Safe.t -> t -> t

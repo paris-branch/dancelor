@@ -86,7 +86,8 @@ module Editor = struct
         ~arity: Selector.many
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Person.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
@@ -97,7 +98,11 @@ module Editor = struct
         ~arity: Selector.many
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Version.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Version.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call
+              Endpoints.Api.(route @@ Version Search)
+              slice
+              filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Version.get
@@ -127,7 +132,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; conceptors; versions; order} ->
       Lwt.map Option.some @@
-      Model.Set.save @@
+      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Create) @@
       Model.Set.make
         ~name
         ~kind

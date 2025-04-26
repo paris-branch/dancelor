@@ -37,3 +37,11 @@ let to_string = value ~default: ""
 let of_string_nonempty = function
   | "" -> None
   | s -> Some s
+
+let fold' ~none ~some = function
+  | None -> none ()
+  | Some x -> some x
+
+let value' ~default = function
+  | None -> default ()
+  | Some x -> x

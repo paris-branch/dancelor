@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context slug =
-  let person_lwt = Person.get slug in
+  let person_lwt = MainPage.get_model_or_404 (Person Get) slug in
   let title = S.from' "" (Lwt.map Person.name person_lwt) in
   Page.make
     ~parent_title: "Person"

@@ -20,7 +20,7 @@ let make_content
                 R.a_class
                   (
                     Fun.flip S.map processing @@ function
-                      | true -> ["spinner-border"; "spinner-border-sm"]
+                      | true -> ["spinner-border"; "spinner-border-sm"; "me-2"]
                       | false -> ["d-none"]
                   );
                 a_aria "hidden" ["true"]
@@ -39,11 +39,10 @@ let make_content
                   (
                     Fun.flip S.map processing @@ function
                       | true -> ["d-none"]
-                      | false -> ["bi"; "bi-" ^ icon]
+                      | false -> ["bi"; "bi-" ^ icon; "me-2"]
                   )
               ]
               [];
-            (txt @@ if label <> "" then " " else "");
           ]
         );
         Some
@@ -58,8 +57,7 @@ let make_content
         (
           Fun.flip Option.map badge @@ fun badge ->
           [
-            txt " ";
-            span ~a: [a_class ["badge"; "text-bg-secondary"]] [txt badge];
+            span ~a: [a_class ["badge"; "text-bg-secondary"; "ms-2"]] [txt badge];
           ]
         )
       ]
@@ -179,6 +177,17 @@ let cancel ~onclick () =
 
 let cancel' ~return () =
   cancel ~onclick: (fun () -> return None; Lwt.return_unit) ()
+
+let ok ~onclick () =
+  make
+    ~label: "OK"
+    ~label_processing: "Closing..."
+    ~classes: ["btn-primary"]
+    ~onclick
+    ()
+
+let ok' ~return () =
+  ok ~onclick: (fun () -> return (Some ()); Lwt.return_unit) ()
 
 let download ~href () =
   make_a

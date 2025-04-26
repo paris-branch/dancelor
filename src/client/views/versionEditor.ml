@@ -93,7 +93,11 @@ module Editor = struct
         ~arity: Selector.one
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Tune.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call
+              Endpoints.Api.(route @@ Tune Search)
+              slice
+              filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Tune.get
@@ -113,7 +117,11 @@ module Editor = struct
         ~arity: Selector.many
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Person.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call
+              Endpoints.Api.(route @@ Person Search)
+              slice
+              filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
@@ -125,7 +133,8 @@ module Editor = struct
         ~arity: Selector.many
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Source.Filter.from_string input) in
-          Lwt.map Result.ok @@ Model.Source.search slice filter
+          Lwt.map Result.ok @@
+            Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Source Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Source.get
@@ -255,7 +264,11 @@ let create ?on_save ?text ?tune () =
                         Button.cancel' ~return ();
                         Button.save
                           ~onclick: (fun () ->
-                            let%lwt version = Model.Version.save version in
+                            let%lwt version =
+                              Madge_cohttp_lwt_client.call
+                                Endpoints.Api.(route @@ Version Create)
+                                version
+                            in
                             Editor.clear editor;
                             (
                               match on_save with

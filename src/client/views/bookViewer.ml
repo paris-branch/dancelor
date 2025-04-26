@@ -122,7 +122,7 @@ let table_contents ~this_slug contents =
 
     let create ?context slug =
       let open Html in
-      let book_lwt = Book.get slug in
+      let book_lwt = MainPage.get_model_or_404 (Book Get) slug in
       let title = S.from' "" (Lwt.map Book.title book_lwt) in
       Page.make
         ~parent_title: "Book"

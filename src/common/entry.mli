@@ -13,6 +13,7 @@ val is_dummy : 'a t -> bool
 val make :
   slug: 'a Slug.t ->
   ?status: Status.t ->
+  ?privacy: Privacy.t ->
   ?created_at: Datetime.t ->
   ?modified_at: Datetime.t ->
   'a ->
@@ -22,6 +23,7 @@ type meta
 
 val make_meta :
   ?status: Status.t ->
+  ?privacy: Privacy.t ->
   ?created_at: Datetime.t ->
   ?modified_at: Datetime.t ->
   unit ->
@@ -29,6 +31,7 @@ val make_meta :
 
 val update_meta :
   ?status: Status.t ->
+  ?privacy: Privacy.t ->
   ?created_at: Datetime.t ->
   ?modified_at: Datetime.t ->
   meta ->
@@ -53,12 +56,17 @@ val slug : 'a t -> 'a Slug.t
 val slug' : 'a t -> 'a t Slug.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
+val slug_as_string : 'a t -> string
+(** @raise UsedGetterOnDummy if the entry is a dummy. *)
+
 val value : 'a t -> 'a
 
 val meta : 'a t -> meta
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
 val status : meta -> Status.t
+
+val privacy : meta -> Privacy.t
 
 val created_at : meta -> Datetime.t
 
