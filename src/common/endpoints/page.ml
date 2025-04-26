@@ -40,6 +40,7 @@ type (_, _, _) t =
   | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
+  | AuthCreateUser : ('w, 'w, Void.t) t
   | AuthPasswordReset : ((string -> string -> 'w), 'w, Void.t) t
 
 type 'w wrapped' =
@@ -65,6 +66,7 @@ let all_endpoints' = [
   W Version;
   W Index;
   W Explore;
+  W AuthCreateUser;
   W AuthPasswordReset;
 ]
 
@@ -89,6 +91,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
   | Index -> void ()
   | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
+  | AuthCreateUser -> literal "auth" @@ literal "create-user" @@ void ()
   | AuthPasswordReset -> literal "auth" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
@@ -129,6 +132,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | PersonAdd -> Lwt.return_none
     | SourceAdd -> Lwt.return_none
     | DanceAdd -> Lwt.return_none
+    | AuthCreateUser -> Lwt.return_none
     | AuthPasswordReset -> Fun.const2 Lwt.return_none
     | Version ->
       (fun _ slug ->
@@ -168,7 +172,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
   in
   let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
     List.map_first_some @@ fun (W page) ->
-    Madge.match_' (route page) (describe page) {meth = GET; uri; body = ""}
+    Madge.match_' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
   in
   match madge_match_apply_all all_endpoints' with
   | Some page -> page ()

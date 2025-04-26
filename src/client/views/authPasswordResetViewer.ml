@@ -30,9 +30,6 @@ let create username token =
     [Input.inactive
       ~label: "Username"
       username;
-    Input.inactive
-      ~label: "Token"
-      token;
     Input.Text.render
       password1_input
       ~password: true

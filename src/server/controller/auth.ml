@@ -30,14 +30,40 @@ let login env username password remember_me =
           Log.info (fun m -> m "Rejecting because passwords do not match.");
           Lwt.return_none
         | Some _ ->
-          Log.info (fun m -> m "Accepting login.");
           Environment.login env user ~remember_me;%lwt
+          Log.info (fun m -> m "Accepted login for %a." Environment.pp env);
           Lwt.map Option.some @@ Model.User.person user
 
 let logout env =
   match Environment.user env with
   | None -> Lwt.return_unit
   | Some user -> Environment.logout env user
+
+(* A helper to generate unique identifiers that are somewhat readable. It is not
+   cryptographically secure, but probably good enough. *)
+(* FIXME: duplicate of {!Environment.uid} *)
+let uid () =
+  Format.sprintf
+    "%Lx%Lx"
+    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
+    (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
+
+let create_user env username person =
+  Permission.assert_can_admin env;%lwt
+  let%lwt person = Person.get env person in
+  match Slug.check_string username with
+  | None -> Madge_cohttp_lwt_server.shortcut' `Bad_request
+  | Some username ->
+    let token = uid () in
+    let hashed_token = (HashedPassword.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
+    let%lwt _user =
+      Database.User.create_with_slug username @@
+        Database.UserModel.make
+          ~person
+          ~password_reset_token: hashed_token
+          ()
+    in
+    Lwt.return token
 
 let reset_password username token password =
   Log.info (fun m -> m "Attempt to reset password for user `%s`." username);
@@ -83,4 +109,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Auth.t -> a 
   | Status -> status env
   | Login -> login env
   | Logout -> logout env
+  | CreateUser -> create_user env
   | ResetPassword -> reset_password

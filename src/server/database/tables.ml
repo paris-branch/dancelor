@@ -28,7 +28,10 @@ module UserModel = struct
     password_reset_token: (HashedPassword.t * Datetime.t) option; [@default None] [@key "password-reset-token"]
     remember_me_token: (HashedPassword.t * Datetime.t) option; [@default None] [@key "remember-me-token"]
   }
-  [@@deriving yojson, fields]
+  [@@deriving make, yojson, fields]
+
+  let make ~person ?password ?password_reset_token ?remember_me_token () =
+    make ~person: (Entry.slug person) ~password ~password_reset_token ~remember_me_token ()
 
   let person = person % Entry.value
   let password = password % Entry.value

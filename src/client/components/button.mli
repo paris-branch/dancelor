@@ -63,6 +63,18 @@ val cancel' :
   [> Html_types.button] elt
 (** Variant of {!cancel'} passing [None] to a [return] function. *)
 
+val ok :
+  onclick: (unit -> unit Lwt.t) ->
+  unit ->
+  [> Html_types.button] elt
+(** A button specialised in closing an information dialog. *)
+
+val ok' :
+  return: (unit option -> unit) ->
+  unit ->
+  [> Html_types.button] elt
+(** Variant of {!ok'} passing [Some ()] to a [return] function. *)
+
 val download :
   href: string S.t ->
   unit ->

@@ -6,19 +6,22 @@ type (_, _, _) t =
   | Status : ('w, 'w, Person.t Entry.t option) t
   | Login : ((string -> string -> bool -> 'w), 'w, Person.t Entry.t option) t
   | Logout : ('w, 'w, unit) t
+  | CreateUser : ((string -> Person.t Slug.t -> 'w), 'w, string) t
   | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Status -> "Status"
   | Login -> "Login"
   | Logout -> "Logout"
+  | CreateUser -> "CreateUser"
   | ResetPassword -> "ResetPassword"
 
 type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Status; W Login; W Logout; W ResetPassword]
+let all = [W Status; W Login; W Logout; W CreateUser; W ResetPassword]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route = function
   | Status -> literal "status" @@ post (module JOption(Entry.J(Person)))
   | Login -> literal "login" @@ body "username" (module JString) @@ body "password" (module JString) @@ body "remember-me" (module JBool) @@ post (module JOption(Entry.J(Person)))
   | Logout -> literal "logout" @@ post (module JUnit)
+  | CreateUser -> literal "create-user" @@ body "username" (module JString) @@ body "person" (module JSlug(Person)) @@ post (module JString)
   | ResetPassword -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)

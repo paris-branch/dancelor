@@ -30,6 +30,9 @@ module Text : sig
   (** A signal to the value of the input text component as validated by the
       validator. *)
 
+  val value : 'a t -> ('a, string) Result.t
+  (** Short for [S.value % signal]. *)
+
   val clear : 'a t -> unit
   (** Clear a text input component to an empty value . *)
 

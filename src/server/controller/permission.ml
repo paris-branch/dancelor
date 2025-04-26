@@ -15,10 +15,14 @@ let can_get env entry =
     ~some: (fun _user -> true)
 
 let assert_can_get env entry =
-  if can_get env entry then Lwt.return_unit
+  if can_get env entry then
+    (
+      Log.debug (fun m -> m "Granting get access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Lwt.return_unit
+    )
   else
     (
-      Log.info (fun m -> m "Refusing get access to entry `%a`." Slug.pp' (Common.Entry.slug entry));
+      Log.info (fun m -> m "Refusing get access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
       Madge_cohttp_lwt_server.shortcut' `Not_found
     )
 
@@ -28,10 +32,14 @@ let can_create env =
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
 let assert_can_create env =
-  if can_create env then Lwt.return_unit
+  if can_create env then
+    (
+      Log.debug (fun m -> m "Granting create access to %a." Environment.pp env);
+      Lwt.return_unit
+    )
   else
     (
-      Log.info (fun m -> m "Refusing create access.");
+      Log.info (fun m -> m "Refusing create access to %a." Environment.pp env);
       Madge_cohttp_lwt_server.shortcut' `Forbidden
     )
 
@@ -41,10 +49,14 @@ let can_update env _entry =
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
 let assert_can_update env entry =
-  if can_update env entry then Lwt.return_unit
+  if can_update env entry then
+    (
+      Log.debug (fun m -> m "Granting update access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Lwt.return_unit
+    )
   else
     (
-      Log.info (fun m -> m "Refusing update access to entry `%a`." Slug.pp' (Common.Entry.slug entry));
+      Log.info (fun m -> m "Refusing update access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
       Madge_cohttp_lwt_server.shortcut' `Forbidden
     )
 
@@ -54,9 +66,30 @@ let can_delete env _entry =
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
 let assert_can_delete env entry =
-  if can_delete env entry then Lwt.return_unit
+  if can_delete env entry then
+    (
+      Log.debug (fun m -> m "Granting delete access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Lwt.return_unit
+    )
   else
     (
-      Log.info (fun m -> m "Refusing delete access to entry `%a`." Slug.pp' (Common.Entry.slug entry));
+      Log.info (fun m -> m "Refusing delete access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Madge_cohttp_lwt_server.shortcut' `Forbidden
+    )
+
+(** {2 Administrating} *)
+
+let can_admin =
+  fold_user ~none: (fun () -> false) ~some: (fun user -> Entry.slug_as_string user = "niols")
+
+let assert_can_admin env =
+  if can_admin env then
+    (
+      Log.debug (fun m -> m "Granting admin access to %a." Environment.pp env);
+      Lwt.return_unit
+    )
+  else
+    (
+      Log.info (fun m -> m "Refusing admin access to %a." Environment.pp env);
       Madge_cohttp_lwt_server.shortcut' `Forbidden
     )

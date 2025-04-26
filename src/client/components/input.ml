@@ -20,6 +20,7 @@ module Text = struct
   let raw_signal state = state.raw_signal
 
   let signal state = S.bind state.raw_signal state.validator
+  let value state = S.value @@ signal state
 
   let case_errored ~no ~yes state =
     Fun.flip S.map (signal state) @@ function

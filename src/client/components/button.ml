@@ -178,6 +178,17 @@ let cancel ~onclick () =
 let cancel' ~return () =
   cancel ~onclick: (fun () -> return None; Lwt.return_unit) ()
 
+let ok ~onclick () =
+  make
+    ~label: "OK"
+    ~label_processing: "Closing..."
+    ~classes: ["btn-primary"]
+    ~onclick
+    ()
+
+let ok' ~return () =
+  ok ~onclick: (fun () -> return (Some ()); Lwt.return_unit) ()
+
 let download ~href () =
   make_a
     ~label: "Download"

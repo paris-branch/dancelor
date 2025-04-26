@@ -33,6 +33,22 @@ type t = {
 }
 [@@deriving fields]
 
+let pp' fmt (session_id, session, _response_cookies) =
+  fpf
+    fmt
+    "%s [%s, expires %a]"
+    (
+      match !session.user with
+      | None -> "<anynomous>"
+      | Some user -> Entry.slug_as_string user
+    )
+    session_id
+    Datetime.pp
+    !session.expires
+
+let pp fmt {session_id; session; response_cookies} =
+  pp' fmt (session_id, session, response_cookies)
+
 let user = user % (!) % session
 
 (* A hash table linking session ids to sessions. *)
@@ -71,12 +87,14 @@ let process_remember_me_cookie session_id session remember_me_cookie =
           Log.info (fun m -> m "Rejecting because tokens do not match.");
           Lwt.return_unit
         | Some _ ->
-          Log.info (fun m -> m "Accepting login.");
           set_user session_id session user;
+          Log.info (fun m -> m "Accepted login for %a." pp' (session_id, session, remember_me_cookie));
           Lwt.return_unit
 
 let from_request request =
+  Log.debug (fun m -> m "In Environment.from_request...");
   let headers = Cohttp.Request.headers request in
+  Log.debug (fun m -> m "Header:@\n%a" Cohttp.Header.pp_hum headers);
   let cookies =
     match Cohttp.Header.get headers "Cookie" with
     | None -> []
@@ -84,22 +102,27 @@ let from_request request =
       let cookies = Str.split (Str.regexp "[ \t]*;[ \t]*") cookies in
       List.filter_map (String.split_on_first_char '=') cookies
   in
+  Log.debug (fun m -> m "Got cookies: %a" (Format.pp_print_list ~pp_sep: (fun fmt () -> fpf fmt "@\n  - ") (fun fmt (k, v) -> fpf fmt "%s -> %s" k v)) cookies);
   let session_id = Option.value' (List.assoc_opt "session" cookies) ~default: uid in
+  Log.debug (fun m -> m "Session id: %s" session_id);
   let session =
     ref @@
       match Hashtbl.find_opt sessions session_id with
-      | None -> make_new_session ()
-      | Some session when Datetime.in_the_past session.expires -> make_new_session ()
-      | Some session -> update_session_expiration session
+      | None -> Log.debug (fun m -> m "No session: creating a new one."); make_new_session ()
+      | Some session when Datetime.in_the_past session.expires -> Log.debug (fun m -> m "Old session: creating a new one."); make_new_session ()
+      | Some session -> Log.debug (fun m -> m "Live session: updating."); update_session_expiration session
   in
   (
     match !session.user, List.assoc_opt "rememberMe" cookies with
     | None, Some remember_me_cookie ->
+      Log.debug (fun m -> m "Processing “remember me” cookie.");
       process_remember_me_cookie session_id session remember_me_cookie
     | _ -> Lwt.return_unit
   );%lwt
   let response_cookies = ref [] in
-  Lwt.return {session_id; session; response_cookies}
+  let env = {session_id; session; response_cookies} in
+  Log.debug (fun m -> m "Environment.from_request done; user is: %a." pp env);
+  Lwt.return env
 
 let register_response_cookie env cookie =
   env.response_cookies := cookie :: !(env.response_cookies)

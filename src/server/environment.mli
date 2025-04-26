@@ -39,3 +39,7 @@ val login : t -> Model.User.t Entry.t -> remember_me: bool -> unit Lwt.t
     {!user} (across requests) will return [None]. Any “remember me” token will
     be erased from the database and the client's cookies. *)
 val logout : t -> Model.User.t Entry.t -> unit Lwt.t
+
+(** {2 Other} *)
+
+val pp : Format.formatter -> t -> unit

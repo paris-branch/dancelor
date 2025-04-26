@@ -26,6 +26,7 @@ let dispatch uri =
     | SetAdd -> SetEditor.create ()
     | Source -> (fun context slug -> SourceViewer.create ?context slug)
     | SourceAdd -> SourceEditor.create ()
+    | AuthCreateUser -> AuthCreateUserViewer.create ()
     | AuthPasswordReset -> AuthPasswordResetViewer.create
   in
   let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
