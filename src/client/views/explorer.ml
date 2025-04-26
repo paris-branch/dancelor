@@ -27,6 +27,17 @@ let create ?query () =
   Page.make
     ~title: (S.const "Explore")
     [
+      L.div
+        (
+          match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Status) with
+          | Some _ -> Lwt.return_nil
+          | None ->
+            Lwt.return [
+              div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
+                txt "You are not connected, and therefore are only seeing public items.";
+              ];
+            ]
+        );
       Search.render
         search
         ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
