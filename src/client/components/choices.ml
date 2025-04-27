@@ -49,90 +49,90 @@ let make_gen_unsafe
     div
       ~a: [a_class ["mb-2"]]
       (
-        List.filter_map Fun.id[
+        List.filter_map Fun.id [
+          (
+            match nam with
+            | None -> None
+            | Some nam -> Some (label ~a: [a_class ["form-label"]] [txt nam])
+          );
+          Some
             (
-              match nam with
-              | None -> None
-              | Some nam -> Some (label ~a: [a_class ["form-label"]] [txt nam])
-            );
-            Some
-              (
-                div
-                  ~a: [a_onchange (fun _ -> update_values (); true)]
-                  (
-                    Fun.flip List.concat_map choices @@ fun choice ->
-                    [
-                      input
-                        ~a: (
-                          List.filter_map Fun.id[
-                              Some (a_input_type (if radios then `Radio else `Checkbox));
-                              Some
+              div
+                ~a: [a_onchange (fun _ -> update_values (); true)]
+                (
+                  Fun.flip List.concat_map choices @@ fun choice ->
+                  [
+                    input
+                      ~a: (
+                        List.filter_map Fun.id [
+                          Some (a_input_type (if radios then `Radio else `Checkbox));
+                          Some
+                            (
+                              R.a_class
                                 (
-                                  R.a_class
-                                    (
-                                      Fun.flip S.map values @@ function
-                                        | Ok _ -> ["btn-check"; "form-check-input"; "is-valid"]
-                                        | Error _ -> ["btn-check"; "form-check-input"; "is-invalid"]
-                                    )
-                                );
-                              Some (a_name name);
-                              Some (a_id choice.id);
-                              (if choice.checked then Some (a_checked ()) else None);
-                            ]
-                        )
-                        ();
-                      label ~a: [a_class ["btn"; "btn-outline-secondary"; "mx-1"]; a_label_for choice.id] choice.contents;
-                    ]
-                  )
-              );
-            (
-              match validation with
-              | false -> None
-              | true ->
-                Some
-                  (
-                    R.div
-                      ~a: [
-                        R.a_class
-                          (
-                            Fun.flip S.map values @@ function
-                              | Ok _ -> ["d-block"; "valid-feedback"]
-                              | Error _ -> ["d-block"; "invalid-feedback"]
-                          )
-                      ]
-                      (
-                        Fun.flip S.map values @@ function
-                          | Ok _ -> [txt " "]
-                          | Error msg -> [txt "Error: "; txt msg]
+                                  Fun.flip S.map values @@ function
+                                    | Ok _ -> ["btn-check"; "form-check-input"; "is-valid"]
+                                    | Error _ -> ["btn-check"; "form-check-input"; "is-invalid"]
+                                )
+                            );
+                          Some (a_name name);
+                          Some (a_id choice.id);
+                          (if choice.checked then Some (a_checked ()) else None);
+                        ]
                       )
-                  )
+                      ();
+                    label ~a: [a_class ["btn"; "btn-outline-secondary"; "mx-1"]; a_label_for choice.id] choice.contents;
+                  ]
+                )
             );
-          ]
-        )
-      in
-        {box; values = S.map post_validate values}
+          (
+            match validation with
+            | false -> None
+            | true ->
+              Some
+                (
+                  R.div
+                    ~a: [
+                      R.a_class
+                        (
+                          Fun.flip S.map values @@ function
+                            | Ok _ -> ["d-block"; "valid-feedback"]
+                            | Error _ -> ["d-block"; "invalid-feedback"]
+                        )
+                    ]
+                    (
+                      Fun.flip S.map values @@ function
+                        | Ok _ -> [txt " "]
+                        | Error msg -> [txt "Error: "; txt msg]
+                    )
+                )
+          );
+        ]
+      )
+  in
+    {box; values = S.map post_validate values}
 
-    let make_radios_gen ?name ~validate ~post_validate choices =
-      make_gen_unsafe
-        ?name
-        ~radios: true
-        choices
-        ~validate: (function
-          | [] -> validate None
-          | [x] -> validate x
-          | _ -> Error "Cannot select multiple options" (* should never happen *)
-        )
-        ~post_validate
+let make_radios_gen ?name ~validate ~post_validate choices =
+  make_gen_unsafe
+    ?name
+    ~radios: true
+    choices
+    ~validate: (function
+      | [] -> validate None
+      | [x] -> validate x
+      | _ -> Error "Cannot select multiple options" (* should never happen *)
+    )
+    ~post_validate
 
-    let make_radios ?name choices =
-      make_radios_gen ?name ~validation: false ~validate: Result.ok ~post_validate: Result.get_ok choices
+let make_radios ?name choices =
+  make_radios_gen ?name ~validation: false ~validate: Result.ok ~post_validate: Result.get_ok choices
 
-    let make_radios' = make_radios_gen ~validation: true ~post_validate: Fun.id
+let make_radios' = make_radios_gen ~validation: true ~post_validate: Fun.id
 
-    let make_checkboxes choices =
-      make_gen_unsafe
-        ~radios: false
-        choices
-        ~validation: false
-        ~validate: Result.ok
-        ~post_validate: Result.get_ok
+let make_checkboxes choices =
+  make_gen_unsafe
+    ~radios: false
+    choices
+    ~validation: false
+    ~validate: Result.ok
+    ~post_validate: Result.get_ok

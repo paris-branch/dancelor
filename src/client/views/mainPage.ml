@@ -88,7 +88,8 @@ let header =
                           [li [a ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Page.(href Explore) None)] [txt "All"]];
                           li [hr ~a: [a_class ["dropdown-divider"]] ()];
                           ] @
-                            List.map (fun (icon, key, text) ->
+                            List.map
+                              (fun (icon, key, text) ->
                                 let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
                                 li
                                   [
@@ -100,7 +101,8 @@ let header =
                                         txt text
                                       ]
                                   ]
-                              )[
+                              )
+                              [
                                 ("archive", "source", "Sources");
                                 ("person", "person", "Persons");
                                 ("person-arms-up", "dance", "Dances");
@@ -123,7 +125,8 @@ let header =
                         ~a: [a_class ["dropdown-menu"]]
                         (
                           let open Endpoints.Page in
-                          List.map (fun (icon, href, text) ->
+                          List.map
+                            (fun (icon, href, text) ->
                               li
                                 [
                                   a
@@ -134,7 +137,8 @@ let header =
                                       txt text
                                     ]
                                 ]
-                            )[
+                            )
+                            [
                               ("archive", href SourceAdd, "Source");
                               ("person", href PersonAdd, "Person");
                               ("person-arms-up", href DanceAdd, "Dance");
@@ -156,91 +160,91 @@ let header =
             ~onclick: (Lwt.map ignore % open_quick_search)
             ();
         ];
-      ]
+    ]
 
-    (* Add an event listener to open the quick search by pressing '/'. *)
-    let add_slash_quick_search_event_listener () =
-      Utils.add_target_event_listener
-        Dom_html.window
-        Dom_html.Event.keydown
-        (fun event target ->
-          if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
-            (Lwt.async (Lwt.map ignore % open_quick_search); Js._false)
-          else
-            Js._true
-        )
-
-    let footer =
-      nav
-        ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
-        [
-          div
-            ~a: [a_class ["container"; "d-flex"; "flex-column"; "flex-sm-row"]]
-            [
-              a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
-              a
-                ~a: [
-                  a_class ["icon-link"; "text-light"; "my-1"];
-                  a_href "https://github.com/paris-branch/dancelor";
-                  a_target "_blank";
-                ]
-                [
-                  i ~a: [a_class ["bi"; "bi-github"]] [];
-                  txt "paris-branch/dancelor";
-                ];
-              Components.Button.make
-                ~label: "Report an issue"
-                ~label_processing: "Reporting..."
-                ~icon: "bug"
-                ~classes: ["btn-light"; "my-1"]
-                ~onclick: (fun () ->
-                  Lwt.map ignore @@ IssueReport.open_dialog @@ get_uri ()
-                )
-                ()
-            ];
-        ]
-
-    let initial_content = Dom_html.(createDiv document)
-    let current_content = ref None
-
-    let initialise () =
-      assert (!current_content = None);
-      current_content := Some initial_content;
-      Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
-      add_slash_quick_search_event_listener ();
-      Dom.appendChild Dom_html.document##.body initial_content;
-      Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer)
-
-    let load page =
-      assert (!current_content <> None);
-      let iter_title = React.S.map set_title (Page.full_title page) in
-      Depart.keep_forever iter_title;
-      let (page_on_load, page_content) = Page.render page in
-      let page_content = To_dom.of_div page_content in
-      Dom.replaceChild Dom_html.document##.body page_content (Option.get !current_content);
-      current_content := Some page_content;
-      page_on_load ()
-
-    exception ReplacementSuccessful
-    exception ReplacementFailed
-
-    (** Variant of {!load}, that, after loading, sleeps for a bit, then raises
-        either {!ReplacementFailed} or {!ReplacementSuccessful} dependending on the
-        status of things. It is intended to be used in an asynchronous promise that
-        loses meaning once the page replacement has taken place. The async exception
-        hook should ignore {!ReplacementSuccessful} and report
-        {!ReplacementFailed}. *)
-    let load_sleep_raise ?(delay = 1.) page =
-      let previous_content = !current_content in
-      load page;
-      Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
-      if !current_content = previous_content then
-        Lwt.fail ReplacementFailed
+(* Add an event listener to open the quick search by pressing '/'. *)
+let add_slash_quick_search_event_listener () =
+  Utils.add_target_event_listener
+    Dom_html.window
+    Dom_html.Event.keydown
+    (fun event target ->
+      if not (Utils.is_input target) && event##.keyCode = 191 then (* slash *)
+        (Lwt.async (Lwt.map ignore % open_quick_search); Js._false)
       else
-        Lwt.fail ReplacementSuccessful
+        Js._true
+    )
 
-    let get_model_or_404 endpoint slug =
-      Madge_cohttp_lwt_client.call
-        Endpoints.Api.(route @@ endpoint)
-        slug
-        ~on_error: (fun _ status _ -> load_sleep_raise (OooopsViewer.create status))
+let footer =
+  nav
+    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
+    [
+      div
+        ~a: [a_class ["container"; "d-flex"; "flex-column"; "flex-sm-row"]]
+        [
+          a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
+          a
+            ~a: [
+              a_class ["icon-link"; "text-light"; "my-1"];
+              a_href "https://github.com/paris-branch/dancelor";
+              a_target "_blank";
+            ]
+            [
+              i ~a: [a_class ["bi"; "bi-github"]] [];
+              txt "paris-branch/dancelor";
+            ];
+          Components.Button.make
+            ~label: "Report an issue"
+            ~label_processing: "Reporting..."
+            ~icon: "bug"
+            ~classes: ["btn-light"; "my-1"]
+            ~onclick: (fun () ->
+              Lwt.map ignore @@ IssueReport.open_dialog @@ get_uri ()
+            )
+            ()
+        ];
+    ]
+
+let initial_content = Dom_html.(createDiv document)
+let current_content = ref None
+
+let initialise () =
+  assert (!current_content = None);
+  current_content := Some initial_content;
+  Dom.appendChild Dom_html.document##.body (To_dom.of_header header);
+  add_slash_quick_search_event_listener ();
+  Dom.appendChild Dom_html.document##.body initial_content;
+  Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer)
+
+let load page =
+  assert (!current_content <> None);
+  let iter_title = React.S.map set_title (Page.full_title page) in
+  Depart.keep_forever iter_title;
+  let (page_on_load, page_content) = Page.render page in
+  let page_content = To_dom.of_div page_content in
+  Dom.replaceChild Dom_html.document##.body page_content (Option.get !current_content);
+  current_content := Some page_content;
+  page_on_load ()
+
+exception ReplacementSuccessful
+exception ReplacementFailed
+
+(** Variant of {!load}, that, after loading, sleeps for a bit, then raises
+    either {!ReplacementFailed} or {!ReplacementSuccessful} dependending on the
+    status of things. It is intended to be used in an asynchronous promise that
+    loses meaning once the page replacement has taken place. The async exception
+    hook should ignore {!ReplacementSuccessful} and report
+    {!ReplacementFailed}. *)
+let load_sleep_raise ?(delay = 1.) page =
+  let previous_content = !current_content in
+  load page;
+  Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
+  if !current_content = previous_content then
+    Lwt.fail ReplacementFailed
+  else
+    Lwt.fail ReplacementSuccessful
+
+let get_model_or_404 endpoint slug =
+  Madge_cohttp_lwt_client.call
+    Endpoints.Api.(route @@ endpoint)
+    slug
+    ~on_error: (fun _ status _ -> load_sleep_raise (OooopsViewer.create status))

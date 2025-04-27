@@ -113,18 +113,19 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
   a
     ~a: [
       a_href href;
-      a_class[
-          "bg-secondary-subtle";
-          "opacity-0";
-          "hover-opacity-50";
-          "position-fixed";
-          "top-50";
-          (if left then "start-0" else "end-0");
-          "translate-middle-y";
-          "text-center";
-          "p-2";
-        ];
-    ][
+      a_class [
+        "bg-secondary-subtle";
+        "opacity-0";
+        "hover-opacity-50";
+        "position-fixed";
+        "top-50";
+        (if left then "start-0" else "end-0");
+        "translate-middle-y";
+        "text-center";
+        "p-2";
+      ];
+    ]
+    [
       div
         ~a: [
         ]
@@ -138,29 +139,30 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
           div
             (
               (
-                i ~a: [a_class["fs-1"; "bi"; ("bi-caret-" ^ (if left then "left" else "right") ^ "-fill")]]
-                    []
-                ) :: List.map div element_repr
-              );
-          ];
-        ]
-
-      let make_and_render ?context ~this_page any_lwt =
-        match context with
-        | None -> div []
-        | Some context ->
-          L.div
-            (
-              let%lwt any = any_lwt in
-              let%lwt {total; previous; index; next; _} = get_neighbours any context in
-              Lwt.return @@
-                List.filter_map
-                  Fun.id
-                  [
-                    make_context_link ~context ~left: true ~neighbour: previous ~number_of_others: (index - 1);
-                    make_context_link ~context ~left: false ~neighbour: next ~number_of_others: (total - index - 2);
-                    (* The banner must be placed after the side-links so as to be appear on
-                       top in the HTML rendering. *)
-                    Some (make_context_link_banner ~context ~this_page);
-                  ]
+                i
+                  ~a: [a_class ["fs-1"; "bi"; ("bi-caret-" ^ (if left then "left" else "right") ^ "-fill")]]
+                  []
+              ) :: List.map div element_repr
             );
+        ];
+    ]
+
+let make_and_render ?context ~this_page any_lwt =
+  match context with
+  | None -> div []
+  | Some context ->
+    L.div
+      (
+        let%lwt any = any_lwt in
+        let%lwt {total; previous; index; next; _} = get_neighbours any context in
+        Lwt.return @@
+          List.filter_map
+            Fun.id
+            [
+              make_context_link ~context ~left: true ~neighbour: previous ~number_of_others: (index - 1);
+              make_context_link ~context ~left: false ~neighbour: next ~number_of_others: (total - index - 2);
+              (* The banner must be placed after the side-links so as to be appear on
+                 top in the HTML rendering. *)
+              Some (make_context_link_banner ~context ~this_page);
+            ]
+      );

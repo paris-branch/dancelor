@@ -162,11 +162,12 @@ let button_list pagination =
 
 let render ~is_below pagination =
   nav
-    ~a: [a_class["d-md-flex"; "justify-content-between"; (if is_below then "align-items-start" else "align-items-end")]][
+    ~a: [a_class ["d-md-flex"; "justify-content-between"; (if is_below then "align-items-start" else "align-items-end")]]
+    [
       div [R.txt (status_text pagination)];
       R.ul
         ~a: [a_class ["pagination"; "mb-0"]]
         (button_list pagination);
     ]
 
-  let slice page_nav = S.map current_slice page_nav.state
+let slice page_nav = S.map current_slice page_nav.state
