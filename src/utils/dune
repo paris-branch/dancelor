@@ -1,0 +1,4 @@
+(executable
+ (name dump_pp)
+ (modules dump_pp)
+ (libraries compiler-libs.bytecomp))
