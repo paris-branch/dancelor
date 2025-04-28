@@ -73,32 +73,33 @@ let all_endpoints' = [
 open Madge
 
 (* FIXME: Factorise adding the model prefixes. *)
-let route : type a w r. (a, w, r) t -> (a, w, r) route = function
-  | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(Book)) @@ void ()
-  | BookAdd -> literal "book" @@ literal "add" @@ void ()
-  | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(Book)) @@ void ()
-  | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(Dance)) @@ void ()
-  | DanceAdd -> literal "dance" @@ literal "add" @@ void ()
-  | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(Person)) @@ void ()
-  | PersonAdd -> literal "person" @@ literal "add" @@ void ()
-  | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(Set)) @@ void ()
-  | SetAdd -> literal "set" @@ literal "add" @@ void ()
-  | Source -> literal "source" @@ query_opt "context" (module Context) @@ variable (module SSlug(Source)) @@ void ()
-  | SourceAdd -> literal "source" @@ literal "add" @@ void ()
-  | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(Tune)) @@ void ()
-  | TuneAdd -> literal "tune" @@ literal "add" @@ void ()
-  | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(Version)) @@ void ()
-  | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
-  | Index -> void ()
-  | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
-  | AuthCreateUser -> literal "auth" @@ literal "create-user" @@ void ()
-  | AuthPasswordReset -> literal "auth" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
+let route : type a w r. (a, w, r) t -> (a, w, r) route =
+  let open Route in
+  function
+    | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(Book)) @@ void ()
+    | BookAdd -> literal "book" @@ literal "add" @@ void ()
+    | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(Book)) @@ void ()
+    | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(Dance)) @@ void ()
+    | DanceAdd -> literal "dance" @@ literal "add" @@ void ()
+    | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(Person)) @@ void ()
+    | PersonAdd -> literal "person" @@ literal "add" @@ void ()
+    | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(Set)) @@ void ()
+    | SetAdd -> literal "set" @@ literal "add" @@ void ()
+    | Source -> literal "source" @@ query_opt "context" (module Context) @@ variable (module SSlug(Source)) @@ void ()
+    | SourceAdd -> literal "source" @@ literal "add" @@ void ()
+    | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(Tune)) @@ void ()
+    | TuneAdd -> literal "tune" @@ literal "add" @@ void ()
+    | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(Version)) @@ void ()
+    | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
+    | Index -> void ()
+    | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
+    | AuthCreateUser -> literal "auth" @@ literal "create-user" @@ void ()
+    | AuthPasswordReset -> literal "auth" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
-  process (route page) (fun (module _) {meth; uri; _} ->
-    assert (meth = GET);
-    match Uri.to_string uri with "" -> "/" | uri -> uri
-  )
+  with_request (route page) @@ fun (module _) {meth; uri; _} ->
+  assert (meth = GET);
+  match Uri.to_string uri with "" -> "/" | uri -> uri
 
 let href_book ?context book = href Book context book
 let href_dance ?context dance = href Dance context dance
@@ -172,7 +173,7 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
   in
   let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
     List.map_first_some @@ fun (W page) ->
-    Madge.match_' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
+    Madge.apply' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
   in
   match madge_match_apply_all all_endpoints' with
   | Some page -> page ()

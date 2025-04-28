@@ -1,19 +1,8 @@
 open Nes
 include Madge
 
-let meth_to_cohttp_code_meth = function
-  | GET -> `GET
-  | POST -> `POST
-  | HEAD -> `HEAD
-  | DELETE -> `DELETE
-  | PATCH -> `PATCH
-  | PUT -> `PUT
-  | OPTIONS -> `OPTIONS
-  | TRACE -> `TRACE
-  | CONNECT -> `CONNECT
-
 exception HttpError of {
-    request: Madge.request;
+    request: Madge.Request.t;
     status: Cohttp.Code.status_code;
     message: string option;
   }
@@ -23,12 +12,12 @@ let httpError request status message = raise @@ HttpError {request; status; mess
 type error_response = {message: string option [@default None]} [@@deriving yojson]
 
 let call
-  : type a r. ?on_error: (Madge.request -> Cohttp.Code.status_code -> string option -> r Lwt.t) ->
-  (a, r Lwt.t, r) route ->
+  : type a r. ?on_error: (Madge.Request.t -> Cohttp.Code.status_code -> string option -> r Lwt.t) ->
+  (a, r Lwt.t, r) Route.t ->
   a
 = fun ?(on_error = httpError) route ->
-  process route @@ fun (module R) ({meth; uri; body} as request) ->
-  let meth = meth_to_cohttp_code_meth meth in
+  with_request route @@ fun (module R) ({meth; uri; body} as request) ->
+  let meth = Request.meth_to_cohttp_code_meth meth in
   let body = Cohttp_lwt.Body.of_string body in
   let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth uri ~body in
   let%lwt body = Cohttp_lwt.Body.to_string body in

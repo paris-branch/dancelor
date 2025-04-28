@@ -48,18 +48,21 @@ let all_endpoints =
 open Madge
 
 (* FIXME: Factorise adding the `/api` prefix. *)
-let route : type a w r. (a, w, r) t -> (a, w, r) route = function
-  | Source endpoint -> literal "api" @@ literal "source" @@ Source.route endpoint
-  | Person endpoint -> literal "api" @@ literal "person" @@ Person.route endpoint
-  | Book endpoint -> literal "api" @@ literal "book" @@ Book.route endpoint
-  | Version endpoint -> literal "api" @@ literal "version" @@ Version.route endpoint
-  | Dance endpoint -> literal "api" @@ literal "dance" @@ Dance.route endpoint
-  | Set endpoint -> literal "api" @@ literal "set" @@ Set.route endpoint
-  | Tune endpoint -> literal "api" @@ literal "tune" @@ Tune.route endpoint
-  | Any endpoint -> literal "api" @@ literal "any" @@ Any.route endpoint
-  | Auth endpoint -> literal "api" @@ literal "auth" @@ Auth.route endpoint
-  | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
-  | Victor -> literal "api" @@ literal "victor" @@ void ()
+let route : type a w r. (a, w, r) t -> (a, w, r) route =
+  let open Route in
+  function
+    | Source endpoint -> literal "api" @@ literal "source" @@ Source.route endpoint
+    | Person endpoint -> literal "api" @@ literal "person" @@ Person.route endpoint
+    | Book endpoint -> literal "api" @@ literal "book" @@ Book.route endpoint
+    | Version endpoint -> literal "api" @@ literal "version" @@ Version.route endpoint
+    | Dance endpoint -> literal "api" @@ literal "dance" @@ Dance.route endpoint
+    | Set endpoint -> literal "api" @@ literal "set" @@ Set.route endpoint
+    | Tune endpoint -> literal "api" @@ literal "tune" @@ Tune.route endpoint
+    | Any endpoint -> literal "api" @@ literal "any" @@ Any.route endpoint
+    | Auth endpoint -> literal "api" @@ literal "auth" @@ Auth.route endpoint
+    | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
+    | Victor -> literal "api" @@ literal "victor" @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun endpoint ->
-  process (route endpoint) (fun (module _) {meth; uri; _} -> assert (meth = GET); Uri.to_string uri)
+  with_request (route endpoint) @@ fun (module _) {meth; uri; _} ->
+  assert (meth = GET); Uri.to_string uri

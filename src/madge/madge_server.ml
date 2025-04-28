@@ -1,19 +1,6 @@
 open Nes
 include Madge
 
-let cohttp_code_meth_to_meth = function
-  | `GET -> GET
-  | `POST -> POST
-  | `HEAD -> HEAD
-  | `DELETE -> DELETE
-  | `PATCH -> PATCH
-  | `PUT -> PUT
-  | `OPTIONS -> OPTIONS
-  | `TRACE -> TRACE
-  | `CONNECT -> CONNECT
-  | `Other _ ->
-    assert false (* FIXME *)
-
 type response = {
   status: Cohttp.Code.status_code;
   headers: Cohttp.Header.t;
@@ -21,12 +8,12 @@ type response = {
 }
 
 let match_apply
-  : type a r. (a, r Lwt.t, r) route ->
+  : type a r. (a, r Lwt.t, r) Route.t ->
   (unit -> a) ->
-  request ->
+  Request.t ->
   (unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) option
 = fun route controller request ->
-  match_ route controller request @@ fun (module R) promise ->
+  apply route controller request @@ fun (module R) promise ->
   Lwt.bind promise @@ fun value ->
   let status = `OK in
   let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in

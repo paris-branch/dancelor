@@ -42,7 +42,7 @@ let apply_controller env request =
         | Madge_server.Shortcut response -> Lwt.return response
     )
   | None ->
-    let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.meth_to_string request.meth) request.body in
+    let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.Request.meth_to_string request.meth) request.body in
     let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
     Server.respond_error ~status: `Not_found ~body ()
 
@@ -70,10 +70,10 @@ let callback _ request body =
     ~place: "the callback"
     ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
     @@ fun () ->
-    let meth = Madge_server.cohttp_code_meth_to_meth @@ Request.meth request in
+    let meth = Madge.Request.cohttp_code_meth_to_meth @@ Request.meth request in
     let uri = Request.uri request in
     let path = Uri.path uri in
-    Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);
+    Log.info (fun m -> m "%s %s" (Madge.Request.meth_to_string meth) path);
     Environment.with_ request @@ fun env ->
     if String.starts_with ~needle: "/api/" path then
       (

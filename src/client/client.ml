@@ -31,7 +31,7 @@ let dispatch uri =
   in
   let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W endpoint) ->
-    Madge.match_' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) {meth = GET; uri; body = ""}
+    Madge.apply' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) {meth = GET; uri; body = ""}
   in
   match madge_match_apply_all Endpoints.Page.all_endpoints' with
   | Some page -> page ()
