@@ -94,7 +94,7 @@ module Editor = struct
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
           Lwt.map Result.ok @@
-            Madge_client.call
+            Madge_client.call_exn
               Endpoints.Api.(route @@ Tune Search)
               slice
               filter
@@ -118,7 +118,7 @@ module Editor = struct
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
           Lwt.map Result.ok @@
-            Madge_client.call
+            Madge_client.call_exn
               Endpoints.Api.(route @@ Person Search)
               slice
               filter
@@ -134,7 +134,7 @@ module Editor = struct
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Source.Filter.from_string input) in
           Lwt.map Result.ok @@
-            Madge_client.call Endpoints.Api.(route @@ Source Search) slice filter
+            Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Source.get
@@ -265,7 +265,7 @@ let create ?on_save ?text ?tune () =
                         Button.save
                           ~onclick: (fun () ->
                             let%lwt version =
-                              Madge_client.call
+                              Madge_client.call_exn
                                 Endpoints.Api.(route @@ Version Create)
                                 version
                             in

@@ -63,7 +63,7 @@ let name_disambiguation_and_sources ?link version =
   let sources_lwt =
     let%lwt sources =
       Lwt.map snd @@
-        Madge_client.call
+        Madge_client.call_exn
           Endpoints.Api.(route @@ Book Search)
           Slice.everything
           Model.Book.Filter.(
@@ -91,7 +91,7 @@ let disambiguation_and_sources version =
   let sources_lwt =
     let%lwt sources =
       Lwt.map snd @@
-        Madge_client.call
+        Madge_client.call_exn
           Endpoints.Api.(route @@ Book Search)
           Slice.everything
           Model.Book.Filter.(

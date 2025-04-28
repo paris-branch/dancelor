@@ -1,21 +1,21 @@
 open Nes
 include Madge
 
-exception HttpError of {
-    request: Madge.Request.t;
-    status: Cohttp.Code.status_code;
-    message: string option;
-  }
+type http_error = {
+  request: Madge.Request.t;
+  status: Cohttp.Code.status_code;
+  message: string;
+}
 
-let httpError request status message = raise @@ HttpError {request; status; message}
+exception HttpError of http_error
 
-type error_response = {message: string option [@default None]} [@@deriving yojson]
+type error_response = {message: string} [@@deriving yojson]
 
-let call
-  : type a r. ?on_error: (Madge.Request.t -> Cohttp.Code.status_code -> string option -> r Lwt.t) ->
-  (a, r Lwt.t, r) Route.t ->
+let call_gen
+  : type a r z. (a, z Lwt.t, r) Route.t ->
+  ((r, http_error) result -> z) ->
   a
-= fun ?(on_error = httpError) route ->
+= fun route cont ->
   with_request route @@ fun (module R) ({meth; uri; body} as request) ->
   let meth = Request.meth_to_cohttp_code_meth meth in
   let body = Cohttp_lwt.Body.of_string body in
@@ -25,18 +25,29 @@ let call
     try
       Yojson.Safe.from_string body
     with
-      | Yojson.Json_error _fixme -> failwith "Madge_client.call: body is not JSON"
+      | Yojson.Json_error msg -> failwith @@ "Madge_client.call: body is not JSON: " ^ msg
   in
   let status = Cohttp.Response.status response in
-  if Cohttp.(Code.(is_success (code_of_status status))) then
-    (
-      match R.of_yojson body with
-      | Error msg -> failwith @@ "Madge_client.call: body cannot be unserialised: " ^ msg
-      | Ok body -> Lwt.return body
-    )
-  else
-    (
-      match error_response_of_yojson body with
-      | Error msg -> failwith @@ "Madge_client.call: error body cannot be unserialised: " ^ msg
-      | Ok {message} -> on_error request status message
-    )
+  let result =
+    if Cohttp.(Code.(is_success (code_of_status status))) then
+      (
+        match R.of_yojson body with
+        | Error msg -> failwith @@ "Madge_client.call: body cannot be unserialised: " ^ msg
+        | Ok body -> Ok body
+      )
+    else
+      (
+        match error_response_of_yojson body with
+        | Error msg -> failwith @@ "Madge_client.call: error body cannot be unserialised: " ^ msg
+        | Ok {message} -> Error {request; status; message}
+      )
+  in
+  Lwt.return @@ cont result
+
+let call
+  : type a r. (a, (r, http_error) result Lwt.t, r) Route.t -> a
+= fun route -> call_gen route Fun.id
+
+let call_exn
+  : type a r. (a, r Lwt.t, r) Route.t -> a
+= fun route -> call_gen route @@ Result.fold ~ok: Fun.id ~error: (fun err -> raise (HttpError err))
