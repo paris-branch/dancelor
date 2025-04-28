@@ -69,16 +69,6 @@
 open Ppxlib
 open Ast_builder.Default
 
-(** Helper to make a list expression [\[a; b; ... c\]] from a list of
-    expressions [a], [b], ..., [c]. *)
-let rec pexp_list ~loc = function
-  | [] -> pexp_construct ~loc (Loc.make ~loc @@ lident "[]") None
-  | x :: xs ->
-    pexp_construct
-      ~loc
-      (Loc.make ~loc @@ lident "::")
-      (Some (pexp_tuple ~loc [x; pexp_list ~loc xs]))
-
 let loc_lident ~loc txt = Loc.make ~loc @@ Longident.parse txt
 
 let map_lident_last f = function
@@ -212,14 +202,14 @@ let generate_all_names ~quot ~loc name cds =
             [
               Nolabel,
               (* [ ... ] *)
-              pexp_list ~loc (
+              elist ~loc (
                 List.map
                   (fun cd ->
                     match cd.pcd_args with
                     | Pcstr_tuple [] ->
                       (* [W_<name> <Cstr1>] *)
                       (* [W_<name>' <Cstr1>] *)
-                      pexp_list ~loc [
+                      elist ~loc [
                         pexp_construct
                           ~loc
                           (loc_lident ~loc @@ w_name ~quot name)
