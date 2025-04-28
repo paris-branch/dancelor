@@ -13,6 +13,11 @@ let rec pexp_list ~loc = function
 
 let loc_lident ~loc txt = Loc.make ~loc @@ Longident.parse txt
 
+let map_lident_last f = function
+  | Lident x -> Lident (f x)
+  | Ldot (li, x) -> Ldot (li, f x)
+  | _ -> assert false
+
 let wrapped_name ~quot typ =
   (match typ with "t" -> "wrapped" | _ -> "wrapped_" ^ typ) ^
     (if quot then "'" else "")
@@ -26,13 +31,13 @@ let all_names ~quot typ =
     (if quot then "'" else "")
 
 (** Generates one of:
-
-        type wrapped_<name> = W_<name> : ('a, 'r Lwt.t, 'r) <name> -> wrapped_<name>
-
+    {|
+      type wrapped_<name> = W_<name> : ('a, 'r Lwt.t, 'r) <name> -> wrapped_<name>
+    |}
     or
-
-        type 'w wrapped_<name>' = W_<name>' : ('a, 'w, 'r) <name> -> 'w wrapped_<name>'
-
+    {|
+      type 'w wrapped_<name>' = W_<name>' : ('a, 'w, 'r) <name> -> 'w wrapped_<name>'
+    |}
     depending on the [~quot] argument. *)
 let generate_type_wrapped ~quot ~loc name =
   pstr_type ~loc Recursive [
@@ -84,55 +89,140 @@ let generate_type_wrapped ~quot ~loc name =
   ]
 
 (** Generates one of
-
-        let all_<name>s : wrapped list = [W_<name> <cstr1>; W_<name> <cstr2>]
-
+    {|
+      let all_<name>s : wrapped list =
+        List.flatten
+          [
+            [W_<name> <Cstr1>];
+            List.map (fun (W_<name2> endpoint) -> W_<name> (<Cstr2> endpoint)) all_<name2>s;
+          ]
+    |}
     or
-
-        let all_<name>s' : 'w wrapped' list = [W_<name>' <cstr1>; W_<name>' <cstr2>]
-
-    depending on the [~quot] argument. *)
+    {|
+      let all_<name>s' : unit -> 'w wrapped' list =
+        fun () ->
+          List.flatten
+            [
+              [W_<name>' <cstr1>];
+              List.map (fun (W_<name2>' endpoint) -> W_<name>' (<Cstr2> endpoint)) all_<name2>s';
+            ]
+    |}
+    depending on the [~quot] argument. <name2> is the name of the type that
+    <Cstr2> lifts. *)
 let generate_all_names ~quot ~loc name cds =
   pstr_value ~loc Nonrecursive [
     value_binding
       ~loc
       ~pat: (
         (* all_<name>s : wrapped list *)
-        (* all_<name>s' : 'w wrapped' list *)
+        (* all_<name>s' : unit -> 'w wrapped' list *)
         ppat_constraint
           ~loc
           (ppat_var ~loc @@ Loc.make ~loc @@ all_names ~quot name)
           (
-            ptyp_constr ~loc (loc_lident ~loc "list") [
-              ptyp_constr
-                ~loc
-                (loc_lident ~loc @@ wrapped_name ~quot name)
-                (if quot then [ptyp_var ~loc "w"] else []);
-            ]
+            let wrapped_list =
+              ptyp_constr ~loc (loc_lident ~loc "list") [
+                ptyp_constr
+                  ~loc
+                  (loc_lident ~loc @@ wrapped_name ~quot name)
+                  (if quot then [ptyp_var ~loc "w"] else []);
+              ]
+            in
+            if quot then
+              ptyp_arrow ~loc Nolabel (ptyp_constr ~loc (loc_lident ~loc "unit") []) wrapped_list
+            else
+              wrapped_list
           )
       )
       ~expr: (
-        (* [W_<name> <cstr1>; W_<name> <cstr2>] *)
-        (* [W_<name>' <cstr1>; W_<name>' <cstr2>] *)
-        pexp_list ~loc (
-          List.map
-            (fun cd ->
-              match cd.pcd_args with
-              | Pcstr_tuple [] ->
-                (* W_<name> <cstr> *)
-                (* W_<name>' <cstr> *)
-                pexp_construct
-                  ~loc
-                  (loc_lident ~loc @@ w_name ~quot name)
-                  (Some (pexp_construct ~loc (loc_lident ~loc cd.pcd_name.txt) None))
-              | Pcstr_tuple [_] -> assert false (* FIXME *)
-              | _ ->
-                Location.raise_errorf
-                  ~loc: cd.pcd_loc
-                  "ppx_madge_wrapped_endpoints: constructor with arguments not supported"
-            )
-            cds
-        )
+        (* List.flatten ... *)
+        (* fun () -> List.flatten ... *)
+        let list_flatten_etc =
+          pexp_apply
+            ~loc
+            (pexp_ident ~loc @@ loc_lident ~loc "List.flatten")
+            [
+              Nolabel,
+              (* [ ... ] *)
+              pexp_list ~loc (
+                List.map
+                  (fun cd ->
+                    match cd.pcd_args with
+                    | Pcstr_tuple [] ->
+                      (* [W_<name> <Cstr1>] *)
+                      (* [W_<name>' <Cstr1>] *)
+                      pexp_list ~loc [
+                        pexp_construct
+                          ~loc
+                          (loc_lident ~loc @@ w_name ~quot name)
+                          (Some (pexp_construct ~loc (loc_lident ~loc cd.pcd_name.txt) None))
+                      ]
+                    | Pcstr_tuple [{ptyp_desc = Ptyp_constr ({txt = long_name2; _}, _); _}] ->
+                      (* List.map (fun (W_<name2> endpoint) -> W_<name> (<Cstr2> endpoint)) all_<name2>s; *)
+                      (* List.map (fun (W_<name2> endpoint) -> W_<name>' (<Cstr2> endpoint)) all_<name2>s; *)
+                      pexp_apply
+                        ~loc
+                        (pexp_ident ~loc @@ loc_lident ~loc "List.map")
+                        [
+                          (
+                            Nolabel,
+                            (* fun (W_<name2> endpoint) -> W_<name> (<Cstr2> endpoint) *)
+                            (* fun (W_<name2>' endpoint) -> W_<name>' (<Cstr2> endpoint) *)
+                            pexp_fun
+                              ~loc
+                              Nolabel
+                              None
+                              (
+                                (* (W_<name2> endpoint) *)
+                                ppat_construct
+                                  ~loc
+                                  (Loc.make ~loc @@ map_lident_last (w_name ~quot) long_name2)
+                                  (Option.some @@ ppat_var ~loc @@ Loc.make ~loc "endpoint")
+                              )
+                              (
+                                (* W_<name> (<Cstr2> endpoint) *)
+                                (* W_<name>' (<Cstr2> endpoint) *)
+                                pexp_construct
+                                  ~loc
+                                  (loc_lident ~loc @@ w_name ~quot name)
+                                  (
+                                    Option.some @@
+                                      pexp_construct
+                                        ~loc
+                                        (loc_lident ~loc cd.pcd_name.txt)
+                                        (Option.some @@ pexp_ident ~loc @@ loc_lident ~loc "endpoint")
+                                  )
+                              )
+                          );
+                          (
+                            Nolabel,
+                            (* all_<name2>s *)
+                            (* all_<name2>s' () *)
+                            let all_names2 =
+                              pexp_ident ~loc @@ Loc.make ~loc @@ map_lident_last (all_names ~quot) long_name2
+                            in
+                            if quot then pexp_apply ~loc all_names2 [Nolabel, pexp_construct ~loc (loc_lident ~loc "()") None]
+                            else all_names2
+                          );
+                        ]
+                    | _ ->
+                      Location.raise_errorf
+                        ~loc: cd.pcd_loc
+                        "ppx_madge_wrapped_endpoints: constructor with arguments not supported"
+                  )
+                  cds
+              )
+            ]
+        in
+        if quot then
+          pexp_fun
+            ~loc
+            Nolabel
+            None
+            (ppat_construct ~loc (loc_lident ~loc "()") None)
+            list_flatten_etc
+        else
+          list_flatten_etc
       )
   ]
 
@@ -158,7 +248,4 @@ let generate ~loc ~path: _ (rec_flag, tds) =
     )
   | _ -> Location.raise_errorf ~loc "ppx_madge_wrapped_endpoints: no or multiple declarations not supported"
 
-let _ =
-  Deriving.add
-    "madge_wrapped_endpoints"
-    ~str_type_decl: (Deriving.Generator.make_noarg generate)
+let _ = Deriving.add "madge_wrapped_endpoints" ~str_type_decl: (Deriving.Generator.make_noarg generate)

@@ -42,33 +42,9 @@ type (_, _, _) t =
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | AuthCreateUser : ('w, 'w, Void.t) t
   | AuthPasswordReset : ((string -> string -> 'w), 'w, Void.t) t
+[@@deriving madge_wrapped_endpoints]
 
-type 'w wrapped' =
-  | W : ('a, 'w, 'r) t -> 'w wrapped'
-
-(* FIXME: The order matters, which means that we should fix the routes; right
-   now, they are just ambiguous. *)
-let all_endpoints' = [
-  W BookAdd;
-  W BookEdit;
-  W Book;
-  W DanceAdd;
-  W Dance;
-  W PersonAdd;
-  W Person;
-  W SetAdd;
-  W Set;
-  W SourceAdd;
-  W Source;
-  W TuneAdd;
-  W Tune;
-  W VersionAdd;
-  W Version;
-  W Index;
-  W Explore;
-  W AuthCreateUser;
-  W AuthPasswordReset;
-]
+let all_endpoints' = all'
 
 open Madge
 
@@ -172,9 +148,9 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
       )
   in
   let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
-    List.map_first_some @@ fun (W page) ->
+    List.map_first_some @@ fun (W' page) ->
     Madge.apply' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
   in
-  match madge_match_apply_all all_endpoints' with
+  match madge_match_apply_all @@ all_endpoints' () with
   | Some page -> page ()
   | None -> (* FIXME: 404 page *) assert false

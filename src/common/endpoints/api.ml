@@ -12,6 +12,9 @@ type (_, _, _) t =
   | Auth : ('a, 'w, 'r) Auth.t -> ('a, 'w, 'r) t
   | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
   | Victor : ('w, 'w, Void.t) t
+[@@deriving madge_wrapped_endpoints]
+
+let all_endpoints = all
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Source endpoint -> "Source " ^ Source.to_string endpoint
@@ -25,25 +28,6 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Auth endpoint -> "Auth " ^ Auth.to_string endpoint
   | ReportIssue -> "ReportIssue"
   | Victor -> "Victor"
-
-type wrapped =
-  | W : ('a, 'r Lwt.t, 'r) t -> wrapped
-
-let all_endpoints =
-  List.flatten
-    [
-      List.map (fun (Source.W e) -> W (Source e)) Source.all;
-      List.map (fun (Person.W e) -> W (Person e)) Person.all;
-      List.map (fun (Book.W e) -> W (Book e)) Book.all;
-      List.map (fun (Version.W e) -> W (Version e)) Version.all;
-      List.map (fun (Dance.W e) -> W (Dance e)) Dance.all;
-      List.map (fun (Set.W e) -> W (Set e)) Set.all;
-      List.map (fun (Tune.W e) -> W (Tune e)) Tune.all;
-      List.map (fun (Any.W e) -> W (Any e)) Any.all;
-      List.map (fun (Auth.W e) -> W (Auth e)) Auth.all;
-      [W ReportIssue;
-      W Victor];
-    ]
 
 open Madge
 
