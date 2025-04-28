@@ -11,6 +11,7 @@ type (_, _, _) t =
 | Update : ((Book.t Slug.t -> Book.t -> 'w), 'w, Book.t Entry.t) t
 (* Files related to a book *)
 | Pdf : ((BookParameters.t -> Book.t Slug.t -> 'w), 'w, Void.t) t
+[@@deriving madge_wrapped_endpoints]
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"
@@ -18,10 +19,6 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Get -> "Get"
   | Update -> "Update"
   | Pdf -> "Pdf"
-
-(* FIXME: make a simple PPX for the following *)
-type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Get; W Search; W Create; W Update; W Pdf]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in

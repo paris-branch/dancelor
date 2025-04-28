@@ -8,6 +8,7 @@ type (_, _, _) t =
   | Logout : ('w, 'w, unit) t
   | CreateUser : ((string -> Person.t Slug.t -> 'w), 'w, string) t
   | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
+[@@deriving madge_wrapped_endpoints]
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Status -> "Status"
@@ -15,9 +16,6 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Logout -> "Logout"
   | CreateUser -> "CreateUser"
   | ResetPassword -> "ResetPassword"
-
-type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Status; W Login; W Logout; W CreateUser; W ResetPassword]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in

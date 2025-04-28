@@ -17,6 +17,7 @@ type (_, _, _) t =
 (* Files related to an anonymous version *)
 | PreviewSvg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
 | PreviewOgg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
+[@@deriving madge_wrapped_endpoints]
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"
@@ -29,22 +30,6 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Pdf -> "Pdf"
   | PreviewSvg -> "PreviewSvg"
   | PreviewOgg -> "PreviewOgg"
-
-(* FIXME: make a simple PPX for the following *)
-type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [
-  W Search;
-  W Create;
-  W Update;
-  W Ly;
-  W Svg;
-  W Ogg;
-  W Pdf;
-  W PreviewSvg;
-  W PreviewOgg;
-  (* WARNING: THE ORDER MATTERS *)
-  W Get;
-]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
    that is not used in the client. It would be better to have a clean way to

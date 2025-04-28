@@ -11,6 +11,7 @@ type (_, _, _) t =
 | Update : ((Source.t Slug.t -> Source.t -> 'w), 'w, Source.t Entry.t) t
 (* Files related to a source *)
 | Cover : ((Source.t Slug.t -> 'w), 'w, Void.t) t
+[@@deriving madge_wrapped_endpoints]
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"
@@ -18,9 +19,6 @@ let to_string : type a w r. (a, w, r) t -> string = function
   | Get -> "Get"
   | Update -> "Update"
   | Cover -> "Cover"
-
-type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Get; W Search; W Create; W Update; W Cover]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in

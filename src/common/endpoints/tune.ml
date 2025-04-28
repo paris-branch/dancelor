@@ -9,15 +9,13 @@ type (_, _, _) t =
 (* Actions on a specific tune *)
 | Get : ((Tune.t Slug.t -> 'w), 'w, Tune.t Entry.t) t
 | Update : ((Tune.t Slug.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
+[@@deriving madge_wrapped_endpoints]
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"
   | Search -> "Search"
   | Get -> "Get"
   | Update -> "Update"
-
-type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Get; W Search; W Create; W Update]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in

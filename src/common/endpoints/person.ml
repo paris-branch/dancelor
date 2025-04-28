@@ -9,15 +9,13 @@ type (_, _, _) t =
 (* Actions on a specific person *)
 | Get : ((Person.t Slug.t -> 'w), 'w, Person.t Entry.t) t
 | Update : ((Person.t Slug.t -> Person.t -> 'w), 'w, Person.t Entry.t) t
+[@@deriving madge_wrapped_endpoints]
 
 let to_string : type a w r. (a, w, r) t -> string = function
   | Create -> "Create"
   | Search -> "Search"
   | Get -> "Get"
   | Update -> "Update"
-
-type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
-let all = [W Get; W Search; W Create; W Update]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
