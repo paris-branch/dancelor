@@ -73,7 +73,7 @@ let rec apply
   string list ->
   Query.t ->
   Query.t ->
-  ((module JSONABLE with type t = r) -> w -> z) ->
+  ((module JSONABLE with type t = r) -> (unit -> w) -> z) ->
   (unit -> z) option
 = fun route controller meth path query body return ->
   match route with
@@ -81,7 +81,7 @@ let rec apply
     (
       Log.debug (fun m -> m "  Return (%s, <module R>)" (Request.meth_to_string meth'));
       if meth' = meth && path = [] && Query.is_empty query && Query.is_empty body then
-        Some (fun () -> return (module R) (controller ()))
+        Some (fun () -> return (module R) controller)
       else
         None
     )
@@ -150,7 +150,7 @@ let apply
   : type a w r z. (a, w, r) Route.t ->
   (unit -> a) ->
   Request.t ->
-  ((module JSONABLE with type t = r) -> w -> z) ->
+  ((module JSONABLE with type t = r) -> (unit -> w) -> z) ->
   (unit -> z) option
 = fun route controller {meth; uri; body} return ->
   Log.debug (fun m -> m "Madge.apply <route> <controller> <request> <return>");
@@ -164,4 +164,4 @@ let apply'
   Request.t ->
   (unit -> w) option
 = fun route controller request ->
-  apply route controller request (fun _ x -> x)
+  apply route controller request (fun _ f -> f ())

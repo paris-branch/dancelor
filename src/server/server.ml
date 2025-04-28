@@ -34,13 +34,7 @@ let apply_controller env request =
   in
   (* FIXME: We should just get a URI. *)
   match madge_match_apply_all Endpoints.Api.all with
-  | Some thunk ->
-    (
-      try%lwt
-        thunk ()
-      with
-        | Madge_server.Shortcut response -> Lwt.return response
-    )
+  | Some thunk -> thunk ()
   | None ->
     let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.Request.meth_to_string request.meth) request.body in
     let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in

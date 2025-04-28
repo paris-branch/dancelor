@@ -52,7 +52,7 @@ module Pdf = struct
     let%lwt set = Model.Set.get set in
     Permission.assert_can_get env set;%lwt
     let%lwt path_pdf = render parameters set in
-    Madge_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
 end
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Set.t -> a = fun env endpoint ->

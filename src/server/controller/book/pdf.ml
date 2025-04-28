@@ -34,4 +34,4 @@ let get env parameters book =
   let%lwt book = Model.Book.get book in
   Permission.assert_can_get env book;%lwt
   let%lwt path_pdf = render parameters book in
-  Madge_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+  Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

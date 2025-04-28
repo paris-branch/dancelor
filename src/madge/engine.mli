@@ -36,10 +36,10 @@ val apply :
   ('a, 'w, 'r) Route.t ->
   (unit -> 'a) ->
   Request.t ->
-  ((module JSONABLE with type t = 'r) -> 'w -> 'z) ->
+  ((module JSONABLE with type t = 'r) -> (unit -> 'w) -> 'z) ->
   (unit -> 'z) option
 (** Given a route, a controller, a request, and a continuation, check whether
     the route matches. If so, construct a thunk that calls the controller with
-    the correct arguments and passes its return value to the continuation.
-    Otherwise, return [None]. For instance, {!match_'} is simply [match_ route
-    controller request (fun _ x -> x)]. *)
+    the correct arguments and passes it to the continuation. Otherwise, return
+    [None]. For instance, {!match_'} is simply [match_ route controller request
+    (fun _ f -> f ())]. *)
