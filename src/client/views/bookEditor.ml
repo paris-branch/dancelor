@@ -110,7 +110,7 @@ module Editor = struct
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
           Lwt.map Result.ok @@
-            Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Set Search) slice filter
+            Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Set.get
@@ -136,8 +136,8 @@ module Editor = struct
       Lwt.map Option.some @@
         (
           match slug with
-          | None -> Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Book Create)
-          | Some slug -> Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Book Update) slug
+          | None -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create)
+          | Some slug -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) slug
         )
           (
             Model.Book.make

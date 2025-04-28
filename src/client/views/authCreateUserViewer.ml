@@ -36,7 +36,7 @@ let create () =
       ~search: (fun slice input ->
         let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
         Lwt.map Result.ok @@
-          Madge_cohttp_lwt_client.call
+          Madge_client.call_exn
             Endpoints.Api.(route @@ Person Search)
             slice
             filter
@@ -71,7 +71,7 @@ let create () =
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
           let (username, person) = Result.get_ok @@ S.value signal in
-          let%lwt token = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth CreateUser) username (Entry.slug person) in
+          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ Auth CreateUser) username (Entry.slug person) in
           open_token_result_dialog username token
         )
         ();

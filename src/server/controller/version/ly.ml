@@ -6,8 +6,8 @@ module Log = (val Logger.create "controller.version.ly": Logs.LOG)
 let get env version =
   let%lwt version = Model.Version.get version in
   Permission.assert_can_get env version;%lwt
-  let body = Model.Version.content version in
-  Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status: `OK ~body ()
+  let content = Model.Version.content version in
+  Madge_server.respond_string ~content_type: "application/x-lilypond" content
 
 let prepare_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");

@@ -59,7 +59,7 @@ module Pdf = struct
     let%lwt dance = Model.Dance.get dance_slug in
     Permission.assert_can_get env dance;%lwt
     let%lwt path_pdf = render env parameters dance in
-    Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_pdf ()
+    Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
 end
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a = fun env endpoint ->

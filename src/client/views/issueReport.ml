@@ -90,7 +90,7 @@ let open_dialog page =
               (S.value request_signal)
               ~none: Lwt.return_unit
               ~some: (fun request ->
-                let%lwt response = Madge_cohttp_lwt_client.call Endpoints.Api.(route ReportIssue) request in
+                let%lwt response = Madge_client.call_exn Endpoints.Api.(route ReportIssue) request in
                 return @@ Some response;
                 Lwt.return_unit
               )
