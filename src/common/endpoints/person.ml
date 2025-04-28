@@ -11,12 +11,6 @@ type (_, _, _) t =
 | Update : ((Person.t Slug.t -> Person.t -> 'w), 'w, Person.t Entry.t) t
 [@@deriving madge_wrapped_endpoints]
 
-let to_string : type a w r. (a, w, r) t -> string = function
-  | Create -> "Create"
-  | Search -> "Search"
-  | Get -> "Get"
-  | Update -> "Update"
-
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function

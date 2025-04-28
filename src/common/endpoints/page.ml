@@ -44,8 +44,6 @@ type (_, _, _) t =
   | AuthPasswordReset : ((string -> string -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
-let all_endpoints' = all'
-
 open Madge
 
 (* FIXME: Factorise adding the model prefixes. *)
@@ -151,6 +149,6 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     List.map_first_some @@ fun (W' page) ->
     Madge.apply' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
   in
-  match madge_match_apply_all @@ all_endpoints' () with
+  match madge_match_apply_all @@ all' () with
   | Some page -> page ()
   | None -> (* FIXME: 404 page *) assert false

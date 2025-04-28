@@ -33,7 +33,7 @@ let dispatch uri =
     List.map_first_some @@ fun (Endpoints.Page.W' endpoint) ->
     Madge.apply' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) {meth = GET; uri; body = ""}
   in
-  match madge_match_apply_all @@ Endpoints.Page.all_endpoints' () with
+  match madge_match_apply_all @@ Endpoints.Page.all' () with
   | Some page -> page ()
   | None -> OooopsViewer.create `Not_found
 

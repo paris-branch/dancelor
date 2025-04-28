@@ -7,10 +7,6 @@ type (_, _, _) t =
   | SearchContext : ((Any.Filter.t -> Any.t -> 'w), 'w, (int * Any.t option * int * Any.t option)) t
 [@@deriving madge_wrapped_endpoints]
 
-let to_string : type a w r. (a, w, r) t -> string = function
-  | Search -> "Search"
-  | SearchContext -> "SearchContext"
-
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function

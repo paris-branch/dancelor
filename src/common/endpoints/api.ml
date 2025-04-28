@@ -14,21 +14,6 @@ type (_, _, _) t =
   | Victor : ('w, 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
-let all_endpoints = all
-
-let to_string : type a w r. (a, w, r) t -> string = function
-  | Source endpoint -> "Source " ^ Source.to_string endpoint
-  | Person endpoint -> "Person " ^ Person.to_string endpoint
-  | Book endpoint -> "Book " ^ Book.to_string endpoint
-  | Version endpoint -> "Version " ^ Version.to_string endpoint
-  | Dance endpoint -> "Dance " ^ Dance.to_string endpoint
-  | Set endpoint -> "Set " ^ Set.to_string endpoint
-  | Tune endpoint -> "Tune " ^ Tune.to_string endpoint
-  | Any endpoint -> "Any " ^ Any.to_string endpoint
-  | Auth endpoint -> "Auth " ^ Auth.to_string endpoint
-  | ReportIssue -> "ReportIssue"
-  | Victor -> "Victor"
-
 open Madge
 
 (* FIXME: Factorise adding the `/api` prefix. *)

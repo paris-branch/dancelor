@@ -23,7 +23,7 @@ let apply_controller env request =
     | [] -> None
     | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
-        Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.to_string endpoint));
+        Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.name endpoint));
         match Madge_server.match_apply
           (Endpoints.Api.route endpoint)
           (fun () -> Controller.dispatch env endpoint)
@@ -33,7 +33,7 @@ let apply_controller env request =
       )
   in
   (* FIXME: We should just get a URI. *)
-  match madge_match_apply_all Endpoints.Api.all_endpoints with
+  match madge_match_apply_all Endpoints.Api.all with
   | Some thunk ->
     (
       try%lwt

@@ -19,18 +19,6 @@ type (_, _, _) t =
 | PreviewOgg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
-let to_string : type a w r. (a, w, r) t -> string = function
-  | Create -> "Create"
-  | Search -> "Search"
-  | Get -> "Get"
-  | Update -> "Update"
-  | Ly -> "Ly"
-  | Svg -> "Svg"
-  | Ogg -> "Ogg"
-  | Pdf -> "Pdf"
-  | PreviewSvg -> "PreviewSvg"
-  | PreviewOgg -> "PreviewOgg"
-
 (* NOTE: The version model contains its LilyPond content. This is a big string
    that is not used in the client. It would be better to have a clean way to
    describe fields that are not included by default, but for now we will just

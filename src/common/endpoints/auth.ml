@@ -10,13 +10,6 @@ type (_, _, _) t =
   | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
-let to_string : type a w r. (a, w, r) t -> string = function
-  | Status -> "Status"
-  | Login -> "Login"
-  | Logout -> "Logout"
-  | CreateUser -> "CreateUser"
-  | ResetPassword -> "ResetPassword"
-
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function

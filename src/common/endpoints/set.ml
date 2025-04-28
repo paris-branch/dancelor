@@ -14,14 +14,6 @@ type (_, _, _) t =
 | Pdf : ((SetParameters.t -> Set.t Slug.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
-let to_string : type a w r. (a, w, r) t -> string = function
-  | Create -> "Create"
-  | Search -> "Search"
-  | Get -> "Get"
-  | Update -> "Update"
-  | Delete -> "Delete"
-  | Pdf -> "Pdf"
-
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function

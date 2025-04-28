@@ -64,7 +64,16 @@
 
     In such a wrapping, the return type is lost, but it is possible to inject
     any type of one's choosing. The [unit ->] type is to avoid type issues where
-    ['w] cannot be generalised. *)
+    ['w] cannot be generalised.
+
+    As a bonus, this PPX also generates a value
+
+    {|
+      val endpoint_name : 'a 'w 'r. ('a, 'w, 'r) endpoint -> string
+    |}
+
+    giving a string representation of the endpoint's name. In the example above,
+    we would have [name (Lift Foo) = "Lift Foo"]. *)
 
 open Ppxlib
 open Ast_builder.Default
@@ -88,14 +97,22 @@ let all_names ~quot typ =
   (match typ with "t" -> "all" | _ -> "all_" ^ typ ^ "s") ^
     (if quot then "'" else "")
 
+let name_name = function
+  | "t" -> "name"
+  | typ -> typ ^ "_name"
+
 (** Generates one of:
+
     {|
       type wrapped_<name> = W_<name> : ('a, 'r Lwt.t, 'r) <name> -> wrapped_<name>
     |}
+
     or
+
     {|
       type 'w wrapped_<name>' = W_<name>' : ('a, 'w, 'r) <name> -> 'w wrapped_<name>'
     |}
+
     depending on the [~quot] argument. *)
 let generate_type_wrapped ~quot ~loc name =
   pstr_type ~loc Recursive [
@@ -147,6 +164,7 @@ let generate_type_wrapped ~quot ~loc name =
   ]
 
 (** Generates one of
+
     {|
       let all_<name>s : wrapped list =
         List.flatten
@@ -155,7 +173,9 @@ let generate_type_wrapped ~quot ~loc name =
             List.map (fun (W_<name2> endpoint) -> W_<name> (<Cstr2> endpoint)) all_<name2>s;
           ]
     |}
+
     or
+
     {|
       let all_<name>s' : unit -> 'w wrapped' list =
         fun () ->
@@ -165,6 +185,7 @@ let generate_type_wrapped ~quot ~loc name =
               List.map (fun (W_<name2>' endpoint) -> W_<name>' (<Cstr2> endpoint)) all_<name2>s';
             ]
     |}
+
     depending on the [~quot] argument. <name2> is the name of the type that
     <Cstr2> lifts. *)
 let generate_all_names ~quot ~loc name cds =
@@ -284,11 +305,97 @@ let generate_all_names ~quot ~loc name cds =
       )
   ]
 
+(** Generates
+
+    {|
+      let <name>_name (type a) (type w) (type r) (endpoint : (a, w, r) <name>) = *)
+        ((match endpoint with
+          | <Cstr1> -> "<Cstr1>"
+          | <Cstr2> endpoint -> "<Cstr2> " ^ <name2>_name endpoint)
+         : string)
+    |}
+
+    because generating the following was too complicated with the AST of 5.0.0:
+
+    {|
+      let <name>_name : type a w r. (a, w, r) <name> -> string = function
+        | <Cstr1> -> "<Cstr1>"
+        | <Cstr2> endpoint -> "<Cstr2> " ^ <name2>_name endpoint
+    |}
+*)
+let generate_name_function ~loc name cds =
+  pstr_value ~loc Nonrecursive [
+    value_binding
+      ~loc
+      ~pat: (ppat_var ~loc @@ Loc.make ~loc @@ name_name name)
+      ~expr: (
+        (* (type a) (type w) (type r) ... *)
+        pexp_newtype ~loc (Loc.make ~loc "a") @@
+        pexp_newtype ~loc (Loc.make ~loc "w") @@
+        pexp_newtype ~loc (Loc.make ~loc "r") @@
+        (* (endpoint : (a, w, r) <name>) ... *)
+        pexp_fun ~loc Nolabel None (
+          ppat_constraint
+            ~loc
+            (ppat_var ~loc @@ Loc.make ~loc "endpoint")
+            (
+              ptyp_constr ~loc (loc_lident ~loc name) [
+                ptyp_constr ~loc (loc_lident ~loc "a") [];
+                ptyp_constr ~loc (loc_lident ~loc "w") [];
+                ptyp_constr ~loc (loc_lident ~loc "r") [];
+              ]
+            )
+        ) @@
+        (* (... : string) *)
+        pexp_constraint
+          ~loc
+          (
+            (* match endpoint with ... *)
+            pexp_match ~loc (pexp_ident ~loc @@ loc_lident ~loc "endpoint") @@
+              List.map
+                (fun cd ->
+                  match cd.pcd_args with
+                  | Pcstr_tuple [] ->
+                    (* <Cstr1> -> "<Cstr1>" *)
+                    case
+                      ~lhs: (ppat_construct ~loc (loc_lident ~loc cd.pcd_name.txt) None)
+                      ~guard: None
+                      ~rhs: (pexp_constant ~loc @@ Pconst_string (cd.pcd_name.txt, loc, None))
+                  | Pcstr_tuple [{ptyp_desc = Ptyp_constr ({txt = long_name2; _}, _); _}] ->
+                    (* <Cstr2> endpoint -> "<Cstr2> " ^ <name2>_name endpoint *)
+                    case
+                      ~lhs: (
+                        ppat_construct ~loc (loc_lident ~loc cd.pcd_name.txt) (Some (ppat_var ~loc @@ Loc.make ~loc "endpoint"))
+                      )
+                      ~guard: None
+                      ~rhs: (
+                        pexp_apply ~loc (pexp_ident ~loc @@ loc_lident ~loc "(^)") [
+                          (Nolabel, pexp_constant ~loc @@ Pconst_string (cd.pcd_name.txt ^ " ", loc, None));
+                          (
+                            Nolabel,
+                            pexp_apply ~loc (pexp_ident ~loc @@ Loc.make ~loc @@ map_lident_last (name_name) long_name2) [
+                              (Nolabel, pexp_ident ~loc @@ loc_lident ~loc "endpoint")
+                            ]
+                          );
+                        ]
+                      )
+                  | _ ->
+                    Location.raise_errorf
+                      ~loc: cd.pcd_loc
+                      "ppx_madge_wrapped_endpoints: constructor with arguments not supported"
+                )
+                cds
+          )
+          (ptyp_constr ~loc (loc_lident ~loc "string") [])
+      )
+  ]
+
 let generate ~loc name cds = [
   generate_type_wrapped ~quot: false ~loc name;
   generate_type_wrapped ~quot: true ~loc name;
   generate_all_names ~quot: false ~loc name cds;
   generate_all_names ~quot: true ~loc name cds;
+  generate_name_function ~loc name cds;
 ]
 
 let generate ~loc ~path: _ (rec_flag, tds) =
