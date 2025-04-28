@@ -11,7 +11,7 @@ let create ?context slug =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in
     Lwt.map snd @@
-      Madge_cohttp_lwt_client.call
+      Madge_client.call
         Endpoints.Api.(route @@ Version Search)
         Slice.everything
         Formula.(

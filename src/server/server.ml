@@ -24,7 +24,7 @@ let apply_controller env request =
     | Endpoints.Api.W endpoint :: wrapped_endpoints ->
       (
         Log.debug (fun m -> m "Attempting to match endpoint %s" (Endpoints.Api.to_string endpoint));
-        match Madge_cohttp_lwt_server.match_apply
+        match Madge_server.match_apply
           (Endpoints.Api.route endpoint)
           (fun () -> Controller.dispatch env endpoint)
           request with
@@ -39,7 +39,7 @@ let apply_controller env request =
       try%lwt
         thunk ()
       with
-        | Madge_cohttp_lwt_server.Shortcut response -> Lwt.return response
+        | Madge_server.Shortcut response -> Lwt.return response
     )
   | None ->
     let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.meth_to_string request.meth) request.body in
@@ -70,7 +70,7 @@ let callback _ request body =
     ~place: "the callback"
     ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
     @@ fun () ->
-    let meth = Madge_cohttp_lwt_server.cohttp_code_meth_to_meth @@ Request.meth request in
+    let meth = Madge_server.cohttp_code_meth_to_meth @@ Request.meth request in
     let uri = Request.uri request in
     let path = Uri.path uri in
     Log.info (fun m -> m "%s %s" (Madge.meth_to_string meth) path);

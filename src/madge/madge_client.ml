@@ -36,18 +36,18 @@ let call
     try
       Yojson.Safe.from_string body
     with
-      | Yojson.Json_error _fixme -> failwith "Madge_cohttp_lwt_client.call: body is not JSON"
+      | Yojson.Json_error _fixme -> failwith "Madge_client.call: body is not JSON"
   in
   let status = Cohttp.Response.status response in
   if Cohttp.(Code.(is_success (code_of_status status))) then
     (
       match R.of_yojson body with
-      | Error msg -> failwith @@ "Madge_cohttp_lwt_client.call: body cannot be unserialised: " ^ msg
+      | Error msg -> failwith @@ "Madge_client.call: body cannot be unserialised: " ^ msg
       | Ok body -> Lwt.return body
     )
   else
     (
       match error_response_of_yojson body with
-      | Error msg -> failwith @@ "Madge_cohttp_lwt_client.call: error body cannot be unserialised: " ^ msg
+      | Error msg -> failwith @@ "Madge_client.call: error body cannot be unserialised: " ^ msg
       | Ok {message} -> on_error request status message
     )

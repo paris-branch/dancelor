@@ -48,7 +48,7 @@ let () =
           match exn with
           | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
           | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
-          | Madge_cohttp_lwt_client.HttpError {request; status; _} ->
+          | Madge_client.HttpError {request; status; _} ->
             Components.Toast.open_
               ~title: "Uncaught API call error"
               [

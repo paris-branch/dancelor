@@ -68,7 +68,7 @@ let create ?context slug =
               let%lwt tune = tune_lwt in
               let%lwt versions =
                 Lwt.map snd @@
-                Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Version Search) Slice.everything @@
+                Madge_client.call Endpoints.Api.(route @@ Version Search) Slice.everything @@
                 Version.Filter.tuneIs' tune
               in
               Lwt.return @@

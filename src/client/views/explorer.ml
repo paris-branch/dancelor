@@ -18,7 +18,7 @@ let create ?query () =
       ~search: (fun slice input ->
         let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
         Lwt.map Result.ok @@
-          Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Any Search) slice filter
+          Madge_client.call Endpoints.Api.(route @@ Any Search) slice filter
       )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
@@ -29,7 +29,7 @@ let create ?query () =
     [
       L.div
         (
-          match%lwt Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Auth Status) with
+          match%lwt Madge_client.call Endpoints.Api.(route @@ Auth Status) with
           | Some _ -> Lwt.return_nil
           | None ->
             Lwt.return [

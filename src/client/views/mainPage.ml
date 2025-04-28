@@ -18,7 +18,7 @@ let quick_search =
     ~search: (fun slice input ->
       let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
       Lwt.map Result.ok @@
-        Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Any Search) slice filter
+        Madge_client.call Endpoints.Api.(route @@ Any Search) slice filter
     )
     ()
 
@@ -244,7 +244,7 @@ let load_sleep_raise ?(delay = 1.) page =
     Lwt.fail ReplacementSuccessful
 
 let get_model_or_404 endpoint slug =
-  Madge_cohttp_lwt_client.call
+  Madge_client.call
     Endpoints.Api.(route @@ endpoint)
     slug
     ~on_error: (fun _ status _ -> load_sleep_raise (OooopsViewer.create status))

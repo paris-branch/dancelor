@@ -6,7 +6,7 @@
  (libraries
   cohttp-lwt-jsoo
   dancelor.common
-  dancelor.madge.cohttp-lwt-client
+  dancelor.madge.client
   dancelor.nes
   js_of_ocaml-lwt
   js_of_ocaml-tyxml

@@ -15,17 +15,17 @@
   (pps ppx_deriving_yojson)))
 
 (library
- (name madge_cohttp_lwt_client)
- (modules madge_cohttp_lwt_client)
- (public_name dancelor.madge.cohttp-lwt-client)
+ (name madge_client)
+ (modules madge_client)
+ (public_name dancelor.madge.client)
  (libraries dancelor.nes dancelor.madge cohttp-lwt-jsoo yojson)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 
 (library
- (name madge_cohttp_lwt_server)
- (modules madge_cohttp_lwt_server)
- (public_name dancelor.madge.cohttp-lwt-server)
+ (name madge_server)
+ (modules madge_server)
+ (public_name dancelor.madge.server)
  (libraries dancelor.madge dancelor.madge.query cohttp-lwt-unix)
  (preprocess
   (pps ppx_deriving_yojson lwt_ppx)))

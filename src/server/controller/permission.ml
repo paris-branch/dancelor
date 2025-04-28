@@ -23,7 +23,7 @@ let assert_can_get env entry =
   else
     (
       Log.info (fun m -> m "Refusing get access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
-      Madge_cohttp_lwt_server.shortcut' `Not_found
+      Madge_server.shortcut' `Not_found
     )
 
 (** {2 Creating} *)
@@ -40,7 +40,7 @@ let assert_can_create env =
   else
     (
       Log.info (fun m -> m "Refusing create access to %a." Environment.pp env);
-      Madge_cohttp_lwt_server.shortcut' `Forbidden
+      Madge_server.shortcut' `Forbidden
     )
 
 (** {2 Updating} *)
@@ -57,7 +57,7 @@ let assert_can_update env entry =
   else
     (
       Log.info (fun m -> m "Refusing update access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
-      Madge_cohttp_lwt_server.shortcut' `Forbidden
+      Madge_server.shortcut' `Forbidden
     )
 
 (** {2 Deleting} *)
@@ -74,7 +74,7 @@ let assert_can_delete env entry =
   else
     (
       Log.info (fun m -> m "Refusing delete access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
-      Madge_cohttp_lwt_server.shortcut' `Forbidden
+      Madge_server.shortcut' `Forbidden
     )
 
 (** {2 Administrating} *)
@@ -91,5 +91,5 @@ let assert_can_admin env =
   else
     (
       Log.info (fun m -> m "Refusing admin access to %a." Environment.pp env);
-      Madge_cohttp_lwt_server.shortcut' `Forbidden
+      Madge_server.shortcut' `Forbidden
     )

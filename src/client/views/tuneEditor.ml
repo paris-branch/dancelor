@@ -92,7 +92,7 @@ module Editor = struct
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
           Lwt.map Result.ok @@
-            Madge_cohttp_lwt_client.call
+            Madge_client.call
               Endpoints.Api.(route @@ Person Search)
               slice
               filter
@@ -114,7 +114,7 @@ module Editor = struct
         ~search: (fun slice input ->
           let%rlwt filter = Lwt.return (Model.Dance.Filter.from_string input) in
           Lwt.map Result.ok @@
-            Madge_cohttp_lwt_client.call
+            Madge_client.call
               Endpoints.Api.(route @@ Dance Search)
               slice
               filter
@@ -152,7 +152,7 @@ module Editor = struct
     | None -> Lwt.return_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
       Lwt.map Option.some @@
-      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Tune Create) @@
+      Madge_client.call Endpoints.Api.(route @@ Tune Create) @@
       Model.Tune.make
         ~name
         ~kind

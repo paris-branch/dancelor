@@ -8,7 +8,7 @@
   dancelor.nes
   dancelor.common
   dancelor.lilypond
-  dancelor.madge.cohttp-lwt-server
+  dancelor.madge.server
   logs
   lwt.unix
   str

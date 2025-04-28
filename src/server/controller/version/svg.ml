@@ -37,7 +37,7 @@ let get env parameters version =
   let%lwt version = Model.Version.get version in
   Permission.assert_can_get env version;%lwt
   let%lwt path_svg = render parameters version in
-  Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
+  Madge_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
 
 let preview_slug = Slug.check_string_exn "preview"
 let preview env parameters version =
@@ -45,4 +45,4 @@ let preview env parameters version =
   Permission.assert_can_create env;%lwt
   let version = Entry.make ~slug: preview_slug version in
   let%lwt path_svg = render parameters version in
-  Madge_cohttp_lwt_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()
+  Madge_server.shortcut @@ Cohttp_lwt_unix.Server.respond_file ~fname: path_svg ()

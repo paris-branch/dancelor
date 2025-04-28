@@ -31,7 +31,7 @@ end)
 
 let get_cover env slug =
   Lwt.bind (get env slug) (Permission.assert_can_get env);%lwt
-  Madge_cohttp_lwt_server.shortcut @@
+  Madge_server.shortcut @@
   Database.Source.with_cover slug @@ fun fname ->
   let fname = Option.value fname ~default: (Filename.concat !Config.share "no-cover.webp") in
   Cohttp_lwt_unix.Server.respond_file ~fname ()

@@ -3,7 +3,7 @@ open Common
 
 include ModelBuilder.Version.Build(Source)(Person)(Tune)
 
-let get = Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Version Get)
+let get = Madge_client.call Endpoints.Api.(route @@ Version Get)
 
 module Parameters = struct
   include ModelBuilder.Version.Parameters

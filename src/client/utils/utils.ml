@@ -47,7 +47,7 @@ let quick_explorer_links links =
                   filter_lwt
                   (
                     Lwt.map fst %
-                      Madge_cohttp_lwt_client.call Endpoints.Api.(route @@ Any Search) Slice.nothing
+                      Madge_client.call Endpoints.Api.(route @@ Any Search) Slice.nothing
                   )
               in
               li
