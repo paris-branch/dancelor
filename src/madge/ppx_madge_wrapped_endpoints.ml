@@ -1,3 +1,71 @@
+(** {1 Madge's endpoints wrapper}
+
+    Madge features GADT-style endpoints that carry extra type information. This
+    makes it hard to manipulate lists of endpoints. However, it is frequent to
+    want to iterate over all endpoints to find one that might be matching, for
+    instance. The solution for this purpose is to use another GADT to hide the
+    type information. Typically, one would do:
+
+    {|
+      type wrapped = W : ('a, 'w, 'r) endpoint -> wrapped
+    |}
+
+    or, in fact, more useful:
+
+    {|
+      type wrapped = W : ('a, 'r Lwt.t, 'r) endpoint -> wrapped
+    |}
+
+    One can then put values of type [wrapped] in the same list without issue.
+    When matching on [W] and getting the value it wraps, the type equalities
+    will still be there, happily waiting, and we will be able to use the
+    endpoint in question.
+
+    This PPX automatises the definition of this type, and, more importantly, the
+    definition of a value, [all], containing all the endpoints of the given
+    type, wrapped. The usage is as follows:
+
+    {|
+      type ('a, 'w, 'r) sub_endpoint =
+        | Foo : ((string -> 'w), 'w, int) sub_endpoint
+      [@@deriving madge_wrapped_endpoints]
+
+      type ('a, 'w, 'r) t =
+        | Bar : ((float -> 'w), 'w, bool) t
+        | Lift : ('a, 'w, 'r) sub_endpont -> ('a, 'w, 'r) t
+      [@@deriving madge_wrapped_endpoints]
+    |}
+
+    This will generate, among other things:
+
+    {|
+      type wrapped_sub_endpoint = W_sub_endpoint : ('a, 'r Lwt.t, 'r) sub_endpoint -> wrapped_sub_endpoint
+      let all_sub_endpoints : wrapped_sub_endpoint list = [W_sub_endpoint Foo]
+
+      type wrapped = W : ('a, 'r Lwt.t, 'r) t -> wrapped
+      let all : wrapped list = List.flatten [
+        [W Bar];
+        List.map (fun (W_sub_endpoint e) -> W (Lift e)) all_sub_endpoints;
+      ]
+    |}
+
+    allowing to iterate on [all] endpoints easily.
+
+    Sometimes, however, one wants to match on all endpoints, but not with the
+    goal of applying the corresponding constructors. For this reason, this PPX
+    also produces:
+
+    {|
+      type 'w wrapped_endpoint' =
+        W_endpoint' : ('a, 'w, 'r) endpoint -> 'w wrapped_endpoint'
+
+      val all_endpoints' : unit -> 'w wrapped_endpoint' list
+    |}
+
+    In such a wrapping, the return type is lost, but it is possible to inject
+    any type of one's choosing. The [unit ->] type is to avoid type issues where
+    ['w] cannot be generalised. *)
+
 open Ppxlib
 open Ast_builder.Default
 
