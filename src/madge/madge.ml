@@ -80,8 +80,8 @@ exception IllegalBodyInGetRequest
 
 let rec process
   : type a w r. string ->
-  Madge_query.t ->
-  Madge_query.t ->
+  Query.t ->
+  Query.t ->
   (a, w, r) route ->
   ((module JSONABLE with type t = r) -> request -> w) ->
   a
@@ -89,16 +89,16 @@ let rec process
   match route with
   | Return (meth, (module R)) ->
     (
-      let uri = Uri.make ~path ~query: (Madge_query.to_strings query) () in
+      let uri = Uri.make ~path ~query: (Query.to_strings query) () in
       let body =
         if meth = GET then
           (
-            if not (Madge_query.is_empty body) then
+            if not (Query.is_empty body) then
               raise IllegalBodyInGetRequest;
             ""
           )
         else
-          Yojson.Safe.to_string @@ `Assoc (Madge_query.to_list body)
+          Yojson.Safe.to_string @@ `Assoc (Query.to_list body)
       in
       return (module R) {meth; uri; body}
     )
@@ -114,8 +114,8 @@ let rec process
         | Some x ->
           let (query, body) =
             match source with
-            | Uri -> (Madge_query.add name (R.to_yojson x) query, body)
-            | Body -> (query, Madge_query.add name (R.to_yojson x) body)
+            | Uri -> (Query.add name (R.to_yojson x) query, body)
+            | Body -> (query, Query.add name (R.to_yojson x) body)
           in
           process path query body route return
     )
@@ -125,7 +125,7 @@ let process
   ((module JSONABLE with type t = r) -> request -> w) ->
   a
 = fun route return ->
-  process "" Madge_query.empty Madge_query.empty route return
+  process "" Query.empty Query.empty route return
 
 (* NOTE: The [controller] is in a thunk to avoid it being ran halfway as we find
    its last argument. It is actually run at the end when all is green. *)
@@ -134,8 +134,8 @@ let rec match_
   (unit -> a) ->
   meth ->
   string list ->
-  Madge_query.t ->
-  Madge_query.t ->
+  Query.t ->
+  Query.t ->
   ((module JSONABLE with type t = r) -> w -> z) ->
   (unit -> z) option
 = fun route controller meth path query body return ->
@@ -143,7 +143,7 @@ let rec match_
   | Return (meth', (module R)) ->
     (
       Log.debug (fun m -> m "  Return (%s, <module R>)" (meth_to_string meth'));
-      if meth' = meth && path = [] && Madge_query.is_empty query && Madge_query.is_empty body then
+      if meth' = meth && path = [] && Query.is_empty query && Query.is_empty body then
         Some (fun () -> return (module R) (controller ()))
       else
         None
@@ -177,7 +177,7 @@ let rec match_
     (
       Log.debug (fun m -> m "  Query (\"%s\", <proxy>, ???, <module R>, <route>)" name);
       let extract_and_parse =
-        match (source, Madge_query.extract name query, Madge_query.extract name body) with
+        match (source, Query.extract name query, Query.extract name body) with
         | (Uri, None, _) ->
           Log.debug (fun m -> m "    Could not find query argument `%s`" name);
           Ok (None, query, body) (* absent: OK *)
@@ -218,8 +218,8 @@ let match_
 = fun route controller {meth; uri; body} return ->
   Log.debug (fun m -> m "Madge.match_ <route> <controller> <request> <return>");
   let path = List.filter ((<>) "") (String.split_on_char '/' (Uri.path uri)) in
-  Option.bind (Madge_query.from_uri uri) @@ fun uri_query ->
-  match_ route controller meth path uri_query (Madge_query.from_body body) return
+  Option.bind (Query.from_uri uri) @@ fun uri_query ->
+  match_ route controller meth path uri_query (Query.from_body body) return
 
 let match_'
   : type a w r. (a, w, r) route ->
