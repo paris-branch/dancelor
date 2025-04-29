@@ -20,7 +20,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | Set endpoint -> Set.dispatch env endpoint
   | Tune endpoint -> Tune.dispatch env endpoint
   | Any endpoint -> Any.dispatch env endpoint
-  | Auth endpoint -> Auth.dispatch env endpoint
+  | User endpoint -> User.dispatch env endpoint
   | ReportIssue -> IssueReport.report env
   | Victor ->
     Log.debug (fun m -> m "Triggering controller for Victor");

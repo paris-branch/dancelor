@@ -16,7 +16,7 @@ let open_token_result_dialog username token =
       txt " was created successfully. Pass them the following link: ";
     ];
     p [
-      let href = Endpoints.Page.(href AuthPasswordReset) username token in
+      let href = Endpoints.Page.(href UserPasswordReset) username token in
       a ~a: [a_href href] [txt href]
     ];
     p [
@@ -71,7 +71,7 @@ let create () =
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
           let (username, person) = Result.get_ok @@ S.value signal in
-          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ Auth CreateUser) username (Entry.slug person) in
+          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username (Entry.slug person) in
           open_token_result_dialog username token
         )
         ();

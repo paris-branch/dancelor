@@ -149,7 +149,7 @@ let header =
                             ]
                         );
                     ];
-                  Auth.header_item;
+                  UserHeader.header_item;
                 ];
             ];
           Components.Button.make

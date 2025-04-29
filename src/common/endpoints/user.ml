@@ -6,7 +6,7 @@ type (_, _, _) t =
   | Status : ('w, 'w, User.t Entry.t option) t
   | SignIn : ((string -> string -> bool -> 'w), 'w, User.t Entry.t option) t
   | SignOut : ('w, 'w, unit) t
-  | CreateUser : ((string -> Person.t Slug.t -> 'w), 'w, string) t
+  | Create : ((string -> Person.t Slug.t -> 'w), 'w, string) t
   | ResetPassword : ((string -> string -> string -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
@@ -16,5 +16,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Status -> literal "status" @@ post (module JOption(Entry.J(User)))
     | SignIn -> literal "sign-in" @@ body "username" (module JString) @@ body "password" (module JString) @@ body "remember-me" (module JBool) @@ post (module JOption(Entry.J(User)))
     | SignOut -> literal "sign-out" @@ post (module JUnit)
-    | CreateUser -> literal "create-user" @@ body "username" (module JString) @@ body "person" (module JSlug(Person)) @@ post (module JString)
+    | Create -> literal "create" @@ body "username" (module JString) @@ body "person" (module JSlug(Person)) @@ post (module JString)
     | ResetPassword -> literal "reset-password" @@ body "username" (module JString) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)

@@ -12,7 +12,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-class TestAuthAndPermissions():
+class TestUserAndPermissions():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
@@ -23,7 +23,7 @@ class TestAuthAndPermissions():
   def teardown_method(self, method):
     self.driver.quit()
 
-  def test_auth_and_permissions(self):
+  def test_sign_in_permissions_sign_out(self):
     self.driver.get("http://localhost:8080/person/a-private-person")
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Oooops')]")
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Sign in')]").click()

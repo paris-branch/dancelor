@@ -9,7 +9,7 @@ type (_, _, _) t =
   | Set : ('a, 'w, 'r) Set.t -> ('a, 'w, 'r) t
   | Tune : ('a, 'w, 'r) Tune.t -> ('a, 'w, 'r) t
   | Any : ('a, 'w, 'r) Any.t -> ('a, 'w, 'r) t
-  | Auth : ('a, 'w, 'r) Auth.t -> ('a, 'w, 'r) t
+  | User : ('a, 'w, 'r) User.t -> ('a, 'w, 'r) t
   | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
   | Victor : ('w, 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
@@ -28,7 +28,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Set endpoint -> literal "api" @@ literal "set" @@ Set.route endpoint
     | Tune endpoint -> literal "api" @@ literal "tune" @@ Tune.route endpoint
     | Any endpoint -> literal "api" @@ literal "any" @@ Any.route endpoint
-    | Auth endpoint -> literal "api" @@ literal "auth" @@ Auth.route endpoint
+    | User endpoint -> literal "api" @@ literal "user" @@ User.route endpoint
     | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
     | Victor -> literal "api" @@ literal "victor" @@ void ()
 

@@ -1,7 +1,7 @@
 open NesUnix
 open Common
 
-module Log = (val Logger.create "controller.auth": Logs.LOG)
+module Log = (val Logger.create "controller.user": Logs.LOG)
 
 let status = Lwt.return % Environment.user
 
@@ -39,7 +39,7 @@ let sign_out env =
   | None -> Lwt.return_unit
   | Some user -> Environment.sign_out env user
 
-let create_user env username person =
+let create env username person =
   Permission.assert_can_admin env;%lwt
   let%lwt person = Person.get env person in
   match Slug.check_string username with
@@ -95,10 +95,10 @@ let reset_password username token password =
             Lwt.return_unit
           )
 
-let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Auth.t -> a = fun env endpoint ->
+let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
   | Status -> status env
   | SignIn -> sign_in env
   | SignOut -> sign_out env
-  | CreateUser -> create_user env
+  | Create -> create env
   | ResetPassword -> reset_password
