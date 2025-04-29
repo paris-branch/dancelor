@@ -114,11 +114,11 @@ let header_item =
               ~onclick: open_sign_in_dialog
               ()
           ]
-        | Some person ->
+        | Some user ->
           [
             button
               ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-              [txt (Model.Person.name person)];
+              [L.txt (Lwt.map Model.Person.name (Model.User.person user))];
             ul
               ~a: [a_class ["dropdown-menu"]]
               [

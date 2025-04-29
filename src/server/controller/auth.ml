@@ -3,7 +3,7 @@ open Common
 
 module Log = (val Logger.create "controller.auth": Logs.LOG)
 
-let status = Lwt_option.map' Model.User.person % Environment.user
+let status = Lwt.return % Environment.user
 
 let sign_in env username password remember_me =
   Log.info (fun m -> m "Attempt to sign in with username `%s`." username);
@@ -32,7 +32,7 @@ let sign_in env username password remember_me =
         | Some _ ->
           Environment.sign_in env user ~remember_me;%lwt
           Log.info (fun m -> m "Accepted sign in for %a." Environment.pp env);
-          Lwt.map Option.some @@ Model.User.person user
+          Lwt.return_some user
 
 let sign_out env =
   match Environment.user env with
