@@ -26,7 +26,7 @@ let login env username password remember_me =
         | None ->
           Log.info (fun m -> m "Rejecting because user has no password.");
           Lwt.return_none
-        | Some hashedPassword when not @@ HashedPassword.is ~clear: password hashedPassword ->
+        | Some hashedPassword when not @@ HashedSecret.is ~clear: password hashedPassword ->
           Log.info (fun m -> m "Rejecting because passwords do not match.");
           Lwt.return_none
         | Some _ ->
@@ -46,7 +46,7 @@ let create_user env username person =
   | None -> Madge_server.respond_bad_request "The username does not have the right shape."
   | Some username ->
     let token = uid () in
-    let hashed_token = (HashedPassword.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
+    let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
     let%lwt _user =
       Database.User.create_with_slug username @@
         Database.UserModel.make
@@ -76,7 +76,7 @@ let reset_password username token password =
         Log.info (fun m -> m "Rejecting because token is too old.");
         Madge_server.respond_forbidden_no_leak ()
       | Some (hashed_token, _) ->
-        if not @@ HashedPassword.is ~clear: token hashed_token then
+        if not @@ HashedSecret.is ~clear: token hashed_token then
           (
             Log.info (fun m -> m "Rejecting because tokens do no match.");
             Madge_server.respond_forbidden_no_leak ()
@@ -84,7 +84,7 @@ let reset_password username token password =
         else
           (
             Log.info (fun m -> m "Accepting to reset password.");
-            let password = HashedPassword.make ~clear: password in
+            let password = HashedSecret.make ~clear: password in
             Lwt.map ignore @@
               Database.User.update
                 (Entry.slug user)

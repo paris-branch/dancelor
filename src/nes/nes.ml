@@ -29,7 +29,8 @@ module Slug = NesSlug
 module Link = NesLink
 module Void = NesVoid
 module Lwt_option = NesLwt_option
-module Password = Password
+module Password = NesPassword
+module HashedSecret = NesHashedSecret
 
 (* Monads *)
 

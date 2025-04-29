@@ -75,7 +75,7 @@ let process_remember_me_cookie session_id session remember_me_cookie =
         | Some (_, token_max_date) when Datetime.in_the_past token_max_date ->
           Log.info (fun m -> m "Rejecting because token is too old.");
           Lwt.return_unit
-        | Some (hashed_token, _) when not @@ HashedPassword.is ~clear: token hashed_token ->
+        | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: token hashed_token ->
           Log.info (fun m -> m "Rejecting because tokens do not match.");
           Lwt.return_unit
         | Some _ ->
@@ -165,7 +165,7 @@ let login env user ~remember_me =
   Lwt.if_' remember_me (fun () ->
     let token = uid () in
     (
-      let hashed_token = HashedPassword.make ~clear: token in
+      let hashed_token = HashedSecret.make ~clear: token in
       (* the max date stored in database is one more minute than the max age that
          will be sent as cookie, to be sure not to lie to our clients *)
       let max_date = Datetime.make_in_the_future (float_of_int @@ 60 + remember_me_token_max_age) in
