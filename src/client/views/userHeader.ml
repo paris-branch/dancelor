@@ -11,10 +11,14 @@ let open_sign_in_dialog () =
     Input.Text.make' "" (fun username ->
       S.bind status_signal @@ fun status ->
       S.const @@
-        match username, status with
-        | "", _ -> Error "The username cannot be empty."
-        | _, Invalid -> Error "Invalid username or password."
-        | _, DontKnow -> Ok username
+        if username = "" then Error "The username cannot be empty."
+        else
+          match Slug.check_string username with
+          | None -> Error "This does not look like a username."
+          | Some username ->
+            match status with
+            | Invalid -> Error "Invalid username or password."
+            | DontKnow -> Ok username
     )
   in
   let password_input =

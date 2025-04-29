@@ -17,10 +17,10 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific book *)
-    | Create -> query "book" (module Book) @@ post (module Entry.J(Book))
+    | Create -> body "book" (module Book) @@ post (module Entry.J(Book))
     | Search -> query "slice" (module Slice) @@ query "filter" (module Book.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Book))))
     (* Actions on a specific book *)
     | Get -> variable (module SSlug(Book)) @@ get (module Entry.J(Book))
-    | Update -> variable (module SSlug(Book)) @@ query "book" (module Book) @@ put (module Entry.J(Book))
+    | Update -> variable (module SSlug(Book)) @@ body "book" (module Book) @@ put (module Entry.J(Book))
     (* Files related to a book *)
     | Pdf -> query "parameters" (module BookParameters) @@ variable (module SSlug(Book)) ~suffix: ".pdf" @@ void ()

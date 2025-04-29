@@ -5,18 +5,18 @@ open Html
 
 type status = Match | DontMatch
 
-let open_token_result_dialog username token =
+let open_token_result_dialog user token =
   Lwt.map ignore @@
   Page.open_dialog @@ fun return ->
   Page.make
     ~title: (S.const "Created user")
     [p [
       txt "User ";
-      txt username;
+      txt (Entry.slug_as_string user);
       txt " was created successfully. Pass them the following link: ";
     ];
     p [
-      let href = Endpoints.Page.(href UserPasswordReset) username token in
+      let href = Endpoints.Page.(href UserPasswordReset) (Entry.slug user) token in
       a ~a: [a_href href] [txt href]
     ];
     p [
@@ -27,8 +27,13 @@ let open_token_result_dialog username token =
 
 let create () =
   let username_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "The username cannot be empty."
+    Input.Text.make "" (fun username ->
+      if username = "" then Error "The username cannot be empty."
+      else
+        match Slug.check_string username with
+        | None -> Error "This does not look like a username."
+        | Some username -> Ok username
+    )
   in
   let person_selector =
     Selector.make
@@ -71,8 +76,9 @@ let create () =
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
           let (username, person) = Result.get_ok @@ S.value signal in
-          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username (Entry.slug person) in
-          open_token_result_dialog username token
+          let user = Model.User.make ~person () in
+          let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username user in
+          open_token_result_dialog user token
         )
         ();
     ]

@@ -29,7 +29,7 @@ let create username token =
     ~title: (S.const "Reset password")
     [Input.inactive
       ~label: "Username"
-      username;
+      (Slug.to_string username);
     Input.Text.render
       password1_input
       ~password: true

@@ -6,63 +6,54 @@ module Log = (val Logger.create "controller.user": Logs.LOG)
 let status = Lwt.return % Environment.user
 
 let sign_in env username password remember_me =
-  Log.info (fun m -> m "Attempt to sign in with username `%s`." username);
+  Log.info (fun m -> m "Attempt to sign in with username `%s`." (Slug.to_string username));
   match Environment.user env with
   | Some _user ->
     Log.info (fun m -> m "Rejecting because already signed in.");
     Lwt.return_none
   | None ->
-    match Slug.check_string username with
+    match%lwt Database.User.get_opt username with
     | None ->
-      Log.info (fun m -> m "Rejecting because username is not even a slug.");
+      Log.info (fun m -> m "Rejecting because of wrong username.");
       Lwt.return_none
-    | Some username ->
-      match%lwt Database.User.get_opt username with
+    | Some user ->
+      match Model.User.password user with
       | None ->
-        Log.info (fun m -> m "Rejecting because of wrong username.");
+        Log.info (fun m -> m "Rejecting because user has no password.");
         Lwt.return_none
-      | Some user ->
-        match Model.User.password user with
-        | None ->
-          Log.info (fun m -> m "Rejecting because user has no password.");
-          Lwt.return_none
-        | Some hashedPassword when not @@ HashedSecret.is ~clear: password hashedPassword ->
-          Log.info (fun m -> m "Rejecting because passwords do not match.");
-          Lwt.return_none
-        | Some _ ->
-          Environment.sign_in env user ~remember_me;%lwt
-          Log.info (fun m -> m "Accepted sign in for %a." Environment.pp env);
-          Lwt.return_some user
+      | Some hashedPassword when not @@ HashedSecret.is ~clear: password hashedPassword ->
+        Log.info (fun m -> m "Rejecting because passwords do not match.");
+        Lwt.return_none
+      | Some _ ->
+        Environment.sign_in env user ~remember_me;%lwt
+        Log.info (fun m -> m "Accepted sign in for %a." Environment.pp env);
+        Lwt.return_some user
 
 let sign_out env =
   match Environment.user env with
   | None -> Lwt.return_unit
   | Some user -> Environment.sign_out env user
 
-let create env username person =
+let create env username user =
   Permission.assert_can_admin env;%lwt
-  let%lwt person = Person.get env person in
-  match Slug.check_string username with
-  | None -> Madge_server.respond_bad_request "The username does not have the right shape."
-  | Some username ->
+  match Slug.check username with
+  | false -> Madge_server.respond_bad_request "The username does not have the right shape."
+  | true ->
     let token = uid () in
     let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
-    let%lwt _user =
+    let%lwt user =
       Database.User.create_with_slug username @@
-        Model.User.make
-          ~person
-          ~password_reset_token: hashed_token
-          ()
+        Model.User.update user ~password_reset_token: (Some hashed_token)
     in
-    Lwt.return token
+    Lwt.return (user, token)
 
 let reset_password username token password =
-  Log.info (fun m -> m "Attempt to reset password for user `%s`." username);
-  match Slug.check_string username with
-  | None ->
+  Log.info (fun m -> m "Attempt to reset password for user `%a`." Slug.pp' username);
+  match Slug.check username with
+  | false ->
     Log.info (fun m -> m "Rejecting because username is not even a slug.");
     Madge_server.respond_bad_request "The username does not have the right shape."
-  | Some username ->
+  | true ->
     match%lwt Database.User.get_opt username with
     | None ->
       Log.info (fun m -> m "Rejecting because of wrong username.");

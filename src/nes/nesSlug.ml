@@ -4,6 +4,10 @@ let none = None
 
 let is_none = (=) None
 
+let check = function
+  | None -> true
+  | Some s -> NesString.is_slug s
+
 let check_string s =
   if NesString.is_slug s then
     Some (Some s)

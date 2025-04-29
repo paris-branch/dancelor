@@ -45,7 +45,7 @@ type (_, _, _) t =
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | UserCreate : ('w, 'w, Void.t) t
-  | UserPasswordReset : ((string -> string -> 'w), 'w, Void.t) t
+  | UserPasswordReset : ((User.t Slug.t -> string -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 open Madge
@@ -72,7 +72,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
     | UserCreate -> literal "user" @@ literal "create" @@ void ()
-    | UserPasswordReset -> literal "user" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
+    | UserPasswordReset -> literal "user" @@ literal "reset-password" @@ query "username" (module JSlug(User)) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) {meth; uri; _} ->

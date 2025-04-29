@@ -17,10 +17,10 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without a specific dance *)
-    | Create -> query "dance" (module Dance) @@ post (module Entry.J(Dance))
+    | Create -> body "dance" (module Dance) @@ post (module Entry.J(Dance))
     | Search -> query "slice" (module Slice) @@ query "filter" (module Dance.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Dance))))
     (* Actions on a specific dance *)
     | Get -> variable (module SSlug(Dance)) @@ get (module Entry.J(Dance))
-    | Update -> variable (module SSlug(Dance)) @@ query "dance" (module Dance) @@ put (module Entry.J(Dance))
+    | Update -> variable (module SSlug(Dance)) @@ body "dance" (module Dance) @@ put (module Entry.J(Dance))
     (* Files related to a dance *)
     | Pdf -> query "parameters" (module SetParameters) @@ variable (module SSlug(Dance)) ~suffix: ".pdf" @@ void ()
