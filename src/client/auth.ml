@@ -67,7 +67,7 @@ let open_login_dialog () =
         Button.make
           ~label: "Sign in"
           ~label_processing: "Signing in..."
-          ~icon: "door-open"
+          ~icon: "box-arrow-in-right"
           ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)
           ~onclick: (fun () ->
@@ -107,13 +107,12 @@ let header_item =
       Fun.flip Lwt.map status_lwt @@ function
         | None ->
           [
-            button
-              ~a: [
-                a_button_type `Button;
-                a_class ["btn"; "btn-primary"];
-                a_onclick (fun _ev -> Lwt.async open_login_dialog; false);
-              ]
-              [txt "Login"];
+            Components.Button.make
+              ~label: "Sign in"
+              ~icon: "box-arrow-in-right"
+              ~classes: ["btn-primary"]
+              ~onclick: open_login_dialog
+              ()
           ]
         | Some person ->
           [
@@ -124,12 +123,12 @@ let header_item =
               ~a: [a_class ["dropdown-menu"]]
               [
                 li [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_onclick (fun _ev -> Lwt.async logout; false);
-                    ]
-                    [txt "Logout"];
+                  Components.Button.make
+                    ~label: "Sign out"
+                    ~icon: "box-arrow-right"
+                    ~classes: ["dropdown-item"]
+                    ~onclick: logout
+                    ()
                 ];
               ];
           ]
