@@ -25,30 +25,44 @@ type t = {
 }
 [@@deriving fields]
 
-let pp' fmt (session_id, session, _response_cookies) =
+let pp fmt env =
   fpf
     fmt
     "%s [%s, expires %a]"
     (
-      match !session.user with
+      match !(env.session).user with
       | None -> "<anynomous>"
       | Some user -> Entry.slug_as_string user
     )
-    session_id
+    env.session_id
     Datetime.pp
-    !session.expires
-
-let pp fmt {session_id; session; response_cookies} =
-  pp' fmt (session_id, session, response_cookies)
+    !(env.session).expires
 
 let user = user % (!) % session
+
+let register_response_cookie env cookie =
+  env.response_cookies := cookie :: !(env.response_cookies)
+
+let add_cookie ?max_age ?path ?(secure = false) ?(httpOnly = false) key value headers =
+  Cohttp.Header.add headers "Set-Cookie" @@
+  (key ^ "=" ^ value) ^
+  (match path with None -> "" | Some path -> "; Path=" ^ path) ^
+  (match secure with false -> "" | true -> "; Secure") ^
+  (match httpOnly with false -> "" | true -> "; HttpOnly") ^
+    (match max_age with None -> "" | Some max_age -> "; Max-Age=" ^ string_of_int max_age)
+
+let delete_cookie ?path key headers =
+  Cohttp.Header.add headers "Set-Cookie" @@
+  (key ^ "=deleted") ^
+  (match path with None -> "" | Some path -> "; Path=" ^ path) ^
+  "; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
 
 (* A hash table linking session ids to sessions. *)
 let sessions : (string, session) Hashtbl.t = Hashtbl.create 8
 
-let set_user session_id session user =
-  session := {!session with user = Some user};
-  Hashtbl.replace sessions session_id !session
+let set_user env user =
+  env.session := {!(env.session) with user = Some user};
+  Hashtbl.replace sessions env.session_id !(env.session)
 
 (** Helper to update the user in the database. *)
 let database_update_user user f =
@@ -58,7 +72,7 @@ let database_update_user user f =
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
    transient environment. *)
-let process_remember_me_cookie session_id session remember_me_cookie =
+let process_remember_me_cookie env remember_me_cookie =
   match String.split_3_on_char ':' remember_me_cookie with
   | None -> Lwt.return_unit
   | Some (username, key, token) ->
@@ -77,18 +91,22 @@ let process_remember_me_cookie session_id session remember_me_cookie =
         match String.Map.find_opt key tokens with
         | None ->
           Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%s`." key);
+          register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           Lwt.return_unit
         | Some (_, token_max_date) when Datetime.in_the_past token_max_date ->
           Log.info (fun m -> m "Rejecting because token is too old.");
+          database_update_user user (Model.User.update ~remember_me_tokens: (String.Map.remove key));%lwt
+          register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           Lwt.return_unit
         | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: token hashed_token ->
           Log.info (fun m -> m "Rejecting because tokens do not match.");
           (* someone got their hand on a “remember me” key - invalidate all known tokens *)
           database_update_user user (Model.User.update ~remember_me_tokens: (Fun.const String.Map.empty));%lwt
+          register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
           Lwt.return_unit
         | Some _ ->
-          set_user session_id session user;
-          Log.info (fun m -> m "Accepted sign in for %a." pp' (session_id, session, remember_me_cookie));
+          set_user env user;
+          Log.info (fun m -> m "Accepted sign in for %a." pp env);
           Lwt.return_unit
 
 let from_request request =
@@ -112,34 +130,17 @@ let from_request request =
       | Some session when Datetime.in_the_past session.expires -> Log.debug (fun m -> m "Old session: creating a new one."); make_new_session ()
       | Some session -> Log.debug (fun m -> m "Live session: updating."); update_session_expiration session
   in
+  let response_cookies = ref [] in
+  let env = {session_id; session; response_cookies} in
   (
     match !session.user, List.assoc_opt "rememberMe" cookies with
     | None, Some remember_me_cookie ->
       Log.debug (fun m -> m "Processing “remember me” cookie.");
-      process_remember_me_cookie session_id session remember_me_cookie
+      process_remember_me_cookie env remember_me_cookie
     | _ -> Lwt.return_unit
   );%lwt
-  let response_cookies = ref [] in
-  let env = {session_id; session; response_cookies} in
   Log.debug (fun m -> m "Environment.from_request done; user is: %a." pp env);
   Lwt.return env
-
-let register_response_cookie env cookie =
-  env.response_cookies := cookie :: !(env.response_cookies)
-
-let add_cookie ?max_age ?path ?(secure = false) ?(httpOnly = false) key value headers =
-  Cohttp.Header.add headers "Set-Cookie" @@
-  (key ^ "=" ^ value) ^
-  (match path with None -> "" | Some path -> "; Path=" ^ path) ^
-  (match secure with false -> "" | true -> "; Secure") ^
-  (match httpOnly with false -> "" | true -> "; HttpOnly") ^
-    (match max_age with None -> "" | Some max_age -> "; Max-Age=" ^ string_of_int max_age)
-
-let delete_cookie ?path key headers =
-  Cohttp.Header.add headers "Set-Cookie" @@
-  (key ^ "=deleted") ^
-  (match path with None -> "" | Some path -> "; Path=" ^ path) ^
-  "; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
 
 let update_reponse_headers response f =
   let open Cohttp in
@@ -165,7 +166,7 @@ let with_ request f =
   Lwt.map (to_response env) (f env)
 
 let sign_in env user ~remember_me =
-  set_user env.session_id env.session user;
+  set_user env user;
   Lwt.if_' remember_me (fun () ->
     let key = uid () in
     let token = uid () in
