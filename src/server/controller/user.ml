@@ -41,10 +41,8 @@ let create env username user =
   | true ->
     let token = uid () in
     let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
-    let%lwt user =
-      Database.User.create_with_slug username @@
-        Model.User.update user ~password_reset_token: (Some hashed_token)
-    in
+    let%lwt user = Model.User.update user ~password_reset_token: (Fun.const @@ Some hashed_token) in
+    let%lwt user = Database.User.create_with_slug username user in
     Lwt.return (user, token)
 
 let reset_password username token password =

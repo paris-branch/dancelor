@@ -50,13 +50,18 @@ let set_user session_id session user =
   session := {!session with user = Some user};
   Hashtbl.replace sessions session_id !session
 
+(** Helper to update the user in the database. *)
+let database_update_user user f =
+  let%lwt new_user = f @@ Entry.value user in
+  Lwt.map ignore @@ Database.User.update (Entry.slug user) new_user
+
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
    transient environment. *)
 let process_remember_me_cookie session_id session remember_me_cookie =
-  match String.split_on_first_char ':' remember_me_cookie with
+  match String.split_3_on_char ':' remember_me_cookie with
   | None -> Lwt.return_unit
-  | Some (username, token) ->
+  | Some (username, key, token) ->
     Log.info (fun m -> m "Attempt to get remembered with username `%s`." username);
     match Slug.check_string username with
     | None ->
@@ -68,15 +73,18 @@ let process_remember_me_cookie session_id session remember_me_cookie =
         Log.info (fun m -> m "Rejecting because of wrong username.");
         Lwt.return_unit
       | Some user ->
-        match Model.User.remember_me_token user with
+        let tokens = Model.User.remember_me_tokens user in
+        match String.Map.find_opt key tokens with
         | None ->
-          Log.info (fun m -> m "Rejecting because user has no rememberMe token.");
+          Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%s`." key);
           Lwt.return_unit
         | Some (_, token_max_date) when Datetime.in_the_past token_max_date ->
           Log.info (fun m -> m "Rejecting because token is too old.");
           Lwt.return_unit
         | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: token hashed_token ->
           Log.info (fun m -> m "Rejecting because tokens do not match.");
+          (* someone got their hand on a “remember me” key - invalidate all known tokens *)
+          database_update_user user (Model.User.update ~remember_me_tokens: (Fun.const String.Map.empty));%lwt
           Lwt.return_unit
         | Some _ ->
           set_user session_id session user;
@@ -92,7 +100,7 @@ let from_request request =
     | None -> []
     | Some cookies ->
       let cookies = Str.split (Str.regexp "[ \t]*;[ \t]*") cookies in
-      List.filter_map (String.split_on_first_char '=') cookies
+      List.filter_map (String.split_2_on_char '=') cookies
   in
   Log.debug (fun m -> m "Got cookies: %a" (Format.pp_print_list ~pp_sep: (fun fmt () -> fpf fmt "@\n  - ") (fun fmt (k, v) -> fpf fmt "%s -> %s" k v)) cookies);
   let session_id = Option.value' (List.assoc_opt "session" cookies) ~default: uid in
@@ -156,21 +164,18 @@ let with_ request f =
   let%lwt env = from_request request in
   Lwt.map (to_response env) (f env)
 
-(** Helper to update the user in the database. *)
-let database_update_user user f =
-  Lwt.map ignore @@ Database.User.update (Entry.slug user) (f @@ Entry.value user)
-
 let sign_in env user ~remember_me =
   set_user env.session_id env.session user;
   Lwt.if_' remember_me (fun () ->
+    let key = uid () in
     let token = uid () in
     (
       let hashed_token = HashedSecret.make ~clear: token in
       (* the max date stored in database is one more minute than the max age that
          will be sent as cookie, to be sure not to lie to our clients *)
       let max_date = Datetime.make_in_the_future (float_of_int @@ 60 + remember_me_token_max_age) in
-      let remember_me_token = Some (hashed_token, max_date) in
-      database_update_user user (fun user -> {user with remember_me_token})
+      (* let remember_me_token = Some (hashed_token, max_date) in *)
+      database_update_user user (Model.User.update ~remember_me_tokens: (String.Map.add key (hashed_token, max_date)))
     );%lwt
     register_response_cookie
       env
@@ -180,7 +185,7 @@ let sign_in env user ~remember_me =
           ~secure: true
           ~httpOnly: true
           "rememberMe"
-          (Entry.slug_as_string user ^ ":" ^ token)
+          (Entry.slug_as_string user ^ ":" ^ key ^ ":" ^ token)
           ~max_age: remember_me_token_max_age
       );
     Lwt.return_unit
@@ -190,6 +195,6 @@ let sign_out env user =
   let session = {!(env.session) with user = None} in
   Hashtbl.replace sessions env.session_id session;
   env.session := session;
-  database_update_user user (fun user -> {user with remember_me_token = None});%lwt
+  database_update_user user (Model.User.update ~remember_me_tokens: (Fun.const String.Map.empty));%lwt
   register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
   Lwt.return_unit
