@@ -4,6 +4,7 @@ open Common
 
 module Source : ModelBuilder.Source.S = Source
 module Person : ModelBuilder.Person.S = Person
+module User : ModelBuilder.User.S = User
 module Dance : ModelBuilder.Dance.S = Dance
 module Tune : ModelBuilder.Tune.S = Tune
 module Version : ModelBuilder.Version.S = Version

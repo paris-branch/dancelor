@@ -49,7 +49,7 @@ let create_user env username person =
     let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
     let%lwt _user =
       Database.User.create_with_slug username @@
-        Database.UserModel.make
+        Model.User.make
           ~person
           ~password_reset_token: hashed_token
           ()
@@ -68,7 +68,7 @@ let reset_password username token password =
       Log.info (fun m -> m "Rejecting because of wrong username.");
       Madge_server.respond_forbidden_no_leak ()
     | Some user ->
-      match Model.User.password_reset_token (Entry.value user) with
+      match Model.User.password_reset_token user with
       | None ->
         Log.info (fun m -> m "Rejecting because of lack of token.");
         Madge_server.respond_forbidden_no_leak ()
