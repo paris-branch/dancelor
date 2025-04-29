@@ -119,3 +119,16 @@ let merge_assoc j1 j2 =
   match (j1, j2) with
   | `Assoc a1, `Assoc a2 -> `Assoc (a1 @ a2)
   | _ -> invalid_arg "NesJson.merge_assoc"
+
+let keep_fields ks = function
+  | `Assoc l ->
+    `Assoc (
+      List.map
+        (fun k ->
+          match List.assoc_opt k l with
+          | None -> failwith "NesJson.keep_fields"
+          | Some x -> (k, x)
+        )
+        ks
+    )
+  | _ -> invalid_arg "NesJson.keep_fields"

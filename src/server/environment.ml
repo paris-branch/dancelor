@@ -80,7 +80,7 @@ let process_remember_me_cookie session_id session remember_me_cookie =
           Lwt.return_unit
         | Some _ ->
           set_user session_id session user;
-          Log.info (fun m -> m "Accepted login for %a." pp' (session_id, session, remember_me_cookie));
+          Log.info (fun m -> m "Accepted sign in for %a." pp' (session_id, session, remember_me_cookie));
           Lwt.return_unit
 
 let from_request request =
@@ -160,7 +160,7 @@ let with_ request f =
 let database_update_user user f =
   Lwt.map ignore @@ Database.User.update (Entry.slug user) (f @@ Entry.value user)
 
-let login env user ~remember_me =
+let sign_in env user ~remember_me =
   set_user env.session_id env.session user;
   Lwt.if_' remember_me (fun () ->
     let token = uid () in
@@ -186,7 +186,7 @@ let login env user ~remember_me =
     Lwt.return_unit
   )
 
-let logout env user =
+let sign_out env user =
   let session = {!(env.session) with user = None} in
   Hashtbl.replace sessions env.session_id session;
   env.session := session;

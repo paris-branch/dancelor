@@ -5,11 +5,11 @@ module Log = (val Logger.create "controller.auth": Logs.LOG)
 
 let status = Lwt_option.map' Model.User.person % Environment.user
 
-let login env username password remember_me =
-  Log.info (fun m -> m "Attempt to login with username `%s`." username);
+let sign_in env username password remember_me =
+  Log.info (fun m -> m "Attempt to sign in with username `%s`." username);
   match Environment.user env with
   | Some _user ->
-    Log.info (fun m -> m "Rejecting because already logged in.");
+    Log.info (fun m -> m "Rejecting because already signed in.");
     Lwt.return_none
   | None ->
     match Slug.check_string username with
@@ -30,14 +30,14 @@ let login env username password remember_me =
           Log.info (fun m -> m "Rejecting because passwords do not match.");
           Lwt.return_none
         | Some _ ->
-          Environment.login env user ~remember_me;%lwt
-          Log.info (fun m -> m "Accepted login for %a." Environment.pp env);
+          Environment.sign_in env user ~remember_me;%lwt
+          Log.info (fun m -> m "Accepted sign in for %a." Environment.pp env);
           Lwt.map Option.some @@ Model.User.person user
 
-let logout env =
+let sign_out env =
   match Environment.user env with
   | None -> Lwt.return_unit
-  | Some user -> Environment.logout env user
+  | Some user -> Environment.sign_out env user
 
 let create_user env username person =
   Permission.assert_can_admin env;%lwt
@@ -98,7 +98,7 @@ let reset_password username token password =
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Auth.t -> a = fun env endpoint ->
   match endpoint with
   | Status -> status env
-  | Login -> login env
-  | Logout -> logout env
+  | SignIn -> sign_in env
+  | SignOut -> sign_out env
   | CreateUser -> create_user env
   | ResetPassword -> reset_password

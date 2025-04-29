@@ -2,9 +2,9 @@ open Nes
 open Common
 open Html
 
-type login_dialog_status = DontKnow | Invalid
+type sign_in_dialog_status = DontKnow | Invalid
 
-let open_login_dialog () =
+let open_sign_in_dialog () =
   let open Components in
   let (status_signal, set_status_signal) = S.create DontKnow in
   let username_input =
@@ -76,7 +76,7 @@ let open_login_dialog () =
               ~none: Lwt.return_unit
               ~some: (fun (username, password, remember_me) ->
                 set_status_signal DontKnow;
-                match%lwt Madge_client.call_exn Endpoints.Api.(route @@ Auth Login) username password remember_me with
+                match%lwt Madge_client.call_exn Endpoints.Api.(route @@ Auth SignIn) username password remember_me with
                 | None -> set_status_signal Invalid; Lwt.return_unit
                 | Some _ -> return (Some ()); Lwt.return_unit
               )
@@ -87,8 +87,8 @@ let open_login_dialog () =
   Js_of_ocaml.Dom_html.window##.location##reload;
   Lwt.return_unit
 
-let logout () =
-  Madge_client.call_exn Endpoints.Api.(route @@ Auth Logout);%lwt
+let sign_out () =
+  Madge_client.call_exn Endpoints.Api.(route @@ Auth SignOut);%lwt
   Js_of_ocaml.Dom_html.window##.location##reload;
   Lwt.return_unit
 
@@ -111,7 +111,7 @@ let header_item =
               ~label: "Sign in"
               ~icon: "box-arrow-in-right"
               ~classes: ["btn-primary"]
-              ~onclick: open_login_dialog
+              ~onclick: open_sign_in_dialog
               ()
           ]
         | Some person ->
@@ -127,7 +127,7 @@ let header_item =
                     ~label: "Sign out"
                     ~icon: "box-arrow-right"
                     ~classes: ["dropdown-item"]
-                    ~onclick: logout
+                    ~onclick: sign_out
                     ()
                 ];
               ];
