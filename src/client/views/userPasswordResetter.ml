@@ -7,23 +7,22 @@ open Html
 type status = Match | DontMatch
 
 let create username token =
-  let (password1, set_password1) = S.create "" in
   let password1_input =
-    Input.Text.make' "" (fun password1 ->
-      S.const @@ Result.bind (Password.check password1) @@ fun () -> Ok password1
+    Input.Text.make "" (fun password1 ->
+      Result.bind (Password.check password1) @@ fun () -> Ok password1
     )
   in
   let password2_input =
     Input.Text.make' "" (fun password2 ->
-      Fun.flip S.map password1 @@ fun password1 ->
+      Fun.flip S.map (Input.Text.raw_signal password1_input) @@ fun password1 ->
       if password1 = password2 then Ok password2 else Error "The passwords do not match."
     )
   in
   let password =
     RS.bind (Input.Text.signal password1_input) @@ fun password1 ->
     RS.bind (Input.Text.signal password2_input) @@ fun password2 ->
-    (* The input components already check the password *)
-    ignore password1; S.const (Ok password2)
+    (* Cannot hurt to check twice. *)
+    S.const @@ if password1 = password2 then Ok password2 else Error "The passwords do not match."
   in
   Page.make
     ~title: (S.const "Reset password")
@@ -34,8 +33,7 @@ let create username token =
       password1_input
       ~password: true
       ~placeholder: "1234567"
-      ~label: "Password"
-      ~oninput: set_password1;
+      ~label: "Password";
     Input.Text.render
       password2_input
       ~password: true
