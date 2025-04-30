@@ -20,15 +20,12 @@ let make_content
                 R.a_class
                   (
                     Fun.flip S.map processing @@ function
-                      | true -> ["spinner-border"; "spinner-border-sm"; "me-2"]
+                      | true -> ["spinner-border"; "spinner-border-sm"; (if label <> "" then "me-2" else "me-0")]
                       | false -> ["d-none"]
                   );
                 a_aria "hidden" ["true"]
               ]
               [];
-            span
-              ~a: [R.a_class (Fun.flip S.map processing @@ function true -> [] | false -> ["d-none"])]
-              [txt @@ if label <> "" then " " else ""];
           ];
         (
           Fun.flip Option.map icon @@ fun icon ->
@@ -39,7 +36,7 @@ let make_content
                   (
                     Fun.flip S.map processing @@ function
                       | true -> ["d-none"]
-                      | false -> ["bi"; "bi-" ^ icon; "me-2"]
+                      | false -> ["bi"; "bi-" ^ icon; (if label <> "" then "me-2" else "me-0")]
                   )
               ]
               [];
