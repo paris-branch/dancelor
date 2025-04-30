@@ -46,6 +46,90 @@ let open_quick_search () =
     ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
     quick_search
 
+let nav_item_explore =
+  li
+    ~a: [a_class ["nav-item"; "dropdown"]]
+    [
+      button
+        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+        [
+          txt "Explore"
+        ];
+      ul
+        ~a: [a_class ["dropdown-menu"]]
+        (
+          [li [a ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Page.(href Explore) None)] [txt "All"]];
+          li [hr ~a: [a_class ["dropdown-divider"]] ()];
+          ] @
+            List.map
+              (fun (icon, key, text) ->
+                let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                li
+                  [
+                    a
+                      ~a: [a_class ["dropdown-item"]; a_href href]
+                      [
+                        i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
+                        txt " ";
+                        txt text
+                      ]
+                  ]
+              )
+              [
+                ("archive", "source", "Sources");
+                ("person", "person", "Persons");
+                ("person-arms-up", "dance", "Dances");
+                ("music-note-list", "tune", "Tunes");
+                ("music-note-beamed", "version", "Versions");
+                ("list-stars", "set", "Sets");
+                ("book", "book", "Books");
+              ]
+        );
+    ]
+
+let nav_item_create =
+  if%lwt Permission.can_create () then
+    Lwt.return [
+      li
+        ~a: [a_class ["nav-item"; "dropdown"]]
+        [
+          button
+            ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+            [
+              txt "Add"
+            ];
+          ul
+            ~a: [a_class ["dropdown-menu"]]
+            (
+              let open Endpoints.Page in
+              List.map
+                (fun (icon, href, text) ->
+                  li
+                    [
+                      a
+                        ~a: [a_class ["dropdown-item"]; a_href href]
+                        [
+                          i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
+                          txt " ";
+                          txt text
+                        ]
+                    ]
+                )
+                [
+                  ("archive", href SourceAdd, "Source");
+                  ("person", href PersonAdd, "Person");
+                  ("person-arms-up", href DanceAdd, "Dance");
+                  ("music-note-list", href TuneAdd, "Tune");
+                  ("music-note-beamed", href VersionAdd None, "Version");
+                  ("list-stars", href SetAdd, "Set");
+                  ("book", href BookAdd, "Book");
+                ]
+            );
+        ]
+    ]
+  else
+    Lwt.return_nil
+
 let header =
   nav
     ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mb-2"]]
@@ -71,86 +155,16 @@ let header =
           div
             ~a: [a_class ["collapse"; "navbar-collapse"]; a_id "the-navigation"]
             [
-              ul
+              L.ul
                 ~a: [a_class ["navbar-nav"; "ms-auto"]]
-                [
-                  li
-                    ~a: [a_class ["nav-item"; "dropdown"]]
-                    [
-                      button
-                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-                        [
-                          txt "Explore"
-                        ];
-                      ul
-                        ~a: [a_class ["dropdown-menu"]]
-                        (
-                          [li [a ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Page.(href Explore) None)] [txt "All"]];
-                          li [hr ~a: [a_class ["dropdown-divider"]] ()];
-                          ] @
-                            List.map
-                              (fun (icon, key, text) ->
-                                let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                                li
-                                  [
-                                    a
-                                      ~a: [a_class ["dropdown-item"]; a_href href]
-                                      [
-                                        i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
-                                        txt " ";
-                                        txt text
-                                      ]
-                                  ]
-                              )
-                              [
-                                ("archive", "source", "Sources");
-                                ("person", "person", "Persons");
-                                ("person-arms-up", "dance", "Dances");
-                                ("music-note-list", "tune", "Tunes");
-                                ("music-note-beamed", "version", "Versions");
-                                ("list-stars", "set", "Sets");
-                                ("book", "book", "Books");
-                              ]
-                        );
-                    ];
-                  li
-                    ~a: [a_class ["nav-item"; "dropdown"]]
-                    [
-                      button
-                        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-                        [
-                          txt "Add"
-                        ];
-                      ul
-                        ~a: [a_class ["dropdown-menu"]]
-                        (
-                          let open Endpoints.Page in
-                          List.map
-                            (fun (icon, href, text) ->
-                              li
-                                [
-                                  a
-                                    ~a: [a_class ["dropdown-item"]; a_href href]
-                                    [
-                                      i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
-                                      txt " ";
-                                      txt text
-                                    ]
-                                ]
-                            )
-                            [
-                              ("archive", href SourceAdd, "Source");
-                              ("person", href PersonAdd, "Person");
-                              ("person-arms-up", href DanceAdd, "Dance");
-                              ("music-note-list", href TuneAdd, "Tune");
-                              ("music-note-beamed", href VersionAdd None, "Version");
-                              ("list-stars", href SetAdd, "Set");
-                              ("book", href BookAdd, "Book");
-                            ]
-                        );
-                    ];
-                  UserHeader.header_item;
-                ];
+                (
+                  let%lwt nav_item_create = nav_item_create in
+                  Lwt.return (
+                    [nav_item_explore] @
+                    nav_item_create @
+                      [UserHeader.header_item]
+                  )
+                );
             ];
           Components.Button.make
             ~label: "Search"

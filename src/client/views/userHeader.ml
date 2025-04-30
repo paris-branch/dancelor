@@ -138,7 +138,8 @@ let header_item =
                               ~classes: ["dropdown-item"]
                               ~href: (S.const @@ Endpoints.Page.(href UserCreate))
                               ()
-                          ]
+                          ];
+                          li [hr ~a: [a_class ["dropdown-divider"]] ()];
                         ]
                       else []
                     );
