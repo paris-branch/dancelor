@@ -66,13 +66,14 @@ let make
     ?badge
     ?classes
     ?(disabled = S.const false)
-    ~onclick
+    ?(onclick = Lwt.return)
+    ?(more_a = [])
     ()
   =
   let (processing, set_processing) = React.S.create false in
   button
-    ~a: [
-      a_button_type `Button;
+    ~a: (
+      [a_button_type `Button;
       R.a_class
         (
           let classes = "btn" :: Option.value ~default: [] classes in
@@ -81,6 +82,7 @@ let make
             | false -> classes
         );
       a_onclick (fun _event ->
+        (* FIXME: no [a_onclick] if [?onclick] is not specified *)
         Lwt.async (fun () ->
           set_processing true;
           onclick ();%lwt
@@ -89,7 +91,9 @@ let make
         );
         false
       );
-    ]
+      ] @
+        more_a
+    )
     (
       make_content
         ?label
