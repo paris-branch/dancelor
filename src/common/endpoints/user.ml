@@ -1,6 +1,14 @@
 open Nes
 open Madge
-open ModelBuilder
+
+(* NOTE: The user model contains passwords and other secret tokens. Even though
+   they are heavily hashed, we shouldn't be sending them, so we systematically
+   redact them. And to be sure to not miss a future introduction of  *)
+module User = struct
+  type t = ModelBuilder.User.t
+  let to_yojson = Json.keep_fields ["display-name"; "person"] % ModelBuilder.User.to_yojson
+  let of_yojson = ModelBuilder.User.of_yojson
+end
 
 type (_, _, _) t =
   | Status : ('w, 'w, User.t Entry.t option) t
