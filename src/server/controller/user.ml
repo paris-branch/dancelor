@@ -84,6 +84,9 @@ let reset_password username token password =
             Lwt.return_unit
           )
 
+let can_create env = Lwt.return @@ Permission.can_create env
+let can_admin env = Lwt.return @@ Permission.can_admin env
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a = fun env endpoint ->
   match endpoint with
   | Status -> status env
@@ -91,3 +94,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.User.t -> a 
   | SignOut -> sign_out env
   | Create -> create env
   | ResetPassword -> reset_password
+  | CanCreate -> can_create env
+  | CanAdmin -> can_admin env

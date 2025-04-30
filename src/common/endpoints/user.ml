@@ -12,6 +12,8 @@ end
 
 type (_, _, _) t =
   | Status : ('w, 'w, User.t Entry.t option) t
+  | CanCreate : ('w, 'w, bool) t
+  | CanAdmin : ('w, 'w, bool) t
   | SignIn : ((User.t Slug.t -> string -> bool -> 'w), 'w, User.t Entry.t option) t
   | SignOut : ('w, 'w, unit) t
   | Create : ((User.t Slug.t -> User.t -> 'w), 'w, User.t Entry.t * string) t
@@ -26,3 +28,5 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | SignOut -> literal "sign-out" @@ post (module JUnit)
     | Create -> literal "create" @@ body "username" (module JSlug(User)) @@ body "user" (module User) @@ post (module JPair(Entry.J(User))(JString))
     | ResetPassword -> literal "reset-password" @@ body "username" (module JSlug(User)) @@ body "token" (module JString) @@ body "password" (module JString) @@ post (module JUnit)
+    | CanCreate -> literal "can-create" @@ post (module JBool)
+    | CanAdmin -> literal "can-admin" @@ post (module JBool)
