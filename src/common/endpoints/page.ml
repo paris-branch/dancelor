@@ -22,22 +22,26 @@ module Context = struct type t = context [@@deriving yojson] end
    code from [*Lifter] to [* for.Core all models (basically everything but the
    [accepts] function, I would say), so, for now, we keep it as a string. *)
 
+(* NOTE: The order matters. For instance, `BookAdd` appears before `Book`,
+   because otherwise `/book/add` will be seen as `Book` with slug `add`. *)
+(* FIXME: Make routes independent, for instance with paths /add/book instead of
+   /book/add (or new/edit/create), for /book/view/<slug> vs /book/add. *)
 type (_, _, _) t =
-  | Book : ((Context.t option -> Book.t Slug.t -> 'w), 'w, Void.t) t
   | BookAdd : ('w, 'w, Void.t) t
   | BookEdit : ((Book.t Slug.t -> 'w), 'w, Void.t) t
-  | Dance : ((Context.t option -> Dance.t Slug.t -> 'w), 'w, Void.t) t
+  | Book : ((Context.t option -> Book.t Slug.t -> 'w), 'w, Void.t) t
   | DanceAdd : ('w, 'w, Void.t) t
-  | Person : ((Context.t option -> Person.t Slug.t -> 'w), 'w, Void.t) t
+  | Dance : ((Context.t option -> Dance.t Slug.t -> 'w), 'w, Void.t) t
   | PersonAdd : ('w, 'w, Void.t) t
-  | Set : ((Context.t option -> Set.t Slug.t -> 'w), 'w, Void.t) t
+  | Person : ((Context.t option -> Person.t Slug.t -> 'w), 'w, Void.t) t
   | SetAdd : ('w, 'w, Void.t) t
-  | Source : ((Context.t option -> Source.t Slug.t -> 'w), 'w, Void.t) t
+  | Set : ((Context.t option -> Set.t Slug.t -> 'w), 'w, Void.t) t
   | SourceAdd : ('w, 'w, Void.t) t
-  | Tune : ((Context.t option -> Tune.t Slug.t -> 'w), 'w, Void.t) t
+  | Source : ((Context.t option -> Source.t Slug.t -> 'w), 'w, Void.t) t
   | TuneAdd : ('w, 'w, Void.t) t
-  | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) t
+  | Tune : ((Context.t option -> Tune.t Slug.t -> 'w), 'w, Void.t) t
   | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
+  | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | AuthCreateUser : ('w, 'w, Void.t) t
