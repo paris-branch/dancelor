@@ -247,3 +247,15 @@ let get_model_or_404 endpoint slug =
   match%lwt Madge_client.call Endpoints.Api.(route @@ endpoint) slug with
   | Ok model -> Lwt.return model
   | Error Madge_client.{status; _} -> load_sleep_raise (OooopsViewer.create status)
+
+let assert_can_create () =
+  Lwt.async @@ fun () ->
+  match%lwt Permission.can_create () with
+  | true -> Lwt.return_unit
+  | false -> load_sleep_raise (OooopsViewer.create `Forbidden)
+
+let assert_can_admin () =
+  Lwt.async @@ fun () ->
+  match%lwt Permission.can_admin () with
+  | true -> Lwt.return_unit
+  | false -> load_sleep_raise (OooopsViewer.create `Forbidden)

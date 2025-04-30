@@ -164,6 +164,7 @@ module Editor = struct
 end
 
 let create ?on_save ?text () =
+  MainPage.assert_can_create ();
   let title = "Add a dance" in
   let editor = Editor.create ~text in
   Page.make

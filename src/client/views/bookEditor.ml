@@ -149,6 +149,7 @@ module Editor = struct
 end
 
 let create ?on_save ?text ?edit () =
+  MainPage.assert_can_create ();
   let title = (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book" in
   let editor = Editor.create ~text ~edit in
   Page.make
