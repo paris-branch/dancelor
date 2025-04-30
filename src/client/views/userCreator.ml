@@ -35,6 +35,15 @@ let create () =
         | Some username -> Ok username
     )
   in
+  let display_name_input =
+    Input.Text.make' "" (fun display_name ->
+      Fun.flip S.map (Input.Text.raw_signal username_input) @@ fun username ->
+      if String.slugify display_name <> username then
+        Error "The display name must correspond to the username."
+      else
+        Ok display_name
+    )
+  in
   let person_selector =
     Selector.make
       ~arity: Selector.one
@@ -52,8 +61,9 @@ let create () =
   in
   let signal =
     RS.bind (Input.Text.signal username_input) @@ fun username ->
+    RS.bind (Input.Text.signal display_name_input) @@ fun display_name ->
     RS.bind (Selector.signal_one person_selector) @@ fun person ->
-    S.const @@ Ok (username, person)
+    S.const @@ Ok (username, Model.User.make ~display_name ~person ())
   in
   Page.make
     ~title: (S.const "Create user")
@@ -61,6 +71,10 @@ let create () =
       username_input
       ~placeholder: "jeanmilligan"
       ~label: "Username";
+    Input.Text.render
+      display_name_input
+      ~placeholder: "JeanMilligan"
+      ~label: "Display name";
     Selector.render
       ~make_result: Utils.AnyResult.make_person_result'
       ~field_name: "Person"
@@ -75,8 +89,7 @@ let create () =
         ~classes: ["btn-primary"]
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
-          let (username, person) = Result.get_ok @@ S.value signal in
-          let user = Model.User.make ~person () in
+          let (username, user) = Result.get_ok @@ S.value signal in
           let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username user in
           open_token_result_dialog user token
         )

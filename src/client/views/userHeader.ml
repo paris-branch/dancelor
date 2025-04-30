@@ -13,12 +13,9 @@ let open_sign_in_dialog () =
       S.const @@
         if username = "" then Error "The username cannot be empty."
         else
-          match Slug.check_string username with
-          | None -> Error "This does not look like a username."
-          | Some username ->
-            match status with
-            | Invalid -> Error "Invalid username or password."
-            | DontKnow -> Ok username
+          match status with
+          | Invalid -> Error "Invalid username or password."
+          | DontKnow -> Ok (Slug.from_string username)
     )
   in
   let password_input =
@@ -55,7 +52,7 @@ let open_sign_in_dialog () =
       ~title: (S.const "Sign in")
       [Input.Text.render
         username_input
-        ~placeholder: "jeanmilligan"
+        ~placeholder: "JeanMilligan"
         ~label: "Username"
         ~oninput: (fun _ -> set_status_signal DontKnow);
       Input.Text.render
@@ -120,9 +117,12 @@ let header_item =
           ]
         | Some user ->
           [
-            button
-              ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-              [L.txt (Lwt.map Model.Person.name (Model.User.person user))];
+            Components.Button.make
+              ~label: (Model.User.display_name user)
+              ~icon: "person-circle"
+              ~classes: ["btn-primary"; "dropdown-toggle"]
+              ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+              ();
             ul
               ~a: [a_class ["dropdown-menu"]]
               [

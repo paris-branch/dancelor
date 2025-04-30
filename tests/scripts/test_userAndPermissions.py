@@ -35,7 +35,7 @@ class TestUserAndPermissions():
     ## Find the “Sign in” button in the header.
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Sign in')]").click()
     ## Fill the form and submit.
-    self.driver.find_element(By.XPATH, "//input[@placeholder = 'jeanmilligan']").send_keys("niols")
+    self.driver.find_element(By.XPATH, "//input[@placeholder = 'JeanMilligan']").send_keys("niols")
     self.driver.find_element(By.XPATH, "//input[@placeholder = '1234567']").send_keys("test")
     if remember_me:
       ## Find the label, follow it to its input element. Click the element via
@@ -44,7 +44,7 @@ class TestUserAndPermissions():
       self.driver.execute_script("arguments[0].click();", self.driver.find_element(By.ID, for_))
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Sign in')] and not(contains(@class, 'disabled'))]").click()
     ## Wait until we are signed in.
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Nicolas “Niols” Jeannerod')]")
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Niols')]")
 
   def sign_out(self):
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Niols')]").click()
