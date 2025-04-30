@@ -91,7 +91,11 @@ let create () =
         ~onclick: (fun () ->
           let (username, user) = Result.get_ok @@ S.value signal in
           let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username user in
-          open_token_result_dialog user token
+          open_token_result_dialog user token;%lwt
+          Input.Text.clear username_input;
+          Input.Text.clear display_name_input;
+          Selector.clear person_selector;
+          Lwt.return_unit
         )
         ();
     ]
