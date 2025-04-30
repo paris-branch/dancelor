@@ -31,4 +31,6 @@ module type S = sig
   val password : t Entry.t -> HashedSecret.t option
   val password_reset_token : t Entry.t -> (HashedSecret.t * Datetime.t) option
   val remember_me_tokens : t Entry.t -> (HashedSecret.t * Datetime.t) String.Map.t
+
+  val admin : t Entry.t -> bool
 end

@@ -66,33 +66,38 @@ let make
     ?badge
     ?classes
     ?(disabled = S.const false)
-    ?(onclick = Lwt.return)
+    ?onclick
     ?(more_a = [])
     ()
   =
   let (processing, set_processing) = React.S.create false in
   button
     ~a: (
-      [a_button_type `Button;
-      R.a_class
-        (
-          let classes = "btn" :: Option.value ~default: [] classes in
-          Fun.flip S.map (S.l2 (||) disabled processing) @@ function
-            | true -> "disabled" :: classes
-            | false -> classes
-        );
-      a_onclick (fun _event ->
-        (* FIXME: no [a_onclick] if [?onclick] is not specified *)
-        Lwt.async (fun () ->
-          set_processing true;
-          onclick ();%lwt
-          set_processing false;
-          Lwt.return_unit
-        );
-        false
-      );
-      ] @
-        more_a
+      List.flatten
+        [
+          [a_button_type `Button];
+          [R.a_class @@
+            let classes = "btn" :: Option.value ~default: [] classes in
+            Fun.flip S.map (S.l2 (||) disabled processing) @@ function
+              | true -> "disabled" :: classes
+              | false -> classes];
+          (
+            match onclick with
+            | None -> []
+            | Some onclick ->
+              [
+                a_onclick @@ fun _event ->
+                Lwt.async (fun () ->
+                  set_processing true;
+                  onclick ();%lwt
+                  set_processing false;
+                  Lwt.return_unit
+                );
+                false
+              ]
+          );
+          more_a;
+        ]
     )
     (
       make_content

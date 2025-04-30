@@ -29,3 +29,5 @@ let person = person % Entry.value
 let password = password % Entry.value
 let password_reset_token = password_reset_token % Entry.value
 let remember_me_tokens = remember_me_tokens % Entry.value
+
+let admin user = Entry.slug_as_string user = "niols"

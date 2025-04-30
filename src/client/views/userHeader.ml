@@ -125,15 +125,32 @@ let header_item =
               ();
             ul
               ~a: [a_class ["dropdown-menu"]]
-              [
-                li [
-                  Components.Button.make
-                    ~label: "Sign out"
-                    ~icon: "box-arrow-right"
-                    ~classes: ["dropdown-item"]
-                    ~onclick: sign_out
-                    ()
-                ];
-              ];
+              (
+                List.flatten
+                  [
+                    (
+                      if Model.User.admin user then
+                        [
+                          li [
+                            Components.Button.make_a
+                              ~label: "Create user"
+                              ~icon: "plus-circle"
+                              ~classes: ["dropdown-item"]
+                              ~href: (S.const @@ Endpoints.Page.(href UserCreate))
+                              ()
+                          ]
+                        ]
+                      else []
+                    );
+                    [li [
+                      Components.Button.make
+                        ~label: "Sign out"
+                        ~icon: "box-arrow-right"
+                        ~classes: ["dropdown-item"]
+                        ~onclick: sign_out
+                        ()
+                    ]];
+                  ]
+              );
           ]
     )

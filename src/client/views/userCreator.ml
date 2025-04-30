@@ -26,6 +26,12 @@ let open_token_result_dialog user token =
     ~buttons: [Button.ok' ~return ()]
 
 let create () =
+  (* Check if the user is an administrator - otherwise show forbidden. *)
+  Lwt.async (fun () ->
+    match%lwt Madge_client.call_exn Endpoints.Api.(route @@ User Status) with
+    | Some user when Model.User.admin user -> Lwt.return_unit
+    | _ -> MainPage.load_sleep_raise (OooopsViewer.create `Forbidden)
+  );
   let username_input =
     Input.Text.make "" (fun username ->
       if username = "" then Error "The username cannot be empty."
