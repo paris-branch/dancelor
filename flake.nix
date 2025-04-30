@@ -37,10 +37,12 @@
     extra-trusted-substituters = [
       "https://dancelor.cachix.org/"
       "https://pre-commit-hooks.cachix.org/"
+      "https://tweag-topiary.cachix.org/"
     ];
     extra-trusted-public-keys = [
       "dancelor.cachix.org-1:Q2pAI0MA6jIccQQeT8JEsY+Wfwb/751zmoUHddZmDyY="
       "pre-commit-hooks.cachix.org-1:Pkk3Panw5AW24TOv6kz3PvLhlH8puAsJTBbOPmBo7Rc="
+      "tweag-topiary.cachix.org-1:8TKqya43LAfj4qNHnljLpuBnxAY/YwEBfzo3kzXxNY0="
     ];
   };
 }

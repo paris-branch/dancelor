@@ -28,6 +28,7 @@ jobs:
         uses: cachix/install-nix-action@V28
         with:
           extra_nix_config: |
+            accept-flake-config = true
             ## Access token to avoid triggering GitHub's rate limiting.
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
@@ -110,8 +111,15 @@ jobs:
         uses: cachix/install-nix-action@V28
         with:
           extra_nix_config: |
+            accept-flake-config = true
             ## Access token to avoid triggering GitHub's rate limiting.
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Nix caches
+        uses: cachix/cachix-action@v15
+        with:
+          name: dancelor
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run flake checks
         run: nix flake check --print-build-logs
