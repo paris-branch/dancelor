@@ -1,6 +1,7 @@
 import pytest
 import json
 import html
+import time
 from urllib.parse import urlparse
 
 from selenium import webdriver
@@ -43,8 +44,9 @@ class TestUserAndPermissions():
       for_ = self.driver.find_element(By.XPATH, "//label[text()[contains(., 'Remember me')]]").get_attribute("for")
       self.driver.execute_script("arguments[0].click();", self.driver.find_element(By.ID, for_))
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Sign in')] and not(contains(@class, 'disabled'))]").click()
-    ## Wait until we are signed in.
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Niols')]")
+    ## Wait until we are signed in. Specifically, we want all the requests to be
+    ## done, as they all may carry the relevant cookies.
+    time.sleep(1)
 
   def sign_out(self):
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Niols')]").click()
