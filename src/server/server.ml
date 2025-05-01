@@ -35,10 +35,7 @@ let apply_controller env request =
   (* FIXME: We should just get a URI. *)
   match madge_match_apply_all Endpoints.Api.all with
   | Some thunk -> thunk ()
-  | None ->
-    let message = spf "Endpoint `%s` with method `%s` and body `%s` was not found" (Uri.path request.uri) (Madge.Request.meth_to_string request.meth) request.body in
-    let body = Yojson.(to_string @@ `Assoc [("status", `String "error"); ("message", `String message)]) in
-    Server.respond_error ~status: `Not_found ~body ()
+  | None -> Madge_server.respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path request.uri)
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function
@@ -62,7 +59,7 @@ let catchall ~place ~die fun_ =
 let callback _ request body =
   catchall
     ~place: "the callback"
-    ~die: (Server.respond_error ~status: `Internal_server_error ~body: "{}")
+    ~die: Madge_server.respond_internal_server_error
     @@ fun () ->
     let meth = Madge.Request.cohttp_code_meth_to_meth @@ Request.meth request in
     let uri = Request.uri request in

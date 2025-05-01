@@ -29,12 +29,20 @@ let respond_file ~content_type ~fname =
   let headers = Cohttp.Header.of_list [("Content-Type", content_type)] in
   shortcut @@ Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
 
-let shortcut' ~msg status =
+let respond status =
+  Format.kasprintf @@ fun message ->
   let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
-  let body = Yojson.Safe.to_string @@ `Assoc ["message", `String msg] in
-  shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status ~headers ~body ()
+  let body = Yojson.Safe.to_string @@ `Assoc ["message", `String message] in
+  Cohttp_lwt_unix.Server.respond_string ~status ~headers ~body ()
 
-let respond_not_found msg = shortcut' ~msg `Not_found
-let respond_forbidden msg = shortcut' ~msg `Forbidden
-let respond_forbidden_no_leak () = respond_forbidden "Forbidden."
-let respond_bad_request msg = shortcut' ~msg `Bad_request
+let respond_not_found fmt = respond `Not_found fmt
+let respond_internal_server_error () = respond `Internal_server_error "Internal server error."
+
+let shortcut' status =
+  Format.kasprintf @@ fun message ->
+  shortcut @@ respond status "%s" message
+
+let shortcut_not_found message = shortcut' `Not_found message
+let shortcut_forbidden message = shortcut' `Forbidden message
+let shortcut_forbidden_no_leak () = shortcut_forbidden "Forbidden."
+let shortcut_bad_request message = shortcut' `Bad_request message

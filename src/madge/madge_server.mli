@@ -29,17 +29,33 @@ val respond_string : content_type: string -> string -> Void.t Lwt.t
 (** Returns the given file. *)
 val respond_file : content_type: string -> fname: string -> Void.t Lwt.t
 
-(** {2 Error responses} *)
+(** {2 Error responses}
+
+    Their type might seem over-complicated, but it simply means that these
+    functions can be used as a format, eg.
+
+    {|
+      shortcut_bad_request "This %s is a %s request" "thing" "bad"
+    |}
+
+    The [shortcut_*] variants raise an exception. This is normal behaviour if
+    they are called within the controller of {!match_apply}. However, outside of
+    it, they will leak a private [Shortcut] exception. Prefer using [respond_*]
+    variants in those situations. *)
 
 (** Shortcut execution and returns “400 Bad Request” with the given message. *)
-val respond_bad_request : string -> 'any Lwt.t
+val shortcut_bad_request : ('a, Format.formatter, unit, 'any Lwt.t) format4 -> 'a
 
 (** Shortcut execution and returns “403 Forbidden” with the given message. *)
-val respond_forbidden : string -> 'any Lwt.t
+val shortcut_forbidden : ('a, Format.formatter, unit, 'any Lwt.t) format4 -> 'a
 
-(** Variant of {!respond_forbidden} for when one purposefully does not want to
+(** Variant of {!shortcut_forbidden} for when one purposefully does not want to
     give any information of why that was, typically for user authentication. *)
-val respond_forbidden_no_leak : unit -> 'any Lwt.t
+val shortcut_forbidden_no_leak : unit -> 'any Lwt.t
 
-(** Shortcut execution and returns “404 Not Found” with the given message. *)
-val respond_not_found : string -> 'any Lwt.t
+(** Returns “404 Not Found” with the given message. *)
+val respond_not_found : ('a, Format.formatter, unit, (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) format4 -> 'a
+val shortcut_not_found : ('a, Format.formatter, unit, 'any Lwt.t) format4 -> 'a
+
+(** Returns “500 Internal server error” with no message. *)
+val respond_internal_server_error : unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t

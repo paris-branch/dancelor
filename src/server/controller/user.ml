@@ -37,7 +37,7 @@ let sign_out env =
 let create env username user =
   Permission.assert_can_admin env;%lwt
   match Slug.check username with
-  | false -> Madge_server.respond_bad_request "The username does not have the right shape."
+  | false -> Madge_server.shortcut_bad_request "The username does not have the right shape."
   | true ->
     let token = uid () in
     let hashed_token = (HashedSecret.make ~clear: token, Datetime.make_in_the_future (float_of_int @@ 3 * 24 * 3600)) in
@@ -50,25 +50,25 @@ let reset_password username token password =
   match Slug.check username with
   | false ->
     Log.info (fun m -> m "Rejecting because username is not even a slug.");
-    Madge_server.respond_bad_request "The username does not have the right shape."
+    Madge_server.shortcut_bad_request "The username does not have the right shape."
   | true ->
     match%lwt Database.User.get_opt username with
     | None ->
       Log.info (fun m -> m "Rejecting because of wrong username.");
-      Madge_server.respond_forbidden_no_leak ()
+      Madge_server.shortcut_forbidden_no_leak ()
     | Some user ->
       match Model.User.password_reset_token user with
       | None ->
         Log.info (fun m -> m "Rejecting because of lack of token.");
-        Madge_server.respond_forbidden_no_leak ()
+        Madge_server.shortcut_forbidden_no_leak ()
       | Some (_, token_date) when Datetime.(diff (now ())) token_date > 3. *. 24. *. 3600. ->
         Log.info (fun m -> m "Rejecting because token is too old.");
-        Madge_server.respond_forbidden_no_leak ()
+        Madge_server.shortcut_forbidden_no_leak ()
       | Some (hashed_token, _) ->
         if not @@ HashedSecret.is ~clear: token hashed_token then
           (
             Log.info (fun m -> m "Rejecting because tokens do no match.");
-            Madge_server.respond_forbidden_no_leak ()
+            Madge_server.shortcut_forbidden_no_leak ()
           )
         else
           (
