@@ -296,10 +296,20 @@ module Set = Set.Make(struct
   let compare = compare
 end)
 
-module Map = Map.Make(struct
-  type nonrec t = t
-  let compare = compare
-end)
+module Map = struct
+  include Map.Make(struct type nonrec t = t let compare = compare end)
+
+  let to_yojson a_to_yojson m = `Assoc (List.map (fun (k, v) -> (k, a_to_yojson v)) (to_list m))
+  let of_yojson a_of_yojson = function
+    | `Assoc m ->
+      (
+        try
+          Ok (of_list @@ List.map (fun (k, v) -> (k, Result.get_ok @@ a_of_yojson v)) m)
+        with
+          | Invalid_argument msg -> Error msg
+      )
+    | _ -> Error "not an assoc"
+end
 
 let whitespace_chars = [' '; '\x0C'; '\t'; '\n'; '\r']
 
@@ -368,8 +378,23 @@ let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
 let concat ?last sep strings =
   String.concat "" (NesList.intersperse ?last sep strings)
 
-let split_on_first_char sep string =
+let split_2_on_char sep string =
   Option.map (Fun.flip split' string) (index_opt string sep)
 
-let%test _ = split_on_first_char '=' "abc=def" = Some ("abc", "def")
-let%test _ = split_on_first_char '=' "abcdef" = None
+let%test _ = split_2_on_char '=' "abc=def" = Some ("abc", "def")
+let%test _ = split_2_on_char '=' "abcdef" = None
+
+let split_3_on_char sep string =
+  match index_opt string sep with
+  | None -> None
+  | Some i ->
+    let (a, bc) = split' i string in
+    match index_opt bc sep with
+    | None -> None
+    | Some i ->
+      let (b, c) = split' i bc in
+      Some (a, b, c)
+
+let%test _ = split_3_on_char '=' "abc=def=ghi" = Some ("abc", "def", "ghi")
+let%test _ = split_3_on_char '=' "abc=def" = None
+let%test _ = split_3_on_char '=' "abcdef" = None

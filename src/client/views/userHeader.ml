@@ -2,19 +2,20 @@ open Nes
 open Common
 open Html
 
-type login_dialog_status = DontKnow | Invalid
+type sign_in_dialog_status = DontKnow | Invalid
 
-let open_login_dialog () =
+let open_sign_in_dialog () =
   let open Components in
   let (status_signal, set_status_signal) = S.create DontKnow in
   let username_input =
     Input.Text.make' "" (fun username ->
       S.bind status_signal @@ fun status ->
       S.const @@
-        match username, status with
-        | "", _ -> Error "The username cannot be empty."
-        | _, Invalid -> Error "Invalid username or password."
-        | _, DontKnow -> Ok username
+        if username = "" then Error "The username cannot be empty."
+        else
+          match status with
+          | Invalid -> Error "Invalid username or password."
+          | DontKnow -> Ok (Slug.from_string username)
     )
   in
   let password_input =
@@ -51,7 +52,7 @@ let open_login_dialog () =
       ~title: (S.const "Sign in")
       [Input.Text.render
         username_input
-        ~placeholder: "jeanmilligan"
+        ~placeholder: "JeanMilligan"
         ~label: "Username"
         ~oninput: (fun _ -> set_status_signal DontKnow);
       Input.Text.render
@@ -67,7 +68,7 @@ let open_login_dialog () =
         Button.make
           ~label: "Sign in"
           ~label_processing: "Signing in..."
-          ~icon: "door-open"
+          ~icon: "box-arrow-in-right"
           ~classes: ["btn-primary"]
           ~disabled: (S.map Option.is_none request_signal)
           ~onclick: (fun () ->
@@ -76,7 +77,7 @@ let open_login_dialog () =
               ~none: Lwt.return_unit
               ~some: (fun (username, password, remember_me) ->
                 set_status_signal DontKnow;
-                match%lwt Madge_client.call_exn Endpoints.Api.(route @@ Auth Login) username password remember_me with
+                match%lwt Madge_client.call_exn Endpoints.Api.(route @@ User SignIn) username password remember_me with
                 | None -> set_status_signal Invalid; Lwt.return_unit
                 | Some _ -> return (Some ()); Lwt.return_unit
               )
@@ -87,13 +88,13 @@ let open_login_dialog () =
   Js_of_ocaml.Dom_html.window##.location##reload;
   Lwt.return_unit
 
-let logout () =
-  Madge_client.call_exn Endpoints.Api.(route @@ Auth Logout);%lwt
+let sign_out () =
+  Madge_client.call_exn Endpoints.Api.(route @@ User SignOut);%lwt
   Js_of_ocaml.Dom_html.window##.location##reload;
   Lwt.return_unit
 
 let header_item =
-  let status_lwt = Madge_client.call_exn Endpoints.Api.(route @@ Auth Status) in
+  let status_lwt = Madge_client.call_exn Endpoints.Api.(route @@ User Status) in
   L.li
     ~a: [
       L.a_class
@@ -107,30 +108,50 @@ let header_item =
       Fun.flip Lwt.map status_lwt @@ function
         | None ->
           [
-            button
-              ~a: [
-                a_button_type `Button;
-                a_class ["btn"; "btn-primary"];
-                a_onclick (fun _ev -> Lwt.async open_login_dialog; false);
-              ]
-              [txt "Login"];
+            Components.Button.make
+              ~label: "Sign in"
+              ~icon: "box-arrow-in-right"
+              ~classes: ["btn-primary"]
+              ~onclick: open_sign_in_dialog
+              ()
           ]
-        | Some person ->
+        | Some user ->
           [
-            button
-              ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-              [txt (Model.Person.name person)];
+            Components.Button.make
+              ~label: (Model.User.display_name user)
+              ~icon: "person-circle"
+              ~classes: ["btn-primary"; "dropdown-toggle"]
+              ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+              ();
             ul
               ~a: [a_class ["dropdown-menu"]]
-              [
-                li [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_onclick (fun _ev -> Lwt.async logout; false);
-                    ]
-                    [txt "Logout"];
-                ];
-              ];
+              (
+                List.flatten
+                  [
+                    (
+                      if Model.User.admin user then
+                        [
+                          li [
+                            Components.Button.make_a
+                              ~label: "Create user"
+                              ~icon: "plus-circle"
+                              ~classes: ["dropdown-item"]
+                              ~href: (S.const @@ Endpoints.Page.(href UserCreate))
+                              ()
+                          ];
+                          li [hr ~a: [a_class ["dropdown-divider"]] ()];
+                        ]
+                      else []
+                    );
+                    [li [
+                      Components.Button.make
+                        ~label: "Sign out"
+                        ~icon: "box-arrow-right"
+                        ~classes: ["dropdown-item"]
+                        ~onclick: sign_out
+                        ()
+                    ]];
+                  ]
+              );
           ]
     )

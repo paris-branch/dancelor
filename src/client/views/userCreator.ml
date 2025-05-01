@@ -5,18 +5,18 @@ open Html
 
 type status = Match | DontMatch
 
-let open_token_result_dialog username token =
+let open_token_result_dialog user token =
   Lwt.map ignore @@
   Page.open_dialog @@ fun return ->
   Page.make
     ~title: (S.const "Created user")
     [p [
       txt "User ";
-      txt username;
+      txt (Entry.slug_as_string user);
       txt " was created successfully. Pass them the following link: ";
     ];
     p [
-      let href = Endpoints.Page.(href AuthPasswordReset) username token in
+      let href = Endpoints.Page.(href UserPasswordReset) (Entry.slug user) token in
       a ~a: [a_href href] [txt href]
     ];
     p [
@@ -26,9 +26,24 @@ let open_token_result_dialog username token =
     ~buttons: [Button.ok' ~return ()]
 
 let create () =
+  MainPage.assert_can_admin ();
   let username_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "The username cannot be empty."
+    Input.Text.make "" (fun username ->
+      if username = "" then Error "The username cannot be empty."
+      else
+        match Slug.check_string username with
+        | None -> Error "This does not look like a username."
+        | Some username -> Ok username
+    )
+  in
+  let display_name_input =
+    Input.Text.make' "" (fun display_name ->
+      Fun.flip S.map (Input.Text.raw_signal username_input) @@ fun username ->
+      if String.slugify display_name <> username then
+        Error "The display name must correspond to the username."
+      else
+        Ok display_name
+    )
   in
   let person_selector =
     Selector.make
@@ -47,8 +62,9 @@ let create () =
   in
   let signal =
     RS.bind (Input.Text.signal username_input) @@ fun username ->
+    RS.bind (Input.Text.signal display_name_input) @@ fun display_name ->
     RS.bind (Selector.signal_one person_selector) @@ fun person ->
-    S.const @@ Ok (username, person)
+    S.const @@ Ok (username, Model.User.make ~display_name ~person ())
   in
   Page.make
     ~title: (S.const "Create user")
@@ -56,6 +72,10 @@ let create () =
       username_input
       ~placeholder: "jeanmilligan"
       ~label: "Username";
+    Input.Text.render
+      display_name_input
+      ~placeholder: "JeanMilligan"
+      ~label: "Display name";
     Selector.render
       ~make_result: Utils.AnyResult.make_person_result'
       ~field_name: "Person"
@@ -70,9 +90,13 @@ let create () =
         ~classes: ["btn-primary"]
         ~disabled: (S.map Result.is_error signal)
         ~onclick: (fun () ->
-          let (username, person) = Result.get_ok @@ S.value signal in
-          let%lwt token = Madge_client.call_exn Endpoints.Api.(route @@ Auth CreateUser) username (Entry.slug person) in
-          open_token_result_dialog username token
+          let (username, user) = Result.get_ok @@ S.value signal in
+          let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username user in
+          open_token_result_dialog user token;%lwt
+          Input.Text.clear username_input;
+          Input.Text.clear display_name_input;
+          Selector.clear person_selector;
+          Lwt.return_unit
         )
         ();
     ]

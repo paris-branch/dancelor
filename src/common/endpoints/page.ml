@@ -44,8 +44,8 @@ type (_, _, _) t =
   | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
-  | AuthCreateUser : ('w, 'w, Void.t) t
-  | AuthPasswordReset : ((string -> string -> 'w), 'w, Void.t) t
+  | UserCreate : ('w, 'w, Void.t) t
+  | UserPasswordReset : ((User.t Slug.t -> string -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 open Madge
@@ -71,8 +71,8 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
-    | AuthCreateUser -> literal "auth" @@ literal "create-user" @@ void ()
-    | AuthPasswordReset -> literal "auth" @@ literal "reset-password" @@ query "username" (module JString) @@ query "token" (module JString) @@ void ()
+    | UserCreate -> literal "user" @@ literal "create" @@ void ()
+    | UserPasswordReset -> literal "user" @@ literal "reset-password" @@ query "username" (module JSlug(User)) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) {meth; uri; _} ->
@@ -111,8 +111,8 @@ let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_pers
     | PersonAdd -> Lwt.return_none
     | SourceAdd -> Lwt.return_none
     | DanceAdd -> Lwt.return_none
-    | AuthCreateUser -> Lwt.return_none
-    | AuthPasswordReset -> Fun.const2 Lwt.return_none
+    | UserCreate -> Lwt.return_none
+    | UserPasswordReset -> Fun.const2 Lwt.return_none
     | Version ->
       (fun _ slug ->
         let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in

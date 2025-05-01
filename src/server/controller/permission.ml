@@ -80,7 +80,7 @@ let assert_can_delete env entry =
 (** {2 Administrating} *)
 
 let can_admin =
-  fold_user ~none: (fun () -> false) ~some: (fun user -> Entry.slug_as_string user = "niols")
+  fold_user ~none: (Fun.const false) ~some: Model.User.admin
 
 let assert_can_admin env =
   if can_admin env then

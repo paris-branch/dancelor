@@ -143,6 +143,7 @@ module Editor = struct
 end
 
 let create ?on_save ?text () =
+  MainPage.assert_can_create ();
   let title = "Add a set" in
   let editor = Editor.create ~text in
   Page.make

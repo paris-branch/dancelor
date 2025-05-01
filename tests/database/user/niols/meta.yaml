@@ -1,4 +1,5 @@
 person: niols
+display-name: Niols
 password: "$argon2id$v=19$m=65536,t=2,p=1$mm4GoaR1lz2r6jJf2OomVA$VwSQPpYI6Clwh8xdoOBcwX2BFH8VCv3B++Tx1G5B11w"
 created-at: "2025-04-13T18:48:00+02:00"
 modified-at: "2025-04-13T18:48:00+02:00"

@@ -7,7 +7,8 @@ val make :
   ?badge: string ->
   ?classes: string list ->
   ?disabled: bool S.t ->
-  onclick: (unit -> unit Lwt.t) ->
+  ?onclick: (unit -> unit Lwt.t) ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** Generic button showing [label] and [icon]. When clicked, [label] is replaced

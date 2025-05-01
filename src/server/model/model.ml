@@ -1,10 +1,10 @@
 (** {1 Server-side models} *)
 
-open Nes
 open Common
 
 module Source : ModelBuilder.Source.S = Source
 module Person : ModelBuilder.Person.S = Person
+module User : ModelBuilder.User.S = User
 module Dance : ModelBuilder.Dance.S = Dance
 module Tune : ModelBuilder.Tune.S = Tune
 module Version : ModelBuilder.Version.S = Version
@@ -15,10 +15,3 @@ module SetParameters = SetParameters
 module Book : ModelBuilder.Book.S = Book
 module BookParameters = BookParameters
 module Any : ModelBuilder.Any.S = Any
-
-(** {2 Server-side only} *)
-
-module User = struct
-  include Database.UserModel
-  let person = Person.get % person
-end

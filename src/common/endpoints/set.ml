@@ -18,11 +18,11 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific set *)
-    | Create -> query "set" (module Set) @@ post (module Entry.J(Set))
+    | Create -> body "set" (module Set) @@ post (module Entry.J(Set))
     | Search -> query "slice" (module Slice) @@ query "filter" (module Set.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Set))))
     (* Actions on a specific set *)
     | Get -> variable (module SSlug(Set)) @@ get (module Entry.J(Set))
-    | Update -> variable (module SSlug(Set)) @@ query "set" (module Set) @@ put (module Entry.J(Set))
+    | Update -> variable (module SSlug(Set)) @@ body "set" (module Set) @@ put (module Entry.J(Set))
     | Delete -> variable (module SSlug(Set)) @@ delete (module JUnit)
     (* Files related to a set *)
     | Pdf -> query "parameters" (module SetParameters) @@ variable (module SSlug(Set)) ~suffix: ".pdf" @@ void ()

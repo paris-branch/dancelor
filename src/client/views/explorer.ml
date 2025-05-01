@@ -29,7 +29,7 @@ let create ?query () =
     [
       L.div
         (
-          match%lwt Madge_client.call_exn Endpoints.Api.(route @@ Auth Status) with
+          match%lwt Madge_client.call_exn Endpoints.Api.(route @@ User Status) with
           | Some _ -> Lwt.return_nil
           | None ->
             Lwt.return [

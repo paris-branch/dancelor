@@ -34,11 +34,11 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific version *)
-    | Create -> query "version" (module Version) @@ post (module Entry.J(VersionNoContent))
+    | Create -> body "version" (module Version) @@ post (module Entry.J(VersionNoContent))
     | Search -> query "slice" (module Slice) @@ query "filter" (module Version.Filter) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoContent))))
     (* Actions on a specific version *)
     | Get -> variable (module SSlug(Version)) @@ get (module Entry.J(VersionNoContent))
-    | Update -> variable (module SSlug(Version)) @@ query "version" (module Version) @@ put (module Entry.J(VersionNoContent))
+    | Update -> variable (module SSlug(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
     (* Files related to a version *)
     | Ly -> variable (module SSlug(Version)) ~suffix: ".ly" @@ void ()
     | Svg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".svg" @@ void ()

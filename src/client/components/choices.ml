@@ -4,9 +4,9 @@ open Html
 
 let unique =
   let counter = ref 0 in
-  fun () ->
+  fun ?name () ->
     incr counter;
-    "choices-" ^ string_of_int !counter
+    Option.value name ~default: "anonymous" ^ "-" ^ string_of_int !counter
 
 type 'value choice = {
   id: string;
@@ -29,15 +29,14 @@ let value c = S.value (signal c)
 let render c = c.box
 
 let make_gen_unsafe
-    ?name: nam
+    ?name
     ~validation
     ~validate
     ~post_validate
     ~radios
     choices
   =
-  (* FIXME *)
-  let name = unique () in
+  let html_name = unique ?name: (Option.map String.slugify name) () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
   let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
   let values = S.map validate values in
@@ -50,11 +49,7 @@ let make_gen_unsafe
       ~a: [a_class ["mb-2"]]
       (
         List.filter_map Fun.id [
-          (
-            match nam with
-            | None -> None
-            | Some nam -> Some (label ~a: [a_class ["form-label"]] [txt nam])
-          );
+          (Option.map (label ~a: [a_class ["form-label"]] % List.singleton % txt) name);
           Some
             (
               div
@@ -75,7 +70,7 @@ let make_gen_unsafe
                                     | Error _ -> ["btn-check"; "form-check-input"; "is-invalid"]
                                 )
                             );
-                          Some (a_name name);
+                          Some (a_name html_name);
                           Some (a_id choice.id);
                           (if choice.checked then Some (a_checked ()) else None);
                         ]

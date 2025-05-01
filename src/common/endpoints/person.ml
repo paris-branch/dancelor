@@ -15,8 +15,8 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific person *)
-    | Create -> query "person" (module Person) @@ post (module Entry.J(Person))
+    | Create -> body "person" (module Person) @@ post (module Entry.J(Person))
     | Search -> query "slice" (module Slice) @@ query "filter" (module Person.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Person))))
     (* Actions on a specific person *)
     | Get -> variable (module SSlug(Person)) @@ get (module Entry.J(Person))
-    | Update -> variable (module SSlug(Person)) @@ query "person" (module Person) @@ put (module Entry.J(Person))
+    | Update -> variable (module SSlug(Person)) @@ body "person" (module Person) @@ put (module Entry.J(Person))

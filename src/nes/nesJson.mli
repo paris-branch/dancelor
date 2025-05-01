@@ -33,6 +33,12 @@ val remove_field : string -> t -> t
     @raise Failure if the field does not exist.
     @raise Invalid_argument if the JSON value is not an [`Assoc]. *)
 
+val keep_fields : string list -> t -> t
+(** Returns the JSON value with only the given fields.
+
+    @raise Failure if the field does not exist.
+    @raise Invalid_argument if the JSON value is not an [`Assoc]. *)
+
 (** {3 Other} *)
 
 val map_field : string -> (t -> t) -> t -> t

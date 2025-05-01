@@ -179,6 +179,7 @@ module Editor = struct
 end
 
 let create ?on_save ?text ?tune () =
+  MainPage.assert_can_create ();
   let title = "Add a version" in
   let editor = Editor.create ~text ~tune in
   Page.make
