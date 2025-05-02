@@ -175,8 +175,10 @@ module Initialise = struct
             |> List.iter @@ function
                 | Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
                   Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
-                | DependencyViolatesStatus ((from_key, from_slug), (to_key, to_slug)) ->
-                  Log.warn (fun m -> m "%s / %s refers to %s / %s but has a higher status" from_key from_slug to_key to_slug)
+                | DependencyViolatesStatus ((from_key, from_slug, from_status), (to_key, to_slug, to_status)) ->
+                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_slug Status.pp from_status to_key to_slug Status.pp to_status)
+                | DependencyViolatesPrivacy ((from_key, from_slug, from_privacy), (to_key, to_slug, to_privacy)) ->
+                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_slug Privacy.pp from_privacy to_key to_slug Privacy.pp to_privacy)
                 | _ -> ()
           );
           match found_problem, problems with

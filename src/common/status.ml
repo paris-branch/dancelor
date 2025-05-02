@@ -24,6 +24,9 @@ let gt a b =
 
 let ge a b = eq a b || gt a b
 
+let can_depend status ~on =
+  ge on status
+
 let to_string = function
   | Locked -> "locked"
   | ToBeConfirmed -> "to-be-confirmed"
@@ -39,7 +42,7 @@ let from_string = function
   | "locked" -> Locked
   | "to-be-confirmed" -> ToBeConfirmed
   | "unlocked" -> Unlocked
-  | _ -> failwith "Dancelor_common.Model.Status.from_string"
+  | _ -> failwith "Common.Status.from_string"
 
 let of_yojson = function
   | `String string ->
@@ -47,6 +50,6 @@ let of_yojson = function
       try
         Ok (from_string string)
       with
-        | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a valid status"
+        | _ -> Error "Common.Status.of_yojson: not a valid status"
     )
-  | _ -> Error "Dancelor_common.Model.Status.of_yojson: not a JSON string"
+  | _ -> Error "Common.Status.of_yojson: not a JSON string"

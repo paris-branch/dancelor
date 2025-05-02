@@ -65,8 +65,10 @@ val meta : 'a t -> meta
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
 val status : meta -> Status.t
+val status' : 'a t -> Status.t
 
 val privacy : meta -> Privacy.t
+val privacy' : 'a t -> Privacy.t
 
 val created_at : meta -> Datetime.t
 
