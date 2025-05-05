@@ -36,22 +36,16 @@ include Search.Build(struct
 end)
 
 module Pdf = struct
-  let render parameters set =
-    let book =
-      Entry.make_dummy @@
-        Model.Book.make ~title: "" ~contents: [InlineSet (Entry.value set, parameters)] ()
-    in
-    let parameters =
-      (* FIXME: the fact that we need to transfer this is just wrong. see
-         https://github.com/paris-branch/dancelor/issues/250 *)
-      Model.BookParameters.make ?paper_size: (Model.SetParameters.paper_size parameters) ()
-    in
-    Book.Pdf.render parameters book
+  let render set set_parameters rendering_parameters =
+    let contents = [Model.Book.InlineSet (Entry.value set, set_parameters)] in
+    let book = Entry.make_dummy @@ Model.Book.make ~title: "" ~contents () in
+    let book_parameters = Model.BookParameters.make () in
+    Book.Pdf.render book book_parameters rendering_parameters
 
-  let get env parameters set =
+  let get env set set_parameters rendering_parameters =
     let%lwt set = Model.Set.get set in
     Permission.assert_can_get env set;%lwt
-    let%lwt path_pdf = render parameters set in
+    let%lwt path_pdf = render set set_parameters rendering_parameters in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
 end
 

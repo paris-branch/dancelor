@@ -10,7 +10,7 @@ type (_, _, _) t =
 | Get : ((Dance.t Slug.t -> 'w), 'w, Dance.t Entry.t) t
 | Update : ((Dance.t Slug.t -> Dance.t -> 'w), 'w, Dance.t Entry.t) t
 (* Files related to a dance *)
-| Pdf : ((SetParameters.t -> Dance.t Slug.t -> 'w), 'w, Void.t) t
+| Pdf : ((Dance.t Slug.t -> SetParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -23,4 +23,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module SSlug(Dance)) @@ get (module Entry.J(Dance))
     | Update -> variable (module SSlug(Dance)) @@ body "dance" (module Dance) @@ put (module Entry.J(Dance))
     (* Files related to a dance *)
-    | Pdf -> query "parameters" (module SetParameters) @@ variable (module SSlug(Dance)) ~suffix: ".pdf" @@ void ()
+    | Pdf -> variable (module SSlug(Dance)) ~suffix: ".pdf" @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()

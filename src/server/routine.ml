@@ -1,3 +1,5 @@
+open Common
+
 module Log = (val Logger.create "routine": Logs.LOG)
 
 let preload_versions ?max_concurrency () =
@@ -11,8 +13,8 @@ let preload_versions ?max_concurrency () =
         let%lwt tune = Model.Version.tune version in
         let name = Model.Tune.name tune in
         Log.debug (fun m -> m "Prerendering %s" name);
-        let%lwt _ = Controller.Version.Svg.render Model.VersionParameters.none version in
-        let%lwt _ = Controller.Version.Ogg.render Model.VersionParameters.none version in
+        let%lwt _ = Controller.Version.Svg.render version Model.VersionParameters.none RenderingParameters.none in
+        let%lwt _ = Controller.Version.Ogg.render version Model.VersionParameters.none RenderingParameters.none in
         Lwt.return ()
       )
       all

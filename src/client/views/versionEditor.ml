@@ -257,7 +257,7 @@ let create ?on_save ?text ?tune () =
                         [
                           audio
                             ~a: [a_controls ()]
-                            ~src: (Endpoints.Api.(href @@ Version PreviewOgg) Model.VersionParameters.none version)
+                            ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
                             [];
                         ];
                       ]

@@ -12,13 +12,6 @@ type order_type =
   Default | Unfolded
 [@@deriving eq, show {with_path = false}, yojson]
 
-(** The size of the paper to use. [A] allows to select the ISO 216 “A” format.
-    [Custom] allows to give a custom value. The default is [A 4]. *)
-type paper_size =
-  | A of int
-  | Custom of float * float * string (** width, height and unit *)
-[@@deriving eq, show {with_path = false}, yojson]
-
 module Self = struct
   type t = {
     forced_pages: int option; [@default None] [@key "forced-pages"]
@@ -26,11 +19,10 @@ module Self = struct
     show_order: bool option; [@default None] [@key "show-order"]
     order_type: order_type option; [@default None] [@key "order-type"]
     display_name: string option; [@default None] [@key "display-name"]
-    paper_size: paper_size option; [@default None] [@key "paper-size"]
     for_dance: Dance.t Slug.t option; [@default None] [@key "for-dance"]
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
-  [@@deriving eq, make, show {with_path = false}, yojson]
+  [@@deriving eq, make, show {with_path = false}, yojson, fields]
 end
 include Self
 
@@ -55,15 +47,6 @@ let make
 
 (** {2 Getters} *)
 
-let forced_pages p = p.forced_pages
-let for_dance p = p.for_dance
-let display_name p = p.display_name
-let show_deviser p = p.show_deviser
-let show_order p = p.show_order
-let order_type p = p.order_type
-let paper_size p = p.paper_size
-
-let every_version p = p.every_version
 let instruments = VersionParameters.instruments % every_version
 
 (** {2 Defaults}
@@ -75,7 +58,6 @@ let none = `Assoc [] |> of_yojson |> Result.get_ok
 let forced_pages' = Option.value ~default: 0 % forced_pages
 let show_deviser' = Option.value ~default: true % show_deviser
 let show_order' = Option.value ~default: true % show_order
-let paper_size' = Option.value ~default: (A 4) % paper_size
 let order_type' = Option.value ~default: Default % order_type
 let display_name' ~default = Option.value ~default % display_name
 
@@ -92,6 +74,5 @@ let compose first second = {
   show_deviser = Option.(choose ~tie: second) first.show_deviser second.show_deviser;
   show_order = Option.(choose ~tie: second) first.show_order second.show_order;
   order_type = Option.(choose ~tie: second) first.order_type second.order_type;
-  paper_size = Option.(choose ~tie: second) first.paper_size second.paper_size;
   every_version = VersionParameters.compose first.every_version second.every_version
 }

@@ -11,7 +11,7 @@ type (_, _, _) t =
 | Update : ((Set.t Slug.t -> Set.t -> 'w), 'w, Set.t Entry.t) t
 | Delete : ((Set.t Slug.t -> 'w), 'w, unit) t
 (* Files related to a set *)
-| Pdf : ((SetParameters.t -> Set.t Slug.t -> 'w), 'w, Void.t) t
+| Pdf : ((Set.t Slug.t -> SetParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -25,4 +25,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Update -> variable (module SSlug(Set)) @@ body "set" (module Set) @@ put (module Entry.J(Set))
     | Delete -> variable (module SSlug(Set)) @@ delete (module JUnit)
     (* Files related to a set *)
-    | Pdf -> query "parameters" (module SetParameters) @@ variable (module SSlug(Set)) ~suffix: ".pdf" @@ void ()
+    | Pdf -> variable (module SSlug(Set)) ~suffix: ".pdf" @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
