@@ -48,6 +48,9 @@ let slug_as_string e = Slug.to_string (slug e)
 let meta = function Full (_, meta, _) -> meta | _ -> raise UsedGetterOnDummy
 let value = function Full (_, _, value) | Dummy value -> value
 
+let status' e = status @@ meta e
+let privacy' e = privacy @@ meta e
+
 let equal' e f = Slug.equal' (slug e) (slug f)
 let equal _ = equal'
 

@@ -35,8 +35,6 @@ module type S = sig
   val get_opt : value Slug.t -> value Entry.t option Lwt.t
   val get_all : unit -> value Entry.t list Lwt.t
 
-  val get_status : value Slug.t -> Status.t option Lwt.t
-
   val create : value -> value Entry.t Lwt.t
   (** Create a new database entry for the given value. *)
 
@@ -132,20 +130,37 @@ module Make (Model : Model) : S with type value = Model.t = struct
     | None ->
       Lwt.return_none
 
-  let get_status = Lwt.map (Option.map Entry.(status % meta)) % get_opt
-
-  let list_dependency_problems_for slug status = function
+  let list_dependency_problems_for slug status privacy = function
     | Boxed (dep_slug, (module Dep_table)) ->
-      match%lwt Dep_table.get_status dep_slug with
+      match%lwt Dep_table.get_opt dep_slug with
       | None ->
-        [Error.DependencyDoesNotExist ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
-        |> Lwt.return
-      | Some dep_status ->
-        if Status.ge dep_status status then
-          Lwt.return_nil
-        else
-          [Error.DependencyViolatesStatus ((_key, Slug.to_string slug), (Dep_table._key, Slug.to_string dep_slug))]
-          |> Lwt.return
+        Lwt.return [
+          Error.dependency_does_not_exist
+            ~source: (_key, Slug.to_string slug)
+            ~dependency: (Dep_table._key, Slug.to_string dep_slug)
+        ]
+      | Some dep_entry ->
+        let dep_meta = Entry.meta dep_entry in
+        let dep_status = Entry.status dep_meta in
+        let dep_privacy = Entry.privacy dep_meta in
+        Lwt.return @@
+        (
+          if Status.can_depend status ~on: dep_status then []
+          else
+            [
+              Error.dependency_violates_status
+                ~source: (_key, Slug.to_string slug, status)
+                ~dependency: (Dep_table._key, Slug.to_string dep_slug, dep_status)
+            ]
+        ) @ (
+          if Privacy.can_depend privacy ~on: dep_privacy then []
+          else
+            [
+              Error.dependency_violates_privacy
+                ~source: (_key, Slug.to_string slug, privacy)
+                ~dependency: (Dep_table._key, Slug.to_string dep_slug, dep_privacy)
+            ]
+        )
 
   let list_dependency_problems () =
     Hashtbl.to_seq_values table
@@ -154,10 +169,11 @@ module Make (Model : Model) : S with type value = Model.t = struct
         (fun problems (_, model) ->
           let slug = Entry.slug model in
           let status = Entry.(status % meta) model in
+          let privacy = Entry.(privacy % meta) model in
           let%lwt deps = Model.dependencies model in
           let%lwt new_problems =
             deps
-            |> Lwt_list.map_s (list_dependency_problems_for slug status)
+            |> Lwt_list.map_s (list_dependency_problems_for slug status privacy)
           in
           new_problems
           |> List.flatten
