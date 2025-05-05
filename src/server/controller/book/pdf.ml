@@ -12,6 +12,18 @@ let populate_cache () =
 let render book book_parameters rendering_parameters =
   let%lwt body = Model.Book.lilypond_contents_cache_key book in
   StorageCache.use ~cache ~key: (`Pdf, book, book_parameters, body, rendering_parameters) @@ fun hash ->
+  let%lwt rendering_parameters =
+    let%lwt pdf_metadata =
+      let name = Model.Book.title book in
+      let%lwt composers = Lwt.map (List.map Model.Person.name) @@ Model.Book.authors book in
+      Lwt.return @@
+        RenderingParameters.update_pdf_metadata
+          ~title: (String.replace_empty ~by: name)
+          ~composers: (List.replace_nil ~by: composers)
+    in
+    Lwt.return @@
+      RenderingParameters.update ~pdf_metadata rendering_parameters
+  in
   let%lwt lilypond = Ly.render book book_parameters rendering_parameters in
   let path = Filename.concat !Config.cache "book" in
   let (fname_ly, fname_pdf) =

@@ -125,6 +125,9 @@ val all_some : 'a option list -> 'a list option
 val apply : ('a -> 'b) list -> 'a -> 'b list
 (** [apply \[f1; f2; f3\] x = \[f1 x; f2 x; f3 x\]]. *)
 
+val replace_nil : by: 'a list -> 'a list -> 'a list
+(** [replace_nil ~by l] is [l] if [l <> []] and [by] otherwise. *)
+
 (** {3 Association lists} *)
 
 val extract_assoc : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
