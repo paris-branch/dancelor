@@ -41,7 +41,7 @@ let render p = (
     [
       div p.before_title;
       div
-        ~a: [a_class ["container"]]
+        ~a: [a_class ["container-md"]]
         [
           h2 ~a: [a_class ["text-center"; "mb-4"]] [R.txt p.title];
           div p.content;

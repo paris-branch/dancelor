@@ -49,7 +49,7 @@ let make_context_link_banner ~context ~this_page =
     ~a: [a_class ["bg-secondary-subtle"; "p-2"; "mt-n2"; (* keep in sync with header's margin *) "mb-2"; "opacity-75"]]
     [
       div
-        ~a: [a_class ["container"; "d-flex"; "justify-content-between"]]
+        ~a: [a_class ["container-md"; "d-flex"; "justify-content-between"]]
         [
           div
             (

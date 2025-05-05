@@ -135,7 +135,7 @@ let header =
     ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mb-2"]]
     [
       div
-        ~a: [a_class ["container"]]
+        ~a: [a_class ["container-md"]]
         [
           a
             ~a: [a_class ["navbar-brand"; "my-n2"; "py-0"; "flex-fill"]; a_href "/"]
@@ -193,7 +193,7 @@ let footer =
     ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
     [
       div
-        ~a: [a_class ["container"; "d-flex"; "flex-column"; "flex-sm-row"]]
+        ~a: [a_class ["container-md"; "d-flex"; "flex-column"; "flex-sm-row"]]
         [
           a ~a: [a_class ["text-light"; "my-1"]; a_href "/"] [txt "Dancelor"];
           a

@@ -34,5 +34,5 @@ class TestExplorerComplexFilter():
     self.driver.find_element(By.XPATH, "//button[text()[contains(., 'Apply')]]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Your search returned no result')]")
     self.wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, ".alert-warning"), "Your search returned no results."))
-    assert self.driver.find_element(By.XPATH, "//div[@class = 'container']//input").get_attribute("value") \
+    assert self.driver.find_element(By.XPATH, "//div[@class = 'container-md']//input").get_attribute("value") \
       == "type:Set kind:version:base:(Polka :or Waltz) tam"
