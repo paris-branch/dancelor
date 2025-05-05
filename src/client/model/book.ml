@@ -1,7 +1,7 @@
 open Nes
 open Common
 
-include ModelBuilder.Book.Build(Dance)(Set)(Tune)(Version)
+include ModelBuilder.Book.Build(Dance)(Person)(Set)(Tune)(Version)
 
 let get = Madge_client.call_exn Endpoints.Api.(route @@ Book Get)
 

@@ -14,6 +14,7 @@ type t = {
   title: string;
   subtitle: string; [@default ""]
   short_title: string; [@default ""] [@key "short-title"]
+  authors: Person.t Slug.t list; [@default []]
   date: PartialDate.t option; [@default None]
   contents: Page.t list;
   source: bool; [@default false]
@@ -26,6 +27,7 @@ let make
     ~title
     ?subtitle
     ?short_title
+    ?authors
     ?date
     ?(contents = [])
     ?source
@@ -37,6 +39,7 @@ let make
     ~title
     ?subtitle
     ?short_title
+    ?authors
     ~date
     ~contents
     ?source
@@ -47,6 +50,7 @@ let make
 let title = title % Entry.value
 let subtitle = subtitle % Entry.value
 let short_title = short_title % Entry.value
+let authors = authors % Entry.value
 let date = date % Entry.value
 let contents = contents % Entry.value
 let source = source % Entry.value
