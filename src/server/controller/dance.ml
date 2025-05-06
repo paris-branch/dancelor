@@ -32,7 +32,7 @@ include Search.Build(struct
 end)
 
 module Pdf = struct
-  let render env parameters dance =
+  let render env dance set_parameters rendering_parameters =
     let kind = Model.Dance.kind dance in
     let name = Model.Dance.name dance in
     let%lwt versions =
@@ -43,7 +43,6 @@ module Pdf = struct
       Model.Tune.Filter.existsDance' @@
       Model.Dance.Filter.is' dance
     in
-    let parameters = Model.SetParameters.set_show_order false parameters in
     let set =
       Entry.make_dummy @@
         Model.Set.make
@@ -53,12 +52,13 @@ module Pdf = struct
           ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)
           ()
     in
-    Set.Pdf.render parameters set
+    let set_parameters = Model.SetParameters.set_show_order false set_parameters in
+    Set.Pdf.render set set_parameters rendering_parameters
 
-  let get env parameters dance_slug =
+  let get env dance_slug set_parameters rendering_parameters =
     let%lwt dance = Model.Dance.get dance_slug in
     Permission.assert_can_get env dance;%lwt
-    let%lwt path_pdf = render env parameters dance in
+    let%lwt path_pdf = render env dance set_parameters rendering_parameters in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
 end
 

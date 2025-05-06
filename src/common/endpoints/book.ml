@@ -10,7 +10,7 @@ type (_, _, _) t =
 | Get : ((Book.t Slug.t -> 'w), 'w, Book.t Entry.t) t
 | Update : ((Book.t Slug.t -> Book.t -> 'w), 'w, Book.t Entry.t) t
 (* Files related to a book *)
-| Pdf : ((BookParameters.t -> Book.t Slug.t -> 'w), 'w, Void.t) t
+| Pdf : ((Book.t Slug.t -> BookParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -23,4 +23,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module SSlug(Book)) @@ get (module Entry.J(Book))
     | Update -> variable (module SSlug(Book)) @@ body "book" (module Book) @@ put (module Entry.J(Book))
     (* Files related to a book *)
-    | Pdf -> query "parameters" (module BookParameters) @@ variable (module SSlug(Book)) ~suffix: ".pdf" @@ void ()
+    | Pdf -> variable (module SSlug(Book)) ~suffix: ".pdf" @@ query "parameters" (module BookParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()

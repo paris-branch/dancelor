@@ -245,3 +245,7 @@ let extract_assoc_several xs l =
       xs
   in
     (List.rev xys, l)
+
+let replace_nil ~by = function
+  | [] -> by
+  | l -> l

@@ -60,6 +60,21 @@ let rec version_kinds = function
   | Add (kind1, kind2) -> version_kinds kind1 @ version_kinds kind2
   | Mul (_n, kind) -> version_kinds kind
 
+let rec to_simple = function
+  | Version (bars, base) -> Some (1, bars, base)
+  | Add (kind1, kind2) ->
+    Option.bind (to_simple kind1) @@ fun (n1, bars1, base1) ->
+    Option.bind (to_simple kind2) @@ fun (n2, bars2, base2) ->
+    if base1 = base2 then
+      if bars1 = bars2 then
+        Some (n1 + n2, bars1, base1)
+      else
+        Some (1, n1 * bars1 + n2 * bars2, base1)
+    else
+      None
+  | Mul (n, kind) ->
+    Option.map (fun (n', bars, base) -> (n * n', bars, base)) (to_simple kind)
+
 (* Filters *)
 
 module Filter = struct

@@ -41,19 +41,19 @@ let rearrange_set_content ~order_type ~order content =
     |> List.map_filter (function Model.SetOrder.Internal n -> Some n | _ -> None)
     |> List.map (List.nth content % Fun.flip (-) 1)
 
-let cache : ([`Ly] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+let cache : ([`Ly] * Model.Book.t Entry.t * Model.BookParameters.t * string * RenderingParameters.t, string Lwt.t) StorageCache.t =
   StorageCache.create ()
 
-let render parameters book =
+let render book book_parameters rendering_parameters =
   let%lwt body = Model.Book.lilypond_contents_cache_key book in
-  StorageCache.use ~cache ~key: (`Ly, book, parameters, body) @@ fun _hash ->
+  StorageCache.use ~cache ~key: (`Ly, book, book_parameters, body, rendering_parameters) @@ fun _hash ->
   let (res, prom) =
     Format.with_formatter_to_string_gen @@ fun fmt ->
     let title = Model.Book.title book in
     (** FIXME: subtitle *)
     fpf fmt [%blob "../template/lyversion.ly"];
     (
-      match Model.BookParameters.paper_size' parameters with
+      match RenderingParameters.paper_size' rendering_parameters with
       | A n -> fpf fmt [%blob "../template/paper_size/a.ly"] n;
       | Custom (width, height, unit) -> fpf fmt [%blob "../template/paper_size/custom.ly"] width unit height unit;
     );
@@ -63,16 +63,23 @@ let render parameters book =
       fmt
       [%blob "../template/book/globals.ly"]
       title
-      (Model.BookParameters.instruments' parameters);
+      (Model.BookParameters.instruments' book_parameters);
+    fpf
+      fmt
+      [%blob "../template/book/book_metadata.ly"]
+      (RenderingParameters.(title % pdf_metadata) rendering_parameters)
+      (RenderingParameters.(subtitle % pdf_metadata) rendering_parameters)
+      (String.concat "; " @@ RenderingParameters.(composers % pdf_metadata) rendering_parameters)
+      (String.concat "; " @@ RenderingParameters.(subjects % pdf_metadata) rendering_parameters);
     fpf fmt [%blob "../template/paper.ly"];
     fpf fmt [%blob "../template/book/paper.ly"];
-    if Model.BookParameters.two_sided' parameters then
+    if Model.BookParameters.two_sided' book_parameters then
       (
         fpf fmt [%blob "../template/book/two_sided.ly"];
         fpf
           fmt
           (
-            if Model.BookParameters.running_header' parameters then
+            if Model.BookParameters.running_header' book_parameters then
               [%blob "../template/book/header/two_sided.ly"]
             else
               [%blob "../template/book/header/none.ly"]
@@ -80,7 +87,7 @@ let render parameters book =
         fpf
           fmt
           (
-            if Model.BookParameters.running_footer' parameters then
+            if Model.BookParameters.running_footer' book_parameters then
               [%blob "../template/book/footer/two_sided.ly"]
             else
               [%blob "../template/book/footer/none.ly"]
@@ -91,7 +98,7 @@ let render parameters book =
         fpf
           fmt
           (
-            if Model.BookParameters.running_header' parameters then
+            if Model.BookParameters.running_header' book_parameters then
               [%blob "../template/book/header/one_sided.ly"]
             else
               [%blob "../template/book/header/none.ly"]
@@ -99,7 +106,7 @@ let render parameters book =
         fpf
           fmt
           (
-            if Model.BookParameters.running_footer' parameters then
+            if Model.BookParameters.running_footer' book_parameters then
               [%blob "../template/book/footer/one_sided.ly"]
             else
               [%blob "../template/book/footer/none.ly"]
@@ -111,9 +118,9 @@ let render parameters book =
     fpf fmt [%blob "../template/bar_numbering/bar_number_in_instrument_name_engraver.ly"];
     fpf fmt [%blob "../template/bar_numbering/beginning_of_line.ly"];
     fpf fmt [%blob "../template/book/book_beginning.ly"];
-    if Model.BookParameters.front_page' parameters then
+    if Model.BookParameters.front_page' book_parameters then
       fpf fmt [%blob "../template/book/book_front_page.ly"];
-    if Model.BookParameters.(table_of_contents' parameters = Beginning) then
+    if Model.BookParameters.(table_of_contents' book_parameters = Beginning) then
       fpf fmt [%blob "../template/book/book_table_of_contents.ly"];
     let%lwt () =
       let%lwt sets_and_parameters =
@@ -147,7 +154,7 @@ let render parameters book =
       (* FIXME: none of the above need to be dummy; I think we can just return
          a SetCore.t; do we need the slug anyway? *)
       Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
-      let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set parameters) set_parameters in
+      let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set book_parameters) set_parameters in
       let name = Model.SetParameters.display_name' ~default: (Model.Set.name set) set_parameters in
       let%lwt deviser =
         if not (Model.SetParameters.show_deviser' set_parameters) then
@@ -215,7 +222,7 @@ let render parameters book =
       fpf fmt [%blob "../template/book/set_end.ly"];
       Lwt.return ()
     in
-    if Model.BookParameters.(table_of_contents' parameters = End) then
+    if Model.BookParameters.(table_of_contents' book_parameters = End) then
       fpf fmt [%blob "../template/book/book_table_of_contents.ly"];
     fpf fmt [%blob "../template/book/book_end.ly"];
     Lwt.return ()

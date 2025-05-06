@@ -111,7 +111,7 @@ let create ?context slug =
         [
           audio
             ~a: [a_controls ()]
-            ~src: (Endpoints.Api.(href @@ Version Ogg) Model.VersionParameters.none slug)
+            ~src: (Endpoints.Api.(href @@ Version Ogg) slug Model.VersionParameters.none RenderingParameters.none)
             []
         ];
       Utils.quick_explorer_links

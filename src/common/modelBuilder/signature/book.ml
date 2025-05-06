@@ -29,6 +29,7 @@ module type S = sig
     title: string ->
     ?subtitle: string ->
     ?short_title: string ->
+    ?authors: Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
     ?source: bool ->
@@ -42,6 +43,7 @@ module type S = sig
   val title : t Entry.t -> string
   val subtitle : t Entry.t -> string
   val short_title : t Entry.t -> string
+  val authors : t Entry.t -> Person.t Entry.t list Lwt.t
   val date : t Entry.t -> PartialDate.t option
   val contents : t Entry.t -> page list Lwt.t
   val source : t Entry.t -> bool

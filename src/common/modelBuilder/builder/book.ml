@@ -2,6 +2,7 @@ open Nes
 
 module Build
   (Dance : Signature.Dance.S)
+  (Person : Signature.Person.S)
   (Set : Signature.Set.S)
   (Tune : Signature.Tune.S)
   (Version : Signature.Version.S)
@@ -9,6 +10,7 @@ module Build
   include Core.Book
 
   let short_title book = if short_title book = "" then title book else short_title book
+  let authors = Lwt_list.map_p Person.get % authors
 
   let is_source book = source book
 
@@ -99,9 +101,13 @@ module Build
     | (Set (set, params): page) -> Core.Book.Page.Set (Entry.slug set, params)
     | (InlineSet (set, params): page) -> Core.Book.Page.InlineSet (set, params)
 
-  let make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id () =
+  let make ~title ?subtitle ?short_title ?authors ?date ?contents ?source ?remark ?scddb_id () =
+    let title = String.remove_duplicates ~char: ' ' title in
+    let subtitle = Option.map (String.remove_duplicates ~char: ' ') subtitle in
+    let short_title = Option.map (String.remove_duplicates ~char: ' ') short_title in
+    let authors = Option.map (List.map Entry.slug) authors in
     let contents = Option.map (List.map page_to_page_core) contents in
-    make ~title ?subtitle ?short_title ?date ?contents ?source ?remark ?scddb_id ()
+    make ~title ?subtitle ?short_title ?authors ?date ?contents ?source ?remark ?scddb_id ()
 
   module Warnings = struct
     (* The following functions all have the name of a warning of

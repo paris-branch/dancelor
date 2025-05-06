@@ -12,7 +12,7 @@ let open_ slug dialog =
     [table dialog.SetDownloadDialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();
-      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Dance Pdf) params slug) dialog.SetDownloadDialog.parameters_signal) ();
+      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Dance Pdf) slug params RenderingParameters.none) dialog.SetDownloadDialog.parameters_signal) ();
     ]
 
 let create_and_open slug = open_ slug (create ())

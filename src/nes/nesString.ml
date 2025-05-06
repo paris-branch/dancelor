@@ -398,3 +398,7 @@ let split_3_on_char sep string =
 let%test _ = split_3_on_char '=' "abc=def=ghi" = Some ("abc", "def", "ghi")
 let%test _ = split_3_on_char '=' "abc=def" = None
 let%test _ = split_3_on_char '=' "abcdef" = None
+
+let replace_empty ~by = function
+  | "" -> by
+  | s -> s

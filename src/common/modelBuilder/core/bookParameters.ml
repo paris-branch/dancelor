@@ -21,7 +21,6 @@ module Self = struct
     two_sided: bool option; [@default None] [@key "two-sided"]
     running_header: bool option; [@default None] [@key "running-header"]
     running_footer: bool option; [@default None] [@key "running-footer"]
-    paper_size: SetParameters.paper_size option; [@default None] [@key "paper-size"]
     every_set: SetParameters.t; [@default SetParameters.none] [@key "every-set"]
   }
   [@@deriving make, yojson]
@@ -29,8 +28,8 @@ end
 include Self
 
 (* FIXME: see remark in VersionParameters *)
-let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header ?paper_size () =
-  make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ~paper_size ()
+let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header () =
+  make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ()
 
 (** {2 Getters} *)
 
@@ -39,7 +38,6 @@ let table_of_contents p = p.table_of_contents
 let two_sided p = p.two_sided
 let running_header p = p.running_header
 let running_footer p = p.running_footer
-let paper_size p = p.paper_size
 let every_set p = p.every_set
 let instruments = SetParameters.instruments % every_set
 
@@ -52,7 +50,6 @@ let table_of_contents' = Option.value ~default: Nowhere % table_of_contents
 let two_sided' = Option.value ~default: false % two_sided
 let running_header' = Option.value ~default: true % running_header
 let running_footer' = Option.value ~default: true % running_footer
-let paper_size' = Option.value ~default: SetParameters.(paper_size' none) % paper_size
 let instruments' = Option.value ~default: "" % instruments
 
 (** {2 Composition} *)
@@ -63,6 +60,5 @@ let compose first second = {
   two_sided = Option.(choose ~tie: second) first.two_sided second.two_sided;
   running_header = Option.(choose ~tie: second) first.running_header second.running_header;
   running_footer = Option.(choose ~tie: second) first.running_footer second.running_footer;
-  paper_size = Option.(choose ~tie: second) first.paper_size second.paper_size;
   every_set = SetParameters.compose first.every_set second.every_set
 }

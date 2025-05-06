@@ -11,12 +11,12 @@ type (_, _, _) t =
 | Update : ((Version.t Slug.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 (* Files related to a version *)
 | Ly : ((Version.t Slug.t -> 'w), 'w, Void.t) t
-| Svg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
-| Ogg : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
-| Pdf : ((VersionParameters.t -> Version.t Slug.t -> 'w), 'w, Void.t) t
+| Svg : ((Version.t Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Ogg : ((Version.t Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Pdf : ((Version.t Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 (* Files related to an anonymous version *)
-| PreviewSvg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
-| PreviewOgg : ((VersionParameters.t -> Version.t -> 'w), 'w, Void.t) t
+| PreviewSvg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| PreviewOgg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
@@ -41,9 +41,9 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Update -> variable (module SSlug(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
     (* Files related to a version *)
     | Ly -> variable (module SSlug(Version)) ~suffix: ".ly" @@ void ()
-    | Svg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".svg" @@ void ()
-    | Ogg -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".ogg" @@ void ()
-    | Pdf -> query "parameters" (module VersionParameters) @@ variable (module SSlug(Version)) ~suffix: ".pdf" @@ void ()
+    | Svg -> variable (module SSlug(Version)) ~suffix: ".svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Ogg -> variable (module SSlug(Version)) ~suffix: ".ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Pdf -> variable (module SSlug(Version)) ~suffix: ".pdf" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
     (* Files related to an anonymous version *)
-    | PreviewSvg -> query "parameters" (module VersionParameters) @@ query "version" (module Version) @@ literal "preview.svg" @@ void ()
-    | PreviewOgg -> query "parameters" (module VersionParameters) @@ query "version" (module Version) @@ literal "preview.ogg" @@ void ()
+    | PreviewSvg -> query "version" (module Version) @@ literal "preview.svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | PreviewOgg -> query "version" (module Version) @@ literal "preview.ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()

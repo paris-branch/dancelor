@@ -3,16 +3,28 @@ open Common
 
 module Log = (val Logger.create "controller.book.pdf": Logs.LOG)
 
-let cache : ([`Pdf] * Model.Book.t Entry.t * Model.BookParameters.t * string, string Lwt.t) StorageCache.t =
+let cache : ([`Pdf] * Model.Book.t Entry.t * Model.BookParameters.t * string * RenderingParameters.t, string Lwt.t) StorageCache.t =
   StorageCache.create ()
 
 let populate_cache () =
   ControllerCache.populate ~cache ~type_: "book" ~ext: ".pdf" ~pp_ext: "pdf"
 
-let render parameters book =
+let render book book_parameters rendering_parameters =
   let%lwt body = Model.Book.lilypond_contents_cache_key book in
-  StorageCache.use ~cache ~key: (`Pdf, book, parameters, body) @@ fun hash ->
-  let%lwt lilypond = Ly.render parameters book in
+  StorageCache.use ~cache ~key: (`Pdf, book, book_parameters, body, rendering_parameters) @@ fun hash ->
+  let%lwt rendering_parameters =
+    let%lwt pdf_metadata =
+      let name = Model.Book.title book in
+      let%lwt composers = Lwt.map (List.map Model.Person.name) @@ Model.Book.authors book in
+      Lwt.return @@
+        RenderingParameters.update_pdf_metadata
+          ~title: (String.replace_empty ~by: name)
+          ~composers: (List.replace_nil ~by: composers)
+    in
+    Lwt.return @@
+      RenderingParameters.update ~pdf_metadata rendering_parameters
+  in
+  let%lwt lilypond = Ly.render book book_parameters rendering_parameters in
   let path = Filename.concat !Config.cache "book" in
   let (fname_ly, fname_pdf) =
     let fname = StorageCache.hash_to_string hash in
@@ -30,8 +42,8 @@ let render parameters book =
   let path_pdf = Filename.concat path fname_pdf in
   Lwt.return path_pdf
 
-let get env parameters book =
+let get env book book_parameters rendering_parameters =
   let%lwt book = Model.Book.get book in
   Permission.assert_can_get env book;%lwt
-  let%lwt path_pdf = render parameters book in
+  let%lwt path_pdf = render book book_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
