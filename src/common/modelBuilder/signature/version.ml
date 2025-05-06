@@ -17,20 +17,39 @@ module type S = sig
     unit ->
     t
 
-  val tune : t Entry.t -> Tune.t Entry.t Lwt.t
-  val bars : t Entry.t -> int
-  val key : t Entry.t -> Music.key
-  val structure : t Entry.t -> string
-  val sources : t Entry.t -> Source.t Entry.t list Lwt.t
-  val arrangers : t Entry.t -> Person.t Entry.t list Lwt.t
-  val remark : t Entry.t -> string
-  val disambiguation : t Entry.t -> string
-  val content : t Entry.t -> string
+  val tune : t -> Tune.t Entry.t Lwt.t
+  val tune' : t Entry.t -> Tune.t Entry.t Lwt.t
 
-  val kind : t Entry.t -> Kind.Version.t Lwt.t
+  val bars : t -> int
+  val bars' : t Entry.t -> int
+
+  val key : t -> Music.key
+  val key' : t Entry.t -> Music.key
+
+  val structure : t -> string
+  val structure' : t Entry.t -> string
+
+  val sources : t -> Source.t Entry.t list Lwt.t
+  val sources' : t Entry.t -> Source.t Entry.t list Lwt.t
+
+  val arrangers : t -> Person.t Entry.t list Lwt.t
+  val arrangers' : t Entry.t -> Person.t Entry.t list Lwt.t
+
+  val remark : t -> string
+  val remark' : t Entry.t -> string
+
+  val disambiguation : t -> string
+  val disambiguation' : t Entry.t -> string
+
+  val content : t -> string
+  val content' : t Entry.t -> string
+
+  val kind : t -> Kind.Version.t Lwt.t
+  val kind' : t Entry.t -> Kind.Version.t Lwt.t
   (** Convenient wrapper around {!bars} and {!Tune.kind}. *)
 
-  val name : t Entry.t -> string Lwt.t
+  val name : t -> string Lwt.t
+  val name' : t Entry.t -> string Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.name}. *)
 
   val equal : t -> t -> bool
