@@ -67,16 +67,22 @@ let create ?context slug =
                 ];
               li
                 [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href Endpoints.Page.(href SetAdd);
-                      a_onclick (fun _ -> SetEditor.Editor.add_to_storage slug; true);
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-plus-square"]] [];
-                      txt " Add to current set";
-                    ]
+                  Components.Button.make
+                    ~label: "Add to current set"
+                    ~icon: "plus-square"
+                    ~classes: ["dropdown-item"]
+                    ~onclick: (fun _ ->
+                      SetEditor.Editor.add_to_storage slug;
+                      Components.Toast.open_
+                        ~title: "Added to current set"
+                        [
+                          txt "This version was added to the current set. You can see that in the ";
+                          a ~a: [a_href Endpoints.Page.(href SetAdd)] [txt "set editor"];
+                          txt ".";
+                        ];
+                      Lwt.return ()
+                    )
+                    ()
                 ];
               L.li
                 (
