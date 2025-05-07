@@ -3,19 +3,19 @@ open Common
 
 module Log = (val Logger.create "controller.book.pdf": Logs.LOG)
 
-let cache : ([`Pdf] * Model.Book.t Entry.t * Model.BookParameters.t * string * RenderingParameters.t, string Lwt.t) StorageCache.t =
+let cache : ([`Pdf] * Model.Book.t * Model.BookParameters.t * string * RenderingParameters.t, string Lwt.t) StorageCache.t =
   StorageCache.create ()
 
 let populate_cache () =
   ControllerCache.populate ~cache ~type_: "book" ~ext: ".pdf" ~pp_ext: "pdf"
 
 let render book book_parameters rendering_parameters =
-  let%lwt body = Model.Book.lilypond_contents_cache_key' book in
+  let%lwt body = Model.Book.lilypond_contents_cache_key book in
   StorageCache.use ~cache ~key: (`Pdf, book, book_parameters, body, rendering_parameters) @@ fun hash ->
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
-      let name = Model.Book.title' book in
-      let%lwt composers = Lwt.map (List.map Model.Person.name') @@ Model.Book.authors' book in
+      let name = Model.Book.title book in
+      let%lwt composers = Lwt.map (List.map Model.Person.name') @@ Model.Book.authors book in
       Lwt.return @@
         RenderingParameters.update_pdf_metadata
           ~title: (String.replace_empty ~by: name)
@@ -45,5 +45,5 @@ let render book book_parameters rendering_parameters =
 let get env book book_parameters rendering_parameters =
   let%lwt book = Model.Book.get book in
   Permission.assert_can_get env book;%lwt
-  let%lwt path_pdf = render book book_parameters rendering_parameters in
+  let%lwt path_pdf = render (Entry.value book) book_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

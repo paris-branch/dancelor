@@ -11,7 +11,7 @@ let render version version_parameters rendering_parameters =
     let version_parameters = Model.VersionParameters.set_display_name "" version_parameters in
     let contents = [(version, version_parameters)] in
     let order = [Model.SetOrder.Internal 1] in
-    Lwt.return @@ Entry.make_dummy @@ Model.Set.make ~name ~kind ~contents ~order ()
+    Lwt.return @@ Model.Set.make ~name ~kind ~contents ~order ()
   in
   let%lwt set_parameters =
     let show_order = false in

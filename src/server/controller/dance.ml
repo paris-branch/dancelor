@@ -44,13 +44,12 @@ module Pdf = struct
       Model.Dance.Filter.is' dance
     in
     let set =
-      Entry.make_dummy @@
-        Model.Set.make
-          ~name: ("Dance: " ^ name)
-          ~kind
-          ~contents: (List.map (fun v -> (v, Model.VersionParameters.none)) versions)
-          ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)
-          ()
+      Model.Set.make
+        ~name: ("Dance: " ^ name)
+        ~kind
+        ~contents: (List.map (fun v -> (v, Model.VersionParameters.none)) versions)
+        ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)
+        ()
     in
     let set_parameters = Model.SetParameters.set_show_order false set_parameters in
     Set.Pdf.render set set_parameters rendering_parameters
