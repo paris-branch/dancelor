@@ -18,9 +18,9 @@ let accepts filter person =
     | Is person' ->
       Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
     | Name string ->
-      Lwt.return @@ String.proximity ~char_equal string @@ Core.Person.name person
+      Lwt.return @@ String.proximity ~char_equal string @@ Core.Person.name' person
     | NameMatches string ->
-      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Person.name person
+      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Person.name' person
 
 let text_formula_converter =
   TextFormulaConverter.(

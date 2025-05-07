@@ -6,7 +6,7 @@ open Html
 
 let create ?context slug =
   let tune_lwt = MainPage.get_model_or_404 (Tune Get) slug in
-  let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
+  let title = S.from' "" (Lwt.map Tune.name' tune_lwt) in
   Page.make
     ~parent_title: "Tune"
     ~title
@@ -21,7 +21,7 @@ let create ?context slug =
       L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description);
       L.div
         (
-          match%lwt Lwt.map Tune.date tune_lwt with
+          match%lwt Lwt.map Tune.date' tune_lwt with
           | None -> Lwt.return_nil
           | Some date ->
             Lwt.return [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
@@ -35,7 +35,7 @@ let create ?context slug =
             [
               L.li
                 (
-                  match%lwt Lwt.map Tune.scddb_id tune_lwt with
+                  match%lwt Lwt.map Tune.scddb_id' tune_lwt with
                   | None -> Lwt.return_nil
                   | Some scddb_id ->
                     Lwt.return
@@ -89,7 +89,7 @@ let create ?context slug =
           L.div
             (
               let%lwt tune = tune_lwt in
-              let%lwt dances = Tune.dances tune in
+              let%lwt dances = Tune.dances' tune in
               Lwt.return
                 [
                   if dances = [] then

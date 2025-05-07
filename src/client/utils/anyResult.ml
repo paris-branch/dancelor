@@ -60,9 +60,9 @@ let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt (Dance.name dance)];
-      ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind dance)];
-      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Dance.devisers dance));
+      [ResultRow.cell [txt (Dance.name' dance)];
+      ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
+      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Dance.devisers' dance));
       ] @
       suffix
     )
@@ -88,7 +88,7 @@ let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
     (
       prefix @
       [ResultRow.cell (Formatters.Book.title_and_subtitle book);
-      ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date book))];
+      ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
       ] @
       suffix
     )
@@ -113,9 +113,9 @@ let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Set.name set];
-      ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind set];
-      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Set.conceptors set));
+      [ResultRow.cell [txt @@ Set.name' set];
+      ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Set.conceptors' set));
       ] @
       suffix
     )
@@ -140,8 +140,8 @@ let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Tune.name tune];
-      ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
+      [ResultRow.cell [txt @@ Tune.name' tune];
+      ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
       ResultRow.lcell (Formatters.Tune.composers tune);
       ] @
       suffix
@@ -173,9 +173,9 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
         [
           L.txt
             (
-              let bars = Version.bars version in
-              let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
-              let structure = Version.structure version in
+              let bars = Version.bars' version in
+              let%lwt kind = Lwt.map Tune.kind' @@ Version.tune' version in
+              let structure = Version.structure' version in
               Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
             )
         ];

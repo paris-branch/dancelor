@@ -86,7 +86,7 @@ let table_contents ~this_slug contents =
                   Tables.clickable_row ~href [
                     Lwt.return [txt "Set"];
                     (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                    Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
+                    Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set]
                   ]
                 )
               | InlineSet (set, parameters) ->
@@ -95,7 +95,7 @@ let table_contents ~this_slug contents =
                     [
                       td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
                       L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
-                      td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
+                      td [txt @@ Kind.Dance.to_string @@ Set.kind set];
                     ]
                 )
               | Version (version, parameters) ->
@@ -108,8 +108,8 @@ let table_contents ~this_slug contents =
                       [
                         L.txt
                           (
-                            let%lwt tune = Version.tune version in
-                            Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
+                            let%lwt tune = Version.tune' version in
+                            Lwt.return (Kind.Version.to_string (Version.bars' version, Tune.kind' tune))
                           )
                       ];
                   ]
@@ -123,7 +123,7 @@ let table_contents ~this_slug contents =
 let create ?context slug =
   let open Html in
   let book_lwt = MainPage.get_model_or_404 (Book Get) slug in
-  let title = S.from' "" (Lwt.map Book.title book_lwt) in
+  let title = S.from' "" (Lwt.map Book.title' book_lwt) in
   Page.make
     ~parent_title: "Book"
     ~title
@@ -134,10 +134,10 @@ let create ?context slug =
         (Lwt.map Any.book book_lwt);
     ]
     [
-      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
+      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle' book_lwt];
       L.div
         (
-          match%lwt Lwt.map Book.scddb_id book_lwt with
+          match%lwt Lwt.map Book.scddb_id' book_lwt with
           | None -> Lwt.return_nil
           | Some scddb_id ->
             let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
@@ -164,7 +164,7 @@ let create ?context slug =
         [
           L.txt
             (
-              match%lwt Lwt.map Book.date book_lwt with
+              match%lwt Lwt.map Book.date' book_lwt with
               | None -> Lwt.return ""
               | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
             )
@@ -209,6 +209,6 @@ let create ?context slug =
           h3 [txt "Contents"];
           table_contents
             ~this_slug: slug
-            (Lwt.bind book_lwt Book.contents);
+            (Lwt.bind book_lwt Book.contents');
         ];
     ]

@@ -6,7 +6,7 @@ open Html
 
 let create ?context slug =
   let source_lwt = MainPage.get_model_or_404 (Source Get) slug in
-  let title = S.from' "" (Lwt.map Source.name source_lwt) in
+  let title = S.from' "" (Lwt.map Source.name' source_lwt) in
   Page.make
     ~parent_title: "Source"
     ~title
@@ -26,7 +26,7 @@ let create ?context slug =
             [
               L.li
                 (
-                  match%lwt Lwt.map Source.scddb_id source_lwt with
+                  match%lwt Lwt.map Source.scddb_id' source_lwt with
                   | None -> Lwt.return_nil
                   | Some scddb_id ->
                     Lwt.return
@@ -59,7 +59,7 @@ let create ?context slug =
                 [
                   L.txt
                     (
-                      match%lwt Lwt.map Source.description source_lwt with
+                      match%lwt Lwt.map Source.description' source_lwt with
                       | None -> Lwt.return "no description available"
                       | Some description -> Lwt.return description
                     )
@@ -73,7 +73,7 @@ let create ?context slug =
             [
               L.txt
                 (
-                  match%lwt Lwt.map Source.description source_lwt with
+                  match%lwt Lwt.map Source.description' source_lwt with
                   | None -> Lwt.return "no description available"
                   | Some description -> Lwt.return description
                 )

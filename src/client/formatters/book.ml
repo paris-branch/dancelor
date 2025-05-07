@@ -3,10 +3,10 @@ open Common
 open Html
 
 let title_and_subtitle ?(link = true) book =
-  let title_text = [txt (Model.Book.title book)] in
+  let title_text = [txt (Model.Book.title' book)] in
   if link then
     let subtitle_block =
-      match Model.Book.subtitle book with
+      match Model.Book.subtitle' book with
       | "" -> []
       | subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt subtitle]]
     in
@@ -15,7 +15,7 @@ let title_and_subtitle ?(link = true) book =
     title_text
 
 let short_title ?(link = true) book =
-  let short_title_text = [txt (Model.Book.short_title book)] in
+  let short_title_text = [txt (Model.Book.short_title' book)] in
   if link then
     [
       a

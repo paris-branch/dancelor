@@ -99,60 +99,70 @@ let href_any ?context any =
   | Book book -> href_book ?context (Entry.slug book)
   | Tune tune -> href_tune ?context (Entry.slug tune)
 
-let make_describe ~get_version ~get_tune ~get_set ~get_book ~get_dance ~get_person ~get_source = fun uri ->
-  let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
-    | Index -> Lwt.return_none
-    | Explore -> Fun.const Lwt.return_none
-    | VersionAdd -> Fun.const Lwt.return_none
-    | TuneAdd -> Lwt.return_none
-    | SetAdd -> Lwt.return_none
-    | BookAdd -> Lwt.return_none
-    | BookEdit -> Fun.const Lwt.return_none
-    | PersonAdd -> Lwt.return_none
-    | SourceAdd -> Lwt.return_none
-    | DanceAdd -> Lwt.return_none
-    | UserCreate -> Lwt.return_none
-    | UserPasswordReset -> Fun.const2 Lwt.return_none
-    | Version ->
-      (fun _ slug ->
-        let%lwt name = Lwt.bind (get_version slug) (Lwt.map Tune.name % (get_tune % Version.tune)) in
-        Lwt.return @@ Some ("version", name)
-      )
-    | Tune ->
-      (fun _ slug ->
-        let%lwt name = Lwt.map Tune.name (get_tune slug) in
-        Lwt.return @@ Some ("tune", name)
-      )
-    | Set ->
-      (fun _ slug ->
-        let%lwt name = Lwt.map Set.name (get_set slug) in
-        Lwt.return @@ Some ("set", name)
-      )
-    | Book ->
-      (fun _ slug ->
-        let%lwt title = Lwt.map Book.title (get_book slug) in
-        Lwt.return @@ Some ("book", title)
-      )
-    | Dance ->
-      (fun _ slug ->
-        let%lwt name = Lwt.map Dance.name (get_dance slug) in
-        Lwt.return @@ Some ("dance", name)
-      )
-    | Person ->
-      (fun _ slug ->
-        let%lwt name = Lwt.map Person.name (get_person slug) in
-        Lwt.return @@ Some ("person", name)
-      )
-    | Source ->
-      (fun _ slug ->
-        let%lwt name = Lwt.map Source.name (get_source slug) in
-        Lwt.return @@ Some ("source", name)
-      )
-  in
-  let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
-    List.map_first_some @@ fun (W' page) ->
-    Madge.apply' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
-  in
-  match madge_match_apply_all @@ all' () with
-  | Some page -> page ()
-  | None -> (* FIXME: 404 page *) assert false
+module MakeDescribe
+  (Book : ModelBuilder.Book.S)
+  (Dance : ModelBuilder.Dance.S)
+  (Person : ModelBuilder.Person.S)
+  (Set : ModelBuilder.Set.S)
+  (Source : ModelBuilder.Source.S)
+  (Tune : ModelBuilder.Tune.S)
+  (Version : ModelBuilder.Version.S)
+= struct
+  let describe = fun uri ->
+    let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
+      | Index -> Lwt.return_none
+      | Explore -> Fun.const Lwt.return_none
+      | VersionAdd -> Fun.const Lwt.return_none
+      | TuneAdd -> Lwt.return_none
+      | SetAdd -> Lwt.return_none
+      | BookAdd -> Lwt.return_none
+      | BookEdit -> Fun.const Lwt.return_none
+      | PersonAdd -> Lwt.return_none
+      | SourceAdd -> Lwt.return_none
+      | DanceAdd -> Lwt.return_none
+      | UserCreate -> Lwt.return_none
+      | UserPasswordReset -> Fun.const2 Lwt.return_none
+      | Version ->
+        (fun _ slug ->
+          let%lwt name = Lwt.bind (Version.get slug) Version.name' in
+          Lwt.return @@ Some ("version", name)
+        )
+      | Tune ->
+        (fun _ slug ->
+          let%lwt name = Lwt.map Tune.name' (Tune.get slug) in
+          Lwt.return @@ Some ("tune", name)
+        )
+      | Set ->
+        (fun _ slug ->
+          let%lwt name = Lwt.map Set.name' (Set.get slug) in
+          Lwt.return @@ Some ("set", name)
+        )
+      | Book ->
+        (fun _ slug ->
+          let%lwt title = Lwt.map Book.title' (Book.get slug) in
+          Lwt.return @@ Some ("book", title)
+        )
+      | Dance ->
+        (fun _ slug ->
+          let%lwt name = Lwt.map Dance.name' (Dance.get slug) in
+          Lwt.return @@ Some ("dance", name)
+        )
+      | Person ->
+        (fun _ slug ->
+          let%lwt name = Lwt.map Person.name' (Person.get slug) in
+          Lwt.return @@ Some ("person", name)
+        )
+      | Source ->
+        (fun _ slug ->
+          let%lwt name = Lwt.map Source.name' (Source.get slug) in
+          Lwt.return @@ Some ("source", name)
+        )
+    in
+    let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =
+      List.map_first_some @@ fun (W' page) ->
+      Madge.apply' (route page) (fun () -> describe page) {meth = GET; uri; body = ""}
+    in
+    match madge_match_apply_all @@ all' () with
+    | Some page -> page ()
+    | None -> (* FIXME: 404 page *) assert false
+end

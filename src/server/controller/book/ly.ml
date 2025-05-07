@@ -6,8 +6,8 @@ module Log = (val Logger.create "controller.book.ly": Logs.LOG)
 let kind set set_parmeters =
   let%lwt kind =
     match%lwt Model.SetParameters.for_dance set_parmeters with
-    | None -> Lwt.return @@ Model.Set.kind set
-    | Some dance -> Lwt.return @@ Model.Dance.kind dance
+    | None -> Lwt.return @@ Model.Set.kind' set
+    | Some dance -> Lwt.return @@ Model.Dance.kind' dance
   in
   Lwt.return (Kind.Dance.to_pretty_string kind)
 
@@ -15,18 +15,18 @@ let details_line set set_parameters =
   let%lwt dance =
     match%lwt Model.SetParameters.for_dance set_parameters with
     | None -> Lwt.return_nil
-    | Some dance -> Lwt.return [spf "Dance: %s" (Model.Dance.name dance)]
+    | Some dance -> Lwt.return [spf "Dance: %s" (Model.Dance.name' dance)]
   in
   let%lwt kind = kind set set_parameters in
   let order =
     if Model.SetParameters.show_order' set_parameters then
-        [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order set]
+        [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order' set]
     else
         []
   in
   let%lwt chords =
     match%lwt Model.SetParameters.for_dance set_parameters with
-    | Some dance when Model.Dance.two_chords dance = Some true -> Lwt.return ["Two Chords"]
+    | Some dance when Model.Dance.two_chords' dance = Some true -> Lwt.return ["Two Chords"]
     | _ -> Lwt.return_nil
   in
   Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
@@ -45,11 +45,11 @@ let cache : ([`Ly] * Model.Book.t Entry.t * Model.BookParameters.t * string * Re
   StorageCache.create ()
 
 let render book book_parameters rendering_parameters =
-  let%lwt body = Model.Book.lilypond_contents_cache_key book in
+  let%lwt body = Model.Book.lilypond_contents_cache_key' book in
   StorageCache.use ~cache ~key: (`Ly, book, book_parameters, body, rendering_parameters) @@ fun _hash ->
   let (res, prom) =
     Format.with_formatter_to_string_gen @@ fun fmt ->
-    let title = Model.Book.title book in
+    let title = Model.Book.title' book in
     (** FIXME: subtitle *)
     fpf fmt [%blob "../template/lyversion.ly"];
     (
@@ -124,17 +124,17 @@ let render book book_parameters rendering_parameters =
       fpf fmt [%blob "../template/book/book_table_of_contents.ly"];
     let%lwt () =
       let%lwt sets_and_parameters =
-        let%lwt contents = Model.Book.contents book in
+        let%lwt contents = Model.Book.contents' book in
         Fun.flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
-            let%lwt tune = Model.Version.tune version in
-            let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name tune) parameters in
+            let%lwt tune = Model.Version.tune' version in
+            let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) parameters in
             let trivia = Model.VersionParameters.trivia' ~default: " " parameters in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let set =
               Model.Set.make
                 ~name
-                ~kind: (Kind.Dance.Version (Model.Version.bars version, Model.Tune.kind tune))
+                ~kind: (Kind.Dance.Version (Model.Version.bars' version, Model.Tune.kind' tune))
                 ~contents: [version, parameters]
                 ~order: [Internal 1]
                 ()
@@ -155,14 +155,14 @@ let render book book_parameters rendering_parameters =
          a SetCore.t; do we need the slug anyway? *)
       Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
       let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set book_parameters) set_parameters in
-      let name = Model.SetParameters.display_name' ~default: (Model.Set.name set) set_parameters in
+      let name = Model.SetParameters.display_name' ~default: (Model.Set.name' set) set_parameters in
       let%lwt deviser =
         if not (Model.SetParameters.show_deviser' set_parameters) then
           Lwt.return ""
         else
-          match%lwt Model.Set.conceptors set with
+          match%lwt Model.Set.conceptors' set with
           | [] -> Lwt.return ""
-          | devisers -> Lwt.return ("Set by " ^ String.concat ", " ~last: " & " @@ List.map Model.Person.name devisers)
+          | devisers -> Lwt.return ("Set by " ^ String.concat ", " ~last: " & " @@ List.map Model.Person.name' devisers)
       in
       let%lwt kind = kind set set_parameters in
       let%lwt details_line = details_line set set_parameters in
@@ -180,27 +180,27 @@ let render book book_parameters rendering_parameters =
         | n -> fpf fmt [%blob "../template/book/set_forced_pages.ly"] n
       );
       let%lwt () =
-        let%lwt contents = Model.Set.contents set in
+        let%lwt contents = Model.Set.contents' set in
         let contents =
           rearrange_set_content
-            ~order: (Model.Set.order set)
+            ~order: (Model.Set.order' set)
             ~order_type: (Model.SetParameters.order_type' set_parameters)
             contents
         in
         Fun.flip Lwt_list.iter_s contents @@ fun (version, version_parameters) ->
         let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
         let content =
-          let content = Model.Version.content version in
+          let content = Model.Version.content' version in
           match Model.VersionParameters.clef version_parameters with
           | None -> content
           | Some clef_parameter ->
             let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
             Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_string clef_parameter) content
         in
-        let%lwt tune = Model.Version.tune version in
-        let key = Model.Version.key version in
-        let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name tune) version_parameters in
-        let%lwt composer = Lwt.map (String.concat ", " ~last: " and " % List.map Model.Person.name) (Model.Tune.composers tune) in
+        let%lwt tune = Model.Version.tune' version in
+        let key = Model.Version.key' version in
+        let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) version_parameters in
+        let%lwt composer = Lwt.map (String.concat ", " ~last: " and " % List.map Model.Person.name') (Model.Tune.composers' tune) in
         let composer = Model.VersionParameters.display_composer' ~default: composer version_parameters in
         let first_bar = Model.VersionParameters.first_bar' version_parameters in
         let source, target =

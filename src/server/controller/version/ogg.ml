@@ -10,7 +10,7 @@ let populate_cache () =
   ControllerCache.populate ~cache ~type_: "version" ~ext: ".ogg" ~pp_ext: "ogg"
 
 let render version version_parameters rendering_parameters =
-  let body = Model.Version.content version in
+  let body = Model.Version.content' version in
   StorageCache.use ~cache ~key: (`Ogg, version, version_parameters, body, rendering_parameters) @@ fun hash ->
   let%lwt (fname_ly, fname_ogg) =
     let slug = Entry.slug version in

@@ -14,13 +14,11 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
-let name = name % Entry.value
-let alternative_names = alternative_names % Entry.value
-let kind = kind % Entry.value
-let composers = composers % Entry.value
-let dances = dances % Entry.value
-let remark = remark % Entry.value
-let scddb_id = scddb_id % Entry.value
-let date = date % Entry.value
+let name' = name % Entry.value
+let alternative_names' = alternative_names % Entry.value
+let kind' = kind % Entry.value
+let remark' = remark % Entry.value
+let scddb_id' = scddb_id % Entry.value
+let date' = date % Entry.value
 
 let compare e1 e2 = Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug' e1 e2

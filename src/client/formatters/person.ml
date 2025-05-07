@@ -4,7 +4,7 @@ open Common
 open Html
 
 let name ?(link = true) person =
-  let name_text = [txt (Model.Person.name person)] in
+  let name_text = [txt (Model.Person.name' person)] in
   if link then
     [
       a

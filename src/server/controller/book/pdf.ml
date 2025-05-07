@@ -10,12 +10,12 @@ let populate_cache () =
   ControllerCache.populate ~cache ~type_: "book" ~ext: ".pdf" ~pp_ext: "pdf"
 
 let render book book_parameters rendering_parameters =
-  let%lwt body = Model.Book.lilypond_contents_cache_key book in
+  let%lwt body = Model.Book.lilypond_contents_cache_key' book in
   StorageCache.use ~cache ~key: (`Pdf, book, book_parameters, body, rendering_parameters) @@ fun hash ->
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
-      let name = Model.Book.title book in
-      let%lwt composers = Lwt.map (List.map Model.Person.name) @@ Model.Book.authors book in
+      let name = Model.Book.title' book in
+      let%lwt composers = Lwt.map (List.map Model.Person.name') @@ Model.Book.authors' book in
       Lwt.return @@
         RenderingParameters.update_pdf_metadata
           ~title: (String.replace_empty ~by: name)

@@ -118,7 +118,7 @@ let header_item =
         | Some user ->
           [
             Components.Button.make
-              ~label: (Model.User.display_name user)
+              ~label: (Model.User.display_name' user)
               ~icon: "person-circle"
               ~classes: ["btn-primary"; "dropdown-toggle"]
               ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]

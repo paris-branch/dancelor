@@ -19,7 +19,7 @@ let books books =
     ~href: (Endpoints.Page.href_book @@ Entry.slug book)
     [
       (Lwt.return @@ Formatters.Book.title_and_subtitle book);
-      Lwt.return [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date book]
+      Lwt.return [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
     ]
 
 let sets sets =
@@ -29,8 +29,8 @@ let sets sets =
     ~href
     [
       (Formatters.Set.name_and_tunes ~link: false set);
-      (Lwt.map Formatters.Person.names (Set.conceptors set));
-      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set];
+      (Lwt.map Formatters.Person.names (Set.conceptors' set));
+      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set];
     ]
 
 let dances dances =
@@ -40,8 +40,8 @@ let dances dances =
     ~href
     [
       (Lwt.return @@ Formatters.Dance.name ~link: false dance);
-      (Lwt.map Formatters.Person.names (Dance.devisers dance));
-      Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind dance];
+      (Lwt.map Formatters.Person.names (Dance.devisers' dance));
+      Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     ]
 
 let tunes tunes =
@@ -51,7 +51,7 @@ let tunes tunes =
     ~href
     [
       (Lwt.return @@ Formatters.Tune.name ~link: false tune);
-      Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
+      Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
       (Formatters.Tune.composers tune);
     ]
 
@@ -60,16 +60,16 @@ let versions versions =
     ~header: ["Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let tune_lwt = Version.tune version in
+    let tune_lwt = Version.tune' version in
     let href = Endpoints.Page.href_version @@ Entry.slug version in
     clickable_row
       ~href
       [
         (Formatters.Version.disambiguation_and_sources version);
-        (Lwt.map Formatters.Person.names (Version.arrangers version));
+        (Lwt.map Formatters.Person.names (Version.arrangers' version));
         (tune_lwt >>=| Formatters.Kind.full_string version);
-        Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
-        Lwt.return [txt @@ Version.structure version];
+        Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
+        Lwt.return [txt @@ Version.structure' version];
       ]
 
 let versions_with_names versions =
@@ -77,13 +77,13 @@ let versions_with_names versions =
     ~header: ["Name"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let tune_lwt = Version.tune version in
+    let tune_lwt = Version.tune' version in
     let href = Endpoints.Page.href_version @@ Entry.slug version in
     clickable_row
       ~href
       [
-        Lwt.return [L.txt @@ Lwt.map Tune.name tune_lwt];
+        Lwt.return [L.txt @@ Lwt.map Tune.name' tune_lwt];
         (tune_lwt >>=| Formatters.Kind.full_string version);
-        Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key version];
-        Lwt.return [txt @@ Version.structure version];
+        Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
+        Lwt.return [txt @@ Version.structure' version];
       ]

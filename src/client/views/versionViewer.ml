@@ -6,7 +6,7 @@ open Html
 
 let create ?context slug =
   let version_lwt = MainPage.get_model_or_404 (Version Get) slug in
-  let tune_lwt = version_lwt >>=| Version.tune in
+  let tune_lwt = version_lwt >>=| Version.tune' in
   let other_versions_lwt =
     let%lwt tune = tune_lwt in
     let%lwt version = version_lwt in
@@ -22,7 +22,7 @@ let create ?context slug =
             ]
         )
   in
-  let title = S.from' "" (Lwt.map Tune.name tune_lwt) in
+  let title = S.from' "" (Lwt.map Tune.name' tune_lwt) in
   Page.make
     ~parent_title: "Version"
     ~title
@@ -86,7 +86,7 @@ let create ?context slug =
                 ];
               L.li
                 (
-                  match%lwt Lwt.map Tune.scddb_id tune_lwt with
+                  match%lwt Lwt.map Tune.scddb_id' tune_lwt with
                   | None -> Lwt.return_nil
                   | Some scddb_id ->
                     Lwt.return
@@ -106,7 +106,7 @@ let create ?context slug =
         ];
       L.div
         (
-          match%lwt Lwt.map Tune.date tune_lwt with
+          match%lwt Lwt.map Tune.date' tune_lwt with
           | None -> Lwt.return_nil
           | Some date ->
             Lwt.return [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
@@ -160,7 +160,7 @@ let create ?context slug =
           L.div
             (
               let%lwt tune = tune_lwt in
-              let%lwt dances = Tune.dances tune in
+              let%lwt dances = Tune.dances' tune in
               Lwt.return
                 [
                   if dances = [] then

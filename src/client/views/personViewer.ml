@@ -6,7 +6,7 @@ open Html
 
 let create ?context slug =
   let person_lwt = MainPage.get_model_or_404 (Person Get) slug in
-  let title = S.from' "" (Lwt.map Person.name person_lwt) in
+  let title = S.from' "" (Lwt.map Person.name' person_lwt) in
   Page.make
     ~parent_title: "Person"
     ~title
@@ -26,7 +26,7 @@ let create ?context slug =
             [
               L.li
                 (
-                  match%lwt Lwt.map Person.scddb_id person_lwt with
+                  match%lwt Lwt.map Person.scddb_id' person_lwt with
                   | None -> Lwt.return_nil
                   | Some scddb_id ->
                     Lwt.return

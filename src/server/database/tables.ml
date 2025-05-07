@@ -26,7 +26,7 @@ module User = Table.Make(struct
   let separate_fields = []
   let dependencies user =
     Lwt.return [
-      Table.make_slug_and_table (module Person) (person user)
+      Table.make_slug_and_table (module Person) (Entry.value user).person
     ]
   let standalone = true
 end)
@@ -39,7 +39,7 @@ module Dance = Table.Make(struct
   let dependencies dance =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Person)) (devisers dance)
+        List.map (Table.make_slug_and_table (module Person)) (Entry.value dance).devisers
       )
 
   let standalone = true
@@ -53,8 +53,8 @@ module Tune = Table.Make(struct
   let dependencies tune =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Dance)) (dances tune) @
-          List.map (Table.make_slug_and_table (module Person)) (composers tune)
+        List.map (Table.make_slug_and_table (module Dance)) (Entry.value tune).dances @
+          List.map (Table.make_slug_and_table (module Person)) (Entry.value tune).composers
       )
 
   let standalone = false
@@ -68,9 +68,9 @@ module Version = Table.Make(struct
   let dependencies version =
     Lwt.return
       (
-        [Table.make_slug_and_table (module Tune) (tune version)] @
-        List.map (Table.make_slug_and_table (module Source)) (sources version) @
-        List.map (Table.make_slug_and_table (module Person)) (arrangers version)
+        [Table.make_slug_and_table (module Tune) (Entry.value version).tune] @
+        List.map (Table.make_slug_and_table (module Source)) (Entry.value version).sources @
+        List.map (Table.make_slug_and_table (module Person)) (Entry.value version).arrangers
       )
 
   let standalone = true
@@ -84,8 +84,8 @@ module SetModel = struct
   let dependencies set =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Version) % fst) (contents set) @
-          List.map (Table.make_slug_and_table (module Person)) (conceptors set)
+        List.map (Table.make_slug_and_table (module Version) % fst) (Entry.value set).contents @
+          List.map (Table.make_slug_and_table (module Person)) (Entry.value set).conceptors
       )
 
   let standalone = true
@@ -128,7 +128,7 @@ module Book = Table.Make(struct
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
         )
-        (contents book)
+        (Entry.value book).contents
     in
     Lwt.return (List.flatten dependencies)
 

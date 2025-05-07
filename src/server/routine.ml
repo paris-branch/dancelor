@@ -10,8 +10,8 @@ let preload_versions ?max_concurrency () =
     Lwt_stream.iter_n
       ?max_concurrency
       (fun version ->
-        let%lwt tune = Model.Version.tune version in
-        let name = Model.Tune.name tune in
+        let%lwt tune = Model.Version.tune' version in
+        let name = Model.Tune.name' tune in
         Log.debug (fun m -> m "Prerendering %s" name);
         let%lwt _ = Controller.Version.Svg.render version Model.VersionParameters.none RenderingParameters.none in
         let%lwt _ = Controller.Version.Ogg.render version Model.VersionParameters.none RenderingParameters.none in

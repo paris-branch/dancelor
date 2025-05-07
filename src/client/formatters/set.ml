@@ -4,12 +4,12 @@ open Common
 open Html
 
 let works set =
-  match%lwt Model.Set.dances set with
+  match%lwt Model.Set.dances' set with
   | [] -> Lwt.return_nil
-  | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.name dances)]
+  | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.name' dances)]
 
 let name ?(link = true) set =
-  let name_text = [txt (Model.Set.name set)] in
+  let name_text = [txt (Model.Set.name' set)] in
   if link && not (Entry.is_dummy set) then
     [
       a
@@ -20,7 +20,7 @@ let name ?(link = true) set =
     name_text
 
 let tunes ?tunes_link set =
-  let%lwt contents = Model.Set.contents set in
+  let%lwt contents = Model.Set.contents' set in
   List.map (Version.name ?link: tunes_link % fst) contents
   |> List.interspersei (fun _ -> [txt " - "])
   |> List.flatten

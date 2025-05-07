@@ -43,7 +43,7 @@ module State = struct
   exception Non_convertible
 
   let of_model (book : Model.Book.t Entry.t) : t Lwt.t =
-    let%lwt contents = Model.Book.contents book in
+    let%lwt contents = Model.Book.contents' book in
     let sets =
       List.map
         (function

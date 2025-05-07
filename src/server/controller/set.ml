@@ -30,8 +30,8 @@ include Search.Build(struct
   let filter_accepts = Model.Set.Filter.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Set.name) String.Sensible.compare;
-    increasing (Lwt.return % Model.Set.name) String.compare_lengths;
+    Lwt_list.[increasing (Lwt.return % Model.Set.name') String.Sensible.compare;
+    increasing (Lwt.return % Model.Set.name') String.compare_lengths;
     ]
 end)
 
@@ -47,10 +47,10 @@ module Pdf = struct
     in
     let%lwt rendering_parameters =
       let%lwt pdf_metadata =
-        let name = Option.value (Model.SetParameters.display_name set_parameters) ~default: (Model.Set.name set) in
-        let%lwt composers = Lwt.map (List.map Model.Person.name) @@ Model.Set.conceptors set in
+        let name = Option.value (Model.SetParameters.display_name set_parameters) ~default: (Model.Set.name' set) in
+        let%lwt composers = Lwt.map (List.map Model.Person.name') @@ Model.Set.conceptors' set in
         let subjects =
-          match KindDance.to_simple @@ Model.Set.kind set with
+          match KindDance.to_simple @@ Model.Set.kind' set with
           | None -> ["Medley"]
           | Some (n, bars, base) ->
             [

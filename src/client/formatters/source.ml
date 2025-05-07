@@ -3,7 +3,7 @@ open Common
 open Html
 
 let name ?(link = true) source =
-  let name_text = [txt (Model.Source.name source)] in
+  let name_text = [txt (Model.Source.name' source)] in
   if link then
     [
       a

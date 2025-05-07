@@ -10,7 +10,7 @@ let populate_cache () =
   ControllerCache.populate ~cache ~type_: "version" ~ext: ".svg" ~pp_ext: "svg"
 
 let render version version_parameters rendering_parameters =
-  let body = Model.Version.content version in
+  let body = Model.Version.content' version in
   StorageCache.use ~cache ~key: (`Svg, version, version_parameters, body, rendering_parameters) @@ fun hash ->
   Log.debug (fun m -> m "Rendering the LilyPond version");
   let%lwt (fname_ly, fname_svg) =
