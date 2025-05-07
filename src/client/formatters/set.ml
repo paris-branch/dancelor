@@ -24,7 +24,7 @@ let name' ?(link = true) set = name_gen @@ Right (set, link)
 
 let tunes ?link set =
   let%lwt contents = Model.Set.contents set in
-  List.map (Version.name ?link % fst) contents
+  List.map (List.singleton % Version.name' ?link % fst) contents
   |> List.interspersei (fun _ -> [txt " - "])
   |> List.flatten
   |> List.cons (txt "Tunes: ")

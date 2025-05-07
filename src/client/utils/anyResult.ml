@@ -167,7 +167,7 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
     ?action
     (
       prefix @
-      [ResultRow.lcell (Formatters.Version.name_and_disambiguation ~link: false version);
+      [ResultRow.lcell (Formatters.Version.name_and_disambiguation' ~name_link: false version);
       ResultRow.cell
         ~a: [a_class ["text-nowrap"]]
         [
@@ -179,7 +179,7 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
               Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
             )
         ];
-      ResultRow.lcell (Formatters.Version.composer_and_arranger ~short: true version);
+      ResultRow.lcell (Formatters.Version.composer_and_arranger' ~short: true version);
       ] @
       suffix
     )
