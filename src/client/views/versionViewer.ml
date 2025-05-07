@@ -33,8 +33,8 @@ let create ?context slug =
         (Lwt.map Any.version version_lwt);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (Lwt.map Formatters.Tune.aka tune_lwt);
-      L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description);
+      L.h5 ~a: [a_class ["text-center"]] (Lwt.map Formatters.Tune.aka' tune_lwt);
+      L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description');
       L.h5 ~a: [a_class ["text-center"]] (version_lwt >>=| Formatters.Version.description' ~arranger_links: true);
       div
         ~a: [a_class ["text-end"; "dropdown"]]

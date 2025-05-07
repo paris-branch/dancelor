@@ -12,7 +12,7 @@ let description ?arranger_links version =
     match%lwt Model.Version.arrangers version with
     | [] -> Lwt.return_nil
     | arrangers ->
-      let name_block = Person.names ?link: arranger_links arrangers in
+      let name_block = Person.names' ?links: arranger_links arrangers in
       Lwt.return ([txt " arranged by "] @ name_block)
   in
   let disambiguation_block =
@@ -48,7 +48,7 @@ let name_and_dance_gen ?dance_link version parameters =
             ~a: [a_class ["opacity-50"]]
             [
               txt "For dance: ";
-              span (Dance.name ?link: dance_link dance);
+              Dance.name' ?link: dance_link dance;
             ]
         ]
   in
@@ -85,7 +85,7 @@ let name_disambiguation_and_sources' ?name_link version =
           )
     in
     Lwt.return @@
-      match List.map Book.short_title sources with
+      match List.map Book.short_title' sources with
       | [] -> []
       | [title] -> txt "Source: " :: title
       | titles ->
@@ -114,7 +114,7 @@ let disambiguation_and_sources' version =
           )
     in
     Lwt.return @@
-      match List.map Book.short_title sources with
+      match List.map Book.short_title' sources with
       | [] -> []
       | [title] -> txt "Source: " :: title
       | titles ->
@@ -130,14 +130,14 @@ let disambiguation_and_sources' version =
     ]
 
 let composer_and_arranger ?(short = false) ?arranger_links version =
-  let%lwt composer_block = Lwt.bind (Model.Version.tune version) (Tune.composers ~short) in
+  let%lwt composer_block = Lwt.bind (Model.Version.tune version) (Tune.composers' ~short) in
   let%lwt arranger_block =
     match%lwt Model.Version.arrangers version with
     | [] -> Lwt.return_nil
     | arrangers ->
       let comma = if composer_block <> [] then ", " else "" in
       let arr = if short then "arr." else "arranged by" in
-      let arranger_block = Person.names ~short ?link: arranger_links arrangers in
+      let arranger_block = Person.names' ~short ?links: arranger_links arrangers in
       Lwt.return
         [
           span ~a: [a_class ["opacity-50"]] (txt (spf "%s%s " comma arr) :: arranger_block)

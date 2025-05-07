@@ -24,7 +24,7 @@ let create ?context slug =
           let%lwt by =
             match%lwt dance_lwt >>=| Dance.devisers' with
             | [] -> Lwt.return_nil
-            | devisers -> Lwt.return (txt " by " :: Formatters.Person.names ~link: true devisers)
+            | devisers -> Lwt.return (txt " by " :: Formatters.Person.names' ~links: true devisers)
           in
           Lwt.return (kind @ by)
         );

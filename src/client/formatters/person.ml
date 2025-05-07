@@ -3,19 +3,19 @@ open Common
 
 open Html
 
-let name ?(link = true) person =
-  let name_text = [txt (Model.Person.name' person)] in
-  if link then
-    [
-      a
-        ~a: [a_href @@ Endpoints.Page.href_person @@ Entry.slug person]
-        name_text
-    ]
-  else
-    name_text
+let name_gen = function
+  | Right (person, true) ->
+    a
+      ~a: [a_href @@ Endpoints.Page.href_person @@ Entry.slug person]
+      [txt (Model.Person.name' person)]
+  | Right (person, _) -> txt (Model.Person.name' person)
+  | Left person -> txt (Model.Person.name person)
 
-let names ?(short = false) ?link persons =
-  let persons = List.map (name ?link) persons in
+let name = name_gen % Either.left
+let name' ?(link = true) person = name_gen @@ Right (person, link)
+
+let names_gen ?(short = false) persons =
+  let persons = List.map (List.singleton % name_gen) persons in
   let components =
     if short then
       match persons with
@@ -27,3 +27,7 @@ let names ?(short = false) ?link persons =
       List.interspersei (fun _ -> [txt ", "]) ~last: (fun _ -> [txt " and "]) persons
   in
   List.concat components
+
+let names ?short = names_gen ?short % List.map Either.left
+let names' ?short ?(links = true) persons =
+  names_gen ?short @@ List.map (fun person -> Right (person, links)) persons

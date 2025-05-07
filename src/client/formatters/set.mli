@@ -12,12 +12,12 @@ val works' :
 
 val name :
   Model.Set.t ->
-  [> [> Html_types.txt] Html_types.a | Html_types.txt] elt list
+  [> [> Html_types.txt] Html_types.a | Html_types.txt] elt
 
 val name' :
   ?link: bool ->
   Model.Set.t Entry.t ->
-  [> [> Html_types.txt] Html_types.a | Html_types.txt] elt list
+  [> [> Html_types.txt] Html_types.a | Html_types.txt] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
     additionnally have a link. *)
 

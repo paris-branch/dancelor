@@ -14,12 +14,7 @@ let display_warnings warnings =
     | (None, n) :: tl ->
       ([txt "standalone"] @ display_times n) :: display_sets tl
     | (Some set, n) :: tl ->
-      (
-        [txt "in “";
-        span (Formatters.Set.name' set);
-        txt "”"] @
-          display_times n
-      ) :: display_sets tl
+      ([txt "in “"; Formatters.Set.name' set; txt "”"] @ display_times n) :: display_sets tl
   in
   let rec format_set_list = function
     (* If the warning DuplicateVersion has been logged, the list of sets,
@@ -33,26 +28,14 @@ let display_warnings warnings =
     | Book.Empty ->
       li [txt "This book does not contain any set"]
     | Book.DuplicateSet set ->
-      li
-        [
-          txt "Set “";
-          span (Formatters.Set.name' set);
-          txt "” appears several times in this book."
-        ]
+      li [txt "Set “"; Formatters.Set.name' set; txt "” appears several times in this book."]
     | Book.DuplicateVersion (tune, sets_opt) ->
       li
         (
-          txt "Tune “" :: span (Formatters.Tune.name tune) :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list)
+          txt "Tune “" :: Formatters.Tune.name' tune :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list)
         )
     | Book.SetDanceMismatch (set, dance) ->
-      li
-        [
-          txt "Set “";
-          span (Formatters.Set.name' set);
-          txt "” does not have the same kind as its associated dance “";
-          span (Formatters.Dance.name dance);
-          txt "”."
-        ]
+      li [txt "Set “"; Formatters.Set.name' set; txt "” does not have the same kind as its associated dance “"; Formatters.Dance.name' dance; txt "”."]
   in
   List.map display_warning warnings
 

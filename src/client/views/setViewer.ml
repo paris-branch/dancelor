@@ -30,7 +30,7 @@ let create ?context slug =
         (
           match%lwt set_lwt >>=| Set.conceptors' with
           | [] -> Lwt.return_nil
-          | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names ~link: true devisers)
+          | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names' ~links: true devisers)
         );
       div
         ~a: [a_class ["text-end"; "dropdown"]]
