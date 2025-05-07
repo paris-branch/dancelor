@@ -69,22 +69,6 @@ module type S = sig
 
   (** {2 Advanced Field Getters} *)
 
-  val versions_from_contents : t -> Version.t Entry.t list Lwt.t
-  val versions_from_contents' : t Entry.t -> Version.t Entry.t list Lwt.t
-  (** Extract only the versions from the book's contents. *)
-
-  val sets_from_contents : t -> Set.t Entry.t list Lwt.t
-  val sets_from_contents' : t Entry.t -> Set.t Entry.t list Lwt.t
-  (** Extract the sets (both normal and inline) from the book's contents. *)
-
-  val unique_sets_from_contents : t -> Set.t Entry.t list Lwt.t
-  val unique_sets_from_contents' : t Entry.t -> Set.t Entry.t list Lwt.t
-  (** Same as {!sets_from_contents} but without duplicate sets. *)
-
-  val sets_and_parameters_from_contents : t -> (Set.t Entry.t * SetParameters.t) list Lwt.t
-  val sets_and_parameters_from_contents' : t Entry.t -> (Set.t Entry.t * SetParameters.t) list Lwt.t
-  (** Same as {!sets_from_contents} but also includes parameters. *)
-
   val find_context_no_inline : int -> t -> page List.context option Lwt.t
   val find_context_no_inline' : int -> t Entry.t -> page List.context option Lwt.t
   (** Given an indice and a book, find the context around that indice in the book.

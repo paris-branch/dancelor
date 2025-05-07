@@ -57,9 +57,11 @@ module Build
   let find_context' index = find_context index % Entry.value
 
   let lilypond_content_cache_key set =
-    let%lwt contents = contents' set in
+    let%lwt contents = contents set in
     let contents = List.map (Version.content' % fst) contents in
     Lwt.return (String.concat "\n" contents)
+
+  let lilypond_content_cache_key' = lilypond_content_cache_key % Entry.value
 
   let warnings s =
     let warnings = ref [] in

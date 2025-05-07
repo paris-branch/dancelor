@@ -56,35 +56,6 @@ module Build
 
   let versions_from_contents' = versions_from_contents % Entry.value
 
-  let sets_from_contents book =
-    let%lwt contents = contents book in
-    Lwt_list.filter_map_p
-      (function
-        | Version _ -> Lwt.return_none
-        | Set (set, _) -> Lwt.return_some set
-        | InlineSet (set, _) -> Lwt.return_some @@ Entry.make_dummy set
-      )
-      contents
-
-  let sets_from_contents' = sets_from_contents % Entry.value
-
-  let unique_sets_from_contents =
-    Lwt.map (List.sort_uniq Set.compare) % sets_from_contents
-
-  let unique_sets_from_contents' = unique_sets_from_contents % Entry.value
-
-  let sets_and_parameters_from_contents book =
-    let%lwt contents = contents book in
-    Lwt_list.filter_map_p
-      (function
-        | Set (set, parameters) -> Lwt.return_some (set, parameters)
-        | InlineSet (set, parameters) -> Lwt.return_some (Entry.make_dummy set, parameters)
-        | Version _ -> Lwt.return_none
-      )
-      contents
-
-  let sets_and_parameters_from_contents' = sets_and_parameters_from_contents % Entry.value
-
   let isInlineSet = function
     | InlineSet _ -> true
     | _ -> false
@@ -102,8 +73,8 @@ module Build
       Lwt_list.map_p
         (function
           | Version (version, _) -> Lwt.return @@ Version.content' version
-          | Set (set, _) -> Set.lilypond_content_cache_key set
-          | InlineSet (set, _) -> Set.lilypond_content_cache_key @@ Entry.make_dummy set
+          | Set (set, _) -> Set.lilypond_content_cache_key' set
+          | InlineSet (set, _) -> Set.lilypond_content_cache_key set
         )
         pages
     in
@@ -137,6 +108,15 @@ module Build
       else
         Lwt.return_nil
 
+    let sets_from_contents' book =
+      let%lwt contents = contents' book in
+      Lwt_list.filter_map_p
+        (function
+          | Version _ | InlineSet _ -> Lwt.return_none
+          | Set (set, _) -> Lwt.return_some set
+        )
+        contents
+
     let duplicateSet book =
       Fun.flip Lwt.map (sets_from_contents' book) @@ fun sets ->
       match List.sort Set.compare sets with
@@ -157,6 +137,9 @@ module Build
             other_sets
         in
         warnings
+
+    let unique_sets_from_contents' =
+      Lwt.map (List.sort_uniq Set.compare) % sets_from_contents'
 
     let duplicateVersion book =
       let%lwt sets = unique_sets_from_contents' book in
@@ -207,6 +190,15 @@ module Build
           )
           []
       |> Lwt.return
+
+    let sets_and_parameters_from_contents' book =
+      let%lwt contents = contents' book in
+      Lwt_list.filter_map_p
+        (function
+          | Version _ | InlineSet _ -> Lwt.return_none
+          | Set (set, parameters) -> Lwt.return_some (set, parameters)
+        )
+        contents
 
     let setDanceMismatch book =
       let%lwt sets_and_parameters = sets_and_parameters_from_contents' book in
