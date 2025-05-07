@@ -28,7 +28,7 @@ let sets sets =
   clickable_row
     ~href
     [
-      (Formatters.Set.name_and_tunes ~link: false set);
+      (Formatters.Set.name_and_tunes' ~name_link: false set);
       (Lwt.map Formatters.Person.names (Set.conceptors' set));
       Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set];
     ]

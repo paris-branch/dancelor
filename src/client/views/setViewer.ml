@@ -17,7 +17,7 @@ let create ?context slug =
         (Lwt.map Any.set set_lwt);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (set_lwt >>=| Formatters.Set.works);
+      L.h5 ~a: [a_class ["text-center"]] (set_lwt >>=| Formatters.Set.works');
       h5
         ~a: [a_class ["text-center"]]
         [
