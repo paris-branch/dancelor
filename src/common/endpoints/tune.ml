@@ -4,19 +4,19 @@ open ModelBuilder
 
 type (_, _, _) t =
 (* Actions without specific tune *)
-| Create : ((Tune.t -> 'w), 'w, Tune.t Entry.t) t
-| Search : ((Slice.t -> Tune.Filter.t -> 'w), 'w, (int * Tune.t Entry.t list)) t
+| Create : ((Core.Tune.t -> 'w), 'w, Core.Tune.t Entry.t) t
+| Search : ((Slice.t -> Filter.Tune.t -> 'w), 'w, (int * Core.Tune.t Entry.t list)) t
 (* Actions on a specific tune *)
-| Get : ((Tune.t Slug.t -> 'w), 'w, Tune.t Entry.t) t
-| Update : ((Tune.t Slug.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
+| Get : ((Core.Tune.t Slug.t -> 'w), 'w, Core.Tune.t Entry.t) t
+| Update : ((Core.Tune.t Slug.t -> Core.Tune.t -> 'w), 'w, Core.Tune.t Entry.t) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific tune *)
-    | Create -> body "tune" (module Tune) @@ post (module Entry.J(Tune))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Tune.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Tune))))
+    | Create -> body "tune" (module Core.Tune) @@ post (module Entry.J(Core.Tune))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Tune) @@ get (module JPair(JInt)(JList(Entry.J(Core.Tune))))
     (* Actions on a specific tune *)
-    | Get -> variable (module SSlug(Tune)) @@ get (module Entry.J(Tune))
-    | Update -> variable (module SSlug(Tune)) @@ body "tune" (module Tune) @@ put (module Entry.J(Tune))
+    | Get -> variable (module SSlug(Core.Tune)) @@ get (module Entry.J(Core.Tune))
+    | Update -> variable (module SSlug(Core.Tune)) @@ body "tune" (module Core.Tune) @@ put (module Entry.J(Core.Tune))

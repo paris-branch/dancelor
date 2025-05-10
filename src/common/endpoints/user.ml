@@ -5,9 +5,9 @@ open Madge
    they are heavily hashed, we shouldn't be sending them, so we systematically
    redact them. And to be sure to not miss a future introduction of  *)
 module User = struct
-  type t = ModelBuilder.User.t
-  let to_yojson = Json.keep_fields ["display-name"; "person"] % ModelBuilder.User.to_yojson
-  let of_yojson = ModelBuilder.User.of_yojson
+  type t = ModelBuilder.Core.User.t
+  let to_yojson = Json.keep_fields ["display-name"; "person"] % ModelBuilder.Core.User.to_yojson
+  let of_yojson = ModelBuilder.Core.User.of_yojson
 end
 
 type (_, _, _) t =

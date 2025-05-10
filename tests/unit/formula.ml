@@ -158,28 +158,28 @@ let () =
       (
         "to_string raises no exception",
         [to_string_no_exn' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
-        to_string_no_exn' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
-        to_string_no_exn' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
-        to_string_no_exn' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
-        to_string_no_exn' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
-        to_string_no_exn' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
-        to_string_no_exn' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
-        to_string_no_exn' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
-        to_string_no_exn' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
-        to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~to_string: ModelBuilder.Any.Filter.to_pretty_string;
+        to_string_no_exn' ~name: "Source.Filter" (module ModelBuilder.Filter.Source) (module Gen.Source.Filter);
+        to_string_no_exn' ~name: "Person.Filter" (module ModelBuilder.Filter.Person) (module Gen.Person.Filter);
+        to_string_no_exn' ~name: "Dance.Filter" (module ModelBuilder.Filter.Dance) (module Gen.Dance.Filter);
+        to_string_no_exn' ~name: "Tune.Filter" (module ModelBuilder.Filter.Tune) (module Gen.Tune.Filter);
+        to_string_no_exn' ~name: "Version.Filter" (module ModelBuilder.Filter.Version) (module Gen.Version.Filter);
+        to_string_no_exn' ~name: "Set.Filter" (module ModelBuilder.Filter.Set) (module Gen.Set.Filter);
+        to_string_no_exn' ~name: "Book.Filter" (module ModelBuilder.Filter.Book) (module Gen.Book.Filter);
+        to_string_no_exn' ~name: "Any.Filter" (module ModelBuilder.Filter.Any) (module Gen.Any.Filter);
+        to_string_no_exn ~name: "Any.Filter (pretty)" ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Filter.Any.show ~to_string: ModelBuilder.Filter.Any.to_pretty_string;
         ]
       );
       (
         "from_string % to_string = id",
         [to_string_from_string_roundtrip' ~name: "TextFormula" (module TextFormula) (module Gen.TextFormula);
-        to_string_from_string_roundtrip' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
-        to_string_from_string_roundtrip' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
-        to_string_from_string_roundtrip' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
-        to_string_from_string_roundtrip' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
-        to_string_from_string_roundtrip' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
-        to_string_from_string_roundtrip' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
-        to_string_from_string_roundtrip' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
-        to_string_from_string_roundtrip' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
+        to_string_from_string_roundtrip' ~name: "Source.Filter" (module ModelBuilder.Filter.Source) (module Gen.Source.Filter);
+        to_string_from_string_roundtrip' ~name: "Person.Filter" (module ModelBuilder.Filter.Person) (module Gen.Person.Filter);
+        to_string_from_string_roundtrip' ~name: "Dance.Filter" (module ModelBuilder.Filter.Dance) (module Gen.Dance.Filter);
+        to_string_from_string_roundtrip' ~name: "Tune.Filter" (module ModelBuilder.Filter.Tune) (module Gen.Tune.Filter);
+        to_string_from_string_roundtrip' ~name: "Version.Filter" (module ModelBuilder.Filter.Version) (module Gen.Version.Filter);
+        to_string_from_string_roundtrip' ~name: "Set.Filter" (module ModelBuilder.Filter.Set) (module Gen.Set.Filter);
+        to_string_from_string_roundtrip' ~name: "Book.Filter" (module ModelBuilder.Filter.Book) (module Gen.Book.Filter);
+        to_string_from_string_roundtrip' ~name: "Any.Filter" (module ModelBuilder.Filter.Any) (module Gen.Any.Filter);
         (* FIXME: Does not actually hold. *)
         (* to_string_from_string_roundtrip  ~name:"Any.Filter (pretty)" *)
         (*   ~gen: (QCheck2.Gen.map Model.Any.Filter.optimise Gen.Any.Filter.gen) *)
@@ -193,15 +193,15 @@ let () =
         "optimise is idempotent",
         [optimise_idempotent' ~name: "Formula (unit)" (module FormulaUnit) (module FormulaUnit);
         optimise_idempotent' ~name: "Formula (int)" (module FormulaInt) (module FormulaInt);
-        optimise_idempotent' ~name: "Source.Filter" (module ModelBuilder.Source.Filter) (module Gen.Source.Filter);
-        optimise_idempotent' ~name: "Person.Filter" (module ModelBuilder.Person.Filter) (module Gen.Person.Filter);
-        optimise_idempotent' ~name: "Dance.Filter" (module ModelBuilder.Dance.Filter) (module Gen.Dance.Filter);
-        optimise_idempotent' ~name: "Tune.Filter" (module ModelBuilder.Tune.Filter) (module Gen.Tune.Filter);
-        optimise_idempotent' ~name: "Version.Filter" (module ModelBuilder.Version.Filter) (module Gen.Version.Filter);
-        optimise_idempotent' ~name: "Set.Filter" (module ModelBuilder.Set.Filter) (module Gen.Set.Filter);
-        optimise_idempotent' ~name: "Book.Filter" (module ModelBuilder.Book.Filter) (module Gen.Book.Filter);
-        optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: ModelBuilder.Any.Filter.type_based_cleanup ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Any.Filter.show ~equal: ModelBuilder.Any.Filter.equal;
-        optimise_idempotent' ~name: "Any.Filter" (module ModelBuilder.Any.Filter) (module Gen.Any.Filter);
+        optimise_idempotent' ~name: "Source.Filter" (module ModelBuilder.Filter.Source) (module Gen.Source.Filter);
+        optimise_idempotent' ~name: "Person.Filter" (module ModelBuilder.Filter.Person) (module Gen.Person.Filter);
+        optimise_idempotent' ~name: "Dance.Filter" (module ModelBuilder.Filter.Dance) (module Gen.Dance.Filter);
+        optimise_idempotent' ~name: "Tune.Filter" (module ModelBuilder.Filter.Tune) (module Gen.Tune.Filter);
+        optimise_idempotent' ~name: "Version.Filter" (module ModelBuilder.Filter.Version) (module Gen.Version.Filter);
+        optimise_idempotent' ~name: "Set.Filter" (module ModelBuilder.Filter.Set) (module Gen.Set.Filter);
+        optimise_idempotent' ~name: "Book.Filter" (module ModelBuilder.Filter.Book) (module Gen.Book.Filter);
+        optimise_idempotent ~name: "Any.Filter (type_based_cleanup)" ~optimise: ModelBuilder.Filter.Any.type_based_cleanup ~gen: Gen.Any.Filter.gen ~show: ModelBuilder.Filter.Any.show ~equal: ModelBuilder.Filter.Any.equal;
+        optimise_idempotent' ~name: "Any.Filter" (module ModelBuilder.Filter.Any) (module Gen.Any.Filter);
         ]
       );
     ]
