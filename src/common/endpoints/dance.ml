@@ -4,23 +4,23 @@ open ModelBuilder
 
 type (_, _, _) t =
 (* Actions without a specific dance *)
-| Create : ((Dance.t -> 'w), 'w, Dance.t Entry.t) t
-| Search : ((Slice.t -> Dance.Filter.t -> 'w), 'w, (int * Dance.t Entry.t list)) t
+| Create : ((Core.Dance.t -> 'w), 'w, Core.Dance.t Entry.t) t
+| Search : ((Slice.t -> Filter.Dance.t -> 'w), 'w, (int * Core.Dance.t Entry.t list)) t
 (* Actions on a specific dance *)
-| Get : ((Dance.t Slug.t -> 'w), 'w, Dance.t Entry.t) t
-| Update : ((Dance.t Slug.t -> Dance.t -> 'w), 'w, Dance.t Entry.t) t
+| Get : ((Core.Dance.t Slug.t -> 'w), 'w, Core.Dance.t Entry.t) t
+| Update : ((Core.Dance.t Slug.t -> Core.Dance.t -> 'w), 'w, Core.Dance.t Entry.t) t
 (* Files related to a dance *)
-| Pdf : ((Dance.t Slug.t -> SetParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Pdf : ((Core.Dance.t Slug.t -> Core.SetParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without a specific dance *)
-    | Create -> body "dance" (module Dance) @@ post (module Entry.J(Dance))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Dance.Filter) @@ get (module JPair(JInt)(JList(Entry.J(Dance))))
+    | Create -> body "dance" (module Core.Dance) @@ post (module Entry.J(Core.Dance))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Dance) @@ get (module JPair(JInt)(JList(Entry.J(Core.Dance))))
     (* Actions on a specific dance *)
-    | Get -> variable (module SSlug(Dance)) @@ get (module Entry.J(Dance))
-    | Update -> variable (module SSlug(Dance)) @@ body "dance" (module Dance) @@ put (module Entry.J(Dance))
+    | Get -> variable (module SSlug(Core.Dance)) @@ get (module Entry.J(Core.Dance))
+    | Update -> variable (module SSlug(Core.Dance)) @@ body "dance" (module Core.Dance) @@ put (module Entry.J(Core.Dance))
     (* Files related to a dance *)
-    | Pdf -> variable (module SSlug(Dance)) ~suffix: ".pdf" @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Pdf -> variable (module SSlug(Core.Dance)) ~suffix: ".pdf" @@ query "parameters" (module Core.SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()

@@ -141,7 +141,7 @@ let render book book_parameters rendering_parameters =
             in
             let%lwt for_dance = Model.VersionParameters.for_dance parameters in
             let%lwt set_parameters =
-              Model.SetParameters.make
+              Model.SetParameters.make'
                 ~display_name: name
                 ?for_dance
                 ~show_order: false

@@ -2,7 +2,7 @@ open NesUnix
 open Common
 
 module Source = Table.Make(struct
-  include ModelBuilder.Source
+  include ModelBuilder.Core.Source
 
   let slug_hint source = Lwt.return source.name
   let separate_fields = []
@@ -11,7 +11,7 @@ module Source = Table.Make(struct
 end)
 
 module Person = Table.Make(struct
-  include ModelBuilder.Person
+  include ModelBuilder.Core.Person
 
   let slug_hint person = Lwt.return person.name
   let separate_fields = []
@@ -20,72 +20,72 @@ module Person = Table.Make(struct
 end)
 
 module User = Table.Make(struct
-  include ModelBuilder.User
+  include ModelBuilder.Core.User
 
   let slug_hint user = Lwt.bind (Person.get user.person) (fun person -> Lwt.return (Entry.value person).name)
   let separate_fields = []
   let dependencies user =
     Lwt.return [
-      Table.make_slug_and_table (module Person) (ModelBuilder.User.person user)
+      Table.make_slug_and_table (module Person) (ModelBuilder.Core.User.person user)
     ]
   let standalone = true
 end)
 
 module Dance = Table.Make(struct
-  include ModelBuilder.Dance
+  include ModelBuilder.Core.Dance
 
   let slug_hint dance = Lwt.return dance.name
   let separate_fields = []
   let dependencies dance =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Dance.devisers dance)
+        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Dance.devisers dance)
       )
 
   let standalone = true
 end)
 
 module Tune = Table.Make(struct
-  include ModelBuilder.Tune
+  include ModelBuilder.Core.Tune
 
   let slug_hint tune = Lwt.return tune.name
   let separate_fields = []
   let dependencies tune =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Dance)) (ModelBuilder.Tune.dances tune) @
-          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Tune.composers tune)
+        List.map (Table.make_slug_and_table (module Dance)) (ModelBuilder.Core.Tune.dances tune) @
+          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Tune.composers tune)
       )
 
   let standalone = false
 end)
 
 module Version = Table.Make(struct
-  include ModelBuilder.Version
+  include ModelBuilder.Core.Version
 
   let slug_hint version = Lwt.bind (Tune.get version.tune) (fun tune -> Lwt.return (Entry.value tune).name)
   let separate_fields = [("content", "content.ly")]
   let dependencies version =
     Lwt.return
       (
-        [Table.make_slug_and_table (module Tune) (ModelBuilder.Version.tune version)] @
-        List.map (Table.make_slug_and_table (module Source)) (ModelBuilder.Version.sources version) @
-        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Version.arrangers version)
+        [Table.make_slug_and_table (module Tune) (ModelBuilder.Core.Version.tune version)] @
+        List.map (Table.make_slug_and_table (module Source)) (ModelBuilder.Core.Version.sources version) @
+        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
       )
 
   let standalone = true
 end)
 
 module SetModel = struct
-  include ModelBuilder.Set
+  include ModelBuilder.Core.Set
 
   let slug_hint set = Lwt.return set.name
   let separate_fields = []
   let dependencies set =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Version) % fst) (ModelBuilder.Set.contents set) @
-          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Set.conceptors set)
+        List.map (Table.make_slug_and_table (module Version) % fst) (ModelBuilder.Core.Set.contents set) @
+          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Set.conceptors set)
       )
 
   let standalone = true
@@ -94,7 +94,7 @@ end
 module Set = Table.Make(SetModel)
 
 module Book = Table.Make(struct
-  include ModelBuilder.Book
+  include ModelBuilder.Core.Book
 
   let slug_hint book = Lwt.return book.title
   let separate_fields = []
@@ -102,33 +102,33 @@ module Book = Table.Make(struct
     let%lwt dependencies =
       Lwt_list.map_p
         (function
-          | ModelBuilder.Book.Page.Version (version, parameters) ->
+          | ModelBuilder.Core.Book.Page.Version (version, parameters) ->
             Lwt.return
               (
                 [Table.make_slug_and_table (module Version) version] @
-                  match ModelBuilder.Version.Parameters.for_dance parameters with
+                  match ModelBuilder.Core.VersionParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
-          | ModelBuilder.Book.Page.Set (set, parameters) ->
+          | ModelBuilder.Core.Book.Page.Set (set, parameters) ->
             Lwt.return
               (
                 [Table.make_slug_and_table (module Set) set] @
-                  match ModelBuilder.SetParameters.for_dance parameters with
+                  match ModelBuilder.Core.SetParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
-          | ModelBuilder.Book.Page.InlineSet (set, parameters) ->
+          | ModelBuilder.Core.Book.Page.InlineSet (set, parameters) ->
             let%lwt set_dependencies = SetModel.dependencies set in
             Lwt.return
               (
                 set_dependencies @
-                  match ModelBuilder.SetParameters.for_dance parameters with
+                  match ModelBuilder.Core.SetParameters.for_dance parameters with
                   | None -> []
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
         )
-        (ModelBuilder.Book.contents book)
+        (ModelBuilder.Core.Book.contents book)
     in
     Lwt.return (List.flatten dependencies)
 

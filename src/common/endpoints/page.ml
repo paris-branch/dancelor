@@ -7,8 +7,8 @@ open ModelBuilder
     to simply use [page] here, having pages carry a “parent” [page option]. *)
 type context =
   | InSearch of string
-  | InSet of Set.t Slug.t * int
-  | InBook of Book.t Slug.t * int
+  | InSet of Core.Set.t Slug.t * int
+  | InBook of Core.Book.t Slug.t * int
 [@@deriving yojson, variants]
 
 let inSet' = inSet % Slug.unsafe_of_string
@@ -28,24 +28,24 @@ module Context = struct type t = context [@@deriving yojson] end
    /book/add (or new/edit/create), for /book/view/<slug> vs /book/add. *)
 type (_, _, _) t =
   | BookAdd : ('w, 'w, Void.t) t
-  | BookEdit : ((Book.t Slug.t -> 'w), 'w, Void.t) t
-  | Book : ((Context.t option -> Book.t Slug.t -> 'w), 'w, Void.t) t
+  | BookEdit : ((Core.Book.t Slug.t -> 'w), 'w, Void.t) t
+  | Book : ((Context.t option -> Core.Book.t Slug.t -> 'w), 'w, Void.t) t
   | DanceAdd : ('w, 'w, Void.t) t
-  | Dance : ((Context.t option -> Dance.t Slug.t -> 'w), 'w, Void.t) t
+  | Dance : ((Context.t option -> Core.Dance.t Slug.t -> 'w), 'w, Void.t) t
   | PersonAdd : ('w, 'w, Void.t) t
-  | Person : ((Context.t option -> Person.t Slug.t -> 'w), 'w, Void.t) t
+  | Person : ((Context.t option -> Core.Person.t Slug.t -> 'w), 'w, Void.t) t
   | SetAdd : ('w, 'w, Void.t) t
-  | Set : ((Context.t option -> Set.t Slug.t -> 'w), 'w, Void.t) t
+  | Set : ((Context.t option -> Core.Set.t Slug.t -> 'w), 'w, Void.t) t
   | SourceAdd : ('w, 'w, Void.t) t
-  | Source : ((Context.t option -> Source.t Slug.t -> 'w), 'w, Void.t) t
+  | Source : ((Context.t option -> Core.Source.t Slug.t -> 'w), 'w, Void.t) t
   | TuneAdd : ('w, 'w, Void.t) t
-  | Tune : ((Context.t option -> Tune.t Slug.t -> 'w), 'w, Void.t) t
-  | VersionAdd : ((Tune.t Slug.t option -> 'w), 'w, Void.t) t
-  | Version : ((Context.t option -> Version.t Slug.t -> 'w), 'w, Void.t) t
+  | Tune : ((Context.t option -> Core.Tune.t Slug.t -> 'w), 'w, Void.t) t
+  | VersionAdd : ((Core.Tune.t Slug.t option -> 'w), 'w, Void.t) t
+  | Version : ((Context.t option -> Core.Version.t Slug.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
   | UserCreate : ('w, 'w, Void.t) t
-  | UserPasswordReset : ((User.t Slug.t -> string -> 'w), 'w, Void.t) t
+  | UserPasswordReset : ((Core.User.t Slug.t -> string -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 open Madge
@@ -54,25 +54,25 @@ open Madge
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
-    | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(Book)) @@ void ()
+    | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Book)) @@ void ()
     | BookAdd -> literal "book" @@ literal "add" @@ void ()
-    | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(Book)) @@ void ()
-    | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(Dance)) @@ void ()
+    | BookEdit -> literal "book" @@ literal "edit" @@ variable (module SSlug(Core.Book)) @@ void ()
+    | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Dance)) @@ void ()
     | DanceAdd -> literal "dance" @@ literal "add" @@ void ()
-    | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(Person)) @@ void ()
+    | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Person)) @@ void ()
     | PersonAdd -> literal "person" @@ literal "add" @@ void ()
-    | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(Set)) @@ void ()
+    | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Set)) @@ void ()
     | SetAdd -> literal "set" @@ literal "add" @@ void ()
-    | Source -> literal "source" @@ query_opt "context" (module Context) @@ variable (module SSlug(Source)) @@ void ()
+    | Source -> literal "source" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Source)) @@ void ()
     | SourceAdd -> literal "source" @@ literal "add" @@ void ()
-    | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(Tune)) @@ void ()
+    | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Tune)) @@ void ()
     | TuneAdd -> literal "tune" @@ literal "add" @@ void ()
-    | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(Version)) @@ void ()
-    | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Tune)) @@ void ()
+    | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module SSlug(Core.Version)) @@ void ()
+    | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module JSlug(Core.Tune)) @@ void ()
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
     | UserCreate -> literal "user" @@ literal "create" @@ void ()
-    | UserPasswordReset -> literal "user" @@ literal "reset-password" @@ query "username" (module JSlug(User)) @@ query "token" (module JString) @@ void ()
+    | UserPasswordReset -> literal "user" @@ literal "reset-password" @@ query "username" (module JSlug(Core.User)) @@ query "token" (module JString) @@ void ()
 
 let href : type a r. (a, string, r) t -> a = fun page ->
   with_request (route page) @@ fun (module _) {meth; uri; _} ->
@@ -89,7 +89,7 @@ let href_version ?context version = href Version context version
 let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
-  let open Any in
+  let open Core.Any in
   match any with
   | Version version -> href_version ?context (Entry.slug version)
   | Set set -> href_set ?context (Entry.slug set)
@@ -100,13 +100,13 @@ let href_any ?context any =
   | Tune tune -> href_tune ?context (Entry.slug tune)
 
 module MakeDescribe
-  (Book : ModelBuilder.Book.S)
-  (Dance : ModelBuilder.Dance.S)
-  (Person : ModelBuilder.Person.S)
-  (Set : ModelBuilder.Set.S)
-  (Source : ModelBuilder.Source.S)
-  (Tune : ModelBuilder.Tune.S)
-  (Version : ModelBuilder.Version.S)
+  (Book : ModelBuilder.Signature.Book.S)
+  (Dance : ModelBuilder.Signature.Dance.S)
+  (Person : ModelBuilder.Signature.Person.S)
+  (Set : ModelBuilder.Signature.Set.S)
+  (Source : ModelBuilder.Signature.Source.S)
+  (Tune : ModelBuilder.Signature.Tune.S)
+  (Version : ModelBuilder.Signature.Version.S)
 = struct
   let describe = fun uri ->
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
