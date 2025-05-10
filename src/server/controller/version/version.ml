@@ -58,7 +58,7 @@ include Search.Build(struct
   let filter_accepts = Model.Version.Filter.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.map Model.Tune.name % Model.Version.tune) String.Sensible.compare]
+    Lwt_list.[increasing (Lwt.map Model.Tune.name' % Model.Version.tune') String.Sensible.compare]
 end)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->

@@ -24,11 +24,14 @@ module Build
     make ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
 
   let composers = Lwt_list.map_p Person.get % composers
+  let composers' = composers % Entry.value
+
   let dances = Lwt_list.map_p Dance.get % dances
+  let dances' = dances % Entry.value
 
   module Filter = struct
     (* NOTE: [include Core.Tune.Filter] shadows the accessors of [Dancelor_common.Model_core.Tune]. *)
-    let tuneCore_dances = dances
+    let tuneCore_dances' = dances'
 
     include Filter.Tune
 
@@ -38,17 +41,17 @@ module Build
         | Is tune' ->
           Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug tune) tune'
         | Name string ->
-          Lwt.return @@ String.proximity ~char_equal string @@ Core.Tune.name tune
+          Lwt.return @@ String.proximity ~char_equal string @@ Core.Tune.name' tune
         | NameMatches string ->
-          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Tune.name tune
+          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Tune.name' tune
         | ExistsComposer pfilter ->
-          let%lwt composers = composers tune in
+          let%lwt composers = composers' tune in
           let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) composers in
           Lwt.return (Formula.interpret_or_l scores)
         | Kind kfilter ->
-          Kind.Base.Filter.accepts kfilter @@ Core.Tune.kind tune
+          Kind.Base.Filter.accepts kfilter @@ Core.Tune.kind' tune
         | ExistsDance dfilter ->
-          let%lwt dances = tuneCore_dances tune in
+          let%lwt dances = tuneCore_dances' tune in
           let%lwt scores = Lwt_list.map_s (Dance.Filter.accepts dfilter) dances in
           Lwt.return (Formula.interpret_or_l scores)
   end

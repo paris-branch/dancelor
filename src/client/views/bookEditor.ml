@@ -43,7 +43,7 @@ module State = struct
   exception Non_convertible
 
   let of_model (book : Model.Book.t Entry.t) : t Lwt.t =
-    let%lwt contents = Model.Book.contents book in
+    let%lwt contents = Model.Book.contents' book in
     let sets =
       List.map
         (function
@@ -170,7 +170,7 @@ let create ?on_save ?text ?edit () =
                 ~placeholder: "eg. 2019 or 2012-03-14";
               Selector.render
                 ~make_result: AnyResult.make_set_result'
-                ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes set)])])
+                ~make_more_results: (fun set -> [Utils.ResultRow.(make [lcell ~a: [a_colspan 9999] (Formatters.Set.tunes' set)])])
                 ~field_name: "Sets"
                 ~model_name: "set"
                 ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())

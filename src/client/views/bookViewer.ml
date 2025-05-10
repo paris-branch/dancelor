@@ -14,12 +14,7 @@ let display_warnings warnings =
     | (None, n) :: tl ->
       ([txt "standalone"] @ display_times n) :: display_sets tl
     | (Some set, n) :: tl ->
-      (
-        [txt "in “";
-        span (Formatters.Set.name set);
-        txt "”"] @
-          display_times n
-      ) :: display_sets tl
+      ([txt "in “"; Formatters.Set.name' set; txt "”"] @ display_times n) :: display_sets tl
   in
   let rec format_set_list = function
     (* If the warning DuplicateVersion has been logged, the list of sets,
@@ -33,26 +28,14 @@ let display_warnings warnings =
     | Book.Empty ->
       li [txt "This book does not contain any set"]
     | Book.DuplicateSet set ->
-      li
-        [
-          txt "Set “";
-          span (Formatters.Set.name set);
-          txt "” appears several times in this book."
-        ]
+      li [txt "Set “"; Formatters.Set.name' set; txt "” appears several times in this book."]
     | Book.DuplicateVersion (tune, sets_opt) ->
       li
         (
-          txt "Tune “" :: span (Formatters.Tune.name tune) :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list)
+          txt "Tune “" :: Formatters.Tune.name' tune :: txt "” appears several times: " :: (display_sets sets_opt |> format_set_list)
         )
     | Book.SetDanceMismatch (set, dance) ->
-      li
-        [
-          txt "Set “";
-          span (Formatters.Set.name set);
-          txt "” does not have the same kind as its associated dance “";
-          span (Formatters.Dance.name dance);
-          txt "”."
-        ]
+      li [txt "Set “"; Formatters.Set.name' set; txt "” does not have the same kind as its associated dance “"; Formatters.Dance.name' dance; txt "”."]
   in
   List.map display_warning warnings
 
@@ -85,8 +68,8 @@ let table_contents ~this_slug contents =
                   let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
                   Tables.clickable_row ~href [
                     Lwt.return [txt "Set"];
-                    (Formatters.Set.name_tunes_and_dance ~link: false set parameters);
-                    Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind set]
+                    (Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters);
+                    Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set]
                   ]
                 )
               | InlineSet (set, parameters) ->
@@ -94,8 +77,8 @@ let table_contents ~this_slug contents =
                   tr
                     [
                       td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
-                      L.td (Formatters.Set.name_tunes_and_dance ~link: false (Entry.make_dummy set) parameters);
-                      td [txt @@ Kind.Dance.to_string @@ Set.kind @@ Entry.make_dummy set];
+                      L.td (Formatters.Set.name_tunes_and_dance set parameters);
+                      td [txt @@ Kind.Dance.to_string @@ Set.kind set];
                     ]
                 )
               | Version (version, parameters) ->
@@ -103,13 +86,13 @@ let table_contents ~this_slug contents =
                   let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
                   Tables.clickable_row ~href [
                     Lwt.return [txt "Tune"];
-                    (Formatters.Version.name_and_dance ~link: false version parameters);
+                    (Formatters.Version.name_and_dance' ~name_link: false version parameters);
                     Lwt.return
                       [
                         L.txt
                           (
-                            let%lwt tune = Version.tune version in
-                            Lwt.return (Kind.Version.to_string (Version.bars version, Tune.kind tune))
+                            let%lwt tune = Version.tune' version in
+                            Lwt.return (Kind.Version.to_string (Version.bars' version, Tune.kind' tune))
                           )
                       ];
                   ]
@@ -123,7 +106,7 @@ let table_contents ~this_slug contents =
 let create ?context slug =
   let open Html in
   let book_lwt = MainPage.get_model_or_404 (Book Get) slug in
-  let title = S.from' "" (Lwt.map Book.title book_lwt) in
+  let title = S.from' "" (Lwt.map Book.title' book_lwt) in
   Page.make
     ~parent_title: "Book"
     ~title
@@ -134,10 +117,10 @@ let create ?context slug =
         (Lwt.map Any.book book_lwt);
     ]
     [
-      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle book_lwt];
+      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle' book_lwt];
       L.div
         (
-          match%lwt Lwt.map Book.scddb_id book_lwt with
+          match%lwt Lwt.map Book.scddb_id' book_lwt with
           | None -> Lwt.return_nil
           | Some scddb_id ->
             let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
@@ -164,7 +147,7 @@ let create ?context slug =
         [
           L.txt
             (
-              match%lwt Lwt.map Book.date book_lwt with
+              match%lwt Lwt.map Book.date' book_lwt with
               | None -> Lwt.return ""
               | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
             )
@@ -209,6 +192,6 @@ let create ?context slug =
           h3 [txt "Contents"];
           table_contents
             ~this_slug: slug
-            (Lwt.bind book_lwt Book.contents);
+            (Lwt.bind book_lwt Book.contents');
         ];
     ]

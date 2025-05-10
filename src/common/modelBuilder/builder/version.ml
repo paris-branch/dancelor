@@ -27,17 +27,24 @@ module Build
     make ~tune ~bars ~key ~structure ?sources ?arrangers ?remark ?disambiguation ~content ()
 
   let tune = Tune.get % tune
+  let tune' = tune % Entry.value
+
   let sources = Lwt_list.map_p Source.get % sources
+  let sources' = sources % Entry.value
+
   let arrangers = Lwt_list.map_p Person.get % arrangers
+  let arrangers' = arrangers % Entry.value
 
   let kind version =
     Fun.flip Lwt.map (tune version) @@ fun tune ->
-    (bars version, Tune.kind tune)
+    (bars version, Tune.kind' tune)
+  let kind' = kind % Entry.value
 
-  let name version = Lwt.map Tune.name (tune version)
+  let name version = Lwt.map Tune.name' (tune version)
+  let name' = name % Entry.value
 
   module Filter = struct
-    let versionCore_tune = tune
+    let versionCore_tune = tune'
 
     include Filter.Version
 
@@ -49,12 +56,12 @@ module Build
           let%lwt tune = versionCore_tune version in
           Tune.Filter.accepts tfilter tune
         | Key key' ->
-          Lwt.return @@ Formula.interpret_bool (Core.Version.key version = key')
+          Lwt.return @@ Formula.interpret_bool (Core.Version.key' version = key')
         | Kind kfilter ->
           let%lwt tune = versionCore_tune version in
-          Kind.Version.Filter.accepts kfilter (Core.Version.bars version, Tune.kind tune)
+          Kind.Version.Filter.accepts kfilter (Core.Version.bars' version, Tune.kind' tune)
         | ExistsSource sfilter ->
-          let%lwt sources = sources version in
+          let%lwt sources = sources' version in
           Formula.interpret_exists (Source.Filter.accepts sfilter) sources
   end
 end

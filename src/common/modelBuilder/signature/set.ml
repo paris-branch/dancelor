@@ -14,29 +14,43 @@ module type S = sig
     unit ->
     t
 
-  (* FIXME: remove? *)
-  val is_slug_none : t Entry.t -> bool
+  val name : t -> string
+  val name' : t Entry.t -> string
 
-  val name : t Entry.t -> string
-  val conceptors : t Entry.t -> Person.t Entry.t list Lwt.t
-  val kind : t Entry.t -> Kind.Dance.t
-  val contents : t Entry.t -> (Version.t Entry.t * VersionParameters.t) list Lwt.t
-  val order : t Entry.t -> SetOrder.t
-  val instructions : t Entry.t -> string
-  val dances : t Entry.t -> Dance.t Entry.t list Lwt.t
-  val remark : t Entry.t -> string
+  val conceptors : t -> Person.t Entry.t list Lwt.t
+  val conceptors' : t Entry.t -> Person.t Entry.t list Lwt.t
+
+  val kind : t -> Kind.Dance.t
+  val kind' : t Entry.t -> Kind.Dance.t
+
+  val contents : t -> (Version.t Entry.t * VersionParameters.t) list Lwt.t
+  val contents' : t Entry.t -> (Version.t Entry.t * VersionParameters.t) list Lwt.t
+
+  val order : t -> SetOrder.t
+  val order' : t Entry.t -> SetOrder.t
+
+  val instructions : t -> string
+  val instructions' : t Entry.t -> string
+
+  val dances : t -> Dance.t Entry.t list Lwt.t
+  val dances' : t Entry.t -> Dance.t Entry.t list Lwt.t
+
+  val remark : t -> string
+  val remark' : t Entry.t -> string
 
   val contains_version : Version.t Slug.t -> t Entry.t -> bool
   (** REVIEW: This really takes a slug? *)
 
-  val find_context : int -> t Entry.t -> Version.t Entry.t List.context option Lwt.t
+  val find_context : int -> t -> Version.t Entry.t List.context option Lwt.t
+  val find_context' : int -> t Entry.t -> Version.t Entry.t List.context option Lwt.t
   (** Given an indice and a set, find the context around that indice in the
       set. *)
 
   val compare : t Entry.t -> t Entry.t -> int
   val equal : t Entry.t -> t Entry.t -> bool
 
-  val lilypond_content_cache_key : t Entry.t -> string Lwt.t
+  val lilypond_content_cache_key : t -> string Lwt.t
+  val lilypond_content_cache_key' : t Entry.t -> string Lwt.t
 
   (* {2 Warnings} *)
 
@@ -49,7 +63,8 @@ module type S = sig
 
   type warnings = warning list
 
-  val warnings : t Entry.t -> warnings Lwt.t
+  val warnings : t -> warnings Lwt.t
+  val warnings' : t Entry.t -> warnings Lwt.t
 
   (** {2 Filters} *)
 

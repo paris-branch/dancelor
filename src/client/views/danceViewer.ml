@@ -6,7 +6,7 @@ open Html
 
 let create ?context slug =
   let dance_lwt = MainPage.get_model_or_404 (Dance Get) slug in
-  let title = S.from' "" (Lwt.map Dance.name dance_lwt) in
+  let title = S.from' "" (Lwt.map Dance.name' dance_lwt) in
   Page.make
     ~parent_title: "Dance"
     ~title
@@ -20,18 +20,18 @@ let create ?context slug =
       L.h5
         ~a: [a_class ["text-center"]]
         (
-          let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind) dance_lwt] in
+          let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind') dance_lwt] in
           let%lwt by =
-            match%lwt dance_lwt >>=| Dance.devisers with
+            match%lwt dance_lwt >>=| Dance.devisers' with
             | [] -> Lwt.return_nil
-            | devisers -> Lwt.return (txt " by " :: Formatters.Person.names ~link: true devisers)
+            | devisers -> Lwt.return (txt " by " :: Formatters.Person.names' ~links: true devisers)
           in
           Lwt.return (kind @ by)
         );
       L.div
         (
           Fun.flip Lwt.map dance_lwt @@ fun dance ->
-          match Dance.two_chords dance with
+          match Dance.two_chords' dance with
           | Some false -> []
           | Some true -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords"]]
           | None -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords: unknown"]]
@@ -58,7 +58,7 @@ let create ?context slug =
                 ];
               L.li
                 (
-                  match%lwt Lwt.map Dance.scddb_id dance_lwt with
+                  match%lwt Lwt.map Dance.scddb_id' dance_lwt with
                   | None -> Lwt.return_nil
                   | Some scddb_id ->
                     Lwt.return
@@ -78,7 +78,7 @@ let create ?context slug =
         ];
       L.div
         (
-          match%lwt Lwt.map Dance.date dance_lwt with
+          match%lwt Lwt.map Dance.date' dance_lwt with
           | None -> Lwt.return_nil
           | Some date ->
             Lwt.return [txt "Devised "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]

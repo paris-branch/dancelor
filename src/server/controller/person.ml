@@ -26,7 +26,7 @@ include Search.Build(struct
   let filter_accepts = Model.Person.Filter.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Person.name) String.Sensible.compare]
+    Lwt_list.[increasing (Lwt.return % Model.Person.name') String.Sensible.compare]
 end)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> a = fun env endpoint ->

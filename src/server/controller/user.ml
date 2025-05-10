@@ -17,7 +17,7 @@ let sign_in env username password remember_me =
       Log.info (fun m -> m "Rejecting because of wrong username.");
       Lwt.return_none
     | Some user ->
-      match Model.User.password user with
+      match Model.User.password' user with
       | None ->
         Log.info (fun m -> m "Rejecting because user has no password.");
         Lwt.return_none
@@ -57,7 +57,7 @@ let reset_password username token password =
       Log.info (fun m -> m "Rejecting because of wrong username.");
       Madge_server.shortcut_forbidden_no_leak ()
     | Some user ->
-      match Model.User.password_reset_token user with
+      match Model.User.password_reset_token' user with
       | None ->
         Log.info (fun m -> m "Rejecting because of lack of token.");
         Madge_server.shortcut_forbidden_no_leak ()

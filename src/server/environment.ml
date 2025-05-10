@@ -87,7 +87,7 @@ let process_remember_me_cookie env remember_me_cookie =
         Log.info (fun m -> m "Rejecting because of wrong username.");
         Lwt.return_unit
       | Some user ->
-        let tokens = Model.User.remember_me_tokens user in
+        let tokens = Model.User.remember_me_tokens' user in
         match String.Map.find_opt key tokens with
         | None ->
           Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%s`." key);

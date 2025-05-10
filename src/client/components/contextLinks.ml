@@ -23,14 +23,14 @@ let get_neighbours any = function
     Lwt.return List.{total; previous; index; next; element = any}
   | Endpoints.Page.InSet (set, index) ->
     let%lwt set = Set.get set in
-    let%lwt context = Lwt.map Option.get @@ Set.find_context index set in
+    let%lwt context = Lwt.map Option.get @@ Set.find_context' index set in
     assert (any = Any.Version context.element);
     Lwt.return @@ List.map_context Any.version context
   | Endpoints.Page.InBook (book, index) ->
     let%lwt book = Book.get book in
     let%lwt context =
       Lwt.map (List.map_context book_page_to_any % Option.get) @@
-        Book.find_context_no_inline index book
+        Book.find_context_no_inline' index book
     in
     Lwt.return context
 
@@ -64,12 +64,12 @@ let make_context_link_banner ~context ~this_page =
                 | InSet (slug, _) ->
                   [
                     txt "In set: ";
-                    parent_a [L.txt (Lwt.map Set.name @@ Set.get slug)];
+                    parent_a [L.txt (Lwt.map Set.name' @@ Set.get slug)];
                   ]
                 | InBook (slug, _) ->
                   [
                     txt "In book: ";
-                    parent_a [L.txt (Lwt.map Book.title @@ Book.get slug)];
+                    parent_a [L.txt (Lwt.map Book.title' @@ Book.get slug)];
                   ]
               )
             );

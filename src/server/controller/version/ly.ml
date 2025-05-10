@@ -6,16 +6,16 @@ module Log = (val Logger.create "controller.version.ly": Logs.LOG)
 let get env version =
   let%lwt version = Model.Version.get version in
   Permission.assert_can_get env version;%lwt
-  let content = Model.Version.content version in
+  let content = Model.Version.content' version in
   Madge_server.respond_string ~content_type: "application/x-lilypond" content
 
 let prepare_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
-  let%lwt tune = Model.Version.tune version in
-  let key = Model.Version.key version in
-  let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name tune) parameters in
-  let%lwt composer = Lwt.map (String.concat ", " ~last: " and " % List.map Model.Person.name) (Model.Tune.composers tune) in
+  let%lwt tune = Model.Version.tune' version in
+  let key = Model.Version.key' version in
+  let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) parameters in
+  let%lwt composer = Lwt.map (String.concat ", " ~last: " and " % List.map Model.Person.name') (Model.Tune.composers' tune) in
   let composer = Model.VersionParameters.display_composer' ~default: composer parameters in
   let title, piece =
     if show_meta then
@@ -29,10 +29,10 @@ let prepare_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname
     else
       "", ""
   in
-  let kind = Model.Tune.kind tune in
+  let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   Log.debug (fun m -> m "Getting content");
-  let content = Model.Version.content version in
+  let content = Model.Version.content' version in
 
   (* Handle parameters *)
   let content =

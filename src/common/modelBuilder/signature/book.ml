@@ -40,33 +40,37 @@ module type S = sig
 
   (** {2 Field Getters} *)
 
-  val title : t Entry.t -> string
-  val subtitle : t Entry.t -> string
-  val short_title : t Entry.t -> string
-  val authors : t Entry.t -> Person.t Entry.t list Lwt.t
-  val date : t Entry.t -> PartialDate.t option
-  val contents : t Entry.t -> page list Lwt.t
-  val source : t Entry.t -> bool
-  val remark : t Entry.t -> string
-  val scddb_id : t Entry.t -> int option
+  val title : t -> string
+  val title' : t Entry.t -> string
+
+  val subtitle : t -> string
+  val subtitle' : t Entry.t -> string
+
+  val short_title : t -> string
+  val short_title' : t Entry.t -> string
+
+  val authors : t -> Person.t Entry.t list Lwt.t
+  val authors' : t Entry.t -> Person.t Entry.t list Lwt.t
+
+  val date : t -> PartialDate.t option
+  val date' : t Entry.t -> PartialDate.t option
+
+  val contents : t -> page list Lwt.t
+  val contents' : t Entry.t -> page list Lwt.t
+
+  val source : t -> bool
+  val source' : t Entry.t -> bool
+
+  val remark : t -> string
+  val remark' : t Entry.t -> string
+
+  val scddb_id : t -> int option
+  val scddb_id' : t Entry.t -> int option
 
   (** {2 Advanced Field Getters} *)
 
-  val is_source : t Entry.t -> bool
-
-  val versions_from_contents : t Entry.t -> Version.t Entry.t list Lwt.t
-  (** Extract only the versions from the book's contents. *)
-
-  val sets_from_contents : t Entry.t -> Set.t Entry.t list Lwt.t
-  (** Extract the sets (both normal and inline) from the book's contents. *)
-
-  val unique_sets_from_contents : t Entry.t -> Set.t Entry.t list Lwt.t
-  (** Same as {!sets_from_contents} but without duplicate sets. *)
-
-  val sets_and_parameters_from_contents : t Entry.t -> (Set.t Entry.t * SetParameters.t) list Lwt.t
-  (** Same as {!sets_from_contents} but also includes parameters. *)
-
-  val find_context_no_inline : int -> t Entry.t -> page List.context option Lwt.t
+  val find_context_no_inline : int -> t -> page List.context option Lwt.t
+  val find_context_no_inline' : int -> t Entry.t -> page List.context option Lwt.t
   (** Given an indice and a book, find the context around that indice in the book.
       Ignores the [InlineSet] pages, both in the given indice and the resulting
       context. *)
@@ -77,7 +81,8 @@ module type S = sig
   val compare : t Entry.t -> t Entry.t -> int
   val equal : t Entry.t -> t Entry.t -> bool
 
-  val lilypond_contents_cache_key : t Entry.t -> string Lwt.t
+  val lilypond_contents_cache_key : t -> string Lwt.t
+  val lilypond_contents_cache_key' : t Entry.t -> string Lwt.t
 
   (** {2 Warnings} *)
 

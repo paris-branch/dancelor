@@ -20,14 +20,29 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val name : t Entry.t -> string
-  val alternative_names : t Entry.t -> string list
-  val kind : t Entry.t -> Kind.Base.t
-  val composers : t Entry.t -> Person.t Entry.t list Lwt.t
-  val dances : t Entry.t -> Dance.t Entry.t list Lwt.t
-  val remark : t Entry.t -> string
-  val scddb_id : t Entry.t -> int option
-  val date : t Entry.t -> PartialDate.t option
+  val name : t -> string
+  val name' : t Entry.t -> string
+
+  val alternative_names : t -> string list
+  val alternative_names' : t Entry.t -> string list
+
+  val kind : t -> Kind.Base.t
+  val kind' : t Entry.t -> Kind.Base.t
+
+  val composers : t -> Person.t Entry.t list Lwt.t
+  val composers' : t Entry.t -> Person.t Entry.t list Lwt.t
+
+  val dances : t -> Dance.t Entry.t list Lwt.t
+  val dances' : t Entry.t -> Dance.t Entry.t list Lwt.t
+
+  val remark : t -> string
+  val remark' : t Entry.t -> string
+
+  val scddb_id : t -> int option
+  val scddb_id' : t Entry.t -> int option
+
+  val date : t -> PartialDate.t option
+  val date' : t Entry.t -> PartialDate.t option
 
   val equal : t -> t -> bool
 

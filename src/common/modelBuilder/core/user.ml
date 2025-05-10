@@ -24,10 +24,9 @@ let update ?display_name ?person ?password ?password_reset_token ?remember_me_to
     remember_me_tokens = Option.value remember_me_tokens ~default: Fun.id user.remember_me_tokens;
   }
 
-let display_name = display_name % Entry.value
-let person = person % Entry.value
-let password = password % Entry.value
-let password_reset_token = password_reset_token % Entry.value
-let remember_me_tokens = remember_me_tokens % Entry.value
+let display_name' = display_name % Entry.value
+let password' = password % Entry.value
+let password_reset_token' = password_reset_token % Entry.value
+let remember_me_tokens' = remember_me_tokens % Entry.value
 
 let admin user = Entry.slug_as_string user = "niols"

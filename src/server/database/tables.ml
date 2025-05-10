@@ -26,7 +26,7 @@ module User = Table.Make(struct
   let separate_fields = []
   let dependencies user =
     Lwt.return [
-      Table.make_slug_and_table (module Person) (person user)
+      Table.make_slug_and_table (module Person) (ModelBuilder.User.person user)
     ]
   let standalone = true
 end)
@@ -39,7 +39,7 @@ module Dance = Table.Make(struct
   let dependencies dance =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Person)) (devisers dance)
+        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Dance.devisers dance)
       )
 
   let standalone = true
@@ -53,8 +53,8 @@ module Tune = Table.Make(struct
   let dependencies tune =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Dance)) (dances tune) @
-          List.map (Table.make_slug_and_table (module Person)) (composers tune)
+        List.map (Table.make_slug_and_table (module Dance)) (ModelBuilder.Tune.dances tune) @
+          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Tune.composers tune)
       )
 
   let standalone = false
@@ -68,9 +68,9 @@ module Version = Table.Make(struct
   let dependencies version =
     Lwt.return
       (
-        [Table.make_slug_and_table (module Tune) (tune version)] @
-        List.map (Table.make_slug_and_table (module Source)) (sources version) @
-        List.map (Table.make_slug_and_table (module Person)) (arrangers version)
+        [Table.make_slug_and_table (module Tune) (ModelBuilder.Version.tune version)] @
+        List.map (Table.make_slug_and_table (module Source)) (ModelBuilder.Version.sources version) @
+        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Version.arrangers version)
       )
 
   let standalone = true
@@ -84,8 +84,8 @@ module SetModel = struct
   let dependencies set =
     Lwt.return
       (
-        List.map (Table.make_slug_and_table (module Version) % fst) (contents set) @
-          List.map (Table.make_slug_and_table (module Person)) (conceptors set)
+        List.map (Table.make_slug_and_table (module Version) % fst) (ModelBuilder.Set.contents set) @
+          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Set.conceptors set)
       )
 
   let standalone = true
@@ -119,7 +119,7 @@ module Book = Table.Make(struct
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
           | ModelBuilder.Book.Page.InlineSet (set, parameters) ->
-            let%lwt set_dependencies = SetModel.dependencies @@ Entry.make_dummy set in
+            let%lwt set_dependencies = SetModel.dependencies set in
             Lwt.return
               (
                 set_dependencies @
@@ -128,7 +128,7 @@ module Book = Table.Make(struct
                   | Some dance -> [Table.make_slug_and_table (module Dance) dance]
               )
         )
-        (contents book)
+        (ModelBuilder.Book.contents book)
     in
     Lwt.return (List.flatten dependencies)
 

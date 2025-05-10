@@ -21,6 +21,7 @@ module Build
     make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
 
   let devisers = Lwt_list.map_p Person.get % devisers
+  let devisers' = devisers % Entry.value
 
   let equal dance1 dance2 = Slug.equal' (Entry.slug dance1) (Entry.slug dance2)
 
@@ -33,13 +34,13 @@ module Build
         | Is dance' ->
           Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug dance) dance'
         | Name string ->
-          Lwt.return @@ String.proximity ~char_equal string @@ Core.Dance.name dance
+          Lwt.return @@ String.proximity ~char_equal string @@ Core.Dance.name' dance
         | NameMatches string ->
-          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Dance.name dance
+          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Dance.name' dance
         | Kind kfilter ->
-          Kind.Dance.Filter.accepts kfilter @@ Core.Dance.kind dance
+          Kind.Dance.Filter.accepts kfilter @@ Core.Dance.kind' dance
         | ExistsDeviser pfilter ->
-          let%lwt devisers = devisers dance in
+          let%lwt devisers = devisers' dance in
           let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) devisers in
           Lwt.return (Formula.interpret_or_l scores)
   end

@@ -13,10 +13,9 @@ type t = {
 }
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
-let name = name % Entry.value
-let kind = kind % Entry.value
-let devisers = devisers % Entry.value
-let two_chords = two_chords % Entry.value
-let scddb_id = scddb_id % Entry.value
-let disambiguation = disambiguation % Entry.value
-let date = date % Entry.value
+let name' = name % Entry.value
+let kind' = kind % Entry.value
+let two_chords' = two_chords % Entry.value
+let scddb_id' = scddb_id % Entry.value
+let disambiguation' = disambiguation % Entry.value
+let date' = date % Entry.value

@@ -23,9 +23,11 @@ module Build
     let dances = Option.map (List.map Entry.slug) dances in
     make ~name ?conceptors ~kind ?contents ~order ?dances ()
 
-  let is_slug_none : t Entry.t -> bool = Slug.is_none % Entry.slug
   let conceptors = Lwt_list.map_p Person.get % conceptors
+  let conceptors' = conceptors % Entry.value
+
   let dances = Lwt_list.map_p Dance.get % dances
+  let dances' = dances % Entry.value
 
   let contents =
     Lwt_list.map_s
@@ -34,6 +36,7 @@ module Build
         Lwt.return (version, parameters)
       ) %
       contents
+  let contents' = contents % Entry.value
 
   let compare : t Entry.t -> t Entry.t -> int =
     Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug'
@@ -51,10 +54,14 @@ module Build
     let%lwt versions = Lwt.map (List.map fst) @@ contents set in
     Lwt.return @@ List.findi_context (fun i _ -> i = index) versions
 
+  let find_context' index = find_context index % Entry.value
+
   let lilypond_content_cache_key set =
     let%lwt contents = contents set in
-    let contents = List.map (Version.content % fst) contents in
+    let contents = List.map (Version.content' % fst) contents in
     Lwt.return (String.concat "\n" contents)
+
+  let lilypond_content_cache_key' = lilypond_content_cache_key % Entry.value
 
   let warnings s =
     let warnings = ref [] in
@@ -78,17 +85,17 @@ module Build
     let%lwt () =
       Lwt_list.iter_s
         (fun version ->
-          if Version.bars version <> bars then
+          if Version.bars' version <> bars then
             add_warning (WrongVersionBars version);
-          let%lwt tune = Version.tune version in
-          if Tune.kind tune <> kind then
+          let%lwt tune = Version.tune' version in
+          if Tune.kind' tune <> kind then
             add_warning (WrongVersionKind tune);
           Lwt.return ()
         )
         versions
     in
     (* Check that there are no duplicates. *)
-    let%lwt tunes = Lwt_list.map_s Version.tune versions in
+    let%lwt tunes = Lwt_list.map_s Version.tune' versions in
     let tunes = List.sort Tune.compare tunes in
     (
       match tunes with
@@ -108,6 +115,8 @@ module Build
     );
     Lwt.return !warnings
 
+  let warnings' = warnings % Entry.value
+
   module Filter = struct
     include Filter.Set
 
@@ -117,21 +126,21 @@ module Build
         | Is set' ->
           Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug set) set'
         | Name string ->
-          Lwt.return @@ String.proximity ~char_equal string @@ Core.Set.name set
+          Lwt.return @@ String.proximity ~char_equal string @@ Core.Set.name' set
         | NameMatches string ->
-          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Set.name set
+          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Set.name' set
         | ExistsConceptor pfilter ->
-          let%lwt conceptors = conceptors set in
+          let%lwt conceptors = conceptors' set in
           let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) conceptors in
           Lwt.return (Formula.interpret_or_l scores)
         | ExistsVersion vfilter ->
-          let%lwt contents = contents set in
+          let%lwt contents = contents' set in
           Formula.interpret_exists
             (fun (version, _) ->
               Version.Filter.accepts vfilter version
             )
             contents
         | Kind kfilter ->
-          Kind.Dance.Filter.accepts kfilter @@ Core.Set.kind set
+          Kind.Dance.Filter.accepts kfilter @@ Core.Set.kind' set
   end
 end

@@ -29,11 +29,11 @@ include Search.Build(struct
   let filter_accepts = Model.Book.Filter.accepts
 
   let tiebreakers =
-    Lwt_list.[decreasing (Lwt.return % Model.Book.date) (Option.compare PartialDate.compare);
-    increasing (Lwt.return % Model.Book.title) String.Sensible.compare;
-    increasing (Lwt.return % Model.Book.title) String.compare_lengths;
-    increasing (Lwt.return % Model.Book.subtitle) String.Sensible.compare;
-    increasing (Lwt.return % Model.Book.subtitle) String.compare_lengths;
+    Lwt_list.[decreasing (Lwt.return % Model.Book.date') (Option.compare PartialDate.compare);
+    increasing (Lwt.return % Model.Book.title') String.Sensible.compare;
+    increasing (Lwt.return % Model.Book.title') String.compare_lengths;
+    increasing (Lwt.return % Model.Book.subtitle') String.Sensible.compare;
+    increasing (Lwt.return % Model.Book.subtitle') String.compare_lengths;
     ]
 end)
 

@@ -16,10 +16,13 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val name : t Entry.t -> string
-  val scddb_id : t Entry.t -> int option
+  val name : t -> string
+  val name' : t Entry.t -> string
 
-  val is_trad : t Entry.t -> bool
+  val scddb_id : t -> int option
+  val scddb_id' : t Entry.t -> int option
+
+  val is_trad' : t Entry.t -> bool
 
   val equal : t -> t -> bool
 

@@ -26,11 +26,20 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val display_name : t Entry.t -> string
-  val person : t Entry.t -> Person.t Entry.t Lwt.t
-  val password : t Entry.t -> HashedSecret.t option
-  val password_reset_token : t Entry.t -> (HashedSecret.t * Datetime.t) option
-  val remember_me_tokens : t Entry.t -> (HashedSecret.t * Datetime.t) String.Map.t
+  val display_name : t -> string
+  val display_name' : t Entry.t -> string
+
+  val person : t -> Person.t Entry.t Lwt.t
+  val person' : t Entry.t -> Person.t Entry.t Lwt.t
+
+  val password : t -> HashedSecret.t option
+  val password' : t Entry.t -> HashedSecret.t option
+
+  val password_reset_token : t -> (HashedSecret.t * Datetime.t) option
+  val password_reset_token' : t Entry.t -> (HashedSecret.t * Datetime.t) option
+
+  val remember_me_tokens : t -> (HashedSecret.t * Datetime.t) String.Map.t
+  val remember_me_tokens' : t Entry.t -> (HashedSecret.t * Datetime.t) String.Map.t
 
   val admin : t Entry.t -> bool
 end

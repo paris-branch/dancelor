@@ -65,7 +65,7 @@ module type Model = sig
 
   val slug_hint : t -> string Lwt.t
 
-  val dependencies : t Entry.t -> slug_and_table list Lwt.t
+  val dependencies : t -> slug_and_table list Lwt.t
 
   val standalone : bool
   (** Whether entries of this table make sense on their own. *)
@@ -170,7 +170,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
           let slug = Entry.slug model in
           let status = Entry.(status % meta) model in
           let privacy = Entry.(privacy % meta) model in
-          let%lwt deps = Model.dependencies model in
+          let%lwt deps = Model.dependencies @@ Entry.value model in
           let%lwt new_problems =
             deps
             |> Lwt_list.map_s (list_dependency_problems_for slug status privacy)

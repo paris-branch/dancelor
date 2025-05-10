@@ -10,7 +10,7 @@ let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
     ?action
     (
       prefix @
-      [ResultRow.cell ~a: [a_colspan 3] (Formatters.Source.name ~link: false source);
+      [ResultRow.cell ~a: [a_colspan 3] [Formatters.Source.name' ~link: false source];
       ] @
       suffix
     )
@@ -35,7 +35,7 @@ let make_person_result' ?classes ?action ?(prefix = []) ?(suffix = []) person =
     ?action
     (
       prefix @
-      [ResultRow.cell ~a: [a_colspan 3] (Formatters.Person.name ~link: false person);
+      [ResultRow.cell ~a: [a_colspan 3] [Formatters.Person.name' ~link: false person];
       ] @
       suffix
     )
@@ -60,9 +60,9 @@ let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt (Dance.name dance)];
-      ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind dance)];
-      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Dance.devisers dance));
+      [ResultRow.cell [txt (Dance.name' dance)];
+      ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
+      ResultRow.lcell (Lwt.map (Formatters.Person.names' ~short: true) (Dance.devisers' dance));
       ] @
       suffix
     )
@@ -87,8 +87,8 @@ let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
     ?action
     (
       prefix @
-      [ResultRow.cell (Formatters.Book.title_and_subtitle book);
-      ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date book))];
+      [ResultRow.cell (Formatters.Book.title_and_subtitle' book);
+      ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
       ] @
       suffix
     )
@@ -113,9 +113,9 @@ let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Set.name set];
-      ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind set];
-      ResultRow.lcell (Lwt.map (Formatters.Person.names ~short: true) (Set.conceptors set));
+      [ResultRow.cell [txt @@ Set.name' set];
+      ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+      ResultRow.lcell (Lwt.map (Formatters.Person.names' ~short: true) (Set.conceptors' set));
       ] @
       suffix
     )
@@ -140,9 +140,9 @@ let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Tune.name tune];
-      ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind tune];
-      ResultRow.lcell (Formatters.Tune.composers tune);
+      [ResultRow.cell [txt @@ Tune.name' tune];
+      ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
+      ResultRow.lcell (Formatters.Tune.composers' tune);
       ] @
       suffix
     )
@@ -167,19 +167,19 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
     ?action
     (
       prefix @
-      [ResultRow.lcell (Formatters.Version.name_and_disambiguation ~link: false version);
+      [ResultRow.lcell (Formatters.Version.name_and_disambiguation' ~name_link: false version);
       ResultRow.cell
         ~a: [a_class ["text-nowrap"]]
         [
           L.txt
             (
-              let bars = Version.bars version in
-              let%lwt kind = Lwt.map Tune.kind @@ Version.tune version in
-              let structure = Version.structure version in
+              let bars = Version.bars' version in
+              let%lwt kind = Lwt.map Tune.kind' @@ Version.tune' version in
+              let structure = Version.structure' version in
               Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
             )
         ];
-      ResultRow.lcell (Formatters.Version.composer_and_arranger ~short: true version);
+      ResultRow.lcell (Formatters.Version.composer_and_arranger' ~short: true version);
       ] @
       suffix
     )

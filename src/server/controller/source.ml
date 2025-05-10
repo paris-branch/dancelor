@@ -26,7 +26,7 @@ include Search.Build(struct
   let filter_accepts = Model.Source.Filter.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Source.name) String.Sensible.compare]
+    Lwt_list.[increasing (Lwt.return % Model.Source.name') String.Sensible.compare]
 end)
 
 let get_cover env slug =

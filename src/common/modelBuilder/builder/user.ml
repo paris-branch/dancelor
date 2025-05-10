@@ -18,4 +18,5 @@ module Build
       user
 
   let person = Person.get % person
+  let person' = person % Entry.value
 end

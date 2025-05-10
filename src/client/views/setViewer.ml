@@ -6,7 +6,7 @@ open Html
 
 let create ?context slug =
   let set_lwt = MainPage.get_model_or_404 (Set Get) slug in
-  let title = S.from' "" (Lwt.map Set.name set_lwt) in
+  let title = S.from' "" (Lwt.map Set.name' set_lwt) in
   Page.make
     ~parent_title: "Set"
     ~title
@@ -17,20 +17,20 @@ let create ?context slug =
         (Lwt.map Any.set set_lwt);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (set_lwt >>=| Formatters.Set.works);
+      L.h5 ~a: [a_class ["text-center"]] (set_lwt >>=| Formatters.Set.works');
       h5
         ~a: [a_class ["text-center"]]
         [
-          L.txt (Lwt.map (Kind.Dance.to_pretty_string % Set.kind) set_lwt);
+          L.txt (Lwt.map (Kind.Dance.to_pretty_string % Set.kind') set_lwt);
           txt " — Play ";
-          L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order) set_lwt);
+          L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order') set_lwt);
         ];
       L.h5
         ~a: [a_class ["text-center"]]
         (
-          match%lwt set_lwt >>=| Set.conceptors with
+          match%lwt set_lwt >>=| Set.conceptors' with
           | [] -> Lwt.return_nil
-          | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names ~link: true devisers)
+          | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names' ~links: true devisers)
         );
       div
         ~a: [a_class ["text-end"; "dropdown"]]
@@ -71,7 +71,7 @@ let create ?context slug =
         [
           L.txt
             (
-              match%lwt Lwt.map Set.instructions set_lwt with
+              match%lwt Lwt.map Set.instructions' set_lwt with
               | "" -> Lwt.return ""
               | instructions -> Lwt.return ("Instructions: " ^ instructions)
             )
@@ -79,18 +79,18 @@ let create ?context slug =
       L.div
         (
           let%lwt set = set_lwt in
-          let%lwt contents = Set.contents set in
+          let%lwt contents = Set.contents' set in
           Lwt_list.mapi_p
             (fun index (version, _parameters) ->
               let context = Endpoints.Page.inSet slug index in
               (* FIXME: use parameters *)
-              let%lwt tune = Version.tune version in
+              let%lwt tune = Version.tune' version in
               let slug = Entry.slug version in
               Lwt.return @@
                 div
                   ~a: [a_class ["text-center"; "mt-4"]]
                   [
-                    h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name tune]];
+                    h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name' tune]];
                     Components.VersionSvg.make slug;
                   ]
             )

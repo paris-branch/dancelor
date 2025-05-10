@@ -21,6 +21,6 @@ let make
     ~description
     ()
 
-let name = name % Entry.value
-let scddb_id = scddb_id % Entry.value
-let description = description % Entry.value
+let name' = name % Entry.value
+let scddb_id' = scddb_id % Entry.value
+let description' = description % Entry.value

@@ -26,8 +26,8 @@ include Search.Build(struct
   let filter_accepts = Model.Tune.Filter.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Tune.name) String.Sensible.compare;
-    increasing (Lwt.return % Model.Tune.name) String.compare_lengths;
+    Lwt_list.[increasing (Lwt.return % Model.Tune.name') String.Sensible.compare;
+    increasing (Lwt.return % Model.Tune.name') String.compare_lengths;
     ]
 end)
 

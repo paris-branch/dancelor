@@ -18,9 +18,9 @@ let accepts filter source =
     | Is source' ->
       Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug source) source'
     | Name string ->
-      Lwt.return @@ String.proximity ~char_equal string @@ Core.Source.name source
+      Lwt.return @@ String.proximity ~char_equal string @@ Core.Source.name' source
     | NameMatches string ->
-      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Source.name source
+      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Source.name' source
 
 let text_formula_converter =
   TextFormulaConverter.(

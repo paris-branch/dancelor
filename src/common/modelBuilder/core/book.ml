@@ -47,15 +47,13 @@ let make
     ~scddb_id
     ()
 
-let title = title % Entry.value
-let subtitle = subtitle % Entry.value
-let short_title = short_title % Entry.value
-let authors = authors % Entry.value
-let date = date % Entry.value
-let contents = contents % Entry.value
-let source = source % Entry.value
-let remark = remark % Entry.value
-let scddb_id = scddb_id % Entry.value
+let title' = title % Entry.value
+let subtitle' = subtitle % Entry.value
+let short_title' = short_title % Entry.value
+let date' = date % Entry.value
+let source' = source % Entry.value
+let remark' = remark % Entry.value
+let scddb_id' = scddb_id % Entry.value
 
 let contains_set set1 book =
   List.exists

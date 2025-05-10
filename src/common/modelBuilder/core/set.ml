@@ -14,14 +14,11 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
-let name = name % Entry.value
-let conceptors = conceptors % Entry.value
-let kind = kind % Entry.value
-let contents = contents % Entry.value
-let order = order % Entry.value
-let instructions = instructions % Entry.value
-let dances = dances % Entry.value
-let remark = remark % Entry.value
+let name' = name % Entry.value
+let kind' = kind % Entry.value
+let order' = order % Entry.value
+let instructions' = instructions % Entry.value
+let remark' = remark % Entry.value
 
 type warning =
   | Empty
