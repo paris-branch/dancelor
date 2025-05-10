@@ -24,17 +24,19 @@ let of_char c =
   | 'R' -> Reel
   | 'S' -> Strathspey
   | 'W' -> Waltz
-  | _ -> invalid_arg "Dancelor_common.Model.Kind.base_of_char"
+  | _ -> invalid_arg "Common.Kind.Base.of_char"
 
 let to_string b =
   String.make 1 (to_char b)
 
 let of_string s =
-  try
-    of_char s.[0]
-  with
-    | Invalid_argument _ | Failure _ ->
-      invalid_arg "Dancelor_common.Model.Kind.base_of_string"
+  match String.lowercase_ascii s with
+  | "j" | "jig" -> Jig
+  | "p" | "polka" -> Polka
+  | "r" | "reel" -> Reel
+  | "s" | "strathspey" -> Strathspey
+  | "w" | "waltz" -> Waltz
+  | _ -> invalid_arg "Common.Kind.Base.of_string"
 
 let of_string_opt s =
   try
@@ -51,9 +53,9 @@ let of_yojson = function
       try
         Ok (of_string s)
       with
-        | _ -> Error "Dancelor_common.Model.Kind.base_of_yojson: not a valid base kind"
+        | _ -> Error "Common.Kind.Base.of_yojson: not a valid base kind"
     )
-  | _ -> Error "Dancelor_common.Model.Kind.base_of_yojson: not a JSON string"
+  | _ -> Error "Common.Kind.Base.of_yojson: not a JSON string"
 
 let to_pretty_string ?(capitalised = false) base =
   (
