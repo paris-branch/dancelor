@@ -32,7 +32,7 @@ let%test _ = to_string (48, Strathspey) = "48 S"
 let%test _ = of_string "W 32" = (32, Waltz)
 let%test _ = of_string "64 Reel" = (64, Reel)
 let%test _ = of_string "JIG 24" = (24, Jig)
-let%test _ = of_string "48 sTrathPEY" = (48, Strathspey)
+let%test _ = of_string "48 sTrathsPEY" = (48, Strathspey)
 
 let%test _ =
   try
