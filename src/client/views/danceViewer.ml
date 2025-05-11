@@ -94,7 +94,7 @@ let create ?context slug =
                 Madge_client.call_exn
                   Endpoints.Api.(route @@ Tune Search)
                   Slice.everything @@
-                Tune.Filter.existsDance' @@ Dance.Filter.is' dance
+                Filter.Tune.existsDance' @@ Filter.Dance.is' dance
               in
               Lwt.return
                 [

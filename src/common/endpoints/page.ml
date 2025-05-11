@@ -99,15 +99,7 @@ let href_any ?context any =
   | Book book -> href_book ?context (Entry.slug book)
   | Tune tune -> href_tune ?context (Entry.slug tune)
 
-module MakeDescribe
-  (Book : ModelBuilder.Signature.Book.S)
-  (Dance : ModelBuilder.Signature.Dance.S)
-  (Person : ModelBuilder.Signature.Person.S)
-  (Set : ModelBuilder.Signature.Set.S)
-  (Source : ModelBuilder.Signature.Source.S)
-  (Tune : ModelBuilder.Signature.Tune.S)
-  (Version : ModelBuilder.Signature.Version.S)
-= struct
+module MakeDescribe (Model : ModelBuilder.S) = struct
   let describe = fun uri ->
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Index -> Lwt.return_none
@@ -124,37 +116,37 @@ module MakeDescribe
       | UserPasswordReset -> Fun.const2 Lwt.return_none
       | Version ->
         (fun _ slug ->
-          let%lwt name = Lwt.bind (Version.get slug) Version.name' in
+          let%lwt name = Lwt.bind (Model.Version.get slug) Model.Version.name' in
           Lwt.return @@ Some ("version", name)
         )
       | Tune ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Tune.name' (Tune.get slug) in
+          let%lwt name = Lwt.map Model.Tune.name' (Model.Tune.get slug) in
           Lwt.return @@ Some ("tune", name)
         )
       | Set ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Set.name' (Set.get slug) in
+          let%lwt name = Lwt.map Model.Set.name' (Model.Set.get slug) in
           Lwt.return @@ Some ("set", name)
         )
       | Book ->
         (fun _ slug ->
-          let%lwt title = Lwt.map Book.title' (Book.get slug) in
+          let%lwt title = Lwt.map Model.Book.title' (Model.Book.get slug) in
           Lwt.return @@ Some ("book", title)
         )
       | Dance ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Dance.name' (Dance.get slug) in
+          let%lwt name = Lwt.map Model.Dance.name' (Model.Dance.get slug) in
           Lwt.return @@ Some ("dance", name)
         )
       | Person ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Person.name' (Person.get slug) in
+          let%lwt name = Lwt.map Model.Person.name' (Model.Person.get slug) in
           Lwt.return @@ Some ("person", name)
         )
       | Source ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Source.name' (Source.get slug) in
+          let%lwt name = Lwt.map Model.Source.name' (Model.Source.get slug) in
           Lwt.return @@ Some ("source", name)
         )
     in

@@ -18,14 +18,14 @@ let update env slug dance =
 
 include Search.Build(struct
   type value = Model.Dance.t Entry.t
-  type filter = Model.Dance.Filter.t
+  type filter = Filter.Dance.t
 
   let get_all env =
     Lwt.map
       (List.filter (Permission.can_get env))
       (Database.Dance.get_all ())
 
-  let filter_accepts = Model.Dance.Filter.accepts
+  let filter_accepts = Filter.Dance.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (Lwt.return % Model.Dance.name') String.Sensible.compare]
@@ -39,9 +39,9 @@ module Pdf = struct
       (* All the versions of all the tunes attached to this dance *)
       Lwt.map snd @@
       Version.search env Slice.everything @@
-      Model.Version.Filter.tune' @@
-      Model.Tune.Filter.existsDance' @@
-      Model.Dance.Filter.is' dance
+      Filter.Version.tune' @@
+      Filter.Tune.existsDance' @@
+      Filter.Dance.is' dance
     in
     let set =
       Model.Set.make

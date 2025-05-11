@@ -65,7 +65,7 @@ let quick_explorer_links links =
                       L.a_href
                         (
                           Lwt.map
-                            (Endpoints.Page.(href Explore) % Option.some % Model.Any.Filter.to_string)
+                            (Endpoints.Page.(href Explore) % Option.some % Filter.Any.to_string)
                             filter_lwt
                         );
                     ]

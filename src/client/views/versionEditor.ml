@@ -92,7 +92,7 @@ module Editor = struct
       Selector.make
         ~arity: Selector.one
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Model.Tune.Filter.from_string input) in
+          let%rlwt filter = Lwt.return (Filter.Tune.from_string input) in
           Lwt.map Result.ok @@
             Madge_client.call_exn
               Endpoints.Api.(route @@ Tune Search)
@@ -116,7 +116,7 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+          let%rlwt filter = Lwt.return (Filter.Person.from_string input) in
           Lwt.map Result.ok @@
             Madge_client.call_exn
               Endpoints.Api.(route @@ Person Search)
@@ -132,7 +132,7 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Model.Source.Filter.from_string input) in
+          let%rlwt filter = Lwt.return (Filter.Source.from_string input) in
           Lwt.map Result.ok @@
             Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )

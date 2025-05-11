@@ -4,7 +4,7 @@ open Common
 open Html
 open Components
 
-include Endpoints.Page.MakeDescribe(Model.Book)(Model.Dance)(Model.Person)(Model.Set)(Model.Source)(Model.Tune)(Model.Version)
+include Endpoints.Page.MakeDescribe(Model)
 
 let open_dialog page =
   let reporter_input =

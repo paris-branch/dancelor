@@ -1,38 +1,27 @@
 open Nes
 
-module Build
-  (Dance : Signature.Dance.S)
-  (Person : Signature.Person.S)
-  (Tune : Signature.Tune.S)
-  (Version : Signature.Version.S)
-= struct
+module Build (Getters : Getters.S) = struct
   include Core.Set
 
-  let make
-      ~name
-      ?conceptors
-      ~kind
-      ?contents
-      ~order
-      ?dances
-      ()
-    =
+  let get = Getters.get_set
+
+  let make ~name ?conceptors ~kind ?contents ~order ?dances () =
     let name = String.remove_duplicates ~char: ' ' name in
     let conceptors = Option.map (List.map Entry.slug) conceptors in
     let contents = Option.map (List.map (fun (version, parameters) -> (Entry.slug version, parameters))) contents in
     let dances = Option.map (List.map Entry.slug) dances in
     make ~name ?conceptors ~kind ?contents ~order ?dances ()
 
-  let conceptors = Lwt_list.map_p Person.get % conceptors
+  let conceptors = Lwt_list.map_p Getters.get_person % conceptors
   let conceptors' = conceptors % Entry.value
 
-  let dances = Lwt_list.map_p Dance.get % dances
+  let dances = Lwt_list.map_p Getters.get_dance % dances
   let dances' = dances % Entry.value
 
   let contents =
     Lwt_list.map_s
       (fun (slug, parameters) ->
-        let%lwt version = Version.get slug in
+        let%lwt version = Getters.get_version slug in
         Lwt.return (version, parameters)
       ) %
       contents
@@ -58,7 +47,7 @@ module Build
 
   let lilypond_content_cache_key set =
     let%lwt contents = contents set in
-    let contents = List.map (Version.content' % fst) contents in
+    let contents = List.map (Core.Version.content' % fst) contents in
     Lwt.return (String.concat "\n" contents)
 
   let lilypond_content_cache_key' = lilypond_content_cache_key % Entry.value
@@ -85,18 +74,18 @@ module Build
     let%lwt () =
       Lwt_list.iter_s
         (fun version ->
-          if Version.bars' version <> bars then
+          if Core.Version.bars' version <> bars then
             add_warning (WrongVersionBars version);
-          let%lwt tune = Version.tune' version in
-          if Tune.kind' tune <> kind then
+          let%lwt tune = Getters.get_tune @@ Core.Version.tune' version in
+          if Core.Tune.kind' tune <> kind then
             add_warning (WrongVersionKind tune);
           Lwt.return ()
         )
         versions
     in
     (* Check that there are no duplicates. *)
-    let%lwt tunes = Lwt_list.map_s Version.tune' versions in
-    let tunes = List.sort Tune.compare tunes in
+    let%lwt tunes = Lwt_list.map_s (Getters.get_tune % Core.Version.tune') versions in
+    let tunes = List.sort Core.Tune.compare tunes in
     (
       match tunes with
       | [] -> add_warning Empty
@@ -116,31 +105,4 @@ module Build
     Lwt.return !warnings
 
   let warnings' = warnings % Entry.value
-
-  module Filter = struct
-    include Filter.Set
-
-    let accepts filter set =
-      let char_equal = Char.Sensible.equal in
-      Formula.interpret filter @@ function
-        | Is set' ->
-          Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug set) set'
-        | Name string ->
-          Lwt.return @@ String.proximity ~char_equal string @@ Core.Set.name' set
-        | NameMatches string ->
-          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Set.name' set
-        | ExistsConceptor pfilter ->
-          let%lwt conceptors = conceptors' set in
-          let%lwt scores = Lwt_list.map_s (Person.Filter.accepts pfilter) conceptors in
-          Lwt.return (Formula.interpret_or_l scores)
-        | ExistsVersion vfilter ->
-          let%lwt contents = contents' set in
-          Formula.interpret_exists
-            (fun (version, _) ->
-              Version.Filter.accepts vfilter version
-            )
-            contents
-        | Kind kfilter ->
-          Kind.Dance.Filter.accepts kfilter @@ Core.Set.kind' set
-  end
 end

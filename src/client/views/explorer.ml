@@ -16,7 +16,7 @@ let create ?query () =
   let search =
     Search.make
       ~search: (fun slice input ->
-        let%rlwt filter = Lwt.return (Model.Any.Filter.from_string input) in
+        let%rlwt filter = Lwt.return (Filter.Any.from_string input) in
         Lwt.map Result.ok @@
           Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
       )

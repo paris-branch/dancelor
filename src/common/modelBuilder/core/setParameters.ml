@@ -27,23 +27,8 @@ end
 include Self
 
 (* FIXME: see remark in VersionParameters *)
-let make
-    ?forced_pages
-    ?show_deviser
-    ?show_order
-    ?display_name
-    ?for_dance
-    ?every_version
-    ()
-  =
-  make
-    ~forced_pages
-    ~show_deviser
-    ~show_order
-    ~display_name
-    ~for_dance
-    ?every_version
-    ()
+let make ?forced_pages ?show_deviser ?show_order ?display_name ?for_dance ?every_version () =
+  make ~forced_pages ~show_deviser ~show_order ~display_name ~for_dance ?every_version ()
 
 (** {2 Getters} *)
 

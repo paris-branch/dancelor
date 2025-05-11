@@ -84,6 +84,14 @@ val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
 val equal' : 'a t -> 'a t -> bool
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
+val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
+(** Comparison for ppx_deriving_yojson. The first argument is ignored. Use {!compare'}.
+
+    @raise UsedGetterOnDummy if the entry is a dummy. *)
+
+val compare' : 'a t -> 'a t -> int
+(** @raise UsedGetterOnDummy if the entry is a dummy. *)
+
 (** {2 Serialisation} *)
 
 val to_yojson : ('a -> Yojson.Safe.t) -> 'a t -> Yojson.Safe.t

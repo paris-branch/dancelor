@@ -56,8 +56,8 @@ let create ?context slug =
       Utils.quick_explorer_links'
         tune_lwt
         [
-          ("sets containing this tune", Any.Filter.set' % Set.Filter.existsVersion' % Version.Filter.tuneIs');
-          ("books containing this tune", Any.Filter.book' % Book.Filter.memTuneDeep');
+          ("sets containing this tune", Filter.(Any.set' % Set.existsVersion' % Version.tuneIs'));
+          ("books containing this tune", Filter.(Any.book' % Book.memTuneDeep'));
         ];
       div
         ~a: [a_class ["section"]]
@@ -69,7 +69,7 @@ let create ?context slug =
               let%lwt versions =
                 Lwt.map snd @@
                 Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-                Version.Filter.tuneIs' tune
+                Filter.Version.tuneIs' tune
               in
               Lwt.return @@
                 if versions = [] then

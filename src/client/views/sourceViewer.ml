@@ -80,7 +80,7 @@ let create ?context slug =
             ];
           Utils.quick_explorer_links
             [
-              ("versions from this source", Lwt.map (Any.Filter.version' % Version.Filter.memSource') source_lwt);
+              ("versions from this source", Lwt.map Filter.(Any.version' % Version.memSource') source_lwt);
             ];
         ];
     ]

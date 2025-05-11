@@ -80,9 +80,7 @@ let name_disambiguation_and_sources' ?name_link version =
         Madge_client.call_exn
           Endpoints.Api.(route @@ Book Search)
           Slice.everything
-          Model.Book.Filter.(
-            Formula.and_ (memVersionDeep' version) isSource'
-          )
+          Filter.Book.(Formula.and_ (memVersionDeep' version) isSource')
     in
     Lwt.return @@
       match List.map Book.short_title' sources with
@@ -109,9 +107,7 @@ let disambiguation_and_sources' version =
         Madge_client.call_exn
           Endpoints.Api.(route @@ Book Search)
           Slice.everything
-          Model.Book.Filter.(
-            Formula.and_ (memVersionDeep' version) isSource'
-          )
+          Filter.Book.(Formula.and_ (memVersionDeep' version) isSource')
     in
     Lwt.return @@
       match List.map Book.short_title' sources with

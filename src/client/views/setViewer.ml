@@ -99,6 +99,6 @@ let create ?context slug =
       Utils.quick_explorer_links'
         set_lwt
         [
-          ("books containing this set", Any.Filter.book' % Book.Filter.memSet');
+          ("books containing this set", Filter.(Any.book' % Book.memSet'));
         ];
     ]

@@ -19,14 +19,14 @@ let update env slug book =
 
 include Search.Build(struct
   type value = Model.Book.t Entry.t
-  type filter = Model.Book.Filter.t
+  type filter = Filter.Book.t
 
   let get_all env =
     Lwt.map
       (List.filter (Permission.can_get env))
       (Database.Book.get_all ())
 
-  let filter_accepts = Model.Book.Filter.accepts
+  let filter_accepts = Filter.Book.accepts
 
   let tiebreakers =
     Lwt_list.[decreasing (Lwt.return % Model.Book.date') (Option.compare PartialDate.compare);

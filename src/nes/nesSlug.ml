@@ -60,10 +60,12 @@ let equal' slug1 slug2 =
 
 let equal _ slug1 slug2 = equal' slug1 slug2
 
-let compare slug1 slug2 =
+let compare' slug1 slug2 =
   match slug1, slug2 with
   | Some slug1, Some slug2 -> String.compare slug1 slug2
   | _ -> failwith "NesSlug.compare: cannot be None"
+
+let compare _ slug1 slug2 = compare' slug1 slug2
 
 let to_string = function
   | Some s -> s
@@ -82,6 +84,6 @@ let compare_slugs_or ~fallback slug x y =
   let slug_x = slug x in
   let slug_y = slug y in
   if not (is_none slug_x) && not (is_none slug_y) then
-    compare slug_x slug_y
+    compare' slug_x slug_y
   else
     fallback x y

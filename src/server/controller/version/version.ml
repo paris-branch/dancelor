@@ -48,14 +48,14 @@ let score_list_vs_list words needles =
 
 include Search.Build(struct
   type value = Model.Version.t Entry.t
-  type filter = Model.Version.Filter.t
+  type filter = Filter.Version.t
 
   let get_all env =
     Lwt.map
       (List.filter (Permission.can_get env))
       (Database.Version.get_all ())
 
-  let filter_accepts = Model.Version.Filter.accepts
+  let filter_accepts = Filter.Version.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (Lwt.map Model.Tune.name' % Model.Version.tune') String.Sensible.compare]

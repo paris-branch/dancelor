@@ -6,14 +6,13 @@ module type S = sig
       accesses; on the client side, network calls. *)
 
   open Nes
-  open Core
 
   (** {2 Types} *)
 
-  type page = Book.page =
-    | Version of Version.t Entry.t * VersionParameters.t
-    | Set of Set.t Entry.t * SetParameters.t
-    | InlineSet of Set.t * SetParameters.t
+  type page = Core.Book.page =
+    | Version of Core.Version.t Entry.t * Core.VersionParameters.t
+    | Set of Core.Set.t Entry.t * Core.SetParameters.t
+    | InlineSet of Core.Set.t * Core.SetParameters.t
   (** The type of one page in a book. A page either consists of a version (eg.
       in a book of tunes), or a set (eg. in a dance program) or a so-called
       “inline set”. Inline sets are simply a way to define a set on-the-fly in
@@ -21,7 +20,7 @@ module type S = sig
       entry. It can be useful to put several versions on the same page, for
       instance, when they do not particularly make sense together. *)
 
-  type t = Book.t
+  type t = Core.Book.t
   (** The type of a book. Even if it is known that it is a record, it should never
       be manipulated explicitly. *)
 
@@ -29,7 +28,7 @@ module type S = sig
     title: string ->
     ?subtitle: string ->
     ?short_title: string ->
-    ?authors: Person.t Entry.t list ->
+    ?authors: Core.Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
     ?source: bool ->
@@ -49,8 +48,8 @@ module type S = sig
   val short_title : t -> string
   val short_title' : t Entry.t -> string
 
-  val authors : t -> Person.t Entry.t list Lwt.t
-  val authors' : t Entry.t -> Person.t Entry.t list Lwt.t
+  val authors : t -> Core.Person.t Entry.t list Lwt.t
+  val authors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
 
   val date : t -> PartialDate.t option
   val date' : t Entry.t -> PartialDate.t option
@@ -77,7 +76,7 @@ module type S = sig
 
   (** {2 Utilities} *)
 
-  val contains_set : Set.t Slug.t -> t Entry.t -> bool
+  val contains_set : Core.Set.t Slug.t -> t Entry.t -> bool
   val compare : t Entry.t -> t Entry.t -> int
   val equal : t Entry.t -> t Entry.t -> bool
 
@@ -86,11 +85,11 @@ module type S = sig
 
   (** {2 Warnings} *)
 
-  type warning = Book.warning =
+  type warning = Core.Book.warning =
     | Empty
-    | DuplicateSet of Set.t Entry.t
-    | DuplicateVersion of Tune.t Entry.t * (Set.t Entry.t option * int) list
-    | SetDanceMismatch of Set.t Entry.t * Dance.t Entry.t
+    | DuplicateSet of Core.Set.t Entry.t
+    | DuplicateVersion of Core.Tune.t Entry.t * (Core.Set.t Entry.t option * int) list
+    | SetDanceMismatch of Core.Set.t Entry.t * Core.Dance.t Entry.t
   (* FIXME: a more specific type for (Set.t option * int) list. Maybe
      “occurrences”? And maybe with a record so that this “int” has a name? *)
 
@@ -98,40 +97,7 @@ module type S = sig
 
   val warnings : t Entry.t -> warnings Lwt.t
 
-  (** {2 Filters} *)
-
-  module Filter : sig
-    type predicate = Filter.Book.predicate
-    type t = Filter.Book.t
-
-    val accepts : t -> Book.t Entry.t -> float Lwt.t
-
-    val isSource : predicate
-    val isSource' : t
-
-    val memSet : Set.t Entry.t -> predicate
-    val memSet' : Set.t Entry.t -> t
-
-    val memTuneDeep' : Tune.t Entry.t -> t
-    (** Matches if the given tune appears in any version at any depth in the book,
-        that is directly in the book or in a set of the book. *)
-
-    val memVersionDeep' : Version.t Entry.t -> t
-    (** Matches if the given version appears at any depth in the book, that is
-        directly in the book or in a set of the book. *)
-
-    val existsTuneDeep' : Filter.Tune.t -> t
-    val existsVersionDeep' : Filter.Version.t -> t
-
-    val text_formula_converter : predicate TextFormulaConverter.t
-    val from_text_formula : TextFormula.t -> (t, string) Result.t
-    val from_string : ?filename: string -> string -> (t, string) Result.t
-    val to_string : t -> string
-
-    val optimise : t -> t
-  end
-
-  val page_core_to_page : Book.Page.t -> page Lwt.t
+  val page_core_to_page : Core.Book.Page.t -> page Lwt.t
   (** Exposed for use in the book controller. *)
 
   (** {2 Magic getter} *)

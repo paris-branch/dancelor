@@ -47,8 +47,8 @@ let create ?context slug =
       Utils.quick_explorer_links'
         person_lwt
         [
-          ("tunes they composed", Any.Filter.tune' % Tune.Filter.existsComposer' % Person.Filter.is');
-          ("dances they devised", Any.Filter.dance' % Dance.Filter.existsDeviser' % Person.Filter.is');
-          ("sets they conceived", Any.Filter.set' % Set.Filter.existsConceptor' % Person.Filter.is');
+          ("tunes they composed", Filter.(Any.tune' % Tune.existsComposer' % Person.is'));
+          ("dances they devised", Filter.(Any.dance' % Dance.existsDeviser' % Person.is'));
+          ("sets they conceived", Filter.(Any.set' % Set.existsConceptor' % Person.is'));
         ];
     ]
