@@ -4,4 +4,4 @@
  (wrapped false)
  (libraries dancelor.nes lwt.unix logs argon2)
  (preprocess
-  (staged_pps ppx_import ppx_deriving.std lwt_ppx ppx_deriving_yojson)))
+  (staged_pps ppx_import ppx_deriving.std lwt_ppx ppx_yojson_conv)))

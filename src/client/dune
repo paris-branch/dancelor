@@ -16,12 +16,12 @@
   (pps
    js_of_ocaml-ppx
    lwt_ppx
-   ppx_deriving_yojson
    ppx_fields_conv
    ppx_monad
    ppx_monad_olwt
    ppx_monad_rlwt
-   ppx_variants_conv)))
+   ppx_variants_conv
+   ppx_yojson_conv)))
 
 (install
  (section share)

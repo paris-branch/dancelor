@@ -77,7 +77,7 @@ val modified_at : meta -> Datetime.t
 (** {2 Comparison} *)
 
 val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-(** Comparison for ppx_deriving_yojson. The first argument is ignored. Use {!equal'}.
+(** Comparison for ppx_deriving.std. The first argument is ignored. Use {!equal'}.
 
     @raise UsedGetterOnDummy if the entry is a dummy. *)
 
@@ -85,7 +85,7 @@ val equal' : 'a t -> 'a t -> bool
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
 val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-(** Comparison for ppx_deriving_yojson. The first argument is ignored. Use {!compare'}.
+(** Comparison for ppx_deriving.std. The first argument is ignored. Use {!compare'}.
 
     @raise UsedGetterOnDummy if the entry is a dummy. *)
 

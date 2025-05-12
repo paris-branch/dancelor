@@ -16,6 +16,7 @@
 
         buildInputs = with pkgs.ocamlPackages; [
           self'.packages.ocaml-argon2
+          self'.packages.ppx_yojson_conv
 
           cohttp-lwt-jsoo
           cohttp-lwt-unix
@@ -27,7 +28,6 @@
           lwt_ppx
           lwt_react
           ppx_blob
-          ppx_deriving_yojson
           ppx_import
           ppx_inline_test
           ppx_fields_conv
@@ -47,27 +47,7 @@
         ];
       };
 
-      packages.ocaml-argon2 = pkgs.ocamlPackages.buildDunePackage {
-        pname = "argon2";
-        version = "dev";
-        src = pkgs.fetchFromGitHub {
-          owner = "khady";
-          repo = "ocaml-argon2";
-          rev = "1.0.2";
-          sha256 = "sha256-m5yOMT33Z9LfjQg6QRBW6mjHNyIySq6somTFuGmL9xI=";
-        };
-
-        propagatedBuildInputs =
-          (with pkgs; [ libargon2 ])
-          ++ (with pkgs.ocamlPackages; [
-            ctypes-foreign
-          ]);
-
-        buildInputs = with pkgs.ocamlPackages; [
-          ctypes
-          dune-configurator
-          result
-        ];
-      };
+      packages.ocaml-argon2 = pkgs.ocamlPackages.callPackage ./package/ocaml/argon2.nix { };
+      packages.ppx_yojson_conv = pkgs.ocamlPackages.callPackage ./package/ocaml/ppx_yojson_conv.nix { };
     };
 }

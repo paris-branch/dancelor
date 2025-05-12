@@ -32,12 +32,12 @@
   (lwt_ppx              :build)
    lwt_react
    ppx_blob
-   ppx_deriving_yojson
    ppx_import
   (ppx_inline_test     (or :build :with-test))
    ppx_import
    ppx_fields_conv
   (ppx_monad           (and :build (>= 0.2.0)))
+   ppx_yojson_conv
    slug
    yaml
 
