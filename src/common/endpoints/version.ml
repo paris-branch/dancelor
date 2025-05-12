@@ -27,8 +27,8 @@ type (_, _, _) t =
    _responses_, but not from the requests! *)
 module VersionNoContent = struct
   type t = Version.t
-  let of_yojson = Version.of_yojson % Json.add_field "content" (`String "")
-  let to_yojson = Json.remove_field "content" % Version.to_yojson
+  let t_of_yojson = Version.t_of_yojson % Json.add_field "content" (`String "")
+  let yojson_of_t = Json.remove_field "content" % Version.yojson_of_t
 end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =

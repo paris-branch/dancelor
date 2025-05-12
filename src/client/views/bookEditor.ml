@@ -16,7 +16,7 @@ type ('name, 'date, 'sets) gen = {
 module RawState = struct
   (* Dirty trick to convince Yojson to serialise slugs. *)
   type set = Model.Set.t
-  let set_to_yojson _ = assert false
+  let yojson_of_set _ = assert false
   let set_of_yojson _ = assert false
 
   type t =

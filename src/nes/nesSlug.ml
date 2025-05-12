@@ -21,23 +21,23 @@ let check_string_exn s =
   | Some s -> s
   | None -> raise NotASlug
 
-let to_yojson' = function
+let yojson_of_t' = function
   | Some s -> `String s
   | None -> `Null
 
-let to_yojson _ = to_yojson'
+let yojson_of_t _ = yojson_of_t'
 
-let of_yojson' = function
+let t_of_yojson' = function
   | `String s ->
     (
       match check_string s with
-      | Some s -> Ok s
-      | None -> Error ("NesSlug.of_yojson: '" ^ s ^ "' is a string but not a slug")
+      | Some s -> s
+      | None -> Ppx_yojson_conv_lib.Yojson_conv.of_yojson_error (s ^ "' is a string but not a slug") (`String s)
     )
-  | `Null -> Ok None
-  | _ -> Error "NesSlug.of_yojson: is neither a string nor null"
+  | `Null -> None
+  | j -> Ppx_yojson_conv_lib.Yojson_conv.of_yojson_error "neither a string nor null" j
 
-let of_yojson _ = of_yojson'
+let t_of_yojson _ = t_of_yojson'
 
 let from_string string =
   if string = "" then

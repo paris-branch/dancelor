@@ -46,8 +46,8 @@ let rec with_request
         | Some x ->
           let (query, body) =
             match source with
-            | Uri -> (Query.add name (R.to_yojson x) query, body)
-            | Body -> (query, Query.add name (R.to_yojson x) body)
+            | Uri -> (Query.add name (R.yojson_of_t x) query, body)
+            | Body -> (query, Query.add name (R.yojson_of_t x) body)
           in
           with_request path query body route return
     )
@@ -123,19 +123,21 @@ let rec apply
           Ok (None, query, body) (* absent: OK *)
         | (Uri, Some (value, query), _) ->
           (
-            match R.of_yojson value with
-            | Ok value -> Ok (Some value, query, body)
-            | Error msg ->
-              Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it: %s" name msg);
-              Error "unparseable" (* present but unparseable: error *)
+            try
+              let value = R.t_of_yojson value in Ok (Some value, query, body)
+            with
+              | Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error _ ->
+                Log.debug (fun m -> m "    Found query argument `%s` but failed to unserialise it" name);
+                Error "unparseable" (* present but unparseable: error *)
           )
         | (Body, _, Some (value, body)) ->
           (
-            match R.of_yojson value with
-            | Ok value -> Ok (Some value, query, body)
-            | Error msg ->
-              Log.debug (fun m -> m "    Found body argument `%s` but failed to unserialise it: %s" name msg);
-              Error "unparseable" (* present but unparseable: error *)
+            try
+              let value = R.t_of_yojson value in Ok (Some value, query, body)
+            with
+              | Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error _ ->
+                Log.debug (fun m -> m "    Found body argument `%s` but failed to unserialise it" name);
+                Error "unparseable" (* present but unparseable: error *)
           )
       in
       match extract_and_parse with

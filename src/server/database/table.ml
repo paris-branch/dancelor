@@ -70,8 +70,8 @@ module type Model = sig
   val standalone : bool
   (** Whether entries of this table make sense on their own. *)
 
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> (t, string) result
+  val yojson_of_t : t -> Json.t
+  val t_of_yojson : Json.t -> t
 
   val separate_fields : (string * string) list
   (** Fields that must not be serialised in the [meta.yaml] file but instead be
@@ -109,7 +109,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         )
         Model.separate_fields;%lwt
       Lwt.return @@
-        match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.of_yojson !json with
+        match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.t_of_yojson !json with
         | Ok model ->
           Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
           Log.debug (fun m -> m "Loaded %s %s" _key entry);
@@ -212,7 +212,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let create_with_slug slug model =
     assert (not @@ Hashtbl.mem table slug);
     let model = Entry.make ~slug model in
-    let json = ref @@ Entry.to_yojson' Model.to_yojson model in
+    let json = ref @@ Entry.yojson_of_t' Model.yojson_of_t model in
     Lwt_list.iter_s
       (fun (field, filename) ->
         match Json.extract_field field !json with
@@ -254,7 +254,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let update slug model =
     let%lwt old_model = get slug in
     let model = Entry.make' ~slug ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model)) model in
-    let json = ref @@ Entry.to_yojson' Model.to_yojson model in
+    let json = ref @@ Entry.yojson_of_t' Model.yojson_of_t model in
     Lwt_list.iter_s
       (fun (field, filename) ->
         match Json.extract_field field !json with

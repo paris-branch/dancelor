@@ -20,7 +20,7 @@ type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) g
 module RawState = struct
   (* Dirty trick to convince Yojson to serialise slugs. *)
   type person = Model.Person.t
-  let person_to_yojson _ = assert false
+  let yojson_of_person _ = assert false
   let person_of_yojson _ = assert false
 
   type t = (

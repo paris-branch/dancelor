@@ -22,13 +22,13 @@ type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'sources, 'disambigua
 module RawState = struct
   (* Dirty trick to convince Yojson to serialise slugs. *)
   type tune = Model.Tune.t
-  let tune_to_yojson _ = assert false
+  let yojson_of_tune _ = assert false
   let tune_of_yojson _ = assert false
   type person = Model.Person.t
-  let person_to_yojson _ = assert false
+  let yojson_of_person _ = assert false
   let person_of_yojson _ = assert false
   type source = Model.Source.t
-  let source_to_yojson _ = assert false
+  let yojson_of_source _ = assert false
   let source_of_yojson _ = assert false
 
   type t =

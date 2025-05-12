@@ -166,6 +166,6 @@ let optimise ?(lift_and = fun _ _ -> None) ?(lift_or = fun _ _ -> None) optimise
 
 module Make_Jsonable (M : Madge.JSONABLE) = struct
   type nonrec t = M.t t
-  let of_yojson = of_yojson M.of_yojson
-  let to_yojson = to_yojson M.to_yojson
+  let t_of_yojson = t_of_yojson M.t_of_yojson
+  let yojson_of_t = yojson_of_t M.yojson_of_t
 end

@@ -63,3 +63,7 @@ val merge_assoc : t -> t -> t
 (** Merge two association JSON values.
 
     @raise Invalid_argument if the given JSON values are not [`Assoc]. *)
+
+val of_yojson_error : string -> Yojson.Safe.t -> 'a
+(** Alias for {!Ppx_yojson_conv_lib.Yojson_conv.of_yojson_error}
+    @raise Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error (Failure reason, yojson). *)

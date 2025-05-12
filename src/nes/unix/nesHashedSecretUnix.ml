@@ -1,5 +1,3 @@
-open NesPervasives
-
 include Nes.HashedSecret
 
 (* Default value taken from the examples of [ocaml-argon2], but also checked to
@@ -27,14 +25,13 @@ let is ~clear hashedSecret =
   | Error Argon2.ErrorCodes.VERIFY_MISMATCH -> Ok false
   | Error e -> Error e
 
-let of_yojson json =
+let t_of_yojson json =
   (* Sanity check that the “encoded” indeed looks correct. We verify the
      password against a random string, and we care less about the result than
      about whether there is an error on the way. *)
-  Result.bind (of_yojson json) @@ fun encoded ->
-  NesResult.map_both
-    (is ~clear: "not the password" encoded)
-    ~ok: (Fun.const encoded)
-    ~error: ((^) "Argon2 error: " % Argon2.ErrorCodes.message)
+  let encoded = t_of_yojson json in
+  match is ~clear: "not the password" encoded with
+  | Ok _ -> encoded
+  | Error msg -> NesJson.of_yojson_error ("Argon2 error: " ^ Argon2.ErrorCodes.message msg) json
 
 let is ~clear password = Result.get_ok @@ is ~clear password

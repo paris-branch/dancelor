@@ -11,18 +11,18 @@ let from_string str =
   | None -> failwith "NesDate.from_string"
   | Some date -> date
 
-let to_yojson date =
+let yojson_of_t date =
   `String (to_string date)
 
-let of_yojson = function
+let t_of_yojson = function
   | `String s ->
     (
       try
-        Ok (from_string s)
+        from_string s
       with
-        | _ -> Error "NesDate.of_yojson: not a valid date"
+        | _ -> NesJson.of_yojson_error "not a valid date" (`String s)
     )
-  | _ -> Error "NesDate.of_yojson: not a JSON string"
+  | j -> NesJson.of_yojson_error "not a JSON string" j
 
 let today () =
   let tm = Unix.(localtime (time ())) in

@@ -3,6 +3,7 @@
     This module defines parameters that make sense at the level of a set. This
     includes version parameters as well. *)
 
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 (** How to render the order. [Default] prints the tunes as they appear in the
@@ -38,7 +39,7 @@ let instruments = VersionParameters.instruments % every_version
 
     Getters that end with a quote are getters that have a default value. *)
 
-let none = `Assoc [] |> of_yojson |> Result.get_ok
+let none = t_of_yojson @@ `Assoc []
 
 let forced_pages' = Option.value ~default: 0 % forced_pages
 let show_deviser' = Option.value ~default: true % show_deviser

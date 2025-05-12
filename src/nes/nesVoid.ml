@@ -2,5 +2,5 @@ type t = |
 
 let f _ = assert false
 
-let to_yojson = f
-let of_yojson _ = Error "there are no void values"
+let yojson_of_t = f
+let t_of_yojson j = NesJson.of_yojson_error "there are no void values" j

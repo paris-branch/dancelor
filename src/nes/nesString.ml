@@ -299,16 +299,18 @@ end)
 module Map = struct
   include Map.Make(struct type nonrec t = t let compare = compare end)
 
-  let to_yojson a_to_yojson m = `Assoc (List.map (fun (k, v) -> (k, a_to_yojson v)) (to_list m))
-  let of_yojson a_of_yojson = function
+  let yojson_of_t yojson_of_value m =
+    `Assoc (List.map (fun (k, v) -> (k, yojson_of_value v)) (to_list m))
+
+  let t_of_yojson value_of_yojson = function
     | `Assoc m ->
       (
         try
-          Ok (of_list @@ List.map (fun (k, v) -> (k, Result.get_ok @@ a_of_yojson v)) m)
+          of_list @@ List.map (fun (k, v) -> (k, value_of_yojson v)) m
         with
-          | Invalid_argument msg -> Error msg
+          | Invalid_argument msg -> Ppx_yojson_conv_lib.Yojson_conv.of_yojson_error msg (`Assoc m)
       )
-    | _ -> Error "not an assoc"
+    | j -> Ppx_yojson_conv_lib.Yojson_conv.of_yojson_error "not an assoc" j
 end
 
 let whitespace_chars = [' '; '\x0C'; '\t'; '\n'; '\r']

@@ -20,10 +20,10 @@ type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
 module RawState = struct
   (* Dirty trick to convince Yojson to serialise slugs. *)
   type person = Model.Person.t
-  let person_to_yojson _ = assert false
+  let yojson_of_person _ = assert false
   let person_of_yojson _ = assert false
   type dance = Model.Dance.t
-  let dance_to_yojson _ = assert false
+  let yojson_of_dance _ = assert false
   let dance_of_yojson _ = assert false
 
   type t =

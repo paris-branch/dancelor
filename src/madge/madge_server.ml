@@ -14,7 +14,7 @@ let match_apply
   try%lwt
     let%lwt value = f () in
     let headers = Cohttp.Header.of_list [("Content-Type", "application/json")] in
-    let body = Yojson.Safe.to_string @@ R.to_yojson value in
+    let body = Yojson.Safe.to_string @@ R.yojson_of_t value in
     Cohttp_lwt_unix.Server.respond_string ~status: `OK ~headers ~body ()
   with
     | Shortcut response -> Lwt.return response

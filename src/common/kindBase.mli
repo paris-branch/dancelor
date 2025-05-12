@@ -4,7 +4,7 @@ open Nes
 
 type t =
   Jig | Polka | Reel | Strathspey | Waltz
-[@@deriving eq, show]
+[@@deriving eq, show, yojson]
 
 val all : t list
 
@@ -18,9 +18,6 @@ val of_string_opt : string -> t option
 val to_pretty_string : ?capitalised: bool -> t -> string
 (** Pretty version. Capitalised if the corresponding boolean is set to true
     (default: false). *)
-
-val to_yojson : t -> Json.t
-val of_yojson : Json.t -> (t, string) result
 
 val tempo : t -> string * int
 (** Returns the base lilypond unit and the associated tempo. eg. [("2", 108)]

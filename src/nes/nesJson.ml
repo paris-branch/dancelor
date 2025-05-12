@@ -132,3 +132,5 @@ let keep_fields ks = function
         ks
     )
   | _ -> invalid_arg "NesJson.keep_fields"
+
+let of_yojson_error = Ppx_yojson_conv_lib.Yojson_conv.of_yojson_error

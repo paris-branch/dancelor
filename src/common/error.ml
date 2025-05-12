@@ -1,3 +1,5 @@
+open Ppx_yojson_conv_lib.Yojson_conv
+
 type t =
   | EntityDoesNotExist of string * string
   | DependencyDoesNotExist of (string * string) * (string * string)

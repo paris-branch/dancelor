@@ -13,8 +13,8 @@ val of_string_opt : string -> t option
 val to_pretty_string : t -> string
 (** Pretty t *)
 
-val to_yojson : t -> Json.t
-val of_yojson : Json.t -> (t, string) result
+val yojson_of_t : t -> Json.t
+val t_of_yojson : Json.t -> t
 
 (** {2 Filters} *)
 

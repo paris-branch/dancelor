@@ -2,6 +2,7 @@
 
     This module defines parameters that make sense at the level of a version. *)
 
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 module Self = struct
@@ -49,7 +50,7 @@ let display_composer p = p.display_composer
 
     Getters that end with a quote are getters that have a default value. *)
 
-let none = `Assoc [] |> of_yojson |> Result.get_ok
+let none = t_of_yojson @@ `Assoc []
 
 let transposition' = Option.value ~default: Transposition.identity % transposition
 let first_bar' = Option.value ~default: 1 % first_bar

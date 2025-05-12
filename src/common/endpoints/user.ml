@@ -6,8 +6,8 @@ open Madge
    redact them. And to be sure to not miss a future introduction of  *)
 module User = struct
   type t = ModelBuilder.Core.User.t
-  let to_yojson = Json.keep_fields ["display-name"; "person"] % ModelBuilder.Core.User.to_yojson
-  let of_yojson = ModelBuilder.Core.User.of_yojson
+  let yojson_of_t = Json.keep_fields ["display-name"; "person"] % ModelBuilder.Core.User.yojson_of_t
+  let t_of_yojson = ModelBuilder.Core.User.t_of_yojson
 end
 
 type (_, _, _) t =

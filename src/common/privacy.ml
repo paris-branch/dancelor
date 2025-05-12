@@ -3,6 +3,8 @@
     Levels of privacy are attached to entries in the database and influence who
     gets to see them. *)
 
+open Nes
+
 type t =
   Private | Public
 
@@ -29,7 +31,7 @@ let to_string = function
   | Private -> "private"
   | Public -> "public"
 
-let to_yojson privacy =
+let yojson_of_t privacy =
   `String (to_string privacy)
 
 let pp fmt privacy =
@@ -40,12 +42,12 @@ let from_string = function
   | "public" -> Public
   | _ -> failwith "Common.Privacy.from_string"
 
-let of_yojson = function
-  | `String string ->
+let t_of_yojson = function
+  | `String s ->
     (
       try
-        Ok (from_string string)
+        from_string s
       with
-        | _ -> Error "Common.Privacy.of_yojson: not a valid privacy"
+        | _ -> Json.of_yojson_error "not a valid privacy" (`String s)
     )
-  | _ -> Error "Common.Privacy.of_yojson: not a JSON string"
+  | j -> Json.of_yojson_error "not a JSON string" j

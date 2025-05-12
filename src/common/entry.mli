@@ -1,6 +1,6 @@
 open Nes
 
-type 'a t [@@deriving show]
+type 'a t [@@deriving eq, ord, show, yojson]
 (** A database entry. Can either be a full database entry or a dummy. Dummies
     should be avoided, and the getters will fail when dealing with them, but can
     be used in places that require dealing with a database table. *)
@@ -76,34 +76,25 @@ val modified_at : meta -> Datetime.t
 
 (** {2 Comparison} *)
 
-val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-(** Comparison for ppx_deriving.std. The first argument is ignored. Use {!equal'}.
-
-    @raise UsedGetterOnDummy if the entry is a dummy. *)
-
 val equal' : 'a t -> 'a t -> bool
-(** @raise UsedGetterOnDummy if the entry is a dummy. *)
-
-val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
-(** Comparison for ppx_deriving.std. The first argument is ignored. Use {!compare'}.
+(** Variant of {!equal} that doesn't require a slug equality.
 
     @raise UsedGetterOnDummy if the entry is a dummy. *)
 
 val compare' : 'a t -> 'a t -> int
-(** @raise UsedGetterOnDummy if the entry is a dummy. *)
-
-(** {2 Serialisation} *)
-
-val to_yojson : ('a -> Yojson.Safe.t) -> 'a t -> Yojson.Safe.t
-val of_yojson : (Yojson.Safe.t -> ('a, string) result) -> Yojson.Safe.t -> ('a t, string) result
-
-val to_yojson' : ('a -> Yojson.Safe.t) -> 'a t -> Yojson.Safe.t
-(** Variant of {!to_yojson} that doesn't serialise the slug.
+(** Variant of {!compare} that doesn't require a slug comparison.
 
     @raise UsedGetterOnDummy if the entry is a dummy. *)
 
-val of_yojson' : 'a Slug.t -> (Yojson.Safe.t -> ('a, string) result) -> Yojson.Safe.t -> ('a t, string) result
-(** Variant of {!of_yojson} that expects the slug as an argument instead of in
+(** {2 Serialisation} *)
+
+val yojson_of_t' : ('a -> Yojson.Safe.t) -> 'a t -> Yojson.Safe.t
+(** Variant of {!yojson_of_t} that doesn't serialise the slug.
+
+    @raise UsedGetterOnDummy if the entry is a dummy. *)
+
+val t_of_yojson' : 'a Slug.t -> (Yojson.Safe.t -> 'a) -> Yojson.Safe.t -> 'a t
+(** Variant of {!t_of_yojson} that expects the slug as an argument instead of in
     the serialised form. *)
 
 module J : functor (M : Madge.JSONABLE) ->

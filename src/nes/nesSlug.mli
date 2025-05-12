@@ -34,9 +34,8 @@ val to_string : 'any t -> string
 (** Returns a string representing the slug. This function fails with [Failure _]
     [none]. *)
 
-val of_yojson' : Yojson.Safe.t -> ('any t, string) result
-
-val to_yojson' : 'any t -> Yojson.Safe.t
+val t_of_yojson' : Yojson.Safe.t -> 'any t
+val yojson_of_t' : 'any t -> Yojson.Safe.t
 
 val pp : (Format.formatter -> 'any -> unit) -> Format.formatter -> 'any t -> unit
 (** For debugging purposes with [ppx_deriving_show]. Prefer {!pp'}. *)

@@ -56,36 +56,38 @@ let equal _ = equal'
 let compare' e f = Slug.compare' (slug e) (slug f)
 let compare _ = compare'
 
-let to_yojson value_to_yojson = function
+let yojson_of_t yojson_of_value = function
   | Full (slug, meta, value) ->
-    Json.add_field "slug" (Slug.to_yojson value_to_yojson slug) @@
-      Json.merge_assoc (value_to_yojson value) (meta_to_yojson meta)
+    Json.add_field "slug" (Slug.yojson_of_t yojson_of_value slug) @@
+      Json.merge_assoc (yojson_of_value value) (yojson_of_meta meta)
   | Dummy v ->
-    value_to_yojson v
+    yojson_of_value v
 
-let to_yojson' value_to_yojson = function
-  | Full (_, meta, value) -> Json.merge_assoc (value_to_yojson value) (meta_to_yojson meta)
+let yojson_of_t' yojson_of_value = function
+  | Full (_, meta, value) -> Json.merge_assoc (yojson_of_value value) (yojson_of_meta meta)
   | Dummy _ -> raise UsedGetterOnDummy
 
-let of_yojson' slug value_of_yojson json =
-  let (status, json) = Option.value (Json.extract_field_opt "status" json) ~default: (Status.(to_yojson bot), json) in
-  let (privacy, json) = Option.value (Json.extract_field_opt "privacy" json) ~default: (Privacy.(to_yojson default), json) in
+let t_of_yojson' slug value_of_yojson json =
+  let (status, json) = Option.value (Json.extract_field_opt "status" json) ~default: (Status.(yojson_of_t bot), json) in
+  let (privacy, json) = Option.value (Json.extract_field_opt "privacy" json) ~default: (Privacy.(yojson_of_t default), json) in
   let (created_at, json) = Json.extract_field "created-at" json in
   let (modified_at, value_json) = Json.extract_field "modified-at" json in
   let meta_json = `Assoc [("status", status); ("privacy", privacy); ("created-at", created_at); ("modified-at", modified_at)] in
-  Result.bind (meta_of_yojson meta_json) @@ fun meta ->
-  Result.bind (value_of_yojson value_json) @@ fun value ->
-  Ok (Full (slug, meta, value))
+  let meta = meta_of_yojson meta_json in
+  let value = value_of_yojson value_json in
+  Full (slug, meta, value)
 
-let of_yojson value_of_yojson json =
+let t_of_yojson value_of_yojson json =
   match Json.extract_field_opt "slug" json with
   | Some (slug, json) ->
-    Result.bind (Slug.of_yojson value_of_yojson slug) @@ fun slug ->
-    of_yojson' slug value_of_yojson json
-  | None -> Result.map (fun x -> Dummy x) (value_of_yojson json)
+    let slug = Slug.t_of_yojson value_of_yojson slug in
+    t_of_yojson' slug value_of_yojson json
+  | None ->
+    let value = value_of_yojson json in
+    Dummy value
 
 module J (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t t = struct
   type nonrec t = A.t t
-  let to_yojson = to_yojson A.to_yojson
-  let of_yojson = of_yojson A.of_yojson
+  let yojson_of_t = yojson_of_t A.yojson_of_t
+  let t_of_yojson = t_of_yojson A.t_of_yojson
 end

@@ -1,3 +1,5 @@
+open Nes
+
 type t =
   | Locked
   | ToBeConfirmed
@@ -32,7 +34,7 @@ let to_string = function
   | ToBeConfirmed -> "to-be-confirmed"
   | Unlocked -> "unlocked"
 
-let to_yojson status =
+let yojson_of_t status =
   `String (to_string status)
 
 let pp fmt s =
@@ -44,12 +46,12 @@ let from_string = function
   | "unlocked" -> Unlocked
   | _ -> failwith "Common.Status.from_string"
 
-let of_yojson = function
-  | `String string ->
+let t_of_yojson = function
+  | `String s ->
     (
       try
-        Ok (from_string string)
+        from_string s
       with
-        | _ -> Error "Common.Status.of_yojson: not a valid status"
+        | _ -> Json.of_yojson_error "not a valid status" (`String s)
     )
-  | _ -> Error "Common.Status.of_yojson: not a JSON string"
+  | j -> Json.of_yojson_error "not a JSON string" j

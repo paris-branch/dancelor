@@ -1,3 +1,4 @@
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 include Madge
 
@@ -31,15 +32,19 @@ let call_gen
   let result =
     if Cohttp.(Code.(is_success (code_of_status status))) then
       (
-        match R.of_yojson body with
-        | Error msg -> failwith @@ "Madge_client.call: body cannot be unserialised: " ^ msg
-        | Ok body -> Ok body
+        try
+          Ok (R.t_of_yojson body)
+        with
+          | Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error _ ->
+            failwith "Madge_client.call: body cannot be unserialised"
       )
     else
       (
-        match error_response_of_yojson body with
-        | Error msg -> failwith @@ "Madge_client.call: error body cannot be unserialised: " ^ msg
-        | Ok {message} -> Error {request; status; message}
+        try
+          let {message} = error_response_of_yojson body in Error {request; status; message}
+        with
+          | Ppx_yojson_conv_lib.Yojson_conv.Of_yojson_error _ ->
+            failwith "Madge_client.call: error body cannot be unserialised"
       )
   in
   Lwt.return @@ cont result

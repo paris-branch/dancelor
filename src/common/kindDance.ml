@@ -34,18 +34,18 @@ let%test _ = of_string "3x40J" = Mul (3, Version (40, Jig))
 let%test _ = of_string "32R" = Version (32, Reel)
 let%test _ = of_string_opt "R" = None
 
-let to_yojson d =
+let yojson_of_t d =
   `String (to_string d)
 
-let of_yojson = function
+let t_of_yojson = function
   | `String s ->
     (
       try
-        Ok (of_string s)
+        of_string s
       with
-        | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a valid dance kind"
+        | _ -> Json.of_yojson_error "not a valid dance kind" (`String s)
     )
-  | _ -> Error "Dancelor_common.Model.Kind.of_yojson: not a JSON string"
+  | j -> Json.of_yojson_error "not a JSON string" j
 
 let rec to_pretty_string = function
   | Version vkind -> KindVersion.to_pretty_string vkind

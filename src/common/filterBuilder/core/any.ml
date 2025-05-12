@@ -1,3 +1,4 @@
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 (* NOTE: This [Raw] variant is a bit artificial, when we could already be

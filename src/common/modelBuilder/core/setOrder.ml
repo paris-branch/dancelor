@@ -30,7 +30,7 @@ let to_string order =
   List.map component_to_string order
   |> String.concat ","
 
-let to_yojson order =
+let yojson_of_t order =
   `String (to_string order)
 
 let to_pretty_string order =
@@ -87,12 +87,12 @@ let check ?number s =
         o;
       Array.for_all Fun.id present
 
-let of_yojson = function
-  | `String string ->
+let t_of_yojson = function
+  | `String s ->
     (
       try
-        Ok (of_string string)
+        of_string s
       with
-        | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a valid set order"
+        | _ -> Json.of_yojson_error "not a valid set order" (`String s)
     )
-  | _ -> Error "Dancelor_common.Model.SetOrder.of_yojson: not a JSON string"
+  | j -> Json.of_yojson_error "not a JSON string" j

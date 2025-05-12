@@ -3,6 +3,7 @@
     This module defines parameters that make sense at the level of a book. This
     includes set parameters (which include version parameters) as well. *)
 
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 type where =
@@ -43,7 +44,7 @@ let instruments = SetParameters.instruments % every_set
 
 (** {2 Defaults} *)
 
-let none = `Assoc [] |> of_yojson |> Result.get_ok
+let none = t_of_yojson @@ `Assoc []
 
 let front_page' = Option.value ~default: false % front_page
 let table_of_contents' = Option.value ~default: Nowhere % table_of_contents

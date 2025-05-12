@@ -1,3 +1,4 @@
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 module type STRINGABLE = sig
@@ -6,11 +7,7 @@ module type STRINGABLE = sig
   val of_string : string -> t option
 end
 
-module type JSONABLE = sig
-  type t
-  val to_yojson : t -> Yojson.Safe.t
-  val of_yojson : Yojson.Safe.t -> (t, string) result
-end
+module type JSONABLE = Ppx_yojson_conv_lib.Yojsonable.S
 
 (* Base *)
 
@@ -32,8 +29,8 @@ end
 
 module JUri : JSONABLE with type t = Uri.t = struct
   type t = Uri.t
-  let to_yojson = JString.to_yojson % Uri.to_string
-  let of_yojson = Result.map Uri.of_string % JString.of_yojson
+  let yojson_of_t = JString.yojson_of_t % Uri.to_string
+  let t_of_yojson = Uri.of_string % JString.t_of_yojson
 end
 
 module JUnit : JSONABLE with type t = unit = struct
@@ -90,6 +87,6 @@ module SSlug (A : TYPEABLE) : STRINGABLE with type t = A.t Slug.t = struct
 end
 module JSlug (A : TYPEABLE) : JSONABLE with type t = A.t Slug.t = struct
   type t = A.t Slug.t
-  let to_yojson = Slug.to_yojson'
-  let of_yojson = Slug.of_yojson'
+  let yojson_of_t = Slug.yojson_of_t'
+  let t_of_yojson = Slug.t_of_yojson'
 end

@@ -18,13 +18,13 @@ type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
 module RawState = struct
   (* Dirty trick to convince Yojson to serialise slugs. *)
   type person = Model.Person.t
-  let person_to_yojson _ = assert false
+  let yojson_of_person _ = assert false
   let person_of_yojson _ = assert false
   type book = Model.Book.t
-  let book_to_yojson _ = assert false
+  let yojson_of_book _ = assert false
   let book_of_yojson _ = assert false
   type version = Model.Version.t
-  let version_to_yojson _ = assert false
+  let yojson_of_version _ = assert false
   let version_of_yojson _ = assert false
 
   type t =

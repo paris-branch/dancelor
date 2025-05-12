@@ -1,5 +1,6 @@
 (** {1 Rendering parameters} *)
 
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 (** The size of the paper to use. [A] allows to select the ISO 216 “A” format.
@@ -17,7 +18,7 @@ type pdf_metadata = {
 }
 [@@deriving fields, show, eq, yojson]
 
-let no_pdf_metadata = `Assoc [] |> pdf_metadata_of_yojson |> Result.get_ok
+let no_pdf_metadata = pdf_metadata_of_yojson @@ `Assoc []
 
 let update_pdf_metadata ?title ?subtitle ?composers ?subjects pdf_metadata = {
   title = Option.value title ~default: Fun.id pdf_metadata.title;
@@ -32,7 +33,7 @@ type t = {
 }
 [@@deriving fields, yojson, eq, show]
 
-let none = `Assoc [] |> of_yojson |> Result.get_ok
+let none = t_of_yojson @@ `Assoc []
 
 let update ?paper_size ?pdf_metadata params = {
   paper_size = Option.value paper_size ~default: Fun.id params.paper_size;

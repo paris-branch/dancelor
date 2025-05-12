@@ -1,5 +1,6 @@
 (** {1 Client Router} *)
 
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 open ModelBuilder
 
@@ -9,7 +10,7 @@ type context =
   | InSearch of string
   | InSet of Core.Set.t Slug.t * int
   | InBook of Core.Book.t Slug.t * int
-[@@deriving yojson, variants]
+[@@deriving variants, yojson]
 
 let inSet' = inSet % Slug.unsafe_of_string
 let inBook' = inBook % Slug.unsafe_of_string

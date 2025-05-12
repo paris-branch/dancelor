@@ -10,18 +10,18 @@ let to_string = I.string_of_datetime
 
 let pp fmt = fpf fmt "%s" % to_string
 
-let to_yojson date =
+let yojson_of_t date =
   `String (to_string date)
 
-let of_yojson = function
+let t_of_yojson = function
   | `String s ->
     (
       try
-        Ok (of_string s)
+        of_string s
       with
-        | _ -> Error "NesDatetime.of_yojson: not a valid datetime"
+        | _ -> NesJson.of_yojson_error "not a valid datetime" (`String s)
     )
-  | _ -> Error "NesDatetime.of_yojson: not a JSON string"
+  | j -> NesJson.of_yojson_error "not a JSON string" j
 
 let now = Unix.gettimeofday
 

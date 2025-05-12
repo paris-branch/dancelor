@@ -1,3 +1,5 @@
+open Ppx_yojson_conv_lib.Yojson_conv
+
 module Request = struct
   type t = {
     reporter: string;

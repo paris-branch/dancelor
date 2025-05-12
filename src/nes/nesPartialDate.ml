@@ -38,12 +38,15 @@ let to_string = function
   | YearMonth (year, month) -> spf "%04d-%02d" year month
   | YearMonthDay (year, month, day) -> spf "%04d-%02d-%02d" year month day
 
-let to_yojson date =
+let yojson_of_t date =
   `String (to_string date)
 
-let of_yojson = function
-  | `String s -> Option.to_result ~none: "NesPartialDate.of_yojson: not a valid date" @@ from_string s
-  | _ -> Error "NesPartialDate.of_yojson: not a JSON string"
+let t_of_yojson = function
+  | `String s ->
+    NesOption.value'
+      (from_string s)
+      ~default: (fun () -> NesJson.of_yojson_error "not a valid date" (`String s))
+  | j -> NesJson.of_yojson_error "not a JSON string" j
 
 let month_to_pretty_string month =
   [|

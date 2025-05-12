@@ -44,18 +44,18 @@ let of_string_opt s =
   with
     | Invalid_argument _ -> None
 
-let to_yojson b =
+let yojson_of_t b =
   `String (to_string b)
 
-let of_yojson = function
+let t_of_yojson = function
   | `String s ->
     (
       try
-        Ok (of_string s)
+        of_string s
       with
-        | _ -> Error "Common.Kind.Base.of_yojson: not a valid base kind"
+        | _ -> Json.of_yojson_error "not a valid base kind" (`String s)
     )
-  | _ -> Error "Common.Kind.Base.of_yojson: not a JSON string"
+  | j -> Json.of_yojson_error "not a JSON string" j
 
 let to_pretty_string ?(capitalised = false) base =
   (

@@ -1,17 +1,17 @@
 open Nes
 
-let to_yojson__of__to_string to_string value =
+let yojson_of_t__of__to_string to_string value =
   `String (to_string value)
 
-let of_yojson__of__of_string of_string message = function
+let t_of_yojson__of__of_string of_string message = function
   | `String s ->
     (
       try
-        Ok (of_string s)
+        of_string s
       with
-        | _ -> Error message
+        | _ -> Json.of_yojson_error message (`String s)
     )
-  | _ -> Error message
+  | j -> Json.of_yojson_error message j
 
 (* Note *)
 
@@ -150,8 +150,8 @@ let pitch_of_string = function
       octave = octave_of_string octave_str
     }
 
-let pitch_to_yojson = to_yojson__of__to_string pitch_to_string
-let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common.Model.Music.pitch_of_yojson"
+let yojson_of_pitch = yojson_of_t__of__to_string pitch_to_string
+let pitch_of_yojson = t_of_yojson__of__of_string pitch_of_string "pitch_of_yojson"
 
 (* Mode *)
 
@@ -196,13 +196,11 @@ let key_of_string_opt s =
   with
     | Failure _ -> None
 
-let key_to_yojson = to_yojson__of__to_string key_to_string
-let key_of_yojson = of_yojson__of__of_string key_of_string "Dancelor_common.Model.Music.key_of_yojson"
+let yojson_of_key = yojson_of_t__of__to_string key_to_string
+let key_of_yojson = t_of_yojson__of__of_string key_of_string "key_of_yojson"
 
 module Key = struct
-  type t = key
-  let to_yojson = key_to_yojson
-  let of_yojson = key_of_yojson
+  type t = key [@@deriving yojson]
 end
 
 (* Clef*)
@@ -222,5 +220,5 @@ let clef_of_string = function
 
 let clef_to_symbol = function Treble -> "𝄞" | Bass -> "𝄢"
 
-let clef_to_yojson = to_yojson__of__to_string clef_to_string
-let clef_of_yojson = of_yojson__of__of_string clef_of_string "Dancelor_common.Model.Music.clef_of_yojson"
+let yojson_of_clef = yojson_of_t__of__to_string clef_to_string
+let clef_of_yojson = t_of_yojson__of__of_string clef_of_string "clef_of_yojson"

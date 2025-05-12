@@ -4,8 +4,8 @@ open React
 
 module type Storable = sig
   type t
-  val to_yojson : t -> Yojson.Safe.t
-  val of_yojson : Yojson.Safe.t -> (t, string) result
+  val yojson_of_t : t -> Yojson.Safe.t
+  val t_of_yojson : Yojson.Safe.t -> t
   val empty : t
 end
 
@@ -13,13 +13,13 @@ let store (type t) (key : string) (module V : Storable with type t = t) (value :
   Js.Optdef.iter Dom_html.window##.localStorage @@ fun local_storage ->
   local_storage##setItem
     (Js.string key)
-    (Js.string @@ Yojson.Safe.to_string @@ V.to_yojson value)
+    (Js.string @@ Yojson.Safe.to_string @@ V.yojson_of_t value)
 
 let retrieve (type t) (key : string) (module V : Storable with type t = t) : t =
   Option.value ~default: V.empty @@
   Js.Optdef.case Dom_html.window##.localStorage (fun () -> None) @@ fun local_storage ->
   Js.Opt.case (local_storage##getItem (Js.string key)) (fun () -> None) @@ fun value ->
-  Result.to_option @@ V.of_yojson @@ Yojson.Safe.from_string @@ Js.to_string value
+  Result.to_option @@ V.t_of_yojson @@ Yojson.Safe.from_string @@ Js.to_string value
 
 let update (type t) (key : string) (module V : Storable with type t = t) (f : t -> t) =
   store key (module V) @@ f @@ retrieve key (module V)

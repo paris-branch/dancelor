@@ -1,3 +1,4 @@
+open Ppx_yojson_conv_lib.Yojson_conv
 open Nes
 
 type t = int * KindBase.t
@@ -51,18 +52,18 @@ let of_string_opt string =
   with
     | Invalid_argument _ -> None
 
-let to_yojson t =
+let yojson_of_t t =
   `String (to_string t)
 
-let of_yojson = function
+let t_of_yojson = function
   | `String s ->
     (
       try
-        Ok (of_string s)
+        of_string s
       with
-        | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a valid version kind"
+        | _ -> Json.of_yojson_error "not a valid version kind" (`String s)
     )
-  | _ -> Error "Dancelor_common.Model.Kind.version_of_yojson: not a JSON string"
+  | j -> Json.of_yojson_error "not a JSON string" j
 
 let to_pretty_string (repeats, base) =
   spf "%d %s" repeats (KindBase.to_pretty_string ~capitalised: true base)
