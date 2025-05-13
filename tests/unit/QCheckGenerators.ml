@@ -121,211 +121,177 @@ module Kind = struct
   end
 end
 
-module Source = struct
-  type t = [%import: Common.ModelBuilder.Core.Source.t]
+module Model = struct
+  (* The following are dirty tricks, necessary to convince [ppx_deriving_qcheck]
+     that it can generate a [t Slug.t]. These “models” are only to be used in a
+     context where we use their slugs; there, it is fine since [Slug.gen]
+     ignores its first argument. *)
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  module Source = struct
+    type t = [%import: Common.ModelBuilder.Core.Source.t]
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
 
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Source.predicate [@with Nes.Slug.t := Slug.t;
-      (* Core *)
-      Common__ModelBuilder__.Core.Source.t := t;
+  module Person = struct
+    type t = [%import: Common.ModelBuilder.Core.Person.t]
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
+  module Dance = struct
+    type t = [%import: Common.ModelBuilder.Core.Dance.t]
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
+  module Tune = struct
+    type t = [%import: Common.ModelBuilder.Core.Tune.t]
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
+  module Version = struct
+    type t = [%import: Common.ModelBuilder.Core.Version.t]
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
+  module Set = struct
+    type t = [%import: Common.ModelBuilder.Core.Set.t]
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
+  module Book = struct
+    type t = Common.ModelBuilder.Core.Book.t
+    let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
+  end
+
+  module Any = struct
+    module Type = struct
+      type t = [%import: Common.ModelBuilder.Core.Any.Type.t [@with Common.Formula.t := Formula.t;]
       ]
-    ]
-    [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Source.t [@with Common.Formula.t := Formula.t;]
-    ]
-    [@@deriving qcheck2]
+      [@@deriving qcheck2]
+    end
   end
 end
 
-module Person = struct
-  type t = [%import: Common.ModelBuilder.Core.Person.t]
-
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Person.predicate [@with Nes.Slug.t := Slug.t;
-      (* Core *)
-      Common__ModelBuilder__.Core.Person.t := t;
+module Filter = struct
+  module Source = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Nes.Slug.t := Slug.t;
+      Common.ModelBuilder.Core.Source.t := Model.Source.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Person.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.FilterBuilder.Core.Source.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
-end
 
-module Dance = struct
-  type t = [%import: Common.ModelBuilder.Core.Dance.t]
+  module Person = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Person.predicate [@with Nes.Slug.t := Slug.t;
+      Common.ModelBuilder.Core.Person.t := Model.Person.t;
+      ]
+    ]
+    [@@deriving qcheck2]
+    type t = [%import: Common.FilterBuilder.Core.Person.t [@with Common.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
+  end
 
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Dance.predicate [@with Nes.Slug.t := Slug.t;
-      (* Core *)
-      Common__ModelBuilder__.Core.Dance.t := t;
-      (* Filter *)
+  module Dance = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Dance.predicate [@with Nes.Slug.t := Slug.t;
+      Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Dance.t [@with Common.Formula.t := Formula.t]
+    type t = [%import: Common.FilterBuilder.Core.Dance.t [@with Common.Formula.t := Formula.t]
     ]
     [@@deriving qcheck2]
   end
-end
 
-module Tune = struct
-  type t = [%import: Common.ModelBuilder.Core.Tune.t]
-
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Tune.predicate [@with Nes.Slug.t := Slug.t;
-      (* Core *)
-      Common__ModelBuilder__.Core.Tune.t := t;
-      Common__ModelBuilder__.Core.Dance.t := Dance.t;
-      (* Filter *)
+  module Tune = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Tune.predicate [@with Nes.Slug.t := Slug.t;
+      Common.ModelBuilder.Core.Tune.t := Model.Tune.t;
+      Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
-      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-      Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
+      Common__FilterBuilder__Core.Dance.t := Dance.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Tune.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.FilterBuilder.Core.Tune.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
-end
 
-module Version = struct
-  type t = [%import: Common.ModelBuilder.Core.Version.t]
-
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Version.predicate [@with Nes.Slug.t := Slug.t;
+  module Version = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Version.predicate [@with Nes.Slug.t := Slug.t;
       Common.Music.key := Music.key;
-      (* Core *)
-      Common__ModelBuilder__.Core.Version.t := t;
-      (* Filter *)
+      Common.ModelBuilder.Core.Version.t := Model.Version.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
-      Common__ModelBuilder__Filter.Source.t := Source.Filter.t;
-      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-      Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
-      Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
+      Common__FilterBuilder__Core.Source.t := Source.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
+      Common__FilterBuilder__Core.Dance.t := Dance.t;
+      Common__FilterBuilder__Core.Tune.t := Tune.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Version.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.FilterBuilder.Core.Version.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
-end
 
-module Set = struct
-  type t = [%import: Common.ModelBuilder.Core.Set.t]
-
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Set.predicate [@with Nes.Slug.t := Slug.t;
+  module Set = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Set.predicate [@with Nes.Slug.t := Slug.t;
       Common.Music.key := Music.key;
-      (* Core *)
-      Common__ModelBuilder__.Core.Set.t := t;
-      (* Filter *)
+      Common.ModelBuilder.Core.Set.t := Model.Set.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-      Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
+      Common__FilterBuilder__Core.Version.t := Version.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Set.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.FilterBuilder.Core.Set.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
-end
 
-module Book = struct
-  type t = Common.ModelBuilder.Core.Book.t
-
-  (* Dirty trick necessary to convince [ppx_deriving_qcheck] that it can
-      generate a [t Slug.t]. Fine since [Slug.gen] ignores its first argument. *)
-  let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
-
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Book.predicate [@with Nes.Slug.t := Slug.t;
+  module Book = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Book.predicate [@with Nes.Slug.t := Slug.t;
       Common.Music.key := Music.key;
-      (* Core *)
-      Common__ModelBuilder__.Core.Book.t := t;
-      (* Filter *)
+      Common.ModelBuilder.Core.Book.t := Model.Book.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
-      Common__ModelBuilder__Filter.Set.t := Set.Filter.t;
+      Common__FilterBuilder__Core.Version.t := Version.t;
+      Common__FilterBuilder__Core.Set.t := Set.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Book.t [@with Common.Formula.t := Formula.t;]
-    ]
-    [@@deriving qcheck2]
-  end
-end
-
-module Any = struct
-  module Type = struct
-    type t = [%import: Common.ModelBuilder.Core.Any.Type.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.FilterBuilder.Core.Book.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
 
-  module Filter = struct
-    type predicate = [%import: Common.ModelBuilder.Filter.Any.predicate [@with Nes.Slug.t := Slug.t;
+  module Any = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Any.predicate [@with Nes.Slug.t := Slug.t;
       Common.Music.key := Music.key;
-      (* Core *)
-      Common__ModelBuilder__.Core.Any.Type.t := Type.t;
-      (* Filter *)
+      Common.ModelBuilder.Core.Any.Type.t := Model.Any.Type.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
-      Common__ModelBuilder__Filter.Source.t := Source.Filter.t;
-      Common__ModelBuilder__Filter.Person.t := Person.Filter.t;
-      Common__ModelBuilder__Filter.Dance.t := Dance.Filter.t;
-      Common__ModelBuilder__Filter.Book.t := Book.Filter.t;
-      Common__ModelBuilder__Filter.Set.t := Set.Filter.t;
-      Common__ModelBuilder__Filter.Tune.t := Tune.Filter.t;
-      Common__ModelBuilder__Filter.Version.t := Version.Filter.t;
+      Common__FilterBuilder__Core.Source.t := Source.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
+      Common__FilterBuilder__Core.Dance.t := Dance.t;
+      Common__FilterBuilder__Core.Book.t := Book.t;
+      Common__FilterBuilder__Core.Set.t := Set.t;
+      Common__FilterBuilder__Core.Tune.t := Tune.t;
+      Common__FilterBuilder__Core.Version.t := Version.t;
       ]
     ]
     [@@deriving qcheck2]
-
-    type t = [%import: Common.ModelBuilder.Filter.Any.t [@with Common.Formula.t := Formula.t;]
+    type t = [%import: Common.FilterBuilder.Core.Any.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
