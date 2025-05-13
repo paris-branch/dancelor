@@ -16,14 +16,14 @@ let update env slug tune =
 
 include Search.Build(struct
   type value = Model.Tune.t Entry.t
-  type filter = Model.Tune.Filter.t
+  type filter = Filter.Tune.t
 
   let get_all env =
     Lwt.map
       (List.filter (Permission.can_get env))
       (Database.Tune.get_all ())
 
-  let filter_accepts = Model.Tune.Filter.accepts
+  let filter_accepts = Filter.Tune.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (Lwt.return % Model.Tune.name') String.Sensible.compare;

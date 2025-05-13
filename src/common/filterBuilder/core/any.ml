@@ -6,7 +6,7 @@ open Nes
    and we would rather avoid that. *)
 type predicate =
   | Raw of string
-  | Type of Core.Any.Type.t
+  | Type of ModelBuilder.Core.Any.Type.t
   (* lifting predicates: *)
   | Source of Source.t
   | Person of Person.t
@@ -49,7 +49,7 @@ let make_text_formula_converter ?(human = false) () =
           [
             raw (Result.ok % raw');
             unary_string ~name: "raw" (predicate_Raw, unRaw) ~wrap_back: Never;
-            unary_raw ~name: "type" (type_, unType) ~cast: (Core.Any.Type.of_string_opt, Core.Any.Type.to_string) ~type_: "valid type";
+            unary_raw ~name: "type" (type_, unType) ~cast: (ModelBuilder.Core.Any.Type.of_string_opt, ModelBuilder.Core.Any.Type.to_string) ~type_: "valid type";
             unary_lift ~name: "source" (source, unSource) ~converter: Source.text_formula_converter ~wrap_back;
             unary_lift ~name: "person" (person, unPerson) ~converter: Person.text_formula_converter ~wrap_back;
             unary_lift ~name: "dance" (dance, unDance) ~converter: Dance.text_formula_converter ~wrap_back;
@@ -86,15 +86,15 @@ let to_string = TextFormula.to_string % TextFormula.of_formula text_formula_conv
 let type_based_cleanup =
   (* Returns the types of objects matched by a predicate. *)
   let types_of_predicate = function
-    | Raw _ -> Core.Any.Type.Set.all
-    | Type type_ -> Core.Any.Type.Set.singleton type_
-    | Source _ -> Core.Any.Type.Set.singleton Source
-    | Person _ -> Core.Any.Type.Set.singleton Person
-    | Dance _ -> Core.Any.Type.Set.singleton Dance
-    | Book _ -> Core.Any.Type.Set.singleton Book
-    | Set _ -> Core.Any.Type.Set.singleton Set
-    | Tune _ -> Core.Any.Type.Set.singleton Tune
-    | Version _ -> Core.Any.Type.Set.singleton Version
+    | Raw _ -> ModelBuilder.Core.Any.Type.Set.all
+    | Type type_ -> ModelBuilder.Core.Any.Type.Set.singleton type_
+    | Source _ -> ModelBuilder.Core.Any.Type.Set.singleton Source
+    | Person _ -> ModelBuilder.Core.Any.Type.Set.singleton Person
+    | Dance _ -> ModelBuilder.Core.Any.Type.Set.singleton Dance
+    | Book _ -> ModelBuilder.Core.Any.Type.Set.singleton Book
+    | Set _ -> ModelBuilder.Core.Any.Type.Set.singleton Set
+    | Tune _ -> ModelBuilder.Core.Any.Type.Set.singleton Tune
+    | Version _ -> ModelBuilder.Core.Any.Type.Set.singleton Version
   in
   let open Formula in
   (* Given a maximal set of possible types [t] and a formula, refine the
@@ -102,11 +102,11 @@ let type_based_cleanup =
      types are a subset of [t]. The returned formula does not contain
      predicates that would clash with [t]. *)
   let rec refine_types_and_cleanup t = function
-    | False -> (Core.Any.Type.Set.empty, False)
+    | False -> (ModelBuilder.Core.Any.Type.Set.empty, False)
     | True -> (t, True)
     | Not f ->
       (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-      map_pair (Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (Core.Any.Type.Set.comp t) f
+      map_pair (ModelBuilder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (ModelBuilder.Core.Any.Type.Set.comp t) f
     | And (f1, f2) ->
       (* Refine [t] on [f1], the refine it again while cleaning up [f2],
          then come back and clean up [f1]. *)
@@ -117,12 +117,12 @@ let type_based_cleanup =
     | Or (f1, f2) ->
       let (t1, f1) = refine_types_and_cleanup t f1 in
       let (t2, f2) = refine_types_and_cleanup t f2 in
-        (Core.Any.Type.Set.union t1 t2, or_ f1 f2)
+        (ModelBuilder.Core.Any.Type.Set.union t1 t2, or_ f1 f2)
     | Pred p ->
-      let ts = Core.Any.Type.Set.inter (types_of_predicate p) t in
-        (ts, if Core.Any.Type.Set.is_empty ts then False else Pred p)
+      let ts = ModelBuilder.Core.Any.Type.Set.inter (types_of_predicate p) t in
+        (ts, if ModelBuilder.Core.Any.Type.Set.is_empty ts then False else Pred p)
   in
-  snd % refine_types_and_cleanup Core.Any.Type.Set.all
+  snd % refine_types_and_cleanup ModelBuilder.Core.Any.Type.Set.all
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}

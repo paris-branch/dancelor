@@ -16,14 +16,14 @@ let update env slug source =
 
 include Search.Build(struct
   type value = Model.Source.t Entry.t
-  type filter = Model.Source.Filter.t
+  type filter = Filter.Source.t
 
   let get_all env =
     Lwt.map
       (List.filter (Permission.can_get env))
       (Database.Source.get_all ())
 
-  let filter_accepts = Model.Source.Filter.accepts
+  let filter_accepts = Filter.Source.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (Lwt.return % Model.Source.name') String.Sensible.compare]

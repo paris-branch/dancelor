@@ -53,6 +53,8 @@ let privacy' e = privacy @@ meta e
 
 let equal' e f = Slug.equal' (slug e) (slug f)
 let equal _ = equal'
+let compare' e f = Slug.compare' (slug e) (slug f)
+let compare _ = compare'
 
 let to_yojson value_to_yojson = function
   | Full (slug, meta, value) ->

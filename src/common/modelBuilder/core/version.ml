@@ -15,6 +15,7 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
+let tune' = tune % Entry.value
 let bars' = bars % Entry.value
 let key' = key % Entry.value
 let structure' = structure % Entry.value

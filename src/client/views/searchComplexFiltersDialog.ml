@@ -8,13 +8,13 @@ open Components
 (** Restricted predicates supported by the complex filter dialog. They are
     always of the form of a conjunction of disjunctions. *)
 type restricted_predicate =
-  | Source of Source.Filter.predicate list list
-  | Person of Person.Filter.predicate list list
-  | Dance of Dance.Filter.predicate list list
-  | Book of Book.Filter.predicate list list
-  | Set of Set.Filter.predicate list list
-  | Tune of Tune.Filter.predicate list list
-  | Version of Version.Filter.predicate list list
+  | Source of Filter.Source.predicate list list
+  | Person of Filter.Person.predicate list list
+  | Dance of Filter.Dance.predicate list list
+  | Book of Filter.Book.predicate list list
+  | Set of Filter.Set.predicate list list
+  | Tune of Filter.Tune.predicate list list
+  | Version of Filter.Version.predicate list list
 [@@deriving variants]
 
 (** Restricted formulas supported by the complex filter dialog. This is a bunch
@@ -24,8 +24,8 @@ type restricted_formula = string list * restricted_predicate option
 (** From a filter, return a {!restricted_formula}, or [None] if not possible. *)
 let restrict_formula (text : string) : restricted_formula option =
   (* in the {!Option} monad, [None] being a failure to restrict the formula *)
-  let%opt filter = Result.to_option (Any.Filter.from_string text) in
-  let filter = Any.Filter.optimise filter in
+  let%opt filter = Result.to_option (Filter.Any.from_string text) in
+  let filter = Filter.Any.optimise filter in
   (* special case for the formula that is just true *)
   if filter = Formula.True then
     Some ([], None)
@@ -41,7 +41,7 @@ let restrict_formula (text : string) : restricted_formula option =
       let%opt () = if non_preds = [] then Some () else None in
       (* we separate the predicates between raw ones and non-raw ones *)
       let (raws, non_raws) =
-        List.partition_map (function Any.Filter.Raw s -> Left s | p -> Right p) preds
+        List.partition_map (function Filter.Any.Raw s -> Left s | p -> Right p) preds
       in
       (* there can be at most one non-raw predicate which must lift a model CNF *)
       let%opt pred =
@@ -103,10 +103,10 @@ let kind_choices filter =
   let checked kind =
     (* NOTE: Will stop working when we push the disjunction inside the kind filters *)
     match filter with
-    | Some (Dance filter) -> List.exists (List.mem (Dance.Filter.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
-    | Some (Set filter) -> List.exists (List.mem (Set.Filter.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
-    | Some (Tune filter) -> List.exists (List.mem (Tune.Filter.kind @@ Kind.Base.Filter.is' kind)) filter
-    | Some (Version filter) -> List.exists (List.mem (Version.Filter.kind @@ Kind.Version.Filter.baseIs' kind)) filter
+    | Some (Dance filter) -> List.exists (List.mem (Filter.Dance.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
+    | Some (Set filter) -> List.exists (List.mem (Filter.Set.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
+    | Some (Tune filter) -> List.exists (List.mem (Filter.Tune.kind @@ Kind.Base.Filter.is' kind)) filter
+    | Some (Version filter) -> List.exists (List.mem (Filter.Version.kind @@ Kind.Version.Filter.baseIs' kind)) filter
     | _ -> false
   in
   Choices.(
@@ -135,12 +135,12 @@ let person_bundled_choices _filter = (S.const Formula.true_, [])
 
 let dance_bundled_choices ~kind_choices _filter =
   let formula =
-    S.map (Any.Filter.dance' % Formula.and_l) @@
+    S.map (Filter.Any.dance' % Formula.and_l) @@
       S.all
         [
           choices_formula
             ~s: (Choices.signal kind_choices)
-            ~f: (Dance.Filter.kind' % Kind.Dance.Filter.baseIs');
+            ~f: (Filter.Dance.kind' % Kind.Dance.Filter.baseIs');
         ]
   in
   let html = [
@@ -157,12 +157,12 @@ let book_bundled_choices _filter = (S.const Formula.true_, [])
 
 let set_bundled_choices ~kind_choices _filter =
   let formula =
-    S.map (Any.Filter.set' % Formula.and_l) @@
+    S.map (Filter.Any.set' % Formula.and_l) @@
       S.all
         [
           choices_formula
             ~s: (Choices.signal kind_choices)
-            ~f: (Set.Filter.kind' % Kind.Dance.Filter.baseIs');
+            ~f: (Filter.Set.kind' % Kind.Dance.Filter.baseIs');
         ]
   in
   let html = [
@@ -175,12 +175,12 @@ let set_bundled_choices ~kind_choices _filter =
 
 let tune_bundled_choices ~kind_choices _filter =
   let formula =
-    S.map (Any.Filter.tune' % Formula.and_l) @@
+    S.map (Filter.Any.tune' % Formula.and_l) @@
       S.all
         [
           choices_formula
             ~s: (Choices.signal kind_choices)
-            ~f: (Tune.Filter.kind' % Kind.Base.Filter.is');
+            ~f: (Filter.Tune.kind' % Kind.Base.Filter.is');
         ]
   in
   let html = [
@@ -215,7 +215,7 @@ let major_key_choices filter =
   let checked key =
     (* NOTE: Will stop working when we introduce key filters *)
     match filter with
-    | Some (Version filter) -> List.exists (List.mem (Version.Filter.key key)) filter
+    | Some (Version filter) -> List.exists (List.mem (Filter.Version.key key)) filter
     | _ -> false
   in
   Choices.(
@@ -256,7 +256,7 @@ let minor_key_choices filter =
   let checked key =
     (* NOTE: Will stop working when we introduce key filters *)
     match filter with
-    | Some (Version filter) -> List.exists (List.mem (Version.Filter.key key)) filter
+    | Some (Version filter) -> List.exists (List.mem (Filter.Version.key key)) filter
     | _ -> false
   in
   Choices.(
@@ -277,15 +277,15 @@ let version_bundled_choices ~kind_choices filter =
   let major_key_choices = major_key_choices filter in
   let minor_key_choices = minor_key_choices filter in
   let formula =
-    S.map (Any.Filter.version' % Formula.and_l) @@
+    S.map (Filter.Any.version' % Formula.and_l) @@
       S.all
         [
           choices_formula
             ~s: (Choices.signal kind_choices)
-            ~f: (Version.Filter.kind' % Kind.Version.Filter.baseIs');
+            ~f: (Filter.Version.kind' % Kind.Version.Filter.baseIs');
           choices_formula
             ~s: (S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
-            ~f: Version.Filter.key';
+            ~f: Filter.Version.key';
         ]
   in
   let html = [
@@ -321,7 +321,7 @@ let open_ text raws filter =
             (* [type:version] if any type has been selected *)
             Fun.flip S.map (Choices.signal type_choices) @@ function
               | None -> Formula.true_
-              | Some type_ -> Any.Filter.type_' type_
+              | Some type_ -> Filter.Any.type_' type_
           );
 
           (* model-specific formulas *)
@@ -338,7 +338,7 @@ let open_ text raws filter =
           );
 
           (* a conjunction of the raw strings *)
-          S.const (Formula.and_l (List.map Any.Filter.raw' raws));
+          S.const (Formula.and_l (List.map Filter.Any.raw' raws));
         ]
   in
   Page.open_dialog' @@ fun return ->
@@ -372,7 +372,7 @@ let open_ text raws filter =
         ~label_processing: "Applying..."
         ~icon: "check-circle"
         ~classes: ["btn-primary"]
-        ~onclick: (fun () -> return (Any.Filter.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
+        ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
         ()
     ]
 

@@ -2,16 +2,15 @@ module type S = sig
   (** {1 Tune} *)
 
   open Nes
-  open Core
 
-  type t = Tune.t
+  type t = Core.Tune.t
 
   val make :
     name: string ->
     ?alternative_names: string list ->
     kind: Kind.Base.t ->
-    ?composers: Person.t Entry.t list ->
-    ?dances: Dance.t Entry.t list ->
+    ?composers: Core.Person.t Entry.t list ->
+    ?dances: Core.Dance.t Entry.t list ->
     ?remark: string ->
     ?scddb_id: int ->
     ?date: PartialDate.t ->
@@ -29,11 +28,11 @@ module type S = sig
   val kind : t -> Kind.Base.t
   val kind' : t Entry.t -> Kind.Base.t
 
-  val composers : t -> Person.t Entry.t list Lwt.t
-  val composers' : t Entry.t -> Person.t Entry.t list Lwt.t
+  val composers : t -> Core.Person.t Entry.t list Lwt.t
+  val composers' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
 
-  val dances : t -> Dance.t Entry.t list Lwt.t
-  val dances' : t Entry.t -> Dance.t Entry.t list Lwt.t
+  val dances : t -> Core.Dance.t Entry.t list Lwt.t
+  val dances' : t Entry.t -> Core.Dance.t Entry.t list Lwt.t
 
   val remark : t -> string
   val remark' : t Entry.t -> string
@@ -48,48 +47,6 @@ module type S = sig
 
   val compare : t Entry.t -> t Entry.t -> int
   (* FIXME: sounds hackish *)
-
-  (** {2 Filters} *)
-
-  module Filter : sig
-    type predicate = Filter.Tune.predicate
-    type t = Filter.Tune.t
-
-    val accepts : t -> Tune.t Entry.t -> float Lwt.t
-    (** The main function for filters: given a filter and a tune, [accepts]
-        returns a float between [0.] and [1.] representing how much the filter
-        accepts the tune, [1.] meaning that the tune is fully accepted and [0.]
-        meaning that the tune is fully rejected. *)
-
-    val is : Tune.t Entry.t -> predicate
-    val is' : Tune.t Entry.t -> t
-    (** [is tune] is a filter that matches exactly [tune] and only [tune]. *)
-
-    val kind : KindBase.Filter.t -> predicate
-    val kind' : KindBase.Filter.t -> t
-
-    val existsComposer : Filter.Person.t -> predicate
-    val existsComposer' : Filter.Person.t -> t
-
-    val existsComposerIs : Person.t Entry.t -> predicate
-    val existsComposerIs' : Person.t Entry.t -> t
-
-    val existsDance : Filter.Dance.t -> predicate
-    val existsDance' : Filter.Dance.t -> t
-
-    val text_formula_converter : predicate TextFormulaConverter.t
-    (** Converter from text formulas to formulas on tunes. *)
-
-    val from_text_formula : TextFormula.t -> (t, string) Result.t
-    (** Build a filter from a text predicate, or fail. *)
-
-    val from_string : ?filename: string -> string -> (t, string) Result.t
-    (** Build a filter from a string, or fail. *)
-
-    val to_string : t -> string
-
-    val optimise : t -> t
-  end
 
   (** {2 Magic getter} *)
 

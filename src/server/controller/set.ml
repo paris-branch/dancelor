@@ -20,14 +20,14 @@ let delete env slug =
 
 include Search.Build(struct
   type value = Model.Set.t Entry.t
-  type filter = Model.Set.Filter.t
+  type filter = Filter.Set.t
 
   let get_all env =
     Lwt.map
       (List.filter (Permission.can_get env))
       (Database.Set.get_all ())
 
-  let filter_accepts = Model.Set.Filter.accepts
+  let filter_accepts = Filter.Set.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (Lwt.return % Model.Set.name') String.Sensible.compare;

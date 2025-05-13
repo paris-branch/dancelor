@@ -108,7 +108,7 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Model.Set.Filter.from_string input) in
+          let%rlwt filter = Lwt.return (Filter.Set.from_string input) in
           Lwt.map Result.ok @@
             Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )

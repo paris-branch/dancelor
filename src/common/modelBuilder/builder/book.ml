@@ -1,18 +1,14 @@
 open Nes
 
-module Build
-  (Dance : Signature.Dance.S)
-  (Person : Signature.Person.S)
-  (Set : Signature.Set.S)
-  (Tune : Signature.Tune.S)
-  (Version : Signature.Version.S)
-= struct
+module Build (Getters : Getters.S) = struct
   include Core.Book
+
+  let get = Getters.get_book
 
   let short_title book = if short_title book = "" then title book else short_title book
   let short_title' = short_title % Entry.value
 
-  let authors = Lwt_list.map_p Person.get % authors
+  let authors = Lwt_list.map_p Getters.get_person % authors
   let authors' = authors % Entry.value
 
   let compare : t Entry.t -> t Entry.t -> int =
@@ -33,10 +29,10 @@ module Build
     Lwt_list.map_p
       (function
         | Core.Book.Page.Version (version, parameters) ->
-          let%lwt version = Version.get version in
+          let%lwt version = Getters.get_version version in
           Lwt.return (Version (version, parameters))
         | Core.Book.Page.Set (set, parameters) ->
-          let%lwt set = Set.get set in
+          let%lwt set = Getters.get_set set in
           Lwt.return (Set (set, parameters))
         | Core.Book.Page.InlineSet (set, parameters) ->
           Lwt.return (InlineSet (set, parameters))
@@ -67,14 +63,16 @@ module Build
 
   let find_context_no_inline' index = find_context_no_inline index % Entry.value
 
+  module BuiltSet = Set.Build(Getters)
+
   let lilypond_contents_cache_key book =
     let%lwt pages = contents book in
     let%lwt contents =
       Lwt_list.map_p
         (function
-          | Version (version, _) -> Lwt.return @@ Version.content' version
-          | Set (set, _) -> Set.lilypond_content_cache_key' set
-          | InlineSet (set, _) -> Set.lilypond_content_cache_key set
+          | Version (version, _) -> Lwt.return @@ Core.Version.content' version
+          | Set (set, _) -> BuiltSet.lilypond_content_cache_key' set
+          | InlineSet (set, _) -> BuiltSet.lilypond_content_cache_key set
         )
         pages
     in
@@ -119,14 +117,14 @@ module Build
 
     let duplicateSet book =
       Fun.flip Lwt.map (sets_from_contents' book) @@ fun sets ->
-      match List.sort Set.compare sets with
+      match List.sort Entry.compare' sets with
       | [] -> []
       | first_set :: other_sets ->
         let (_, warnings) =
           List.fold_left
             (fun (previous_set, warnings) current_set ->
               let warnings =
-                if Set.equal current_set previous_set then
+                if Entry.equal' current_set previous_set then
                     ((DuplicateSet current_set) :: warnings)
                 else
                   warnings
@@ -139,7 +137,7 @@ module Build
         warnings
 
     let unique_sets_from_contents' =
-      Lwt.map (List.sort_uniq Set.compare) % sets_from_contents'
+      Lwt.map (List.sort_uniq Entry.compare') % sets_from_contents'
 
     let duplicateVersion book =
       let%lwt sets = unique_sets_from_contents' book in
@@ -157,7 +155,7 @@ module Build
       (* register standalone tunes *)
       Lwt_list.iter_s
         (fun v ->
-          let%lwt tune = Version.tune' v in
+          let%lwt tune = Getters.get_tune @@ Core.Version.tune' v in
           register_tune_to_set tune None;
           Lwt.return ()
         )
@@ -165,11 +163,11 @@ module Build
       (* register tunes in sets *)
       Lwt_list.iter_s
         (fun set ->
-          let%lwt contents = Set.contents' set in
+          let%lwt contents = BuiltSet.contents' set in
           let versions = List.map fst contents in
           Lwt_list.iter_s
             (fun v ->
-              let%lwt tune = Version.tune' v in
+              let%lwt tune = Getters.get_tune @@ Core.Version.tune' v in
               register_tune_to_set tune (Some set);
               Lwt.return ()
             )
@@ -182,7 +180,7 @@ module Build
       |> List.of_seq
       |> List.fold_left
           (fun warnings (tune, set_opts) ->
-            let set_opts = List.sort_count (Option.compare Set.compare) set_opts in
+            let set_opts = List.sort_count (Option.compare Entry.compare') set_opts in
             if List.length set_opts > 1 then
                 ((DuplicateVersion (tune, set_opts)) :: warnings)
             else
@@ -207,8 +205,8 @@ module Build
           let%olwt dance_slug = Lwt.return (Core.SetParameters.for_dance parameters) in
           (* FIXME: SetParameters should be hidden behind the same kind of
              mechanism as the rest; and this step should not be necessary *)
-          let%lwt dance = Dance.get dance_slug in
-          if Set.kind' set = Dance.kind' dance then
+          let%lwt dance = Getters.get_dance dance_slug in
+          if Core.Set.kind' set = Core.Dance.kind' dance then
             Lwt.return_none
           else
             Lwt.return_some (SetDanceMismatch (set, dance))
@@ -234,73 +232,11 @@ module Build
 
   let page_core_to_page = function
     | Core.Book.Page.Version (version, params) ->
-      let%lwt version = Version.get version in
+      let%lwt version = Getters.get_version version in
       Lwt.return @@ Version (version, params)
     | Core.Book.Page.Set (set, params) ->
-      let%lwt set = Set.get set in
+      let%lwt set = Getters.get_set set in
       Lwt.return @@ Set (set, params)
     | Core.Book.Page.InlineSet (set, params) ->
       Lwt.return @@ InlineSet (set, params)
-
-  module Filter = struct
-    include Filter.Book
-
-    let rec accepts filter book =
-      let char_equal = Char.Sensible.equal in
-      Formula.interpret filter @@ function
-        | Is book' ->
-          Lwt.return @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug book) book'
-        | Title string ->
-          Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.title' book
-        | TitleMatches string ->
-          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.title' book
-        | Subtitle string ->
-          Lwt.return @@ String.proximity ~char_equal string @@ Core.Book.subtitle' book
-        | SubtitleMatches string ->
-          Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Book.subtitle' book
-        | IsSource ->
-          Lwt.return @@ Formula.interpret_bool @@ source' book
-        | ExistsVersion vfilter ->
-          let%lwt content = contents' book in
-          let%lwt versions =
-            Lwt_list.filter_map_s
-              (function
-                | Version (v, _p) -> Lwt.return_some v
-                | _ -> Lwt.return_none
-              )
-              content
-          in
-          Formula.interpret_exists (Version.Filter.accepts vfilter) versions
-        | ExistsSet sfilter ->
-          let%lwt content = contents' book in
-          let%lwt sets =
-            Lwt_list.filter_map_s
-              (function
-                | Set (s, _p) -> Lwt.return_some s
-                | _ -> Lwt.return_none
-              )
-              content
-          in
-          Formula.interpret_exists (Set.Filter.accepts sfilter) sets
-        | ExistsInlineSet sfilter ->
-          let%lwt content = contents' book in
-          let%lwt isets =
-            Lwt_list.filter_map_s
-              (function
-                | InlineSet (s, _p) -> Lwt.return_some s
-                | _ -> Lwt.return_none
-              )
-              content
-          in
-          Formula.interpret_exists (Set.Filter.accepts sfilter % Entry.make_dummy) isets
-        | ExistsVersionDeep vfilter ->
-          (* recursive call to check the compound formula *)
-          Fun.flip accepts book @@
-            Formula.or_l
-              [
-                Formula.pred (ExistsVersion vfilter);
-                Formula.pred (ExistsSet (Set.Filter.existsVersion' vfilter));
-                Formula.pred (ExistsInlineSet (Set.Filter.existsVersion' vfilter));
-              ]
-  end
 end

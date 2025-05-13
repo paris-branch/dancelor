@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of Core.Book.t Slug.t
+  | Is of ModelBuilder.Core.Book.t Slug.t
   | IsSource
   | Title of string
   | TitleMatches of string

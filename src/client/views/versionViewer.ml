@@ -17,8 +17,8 @@ let create ?context slug =
         Formula.(
           and_l
             [
-              Version.Filter.tuneIs' tune;
-              not (Version.Filter.is' version);
+              Filter.Version.tuneIs' tune;
+              not (Filter.Version.is' version);
             ]
         )
   in
@@ -122,10 +122,10 @@ let create ?context slug =
         ];
       Utils.quick_explorer_links
         [
-          ("sets containing this version", Lwt.map (Any.Filter.set' % Set.Filter.memVersion') version_lwt);
-          ("sets containing this tune", Lwt.map (Any.Filter.set' % Set.Filter.existsVersion' % Version.Filter.tuneIs') tune_lwt);
-          ("books containing this version", Lwt.map (Any.Filter.book' % Book.Filter.memVersionDeep') version_lwt);
-          ("books containing this tune", Lwt.map (Any.Filter.book' % Book.Filter.existsVersionDeep' % Version.Filter.tuneIs') tune_lwt);
+          ("sets containing this version", Lwt.map Filter.(Any.set' % Set.memVersion') version_lwt);
+          ("sets containing this tune", Lwt.map Filter.(Any.set' % Set.existsVersion' % Version.tuneIs') tune_lwt);
+          ("books containing this version", Lwt.map Filter.(Any.book' % Book.memVersionDeep') version_lwt);
+          ("books containing this tune", Lwt.map Filter.(Any.book' % Book.existsVersionDeep' % Version.tuneIs') tune_lwt);
         ];
       div
         ~a: [a_class ["section"]]

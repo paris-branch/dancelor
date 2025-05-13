@@ -3,7 +3,7 @@ open Common
 
 include Search.Build(struct
   type value = Model.Any.t
-  type filter = Model.Any.Filter.t
+  type filter = Filter.Any.t
 
   let get_all env =
     let%lwt sources = Source.get_all env >|=| List.map (fun c -> Model.Any.Source c) in
@@ -15,7 +15,7 @@ include Search.Build(struct
     let%lwt versions = Version.get_all env >|=| List.map (fun v -> Model.Any.Version v) in
       (Lwt.return (sources @ persons @ dances @ books @ sets @ tunes @ versions))
 
-  let filter_accepts = Model.Any.Filter.accepts
+  let filter_accepts = Filter.Any.accepts
 
   let tiebreakers = [
     curry @@ function

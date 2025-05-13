@@ -16,7 +16,7 @@ let book_page_to_any = function
 let get_neighbours any = function
   | Endpoints.Page.InSearch query ->
     (* TODO: Unify with [Explorer.search]. *)
-    let filter = Result.get_ok (Any.Filter.from_string query) in
+    let filter = Result.get_ok (Filter.Any.from_string query) in
     let%lwt (total, previous, index, next) =
       Madge_client.call_exn Endpoints.Api.(route @@ Any SearchContext) filter any
     in

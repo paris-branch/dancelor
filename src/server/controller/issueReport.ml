@@ -4,7 +4,7 @@ open Common
 open Endpoints.IssueReport
 open Request
 
-include Endpoints.Page.MakeDescribe(Model.Book)(Model.Dance)(Model.Person)(Model.Set)(Model.Source)(Model.Tune)(Model.Version)
+include Endpoints.Page.MakeDescribe(Model)
 
 (* used at the end of the {!report} function below *)
 let id_regexp = Str.regexp ".*/issues/\\(.*\\)"

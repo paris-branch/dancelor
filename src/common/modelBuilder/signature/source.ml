@@ -5,9 +5,8 @@ module type S = sig
       containing tunes, and with which we can check the correspondance. *)
 
   open Nes
-  open Core
 
-  type t = Source.t
+  type t = Core.Source.t
   (** Abstract type for a source. *)
 
   val make :
@@ -29,25 +28,6 @@ module type S = sig
   val description' : t Entry.t -> string option
 
   val equal : t -> t -> bool
-
-  (** {2 Filters} *)
-
-  module Filter : sig
-    type predicate = Filter.Source.predicate
-    type t = Filter.Source.t
-
-    val accepts : t -> Source.t Entry.t -> float Lwt.t
-
-    val is : Source.t Entry.t -> predicate
-    val is' : Source.t Entry.t -> t
-
-    val text_formula_converter : predicate TextFormulaConverter.t
-    val from_text_formula : TextFormula.t -> (t, string) Result.t
-    val from_string : ?filename: string -> string -> (t, string) Result.t
-    val to_string : t -> string
-
-    val optimise : t -> t
-  end
 
   (** {2 Magic getter} *)
 

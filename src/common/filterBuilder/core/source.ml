@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of Core.Source.t Slug.t
+  | Is of ModelBuilder.Core.Source.t Slug.t
   | Name of string
   | NameMatches of string
 [@@deriving eq, show {with_path = false}, yojson, variants]
@@ -11,16 +11,6 @@ type t = predicate Formula.t
 
 let name' = Formula.pred % name
 let nameMatches' = Formula.pred % nameMatches
-
-let accepts filter source =
-  let char_equal = Char.Sensible.equal in
-  Formula.interpret filter @@ function
-    | Is source' ->
-      Lwt.return @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug source) source'
-    | Name string ->
-      Lwt.return @@ String.proximity ~char_equal string @@ Core.Source.name' source
-    | NameMatches string ->
-      Lwt.return @@ String.inclusion_proximity ~char_equal ~needle: string @@ Core.Source.name' source
 
 let text_formula_converter =
   TextFormulaConverter.(

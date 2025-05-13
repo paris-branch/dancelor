@@ -10,8 +10,11 @@ val is_none : 'any t -> bool
 val equal : ('any -> 'any -> bool) -> 'any t -> 'any t -> bool
 (** For compatibility with [ppx_deriving.std]'s [equal]. Prefer {!equal'}. *)
 
+val compare : ('any -> 'any -> int) -> 'any t -> 'any t -> int
+(** For compatibility with [ppx_deriving.std]'s [compare]. Prefer {!compare'}. *)
+
 val equal' : 'any t -> 'any t -> bool
-val compare : 'any t -> 'any t -> int
+val compare' : 'any t -> 'any t -> int
 
 val from_string : string -> 'any t
 (** Creates a slug from the given string. This function fails with

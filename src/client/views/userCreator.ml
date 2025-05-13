@@ -49,7 +49,7 @@ let create () =
     Selector.make
       ~arity: Selector.one
       ~search: (fun slice input ->
-        let%rlwt filter = Lwt.return (Model.Person.Filter.from_string input) in
+        let%rlwt filter = Lwt.return (Filter.Person.from_string input) in
         Lwt.map Result.ok @@
           Madge_client.call_exn
             Endpoints.Api.(route @@ Person Search)

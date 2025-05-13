@@ -1,24 +1,25 @@
 module type S = sig
-  open Nes
-  open Core
+  (** {1 Version} *)
 
-  type t = Version.t
+  open Nes
+
+  type t = Core.Version.t
 
   val make :
-    tune: Tune.t Entry.t ->
+    tune: Core.Tune.t Entry.t ->
     bars: int ->
     key: Music.key ->
     structure: string ->
-    ?sources: Source.t Entry.t list ->
-    ?arrangers: Person.t Entry.t list ->
+    ?sources: Core.Source.t Entry.t list ->
+    ?arrangers: Core.Person.t Entry.t list ->
     ?remark: string ->
     ?disambiguation: string ->
     content: string ->
     unit ->
     t
 
-  val tune : t -> Tune.t Entry.t Lwt.t
-  val tune' : t Entry.t -> Tune.t Entry.t Lwt.t
+  val tune : t -> Core.Tune.t Entry.t Lwt.t
+  val tune' : t Entry.t -> Core.Tune.t Entry.t Lwt.t
 
   val bars : t -> int
   val bars' : t Entry.t -> int
@@ -29,11 +30,11 @@ module type S = sig
   val structure : t -> string
   val structure' : t Entry.t -> string
 
-  val sources : t -> Source.t Entry.t list Lwt.t
-  val sources' : t Entry.t -> Source.t Entry.t list Lwt.t
+  val sources : t -> Core.Source.t Entry.t list Lwt.t
+  val sources' : t Entry.t -> Core.Source.t Entry.t list Lwt.t
 
-  val arrangers : t -> Person.t Entry.t list Lwt.t
-  val arrangers' : t Entry.t -> Person.t Entry.t list Lwt.t
+  val arrangers : t -> Core.Person.t Entry.t list Lwt.t
+  val arrangers' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
 
   val remark : t -> string
   val remark' : t Entry.t -> string
@@ -53,43 +54,6 @@ module type S = sig
   (** Convenient wrapper around {!tune} and {!Tune.name}. *)
 
   val equal : t -> t -> bool
-
-  (** {2 Filters} *)
-
-  module Filter : sig
-    type predicate = Filter.Version.predicate
-    type t = Filter.Version.t
-
-    val accepts : t -> Version.t Entry.t -> float Lwt.t
-
-    val is : Version.t Entry.t -> predicate
-    val is' : Version.t Entry.t -> t
-
-    val tuneIs : Tune.t Entry.t -> predicate
-    val tuneIs' : Tune.t Entry.t -> t
-
-    val tune : Filter.Tune.t -> predicate
-    val tune' : Filter.Tune.t -> t
-
-    val kind : Kind.Version.Filter.t -> predicate
-    val kind' : Kind.Version.Filter.t -> t
-
-    val key : Music.Key.t -> predicate
-    val key' : Music.Key.t -> t
-
-    val existsSource : Filter.Source.t -> predicate
-    val existsSource' : Filter.Source.t -> t
-
-    val memSource : Source.t Entry.t -> predicate
-    val memSource' : Source.t Entry.t -> t
-
-    val text_formula_converter : predicate TextFormulaConverter.t
-    val from_text_formula : TextFormula.t -> (t, string) Result.t
-    val from_string : ?filename: string -> string -> (t, string) Result.t
-    val to_string : t -> string
-
-    val optimise : t -> t
-  end
 
   (** {2 Magic getter} *)
 
