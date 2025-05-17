@@ -14,6 +14,12 @@
             timidity = prev.timidity.override { enableVorbis = true; };
             lilypond = inputs.nixpkgs2211.legacyPackages.${system}.lilypond;
           })
+
+          (final: prev: {
+            ocamlPackages = prev.ocamlPackages // {
+              argon2 = final.ocamlPackages.callPackage ./package/ocaml/argon2.nix { };
+            };
+          })
         ];
       };
     };
