@@ -15,10 +15,16 @@
             lilypond = inputs.nixpkgs2211.legacyPackages.${system}.lilypond;
           })
 
-          (final: prev: {
-            ocamlPackages = prev.ocamlPackages // {
-              argon2 = final.ocamlPackages.callPackage ./package/ocaml/argon2.nix { };
-            };
+          (_final: prev: {
+            ocamlPackages = prev.ocamlPackages.overrideScope (
+              finalScope: _prevScope: {
+                argon2 = finalScope.callPackage ./package/ocaml/argon2.nix { };
+                ppxlib = finalScope.callPackage ./package/ocaml/ppxlib.nix { };
+                ppx_deriving = finalScope.callPackage ./package/ocaml/ppx_deriving.nix { };
+                ppx_deriving_qcheck = finalScope.callPackage ./package/ocaml/ppx_deriving_qcheck.nix { };
+                ppx_deriving_yojson = finalScope.callPackage ./package/ocaml/ppx_deriving_yojson.nix { };
+              }
+            );
           })
         ];
       };
