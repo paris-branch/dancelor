@@ -1,15 +1,15 @@
 open Nes
 
-type predicate =
+type predicate = ModelFormula.tune_predicate =
   | Is of ModelBuilder.Core.Tune.t Slug.t
   | Name of string
   | NameMatches of string
-  | ExistsComposer of Person.t (** one of the composers of the list passes the filter *)
+  | ExistsComposer of ModelFormula.person
   | Kind of Kind.Base.Filter.t
-  | ExistsDance of Dance.t
+  | ExistsDance of ModelFormula.dance
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
-type t = predicate Formula.t
+type t = ModelFormula.tune
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name

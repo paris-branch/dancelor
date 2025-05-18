@@ -1,14 +1,14 @@
 open Nes
 
-type predicate =
+type predicate = ModelFormula.dance_predicate =
   | Is of ModelBuilder.Core.Dance.t Slug.t
   | Name of string
   | NameMatches of string
   | Kind of Kind.Dance.Filter.t
-  | ExistsDeviser of Person.t (** deviser is defined and passes the filter *)
+  | ExistsDeviser of ModelFormula.person
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
-type t = predicate Formula.t
+type t = ModelFormula.dance
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name

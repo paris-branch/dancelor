@@ -1,19 +1,19 @@
 open Nes
 
-type predicate =
+type predicate = ModelFormula.book_predicate =
   | Is of ModelBuilder.Core.Book.t Slug.t
   | IsSource
   | Title of string
   | TitleMatches of string
   | Subtitle of string
   | SubtitleMatches of string
-  | ExistsVersion of Version.t
-  | ExistsSet of Set.t
-  | ExistsInlineSet of Set.t
-  | ExistsVersionDeep of Version.t
+  | ExistsVersion of ModelFormula.version
+  | ExistsSet of ModelFormula.set
+  | ExistsInlineSet of ModelFormula.set
+  | ExistsVersionDeep of ModelFormula.version
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
-type t = predicate Formula.t
+type t = ModelFormula.book
 [@@deriving eq, show {with_path = false}, yojson]
 
 let title' = Formula.pred % title

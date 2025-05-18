@@ -1,14 +1,14 @@
 open Nes
 
-type predicate =
+type predicate = ModelFormula.version_predicate =
   | Is of ModelBuilder.Core.Version.t Slug.t
   | Tune of Tune.t
   | Key of Music.key
   | Kind of Kind.Version.Filter.t
-  | ExistsSource of Source.t
+  | ExistsSource of ModelFormula.source
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
-type t = predicate Formula.t
+type t = ModelFormula.version
 [@@deriving eq, show {with_path = false}, yojson]
 
 let tune' = Formula.pred % tune

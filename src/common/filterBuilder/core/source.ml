@@ -1,12 +1,12 @@
 open Nes
 
-type predicate =
+type predicate = ModelFormula.source_predicate =
   | Is of ModelBuilder.Core.Source.t Slug.t
   | Name of string
   | NameMatches of string
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
-type t = predicate Formula.t
+type t = ModelFormula.source
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name

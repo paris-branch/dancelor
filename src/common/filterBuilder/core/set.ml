@@ -1,11 +1,11 @@
 open Nes
 
-type predicate =
+type predicate = ModelFormula.set_predicate =
   | Is of ModelBuilder.Core.Set.t Slug.t
   | Name of string
   | NameMatches of string
-  | ExistsConceptor of Person.t (** conceptor is defined and passes the filter *)
-  | ExistsVersion of Version.t
+  | ExistsConceptor of ModelFormula.person
+  | ExistsVersion of ModelFormula.version
   | Kind of Kind.Dance.Filter.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
