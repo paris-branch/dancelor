@@ -211,8 +211,19 @@ let exists p s = to_seq s |> NesSeq.exists p
 let for_all p s = to_seq s |> NesSeq.for_all p
 
 let slugify ?(sep = '-') string =
-  Slug.slugify ~sep: (String.make 1 sep) string
-(* FIXME: [Slug.slugify] is not idempotent?! *)
+  let charmap =
+    Slug.Charmap.mk_charmap [
+      Slug.Slug_data.base;
+      [("-", " ")];
+      (* ^ without this, dashes disappear, making [slugify] non-idempotent *)
+    ]
+  in
+  Slug.slugify ~sep: (String.make 1 sep) ~charmap ~lowercase: true string
+
+let%test _ = slugify "NiOls" = "niols"
+let%test _ = slugify "Anne-Laure" = "anne-laure"
+let%test _ = slugify "Àlîénör Lãtour" = "alienor-latour"
+let%test _ = slugify "x's favourite" = "xs-favourite"
 
 let is_slug ?(sep = '-') string =
   String.for_all
