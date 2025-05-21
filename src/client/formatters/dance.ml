@@ -13,3 +13,14 @@ let name_gen = function
 
 let name = name_gen % Either.left
 let name' ?(link = true) person = name_gen @@ Right (person, link)
+
+let name_and_disambiguation_gen dance =
+  let disambiguation_block =
+    match Model.Dance.disambiguation @@ Either.fold ~left: Fun.id ~right: (Entry.value % fst) dance with
+    | "" -> []
+    | disambiguation -> [span ~a: [a_class ["opacity-50"]] [txt (spf " (%s)" disambiguation)]]
+  in
+  Lwt.return (name_gen dance :: disambiguation_block)
+
+let name_and_disambiguation = name_and_disambiguation_gen % Either.left
+let name_and_disambiguation' ?(name_link = true) dance = name_and_disambiguation_gen @@ Right (dance, name_link)

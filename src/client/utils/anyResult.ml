@@ -60,7 +60,7 @@ let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt (Dance.name' dance)];
+      [ResultRow.lcell (Formatters.Dance.name_and_disambiguation' ~name_link: false dance);
       ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
       ResultRow.lcell (Lwt.map (Formatters.Person.names' ~short: true) (Dance.devisers' dance));
       ] @
