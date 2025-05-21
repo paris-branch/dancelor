@@ -39,7 +39,7 @@ let dances dances =
   clickable_row
     ~href
     [
-      Lwt.return [Formatters.Dance.name' ~link: false dance];
+      (Formatters.Dance.name_and_disambiguation' ~name_link: false dance);
       (Lwt.map Formatters.Person.names' (Dance.devisers' dance));
       Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     ]
