@@ -39,6 +39,9 @@ module S = struct
       );
     result
 
+  let for_lwt' (promise : 'a Lwt.t) (f : 'a option -> 'b) : 'b t =
+    map f @@ from' None @@ Lwt.map (fun x -> Some x) promise
+
   (** [bind_s' signal placeholder promise] is a signal that begins by holding
       [placeholder]. For all the values held by [signal], [promise] is called
       such that, upon resolution, the output signal gets a new value.
@@ -107,10 +110,18 @@ module R = struct
   let a_value val_ = R.a_value val_
 
   let div ?a elts = R.div ?a (RList.from_signal elts)
+  let span ?a elts = R.span ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
   let ul ?a elts = R.ul ?a (RList.from_signal elts)
   let td ?a elts = R.td ?a (RList.from_signal elts)
   let a ?a elts = R.a ?a (RList.from_signal elts)
+
+  let h1 ?a elts = R.h1 ?a (RList.from_signal elts)
+  let h2 ?a elts = R.h2 ?a (RList.from_signal elts)
+  let h3 ?a elts = R.h3 ?a (RList.from_signal elts)
+  let h4 ?a elts = R.h4 ?a (RList.from_signal elts)
+  let h5 ?a elts = R.h5 ?a (RList.from_signal elts)
+  let h6 ?a elts = R.h6 ?a (RList.from_signal elts)
 end
 
 (** Lwt HTML nodes. *)
@@ -160,3 +171,9 @@ module RS = struct
       | Ok x -> f x
       | Error msg -> S.const @@ Error msg
 end
+
+(* Other HTML utilities *)
+
+let span_placeholder min max =
+  let col_n = "col-" ^ string_of_int (Random.int_in_range ~min ~max) in
+  span ~a: [a_class ["placeholder"; col_n]] []
