@@ -37,6 +37,8 @@ let dispatch uri =
   | Some page -> page ()
   | None -> OooopsViewer.create `Not_found
 
+let () = Random.self_init ()
+
 let () =
   let previous_exn = ref (Failure "this is an exception that is never raised") in
   Lwt.async_exception_hook :=
@@ -59,6 +61,18 @@ let () =
                 txt
                   "” and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";
+              ]
+          | Madge_client.ServerUnreachable request ->
+            Components.Toast.open_
+              ~title: "Server unreachable"
+              [
+                txt "While querying ";
+                a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
+                txt
+                  ", the Dancelor server was unreachable, despite several \
+                     attempts. Is your internet connection maybe unstable? If \
+                     the error persists, and your internet connection works \
+                     otherwise fine, please contact your administrator."
               ]
           | exn ->
             Components.Toast.open_
