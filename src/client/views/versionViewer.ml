@@ -6,10 +6,8 @@ open Html
 
 let create ?context slug =
   MainPage.get_model_or_404 (Version Get) slug @@ fun version ->
-  let tune_lwt = Version.tune' version in
-  (* FIXME: get rid of this *)
   let other_versions_lwt =
-    let%lwt tune = tune_lwt in
+    let%lwt tune = Model.Version.tune' version in
     Lwt.map snd @@
       Madge_client.call_exn
         Endpoints.Api.(route @@ Version Search)
@@ -22,7 +20,7 @@ let create ?context slug =
             ]
         )
   in
-  let title = S.from' "" (Lwt.map Tune.name' tune_lwt) in
+  let title = S.from' "" (Version.name' version) in
   Page.make
     ~parent_title: "Version"
     ~title
@@ -33,8 +31,8 @@ let create ?context slug =
         (Lwt.return @@ Any.version version);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (Lwt.map Formatters.Tune.aka' tune_lwt);
-      L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description');
+      L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.tune_aka' version);
+      L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.tune_description' version);
       L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.description' ~arranger_links: true version);
       div
         ~a: [a_class ["text-end"; "dropdown"]]
@@ -86,7 +84,7 @@ let create ?context slug =
                 ];
               L.li
                 (
-                  match%lwt Lwt.map Tune.scddb_id' tune_lwt with
+                  match%lwt Lwt.map Tune.scddb_id' (Model.Version.tune' version) with
                   | None -> Lwt.return_nil
                   | Some scddb_id ->
                     Lwt.return
@@ -106,7 +104,7 @@ let create ?context slug =
         ];
       L.div
         (
-          match%lwt Lwt.map Tune.date' tune_lwt with
+          match%lwt Lwt.map Tune.date' (Model.Version.tune' version) with
           | None -> Lwt.return_nil
           | Some date ->
             Lwt.return [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
@@ -123,9 +121,9 @@ let create ?context slug =
       Utils.quick_explorer_links
         [
           ("sets containing this version", Lwt.return @@ Filter.(Any.set' % Set.memVersion') version);
-          ("sets containing this tune", Lwt.map Filter.(Any.set' % Set.existsVersion' % Version.tuneIs') tune_lwt);
+          ("sets containing this tune", Lwt.map Filter.(Any.set' % Set.existsVersion' % Version.tuneIs') (Model.Version.tune' version));
           ("books containing this version", Lwt.return @@ Filter.(Any.book' % Book.memVersionDeep') version);
-          ("books containing this tune", Lwt.map Filter.(Any.book' % Book.existsVersionDeep' % Version.tuneIs') tune_lwt);
+          ("books containing this tune", Lwt.map Filter.(Any.book' % Book.existsVersionDeep' % Version.tuneIs') (Model.Version.tune' version));
         ];
       div
         ~a: [a_class ["section"]]
@@ -145,7 +143,7 @@ let create ?context slug =
                         [
                           txt "You can also go to the ";
                           a
-                            ~a: [L.a_href @@ Lwt.map (Endpoints.Page.href_tune % Entry.slug) tune_lwt]
+                            ~a: [L.a_href @@ Lwt.map (Endpoints.Page.href_tune % Entry.slug) (Model.Version.tune' version)]
                             [txt "page of the tune"];
                           txt "."
                         ]
@@ -159,8 +157,7 @@ let create ?context slug =
           h3 [txt "Dances That Recommend This Tune"];
           L.div
             (
-              let%lwt tune = tune_lwt in
-              let%lwt dances = Tune.dances' tune in
+              let%lwt dances = Lwt.bind (Model.Version.tune' version) Tune.dances' in
               Lwt.return
                 [
                   if dances = [] then

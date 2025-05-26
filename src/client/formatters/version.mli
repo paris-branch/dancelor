@@ -63,3 +63,11 @@ val composer_and_arranger' :
   Model.Version.t Entry.t ->
   [> `A of [> Html_types.txt] | `PCDATA | `Span] elt list Lwt.t
 (** Variant of {!composer_and_arranger} taking an {!Entry.t}. *)
+
+(** {2 Lifted from tune formatter} *)
+
+val tune_aka : Model.Version.t -> [> Html_types.txt] Html.elt list Lwt.t
+val tune_aka' : Model.Version.t Entry.t -> [> Html_types.txt] Html.elt list Lwt.t
+
+val tune_description : Model.Version.t -> [> `A of [> Html_types.txt] | `PCDATA] Html.elt list Lwt.t
+val tune_description' : Model.Version.t Entry.t -> [> `A of [> Html_types.txt] | `PCDATA] Html.elt list Lwt.t

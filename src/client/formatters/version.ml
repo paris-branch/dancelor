@@ -143,3 +143,9 @@ let composer_and_arranger ?(short = false) ?arranger_links version =
 
 let composer_and_arranger' ?short ?arranger_links version =
   composer_and_arranger ?short ?arranger_links (Entry.value version)
+
+let tune_aka version = Lwt.map Tune.aka' (Model.Version.tune version)
+let tune_aka' version = Lwt.map Tune.aka' (Model.Version.tune' version)
+
+let tune_description version = Lwt.bind (Model.Version.tune version) Tune.description'
+let tune_description' version = Lwt.bind (Model.Version.tune' version) Tune.description'
