@@ -103,10 +103,11 @@ let table_contents ~this_slug contents =
         )
     ]
 
+open Html
+
 let create ?context slug =
-  let open Html in
-  let book_lwt = MainPage.get_model_or_404 (Book Get) slug in
-  let title = S.from' "" (Lwt.map Book.title' book_lwt) in
+  MainPage.get_model_or_404 (Book Get) slug @@ fun book ->
+  let title = S.const (Book.title' book) in
   Page.make
     ~parent_title: "Book"
     ~title
@@ -114,42 +115,41 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_book slug)
-        (Lwt.map Any.book book_lwt);
+        (Lwt.return @@ Any.book book);
     ]
     [
-      h5 ~a: [a_class ["text-center"]] [L.txt @@ Lwt.map Book.subtitle' book_lwt];
-      L.div
+      h5 ~a: [a_class ["text-center"]] [txt @@ Book.subtitle' book];
+      div
         (
-          match%lwt Lwt.map Book.scddb_id' book_lwt with
-          | None -> Lwt.return_nil
+          match Book.scddb_id' book with
+          | None -> []
           | Some scddb_id ->
             let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
-            Lwt.return
-              [
-                h5
-                  ~a: [a_class ["text-center"]]
-                  [
-                    a
-                      ~a: [a_href href; a_target "blank"]
-                      [
-                        txt "Link to the Strathspey Database"
-                      ]
-                  ]
-              ]
+            [
+              h5
+                ~a: [a_class ["text-center"]]
+                [
+                  a
+                    ~a: [a_href href; a_target "blank"]
+                    [
+                      txt "Link to the Strathspey Database"
+                    ]
+                ]
+            ]
         );
       L.div
         (
-          match%lwt book_lwt >>=| Book.warnings with
+          match%lwt Book.warnings book with
           | [] -> Lwt.return []
           | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
         );
       p
         [
-          L.txt
+          txt
             (
-              match%lwt Lwt.map Book.date' book_lwt with
-              | None -> Lwt.return ""
-              | Some date -> Lwt.return (spf "Date: %s" (NesPartialDate.to_pretty_string date))
+              match Book.date' book with
+              | None -> ""
+              | Some date -> (spf "Date: %s" (NesPartialDate.to_pretty_string date))
             )
         ];
       div
@@ -192,6 +192,6 @@ let create ?context slug =
           h3 [txt "Contents"];
           table_contents
             ~this_slug: slug
-            (Lwt.bind book_lwt Book.contents');
+            (Book.contents' book);
         ];
     ]

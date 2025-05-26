@@ -8,25 +8,26 @@ type status = Match | DontMatch
 let open_token_result_dialog user token =
   Lwt.map ignore @@
   Page.open_dialog @@ fun return ->
-  Page.make
-    ~title: (S.const "Created user")
-    [p [
-      txt "User ";
-      txt (Entry.slug_as_string user);
-      txt " was created successfully. Pass them the following link: ";
-    ];
-    p [
-      let href = Endpoints.Page.(href UserPasswordReset) (Entry.slug user) token in
-      a ~a: [a_href href] [txt href]
-    ];
-    p [
-      txt " for them to create a password.";
-    ];
-    ]
-    ~buttons: [Button.ok' ~return ()]
+  Lwt.return @@
+    Page.make
+      ~title: (S.const "Created user")
+      [p [
+        txt "User ";
+        txt (Entry.slug_as_string user);
+        txt " was created successfully. Pass them the following link: ";
+      ];
+      p [
+        let href = Endpoints.Page.(href UserPasswordReset) (Entry.slug user) token in
+        a ~a: [a_href href] [txt href]
+      ];
+      p [
+        txt " for them to create a password.";
+      ];
+      ]
+      ~buttons: [Button.ok' ~return ()]
 
 let create () =
-  MainPage.assert_can_admin ();
+  MainPage.assert_can_admin @@ fun () ->
   let username_input =
     Input.Text.make "" (fun username ->
       if username = "" then Error "The username cannot be empty."

@@ -5,8 +5,8 @@ open Model
 open Html
 
 let create ?context slug =
-  let person_lwt = MainPage.get_model_or_404 (Person Get) slug in
-  let title = S.from' "" (Lwt.map Person.name' person_lwt) in
+  MainPage.get_model_or_404 (Person Get) slug @@ fun person ->
+  let title = S.const (Person.name' person) in
   Page.make
     ~parent_title: "Person"
     ~title
@@ -14,7 +14,7 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_person slug)
-        (Lwt.map Any.person person_lwt);
+        (Lwt.return @@ Any.person person);
     ]
     [
       div
@@ -24,28 +24,27 @@ let create ?context slug =
           ul
             ~a: [a_class ["dropdown-menu"]]
             [
-              L.li
+              li
                 (
-                  match%lwt Lwt.map Person.scddb_id' person_lwt with
-                  | None -> Lwt.return_nil
+                  match Person.scddb_id' person with
+                  | None -> []
                   | Some scddb_id ->
-                    Lwt.return
-                      [
-                        a
-                          ~a: [
-                            a_class ["dropdown-item"];
-                            a_href (Uri.to_string @@ SCDDB.person_uri scddb_id);
-                          ]
-                          [
-                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                            txt " See on SCDDB";
-                          ]
-                      ]
+                    [
+                      a
+                        ~a: [
+                          a_class ["dropdown-item"];
+                          a_href (Uri.to_string @@ SCDDB.person_uri scddb_id);
+                        ]
+                        [
+                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                          txt " See on SCDDB";
+                        ]
+                    ]
                 );
             ];
         ];
       Utils.quick_explorer_links'
-        person_lwt
+        (Lwt.return person)
         [
           ("tunes they composed", Filter.(Any.tune' % Tune.existsComposer' % Person.is'));
           ("dances they devised", Filter.(Any.dance' % Dance.existsDeviser' % Person.is'));

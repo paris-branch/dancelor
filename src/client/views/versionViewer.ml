@@ -5,11 +5,11 @@ open Model
 open Html
 
 let create ?context slug =
-  let version_lwt = MainPage.get_model_or_404 (Version Get) slug in
-  let tune_lwt = version_lwt >>=| Version.tune' in
+  MainPage.get_model_or_404 (Version Get) slug @@ fun version ->
+  let tune_lwt = Version.tune' version in
+  (* FIXME: get rid of this *)
   let other_versions_lwt =
     let%lwt tune = tune_lwt in
-    let%lwt version = version_lwt in
     Lwt.map snd @@
       Madge_client.call_exn
         Endpoints.Api.(route @@ Version Search)
@@ -30,12 +30,12 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_version slug)
-        (Lwt.map Any.version version_lwt);
+        (Lwt.return @@ Any.version version);
     ]
     [
       L.h5 ~a: [a_class ["text-center"]] (Lwt.map Formatters.Tune.aka' tune_lwt);
       L.h5 ~a: [a_class ["text-center"]] (tune_lwt >>=| Formatters.Tune.description');
-      L.h5 ~a: [a_class ["text-center"]] (version_lwt >>=| Formatters.Version.description' ~arranger_links: true);
+      L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.description' ~arranger_links: true version);
       div
         ~a: [a_class ["text-end"; "dropdown"]]
         [
@@ -122,9 +122,9 @@ let create ?context slug =
         ];
       Utils.quick_explorer_links
         [
-          ("sets containing this version", Lwt.map Filter.(Any.set' % Set.memVersion') version_lwt);
+          ("sets containing this version", Lwt.return @@ Filter.(Any.set' % Set.memVersion') version);
           ("sets containing this tune", Lwt.map Filter.(Any.set' % Set.existsVersion' % Version.tuneIs') tune_lwt);
-          ("books containing this version", Lwt.map Filter.(Any.book' % Book.memVersionDeep') version_lwt);
+          ("books containing this version", Lwt.return @@ Filter.(Any.book' % Book.memVersionDeep') version);
           ("books containing this tune", Lwt.map Filter.(Any.book' % Book.existsVersionDeep' % Version.tuneIs') tune_lwt);
         ];
       div

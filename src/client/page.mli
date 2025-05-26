@@ -27,7 +27,7 @@ val render : t -> (unit -> unit) * Html_types.div elt
 
 val open_dialog :
   ?hide_body_overflow_y: bool ->
-  (('result option -> unit) -> t) ->
+  (('result option -> unit) -> t Lwt.t) ->
   'result option Lwt.t
 (** [open_dialog f] opens a dialog. [f] is used to create the content of the
     dialog; it receives a [return] function that destroys the dialog and make it
@@ -35,6 +35,6 @@ val open_dialog :
     the dialog was closed. *)
 
 val open_dialog' :
-  (('result -> unit) -> t) ->
+  (('result -> unit) -> t Lwt.t) ->
   'result option Lwt.t
 (** Variant of {!open_dialog} where there is always a result. *)

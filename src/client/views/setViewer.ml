@@ -5,8 +5,8 @@ open Model
 open Html
 
 let create ?context slug =
-  let set_lwt = MainPage.get_model_or_404 (Set Get) slug in
-  let title = S.from' "" (Lwt.map Set.name' set_lwt) in
+  MainPage.get_model_or_404 (Set Get) slug @@ fun set ->
+  let title = S.const (Set.name' set) in
   Page.make
     ~parent_title: "Set"
     ~title
@@ -14,21 +14,21 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_set slug)
-        (Lwt.map Any.set set_lwt);
+        (Lwt.return @@ Any.set set);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (set_lwt >>=| Formatters.Set.works');
+      L.h5 ~a: [a_class ["text-center"]] (Formatters.Set.works' set);
       h5
         ~a: [a_class ["text-center"]]
         [
-          L.txt (Lwt.map (Kind.Dance.to_pretty_string % Set.kind') set_lwt);
+          txt ((Kind.Dance.to_pretty_string % Set.kind') set);
           txt " — Play ";
-          L.txt (Lwt.map (SetOrder.to_pretty_string % Set.order') set_lwt);
+          txt ((SetOrder.to_pretty_string % Set.order') set);
         ];
       L.h5
         ~a: [a_class ["text-center"]]
         (
-          match%lwt set_lwt >>=| Set.conceptors' with
+          match%lwt Set.conceptors' set with
           | [] -> Lwt.return_nil
           | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names' ~links: true devisers)
         );
@@ -69,16 +69,15 @@ let create ?context slug =
         ];
       p
         [
-          L.txt
+          txt
             (
-              match%lwt Lwt.map Set.instructions' set_lwt with
-              | "" -> Lwt.return ""
-              | instructions -> Lwt.return ("Instructions: " ^ instructions)
+              match Set.instructions' set with
+              | "" -> ""
+              | instructions -> "Instructions: " ^ instructions
             )
         ];
       L.div
         (
-          let%lwt set = set_lwt in
           let%lwt contents = Set.contents' set in
           Lwt_list.mapi_p
             (fun index (version, _parameters) ->
@@ -97,7 +96,7 @@ let create ?context slug =
             contents
         );
       Utils.quick_explorer_links'
-        set_lwt
+        (Lwt.return set)
         [
           ("books containing this set", Filter.(Any.book' % Book.memSet'));
         ];

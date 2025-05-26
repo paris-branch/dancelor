@@ -70,7 +70,7 @@ let open_dialog
       Lwt.wakeup_later resolver v;
       Dom.removeChild Dom_html.document##.body box
   in
-  let page = make_page return in
+  let%lwt page = make_page return in
 
   (* The HTML dialog box. *)
   let box =

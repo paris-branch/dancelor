@@ -179,7 +179,7 @@ module Editor = struct
 end
 
 let create ?on_save ?text ?tune () =
-  MainPage.assert_can_create ();
+  MainPage.assert_can_create @@ fun () ->
   let title = "Add a version" in
   let editor = Editor.create ~text ~tune in
   Page.make
@@ -250,36 +250,37 @@ let create ?on_save ?text ?tune () =
                   | Some version ->
                     Lwt.map ignore @@
                     Page.open_dialog' @@ fun return ->
-                    Page.make
-                      ~title: (S.const "Preview")
-                      [div [VersionSvg.make_preview version];
-                      div
-                        [
-                          audio
-                            ~a: [a_controls ()]
-                            ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
-                            [];
-                        ];
-                      ]
-                      ~buttons: [
-                        Button.cancel' ~return ();
-                        Button.save
-                          ~onclick: (fun () ->
-                            let%lwt version =
-                              Madge_client.call_exn
-                                Endpoints.Api.(route @@ Version Create)
-                                version
-                            in
-                            Editor.clear editor;
-                            (
-                              match on_save with
-                              | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
-                              | Some on_save -> on_save version
-                            );
-                            Lwt.return_unit
-                          )
-                          ();
-                      ]
+                    Lwt.return @@
+                      Page.make
+                        ~title: (S.const "Preview")
+                        [div [VersionSvg.make_preview version];
+                        div
+                          [
+                            audio
+                              ~a: [a_controls ()]
+                              ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
+                              [];
+                          ];
+                        ]
+                        ~buttons: [
+                          Button.cancel' ~return ();
+                          Button.save
+                            ~onclick: (fun () ->
+                              let%lwt version =
+                                Madge_client.call_exn
+                                  Endpoints.Api.(route @@ Version Create)
+                                  version
+                              in
+                              Editor.clear editor;
+                              (
+                                match on_save with
+                                | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                                | Some on_save -> on_save version
+                              );
+                              Lwt.return_unit
+                            )
+                            ();
+                        ]
                 )
                 ();
             ]

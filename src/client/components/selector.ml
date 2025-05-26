@@ -71,7 +71,7 @@ let render
     ~(create_dialog_content :
       ?on_save: ('result -> unit) ->
       string ->
-      Page.t
+      Page.t Lwt.t
     )
     s
   =
@@ -143,30 +143,31 @@ let render
                   ~onclick: (fun () ->
                     let%lwt quick_search_result =
                       Page.open_dialog @@ fun quick_search_return ->
-                      Search.Quick.render
-                        s.quick_search
-                        ~return: quick_search_return
-                        ~dialog_title: (S.const label)
-                        ~make_result: (fun ~context: _ result ->
-                          make_result
-                            ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
-                            result
-                        )
-                        ~dialog_buttons: [
-                          Button.make
-                            ~label: ("Create new " ^ model_name)
-                            ~label_processing: ("Creating new " ^ model_name ^ "...")
-                            ~icon: "plus-circle"
-                            ~classes: ["btn-primary"]
-                            ~onclick: (fun () ->
-                              Lwt.map quick_search_return @@
-                              Page.open_dialog' @@ fun sub_dialog_return ->
-                              create_dialog_content
-                                ~on_save: sub_dialog_return
-                                (S.value (Search.Quick.text s.quick_search))
-                            )
-                            ();
-                        ]
+                      Lwt.return @@
+                        Search.Quick.render
+                          s.quick_search
+                          ~return: quick_search_return
+                          ~dialog_title: (S.const label)
+                          ~make_result: (fun ~context: _ result ->
+                            make_result
+                              ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
+                              result
+                          )
+                          ~dialog_buttons: [
+                            Button.make
+                              ~label: ("Create new " ^ model_name)
+                              ~label_processing: ("Creating new " ^ model_name ^ "...")
+                              ~icon: "plus-circle"
+                              ~classes: ["btn-primary"]
+                              ~onclick: (fun () ->
+                                Lwt.map quick_search_return @@
+                                Page.open_dialog' @@ fun sub_dialog_return ->
+                                create_dialog_content
+                                  ~on_save: sub_dialog_return
+                                  (S.value (Search.Quick.text s.quick_search))
+                              )
+                              ();
+                          ]
                     in
                     Fun.flip Option.iter quick_search_result (fun r -> s.set (S.value s.signal @ [r]));
                     Lwt.return_unit

@@ -24,26 +24,27 @@ let create ?query () =
       ~pagination_mode: (Pagination ())
       ()
   in
-  Page.make
-    ~title: (S.const "Explore")
-    [
-      Search.render
-        search
-        ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
-        ~on_input: update_uri
-        ~attached_buttons: [
-          Button.make
-            ~label: "Filter"
-            ~label_processing: "Filtering..."
-            ~icon: "filter"
-            ~classes: ["btn-primary"]
-            ~onclick: (fun () ->
-              let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
-              (* TODO: On return, add a space and focus the search bar. *)
-              Lwt.map
-                (Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text))
-                (SearchComplexFiltersDialog.open_ search_text)
-            )
-            ();
-        ]
-    ]
+  Lwt.return @@
+    Page.make
+      ~title: (S.const "Explore")
+      [
+        Search.render
+          search
+          ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
+          ~on_input: update_uri
+          ~attached_buttons: [
+            Button.make
+              ~label: "Filter"
+              ~label_processing: "Filtering..."
+              ~icon: "filter"
+              ~classes: ["btn-primary"]
+              ~onclick: (fun () ->
+                let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
+                (* TODO: On return, add a space and focus the search bar. *)
+                Lwt.map
+                  (Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text))
+                  (SearchComplexFiltersDialog.open_ search_text)
+              )
+              ();
+          ]
+      ]

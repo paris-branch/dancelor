@@ -342,61 +342,63 @@ let open_ text raws filter =
         ]
   in
   Page.open_dialog' @@ fun return ->
-  Page.make
-    ~title: (S.const "Complex filters")
-    [div
-      ~a: [a_class ["d-flex"; "justify-content-center"]]
-      [
-        Choices.render type_choices
-      ];
-    hr ();
-    R.div
-      ~a: [a_class ["d-flex"; "justify-content-center"]]
-      (
-        Fun.flip S.map (Choices.signal type_choices) @@ function
-          | None -> []
-          | Some Source -> source_html
-          | Some Person -> person_html
-          | Some Dance -> dance_html
-          | Some Book -> book_html
-          | Some Set -> set_html
-          | Some Tune -> tune_html
-          | Some Version -> version_html
-      );
-    ]
-    ~buttons: [
-      Button.cancel ~onclick: (fun () -> return text; Lwt.return_unit) ();
-      Button.clear ~onclick: (fun () -> return "") ();
-      Button.make
-        ~label: "Apply"
-        ~label_processing: "Applying..."
-        ~icon: "check-circle"
-        ~classes: ["btn-primary"]
-        ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
-        ()
-    ]
+  Lwt.return @@
+    Page.make
+      ~title: (S.const "Complex filters")
+      [div
+        ~a: [a_class ["d-flex"; "justify-content-center"]]
+        [
+          Choices.render type_choices
+        ];
+      hr ();
+      R.div
+        ~a: [a_class ["d-flex"; "justify-content-center"]]
+        (
+          Fun.flip S.map (Choices.signal type_choices) @@ function
+            | None -> []
+            | Some Source -> source_html
+            | Some Person -> person_html
+            | Some Dance -> dance_html
+            | Some Book -> book_html
+            | Some Set -> set_html
+            | Some Tune -> tune_html
+            | Some Version -> version_html
+        );
+      ]
+      ~buttons: [
+        Button.cancel ~onclick: (fun () -> return text; Lwt.return_unit) ();
+        Button.clear ~onclick: (fun () -> return "") ();
+        Button.make
+          ~label: "Apply"
+          ~label_processing: "Applying..."
+          ~icon: "check-circle"
+          ~classes: ["btn-primary"]
+          ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
+          ()
+      ]
 
 let open_error () =
   Page.open_dialog' @@ fun return ->
-  Page.make
-    ~title: (S.const "Complex filters")
-    [p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
-    p
-      [
-        txt
-          "The formula is too complex for the complex filter dialog to \
+  Lwt.return @@
+    Page.make
+      ~title: (S.const "Complex filters")
+      [p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
+      p
+        [
+          txt
+            "The formula is too complex for the complex filter dialog to \
              understand. If you think that this is a mistake, contact your \
              administrator."
-      ];
-    ]
-    ~buttons: [
-      a
-        ~a: [
-          a_class ["button"];
-          a_onclick (fun _ -> return (); false);
-        ]
-        [txt "OK"];
-    ]
+        ];
+      ]
+      ~buttons: [
+        a
+          ~a: [
+            a_class ["button"];
+            a_onclick (fun _ -> return (); false);
+          ]
+          [txt "OK"];
+      ]
 
 let open_ text =
   match restrict_formula text with

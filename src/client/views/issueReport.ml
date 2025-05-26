@@ -53,42 +53,43 @@ let open_dialog page =
   in
   let%lwt response =
     Page.open_dialog @@ fun return ->
-    Page.make
-      ~title: (S.const "Report an issue")
-      [Input.Text.render
-        reporter_input
-        ~placeholder: "Dr Jean Milligan"
-        ~label: "Reporter";
-      Choices.render source;
-      Input.Text.render
-        title_input
-        ~placeholder: "Blimey, 'tis not working!"
-        ~label: "Title";
-      Input.Text.render_as_textarea
-        description_input
-        ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-        ~label: "Description";
-      ]
-      ~buttons: [
-        Button.cancel' ~return ();
-        Button.make
-          ~label: "Report"
-          ~label_processing: "Reporting..."
-          ~icon: "bug"
-          ~classes: ["btn-primary"]
-          ~disabled: (S.map Option.is_none request_signal)
-          ~onclick: (fun () ->
-            Option.fold
-              (S.value request_signal)
-              ~none: Lwt.return_unit
-              ~some: (fun request ->
-                let%lwt response = Madge_client.call_exn Endpoints.Api.(route ReportIssue) request in
-                return @@ Some response;
-                Lwt.return_unit
-              )
-          )
-          ();
-      ]
+    Lwt.return @@
+      Page.make
+        ~title: (S.const "Report an issue")
+        [Input.Text.render
+          reporter_input
+          ~placeholder: "Dr Jean Milligan"
+          ~label: "Reporter";
+        Choices.render source;
+        Input.Text.render
+          title_input
+          ~placeholder: "Blimey, 'tis not working!"
+          ~label: "Title";
+        Input.Text.render_as_textarea
+          description_input
+          ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+          ~label: "Description";
+        ]
+        ~buttons: [
+          Button.cancel' ~return ();
+          Button.make
+            ~label: "Report"
+            ~label_processing: "Reporting..."
+            ~icon: "bug"
+            ~classes: ["btn-primary"]
+            ~disabled: (S.map Option.is_none request_signal)
+            ~onclick: (fun () ->
+              Option.fold
+                (S.value request_signal)
+                ~none: Lwt.return_unit
+                ~some: (fun request ->
+                  let%lwt response = Madge_client.call_exn Endpoints.Api.(route ReportIssue) request in
+                  return @@ Some response;
+                  Lwt.return_unit
+                )
+            )
+            ();
+        ]
   in
   (
     match response with
