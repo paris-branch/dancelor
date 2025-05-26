@@ -158,13 +158,12 @@ let header =
               R.ul
                 ~a: [a_class ["navbar-nav"; "ms-auto"]]
                 (
-                  S.from' [] @@
-                    let%lwt nav_item_create = nav_item_create in
-                    Lwt.return (
-                      [nav_item_explore] @
-                      nav_item_create @
-                        [UserHeader.header_item]
-                    )
+                  S.map List.flatten @@
+                  S.all @@ [
+                    S.const [nav_item_explore];
+                    S.from' [] nav_item_create;
+                    S.const [UserHeader.header_item];
+                  ]
                 );
             ];
           Components.Button.make

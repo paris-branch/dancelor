@@ -106,7 +106,13 @@ let header_item =
         );
     ]
     (
-      S.from' [] @@
+      S.from' [
+        Components.Button.make
+          ~label: "Sign in"
+          ~icon: "box-arrow-in-right"
+          ~classes: ["btn-primary"; "disabled"; "placeholder"]
+          ()
+      ] @@
       Fun.flip Lwt.map status_lwt @@ function
       | None ->
         [
