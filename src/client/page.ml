@@ -21,8 +21,8 @@ let full_title p =
 
 let make
   ?(parent_title = "")
-  ~title
   ?(before_title = [])
+  ~title
   ?(buttons = [])
   ?(on_load = Fun.id)
   content
@@ -43,7 +43,13 @@ let render p = (
       div
         ~a: [a_class ["container-md"]]
         [
-          h2 ~a: [a_class ["text-center"; "mb-4"]] [R.txt p.title];
+          R.h2 ~a: [a_class ["text-center"; "mb-4"]] (
+            Fun.flip S.map p.title @@
+              List.singleton %
+                function
+                  | "" -> span_placeholder ()
+                  | title -> txt title
+          );
           div p.content;
           (
             match p.buttons with
@@ -88,7 +94,13 @@ let open_dialog
                 div
                   ~a: [a_class ["modal-header"]]
                   [
-                    h4 ~a: [a_class ["modal-title"]] [R.txt page.title];
+                    R.h4 ~a: [a_class ["modal-title"]] (
+                      Fun.flip S.map page.title @@
+                        List.singleton %
+                          function
+                            | "" -> span_placeholder ()
+                            | title -> txt title
+                    );
                     button
                       ~a: [
                         a_button_type `Button;
