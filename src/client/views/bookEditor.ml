@@ -151,38 +151,37 @@ end
 let create ?on_save ?text ?edit () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text ~edit in
-  Lwt.return @@
-    Page.make
-      ~title: (Lwt.return @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
-      [Input.Text.render
-        editor.elements.name
-        ~label: "Name"
-        ~placeholder: "eg. The Dusty Miller Book";
-      Input.Text.render
-        editor.elements.date
-        ~label: "Date of devising"
-        ~placeholder: "eg. 2019 or 2012-03-14";
-      Selector.render
-        ~make_result: AnyResult.make_set_result'
-        ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
-        ~field_name: "Sets"
-        ~model_name: "set"
-        ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
-        editor.elements.sets;
-      ]
-      ~buttons: [
-        Button.clear
-          ~onclick: (fun () -> Editor.clear editor)
-          ();
-        Button.save
-          ~disabled: (S.map Option.is_none (Editor.state editor))
-          ~onclick: (fun () ->
-            Fun.flip Lwt.map (Editor.submit ~edit editor) @@
-            Option.iter @@ fun book ->
-            Editor.clear editor;
-            match on_save with
-            | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
-            | Some on_save -> on_save book
-          )
-          ();
-      ]
+  Page.make'
+    ~title: (Lwt.return @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
+    [Input.Text.render
+      editor.elements.name
+      ~label: "Name"
+      ~placeholder: "eg. The Dusty Miller Book";
+    Input.Text.render
+      editor.elements.date
+      ~label: "Date of devising"
+      ~placeholder: "eg. 2019 or 2012-03-14";
+    Selector.render
+      ~make_result: AnyResult.make_set_result'
+      ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
+      ~field_name: "Sets"
+      ~model_name: "set"
+      ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
+      editor.elements.sets;
+    ]
+    ~buttons: [
+      Button.clear
+        ~onclick: (fun () -> Editor.clear editor)
+        ();
+      Button.save
+        ~disabled: (S.map Option.is_none (Editor.state editor))
+        ~onclick: (fun () ->
+          Fun.flip Lwt.map (Editor.submit ~edit editor) @@
+          Option.iter @@ fun book ->
+          Editor.clear editor;
+          match on_save with
+          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
+          | Some on_save -> on_save book
+        )
+        ();
+    ]

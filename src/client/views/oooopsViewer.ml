@@ -4,7 +4,7 @@ open Html
 let get_uri () = Js.to_string Dom_html.window##.location##.href
 
 let create status =
-  Page.make
+  Page.make'
     ~title: (Lwt.return "Oooops!")
     ~subtitles: [
       txt (Cohttp.Code.string_of_status status);

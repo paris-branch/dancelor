@@ -209,7 +209,7 @@ module Quick = struct
       ?on_enter
       quick_search
     =
-    Page.make
+    Page.make'
       ~title: dialog_title
       [Search.render
         ~make_result

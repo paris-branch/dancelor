@@ -24,35 +24,34 @@ let create username token =
     (* Cannot hurt to check twice. *)
     S.const @@ if password1 = password2 then Ok password2 else Error "The passwords do not match."
   in
-  Lwt.return @@
-    Page.make
-      ~title: (Lwt.return "Reset password")
-      [Input.inactive
-        ~label: "Username"
-        (Slug.to_string username);
-      Input.Text.render
-        password1_input
-        ~password: true
-        ~placeholder: "1234567"
-        ~label: "Password";
-      Input.Text.render
-        password2_input
-        ~password: true
-        ~placeholder: "1234678"
-        ~label: "Password, again";
-      ]
-      ~buttons: [
-        Button.make
-          ~label: "Reset password"
-          ~label_processing: "Resetting password..."
-          ~classes: ["btn-primary"]
-          ~disabled: (S.map Result.is_error password)
-          ~onclick: (fun () ->
-            Madge_client.call_exn Endpoints.Api.(route @@ User ResetPassword) username token (Result.get_ok @@ S.value password);%lwt
-            Components.Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
-            Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string "/"));
-            MainPage.load_sleep_raise (Index.create ());%lwt
-            Lwt.return_unit
-          )
-          ();
-      ]
+  Page.make'
+    ~title: (Lwt.return "Reset password")
+    [Input.inactive
+      ~label: "Username"
+      (Slug.to_string username);
+    Input.Text.render
+      password1_input
+      ~password: true
+      ~placeholder: "1234567"
+      ~label: "Password";
+    Input.Text.render
+      password2_input
+      ~password: true
+      ~placeholder: "1234678"
+      ~label: "Password, again";
+    ]
+    ~buttons: [
+      Button.make
+        ~label: "Reset password"
+        ~label_processing: "Resetting password..."
+        ~classes: ["btn-primary"]
+        ~disabled: (S.map Result.is_error password)
+        ~onclick: (fun () ->
+          Madge_client.call_exn Endpoints.Api.(route @@ User ResetPassword) username token (Result.get_ok @@ S.value password);%lwt
+          Components.Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
+          Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string "/"));
+          MainPage.load_sleep_raise (Index.create ());%lwt
+          Lwt.return_unit
+        )
+        ();
+    ]

@@ -35,7 +35,7 @@ let dispatch uri =
   in
   match madge_match_apply_all @@ Endpoints.Page.all' () with
   | Some page -> page ()
-  | None -> Lwt.return @@ OooopsViewer.create `Not_found
+  | None -> OooopsViewer.create `Not_found
 
 let () = Random.self_init ()
 

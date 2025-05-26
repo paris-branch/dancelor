@@ -101,95 +101,94 @@ open Html
 
 let create ?context slug =
   MainPage.get_model_or_404 (Book Get) slug @@ fun book ->
-  Lwt.return @@
-    Page.make
-      ~parent_title: "Book"
-      ~before_title: [
-        Components.ContextLinks.make_and_render
-          ?context
-          ~this_page: (Endpoints.Page.href_book slug)
-          (Lwt.return @@ Any.book book);
-      ]
-      ~title: (Lwt.return @@ Book.title' book)
-      ~subtitles: [
-        txt (Book.subtitle' book);
-      ]
-      [
-        R.div
-          (
-            S.from' [] @@
-              match%lwt Book.warnings book with
-              | [] -> Lwt.return_nil
-              | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
-          );
-        p
-          [
-            txt
-              (
-                match Book.date' book with
-                | None -> ""
-                | Some date -> (spf "Date: %s" (NesPartialDate.to_pretty_string date))
-              )
-          ];
-        div
-          ~a: [a_class ["text-end"; "dropdown"]]
-          [
-            button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-            ul
-              ~a: [a_class ["dropdown-menu"]]
-              [
-                li
-                  [
-                    a
-                      ~a: [
-                        a_class ["dropdown-item"];
-                        a_href "#";
-                        a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
-                      ]
-                      [
-                        i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                        txt " Download PDF";
-                      ];
-                  ];
-                li
-                  [
-                    a
-                      ~a: [
-                        a_class ["dropdown-item"];
-                        a_href (Endpoints.Page.(href BookEdit) slug)
-                      ]
-                      [
-                        i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
-                        txt " Edit"
-                      ]
-                  ];
-                li
-                  (
-                    match Book.scddb_id' book with
-                    | None -> []
-                    | Some scddb_id ->
-                      [
-                        a
-                          ~a: [
-                            a_class ["dropdown-item"];
-                            a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
-                          ]
-                          [
-                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                            txt " See on SCDDB";
-                          ]
-                      ]
-                  );
-              ];
-          ];
-        div
-          ~a: [a_class ["section"]]
-          [
-            h3 [txt "Contents"];
-            R.div (
-              S.from' (Tables.placeholder ()) @@
-                let%lwt contents = Book.contents' book in
-                Lwt.return [table_contents ~this_slug: slug contents]
+  Page.make'
+    ~parent_title: "Book"
+    ~before_title: [
+      Components.ContextLinks.make_and_render
+        ?context
+        ~this_page: (Endpoints.Page.href_book slug)
+        (Lwt.return @@ Any.book book);
+    ]
+    ~title: (Lwt.return @@ Book.title' book)
+    ~subtitles: [
+      txt (Book.subtitle' book);
+    ]
+    [
+      R.div
+        (
+          S.from' [] @@
+            match%lwt Book.warnings book with
+            | [] -> Lwt.return_nil
+            | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
+        );
+      p
+        [
+          txt
+            (
+              match Book.date' book with
+              | None -> ""
+              | Some date -> (spf "Date: %s" (NesPartialDate.to_pretty_string date))
             )
-          ];
-      ]
+        ];
+      div
+        ~a: [a_class ["text-end"; "dropdown"]]
+        [
+          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
+          ul
+            ~a: [a_class ["dropdown-menu"]]
+            [
+              li
+                [
+                  a
+                    ~a: [
+                      a_class ["dropdown-item"];
+                      a_href "#";
+                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
+                    ]
+                    [
+                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
+                      txt " Download PDF";
+                    ];
+                ];
+              li
+                [
+                  a
+                    ~a: [
+                      a_class ["dropdown-item"];
+                      a_href (Endpoints.Page.(href BookEdit) slug)
+                    ]
+                    [
+                      i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
+                      txt " Edit"
+                    ]
+                ];
+              li
+                (
+                  match Book.scddb_id' book with
+                  | None -> []
+                  | Some scddb_id ->
+                    [
+                      a
+                        ~a: [
+                          a_class ["dropdown-item"];
+                          a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
+                        ]
+                        [
+                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                          txt " See on SCDDB";
+                        ]
+                    ]
+                );
+            ];
+        ];
+      div
+        ~a: [a_class ["section"]]
+        [
+          h3 [txt "Contents"];
+          R.div (
+            S.from' (Tables.placeholder ()) @@
+              let%lwt contents = Book.contents' book in
+              Lwt.return [table_contents ~this_slug: slug contents]
+          )
+        ];
+    ]

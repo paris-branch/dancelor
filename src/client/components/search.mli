@@ -43,5 +43,5 @@ module Quick : sig
     make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
     ?on_enter: (string -> unit) ->
     'result t ->
-    Page.t
+    Page.t Lwt.t
 end

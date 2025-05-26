@@ -31,15 +31,13 @@ let make
   ?(buttons = [])
   ?(on_load = Fun.id)
   content
-= {
-  parent_title;
-  before_title;
-  title;
-  subtitles;
-  content;
-  buttons;
-  on_load;
-}
+=
+  {parent_title; before_title; title; subtitles; content; buttons; on_load}
+
+let make' ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content =
+  (* NOTE: In general, [Lwt.return] for no reason should be avoided. However, this
+     particular function is only ever used in an [Lwt] context. *)
+  Lwt.return @@ make ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content
 
 let render p = (
   p.on_load,

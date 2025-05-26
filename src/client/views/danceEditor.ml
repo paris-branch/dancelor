@@ -166,51 +166,50 @@ end
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text in
-  Lwt.return @@
-    Page.make
-      ~title: (Lwt.return "Add a dance")
-      [Input.Text.render
-        editor.elements.name
-        ~label: "Name"
-        ~placeholder: "eg. The Dusty Miller";
-      Input.Text.render
-        editor.elements.kind
-        ~label: "Kind"
-        ~placeholder: "eg. 8x32R or 2x(16R+16S)";
-      Selector.render
-        ~make_result: AnyResult.make_person_result'
-        ~field_name: "Devisers"
-        ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-        editor.elements.devisers;
-      Input.Text.render
-        editor.elements.date
-        ~label: "Date of devising"
-        ~placeholder: "eg. 2019 or 2012-03-14";
-      Choices.render
-        editor.elements.two_chords;
-      Input.Text.render
-        editor.elements.scddb_id
-        ~label: "SCDDB ID"
-        ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
-      Input.Text.render
-        editor.elements.disambiguation
-        ~label: "Disambiguation"
-        ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
-      ]
-      ~buttons: [
-        Button.clear
-          ~onclick: (fun () -> Editor.clear editor)
-          ();
-        Button.save
-          ~disabled: (S.map Option.is_none (Editor.state editor))
-          ~onclick: (fun () ->
-            Fun.flip Lwt.map (Editor.submit editor) @@
-            Option.iter @@ fun dance ->
-            Editor.clear editor;
-            match on_save with
-            | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Entry.slug dance))
-            | Some on_save -> on_save dance
-          )
-          ();
-      ]
+  Page.make'
+    ~title: (Lwt.return "Add a dance")
+    [Input.Text.render
+      editor.elements.name
+      ~label: "Name"
+      ~placeholder: "eg. The Dusty Miller";
+    Input.Text.render
+      editor.elements.kind
+      ~label: "Kind"
+      ~placeholder: "eg. 8x32R or 2x(16R+16S)";
+    Selector.render
+      ~make_result: AnyResult.make_person_result'
+      ~field_name: "Devisers"
+      ~model_name: "person"
+      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+      editor.elements.devisers;
+    Input.Text.render
+      editor.elements.date
+      ~label: "Date of devising"
+      ~placeholder: "eg. 2019 or 2012-03-14";
+    Choices.render
+      editor.elements.two_chords;
+    Input.Text.render
+      editor.elements.scddb_id
+      ~label: "SCDDB ID"
+      ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
+    Input.Text.render
+      editor.elements.disambiguation
+      ~label: "Disambiguation"
+      ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
+    ]
+    ~buttons: [
+      Button.clear
+        ~onclick: (fun () -> Editor.clear editor)
+        ();
+      Button.save
+        ~disabled: (S.map Option.is_none (Editor.state editor))
+        ~onclick: (fun () ->
+          Fun.flip Lwt.map (Editor.submit editor) @@
+          Option.iter @@ fun dance ->
+          Editor.clear editor;
+          match on_save with
+          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Entry.slug dance))
+          | Some on_save -> on_save dance
+        )
+        ();
+    ]

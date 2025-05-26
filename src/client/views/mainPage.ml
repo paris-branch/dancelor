@@ -29,23 +29,22 @@ let quick_search_to_explorer value =
 
 let open_quick_search () =
   Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
-  Lwt.return @@
-    Components.Search.Quick.render
-      ~return
-      ~dialog_title: (Lwt.return "Quick search")
-      ~dialog_buttons: [
-        Components.Button.make
-          ~label: "Explore"
-          ~label_processing: "Opening explorer..."
-          ~icon: "zoom-in"
-          ~badge: "↵"
-          ~classes: ["btn-primary"]
-          ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
-          ();
-      ]
-      ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
-      ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
-      quick_search
+  Components.Search.Quick.render
+    ~return
+    ~dialog_title: (Lwt.return "Quick search")
+    ~dialog_buttons: [
+      Components.Button.make
+        ~label: "Explore"
+        ~label_processing: "Opening explorer..."
+        ~icon: "zoom-in"
+        ~badge: "↵"
+        ~classes: ["btn-primary"]
+        ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
+        ();
+    ]
+    ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
+    ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
+    quick_search
 
 let nav_item_explore =
   li
@@ -265,14 +264,14 @@ let load_sleep_raise ?(delay = 1.) page_promise =
 let get_model_or_404 endpoint slug f =
   match%lwt Madge_client.call Endpoints.Api.(route @@ endpoint) slug with
   | Ok model -> f model
-  | Error Madge_client.{status; _} -> Lwt.return @@ OooopsViewer.create status
+  | Error Madge_client.{status; _} -> OooopsViewer.create status
 
 let assert_can_create f =
   match%lwt Permission.can_create () with
   | true -> f ()
-  | false -> Lwt.return @@ OooopsViewer.create `Forbidden
+  | false -> OooopsViewer.create `Forbidden
 
 let assert_can_admin f =
   match%lwt Permission.can_admin () with
   | true -> f ()
-  | false -> Lwt.return @@ OooopsViewer.create `Forbidden
+  | false -> OooopsViewer.create `Forbidden
