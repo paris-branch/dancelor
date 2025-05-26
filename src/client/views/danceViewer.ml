@@ -5,36 +5,35 @@ open Model
 open Html
 
 let create ?context slug =
-  let dance_lwt = MainPage.get_model_or_404 (Dance Get) slug in
-  let title = S.from' "" (Lwt.map Dance.name' dance_lwt) in
-  Page.make
+  MainPage.get_model_or_404 (Dance Get) slug @@ fun dance ->
+  Page.make'
     ~parent_title: "Dance"
-    ~title
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_dance slug)
-        (Lwt.map Any.dance dance_lwt);
+        (Lwt.return @@ Any.dance dance);
     ]
-    [
-      L.h5
-        ~a: [a_class ["text-center"]]
-        (
-          let kind = [L.txt @@ Lwt.map (Kind.Dance.to_pretty_string % Dance.kind') dance_lwt] in
+    ~title: (Lwt.return @@ Dance.name' dance)
+    ~subtitles: [
+      (
+        with_span_placeholder @@
+          let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
           let%lwt by =
-            match%lwt dance_lwt >>=| Dance.devisers' with
+            match%lwt Dance.devisers' dance with
             | [] -> Lwt.return_nil
-            | devisers -> Lwt.return (txt " by " :: Formatters.Person.names' ~links: true devisers)
+            | devisers -> Lwt.return [txt " by "; Formatters.Person.names' ~links: true devisers]
           in
           Lwt.return (kind @ by)
-        );
-      L.div
+      );
+    ]
+    [
+      div
         (
-          Fun.flip Lwt.map dance_lwt @@ fun dance ->
           match Dance.two_chords' dance with
           | Some false -> []
-          | Some true -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords"]]
-          | None -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords: unknown"]]
+          | Some true -> [txt "Two Chords"]
+          | None -> [txt "Two Chords: unknown"]
         );
       div
         ~a: [a_class ["text-end"; "dropdown"]]
@@ -56,58 +55,56 @@ let create ?context slug =
                       txt " Download PDF";
                     ];
                 ];
-              L.li
+              li
                 (
-                  match%lwt Lwt.map Dance.scddb_id' dance_lwt with
-                  | None -> Lwt.return_nil
+                  match Dance.scddb_id' dance with
+                  | None -> []
                   | Some scddb_id ->
-                    Lwt.return
-                      [
-                        a
-                          ~a: [
-                            a_class ["dropdown-item"];
-                            a_href (Uri.to_string @@ SCDDB.dance_uri scddb_id);
-                          ]
-                          [
-                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                            txt " See on SCDDB";
-                          ]
-                      ]
+                    [
+                      a
+                        ~a: [
+                          a_class ["dropdown-item"];
+                          a_href (Uri.to_string @@ SCDDB.dance_uri scddb_id);
+                        ]
+                        [
+                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                          txt " See on SCDDB";
+                        ]
+                    ]
                 );
             ];
         ];
-      L.div
+      div
         (
-          match%lwt Lwt.map Dance.date' dance_lwt with
-          | None -> Lwt.return_nil
-          | Some date ->
-            Lwt.return [txt "Devised "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
+          match Dance.date' dance with
+          | None -> []
+          | Some date -> [txt "Devised "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         );
       div
         [
           h3 [txt "Recommended Tunes"];
-          L.div
+          R.div
             (
-              let%lwt tunes =
-                let%lwt dance = dance_lwt in
-                Lwt.map snd @@
-                Madge_client.call_exn
-                  Endpoints.Api.(route @@ Tune Search)
-                  Slice.everything @@
-                Filter.Tune.existsDance' @@ Filter.Dance.is' dance
-              in
-              Lwt.return
-                [
-                  if tunes = [] then
-                    txt
-                      (
-                        "There are no recommended tunes for this dance. " ^
-                        "Dancelor is not all-knowing: go check the Strathspey Database! " ^
-                        "And if you find something that is not known here, report it to someone."
-                      )
-                  else
-                    Tables.tunes tunes
-                ]
+              S.from' (Tables.placeholder ()) @@
+                let%lwt tunes =
+                  Lwt.map snd @@
+                  Madge_client.call_exn
+                    Endpoints.Api.(route @@ Tune Search)
+                    Slice.everything @@
+                  Filter.Tune.existsDance' @@ Filter.Dance.is' dance
+                in
+                Lwt.return
+                  [
+                    if tunes = [] then
+                      txt
+                        (
+                          "There are no recommended tunes for this dance. " ^
+                          "Dancelor is not all-knowing: go check the Strathspey Database! " ^
+                          "And if you find something that is not known here, report it to someone."
+                        )
+                    else
+                      Tables.tunes tunes
+                  ]
             )
         ];
     ]

@@ -31,6 +31,7 @@ let index =
       )
       (
         body
+          ~a: [a_class ["placeholder-glow"]]
           [
             script ~a: [a_src "/bootstrap.bundle.min.js"] (txt "");
           ]

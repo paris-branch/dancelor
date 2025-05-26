@@ -55,8 +55,8 @@ let create () =
    one line and one type, really); there is room for factorisation here. *)
 let open_ slug dialog =
   Page.open_dialog @@ fun return ->
-  Page.make
-    ~title: (S.const "Download a PDF")
+  Page.make'
+    ~title: (Lwt.return "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();

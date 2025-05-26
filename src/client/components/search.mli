@@ -38,10 +38,10 @@ module Quick : sig
 
   val render :
     return: ('dialog_result option -> unit) ->
-    dialog_title: string S.t ->
+    dialog_title: string Lwt.t ->
     ?dialog_buttons: Html_types.div_content_fun elt list ->
     make_result: (context: Common.Endpoints.Page.context S.t -> 'result -> Utils.ResultRow.t) ->
     ?on_enter: (string -> unit) ->
     'result t ->
-    Page.t
+    Page.t Lwt.t
 end

@@ -54,7 +54,7 @@ val render :
   create_dialog_content:
   (?on_save: ('model Entry.t -> unit) ->
   string ->
-  Page.t) ->
+  Page.t Lwt.t) ->
   ('arity, 'model) t ->
   [> Html_types.div] Html.elt
 (** The optional argument [?make_more_results] adds rows to the table after the

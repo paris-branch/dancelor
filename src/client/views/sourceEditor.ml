@@ -88,50 +88,36 @@ module Editor = struct
 end
 
 let create ?on_save ?text () =
-  MainPage.assert_can_create ();
-  let title = "Add a source" in
-  let editor = Editor.create ~text in
-  Page.make
-    ~title: (S.const title)
-    [L.div
-      (
-        let%lwt editor = editor in
-        Lwt.return
-          [
-            Input.Text.render
-              editor.elements.name
-              ~label: "Name"
-              ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
-            Input.Text.render
-              editor.elements.scddb_id
-              ~label: "SCDDB ID"
-              ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
-            Input.Text.render_as_textarea
-              editor.elements.description
-              ~label: "Description"
-              ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances.";
-          ]
-      )]
+  MainPage.assert_can_create @@ fun () ->
+  let%lwt editor = Editor.create ~text in
+  Page.make'
+    ~title: (Lwt.return "Add a source")
+    [Input.Text.render
+      editor.elements.name
+      ~label: "Name"
+      ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
+    Input.Text.render
+      editor.elements.scddb_id
+      ~label: "SCDDB ID"
+      ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
+    Input.Text.render_as_textarea
+      editor.elements.description
+      ~label: "Description"
+      ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances.";
+    ]
     ~buttons: [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
-                ();
-              Button.save
-                ~disabled: (S.map Option.is_none (Editor.state editor))
-                ~onclick: (fun () ->
-                  Fun.flip Lwt.map (Editor.submit editor) @@
-                  Option.iter @@ fun source ->
-                  Editor.clear editor;
-                  match on_save with
-                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_source (Entry.slug source))
-                  | Some on_save -> on_save source
-                )
-                ();
-            ]
+      Button.clear
+        ~onclick: (fun () -> Editor.clear editor)
+        ();
+      Button.save
+        ~disabled: (S.map Option.is_none (Editor.state editor))
+        ~onclick: (fun () ->
+          Fun.flip Lwt.map (Editor.submit editor) @@
+          Option.iter @@ fun source ->
+          Editor.clear editor;
+          match on_save with
+          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_source (Entry.slug source))
+          | Some on_save -> on_save source
         )
+        ();
     ]

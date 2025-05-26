@@ -31,7 +31,7 @@ let open_quick_search () =
   Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
   Components.Search.Quick.render
     ~return
-    ~dialog_title: (S.const "Quick search")
+    ~dialog_title: (Lwt.return "Quick search")
     ~dialog_buttons: [
       Components.Button.make
         ~label: "Explore"
@@ -155,15 +155,15 @@ let header =
           div
             ~a: [a_class ["collapse"; "navbar-collapse"]; a_id "the-navigation"]
             [
-              L.ul
+              R.ul
                 ~a: [a_class ["navbar-nav"; "ms-auto"]]
                 (
-                  let%lwt nav_item_create = nav_item_create in
-                  Lwt.return (
-                    [nav_item_explore] @
-                    nav_item_create @
-                      [UserHeader.header_item]
-                  )
+                  S.map List.flatten @@
+                  S.all @@ [
+                    S.const [nav_item_explore];
+                    S.from' [] nav_item_create;
+                    S.const [UserHeader.header_item];
+                  ]
                 );
             ];
           Components.Button.make
@@ -218,7 +218,28 @@ let footer =
         ];
     ]
 
-let initial_content = Dom_html.(createDiv document)
+let never_returns () =
+  Js_of_ocaml_lwt.Lwt_js.sleep Float.infinity;%lwt
+  assert false
+
+let initial_content =
+  To_dom.of_div @@
+  snd @@
+  Page.render @@
+  Page.make
+    ~title: (never_returns ())
+    ~subtitles: (
+      List.init 2 (fun _ ->
+        with_span_placeholder @@ never_returns ()
+      )
+    )
+    (
+      List.init 10 (fun _ ->
+        with_span_placeholder ~min: 8 ~max: 12 @@
+          never_returns ()
+      )
+    )
+
 let current_content = ref None
 
 let initialise () =
@@ -229,15 +250,18 @@ let initialise () =
   Dom.appendChild Dom_html.document##.body initial_content;
   Dom.appendChild Dom_html.document##.body (To_dom.of_footer footer)
 
-let load page =
+let load page_promise =
   assert (!current_content <> None);
+  (* FIXME: Loading Dancelor logo until page promise resolves *)
+  let%lwt page = page_promise in
   let iter_title = React.S.map set_title (Page.full_title page) in
   Depart.keep_forever iter_title;
   let (page_on_load, page_content) = Page.render page in
   let page_content = To_dom.of_div page_content in
   Dom.replaceChild Dom_html.document##.body page_content (Option.get !current_content);
   current_content := Some page_content;
-  page_on_load ()
+  page_on_load ();
+  Lwt.return_unit
 
 exception ReplacementSuccessful
 exception ReplacementFailed
@@ -248,28 +272,26 @@ exception ReplacementFailed
     loses meaning once the page replacement has taken place. The async exception
     hook should ignore {!ReplacementSuccessful} and report
     {!ReplacementFailed}. *)
-let load_sleep_raise ?(delay = 1.) page =
+let load_sleep_raise ?(delay = 1.) page_promise =
   let previous_content = !current_content in
-  load page;
+  load page_promise;%lwt
   Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
   if !current_content = previous_content then
     Lwt.fail ReplacementFailed
   else
     Lwt.fail ReplacementSuccessful
 
-let get_model_or_404 endpoint slug =
+let get_model_or_404 endpoint slug f =
   match%lwt Madge_client.call Endpoints.Api.(route @@ endpoint) slug with
-  | Ok model -> Lwt.return model
-  | Error Madge_client.{status; _} -> load_sleep_raise (OooopsViewer.create status)
+  | Ok model -> f model
+  | Error Madge_client.{status; _} -> OooopsViewer.create status
 
-let assert_can_create () =
-  Lwt.async @@ fun () ->
+let assert_can_create f =
   match%lwt Permission.can_create () with
-  | true -> Lwt.return_unit
-  | false -> load_sleep_raise (OooopsViewer.create `Forbidden)
+  | true -> f ()
+  | false -> OooopsViewer.create `Forbidden
 
-let assert_can_admin () =
-  Lwt.async @@ fun () ->
+let assert_can_admin f =
   match%lwt Permission.can_admin () with
-  | true -> Lwt.return_unit
-  | false -> load_sleep_raise (OooopsViewer.create `Forbidden)
+  | true -> f ()
+  | false -> OooopsViewer.create `Forbidden

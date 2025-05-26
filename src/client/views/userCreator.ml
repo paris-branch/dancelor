@@ -8,8 +8,8 @@ type status = Match | DontMatch
 let open_token_result_dialog user token =
   Lwt.map ignore @@
   Page.open_dialog @@ fun return ->
-  Page.make
-    ~title: (S.const "Created user")
+  Page.make'
+    ~title: (Lwt.return "Created user")
     [p [
       txt "User ";
       txt (Entry.slug_as_string user);
@@ -26,7 +26,7 @@ let open_token_result_dialog user token =
     ~buttons: [Button.ok' ~return ()]
 
 let create () =
-  MainPage.assert_can_admin ();
+  MainPage.assert_can_admin @@ fun () ->
   let username_input =
     Input.Text.make "" (fun username ->
       if username = "" then Error "The username cannot be empty."
@@ -66,8 +66,8 @@ let create () =
     RS.bind (Selector.signal_one person_selector) @@ fun person ->
     S.const @@ Ok (username, Model.User.make ~display_name ~person ())
   in
-  Page.make
-    ~title: (S.const "Create user")
+  Page.make'
+    ~title: (Lwt.return "Create user")
     [Input.Text.render
       username_input
       ~placeholder: "jeanmilligan"

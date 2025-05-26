@@ -45,104 +45,141 @@ module Search = struct
     =
     div
       [
-        L.div
-          (
-            match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
-            | Some _ -> Lwt.return_nil
-            | None ->
-              Lwt.return [
-                div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
-                  txt "You are not connected, and therefore are only seeing public items.";
-                ];
-              ]
-          );
-        div
-          ~a: [a_class ["input-group"; "mb-2"]]
-          (
-            [i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
-            SearchBar.render
-              t.search_bar
-              ~placeholder: "Search for anything (it really is magic!)"
-              ~autofocus: true
-              ?on_input
-              ?on_enter;
-            ] @
-              attached_buttons
-          );
-        R.div
-          (
-            Fun.flip S.map (SearchBar.state t.search_bar) @@ function
-              | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
-              | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-              | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
-              | ContinueTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
-              | _ -> []
-          );
-        div
-          ~a: [
-            R.a_class
+        (
+          (* Alert for when the user is not connected. *)
+          R.div
+            (
+              S.from' [] @@
+                match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
+                | Some _ -> Lwt.return_nil
+                | None ->
+                  Lwt.return [
+                    div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
+                      txt "You are not connected, and therefore are only seeing public items.";
+                    ];
+                  ]
+            )
+        );
+        (
+          (* The search bar. *)
+          div
+            ~a: [a_class ["input-group"; "mb-3"]]
+            (
+              [i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
+              SearchBar.render
+                t.search_bar
+                ~placeholder: "Search for anything (it really is magic!)"
+                ~autofocus: true
+                ?on_input
+                ?on_enter;
+              ] @
+                attached_buttons
+            )
+        );
+        (
+          (* Info or alert box, eg. to inform that one needs to type. *)
+          R.div
+            (
+              Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+                | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
+                | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
+                | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
+                | ContinueTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
+                | _ -> []
+            )
+        );
+        (
+          (* The results table *)
+          div
+            ~a: [
+              R.a_class
+                (
+                  Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+                    | Results _ when show_table_headers -> ["my-4"]
+                    | Results _ -> []
+                    | _ -> ["d-none"]
+                )
+            ]
+            [
               (
-                Fun.flip S.map (SearchBar.state t.search_bar) @@ function
-                  | Results _ when show_table_headers -> ["my-4"]
-                  | Results _ -> []
-                  | _ -> ["d-none"]
+                match t.pagination with
+                | Pagination p -> Pagination.render ~is_below: false p
+                | FixedSlice _ -> div []
+              );
+              div
+                ~a: [a_class ["table-responsive"]]
+                [
+                  tablex
+                    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
+                    ?thead: (
+                      if show_table_headers then
+                        Some
+                          (
+                            thead
+                              ~a: [a_class ["table-primary"]]
+                              [
+                                tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
+                              ]
+                          )
+                      else None
+                    )
+                    ?tfoot: (
+                      if show_table_headers then
+                        Some
+                          (
+                            tfoot
+                              ~a: [a_class ["table-primary"]]
+                              [
+                                tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
+                              ]
+                          )
+                      else None
+                    )
+                    [
+                      R.tbody
+                        (
+                          Fun.flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
+                            @@ fun (_, state) ->
+                            match state with
+                            | Results results ->
+                              let context = S.map Common.Endpoints.Page.inSearch @@ SearchBar.text t.search_bar in
+                              List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
+                            | _ -> []
+                        )
+                    ];
+                ];
+              (
+                match t.pagination with
+                | Pagination p -> Pagination.render ~is_below: true p
+                | FixedSlice _ -> div []
               )
-          ]
-          [
+            ]
+        );
+        (
+          (* A placeholder version of the result table. It only shows when
+             neither the info/alert box nor the results table shows. *)
+          div
+            ~a: [
+              R.a_class (
+                Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+                  | Results _ | NoResults | Errors _ -> ["d-none"]
+                  | StartTyping when t.min_characters > 0 -> ["d-none"]
+                  | ContinueTyping when t.min_characters > 0 -> ["d-none"]
+                  | _ -> ["my-4"]
+              )
+            ]
             (
-              match t.pagination with
-              | Pagination p -> Pagination.render ~is_below: false p
-              | FixedSlice _ -> div []
-            );
-            div
-              ~a: [a_class ["table-responsive"]]
               [
-                tablex
-                  ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
-                  ?thead: (
-                    if show_table_headers then
-                      Some
-                        (
-                          thead
-                            ~a: [a_class ["table-primary"]]
-                            [
-                              tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
-                            ]
-                        )
-                    else None
-                  )
-                  ?tfoot: (
-                    if show_table_headers then
-                      Some
-                        (
-                          tfoot
-                            ~a: [a_class ["table-primary"]]
-                            [
-                              tr [th [span ~a: [a_class ["d-none"; "d-sm-inline"]] [txt "Type"]]; th [txt "Name"]; th [txt "Kind"]; th [txt "By"]]
-                            ]
-                        )
-                    else None
-                  )
-                  [
-                    R.tbody
-                      (
-                        Fun.flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
-                          @@ fun (_, state) ->
-                          match state with
-                          | Results results ->
-                            let context = S.map Common.Endpoints.Page.inSearch @@ SearchBar.text t.search_bar in
-                            List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
-                          (* List.map Utils.(ResultRow.to_clickable_row % AnyResult.(make_result ~context)) results *)
-                          | _ -> []
-                      )
-                  ];
-              ];
-            (
               match t.pagination with
-              | Pagination p -> Pagination.render ~is_below: false p
-              | FixedSlice _ -> div []
-            );
-          ]
+              | Pagination _ -> Pagination.placeholder ~is_below: false ()
+              | FixedSlice _ -> div []] @
+              Tables.placeholder ~show_thead: show_table_headers ~show_tfoot: show_table_headers () @ [
+                match t.pagination with
+                | Pagination _ -> Pagination.placeholder ~is_below: true ()
+                | FixedSlice _ -> div []
+              ]
+            )
+        );
       ]
 end
 include Search
@@ -172,7 +209,7 @@ module Quick = struct
       ?on_enter
       quick_search
     =
-    Page.make
+    Page.make'
       ~title: dialog_title
       [Search.render
         ~make_result

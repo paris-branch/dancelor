@@ -24,8 +24,8 @@ let create username token =
     (* Cannot hurt to check twice. *)
     S.const @@ if password1 = password2 then Ok password2 else Error "The passwords do not match."
   in
-  Page.make
-    ~title: (S.const "Reset password")
+  Page.make'
+    ~title: (Lwt.return "Reset password")
     [Input.inactive
       ~label: "Username"
       (Slug.to_string username);

@@ -10,14 +10,26 @@ type t
 
 val make :
   ?parent_title: string ->
-  title: string S.t ->
   ?before_title: Html_types.div_content_fun elt list ->
+  title: string Lwt.t ->
+  ?subtitles: Html_types.phrasing elt list ->
   ?buttons: Html_types.div_content_fun elt list ->
   ?on_load: (unit -> unit) ->
   Html_types.div_content_fun elt list ->
   t
 (** Page maker. The [?parent_title] argument is used to build a title of the
     form ["page | parent page"]. It is empty by default. *)
+
+val make' :
+  ?parent_title: string ->
+  ?before_title: Html_types.div_content_fun elt list ->
+  title: string Lwt.t ->
+  ?subtitles: Html_types.phrasing elt list ->
+  ?buttons: Html_types.div_content_fun elt list ->
+  ?on_load: (unit -> unit) ->
+  Html_types.div_content_fun elt list ->
+  t Lwt.t
+(** Variant of {!make} that returns an [Lwt.t] for convenience. *)
 
 val full_title : t -> string S.t
 (** Full title, that is the title with the parent component. *)
@@ -27,7 +39,7 @@ val render : t -> (unit -> unit) * Html_types.div elt
 
 val open_dialog :
   ?hide_body_overflow_y: bool ->
-  (('result option -> unit) -> t) ->
+  (('result option -> unit) -> t Lwt.t) ->
   'result option Lwt.t
 (** [open_dialog f] opens a dialog. [f] is used to create the content of the
     dialog; it receives a [return] function that destroys the dialog and make it
@@ -35,6 +47,6 @@ val open_dialog :
     the dialog was closed. *)
 
 val open_dialog' :
-  (('result -> unit) -> t) ->
+  (('result -> unit) -> t Lwt.t) ->
   'result option Lwt.t
 (** Variant of {!open_dialog} where there is always a result. *)

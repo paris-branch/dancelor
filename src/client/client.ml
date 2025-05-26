@@ -8,7 +8,7 @@ open Views
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let dispatch uri =
-  let dispatch : type a r. (a, Page.t, r) Endpoints.Page.t -> a = function
+  let dispatch : type a r. (a, Page.t Lwt.t, r) Endpoints.Page.t -> a = function
     | Index -> Index.create ()
     | Explore -> (fun query -> Explorer.create ?query ())
     | Book -> (fun context slug -> BookViewer.create ?context slug)
@@ -29,13 +29,15 @@ let dispatch uri =
     | UserCreate -> UserCreator.create ()
     | UserPasswordReset -> UserPasswordResetter.create
   in
-  let madge_match_apply_all : Page.t Endpoints.Page.wrapped' list -> (unit -> Page.t) option =
+  let madge_match_apply_all : Page.t Lwt.t Endpoints.Page.wrapped' list -> (unit -> Page.t Lwt.t) option =
     List.map_first_some @@ fun (Endpoints.Page.W' endpoint) ->
     Madge.apply' (Endpoints.Page.route endpoint) (fun () -> dispatch endpoint) {meth = GET; uri; body = ""}
   in
   match madge_match_apply_all @@ Endpoints.Page.all' () with
   | Some page -> page ()
   | None -> OooopsViewer.create `Not_found
+
+let () = Random.self_init ()
 
 let () =
   let previous_exn = ref (Failure "this is an exception that is never raised") in
@@ -60,6 +62,18 @@ let () =
                   "” and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";
               ]
+          | Madge_client.ServerUnreachable request ->
+            Components.Toast.open_
+              ~title: "Server unreachable"
+              [
+                txt "While querying ";
+                a ~a: [a_href (Uri.to_string request.uri)] [txt @@ Uri.path request.uri];
+                txt
+                  ", the Dancelor server was unreachable, despite several \
+                     attempts. Is your internet connection maybe unstable? If \
+                     the error persists, and your internet connection works \
+                     otherwise fine, please contact your administrator."
+              ]
           | exn ->
             Components.Toast.open_
               ~title: "Uncaught exception"
@@ -77,6 +91,6 @@ let () =
   Dom_html.window##.onload :=
     Dom_html.handler (fun _ev ->
       MainPage.initialise ();
-      MainPage.load @@ dispatch @@ get_uri ();
+      Lwt.async (MainPage.load % dispatch % get_uri);
       Js._false
     )

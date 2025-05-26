@@ -79,46 +79,32 @@ module Editor = struct
 end
 
 let create ?on_save ?text () =
-  MainPage.assert_can_create ();
-  let title = "Add a person" in
-  let editor = Editor.create ~text in
-  Page.make
-    ~title: (S.const title)
-    [L.div
-      (
-        let%lwt editor = editor in
-        Lwt.return
-          [
-            Input.Text.render
-              editor.elements.name
-              ~label: "Name"
-              ~placeholder: "eg. John Doe";
-            Input.Text.render
-              editor.elements.scddb_id
-              ~label: "SCDDB ID"
-              ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
-          ]
-      )]
+  MainPage.assert_can_create @@ fun () ->
+  let%lwt editor = Editor.create ~text in
+  Page.make'
+    ~title: (Lwt.return "Add a person")
+    [Input.Text.render
+      editor.elements.name
+      ~label: "Name"
+      ~placeholder: "eg. John Doe";
+    Input.Text.render
+      editor.elements.scddb_id
+      ~label: "SCDDB ID"
+      ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/";
+    ]
     ~buttons: [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
-                ();
-              Button.save
-                ~disabled: (S.map Option.is_none (Editor.state editor))
-                ~onclick: (fun () ->
-                  Fun.flip Lwt.map (Editor.submit editor) @@
-                  Option.iter @@ fun person ->
-                  Editor.clear editor;
-                  match on_save with
-                  | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
-                  | Some on_save -> on_save person
-                )
-                ();
-            ]
+      Button.clear
+        ~onclick: (fun () -> Editor.clear editor)
+        ();
+      Button.save
+        ~disabled: (S.map Option.is_none (Editor.state editor))
+        ~onclick: (fun () ->
+          Fun.flip Lwt.map (Editor.submit editor) @@
+          Option.iter @@ fun person ->
+          Editor.clear editor;
+          match on_save with
+          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
+          | Some on_save -> on_save person
         )
+        ();
     ]

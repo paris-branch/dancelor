@@ -5,17 +5,17 @@ open Model
 open Html
 
 let create ?context slug =
-  let source_lwt = MainPage.get_model_or_404 (Source Get) slug in
-  let title = S.from' "" (Lwt.map Source.name' source_lwt) in
-  Page.make
+  MainPage.get_model_or_404 (Source Get) slug @@ fun source ->
+  Page.make'
     ~parent_title: "Source"
-    ~title
     ~before_title: [
       Components.ContextLinks.make_and_render
+        (* FIXME: doesn't need to take an [Lwt.t] anymore? *)
         ?context
         ~this_page: (Endpoints.Page.href_source slug)
-        (Lwt.map Any.source source_lwt);
+        (Lwt.return @@ Any.source source);
     ]
+    ~title: (Lwt.return @@ Source.name' source)
     [
       div
         ~a: [a_class ["text-end"; "dropdown"]]
@@ -24,23 +24,22 @@ let create ?context slug =
           ul
             ~a: [a_class ["dropdown-menu"]]
             [
-              L.li
+              li
                 (
-                  match%lwt Lwt.map Source.scddb_id' source_lwt with
-                  | None -> Lwt.return_nil
+                  match Source.scddb_id' source with
+                  | None -> []
                   | Some scddb_id ->
-                    Lwt.return
-                      [
-                        a
-                          ~a: [
-                            a_class ["dropdown-item"];
-                            a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
-                          ]
-                          [
-                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                            txt " See on SCDDB";
-                          ]
-                      ]
+                    [
+                      a
+                        ~a: [
+                          a_class ["dropdown-item"];
+                          a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
+                        ]
+                        [
+                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                          txt " See on SCDDB";
+                        ]
+                    ]
                 );
             ];
         ];
@@ -57,30 +56,17 @@ let create ?context slug =
             [
               p
                 [
-                  L.txt
+                  txt
                     (
-                      match%lwt Lwt.map Source.description' source_lwt with
-                      | None -> Lwt.return "no description available"
-                      | Some description -> Lwt.return description
+                      match Source.description' source with
+                      | None -> "no description available"
+                      | Some description -> description
                     )
                 ];
             ];
         ];
-      div
-        ~a: [a_class ["mt-2"; "mt-sm-0"; "ms-sm-2"]]
+      Utils.quick_explorer_links
         [
-          p
-            [
-              L.txt
-                (
-                  match%lwt Lwt.map Source.description' source_lwt with
-                  | None -> Lwt.return "no description available"
-                  | Some description -> Lwt.return description
-                )
-            ];
-          Utils.quick_explorer_links
-            [
-              ("versions from this source", Lwt.map Filter.(Any.version' % Version.memSource') source_lwt);
-            ];
+          ("versions from this source", Lwt.return @@ Filter.(Any.version' % Version.memSource') source);
         ];
     ]

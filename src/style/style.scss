@@ -22,6 +22,9 @@ $font-family-base: "Source Sans";
 
 $enable-negative-margins: true;
 
+$placeholder-opacity-max: 0.2;
+$placeholder-opacity-min: 0.05;
+
 @import "./vendored/bootstrap-5.3.5/scss/variables";
 @import "./vendored/bootstrap-5.3.5/scss/variables-dark";
 @import "./vendored/bootstrap-5.3.5/scss/maps";

@@ -18,7 +18,7 @@ let books books =
   clickable_row
     ~href: (Endpoints.Page.href_book @@ Entry.slug book)
     [
-      (Lwt.return @@ Formatters.Book.title_and_subtitle' book);
+      Lwt.return [Formatters.Book.title_and_subtitle' book];
       Lwt.return [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
     ]
 
@@ -28,8 +28,8 @@ let sets sets =
   clickable_row
     ~href
     [
-      (Formatters.Set.name_and_tunes' ~name_link: false set);
-      (Lwt.map Formatters.Person.names' (Set.conceptors' set));
+      Lwt.return [Formatters.Set.name_and_tunes' ~name_link: false set];
+      (Lwt.map (List.singleton % Formatters.Person.names') (Set.conceptors' set));
       Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set];
     ]
 
@@ -39,8 +39,8 @@ let dances dances =
   clickable_row
     ~href
     [
-      (Formatters.Dance.name_and_disambiguation' ~name_link: false dance);
-      (Lwt.map Formatters.Person.names' (Dance.devisers' dance));
+      Lwt.return [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
+      (Lwt.map (List.singleton % Formatters.Person.names') (Dance.devisers' dance));
       Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     ]
 
@@ -52,7 +52,7 @@ let tunes tunes =
     [
       Lwt.return [Formatters.Tune.name' ~link: false tune];
       Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
-      (Formatters.Tune.composers' tune);
+      Lwt.return [Formatters.Tune.composers' tune];
     ]
 
 let versions versions =
@@ -65,9 +65,9 @@ let versions versions =
     clickable_row
       ~href
       [
-        (Formatters.Version.disambiguation_and_sources' version);
-        (Lwt.map Formatters.Person.names' (Version.arrangers' version));
-        (tune_lwt >>=| Formatters.Kind.full_string version);
+        Lwt.return [Formatters.Version.disambiguation_and_sources' version];
+        (Lwt.map (List.singleton % Formatters.Person.names') (Version.arrangers' version));
+        (Lwt.map (List.singleton % Formatters.Kind.full_string version) tune_lwt);
         Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
         Lwt.return [txt @@ Version.structure' version];
       ]
@@ -82,8 +82,64 @@ let versions_with_names versions =
     clickable_row
       ~href
       [
-        Lwt.return [L.txt @@ Lwt.map Tune.name' tune_lwt];
-        (tune_lwt >>=| Formatters.Kind.full_string version);
+        Lwt.return [with_span_placeholder @@ Lwt.map (List.singleton % txt % Tune.name') tune_lwt];
+        (Lwt.map (List.singleton % Formatters.Kind.full_string version) tune_lwt);
         Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
         Lwt.return [txt @@ Version.structure' version];
       ]
+
+let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
+  div
+    ~a: [a_class ["table-responsive"]]
+    [
+      tablex
+        ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
+        ?thead: (
+          if show_thead then
+            Option.some @@
+              thead
+                ~a: [a_class ["table-primary"]]
+                [
+                  tr [
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                  ];
+                ]
+          else None
+        )
+        ?tfoot: (
+          if show_tfoot then
+            Option.some @@
+              tfoot
+                ~a: [a_class ["table-primary"]]
+                [
+                  tr [
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                  ];
+                ]
+          else None
+        )
+        [
+          tbody [
+            tr [
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+            ];
+            tr [
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+            ];
+            tr [
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+            ];
+          ]
+        ]
+    ]
+]

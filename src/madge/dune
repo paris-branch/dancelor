@@ -10,7 +10,12 @@
  (name madge_client)
  (modules madge_client)
  (public_name dancelor.madge.client)
- (libraries dancelor.nes dancelor.madge cohttp-lwt-jsoo yojson)
+ (libraries
+  dancelor.nes
+  dancelor.madge
+  cohttp-lwt-jsoo
+  yojson
+  js_of_ocaml-lwt)
  (preprocess
   (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
 

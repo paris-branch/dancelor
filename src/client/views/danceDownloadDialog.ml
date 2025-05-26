@@ -7,8 +7,8 @@ let create = SetDownloadDialog.create
 
 let open_ slug dialog =
   Page.open_dialog' @@ fun return ->
-  Page.make
-    ~title: (S.const "Download a PDF")
+  Page.make'
+    ~title: (Lwt.return "Download a PDF")
     [table dialog.SetDownloadDialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();

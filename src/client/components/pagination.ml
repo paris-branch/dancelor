@@ -170,4 +170,20 @@ let render ~is_below pagination =
         (button_list pagination);
     ]
 
+let placeholder ~is_below () =
+  nav
+    ~a: [a_class ["d-md-flex"; "justify-content-between"; (if is_below then "align-items-start" else "align-items-end")]]
+    [
+      div ~a: [a_class ["placeholder"]] [txt "Showing 1 to 25 of 1000 entries"];
+      ul
+        ~a: [a_class ["pagination"; "mb-0"]]
+        (
+          List.map
+            (fun x ->
+              li ~a: [a_class ["page-item"; "disabled"]] [a ~a: [a_class ["page-link"; "placeholder"]] [txt x]];
+            )
+            ["Previous"; "1"; "..."; "∞"; "Next"]
+        );
+    ]
+
 let slice page_nav = S.map current_slice page_nav.state

@@ -51,28 +51,21 @@ let make_context_link_banner ~context ~this_page =
       div
         ~a: [a_class ["container-md"; "d-flex"; "justify-content-between"]]
         [
-          div
-            (
+          div [
+            with_span_placeholder
               (
                 let open Endpoints.Page in
                 match context with
                 | InSearch query ->
-                  [
-                    txt "In search for: ";
-                    parent_a [txt query];
-                  ]
+                  Lwt.return [txt "In search for: "; parent_a [txt query]]
                 | InSet (slug, _) ->
-                  [
-                    txt "In set: ";
-                    parent_a [L.txt (Lwt.map Set.name' @@ Set.get slug)];
-                  ]
+                  let%lwt name = Lwt.map Set.name' @@ Set.get slug in
+                  Lwt.return [txt "In set: "; parent_a [txt name]]
                 | InBook (slug, _) ->
-                  [
-                    txt "In book: ";
-                    parent_a [L.txt (Lwt.map Book.title' @@ Book.get slug)];
-                  ]
-              )
-            );
+                  let%lwt name = Lwt.map Book.title' @@ Book.get slug in
+                  Lwt.return [txt "In book: "; parent_a [txt name]]
+              );
+          ];
           div
             [
               parent_a
@@ -132,7 +125,7 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
         [
           let element_repr =
             [[txt Any.(Type.to_string (type_of neighbour))];
-            [L.txt @@ Any.name neighbour];
+            [with_span_placeholder @@ Lwt.map (List.singleton % txt) (Any.name neighbour)];
             ] @
               (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
           in
@@ -151,8 +144,8 @@ let make_and_render ?context ~this_page any_lwt =
   match context with
   | None -> div []
   | Some context ->
-    L.div
-      (
+    R.div (
+      S.from' [] @@
         let%lwt any = any_lwt in
         let%lwt {total; previous; index; next; _} = get_neighbours any context in
         Lwt.return @@
@@ -165,4 +158,4 @@ let make_and_render ?context ~this_page any_lwt =
                  top in the HTML rendering. *)
               Some (make_context_link_banner ~context ~this_page);
             ]
-      );
+    )

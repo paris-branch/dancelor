@@ -24,8 +24,8 @@ let create ?query () =
       ~pagination_mode: (Pagination ())
       ()
   in
-  Page.make
-    ~title: (S.const "Explore")
+  Page.make'
+    ~title: (Lwt.return "Explore")
     [
       Search.render
         search
