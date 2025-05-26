@@ -88,8 +88,58 @@ let versions_with_names versions =
         Lwt.return [txt @@ Version.structure' version];
       ]
 
-let placeholder () = [
-  div [span_placeholder ()];
-  div [span_placeholder ()];
-  div [span_placeholder ()];
+let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
+  div
+    ~a: [a_class ["table-responsive"]]
+    [
+      tablex
+        ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
+        ?thead: (
+          if show_thead then
+            Option.some @@
+              thead
+                ~a: [a_class ["table-primary"]]
+                [
+                  tr [
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                  ];
+                ]
+          else None
+        )
+        ?tfoot: (
+          if show_tfoot then
+            Option.some @@
+              tfoot
+                ~a: [a_class ["table-primary"]]
+                [
+                  tr [
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                    th [span_placeholder ()];
+                  ];
+                ]
+          else None
+        )
+        [
+          tbody [
+            tr [
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+            ];
+            tr [
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+            ];
+            tr [
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+              td [span_placeholder ()];
+            ];
+          ]
+        ]
+    ]
 ]
