@@ -49,6 +49,7 @@ class TestContextLinks():
     ## From the book “The Tam Lin Book”, click on the set “Tam Lin Thrice” and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/book/the-tam-lin-book")
+    time.sleep(1) # give a second to avoid clicking on placeholder
     self.driver.find_element(By.CSS_SELECTOR, "tr:nth-child(1) > td:nth-child(2)").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/tam-lin-niols?context=%5B%22InBook%22%2C%22the-tam-lin-book%22%2C0%5D"))
 
