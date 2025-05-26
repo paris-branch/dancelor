@@ -7,4 +7,9 @@
 
 (install
  (section share)
- (files style.css))
+ (files
+  style.css
+  (glob_files
+   (vendored/bootstrap-5.3.5/bootstrap.bundle.min.js* with_prefix ""))
+  (glob_files_rec
+   (vendored/bootstrap-icons-1.11.3/* with_prefix ""))))
