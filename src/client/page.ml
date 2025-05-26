@@ -6,6 +6,7 @@ type t = {
   parent_title: string;
   before_title: Html_types.div_content_fun elt list;
   title: string S.t;
+  subtitles: Html_types.phrasing elt list;
   content: Html_types.div_content_fun elt list;
   buttons: Html_types.div_content_fun elt list;
   on_load: unit -> unit;
@@ -23,6 +24,7 @@ let make
   ?(parent_title = "")
   ?(before_title = [])
   ~title
+  ?(subtitles = [])
   ?(buttons = [])
   ?(on_load = Fun.id)
   content
@@ -30,6 +32,7 @@ let make
   parent_title;
   before_title;
   title;
+  subtitles;
   content;
   buttons;
   on_load;
@@ -42,21 +45,22 @@ let render p = (
       div p.before_title;
       div
         ~a: [a_class ["container-md"]]
-        [
-          R.h2 ~a: [a_class ["text-center"; "mb-4"]] (
+        (
+          [R.h2 ~a: [a_class ["text-center"]] (
             Fun.flip S.map p.title @@
               List.singleton %
                 function
                   | "" -> span_placeholder ()
                   | title -> txt title
           );
-          div p.content;
-          (
+          ] @
+          List.map (h5 ~a: [a_class ["text-center"]] % List.singleton) p.subtitles @ [
+            div ~a: [a_class ["mt-4"]] p.content;
             match p.buttons with
             | [] -> div []
             | buttons -> div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] buttons
-          )
-        ];
+          ]
+        );
     ]
 )
 
@@ -77,6 +81,7 @@ let open_dialog
       Dom.removeChild Dom_html.document##.body box
   in
   let%lwt page = make_page return in
+  assert (page.subtitles = []);
 
   (* The HTML dialog box. *)
   let box =

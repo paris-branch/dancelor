@@ -23,17 +23,19 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Version"
-      ~title: (S.from' "" @@ Version.name' version)
       ~before_title: [
         Components.ContextLinks.make_and_render
           ?context
           ~this_page: (Endpoints.Page.href_version slug)
           (Lwt.return @@ Any.version version);
       ]
+      ~title: (S.from' "" @@ Version.name' version)
+      ~subtitles: [
+        Formatters.Version.tune_aka' version;
+        Formatters.Version.tune_description' version;
+        Formatters.Version.description' ~arranger_links: true version;
+      ]
       [
-        h5 ~a: [a_class ["text-center"]] [Formatters.Version.tune_aka' version];
-        h5 ~a: [a_class ["text-center"]] [Formatters.Version.tune_description' version];
-        h5 ~a: [a_class ["text-center"]] [Formatters.Version.description' ~arranger_links: true version];
         div
           ~a: [a_class ["text-end"; "dropdown"]]
           [

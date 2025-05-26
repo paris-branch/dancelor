@@ -9,26 +9,26 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Dance"
-      ~title: (S.const @@ Dance.name' dance)
       ~before_title: [
         Components.ContextLinks.make_and_render
           ?context
           ~this_page: (Endpoints.Page.href_dance slug)
           (Lwt.return @@ Any.dance dance);
       ]
+      ~title: (S.const @@ Dance.name' dance)
+      ~subtitles: [
+        (
+          with_span_placeholder @@
+            let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
+            let%lwt by =
+              match%lwt Dance.devisers' dance with
+              | [] -> Lwt.return_nil
+              | devisers -> Lwt.return [txt " by "; Formatters.Person.names' ~links: true devisers]
+            in
+            Lwt.return (kind @ by)
+        );
+      ]
       [
-        h5
-          ~a: [a_class ["text-center"]]
-          [
-            with_span_placeholder @@
-              let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
-              let%lwt by =
-                match%lwt Dance.devisers' dance with
-                | [] -> Lwt.return_nil
-                | devisers -> Lwt.return [txt " by "; Formatters.Person.names' ~links: true devisers]
-              in
-              Lwt.return (kind @ by)
-          ];
         div
           (
             match Dance.two_chords' dance with

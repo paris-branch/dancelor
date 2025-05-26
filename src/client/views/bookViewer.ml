@@ -104,33 +104,17 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Book"
-      ~title: (S.const @@ Book.title' book)
       ~before_title: [
         Components.ContextLinks.make_and_render
           ?context
           ~this_page: (Endpoints.Page.href_book slug)
           (Lwt.return @@ Any.book book);
       ]
+      ~title: (S.const @@ Book.title' book)
+      ~subtitles: [
+        txt (Book.subtitle' book);
+      ]
       [
-        h5 ~a: [a_class ["text-center"]] [txt @@ Book.subtitle' book];
-        div
-          (
-            match Book.scddb_id' book with
-            | None -> []
-            | Some scddb_id ->
-              let href = Uri.to_string @@ SCDDB.list_uri scddb_id in
-              [
-                h5
-                  ~a: [a_class ["text-center"]]
-                  [
-                    a
-                      ~a: [a_href href; a_target "blank"]
-                      [
-                        txt "Link to the Strathspey Database"
-                      ]
-                  ]
-              ]
-          );
         R.div
           (
             S.from' [] @@
@@ -179,6 +163,23 @@ let create ?context slug =
                         txt " Edit"
                       ]
                   ];
+                li
+                  (
+                    match Book.scddb_id' book with
+                    | None -> []
+                    | Some scddb_id ->
+                      [
+                        a
+                          ~a: [
+                            a_class ["dropdown-item"];
+                            a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
+                          ]
+                          [
+                            i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                            txt " See on SCDDB";
+                          ]
+                      ]
+                  );
               ];
           ];
         div

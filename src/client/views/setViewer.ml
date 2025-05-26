@@ -9,30 +9,29 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Set"
-      ~title: (S.const @@ Set.name' set)
       ~before_title: [
         Components.ContextLinks.make_and_render
           ?context
           ~this_page: (Endpoints.Page.href_set slug)
           (Lwt.return @@ Any.set set);
       ]
-      [
-        h5 ~a: [a_class ["text-center"]] [Formatters.Set.works' set];
-        h5
-          ~a: [a_class ["text-center"]]
+      ~title: (S.const @@ Set.name' set)
+      ~subtitles: [
+        Formatters.Set.works' set;
+        span
           [
             txt ((Kind.Dance.to_pretty_string % Set.kind') set);
             txt " — Play ";
             txt ((SetOrder.to_pretty_string % Set.order') set);
           ];
-        h5
-          ~a: [a_class ["text-center"]]
-          [
-            with_span_placeholder @@
-              match%lwt Set.conceptors' set with
-              | [] -> Lwt.return_nil
-              | devisers -> Lwt.return [txt "Set by "; Formatters.Person.names' ~links: true devisers]
-          ];
+        (
+          with_span_placeholder @@
+            match%lwt Set.conceptors' set with
+            | [] -> Lwt.return_nil
+            | devisers -> Lwt.return [txt "Set by "; Formatters.Person.names' ~links: true devisers]
+        );
+      ]
+      [
         div
           ~a: [a_class ["text-end"; "dropdown"]]
           [

@@ -9,7 +9,6 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Source"
-      ~title: (S.const @@ Source.name' source)
       ~before_title: [
         Components.ContextLinks.make_and_render
           (* FIXME: doesn't need to take an [Lwt.t] anymore? *)
@@ -17,6 +16,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_source slug)
           (Lwt.return @@ Any.source source);
       ]
+      ~title: (S.const @@ Source.name' source)
       [
         div
           ~a: [a_class ["text-end"; "dropdown"]]

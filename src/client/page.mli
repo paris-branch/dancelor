@@ -12,6 +12,7 @@ val make :
   ?parent_title: string ->
   ?before_title: Html_types.div_content_fun elt list ->
   title: string S.t ->
+  ?subtitles: Html_types.phrasing elt list ->
   ?buttons: Html_types.div_content_fun elt list ->
   ?on_load: (unit -> unit) ->
   Html_types.div_content_fun elt list ->

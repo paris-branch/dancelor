@@ -9,16 +9,18 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Tune"
-      ~title: (S.const @@ Tune.name' tune)
       ~before_title: [
         Components.ContextLinks.make_and_render
           ?context
           ~this_page: (Endpoints.Page.href_tune slug)
           (Lwt.return @@ Any.tune tune);
       ]
+      ~title: (S.const @@ Tune.name' tune)
+      ~subtitles: [
+        Formatters.Tune.aka' tune;
+        Formatters.Tune.description' tune;
+      ]
       [
-        h5 ~a: [a_class ["text-center"]] [Formatters.Tune.aka' tune];
-        h5 ~a: [a_class ["text-center"]] [Formatters.Tune.description' tune];
         div
           (
             match Tune.date' tune with

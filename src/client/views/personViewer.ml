@@ -9,13 +9,13 @@ let create ?context slug =
   Lwt.return @@
     Page.make
       ~parent_title: "Person"
-      ~title: (S.const @@ Person.name' person)
       ~before_title: [
         Components.ContextLinks.make_and_render
           ?context
           ~this_page: (Endpoints.Page.href_person slug)
           (Lwt.return @@ Any.person person);
       ]
+      ~title: (S.const @@ Person.name' person)
       [
         div
           ~a: [a_class ["text-end"; "dropdown"]]
