@@ -26,7 +26,7 @@ let create username token =
   in
   Lwt.return @@
     Page.make
-      ~title: (S.const "Reset password")
+      ~title: (Lwt.return "Reset password")
       [Input.inactive
         ~label: "Username"
         (Slug.to_string username);

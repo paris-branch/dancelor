@@ -92,7 +92,7 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Lwt.return @@
     Page.make
-      ~title: (S.const "Add a source")
+      ~title: (Lwt.return "Add a source")
       [Input.Text.render
         editor.elements.name
         ~label: "Name"

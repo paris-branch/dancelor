@@ -16,7 +16,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_source slug)
           (Lwt.return @@ Any.source source);
       ]
-      ~title: (S.const @@ Source.name' source)
+      ~title: (Lwt.return @@ Source.name' source)
       [
         div
           ~a: [a_class ["text-end"; "dropdown"]]

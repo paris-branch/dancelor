@@ -15,7 +15,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_tune slug)
           (Lwt.return @@ Any.tune tune);
       ]
-      ~title: (S.const @@ Tune.name' tune)
+      ~title: (Lwt.return @@ Tune.name' tune)
       ~subtitles: [
         Formatters.Tune.aka' tune;
         Formatters.Tune.description' tune;

@@ -183,7 +183,7 @@ let create ?on_save ?text ?tune () =
   let%lwt editor = Editor.create ~text ~tune in
   Lwt.return @@
     Page.make
-      ~title: (S.const "Add a version")
+      ~title: (Lwt.return "Add a version")
       [Selector.render
         ~make_result: AnyResult.make_tune_result'
         ~field_name: "Tune"
@@ -241,7 +241,7 @@ let create ?on_save ?text ?tune () =
               Page.open_dialog' @@ fun return ->
               Lwt.return @@
                 Page.make
-                  ~title: (S.const "Preview")
+                  ~title: (Lwt.return "Preview")
                   [div [VersionSvg.make_preview version];
                   div
                     [

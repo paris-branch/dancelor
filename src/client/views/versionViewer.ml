@@ -29,7 +29,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_version slug)
           (Lwt.return @@ Any.version version);
       ]
-      ~title: (S.from' "" @@ Version.name' version)
+      ~title: (Version.name' version)
       ~subtitles: [
         Formatters.Version.tune_aka' version;
         Formatters.Version.tune_description' version;

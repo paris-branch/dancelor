@@ -57,7 +57,7 @@ let open_ slug dialog =
   Page.open_dialog @@ fun return ->
   Lwt.return @@
     Page.make
-      ~title: (S.const "Download a PDF")
+      ~title: (Lwt.return "Download a PDF")
       [table dialog.choice_rows]
       ~buttons: [
         Button.cancel' ~return ();

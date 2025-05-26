@@ -153,7 +153,7 @@ let create ?on_save ?text ?edit () =
   let%lwt editor = Editor.create ~text ~edit in
   Lwt.return @@
     Page.make
-      ~title: (S.const @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
+      ~title: (Lwt.return @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
       [Input.Text.render
         editor.elements.name
         ~label: "Name"

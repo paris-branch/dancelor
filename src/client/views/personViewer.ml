@@ -15,7 +15,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_person slug)
           (Lwt.return @@ Any.person person);
       ]
-      ~title: (S.const @@ Person.name' person)
+      ~title: (Lwt.return @@ Person.name' person)
       [
         div
           ~a: [a_class ["text-end"; "dropdown"]]

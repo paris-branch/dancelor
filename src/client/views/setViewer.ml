@@ -15,7 +15,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_set slug)
           (Lwt.return @@ Any.set set);
       ]
-      ~title: (S.const @@ Set.name' set)
+      ~title: (Lwt.return @@ Set.name' set)
       ~subtitles: [
         Formatters.Set.works' set;
         span

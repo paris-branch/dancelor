@@ -5,7 +5,7 @@ open Js_of_ocaml
 type t = {
   parent_title: string;
   before_title: Html_types.div_content_fun elt list;
-  title: string S.t;
+  title: string Lwt.t;
   subtitles: Html_types.phrasing elt list;
   content: Html_types.div_content_fun elt list;
   buttons: Html_types.div_content_fun elt list;
@@ -13,12 +13,15 @@ type t = {
 }
 
 let full_title p =
-  Fun.flip S.map p.title @@ function
-    | "" -> p.parent_title
-    | title ->
-      match p.parent_title with
-      | "" -> title
-      | _ -> title ^ " | " ^ p.parent_title
+  S.map
+    (function
+      | "" -> p.parent_title
+      | title ->
+        match p.parent_title with
+        | "" -> title
+        | _ -> title ^ " | " ^ p.parent_title
+    )
+    (S.from' "" p.title)
 
 let make
   ?(parent_title = "")
@@ -45,22 +48,18 @@ let render p = (
       div p.before_title;
       div
         ~a: [a_class ["container-md"]]
-        (
-          [R.h2 ~a: [a_class ["text-center"]] (
-            Fun.flip S.map p.title @@
-              List.singleton %
-                function
-                  | "" -> span_placeholder ()
-                  | title -> txt title
-          );
-          ] @
-          List.map (h5 ~a: [a_class ["text-center"]] % List.singleton) p.subtitles @ [
-            div ~a: [a_class ["mt-4"]] p.content;
-            match p.buttons with
-            | [] -> div []
-            | buttons -> div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] buttons
-          ]
-        );
+        [
+          h2 ~a: [a_class ["text-center"]] [
+            with_span_placeholder @@
+              let%lwt title = p.title in
+              Lwt.return [txt title]
+          ];
+          div (List.map (h5 ~a: [a_class ["text-center"]] % List.singleton) p.subtitles);
+          div ~a: [a_class ["mt-4"]] p.content;
+          match p.buttons with
+          | [] -> div []
+          | buttons -> div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] buttons
+        ];
     ]
 )
 
@@ -99,13 +98,11 @@ let open_dialog
                 div
                   ~a: [a_class ["modal-header"]]
                   [
-                    R.h4 ~a: [a_class ["modal-title"]] (
-                      Fun.flip S.map page.title @@
-                        List.singleton %
-                          function
-                            | "" -> span_placeholder ()
-                            | title -> txt title
-                    );
+                    h4 ~a: [a_class ["modal-title"]] [
+                      with_span_placeholder @@
+                        let%lwt title = page.title in
+                        Lwt.return [txt title]
+                    ];
                     button
                       ~a: [
                         a_button_type `Button;

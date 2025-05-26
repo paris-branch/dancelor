@@ -344,7 +344,7 @@ let open_ text raws filter =
   Page.open_dialog' @@ fun return ->
   Lwt.return @@
     Page.make
-      ~title: (S.const "Complex filters")
+      ~title: (Lwt.return "Complex filters")
       [div
         ~a: [a_class ["d-flex"; "justify-content-center"]]
         [
@@ -381,7 +381,7 @@ let open_error () =
   Page.open_dialog' @@ fun return ->
   Lwt.return @@
     Page.make
-      ~title: (S.const "Complex filters")
+      ~title: (Lwt.return "Complex filters")
       [p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
       p
         [

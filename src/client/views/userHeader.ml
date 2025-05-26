@@ -50,7 +50,7 @@ let open_sign_in_dialog () =
     Page.open_dialog @@ fun return ->
     Lwt.return @@
       Page.make
-        ~title: (S.const "Sign in")
+        ~title: (Lwt.return "Sign in")
         [Input.Text.render
           username_input
           ~placeholder: "JeanMilligan"

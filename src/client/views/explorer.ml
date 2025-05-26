@@ -26,7 +26,7 @@ let create ?query () =
   in
   Lwt.return @@
     Page.make
-      ~title: (S.const "Explore")
+      ~title: (Lwt.return "Explore")
       [
         Search.render
           search

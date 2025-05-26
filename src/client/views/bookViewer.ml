@@ -110,7 +110,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_book slug)
           (Lwt.return @@ Any.book book);
       ]
-      ~title: (S.const @@ Book.title' book)
+      ~title: (Lwt.return @@ Book.title' book)
       ~subtitles: [
         txt (Book.subtitle' book);
       ]

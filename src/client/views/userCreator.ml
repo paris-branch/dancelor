@@ -10,7 +10,7 @@ let open_token_result_dialog user token =
   Page.open_dialog @@ fun return ->
   Lwt.return @@
     Page.make
-      ~title: (S.const "Created user")
+      ~title: (Lwt.return "Created user")
       [p [
         txt "User ";
         txt (Entry.slug_as_string user);
@@ -69,7 +69,7 @@ let create () =
   in
   Lwt.return @@
     Page.make
-      ~title: (S.const "Create user")
+      ~title: (Lwt.return "Create user")
       [Input.Text.render
         username_input
         ~placeholder: "jeanmilligan"

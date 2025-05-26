@@ -5,7 +5,7 @@ let get_uri () = Js.to_string Dom_html.window##.location##.href
 
 let create status =
   Page.make
-    ~title: (S.const "Oooops!")
+    ~title: (Lwt.return "Oooops!")
     ~subtitles: [
       txt (Cohttp.Code.string_of_status status);
     ]

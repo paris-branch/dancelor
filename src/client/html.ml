@@ -11,36 +11,28 @@ module S = struct
   let all (ss : 'a t list) : 'a list t = merge (Fun.flip List.cons) [] (List.rev ss)
 
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
-      until the [promise] resolves, and changes every time [promise] resolves
-      again after that. *)
-  let from (placeholder : 'a) (promise : unit -> 'a Lwt.t) : 'a Lwt_react.signal =
-    let result, send_result = create placeholder in
-    let rec loop () =
-      Lwt.bind (promise ()) @@ fun result ->
-      send_result result;
-      loop ()
-    in
-    Lwt.async loop;
-    result
-
-  (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves. This is similar to {!from} except it does
       only one update. *)
-  let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a Lwt_react.signal =
-    let result, send_result = create placeholder in
-    (* NOTE: Exceptions during {!Lwt.async} are passed to the
-       {!Lwt.async_exception_hook}. *)
-    Lwt.async
-      (fun () ->
-        Lwt.bind promise @@ fun value ->
-        send_result value;
-        stop result;
-        Lwt.return_unit
-      );
-    result
-
-  let for_lwt' (promise : 'a Lwt.t) (f : 'a option -> 'b) : 'b t =
-    map f @@ from' None @@ Lwt.map (fun x -> Some x) promise
+  let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a t =
+    (* Inspect the state: already resolved promises do not need any special
+       construction, and this way we avoid weird flickers. *)
+    match Lwt.state promise with
+    | Return result -> const result
+    | Fail _ ->
+      Lwt.async (fun () -> Lwt.bind promise (fun _ -> assert false));
+      const placeholder
+    | Sleep ->
+      let result, send_result = create placeholder in
+      (* NOTE: Exceptions during {!Lwt.async} are passed to the
+         {!Lwt.async_exception_hook}. *)
+      Lwt.async
+        (fun () ->
+          Lwt.bind promise @@ fun value ->
+          send_result value;
+          stop result;
+          Lwt.return_unit
+        );
+      result
 
   (** [bind_s' signal placeholder promise] is a signal that begins by holding
       [placeholder]. For all the values held by [signal], [promise] is called
@@ -74,14 +66,6 @@ end
 (** Reactive lists. *)
 module RList = struct
   include ReactiveData.RList
-
-  (** [from_lwt placeholder promise] is a container whose initial value is
-      [placeholder], and which gets updated every time [promise] resolves. When
-      that happens we detect the differences between the previous value and
-      [promise]'s result, and perform downstream computation (e.g., for [map])
-      only on the new and modified elements. *)
-  let from_lwt placeholder promise =
-    from_signal @@ S.from placeholder promise
 
   (** [from_lwt' placeholder promise] is a container whose initial value is
       [placeholder], and which gets updated once [promise] resolves. When that

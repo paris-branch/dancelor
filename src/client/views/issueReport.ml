@@ -55,7 +55,7 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Lwt.return @@
       Page.make
-        ~title: (S.const "Report an issue")
+        ~title: (Lwt.return "Report an issue")
         [Input.Text.render
           reporter_input
           ~placeholder: "Dr Jean Milligan"

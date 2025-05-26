@@ -15,7 +15,7 @@ let create ?context slug =
           ~this_page: (Endpoints.Page.href_dance slug)
           (Lwt.return @@ Any.dance dance);
       ]
-      ~title: (S.const @@ Dance.name' dance)
+      ~title: (Lwt.return @@ Dance.name' dance)
       ~subtitles: [
         (
           with_span_placeholder @@

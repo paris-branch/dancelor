@@ -147,7 +147,7 @@ let render
                         Search.Quick.render
                           s.quick_search
                           ~return: quick_search_return
-                          ~dialog_title: (S.const label)
+                          ~dialog_title: (Lwt.return label)
                           ~make_result: (fun ~context: _ result ->
                             make_result
                               ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))

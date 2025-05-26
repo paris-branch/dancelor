@@ -32,7 +32,7 @@ let open_quick_search () =
   Lwt.return @@
     Components.Search.Quick.render
       ~return
-      ~dialog_title: (S.const "Quick search")
+      ~dialog_title: (Lwt.return "Quick search")
       ~dialog_buttons: [
         Components.Button.make
           ~label: "Explore"
