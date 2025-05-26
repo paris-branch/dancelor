@@ -32,8 +32,8 @@ let create ?context slug =
         (
           match Dance.two_chords' dance with
           | Some false -> []
-          | Some true -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords"]]
-          | None -> [h5 ~a: [a_class ["text-center"]] [txt "Two Chords: unknown"]]
+          | Some true -> [txt "Two Chords"]
+          | None -> [txt "Two Chords: unknown"]
         );
       div
         ~a: [a_class ["text-end"; "dropdown"]]
