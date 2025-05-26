@@ -133,6 +133,10 @@ module L = struct
 
   module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
 
+  let inline_placeholder ?(min = 4) ?(max = 8) promise =
+    let col_n = "col-" ^ string_of_int (Random.int_in_range ~min ~max) in
+    R.span @@ RList.from_lwt' [span ~a: [a_class ["placeholder"; col_n]] []] promise
+
   (* NOTE: To be filled on demand. *)
 
   let txt str = R.txt (S.from' "" str)
@@ -171,9 +175,3 @@ module RS = struct
       | Ok x -> f x
       | Error msg -> S.const @@ Error msg
 end
-
-(* Other HTML utilities *)
-
-let span_placeholder min max =
-  let col_n = "col-" ^ string_of_int (Random.int_in_range ~min ~max) in
-  span ~a: [a_class ["placeholder"; col_n]] []

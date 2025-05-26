@@ -167,19 +167,9 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
     ?action
     (
       prefix @
-      [ResultRow.lcell (Formatters.Version.name_and_disambiguation' ~name_link: false version);
-      ResultRow.cell
-        ~a: [a_class ["text-nowrap"]]
-        [
-          L.txt
-            (
-              let bars = Version.bars' version in
-              let%lwt kind = Lwt.map Tune.kind' @@ Version.tune' version in
-              let structure = Version.structure' version in
-              Lwt.return (Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")")
-            )
-        ];
-      ResultRow.lcell (Formatters.Version.composer_and_arranger' ~short: true version);
+      [ResultRow.cell [Formatters.Version.name_and_disambiguation' ~name_link: false version];
+      ResultRow.cell [Formatters.Version.kind_and_structure' version];
+      ResultRow.cell [Formatters.Version.composer_and_arranger' ~short: true version];
       ] @
       suffix
     )

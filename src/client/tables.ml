@@ -65,7 +65,7 @@ let versions versions =
     clickable_row
       ~href
       [
-        (Formatters.Version.disambiguation_and_sources' version);
+        Lwt.return [Formatters.Version.disambiguation_and_sources' version];
         (Lwt.map Formatters.Person.names' (Version.arrangers' version));
         (tune_lwt >>=| Formatters.Kind.full_string version);
         Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];

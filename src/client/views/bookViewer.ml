@@ -86,7 +86,7 @@ let table_contents ~this_slug contents =
                   let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
                   Tables.clickable_row ~href [
                     Lwt.return [txt "Tune"];
-                    (Formatters.Version.name_and_dance' ~name_link: false version parameters);
+                    Lwt.return [Formatters.Version.name_and_dance' ~name_link: false version parameters];
                     Lwt.return
                       [
                         L.txt

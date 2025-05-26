@@ -31,9 +31,9 @@ let create ?context slug =
         (Lwt.return @@ Any.version version);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.tune_aka' version);
-      L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.tune_description' version);
-      L.h5 ~a: [a_class ["text-center"]] (Formatters.Version.description' ~arranger_links: true version);
+      h5 ~a: [a_class ["text-center"]] [Formatters.Version.tune_aka' version];
+      h5 ~a: [a_class ["text-center"]] [Formatters.Version.tune_description' version];
+      h5 ~a: [a_class ["text-center"]] [Formatters.Version.description' ~arranger_links: true version];
       div
         ~a: [a_class ["text-end"; "dropdown"]]
         [
