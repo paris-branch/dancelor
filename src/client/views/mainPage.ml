@@ -219,7 +219,28 @@ let footer =
         ];
     ]
 
-let initial_content = Dom_html.(createDiv document)
+let never_returns () =
+  Js_of_ocaml_lwt.Lwt_js.sleep Float.infinity;%lwt
+  assert false
+
+let initial_content =
+  To_dom.of_div @@
+  snd @@
+  Page.render @@
+  Page.make
+    ~title: (never_returns ())
+    ~subtitles: (
+      List.init 2 (fun _ ->
+        with_span_placeholder @@ never_returns ()
+      )
+    )
+    (
+      List.init 10 (fun _ ->
+        with_span_placeholder ~min: 8 ~max: 12 @@
+          never_returns ()
+      )
+    )
+
 let current_content = ref None
 
 let initialise () =
