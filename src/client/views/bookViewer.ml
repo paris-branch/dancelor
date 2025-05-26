@@ -68,7 +68,7 @@ let table_contents ~this_slug contents =
                   let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
                   Tables.clickable_row ~href [
                     Lwt.return [txt "Set"];
-                    (Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters);
+                    Lwt.return [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
                     Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set]
                   ]
                 )
@@ -77,7 +77,7 @@ let table_contents ~this_slug contents =
                   tr
                     [
                       td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
-                      L.td (Formatters.Set.name_tunes_and_dance set parameters);
+                      td [Formatters.Set.name_tunes_and_dance set parameters];
                       td [txt @@ Kind.Dance.to_string @@ Set.kind set];
                     ]
                 )

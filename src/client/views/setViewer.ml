@@ -17,7 +17,7 @@ let create ?context slug =
         (Lwt.return @@ Any.set set);
     ]
     [
-      L.h5 ~a: [a_class ["text-center"]] (Formatters.Set.works' set);
+      h5 ~a: [a_class ["text-center"]] [Formatters.Set.works' set];
       h5
         ~a: [a_class ["text-center"]]
         [
@@ -25,13 +25,14 @@ let create ?context slug =
           txt " — Play ";
           txt ((SetOrder.to_pretty_string % Set.order') set);
         ];
-      L.h5
+      h5
         ~a: [a_class ["text-center"]]
-        (
-          match%lwt Set.conceptors' set with
-          | [] -> Lwt.return_nil
-          | devisers -> Lwt.return (txt "Set by " :: Formatters.Person.names' ~links: true devisers)
-        );
+        [
+          L.inline_placeholder @@
+            match%lwt Set.conceptors' set with
+            | [] -> Lwt.return_nil
+            | devisers -> Lwt.return [txt "Set by "; Formatters.Person.names' ~links: true devisers]
+        ];
       div
         ~a: [a_class ["text-end"; "dropdown"]]
         [

@@ -17,17 +17,18 @@ let create ?context slug =
         (Lwt.return @@ Any.dance dance);
     ]
     [
-      L.h5
+      h5
         ~a: [a_class ["text-center"]]
-        (
-          let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
-          let%lwt by =
-            match%lwt Dance.devisers' dance with
-            | [] -> Lwt.return_nil
-            | devisers -> Lwt.return (txt " by " :: Formatters.Person.names' ~links: true devisers)
-          in
-          Lwt.return (kind @ by)
-        );
+        [
+          L.inline_placeholder @@
+            let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
+            let%lwt by =
+              match%lwt Dance.devisers' dance with
+              | [] -> Lwt.return_nil
+              | devisers -> Lwt.return [txt " by "; Formatters.Person.names' ~links: true devisers]
+            in
+            Lwt.return (kind @ by)
+        ];
       div
         (
           match Dance.two_chords' dance with

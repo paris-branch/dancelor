@@ -17,8 +17,8 @@ let create ?context slug =
         (Lwt.return @@ Any.tune tune);
     ]
     [
-      h5 ~a: [a_class ["text-center"]] (Formatters.Tune.aka' tune);
-      L.h5 ~a: [a_class ["text-center"]] (Formatters.Tune.description' tune);
+      h5 ~a: [a_class ["text-center"]] [Formatters.Tune.aka' tune];
+      h5 ~a: [a_class ["text-center"]] [Formatters.Tune.description' tune];
       div
         (
           match Tune.date' tune with

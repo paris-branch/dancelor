@@ -10,17 +10,18 @@ let title_and_subtitle book =
     | "" -> []
     | subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt subtitle]]
   in
-  title_text @ subtitle_block
+  span (title_text @ subtitle_block)
 
 let title_and_subtitle' = title_and_subtitle % Entry.value
 
 let short_title' ?(link = true) book =
-  let short_title_text = [txt (Model.Book.short_title' book)] in
-  if link then
-    [
-      a
-        ~a: [a_href @@ Endpoints.Page.href_book @@ Entry.slug book]
-        short_title_text
-    ]
-  else
-    short_title_text
+  span @@
+    let short_title_text = [txt (Model.Book.short_title' book)] in
+    if link then
+      [
+        a
+          ~a: [a_href @@ Endpoints.Page.href_book @@ Entry.slug book]
+          short_title_text
+      ]
+    else
+      short_title_text

@@ -14,7 +14,7 @@ let description ?arranger_links version =
       | [] -> Lwt.return_nil
       | arrangers ->
         let name_block = Person.names' ?links: arranger_links arrangers in
-        Lwt.return ([txt " arranged by "] @ name_block)
+        Lwt.return ([txt " arranged by "; name_block])
     in
     let disambiguation_block =
       match Model.Version.disambiguation version with
@@ -93,11 +93,10 @@ let name_disambiguation_and_sources' ?name_link version =
       Lwt.return @@
         match List.map Book.short_title' sources with
         | [] -> []
-        | [title] -> txt "Source: " :: title
+        | [title] -> [txt "Source: "; title]
         | titles ->
           titles
-          |> List.interspersei (fun _ -> [txt " - "])
-          |> List.flatten
+          |> List.interspersei (fun _ -> txt " - ")
           |> List.cons (txt "Sources: ")
     in
     let name_and_disambiguation = name_and_disambiguation' ?name_link version in
@@ -121,11 +120,10 @@ let disambiguation_and_sources' version =
       Lwt.return @@
         match List.map Book.short_title' sources with
         | [] -> []
-        | [title] -> txt "Source: " :: title
+        | [title] -> [txt "Source: "; title]
         | titles ->
           titles
-          |> List.interspersei (fun _ -> [txt " - "])
-          |> List.flatten
+          |> List.interspersei (fun _ -> txt " - ")
           |> List.cons (txt "Sources: ")
     in
     Lwt.return
@@ -136,35 +134,34 @@ let disambiguation_and_sources' version =
 
 let composer_and_arranger ?(short = false) ?arranger_links version =
   L.inline_placeholder @@
-    let%lwt composer_block = Lwt.bind (Model.Version.tune version) (Tune.composers' ~short) in
+    let%lwt composer_block = Lwt.map (Tune.composers' ~short) (Model.Version.tune version) in
     let%lwt arranger_block =
       match%lwt Model.Version.arrangers version with
       | [] -> Lwt.return_nil
       | arrangers ->
-        let comma = if composer_block <> [] then ", " else "" in
         let arr = if short then "arr." else "arranged by" in
         let arranger_block = Person.names' ~short ?links: arranger_links arrangers in
         Lwt.return
           [
-            span ~a: [a_class ["opacity-50"]] (txt (spf "%s%s " comma arr) :: arranger_block)
+            span ~a: [a_class ["opacity-50"]] [txt (spf ", %s " arr); arranger_block]
           ]
     in
-    Lwt.return (composer_block @ arranger_block)
+    Lwt.return (composer_block :: arranger_block)
 
 let composer_and_arranger' ?short ?arranger_links version =
   composer_and_arranger ?short ?arranger_links (Entry.value version)
 
 let tune_aka version =
   L.inline_placeholder @@
-    Lwt.map Tune.aka' (Model.Version.tune version)
+    Lwt.map (List.singleton % Tune.aka') (Model.Version.tune version)
 
-let tune_aka' version = tune_aka (Entry.value version)
+let tune_aka' = tune_aka % Entry.value
 
 let tune_description version =
   L.inline_placeholder @@
-    Lwt.bind (Model.Version.tune version) Tune.description'
+    Lwt.map (List.singleton % Tune.description') (Model.Version.tune version)
 
-let tune_description' version = tune_description (Entry.value version)
+let tune_description' = tune_description % Entry.value
 
 let kind_and_structure version =
   L.inline_placeholder @@
@@ -173,5 +170,4 @@ let kind_and_structure version =
     let structure = Model.Version.structure version in
     Lwt.return [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")"]
 
-let kind_and_structure' version =
-  kind_and_structure (Entry.value version)
+let kind_and_structure' = kind_and_structure % Entry.value
