@@ -18,13 +18,13 @@ let name = name_gen % Either.left
 let name' ?(link = true) tune = name_gen @@ Right (tune, link)
 
 let composers ?short tune =
-  L.inline_placeholder @@
+  with_span_placeholder @@
   Lwt.map (List.singleton % Person.names' ?short) @@ Model.Tune.composers tune
 
 let composers' ?short tune = composers ?short (Entry.value tune)
 
 let description tune =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     let kind = Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
     match%lwt Model.Tune.composers tune with
     | [] ->

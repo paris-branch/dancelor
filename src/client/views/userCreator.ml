@@ -67,37 +67,38 @@ let create () =
     RS.bind (Selector.signal_one person_selector) @@ fun person ->
     S.const @@ Ok (username, Model.User.make ~display_name ~person ())
   in
-  Page.make
-    ~title: (S.const "Create user")
-    [Input.Text.render
-      username_input
-      ~placeholder: "jeanmilligan"
-      ~label: "Username";
-    Input.Text.render
-      display_name_input
-      ~placeholder: "JeanMilligan"
-      ~label: "Display name";
-    Selector.render
-      ~make_result: Utils.AnyResult.make_person_result'
-      ~field_name: "Person"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      person_selector;
-    ]
-    ~buttons: [
-      Button.make
-        ~label: "Create user"
-        ~label_processing: "Creating user..."
-        ~classes: ["btn-primary"]
-        ~disabled: (S.map Result.is_error signal)
-        ~onclick: (fun () ->
-          let (username, user) = Result.get_ok @@ S.value signal in
-          let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username user in
-          open_token_result_dialog user token;%lwt
-          Input.Text.clear username_input;
-          Input.Text.clear display_name_input;
-          Selector.clear person_selector;
-          Lwt.return_unit
-        )
-        ();
-    ]
+  Lwt.return @@
+    Page.make
+      ~title: (S.const "Create user")
+      [Input.Text.render
+        username_input
+        ~placeholder: "jeanmilligan"
+        ~label: "Username";
+      Input.Text.render
+        display_name_input
+        ~placeholder: "JeanMilligan"
+        ~label: "Display name";
+      Selector.render
+        ~make_result: Utils.AnyResult.make_person_result'
+        ~field_name: "Person"
+        ~model_name: "person"
+        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        person_selector;
+      ]
+      ~buttons: [
+        Button.make
+          ~label: "Create user"
+          ~label_processing: "Creating user..."
+          ~classes: ["btn-primary"]
+          ~disabled: (S.map Result.is_error signal)
+          ~onclick: (fun () ->
+            let (username, user) = Result.get_ok @@ S.value signal in
+            let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) username user in
+            open_token_result_dialog user token;%lwt
+            Input.Text.clear username_input;
+            Input.Text.clear display_name_input;
+            Selector.clear person_selector;
+            Lwt.return_unit
+          )
+          ();
+      ]

@@ -180,109 +180,96 @@ end
 
 let create ?on_save ?text ?tune () =
   MainPage.assert_can_create @@ fun () ->
-  let title = "Add a version" in
-  let editor = Editor.create ~text ~tune in
-  Page.make
-    ~title: (S.const title)
-    [L.div
-      (
-        let%lwt editor = editor in
-        Lwt.return
-          [
-            Selector.render
-              ~make_result: AnyResult.make_tune_result'
-              ~field_name: "Tune"
-              ~model_name: "tune"
-              ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
-              editor.elements.tune;
-            Input.Text.render
-              editor.elements.bars
-              ~label: "Number of bars"
-              ~placeholder: "eg. 32 or 48";
-            Input.Text.render
-              editor.elements.key
-              ~label: "Key"
-              ~placeholder: "eg. A or F#m";
-            Input.Text.render
-              editor.elements.structure
-              ~label: "Structure"
-              ~placeholder: "eg. AABB or ABAB";
-            Selector.render
-              ~make_result: AnyResult.make_person_result'
-              ~field_name: "Arrangers"
-              ~model_name: "person"
-              ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-              editor.elements.arrangers;
-            Selector.render
-              ~make_result: AnyResult.make_source_result'
-              ~field_name: "Sources"
-              ~model_name: "source"
-              ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
-              editor.elements.sources;
-            Input.Text.render
-              editor.elements.disambiguation
-              ~label: "Disambiguation"
-              ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
-            Input.Text.render
-              editor.elements.remark
-              ~label: "Remark"
-              ~placeholder: "Any additional information that doesn't fit in the other fields.";
-            Input.Text.render_as_textarea
-              editor.elements.content
-              ~label: "LilyPond content"
-              ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
-          ]
-      )]
-    ~buttons: [
-      L.div
-        (
-          let%lwt editor = editor in
-          Lwt.return
-            [
-              Button.clear
-                ~onclick: (fun () -> Editor.clear editor)
-                ();
-              Button.save
-                ~disabled: (S.map Option.is_none (Editor.state editor))
-                ~onclick: (fun () ->
-                  match%lwt Editor.value editor with
-                  | None -> Lwt.return_unit
-                  | Some version ->
-                    Lwt.map ignore @@
-                    Page.open_dialog' @@ fun return ->
-                    Lwt.return @@
-                      Page.make
-                        ~title: (S.const "Preview")
-                        [div [VersionSvg.make_preview version];
-                        div
-                          [
-                            audio
-                              ~a: [a_controls ()]
-                              ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
-                              [];
-                          ];
-                        ]
-                        ~buttons: [
-                          Button.cancel' ~return ();
-                          Button.save
-                            ~onclick: (fun () ->
-                              let%lwt version =
-                                Madge_client.call_exn
-                                  Endpoints.Api.(route @@ Version Create)
-                                  version
-                              in
-                              Editor.clear editor;
-                              (
-                                match on_save with
-                                | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
-                                | Some on_save -> on_save version
-                              );
-                              Lwt.return_unit
-                            )
-                            ();
-                        ]
-                )
-                ();
-            ]
-        )
-    ]
+  let%lwt editor = Editor.create ~text ~tune in
+  Lwt.return @@
+    Page.make
+      ~title: (S.const "Add a version")
+      [Selector.render
+        ~make_result: AnyResult.make_tune_result'
+        ~field_name: "Tune"
+        ~model_name: "tune"
+        ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
+        editor.elements.tune;
+      Input.Text.render
+        editor.elements.bars
+        ~label: "Number of bars"
+        ~placeholder: "eg. 32 or 48";
+      Input.Text.render
+        editor.elements.key
+        ~label: "Key"
+        ~placeholder: "eg. A or F#m";
+      Input.Text.render
+        editor.elements.structure
+        ~label: "Structure"
+        ~placeholder: "eg. AABB or ABAB";
+      Selector.render
+        ~make_result: AnyResult.make_person_result'
+        ~field_name: "Arrangers"
+        ~model_name: "person"
+        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        editor.elements.arrangers;
+      Selector.render
+        ~make_result: AnyResult.make_source_result'
+        ~field_name: "Sources"
+        ~model_name: "source"
+        ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
+        editor.elements.sources;
+      Input.Text.render
+        editor.elements.disambiguation
+        ~label: "Disambiguation"
+        ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
+      Input.Text.render
+        editor.elements.remark
+        ~label: "Remark"
+        ~placeholder: "Any additional information that doesn't fit in the other fields.";
+      Input.Text.render_as_textarea
+        editor.elements.content
+        ~label: "LilyPond content"
+        ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
+      ]
+      ~buttons: [
+        Button.clear
+          ~onclick: (fun () -> Editor.clear editor)
+          ();
+        Button.save
+          ~disabled: (S.map Option.is_none (Editor.state editor))
+          ~onclick: (fun () ->
+            match%lwt Editor.value editor with
+            | None -> Lwt.return_unit
+            | Some version ->
+              Lwt.map ignore @@
+              Page.open_dialog' @@ fun return ->
+              Lwt.return @@
+                Page.make
+                  ~title: (S.const "Preview")
+                  [div [VersionSvg.make_preview version];
+                  div
+                    [
+                      audio
+                        ~a: [a_controls ()]
+                        ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
+                        [];
+                    ];
+                  ]
+                  ~buttons: [
+                    Button.cancel' ~return ();
+                    Button.save
+                      ~onclick: (fun () ->
+                        let%lwt version =
+                          Madge_client.call_exn
+                            Endpoints.Api.(route @@ Version Create)
+                            version
+                        in
+                        Editor.clear editor;
+                        (
+                          match on_save with
+                          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                          | Some on_save -> on_save version
+                        );
+                        Lwt.return_unit
+                      )
+                      ();
+                  ]
+          )
+          ();
+      ]

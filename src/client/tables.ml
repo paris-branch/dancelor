@@ -82,8 +82,14 @@ let versions_with_names versions =
     clickable_row
       ~href
       [
-        Lwt.return [L.txt @@ Lwt.map Tune.name' tune_lwt];
+        Lwt.return [with_span_placeholder @@ Lwt.map (List.singleton % txt % Tune.name') tune_lwt];
         (Lwt.map (List.singleton % Formatters.Kind.full_string version) tune_lwt);
         Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
         Lwt.return [txt @@ Version.structure' version];
       ]
+
+let placeholder () = [
+  div [span_placeholder ()];
+  div [span_placeholder ()];
+  div [span_placeholder ()];
+]

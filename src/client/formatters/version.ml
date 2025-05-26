@@ -4,7 +4,7 @@ open Common
 open Html
 
 let description ?arranger_links version =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     let bars = Model.Version.bars version in
     let structure = Model.Version.structure version in
     let key = Model.Version.key version in
@@ -27,7 +27,7 @@ let description' ?arranger_links version =
   description ?arranger_links @@ Entry.value version
 
 let name_gen version_gen =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     match version_gen with
     | Right (version, true) ->
       let%lwt name = Model.Version.name' version in
@@ -43,7 +43,7 @@ let name = name_gen % Either.left
 let name' ?(link = true) version = name_gen @@ Right (version, link)
 
 let name_and_dance_gen ?dance_link version parameters =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     let%lwt dance =
       match%lwt Model.VersionParameters.for_dance parameters with
       | None -> Lwt.return_nil
@@ -79,10 +79,10 @@ let name_and_disambiguation = name_and_disambiguation_gen % Either.left
 let name_and_disambiguation' ?(name_link = true) version = name_and_disambiguation_gen @@ Right (version, name_link)
 
 let name_disambiguation_and_sources' ?name_link version =
-  L.inline_placeholder @@
-    (* FIXME: Use not books but actual sources. This should also avoid a search,
-       and therefore allow splitting this formatter into a [_gen] one. *)
-    let sources_lwt =
+  (* FIXME: Use not books but actual sources. This should also avoid a search,
+     and therefore allow splitting this formatter into a [_gen] one. *)
+  let sources =
+    with_span_placeholder @@
       let%lwt sources =
         Lwt.map snd @@
           Madge_client.call_exn
@@ -98,18 +98,16 @@ let name_disambiguation_and_sources' ?name_link version =
           titles
           |> List.interspersei (fun _ -> txt " - ")
           |> List.cons (txt "Sources: ")
-    in
-    let name_and_disambiguation = name_and_disambiguation' ?name_link version in
-    Lwt.return
-      (
-        name_and_disambiguation ::
-          [L.span ~a: [a_class ["opacity-50"]] sources_lwt]
-      )
+  in
+  span [
+    name_and_disambiguation' ?name_link version;
+    span ~a: [a_class ["opacity-50"]] [sources];
+  ]
 
 let disambiguation_and_sources' version =
-  L.inline_placeholder @@
-    (* FIXME: same as above *)
-    let sources_lwt =
+  (* FIXME: same as above *)
+  let sources =
+    with_span_placeholder @@
       let%lwt sources =
         Lwt.map snd @@
           Madge_client.call_exn
@@ -125,15 +123,15 @@ let disambiguation_and_sources' version =
           titles
           |> List.interspersei (fun _ -> txt " - ")
           |> List.cons (txt "Sources: ")
-    in
-    Lwt.return
-      [
-        txt (Model.Version.disambiguation' version);
-        L.span ~a: [a_class ["opacity-50"]] sources_lwt;
-      ]
+  in
+  span
+    [
+      txt (Model.Version.disambiguation' version);
+      span ~a: [a_class ["opacity-50"]] [sources];
+    ]
 
 let composer_and_arranger ?(short = false) ?arranger_links version =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     let%lwt composer_block = Lwt.map (Tune.composers' ~short) (Model.Version.tune version) in
     let%lwt arranger_block =
       match%lwt Model.Version.arrangers version with
@@ -152,19 +150,19 @@ let composer_and_arranger' ?short ?arranger_links version =
   composer_and_arranger ?short ?arranger_links (Entry.value version)
 
 let tune_aka version =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     Lwt.map (List.singleton % Tune.aka') (Model.Version.tune version)
 
 let tune_aka' = tune_aka % Entry.value
 
 let tune_description version =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     Lwt.map (List.singleton % Tune.description') (Model.Version.tune version)
 
 let tune_description' = tune_description % Entry.value
 
 let kind_and_structure version =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     let bars = Model.Version.bars version in
     let%lwt kind = Lwt.map Model.Tune.kind' @@ Model.Version.tune version in
     let structure = Model.Version.structure version in

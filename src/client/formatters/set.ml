@@ -4,7 +4,7 @@ open Common
 open Html
 
 let works set =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     match%lwt Model.Set.dances set with
     | [] -> Lwt.return_nil
     | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.name' dances)]
@@ -26,7 +26,7 @@ let name = name_gen % Either.left
 let name' ?(link = true) set = name_gen @@ Right (set, link)
 
 let tunes ?link set =
-  L.inline_placeholder @@
+  with_span_placeholder @@
     let%lwt contents = Model.Set.contents set in
     List.map (List.singleton % Version.name' ?link % fst) contents
     |> List.interspersei (fun _ -> [txt " - "])
@@ -50,7 +50,7 @@ let name_and_tunes' ?(name_link = true) ?tunes_link set = name_and_tunes_gen ?tu
 
 let name_tunes_and_dance_gen ?tunes_link ?dance_link set parameters =
   let dance =
-    L.inline_placeholder @@
+    with_span_placeholder @@
       match%lwt Model.SetParameters.for_dance parameters with
       | None -> Lwt.return_nil
       | Some dance ->

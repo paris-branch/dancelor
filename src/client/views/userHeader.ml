@@ -96,63 +96,65 @@ let sign_out () =
 
 let header_item =
   let status_lwt = Madge_client.call_exn Endpoints.Api.(route @@ User Status) in
-  L.li
+  R.li
     ~a: [
-      L.a_class
+      R.a_class
         (
+          S.from' ["nav-item"] @@
           Fun.flip Lwt.map status_lwt @@ function
-            | None -> ["nav-item"]
-            | Some _ -> ["nav-item"; "dropdown"]
+          | None -> ["nav-item"]
+          | Some _ -> ["nav-item"; "dropdown"]
         );
     ]
     (
+      S.from' [] @@
       Fun.flip Lwt.map status_lwt @@ function
-        | None ->
-          [
-            Components.Button.make
-              ~label: "Sign in"
-              ~icon: "box-arrow-in-right"
-              ~classes: ["btn-primary"]
-              ~onclick: open_sign_in_dialog
-              ()
-          ]
-        | Some user ->
-          [
-            Components.Button.make
-              ~label: (Model.User.display_name' user)
-              ~icon: "person-circle"
-              ~classes: ["btn-primary"; "dropdown-toggle"]
-              ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-              ();
-            ul
-              ~a: [a_class ["dropdown-menu"]]
-              (
-                List.flatten
-                  [
-                    (
-                      if Model.User.admin user then
-                        [
-                          li [
-                            Components.Button.make_a
-                              ~label: "Create user"
-                              ~icon: "plus-circle"
-                              ~classes: ["dropdown-item"]
-                              ~href: (S.const @@ Endpoints.Page.(href UserCreate))
-                              ()
-                          ];
-                          li [hr ~a: [a_class ["dropdown-divider"]] ()];
-                        ]
-                      else []
-                    );
-                    [li [
-                      Components.Button.make
-                        ~label: "Sign out"
-                        ~icon: "box-arrow-right"
-                        ~classes: ["dropdown-item"]
-                        ~onclick: sign_out
-                        ()
-                    ]];
-                  ]
-              );
-          ]
+      | None ->
+        [
+          Components.Button.make
+            ~label: "Sign in"
+            ~icon: "box-arrow-in-right"
+            ~classes: ["btn-primary"]
+            ~onclick: open_sign_in_dialog
+            ()
+        ]
+      | Some user ->
+        [
+          Components.Button.make
+            ~label: (Model.User.display_name' user)
+            ~icon: "person-circle"
+            ~classes: ["btn-primary"; "dropdown-toggle"]
+            ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+            ();
+          ul
+            ~a: [a_class ["dropdown-menu"]]
+            (
+              List.flatten
+                [
+                  (
+                    if Model.User.admin user then
+                      [
+                        li [
+                          Components.Button.make_a
+                            ~label: "Create user"
+                            ~icon: "plus-circle"
+                            ~classes: ["dropdown-item"]
+                            ~href: (S.const @@ Endpoints.Page.(href UserCreate))
+                            ()
+                        ];
+                        li [hr ~a: [a_class ["dropdown-divider"]] ()];
+                      ]
+                    else []
+                  );
+                  [li [
+                    Components.Button.make
+                      ~label: "Sign out"
+                      ~icon: "box-arrow-right"
+                      ~classes: ["dropdown-item"]
+                      ~onclick: sign_out
+                      ()
+                  ]];
+                ]
+            );
+        ]
     )

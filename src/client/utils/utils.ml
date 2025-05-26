@@ -52,25 +52,27 @@ let quick_explorer_links links =
               in
               li
                 ~a: [
-                  L.a_class
+                  R.a_class
                     (
+                      S.from' [] @@
                       Fun.flip Lwt.map count_lwt @@ function
-                        | 0 -> ["disabled"]
-                        | _ -> []
+                      | 0 -> ["disabled"]
+                      | _ -> []
                     );
                 ]
                 [
                   a
                     ~a: [
-                      L.a_href
+                      R.a_href
                         (
-                          Lwt.map
-                            (Endpoints.Page.(href Explore) % Option.some % Filter.Any.to_string)
-                            filter_lwt
+                          S.from' "" @@
+                            Lwt.map
+                              (Endpoints.Page.(href Explore) % Option.some % Filter.Any.to_string)
+                              filter_lwt
                         );
                     ]
                     [txt text];
-                  L.txt (Lwt.map (spf " (%d)") count_lwt);
+                  R.txt (S.from' "" @@ Lwt.map (spf " (%d)") count_lwt);
                   txt ",";
                 ]
             )

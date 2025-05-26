@@ -156,15 +156,16 @@ let header =
           div
             ~a: [a_class ["collapse"; "navbar-collapse"]; a_id "the-navigation"]
             [
-              L.ul
+              R.ul
                 ~a: [a_class ["navbar-nav"; "ms-auto"]]
                 (
-                  let%lwt nav_item_create = nav_item_create in
-                  Lwt.return (
-                    [nav_item_explore] @
-                    nav_item_create @
-                      [UserHeader.header_item]
-                  )
+                  S.from' [] @@
+                    let%lwt nav_item_create = nav_item_create in
+                    Lwt.return (
+                      [nav_item_explore] @
+                      nav_item_create @
+                        [UserHeader.header_item]
+                    )
                 );
             ];
           Components.Button.make
@@ -263,15 +264,15 @@ let load_sleep_raise ?(delay = 1.) page_promise =
 
 let get_model_or_404 endpoint slug f =
   match%lwt Madge_client.call Endpoints.Api.(route @@ endpoint) slug with
-  | Ok model -> Lwt.return @@ f model
+  | Ok model -> f model
   | Error Madge_client.{status; _} -> Lwt.return @@ OooopsViewer.create status
 
 let assert_can_create f =
   match%lwt Permission.can_create () with
-  | true -> Lwt.return @@ f ()
+  | true -> f ()
   | false -> Lwt.return @@ OooopsViewer.create `Forbidden
 
 let assert_can_admin f =
   match%lwt Permission.can_admin () with
-  | true -> Lwt.return @@ f ()
+  | true -> f ()
   | false -> Lwt.return @@ OooopsViewer.create `Forbidden

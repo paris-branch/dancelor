@@ -45,16 +45,17 @@ module Search = struct
     =
     div
       [
-        L.div
+        R.div
           (
-            match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
-            | Some _ -> Lwt.return_nil
-            | None ->
-              Lwt.return [
-                div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
-                  txt "You are not connected, and therefore are only seeing public items.";
-                ];
-              ]
+            S.from' [] @@
+              match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
+              | Some _ -> Lwt.return_nil
+              | None ->
+                Lwt.return [
+                  div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
+                    txt "You are not connected, and therefore are only seeing public items.";
+                  ];
+                ]
           );
         div
           ~a: [a_class ["input-group"; "mb-2"]]

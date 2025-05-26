@@ -113,6 +113,8 @@ module R = struct
   let span ?a elts = R.span ?a (RList.from_signal elts)
   let tbody ?a elts = R.tbody ?a (RList.from_signal elts)
   let ul ?a elts = R.ul ?a (RList.from_signal elts)
+  let ol ?a elts = R.ol ?a (RList.from_signal elts)
+  let li ?a elts = R.li ?a (RList.from_signal elts)
   let td ?a elts = R.td ?a (RList.from_signal elts)
   let a ?a elts = R.a ?a (RList.from_signal elts)
 
@@ -124,41 +126,16 @@ module R = struct
   let h6 ?a elts = R.h6 ?a (RList.from_signal elts)
 end
 
-(** Lwt HTML nodes. *)
-module L = struct
-  (* NOTE: The following relies on [Tyxml_js]'s React-based HTML builders but
-     wraps them to make Lwt-based builders. The cleaner version would be to rely
-     on [Tyxml]'s functorial interface, but we could not manage to use it while
-     also keeping the right type equalities with other HTML builder modules. *)
+let span_placeholder ?(min = 4) ?(max = 8) () =
+  let col_n = "col-" ^ string_of_int (Random.int_in_range ~min ~max) in
+  span ~a: [a_class ["placeholder"; col_n]] []
 
-  module R = Js_of_ocaml_tyxml.Tyxml_js.R.Html
+let div_placeholder ?(min = 4) ?(max = 8) () =
+  let height_n_rem = "height: " ^ string_of_int (Random.int_in_range ~min ~max) ^ "rem;" in
+  div ~a: [a_class ["placeholder"; "w-100"]; a_style height_n_rem] []
 
-  let inline_placeholder ?(min = 4) ?(max = 8) promise =
-    let col_n = "col-" ^ string_of_int (Random.int_in_range ~min ~max) in
-    R.span @@ RList.from_lwt' [span ~a: [a_class ["placeholder"; col_n]] []] promise
-
-  (* NOTE: To be filled on demand. *)
-
-  let txt str = R.txt (S.from' "" str)
-
-  let a_href uri = R.a_href (S.from' "" uri)
-  let a_class cls = R.a_class (S.from' [] cls)
-
-  let div ?a elts = R.div ?a (RList.from_lwt' [] elts)
-  let h1 ?a elts = R.h1 ?a (RList.from_lwt' [] elts)
-  let h2 ?a elts = R.h2 ?a (RList.from_lwt' [] elts)
-  let h3 ?a elts = R.h3 ?a (RList.from_lwt' [] elts)
-  let h4 ?a elts = R.h4 ?a (RList.from_lwt' [] elts)
-  let h5 ?a elts = R.h5 ?a (RList.from_lwt' [] elts)
-  let h6 ?a elts = R.h6 ?a (RList.from_lwt' [] elts)
-  let span ?a elts = R.span ?a (RList.from_lwt' [] elts)
-  let tbody ?a elts = R.tbody ?a (RList.from_lwt' [] elts)
-  let td ?a elts = R.td ?a (RList.from_lwt' [] elts)
-  let ul ?a elts = R.ul ?a (RList.from_lwt' [] elts)
-  let li ?a elts = R.li ?a (RList.from_lwt' [] elts)
-end
-
-(* FIXME: Add an [LL] module for Lwt-loop-based builders. *)
+let with_span_placeholder ?min ?max promise =
+  R.span @@ S.from' [span_placeholder ?min ?max ()] promise
 
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Conversion from TyXML nodes to Dom ones. *)
