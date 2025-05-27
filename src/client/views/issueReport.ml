@@ -12,7 +12,7 @@ let open_dialog page =
       Result.of_string_nonempty ~empty: "You must specify the reporter."
   in
   let%lwt source =
-    Fun.flip Lwt.map (describe page) @@ function
+    flip Lwt.map (describe page) @@ function
       | None ->
         Choices.make_radios'
           ~name: "Source of the issue"
@@ -54,7 +54,7 @@ let open_dialog page =
   let%lwt response =
     Page.open_dialog @@ fun return ->
     Page.make'
-      ~title: (Lwt.return "Report an issue")
+      ~title: (lwt "Report an issue")
       [Input.Text.render
         reporter_input
         ~placeholder: "Dr Jean Milligan"
@@ -80,11 +80,11 @@ let open_dialog page =
           ~onclick: (fun () ->
             Option.fold
               (S.value request_signal)
-              ~none: Lwt.return_unit
+              ~none: lwt_unit
               ~some: (fun request ->
                 let%lwt response = Madge_client.call_exn Endpoints.Api.(route ReportIssue) request in
                 return @@ Some response;
-                Lwt.return_unit
+                lwt_unit
               )
           )
           ();
@@ -105,4 +105,4 @@ let open_dialog page =
         ~title: "Issue not reported"
         [txt "Your issue has not been reported, as you closed the dialog. If this is an error, please contact your system administrator."]
   );
-  Lwt.return_unit
+  lwt_unit

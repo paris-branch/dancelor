@@ -30,12 +30,12 @@ module Build (Getters : Getters.S) = struct
       (function
         | Core.Book.Page.Version (version, parameters) ->
           let%lwt version = Getters.get_version version in
-          Lwt.return (Version (version, parameters))
+          lwt (Version (version, parameters))
         | Core.Book.Page.Set (set, parameters) ->
           let%lwt set = Getters.get_set set in
-          Lwt.return (Set (set, parameters))
+          lwt (Set (set, parameters))
         | Core.Book.Page.InlineSet (set, parameters) ->
-          Lwt.return (InlineSet (set, parameters))
+          lwt (InlineSet (set, parameters))
       )
       (contents book)
 
@@ -45,8 +45,8 @@ module Build (Getters : Getters.S) = struct
     let%lwt contents = contents book in
     Lwt_list.filter_map_p
       (function
-        | Version (version, _) -> Lwt.return_some version
-        | _ -> Lwt.return_none
+        | Version (version, _) -> lwt_some version
+        | _ -> lwt_none
       )
       contents
 
@@ -59,7 +59,7 @@ module Build (Getters : Getters.S) = struct
   let find_context_no_inline index set =
     let%lwt contents = contents set in
     let contents_no_inline = List.filter (not % isInlineSet) contents in
-    Lwt.return @@ List.findi_context (fun i _ -> i = index) contents_no_inline
+    lwt @@ List.findi_context (fun i _ -> i = index) contents_no_inline
 
   let find_context_no_inline' index = find_context_no_inline index % Entry.value
 
@@ -70,13 +70,13 @@ module Build (Getters : Getters.S) = struct
     let%lwt contents =
       Lwt_list.map_p
         (function
-          | Version (version, _) -> Lwt.return @@ Core.Version.content' version
+          | Version (version, _) -> lwt @@ Core.Version.content' version
           | Set (set, _) -> BuiltSet.lilypond_content_cache_key' set
           | InlineSet (set, _) -> BuiltSet.lilypond_content_cache_key set
         )
         pages
     in
-    Lwt.return (String.concat "\n" contents)
+    lwt (String.concat "\n" contents)
 
   let lilypond_contents_cache_key' = lilypond_contents_cache_key % Entry.value
 
@@ -102,21 +102,21 @@ module Build (Getters : Getters.S) = struct
     let empty book =
       let%lwt contents = contents' book in
       if contents = [] then
-        Lwt.return [Empty]
+        lwt [Empty]
       else
-        Lwt.return_nil
+        lwt_nil
 
     let sets_from_contents' book =
       let%lwt contents = contents' book in
       Lwt_list.filter_map_p
         (function
-          | Version _ | InlineSet _ -> Lwt.return_none
-          | Set (set, _) -> Lwt.return_some set
+          | Version _ | InlineSet _ -> lwt_none
+          | Set (set, _) -> lwt_some set
         )
         contents
 
     let duplicateSet book =
-      Fun.flip Lwt.map (sets_from_contents' book) @@ fun sets ->
+      flip Lwt.map (sets_from_contents' book) @@ fun sets ->
       match List.sort Entry.compare' sets with
       | [] -> []
       | first_set :: other_sets ->
@@ -157,7 +157,7 @@ module Build (Getters : Getters.S) = struct
         (fun v ->
           let%lwt tune = Getters.get_tune @@ Core.Version.tune' v in
           register_tune_to_set tune None;
-          Lwt.return ()
+          lwt_unit
         )
         standalone_versions;%lwt
       (* register tunes in sets *)
@@ -169,7 +169,7 @@ module Build (Getters : Getters.S) = struct
             (fun v ->
               let%lwt tune = Getters.get_tune @@ Core.Version.tune' v in
               register_tune_to_set tune (Some set);
-              Lwt.return ()
+              lwt_unit
             )
             versions
         )
@@ -187,14 +187,14 @@ module Build (Getters : Getters.S) = struct
               warnings
           )
           []
-      |> Lwt.return
+      |> lwt
 
     let sets_and_parameters_from_contents' book =
       let%lwt contents = contents' book in
       Lwt_list.filter_map_p
         (function
-          | Version _ | InlineSet _ -> Lwt.return_none
-          | Set (set, parameters) -> Lwt.return_some (set, parameters)
+          | Version _ | InlineSet _ -> lwt_none
+          | Set (set, parameters) -> lwt_some (set, parameters)
         )
         contents
 
@@ -202,14 +202,14 @@ module Build (Getters : Getters.S) = struct
       let%lwt sets_and_parameters = sets_and_parameters_from_contents' book in
       Lwt_list.filter_map_p
         (fun (set, parameters) ->
-          let%olwt dance_slug = Lwt.return (Core.SetParameters.for_dance parameters) in
+          let%olwt dance_slug = lwt (Core.SetParameters.for_dance parameters) in
           (* FIXME: SetParameters should be hidden behind the same kind of
              mechanism as the rest; and this step should not be necessary *)
           let%lwt dance = Getters.get_dance dance_slug in
           if Core.Set.kind' set = Core.Dance.kind' dance then
-            Lwt.return_none
+            lwt_none
           else
-            Lwt.return_some (SetDanceMismatch (set, dance))
+            lwt_some (SetDanceMismatch (set, dance))
         )
         sets_and_parameters
 
@@ -217,7 +217,7 @@ module Build (Getters : Getters.S) = struct
       Lwt_list.fold_left_s
         (fun warnings new_warnings_lwt ->
           let%lwt new_warnings = new_warnings_lwt in
-          Lwt.return (warnings @ new_warnings)
+          lwt (warnings @ new_warnings)
         )
         []
         [
@@ -233,10 +233,10 @@ module Build (Getters : Getters.S) = struct
   let page_core_to_page = function
     | Core.Book.Page.Version (version, params) ->
       let%lwt version = Getters.get_version version in
-      Lwt.return @@ Version (version, params)
+      lwt @@ Version (version, params)
     | Core.Book.Page.Set (set, params) ->
       let%lwt set = Getters.get_set set in
-      Lwt.return @@ Set (set, params)
+      lwt @@ Set (set, params)
     | Core.Book.Page.InlineSet (set, params) ->
-      Lwt.return @@ InlineSet (set, params)
+      lwt @@ InlineSet (set, params)
 end

@@ -46,7 +46,7 @@ let create () =
         (Option.concat BookParameters.compose)
         None
         [
-          S.map (Option.some % lift_set_parameters) set_dialog.parameters_signal;
+          S.map (some % lift_set_parameters) set_dialog.parameters_signal;
           Choices.signal booklet_choices;
         ]
   }
@@ -56,7 +56,7 @@ let create () =
 let open_ slug dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
-    ~title: (Lwt.return "Download a PDF")
+    ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();

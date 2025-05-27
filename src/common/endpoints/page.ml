@@ -102,52 +102,52 @@ let href_any ?context any =
 module MakeDescribe (Model : ModelBuilder.S) = struct
   let describe = fun uri ->
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
-      | Index -> Lwt.return_none
-      | Explore -> Fun.const Lwt.return_none
-      | VersionAdd -> Fun.const Lwt.return_none
-      | TuneAdd -> Lwt.return_none
-      | SetAdd -> Lwt.return_none
-      | BookAdd -> Lwt.return_none
-      | BookEdit -> Fun.const Lwt.return_none
-      | PersonAdd -> Lwt.return_none
-      | SourceAdd -> Lwt.return_none
-      | DanceAdd -> Lwt.return_none
-      | UserCreate -> Lwt.return_none
-      | UserPasswordReset -> Fun.const2 Lwt.return_none
+      | Index -> lwt_none
+      | Explore -> const lwt_none
+      | VersionAdd -> const lwt_none
+      | TuneAdd -> lwt_none
+      | SetAdd -> lwt_none
+      | BookAdd -> lwt_none
+      | BookEdit -> const lwt_none
+      | PersonAdd -> lwt_none
+      | SourceAdd -> lwt_none
+      | DanceAdd -> lwt_none
+      | UserCreate -> lwt_none
+      | UserPasswordReset -> const2 lwt_none
       | Version ->
         (fun _ slug ->
-          let%lwt name = Lwt.bind (Model.Version.get slug) Model.Version.name' in
-          Lwt.return @@ Some ("version", name)
+          let%lwt name = Model.Version.name' =<< Model.Version.get slug in
+          lwt_some ("version", name)
         )
       | Tune ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Model.Tune.name' (Model.Tune.get slug) in
-          Lwt.return @@ Some ("tune", name)
+          let%lwt name = Model.Tune.name' <$> Model.Tune.get slug in
+          lwt_some ("tune", name)
         )
       | Set ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Model.Set.name' (Model.Set.get slug) in
-          Lwt.return @@ Some ("set", name)
+          let%lwt name = Model.Set.name' <$> Model.Set.get slug in
+          lwt_some ("set", name)
         )
       | Book ->
         (fun _ slug ->
-          let%lwt title = Lwt.map Model.Book.title' (Model.Book.get slug) in
-          Lwt.return @@ Some ("book", title)
+          let%lwt title = Model.Book.title' <$> Model.Book.get slug in
+          lwt_some ("book", title)
         )
       | Dance ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Model.Dance.name' (Model.Dance.get slug) in
-          Lwt.return @@ Some ("dance", name)
+          let%lwt name = Model.Dance.name' <$> Model.Dance.get slug in
+          lwt_some ("dance", name)
         )
       | Person ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Model.Person.name' (Model.Person.get slug) in
-          Lwt.return @@ Some ("person", name)
+          let%lwt name = Model.Person.name' <$> Model.Person.get slug in
+          lwt_some ("person", name)
         )
       | Source ->
         (fun _ slug ->
-          let%lwt name = Lwt.map Model.Source.name' (Model.Source.get slug) in
-          Lwt.return @@ Some ("source", name)
+          let%lwt name = Model.Source.name' <$> Model.Source.get slug in
+          lwt_some ("source", name)
         )
     in
     let madge_match_apply_all : (string * string) option Lwt.t wrapped' list -> (unit -> (string * string) option Lwt.t) option =

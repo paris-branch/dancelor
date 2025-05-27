@@ -17,7 +17,7 @@ end
 module SString : STRINGABLE with type t = string = struct
   type t = string
   let to_string = Fun.id
-  let of_string = Option.some
+  let of_string = some
 end
 
 module SStatusCode : STRINGABLE with type t = Cohttp.Code.status_code = struct

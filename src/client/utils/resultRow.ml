@@ -95,7 +95,7 @@ let to_clickable_row t =
                   [
                     R.div
                       (
-                        Fun.flip S.map cell.content @@ function
+                        flip S.map cell.content @@ function
                           | [] -> [txt " "] (* empty cells would not have their link fill 100% of the height *)
                           | content -> content
                       )

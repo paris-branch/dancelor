@@ -24,7 +24,7 @@ let create () =
         (Option.concat SetParameters.compose)
         None
         [
-          S.map (Option.some % lift_version_parameters) version_dialog.parameters_signal;
+          S.map (some % lift_version_parameters) version_dialog.parameters_signal;
           (* feels a bit silly at this point but will make more sense once we have set-specific options *)
         ];
   }
@@ -34,7 +34,7 @@ let create () =
 let open_ slug dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
-    ~title: (Lwt.return "Download a PDF")
+    ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();

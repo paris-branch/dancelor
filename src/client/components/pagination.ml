@@ -43,7 +43,7 @@ let create ~number_of_entries ~entries_per_page =
     {state; update_current_page}
 
 let status_text pagination =
-  Fun.flip S.map pagination.state @@ fun state ->
+  flip S.map pagination.state @@ fun state ->
   match state.number_of_entries with
   | None -> "Loading.."
   | Some 0 -> "No entries"
@@ -67,7 +67,7 @@ module Button = struct
       ~a: [
         R.a_class
           (
-            Fun.flip S.map pagination.state @@ fun state ->
+            flip S.map pagination.state @@ fun state ->
             "page-item" :: if active state then
                 ["active"]
             else if enabled state then
@@ -99,8 +99,8 @@ module Button = struct
   (** A button that is never enabled and shows three dots. *)
   let ellipsis =
     make
-      ~active: (Fun.const false)
-      ~enabled: (Fun.const false)
+      ~active: (const false)
+      ~enabled: (const false)
       ~target: no_target
       ~text: "..."
 
@@ -108,14 +108,14 @@ module Button = struct
   let numbered page =
     make
       ~active: (fun state -> state.current_page = page)
-      ~enabled: (Fun.const true)
-      ~target: (Fun.const page)
+      ~enabled: (const true)
+      ~target: (const page)
       ~text: (string_of_int page)
 
   (** A button that brings to the previous page. *)
   let previous =
     make
-      ~active: (Fun.const false)
+      ~active: (const false)
       ~enabled: (fun state -> state.current_page <> 1)
       ~target: (fun current_page -> current_page - 1)
       ~text: "Previous"
@@ -123,21 +123,21 @@ module Button = struct
   (** A button that brings to the next page. *)
   let next =
     make
-      ~active: (Fun.const false)
+      ~active: (const false)
       ~enabled: (fun state -> state.current_page <> number_of_pages state)
       ~target: (fun current_page -> current_page + 1)
       ~text: "Next"
 end
 
 let button_list pagination =
-  Fun.flip S.map pagination.state @@ fun state ->
+  flip S.map pagination.state @@ fun state ->
   let number_of_pages = number_of_pages state
   and current_page = state.current_page
   in
   (* Select the page numbers to show. *)
   let relevant_page_numbers =
     number_of_pages
-    |> Fun.flip List.init ((+) 1)
+    |> flip List.init ((+) 1)
     |> List.filter
         (fun i ->
           i = 1

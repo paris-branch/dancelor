@@ -2,16 +2,16 @@ open Nes
 open Common
 
 let get env slug =
-  Lwt.bind_return
-    (Model.Person.get slug)
-    (Permission.assert_can_get env)
+  let%lwt person = Model.Person.get slug in
+  Permission.assert_can_get env person;%lwt
+  lwt person
 
 let create env person =
   Permission.assert_can_create env;%lwt
   Database.Person.create person
 
 let update env slug person =
-  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Permission.assert_can_update env =<< get env slug;%lwt
   Database.Person.update slug person
 
 include Search.Build(struct
@@ -19,14 +19,13 @@ include Search.Build(struct
   type filter = Filter.Person.t
 
   let get_all env =
-    Lwt.map
-      (List.filter (Permission.can_get env))
-      (Database.Person.get_all ())
+    List.filter (Permission.can_get env)
+    <$> Database.Person.get_all ()
 
   let filter_accepts = Filter.Person.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Person.name') String.Sensible.compare]
+    Lwt_list.[increasing (lwt % Model.Person.name') String.Sensible.compare]
 end)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> a = fun env endpoint ->

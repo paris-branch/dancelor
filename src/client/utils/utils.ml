@@ -11,7 +11,7 @@ let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t
   || (
     Js.Opt.case
       c##.parentNode
-      (Fun.const false)
+      (const false)
       (fun p' -> is_child_of p' p)
   )
 
@@ -43,11 +43,10 @@ let quick_explorer_links links =
           List.map
             (fun (text, filter_lwt) ->
               let count_lwt =
-                Lwt.bind
-                  filter_lwt
-                  (
-                    Lwt.map fst %
-                      Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
+                fst
+                <$> (
+                    Madge_client.call_exn Endpoints.Api.(route @@ Any Search) Slice.nothing
+                    =<< filter_lwt
                   )
               in
               li
@@ -55,7 +54,7 @@ let quick_explorer_links links =
                   R.a_class
                     (
                       S.from' [] @@
-                      Fun.flip Lwt.map count_lwt @@ function
+                      flip Lwt.map count_lwt @@ function
                       | 0 -> ["disabled"]
                       | _ -> []
                     );
@@ -65,14 +64,14 @@ let quick_explorer_links links =
                     ~a: [
                       R.a_href
                         (
-                          S.from' "" @@
-                            Lwt.map
-                              (Endpoints.Page.(href Explore) % Option.some % Filter.Any.to_string)
-                              filter_lwt
+                          S.from' "" (
+                            (Endpoints.Page.(href Explore) % some % Filter.Any.to_string)
+                            <$> filter_lwt
+                          )
                         );
                     ]
                     [txt text];
-                  R.txt (S.from' "" @@ Lwt.map (spf " (%d)") count_lwt);
+                  R.txt (S.from' "" (spf " (%d)" <$> count_lwt));
                   txt ",";
                 ]
             )
@@ -81,4 +80,4 @@ let quick_explorer_links links =
     ]
 
 let quick_explorer_links' model_lwt links =
-  quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, Lwt.map mk_filter model_lwt)) links
+  quick_explorer_links @@ List.map (fun (text, mk_filter) -> (text, mk_filter <$> model_lwt)) links

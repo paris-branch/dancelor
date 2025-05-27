@@ -61,8 +61,8 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (Tune f1, Tune f2) -> Option.some @@ tune (op f1 f2)
-    | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
+    | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
+    | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
     | _ -> None
   in
   Formula.optimise

@@ -7,16 +7,16 @@ module Ogg = Ogg
 module Pdf = Pdf
 
 let get env slug =
-  Lwt.bind_return
-    (Model.Version.get slug)
-    (Permission.assert_can_get env)
+  let%lwt version = Model.Version.get slug in
+  Permission.assert_can_get env version;%lwt
+  lwt version
 
 let create env version =
   Permission.assert_can_create env;%lwt
   Database.Version.create version
 
 let update env slug version =
-  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Permission.assert_can_update env =<< get env slug;%lwt
   Database.Version.update slug version
 
 let rec search_and_extract acc s regexp =
@@ -51,9 +51,8 @@ include Search.Build(struct
   type filter = Filter.Version.t
 
   let get_all env =
-    Lwt.map
-      (List.filter (Permission.can_get env))
-      (Database.Version.get_all ())
+    List.filter (Permission.can_get env)
+    <$> Database.Version.get_all ()
 
   let filter_accepts = Filter.Version.accepts
 

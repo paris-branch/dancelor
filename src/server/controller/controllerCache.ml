@@ -17,7 +17,7 @@ let populate ~cache ~type_ ~ext ~pp_ext =
             |> List.ft
             |> StorageCache.hash_from_string
           in
-          StorageCache.add ~cache ~hash ~value: (Lwt.return (Filename.concat path x))
+          StorageCache.add ~cache ~hash ~value: (lwt (Filename.concat path x))
         with
           | exn ->
             Log.err (fun m ->

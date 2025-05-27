@@ -82,9 +82,9 @@ module Editor = struct
   let with_or_without_local_storage ~text ~tune f =
     match text, tune with
     | (None, None) ->
-      Lwt.return @@ Cutils.with_local_storage "VersionEditor" (module RawState) raw_state f
+      lwt @@ Cutils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
-      Lwt.return @@ f {RawState.empty with tune = Option.value ~default: [] tune}
+      lwt @@ f {RawState.empty with tune = Option.value ~default: [] tune}
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->
@@ -92,12 +92,8 @@ module Editor = struct
       Selector.make
         ~arity: Selector.one
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Tune.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn
-              Endpoints.Api.(route @@ Tune Search)
-              slice
-              filter
+          let%rlwt filter = lwt (Filter.Tune.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Tune.get
@@ -111,36 +107,31 @@ module Editor = struct
       Input.Text.make initial_state.key @@
         Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
     in
-    let structure = Input.Text.make initial_state.structure @@ Result.ok in
+    let structure = Input.Text.make initial_state.structure @@ ok in
     let arrangers =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Person.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn
-              Endpoints.Api.(route @@ Person Search)
-              slice
-              filter
+          let%rlwt filter = lwt (Filter.Person.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
-    let remark = Input.Text.make initial_state.remark @@ Result.ok in
+    let remark = Input.Text.make initial_state.remark @@ ok in
     let sources =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Source.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
+          let%rlwt filter = lwt (Filter.Source.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Source.get
         initial_state.sources
     in
-    let disambiguation = Input.Text.make initial_state.disambiguation @@ Result.ok in
+    let disambiguation = Input.Text.make initial_state.disambiguation @@ ok in
     let content =
       Input.Text.make initial_state.content @@
         Result.of_string_nonempty ~empty: "Cannot be empty."
@@ -162,9 +153,9 @@ module Editor = struct
 
   let value (editor : t) =
     match S.value (state editor) with
-    | None -> Lwt.return_none
+    | None -> lwt_none
     | Some {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content} ->
-      Lwt.return_some @@
+      lwt_some @@
         Model.Version.make
           ~tune
           ~bars
@@ -182,7 +173,7 @@ let create ?on_save ?text ?tune () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text ~tune in
   Page.make'
-    ~title: (Lwt.return "Add a version")
+    ~title: (lwt "Add a version")
     [Selector.render
       ~make_result: AnyResult.make_tune_result'
       ~field_name: "Tune"
@@ -234,40 +225,40 @@ let create ?on_save ?text ?tune () =
         ~disabled: (S.map Option.is_none (Editor.state editor))
         ~onclick: (fun () ->
           match%lwt Editor.value editor with
-          | None -> Lwt.return_unit
+          | None -> lwt_unit
           | Some version ->
-            Lwt.map ignore @@
-            Page.open_dialog' @@ fun return ->
-            Page.make'
-              ~title: (Lwt.return "Preview")
-              [div [VersionSvg.make_preview version];
-              div
-                [
-                  audio
-                    ~a: [a_controls ()]
-                    ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
-                    [];
-                ];
-              ]
-              ~buttons: [
-                Button.cancel' ~return ();
-                Button.save
-                  ~onclick: (fun () ->
-                    let%lwt version =
-                      Madge_client.call_exn
-                        Endpoints.Api.(route @@ Version Create)
-                        version
-                    in
-                    Editor.clear editor;
-                    (
-                      match on_save with
-                      | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
-                      | Some on_save -> on_save version
-                    );
-                    Lwt.return_unit
-                  )
-                  ();
-              ]
+            ignore
+            <$> Page.open_dialog' @@ fun return ->
+              Page.make'
+                ~title: (lwt "Preview")
+                [div [VersionSvg.make_preview version];
+                div
+                  [
+                    audio
+                      ~a: [a_controls ()]
+                      ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
+                      [];
+                  ];
+                ]
+                ~buttons: [
+                  Button.cancel' ~return ();
+                  Button.save
+                    ~onclick: (fun () ->
+                      let%lwt version =
+                        Madge_client.call_exn
+                          Endpoints.Api.(route @@ Version Create)
+                          version
+                      in
+                      Editor.clear editor;
+                      (
+                        match on_save with
+                        | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                        | Some on_save -> on_save version
+                      );
+                      lwt_unit
+                    )
+                    ();
+                ]
         )
         ();
     ]

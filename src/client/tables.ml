@@ -18,8 +18,8 @@ let books books =
   clickable_row
     ~href: (Endpoints.Page.href_book @@ Entry.slug book)
     [
-      Lwt.return [Formatters.Book.title_and_subtitle' book];
-      Lwt.return [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
+      lwt [Formatters.Book.title_and_subtitle' book];
+      lwt [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
     ]
 
 let sets sets =
@@ -28,9 +28,9 @@ let sets sets =
   clickable_row
     ~href
     [
-      Lwt.return [Formatters.Set.name_and_tunes' ~name_link: false set];
-      (Lwt.map (List.singleton % Formatters.Person.names') (Set.conceptors' set));
-      Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+      lwt [Formatters.Set.name_and_tunes' ~name_link: false set];
+      (List.singleton <$> (Formatters.Person.names' <$> Set.conceptors' set));
+      lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
     ]
 
 let dances dances =
@@ -39,9 +39,9 @@ let dances dances =
   clickable_row
     ~href
     [
-      Lwt.return [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
-      (Lwt.map (List.singleton % Formatters.Person.names') (Dance.devisers' dance));
-      Lwt.return [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+      lwt [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
+      (List.singleton <$> (Formatters.Person.names' <$> Dance.devisers' dance));
+      lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
     ]
 
 let tunes tunes =
@@ -50,9 +50,9 @@ let tunes tunes =
   clickable_row
     ~href
     [
-      Lwt.return [Formatters.Tune.name' ~link: false tune];
-      Lwt.return [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
-      Lwt.return [Formatters.Tune.composers' tune];
+      lwt [Formatters.Tune.name' ~link: false tune];
+      lwt [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
+      lwt [Formatters.Tune.composers' tune];
     ]
 
 let versions versions =
@@ -60,16 +60,15 @@ let versions versions =
     ~header: ["Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let tune_lwt = Version.tune' version in
     let href = Endpoints.Page.href_version @@ Entry.slug version in
     clickable_row
       ~href
       [
-        Lwt.return [Formatters.Version.disambiguation_and_sources' version];
-        (Lwt.map (List.singleton % Formatters.Person.names') (Version.arrangers' version));
-        (Lwt.map (List.singleton % Formatters.Kind.full_string version) tune_lwt);
-        Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
-        Lwt.return [txt @@ Version.structure' version];
+        lwt [Formatters.Version.disambiguation_and_sources' version];
+        (List.singleton <$> (Formatters.Person.names' <$> Version.arrangers' version));
+        (List.singleton <$> (Formatters.Kind.full_string version <$> Version.tune' version));
+        lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
+        lwt [txt @@ Version.structure' version];
       ]
 
 let versions_with_names versions =
@@ -77,15 +76,14 @@ let versions_with_names versions =
     ~header: ["Name"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let tune_lwt = Version.tune' version in
     let href = Endpoints.Page.href_version @@ Entry.slug version in
     clickable_row
       ~href
       [
-        Lwt.return [with_span_placeholder @@ Lwt.map (List.singleton % txt % Tune.name') tune_lwt];
-        (Lwt.map (List.singleton % Formatters.Kind.full_string version) tune_lwt);
-        Lwt.return [txt @@ Music.key_to_pretty_string @@ Version.key' version];
-        Lwt.return [txt @@ Version.structure' version];
+        lwt [with_span_placeholder (List.singleton <$> (txt <$> (Tune.name' <$> Version.tune' version)))];
+        (List.singleton <$> (Formatters.Kind.full_string version <$> Version.tune' version));
+        lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
+        lwt [txt @@ Version.structure' version];
       ]
 
 let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
@@ -96,7 +94,7 @@ let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
         ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-1"]]
         ?thead: (
           if show_thead then
-            Option.some @@
+            some @@
               thead
                 ~a: [a_class ["table-primary"]]
                 [
@@ -110,7 +108,7 @@ let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [
         )
         ?tfoot: (
           if show_tfoot then
-            Option.some @@
+            some @@
               tfoot
                 ~a: [a_class ["table-primary"]]
                 [

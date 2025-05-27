@@ -11,7 +11,7 @@ let render version version_parameters rendering_parameters =
     let version_parameters = Model.VersionParameters.set_display_name "" version_parameters in
     let contents = [(version, version_parameters)] in
     let order = [Model.SetOrder.Internal 1] in
-    Lwt.return @@ Model.Set.make ~name ~kind ~contents ~order ()
+    lwt @@ Model.Set.make ~name ~kind ~contents ~order ()
   in
   let set_parameters =
     let show_order = false in
@@ -22,15 +22,15 @@ let render version version_parameters rendering_parameters =
     let%lwt pdf_metadata =
       let%lwt tune = Model.Version.tune' version in
       let name = Option.value (Model.VersionParameters.display_name version_parameters) ~default: (Model.Tune.name' tune) in
-      let%lwt composers = Lwt.map (List.map Model.Person.name') @@ Model.Tune.composers' tune in
+      let%lwt composers = List.map Model.Person.name' <$> Model.Tune.composers' tune in
       let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
-      Lwt.return @@
+      lwt @@
         RenderingParameters.update_pdf_metadata
           ~title: (String.replace_empty ~by: name)
           ~composers: (List.replace_nil ~by: composers)
           ~subjects: (List.replace_nil ~by: subjects)
     in
-    Lwt.return @@ RenderingParameters.update ~pdf_metadata rendering_parameters
+    lwt @@ RenderingParameters.update ~pdf_metadata rendering_parameters
   in
   Set.Pdf.render set set_parameters rendering_parameters
 

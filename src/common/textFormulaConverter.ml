@@ -29,7 +29,7 @@ let merge_l = function
 
 let predicate_to_formula c tp =
   let rec aux : type p. p t -> (p Formula.t, string) Result.t = function
-    | Cases cases -> Link.link' ~default: (kaspf Result.error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
+    | Cases cases -> Link.link' ~default: (kaspf error "No converter for predicate: %a." Printer.pp_predicate tp) (List.map to_ cases) tp
     | Map (f, error, c) -> Result.map_error error @@ Result.map (Formula.pred % f) @@ aux c
     | Merge (tiebreaker, c1, c2) ->
       match (aux c1, aux c2) with
@@ -67,7 +67,7 @@ let raw f =
     | Type.Raw s -> Some (f s)
     | _ -> None
   in
-  let from = Fun.const None in
+  let from = const None in
     {to_; from}
 
 let nullary ~name p =
@@ -116,7 +116,7 @@ let unary_raw ?(wrap_back = Always) ~name ~cast: (cast, uncast) ~type_ (to_predi
     )
     (Option.map (apply_wrap_back ~name wrap_back % Type.raw' % uncast) % from_predicate)
 
-let unary_string = unary_raw ~cast: (Option.some, Fun.id) ~type_: "string"
+let unary_string = unary_raw ~cast: (some, Fun.id) ~type_: "string"
 let unary_int = unary_raw ~cast: (int_of_string_opt, string_of_int) ~type_: "int"
 
 let unary_lift ?(wrap_back = Always) ~name ~converter (lift, unlift) =

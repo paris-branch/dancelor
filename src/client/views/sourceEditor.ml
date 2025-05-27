@@ -46,9 +46,9 @@ module Editor = struct
   let with_or_without_local_storage ~text f =
     match text with
     | Some text ->
-      Lwt.return @@ f {RawState.empty with name = text}
+      lwt @@ f {RawState.empty with name = text}
     | None ->
-      Lwt.return @@
+      lwt @@
         Cutils.with_local_storage "SourceEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
@@ -61,7 +61,7 @@ module Editor = struct
       Input.Text.make initial_state.scddb_id @@
         Option.fold
           ~none: (Ok None)
-          ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Publication) %
+          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Publication) %
           Option.of_string_nonempty
     in
     let description =
@@ -76,22 +76,18 @@ module Editor = struct
 
   let submit (editor : t) : Model.Source.t Entry.t option Lwt.t =
     match S.value (state editor) with
-    | None -> Lwt.return_none
+    | None -> lwt_none
     | Some {name; scddb_id; description} ->
-      Lwt.map Option.some @@
-      Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
-      Model.Source.make
-        ~name
-        ?scddb_id
-        ?description
-        ()
+      some
+      <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
+          Model.Source.make ~name ?scddb_id ?description ()
 end
 
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text in
   Page.make'
-    ~title: (Lwt.return "Add a source")
+    ~title: (lwt "Add a source")
     [Input.Text.render
       editor.elements.name
       ~label: "Name"
@@ -112,7 +108,7 @@ let create ?on_save ?text () =
       Button.save
         ~disabled: (S.map Option.is_none (Editor.state editor))
         ~onclick: (fun () ->
-          Fun.flip Lwt.map (Editor.submit editor) @@
+          flip Lwt.map (Editor.submit editor) @@
           Option.iter @@ fun source ->
           Editor.clear editor;
           match on_save with

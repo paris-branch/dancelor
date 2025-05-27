@@ -1,8 +1,9 @@
+open Nes
 open Html
 
 let create () =
   Page.make'
-    ~title: (Lwt.return "")
+    ~title: lwt_empty
     [
       h2 [txt "Welcome to Dancelor!"];
       txt

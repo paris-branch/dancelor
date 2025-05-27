@@ -42,6 +42,6 @@ let open_ ?(level = Normal) ~title content =
   Lwt.async (fun () ->
     Js_of_ocaml_lwt.Lwt_js.sleep 60.;%lwt
     Dom.removeChild (stack ()) toast;
-    Lwt.return_unit
+    lwt_unit
   );
   Dom.appendChild (stack ()) toast

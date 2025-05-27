@@ -16,16 +16,15 @@ let create ?query () =
   let search =
     Search.make
       ~search: (fun slice input ->
-        let%rlwt filter = Lwt.return (Filter.Any.from_string input) in
-        Lwt.map Result.ok @@
-          Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
+        let%rlwt filter = lwt (Filter.Any.from_string input) in
+        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
       )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
       ()
   in
   Page.make'
-    ~title: (Lwt.return "Explore")
+    ~title: (lwt "Explore")
     [
       Search.render
         search
@@ -40,9 +39,8 @@ let create ?query () =
             ~onclick: (fun () ->
               let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
               (* TODO: On return, add a space and focus the search bar. *)
-              Lwt.map
-                (Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text))
-                (SearchComplexFiltersDialog.open_ search_text)
+              Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text)
+              <$> SearchComplexFiltersDialog.open_ search_text
             )
             ();
         ]

@@ -12,10 +12,10 @@ let id_regexp = Str.regexp ".*/issues/\\(.*\\)"
 let report _env issue =
   let%lwt (repo, title) =
     if issue.source_is_dancelor then
-      Lwt.return (!Config.github_repository, issue.title)
+      lwt (!Config.github_repository, issue.title)
     else
-      let%lwt (model, name) = Lwt.map Option.get @@ describe @@ Uri.of_string issue.page in
-      Lwt.return (!Config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
+      let%lwt (model, name) = Option.get <$> describe @@ Uri.of_string issue.page in
+      lwt (!Config.github_database_repository, Format.sprintf "%s “%s”: %s" model name issue.title)
   in
   assert (repo <> "");
   (* otherwise this will pick up on the current Git repository *)
@@ -47,4 +47,4 @@ let report _env issue =
   let uri = String.trim output.stdout in
   assert (Str.string_match id_regexp uri 0);
   let id = int_of_string @@ Str.matched_group 1 uri in
-  Lwt.return Response.{title; id; uri}
+  lwt Response.{title; id; uri}

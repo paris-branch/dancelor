@@ -19,7 +19,7 @@ let trace rt = return TRACE rt
 let connect rt = return CONNECT rt
 
 let query_opt name rt route =
-  let proxy = Option.some % (fun x f -> f x) in
+  let proxy = some % (fun x f -> f x) in
   Query (Uri, name, proxy, Fun.id, rt, route)
 
 let query name rt route =
@@ -28,7 +28,7 @@ let query name rt route =
   Query (Uri, name, proxy, unproxy, rt, route)
 
 let body_opt name rt route =
-  let proxy = Option.some % (fun x f -> f x) in
+  let proxy = some % (fun x f -> f x) in
   Query (Body, name, proxy, Fun.id, rt, route)
 
 let body name rt route =

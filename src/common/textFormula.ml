@@ -58,10 +58,10 @@ module Parser = struct
   let from_string ?filename text =
     match from_string_internal ?filename text with
     | Ok formula -> Ok formula
-    | Error (_, _, where) -> kspf Result.error "There is a syntax error %s in your request." where
+    | Error (_, _, where) -> kspf error "There is a syntax error %s in your request." where
     | exception Lexer.UnexpectedCharacter char ->
       kspf
-        Result.error
+        error
         (
           "There is an unexpected character in your request: '%c'. " ^^
           "If you really want to type it, protect it with quotes, " ^^
@@ -71,7 +71,7 @@ module Parser = struct
         char
     | exception Lexer.UnterminatedQuote ->
       kspf
-        Result.error
+        error
         (
           "There is an unterminated quote in your request. " ^^
           "If you just want to type a quote character, " ^^

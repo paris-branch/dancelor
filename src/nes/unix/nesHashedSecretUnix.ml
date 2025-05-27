@@ -34,7 +34,7 @@ let of_yojson json =
   Result.bind (of_yojson json) @@ fun encoded ->
   NesResult.map_both
     (is ~clear: "not the password" encoded)
-    ~ok: (Fun.const encoded)
+    ~ok: (const encoded)
     ~error: ((^) "Argon2 error: " % Argon2.ErrorCodes.message)
 
 let is ~clear password = Result.get_ok @@ is ~clear password

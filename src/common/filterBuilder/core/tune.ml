@@ -22,7 +22,7 @@ let text_formula_converter =
   TextFormulaConverter.(
     make
       [
-        raw (Result.ok % nameMatches');
+        raw (ok % nameMatches');
         unary_string ~name: "name" (name, unName);
         unary_string ~wrap_back: Never ~name: "name-matches" (nameMatches, unNameMatches);
         unary_lift ~name: "exists-composer" (existsComposer, unExistsComposer) ~converter: Person.text_formula_converter;
@@ -53,9 +53,9 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (ExistsComposer f1, ExistsComposer f2) -> Option.some @@ existsComposer (op f1 f2)
-    | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
-    | (ExistsDance f1, ExistsDance f2) -> Option.some @@ existsDance (op f1 f2)
+    | (ExistsComposer f1, ExistsComposer f2) -> some @@ existsComposer (op f1 f2)
+    | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
+    | (ExistsDance f1, ExistsDance f2) -> some @@ existsDance (op f1 f2)
     | _ -> None
   in
   Formula.optimise

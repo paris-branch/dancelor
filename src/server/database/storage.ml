@@ -39,7 +39,7 @@ module Git = struct
         ~on_nonempty_stderr: Logs.Warning
         ["git"; "status"]
     in
-    Lwt.return (out.Process.stdout = "")
+    lwt (out.Process.stdout = "")
 end
 
 module Json = struct
@@ -111,13 +111,13 @@ let with_lock (type a) (f : unit -> a Lwt.t) : a Lwt.t =
       )
   in
   Log.debug (fun m -> m "Released lock[%x] on storage" id);
-  Lwt.return a
+  lwt a
 
 let check_ro_lock () =
   if Lwt_mutex.is_locked ro_lock then
     Error.(lwt_fail StorageReadOnly)
   else
-    Lwt.return_unit
+    lwt_unit
 
 let with_read_only f =
   (
@@ -128,7 +128,7 @@ let with_read_only f =
   let%lwt y = f () in
   Log.debug (fun m -> m "Freeing the read-only lock");
   Lwt_mutex.unlock ro_lock;
-  Lwt.return y
+  lwt y
 
 let with_locks (type a) (f : unit -> a Lwt.t) : a Lwt.t =
   with_lock @@ fun () ->
@@ -147,21 +147,21 @@ let list_entries table =
       Sys.is_directory fname
       && Filesystem.read_directory fname <> []
     )
-  |> Lwt.return
+  |> lwt
 
 let list_entry_files table entry =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Listing entries in %s / %s" table entry);
   Filename.concat_l [!prefix; table; entry]
   |> Filesystem.read_directory
-  |> Lwt.return
+  |> lwt
 
 let read_entry_file table entry file =
   with_locks @@ fun () ->
   Log.debug (fun m -> m "Reading %s / %s / %s" table entry file);
   Filename.concat_l [!prefix; table; entry; file]
   |> Filesystem.read_file
-  |> Lwt.return
+  |> lwt
 
 (** Variant of {!read_entry_file} for controllers that want to eg. serve a
     file directly from the database. *)
@@ -174,7 +174,7 @@ let read_entry_yaml table entry file =
   (* no lock because using read_entry_file *)
   let%lwt content = read_entry_file table entry file in
   Json.from_yaml_string content
-  |> Lwt.return
+  |> lwt
 
 let write_entry_file table entry file content =
   with_locks @@ fun () ->
@@ -186,7 +186,7 @@ let write_entry_file table entry file content =
       let path = Filename.concat path file in
       Filesystem.write_file path content
     );
-  Lwt.return ()
+  lwt_unit
 
 let write_entry_yaml table entry file content =
   (* no lock because using write_entry_file *)
@@ -203,7 +203,7 @@ let delete_entry table entry =
       |> List.iter (fun s -> Filesystem.remove_file (path ^ "/" ^ s));
       Filesystem.remove_directory path
     );
-  Lwt.return_unit
+  lwt_unit
 
 let save_changes_on_entry ~msg table entry =
   with_locks @@ fun () ->
@@ -214,10 +214,10 @@ let save_changes_on_entry ~msg table entry =
       let path = Filename.concat_l [(*!prefix;*) table; entry] in
       Git.add path;%lwt
       Git.commit ~msg;%lwt
-      Lwt.return_unit
+      lwt_unit
     )
   else
-    Lwt.return_unit
+    lwt_unit
 
 let sync_changes () =
   with_locks @@ fun () ->
@@ -226,7 +226,7 @@ let sync_changes () =
     (
       Git.pull_rebase ();%lwt
       Git.push ();%lwt
-      Lwt.return_unit
+      lwt_unit
     )
   else
-    Lwt.return_unit
+    lwt_unit

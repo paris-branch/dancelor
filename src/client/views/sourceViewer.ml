@@ -13,9 +13,9 @@ let create ?context slug =
         (* FIXME: doesn't need to take an [Lwt.t] anymore? *)
         ?context
         ~this_page: (Endpoints.Page.href_source slug)
-        (Lwt.return @@ Any.source source);
+        (lwt @@ Any.source source);
     ]
-    ~title: (Lwt.return @@ Source.name' source)
+    ~title: (lwt @@ Source.name' source)
     [
       div
         ~a: [a_class ["text-end"; "dropdown"]]
@@ -67,6 +67,6 @@ let create ?context slug =
         ];
       Utils.quick_explorer_links
         [
-          ("versions from this source", Lwt.return @@ Filter.(Any.version' % Version.memSource') source);
+          ("versions from this source", lwt @@ Filter.(Any.version' % Version.memSource') source);
         ];
     ]

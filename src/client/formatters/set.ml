@@ -6,8 +6,8 @@ open Html
 let works set =
   with_span_placeholder @@
     match%lwt Model.Set.dances set with
-    | [] -> Lwt.return_nil
-    | dances -> Lwt.return [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.name' dances)]
+    | [] -> lwt_nil
+    | dances -> lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.name' dances)]
 
 let works' = works % Entry.value
 
@@ -34,7 +34,7 @@ let tunes ?link set =
     |> List.cons (txt "Tunes: ")
     |> span ~a: [a_class ["opacity-50"]]
     |> List.singleton
-    |> Lwt.return
+    |> lwt
 
 let tunes' ?link set = tunes ?link @@ Entry.value set
 
@@ -52,9 +52,9 @@ let name_tunes_and_dance_gen ?tunes_link ?dance_link set parameters =
   let dance =
     with_span_placeholder @@
       match%lwt Model.SetParameters.for_dance parameters with
-      | None -> Lwt.return_nil
+      | None -> lwt_nil
       | Some dance ->
-        Lwt.return
+        lwt
           [
             span
               ~a: [a_class ["opacity-50"]]

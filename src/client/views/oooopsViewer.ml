@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Html
 
@@ -5,7 +6,7 @@ let get_uri () = Js.to_string Dom_html.window##.location##.href
 
 let create status =
   Page.make'
-    ~title: (Lwt.return "Oooops!")
+    ~title: (lwt "Oooops!")
     ~subtitles: [
       txt (Cohttp.Code.string_of_status status);
     ]

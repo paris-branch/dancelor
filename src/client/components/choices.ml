@@ -55,7 +55,7 @@ let make_gen_unsafe
               div
                 ~a: [a_onchange (fun _ -> update_values (); true)]
                 (
-                  Fun.flip List.concat_map choices @@ fun choice ->
+                  flip List.concat_map choices @@ fun choice ->
                   [
                     input
                       ~a: (
@@ -65,7 +65,7 @@ let make_gen_unsafe
                             (
                               R.a_class
                                 (
-                                  Fun.flip S.map values @@ function
+                                  flip S.map values @@ function
                                     | Ok _ -> ["btn-check"; "form-check-input"; "is-valid"]
                                     | Error _ -> ["btn-check"; "form-check-input"; "is-invalid"]
                                 )
@@ -90,13 +90,13 @@ let make_gen_unsafe
                     ~a: [
                       R.a_class
                         (
-                          Fun.flip S.map values @@ function
+                          flip S.map values @@ function
                             | Ok _ -> ["d-block"; "valid-feedback"]
                             | Error _ -> ["d-block"; "invalid-feedback"]
                         )
                     ]
                     (
-                      Fun.flip S.map values @@ function
+                      flip S.map values @@ function
                         | Ok _ -> [txt " "]
                         | Error msg -> [txt "Error: "; txt msg]
                     )
@@ -120,7 +120,7 @@ let make_radios_gen ?name ~validate ~post_validate choices =
     ~post_validate
 
 let make_radios ?name choices =
-  make_radios_gen ?name ~validation: false ~validate: Result.ok ~post_validate: Result.get_ok choices
+  make_radios_gen ?name ~validation: false ~validate: ok ~post_validate: Result.get_ok choices
 
 let make_radios' = make_radios_gen ~validation: true ~post_validate: Fun.id
 
@@ -129,5 +129,5 @@ let make_checkboxes choices =
     ~radios: false
     choices
     ~validation: false
-    ~validate: Result.ok
+    ~validate: ok
     ~post_validate: Result.get_ok

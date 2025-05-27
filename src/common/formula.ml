@@ -85,21 +85,21 @@ let interpret_bool b =
 
 let interpret formula interpret_predicate =
   let rec interpret = function
-    | False -> Lwt.return interpret_false
-    | True -> Lwt.return interpret_true
+    | False -> lwt interpret_false
+    | True -> lwt interpret_true
     | Not formula ->
       let%lwt score = interpret formula in
-      Lwt.return (interpret_not score)
+      lwt (interpret_not score)
     | And (formula1, formula2) ->
       let%lwt score1 = interpret formula1
       and score2 = interpret formula2
       in
-      Lwt.return (interpret_and score1 score2)
+      lwt (interpret_and score1 score2)
     | Or (formula1, formula2) ->
       let%lwt score1 = interpret formula1
       and score2 = interpret formula2
       in
-      Lwt.return (interpret_or score1 score2)
+      lwt (interpret_or score1 score2)
     | Pred predicate ->
       interpret_predicate predicate
   in
@@ -114,7 +114,7 @@ let rec convert_res f = function
   | Pred pred -> f pred
 
 let convert_opt f = Result.to_option % convert_res (Option.to_result ~none: "" % f)
-let convert f = Result.get_ok % convert_res (Result.ok % f)
+let convert f = Result.get_ok % convert_res (ok % f)
 
 let rec conjuncts = function
   | And (f1, f2) -> conjuncts f1 @ conjuncts f2

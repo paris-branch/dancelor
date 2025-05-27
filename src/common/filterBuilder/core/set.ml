@@ -22,7 +22,7 @@ let text_formula_converter =
   TextFormulaConverter.(
     make
       [
-        raw (Result.ok % nameMatches');
+        raw (ok % nameMatches');
         unary_string ~name: "name" (name, unName);
         unary_string ~name: "name-matches" (nameMatches, unNameMatches);
         unary_lift ~name: "exists-conceptor" (existsConceptor, unExistsConceptor) ~converter: Person.text_formula_converter;
@@ -53,9 +53,9 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (ExistsConceptor f1, ExistsConceptor f2) -> Option.some @@ existsConceptor (op f1 f2)
-    | (ExistsVersion f1, ExistsVersion f2) -> Option.some @@ existsVersion (op f1 f2)
-    | (Kind f1, Kind f2) -> Option.some @@ kind (op f1 f2)
+    | (ExistsConceptor f1, ExistsConceptor f2) -> some @@ existsConceptor (op f1 f2)
+    | (ExistsVersion f1, ExistsVersion f2) -> some @@ existsVersion (op f1 f2)
+    | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
     | _ -> None
   in
   Formula.optimise

@@ -59,7 +59,7 @@ let create () =
 let open_ slug dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
-    ~title: (Lwt.return "Download a PDF")
+    ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();

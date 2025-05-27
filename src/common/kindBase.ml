@@ -89,7 +89,7 @@ module Filter = struct
   let accepts filter kind =
     Formula.interpret filter @@ function
       | Is kind' ->
-        Lwt.return (Formula.interpret_bool (kind = kind'))
+        lwt (Formula.interpret_bool (kind = kind'))
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -98,8 +98,8 @@ module Filter = struct
           raw
             (fun string ->
               Option.fold
-                ~some: (Result.ok % is')
-                ~none: (kspf Result.error "could not interpret \"%s\" as a base kind" string)
+                ~some: (ok % is')
+                ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
                 (of_string_opt string)
             );
           unary_raw ~wrap_back: Never ~name: "is" (is, unIs) ~cast: (of_string_opt, to_pretty_string ~capitalised: true) ~type_: "base kind";
