@@ -20,19 +20,19 @@ let get_neighbours any = function
     let%lwt (total, previous, index, next) =
       Madge_client.call_exn Endpoints.Api.(route @@ Any SearchContext) filter any
     in
-    Lwt.return List.{total; previous; index; next; element = any}
+    lwt List.{total; previous; index; next; element = any}
   | Endpoints.Page.InSet (set, index) ->
     let%lwt set = Set.get set in
-    let%lwt context = Lwt.map Option.get @@ Set.find_context' index set in
+    let%lwt context = Option.get <$> Set.find_context' index set in
     assert (any = Any.Version context.element);
-    Lwt.return @@ List.map_context Any.version context
+    lwt @@ List.map_context Any.version context
   | Endpoints.Page.InBook (book, index) ->
     let%lwt book = Book.get book in
     let%lwt context =
-      Lwt.map (List.map_context book_page_to_any % Option.get) @@
-        Book.find_context_no_inline' index book
+      List.map_context book_page_to_any
+      <$> (Option.get <$> Book.find_context_no_inline' index book)
     in
-    Lwt.return context
+    lwt context
 
 let make_context_link_banner ~context ~this_page =
   let parent_href =
@@ -57,13 +57,13 @@ let make_context_link_banner ~context ~this_page =
                 let open Endpoints.Page in
                 match context with
                 | InSearch query ->
-                  Lwt.return [txt "In search for: "; parent_a [txt query]]
+                  lwt [txt "In search for: "; parent_a [txt query]]
                 | InSet (slug, _) ->
-                  let%lwt name = Lwt.map Set.name' @@ Set.get slug in
-                  Lwt.return [txt "In set: "; parent_a [txt name]]
+                  let%lwt name = Set.name' <$> Set.get slug in
+                  lwt [txt "In set: "; parent_a [txt name]]
                 | InBook (slug, _) ->
-                  let%lwt name = Lwt.map Book.title' @@ Book.get slug in
-                  Lwt.return [txt "In book: "; parent_a [txt name]]
+                  let%lwt name = Book.title' <$> Book.get slug in
+                  lwt [txt "In book: "; parent_a [txt name]]
               );
           ];
           div
@@ -97,7 +97,7 @@ let neighbour_context ~left = function
   | Endpoints.Page.InBook (slug, index) -> Endpoints.Page.InBook (slug, index + if left then (-1) else 1)
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
-  Fun.flip Option.map neighbour @@ fun neighbour ->
+  flip Option.map neighbour @@ fun neighbour ->
   let href = Endpoints.Page.href_any ~context: (neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
     if ev##.keyCode = (if left then 37 else 39) then
@@ -125,7 +125,7 @@ let make_context_link ~context ~left ~neighbour ~number_of_others =
         [
           let element_repr =
             [[txt Any.(Type.to_string (type_of neighbour))];
-            [with_span_placeholder @@ Lwt.map (List.singleton % txt) (Any.name neighbour)];
+            [with_span_placeholder (List.singleton <$> (txt <$> Any.name neighbour))];
             ] @
               (if number_of_others <= 0 then [] else [[txt @@ spf "...and %d more" number_of_others]])
           in
@@ -148,7 +148,7 @@ let make_and_render ?context ~this_page any_lwt =
       S.from' [] @@
         let%lwt any = any_lwt in
         let%lwt {total; previous; index; next; _} = get_neighbours any context in
-        Lwt.return @@
+        lwt @@
           List.filter_map
             Fun.id
             [

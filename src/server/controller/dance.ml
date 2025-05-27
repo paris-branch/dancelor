@@ -4,16 +4,16 @@ open Common
 module Log = (val Logger.create "controller.dance": Logs.LOG)
 
 let get env slug =
-  Lwt.bind_return
-    (Model.Dance.get slug)
-    (Permission.assert_can_get env)
+  let%lwt dance = Model.Dance.get slug in
+  Permission.assert_can_get env dance;%lwt
+  lwt dance
 
 let create env dance =
   Permission.assert_can_create env;%lwt
   Database.Dance.create dance
 
 let update env slug dance =
-  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Permission.assert_can_update env =<< get env slug;%lwt
   Database.Dance.update slug dance
 
 include Search.Build(struct
@@ -21,14 +21,12 @@ include Search.Build(struct
   type filter = Filter.Dance.t
 
   let get_all env =
-    Lwt.map
-      (List.filter (Permission.can_get env))
-      (Database.Dance.get_all ())
+    List.filter (Permission.can_get env) <$> Database.Dance.get_all ()
 
   let filter_accepts = Filter.Dance.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Dance.name') String.Sensible.compare]
+    Lwt_list.[increasing (lwt % Model.Dance.name') String.Sensible.compare]
 end)
 
 module Pdf = struct
@@ -37,11 +35,11 @@ module Pdf = struct
     let name = Model.Dance.name' dance in
     let%lwt versions =
       (* All the versions of all the tunes attached to this dance *)
-      Lwt.map snd @@
-      Version.search env Slice.everything @@
-      Filter.Version.tune' @@
-      Filter.Tune.existsDance' @@
-      Filter.Dance.is' dance
+      snd
+      <$> Version.search env Slice.everything @@
+        Filter.Version.tune' @@
+        Filter.Tune.existsDance' @@
+        Filter.Dance.is' dance
     in
     let set =
       Model.Set.make

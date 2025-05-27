@@ -19,7 +19,7 @@ let make
     ~search
     ?(min_characters = 0)
     ~slice
-    ?(on_number_of_entries = (Fun.const ()))
+    ?(on_number_of_entries = (const ()))
     ?(initial_input = "")
     ()
   =
@@ -34,14 +34,14 @@ let make
     S.bind_s' text StartTyping @@ fun text ->
     if String.length text < min_characters then
       (
-        Lwt.return @@
+        lwt @@
           if text = "" then
             StartTyping
           else
             ContinueTyping
       )
     else
-      Fun.flip Lwt.map (search slice text) @@ function
+      flip Lwt.map (search slice text) @@ function
         | Error messages ->
           Errors messages
         | Ok (_, []) ->
@@ -104,7 +104,7 @@ let render
     Lwt.async (fun () ->
       Js_of_ocaml_lwt.Lwt_js.sleep 1.;%lwt
       bar'##focus;
-      Lwt.return_unit
+      lwt_unit
     );
 
   (* Because the following event prevents the default browser behaviour (in case

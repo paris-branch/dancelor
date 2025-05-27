@@ -12,9 +12,9 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_person slug)
-        (Lwt.return @@ Any.person person);
+        (lwt @@ Any.person person);
     ]
-    ~title: (Lwt.return @@ Person.name' person)
+    ~title: (lwt @@ Person.name' person)
     [
       div
         ~a: [a_class ["text-end"; "dropdown"]]
@@ -43,7 +43,7 @@ let create ?context slug =
             ];
         ];
       Utils.quick_explorer_links'
-        (Lwt.return person)
+        (lwt person)
         [
           ("tunes they composed", Filter.(Any.tune' % Tune.existsComposer' % Person.is'));
           ("dances they devised", Filter.(Any.dance' % Dance.existsDeviser' % Person.is'));

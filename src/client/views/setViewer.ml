@@ -12,9 +12,9 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_set slug)
-        (Lwt.return @@ Any.set set);
+        (lwt @@ Any.set set);
     ]
-    ~title: (Lwt.return @@ Set.name' set)
+    ~title: (lwt @@ Set.name' set)
     ~subtitles: [
       Formatters.Set.works' set;
       span
@@ -26,8 +26,8 @@ let create ?context slug =
       (
         with_span_placeholder @@
           match%lwt Set.conceptors' set with
-          | [] -> Lwt.return_nil
-          | devisers -> Lwt.return [txt "Set by "; Formatters.Person.names' ~links: true devisers]
+          | [] -> lwt_nil
+          | devisers -> lwt [txt "Set by "; Formatters.Person.names' ~links: true devisers]
       );
     ]
     [
@@ -44,7 +44,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (SetDownloadDialog.create_and_open slug)); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> SetDownloadDialog.create_and_open slug); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -99,7 +99,7 @@ let create ?context slug =
                 (* FIXME: use parameters *)
                 let%lwt tune = Version.tune' version in
                 let slug = Entry.slug version in
-                Lwt.return @@
+                lwt @@
                   div
                     ~a: [a_class ["text-center"; "mt-4"]]
                     [
@@ -110,7 +110,7 @@ let create ?context slug =
               contents
         );
       Utils.quick_explorer_links'
-        (Lwt.return set)
+        (lwt set)
         [
           ("books containing this set", Filter.(Any.book' % Book.memSet'));
         ];

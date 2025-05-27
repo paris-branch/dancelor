@@ -47,7 +47,7 @@ let make_text_formula_converter ?(human = false) () =
         (* Any-specific converter *)
         make
           [
-            raw (Result.ok % raw');
+            raw (ok % raw');
             unary_string ~name: "raw" (predicate_Raw, unRaw) ~wrap_back: Never;
             unary_raw ~name: "type" (type_, unType) ~cast: (ModelBuilder.Core.Any.Type.of_string_opt, ModelBuilder.Core.Any.Type.to_string) ~type_: "valid type";
             unary_lift ~name: "source" (source, unSource) ~converter: Source.text_formula_converter ~wrap_back;
@@ -131,21 +131,21 @@ let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
     (* [person:] eats [type:person] *)
-    | (Type Source, Source f) | (Source f, Type Source) -> Option.some @@ source f
-    | (Type Person, Person f) | (Person f, Type Person) -> Option.some @@ person f
-    | (Type Dance, Dance f) | (Dance f, Type Dance) -> Option.some @@ dance f
-    | (Type Book, Book f) | (Book f, Type Book) -> Option.some @@ book f
-    | (Type Set, Set f) | (Set f, Type Set) -> Option.some @@ set f
-    | (Type Tune, Tune f) | (Tune f, Type Tune) -> Option.some @@ tune f
-    | (Type Version, Version f) | (Version f, Type Version) -> Option.some @@ version f
+    | (Type Source, Source f) | (Source f, Type Source) -> some @@ source f
+    | (Type Person, Person f) | (Person f, Type Person) -> some @@ person f
+    | (Type Dance, Dance f) | (Dance f, Type Dance) -> some @@ dance f
+    | (Type Book, Book f) | (Book f, Type Book) -> some @@ book f
+    | (Type Set, Set f) | (Set f, Type Set) -> some @@ set f
+    | (Type Tune, Tune f) | (Tune f, Type Tune) -> some @@ tune f
+    | (Type Version, Version f) | (Version f, Type Version) -> some @@ version f
     (* [person:<f1> ∧ person:<f2> -> person:(<f1> ∧ <f2>)] *)
-    | (Source f1, Source f2) -> Option.some @@ source (op f1 f2)
-    | (Person f1, Person f2) -> Option.some @@ person (op f1 f2)
-    | (Dance f1, Dance f2) -> Option.some @@ dance (op f1 f2)
-    | (Book f1, Book f2) -> Option.some @@ book (op f1 f2)
-    | (Set f1, Set f2) -> Option.some @@ set (op f1 f2)
-    | (Tune f1, Tune f2) -> Option.some @@ tune (op f1 f2)
-    | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
+    | (Source f1, Source f2) -> some @@ source (op f1 f2)
+    | (Person f1, Person f2) -> some @@ person (op f1 f2)
+    | (Dance f1, Dance f2) -> some @@ dance (op f1 f2)
+    | (Book f1, Book f2) -> some @@ book (op f1 f2)
+    | (Set f1, Set f2) -> some @@ set (op f1 f2)
+    | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
+    | (Version f1, Version f2) -> some @@ version (op f1 f2)
     | _ -> None
   in
   fixpoint

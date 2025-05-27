@@ -14,7 +14,7 @@ let create username token =
   in
   let password2_input =
     Input.Text.make' "" (fun password2 ->
-      Fun.flip S.map (Input.Text.raw_signal password1_input) @@ fun password1 ->
+      flip S.map (Input.Text.raw_signal password1_input) @@ fun password1 ->
       if password1 = password2 then Ok password2 else Error "The passwords do not match."
     )
   in
@@ -25,7 +25,7 @@ let create username token =
     S.const @@ if password1 = password2 then Ok password2 else Error "The passwords do not match."
   in
   Page.make'
-    ~title: (Lwt.return "Reset password")
+    ~title: (lwt "Reset password")
     [Input.inactive
       ~label: "Username"
       (Slug.to_string username);
@@ -51,7 +51,7 @@ let create username token =
           Components.Toast.open_ ~title: "Password reset" [txt "Your password has been reset successfully. You may now try to sign in."];
           Dom_html.window##.history##replaceState "fixme-the-state" (Js.string "") (Js.some (Js.string "/"));
           MainPage.load_sleep_raise (Index.create ());%lwt
-          Lwt.return_unit
+          lwt_unit
         )
         ();
     ]

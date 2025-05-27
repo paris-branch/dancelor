@@ -49,7 +49,7 @@ let open_sign_in_dialog () =
   let%lwt _ =
     Page.open_dialog @@ fun return ->
     Page.make'
-      ~title: (Lwt.return "Sign in")
+      ~title: (lwt "Sign in")
       [Input.Text.render
         username_input
         ~placeholder: "JeanMilligan"
@@ -74,24 +74,24 @@ let open_sign_in_dialog () =
           ~onclick: (fun () ->
             Option.fold
               (S.value request_signal)
-              ~none: Lwt.return_unit
+              ~none: lwt_unit
               ~some: (fun (username, password, remember_me) ->
                 set_status_signal DontKnow;
                 match%lwt Madge_client.call_exn Endpoints.Api.(route @@ User SignIn) username password remember_me with
-                | None -> set_status_signal Invalid; Lwt.return_unit
-                | Some _ -> return (Some ()); Lwt.return_unit
+                | None -> set_status_signal Invalid; lwt_unit
+                | Some _ -> return (Some ()); lwt_unit
               )
           )
           ();
       ]
   in
   Js_of_ocaml.Dom_html.window##.location##reload;
-  Lwt.return_unit
+  lwt_unit
 
 let sign_out () =
   Madge_client.call_exn Endpoints.Api.(route @@ User SignOut);%lwt
   Js_of_ocaml.Dom_html.window##.location##reload;
-  Lwt.return_unit
+  lwt_unit
 
 let header_item =
   let status_lwt = Madge_client.call_exn Endpoints.Api.(route @@ User Status) in
@@ -100,7 +100,7 @@ let header_item =
       R.a_class
         (
           S.from' ["nav-item"] @@
-          Fun.flip Lwt.map status_lwt @@ function
+          flip Lwt.map status_lwt @@ function
           | None -> ["nav-item"]
           | Some _ -> ["nav-item"; "dropdown"]
         );
@@ -113,7 +113,7 @@ let header_item =
           ~classes: ["btn-primary"; "disabled"; "placeholder"]
           ()
       ] @@
-      Fun.flip Lwt.map status_lwt @@ function
+      flip Lwt.map status_lwt @@ function
       | None ->
         [
           Components.Button.make

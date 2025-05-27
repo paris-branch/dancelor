@@ -66,9 +66,9 @@ module Editor = struct
   let with_or_without_local_storage ~text f =
     match text with
     | Some text ->
-      Lwt.return @@ f {RawState.empty with name = text}
+      lwt @@ f {RawState.empty with name = text}
     | None ->
-      Lwt.return @@
+      lwt @@
         Cutils.with_local_storage "SetEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
@@ -85,9 +85,8 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Person.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+          let%rlwt filter = lwt (Filter.Person.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
@@ -97,12 +96,8 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Version.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn
-              Endpoints.Api.(route @@ Version Search)
-              slice
-              filter
+          let%rlwt filter = lwt (Filter.Version.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Version.get
@@ -129,24 +124,24 @@ module Editor = struct
 
   let submit (editor : t) =
     match S.value (state editor) with
-    | None -> Lwt.return_none
+    | None -> lwt_none
     | Some {name; kind; conceptors; versions; order} ->
-      Lwt.map Option.some @@
-      Madge_client.call_exn Endpoints.Api.(route @@ Set Create) @@
-      Model.Set.make
-        ~name
-        ~kind
-        ~conceptors
-        ~contents: (List.map (fun version -> (version, Model.VersionParameters.none)) versions)
-        ~order
-        ()
+      some
+      <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) @@
+          Model.Set.make
+            ~name
+            ~kind
+            ~conceptors
+            ~contents: (List.map (fun version -> (version, Model.VersionParameters.none)) versions)
+            ~order
+            ()
 end
 
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text in
   Page.make'
-    ~title: (Lwt.return "Add a set")
+    ~title: (lwt "Add a set")
     [Input.Text.render
       editor.elements.name
       ~label: "Name"
@@ -182,7 +177,7 @@ let create ?on_save ?text () =
       Button.save
         ~disabled: (S.map Option.is_none (Editor.state editor))
         ~onclick: (fun () ->
-          Fun.flip Lwt.map (Editor.submit editor) @@
+          flip Lwt.map (Editor.submit editor) @@
           Option.iter @@ fun set ->
           Editor.clear editor;
           match on_save with

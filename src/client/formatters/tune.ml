@@ -18,8 +18,8 @@ let name = name_gen % Either.left
 let name' ?(link = true) tune = name_gen @@ Right (tune, link)
 
 let composers ?short tune =
-  with_span_placeholder @@
-  Lwt.map (List.singleton % Person.names' ?short) @@ Model.Tune.composers tune
+  with_span_placeholder
+    (List.singleton <$> (Person.names' ?short <$> Model.Tune.composers tune))
 
 let composers' ?short tune = composers ?short (Entry.value tune)
 
@@ -28,17 +28,17 @@ let description tune =
     let kind = Kind.Base.to_pretty_string @@ Model.Tune.kind tune in
     match%lwt Model.Tune.composers tune with
     | [] ->
-      Lwt.return
+      lwt
         [
           txt (String.capitalize_ascii kind)
         ]
     | [composer] when Model.Person.is_trad' composer ->
-      Lwt.return
+      lwt
         [
           txt ("Traditional " ^ kind)
         ]
     | composers ->
-      Lwt.return
+      lwt
         (
           [txt (String.capitalize_ascii kind ^ " by ");
           Person.names' composers;

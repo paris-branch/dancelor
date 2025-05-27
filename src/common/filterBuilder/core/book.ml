@@ -73,10 +73,10 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (ExistsVersion f1, ExistsVersion f2) -> Option.some @@ existsVersion (op f1 f2)
-    | (ExistsSet f1, ExistsSet f2) -> Option.some @@ existsSet (op f1 f2)
-    | (ExistsInlineSet f1, ExistsInlineSet f2) -> Option.some @@ existsInlineSet (op f1 f2)
-    | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> Option.some @@ existsVersionDeep (op f1 f2)
+    | (ExistsVersion f1, ExistsVersion f2) -> some @@ existsVersion (op f1 f2)
+    | (ExistsSet f1, ExistsSet f2) -> some @@ existsSet (op f1 f2)
+    | (ExistsInlineSet f1, ExistsInlineSet f2) -> some @@ existsInlineSet (op f1 f2)
+    | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> some @@ existsVersionDeep (op f1 f2)
     | _ -> None
   in
   Formula.optimise

@@ -72,16 +72,16 @@ module Editor = struct
     RS.bind (Selector.signal_many editor.elements.devisers) @@ fun devisers ->
     RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
     RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
-    RS.bind (S.map Result.ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
+    RS.bind (S.map ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
     RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let with_or_without_local_storage ~text f =
     match text with
     | Some text ->
-      Lwt.return @@ f {RawState.empty with name = text}
+      lwt @@ f {RawState.empty with name = text}
     | None ->
-      Lwt.return @@
+      lwt @@
         Cutils.with_local_storage "DanceEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
@@ -98,12 +98,8 @@ module Editor = struct
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Person.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn
-              Endpoints.Api.(route @@ Person Search)
-              slice
-              filter
+          let%rlwt filter = lwt (Filter.Person.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Person.get
@@ -113,12 +109,12 @@ module Editor = struct
       Input.Text.make initial_state.date @@
         Option.fold
           ~none: (Ok None)
-          ~some: (Result.map Option.some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
+          ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
           Option.of_string_nonempty
     in
     let disambiguation =
       Input.Text.make initial_state.disambiguation @@
-        Result.ok % Option.of_string_nonempty
+        ok % Option.of_string_nonempty
     in
     let two_chords =
       Choices.make_radios
@@ -132,7 +128,7 @@ module Editor = struct
       Input.Text.make initial_state.scddb_id @@
         Option.fold
           ~none: (Ok None)
-          ~some: (Result.map Option.some % SCDDB.entry_from_string SCDDB.Dance) %
+          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Dance) %
           Option.of_string_nonempty
     in
       {elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id}}
@@ -148,26 +144,26 @@ module Editor = struct
 
   let submit (editor : t) =
     match S.value (state editor) with
-    | None -> Lwt.return_none
+    | None -> lwt_none
     | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
-      Lwt.map Option.some @@
-      Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
-      Model.Dance.make
-        ~name
-        ~kind
-        ~devisers
-        ?two_chords
-        ?scddb_id
-        ?disambiguation
-        ?date
-        ()
+      some
+      <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
+          Model.Dance.make
+            ~name
+            ~kind
+            ~devisers
+            ?two_chords
+            ?scddb_id
+            ?disambiguation
+            ?date
+            ()
 end
 
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text in
   Page.make'
-    ~title: (Lwt.return "Add a dance")
+    ~title: (lwt "Add a dance")
     [Input.Text.render
       editor.elements.name
       ~label: "Name"
@@ -204,7 +200,7 @@ let create ?on_save ?text () =
       Button.save
         ~disabled: (S.map Option.is_none (Editor.state editor))
         ~onclick: (fun () ->
-          Fun.flip Lwt.map (Editor.submit editor) @@
+          flip Lwt.map (Editor.submit editor) @@
           Option.iter @@ fun dance ->
           Editor.clear editor;
           match on_save with

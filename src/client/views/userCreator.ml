@@ -6,24 +6,24 @@ open Html
 type status = Match | DontMatch
 
 let open_token_result_dialog user token =
-  Lwt.map ignore @@
-  Page.open_dialog @@ fun return ->
-  Page.make'
-    ~title: (Lwt.return "Created user")
-    [p [
-      txt "User ";
-      txt (Entry.slug_as_string user);
-      txt " was created successfully. Pass them the following link: ";
-    ];
-    p [
-      let href = Endpoints.Page.(href UserPasswordReset) (Entry.slug user) token in
-      a ~a: [a_href href] [txt href]
-    ];
-    p [
-      txt " for them to create a password.";
-    ];
-    ]
-    ~buttons: [Button.ok' ~return ()]
+  ignore
+  <$> Page.open_dialog @@ fun return ->
+    Page.make'
+      ~title: (lwt "Created user")
+      [p [
+        txt "User ";
+        txt (Entry.slug_as_string user);
+        txt " was created successfully. Pass them the following link: ";
+      ];
+      p [
+        let href = Endpoints.Page.(href UserPasswordReset) (Entry.slug user) token in
+        a ~a: [a_href href] [txt href]
+      ];
+      p [
+        txt " for them to create a password.";
+      ];
+      ]
+      ~buttons: [Button.ok' ~return ()]
 
 let create () =
   MainPage.assert_can_admin @@ fun () ->
@@ -38,7 +38,7 @@ let create () =
   in
   let display_name_input =
     Input.Text.make' "" (fun display_name ->
-      Fun.flip S.map (Input.Text.raw_signal username_input) @@ fun username ->
+      flip S.map (Input.Text.raw_signal username_input) @@ fun username ->
       if String.slugify display_name <> username then
         Error "The display name must correspond to the username."
       else
@@ -49,12 +49,8 @@ let create () =
     Selector.make
       ~arity: Selector.one
       ~search: (fun slice input ->
-        let%rlwt filter = Lwt.return (Filter.Person.from_string input) in
-        Lwt.map Result.ok @@
-          Madge_client.call_exn
-            Endpoints.Api.(route @@ Person Search)
-            slice
-            filter
+        let%rlwt filter = lwt (Filter.Person.from_string input) in
+        ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
       )
       ~serialise: Entry.slug
       ~unserialise: Model.Person.get
@@ -67,7 +63,7 @@ let create () =
     S.const @@ Ok (username, Model.User.make ~display_name ~person ())
   in
   Page.make'
-    ~title: (Lwt.return "Create user")
+    ~title: (lwt "Create user")
     [Input.Text.render
       username_input
       ~placeholder: "jeanmilligan"
@@ -96,7 +92,7 @@ let create () =
           Input.Text.clear username_input;
           Input.Text.clear display_name_input;
           Selector.clear person_selector;
-          Lwt.return_unit
+          lwt_unit
         )
         ();
     ]

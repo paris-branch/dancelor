@@ -19,4 +19,4 @@ let unary' p e = pred (unary p e)
 
 (** Characters that require escaping. *)
 let special_chars = [':'; '"'; '('; ')'; '\\'; ' ']
-let is_special = Fun.flip List.mem special_chars
+let is_special = flip List.mem special_chars

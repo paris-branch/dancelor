@@ -6,16 +6,16 @@ module Log = (val Logger.create "controller.book.ly": Logs.LOG)
 let kind set set_parmeters =
   let%lwt kind =
     match%lwt Model.SetParameters.for_dance set_parmeters with
-    | None -> Lwt.return @@ Model.Set.kind set
-    | Some dance -> Lwt.return @@ Model.Dance.kind' dance
+    | None -> lwt @@ Model.Set.kind set
+    | Some dance -> lwt @@ Model.Dance.kind' dance
   in
-  Lwt.return (Kind.Dance.to_pretty_string kind)
+  lwt (Kind.Dance.to_pretty_string kind)
 
 let details_line set set_parameters =
   let%lwt dance =
     match%lwt Model.SetParameters.for_dance set_parameters with
-    | None -> Lwt.return_nil
-    | Some dance -> Lwt.return [spf "Dance: %s" (Model.Dance.name' dance)]
+    | None -> lwt_nil
+    | Some dance -> lwt [spf "Dance: %s" (Model.Dance.name' dance)]
   in
   let%lwt kind = kind set set_parameters in
   let order =
@@ -26,10 +26,10 @@ let details_line set set_parameters =
   in
   let%lwt chords =
     match%lwt Model.SetParameters.for_dance set_parameters with
-    | Some dance when Model.Dance.two_chords' dance = Some true -> Lwt.return ["Two Chords"]
-    | _ -> Lwt.return_nil
+    | Some dance when Model.Dance.two_chords' dance = Some true -> lwt ["Two Chords"]
+    | _ -> lwt_nil
   in
-  Lwt.return (String.concat " — " (dance @ [kind] @ order @ chords))
+  lwt (String.concat " — " (dance @ [kind] @ order @ chords))
 
 (** Rearrange the content of a set. [Default] will leave the content as-is,
     while [Unfolded] will duplicate the tunes depending on the set order. *)
@@ -39,7 +39,7 @@ let rearrange_set_content ~order_type ~order content =
   | Model.SetParameters.Unfolded ->
     order
     |> List.map_filter (function Model.SetOrder.Internal n -> Some n | _ -> None)
-    |> List.map (List.nth content % Fun.flip (-) 1)
+    |> List.map (List.nth content % flip (-) 1)
 
 let cache : ([`Ly] * Model.Book.t * Model.BookParameters.t * string * RenderingParameters.t, string Lwt.t) StorageCache.t =
   StorageCache.create ()
@@ -125,7 +125,7 @@ let render book book_parameters rendering_parameters =
     let%lwt () =
       let%lwt sets_and_parameters =
         let%lwt contents = Model.Book.contents book in
-        Fun.flip Lwt_list.map_p contents @@ function
+        flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune' version in
             let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) parameters in
@@ -147,22 +147,22 @@ let render book book_parameters rendering_parameters =
                 ~show_order: false
                 ()
             in
-            Lwt.return (set, set_parameters)
-          | Set (set, parameters) -> Lwt.return (Entry.value set, parameters)
-          | InlineSet (set, parameters) -> Lwt.return (set, parameters)
+            lwt (set, set_parameters)
+          | Set (set, parameters) -> lwt (Entry.value set, parameters)
+          | InlineSet (set, parameters) -> lwt (set, parameters)
       in
       (* FIXME: none of the above need to be dummy; I think we can just return
          a SetCore.t; do we need the slug anyway? *)
-      Fun.flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
+      flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
       let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set book_parameters) set_parameters in
       let name = Model.SetParameters.display_name' ~default: (Model.Set.name set) set_parameters in
       let%lwt deviser =
         if not (Model.SetParameters.show_deviser' set_parameters) then
-          Lwt.return ""
+          lwt_empty
         else
           match%lwt Model.Set.conceptors set with
-          | [] -> Lwt.return ""
-          | devisers -> Lwt.return ("Set by " ^ String.concat ", " ~last: " & " @@ List.map Model.Person.name' devisers)
+          | [] -> lwt_empty
+          | devisers -> lwt ("Set by " ^ String.concat ", " ~last: " & " @@ List.map Model.Person.name' devisers)
       in
       let%lwt kind = kind set set_parameters in
       let%lwt details_line = details_line set set_parameters in
@@ -187,7 +187,7 @@ let render book book_parameters rendering_parameters =
             ~order_type: (Model.SetParameters.order_type' set_parameters)
             contents
         in
-        Fun.flip Lwt_list.iter_s contents @@ fun (version, version_parameters) ->
+        flip Lwt_list.iter_s contents @@ fun (version, version_parameters) ->
         let version_parameters = Model.VersionParameters.compose (Model.SetParameters.every_version set_parameters) version_parameters in
         let content =
           let content = Model.Version.content' version in
@@ -200,7 +200,7 @@ let render book book_parameters rendering_parameters =
         let%lwt tune = Model.Version.tune' version in
         let key = Model.Version.key' version in
         let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) version_parameters in
-        let%lwt composer = Lwt.map (String.concat ", " ~last: " and " % List.map Model.Person.name') (Model.Tune.composers' tune) in
+        let%lwt composer = (String.concat ", " ~last: " and " % List.map Model.Person.name') <$> Model.Tune.composers' tune in
         let composer = Model.VersionParameters.display_composer' ~default: composer version_parameters in
         let first_bar = Model.VersionParameters.first_bar' version_parameters in
         let source, target =
@@ -217,15 +217,15 @@ let render book book_parameters rendering_parameters =
           (Music.pitch_to_lilypond_string source)
           (Music.pitch_to_lilypond_string target)
           content;
-        Lwt.return ()
+        lwt_unit
       in
       fpf fmt [%blob "../template/book/set_end.ly"];
-      Lwt.return ()
+      lwt_unit
     in
     if Model.BookParameters.(table_of_contents' book_parameters = End) then
       fpf fmt [%blob "../template/book/book_table_of_contents.ly"];
     fpf fmt [%blob "../template/book/book_end.ly"];
-    Lwt.return ()
+    lwt_unit
   in
   prom;%lwt
-  Lwt.return res
+  lwt res

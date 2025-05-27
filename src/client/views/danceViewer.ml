@@ -12,19 +12,19 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_dance slug)
-        (Lwt.return @@ Any.dance dance);
+        (lwt @@ Any.dance dance);
     ]
-    ~title: (Lwt.return @@ Dance.name' dance)
+    ~title: (lwt @@ Dance.name' dance)
     ~subtitles: [
       (
         with_span_placeholder @@
           let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
           let%lwt by =
             match%lwt Dance.devisers' dance with
-            | [] -> Lwt.return_nil
-            | devisers -> Lwt.return [txt " by "; Formatters.Person.names' ~links: true devisers]
+            | [] -> lwt_nil
+            | devisers -> lwt [txt " by "; Formatters.Person.names' ~links: true devisers]
           in
-          Lwt.return (kind @ by)
+          lwt (kind @ by)
       );
     ]
     [
@@ -48,7 +48,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (DanceDownloadDialog.create_and_open slug)); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> DanceDownloadDialog.create_and_open slug); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -87,13 +87,11 @@ let create ?context slug =
             (
               S.from' (Tables.placeholder ()) @@
                 let%lwt tunes =
-                  Lwt.map snd @@
-                  Madge_client.call_exn
-                    Endpoints.Api.(route @@ Tune Search)
-                    Slice.everything @@
-                  Filter.Tune.existsDance' @@ Filter.Dance.is' dance
+                  snd
+                  <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) Slice.everything @@
+                    Filter.Tune.existsDance' @@ Filter.Dance.is' dance
                 in
-                Lwt.return
+                lwt
                   [
                     if tunes = [] then
                       txt

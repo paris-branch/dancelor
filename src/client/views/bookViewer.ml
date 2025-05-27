@@ -66,9 +66,9 @@ let table_contents ~this_slug contents =
                 (
                   let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
                   Tables.clickable_row ~href [
-                    Lwt.return [txt "Set"];
-                    Lwt.return [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
-                    Lwt.return [txt @@ Kind.Dance.to_string @@ Set.kind' set]
+                    lwt [txt "Set"];
+                    lwt [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
+                    lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]
                   ]
                 )
               | InlineSet (set, parameters) ->
@@ -84,11 +84,11 @@ let table_contents ~this_slug contents =
                 (
                   let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
                   Tables.clickable_row ~href [
-                    Lwt.return [txt "Tune"];
-                    Lwt.return [Formatters.Version.name_and_dance' ~name_link: false version parameters];
+                    lwt [txt "Tune"];
+                    lwt [Formatters.Version.name_and_dance' ~name_link: false version parameters];
                     (
                       let%lwt tune = Version.tune' version in
-                      Lwt.return [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
+                      lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
                     );
                   ]
                 )
@@ -107,9 +107,9 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_book slug)
-        (Lwt.return @@ Any.book book);
+        (lwt @@ Any.book book);
     ]
-    ~title: (Lwt.return @@ Book.title' book)
+    ~title: (lwt @@ Book.title' book)
     ~subtitles: [
       txt (Book.subtitle' book);
     ]
@@ -118,8 +118,8 @@ let create ?context slug =
         (
           S.from' [] @@
             match%lwt Book.warnings book with
-            | [] -> Lwt.return_nil
-            | warnings -> Lwt.return [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
+            | [] -> lwt_nil
+            | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
         );
       p
         [
@@ -143,7 +143,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> Lwt.map ignore (BookDownloadDialog.create_and_open slug)); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> BookDownloadDialog.create_and_open slug); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -188,7 +188,7 @@ let create ?context slug =
           R.div (
             S.from' (Tables.placeholder ()) @@
               let%lwt contents = Book.contents' book in
-              Lwt.return [table_contents ~this_slug: slug contents]
+              lwt [table_contents ~this_slug: slug contents]
           )
         ];
     ]

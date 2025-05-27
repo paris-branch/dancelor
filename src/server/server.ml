@@ -99,7 +99,7 @@ let callback _ request body =
         fprintlf ochan "%d" pid
       )
     else
-      Lwt.return_unit
+      lwt_unit
 
   let populate_caches () =
     Controller.Version.Svg.populate_cache ();%lwt

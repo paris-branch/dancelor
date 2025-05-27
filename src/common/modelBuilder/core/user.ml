@@ -15,8 +15,8 @@ let make ~display_name ~person ?password ?password_reset_token ?remember_me_toke
   make ~display_name ~person ~password ~password_reset_token ?remember_me_tokens ()
 
 let update ?display_name ?person ?password ?password_reset_token ?remember_me_tokens user =
-  let%lwt person = Option.value person ~default: Lwt.return user.person in
-  Lwt.return {
+  let%lwt person = Option.value person ~default: lwt user.person in
+  lwt {
     display_name = Option.value display_name ~default: Fun.id user.display_name;
     person;
     password = Option.value password ~default: Fun.id user.password;

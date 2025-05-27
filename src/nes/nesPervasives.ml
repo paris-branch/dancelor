@@ -89,3 +89,26 @@ let uid () =
     "%Lx%Lx"
     (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
     (Random.int64_in_range ~min: Int64.min_int ~max: Int64.max_int)
+
+(* We really use the following all the time. *)
+
+let flip = Fun.flip
+let const = Fun.const
+let const2 = NesFun.const2
+
+let ok = Result.ok
+let error = Result.error
+let some = Option.some
+
+let lwt = Lwt.return
+let lwt_unit = Lwt.return_unit
+let lwt_none = Lwt.return_none
+let lwt_some = Lwt.return_some
+let lwt_ok = Lwt.return_ok
+let lwt_error = Lwt.return_error
+let lwt_nil = Lwt.return_nil
+let lwt_empty = Lwt.return ""
+
+let (<$>) = Lwt.map
+let (>>=) = Lwt.bind
+let (=<<) f x = Lwt.bind x f

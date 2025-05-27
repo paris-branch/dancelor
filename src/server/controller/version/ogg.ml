@@ -15,7 +15,7 @@ let render version version_parameters rendering_parameters =
   let%lwt (fname_ly, fname_ogg) =
     let slug = Entry.slug version in
     let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
-    Lwt.return (fname ^ ".ly", fname ^ ".ogg")
+    lwt (fname ^ ".ly", fname ^ ".ogg")
   in
   let path = Filename.concat !Config.cache "version" in
   Ly.prepare_file ~fname: (Filename.concat path fname_ly) version_parameters version;%lwt
@@ -24,7 +24,7 @@ let render version version_parameters rendering_parameters =
     ~exec_path: path
     ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
     fname_ly;%lwt
-  Lwt.return (Filename.concat path fname_ogg)
+  lwt (Filename.concat path fname_ogg)
 
 let get env version version_parameters rendering_parameters =
   Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp' version);

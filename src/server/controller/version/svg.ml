@@ -16,7 +16,7 @@ let render version version_parameters rendering_parameters =
   let%lwt (fname_ly, fname_svg) =
     let slug = Entry.slug version in
     let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
-    Lwt.return (fname ^ ".ly", fname ^ ".svg")
+    lwt (fname ^ ".ly", fname ^ ".svg")
   in
   Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
   Log.debug (fun m -> m "SVG file name: %s" fname_svg);
@@ -30,7 +30,7 @@ let render version version_parameters rendering_parameters =
     ~stylesheet: "/fonts.css"
     fname_ly;%lwt
   Log.debug (fun m -> m "done!");
-  Lwt.return (Filename.concat path fname_svg)
+  lwt (Filename.concat path fname_svg)
 
 let get env version version_parameters rendering_parameters =
   Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp' version);

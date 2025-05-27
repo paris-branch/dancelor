@@ -2,16 +2,16 @@ open Nes
 open Common
 
 let get env slug =
-  Lwt.bind_return
-    (Model.Tune.get slug)
-    (Permission.assert_can_get env)
+  let%lwt tune = Model.Tune.get slug in
+  Permission.assert_can_get env tune;%lwt
+  lwt tune
 
 let create env tune =
   Permission.assert_can_create env;%lwt
   Database.Tune.create tune
 
 let update env slug tune =
-  Lwt.bind (get env slug) (Permission.assert_can_update env);%lwt
+  Permission.assert_can_update env =<< get env slug;%lwt
   Database.Tune.update slug tune
 
 include Search.Build(struct
@@ -19,15 +19,14 @@ include Search.Build(struct
   type filter = Filter.Tune.t
 
   let get_all env =
-    Lwt.map
-      (List.filter (Permission.can_get env))
-      (Database.Tune.get_all ())
+    List.filter (Permission.can_get env)
+    <$> Database.Tune.get_all ()
 
   let filter_accepts = Filter.Tune.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (Lwt.return % Model.Tune.name') String.Sensible.compare;
-    increasing (Lwt.return % Model.Tune.name') String.compare_lengths;
+    Lwt_list.[increasing (lwt % Model.Tune.name') String.Sensible.compare;
+    increasing (lwt % Model.Tune.name') String.compare_lengths;
     ]
 end)
 

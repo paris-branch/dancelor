@@ -15,11 +15,11 @@ module Build (Getters : Getters.S) = struct
     | _ -> false
 
   let name = function
-    | Source p -> Lwt.return @@ Core.Source.name' p
-    | Person p -> Lwt.return @@ Core.Person.name' p
-    | Dance d -> Lwt.return @@ Core.Dance.name' d
-    | Book b -> Lwt.return @@ Core.Book.title' b
-    | Set s -> Lwt.return @@ Core.Set.name' s
-    | Tune t -> Lwt.return @@ Core.Tune.name' t
-    | Version v -> Lwt.map Core.Tune.name' @@ Getters.get_tune @@ Core.Version.tune @@ Entry.value v
+    | Source p -> lwt @@ Core.Source.name' p
+    | Person p -> lwt @@ Core.Person.name' p
+    | Dance d -> lwt @@ Core.Dance.name' d
+    | Book b -> lwt @@ Core.Book.title' b
+    | Set s -> lwt @@ Core.Set.name' s
+    | Tune t -> lwt @@ Core.Tune.name' t
+    | Version v -> Core.Tune.name' <$> Getters.get_tune @@ Core.Version.tune @@ Entry.value v
 end

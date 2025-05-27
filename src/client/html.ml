@@ -8,7 +8,7 @@ open Nes
 module S = struct
   include Lwt_react.S
 
-  let all (ss : 'a t list) : 'a list t = merge (Fun.flip List.cons) [] (List.rev ss)
+  let all (ss : 'a t list) : 'a list t = merge (flip List.cons) [] (List.rev ss)
 
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves. This is similar to {!from} except it does
@@ -30,7 +30,7 @@ module S = struct
           Lwt.bind promise @@ fun value ->
           send_result value;
           stop result;
-          Lwt.return_unit
+          lwt_unit
         );
       result
 
@@ -47,7 +47,7 @@ module S = struct
     switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
 
   let delayed_setter delay set_immediately =
-    let (setter, set_setter) = create Lwt.return_unit in
+    let (setter, set_setter) = create lwt_unit in
     fun x ->
       (* try cancelling the current search text setter *)
       Lwt.cancel (value setter);
@@ -55,7 +55,7 @@ module S = struct
       let new_setter =
         Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
         set_immediately x;
-        Lwt.return_unit
+        lwt_unit
       in
       (* register it in the signal *)
       set_setter new_setter;

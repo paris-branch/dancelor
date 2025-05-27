@@ -23,7 +23,7 @@ module Text = struct
   let value state = S.value @@ signal state
 
   let case_errored ~no ~yes state =
-    Fun.flip S.map (signal state) @@ function
+    flip S.map (signal state) @@ function
       | Error msg -> yes msg
       | _ -> no
 
@@ -40,7 +40,7 @@ module Text = struct
             a_input_type (if password then `Password else `Text);
             a_placeholder placeholder;
             R.a_value state.raw_signal;
-            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (Fun.const ["form-control"; "is-invalid"]) state);
+            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) state);
             a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
@@ -53,7 +53,7 @@ module Text = struct
             );
           ];
         R.div
-          ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (Fun.const ["invalid-feedback"]) state)]
+          ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) state)]
           (
             case_errored ~no: [txt " "] ~yes: (List.singleton % txt) state
           );
@@ -69,7 +69,7 @@ module Text = struct
           ~a: [
             a_rows 15;
             a_placeholder placeholder;
-            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (Fun.const ["form-control"; "is-invalid"]) state);
+            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) state);
             a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
@@ -82,7 +82,7 @@ module Text = struct
             );
           ];
         R.div
-          ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (Fun.const ["invalid-feedback"]) state)]
+          ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) state)]
           (
             case_errored ~no: [txt " "] ~yes: (List.singleton % txt) state
           );

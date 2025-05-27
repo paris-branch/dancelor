@@ -99,16 +99,16 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Log.info (fun m -> m "Loading table: %s" _key);
     let load entry =
       Log.debug (fun m -> m "Loading %s %s" _key entry);
-      Lwt.bind (Storage.read_entry_yaml Model._key entry "meta.yaml") @@ fun json ->
+      Storage.read_entry_yaml Model._key entry "meta.yaml" >>= fun json ->
       let json = ref json in
       Lwt_list.iter_s
         (fun (field, filename) ->
           let%lwt value = Storage.read_entry_file Model._key entry filename in
           json := Json.add_field field (`String value) !json;
-          Lwt.return_unit
+          lwt_unit
         )
         Model.separate_fields;%lwt
-      Lwt.return @@
+      lwt @@
         match Entry.of_yojson' (Slug.unsafe_of_string entry) Model.of_yojson !json with
         | Ok model ->
           Hashtbl.add table (Entry.slug model) (Stats.empty (), model);
@@ -120,21 +120,21 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let%lwt entries = Storage.list_entries Model._key in
     Lwt_list.iter_s load entries;%lwt
     Log.info (fun m -> m "Loaded table: %s" _key);
-    Lwt.return_unit
+    lwt_unit
 
   let get_opt slug =
     match Hashtbl.find_opt table slug with
     | Some (stats, model) ->
       Stats.add_access stats;
-      Lwt.return_some model
+      lwt_some model
     | None ->
-      Lwt.return_none
+      lwt_none
 
   let list_dependency_problems_for slug status privacy = function
     | Boxed (dep_slug, (module Dep_table)) ->
       match%lwt Dep_table.get_opt dep_slug with
       | None ->
-        Lwt.return [
+        lwt [
           Error.dependency_does_not_exist
             ~source: (_key, Slug.to_string slug)
             ~dependency: (Dep_table._key, Slug.to_string dep_slug)
@@ -143,7 +143,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
         let dep_meta = Entry.meta dep_entry in
         let dep_status = Entry.status dep_meta in
         let dep_privacy = Entry.privacy dep_meta in
-        Lwt.return @@
+        lwt @@
         (
           if Status.can_depend status ~on: dep_status then []
           else
@@ -178,7 +178,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
           new_problems
           |> List.flatten
           |> (fun new_problems -> new_problems @ problems)
-          |> Lwt.return
+          |> lwt
         )
         []
 
@@ -190,13 +190,13 @@ module Make (Model : Model) : S with type value = Model.t = struct
             Lwt.async (fun () ->
               let slug = Entry.slug model in
               Log.warn (fun m -> m "Without access: %s / %a" Model._key Slug.pp' slug);
-              Lwt.return ()
+              lwt_unit
             )
         )
 
   let get slug =
     match%lwt get_opt slug with
-    | Some model -> Lwt.return model
+    | Some model -> lwt model
     | None -> Lwt.fail Error.(Exn (EntityDoesNotExist (Model._key, Slug.to_string slug)))
 
   let get_all () =
@@ -207,7 +207,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
           model
         )
     |> List.of_seq
-    |> Lwt.return
+    |> lwt
 
   let create_with_slug slug model =
     assert (not @@ Hashtbl.mem table slug);
@@ -229,7 +229,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       (Slug.to_string slug);%lwt
     Hashtbl.add table slug (Stats.empty (), model);
     (* FIXME: not add and not Stats.empty when editing. *)
-    Lwt.return model
+    lwt model
 
   let uniq_slug ~hint : 'any Slug.t =
     let slug = Slug.from_string hint in
@@ -271,7 +271,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       (Slug.to_string slug);%lwt
     (* FIXME: Make more robust and maybe update stats*)
     Hashtbl.replace table slug (fst (Hashtbl.find table slug), model);
-    Lwt.return model
+    lwt model
 
   let delete slug : unit Lwt.t =
     Storage.delete_entry Model._key (Slug.to_string slug);%lwt
@@ -280,5 +280,5 @@ module Make (Model : Model) : S with type value = Model.t = struct
       Model._key
       (Slug.to_string slug);%lwt
     Hashtbl.remove table slug;
-    Lwt.return_unit
+    lwt_unit
 end

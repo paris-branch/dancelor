@@ -9,7 +9,7 @@ module Build (Getters : Getters.S) = struct
   let update ?display_name ?person ?password ?password_reset_token ?remember_me_tokens user =
     update
       ?display_name
-      ?person: (Option.map (fun person slug -> Lwt.bind (Getters.get_person slug) (Lwt.map Entry.slug % person)) person)
+      ?person: (Option.map (fun person slug -> Lwt.map Entry.slug % person =<< Getters.get_person slug) person)
       ?password
       ?password_reset_token
       ?remember_me_tokens

@@ -70,12 +70,12 @@ let restrict_formula (text : string) : restricted_formula option =
 (** Takes a [~s]ignal to elements and a [~f]unction to map on those and return a
     signal to a filter representing those elements. *)
 let choices_formula ~s ~f =
-  Fun.flip S.map s @@ function [] -> Formula.true_ | cs -> Formula.or_l (List.map f cs)
+  flip S.map s @@ function [] -> Formula.true_ | cs -> Formula.or_l (List.map f cs)
 
 let type_choices filter =
   let checked =
     match filter with
-    | None -> Fun.const false
+    | None -> const false
     | Some filter ->
       fun type_ ->
         match (type_, filter) with
@@ -194,7 +194,7 @@ let tune_bundled_choices ~kind_choices _filter =
 let major_keys =
   let open Music in
   List.map
-    (Fun.flip make_key Major)
+    (flip make_key Major)
     [
       make_pitch C Natural 0;
       make_pitch G Natural 0;
@@ -235,7 +235,7 @@ let major_key_choices filter =
 let minor_keys =
   let open Music in
   List.map
-    (Fun.flip make_key Minor)
+    (flip make_key Minor)
     [
       make_pitch A Natural 0;
       make_pitch E Natural 0;
@@ -319,7 +319,7 @@ let open_ text raws filter =
         [
           (
             (* [type:version] if any type has been selected *)
-            Fun.flip S.map (Choices.signal type_choices) @@ function
+            flip S.map (Choices.signal type_choices) @@ function
               | None -> Formula.true_
               | Some type_ -> Filter.Any.type_' type_
           );
@@ -343,7 +343,7 @@ let open_ text raws filter =
   in
   Page.open_dialog' @@ fun return ->
   Page.make'
-    ~title: (Lwt.return "Complex filters")
+    ~title: (lwt "Complex filters")
     [div
       ~a: [a_class ["d-flex"; "justify-content-center"]]
       [
@@ -353,7 +353,7 @@ let open_ text raws filter =
     R.div
       ~a: [a_class ["d-flex"; "justify-content-center"]]
       (
-        Fun.flip S.map (Choices.signal type_choices) @@ function
+        flip S.map (Choices.signal type_choices) @@ function
           | None -> []
           | Some Source -> source_html
           | Some Person -> person_html
@@ -365,21 +365,21 @@ let open_ text raws filter =
       );
     ]
     ~buttons: [
-      Button.cancel ~onclick: (fun () -> return text; Lwt.return_unit) ();
+      Button.cancel ~onclick: (fun () -> return text; lwt_unit) ();
       Button.clear ~onclick: (fun () -> return "") ();
       Button.make
         ~label: "Apply"
         ~label_processing: "Applying..."
         ~icon: "check-circle"
         ~classes: ["btn-primary"]
-        ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); Lwt.return_unit)
+        ~onclick: (fun () -> return (Filter.Any.to_pretty_string @@ S.value new_filter); lwt_unit)
         ()
     ]
 
 let open_error () =
   Page.open_dialog' @@ fun return ->
   Page.make'
-    ~title: (Lwt.return "Complex filters")
+    ~title: (lwt "Complex filters")
     [p [txt "You have nothing to learn from me anymore :') Fly, little bird, fly!"];
     p
       [
@@ -400,5 +400,5 @@ let open_error () =
 
 let open_ text =
   match restrict_formula text with
-  | None -> Lwt.map (Fun.const None) (open_error ())
+  | None -> const None <$> open_error ()
   | Some (raws, filter) -> open_ text raws filter

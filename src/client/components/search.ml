@@ -28,7 +28,7 @@ module Search = struct
       SearchBar.make
         ~search
         ~slice: (slice pagination)
-        ~on_number_of_entries: (set_number_of_entries % Option.some)
+        ~on_number_of_entries: (set_number_of_entries % some)
         ~min_characters
         ?initial_input
         ()
@@ -51,9 +51,9 @@ module Search = struct
             (
               S.from' [] @@
                 match%lwt Madge_client.call_exn Common.Endpoints.Api.(route @@ User Status) with
-                | Some _ -> Lwt.return_nil
+                | Some _ -> lwt_nil
                 | None ->
-                  Lwt.return [
+                  lwt [
                     div ~a: [a_class ["alert"; "alert-info"]; a_role ["alert"]] [
                       txt "You are not connected, and therefore are only seeing public items.";
                     ];
@@ -80,7 +80,7 @@ module Search = struct
           (* Info or alert box, eg. to inform that one needs to type. *)
           R.div
             (
-              Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+              flip S.map (SearchBar.state t.search_bar) @@ function
                 | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
                 | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
                 | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
@@ -94,7 +94,7 @@ module Search = struct
             ~a: [
               R.a_class
                 (
-                  Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+                  flip S.map (SearchBar.state t.search_bar) @@ function
                     | Results _ when show_table_headers -> ["my-4"]
                     | Results _ -> []
                     | _ -> ["d-none"]
@@ -138,7 +138,7 @@ module Search = struct
                     [
                       R.tbody
                         (
-                          Fun.flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
+                          flip S.map (S.Pair.pair (slice t.pagination) (SearchBar.state t.search_bar))
                             @@ fun (_, state) ->
                             match state with
                             | Results results ->
@@ -161,7 +161,7 @@ module Search = struct
           div
             ~a: [
               R.a_class (
-                Fun.flip S.map (SearchBar.state t.search_bar) @@ function
+                flip S.map (SearchBar.state t.search_bar) @@ function
                   | Results _ | NoResults | Errors _ -> ["d-none"]
                   | StartTyping when t.min_characters > 0 -> ["d-none"]
                   | ContinueTyping when t.min_characters > 0 -> ["d-none"]

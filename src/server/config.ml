@@ -23,7 +23,7 @@ let loglevel_of_string = function
 let loglevel_of_json_string json =
   Option.bind
     (Json.string json)
-    (Option.some % loglevel_of_string)
+    (some % loglevel_of_string)
 
 let loglevel_to_string = function
   | Logs.Error -> "error"
@@ -59,10 +59,10 @@ let check_config () =
       let%lwt ichan = Lwt_io.open_file ~mode: Lwt_io.input !github_token_file in
       let%lwt content = Lwt_io.read ichan in
       github_token := String.trim content;
-      Lwt.return_unit
+      lwt_unit
     )
   else
-    Lwt.return_unit
+    lwt_unit
 
 let load_from_file filename =
   Log.debug (fun m -> m "Reading configuration from file %s" filename);

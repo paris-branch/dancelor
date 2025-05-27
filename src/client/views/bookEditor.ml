@@ -52,7 +52,7 @@ module State = struct
         )
         contents
     in
-    Lwt.return
+    lwt
       {
         name = (Entry.value book).title;
         date = (Entry.value book).date;
@@ -82,13 +82,13 @@ module Editor = struct
   let with_or_without_local_storage ~text ~edit f =
     match (text, edit) with
     | Some text, _ ->
-      Lwt.return @@ f {RawState.empty with name = text}
+      lwt @@ f {RawState.empty with name = text}
     | _, Some slug ->
       let%lwt book = Model.Book.get slug in
-      let%lwt raw_state = Lwt.map State.to_raw_state (State.of_model book) in
-      Lwt.return @@ f raw_state
+      let%lwt raw_state = State.to_raw_state <$> State.of_model book in
+      lwt @@ f raw_state
     | _, None ->
-      Lwt.return @@
+      lwt @@
         Cutils.with_local_storage "BookEditor" (module RawState) raw_state f
 
   let create ~text ~edit : t Lwt.t =
@@ -101,16 +101,15 @@ module Editor = struct
       Input.Text.make initial_state.date @@
         Option.fold
           ~none: (Ok None)
-          ~some: (Result.map Option.some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+          ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
           Option.of_string_nonempty
     in
     let sets =
       Selector.make
         ~arity: Selector.many
         ~search: (fun slice input ->
-          let%rlwt filter = Lwt.return (Filter.Set.from_string input) in
-          Lwt.map Result.ok @@
-            Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+          let%rlwt filter = lwt (Filter.Set.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )
         ~serialise: Entry.slug
         ~unserialise: Model.Set.get
@@ -131,9 +130,9 @@ module Editor = struct
 
   let submit ~edit (editor : t) =
     match (S.value (state editor), edit) with
-    | (None, _) -> Lwt.return_none
+    | (None, _) -> lwt_none
     | (Some {name; date; sets}, slug) ->
-      Lwt.map Option.some @@
+      Lwt.map some @@
         (
           match slug with
           | None -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create)
@@ -152,7 +151,7 @@ let create ?on_save ?text ?edit () =
   MainPage.assert_can_create @@ fun () ->
   let%lwt editor = Editor.create ~text ~edit in
   Page.make'
-    ~title: (Lwt.return @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
+    ~title: (lwt @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
     [Input.Text.render
       editor.elements.name
       ~label: "Name"
@@ -176,7 +175,7 @@ let create ?on_save ?text ?edit () =
       Button.save
         ~disabled: (S.map Option.is_none (Editor.state editor))
         ~onclick: (fun () ->
-          Fun.flip Lwt.map (Editor.submit ~edit editor) @@
+          flip Lwt.map (Editor.submit ~edit editor) @@
           Option.iter @@ fun book ->
           Editor.clear editor;
           match on_save with

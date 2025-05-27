@@ -16,9 +16,8 @@ let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 let quick_search =
   Components.Search.Quick.make
     ~search: (fun slice input ->
-      let%rlwt filter = Lwt.return (Filter.Any.from_string input) in
-      Lwt.map Result.ok @@
-        Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
+      let%rlwt filter = lwt (Filter.Any.from_string input) in
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
     )
     ()
 
@@ -31,7 +30,7 @@ let open_quick_search () =
   Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
   Components.Search.Quick.render
     ~return
-    ~dialog_title: (Lwt.return "Quick search")
+    ~dialog_title: (lwt "Quick search")
     ~dialog_buttons: [
       Components.Button.make
         ~label: "Explore"
@@ -63,7 +62,7 @@ let nav_item_explore =
           ] @
             List.map
               (fun (icon, key, text) ->
-                let href = Endpoints.Page.(href Explore) @@ Option.some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                let href = Endpoints.Page.(href Explore) @@ some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
                 li
                   [
                     a
@@ -89,7 +88,7 @@ let nav_item_explore =
 
 let nav_item_create =
   if%lwt Permission.can_create () then
-    Lwt.return [
+    lwt [
       li
         ~a: [a_class ["nav-item"; "dropdown"]]
         [
@@ -128,7 +127,7 @@ let nav_item_create =
         ]
     ]
   else
-    Lwt.return_nil
+    lwt_nil
 
 let header =
   nav
@@ -212,7 +211,7 @@ let footer =
             ~icon: "bug"
             ~classes: ["btn-light"; "my-1"]
             ~onclick: (fun () ->
-              Lwt.map ignore @@ IssueReport.open_dialog @@ get_uri ()
+              ignore <$> IssueReport.open_dialog @@ get_uri ()
             )
             ()
         ];
@@ -261,7 +260,7 @@ let load page_promise =
   Dom.replaceChild Dom_html.document##.body page_content (Option.get !current_content);
   current_content := Some page_content;
   page_on_load ();
-  Lwt.return_unit
+  lwt_unit
 
 exception ReplacementSuccessful
 exception ReplacementFailed

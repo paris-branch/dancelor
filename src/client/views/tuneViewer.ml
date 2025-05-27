@@ -12,9 +12,9 @@ let create ?context slug =
       Components.ContextLinks.make_and_render
         ?context
         ~this_page: (Endpoints.Page.href_tune slug)
-        (Lwt.return @@ Any.tune tune);
+        (lwt @@ Any.tune tune);
     ]
-    ~title: (Lwt.return @@ Tune.name' tune)
+    ~title: (lwt @@ Tune.name' tune)
     ~subtitles: [
       Formatters.Tune.aka' tune;
       Formatters.Tune.description' tune;
@@ -53,7 +53,7 @@ let create ?context slug =
             ];
         ];
       Utils.quick_explorer_links'
-        (Lwt.return tune)
+        (lwt tune)
         [
           ("sets containing this tune", Filter.(Any.set' % Set.existsVersion' % Version.tuneIs'));
           ("books containing this tune", Filter.(Any.book' % Book.memTuneDeep'));
@@ -66,11 +66,11 @@ let create ?context slug =
             (
               S.from' (Tables.placeholder ()) @@
                 let%lwt versions =
-                  Lwt.map snd @@
-                  Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
-                  Filter.Version.tuneIs' tune
+                  snd
+                  <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) Slice.everything @@
+                      Filter.Version.tuneIs' tune
                 in
-                Lwt.return @@
+                lwt @@
                   if versions = [] then
                     [
                       txt "There are no versions for this tune. Maybe you want to ";
@@ -89,7 +89,7 @@ let create ?context slug =
             (
               S.from' (Tables.placeholder ()) @@
                 let%lwt dances = Tune.dances' tune in
-                Lwt.return
+                lwt
                   [
                     if dances = [] then
                       txt "There are no dances that recommend this tune."

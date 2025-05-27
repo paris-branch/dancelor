@@ -99,21 +99,18 @@ module Filter = struct
   let accepts filter kind =
     Formula.interpret filter @@ function
       | Is kind' ->
-        Lwt.return (Formula.interpret_bool (kind = kind'))
+        lwt (Formula.interpret_bool (kind = kind'))
       | Simple ->
         (
           match kind with
-          | Mul (_, Version _) -> Lwt.return Formula.interpret_true
-          | _ -> Lwt.return Formula.interpret_false
+          | Mul (_, Version _) -> lwt Formula.interpret_true
+          | _ -> lwt Formula.interpret_false
         )
       | Version vfilter ->
-        Lwt.map
-          Formula.interpret_and_l
-          (
-            Lwt_list.map_s
-              (KindVersion.Filter.accepts vfilter)
-              (version_kinds kind)
-          )
+        Formula.interpret_and_l
+        <$> Lwt_list.map_s
+            (KindVersion.Filter.accepts vfilter)
+            (version_kinds kind)
 
   let text_formula_converter =
     TextFormulaConverter.(
@@ -126,8 +123,8 @@ module Filter = struct
               raw
                 (fun string ->
                   Option.fold
-                    ~some: (Result.ok % is')
-                    ~none: (kspf Result.error "could not interpret \"%s\" as a dance kind" string)
+                    ~some: (ok % is')
+                    ~none: (kspf error "could not interpret \"%s\" as a dance kind" string)
                     (of_string_opt string)
                 );
               nullary ~name: "simple" Simple;
@@ -151,7 +148,7 @@ module Filter = struct
   let optimise =
     let lift {op} f1 f2 =
       match (f1, f2) with
-      | (Version f1, Version f2) -> Option.some @@ version (op f1 f2)
+      | (Version f1, Version f2) -> some @@ version (op f1 f2)
       | _ -> None
     in
     Formula.optimise

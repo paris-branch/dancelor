@@ -1,3 +1,4 @@
+open Nes
 open Js_of_ocaml
 open Html
 
@@ -19,7 +20,7 @@ let make_content
               ~a: [
                 R.a_class
                   (
-                    Fun.flip S.map processing @@ function
+                    flip S.map processing @@ function
                       | true -> ["spinner-border"; "spinner-border-sm"; (if label <> "" then "me-2" else "me-0")]
                       | false -> ["d-none"]
                   );
@@ -28,13 +29,13 @@ let make_content
               [];
           ];
         (
-          Fun.flip Option.map icon @@ fun icon ->
+          flip Option.map icon @@ fun icon ->
           [
             i
               ~a: [
                 R.a_class
                   (
-                    Fun.flip S.map processing @@ function
+                    flip S.map processing @@ function
                       | true -> ["d-none"]
                       | false -> ["bi"; "bi-" ^ icon; (if label <> "" then "me-2" else "me-0")]
                   )
@@ -46,13 +47,13 @@ let make_content
           [
             R.txt
               (
-                Fun.flip S.map processing @@ function
+                flip S.map processing @@ function
                   | true -> Option.value ~default: label label_processing
                   | false -> label
               );
           ];
         (
-          Fun.flip Option.map badge @@ fun badge ->
+          flip Option.map badge @@ fun badge ->
           [
             span ~a: [a_class ["badge"; "text-bg-secondary"; "ms-2"]] [txt badge];
           ]
@@ -78,7 +79,7 @@ let make
           [a_button_type `Button];
           [R.a_class @@
             let classes = "btn" :: Option.value ~default: [] classes in
-            Fun.flip S.map (S.l2 (||) disabled processing) @@ function
+            flip S.map (S.l2 (||) disabled processing) @@ function
               | true -> "disabled" :: classes
               | false -> classes];
           (
@@ -91,7 +92,7 @@ let make
                   set_processing true;
                   onclick ();%lwt
                   set_processing false;
-                  Lwt.return_unit
+                  lwt_unit
                 );
                 false
               ]
@@ -125,7 +126,7 @@ let make_a
       [R.a_class
         (
           let classes = "btn" :: Option.value ~default: [] classes in
-          Fun.flip S.map disabled @@ function
+          flip S.map disabled @@ function
             | true -> "disabled" :: classes
             | false -> classes
         );
@@ -168,7 +169,7 @@ let clear ~onclick () =
     ~onclick: (fun () ->
       if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then
         onclick ();
-      Lwt.return_unit
+      lwt_unit
     )
     ()
 
@@ -182,7 +183,7 @@ let cancel ~onclick () =
     ()
 
 let cancel' ~return () =
-  cancel ~onclick: (fun () -> return None; Lwt.return_unit) ()
+  cancel ~onclick: (fun () -> return None; lwt_unit) ()
 
 let ok ~onclick () =
   make
@@ -193,7 +194,7 @@ let ok ~onclick () =
     ()
 
 let ok' ~return () =
-  ok ~onclick: (fun () -> return (Some ()); Lwt.return_unit) ()
+  ok ~onclick: (fun () -> return (Some ()); lwt_unit) ()
 
 let download ~href () =
   make_a

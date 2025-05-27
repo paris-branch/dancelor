@@ -102,25 +102,25 @@ module Filter = struct
   let accepts filter kind =
     Formula.interpret filter @@ function
       | Is kind' ->
-        Lwt.return (Formula.interpret_bool (kind = kind'))
+        lwt (Formula.interpret_bool (kind = kind'))
       | BarsEq bars' ->
         let (bars, _) = kind in
-        Lwt.return (Formula.interpret_bool (bars = bars'))
+        lwt (Formula.interpret_bool (bars = bars'))
       | BarsNe bars' ->
         let (bars, _) = kind in
-        Lwt.return (Formula.interpret_bool (bars <> bars'))
+        lwt (Formula.interpret_bool (bars <> bars'))
       | BarsGt bars' ->
         let (bars, _) = kind in
-        Lwt.return (Formula.interpret_bool (bars > bars'))
+        lwt (Formula.interpret_bool (bars > bars'))
       | BarsGe bars' ->
         let (bars, _) = kind in
-        Lwt.return (Formula.interpret_bool (bars >= bars'))
+        lwt (Formula.interpret_bool (bars >= bars'))
       | BarsLt bars' ->
         let (bars, _) = kind in
-        Lwt.return (Formula.interpret_bool (bars < bars'))
+        lwt (Formula.interpret_bool (bars < bars'))
       | BarsLe bars' ->
         let (bars, _) = kind in
-        Lwt.return (Formula.interpret_bool (bars <= bars'))
+        lwt (Formula.interpret_bool (bars <= bars'))
       | Base bfilter ->
         let (_bars, bkind) = kind in
         KindBase.Filter.accepts bfilter bkind
@@ -135,8 +135,8 @@ module Filter = struct
               raw
                 (fun string ->
                   Option.fold
-                    ~some: (Result.ok % is')
-                    ~none: (kspf Result.error "could not interpret \"%s\" as a version kind" string)
+                    ~some: (ok % is')
+                    ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
                     (of_string_opt string)
                 );
               unary_int ~name: "bars-eq" (barsEq, unBarsEq);
@@ -165,7 +165,7 @@ module Filter = struct
   let optimise =
     let lift {op} f1 f2 =
       match (f1, f2) with
-      | (Base f1, Base f2) -> Option.some @@ base (op f1 f2)
+      | (Base f1, Base f2) -> some @@ base (op f1 f2)
       | _ -> None
     in
     Formula.optimise

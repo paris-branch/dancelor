@@ -62,7 +62,7 @@ let make_dance_result' ?classes ?action ?(prefix = []) ?(suffix = []) dance =
       prefix @
       [ResultRow.cell [Formatters.Dance.name_and_disambiguation' ~name_link: false dance];
       ResultRow.cell [txt (Kind.Dance.to_string @@ Dance.kind' dance)];
-      ResultRow.lcell (Lwt.map (List.singleton % Formatters.Person.names' ~short: true) (Dance.devisers' dance));
+      ResultRow.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Dance.devisers' dance));
       ] @
       suffix
     )
@@ -115,7 +115,7 @@ let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
       prefix @
       [ResultRow.cell [txt @@ Set.name' set];
       ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
-      ResultRow.lcell (Lwt.map (List.singleton % Formatters.Person.names' ~short: true) (Set.conceptors' set));
+      ResultRow.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set));
       ] @
       suffix
     )

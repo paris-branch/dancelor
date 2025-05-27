@@ -16,7 +16,7 @@ let text_formula_converter =
   TextFormulaConverter.(
     make
       [
-        raw (Result.ok % nameMatches');
+        raw (ok % nameMatches');
         unary_string ~name: "name" (name, unName);
         unary_string ~name: "name-matches" (nameMatches, unNameMatches);
         unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);

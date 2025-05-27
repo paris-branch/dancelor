@@ -45,7 +45,7 @@ let to_strings =
 
 let from_uri uri =
   try
-    Option.some @@
+    some @@
       List.map
         (fun (k, vs) ->
           (

@@ -26,14 +26,14 @@ let make ~arity ~search ~serialise ~unserialise initial_value =
   Lwt.async (fun () ->
     let%lwt initial_value = Lwt_list.map_p unserialise initial_value in
     set initial_value;
-    Lwt.return_unit
+    lwt_unit
   );
   {signal; set; quick_search; serialise; arity}
 
 let raw_signal s = S.map (List.map s.serialise) s.signal
 
 let signal (s : ('arity, 'model) t) : ('model Entry.t list, string) Result.t S.t =
-  Fun.flip S.map s.signal @@ function
+  flip S.map s.signal @@ function
     | [x] -> Ok [x]
     | [] when s.arity = One -> Error "You must select an element."
     | _ when s.arity = One -> Error "You must select exactly one element."
@@ -45,10 +45,10 @@ let signal_one (s : (one, 'model) t) : ('model Entry.t, string) Result.t S.t =
 
 let signal_many (s : (many, 'model) t) : ('model Entry.t list, 'bottom) Result.t S.t =
   assert (s.arity = Many);
-  S.map (Result.ok % Result.get_ok) (signal s)
+  S.map (ok % Result.get_ok) (signal s)
 
 let case_errored ~no ~yes state =
-  Fun.flip S.map (signal state) @@ function
+  flip S.map (signal state) @@ function
     | Error msg -> yes msg
     | _ -> no
 
@@ -64,7 +64,7 @@ let render
       Utils.ResultRow.t
     )
     ?(make_more_results =
-    (Fun.const []: 'result ->
+    (const []: 'result ->
       Utils.ResultRow.t list))
     ~field_name
     ~model_name
@@ -84,7 +84,7 @@ let render
         [
           R.tbody
             (
-              Fun.flip S.map s.signal @@ fun elements ->
+              flip S.map s.signal @@ fun elements ->
               List.map Utils.ResultRow.to_clickable_row @@
               List.concat @@
               List.mapi
@@ -123,7 +123,7 @@ let render
         ~a: [
           R.a_class
             (
-              Fun.flip S.map s.signal @@ function
+              flip S.map s.signal @@ function
                 | [_] when s.arity = One -> ["d-none"]
                 | _ -> []
             )
@@ -146,7 +146,7 @@ let render
                       Search.Quick.render
                         s.quick_search
                         ~return: quick_search_return
-                        ~dialog_title: (Lwt.return label)
+                        ~dialog_title: (lwt label)
                         ~make_result: (fun ~context: _ result ->
                           make_result
                             ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
@@ -159,24 +159,24 @@ let render
                             ~icon: "plus-circle"
                             ~classes: ["btn-primary"]
                             ~onclick: (fun () ->
-                              Lwt.map quick_search_return @@
-                              Page.open_dialog' @@ fun sub_dialog_return ->
-                              create_dialog_content
-                                ~on_save: sub_dialog_return
-                                (S.value (Search.Quick.text s.quick_search))
+                              quick_search_return
+                              <$> Page.open_dialog' @@ fun sub_dialog_return ->
+                                create_dialog_content
+                                  ~on_save: sub_dialog_return
+                                  (S.value (Search.Quick.text s.quick_search))
                             )
                             ();
                         ]
                     in
-                    Fun.flip Option.iter quick_search_result (fun r -> s.set (S.value s.signal @ [r]));
-                    Lwt.return_unit
+                    flip Option.iter quick_search_result (fun r -> s.set (S.value s.signal @ [r]));
+                    lwt_unit
                   )
                   ()
               ];
           )
         ];
       R.div
-        ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (Fun.const ["d-block"; "invalid-feedback"]) s)]
+        ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (const ["d-block"; "invalid-feedback"]) s)]
         (
           case_errored ~no: [txt " "] ~yes: (List.singleton % txt) s
         );

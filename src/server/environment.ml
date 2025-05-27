@@ -67,47 +67,47 @@ let set_user env user =
 (** Helper to update the user in the database. *)
 let database_update_user user f =
   let%lwt new_user = f @@ Entry.value user in
-  Lwt.map ignore @@ Database.User.update (Entry.slug user) new_user
+  ignore <$> Database.User.update (Entry.slug user) new_user
 
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
    transient environment. *)
 let process_remember_me_cookie env remember_me_cookie =
   match String.split_3_on_char ':' remember_me_cookie with
-  | None -> Lwt.return_unit
+  | None -> lwt_unit
   | Some (username, key, token) ->
     Log.info (fun m -> m "Attempt to get remembered with username `%s`." username);
     match Slug.check_string username with
     | None ->
       Log.info (fun m -> m "Rejecting because username is not even a slug.");
-      Lwt.return_unit
+      lwt_unit
     | Some username ->
       match%lwt Database.User.get_opt username with
       | None ->
         Log.info (fun m -> m "Rejecting because of wrong username.");
-        Lwt.return_unit
+        lwt_unit
       | Some user ->
         let tokens = Model.User.remember_me_tokens' user in
         match String.Map.find_opt key tokens with
         | None ->
           Log.info (fun m -> m "Rejecting because user does not have the “remember me” key `%s`." key);
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
-          Lwt.return_unit
+          lwt_unit
         | Some (_, token_max_date) when Datetime.in_the_past token_max_date ->
           Log.info (fun m -> m "Rejecting because token is too old.");
           database_update_user user (Model.User.update ~remember_me_tokens: (String.Map.remove key));%lwt
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
-          Lwt.return_unit
+          lwt_unit
         | Some (hashed_token, _) when not @@ HashedSecret.is ~clear: token hashed_token ->
           Log.info (fun m -> m "Rejecting because tokens do not match.");
           (* someone got their hand on a “remember me” key - invalidate all known tokens *)
-          database_update_user user (Model.User.update ~remember_me_tokens: (Fun.const String.Map.empty));%lwt
+          database_update_user user (Model.User.update ~remember_me_tokens: (const String.Map.empty));%lwt
           register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
-          Lwt.return_unit
+          lwt_unit
         | Some _ ->
           set_user env user;
           Log.info (fun m -> m "Accepted sign in for %a." pp env);
-          Lwt.return_unit
+          lwt_unit
 
 let from_request request =
   Log.debug (fun m -> m "In Environment.from_request...");
@@ -137,10 +137,10 @@ let from_request request =
     | None, Some remember_me_cookie ->
       Log.debug (fun m -> m "Processing “remember me” cookie.");
       process_remember_me_cookie env remember_me_cookie
-    | _ -> Lwt.return_unit
+    | _ -> lwt_unit
   );%lwt
   Log.debug (fun m -> m "Environment.from_request done; user is: %a." pp env);
-  Lwt.return env
+  lwt env
 
 let update_reponse_headers response f =
   let open Cohttp in
@@ -163,7 +163,7 @@ let to_response env (response, body) = (
 
 let with_ request f =
   let%lwt env = from_request request in
-  Lwt.map (to_response env) (f env)
+  to_response env <$> f env
 
 let sign_in env user ~remember_me =
   set_user env user;
@@ -189,13 +189,13 @@ let sign_in env user ~remember_me =
           (Entry.slug_as_string user ^ ":" ^ key ^ ":" ^ token)
           ~max_age: remember_me_token_max_age
       );
-    Lwt.return_unit
+    lwt_unit
   )
 
 let sign_out env user =
   let session = {!(env.session) with user = None} in
   Hashtbl.replace sessions env.session_id session;
   env.session := session;
-  database_update_user user (Model.User.update ~remember_me_tokens: (Fun.const String.Map.empty));%lwt
+  database_update_user user (Model.User.update ~remember_me_tokens: (const String.Map.empty));%lwt
   register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
-  Lwt.return_unit
+  lwt_unit

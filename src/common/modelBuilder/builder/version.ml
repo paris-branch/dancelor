@@ -23,10 +23,10 @@ module Build (Getters : Getters.S) = struct
   let arrangers' = arrangers % Entry.value
 
   let kind version =
-    Fun.flip Lwt.map (tune version) @@ fun tune ->
+    flip Lwt.map (tune version) @@ fun tune ->
     (bars version, Core.Tune.kind' tune)
   let kind' = kind % Entry.value
 
-  let name version = Lwt.map Core.Tune.name' (tune version)
+  let name version = Core.Tune.name' <$> tune version
   let name' = name % Entry.value
 end

@@ -18,7 +18,7 @@ let assert_can_get env entry =
   if can_get env entry then
     (
       Log.debug (fun m -> m "Granting get access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
-      Lwt.return_unit
+      lwt_unit
     )
   else
     (
@@ -35,7 +35,7 @@ let assert_can_create env =
   if can_create env then
     (
       Log.debug (fun m -> m "Granting create access to %a." Environment.pp env);
-      Lwt.return_unit
+      lwt_unit
     )
   else
     (
@@ -52,7 +52,7 @@ let assert_can_update env entry =
   if can_update env entry then
     (
       Log.debug (fun m -> m "Granting update access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
-      Lwt.return_unit
+      lwt_unit
     )
   else
     (
@@ -69,7 +69,7 @@ let assert_can_delete env entry =
   if can_delete env entry then
     (
       Log.debug (fun m -> m "Granting delete access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
-      Lwt.return_unit
+      lwt_unit
     )
   else
     (
@@ -80,13 +80,13 @@ let assert_can_delete env entry =
 (** {2 Administrating} *)
 
 let can_admin =
-  fold_user ~none: (Fun.const false) ~some: Model.User.admin
+  fold_user ~none: (const false) ~some: Model.User.admin
 
 let assert_can_admin env =
   if can_admin env then
     (
       Log.debug (fun m -> m "Granting admin access to %a." Environment.pp env);
-      Lwt.return_unit
+      lwt_unit
     )
   else
     (

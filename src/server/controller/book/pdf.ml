@@ -15,13 +15,13 @@ let render book book_parameters rendering_parameters =
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
       let name = Model.Book.title book in
-      let%lwt composers = Lwt.map (List.map Model.Person.name') @@ Model.Book.authors book in
-      Lwt.return @@
+      let%lwt composers = List.map Model.Person.name' <$> Model.Book.authors book in
+      lwt @@
         RenderingParameters.update_pdf_metadata
           ~title: (String.replace_empty ~by: name)
           ~composers: (List.replace_nil ~by: composers)
     in
-    Lwt.return @@
+    lwt @@
       RenderingParameters.update ~pdf_metadata rendering_parameters
   in
   let%lwt lilypond = Ly.render book book_parameters rendering_parameters in
@@ -40,7 +40,7 @@ let render book book_parameters rendering_parameters =
     ~fontconfig_file: (Filename.concat !Config.share "fonts.conf")
     fname_ly;%lwt
   let path_pdf = Filename.concat path fname_pdf in
-  Lwt.return path_pdf
+  lwt path_pdf
 
 let get env book book_parameters rendering_parameters =
   let%lwt book = Model.Book.get book in

@@ -390,7 +390,7 @@ let concat ?last sep strings =
   String.concat "" (NesList.intersperse ?last sep strings)
 
 let split_2_on_char sep string =
-  Option.map (Fun.flip split' string) (index_opt string sep)
+  Option.map (flip split' string) (index_opt string sep)
 
 let%test _ = split_2_on_char '=' "abc=def" = Some ("abc", "def")
 let%test _ = split_2_on_char '=' "abcdef" = None

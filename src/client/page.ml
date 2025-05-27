@@ -35,9 +35,9 @@ let make
   {parent_title; before_title; title; subtitles; content; buttons; on_load}
 
 let make' ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content =
-  (* NOTE: In general, [Lwt.return] for no reason should be avoided. However, this
+  (* NOTE: In general, [lwt] for no reason should be avoided. However, this
      particular function is only ever used in an [Lwt] context. *)
-  Lwt.return @@ make ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content
+  lwt @@ make ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content
 
 let render p = (
   p.on_load,
@@ -50,7 +50,7 @@ let render p = (
           h2 ~a: [a_class ["text-center"]] [
             with_span_placeholder @@
               let%lwt title = p.title in
-              Lwt.return [txt title]
+              lwt [txt title]
           ];
           div (List.map (h5 ~a: [a_class ["text-center"]] % List.singleton) p.subtitles);
           div ~a: [a_class ["mt-4"]] p.content;
@@ -99,7 +99,7 @@ let open_dialog
                     h4 ~a: [a_class ["modal-title"]] [
                       with_span_placeholder @@
                         let%lwt title = page.title in
-                        Lwt.return [txt title]
+                        lwt [txt title]
                     ];
                     button
                       ~a: [
@@ -143,4 +143,4 @@ let open_dialog
   promise
 
 let open_dialog' make_page =
-  open_dialog (fun return -> make_page (return % Option.some))
+  open_dialog (fun return -> make_page (return % some))

@@ -8,7 +8,7 @@ let get_all () = get_all ()
 
 let get_books_that_contain (slug : ModelBuilder.Core.Set.t Slug.t) : ModelBuilder.Core.Book.t Entry.t list Lwt.t =
   let%lwt all = Tables.Book.get_all () in
-  Lwt.return (List.filter (ModelBuilder.Core.Book.contains_set slug) all)
+  lwt (List.filter (ModelBuilder.Core.Book.contains_set slug) all)
 
 exception UsedInBook of ModelBuilder.Core.Book.t Slug.t
 let usedInBook book = UsedInBook book
