@@ -5,12 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_dance
 
-  let make ~name ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date () =
-    let name = String.remove_duplicates ~char: ' ' name in
-    let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
-    let devisers = Option.map (List.map Entry.slug) devisers in
-    make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
-
   let devisers = Lwt_list.map_p Getters.get_person % devisers
   let devisers' = devisers % Entry.value
 

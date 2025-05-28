@@ -8,6 +8,17 @@ module Page = struct
   [@@deriving eq, show {with_path = false}, yojson]
 end
 
+type page =
+  | Version of Version.t Entry.t * VersionParameters.t
+  | Set of Set.t Entry.t * SetParameters.t
+  | InlineSet of Set.t * SetParameters.t
+[@@deriving show {with_path = false}]
+
+let page_to_page_core = function
+  | (Version (version, params): page) -> Page.Version (Entry.slug version, params)
+  | (Set (set, params): page) -> Page.Set (Entry.slug set, params)
+  | (InlineSet (set, params): page) -> Page.InlineSet (set, params)
+
 let _key = "book"
 
 type t = {
@@ -23,29 +34,13 @@ type t = {
 }
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
-let make
-    ~title
-    ?subtitle
-    ?short_title
-    ?authors
-    ?date
-    ?(contents = [])
-    ?source
-    ?remark
-    ?scddb_id
-    ()
-  =
-  make
-    ~title
-    ?subtitle
-    ?short_title
-    ?authors
-    ~date
-    ~contents
-    ?source
-    ?remark
-    ~scddb_id
-    ()
+let make ~title ?subtitle ?short_title ?authors ?date ?(contents = []) ?source ?remark ?scddb_id () =
+  let title = String.remove_duplicates ~char: ' ' title in
+  let subtitle = Option.map (String.remove_duplicates ~char: ' ') subtitle in
+  let short_title = Option.map (String.remove_duplicates ~char: ' ') short_title in
+  let authors = Option.map (List.map Entry.slug) authors in
+  let contents = List.map page_to_page_core contents in
+  make ~title ?subtitle ?short_title ?authors ~date ~contents ?source ?remark ~scddb_id ()
 
 let title' = title % Entry.value
 let subtitle' = subtitle % Entry.value
@@ -76,9 +71,3 @@ type warning =
 
 type warnings = warning list
 [@@deriving show {with_path = false}, yojson]
-
-type page =
-  | Version of Version.t Entry.t * VersionParameters.t
-  | Set of Set.t Entry.t * SetParameters.t
-  | InlineSet of Set.t * SetParameters.t
-[@@deriving show {with_path = false}]

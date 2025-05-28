@@ -3,9 +3,6 @@ open Nes
 module Build (Getters : Getters.S) = struct
   include Core.User
 
-  let make ~display_name ~person ?password ?password_reset_token ?remember_me_tokens () =
-    make ~display_name ~person: (Entry.slug person) ?password ?password_reset_token ?remember_me_tokens ()
-
   let update ?display_name ?person ?password ?password_reset_token ?remember_me_tokens user =
     update
       ?display_name

@@ -14,6 +14,10 @@ type t = {
 let make ~display_name ~person ?password ?password_reset_token ?remember_me_tokens () =
   make ~display_name ~person ~password ~password_reset_token ?remember_me_tokens ()
 
+let make ~display_name ~person ?password ?password_reset_token ?remember_me_tokens () =
+  let display_name = String.remove_duplicates ~char: ' ' display_name in
+  make ~display_name ~person: (Entry.slug person) ?password ?password_reset_token ?remember_me_tokens ()
+
 let update ?display_name ?person ?password ?password_reset_token ?remember_me_tokens user =
   let%lwt person = Option.value person ~default: lwt user.person in
   lwt {

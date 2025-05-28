@@ -383,6 +383,9 @@ let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
   done;
   trim ~char_equal ~chars: [char] (Buffer.contents output)
 
+let%test _ = remove_duplicates "  bonjour   toi     comment ça   va ?  " = "bonjour toi comment ça va ?"
+let%test _ = remove_duplicates "bonjour toi comment ça va ?" = "bonjour toi comment ça va ?"
+
 (** Richer version of [concat] that can also handle differently the last
     separator. For instance, [concat ~last:" & " ", " \["a"; "b"; "c"\] = "a, b
     & c"]. *)

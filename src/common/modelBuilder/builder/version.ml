@@ -5,14 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_version
 
-  let make ~tune ~bars ~key ~structure ?sources ?arrangers ?remark ?disambiguation ~content () =
-    let structure = String.remove_duplicates ~char: ' ' structure in
-    let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
-    let tune = Entry.slug tune in
-    let sources = Option.map (List.map Entry.slug) sources in
-    let arrangers = Option.map (List.map Entry.slug) arrangers in
-    make ~tune ~bars ~key ~structure ?sources ?arrangers ?remark ?disambiguation ~content ()
-
   let tune = Getters.get_tune % tune
   let tune' = tune % Entry.value
 

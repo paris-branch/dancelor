@@ -14,6 +14,13 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
+let make ~name ?conceptors ~kind ?contents ~order ?dances () =
+  let name = String.remove_duplicates ~char: ' ' name in
+  let conceptors = Option.map (List.map Entry.slug) conceptors in
+  let contents = Option.map (List.map (fun (version, parameters) -> (Entry.slug version, parameters))) contents in
+  let dances = Option.map (List.map Entry.slug) dances in
+  make ~name ?conceptors ~kind ?contents ~order ?dances ()
+
 let name' = name % Entry.value
 let kind' = kind % Entry.value
 let order' = order % Entry.value

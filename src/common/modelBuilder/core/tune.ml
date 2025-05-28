@@ -14,6 +14,13 @@ type t = {
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
+let make ~name ?alternative_names ~kind ?composers ?dances ?remark ?scddb_id ?date () =
+  let name = String.remove_duplicates ~char: ' ' name in
+  let alternative_names = Option.map (List.map (String.remove_duplicates ~char: ' ')) alternative_names in
+  let composers = Option.map (List.map Entry.slug) composers in
+  let dances = Option.map (List.map Entry.slug) dances in
+  make ~name ?alternative_names ~kind ?composers ?dances ?remark ~scddb_id ~date ()
+
 let name' = name % Entry.value
 let alternative_names' = alternative_names % Entry.value
 let kind' = kind % Entry.value
