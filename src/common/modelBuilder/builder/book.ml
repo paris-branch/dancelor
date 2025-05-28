@@ -80,19 +80,6 @@ module Build (Getters : Getters.S) = struct
 
   let lilypond_contents_cache_key' = lilypond_contents_cache_key % Entry.value
 
-  let page_to_page_core = function
-    | (Version (version, params): page) -> Core.Book.Page.Version (Entry.slug version, params)
-    | (Set (set, params): page) -> Core.Book.Page.Set (Entry.slug set, params)
-    | (InlineSet (set, params): page) -> Core.Book.Page.InlineSet (set, params)
-
-  let make ~title ?subtitle ?short_title ?authors ?date ?contents ?source ?remark ?scddb_id () =
-    let title = String.remove_duplicates ~char: ' ' title in
-    let subtitle = Option.map (String.remove_duplicates ~char: ' ') subtitle in
-    let short_title = Option.map (String.remove_duplicates ~char: ' ') short_title in
-    let authors = Option.map (List.map Entry.slug) authors in
-    let contents = Option.map (List.map page_to_page_core) contents in
-    make ~title ?subtitle ?short_title ?authors ?date ?contents ?source ?remark ?scddb_id ()
-
   module Warnings = struct
     (* The following functions all have the name of a warning of
        {!Dancelor_common.Model.Core.Book.warning}. They all are in charge of

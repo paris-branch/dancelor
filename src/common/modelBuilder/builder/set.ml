@@ -5,13 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_set
 
-  let make ~name ?conceptors ~kind ?contents ~order ?dances () =
-    let name = String.remove_duplicates ~char: ' ' name in
-    let conceptors = Option.map (List.map Entry.slug) conceptors in
-    let contents = Option.map (List.map (fun (version, parameters) -> (Entry.slug version, parameters))) contents in
-    let dances = Option.map (List.map Entry.slug) dances in
-    make ~name ?conceptors ~kind ?contents ~order ?dances ()
-
   let conceptors = Lwt_list.map_p Getters.get_person % conceptors
   let conceptors' = conceptors % Entry.value
 
