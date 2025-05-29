@@ -147,6 +147,14 @@ let header_item =
                             ~href: (S.const @@ Endpoints.Page.(href UserCreate))
                             ()
                         ];
+                        li [
+                          Components.Button.make_a
+                            ~label: "Victorise"
+                            ~icon: "stop-circle"
+                            ~classes: ["dropdown-item"]
+                            ~href: (S.const @@ Endpoints.Api.(href Victor))
+                            ()
+                        ];
                         li [hr ~a: [a_class ["dropdown-divider"]] ()];
                       ]
                     else []
