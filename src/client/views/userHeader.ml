@@ -147,18 +147,35 @@ let header_item =
                             ~href: (S.const @@ Endpoints.Page.(href UserCreate))
                             ()
                         ];
+                        li [
+                          Components.Button.make_a
+                            ~label: "Victorise"
+                            ~icon: "stop-circle"
+                            ~classes: ["dropdown-item"]
+                            ~href: (S.const @@ Endpoints.Api.(href Victor))
+                            ()
+                        ];
                         li [hr ~a: [a_class ["dropdown-divider"]] ()];
                       ]
                     else []
                   );
                   [li [
+                    Components.Button.make_a
+                      ~label: "My person"
+                      ~icon: "person"
+                      ~classes: ["dropdown-item"]
+                      ~href: (S.from' "" (Endpoints.Page.(href Person None) <$> (Entry.slug <$> Model.User.person' user)))
+                      ()
+                  ];
+                  li [
                     Components.Button.make
                       ~label: "Sign out"
                       ~icon: "box-arrow-right"
                       ~classes: ["dropdown-item"]
                       ~onclick: sign_out
                       ()
-                  ]];
+                  ];
+                  ];
                 ]
             );
         ]

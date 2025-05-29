@@ -6,6 +6,23 @@ module Log = (val Logger.create "controller.permission": Logs.LOG)
 let fold_user env =
   Option.fold' (Environment.user env)
 
+(** {2 Connected} *)
+
+let is_connected env =
+  fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
+
+let assert_is_connected env =
+  if is_connected env then
+    (
+      Log.debug (fun m -> m "Granting access to %a." Environment.pp env);
+      lwt_unit
+    )
+  else
+    (
+      Log.info (fun m -> m "Refusing access to %a." Environment.pp env);
+      Madge_server.shortcut_forbidden "You do not have permission."
+    )
+
 (** {2 Reading} *)
 
 let can_get env entry =
