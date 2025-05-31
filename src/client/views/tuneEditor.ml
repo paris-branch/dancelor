@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 open Utils
@@ -197,7 +196,19 @@ let create ?on_save ?text () =
           Option.iter @@ fun tune ->
           Editor.clear editor;
           match on_save with
-          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_tune (Entry.slug tune))
+          | None ->
+            Components.Toast.open_
+              ~title: "Tune created"
+              [txt "The tune ";
+              Formatters.Tune.name' ~link: true tune;
+              txt " has been created successfully."]
+              ~buttons: [
+                Components.Button.make_a
+                  ~label: "Go to tune"
+                  ~classes: ["btn-primary"]
+                  ~href: (S.const @@ Endpoints.Page.href_tune @@ Entry.slug tune)
+                  ();
+              ]
           | Some on_save -> on_save tune
         )
         ();
