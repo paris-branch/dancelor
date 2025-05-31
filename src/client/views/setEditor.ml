@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 open Utils
@@ -181,7 +180,19 @@ let create ?on_save ?text () =
           Option.iter @@ fun set ->
           Editor.clear editor;
           match on_save with
-          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_set (Entry.slug set))
+          | None ->
+            Components.Toast.open_
+              ~title: "Set created"
+              [txt "The set ";
+              Formatters.Set.name' ~link: true set;
+              txt " has been created successfully."]
+              ~buttons: [
+                Components.Button.make_a
+                  ~label: "Go to set"
+                  ~classes: ["btn-primary"]
+                  ~href: (S.const @@ Endpoints.Page.href_set @@ Entry.slug set)
+                  ();
+              ]
           | Some on_save -> on_save set
         )
         ();
