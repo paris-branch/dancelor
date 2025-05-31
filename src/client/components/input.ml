@@ -69,6 +69,7 @@ module Text = struct
           ~a: [
             a_rows 15;
             a_placeholder placeholder;
+            (* R.a_value state.raw_signal; FIXME: not possible in textarea but necessary for cleanup *)
             R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) state);
             a_oninput (fun event ->
               (

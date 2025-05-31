@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 open Utils
@@ -179,7 +178,19 @@ let create ?on_save ?text ?edit () =
           Option.iter @@ fun book ->
           Editor.clear editor;
           match on_save with
-          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_book (Entry.slug book))
+          | None ->
+            Components.Toast.open_
+              ~title: "Book created"
+              [txt "The book ";
+              Formatters.Book.title_and_subtitle' book;
+              txt " has been created successfully."]
+              ~buttons: [
+                Components.Button.make_a
+                  ~label: "Go to book"
+                  ~classes: ["btn-primary"]
+                  ~href: (S.const @@ Endpoints.Page.href_book @@ Entry.slug book)
+                  ();
+              ]
           | Some on_save -> on_save book
         )
         ();

@@ -173,28 +173,52 @@ let clear ~onclick () =
     )
     ()
 
-let cancel ~onclick () =
+let cancel ?onclick ?more_a () =
   make
     ~label: "Cancel"
     ~label_processing: "Cancelling..."
     ~icon: "x-lg"
     ~classes: ["btn-secondary"]
-    ~onclick
+    ?onclick
+    ?more_a
     ()
 
-let cancel' ~return () =
-  cancel ~onclick: (fun () -> return None; lwt_unit) ()
+let cancel' ~return ?more_a () =
+  cancel
+    ~onclick: (fun () -> return None; lwt_unit)
+    ?more_a
+    ()
 
-let ok ~onclick () =
+let close ?onclick ?more_a () =
+  make
+    ~label: "Close"
+    ~label_processing: "Closing..."
+    ~icon: "x-lg"
+    ~classes: ["btn-secondary"]
+    ?onclick
+    ?more_a
+    ()
+
+let close' ~return ?more_a () =
+  close
+    ~onclick: (fun () -> return None; lwt_unit)
+    ?more_a
+    ()
+
+let ok ?onclick ?more_a () =
   make
     ~label: "OK"
     ~label_processing: "Closing..."
     ~classes: ["btn-primary"]
-    ~onclick
+    ?onclick
+    ?more_a
     ()
 
-let ok' ~return () =
-  ok ~onclick: (fun () -> return (Some ()); lwt_unit) ()
+let ok' ~return ?more_a () =
+  ok
+    ~onclick: (fun () -> return (Some ()); lwt_unit)
+    ?more_a
+    ()
 
 let download ~href () =
   make_a
