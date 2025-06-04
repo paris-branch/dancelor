@@ -3,7 +3,6 @@ open Common
 open Html
 
 let make_gen href =
-  let (loaded, set_loaded) = S.create_oneshot_switch false in
   div
     ~a: [
       (* On mobile, space gets parse, so we compensate the container's padding
@@ -12,9 +11,6 @@ let make_gen href =
       a_class ["mx-n2"; "mx-sm-0"];
     ]
     [
-      div
-        ~a: [R.a_class (S.map (function false -> [] | true -> ["d-none"]) loaded)]
-        [div_placeholder ~min: 12 ~max: 20 ()];
       object_
         ~a: [
           (* Tune previews are generated on A4 paper -- 21cm wide -- with a left margin
@@ -24,10 +20,8 @@ let make_gen href =
           a_style "margin-left: -5%; width: 105%;";
           a_mime_type "image/svg+xml";
           a_data href;
-          R.a_class (S.map (function false -> ["d-none"] | true -> []) loaded);
-          a_onload (fun _ev -> set_loaded (); false);
         ]
-        [];
+        []
     ]
 
 let make slug =

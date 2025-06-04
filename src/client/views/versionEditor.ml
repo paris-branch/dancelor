@@ -232,7 +232,13 @@ let create ?on_save ?text ?tune () =
               Page.make'
                 ~title: (lwt "Preview")
                 [div [VersionSvg.make_preview version];
-                div [VersionOgg.make_preview version];
+                div
+                  [
+                    audio
+                      ~a: [a_controls ()]
+                      ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
+                      [];
+                  ];
                 ]
                 ~buttons: [
                   Button.cancel' ~return ();

@@ -46,13 +46,6 @@ module S = struct
   let bind_s' (signal : 'a Lwt_react.signal) (placeholder : 'b) (promise : 'a -> 'b Lwt.t) : 'b Lwt_react.signal =
     switch (from' (const placeholder) (bind_s signal (Lwt.map const % promise)))
 
-  (** Creates a switch that holds a boolean. The setter will flip the boolean
-      and can only be used once. *)
-  let create_oneshot_switch value =
-    let (signal, setter) = create value in
-    let new_setter () = setter (not value); stop signal in
-      (signal, new_setter)
-
   let delayed_setter delay set_immediately =
     let (setter, set_setter) = create lwt_unit in
     fun x ->
