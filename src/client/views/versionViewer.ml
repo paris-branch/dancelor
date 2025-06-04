@@ -112,8 +112,15 @@ let create ?context slug =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      div ~a: [a_class ["text-center"; "my-1"]] [Components.VersionSvg.make slug];
-      div ~a: [a_class ["d-flex"; "justify-content-end"]] [Components.VersionOgg.make slug];
+      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make slug];
+      div
+        ~a: [a_class ["d-flex"; "justify-content-end"]]
+        [
+          audio
+            ~a: [a_controls ()]
+            ~src: (Endpoints.Api.(href @@ Version Ogg) slug Model.VersionParameters.none RenderingParameters.none)
+            []
+        ];
       Utils.quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memVersion') version);
