@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 open Utils
@@ -204,7 +203,19 @@ let create ?on_save ?text () =
           Option.iter @@ fun dance ->
           Editor.clear editor;
           match on_save with
-          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_dance (Entry.slug dance))
+          | None ->
+            Components.Toast.open_
+              ~title: "Dance created"
+              [txt "The dance ";
+              Formatters.Dance.name' ~link: true dance;
+              txt " has been created successfully."]
+              ~buttons: [
+                Components.Button.make_a
+                  ~label: "Go to dance"
+                  ~classes: ["btn-primary"]
+                  ~href: (S.const @@ Endpoints.Page.href_dance @@ Entry.slug dance)
+                  ();
+              ]
           | Some on_save -> on_save dance
         )
         ();

@@ -21,7 +21,7 @@ let level_to_class = function
   | Normal -> ([], [])
   | Warning -> (["bg-warning"; "text-dark"], ["bg-warning-subtle"])
 
-let open_ ?(level = Normal) ~title content =
+let open_ ?(level = Normal) ~title ?(buttons = []) content =
   let start = Unix.time () in
   let (class_header, class_body) = level_to_class level in
   let toast =
@@ -36,7 +36,13 @@ let open_ ?(level = Normal) ~title content =
               small [R.txt (Time.ago_s start)];
               button ~a: [a_button_type `Button; a_class ["btn-close"]; a_user_data "bs-dismiss" "toast"; a_aria "label" ["Close"]] [];
             ];
-          div ~a: [a_class (["toast-body"] @ class_body)] content;
+          div ~a: [a_class (["toast-body"] @ class_body)] (
+            content @ [
+              div ~a: [a_class ["mt-2"; "pt-2"; "border-top"; "text-end"]] (
+                (Button.close ~more_a: [a_user_data "bs-dismiss" "toast"] ()) :: buttons
+              )
+            ]
+          );
         ]
   in
   Lwt.async (fun () ->

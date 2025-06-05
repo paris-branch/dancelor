@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 open Utils
@@ -252,7 +251,19 @@ let create ?on_save ?text ?tune () =
                       Editor.clear editor;
                       (
                         match on_save with
-                        | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_version (Entry.slug version))
+                        | None ->
+                          Components.Toast.open_
+                            ~title: "Version created"
+                            [txt "The version ";
+                            Formatters.Version.name' ~link: true version;
+                            txt " has been created successfully."]
+                            ~buttons: [
+                              Components.Button.make_a
+                                ~label: "Go to version"
+                                ~classes: ["btn-primary"]
+                                ~href: (S.const @@ Endpoints.Page.href_version @@ Entry.slug version)
+                                ();
+                            ]
                         | Some on_save -> on_save version
                       );
                       lwt_unit

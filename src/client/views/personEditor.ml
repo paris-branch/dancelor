@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 
@@ -100,7 +99,19 @@ let create ?on_save ?text () =
           Option.iter @@ fun person ->
           Editor.clear editor;
           match on_save with
-          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_person (Entry.slug person))
+          | None ->
+            Components.Toast.open_
+              ~title: "Person created"
+              [txt "The person ";
+              Formatters.Person.name' ~link: true person;
+              txt " has been created successfully."]
+              ~buttons: [
+                Components.Button.make_a
+                  ~label: "Go to person"
+                  ~classes: ["btn-primary"]
+                  ~href: (S.const @@ Endpoints.Page.href_person @@ Entry.slug person)
+                  ();
+              ]
           | Some on_save -> on_save person
         )
         ();

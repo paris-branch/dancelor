@@ -1,7 +1,6 @@
 open Nes
 open Common
 
-open Js_of_ocaml
 open Components
 open Html
 
@@ -112,7 +111,19 @@ let create ?on_save ?text () =
           Option.iter @@ fun source ->
           Editor.clear editor;
           match on_save with
-          | None -> Dom_html.window##.location##.href := Js.string (Endpoints.Page.href_source (Entry.slug source))
+          | None ->
+            Components.Toast.open_
+              ~title: "Source created"
+              [txt "The source ";
+              Formatters.Source.name' ~link: true source;
+              txt " has been created successfully."]
+              ~buttons: [
+                Components.Button.make_a
+                  ~label: "Go to source"
+                  ~classes: ["btn-primary"]
+                  ~href: (S.const @@ Endpoints.Page.href_source @@ Entry.slug source)
+                  ();
+              ]
           | Some on_save -> on_save source
         )
         ();
