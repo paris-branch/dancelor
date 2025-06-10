@@ -60,3 +60,6 @@ val name_tunes_and_dance' :
   [> Html_types.span] elt
 (** Variant of {!name_tunes_and_dance} taking an {!Entry.t}. Because this is an
     entry, we can additionally have a link on the name. *)
+
+val conceptors : ?short: bool -> Model.Set.t -> [> Html_types.span] elt
+val conceptors' : ?short: bool -> Model.Set.t Entry.t -> [> Html_types.span] elt

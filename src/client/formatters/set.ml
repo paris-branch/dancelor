@@ -75,3 +75,9 @@ let name_tunes_and_dance ?tunes_link ?dance_link set parameters =
 
 let name_tunes_and_dance' ?(name_link = true) ?tunes_link ?dance_link set parameters =
   name_tunes_and_dance_gen ?tunes_link ?dance_link (Right (set, name_link)) parameters
+
+let conceptors ?short tune =
+  with_span_placeholder
+    (List.singleton <$> (Person.names' ?short <$> Model.Set.conceptors tune))
+
+let conceptors' ?short tune = conceptors ?short (Entry.value tune)

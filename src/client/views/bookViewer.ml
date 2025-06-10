@@ -52,6 +52,7 @@ let table_contents ~this_slug contents =
               th [txt "Type"];
               th [txt "Name"];
               th [txt "Kind"];
+              th [txt "By"];
             ]
         ]
     )
@@ -68,7 +69,8 @@ let table_contents ~this_slug contents =
                   Tables.clickable_row ~href [
                     lwt [txt "Set"];
                     lwt [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
-                    lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set]
+                    lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+                    lwt [Formatters.Set.conceptors' ~short: true set];
                   ]
                 )
               | InlineSet (set, parameters) ->
@@ -78,6 +80,7 @@ let table_contents ~this_slug contents =
                       td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
                       td [Formatters.Set.name_tunes_and_dance set parameters];
                       td [txt @@ Kind.Dance.to_string @@ Set.kind set];
+                      td [Formatters.Set.conceptors ~short: true set];
                     ]
                 )
               | Version (version, parameters) ->
@@ -90,6 +93,7 @@ let table_contents ~this_slug contents =
                       let%lwt tune = Version.tune' version in
                       lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
                     );
+                    lwt [Formatters.Version.composer_and_arranger' ~short: true version]
                   ]
                 )
             )
