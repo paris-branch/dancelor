@@ -1,3 +1,4 @@
+open Nes
 open Common
 
 module Source = Source
@@ -27,3 +28,6 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
     Permission.assert_is_connected env;%lwt
     (* FIXME: eventually, only for database editors *)
     Logger.log_exit (module Log) 101
+  | Ping ->
+    Log.debug (fun m -> m "Answering ping");
+    lwt_unit
