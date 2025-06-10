@@ -49,11 +49,11 @@ let nav_item_explore =
   li
     ~a: [a_class ["nav-item"; "dropdown"]]
     [
-      button
-        ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-        [
-          txt "Explore"
-        ];
+      Components.Button.make
+        ~label: "Explore"
+        ~classes: ["btn-primary"; "dropdown-toggle"]
+        ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+        ();
       ul
         ~a: [a_class ["dropdown-menu"]]
         (
@@ -61,18 +61,9 @@ let nav_item_explore =
           li [hr ~a: [a_class ["dropdown-divider"]] ()];
           ] @
             List.map
-              (fun (icon, key, text) ->
-                let href = Endpoints.Page.(href Explore) @@ some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                li
-                  [
-                    a
-                      ~a: [a_class ["dropdown-item"]; a_href href]
-                      [
-                        i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
-                        txt " ";
-                        txt text
-                      ]
-                  ]
+              (fun (icon, key, label) ->
+                let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
+                li [Components.Button.make_a ~label ~icon ~href ~classes: ["dropdown-item"] ()]
               )
               [
                 ("archive", "source", "Sources");
@@ -92,27 +83,18 @@ let nav_item_create =
       li
         ~a: [a_class ["nav-item"; "dropdown"]]
         [
-          button
-            ~a: [a_button_type `Button; a_class ["btn"; "btn-primary"; "dropdown-toggle"]; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
-            [
-              txt "Add"
-            ];
+          Components.Button.make
+            ~label: "Add"
+            ~classes: ["btn-primary"; "dropdown-toggle"]
+            ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
+            ();
           ul
             ~a: [a_class ["dropdown-menu"]]
             (
               let open Endpoints.Page in
               List.map
-                (fun (icon, href, text) ->
-                  li
-                    [
-                      a
-                        ~a: [a_class ["dropdown-item"]; a_href href]
-                        [
-                          i ~a: [a_class ["bi"; "bi-" ^ icon]] [];
-                          txt " ";
-                          txt text
-                        ]
-                    ]
+                (fun (icon, href, label) ->
+                  li [Components.Button.make_a ~label ~icon ~href: (S.const href) ~classes: ["dropdown-item"] ()]
                 )
                 [
                   ("archive", href SourceAdd, "Source");
