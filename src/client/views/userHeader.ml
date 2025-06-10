@@ -93,6 +93,49 @@ let sign_out () =
   Js_of_ocaml.Dom_html.window##.location##reload;
   lwt_unit
 
+let rec ping_until_success () =
+  let delay = (* every two seconds *) 2. in
+  let ping_promise =
+    match%lwt Madge_client.call Endpoints.Api.(route Ping) with
+    | Ok() -> lwt_true
+    | _ -> lwt_false
+  in
+  let wait_promise = Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt lwt_false in
+  match%lwt Lwt.pick [ping_promise; wait_promise] with
+  | true -> lwt_unit
+  | false -> ping_until_success ()
+
+let victorise () =
+  Lwt.async (fun () ->
+    try%lwt
+      ignore <$> Madge_client.call ~retry: false Endpoints.Api.(route Victor)
+    with
+      | Madge_client.ServerUnreachable _ -> lwt_unit
+  );
+  ignore
+  <$> Page.open_dialog @@ fun return ->
+    Lwt.async (fun () ->
+      ping_until_success ();%lwt
+      return (Some ());
+      Lwt.async (fun () ->
+        Js_of_ocaml_lwt.Lwt_js.sleep 2.;%lwt
+        Js_of_ocaml.Dom_html.window##.location##reload;
+        lwt_unit
+      );
+      ignore
+      <$> Page.open_dialog @@ fun return ->
+        Page.make'
+          ~title: (lwt "Victorisation")
+          [txt "Victorisation successful! The page will now reload."]
+          ~buttons: [Components.Button.ok' ~return ()]
+    );
+    Page.make'
+      ~title: (lwt "Victorisation")
+      [txt
+        "Victorisation in progress. Please wait. The page will reload when \
+        Dancelor is ready."]
+      ~buttons: [Components.Button.ok' ~return ()]
+
 let header_item =
   let status_lwt = Madge_client.call_exn Endpoints.Api.(route @@ User Status) in
   R.li
@@ -148,11 +191,11 @@ let header_item =
                             ()
                         ];
                         li [
-                          Components.Button.make_a
+                          Components.Button.make
                             ~label: "Victorise"
                             ~icon: "stop-circle"
                             ~classes: ["dropdown-item"]
-                            ~href: (S.const @@ Endpoints.Api.(href Victor))
+                            ~onclick: victorise
                             ()
                         ];
                         li [hr ~a: [a_class ["dropdown-divider"]] ()];
