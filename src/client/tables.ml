@@ -8,10 +8,14 @@ let clickable_row ~href cells =
   Utils.ResultRow.(to_clickable_row @@ make ~href (List.map lcell cells))
 
 let map_table ~header list fun_ =
-  tablex
-    ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
-    ~thead: (thead ~a: [a_class ["table-primary"]] [tr (List.map (fun str -> th [txt str]) header)])
-    [tbody (List.map fun_ list)]
+  div
+    ~a: [a_class ["table-responsive"]]
+    [
+      tablex
+        ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
+        ~thead: (thead ~a: [a_class ["table-primary"]] [tr (List.map (fun str -> th [txt str]) header)])
+        [tbody (List.map fun_ list)]
+    ]
 
 let books books =
   map_table ~header: ["Book"; "Date"] books @@ fun book ->
