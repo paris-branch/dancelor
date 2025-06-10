@@ -108,6 +108,8 @@ let lwt_ok = Lwt.return_ok
 let lwt_error = Lwt.return_error
 let lwt_nil = Lwt.return_nil
 let lwt_empty = Lwt.return ""
+let lwt_true = Lwt.return_true
+let lwt_false = Lwt.return_false
 
 let (<$>) = Lwt.map
 let (>>=) = Lwt.bind

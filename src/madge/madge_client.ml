@@ -15,32 +15,34 @@ type error_response = {message: string} [@@deriving yojson]
 
 let max_attempts = 10 (* up to ~2 minutes *)
 
-let rec call_retry ?(attempt = 1) (request : Request.t) =
+let call_retry ?(retry = true) (request : Request.t) =
   let meth = Request.meth_to_cohttp_code_meth request.meth in
   let body = Cohttp_lwt.Body.of_string request.body in
-  let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth request.uri ~body in
-  let status = Cohttp.Response.status response in
-  if Cohttp.Code.code_of_status status = 0 then
-    (
-      if attempt >= max_attempts then
-        raise (ServerUnreachable request)
-      else
-        let delay = (2. ** (float_of_int attempt) +. Random.float 2.) /. 8. in
-        Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
-        call_retry ~attempt: (attempt + 1) request
-    )
-  else
-    (
+  let rec call_retry attempt =
+    let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth request.uri ~body in
+    let status = Cohttp.Response.status response in
+    if Cohttp.Code.code_of_status status = 0 then
+      (
+        if attempt >= max_attempts then
+          raise (ServerUnreachable request)
+        else
+          let delay = (2. ** (float_of_int attempt) +. Random.float 2.) /. 8. in
+          Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
+          call_retry (attempt + 1)
+      )
+    else
       Lwt.return (status, body)
-    )
+  in
+  call_retry (if retry then 1 else max_int)
 
 let call_gen
-  : type a r z. (a, z Lwt.t, r) Route.t ->
+  : type a r z. ?retry: bool ->
+  (a, z Lwt.t, r) Route.t ->
   ((r, http_error) result -> z) ->
   a
-= fun route cont ->
+= fun ?retry route cont ->
   with_request route @@ fun (module R) request ->
-  let%lwt (status, body) = call_retry request in
+  let%lwt (status, body) = call_retry ?retry request in
   let%lwt body = Cohttp_lwt.Body.to_string body in
   let body =
     try
@@ -65,9 +67,9 @@ let call_gen
   Lwt.return @@ cont result
 
 let call
-  : type a r. (a, (r, http_error) result Lwt.t, r) Route.t -> a
-= fun route -> call_gen route Fun.id
+  : type a r. ?retry: bool -> (a, (r, http_error) result Lwt.t, r) Route.t -> a
+= fun ?retry route -> call_gen ?retry route Fun.id
 
 let call_exn
-  : type a r. (a, r Lwt.t, r) Route.t -> a
-= fun route -> call_gen route @@ Result.fold ~ok: Fun.id ~error: (fun err -> raise (HttpError err))
+  : type a r. ?retry: bool -> (a, r Lwt.t, r) Route.t -> a
+= fun ?retry route -> call_gen ?retry route @@ Result.fold ~ok: Fun.id ~error: (fun err -> raise (HttpError err))
