@@ -1,15 +1,12 @@
 open Nes
 include Madge
 
-type http_error = {
-  request: Request.t;
-  status: Cohttp.Code.status_code;
-  message: string;
-}
+type error =
+  | Http of {request: Request.t; status: Cohttp.Code.status_code; message: string}
+  | ServerUnreachable of {request: Request.t}
+  | BodyUnserialisation of {body: string; message: string}
 
-exception HttpError of http_error
-exception ServerUnreachable of Request.t
-exception BodyUnserialisationError of string
+exception Error of error
 
 type error_response = {message: string} [@@deriving yojson]
 
@@ -24,52 +21,53 @@ let call_retry ?(retry = true) (request : Request.t) =
     if Cohttp.Code.code_of_status status = 0 then
       (
         if attempt >= max_attempts then
-          raise (ServerUnreachable request)
+          Lwt.return_error @@ ServerUnreachable {request}
         else
           let delay = (2. ** (float_of_int attempt) +. Random.float 2.) /. 8. in
           Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
           call_retry (attempt + 1)
       )
     else
-      Lwt.return (status, body)
+      Lwt.return_ok (status, body)
   in
   call_retry (if retry then 1 else max_int)
 
 let call_gen
   : type a r z. ?retry: bool ->
   (a, z Lwt.t, r) Route.t ->
-  ((r, http_error) result -> z) ->
+  ((r, error) result -> z) ->
   a
 = fun ?retry route cont ->
   with_request route @@ fun (module R) request ->
-  let%lwt (status, body) = call_retry ?retry request in
-  let%lwt body = Cohttp_lwt.Body.to_string body in
-  let body =
-    try
-      Yojson.Safe.from_string body
-    with
-      | Yojson.Json_error msg -> raise (BodyUnserialisationError ("not JSON: " ^ msg))
-  in
-  let result =
-    if Cohttp.(Code.(is_success (code_of_status status))) then
-      (
-        match R.of_yojson body with
-        | Error msg -> raise (BodyUnserialisationError msg)
-        | Ok body -> Ok body
-      )
-    else
-      (
-        match error_response_of_yojson body with
-        | Error msg -> raise (BodyUnserialisationError ("expected an error, but " ^ msg))
-        | Ok {message} -> Error {request; status; message}
-      )
-  in
-  Lwt.return @@ cont result
+  cont
+  <$> (
+      let%rlwt (status, body) = call_retry ?retry request in
+      let%lwt body = Cohttp_lwt.Body.to_string body in
+      let%rlwt json_body =
+        try
+          Lwt.return_ok @@ Yojson.Safe.from_string body
+        with
+          | Yojson.Json_error message ->
+            Lwt.return_error @@ BodyUnserialisation {body; message = "not JSON: " ^ message}
+      in
+      if Cohttp.(Code.(is_success (code_of_status status))) then
+        (
+          match R.of_yojson json_body with
+          | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message}
+          | Ok body -> Lwt.return_ok body
+        )
+      else
+        (
+          match error_response_of_yojson json_body with
+          | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message = "expected an error, but " ^ message}
+          | Ok {message} -> Lwt.return_error @@ Http {request; status; message}
+        )
+    )
 
 let call
-  : type a r. ?retry: bool -> (a, (r, http_error) result Lwt.t, r) Route.t -> a
+  : type a r. ?retry: bool -> (a, (r, error) result Lwt.t, r) Route.t -> a
 = fun ?retry route -> call_gen ?retry route Fun.id
 
 let call_exn
   : type a r. ?retry: bool -> (a, r Lwt.t, r) Route.t -> a
-= fun ?retry route -> call_gen ?retry route @@ Result.fold ~ok: Fun.id ~error: (fun err -> raise (HttpError err))
+= fun ?retry route -> call_gen ?retry route @@ Result.fold ~ok: Fun.id ~error: (fun e -> raise (Error e))

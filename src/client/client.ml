@@ -50,7 +50,7 @@ let () =
           match exn with
           | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
           | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
-          | Madge_client.HttpError {request; status; _} ->
+          | Madge_client.(Error (Http {request; status; _})) ->
             Components.Toast.open_
               ~title: "Uncaught API call error"
               [
@@ -62,7 +62,7 @@ let () =
                   "” and did not handle it gracefully. If the error persists, please \
                contact your administrator or file a bug report.";
               ]
-          | Madge_client.ServerUnreachable request ->
+          | Madge_client.(Error (ServerUnreachable {request})) ->
             Components.Toast.open_
               ~title: "Server unreachable"
               [
