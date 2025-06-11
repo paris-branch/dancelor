@@ -8,7 +8,7 @@ include module type of Madge
 
 type error =
   | Http of {request: Request.t; status: Cohttp.Code.status_code; message: string}
-  | ServerUnreachable of {request: Request.t}
+  | ServerUnreachable of {request: Request.t; status: Cohttp.Code.status_code}
   | BodyUnserialisation of {body: string; message: string}
 
 exception Error of error

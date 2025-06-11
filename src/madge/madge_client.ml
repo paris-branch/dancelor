@@ -3,7 +3,7 @@ include Madge
 
 type error =
   | Http of {request: Request.t; status: Cohttp.Code.status_code; message: string}
-  | ServerUnreachable of {request: Request.t}
+  | ServerUnreachable of {request: Request.t; status: Cohttp.Code.status_code}
   | BodyUnserialisation of {body: string; message: string}
 
 exception Error of error
@@ -18,10 +18,10 @@ let call_retry ?(retry = true) (request : Request.t) =
   let rec call_retry attempt =
     let%lwt (response, body) = Cohttp_lwt_jsoo.Client.call meth request.uri ~body in
     let status = Cohttp.Response.status response in
-    if Cohttp.Code.code_of_status status = 0 then
+    if List.mem (Cohttp.Code.code_of_status status) [0; 502; 503; 504] then
       (
         if attempt >= max_attempts then
-          Lwt.return_error @@ ServerUnreachable {request}
+          Lwt.return_error @@ ServerUnreachable {request; status}
         else
           let delay = (2. ** (float_of_int attempt) +. Random.float 2.) /. 8. in
           Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt
