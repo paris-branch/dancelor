@@ -17,7 +17,7 @@
   yojson
   js_of_ocaml-lwt)
  (preprocess
-  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx)))
+  (pps ppx_deriving_yojson ppx_deriving.std lwt_ppx ppx_monad_rlwt)))
 
 (library
  (name madge_server)

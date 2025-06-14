@@ -263,9 +263,10 @@ let load_sleep_raise ?(delay = 1.) page_promise =
     Lwt.fail ReplacementSuccessful
 
 let get_model_or_404 endpoint slug f =
-  match%lwt Madge_client.call Endpoints.Api.(route @@ endpoint) slug with
-  | Ok model -> f model
-  | Error Madge_client.{status; _} -> OooopsViewer.create status
+  try%lwt
+    f =<< Madge_client.call_exn Endpoints.Api.(route @@ endpoint) slug
+  with
+    | Madge_client.(Error (Http {status; _})) -> OooopsViewer.create status
 
 let assert_can_create f =
   match%lwt Permission.can_create () with

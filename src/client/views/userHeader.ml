@@ -110,7 +110,7 @@ let victorise () =
     try%lwt
       ignore <$> Madge_client.call ~retry: false Endpoints.Api.(route Victor)
     with
-      | Madge_client.ServerUnreachable _ -> lwt_unit
+      | Madge_client.(Error (ServerUnreachable _)) -> lwt_unit
   );
   ignore
   <$> Page.open_dialog @@ fun return ->

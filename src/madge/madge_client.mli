@@ -4,23 +4,20 @@ open Nes
 
 include module type of Madge
 
-(** Error in an HTTP request. *)
-type http_error = {
-  request: Request.t;
-  status: Cohttp.Code.status_code;
-  message: string;
-}
+(** {2 Errors} *)
 
-exception ServerUnreachable of Request.t
-exception BodyUnserialisationError of string
+type error =
+  | Http of {request: Request.t; status: Cohttp.Code.status_code; message: string}
+  | ServerUnreachable of {request: Request.t; status: Cohttp.Code.status_code}
+  | BodyUnserialisation of {body: string; message: string}
 
-(** Follow the route, call the endpoint, get the result and unserialise it. If
-    the call leads to an HTTP error, it is returned as an error. May raise
-    {!ServerUnreachable}, or {!BodyUnserialisationError}. *)
-val call : ?retry: bool -> ('a, ('r, http_error) result Lwt.t, 'r) Route.t -> 'a
+exception Error of error
 
-exception HttpError of http_error
+(** {2 Endpoints} *)
 
-(** Variant of {!call} that raises {!HttpError} in addition to the other
-    exceptions. *)
+(** Follow the route, call the endpoint, get the result and unserialise it, or
+    returns an {!error}. *)
+val call : ?retry: bool -> ('a, ('r, error) result Lwt.t, 'r) Route.t -> 'a
+
+(** Variant of {!call} that raises {!Error} instead of returning it. *)
 val call_exn : ?retry: bool -> ('a, 'r Lwt.t, 'r) Route.t -> 'a
