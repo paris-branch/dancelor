@@ -2,7 +2,7 @@
   \tocSet \markup { %s (%s) }
 
   \header {
-    title = "%s"
-    deviser = "%s"
-    kind = "%s"
+    title = \markup { \combine \transparent Aj "%s" }
+    deviser = \markup { \combine \transparent Aj "%s" }
+    kind = \markup { \combine \transparent Aj "%s" }
   }

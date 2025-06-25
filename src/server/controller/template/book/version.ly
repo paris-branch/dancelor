@@ -1,7 +1,7 @@
 \score {
   \header {
-    piece = "%s"
-    composer = "%s"
+    piece = \markup { \combine \transparent Aj "%s" }
+    composer = \markup { \combine \transparent Aj "%s" }
   }
 
   \layout {
