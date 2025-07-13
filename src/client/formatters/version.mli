@@ -3,11 +3,13 @@ open Html
 
 val description :
   ?arranger_links: bool ->
+  ?source_links: bool ->
   Model.Version.t ->
   [> Html_types.span] elt
 
 val description' :
   ?arranger_links: bool ->
+  ?source_links: bool ->
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
 
@@ -49,10 +51,12 @@ val name_disambiguation_and_sources' :
     this is an entry, we can additionnally have a link on the name. *)
 
 val disambiguation_and_sources :
+  ?source_links: bool ->
   Model.Version.t ->
   [> Html_types.span] elt
 
 val disambiguation_and_sources' :
+  ?source_links: bool ->
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
 

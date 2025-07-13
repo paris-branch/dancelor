@@ -10,7 +10,8 @@ let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
     ?action
     (
       prefix @
-      [ResultRow.cell ~a: [a_colspan 3] [Formatters.Source.name' ~link: false source];
+      [ResultRow.cell ~a: [a_colspan 2] [Formatters.Source.name' ~link: false source];
+      ResultRow.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
       ] @
       suffix
     )

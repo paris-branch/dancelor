@@ -3,7 +3,7 @@ open Common
 
 open Html
 
-let disambiguation_and_sources_internal version =
+let disambiguation_and_sources_internal ?source_links version =
   let disambiguation_block =
     match Model.Version.disambiguation version with
     | "" -> []
@@ -15,16 +15,16 @@ let disambiguation_and_sources_internal version =
     | sources ->
       lwt (
         [txt " (from "] @
-        List.interspersei (fun _ -> txt " - ") (List.map Source.name' sources) @
+        List.interspersei (fun _ -> txt " - ") (List.map (Source.name' ~short: true ?link: source_links) sources) @
           [txt ")"]
       )
   in
   disambiguation_block @ [with_span_placeholder sources_block]
 
-let disambiguation_and_sources version = span (disambiguation_and_sources_internal version)
-let disambiguation_and_sources' version = disambiguation_and_sources @@ Entry.value version
+let disambiguation_and_sources ?source_links version = span (disambiguation_and_sources_internal ?source_links version)
+let disambiguation_and_sources' ?source_links version = disambiguation_and_sources ?source_links @@ Entry.value version
 
-let description ?arranger_links version =
+let description ?arranger_links ?source_links version =
   let bars = Model.Version.bars version in
   let structure = Model.Version.structure version in
   let key = Model.Version.key version in
@@ -36,10 +36,10 @@ let description ?arranger_links version =
       let name_block = Person.names' ?links: arranger_links arrangers in
       lwt ([txt " arranged by "; name_block])
   in
-  span [txt shape; with_span_placeholder arranger_block; disambiguation_and_sources version]
+  span [txt shape; with_span_placeholder arranger_block; disambiguation_and_sources ?source_links version]
 
-let description' ?arranger_links version =
-  description ?arranger_links @@ Entry.value version
+let description' ?arranger_links ?source_links version =
+  description ?arranger_links ?source_links @@ Entry.value version
 
 let name_gen version_gen =
   with_span_placeholder @@

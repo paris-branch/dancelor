@@ -16,6 +16,7 @@ let create ?context slug =
         (lwt @@ Any.source source);
     ]
     ~title: (lwt @@ Source.name' source)
+    ~subtitles: [Formatters.Source.editors' source]
     [
       div
         ~a: [a_class ["text-end"; "dropdown"]]
