@@ -12,10 +12,7 @@ module Build (Getters : Getters) : S = struct
     include Core.Person
     let get = Getters.get_person
   end
-  module Source = struct
-    include Core.Source
-    let get = Getters.get_source
-  end
+  module Source = Builder.Source.Build(Getters)
   module User = Builder.User.Build(Getters)
   module Dance = Builder.Dance.Build(Getters)
   module Tune = Builder.Tune.Build(Getters)

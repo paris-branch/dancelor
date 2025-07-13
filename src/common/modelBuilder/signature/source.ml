@@ -11,6 +11,8 @@ module type S = sig
 
   val make :
     name: string ->
+    ?short_name: string ->
+    ?editors: Core.Person.t Entry.t list ->
     ?scddb_id: int ->
     ?description: string ->
     unit ->
@@ -20,6 +22,12 @@ module type S = sig
 
   val name : t -> string
   val name' : t Entry.t -> string
+
+  val short_name : t -> string
+  val short_name' : t Entry.t -> string
+
+  val editors : t -> Core.Person.t Entry.t list Lwt.t
+  val editors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
 
   val scddb_id : t -> int option
   val scddb_id' : t Entry.t -> int option
