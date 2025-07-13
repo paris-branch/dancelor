@@ -37,20 +37,19 @@ val name_and_dance' :
 (** Variant of {!name_and_dance} taking an {!Entry.t}. Because this is an entry,
     we can additionnally have a link on the name. *)
 
-val name_and_disambiguation :
+val name_disambiguation_and_sources :
   Model.Version.t ->
   [> Html_types.span] elt
-
-val name_and_disambiguation' :
-  ?name_link: bool ->
-  Model.Version.t Entry.t ->
-  [> Html_types.span] elt
-(** Variant of {!name_and_disambiguation} taking an {!Entry.t}. Because this is an entry,
-    we can additionnally have a link on the name. *)
 
 val name_disambiguation_and_sources' :
   ?name_link: bool ->
   Model.Version.t Entry.t ->
+  [> Html_types.span] elt
+(** Variant of {!name_disambiguation_and_sources} taking an {!Entry.t}. Because
+    this is an entry, we can additionnally have a link on the name. *)
+
+val disambiguation_and_sources :
+  Model.Version.t ->
   [> Html_types.span] elt
 
 val disambiguation_and_sources' :

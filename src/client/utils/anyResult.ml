@@ -167,7 +167,7 @@ let make_version_result' ?classes ?action ?(prefix = []) ?(suffix = []) version 
     ?action
     (
       prefix @
-      [ResultRow.cell [Formatters.Version.name_and_disambiguation' ~name_link: false version];
+      [ResultRow.cell [Formatters.Version.name_disambiguation_and_sources' ~name_link: false version];
       ResultRow.cell [Formatters.Version.kind_and_structure' version];
       ResultRow.cell [Formatters.Version.composer_and_arranger' ~short: true version];
       ] @
