@@ -39,14 +39,14 @@ class TestVersionLyDownload():
     return os.path.join(self.download_dir, files[0])
 
   def test_versionLyDownload(self):
-    self.driver.get("http://localhost:8080/version/tam-lin-niols")
+    self.driver.get("http://localhost:8080/version/xzzb-wasm-babe")
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Actions')]").click()
     lilypond_button = self.driver.find_element(By.XPATH, "//*[contains(text(), 'LilyPond')]")
     ## NOTE: Check that the URL is what we expect.
-    assert(urlparse(lilypond_button.get_attribute('href')).path == "/api/version/tam-lin-niols.ly")
+    assert(urlparse(lilypond_button.get_attribute('href')).path == "/api/version/xzzb-wasm-babe/tam-lin.ly")
     lilypond_button.click()
     ## NOTE: Check that the `content.ly` is indeed what we downloaded.
-    with open("tests/database/version/tam-lin-niols/content.ly") as content_file:
+    with open("tests/database/version/xzzb-wasm-babe/content.ly") as content_file:
       expected_content = content_file.read().strip()
       assert(expected_content != "")
     with open(self.get_downloaded_file()) as content_file:

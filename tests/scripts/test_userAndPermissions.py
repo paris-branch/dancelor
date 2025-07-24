@@ -24,7 +24,8 @@ class TestUserAndPermissions():
     self.driver.quit()
 
   def load_entry(self):
-    self.driver.get("http://localhost:8080/person/a-private-person")
+    ## Access the entry page of a private person.
+    self.driver.get("http://localhost:8080/person/wrwk-cz9g-g3wi ")
 
   def is_404(self):
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Oooops')]")
@@ -36,7 +37,7 @@ class TestUserAndPermissions():
     ## Find the “Sign in” button in the header.
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Sign in')]").click()
     ## Fill the form and submit.
-    self.driver.find_element(By.XPATH, "//input[@placeholder = 'JeanMilligan']").send_keys("niols")
+    self.driver.find_element(By.XPATH, "//input[@placeholder = 'JeanMilligan']").send_keys("Niols")
     self.driver.find_element(By.XPATH, "//input[@placeholder = '1234567']").send_keys("test")
     if remember_me:
       ## Find the label, follow it to its input element. Click the element via
