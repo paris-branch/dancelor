@@ -6,8 +6,8 @@ open Html
 
 let create ?context id =
   MainPage.get_model_or_404 (Version Get) id @@ fun version ->
+  let%lwt tune = Model.Version.tune' version in
   let other_versions_lwt =
-    let%lwt tune = Model.Version.tune' version in
     snd
     <$> Madge_client.call_exn
         Endpoints.Api.(route @@ Version Search)
@@ -48,7 +48,7 @@ let create ?context id =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> VersionDownloadDialog.create_and_open id); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> VersionDownloadDialog.create_and_open version); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -58,7 +58,7 @@ let create ?context id =
               li
                 [
                   a
-                    ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Api.(href @@ Version Ly) id)]
+                    ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Api.(href @@ Version Ly) id (Tune.slug' tune))]
                     [
                       i ~a: [a_class ["bi"; "bi-file-music"]] [];
                       txt " Download LilyPond";
@@ -112,13 +112,13 @@ let create ?context id =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make id];
+      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make version];
       div
         ~a: [a_class ["d-flex"; "justify-content-end"]]
         [
           audio
             ~a: [a_controls ()]
-            ~src: (Endpoints.Api.(href @@ Version Ogg) id Model.VersionParameters.none RenderingParameters.none)
+            ~src: (Endpoints.Api.(href @@ Version Ogg) id (Tune.slug' tune) Model.VersionParameters.none RenderingParameters.none)
             []
         ];
       Utils.quick_explorer_links

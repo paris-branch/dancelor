@@ -68,6 +68,9 @@ module type S = sig
 
   (** {2 Advanced Field Getters} *)
 
+  val slug : t -> Entry.Slug.t
+  val slug' : t Entry.t -> Entry.Slug.t
+
   val find_context_no_inline : int -> t -> page List.context option Lwt.t
   val find_context_no_inline' : int -> t Entry.t -> page List.context option Lwt.t
   (** Given an indice and a book, find the context around that indice in the book.

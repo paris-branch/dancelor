@@ -26,9 +26,9 @@ let render version version_parameters rendering_parameters =
     fname_ly;%lwt
   lwt (Filename.concat path fname_ogg)
 
-let get env version version_parameters rendering_parameters =
-  Log.debug (fun m -> m "Model.Version.Ogg.get %a" Entry.Id.pp' version);
-  let%lwt version = Model.Version.get version in
+let get env id _slug version_parameters rendering_parameters =
+  Log.debug (fun m -> m "Model.Version.Ogg.get %a" Entry.Id.pp' id);
+  let%lwt version = Model.Version.get id in
   Permission.assert_can_get env version;%lwt
   let%lwt path_ogg = render version version_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "audio/ogg" ~fname: path_ogg

@@ -24,4 +24,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module Entry.Id.S(Source)) @@ get (module Entry.J(Source))
     | Update -> variable (module Entry.Id.S(Source)) @@ body "source" (module Source) @@ put (module Entry.J(Source))
     (* Files related to a source *)
-    | Cover -> variable (module Entry.Id.S(Source)) ~suffix: ".webp" @@ void ()
+    | Cover -> variable (module Entry.Id.S(Source)) @@ literal "cover.webp" @@ void ()

@@ -53,6 +53,9 @@ module type S = sig
   val name' : t Entry.t -> string Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.name}. *)
 
+  val slug : t -> Entry.Slug.t Lwt.t
+  val slug' : t Entry.t -> Entry.Slug.t Lwt.t
+
   val equal : t -> t -> bool
 
   (** {2 Magic getter} *)

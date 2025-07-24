@@ -11,7 +11,7 @@ type (_, _, _) t =
 | Get : ((Dance.t Entry.Id.t -> 'w), 'w, Dance.t Entry.t) t
 | Update : ((Dance.t Entry.Id.t -> Dance.t -> 'w), 'w, Dance.t Entry.t) t
 (* Files related to a dance *)
-| Pdf : ((Dance.t Entry.Id.t -> SetParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Pdf : ((Dance.t Entry.Id.t -> Entry.Slug.t -> SetParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -24,4 +24,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module Entry.Id.S(Dance)) @@ get (module Entry.J(Dance))
     | Update -> variable (module Entry.Id.S(Dance)) @@ body "dance" (module Dance) @@ put (module Entry.J(Dance))
     (* Files related to a dance *)
-    | Pdf -> variable (module Entry.Id.S(Dance)) ~suffix: ".pdf" @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Pdf -> variable (module Entry.Id.S(Dance)) @@ variable (module Entry.Slug.S) ~suffix: ".pdf" @@ query "parameters" (module SetParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()

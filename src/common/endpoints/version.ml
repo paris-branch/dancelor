@@ -11,10 +11,10 @@ type (_, _, _) t =
 | Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.t Entry.t) t
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 (* Files related to a version *)
-| Ly : ((Version.t Entry.Id.t -> 'w), 'w, Void.t) t
-| Svg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| Ogg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| Pdf : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Ly : ((Version.t Entry.Id.t -> Entry.Slug.t -> 'w), 'w, Void.t) t
+| Svg : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Ogg : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Pdf : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 (* Files related to an anonymous version *)
 | PreviewSvg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 | PreviewOgg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
@@ -41,10 +41,10 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoContent))
     | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
     (* Files related to a version *)
-    | Ly -> variable (module Entry.Id.S(Version)) ~suffix: ".ly" @@ void ()
-    | Svg -> variable (module Entry.Id.S(Version)) ~suffix: ".svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | Ogg -> variable (module Entry.Id.S(Version)) ~suffix: ".ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | Pdf -> variable (module Entry.Id.S(Version)) ~suffix: ".pdf" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Ly -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".ly" @@ void ()
+    | Svg -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Ogg -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Pdf -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".pdf" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
     (* Files related to an anonymous version *)
     | PreviewSvg -> query "version" (module Version) @@ literal "preview.svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
     | PreviewOgg -> query "version" (module Version) @@ literal "preview.ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()

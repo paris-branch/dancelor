@@ -39,6 +39,9 @@ module type S = sig
   val remark : t -> string
   val remark' : t Entry.t -> string
 
+  val slug : t -> Entry.Slug.t
+  val slug' : t Entry.t -> Entry.Slug.t
+
   val contains_version : Core.Version.t Entry.Id.t -> t Entry.t -> bool
   (** REVIEW: This really takes a id? *)
 

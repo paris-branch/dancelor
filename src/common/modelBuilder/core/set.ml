@@ -27,6 +27,9 @@ let order' = order % Entry.value
 let instructions' = instructions % Entry.value
 let remark' = remark % Entry.value
 
+let slug = Entry.Slug.of_string % name
+let slug' = slug % Entry.value
+
 type warning =
   | Empty
   | WrongKind

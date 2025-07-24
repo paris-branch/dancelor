@@ -50,6 +50,9 @@ let source' = source % Entry.value
 let remark' = remark % Entry.value
 let scddb_id' = scddb_id % Entry.value
 
+let slug = Entry.Slug.of_string % title
+let slug' = slug % Entry.value
+
 let contains_set set1 book =
   List.exists
     (function

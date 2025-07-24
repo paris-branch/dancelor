@@ -28,4 +28,7 @@ let remark' = remark % Entry.value
 let scddb_id' = scddb_id % Entry.value
 let date' = date % Entry.value
 
+let slug = Entry.Slug.of_string % name
+let slug' = slug % Entry.value
+
 let compare e1 e2 = Entry.Id.compare' (Entry.id' e1) (Entry.id' e2)

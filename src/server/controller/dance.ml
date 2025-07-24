@@ -52,8 +52,8 @@ module Pdf = struct
     let set_parameters = Model.SetParameters.set_show_order false set_parameters in
     Set.Pdf.render set set_parameters rendering_parameters
 
-  let get env dance_id set_parameters rendering_parameters =
-    let%lwt dance = Model.Dance.get dance_id in
+  let get env id _slug set_parameters rendering_parameters =
+    let%lwt dance = Model.Dance.get id in
     Permission.assert_can_get env dance;%lwt
     let%lwt path_pdf = render env dance set_parameters rendering_parameters in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

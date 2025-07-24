@@ -34,8 +34,8 @@ let render version version_parameters rendering_parameters =
   in
   Set.Pdf.render set set_parameters rendering_parameters
 
-let get env version version_parameters rendering_parameters =
-  let%lwt version = Model.Version.get version in
+let get env id _slug version_parameters rendering_parameters =
+  let%lwt version = Model.Version.get id in
   Permission.assert_can_get env version;%lwt
   let%lwt path_pdf = render version version_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

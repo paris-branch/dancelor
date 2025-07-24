@@ -147,7 +147,7 @@ let create ?context id =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> BookDownloadDialog.create_and_open id); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> BookDownloadDialog.create_and_open book); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];

@@ -53,14 +53,14 @@ let create () =
 
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
    one line and one type, really); there is room for factorisation here. *)
-let open_ id dialog =
+let open_ book dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();
-      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Book Pdf) id params RenderingParameters.none) dialog.parameters_signal) ();
+      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Book Pdf) (Entry.id book) (Book.slug' book) params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
-let create_and_open id = open_ id (create ())
+let create_and_open book = open_ book (create ())

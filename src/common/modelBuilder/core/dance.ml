@@ -25,3 +25,6 @@ let two_chords' = two_chords % Entry.value
 let scddb_id' = scddb_id % Entry.value
 let disambiguation' = disambiguation % Entry.value
 let date' = date % Entry.value
+
+let slug = Entry.Slug.of_string % name
+let slug' = slug % Entry.value

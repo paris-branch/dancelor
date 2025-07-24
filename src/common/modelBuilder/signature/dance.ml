@@ -39,6 +39,9 @@ module type S = sig
   val date : t -> PartialDate.t option
   val date' : t Entry.t -> PartialDate.t option
 
+  val slug : t -> Entry.Slug.t
+  val slug' : t Entry.t -> Entry.Slug.t
+
   val equal : t Entry.t -> t Entry.t -> bool
 
   (** {2 Magic getter} *)

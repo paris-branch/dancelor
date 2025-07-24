@@ -44,7 +44,7 @@ let create ?context id =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> SetDownloadDialog.create_and_open id); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> SetDownloadDialog.create_and_open set); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -104,7 +104,7 @@ let create ?context id =
                     ~a: [a_class ["text-center"; "mt-4"]]
                     [
                       h4 [a ~a: [a_href (Endpoints.Page.href_version ~context id)] [txt @@ Tune.name' tune]];
-                      Components.VersionSvg.make id;
+                      Components.VersionSvg.make version;
                     ]
               )
               contents

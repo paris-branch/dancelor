@@ -1,6 +1,7 @@
 open Nes
 
 module Id = Id
+module Slug = ESlug
 
 type 'a t [@@deriving show]
 (** A database entry. Can either be a full database entry or a dummy. Dummies

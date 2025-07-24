@@ -158,7 +158,7 @@ let create ?on_save ?text () =
     Selector.render
       ~make_result: AnyResult.make_version_result'
       ~make_more_results: (fun version ->
-        [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.id version)]]]
+        [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
       )
       ~field_name: "Versions"
       ~model_name: "versions"
