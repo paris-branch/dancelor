@@ -4,21 +4,21 @@ let _key = "set"
 
 type t = {
   name: string;
-  conceptors: Person.t Slug.t list; [@default []]
+  conceptors: Person.t Entry.Id.t list; [@default []]
   kind: Kind.Dance.t;
-  contents: (Version.t Slug.t * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
+  contents: (Version.t Entry.Id.t * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
   order: SetOrder.t;
   instructions: string; [@default ""]
-  dances: Dance.t Slug.t list; [@default []]
+  dances: Dance.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
 let make ~name ?conceptors ~kind ?contents ~order ?dances () =
   let name = String.remove_duplicates ~char: ' ' name in
-  let conceptors = Option.map (List.map Entry.slug) conceptors in
-  let contents = Option.map (List.map (fun (version, parameters) -> (Entry.slug version, parameters))) contents in
-  let dances = Option.map (List.map Entry.slug) dances in
+  let conceptors = Option.map (List.map Entry.id) conceptors in
+  let contents = Option.map (List.map (fun (version, parameters) -> (Entry.id version, parameters))) contents in
+  let dances = Option.map (List.map Entry.id) dances in
   make ~name ?conceptors ~kind ?contents ~order ?dances ()
 
 let name' = name % Entry.value

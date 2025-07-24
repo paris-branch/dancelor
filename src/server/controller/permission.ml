@@ -34,12 +34,12 @@ let can_get env entry =
 let assert_can_get env entry =
   if can_get env entry then
     (
-      Log.debug (fun m -> m "Granting get access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Log.debug (fun m -> m "Granting get access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
       lwt_unit
     )
   else
     (
-      Log.info (fun m -> m "Refusing get access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Log.info (fun m -> m "Refusing get access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
       Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
     )
 
@@ -68,12 +68,12 @@ let can_update env _entry =
 let assert_can_update env entry =
   if can_update env entry then
     (
-      Log.debug (fun m -> m "Granting update access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Log.debug (fun m -> m "Granting update access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
       lwt_unit
     )
   else
     (
-      Log.info (fun m -> m "Refusing update access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Log.info (fun m -> m "Refusing update access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
       Madge_server.shortcut_forbidden "You do not have permission to update this entry."
     )
 
@@ -85,12 +85,12 @@ let can_delete env _entry =
 let assert_can_delete env entry =
   if can_delete env entry then
     (
-      Log.debug (fun m -> m "Granting delete access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Log.debug (fun m -> m "Granting delete access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
       lwt_unit
     )
   else
     (
-      Log.info (fun m -> m "Refusing delete access for entry `%a` to %a." Slug.pp' (Common.Entry.slug entry) Environment.pp env);
+      Log.info (fun m -> m "Refusing delete access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
       Madge_server.shortcut_forbidden "You do not have permission to delete this entry."
     )
 

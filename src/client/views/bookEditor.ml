@@ -13,13 +13,13 @@ type ('name, 'date, 'sets) gen = {
 [@@deriving yojson]
 
 module RawState = struct
-  (* Dirty trick to convince Yojson to serialise slugs. *)
+  (* Dirty trick to convince Yojson to serialise ids. *)
   type set = Model.Set.t
   let set_to_yojson _ = assert false
   let set_of_yojson _ = assert false
 
   type t =
-  (string, string, set Slug.t list) gen
+  (string, string, set Entry.Id.t list) gen
   [@@deriving yojson]
 
   let empty = {
@@ -36,7 +36,7 @@ module State = struct
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date;
-    sets = List.map Entry.slug state.sets;
+    sets = List.map Entry.id state.sets;
   }
 
   exception Non_convertible
@@ -82,8 +82,8 @@ module Editor = struct
     match (text, edit) with
     | Some text, _ ->
       lwt @@ f {RawState.empty with name = text}
-    | _, Some slug ->
-      let%lwt book = Model.Book.get slug in
+    | _, Some id ->
+      let%lwt book = Model.Book.get id in
       let%lwt raw_state = State.to_raw_state <$> State.of_model book in
       lwt @@ f raw_state
     | _, None ->
@@ -110,7 +110,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Set.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Set.get
         initial_state.sets
     in
@@ -130,12 +130,12 @@ module Editor = struct
   let submit ~edit (editor : t) =
     match (S.value (state editor), edit) with
     | (None, _) -> lwt_none
-    | (Some {name; date; sets}, slug) ->
+    | (Some {name; date; sets}, id) ->
       Lwt.map some @@
         (
-          match slug with
+          match id with
           | None -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create)
-          | Some slug -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) slug
+          | Some id -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) id
         )
           (
             Model.Book.make
@@ -188,7 +188,7 @@ let create ?on_save ?text ?edit () =
                 Components.Button.make_a
                   ~label: "Go to book"
                   ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_book @@ Entry.slug book)
+                  ~href: (S.const @@ Endpoints.Page.href_book @@ Entry.id book)
                   ();
               ]
           | Some on_save -> on_save book

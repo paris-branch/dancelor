@@ -56,14 +56,14 @@ let create () =
     parameters_signal;
   }
 
-let open_ slug dialog =
+let open_ id dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
       Button.cancel' ~return ();
-      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) slug params RenderingParameters.none) dialog.parameters_signal) ();
+      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) id params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
-let create_and_open slug = open_ slug (create ())
+let create_and_open id = open_ id (create ())

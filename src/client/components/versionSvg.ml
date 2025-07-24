@@ -24,8 +24,8 @@ let make_gen href =
         []
     ]
 
-let make slug =
-  make_gen (Endpoints.Api.(href @@ Version Svg) slug Model.VersionParameters.none RenderingParameters.none)
+let make id =
+  make_gen (Endpoints.Api.(href @@ Version Svg) id Model.VersionParameters.none RenderingParameters.none)
 
 let make_preview version =
   make_gen (Endpoints.Api.(href @@ Version PreviewSvg) version Model.VersionParameters.none RenderingParameters.none)

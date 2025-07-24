@@ -1,5 +1,7 @@
 open Nes
 
+module Id = Id
+
 type meta = {
   status: Status.t; [@default Status.bot]
   privacy: Privacy.t; [@default Privacy.default]
@@ -25,40 +27,40 @@ let update_meta ?status ?privacy ?created_at ?modified_at meta = {
 }
 
 type 'a t =
-  | Full of 'a Slug.t * meta * 'a
+  | Full of 'a Id.t * meta * 'a
   | Dummy of 'a
 [@@deriving show {with_path = false}]
 
 let is_dummy = function Dummy _ -> true | Full _ -> false
 
-let make' ~slug ?meta value =
+let make' ~id ?meta value =
   let meta = Option.value ~default: (make_meta ()) meta in
-  Full (slug, meta, value)
+  Full (id, meta, value)
 
-let make ~slug ?status ?privacy ?created_at ?modified_at value =
-  make' ~slug ~meta: (make_meta ?status ?privacy ?created_at ?modified_at ()) value
+let make ~id ?status ?privacy ?created_at ?modified_at value =
+  make' ~id ~meta: (make_meta ?status ?privacy ?created_at ?modified_at ()) value
 
 let make_dummy value = Dummy value
 
 exception UsedGetterOnDummy
 
-let slug = function Full (slug, _, _) -> slug | _ -> raise UsedGetterOnDummy
-let slug' e = Slug.unsafe_coerce (slug e)
-let slug_as_string e = Slug.to_string (slug e)
+let id = function Full (id, _, _) -> id | _ -> raise UsedGetterOnDummy
+let id' e = Id.unsafe_coerce (id e)
+let id_as_string e = Id.to_string (id e)
 let meta = function Full (_, meta, _) -> meta | _ -> raise UsedGetterOnDummy
 let value = function Full (_, _, value) | Dummy value -> value
 
 let status' e = status @@ meta e
 let privacy' e = privacy @@ meta e
 
-let equal' e f = Slug.equal' (slug e) (slug f)
+let equal' e f = Id.equal' (id e) (id f)
 let equal _ = equal'
-let compare' e f = Slug.compare' (slug e) (slug f)
+let compare' e f = Id.compare' (id e) (id f)
 let compare _ = compare'
 
 let to_yojson value_to_yojson = function
-  | Full (slug, meta, value) ->
-    Json.add_field "slug" (Slug.to_yojson value_to_yojson slug) @@
+  | Full (id, meta, value) ->
+    Json.add_field "id" (Id.to_yojson value_to_yojson id) @@
       Json.merge_assoc (value_to_yojson value) (meta_to_yojson meta)
   | Dummy v ->
     value_to_yojson v
@@ -67,7 +69,7 @@ let to_yojson' value_to_yojson = function
   | Full (_, meta, value) -> Json.merge_assoc (value_to_yojson value) (meta_to_yojson meta)
   | Dummy _ -> raise UsedGetterOnDummy
 
-let of_yojson' slug value_of_yojson json =
+let of_yojson' id value_of_yojson json =
   let (status, json) = Option.value (Json.extract_field_opt "status" json) ~default: (Status.(to_yojson bot), json) in
   let (privacy, json) = Option.value (Json.extract_field_opt "privacy" json) ~default: (Privacy.(to_yojson default), json) in
   let (created_at, json) = Json.extract_field "created-at" json in
@@ -75,13 +77,13 @@ let of_yojson' slug value_of_yojson json =
   let meta_json = `Assoc [("status", status); ("privacy", privacy); ("created-at", created_at); ("modified-at", modified_at)] in
   Result.bind (meta_of_yojson meta_json) @@ fun meta ->
   Result.bind (value_of_yojson value_json) @@ fun value ->
-  Ok (Full (slug, meta, value))
+  Ok (Full (id, meta, value))
 
 let of_yojson value_of_yojson json =
-  match Json.extract_field_opt "slug" json with
-  | Some (slug, json) ->
-    Result.bind (Slug.of_yojson value_of_yojson slug) @@ fun slug ->
-    of_yojson' slug value_of_yojson json
+  match Json.extract_field_opt "id" json with
+  | Some (id, json) ->
+    Result.bind (Id.of_yojson value_of_yojson id) @@ fun id ->
+    of_yojson' id value_of_yojson json
   | None -> Result.map (fun x -> Dummy x) (value_of_yojson json)
 
 module J (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t t = struct

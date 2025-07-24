@@ -109,7 +109,7 @@ let create ?on_save ?text () =
                 Components.Button.make_a
                   ~label: "Go to person"
                   ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_person @@ Entry.slug person)
+                  ~href: (S.const @@ Endpoints.Page.href_person @@ Entry.id person)
                   ();
               ]
           | Some on_save -> on_save person

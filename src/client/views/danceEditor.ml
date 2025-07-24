@@ -17,7 +17,7 @@ type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) g
 [@@deriving yojson]
 
 module RawState = struct
-  (* Dirty trick to convince Yojson to serialise slugs. *)
+  (* Dirty trick to convince Yojson to serialise ids. *)
   type person = Model.Person.t
   let person_to_yojson _ = assert false
   let person_of_yojson _ = assert false
@@ -25,7 +25,7 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Slug.t list,
+    person Entry.Id.t list,
     string,
     string,
     (* bool, *)
@@ -100,7 +100,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         initial_state.devisers
     in
@@ -213,7 +213,7 @@ let create ?on_save ?text () =
                 Components.Button.make_a
                   ~label: "Go to dance"
                   ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_dance @@ Entry.slug dance)
+                  ~href: (S.const @@ Endpoints.Page.href_dance @@ Entry.id dance)
                   ();
               ]
           | Some on_save -> on_save dance

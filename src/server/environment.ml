@@ -32,7 +32,7 @@ let pp fmt env =
     (
       match !(env.session).user with
       | None -> "<anynomous>"
-      | Some user -> Entry.slug_as_string user
+      | Some user -> Entry.id_as_string user
     )
     env.session_id
     Datetime.pp
@@ -67,7 +67,7 @@ let set_user env user =
 (** Helper to update the user in the database. *)
 let database_update_user user f =
   let%lwt new_user = f @@ Entry.value user in
-  ignore <$> Database.User.update (Entry.slug user) new_user
+  ignore <$> Database.User.update (Entry.id user) new_user
 
 (* Given an environment, check whether we should log in a user via their
    remember me token. This is meant to be used in {!make}, before returning a
@@ -75,16 +75,18 @@ let database_update_user user f =
 let process_remember_me_cookie env remember_me_cookie =
   match String.split_3_on_char ':' remember_me_cookie with
   | None -> lwt_unit
-  | Some (username, key, token) ->
-    Log.info (fun m -> m "Attempt to get remembered with username `%s`." username);
-    match Slug.check_string username with
+  | Some (id, key, token) ->
+    Log.info (fun m -> m "Attempt to get remembered with id `%s`." id);
+    match Entry.Id.of_string id with
     | None ->
-      Log.info (fun m -> m "Rejecting because username is not even a slug.");
+      Log.info (fun m -> m "Rejecting because id is not valid.");
+      register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
       lwt_unit
-    | Some username ->
-      match%lwt Database.User.get_opt username with
+    | Some id ->
+      match%lwt Database.User.get_opt id with
       | None ->
         Log.info (fun m -> m "Rejecting because of wrong username.");
+        register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
         lwt_unit
       | Some user ->
         let tokens = Model.User.remember_me_tokens' user in
@@ -186,7 +188,7 @@ let sign_in env user ~remember_me =
           ~secure: true
           ~httpOnly: true
           "rememberMe"
-          (Entry.slug_as_string user ^ ":" ^ key ^ ":" ^ token)
+          (Entry.id_as_string user ^ ":" ^ key ^ ":" ^ token)
           ~max_age: remember_me_token_max_age
       );
     lwt_unit

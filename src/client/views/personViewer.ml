@@ -4,14 +4,14 @@ open Common
 open Model
 open Html
 
-let create ?context slug =
-  MainPage.get_model_or_404 (Person Get) slug @@ fun person ->
+let create ?context id =
+  MainPage.get_model_or_404 (Person Get) id @@ fun person ->
   Page.make'
     ~parent_title: "Person"
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_person slug)
+        ~this_page: (Endpoints.Page.href_person id)
         (lwt @@ Any.person person);
     ]
     ~title: (lwt @@ Person.name' person)

@@ -3,8 +3,8 @@ open Common
 
 module Log = (val Logger.create "controller.dance": Logs.LOG)
 
-let get env slug =
-  let%lwt dance = Model.Dance.get slug in
+let get env id =
+  let%lwt dance = Model.Dance.get id in
   Permission.assert_can_get env dance;%lwt
   lwt dance
 
@@ -12,9 +12,9 @@ let create env dance =
   Permission.assert_can_create env;%lwt
   Database.Dance.create dance
 
-let update env slug dance =
-  Permission.assert_can_update env =<< get env slug;%lwt
-  Database.Dance.update slug dance
+let update env id dance =
+  Permission.assert_can_update env =<< get env id;%lwt
+  Database.Dance.update id dance
 
 include Search.Build(struct
   type value = Model.Dance.t Entry.t
@@ -52,8 +52,8 @@ module Pdf = struct
     let set_parameters = Model.SetParameters.set_show_order false set_parameters in
     Set.Pdf.render set set_parameters rendering_parameters
 
-  let get env dance_slug set_parameters rendering_parameters =
-    let%lwt dance = Model.Dance.get dance_slug in
+  let get env dance_id set_parameters rendering_parameters =
+    let%lwt dance = Model.Dance.get dance_id in
     Permission.assert_can_get env dance;%lwt
     let%lwt path_pdf = render env dance set_parameters rendering_parameters in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

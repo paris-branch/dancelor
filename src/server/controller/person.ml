@@ -1,8 +1,8 @@
 open Nes
 open Common
 
-let get env slug =
-  let%lwt person = Model.Person.get slug in
+let get env id =
+  let%lwt person = Model.Person.get id in
   Permission.assert_can_get env person;%lwt
   lwt person
 
@@ -10,9 +10,9 @@ let create env person =
   Permission.assert_can_create env;%lwt
   Database.Person.create person
 
-let update env slug person =
-  Permission.assert_can_update env =<< get env slug;%lwt
-  Database.Person.update slug person
+let update env id person =
+  Permission.assert_can_update env =<< get env id;%lwt
+  Database.Person.update id person
 
 include Search.Build(struct
   type value = Model.Person.t Entry.t

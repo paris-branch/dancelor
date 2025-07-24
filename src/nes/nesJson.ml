@@ -93,9 +93,6 @@ let int = function
   | `Int i -> Some i
   | _ -> None
 
-let slug json =
-  Option.bind (string json) (fun value -> Some (NesSlug.from_string value))
-
 let rec list_map_opt (f : 'a -> 'b option) : 'a list -> 'b list option = function
   | [] -> Some []
   | x :: l ->

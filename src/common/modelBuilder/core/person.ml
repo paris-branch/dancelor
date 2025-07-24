@@ -14,6 +14,3 @@ let make ~name ?scddb_id () =
 
 let name' = name % Entry.value
 let scddb_id' = scddb_id % Entry.value
-
-let trad_slug : t Slug.t = Slug.check_string_exn "traditional"
-let is_trad' c = Slug.equal' (Entry.slug c) trad_slug

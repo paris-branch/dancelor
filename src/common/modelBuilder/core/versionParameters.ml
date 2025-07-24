@@ -8,7 +8,7 @@ module Self = struct
   type t = {
     transposition: Transposition.t option; [@default None]
     first_bar: int option; [@default None] [@key "first-bar"]
-    for_dance: Dance.t Slug.t option; [@default None] [@key "for-dance"]
+    for_dance: Dance.t Entry.Id.t option; [@default None] [@key "for-dance"]
     instruments: string option; [@default None]
     clef: Music.clef option; [@default None]
     trivia: string option; [@default None]

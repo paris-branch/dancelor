@@ -19,7 +19,7 @@ module type S = sig
     ?show_deviser: bool ->
     ?show_order: bool ->
     ?display_name: string ->
-    ?for_dance: Core.Dance.t Slug.t ->
+    ?for_dance: Core.Dance.t Entry.Id.t ->
     ?every_version: Core.VersionParameters.t ->
     unit ->
     t

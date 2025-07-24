@@ -53,5 +53,5 @@ module type S = sig
   (** Magic getter. On the client side, this hides an API call, which goes
       through the permissions mechanism. On the server side, this hides a call
       to the database. *)
-  val get : t Slug.t -> t Entry.t Lwt.t
+  val get : t Entry.Id.t -> t Entry.t Lwt.t
 end

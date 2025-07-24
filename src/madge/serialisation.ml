@@ -77,19 +77,3 @@ end
 module JQuad (A : JSONABLE) (B : JSONABLE) (C : JSONABLE) (D : JSONABLE) : JSONABLE with type t = A.t * B.t * C.t * D.t = struct
   type t = A.t * B.t * C.t * D.t [@@deriving yojson]
 end
-
-(* Slugs *)
-
-(* for the slugs, we can stringify them just like strings, no matter what type
-   they carry. *)
-module type TYPEABLE = sig type t end
-module SSlug (A : TYPEABLE) : STRINGABLE with type t = A.t Slug.t = struct
-  type t = A.t Slug.t
-  let to_string = Slug.to_string
-  let of_string = Slug.check_string
-end
-module JSlug (A : TYPEABLE) : JSONABLE with type t = A.t Slug.t = struct
-  type t = A.t Slug.t
-  let to_yojson = Slug.to_yojson'
-  let of_yojson = Slug.of_yojson'
-end

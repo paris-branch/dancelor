@@ -36,7 +36,7 @@ let make_gen_unsafe
     ~radios
     choices
   =
-  let html_name = unique ?name: (Option.map String.slugify name) () in
+  let html_name = unique ?name: (Option.map Slug.slugify name) () in
   let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
   let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
   let values = S.map validate values in

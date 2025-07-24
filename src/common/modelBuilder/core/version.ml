@@ -3,12 +3,12 @@ open Nes
 let _key = "version"
 
 type t = {
-  tune: Tune.t Slug.t;
+  tune: Tune.t Entry.Id.t;
   bars: int;
   key: Music.key;
   structure: string;
-  sources: Source.t Slug.t list; [@default []]
-  arrangers: Person.t Slug.t list; [@default []]
+  sources: Source.t Entry.Id.t list; [@default []]
+  arrangers: Person.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
   content: string;
@@ -18,9 +18,9 @@ type t = {
 let make ~tune ~bars ~key ~structure ?sources ?arrangers ?remark ?disambiguation ~content () =
   let structure = String.remove_duplicates ~char: ' ' structure in
   let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
-  let tune = Entry.slug tune in
-  let sources = Option.map (List.map Entry.slug) sources in
-  let arrangers = Option.map (List.map Entry.slug) arrangers in
+  let tune = Entry.id tune in
+  let sources = Option.map (List.map Entry.id) sources in
+  let arrangers = Option.map (List.map Entry.id) arrangers in
   make ~tune ~bars ~key ~structure ?sources ?arrangers ?remark ?disambiguation ~content ()
 
 let tune' = tune % Entry.value

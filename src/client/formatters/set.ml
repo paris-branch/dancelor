@@ -16,7 +16,7 @@ let name_gen set_gen =
     match set_gen with
     | Right (set, true) ->
       a
-        ~a: [a_href @@ Endpoints.Page.href_set @@ Entry.slug set]
+        ~a: [a_href @@ Endpoints.Page.href_set @@ Entry.id set]
         [txt @@ Model.Set.name' set]
     | Right (set, _) -> txt (Model.Set.name' set)
     | Left set -> txt (Model.Set.name set)

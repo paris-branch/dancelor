@@ -22,7 +22,7 @@ let name' ?(short = false) ?(link = true) source =
     if link then
       [
         a
-          ~a: [a_href @@ Endpoints.Page.href_source @@ Entry.slug source]
+          ~a: [a_href @@ Endpoints.Page.href_source @@ Entry.id source]
           name_text
       ]
     else

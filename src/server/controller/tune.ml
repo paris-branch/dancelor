@@ -1,8 +1,8 @@
 open Nes
 open Common
 
-let get env slug =
-  let%lwt tune = Model.Tune.get slug in
+let get env id =
+  let%lwt tune = Model.Tune.get id in
   Permission.assert_can_get env tune;%lwt
   lwt tune
 
@@ -10,9 +10,9 @@ let create env tune =
   Permission.assert_can_create env;%lwt
   Database.Tune.create tune
 
-let update env slug tune =
-  Permission.assert_can_update env =<< get env slug;%lwt
-  Database.Tune.update slug tune
+let update env id tune =
+  Permission.assert_can_update env =<< get env id;%lwt
+  Database.Tune.update id tune
 
 include Search.Build(struct
   type value = Model.Tune.t Entry.t

@@ -2,8 +2,8 @@ open Nes
 
 module Page = struct
   type t =
-    | Version of Version.t Slug.t * VersionParameters.t
-    | Set of Set.t Slug.t * SetParameters.t
+    | Version of Version.t Entry.Id.t * VersionParameters.t
+    | Set of Set.t Entry.Id.t * SetParameters.t
     | InlineSet of Set.t * SetParameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 end
@@ -15,8 +15,8 @@ type page =
 [@@deriving show {with_path = false}]
 
 let page_to_page_core = function
-  | (Version (version, params): page) -> Page.Version (Entry.slug version, params)
-  | (Set (set, params): page) -> Page.Set (Entry.slug set, params)
+  | (Version (version, params): page) -> Page.Version (Entry.id version, params)
+  | (Set (set, params): page) -> Page.Set (Entry.id set, params)
   | (InlineSet (set, params): page) -> Page.InlineSet (set, params)
 
 let _key = "book"
@@ -25,7 +25,7 @@ type t = {
   title: string;
   subtitle: string; [@default ""]
   short_title: string; [@default ""] [@key "short-title"]
-  authors: Person.t Slug.t list; [@default []]
+  authors: Person.t Entry.Id.t list; [@default []]
   date: PartialDate.t option; [@default None]
   contents: Page.t list;
   source: bool; [@default false]
@@ -38,7 +38,7 @@ let make ~title ?subtitle ?short_title ?authors ?date ?(contents = []) ?source ?
   let title = String.remove_duplicates ~char: ' ' title in
   let subtitle = Option.map (String.remove_duplicates ~char: ' ') subtitle in
   let short_title = Option.map (String.remove_duplicates ~char: ' ') short_title in
-  let authors = Option.map (List.map Entry.slug) authors in
+  let authors = Option.map (List.map Entry.id) authors in
   let contents = List.map page_to_page_core contents in
   make ~title ?subtitle ?short_title ?authors ~date ~contents ?source ?remark ~scddb_id ()
 
@@ -53,7 +53,7 @@ let scddb_id' = scddb_id % Entry.value
 let contains_set set1 book =
   List.exists
     (function
-      | Page.Set (set2, _) -> Slug.equal' set1 set2
+      | Page.Set (set2, _) -> Entry.Id.equal' set1 set2
       | _ -> false
     )
     (Entry.value book).contents

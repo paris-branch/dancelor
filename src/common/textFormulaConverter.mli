@@ -64,6 +64,13 @@ val unary_int :
 (** Make a case whose argument must be an int. See {!unary_string} for the
     [?wrap_back] argument. *)
 
+val unary_id :
+  ?wrap_back: wrap_back ->
+  name: string ->
+  (('a Entry.Id.t -> 'p) * ('p -> 'a Entry.Id.t option)) ->
+  'p case
+(** Make a case whose argument must be a ids. *)
+
 val unary_raw :
   ?wrap_back: wrap_back ->
   name: string ->

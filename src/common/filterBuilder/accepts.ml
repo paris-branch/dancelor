@@ -6,7 +6,7 @@ module Make (Model : ModelBuilder.S) = struct
   let rec accepts_book filter book =
     Formula.interpret filter @@ function
       | Core.Book.Is book' ->
-        lwt @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug book) book'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id book) book'
       | Title string ->
         lwt @@ String.proximity ~char_equal string @@ Model.Book.title' book
       | TitleMatches string ->
@@ -65,7 +65,7 @@ module Make (Model : ModelBuilder.S) = struct
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
       | Core.Dance.Is dance' ->
-        lwt @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug dance) dance'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id dance) dance'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ Model.Dance.name' dance
       | NameMatches string ->
@@ -80,7 +80,7 @@ module Make (Model : ModelBuilder.S) = struct
   and accepts_person filter person =
     Formula.interpret filter @@ function
       | Core.Person.Is person' ->
-        lwt @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug person) person'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id person) person'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ Model.Person.name' person
       | NameMatches string ->
@@ -89,7 +89,7 @@ module Make (Model : ModelBuilder.S) = struct
   and accepts_set filter set =
     Formula.interpret filter @@ function
       | Core.Set.Is set' ->
-        lwt @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug set) set'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id set) set'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ Model.Set.name' set
       | NameMatches string ->
@@ -107,7 +107,7 @@ module Make (Model : ModelBuilder.S) = struct
   and accepts_source filter source =
     Formula.interpret filter @@ function
       | Core.Source.Is source' ->
-        lwt @@ Formula.interpret_bool @@ Slug.unsafe_equal (Entry.slug source) source'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id source) source'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ Model.Source.name' source
       | NameMatches string ->
@@ -116,7 +116,7 @@ module Make (Model : ModelBuilder.S) = struct
   and accepts_tune filter tune =
     Formula.interpret filter @@ function
       | Core.Tune.Is tune' ->
-        lwt @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug tune) tune'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id tune) tune'
       | Name string ->
         lwt @@ String.proximity ~char_equal string @@ Model.Tune.name' tune
       | NameMatches string ->
@@ -135,7 +135,7 @@ module Make (Model : ModelBuilder.S) = struct
   and accepts_version filter version =
     Formula.interpret filter @@ function
       | Core.Version.Is version' ->
-        lwt @@ Formula.interpret_bool @@ Slug.equal' (Entry.slug version) version'
+        lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id version) version'
       | Tune tfilter ->
         let%lwt tune = Model.Version.tune' version in
         accepts_tune tfilter tune

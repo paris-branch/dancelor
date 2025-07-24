@@ -4,7 +4,6 @@ open Common
 module Source = Table.Make(struct
   include ModelBuilder.Core.Source
 
-  let slug_hint source = lwt source.name
   let separate_fields = []
   let dependencies _ = lwt []
   let standalone = false
@@ -13,7 +12,6 @@ end)
 module Person = Table.Make(struct
   include ModelBuilder.Core.Person
 
-  let slug_hint person = lwt person.name
   let separate_fields = []
   let dependencies _ = lwt []
   let standalone = false
@@ -22,14 +20,10 @@ end)
 module User = Table.Make(struct
   include ModelBuilder.Core.User
 
-  let slug_hint user =
-    let%lwt person = Person.get user.person in
-    lwt (Entry.value person).name
-
   let separate_fields = []
   let dependencies user =
     lwt [
-      Table.make_slug_and_table (module Person) (ModelBuilder.Core.User.person user)
+      Table.make_id_and_table (module Person) (ModelBuilder.Core.User.person user)
     ]
   let standalone = true
 end)
@@ -37,12 +31,11 @@ end)
 module Dance = Table.Make(struct
   include ModelBuilder.Core.Dance
 
-  let slug_hint dance = lwt dance.name
   let separate_fields = []
   let dependencies dance =
     lwt
       (
-        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Dance.devisers dance)
+        List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Dance.devisers dance)
       )
 
   let standalone = true
@@ -51,13 +44,12 @@ end)
 module Tune = Table.Make(struct
   include ModelBuilder.Core.Tune
 
-  let slug_hint tune = lwt tune.name
   let separate_fields = []
   let dependencies tune =
     lwt
       (
-        List.map (Table.make_slug_and_table (module Dance)) (ModelBuilder.Core.Tune.dances tune) @
-          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Tune.composers tune)
+        List.map (Table.make_id_and_table (module Dance)) (ModelBuilder.Core.Tune.dances tune) @
+          List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Tune.composers tune)
       )
 
   let standalone = false
@@ -66,17 +58,13 @@ end)
 module Version = Table.Make(struct
   include ModelBuilder.Core.Version
 
-  let slug_hint version =
-    let%lwt tune = Tune.get version.tune in
-    lwt (Entry.value tune).name
-
   let separate_fields = [("content", "content.ly")]
   let dependencies version =
     lwt
       (
-        [Table.make_slug_and_table (module Tune) (ModelBuilder.Core.Version.tune version)] @
-        List.map (Table.make_slug_and_table (module Source)) (ModelBuilder.Core.Version.sources version) @
-        List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
+        [Table.make_id_and_table (module Tune) (ModelBuilder.Core.Version.tune version)] @
+        List.map (Table.make_id_and_table (module Source)) (ModelBuilder.Core.Version.sources version) @
+        List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
       )
 
   let standalone = true
@@ -85,13 +73,12 @@ end)
 module SetModel = struct
   include ModelBuilder.Core.Set
 
-  let slug_hint set = lwt set.name
   let separate_fields = []
   let dependencies set =
     lwt
       (
-        List.map (Table.make_slug_and_table (module Version) % fst) (ModelBuilder.Core.Set.contents set) @
-          List.map (Table.make_slug_and_table (module Person)) (ModelBuilder.Core.Set.conceptors set)
+        List.map (Table.make_id_and_table (module Version) % fst) (ModelBuilder.Core.Set.contents set) @
+          List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Set.conceptors set)
       )
 
   let standalone = true
@@ -102,7 +89,6 @@ module Set = Table.Make(SetModel)
 module Book = Table.Make(struct
   include ModelBuilder.Core.Book
 
-  let slug_hint book = lwt book.title
   let separate_fields = []
   let dependencies book =
     let%lwt dependencies =
@@ -111,18 +97,18 @@ module Book = Table.Make(struct
           | ModelBuilder.Core.Book.Page.Version (version, parameters) ->
             lwt
               (
-                [Table.make_slug_and_table (module Version) version] @
+                [Table.make_id_and_table (module Version) version] @
                   match ModelBuilder.Core.VersionParameters.for_dance parameters with
                   | None -> []
-                  | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+                  | Some dance -> [Table.make_id_and_table (module Dance) dance]
               )
           | ModelBuilder.Core.Book.Page.Set (set, parameters) ->
             lwt
               (
-                [Table.make_slug_and_table (module Set) set] @
+                [Table.make_id_and_table (module Set) set] @
                   match ModelBuilder.Core.SetParameters.for_dance parameters with
                   | None -> []
-                  | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+                  | Some dance -> [Table.make_id_and_table (module Dance) dance]
               )
           | ModelBuilder.Core.Book.Page.InlineSet (set, parameters) ->
             let%lwt set_dependencies = SetModel.dependencies set in
@@ -131,7 +117,7 @@ module Book = Table.Make(struct
                 set_dependencies @
                   match ModelBuilder.Core.SetParameters.for_dance parameters with
                   | None -> []
-                  | Some dance -> [Table.make_slug_and_table (module Dance) dance]
+                  | Some dance -> [Table.make_id_and_table (module Dance) dance]
               )
         )
         (ModelBuilder.Core.Book.contents book)
@@ -179,12 +165,12 @@ module Initialise = struct
           (
             problems
             |> List.iter @@ function
-                | Error.DependencyDoesNotExist ((from_key, from_slug), (to_key, to_slug)) ->
-                  Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_slug to_key to_slug)
-                | DependencyViolatesStatus ((from_key, from_slug, from_status), (to_key, to_slug, to_status)) ->
-                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_slug Status.pp from_status to_key to_slug Status.pp to_status)
-                | DependencyViolatesPrivacy ((from_key, from_slug, from_privacy), (to_key, to_slug, to_privacy)) ->
-                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_slug Privacy.pp from_privacy to_key to_slug Privacy.pp to_privacy)
+                | Error.DependencyDoesNotExist ((from_key, from_id), (to_key, to_id)) ->
+                  Log.warn (fun m -> m "%s / %s refers to %s / %s that does not exist" from_key from_id to_key to_id)
+                | DependencyViolatesStatus ((from_key, from_id, from_status), (to_key, to_id, to_status)) ->
+                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_id Status.pp from_status to_key to_id Status.pp to_status)
+                | DependencyViolatesPrivacy ((from_key, from_id, from_privacy), (to_key, to_id, to_privacy)) ->
+                  Log.warn (fun m -> m "%s / %s [%a] refers to %s / %s [%a]" from_key from_id Privacy.pp from_privacy to_key to_id Privacy.pp to_privacy)
                 | _ -> ()
           );
           match found_problem, problems with

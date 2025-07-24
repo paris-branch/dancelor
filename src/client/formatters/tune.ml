@@ -8,7 +8,7 @@ let name_gen tune_gen =
     match tune_gen with
     | Right (tune, true) ->
       a
-        ~a: [a_href @@ Endpoints.Page.href_tune @@ Entry.slug tune]
+        ~a: [a_href @@ Endpoints.Page.href_tune @@ Entry.id tune]
         [txt @@ Model.Tune.name' tune]
     | Right (tune, _) -> txt (Model.Tune.name' tune)
     | Left tune -> txt (Model.Tune.name tune)
@@ -32,7 +32,7 @@ let description tune =
         [
           txt (String.capitalize_ascii kind)
         ]
-    | [composer] when Model.Person.is_trad' composer ->
+    | [composer] when Model.Person.name' composer = "Traditional" ->
       lwt
         [
           txt ("Traditional " ^ kind)

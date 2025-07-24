@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Book.t Slug.t
+  | Is of ModelBuilder.Core.Book.t Entry.Id.t
   | IsSource
   | Title of string
   | TitleMatches of string
@@ -39,7 +39,7 @@ let text_formula_converter =
         unary_lift ~name: "exists-set" (existsSet, unExistsSet) ~converter: Set.text_formula_converter;
         unary_lift ~name: "exists-inline-set" (existsInlineSet, unExistsInlineSet) ~converter: Set.text_formula_converter;
         unary_lift ~name: "exists-version-deep" (existsVersionDeep, unExistsVersionDeep) ~converter: Version.text_formula_converter;
-        unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+        unary_id ~name: "is" (is, unIs);
         nullary ~name: "is-source" IsSource;
       ]
   )
@@ -51,7 +51,7 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.slug
+let is = is % Entry.id
 let is' = Formula.pred % is
 
 let memVersion = existsVersion % Version.is'
