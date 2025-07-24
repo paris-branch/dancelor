@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Source.t Slug.t
+  | Is of ModelBuilder.Core.Source.t Entry.Id.t
   | Name of string
   | NameMatches of string
 [@@deriving eq, show {with_path = false}, yojson, variants]
@@ -19,7 +19,7 @@ let text_formula_converter =
         raw (ok % nameMatches');
         unary_string ~name: "name" (name, unName);
         unary_string ~name: "name-matches" (nameMatches, unNameMatches);
-        unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+        unary_id ~name: "is" (is, unIs);
       ]
   )
 
@@ -30,7 +30,7 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.slug
+let is = is % Entry.id
 let is' = Formula.pred % is
 
 let optimise =

@@ -119,6 +119,8 @@ let unary_raw ?(wrap_back = Always) ~name ~cast: (cast, uncast) ~type_ (to_predi
 let unary_string = unary_raw ~cast: (some, Fun.id) ~type_: "string"
 let unary_int = unary_raw ~cast: (int_of_string_opt, string_of_int) ~type_: "int"
 
+let unary_id = unary_raw ~cast: (Entry.Id.of_string, Entry.Id.to_string) ~type_: "id"
+
 let unary_lift ?(wrap_back = Always) ~name ~converter (lift, unlift) =
   unary
     ~name

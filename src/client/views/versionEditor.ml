@@ -19,7 +19,7 @@ type ('tune, 'bars, 'key, 'structure, 'arrangers, 'remark, 'sources, 'disambigua
 [@@deriving yojson]
 
 module RawState = struct
-  (* Dirty trick to convince Yojson to serialise slugs. *)
+  (* Dirty trick to convince Yojson to serialise ids. *)
   type tune = Model.Tune.t
   let tune_to_yojson _ = assert false
   let tune_of_yojson _ = assert false
@@ -31,7 +31,7 @@ module RawState = struct
   let source_of_yojson _ = assert false
 
   type t =
-  (tune Slug.t list, string, string, string, person Slug.t list, string, source Slug.t list, string, string) gen
+  (tune Entry.Id.t list, string, string, string, person Entry.Id.t list, string, source Entry.Id.t list, string, string) gen
   [@@deriving yojson]
 
   let empty = {
@@ -94,7 +94,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Tune.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Tune.get
         initial_state.tune
     in
@@ -114,7 +114,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
@@ -126,7 +126,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Source.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Source.get
         initial_state.sources
     in
@@ -261,7 +261,7 @@ let create ?on_save ?text ?tune () =
                               Components.Button.make_a
                                 ~label: "Go to version"
                                 ~classes: ["btn-primary"]
-                                ~href: (S.const @@ Endpoints.Page.href_version @@ Entry.slug version)
+                                ~href: (S.const @@ Endpoints.Page.href_version @@ Entry.id version)
                                 ();
                             ]
                         | Some on_save -> on_save version

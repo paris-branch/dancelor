@@ -1,12 +1,25 @@
 open QCheck2
 
-module Slug = struct
-  type 'any t = [%import: 'any NesSlug.t]
+module Id = struct
+  type 'any t = [%import: 'any Common.Entry.Id.t]
 
   let gen _ =
-    Gen.map
-      NesSlug.unsafe_of_string
-      Gen.(string_size ~gen: (char_range 'a' 'z') (int_range 1 10))
+    let open Gen in
+    (* generate 11 digits in base 36 *)
+    flatten_l (List.init 11 (fun _ -> int_range 0 35)) >>= fun digits ->
+    (* add the checksum digit in front *)
+    let digits = ((36 - ((List.fold_left (+) 0 digits) mod 36)) mod 36) :: digits in
+    (* turn the digits into alphanumerals *)
+    let alphanumerals = List.map (fun n -> Char.chr (if n < 10 then Char.code '0' + n else Char.code 'a' + n - 10)) digits in
+    (* make a string of the form 0000-0000-0000 *)
+    let str = Bytes.make 14 '-' in
+    for i = 0 to 3 do Bytes.set str i (List.nth alphanumerals i) done;
+    for i = 5 to 8 do Bytes.set str i (List.nth alphanumerals (i - 1)) done;
+    for i = 10 to 13 do Bytes.set str i (List.nth alphanumerals (i - 2)) done;
+    let str = Bytes.unsafe_to_string str in
+    Format.eprintf "===> %s@." str;
+    (* convert to and id (which will check it), and we're done! *)
+    pure @@ Option.get @@ Common.Entry.Id.of_string str
 end
 
 module Music = struct
@@ -123,9 +136,9 @@ end
 
 module Model = struct
   (* The following are dirty tricks, necessary to convince [ppx_deriving_qcheck]
-     that it can generate a [t Slug.t]. These “models” are only to be used in a
-     context where we use their slugs; there, it is fine since [Slug.gen]
-     ignores its first argument. *)
+     that it can generate an [t Id.t]. These “models” are only to be used in a
+     context where we use their id; there, it is fine since [Id.gen] ignores its
+     first argument. *)
 
   module Source = struct
     type t = [%import: Common.ModelBuilder.Core.Source.t]
@@ -173,7 +186,7 @@ end
 
 module Filter = struct
   module Source = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
       Common.ModelBuilder.Core.Source.t := Model.Source.t;
       ]
     ]
@@ -184,7 +197,7 @@ module Filter = struct
   end
 
   module Person = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Person.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
       Common.ModelBuilder.Core.Person.t := Model.Person.t;
       ]
     ]
@@ -195,7 +208,7 @@ module Filter = struct
   end
 
   module Dance = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Dance.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Dance.predicate [@with Common.Entry.Id.t := Id.t;
       Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
       Common__FilterBuilder__Core.Person.t := Person.t;
@@ -208,7 +221,7 @@ module Filter = struct
   end
 
   module Tune = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Tune.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Tune.predicate [@with Common.Entry.Id.t := Id.t;
       Common.ModelBuilder.Core.Tune.t := Model.Tune.t;
       Common.ModelBuilder.Core.Dance.t := Model.Dance.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
@@ -223,7 +236,7 @@ module Filter = struct
   end
 
   module Version = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Version.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Version.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Version.t := Model.Version.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
@@ -241,7 +254,7 @@ module Filter = struct
   end
 
   module Set = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Set.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Set.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Set.t := Model.Set.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
@@ -258,7 +271,7 @@ module Filter = struct
   end
 
   module Book = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Book.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Book.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Book.t := Model.Book.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
@@ -275,7 +288,7 @@ module Filter = struct
   end
 
   module Any = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Any.predicate [@with Nes.Slug.t := Slug.t;
+    type predicate = [%import: Common.FilterBuilder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
       Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Any.Type.t := Model.Any.Type.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;

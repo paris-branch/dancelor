@@ -4,8 +4,8 @@ open Common
 module Ly = Ly
 module Pdf = Pdf
 
-let get env slug =
-  let%lwt book = Model.Book.get slug in
+let get env id =
+  let%lwt book = Model.Book.get id in
   Permission.assert_can_get env book;%lwt
   lwt book
 
@@ -13,9 +13,9 @@ let create env book =
   Permission.assert_can_create env;%lwt
   Database.Book.create book
 
-let update env slug book =
-  Permission.assert_can_update env =<< get env slug;%lwt
-  Database.Book.update slug book
+let update env id book =
+  Permission.assert_can_update env =<< get env id;%lwt
+  Database.Book.update id book
 
 include Search.Build(struct
   type value = Model.Book.t Entry.t

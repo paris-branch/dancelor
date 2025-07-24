@@ -4,14 +4,14 @@ open Common
 open Model
 open Html
 
-let create ?context slug =
-  MainPage.get_model_or_404 (Set Get) slug @@ fun set ->
+let create ?context id =
+  MainPage.get_model_or_404 (Set Get) id @@ fun set ->
   Page.make'
     ~parent_title: "Set"
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_set slug)
+        ~this_page: (Endpoints.Page.href_set id)
         (lwt @@ Any.set set);
     ]
     ~title: (lwt @@ Set.name' set)
@@ -44,7 +44,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> SetDownloadDialog.create_and_open slug); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> SetDownloadDialog.create_and_open set); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -57,7 +57,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href Endpoints.Page.(href BookAdd);
-                      a_onclick (fun _ -> BookEditor.Editor.add_to_storage slug; true);
+                      a_onclick (fun _ -> BookEditor.Editor.add_to_storage id; true);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-plus-square"]] [];
@@ -95,16 +95,16 @@ let create ?context slug =
             let%lwt contents = Set.contents' set in
             Lwt_list.mapi_p
               (fun index (version, _parameters) ->
-                let context = Endpoints.Page.inSet slug index in
+                let context = Endpoints.Page.inSet id index in
                 (* FIXME: use parameters *)
                 let%lwt tune = Version.tune' version in
-                let slug = Entry.slug version in
+                let id = Entry.id version in
                 lwt @@
                   div
                     ~a: [a_class ["text-center"; "mt-4"]]
                     [
-                      h4 [a ~a: [a_href (Endpoints.Page.href_version ~context slug)] [txt @@ Tune.name' tune]];
-                      Components.VersionSvg.make slug;
+                      h4 [a ~a: [a_href (Endpoints.Page.href_version ~context id)] [txt @@ Tune.name' tune]];
+                      Components.VersionSvg.make version;
                     ]
               )
               contents

@@ -8,7 +8,7 @@ let name_gen person =
     match person with
     | Right (person, true) ->
       a
-        ~a: [a_href @@ Endpoints.Page.href_person @@ Entry.slug person]
+        ~a: [a_href @@ Endpoints.Page.href_person @@ Entry.id person]
         [txt (Model.Person.name' person)]
     | Right (person, _) -> txt (Model.Person.name' person)
     | Left person -> txt (Model.Person.name person)

@@ -55,7 +55,6 @@ val get_opt : k: (t -> 'a option) -> string list -> t -> 'a option
 
 val string : t -> string option
 val int : t -> int option
-val slug : t -> 'a NesSlug.t option
 val strings : t -> string list option
 val list : (t -> 'a) -> t -> 'a list option
 

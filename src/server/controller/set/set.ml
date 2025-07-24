@@ -3,8 +3,8 @@ open Common
 
 module Pdf = Pdf
 
-let get env slug =
-  let%lwt set = Model.Set.get slug in
+let get env id =
+  let%lwt set = Model.Set.get id in
   Permission.assert_can_get env set;%lwt
   lwt set
 
@@ -12,13 +12,13 @@ let create env set =
   Permission.assert_can_create env;%lwt
   Database.Set.create set
 
-let update env slug set =
-  Permission.assert_can_update env =<< get env slug;%lwt
-  Database.Set.update slug set
+let update env id set =
+  Permission.assert_can_update env =<< get env id;%lwt
+  Database.Set.update id set
 
-let delete env slug =
-  Permission.assert_can_delete env =<< get env slug;%lwt
-  Database.Set.delete slug
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Set.delete id
 
 include Search.Build(struct
   type value = Model.Set.t Entry.t

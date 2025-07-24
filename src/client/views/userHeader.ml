@@ -15,7 +15,7 @@ let open_sign_in_dialog () =
         else
           match status with
           | Invalid -> Error "Invalid username or password."
-          | DontKnow -> Ok (Slug.from_string username)
+          | DontKnow -> Ok username
     )
   in
   let password_input =
@@ -169,7 +169,7 @@ let header_item =
       | Some user ->
         [
           Components.Button.make
-            ~label: (Model.User.display_name' user)
+            ~label: (Model.User.username' user)
             ~icon: "person-circle"
             ~classes: ["btn-primary"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
@@ -207,7 +207,7 @@ let header_item =
                       ~label: "My person"
                       ~icon: "person"
                       ~classes: ["dropdown-item"]
-                      ~href: (S.from' "" (Endpoints.Page.(href Person None) <$> (Entry.slug <$> Model.User.person' user)))
+                      ~href: (S.from' "" (Endpoints.Page.(href Person None) <$> (Entry.id <$> Model.User.person' user)))
                       ()
                   ];
                   li [

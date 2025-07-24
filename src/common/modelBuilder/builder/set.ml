@@ -13,22 +13,22 @@ module Build (Getters : Getters.S) = struct
 
   let contents =
     Lwt_list.map_s
-      (fun (slug, parameters) ->
-        let%lwt version = Getters.get_version slug in
+      (fun (id, parameters) ->
+        let%lwt version = Getters.get_version id in
         lwt (version, parameters)
       ) %
       contents
   let contents' = contents % Entry.value
 
-  let compare : t Entry.t -> t Entry.t -> int =
-    Slug.compare_slugs_or ~fallback: Stdlib.compare Entry.slug'
+  let compare : t Entry.t -> t Entry.t -> int = fun x y ->
+    Entry.Id.compare' (Entry.id' x) (Entry.id' y)
   let equal set1 set2 = compare set1 set2 = 0
 
   (* FIXME: use Version.equal *)
-  let contains_version slug1 set =
+  let contains_version id1 set =
     List.exists
-      (fun (slug2, _parameters) ->
-        Slug.equal' slug1 slug2
+      (fun (id2, _parameters) ->
+        Entry.Id.equal' id1 id2
       )
       (Entry.value set).contents
 

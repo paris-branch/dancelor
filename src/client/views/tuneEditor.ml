@@ -17,7 +17,7 @@ type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
 [@@deriving yojson]
 
 module RawState = struct
-  (* Dirty trick to convince Yojson to serialise slugs. *)
+  (* Dirty trick to convince Yojson to serialise ids. *)
   type person = Model.Person.t
   let person_to_yojson _ = assert false
   let person_of_yojson _ = assert false
@@ -26,7 +26,7 @@ module RawState = struct
   let dance_of_yojson _ = assert false
 
   type t =
-  (string, string, person Slug.t list, string, dance Slug.t list, string, string) gen
+  (string, string, person Entry.Id.t list, string, dance Entry.Id.t list, string, string) gen
   [@@deriving yojson]
 
   let empty : t = {
@@ -92,7 +92,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         initial_state.composers
     in
@@ -110,7 +110,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Dance.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Dance.get
         initial_state.dances
     in
@@ -206,7 +206,7 @@ let create ?on_save ?text () =
                 Components.Button.make_a
                   ~label: "Go to tune"
                   ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_tune @@ Entry.slug tune)
+                  ~href: (S.const @@ Endpoints.Page.href_tune @@ Entry.id tune)
                   ();
               ]
           | Some on_save -> on_save tune

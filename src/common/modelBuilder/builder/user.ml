@@ -3,10 +3,10 @@ open Nes
 module Build (Getters : Getters.S) = struct
   include Core.User
 
-  let update ?display_name ?person ?password ?password_reset_token ?remember_me_tokens user =
+  let update ?username ?person ?password ?password_reset_token ?remember_me_tokens user =
     update
-      ?display_name
-      ?person: (Option.map (fun person slug -> Lwt.map Entry.slug % person =<< Getters.get_person slug) person)
+      ?username
+      ?person: (Option.map (fun person id -> Lwt.map Entry.id % person =<< Getters.get_person id) person)
       ?password
       ?password_reset_token
       ?remember_me_tokens

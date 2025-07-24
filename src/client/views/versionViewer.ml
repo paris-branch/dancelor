@@ -4,10 +4,10 @@ open Common
 open Model
 open Html
 
-let create ?context slug =
-  MainPage.get_model_or_404 (Version Get) slug @@ fun version ->
+let create ?context id =
+  MainPage.get_model_or_404 (Version Get) id @@ fun version ->
+  let%lwt tune = Model.Version.tune' version in
   let other_versions_lwt =
-    let%lwt tune = Model.Version.tune' version in
     snd
     <$> Madge_client.call_exn
         Endpoints.Api.(route @@ Version Search)
@@ -25,7 +25,7 @@ let create ?context slug =
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_version slug)
+        ~this_page: (Endpoints.Page.href_version id)
         (lwt @@ Any.version version);
     ]
     ~title: (Version.name' version)
@@ -48,7 +48,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> VersionDownloadDialog.create_and_open slug); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> VersionDownloadDialog.create_and_open version); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -58,7 +58,7 @@ let create ?context slug =
               li
                 [
                   a
-                    ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Api.(href @@ Version Ly) slug)]
+                    ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Api.(href @@ Version Ly) id (Tune.slug' tune))]
                     [
                       i ~a: [a_class ["bi"; "bi-file-music"]] [];
                       txt " Download LilyPond";
@@ -71,7 +71,7 @@ let create ?context slug =
                     ~icon: "plus-square"
                     ~classes: ["dropdown-item"]
                     ~onclick: (fun _ ->
-                      SetEditor.Editor.add_to_storage slug;
+                      SetEditor.Editor.add_to_storage id;
                       Components.Toast.open_
                         ~title: "Added to current set"
                         [
@@ -112,13 +112,13 @@ let create ?context slug =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make slug];
+      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make version];
       div
         ~a: [a_class ["d-flex"; "justify-content-end"]]
         [
           audio
             ~a: [a_controls ()]
-            ~src: (Endpoints.Api.(href @@ Version Ogg) slug Model.VersionParameters.none RenderingParameters.none)
+            ~src: (Endpoints.Api.(href @@ Version Ogg) id (Tune.slug' tune) Model.VersionParameters.none RenderingParameters.none)
             []
         ];
       Utils.quick_explorer_links
@@ -136,7 +136,7 @@ let create ?context slug =
             (
               S.from' (Tables.placeholder ()) @@
                 let%lwt other_versions = other_versions_lwt in
-                let%lwt tune_href = (Endpoints.Page.href_tune % Entry.slug) <$> Model.Version.tune' version in
+                let%lwt tune_href = (Endpoints.Page.href_tune % Entry.id) <$> Model.Version.tune' version in
                 lwt
                   (
                     if other_versions = [] then

@@ -46,7 +46,7 @@ let name_gen version_gen =
     match version_gen with
     | Right (version, true) ->
       let%lwt name = Model.Version.name' version in
-      lwt [a ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.slug version] [txt name]]
+      lwt [a ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.id version] [txt name]]
     | Right (version, _) ->
       let%lwt name = Model.Version.name' version in
       lwt [txt name]

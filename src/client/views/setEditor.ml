@@ -15,7 +15,7 @@ type ('name, 'kind, 'conceptors, 'versions, 'order) gen = {
 [@@deriving yojson]
 
 module RawState = struct
-  (* Dirty trick to convince Yojson to serialise slugs. *)
+  (* Dirty trick to convince Yojson to serialise ids. *)
   type person = Model.Person.t
   let person_to_yojson _ = assert false
   let person_of_yojson _ = assert false
@@ -27,7 +27,7 @@ module RawState = struct
   let version_of_yojson _ = assert false
 
   type t =
-  (string, string, person Slug.t list, version Slug.t list, string) gen
+  (string, string, person Entry.Id.t list, version Entry.Id.t list, string) gen
   [@@deriving yojson]
 
   let empty = {
@@ -87,7 +87,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         initial_state.conceptors
     in
@@ -98,7 +98,7 @@ module Editor = struct
           let%rlwt filter = lwt (Filter.Version.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
         )
-        ~serialise: Entry.slug
+        ~serialise: Entry.id
         ~unserialise: Model.Version.get
         initial_state.versions
     in
@@ -158,7 +158,7 @@ let create ?on_save ?text () =
     Selector.render
       ~make_result: AnyResult.make_version_result'
       ~make_more_results: (fun version ->
-        [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make (Entry.slug version)]]]
+        [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
       )
       ~field_name: "Versions"
       ~model_name: "versions"
@@ -190,7 +190,7 @@ let create ?on_save ?text () =
                 Components.Button.make_a
                   ~label: "Go to set"
                   ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_set @@ Entry.slug set)
+                  ~href: (S.const @@ Endpoints.Page.href_set @@ Entry.id set)
                   ();
               ]
           | Some on_save -> on_save set

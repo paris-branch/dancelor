@@ -19,7 +19,7 @@ module Self = struct
     show_order: bool option; [@default None] [@key "show-order"]
     order_type: order_type option; [@default None] [@key "order-type"]
     display_name: string option; [@default None] [@key "display-name"]
-    for_dance: Dance.t Slug.t option; [@default None] [@key "for-dance"]
+    for_dance: Dance.t Entry.Id.t option; [@default None] [@key "for-dance"]
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
   [@@deriving eq, make, show {with_path = false}, yojson, fields]

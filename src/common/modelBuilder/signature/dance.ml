@@ -39,6 +39,9 @@ module type S = sig
   val date : t -> PartialDate.t option
   val date' : t Entry.t -> PartialDate.t option
 
+  val slug : t -> Entry.Slug.t
+  val slug' : t Entry.t -> Entry.Slug.t
+
   val equal : t Entry.t -> t Entry.t -> bool
 
   (** {2 Magic getter} *)
@@ -46,5 +49,5 @@ module type S = sig
   (** Magic getter. On the client side, this hides an API call, which goes
       through the permissions mechanism. On the server side, this hides a call
       to the database. *)
-  val get : t Slug.t -> t Entry.t Lwt.t
+  val get : t Entry.Id.t -> t Entry.t Lwt.t
 end

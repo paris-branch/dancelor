@@ -42,8 +42,8 @@ let render book book_parameters rendering_parameters =
   let path_pdf = Filename.concat path fname_pdf in
   lwt path_pdf
 
-let get env book book_parameters rendering_parameters =
-  let%lwt book = Model.Book.get book in
+let get env id _slug book_parameters rendering_parameters =
+  let%lwt book = Model.Book.get id in
   Permission.assert_can_get env book;%lwt
   let%lwt path_pdf = render (Entry.value book) book_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

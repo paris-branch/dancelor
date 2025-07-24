@@ -21,4 +21,7 @@ module Build (Getters : Getters.S) = struct
 
   let name version = Core.Tune.name' <$> tune version
   let name' = name % Entry.value
+
+  let slug version = Entry.Slug.of_string <$> name version
+  let slug' = slug % Entry.value
 end

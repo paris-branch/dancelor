@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Tune.t Slug.t
+  | Is of ModelBuilder.Core.Tune.t Entry.Id.t
   | Name of string
   | NameMatches of string
   | ExistsComposer of Person.t (** one of the composers of the list passes the filter *)
@@ -30,7 +30,7 @@ let text_formula_converter =
         (* alias for exists-composer; FIXME: make this clearer *)
         unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Base.Filter.text_formula_converter;
         unary_lift ~name: "exists-dance" (existsDance, unExistsDance) ~converter: Dance.text_formula_converter;
-        unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+        unary_id ~name: "is" (is, unIs);
       ]
   )
 
@@ -41,7 +41,7 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.slug
+let is = is % Entry.id
 let is' = Formula.pred % is
 
 let existsComposerIs = existsComposer % Person.is'

@@ -4,14 +4,14 @@ open Common
 open Model
 open Html
 
-let create ?context slug =
-  MainPage.get_model_or_404 (Dance Get) slug @@ fun dance ->
+let create ?context id =
+  MainPage.get_model_or_404 (Dance Get) id @@ fun dance ->
   Page.make'
     ~parent_title: "Dance"
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_dance slug)
+        ~this_page: (Endpoints.Page.href_dance id)
         (lwt @@ Any.dance dance);
     ]
     ~title: (lwt @@ Dance.name' dance)
@@ -48,7 +48,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> DanceDownloadDialog.create_and_open slug); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> DanceDownloadDialog.create_and_open dance); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];

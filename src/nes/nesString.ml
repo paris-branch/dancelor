@@ -210,34 +210,6 @@ let%test _ = escape ~chars: "\"'" "Et j'lui ai dit \\: \"Yo, ç'va ?\"" = "Et j\
 let exists p s = to_seq s |> NesSeq.exists p
 let for_all p s = to_seq s |> NesSeq.for_all p
 
-let slugify ?(sep = '-') string =
-  let charmap =
-    Slug.Charmap.mk_charmap [
-      Slug.Slug_data.base;
-      [("-", " ")];
-      (* ^ without this, dashes disappear, making [slugify] non-idempotent *)
-    ]
-  in
-  Slug.slugify ~sep: (String.make 1 sep) ~charmap ~lowercase: true string
-
-let%test _ = slugify "NiOls" = "niols"
-let%test _ = slugify "Anne-Laure" = "anne-laure"
-let%test _ = slugify "Àlîénör Lãtour" = "alienor-latour"
-let%test _ = slugify "x's favourite" = "xs-favourite"
-
-let is_slug ?(sep = '-') string =
-  String.for_all
-    (fun c ->
-      ('a' <= c && c <= 'z') || c = sep || ('0' <= c && c <= '9')
-    )
-    string
-
-let%test _ = is_slug "this-is-a-slug"
-let%test _ = is_slug "this-is-a-slug-2"
-let%test _ = is_slug "this-is-7-a-slug"
-let%test _ = not @@ is_slug "this-is-NOT-a-slug"
-let%test _ = not @@ is_slug "this is not a slug"
-
 module Sensible = struct
 
   let extract_prefix s =
@@ -283,8 +255,8 @@ module Sensible = struct
           ]
 
   let compare fs1 fs2 =
-    let s1 = slugify ~sep: ' ' fs1 in
-    let s2 = slugify ~sep: ' ' fs2 in
+    let s1 = Slug.slugify ~sep: " " fs1 in
+    let s2 = Slug.slugify ~sep: " " fs2 in
     let (p1, s1) = extract_prefix s1 in
     let (p2, s2) = extract_prefix s2 in
     first_non_zero

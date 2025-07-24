@@ -19,12 +19,12 @@ val many : many arity
 val make :
   arity: 'arity arity ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
-  serialise: ('model Entry.t -> 'model Slug.t) ->
-  unserialise: ('model Slug.t -> 'model Entry.t Lwt.t) ->
-  'model Slug.t list ->
+  serialise: ('model Entry.t -> 'model Entry.Id.t) ->
+  unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
+  'model Entry.Id.t list ->
   ('arity, 'model) t
 
-val raw_signal : ('arity, 'model) t -> 'model Slug.t list S.t
+val raw_signal : ('arity, 'model) t -> 'model Entry.Id.t list S.t
 (** The raw signal of the elements contained in the selector. Independently from
     the arity, it contains a list. *)
 

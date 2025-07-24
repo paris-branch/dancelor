@@ -13,8 +13,8 @@ let render version version_parameters rendering_parameters =
   let body = Model.Version.content' version in
   StorageCache.use ~cache ~key: (`Ogg, version, version_parameters, body, rendering_parameters) @@ fun hash ->
   let%lwt (fname_ly, fname_ogg) =
-    let slug = Entry.slug version in
-    let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
+    let id = Entry.id version in
+    let fname = aspf "%a-%a" Entry.Id.pp' id StorageCache.pp_hash hash in
     lwt (fname ^ ".ly", fname ^ ".ogg")
   in
   let path = Filename.concat !Config.cache "version" in
@@ -26,17 +26,16 @@ let render version version_parameters rendering_parameters =
     fname_ly;%lwt
   lwt (Filename.concat path fname_ogg)
 
-let get env version version_parameters rendering_parameters =
-  Log.debug (fun m -> m "Model.Version.Ogg.get %a" Slug.pp' version);
-  let%lwt version = Model.Version.get version in
+let get env id _slug version_parameters rendering_parameters =
+  Log.debug (fun m -> m "Model.Version.Ogg.get %a" Entry.Id.pp' id);
+  let%lwt version = Model.Version.get id in
   Permission.assert_can_get env version;%lwt
   let%lwt path_ogg = render version version_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "audio/ogg" ~fname: path_ogg
 
-let preview_slug = Slug.check_string_exn "preview"
 let preview env version version_parameters rendering_parameters =
   Log.debug (fun m -> m "Model.Version.Ogg.preview");
   Permission.assert_can_create env;%lwt
-  let version = Entry.make ~slug: preview_slug version in
+  let version = Entry.make ~id: (Entry.Id.make ()) version in
   let%lwt path_ogg = render version version_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "audio/ogg" ~fname: path_ogg

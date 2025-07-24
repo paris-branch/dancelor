@@ -6,8 +6,8 @@ module Svg = Svg
 module Ogg = Ogg
 module Pdf = Pdf
 
-let get env slug =
-  let%lwt version = Model.Version.get slug in
+let get env id =
+  let%lwt version = Model.Version.get id in
   Permission.assert_can_get env version;%lwt
   lwt version
 
@@ -15,9 +15,9 @@ let create env version =
   Permission.assert_can_create env;%lwt
   Database.Version.create version
 
-let update env slug version =
-  Permission.assert_can_update env =<< get env slug;%lwt
-  Database.Version.update slug version
+let update env id version =
+  Permission.assert_can_update env =<< get env id;%lwt
+  Database.Version.update id version
 
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in

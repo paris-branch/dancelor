@@ -4,14 +4,14 @@ open Common
 open Model
 open Html
 
-let create ?context slug =
-  MainPage.get_model_or_404 (Tune Get) slug @@ fun tune ->
+let create ?context id =
+  MainPage.get_model_or_404 (Tune Get) id @@ fun tune ->
   Page.make'
     ~parent_title: "Tune"
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_tune slug)
+        ~this_page: (Endpoints.Page.href_tune id)
         (lwt @@ Any.tune tune);
     ]
     ~title: (lwt @@ Tune.name' tune)
@@ -74,7 +74,7 @@ let create ?context slug =
                   if versions = [] then
                     [
                       txt "There are no versions for this tune. Maybe you want to ";
-                      a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Entry.slug tune) ())] [txt "add one"];
+                      a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Entry.id tune) ())] [txt "add one"];
                       txt "?";
                     ]
                   else

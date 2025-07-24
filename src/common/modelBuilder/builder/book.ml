@@ -11,17 +11,8 @@ module Build (Getters : Getters.S) = struct
   let authors = Lwt_list.map_p Getters.get_person % authors
   let authors' = authors % Entry.value
 
-  let compare : t Entry.t -> t Entry.t -> int =
-    Slug.compare_slugs_or
-      ~fallback: (fun book1 book2 ->
-        (* Compare first by date *)
-        let c = compare (Entry.value book1).date (Entry.value book2).date in
-        if c = 0 then
-          compare book1 book2
-        else
-          c
-      )
-      Entry.slug'
+  let compare : t Entry.t -> t Entry.t -> int = fun x y ->
+    Entry.Id.compare' (Entry.id' x) (Entry.id' y)
 
   let equal book1 book2 = compare book1 book2 = 0
 
@@ -189,10 +180,10 @@ module Build (Getters : Getters.S) = struct
       let%lwt sets_and_parameters = sets_and_parameters_from_contents' book in
       Lwt_list.filter_map_p
         (fun (set, parameters) ->
-          let%olwt dance_slug = lwt (Core.SetParameters.for_dance parameters) in
+          let%olwt dance_id = lwt (Core.SetParameters.for_dance parameters) in
           (* FIXME: SetParameters should be hidden behind the same kind of
              mechanism as the rest; and this step should not be necessary *)
-          let%lwt dance = Getters.get_dance dance_slug in
+          let%lwt dance = Getters.get_dance dance_id in
           if Core.Set.kind' set = Core.Dance.kind' dance then
             lwt_none
           else

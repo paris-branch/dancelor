@@ -3,8 +3,8 @@ open Common
 
 module Log = (val Logger.create "controller.version.ly": Logs.LOG)
 
-let get env version =
-  let%lwt version = Model.Version.get version in
+let get env id _slug =
+  let%lwt version = Model.Version.get id in
   Permission.assert_can_get env version;%lwt
   let content = Model.Version.content' version in
   Madge_server.respond_string ~content_type: "application/x-lilypond" content

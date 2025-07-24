@@ -1,5 +1,8 @@
 open Nes
 
+module Id = Id
+module Slug = ESlug
+
 type 'a t [@@deriving show]
 (** A database entry. Can either be a full database entry or a dummy. Dummies
     should be avoided, and the getters will fail when dealing with them, but can
@@ -11,7 +14,7 @@ val is_dummy : 'a t -> bool
 (** {2 Builders} *)
 
 val make :
-  slug: 'a Slug.t ->
+  id: 'a Id.t ->
   ?status: Status.t ->
   ?privacy: Privacy.t ->
   ?created_at: Datetime.t ->
@@ -38,7 +41,7 @@ val update_meta :
   meta
 
 val make' :
-  slug: 'a Slug.t ->
+  id: 'a Id.t ->
   ?meta: meta ->
   'a ->
   'a t
@@ -50,13 +53,13 @@ val make_dummy : 'a -> 'a t
 exception UsedGetterOnDummy
 (** Exception raised when trying to access field of a dummy entry. *)
 
-val slug : 'a t -> 'a Slug.t
+val id : 'a t -> 'a Id.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
-val slug' : 'a t -> 'a t Slug.t
+val id' : 'a t -> 'a t Id.t
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
-val slug_as_string : 'a t -> string
+val id_as_string : 'a t -> string
 (** @raise UsedGetterOnDummy if the entry is a dummy. *)
 
 val value : 'a t -> 'a
@@ -98,12 +101,12 @@ val to_yojson : ('a -> Yojson.Safe.t) -> 'a t -> Yojson.Safe.t
 val of_yojson : (Yojson.Safe.t -> ('a, string) result) -> Yojson.Safe.t -> ('a t, string) result
 
 val to_yojson' : ('a -> Yojson.Safe.t) -> 'a t -> Yojson.Safe.t
-(** Variant of {!to_yojson} that doesn't serialise the slug.
+(** Variant of {!to_yojson} that doesn't serialise the id.
 
     @raise UsedGetterOnDummy if the entry is a dummy. *)
 
-val of_yojson' : 'a Slug.t -> (Yojson.Safe.t -> ('a, string) result) -> Yojson.Safe.t -> ('a t, string) result
-(** Variant of {!of_yojson} that expects the slug as an argument instead of in
+val of_yojson' : 'a Id.t -> (Yojson.Safe.t -> ('a, string) result) -> Yojson.Safe.t -> ('a t, string) result
+(** Variant of {!of_yojson} that expects the id as an argument instead of in
     the serialised form. *)
 
 module J : functor (M : Madge.JSONABLE) ->

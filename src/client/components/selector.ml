@@ -16,7 +16,7 @@ type ('arity, 'model) t = {
   signal: 'model Entry.t list S.t;
   set: 'model Entry.t list -> unit;
   quick_search: 'model Entry.t Search.Quick.t;
-  serialise: 'model Entry.t -> 'model Slug.t;
+  serialise: 'model Entry.t -> 'model Entry.Id.t;
   arity: 'arity arity; (** Whether this selector should select exactly one element. *)
 }
 

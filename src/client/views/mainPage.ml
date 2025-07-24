@@ -262,9 +262,9 @@ let load_sleep_raise ?(delay = 1.) page_promise =
   else
     Lwt.fail ReplacementSuccessful
 
-let get_model_or_404 endpoint slug f =
+let get_model_or_404 endpoint id f =
   try%lwt
-    f =<< Madge_client.call_exn Endpoints.Api.(route @@ endpoint) slug
+    f =<< Madge_client.call_exn Endpoints.Api.(route @@ endpoint) id
   with
     | Madge_client.(Error (Http {status; _})) -> OooopsViewer.create status
 

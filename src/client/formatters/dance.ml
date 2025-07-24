@@ -8,7 +8,7 @@ let name_gen dance_gen =
     match dance_gen with
     | Right (dance, true) ->
       a
-        ~a: [a_href @@ Endpoints.Page.href_dance @@ Entry.slug dance]
+        ~a: [a_href @@ Endpoints.Page.href_dance @@ Entry.id dance]
         [txt (Model.Dance.name' dance)]
     | Right (dance, _) -> txt (Model.Dance.name' dance)
     | Left dance -> txt (Model.Dance.name dance)

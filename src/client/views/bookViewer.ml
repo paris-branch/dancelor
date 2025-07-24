@@ -39,7 +39,7 @@ let display_warnings warnings =
   in
   List.map display_warning warnings
 
-let table_contents ~this_slug contents =
+let table_contents ~this_id contents =
   let open Html in
   tablex
     ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
@@ -61,11 +61,11 @@ let table_contents ~this_slug contents =
         (
           List.mapi
             (fun index page ->
-              let context = Endpoints.Page.inBook this_slug index in
+              let context = Endpoints.Page.inBook this_id index in
               match page with
               | Book.Set (set, parameters) ->
                 (
-                  let href = Endpoints.Page.href_set ~context @@ Entry.slug set in
+                  let href = Endpoints.Page.href_set ~context @@ Entry.id set in
                   Tables.clickable_row ~href [
                     lwt [txt "Set"];
                     lwt [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
@@ -85,7 +85,7 @@ let table_contents ~this_slug contents =
                 )
               | Version (version, parameters) ->
                 (
-                  let href = Endpoints.Page.href_version ~context @@ Entry.slug version in
+                  let href = Endpoints.Page.href_version ~context @@ Entry.id version in
                   Tables.clickable_row ~href [
                     lwt [txt "Tune"];
                     lwt [Formatters.Version.name_and_dance' ~name_link: false version parameters];
@@ -103,14 +103,14 @@ let table_contents ~this_slug contents =
 
 open Html
 
-let create ?context slug =
-  MainPage.get_model_or_404 (Book Get) slug @@ fun book ->
+let create ?context id =
+  MainPage.get_model_or_404 (Book Get) id @@ fun book ->
   Page.make'
     ~parent_title: "Book"
     ~before_title: [
       Components.ContextLinks.make_and_render
         ?context
-        ~this_page: (Endpoints.Page.href_book slug)
+        ~this_page: (Endpoints.Page.href_book id)
         (lwt @@ Any.book book);
     ]
     ~title: (lwt @@ Book.title' book)
@@ -147,7 +147,7 @@ let create ?context slug =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> BookDownloadDialog.create_and_open slug); false);
+                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> BookDownloadDialog.create_and_open book); false);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
@@ -159,7 +159,7 @@ let create ?context slug =
                   a
                     ~a: [
                       a_class ["dropdown-item"];
-                      a_href (Endpoints.Page.(href BookEdit) slug)
+                      a_href (Endpoints.Page.(href BookEdit) id)
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
@@ -192,7 +192,7 @@ let create ?context slug =
           R.div (
             S.from' (Tables.placeholder ()) @@
               let%lwt contents = Book.contents' book in
-              lwt [table_contents ~this_slug: slug contents]
+              lwt [table_contents ~this_id: id contents]
           )
         ];
     ]

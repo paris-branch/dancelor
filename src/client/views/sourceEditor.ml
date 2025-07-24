@@ -121,7 +121,7 @@ let create ?on_save ?text () =
                 Components.Button.make_a
                   ~label: "Go to source"
                   ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_source @@ Entry.slug source)
+                  ~href: (S.const @@ Endpoints.Page.href_source @@ Entry.id source)
                   ();
               ]
           | Some on_save -> on_save source

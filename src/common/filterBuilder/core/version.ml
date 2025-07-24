@@ -1,7 +1,7 @@
 open Nes
 
 type predicate =
-  | Is of ModelBuilder.Core.Version.t Slug.t
+  | Is of ModelBuilder.Core.Version.t Entry.Id.t
   | Tune of Tune.t
   | Key of Music.key
   | Kind of Kind.Version.Filter.t
@@ -27,7 +27,7 @@ let text_formula_converter =
             unary_lift ~wrap_back: NotRaw ~name: "tune" (tune, unTune) ~converter: Tune.text_formula_converter;
             unary_raw ~name: "key" (key, unKey) ~cast: (Music.key_of_string_opt, Music.key_to_string) ~type_: "key";
             unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Version.Filter.text_formula_converter;
-            unary_string ~name: "is" (is % Slug.unsafe_of_string, Option.map Slug.to_string % unIs);
+            unary_id ~name: "is" (is, unIs);
             unary_lift ~name: "exists-source" (existsSource, unExistsSource) ~converter: Source.text_formula_converter;
           ]
       )
@@ -46,7 +46,7 @@ let from_string ?filename input =
 let to_text_formula = TextFormula.of_formula text_formula_converter
 let to_string = TextFormula.to_string % to_text_formula
 
-let is = is % Entry.slug
+let is = is % Entry.id
 let is' = Formula.pred % is
 
 let tuneIs = tune % Tune.is'

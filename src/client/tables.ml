@@ -20,7 +20,7 @@ let map_table ~header list fun_ =
 let books books =
   map_table ~header: ["Book"; "Date"] books @@ fun book ->
   clickable_row
-    ~href: (Endpoints.Page.href_book @@ Entry.slug book)
+    ~href: (Endpoints.Page.href_book @@ Entry.id book)
     [
       lwt [Formatters.Book.title_and_subtitle' book];
       lwt [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
@@ -28,7 +28,7 @@ let books books =
 
 let sets sets =
   map_table ~header: ["Name"; "Deviser"; "Kind"] sets @@ fun set ->
-  let href = Endpoints.Page.href_set @@ Entry.slug set in
+  let href = Endpoints.Page.href_set @@ Entry.id set in
   clickable_row
     ~href
     [
@@ -39,7 +39,7 @@ let sets sets =
 
 let dances dances =
   map_table ~header: ["Name"; "Deviser"; "Kind"] dances @@ fun dance ->
-  let href = Endpoints.Page.href_dance @@ Entry.slug dance in
+  let href = Endpoints.Page.href_dance @@ Entry.id dance in
   clickable_row
     ~href
     [
@@ -50,7 +50,7 @@ let dances dances =
 
 let tunes tunes =
   map_table ~header: ["Name"; "Kind"; "Composer"] tunes @@ fun tune ->
-  let href = Endpoints.Page.href_tune @@ Entry.slug tune in
+  let href = Endpoints.Page.href_tune @@ Entry.id tune in
   clickable_row
     ~href
     [
@@ -64,7 +64,7 @@ let versions versions =
     ~header: ["Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let href = Endpoints.Page.href_version @@ Entry.slug version in
+    let href = Endpoints.Page.href_version @@ Entry.id version in
     clickable_row
       ~href
       [
@@ -80,7 +80,7 @@ let versions_with_names versions =
     ~header: ["Name"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let href = Endpoints.Page.href_version @@ Entry.slug version in
+    let href = Endpoints.Page.href_version @@ Entry.id version in
     clickable_row
       ~href
       [

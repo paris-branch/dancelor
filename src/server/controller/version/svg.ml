@@ -14,8 +14,8 @@ let render version version_parameters rendering_parameters =
   StorageCache.use ~cache ~key: (`Svg, version, version_parameters, body, rendering_parameters) @@ fun hash ->
   Log.debug (fun m -> m "Rendering the LilyPond version");
   let%lwt (fname_ly, fname_svg) =
-    let slug = Entry.slug version in
-    let fname = aspf "%a-%a" Slug.pp' slug StorageCache.pp_hash hash in
+    let id = Entry.id version in
+    let fname = aspf "%a-%a" Entry.Id.pp' id StorageCache.pp_hash hash in
     lwt (fname ^ ".ly", fname ^ ".svg")
   in
   Log.debug (fun m -> m "LilyPond file name: %s" fname_ly);
@@ -32,17 +32,16 @@ let render version version_parameters rendering_parameters =
   Log.debug (fun m -> m "done!");
   lwt (Filename.concat path fname_svg)
 
-let get env version version_parameters rendering_parameters =
-  Log.debug (fun m -> m "Model.Version.Svg.get %a" Slug.pp' version);
-  let%lwt version = Model.Version.get version in
+let get env id _slug version_parameters rendering_parameters =
+  Log.debug (fun m -> m "Model.Version.Svg.get %a" Entry.Id.pp' id);
+  let%lwt version = Model.Version.get id in
   Permission.assert_can_get env version;%lwt
   let%lwt path_svg = render version version_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "image/svg+xml" ~fname: path_svg
 
-let preview_slug = Slug.check_string_exn "preview"
 let preview env version version_parameters rendering_parameters =
   Log.debug (fun m -> m "Model.Version.Svg.preview");
   Permission.assert_can_create env;%lwt
-  let version = Entry.make ~slug: preview_slug version in
+  let version = Entry.make ~id: (Entry.Id.make ()) version in
   let%lwt path_svg = render version version_parameters rendering_parameters in
   Madge_server.respond_file ~content_type: "image/svg+xml" ~fname: path_svg

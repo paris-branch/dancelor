@@ -39,8 +39,8 @@ let make_context_link_banner ~context ~this_page =
     let open Endpoints.Page in
     match context with
     | InSearch query -> href Explore (Some query)
-    | InSet (slug, _) -> href_set slug
-    | InBook (slug, _) -> href_book slug
+    | InSet (id, _) -> href_set id
+    | InBook (id, _) -> href_book id
   in
   let parent_a ?a: (as_ = []) content =
     a ~a: (a_href parent_href :: as_) content
@@ -58,11 +58,11 @@ let make_context_link_banner ~context ~this_page =
                 match context with
                 | InSearch query ->
                   lwt [txt "In search for: "; parent_a [txt query]]
-                | InSet (slug, _) ->
-                  let%lwt name = Set.name' <$> Set.get slug in
+                | InSet (id, _) ->
+                  let%lwt name = Set.name' <$> Set.get id in
                   lwt [txt "In set: "; parent_a [txt name]]
-                | InBook (slug, _) ->
-                  let%lwt name = Book.title' <$> Book.get slug in
+                | InBook (id, _) ->
+                  let%lwt name = Book.title' <$> Book.get id in
                   lwt [txt "In book: "; parent_a [txt name]]
               );
           ];
@@ -93,8 +93,8 @@ let register_body_keydown_listener f =
 
 let neighbour_context ~left = function
   | Endpoints.Page.InSearch query -> Endpoints.Page.InSearch query
-  | Endpoints.Page.InSet (slug, index) -> Endpoints.Page.InSet (slug, index + if left then (-1) else 1)
-  | Endpoints.Page.InBook (slug, index) -> Endpoints.Page.InBook (slug, index + if left then (-1) else 1)
+  | Endpoints.Page.InSet (id, index) -> Endpoints.Page.InSet (id, index + if left then (-1) else 1)
+  | Endpoints.Page.InBook (id, index) -> Endpoints.Page.InBook (id, index + if left then (-1) else 1)
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   flip Option.map neighbour @@ fun neighbour ->

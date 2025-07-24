@@ -68,6 +68,9 @@ module type S = sig
 
   (** {2 Advanced Field Getters} *)
 
+  val slug : t -> Entry.Slug.t
+  val slug' : t Entry.t -> Entry.Slug.t
+
   val find_context_no_inline : int -> t -> page List.context option Lwt.t
   val find_context_no_inline' : int -> t Entry.t -> page List.context option Lwt.t
   (** Given an indice and a book, find the context around that indice in the book.
@@ -76,7 +79,7 @@ module type S = sig
 
   (** {2 Utilities} *)
 
-  val contains_set : Core.Set.t Slug.t -> t Entry.t -> bool
+  val contains_set : Core.Set.t Entry.Id.t -> t Entry.t -> bool
   val compare : t Entry.t -> t Entry.t -> int
   val equal : t Entry.t -> t Entry.t -> bool
 
@@ -105,5 +108,5 @@ module type S = sig
   (** Magic getter. On the client side, this hides an API call, which goes
       through the permissions mechanism. On the server side, this hides a call
       to the database. *)
-  val get : t Slug.t -> t Entry.t Lwt.t
+  val get : t Entry.Id.t -> t Entry.t Lwt.t
 end

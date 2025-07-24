@@ -152,7 +152,7 @@ let render book book_parameters rendering_parameters =
           | InlineSet (set, parameters) -> lwt (set, parameters)
       in
       (* FIXME: none of the above need to be dummy; I think we can just return
-         a SetCore.t; do we need the slug anyway? *)
+         a SetCore.t; do we need the id anyway? *)
       flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
       let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set book_parameters) set_parameters in
       let name = Model.SetParameters.display_name' ~default: (Model.Set.name set) set_parameters in

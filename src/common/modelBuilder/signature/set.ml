@@ -39,8 +39,11 @@ module type S = sig
   val remark : t -> string
   val remark' : t Entry.t -> string
 
-  val contains_version : Core.Version.t Slug.t -> t Entry.t -> bool
-  (** REVIEW: This really takes a slug? *)
+  val slug : t -> Entry.Slug.t
+  val slug' : t Entry.t -> Entry.Slug.t
+
+  val contains_version : Core.Version.t Entry.Id.t -> t Entry.t -> bool
+  (** REVIEW: This really takes a id? *)
 
   val find_context : int -> t -> Core.Version.t Entry.t List.context option Lwt.t
   val find_context' : int -> t Entry.t -> Core.Version.t Entry.t List.context option Lwt.t
@@ -72,5 +75,5 @@ module type S = sig
   (** Magic getter. On the client side, this hides an API call, which goes
       through the permissions mechanism. On the server side, this hides a call
       to the database. *)
-  val get : t Slug.t -> t Entry.t Lwt.t
+  val get : t Entry.Id.t -> t Entry.t Lwt.t
 end

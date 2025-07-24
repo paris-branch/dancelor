@@ -8,13 +8,13 @@ type (_, _, _) t =
 | Create : ((Version.t -> 'w), 'w, Version.t Entry.t) t
 | Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.t Entry.t list)) t
 (* Actions on a specific version *)
-| Get : ((Version.t Slug.t -> 'w), 'w, Version.t Entry.t) t
-| Update : ((Version.t Slug.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
+| Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.t Entry.t) t
+| Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 (* Files related to a version *)
-| Ly : ((Version.t Slug.t -> 'w), 'w, Void.t) t
-| Svg : ((Version.t Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| Ogg : ((Version.t Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| Pdf : ((Version.t Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Ly : ((Version.t Entry.Id.t -> Entry.Slug.t -> 'w), 'w, Void.t) t
+| Svg : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Ogg : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| Pdf : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 (* Files related to an anonymous version *)
 | PreviewSvg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
 | PreviewOgg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
@@ -38,13 +38,13 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Create -> body "version" (module Version) @@ post (module Entry.J(VersionNoContent))
     | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoContent))))
     (* Actions on a specific version *)
-    | Get -> variable (module SSlug(Version)) @@ get (module Entry.J(VersionNoContent))
-    | Update -> variable (module SSlug(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
+    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoContent))
+    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
     (* Files related to a version *)
-    | Ly -> variable (module SSlug(Version)) ~suffix: ".ly" @@ void ()
-    | Svg -> variable (module SSlug(Version)) ~suffix: ".svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | Ogg -> variable (module SSlug(Version)) ~suffix: ".ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | Pdf -> variable (module SSlug(Version)) ~suffix: ".pdf" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Ly -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".ly" @@ void ()
+    | Svg -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Ogg -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | Pdf -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".pdf" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
     (* Files related to an anonymous version *)
     | PreviewSvg -> query "version" (module Version) @@ literal "preview.svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
     | PreviewOgg -> query "version" (module Version) @@ literal "preview.ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
