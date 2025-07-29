@@ -5,6 +5,7 @@ open Html
 type 'result state =
   | StartTyping
   | ContinueTyping
+  | Searching
   | NoResults
   | Results of 'result list
   | Errors of string
@@ -31,23 +32,27 @@ let make
   (** A signal that provides a {!state} view based on [text]. *)
   let state =
     S.bind slice @@ fun slice ->
-    S.bind_s' text StartTyping @@ fun text ->
+    S.bind text @@ fun text ->
     if String.length text < min_characters then
       (
-        lwt @@
+        S.const @@
           if text = "" then
             StartTyping
           else
             ContinueTyping
       )
     else
-      flip Lwt.map (search slice text) @@ function
-        | Error messages ->
-          Errors messages
-        | Ok (_, []) ->
-          NoResults
-        | Ok (total, results) ->
-          on_number_of_entries total; Results results
+      (
+        let search_signal = S.from' None (some <$> search slice text) in
+        flip S.map search_signal @@ function
+          | None -> Searching
+          | Some Error messages ->
+            Errors messages
+          | Some Ok (_, []) ->
+            NoResults
+          | Some Ok (total, results) ->
+            on_number_of_entries total; Results results
+      )
   in
     {text; state; set_text}
 

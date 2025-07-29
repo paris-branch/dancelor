@@ -83,8 +83,8 @@ module Search = struct
               flip S.map (SearchBar.state t.search_bar) @@ function
                 | NoResults -> [div ~a: [a_class ["alert"; "alert-warning"]] [txt "Your search returned no results."]]
                 | Errors error -> [div ~a: [a_class ["alert"; "alert-danger"]] [txt error]]
-                | StartTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
-                | ContinueTyping when t.min_characters > 0 -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
+                | StartTyping -> [div ~a: [a_class ["alert"; "alert-info"]] [txt "Start typing to search."]]
+                | ContinueTyping -> [div ~a: [a_class ["alert"; "alert-info"]] [txt (spf "Type at least %s characters." (Int.to_english_string t.min_characters))]]
                 | _ -> []
             )
         );
@@ -162,10 +162,8 @@ module Search = struct
             ~a: [
               R.a_class (
                 flip S.map (SearchBar.state t.search_bar) @@ function
-                  | Results _ | NoResults | Errors _ -> ["d-none"]
-                  | StartTyping when t.min_characters > 0 -> ["d-none"]
-                  | ContinueTyping when t.min_characters > 0 -> ["d-none"]
-                  | _ -> ["my-4"]
+                  | Searching -> ["my-4"]
+                  | _ -> ["d-none"]
               )
             ]
             (
