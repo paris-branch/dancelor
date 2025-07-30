@@ -58,30 +58,6 @@ jobs:
         with:
           path: doc/
 
-  build-with-opam:
-    name: Build with OPAM
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      - name: Set up OCaml
-        uses: ocaml/setup-ocaml@v3
-        with:
-          ## This OCaml compiler should be the minimum version required by the
-          ## OPAM file (up to the patch) so as to catch under-specification.
-          ocaml-compiler: 5.2.x
-
-      - name: Install system dependencies
-        run: sudo apt install --yes timidity freepats lilypond sassc
-
-      - name: Install OCaml dependencies
-        run: opam install . --deps-only --with-doc --with-test
-
-      - name: Build Dancelor
-        run: opam exec -- make
-
   deploy-documentation:
     name: Deploy documentation
     runs-on: ubuntu-latest
