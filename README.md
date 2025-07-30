@@ -8,42 +8,24 @@ A chancelor for Scottish country dance musicians.
 
 ### Setting up a development environment
 
-The OCaml dependencies are described in `dune-project` and in
-`.nix/package.nix`; these files should not go out of sync and the CI checks that
-Dancelor builds fine both in an opam-based or a nix-based environments. The
-system dependencies are the following:
+The OCaml dependencies are described in `nix/package.nix`; these files should
+not go out of sync and the CI checks that Dancelor builds fine in this Nix-based
+environments. The system dependencies are described in `nix/application.nix`.
 
-- freepats (runtime)
-- git (runtime)
-- lilypond (runtime; 2.22)
-- sassc (compile time)
-- timidity (runtime; with Vorbis support)
+Nix can provide an environment with all the necessary dependencies, both OCaml
+and system, as well as development tools:
 
-- OPAM can install automatically all the OCaml dependencies that are necessary
-  to develop Dancelor with:
+```console
+$ nix develop
+```
 
-  ```console
-  $ opam install . --deps-only --with-doc --with-test
-  ```
+If you are a user of [direnv], you may also want to have the following `.envrc`
+file:
 
-  You might still want to add a proper development environment (eg. Tuareg, an
-  LSP server, etc.) and you will need to install the system dependencies
-  yourself.
-
-- Nix can provide an environment with all the necessary dependencies, both OCaml
-  and system, as well as development tools:
-
-  ```console
-  $ nix develop
-  ```
-
-  If you are a user of [direnv], you may also want to have the following
-  `.envrc` file:
-
-  ```
-  watch_dir .nix
-  use flake
-  ```
+```
+watch_dir nix/
+use flake
+```
 
 [direnv]: https://direnv.net/
 
@@ -94,32 +76,23 @@ rely on the Selenium IDE and exporting tests in `pytest` style.
 
 In general, in this repository, we enforce the following invariants:
 
-- OCaml files should be indented with [`ocp-indent`]. The project and its
+- OCaml files should be formatted with [Topiary]. The project and its
   documentation should build fine, and the tests should run correctly as well.
-  Basically, always check `make && make doc && make test`.
-
-- OPAM files should be valid, that is they should pass the `opam lint` check
-  without raising any warnings or errors.
-
-- OPAM files should be in sync with the `dune-project` file. In case of lack of
-  synchrony, `dune-project` holds the truth.
-
-- OPAM files should contain enough information to spin up an environment able to
-  build Dancelor.
+  Basically, always check `make && make doc && make unit-test && make system-test`.
 
 - Dune files should be formatted with `dune fmt`.
 
-- Nix code should be formatted with [nixfmt] and should not include any unused
-  variable or piece of code.
+- Nix code should be formatted with [`nixfmt-rfc-style`] and should not include
+  any unused variable or piece of code.
 
 - Nix files should contain enough information to spin up an environment able to
   build Dancelor.
 
 - HTML, CSS and YAML files should be formatted with [Prettier].
 
-[nixfmt]: https://github.com/serokell/nixfmt
-[prettier]: https://prettier.io/
-[`ocp-indent`]: http://www.typerex.org/ocp-indent.html
+[`nixfmt-rfc-style`]: https://github.com/NixOS/nixfmt
+[Prettier]: https://prettier.io/
+[Topiary]: https://topiary.tweag.io/
 
 All of these are enforced in CI. For Nix users, the formatting and synchrony of
 the files will be checked at pre-commit time in the development environment;

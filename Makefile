@@ -44,11 +44,6 @@ local: build
 dev-test: build
 	bin/dancelor --config tests/config.json
 
-indent:
-	opam exec -- \
-	  find . -name .git -prune -o '(' -name '*.ml' -o -name '*.mli' ')' \
-	  -exec ocp-indent --inplace '{}' ';'
-
 clean:
 	dune clean $(DUNEJOBSARG)
 	rm -f bin doc

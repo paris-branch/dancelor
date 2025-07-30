@@ -64,8 +64,6 @@
           excludes = [ "^flake\\.lock$" ];
         };
         dune-fmt.enable = true;
-        dune-opam-sync.enable = true;
-        opam-lint.enable = true;
 
         topiary-latest = topiaryGitHook myTopiaryConfig // {
           enable = true;
