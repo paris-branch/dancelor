@@ -21,15 +21,16 @@ let create ?query () =
       )
       ?initial_input: query
       ~pagination_mode: (Pagination ())
+      ~on_input: update_uri
       ()
   in
   Page.make'
     ~title: (lwt "Explore")
+    ~on_load: (fun () -> SearchBar.focus @@ Search.search_bar search)
     [
       Search.render
         search
         ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
-        ~on_input: update_uri
         ~attached_buttons: [
           Button.make
             ~label: "Filter"

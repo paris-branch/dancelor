@@ -17,7 +17,15 @@ module Search = struct
   }
   [@@deriving fields]
 
-  let make ?initial_input ~search ~pagination_mode ?(min_characters = 0) () =
+  let make
+      ?initial_input
+      ~search
+      ~pagination_mode
+      ?(min_characters = 0)
+      ?on_input
+      ?on_enter
+      ()
+    =
     let (number_of_entries, set_number_of_entries) = S.create None in
     let pagination =
       match pagination_mode with
@@ -31,14 +39,15 @@ module Search = struct
         ~on_number_of_entries: (set_number_of_entries % some)
         ~min_characters
         ?initial_input
+        ~placeholder: "Search for anything (it really is magic!)"
+        ?on_input
+        ?on_enter
         ()
     in
       {pagination; search_bar; min_characters}
 
   let render
       ~make_result
-      ?on_input
-      ?on_enter
       ?(attached_buttons = [])
       ?(show_table_headers = true)
       t
@@ -66,12 +75,7 @@ module Search = struct
             ~a: [a_class ["input-group"; "mb-3"]]
             (
               [i ~a: [a_class ["input-group-text"; "bi"; "bi-search"]] [];
-              SearchBar.render
-                t.search_bar
-                ~placeholder: "Search for anything (it really is magic!)"
-                ~autofocus: true
-                ?on_input
-                ?on_enter;
+              SearchBar.html t.search_bar;
               ] @
                 attached_buttons
             )
@@ -189,6 +193,7 @@ module Quick = struct
 
   let make
     ~search
+    ?on_enter
     ()
   = {
     search =
@@ -196,6 +201,7 @@ module Quick = struct
       ~search
       ~pagination_mode: (FixedSlice (Slice.make ~start: 0 ~end_excl: 20 ()))
       ~min_characters: 3
+      ?on_enter
       ();
   }
 
@@ -204,15 +210,14 @@ module Quick = struct
       ~dialog_title
       ?(dialog_buttons = [])
       ~make_result
-      ?on_enter
       quick_search
     =
     Page.make'
       ~title: dialog_title
+      ~on_load: (fun () -> SearchBar.focus @@ Search.search_bar quick_search.search)
       [Search.render
         ~make_result
         ~show_table_headers: false
-        ?on_enter
         quick_search.search;
       ]
       ~buttons: (
