@@ -99,6 +99,8 @@ let const2 = NesFun.const2
 let ok = Result.ok
 let error = Result.error
 let some = Option.some
+let left = Either.left
+let right = Either.right
 
 let lwt = Lwt.return
 let lwt_unit = Lwt.return_unit

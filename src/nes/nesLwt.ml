@@ -5,3 +5,12 @@ let compose f g = fun x ->
 
 let if_ b f = if%lwt b then f () else Lwt.return_unit
 let if_' b f = if b then f () else Lwt.return_unit
+
+(** Make a pool of promises such that adding a new one cancels the previous
+    one. *)
+let replaceable () =
+  let current = ref @@ Lwt.fail (Failure "replaceable_promise") in
+  fun promise ->
+    Lwt.cancel !current;
+    current := promise;
+    promise
