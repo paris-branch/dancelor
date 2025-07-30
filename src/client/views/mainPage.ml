@@ -13,18 +13,19 @@ let set_title title =
 
 let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
+let quick_search_to_explorer value =
+  let href = Endpoints.Page.(href Explore) (Some value) in
+  Dom_html.window##.location##.href := Js.string href;
+  Js_of_ocaml_lwt.Lwt_js.sleep 10.
+
 let quick_search =
   Components.Search.Quick.make
     ~search: (fun slice input ->
       let%rlwt filter = lwt (Filter.Any.from_string input) in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Any Search) slice filter
     )
+    ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
     ()
-
-let quick_search_to_explorer value =
-  let href = Endpoints.Page.(href Explore) (Some value) in
-  Dom_html.window##.location##.href := Js.string href;
-  Js_of_ocaml_lwt.Lwt_js.sleep 10.
 
 let open_quick_search () =
   Page.open_dialog ~hide_body_overflow_y: true @@ fun return ->
@@ -41,7 +42,6 @@ let open_quick_search () =
         ~onclick: (fun () -> quick_search_to_explorer (S.value @@ Components.Search.Quick.text quick_search))
         ();
     ]
-    ~on_enter: (fun value -> Lwt.async (fun () -> quick_search_to_explorer value))
     ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
     quick_search
 

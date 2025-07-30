@@ -28,12 +28,19 @@ val set_text : 'result t -> string -> unit
 val clear : 'result t -> unit
 (** Imperatively clear the text of the search bar. *)
 
+val focus : 'result t -> unit
+(** Imperatively focus the search bar. *)
+
 val make :
   search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
   ?min_characters: int ->
   slice: Slice.t React.signal ->
   ?on_number_of_entries: (int -> unit) ->
   ?initial_input: string ->
+  placeholder: string ->
+  ?on_focus: (unit -> unit) ->
+  ?on_input: (string -> unit) ->
+  ?on_enter: (string -> unit) ->
   unit ->
   'result t
 (** Makes a search bar and exposes whatever is useful to interact with it. The
@@ -54,18 +61,6 @@ val make :
     - [initial_input] is a string specifying the initial input of the search
       bar. This string will appear in the search bar and a first search will be
       triggered with it.
-*)
-
-val render :
-  placeholder: string ->
-  ?autofocus: bool ->
-  ?on_focus: (unit -> unit) ->
-  ?on_input: (string -> unit) ->
-  ?on_enter: (string -> unit) ->
-  'result t ->
-  [> Html_types.input] Html.elt
-(** Renders a search bar as an HTML node. The arguments are to be used as
-    follows:
 
     - [placeholder] shows in the bar when no text is entered yet;
 
@@ -76,7 +71,7 @@ val render :
     - [on_input] is a function that triggers whenever there is an input.
 
     - [on_enter] is a function that triggers when the user presses Enter.
+ **)
 
-    - [autofocus] is a boolean that indicates whether the search bar should grab
-      the focus when the page loads. It is [false] by default.
-*)
+val html : 'result t -> [> Html_types.input] Html.elt
+(** Renders a search bar as an HTML node. *)

@@ -15,6 +15,8 @@ type 'result t = {
   text: string S.t; (* prefer [state] *)
   state: 'result state S.t;
   set_text: (string -> unit);
+  bar_html: Html_types.input elt;
+  bar_dom: Dom_html.inputElement Js.t;
 }
 
 let make
@@ -23,6 +25,10 @@ let make
     ~slice
     ?(on_number_of_entries = (const ()))
     ?(initial_input = "")
+    ~placeholder
+    ?on_focus
+    ?on_input
+    ?on_enter
     ()
   =
 
@@ -59,29 +65,17 @@ let make
             on_number_of_entries total; Results results
       )
   in
-    {text; state; set_text}
 
-(** FIXME: get rid of [on_focus] and [on_enter] that are probably not used
-    anymore. *)
-
-let render
-    ~placeholder
-    ?(autofocus = false)
-    ?on_focus
-    ?on_input
-    ?on_enter
-    search_bar
-  =
   (* FIXME: This looks awfully like {!Input.Text.render}. We should probably
      build {!SearchBar} on top of that. *)
-  let bar =
+  let bar_html =
     input
       ~a: (
         List.filter_map Fun.id [
           Some (a_class ["form-control"]);
           Some (a_input_type `Text);
           Some (a_placeholder placeholder);
-          Some (R.a_value search_bar.text);
+          Some (R.a_value text);
           Some
             (
               a_oninput (fun event ->
@@ -89,37 +83,22 @@ let render
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
                   let input = Js.to_string input##.value in
-                  search_bar.set_text input;
+                  set_text input;
                   Option.value ~default: ignore on_input input;
                 );
                 false
               )
             );
-          (
-            if autofocus then
-              Some (a_autofocus ())
-            else
-              None
-          );
           Option.map (fun f -> a_onfocus (fun _ -> f (); false)) on_focus;
         ]
       )
       ()
   in
-  let bar' = To_dom.of_input bar in
-
-  (* FIXME: This is a disgusting way to handle auto-focus. Instead, we should
-     return some type that has a [focus] function and call it in client code. *)
-  if autofocus then
-    Lwt.async (fun () ->
-      Js_of_ocaml_lwt.Lwt_js.sleep 1.;%lwt
-      bar'##focus;
-      lwt_unit
-    );
+  let bar_dom = To_dom.of_input bar_html in
 
   (* Because the following event prevents the default browser behaviour (in case
      of `on_enter`), it must happen on `keydown` and not on `keyup`. *)
-  Utils.add_target_event_listener bar' Dom_html.Event.keydown (fun event _target ->
+  Utils.add_target_event_listener bar_dom Dom_html.Event.keydown (fun event _target ->
     match event##.keyCode with
     | 13 (* Enter *) ->
       (
@@ -133,12 +112,19 @@ let render
           );
           Js._false
       );
-    | 27 (* Esc *) -> (bar'##blur; Js._true)
+    | 27 (* Esc *) -> (bar_dom##blur; Js._true)
     | _ -> Js._true
   );
-  bar
+  {text; state; set_text; bar_html; bar_dom}
 
 let state search_bar = search_bar.state
 let text search_bar = search_bar.text
 let set_text search_bar text = search_bar.set_text text
 let clear search_bar = search_bar.set_text ""
+
+let html search_bar : [> Html_types.input] Html.elt =
+  (* NOTE: This loses the types, but that is because I am not managing to coerce
+     [`Input] :> [> `Input]. Apparently, I don't understand subtyping. *)
+  (tot % toelt) search_bar.bar_html
+
+let focus search_bar = search_bar.bar_dom##focus
