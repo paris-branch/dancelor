@@ -1,5 +1,6 @@
 open Nes
 open Js_of_ocaml
+open Js_of_ocaml_lwt
 open Html
 
 type 'result state =
@@ -26,8 +27,11 @@ let make
   =
 
   (** A signal containing the search text. *)
-  let (text, set_immediately) = S.create initial_input in
-  let set_text = S.delayed_setter 0.30 set_immediately in
+  let (text, set_text) = S.create initial_input in
+
+  (** Typing a character cancels the previous search and replaces it by a new
+      one. This is exactly {!NesLwt.replaceable}. *)
+  let replace_promise = Lwt.replaceable () in
 
   (** A signal that provides a {!state} view based on [text]. *)
   let state =
@@ -43,7 +47,8 @@ let make
       )
     else
       (
-        let search_signal = S.from' None (some <$> search slice text) in
+        let delayed_search_promise = replace_promise (Lwt_js.sleep 1.;%lwt search slice text) in
+        let search_signal = S.from' None (some <$> delayed_search_promise) in
         flip S.map search_signal @@ function
           | None -> Searching
           | Some Error messages ->
