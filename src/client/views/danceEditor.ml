@@ -192,6 +192,7 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a dance")
+    ~on_load: (fun () -> Input.focus editor.elements.name)
     [Input.html editor.elements.name;
     Input.html editor.elements.kind;
     Selector.render

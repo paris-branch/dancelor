@@ -70,6 +70,7 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Report an issue")
+      ~on_load: (fun () -> Input.focus reporter_input)
       [Input.html reporter_input;
       Choices.render source;
       Input.html title_input;

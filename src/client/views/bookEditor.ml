@@ -163,6 +163,7 @@ let create ?on_save ?text ?edit () =
   let%lwt editor = Editor.create ~text ~edit in
   Page.make'
     ~title: (lwt @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
+    ~on_load: (fun () -> Input.focus editor.elements.name)
     [Input.html editor.elements.name;
     Input.html editor.elements.date;
     Selector.render

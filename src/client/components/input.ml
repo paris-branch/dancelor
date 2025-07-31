@@ -21,6 +21,11 @@ let raw_signal state = state.raw_signal
 let signal state = state.signal
 let value state = S.value @@ signal state
 
+let focus state =
+  match state.html with
+  | Text (_, input) -> input##focus
+  | Textarea (_, textarea) -> textarea##focus
+
 let clear state = state.set ""
 
 let case_errored ~no ~yes signal =

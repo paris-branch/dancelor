@@ -45,6 +45,9 @@ val value : 'a t -> ('a, string) Result.t
 val clear : 'a t -> unit
 (** Clear a text input component to an empty value . *)
 
+val focus : 'a t -> unit
+(** Focus a text input component. *)
+
 val html : 'a t -> [> Html_types.div] Html.elt
 (** Render a text input component as HTML. *)
 

@@ -64,6 +64,7 @@ let open_sign_in_dialog () =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Sign in")
+      ~on_load: (fun () -> Input.focus username_input)
       [Input.html username_input;
       Input.html password_input;
       Choices.render remember_me_input;
