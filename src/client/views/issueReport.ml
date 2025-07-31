@@ -8,7 +8,7 @@ include Endpoints.Page.MakeDescribe(Model)
 
 let open_dialog page =
   let reporter_input =
-    Input.Text.make
+    Input.make
       ~type_: Text
       ~initial_value: ""
       ~label: "Reporter"
@@ -40,7 +40,7 @@ let open_dialog page =
           ]
   in
   let title_input =
-    Input.Text.make
+    Input.make
       ~type_: Text
       ~initial_value: ""
       ~label: "Title"
@@ -49,7 +49,7 @@ let open_dialog page =
       ()
   in
   let description_input =
-    Input.Text.make
+    Input.make
       ~type_: Textarea
       ~initial_value: ""
       ~label: "Description"
@@ -60,9 +60,9 @@ let open_dialog page =
   let request_signal =
     let page = Uri.to_string page in
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal reporter_input) @@ fun reporter ->
-    RS.bind (Input.Text.signal title_input) @@ fun title ->
-    RS.bind (Input.Text.signal description_input) @@ fun description ->
+    RS.bind (Input.signal reporter_input) @@ fun reporter ->
+    RS.bind (Input.signal title_input) @@ fun title ->
+    RS.bind (Input.signal description_input) @@ fun description ->
     RS.bind (Choices.signal source) @@ fun source ->
     RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
@@ -70,10 +70,10 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Report an issue")
-      [Input.Text.html reporter_input;
+      [Input.html reporter_input;
       Choices.render source;
-      Input.Text.html title_input;
-      Input.Text.html description_input;
+      Input.html title_input;
+      Input.html description_input;
       ]
       ~buttons: [
         Button.cancel' ~return ();

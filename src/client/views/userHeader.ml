@@ -8,7 +8,7 @@ let open_sign_in_dialog () =
   let open Components in
   let (status_signal, set_status_signal) = S.create DontKnow in
   let username_input =
-    Input.Text.make'
+    Input.make'
       ~type_: Text
       ~label: "Username"
       ~initial_value: ""
@@ -26,7 +26,7 @@ let open_sign_in_dialog () =
       ()
   in
   let password_input =
-    Input.Text.make'
+    Input.make'
       ~type_: Password
       ~label: "Password"
       ~initial_value: ""
@@ -55,8 +55,8 @@ let open_sign_in_dialog () =
   in
   let request_signal =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal username_input) @@ fun username ->
-    RS.bind (Input.Text.signal password_input) @@ fun password ->
+    RS.bind (Input.signal username_input) @@ fun username ->
+    RS.bind (Input.signal password_input) @@ fun password ->
     RS.bind (Choices.signal remember_me_input) @@ fun remember_me ->
     RS.pure (username, password, remember_me)
   in
@@ -64,8 +64,8 @@ let open_sign_in_dialog () =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Sign in")
-      [Input.Text.html username_input;
-      Input.Text.html password_input;
+      [Input.html username_input;
+      Input.html password_input;
       Choices.render remember_me_input;
       ]
       ~buttons: [

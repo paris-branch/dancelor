@@ -24,18 +24,18 @@ end
 module Editor = struct
   type t = {
     elements:
-    (string Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
+    (string Input.t, SCDDB.entry_id option Input.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
+    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
+    RS.bind (Input.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; scddb_id}
 
   let with_or_without_local_storage ~text f =
@@ -49,7 +49,7 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.name
         ~label: "Name"
@@ -58,7 +58,7 @@ module Editor = struct
         ()
     in
     let scddb_id =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
@@ -74,8 +74,8 @@ module Editor = struct
       {elements = {name; scddb_id}}
 
   let clear (editor : t) : unit =
-    Input.Text.clear editor.elements.name;
-    Input.Text.clear editor.elements.scddb_id
+    Input.clear editor.elements.name;
+    Input.clear editor.elements.scddb_id
 
   let submit (editor : t) : Model.Person.t Entry.t option Lwt.t =
     match S.value (state editor) with
@@ -91,8 +91,8 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a person")
-    [Input.Text.html editor.elements.name;
-    Input.Text.html editor.elements.scddb_id;
+    [Input.html editor.elements.name;
+    Input.html editor.elements.scddb_id;
     ]
     ~buttons: [
       Button.clear

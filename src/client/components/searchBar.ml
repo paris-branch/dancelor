@@ -66,7 +66,7 @@ let make
       )
   in
 
-  (* FIXME: This looks awfully like {!Input.Text.render}. We should probably
+  (* FIXME: This looks awfully like {!Input.render}. We should probably
      build {!SearchBar} on top of that. *)
   let bar_html =
     input

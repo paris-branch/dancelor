@@ -50,32 +50,32 @@ end
 module Editor = struct
   type t = {
     elements:
-    ((Selector.one, Model.Tune.t) Selector.t, int Input.Text.t, Music.key Input.Text.t, string Input.Text.t, (Selector.many, Model.Person.t) Selector.t, string Input.Text.t, (Selector.many, Model.Source.t) Selector.t, string Input.Text.t, string Input.Text.t) gen;
+    ((Selector.one, Model.Tune.t) Selector.t, int Input.t, Music.key Input.t, string Input.t, (Selector.many, Model.Person.t) Selector.t, string Input.t, (Selector.many, Model.Source.t) Selector.t, string Input.t, string Input.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Selector.raw_signal editor.elements.tune) @@ fun tune ->
-    S.bind (Input.Text.raw_signal editor.elements.bars) @@ fun bars ->
-    S.bind (Input.Text.raw_signal editor.elements.key) @@ fun key ->
-    S.bind (Input.Text.raw_signal editor.elements.structure) @@ fun structure ->
+    S.bind (Input.raw_signal editor.elements.bars) @@ fun bars ->
+    S.bind (Input.raw_signal editor.elements.key) @@ fun key ->
+    S.bind (Input.raw_signal editor.elements.structure) @@ fun structure ->
     S.bind (Selector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
-    S.bind (Input.Text.raw_signal editor.elements.remark) @@ fun remark ->
+    S.bind (Input.raw_signal editor.elements.remark) @@ fun remark ->
     S.bind (Selector.raw_signal editor.elements.sources) @@ fun sources ->
-    S.bind (Input.Text.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
-    S.bind (Input.Text.raw_signal editor.elements.content) @@ fun content ->
+    S.bind (Input.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
+    S.bind (Input.raw_signal editor.elements.content) @@ fun content ->
     S.const {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let state (editor : t) =
     S.map Result.to_option @@
     RS.bind (Selector.signal_one editor.elements.tune) @@ fun tune ->
-    RS.bind (Input.Text.signal editor.elements.bars) @@ fun bars ->
-    RS.bind (Input.Text.signal editor.elements.key) @@ fun key ->
-    RS.bind (Input.Text.signal editor.elements.structure) @@ fun structure ->
+    RS.bind (Input.signal editor.elements.bars) @@ fun bars ->
+    RS.bind (Input.signal editor.elements.key) @@ fun key ->
+    RS.bind (Input.signal editor.elements.structure) @@ fun structure ->
     RS.bind (Selector.signal_many editor.elements.arrangers) @@ fun arrangers ->
-    RS.bind (Input.Text.signal editor.elements.remark) @@ fun remark ->
+    RS.bind (Input.signal editor.elements.remark) @@ fun remark ->
     RS.bind (Selector.signal_many editor.elements.sources) @@ fun sources ->
-    RS.bind (Input.Text.signal editor.elements.disambiguation) @@ fun disambiguation ->
-    RS.bind (Input.Text.signal editor.elements.content) @@ fun content ->
+    RS.bind (Input.signal editor.elements.disambiguation) @@ fun disambiguation ->
+    RS.bind (Input.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let with_or_without_local_storage ~text ~tune f =
@@ -99,7 +99,7 @@ module Editor = struct
         initial_state.tune
     in
     let bars =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.bars
         ~label: "Number of bars"
@@ -108,7 +108,7 @@ module Editor = struct
         ()
     in
     let key =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.key
         ~label: "Key"
@@ -117,7 +117,7 @@ module Editor = struct
         ()
     in
     let structure =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.structure
         ~label: "Structure"
@@ -137,7 +137,7 @@ module Editor = struct
         initial_state.arrangers
     in
     let remark =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.remark
         ~label: "Remark"
@@ -157,7 +157,7 @@ module Editor = struct
         initial_state.sources
     in
     let disambiguation =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.disambiguation
         ~label: "Disambiguation"
@@ -166,7 +166,7 @@ module Editor = struct
         ()
     in
     let content =
-      Input.Text.make
+      Input.make
         ~type_: Textarea
         ~initial_value: initial_state.content
         ~label: "LilyPond content"
@@ -180,14 +180,14 @@ module Editor = struct
 
   let clear (editor : t) =
     Selector.clear editor.elements.tune;
-    Input.Text.clear editor.elements.bars;
-    Input.Text.clear editor.elements.key;
-    Input.Text.clear editor.elements.structure;
+    Input.clear editor.elements.bars;
+    Input.clear editor.elements.key;
+    Input.clear editor.elements.structure;
     Selector.clear editor.elements.arrangers;
-    Input.Text.clear editor.elements.remark;
+    Input.clear editor.elements.remark;
     Selector.clear editor.elements.sources;
-    Input.Text.clear editor.elements.disambiguation;
-    Input.Text.clear editor.elements.content
+    Input.clear editor.elements.disambiguation;
+    Input.clear editor.elements.content
 
   let value (editor : t) =
     match S.value (state editor) with
@@ -218,9 +218,9 @@ let create ?on_save ?text ?tune () =
       ~model_name: "tune"
       ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
       editor.elements.tune;
-    Input.Text.html editor.elements.bars;
-    Input.Text.html editor.elements.key;
-    Input.Text.html editor.elements.structure;
+    Input.html editor.elements.bars;
+    Input.html editor.elements.key;
+    Input.html editor.elements.structure;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Arrangers"
@@ -233,9 +233,9 @@ let create ?on_save ?text ?tune () =
       ~model_name: "source"
       ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
       editor.elements.sources;
-    Input.Text.html editor.elements.disambiguation;
-    Input.Text.html editor.elements.remark;
-    Input.Text.html editor.elements.content;
+    Input.html editor.elements.disambiguation;
+    Input.html editor.elements.remark;
+    Input.html editor.elements.content;
     ]
     ~buttons: [
       Button.clear

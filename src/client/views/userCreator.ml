@@ -28,7 +28,7 @@ let open_token_result_dialog user token =
 let create () =
   MainPage.assert_can_admin @@ fun () ->
   let username_input =
-    Input.Text.make
+    Input.make
       ~type_: Text
       ~initial_value: ""
       ~placeholder: "JeanMilligan"
@@ -51,13 +51,13 @@ let create () =
       []
   in
   let signal =
-    RS.bind (Input.Text.signal username_input) @@ fun username ->
+    RS.bind (Input.signal username_input) @@ fun username ->
     RS.bind (Selector.signal_one person_selector) @@ fun person ->
     S.const @@ Ok (Model.User.make ~username ~person ())
   in
   Page.make'
     ~title: (lwt "Create user")
-    [Input.Text.html username_input;
+    [Input.html username_input;
     Selector.render
       ~make_result: Utils.AnyResult.make_person_result'
       ~field_name: "Person"
@@ -75,7 +75,7 @@ let create () =
           let user = Result.get_ok @@ S.value signal in
           let%lwt (user, token) = Madge_client.call_exn Endpoints.Api.(route @@ User Create) user in
           open_token_result_dialog user token;%lwt
-          Input.Text.clear username_input;
+          Input.clear username_input;
           Selector.clear person_selector;
           lwt_unit
         )

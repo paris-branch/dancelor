@@ -43,28 +43,28 @@ end
 module Editor = struct
   type t = {
     elements:
-    (string Input.Text.t, Kind.Base.t Input.Text.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.Text.t, SCDDB.entry_id option Input.Text.t) gen;
+    (string Input.t, Kind.Base.t Input.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.t, SCDDB.entry_id option Input.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.raw_signal editor.elements.kind) @@ fun kind ->
     S.bind (Selector.raw_signal editor.elements.composers) @@ fun composers ->
-    S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
+    S.bind (Input.raw_signal editor.elements.date) @@ fun date ->
     S.bind (Selector.raw_signal editor.elements.dances) @@ fun dances ->
-    S.bind (Input.Text.raw_signal editor.elements.remark) @@ fun remark ->
-    S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
+    S.bind (Input.raw_signal editor.elements.remark) @@ fun remark ->
+    S.bind (Input.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; kind; composers; date; dances; remark; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (Input.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.signal editor.elements.kind) @@ fun kind ->
     RS.bind (Selector.signal_many editor.elements.composers) @@ fun composers ->
-    RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
+    RS.bind (Input.signal editor.elements.date) @@ fun date ->
     RS.bind (Selector.signal_many editor.elements.dances) @@ fun dances ->
-    RS.bind (Input.Text.signal editor.elements.remark) @@ fun remark ->
-    RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
+    RS.bind (Input.signal editor.elements.remark) @@ fun remark ->
+    RS.bind (Input.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; composers; date; dances; remark; scddb_id}
 
   let with_or_without_local_storage ~text f =
@@ -78,7 +78,7 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.name
         ~label: "Name"
@@ -87,7 +87,7 @@ module Editor = struct
         ()
     in
     let kind =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.kind
         ~label: "Kind"
@@ -107,7 +107,7 @@ module Editor = struct
         initial_state.composers
     in
     let date =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.date
         ~label: "Date of devising"
@@ -132,7 +132,7 @@ module Editor = struct
         initial_state.dances
     in
     let remark =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.remark
         ~label: "Remark"
@@ -141,7 +141,7 @@ module Editor = struct
         ()
     in
     let scddb_id =
-      Input.Text.make
+      Input.make
         ~type_: Text
         ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
@@ -159,13 +159,13 @@ module Editor = struct
     }
 
   let clear (editor : t) : unit =
-    Input.Text.clear editor.elements.name;
-    Input.Text.clear editor.elements.kind;
+    Input.clear editor.elements.name;
+    Input.clear editor.elements.kind;
     Selector.clear editor.elements.composers;
-    Input.Text.clear editor.elements.date;
+    Input.clear editor.elements.date;
     Selector.clear editor.elements.dances;
-    Input.Text.clear editor.elements.remark;
-    Input.Text.clear editor.elements.scddb_id
+    Input.clear editor.elements.remark;
+    Input.clear editor.elements.scddb_id
 
   let submit (editor : t) : Model.Tune.t Entry.t option Lwt.t =
     match S.value (state editor) with
@@ -181,23 +181,23 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a tune")
-    [Input.Text.html editor.elements.name;
-    Input.Text.html editor.elements.kind;
+    [Input.html editor.elements.name;
+    Input.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Composers"
       ~model_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.composers;
-    Input.Text.html editor.elements.date;
+    Input.html editor.elements.date;
     Selector.render
       ~make_result: AnyResult.make_dance_result'
       ~field_name: "Dances"
       ~model_name: "dance"
       ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
       editor.elements.dances;
-    Input.Text.html editor.elements.remark;
-    Input.Text.html editor.elements.scddb_id;
+    Input.html editor.elements.remark;
+    Input.html editor.elements.scddb_id;
     ]
     ~buttons: [
       Button.clear
