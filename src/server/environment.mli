@@ -43,3 +43,7 @@ val sign_out : t -> Model.User.t Entry.t -> unit Lwt.t
 (** {2 Other} *)
 
 val pp : Format.formatter -> t -> unit
+
+(** Time at which the server started. This is used to inform the client of needs
+    to reload the page or the assets. *)
+val boot_time : NesDatetime.t

@@ -3,12 +3,12 @@ open Nes
 
 module Log = (val Logger.create "static": Logs.LOG)
 
+(* NOTE: We use the boot time of Dancelor to invalidate caching of `client.js`.
+   This means that clients will have to re-download every time Dancelor starts,
+   but that isn't so often, and most of the time it is because of a change where
+   we would want to invalidate things anyway. *)
 let index =
-  (* NOTE: We use the boot time of Dancelor to invalidate caching of
-     `client.js`. This means that clients will have to re-download every time
-     Dancelor starts, but that isn't so often, and most of the time it is
-     because of a change where we would want to invalidate things anyway. *)
-  let boot_time = Datetime.(to_string @@ now ()) in
+  let boot_time = Datetime.to_string Environment.boot_time in
   Format.asprintf "%a" (pp ()) @@
     html
       (

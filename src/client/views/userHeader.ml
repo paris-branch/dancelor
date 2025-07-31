@@ -102,8 +102,8 @@ let sign_out () =
 let rec ping_until_success () =
   let delay = (* every two seconds *) 2. in
   let ping_promise =
-    match%lwt Madge_client.call Endpoints.Api.(route Ping) with
-    | Ok() -> lwt_true
+    match%lwt Madge_client.call Endpoints.Api.(route BootTime) with
+    | Ok _ -> lwt_true
     | _ -> lwt_false
   in
   let wait_promise = Js_of_ocaml_lwt.Lwt_js.sleep delay;%lwt lwt_false in
