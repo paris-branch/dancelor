@@ -50,24 +50,26 @@ module Editor = struct
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make
-        Text
-        initial_state.name
+        ~type_: Text
+        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. John Doe"
-        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let scddb_id =
       Input.Text.make
-        Text
-        initial_state.scddb_id
+        ~type_: Text
+        ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/"
-        (
+        ~validator: (
           Option.fold
             ~none: (Ok None)
             ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Person) %
             Option.of_string_nonempty
         )
+        ()
     in
       {elements = {name; scddb_id}}
 

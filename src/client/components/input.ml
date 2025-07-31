@@ -7,7 +7,7 @@ module Text = struct
     | Text of Html_types.input elt * Dom_html.inputElement Js.t
     | Textarea of Html_types.textarea elt * Dom_html.textAreaElement Js.t
 
-  type kind = Text | Password | Textarea
+  type type_ = Text | Password | Textarea
 
   type 'a t = {
     label: string option;
@@ -33,21 +33,22 @@ module Text = struct
       ?label
       ?(placeholder = "")
       ?(oninput = ignore)
-      kind
-      initial_value
-      validator
+      ~type_
+      ~initial_value
+      ~validator
+      ()
     =
     let (raw_signal, set_immediately) = S.create initial_value in
     let set = S.delayed_setter 0.30 set_immediately in
     let signal = S.bind raw_signal validator in
     let html : html =
-      match kind with
+      match type_ with
       | Text | Password ->
         let html =
           input
             ()
             ~a: [
-              a_input_type (match kind with Text -> `Text | Password -> `Password | _ -> assert false);
+              a_input_type (match type_ with Text -> `Text | Password -> `Password | _ -> assert false);
               a_placeholder placeholder;
               R.a_value raw_signal;
               R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
@@ -89,8 +90,8 @@ module Text = struct
     in
       {label; raw_signal; signal; set; html}
 
-  let make ?label ?placeholder ?oninput kind initial_value validator =
-    make' ?label ?placeholder ?oninput kind initial_value (S.const % validator)
+  let make ?label ?placeholder ?oninput ~type_ ~initial_value ~validator () =
+    make' ?label ?placeholder ?oninput ~type_ ~initial_value ~validator: (S.const % validator) ()
 
   let html textInput =
     div

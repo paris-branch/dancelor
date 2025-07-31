@@ -79,19 +79,21 @@ module Editor = struct
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make
-        Text
-        initial_state.name
+        ~type_: Text
+        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Cairdin O't"
-        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let kind =
       Input.Text.make
-        Text
-        initial_state.kind
+        ~type_: Text
+        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. R or Strathspey"
-        (Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt)
+        ~validator: (Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt)
+        ()
     in
     let composers =
       Selector.make
@@ -106,16 +108,17 @@ module Editor = struct
     in
     let date =
       Input.Text.make
-        Text
-        initial_state.date
+        ~type_: Text
+        ~initial_value: initial_state.date
         ~label: "Date of devising"
         ~placeholder: "eg. 2019 or 2012-03-14"
-        (
+        ~validator: (
           Option.fold
             ~none: (Ok None)
             ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
             Option.of_string_nonempty
         )
+        ()
     in
     let dances =
       Selector.make
@@ -130,24 +133,26 @@ module Editor = struct
     in
     let remark =
       Input.Text.make
-        Text
-        initial_state.remark
+        ~type_: Text
+        ~initial_value: initial_state.remark
         ~label: "Remark"
         ~placeholder: "Any additional information that doesn't fit in the other fields."
-        (ok % Option.of_string_nonempty)
+        ~validator: (ok % Option.of_string_nonempty)
+        ()
     in
     let scddb_id =
       Input.Text.make
-        Text
-        initial_state.scddb_id
+        ~type_: Text
+        ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/"
-        (
+        ~validator: (
           Option.fold
             ~none: (Ok None)
             ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Tune) %
             Option.of_string_nonempty
         )
+        ()
     in
     {
       elements = {name; kind; composers; date; dances; remark; scddb_id};

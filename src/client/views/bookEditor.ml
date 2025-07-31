@@ -94,24 +94,26 @@ module Editor = struct
     with_or_without_local_storage ~text ~edit @@ fun initial_state ->
     let name =
       Input.Text.make
-        Text
-        initial_state.name
+        ~type_: Text
+        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller Book"
-        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let date =
       Input.Text.make
-        Text
-        initial_state.date
+        ~type_: Text
+        ~initial_value: initial_state.date
         ~label: "Date of devising"
         ~placeholder: "eg. 2019 or 2012-03-14"
-        (
+        ~validator: (
           Option.fold
             ~none: (Ok None)
             ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
             Option.of_string_nonempty
         )
+        ()
     in
     let sets =
       Selector.make

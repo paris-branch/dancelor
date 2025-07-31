@@ -9,12 +9,12 @@ let open_sign_in_dialog () =
   let (status_signal, set_status_signal) = S.create DontKnow in
   let username_input =
     Input.Text.make'
-      Text
+      ~type_: Text
       ~label: "Username"
-      ""
+      ~initial_value: ""
       ~placeholder: "JeanMilligan"
       ~oninput: (fun _ -> set_status_signal DontKnow)
-      (fun username ->
+      ~validator: (fun username ->
         S.bind status_signal @@ fun status ->
         S.const @@
           if username = "" then Error "The username cannot be empty."
@@ -23,15 +23,16 @@ let open_sign_in_dialog () =
             | Invalid -> Error "Invalid username or password."
             | DontKnow -> Ok username
       )
+      ()
   in
   let password_input =
     Input.Text.make'
-      Password
+      ~type_: Password
       ~label: "Password"
-      ""
+      ~initial_value: ""
       ~placeholder: "1234567"
       ~oninput: (fun _ -> set_status_signal DontKnow)
-      (fun password ->
+      ~validator: (fun password ->
         S.bind status_signal @@ fun status ->
         S.const @@
           match password, status with
@@ -39,6 +40,7 @@ let open_sign_in_dialog () =
           | _, Invalid -> Error "Invalid username or password."
           | _, DontKnow -> Ok password
       )
+      ()
   in
   let remember_me_input =
     Choices.(

@@ -87,19 +87,21 @@ module Editor = struct
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make
-        Text
-        initial_state.name
+        ~type_: Text
+        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
-        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let kind =
       Input.Text.make
-        Text
-        initial_state.kind
+        ~type_: Text
+        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S)"
-        (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
+        ~validator: (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
+        ()
     in
     let devisers =
       Selector.make
@@ -114,24 +116,26 @@ module Editor = struct
     in
     let date =
       Input.Text.make
-        Text
-        initial_state.date
+        ~type_: Text
+        ~initial_value: initial_state.date
         ~label: "Date of devising"
         ~placeholder: "eg. 2019 or 2012-03-14"
-        (
+        ~validator: (
           Option.fold
             ~none: (Ok None)
             ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
             Option.of_string_nonempty
         )
+        ()
     in
     let disambiguation =
       Input.Text.make
-        Text
-        initial_state.disambiguation
+        ~type_: Text
+        ~initial_value: initial_state.disambiguation
         ~label: "Disambiguation"
         ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them."
-        (ok % Option.of_string_nonempty)
+        ~validator: (ok % Option.of_string_nonempty)
+        ()
     in
     let two_chords =
       Choices.make_radios
@@ -143,16 +147,17 @@ module Editor = struct
     in
     let scddb_id =
       Input.Text.make
-        Text
-        initial_state.scddb_id
+        ~type_: Text
+        ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/"
-        (
+        ~validator: (
           Option.fold
             ~none: (Ok None)
             ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Dance) %
             Option.of_string_nonempty
         )
+        ()
     in
       {elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id}}
 

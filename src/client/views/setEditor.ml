@@ -74,19 +74,21 @@ module Editor = struct
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
       Input.Text.make
-        Text
-        initial_state.name
+        ~type_: Text
+        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
-        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let kind =
       Input.Text.make
-        Text
-        initial_state.kind
+        ~type_: Text
+        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S)"
-        (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
+        ~validator: (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
+        ()
     in
     let conceptors =
       Selector.make
@@ -112,11 +114,12 @@ module Editor = struct
     in
     let order =
       Input.Text.make
-        Text
-        initial_state.order
+        ~type_: Text
+        ~initial_value: initial_state.order
         ~label: "Order"
         ~placeholder: "eg. 1,2,3,4,2,3,4,1"
-        (Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt)
+        ~validator: (Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt)
+        ()
     in
     {
       elements = {name; kind; conceptors; versions; order};

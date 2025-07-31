@@ -100,27 +100,30 @@ module Editor = struct
     in
     let bars =
       Input.Text.make
-        Text
-        initial_state.bars
+        ~type_: Text
+        ~initial_value: initial_state.bars
         ~label: "Number of bars"
         ~placeholder: "eg. 32 or 48"
-        (Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt)
+        ~validator: (Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt)
+        ()
     in
     let key =
       Input.Text.make
-        Text
-        initial_state.key
+        ~type_: Text
+        ~initial_value: initial_state.key
         ~label: "Key"
         ~placeholder: "eg. A or F#m"
-        (Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt)
+        ~validator: (Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt)
+        ()
     in
     let structure =
       Input.Text.make
-        Text
-        initial_state.structure
+        ~type_: Text
+        ~initial_value: initial_state.structure
         ~label: "Structure"
         ~placeholder: "eg. AABB or ABAB"
-        ok
+        ~validator: ok
+        ()
     in
     let arrangers =
       Selector.make
@@ -135,11 +138,12 @@ module Editor = struct
     in
     let remark =
       Input.Text.make
-        Text
-        initial_state.remark
+        ~type_: Text
+        ~initial_value: initial_state.remark
         ~label: "Remark"
         ~placeholder: "Any additional information that doesn't fit in the other fields."
-        ok
+        ~validator: ok
+        ()
     in
     let sources =
       Selector.make
@@ -154,19 +158,21 @@ module Editor = struct
     in
     let disambiguation =
       Input.Text.make
-        Text
-        initial_state.disambiguation
+        ~type_: Text
+        ~initial_value: initial_state.disambiguation
         ~label: "Disambiguation"
         ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them."
-        ok
+        ~validator: ok
+        ()
     in
     let content =
       Input.Text.make
-        Textarea
-        initial_state.content
+        ~type_: Textarea
+        ~initial_value: initial_state.content
         ~label: "LilyPond content"
         ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
-        (Result.of_string_nonempty ~empty: "Cannot be empty.")
+        ~validator: (Result.of_string_nonempty ~empty: "Cannot be empty.")
+        ()
     in
     {
       elements = {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content};

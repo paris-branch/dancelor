@@ -9,11 +9,12 @@ include Endpoints.Page.MakeDescribe(Model)
 let open_dialog page =
   let reporter_input =
     Input.Text.make
-      Text
-      ""
+      ~type_: Text
+      ~initial_value: ""
       ~label: "Reporter"
       ~placeholder: "Dr Jean Milligan"
-      (Result.of_string_nonempty ~empty: "You must specify the reporter.")
+      ~validator: (Result.of_string_nonempty ~empty: "You must specify the reporter.")
+      ()
   in
   let%lwt source =
     flip Lwt.map (describe page) @@ function
@@ -40,19 +41,21 @@ let open_dialog page =
   in
   let title_input =
     Input.Text.make
-      Text
-      ""
+      ~type_: Text
+      ~initial_value: ""
       ~label: "Title"
       ~placeholder: "Blimey, 'tis not working!"
-      (Result.of_string_nonempty ~empty: "The title cannot be empty.")
+      ~validator: (Result.of_string_nonempty ~empty: "The title cannot be empty.")
+      ()
   in
   let description_input =
     Input.Text.make
-      Textarea
-      ""
+      ~type_: Textarea
+      ~initial_value: ""
       ~label: "Description"
       ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-      (Result.of_string_nonempty ~empty: "The description cannot be empty.")
+      ~validator: (Result.of_string_nonempty ~empty: "The description cannot be empty.")
+      ()
   in
   let request_signal =
     let page = Uri.to_string page in

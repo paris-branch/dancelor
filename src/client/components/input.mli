@@ -6,7 +6,7 @@ open Js_of_ocaml_tyxml.Tyxml_js
 (** {2 Text input components} *)
 
 module Text : sig
-  type kind = Text | Password | Textarea
+  type type_ = Text | Password | Textarea
 
   type 'a t
   (** Abstract type of a text input component. *)
@@ -15,9 +15,10 @@ module Text : sig
     ?label: string ->
     ?placeholder: string ->
     ?oninput: (string -> unit) ->
-    kind ->
-    string ->
-    (string -> ('a, string) Result.t) ->
+    type_: type_ ->
+    initial_value: string ->
+    validator: (string -> ('a, string) Result.t) ->
+    unit ->
     'a t
   (** Make a text input component from the initial input string and a validator
       function. *)
@@ -26,9 +27,10 @@ module Text : sig
     ?label: string ->
     ?placeholder: string ->
     ?oninput: (string -> unit) ->
-    kind ->
-    string ->
-    (string -> ('a, string) Result.t S.t) ->
+    type_: type_ ->
+    initial_value: string ->
+    validator: (string -> ('a, string) Result.t S.t) ->
+    unit ->
     'a t
   (** Variant of {!make} where the validator gets access to the internal signal.
       In fact, [make x v = make' x (S.const % v)]. *)

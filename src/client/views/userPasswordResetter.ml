@@ -8,20 +8,25 @@ type status = Match | DontMatch
 
 let create username token =
   let password1_input =
-    Input.Text.make Password ~label: "Password" "" ~placeholder: "1234567" (fun password1 ->
-      Result.bind (Password.check password1) @@ fun () -> Ok password1
-    )
+    Input.Text.make
+      ~type_: Password
+      ~label: "Password"
+      ~initial_value: ""
+      ~placeholder: "1234567"
+      ~validator: (fun password1 -> Result.bind (Password.check password1) @@ fun () -> Ok password1)
+      ()
   in
   let password2_input =
     Input.Text.make'
-      Password
+      ~type_: Password
       ~label: "Password, again"
-      ""
+      ~initial_value: ""
       ~placeholder: "1234678"
-      (fun password2 ->
+      ~validator: (fun password2 ->
         flip S.map (Input.Text.raw_signal password1_input) @@ fun password1 ->
         if password1 = password2 then Ok password2 else Error "The passwords do not match."
       )
+      ()
   in
   let password =
     RS.bind (Input.Text.signal password1_input) @@ fun password1 ->
