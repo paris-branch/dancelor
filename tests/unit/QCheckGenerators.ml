@@ -54,7 +54,7 @@ module TextFormula = struct
     fix
       (fun self () ->
         let* name = string_size ~gen: (char_range 'a' 'z') (int_range 1 10) in
-        if name = "or" || name = "and" || name = "not" then
+        if name = "or" || name = "and" || name = "not" || name = "true" || name = "false" then
           self ()
         else
           pure name
