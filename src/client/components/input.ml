@@ -23,7 +23,11 @@ let value state = S.value @@ signal state
 
 let focus state =
   match state.html with
-  | Text (_, input) -> input##focus
+  | Text (_, input) ->
+    input##focus;
+    let length = String.length (Js.to_string input##.value) in
+    input##.selectionStart := length;
+    input##.selectionEnd := length
   | Textarea (_, textarea) -> textarea##focus
 
 let clear state = state.set ""

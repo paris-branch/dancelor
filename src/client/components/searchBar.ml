@@ -127,4 +127,8 @@ let html search_bar : [> Html_types.input] Html.elt =
      [`Input] :> [> `Input]. Apparently, I don't understand subtyping. *)
   (tot % toelt) search_bar.bar_html
 
-let focus search_bar = search_bar.bar_dom##focus
+let focus search_bar =
+  search_bar.bar_dom##focus;
+  let length = String.length (Js.to_string search_bar.bar_dom##.value) in
+  search_bar.bar_dom##.selectionStart := length;
+  search_bar.bar_dom##.selectionEnd := length

@@ -39,9 +39,17 @@ let create ?query () =
             ~classes: ["btn-primary"]
             ~onclick: (fun () ->
               let search_text = S.value @@ SearchBar.text @@ Search.search_bar search in
-              (* TODO: On return, add a space and focus the search bar. *)
-              Option.iter (fun text -> SearchBar.set_text (Search.search_bar search) text; update_uri text)
-              <$> SearchComplexFiltersDialog.open_ search_text
+              let%lwt text = SearchComplexFiltersDialog.open_ search_text in
+              Option.iter
+                (fun text ->
+                  let text = text ^ " " in
+                  let bar = Search.search_bar search in
+                  SearchBar.set_text bar text;
+                  update_uri text;
+                  SearchBar.focus bar
+                )
+                text;
+              lwt_unit
             )
             ();
         ]
