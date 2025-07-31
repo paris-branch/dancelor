@@ -8,25 +8,37 @@ let open_sign_in_dialog () =
   let open Components in
   let (status_signal, set_status_signal) = S.create DontKnow in
   let username_input =
-    Input.Text.make' "" (fun username ->
-      S.bind status_signal @@ fun status ->
-      S.const @@
-        if username = "" then Error "The username cannot be empty."
-        else
-          match status with
-          | Invalid -> Error "Invalid username or password."
-          | DontKnow -> Ok username
-    )
+    Input.Text.make'
+      Text
+      ~label: "Username"
+      ""
+      ~placeholder: "JeanMilligan"
+      ~oninput: (fun _ -> set_status_signal DontKnow)
+      (fun username ->
+        S.bind status_signal @@ fun status ->
+        S.const @@
+          if username = "" then Error "The username cannot be empty."
+          else
+            match status with
+            | Invalid -> Error "Invalid username or password."
+            | DontKnow -> Ok username
+      )
   in
   let password_input =
-    Input.Text.make' "" (fun password ->
-      S.bind status_signal @@ fun status ->
-      S.const @@
-        match password, status with
-        | "", _ -> Error "The password cannot be empty."
-        | _, Invalid -> Error "Invalid username or password."
-        | _, DontKnow -> Ok password
-    )
+    Input.Text.make'
+      Password
+      ~label: "Password"
+      ""
+      ~placeholder: "1234567"
+      ~oninput: (fun _ -> set_status_signal DontKnow)
+      (fun password ->
+        S.bind status_signal @@ fun status ->
+        S.const @@
+          match password, status with
+          | "", _ -> Error "The password cannot be empty."
+          | _, Invalid -> Error "Invalid username or password."
+          | _, DontKnow -> Ok password
+      )
   in
   let remember_me_input =
     Choices.(
@@ -50,17 +62,8 @@ let open_sign_in_dialog () =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Sign in")
-      [Input.Text.render
-        username_input
-        ~placeholder: "JeanMilligan"
-        ~label: "Username"
-        ~oninput: (fun _ -> set_status_signal DontKnow);
-      Input.Text.render
-        password_input
-        ~password: true
-        ~placeholder: "1234567"
-        ~label: "Password"
-        ~oninput: (fun _ -> set_status_signal DontKnow);
+      [Input.Text.html username_input;
+      Input.Text.html password_input;
       Choices.render remember_me_input;
       ]
       ~buttons: [

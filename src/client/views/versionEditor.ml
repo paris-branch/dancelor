@@ -99,14 +99,29 @@ module Editor = struct
         initial_state.tune
     in
     let bars =
-      Input.Text.make initial_state.bars @@
-        Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt
+      Input.Text.make
+        Text
+        initial_state.bars
+        ~label: "Number of bars"
+        ~placeholder: "eg. 32 or 48"
+        (Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt)
     in
     let key =
-      Input.Text.make initial_state.key @@
-        Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt
+      Input.Text.make
+        Text
+        initial_state.key
+        ~label: "Key"
+        ~placeholder: "eg. A or F#m"
+        (Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt)
     in
-    let structure = Input.Text.make initial_state.structure @@ ok in
+    let structure =
+      Input.Text.make
+        Text
+        initial_state.structure
+        ~label: "Structure"
+        ~placeholder: "eg. AABB or ABAB"
+        ok
+    in
     let arrangers =
       Selector.make
         ~arity: Selector.many
@@ -118,7 +133,14 @@ module Editor = struct
         ~unserialise: Model.Person.get
         initial_state.arrangers
     in
-    let remark = Input.Text.make initial_state.remark @@ ok in
+    let remark =
+      Input.Text.make
+        Text
+        initial_state.remark
+        ~label: "Remark"
+        ~placeholder: "Any additional information that doesn't fit in the other fields."
+        ok
+    in
     let sources =
       Selector.make
         ~arity: Selector.many
@@ -130,10 +152,21 @@ module Editor = struct
         ~unserialise: Model.Source.get
         initial_state.sources
     in
-    let disambiguation = Input.Text.make initial_state.disambiguation @@ ok in
+    let disambiguation =
+      Input.Text.make
+        Text
+        initial_state.disambiguation
+        ~label: "Disambiguation"
+        ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them."
+        ok
+    in
     let content =
-      Input.Text.make initial_state.content @@
-        Result.of_string_nonempty ~empty: "Cannot be empty."
+      Input.Text.make
+        Textarea
+        initial_state.content
+        ~label: "LilyPond content"
+        ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
+        (Result.of_string_nonempty ~empty: "Cannot be empty.")
     in
     {
       elements = {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content};
@@ -179,18 +212,9 @@ let create ?on_save ?text ?tune () =
       ~model_name: "tune"
       ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
       editor.elements.tune;
-    Input.Text.render
-      editor.elements.bars
-      ~label: "Number of bars"
-      ~placeholder: "eg. 32 or 48";
-    Input.Text.render
-      editor.elements.key
-      ~label: "Key"
-      ~placeholder: "eg. A or F#m";
-    Input.Text.render
-      editor.elements.structure
-      ~label: "Structure"
-      ~placeholder: "eg. AABB or ABAB";
+    Input.Text.html editor.elements.bars;
+    Input.Text.html editor.elements.key;
+    Input.Text.html editor.elements.structure;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Arrangers"
@@ -203,18 +227,9 @@ let create ?on_save ?text ?tune () =
       ~model_name: "source"
       ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
       editor.elements.sources;
-    Input.Text.render
-      editor.elements.disambiguation
-      ~label: "Disambiguation"
-      ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them.";
-    Input.Text.render
-      editor.elements.remark
-      ~label: "Remark"
-      ~placeholder: "Any additional information that doesn't fit in the other fields.";
-    Input.Text.render_as_textarea
-      editor.elements.content
-      ~label: "LilyPond content"
-      ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>";
+    Input.Text.html editor.elements.disambiguation;
+    Input.Text.html editor.elements.remark;
+    Input.Text.html editor.elements.content;
     ]
     ~buttons: [
       Button.clear

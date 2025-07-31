@@ -86,12 +86,20 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.Text.make
+        Text
+        initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller"
+        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
     in
     let kind =
-      Input.Text.make initial_state.kind @@
-        Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
+      Input.Text.make
+        Text
+        initial_state.kind
+        ~label: "Kind"
+        ~placeholder: "eg. 8x32R or 2x(16R+16S)"
+        (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
     in
     let devisers =
       Selector.make
@@ -105,15 +113,25 @@ module Editor = struct
         initial_state.devisers
     in
     let date =
-      Input.Text.make initial_state.date @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
-          Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.date
+        ~label: "Date of devising"
+        ~placeholder: "eg. 2019 or 2012-03-14"
+        (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
+            Option.of_string_nonempty
+        )
     in
     let disambiguation =
-      Input.Text.make initial_state.disambiguation @@
-        ok % Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.disambiguation
+        ~label: "Disambiguation"
+        ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them."
+        (ok % Option.of_string_nonempty)
     in
     let two_chords =
       Choices.make_radios
@@ -124,11 +142,17 @@ module Editor = struct
         ~name: "Number of chords"
     in
     let scddb_id =
-      Input.Text.make initial_state.scddb_id @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Dance) %
-          Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/"
+        (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Dance) %
+            Option.of_string_nonempty
+        )
     in
       {elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id}}
 
@@ -163,34 +187,19 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a dance")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Dusty Miller";
-    Input.Text.render
-      editor.elements.kind
-      ~label: "Kind"
-      ~placeholder: "eg. 8x32R or 2x(16R+16S)";
+    [Input.Text.html editor.elements.name;
+    Input.Text.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Devisers"
       ~model_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.devisers;
-    Input.Text.render
-      editor.elements.date
-      ~label: "Date of devising"
-      ~placeholder: "eg. 2019 or 2012-03-14";
+    Input.Text.html editor.elements.date;
     Choices.render
       editor.elements.two_chords;
-    Input.Text.render
-      editor.elements.scddb_id
-      ~label: "SCDDB ID"
-      ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/";
-    Input.Text.render
-      editor.elements.disambiguation
-      ~label: "Disambiguation"
-      ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them.";
+    Input.Text.html editor.elements.scddb_id;
+    Input.Text.html editor.elements.disambiguation;
     ]
     ~buttons: [
       Button.clear

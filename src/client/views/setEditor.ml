@@ -73,12 +73,20 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.Text.make
+        Text
+        initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller"
+        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
     in
     let kind =
-      Input.Text.make initial_state.kind @@
-        Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt
+      Input.Text.make
+        Text
+        initial_state.kind
+        ~label: "Kind"
+        ~placeholder: "eg. 8x32R or 2x(16R+16S)"
+        (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
     in
     let conceptors =
       Selector.make
@@ -103,8 +111,12 @@ module Editor = struct
         initial_state.versions
     in
     let order =
-      Input.Text.make initial_state.order @@
-        Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt
+      Input.Text.make
+        Text
+        initial_state.order
+        ~label: "Order"
+        ~placeholder: "eg. 1,2,3,4,2,3,4,1"
+        (Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt)
     in
     {
       elements = {name; kind; conceptors; versions; order};
@@ -141,14 +153,8 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a set")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Dusty Miller";
-    Input.Text.render
-      editor.elements.kind
-      ~label: "Kind"
-      ~placeholder: "eg. 8x32R or 2x(16R+16S)";
+    [Input.Text.html editor.elements.name;
+    Input.Text.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Conceptors"
@@ -164,10 +170,7 @@ let create ?on_save ?text () =
       ~model_name: "versions"
       ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
       editor.elements.versions;
-    Input.Text.render
-      editor.elements.order
-      ~label: "Order"
-      ~placeholder: "eg. 1,2,3,4,2,3,4,1";
+    Input.Text.html editor.elements.order;
     ]
     ~buttons: [
       Button.clear

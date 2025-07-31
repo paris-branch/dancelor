@@ -8,8 +8,12 @@ include Endpoints.Page.MakeDescribe(Model)
 
 let open_dialog page =
   let reporter_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "You must specify the reporter."
+    Input.Text.make
+      Text
+      ""
+      ~label: "Reporter"
+      ~placeholder: "Dr Jean Milligan"
+      (Result.of_string_nonempty ~empty: "You must specify the reporter.")
   in
   let%lwt source =
     flip Lwt.map (describe page) @@ function
@@ -35,12 +39,20 @@ let open_dialog page =
           ]
   in
   let title_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "The title cannot be empty."
+    Input.Text.make
+      Text
+      ""
+      ~label: "Title"
+      ~placeholder: "Blimey, 'tis not working!"
+      (Result.of_string_nonempty ~empty: "The title cannot be empty.")
   in
   let description_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "The description cannot be empty."
+    Input.Text.make
+      Textarea
+      ""
+      ~label: "Description"
+      ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+      (Result.of_string_nonempty ~empty: "The description cannot be empty.")
   in
   let request_signal =
     let page = Uri.to_string page in
@@ -55,19 +67,10 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Report an issue")
-      [Input.Text.render
-        reporter_input
-        ~placeholder: "Dr Jean Milligan"
-        ~label: "Reporter";
+      [Input.Text.html reporter_input;
       Choices.render source;
-      Input.Text.render
-        title_input
-        ~placeholder: "Blimey, 'tis not working!"
-        ~label: "Title";
-      Input.Text.render_as_textarea
-        description_input
-        ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-        ~label: "Description";
+      Input.Text.html title_input;
+      Input.Text.html description_input;
       ]
       ~buttons: [
         Button.cancel' ~return ();

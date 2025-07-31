@@ -28,10 +28,15 @@ let open_token_result_dialog user token =
 let create () =
   MainPage.assert_can_admin @@ fun () ->
   let username_input =
-    Input.Text.make "" (fun username ->
-      if username = "" then Error "The username cannot be empty."
-      else Ok username (* FIXME: limit possibilities? FIXME: a module for usernames *)
-    )
+    Input.Text.make
+      Text
+      ""
+      ~placeholder: "JeanMilligan"
+      ~label: "Username"
+      (fun username ->
+        if username = "" then Error "The username cannot be empty."
+        else Ok username (* FIXME: limit possibilities? FIXME: a module for usernames *)
+      )
   in
   let person_selector =
     Selector.make
@@ -51,10 +56,7 @@ let create () =
   in
   Page.make'
     ~title: (lwt "Create user")
-    [Input.Text.render
-      username_input
-      ~placeholder: "JeanMilligan"
-      ~label: "Username";
+    [Input.Text.html username_input;
     Selector.render
       ~make_result: Utils.AnyResult.make_person_result'
       ~field_name: "Person"

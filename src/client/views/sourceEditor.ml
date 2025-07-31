@@ -53,18 +53,32 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.Text.make
+        Text
+        initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2"
+        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
     in
     let scddb_id =
-      Input.Text.make initial_state.scddb_id @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Publication) %
-          Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/"
+        (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Publication) %
+            Option.of_string_nonempty
+        )
     in
     let description =
-      Input.Text.make initial_state.name @@
+      Input.Text.make
+        Textarea
+        initial_state.name
+        ~label: "Description"
+        ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances."
         (function "" -> Ok None | s -> Ok (Some s))
     in
       {elements = {name; scddb_id; description}}
@@ -87,18 +101,9 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a source")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
-    Input.Text.render
-      editor.elements.scddb_id
-      ~label: "SCDDB ID"
-      ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
-    Input.Text.render_as_textarea
-      editor.elements.description
-      ~label: "Description"
-      ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances.";
+    [Input.Text.html editor.elements.name;
+    Input.Text.html editor.elements.scddb_id;
+    Input.Text.html editor.elements.description;
     ]
     ~buttons: [
       Button.clear

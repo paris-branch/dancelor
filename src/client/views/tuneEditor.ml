@@ -78,12 +78,20 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.Text.make
+        Text
+        initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Cairdin O't"
+        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
     in
     let kind =
-      Input.Text.make initial_state.kind @@
-        Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt
+      Input.Text.make
+        Text
+        initial_state.kind
+        ~label: "Kind"
+        ~placeholder: "eg. R or Strathspey"
+        (Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt)
     in
     let composers =
       Selector.make
@@ -97,11 +105,17 @@ module Editor = struct
         initial_state.composers
     in
     let date =
-      Input.Text.make initial_state.date @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
-          Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.date
+        ~label: "Date of devising"
+        ~placeholder: "eg. 2019 or 2012-03-14"
+        (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
+            Option.of_string_nonempty
+        )
     in
     let dances =
       Selector.make
@@ -115,15 +129,25 @@ module Editor = struct
         initial_state.dances
     in
     let remark =
-      Input.Text.make initial_state.remark @@
-        ok % Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.remark
+        ~label: "Remark"
+        ~placeholder: "Any additional information that doesn't fit in the other fields."
+        (ok % Option.of_string_nonempty)
     in
     let scddb_id =
-      Input.Text.make initial_state.scddb_id @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Tune) %
-          Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/"
+        (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Tune) %
+            Option.of_string_nonempty
+        )
     in
     {
       elements = {name; kind; composers; date; dances; remark; scddb_id};
@@ -152,38 +176,23 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a tune")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Cairdin O't";
-    Input.Text.render
-      editor.elements.kind
-      ~label: "Kind"
-      ~placeholder: "eg. R or Strathspey";
+    [Input.Text.html editor.elements.name;
+    Input.Text.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Composers"
       ~model_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.composers;
-    Input.Text.render
-      editor.elements.date
-      ~label: "Date of devising"
-      ~placeholder: "eg. 2019 or 2012-03-14";
+    Input.Text.html editor.elements.date;
     Selector.render
       ~make_result: AnyResult.make_dance_result'
       ~field_name: "Dances"
       ~model_name: "dance"
       ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
       editor.elements.dances;
-    Input.Text.render
-      editor.elements.remark
-      ~label: "Remark"
-      ~placeholder: "Any additional information that doesn't fit in the other fields.";
-    Input.Text.render
-      editor.elements.scddb_id
-      ~label: "SCDDB ID"
-      ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/";
+    Input.Text.html editor.elements.remark;
+    Input.Text.html editor.elements.scddb_id;
     ]
     ~buttons: [
       Button.clear

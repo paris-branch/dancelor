@@ -6,10 +6,16 @@ open Js_of_ocaml_tyxml.Tyxml_js
 (** {2 Text input components} *)
 
 module Text : sig
+  type kind = Text | Password | Textarea
+
   type 'a t
   (** Abstract type of a text input component. *)
 
   val make :
+    ?label: string ->
+    ?placeholder: string ->
+    ?oninput: (string -> unit) ->
+    kind ->
     string ->
     (string -> ('a, string) Result.t) ->
     'a t
@@ -17,6 +23,10 @@ module Text : sig
       function. *)
 
   val make' :
+    ?label: string ->
+    ?placeholder: string ->
+    ?oninput: (string -> unit) ->
+    kind ->
     string ->
     (string -> ('a, string) Result.t S.t) ->
     'a t
@@ -36,22 +46,8 @@ module Text : sig
   val clear : 'a t -> unit
   (** Clear a text input component to an empty value . *)
 
-  val render :
-    ?password: bool ->
-    ?label: string ->
-    ?placeholder: string ->
-    ?oninput: (string -> unit) ->
-    'a t ->
-    [> Html_types.div] Html.elt
+  val html : 'a t -> [> Html_types.div] Html.elt
   (** Render a text input component as HTML. *)
-
-  val render_as_textarea :
-    ?label: string ->
-    ?placeholder: string ->
-    ?oninput: (string -> unit) ->
-    'a t ->
-    [> Html_types.div] Html.elt
-  (** Variant of {!render} that renders the input as a textarea. *)
 end
 
 val inactive :

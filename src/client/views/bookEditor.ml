@@ -93,15 +93,25 @@ module Editor = struct
   let create ~text ~edit : t Lwt.t =
     with_or_without_local_storage ~text ~edit @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.Text.make
+        Text
+        initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller Book"
+        (Result.of_string_nonempty ~empty: "The name cannot be empty.")
     in
     let date =
-      Input.Text.make initial_state.date @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
-          Option.of_string_nonempty
+      Input.Text.make
+        Text
+        initial_state.date
+        ~label: "Date of devising"
+        ~placeholder: "eg. 2019 or 2012-03-14"
+        (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+            Option.of_string_nonempty
+        )
     in
     let sets =
       Selector.make
@@ -151,14 +161,8 @@ let create ?on_save ?text ?edit () =
   let%lwt editor = Editor.create ~text ~edit in
   Page.make'
     ~title: (lwt @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Dusty Miller Book";
-    Input.Text.render
-      editor.elements.date
-      ~label: "Date of devising"
-      ~placeholder: "eg. 2019 or 2012-03-14";
+    [Input.Text.html editor.elements.name;
+    Input.Text.html editor.elements.date;
     Selector.render
       ~make_result: AnyResult.make_set_result'
       ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
