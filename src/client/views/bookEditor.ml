@@ -62,19 +62,19 @@ end
 module Editor = struct
   type t = {
     elements:
-    (string Input.Text.t, PartialDate.t option Input.Text.t, (Selector.many, Model.Set.t) Selector.t) gen;
+    (string Input.t, PartialDate.t option Input.t, (Selector.many, Model.Set.t) Selector.t) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.elements.date) @@ fun date ->
+    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.raw_signal editor.elements.date) @@ fun date ->
     S.bind (Selector.raw_signal editor.elements.sets) @@ fun sets ->
     S.const {name; date; sets}
 
   let state (editor : t) : State.t option S.t =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.elements.date) @@ fun date ->
+    RS.bind (Input.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.signal editor.elements.date) @@ fun date ->
     RS.bind (Selector.signal_many editor.elements.sets) @@ fun sets ->
     RS.pure {name; date; sets}
 
@@ -93,15 +93,27 @@ module Editor = struct
   let create ~text ~edit : t Lwt.t =
     with_or_without_local_storage ~text ~edit @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.make
+        ~type_: Text
+        ~initial_value: initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Dusty Miller Book"
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let date =
-      Input.Text.make initial_state.date @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
-          Option.of_string_nonempty
+      Input.make
+        ~type_: Text
+        ~initial_value: initial_state.date
+        ~label: "Date of devising"
+        ~placeholder: "eg. 2019 or 2012-03-14"
+        ~validator: (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+            Option.of_string_nonempty
+        )
+        ()
     in
     let sets =
       Selector.make
@@ -123,8 +135,8 @@ module Editor = struct
     {state with sets = state.sets @ [set]}
 
   let clear (editor : t) =
-    Input.Text.clear editor.elements.name;
-    Input.Text.clear editor.elements.date;
+    Input.clear editor.elements.name;
+    Input.clear editor.elements.date;
     Selector.clear editor.elements.sets
 
   let submit ~edit (editor : t) =
@@ -151,14 +163,9 @@ let create ?on_save ?text ?edit () =
   let%lwt editor = Editor.create ~text ~edit in
   Page.make'
     ~title: (lwt @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Dusty Miller Book";
-    Input.Text.render
-      editor.elements.date
-      ~label: "Date of devising"
-      ~placeholder: "eg. 2019 or 2012-03-14";
+    ~on_load: (fun () -> Input.focus editor.elements.name)
+    [Input.html editor.elements.name;
+    Input.html editor.elements.date;
     Selector.render
       ~make_result: AnyResult.make_set_result'
       ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])

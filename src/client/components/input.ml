@@ -2,93 +2,121 @@ open Nes
 open Js_of_ocaml
 open Html
 
-module Text = struct
-  type 'a t = {
-    validator: string -> ('a, string) Result.t S.t;
-    raw_signal: string S.t;
-    set: string -> unit;
-  }
+type html =
+  | Text of Html_types.input elt * Dom_html.inputElement Js.t
+  | Textarea of Html_types.textarea elt * Dom_html.textAreaElement Js.t
 
-  let make' initial_value validator =
-    let (raw_signal, set_immediately) = S.create initial_value in
-    let set = S.delayed_setter 0.30 set_immediately in
-      {validator; raw_signal; set}
+type type_ = Text | Password | Textarea
 
-  let make initial_value validator =
-    make' initial_value (S.const % validator)
+type 'a t = {
+  label: string option;
+  raw_signal: string S.t;
+  signal: ('a, string) result S.t;
+  set: string -> unit;
+  html: html;
+}
 
-  let raw_signal state = state.raw_signal
+let raw_signal state = state.raw_signal
 
-  let signal state = S.bind state.raw_signal state.validator
-  let value state = S.value @@ signal state
+let signal state = state.signal
+let value state = S.value @@ signal state
 
-  let case_errored ~no ~yes state =
-    flip S.map (signal state) @@ function
-      | Error msg -> yes msg
-      | _ -> no
+let focus state =
+  match state.html with
+  | Text (_, input) ->
+    input##focus;
+    let length = String.length (Js.to_string input##.value) in
+    input##.selectionStart := length;
+    input##.selectionEnd := length
+  | Textarea (_, textarea) -> textarea##focus
 
-  let clear state = state.set ""
+let clear state = state.set ""
 
-  let render ?(password = false) ?label: lbl ?(placeholder = "") ?(oninput = ignore) state =
-    div
-      ~a: [a_class ["mb-2"]]
-      [
-        label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt lbl));
+let case_errored ~no ~yes signal =
+  flip S.map signal @@ function
+    | Error msg -> yes msg
+    | _ -> no
+
+let make'
+    ?label
+    ?(placeholder = "")
+    ?(oninput = ignore)
+    ~type_
+    ~initial_value
+    ~validator
+    ()
+  =
+  let (raw_signal, set_immediately) = S.create initial_value in
+  let set = S.delayed_setter 0.30 set_immediately in
+  let signal = S.bind raw_signal validator in
+  let html : html =
+    match type_ with
+    | Text | Password ->
+      let html =
         input
           ()
           ~a: [
-            a_input_type (if password then `Password else `Text);
+            a_input_type (match type_ with Text -> `Text | Password -> `Password | _ -> assert false);
             a_placeholder placeholder;
-            R.a_value state.raw_signal;
-            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) state);
+            R.a_value raw_signal;
+            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
             a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
                 Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
                 let input = Js.to_string input##.value in
-                state.set input;
+                set input;
                 oninput input
               );
               false
             );
-          ];
-        R.div
-          ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) state)]
-          (
-            case_errored ~no: [txt " "] ~yes: (List.singleton % txt) state
-          );
-      ]
-
-  let render_as_textarea ?label: lbl ?(placeholder = "") ?(oninput = ignore) state =
-    div
-      ~a: [a_class ["mb-2"]]
-      [
-        label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt lbl));
+          ]
+      in
+      Text (html, To_dom.of_input html)
+    | Textarea ->
+      let textarea =
         textarea
-          (R.txt state.raw_signal)
+          (R.txt raw_signal)
           ~a: [
             a_rows 15;
             a_placeholder placeholder;
             (* R.a_value state.raw_signal; FIXME: not possible in textarea but necessary for cleanup *)
-            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) state);
+            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
             a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
                 Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
                 let input = Js.to_string input##.value in
-                state.set input;
+                set input;
                 oninput input
               );
               false
             );
-          ];
-        R.div
-          ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) state)]
-          (
-            case_errored ~no: [txt " "] ~yes: (List.singleton % txt) state
-          );
-      ]
-end
+          ]
+      in
+      Textarea (textarea, To_dom.of_textarea textarea)
+  in
+    {label; raw_signal; signal; set; html}
+
+let make ?label ?placeholder ?oninput ~type_ ~initial_value ~validator () =
+  make' ?label ?placeholder ?oninput ~type_ ~initial_value ~validator: (S.const % validator) ()
+
+let html textInput =
+  div
+    ~a: [a_class ["mb-2"]]
+    [
+      label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt textInput.label));
+      (
+        match textInput.html with
+        | Text (input, _) -> ((tot % toelt) input: [> Html_types.input] elt)
+        | Textarea (textarea, _) -> ((tot % toelt) textarea: [> Html_types.textarea] elt)
+      );
+      R.div
+        ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) textInput.signal)]
+        (
+          case_errored ~no: [txt " "] ~yes: (List.singleton % txt) textInput.signal
+        );
+    ]
 
 let inactive ?label: lbl value =
   div

@@ -26,20 +26,20 @@ end
 module Editor = struct
   type t = {
     elements:
-    (string Input.Text.t, SCDDB.entry_id option Input.Text.t, string option Input.Text.t) gen
+    (string Input.t, SCDDB.entry_id option Input.t, string option Input.t) gen
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.Text.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.Text.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
-    S.bind (Input.Text.raw_signal editor.elements.description) @@ fun description ->
+    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Input.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
+    S.bind (Input.raw_signal editor.elements.description) @@ fun description ->
     S.const {name; scddb_id; description}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.Text.signal editor.elements.scddb_id) @@ fun scddb_id ->
-    RS.bind (Input.Text.signal editor.elements.description) @@ fun description ->
+    RS.bind (Input.signal editor.elements.name) @@ fun name ->
+    RS.bind (Input.signal editor.elements.scddb_id) @@ fun scddb_id ->
+    RS.bind (Input.signal editor.elements.description) @@ fun description ->
     RS.pure {name; scddb_id; description}
 
   let with_or_without_local_storage ~text f =
@@ -53,25 +53,42 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let name =
-      Input.Text.make initial_state.name @@
-        Result.of_string_nonempty ~empty: "The name cannot be empty."
+      Input.make
+        ~type_: Text
+        ~initial_value: initial_state.name
+        ~label: "Name"
+        ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2"
+        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ()
     in
     let scddb_id =
-      Input.Text.make initial_state.scddb_id @@
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Publication) %
-          Option.of_string_nonempty
+      Input.make
+        ~type_: Text
+        ~initial_value: initial_state.scddb_id
+        ~label: "SCDDB ID"
+        ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/"
+        ~validator: (
+          Option.fold
+            ~none: (Ok None)
+            ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Publication) %
+            Option.of_string_nonempty
+        )
+        ()
     in
     let description =
-      Input.Text.make initial_state.name @@
-        (function "" -> Ok None | s -> Ok (Some s))
+      Input.make
+        ~type_: Textarea
+        ~initial_value: initial_state.name
+        ~label: "Description"
+        ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances."
+        ~validator: (function "" -> Ok None | s -> Ok (Some s))
+        ()
     in
       {elements = {name; scddb_id; description}}
 
   let clear (editor : t) : unit =
-    Input.Text.clear editor.elements.name;
-    Input.Text.clear editor.elements.scddb_id
+    Input.clear editor.elements.name;
+    Input.clear editor.elements.scddb_id
 
   let submit (editor : t) : Model.Source.t Entry.t option Lwt.t =
     match S.value (state editor) with
@@ -87,18 +104,10 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a source")
-    [Input.Text.render
-      editor.elements.name
-      ~label: "Name"
-      ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2";
-    Input.Text.render
-      editor.elements.scddb_id
-      ~label: "SCDDB ID"
-      ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/";
-    Input.Text.render_as_textarea
-      editor.elements.description
-      ~label: "Description"
-      ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances.";
+    ~on_load: (fun () -> Input.focus editor.elements.name)
+    [Input.html editor.elements.name;
+    Input.html editor.elements.scddb_id;
+    Input.html editor.elements.description;
     ]
     ~buttons: [
       Button.clear

@@ -8,8 +8,13 @@ include Endpoints.Page.MakeDescribe(Model)
 
 let open_dialog page =
   let reporter_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "You must specify the reporter."
+    Input.make
+      ~type_: Text
+      ~initial_value: ""
+      ~label: "Reporter"
+      ~placeholder: "Dr Jean Milligan"
+      ~validator: (Result.of_string_nonempty ~empty: "You must specify the reporter.")
+      ()
   in
   let%lwt source =
     flip Lwt.map (describe page) @@ function
@@ -35,19 +40,29 @@ let open_dialog page =
           ]
   in
   let title_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "The title cannot be empty."
+    Input.make
+      ~type_: Text
+      ~initial_value: ""
+      ~label: "Title"
+      ~placeholder: "Blimey, 'tis not working!"
+      ~validator: (Result.of_string_nonempty ~empty: "The title cannot be empty.")
+      ()
   in
   let description_input =
-    Input.Text.make "" @@
-      Result.of_string_nonempty ~empty: "The description cannot be empty."
+    Input.make
+      ~type_: Textarea
+      ~initial_value: ""
+      ~label: "Description"
+      ~placeholder: "I am gutted; this knock off tune is wonky at best!"
+      ~validator: (Result.of_string_nonempty ~empty: "The description cannot be empty.")
+      ()
   in
   let request_signal =
     let page = Uri.to_string page in
     S.map Result.to_option @@
-    RS.bind (Input.Text.signal reporter_input) @@ fun reporter ->
-    RS.bind (Input.Text.signal title_input) @@ fun title ->
-    RS.bind (Input.Text.signal description_input) @@ fun description ->
+    RS.bind (Input.signal reporter_input) @@ fun reporter ->
+    RS.bind (Input.signal title_input) @@ fun title ->
+    RS.bind (Input.signal description_input) @@ fun description ->
     RS.bind (Choices.signal source) @@ fun source ->
     RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
@@ -55,19 +70,11 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Report an issue")
-      [Input.Text.render
-        reporter_input
-        ~placeholder: "Dr Jean Milligan"
-        ~label: "Reporter";
+      ~on_load: (fun () -> Input.focus reporter_input)
+      [Input.html reporter_input;
       Choices.render source;
-      Input.Text.render
-        title_input
-        ~placeholder: "Blimey, 'tis not working!"
-        ~label: "Title";
-      Input.Text.render_as_textarea
-        description_input
-        ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-        ~label: "Description";
+      Input.html title_input;
+      Input.html description_input;
       ]
       ~buttons: [
         Button.cancel' ~return ();
