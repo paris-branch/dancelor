@@ -20,17 +20,13 @@ let report _env issue =
   assert (repo <> "");
   (* otherwise this will pick up on the current Git repository *)
   let body =
-    Format.sprintf
-      {|
-**Reporter**: %s
-
-**Page**: %s
-
-**Description**:
-
-%s
-          |}
-      issue.reporter
+    spf
+      "**Reporter**: %s\n\n**Page**: %s\n\n**Description**:\n\n%s\n"
+      (
+        match issue.reporter with
+        | Left user -> Model.User.username' user (* FIXME: when there is a profile page for users, link to it *)
+        | Right string -> string
+      )
       issue.page
       issue.description
   in

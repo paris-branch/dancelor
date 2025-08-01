@@ -69,7 +69,7 @@ let map_fst f (x, y) = (f x, y)
 let map_snd f (x, y) = (x, f y)
 let map_pair f g (x, y) = (f x, g y)
 
-type ('a, 'b) either = [%import: ('a, 'b) Either.t]
+type ('a, 'b) either = [%import: ('a, 'b) Either.t] [@@deriving yojson]
 
 let rec fixpoint ?(eq = (=)) f x =
   let y = f x in
@@ -112,6 +112,8 @@ let lwt_nil = Lwt.return_nil
 let lwt_empty = Lwt.return ""
 let lwt_true = Lwt.return_true
 let lwt_false = Lwt.return_false
+let lwt_left x = Lwt.return @@ left x
+let lwt_right x = Lwt.return @@ right x
 
 let (<$>) = Lwt.map
 let (>>=) = Lwt.bind
