@@ -1,6 +1,6 @@
 (** {1 Datetime} *)
 
-type t [@@deriving yojson]
+type t [@@deriving eq, yojson]
 
 val of_string : string -> t
 (** Parses the date and time from an ISO 8601 string. *)

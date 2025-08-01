@@ -39,6 +39,32 @@ let dispatch uri =
 
 let () = Random.self_init ()
 
+let () = Environment.start_ping_routine ()
+
+let () =
+  Depart.keep_forever @@
+  flip S.map Environment.run_status @@ function
+  | Running -> ()
+  | Offline ->
+    Components.Toast.open_
+      ~title: "You are now offline"
+      [
+        txt "The Dancelor server cannot be reached any more. You are now in offline mode.";
+      ]
+  | Newer ->
+    Components.Toast.open_
+      ~title: "Newer version available"
+      [txt "The Dancelor server has reloaded, meaning that there might be a newer version of the software and/or the database. You might want to reload the page.";
+      ]
+      ~buttons: [
+        Components.Button.make
+          ~label: "Reload"
+          (* FIXME: reload icon *)
+          ~classes: ["btn-primary"]
+          ~onclick: (fun () -> Js_of_ocaml.Dom_html.window##.location##reload; lwt_unit)
+          ();
+      ]
+
 let () =
   let previous_exn = ref (Failure "this is an exception that is never raised") in
   Lwt.async_exception_hook :=
