@@ -149,7 +149,7 @@ let header_item =
           Components.Button.make
             ~label: "Sign in"
             ~icon: "box-arrow-in-right"
-            ~classes: ["btn-primary"]
+            ~classes: ["text-white"]
             ~onclick: open_sign_in_dialog
             ()
         ]
@@ -158,7 +158,7 @@ let header_item =
           Components.Button.make
             ~label: (Model.User.username' user)
             ~icon: "person-circle"
-            ~classes: ["btn-primary"; "dropdown-toggle"]
+            ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
             ();
           ul
