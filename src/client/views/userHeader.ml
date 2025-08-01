@@ -118,38 +118,19 @@ let victorise () =
     with
       | Madge_client.(Error (ServerUnreachable _)) -> lwt_unit
   );
-  ignore
-  <$> Page.open_dialog @@ fun return ->
-    Lwt.async (fun () ->
-      ping_until_success ();%lwt
-      return (Some ());
-      Lwt.async (fun () ->
-        Js_of_ocaml_lwt.Lwt_js.sleep 2.;%lwt
-        Js_of_ocaml.Dom_html.window##.location##reload;
-        lwt_unit
-      );
-      ignore
-      <$> Page.open_dialog @@ fun return ->
-        Page.make'
-          ~title: (lwt "Victorisation")
-          [txt "Victorisation successful! The page will now reload."]
-          ~buttons: [Components.Button.ok' ~return ()]
-    );
-    Page.make'
-      ~title: (lwt "Victorisation")
-      [txt
-        "Victorisation in progress. Please wait. The page will reload when \
-        Dancelor is ready."]
-      ~buttons: [Components.Button.ok' ~return ()]
+  Components.Toast.open_
+    ~title: "Victorisation"
+    [
+      txt "Victorisation in progress. Please wait.";
+    ]
 
 let header_item =
-  let status_lwt = Madge_client.call_exn Endpoints.Api.(route @@ User Status) in
   R.li
     ~a: [
       R.a_class
         (
           S.from' ["nav-item"] @@
-          flip Lwt.map status_lwt @@ function
+          flip Lwt.map Environment.user @@ function
           | None -> ["nav-item"]
           | Some _ -> ["nav-item"; "dropdown"]
         );
@@ -162,7 +143,7 @@ let header_item =
           ~classes: ["btn-primary"; "disabled"; "placeholder"]
           ()
       ] @@
-      flip Lwt.map status_lwt @@ function
+      flip Lwt.map Environment.user @@ function
       | None ->
         [
           Components.Button.make
@@ -201,7 +182,7 @@ let header_item =
                             ~label: "Victorise"
                             ~icon: "stop-circle"
                             ~classes: ["dropdown-item"]
-                            ~onclick: victorise
+                            ~onclick: (fun () -> victorise (); lwt_unit)
                             ()
                         ];
                         li [hr ~a: [a_class ["dropdown-divider"]] ()];
