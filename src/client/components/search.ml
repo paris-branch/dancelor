@@ -189,6 +189,8 @@ include Search
 module Quick = struct
   type 'result t = {search: 'result Search.t}
 
+  let search_bar quick_search = search_bar quick_search.search
+
   let text quick_search = SearchBar.text @@ Search.search_bar quick_search.search
 
   let make

@@ -31,6 +31,8 @@ module Quick : sig
 
   val text : 'result t -> string S.t
 
+  val search_bar : 'result t -> 'result SearchBar.t
+
   val make :
     search: (Slice.t -> string -> (int * 'result list, string) result Lwt.t) ->
     ?on_enter: (string -> unit) ->

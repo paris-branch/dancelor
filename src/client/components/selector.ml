@@ -168,6 +168,7 @@ let render
                             ();
                         ]
                     in
+                    SearchBar.clear @@ Search.Quick.search_bar s.quick_search;
                     flip Option.iter quick_search_result (fun r -> s.set (S.value s.signal @ [r]));
                     lwt_unit
                   )
