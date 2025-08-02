@@ -49,8 +49,17 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    ((Selector.one, Model.Tune.t) Selector.t, int Input.t, Music.key Input.t, string Input.t, (Selector.many, Model.Person.t) Selector.t, string Input.t, (Selector.many, Model.Source.t) Selector.t, string Input.t, string Input.t) gen;
+    elements: (
+      (Selector.one, Model.Tune.t) Selector.model,
+      int Input.t,
+      Music.key Input.t,
+      string Input.t,
+      (Selector.many, Model.Person.t) Selector.model,
+      string Input.t,
+      (Selector.many, Model.Source.t) Selector.model,
+      string Input.t,
+      string Input.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -215,7 +224,7 @@ let create ?on_save ?text ?tune () =
     [Selector.render
       ~make_result: AnyResult.make_tune_result'
       ~field_name: "Tune"
-      ~model_name: "tune"
+      ~object_name: "tune"
       ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
       editor.elements.tune;
     Input.html editor.elements.bars;
@@ -224,13 +233,13 @@ let create ?on_save ?text ?tune () =
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Arrangers"
-      ~model_name: "person"
+      ~object_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.arrangers;
     Selector.render
       ~make_result: AnyResult.make_source_result'
       ~field_name: "Sources"
-      ~model_name: "source"
+      ~object_name: "source"
       ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
       editor.elements.sources;
     Input.html editor.elements.disambiguation;

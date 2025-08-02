@@ -41,8 +41,13 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, Kind.Dance.t Input.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.t) gen;
+    elements: (
+      string Input.t,
+      Kind.Dance.t Input.t,
+      (Selector.many, Model.Person.t) Selector.model,
+      (Selector.many, Model.Version.t) Selector.model,
+      Model.SetOrder.t Input.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -162,7 +167,7 @@ let create ?on_save ?text () =
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Conceptors"
-      ~model_name: "person"
+      ~object_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.conceptors;
     Selector.render
@@ -171,7 +176,7 @@ let create ?on_save ?text () =
         [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
       )
       ~field_name: "Versions"
-      ~model_name: "versions"
+      ~object_name: "versions"
       ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
       editor.elements.versions;
     Input.html editor.elements.order;

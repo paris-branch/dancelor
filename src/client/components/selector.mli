@@ -3,10 +3,13 @@ open Common
 
 open Html
 
-type ('arity, 'model) t
-(** The type of a selector of arity ['arity] and carrying ['model]s. The arity
+type ('arity, 'obj, 'serialised) t
+(** The type of a selector of arity ['arity] and carrying ['obj]s. The arity
     describes whether the selector can be used to select exactly one element, or
     a list of elements. *)
+
+type ('arity, 'model) model = ('arity, 'model Entry.t, 'model Entry.Id.t) t
+(** Specialised version of a selector for models. *)
 
 type one
 type many
@@ -18,25 +21,25 @@ val many : many arity
 
 val make :
   arity: 'arity arity ->
-  search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
-  serialise: ('model Entry.t -> 'model Entry.Id.t) ->
-  unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
-  'model Entry.Id.t list ->
-  ('arity, 'model) t
+  search: (Slice.t -> string -> (int * 'obj list, string) Result.t Lwt.t) ->
+  serialise: ('obj -> 'serialised) ->
+  unserialise: ('serialised -> 'obj Lwt.t) ->
+  'serialised list ->
+  ('arity, 'obj, 'serialised) t
 
-val raw_signal : ('arity, 'model) t -> 'model Entry.Id.t list S.t
+val raw_signal : ('arity, 'obj, 'serialised) t -> 'serialised list S.t
 (** The raw signal of the elements contained in the selector. Independently from
     the arity, it contains a list. *)
 
-val signal_one : (one, 'model) t -> ('model Entry.t, string) Result.t S.t
+val signal_one : (one, 'obj, 'serialised) t -> ('obj, string) Result.t S.t
 (** The actual signal for an arity-one selector. This contains exactly one
-    ['model], or an error. *)
+    ['obj], or an error. *)
 
-val signal_many : (many, 'model) t -> ('model Entry.t list, 'bottom) Result.t S.t
+val signal_many : (many, 'obj, 'serialised) t -> ('obj list, 'bottom) Result.t S.t
 (** The actual signal for an arity-many selector. This always contains a
     {!Result.Ok}. *)
 
-val clear : ('arity, 'model) t -> unit
+val clear : ('arity, 'obj, 'serialiased) t -> unit
 
 val render :
   make_result:
@@ -44,18 +47,18 @@ val render :
   ?action: Utils.ResultRow.action ->
   ?prefix: Utils.ResultRow.cell list ->
   ?suffix: Utils.ResultRow.cell list ->
-  'model Entry.t ->
+  'obj ->
   Utils.ResultRow.t) ->
   ?make_more_results:
-  ('model Entry.t ->
+  ('obj ->
   Utils.ResultRow.t list) ->
   field_name: string ->
-  model_name: string ->
+  object_name: string ->
   create_dialog_content:
-  (?on_save: ('model Entry.t -> unit) ->
+  (?on_save: ('obj -> unit) ->
   string ->
   Page.t Lwt.t) ->
-  ('arity, 'model) t ->
+  ('arity, 'obj, 'serialiased) t ->
   [> Html_types.div] Html.elt
 (** The optional argument [?make_more_results] adds rows to the table after the
     result. This only happens in the result, not in the quick search. *)

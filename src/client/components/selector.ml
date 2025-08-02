@@ -12,13 +12,15 @@ type 'any arity = One | Many
 let one : one arity = One
 let many : many arity = Many
 
-type ('arity, 'model) t = {
-  signal: 'model Entry.t list S.t;
-  set: 'model Entry.t list -> unit;
-  quick_search: 'model Entry.t Search.Quick.t;
-  serialise: 'model Entry.t -> 'model Entry.Id.t;
+type ('arity, 'obj, 'serialised) t = {
+  signal: 'obj list S.t;
+  set: 'obj list -> unit;
+  quick_search: 'obj Search.Quick.t;
+  serialise: 'obj -> 'serialised;
   arity: 'arity arity; (** Whether this selector should select exactly one element. *)
 }
+
+type ('arity, 'model) model = ('arity, 'model Entry.t, 'model Entry.Id.t) t
 
 let make ~arity ~search ~serialise ~unserialise initial_value =
   let (signal, set) = S.create [] in
@@ -32,18 +34,18 @@ let make ~arity ~search ~serialise ~unserialise initial_value =
 
 let raw_signal s = S.map (List.map s.serialise) s.signal
 
-let signal (s : ('arity, 'model) t) : ('model Entry.t list, string) Result.t S.t =
+let signal (s : ('arity, 'obj, 'serialised) t) : ('obj list, string) Result.t S.t =
   flip S.map s.signal @@ function
     | [x] -> Ok [x]
     | [] when s.arity = One -> Error "You must select an element."
     | _ when s.arity = One -> Error "You must select exactly one element."
     | xs -> Ok xs
 
-let signal_one (s : (one, 'model) t) : ('model Entry.t, string) Result.t S.t =
+let signal_one (s : (one, 'obj, 'serialised) t) : ('obj, string) Result.t S.t =
   assert (s.arity = One);
   S.map (Result.map List.hd) (signal s)
 
-let signal_many (s : (many, 'model) t) : ('model Entry.t list, 'bottom) Result.t S.t =
+let signal_many (s : (many, 'obj, 'serialised) t) : ('obj list, 'bottom) Result.t S.t =
   assert (s.arity = Many);
   S.map (ok % Result.get_ok) (signal s)
 
@@ -67,7 +69,7 @@ let render
     (const []: 'result ->
       Utils.ResultRow.t list))
     ~field_name
-    ~model_name
+    ~object_name
     ~(create_dialog_content :
       ?on_save: ('result -> unit) ->
       string ->
@@ -130,8 +132,8 @@ let render
         ]
         [
           (
-            let label = (if s.arity = One then "Select" else "Add") ^ " a " ^ model_name in
-            let label_processing = (if s.arity = One then "Selecting" else "Adding") ^ " a " ^ model_name ^ "..." in
+            let label = (if s.arity = One then "Select" else "Add") ^ " a " ^ object_name in
+            let label_processing = (if s.arity = One then "Selecting" else "Adding") ^ " a " ^ object_name ^ "..." in
             div
               ~a: [a_class ["btn-group"; "w-100"]]
               [
@@ -154,8 +156,8 @@ let render
                         )
                         ~dialog_buttons: [
                           Button.make
-                            ~label: ("Create new " ^ model_name)
-                            ~label_processing: ("Creating new " ^ model_name ^ "...")
+                            ~label: ("Create new " ^ object_name)
+                            ~label_processing: ("Creating new " ^ object_name ^ "...")
                             ~icon: "plus-circle"
                             ~classes: ["btn-primary"]
                             ~onclick: (fun () ->

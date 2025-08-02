@@ -61,7 +61,7 @@ let create () =
     Selector.render
       ~make_result: Utils.AnyResult.make_person_result'
       ~field_name: "Person"
-      ~model_name: "person"
+      ~object_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       person_selector;
     ]

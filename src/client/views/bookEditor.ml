@@ -61,8 +61,11 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, PartialDate.t option Input.t, (Selector.many, Model.Set.t) Selector.t) gen;
+    elements: (
+      string Input.t,
+      PartialDate.t option Input.t,
+      (Selector.many, Model.Set.t) Selector.model
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -170,7 +173,7 @@ let create ?on_save ?text ?edit () =
       ~make_result: AnyResult.make_set_result'
       ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
       ~field_name: "Sets"
-      ~model_name: "set"
+      ~object_name: "set"
       ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
       editor.elements.sets;
     ]

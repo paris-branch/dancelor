@@ -48,8 +48,15 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, Kind.Dance.t Input.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.t, string option Input.t, bool option Choices.t, SCDDB.entry_id option Input.t) gen;
+    elements: (
+      string Input.t,
+      Kind.Dance.t Input.t,
+      (Selector.many, Model.Person.t) Selector.model,
+      PartialDate.t option Input.t,
+      string option Input.t,
+      bool option Choices.t,
+      SCDDB.entry_id option Input.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
@@ -198,7 +205,7 @@ let create ?on_save ?text () =
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Devisers"
-      ~model_name: "person"
+      ~object_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.devisers;
     Input.html editor.elements.date;
