@@ -141,7 +141,7 @@ let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Tune.name' tune];
+      [ResultRow.cell [txt @@ Tune.one_name' tune];
       ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
       ResultRow.cell [Formatters.Tune.composers' tune];
       ] @

@@ -171,9 +171,10 @@ module Editor = struct
     match S.value (state editor) with
     | None -> lwt_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
+      let names = NonEmptyList.singleton name in
       some
       <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
-          Model.Tune.make ~name ~kind ~composers ?date ~dances ?remark ?scddb_id ()
+          Model.Tune.make ~names ~kind ~composers ?date ~dances ?remark ?scddb_id ()
 end
 
 let create ?on_save ?text () =

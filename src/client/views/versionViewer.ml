@@ -28,7 +28,7 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_version id)
         (lwt @@ Any.version version);
     ]
-    ~title: (Version.name' version)
+    ~title: (Version.one_name' version)
     ~subtitles: [
       Formatters.Version.tune_aka' version;
       Formatters.Version.tune_description' version;

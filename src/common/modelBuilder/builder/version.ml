@@ -19,9 +19,15 @@ module Build (Getters : Getters.S) = struct
     (bars version, Core.Tune.kind' tune)
   let kind' = kind % Entry.value
 
-  let name version = Core.Tune.name' <$> tune version
-  let name' = name % Entry.value
+  let names version = Core.Tune.names' <$> tune version
+  let names' = names % Entry.value
 
-  let slug version = Entry.Slug.of_string <$> name version
+  let one_name version = Core.Tune.one_name' <$> tune version
+  let one_name' = one_name % Entry.value
+
+  let other_names version = Core.Tune.other_names' <$> tune version
+  let other_names' = other_names % Entry.value
+
+  let slug version = Entry.Slug.of_string <$> one_name version
   let slug' = slug % Entry.value
 end

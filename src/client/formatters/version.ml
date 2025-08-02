@@ -45,13 +45,13 @@ let name_gen version_gen =
   with_span_placeholder @@
     match version_gen with
     | Right (version, true) ->
-      let%lwt name = Model.Version.name' version in
+      let%lwt name = Model.Version.one_name' version in
       lwt [a ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.id version] [txt name]]
     | Right (version, _) ->
-      let%lwt name = Model.Version.name' version in
+      let%lwt name = Model.Version.one_name' version in
       lwt [txt name]
     | Left version ->
-      let%lwt name = Model.Version.name version in
+      let%lwt name = Model.Version.one_name version in
       lwt [txt name]
 
 let name = name_gen % Either.left

@@ -118,9 +118,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Tune.Is tune' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id tune) tune'
       | Name string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Tune.name' tune
+        lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string) @@ NonEmptyList.to_list @@ Model.Tune.names' tune
       | NameMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Tune.name' tune
+        lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string) @@ NonEmptyList.to_list @@ Model.Tune.names' tune
       | ExistsComposer pfilter ->
         let%lwt composers = Model.Tune.composers' tune in
         let%lwt scores = Lwt_list.map_s (accepts_person pfilter) composers in

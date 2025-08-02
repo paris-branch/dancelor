@@ -1,4 +1,5 @@
-name: Tam Lin
+names:
+  - Tam Lin
 kind: R
 composers:
   - 4plf-srss-ihav

@@ -20,6 +20,6 @@ module Build (Getters : Getters.S) = struct
     | Dance d -> lwt @@ Core.Dance.name' d
     | Book b -> lwt @@ Core.Book.title' b
     | Set s -> lwt @@ Core.Set.name' s
-    | Tune t -> lwt @@ Core.Tune.name' t
-    | Version v -> Core.Tune.name' <$> Getters.get_tune @@ Core.Version.tune @@ Entry.value v
+    | Tune t -> lwt @@ Core.Tune.one_name' t
+    | Version v -> Core.Tune.one_name' <$> Getters.get_tune @@ Core.Version.tune @@ Entry.value v
 end
