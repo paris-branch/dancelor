@@ -5,7 +5,7 @@ module Log = (val Logger.create "controller.version.pdf": Logs.LOG)
 
 let render version version_parameters rendering_parameters =
   let%lwt set =
-    let%lwt name = Model.Version.name' version in
+    let%lwt name = Model.Version.one_name' version in
     let%lwt kind = Model.Version.kind' version in
     let kind = Kind.Dance.Version kind in
     let version_parameters = Model.VersionParameters.set_display_name "" version_parameters in
@@ -21,7 +21,7 @@ let render version version_parameters rendering_parameters =
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
       let%lwt tune = Model.Version.tune' version in
-      let name = Option.value (Model.VersionParameters.display_name version_parameters) ~default: (Model.Tune.name' tune) in
+      let name = Option.value (Model.VersionParameters.display_name version_parameters) ~default: (Model.Tune.one_name' tune) in
       let%lwt composers = List.map Model.Person.name' <$> Model.Tune.composers' tune in
       let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
       lwt @@

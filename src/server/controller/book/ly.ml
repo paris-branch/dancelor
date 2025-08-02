@@ -128,7 +128,7 @@ let render book book_parameters rendering_parameters =
         flip Lwt_list.map_p contents @@ function
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune' version in
-            let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) parameters in
+            let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) parameters in
             let trivia = Model.VersionParameters.trivia' ~default: " " parameters in
             let parameters = Model.VersionParameters.set_display_name trivia parameters in
             let set =
@@ -199,7 +199,7 @@ let render book book_parameters rendering_parameters =
         in
         let%lwt tune = Model.Version.tune' version in
         let key = Model.Version.key' version in
-        let name = Model.VersionParameters.display_name' ~default: (Model.Tune.name' tune) version_parameters in
+        let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) version_parameters in
         let%lwt composer = (String.concat ", " ~last: " and " % List.map Model.Person.name') <$> Model.Tune.composers' tune in
         let composer = Model.VersionParameters.display_composer' ~default: composer version_parameters in
         let first_bar = Model.VersionParameters.first_bar' version_parameters in

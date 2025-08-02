@@ -9,9 +9,9 @@ let name_gen tune_gen =
     | Right (tune, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_tune @@ Entry.id tune]
-        [txt @@ Model.Tune.name' tune]
-    | Right (tune, _) -> txt (Model.Tune.name' tune)
-    | Left tune -> txt (Model.Tune.name tune)
+        [txt @@ Model.Tune.one_name' tune]
+    | Right (tune, _) -> txt (Model.Tune.one_name' tune)
+    | Left tune -> txt (Model.Tune.one_name tune)
   ]
 
 let name = name_gen % Either.left
@@ -49,7 +49,7 @@ let description' = description % Entry.value
 
 let aka tune =
   span @@
-    match Model.Tune.alternative_names tune with
+    match Model.Tune.other_names tune with
     | [] -> []
     | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]
 
