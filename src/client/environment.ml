@@ -23,7 +23,7 @@ let start_ping_routine () =
       | Error ServerUnreachable _ -> set_run_status Offline
       | Error _ -> assert false
     );
-    Js_of_ocaml_lwt.Lwt_js.sleep 10.;%lwt
+    Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
     ping ()
   in
   Lwt.async ping
