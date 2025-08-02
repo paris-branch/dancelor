@@ -7,14 +7,19 @@ open Components
 include Endpoints.Page.MakeDescribe(Model)
 
 let open_dialog page =
-  let reporter_input =
-    Input.make
-      ~type_: Text
-      ~initial_value: ""
-      ~label: "Reporter"
-      ~placeholder: "Dr Jean Milligan"
-      ~validator: (Result.of_string_nonempty ~empty: "You must specify the reporter.")
-      ()
+  let maybe_reporter_input =
+    match Environment.user_now () with
+    | Some user ->
+      left (user, Input.inactive ~label: "Reporter" (Model.User.username' user))
+    | None ->
+      right @@
+        Input.make
+          ~type_: Text
+          ~initial_value: ""
+          ~label: "Reporter"
+          ~placeholder: "Dr Jean Milligan"
+          ~validator: (Result.of_string_nonempty ~empty: "You must specify the reporter.")
+          ()
   in
   let%lwt source =
     flip Lwt.map (describe page) @@ function
@@ -60,7 +65,7 @@ let open_dialog page =
   let request_signal =
     let page = Uri.to_string page in
     S.map Result.to_option @@
-    RS.bind (Input.signal reporter_input) @@ fun reporter ->
+    RS.bind (match maybe_reporter_input with Left (user, _) -> S.const (ok (left user)) | Right reporter_input -> S.map (Result.map right) (Input.signal reporter_input)) @@ fun reporter ->
     RS.bind (Input.signal title_input) @@ fun title ->
     RS.bind (Input.signal description_input) @@ fun description ->
     RS.bind (Choices.signal source) @@ fun source ->
@@ -70,8 +75,12 @@ let open_dialog page =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Report an issue")
-      ~on_load: (fun () -> Input.focus reporter_input)
-      [Input.html reporter_input;
+      ~on_load: (fun () -> Input.focus @@ match maybe_reporter_input with Left _ -> title_input | Right reporter_input -> reporter_input)
+      [(
+        match maybe_reporter_input with
+        | Left (_, inactive_reporter_input) -> inactive_reporter_input
+        | Right reporter_input -> Input.html reporter_input
+      );
       Choices.render source;
       Input.html title_input;
       Input.html description_input;

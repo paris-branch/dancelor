@@ -1,6 +1,9 @@
+open Nes
+
 module Request = struct
   type t = {
-    reporter: string;
+    reporter: (ModelBuilder.Core.User.t Entry.t, string) either;
+    (** either a connected user, or a self description *)
     page: string; (* FIXME: Uri.t *)
     source_is_dancelor: bool;
     (** whether the problem comes from the Dancelor software or the model on the page *)

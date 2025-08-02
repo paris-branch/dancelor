@@ -201,3 +201,5 @@ let sign_out env user =
   database_update_user user (Model.User.update ~remember_me_tokens: (const String.Map.empty));%lwt
   register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
   lwt_unit
+
+let boot_time = Datetime.now ()

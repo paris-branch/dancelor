@@ -12,7 +12,7 @@ type (_, _, _) t =
   | User : ('a, 'w, 'r) User.t -> ('a, 'w, 'r) t
   | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
   | Victor : ('w, 'w, Void.t) t
-  | Ping : ('w, 'w, unit) t
+  | BootTime : ('w, 'w, Datetime.t) t
 [@@deriving madge_wrapped_endpoints]
 
 open Madge
@@ -32,7 +32,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | User endpoint -> literal "api" @@ literal "user" @@ User.route endpoint
     | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
     | Victor -> literal "api" @@ literal "victor" @@ void ()
-    | Ping -> literal "api" @@ literal "ping" @@ get (module JUnit)
+    | BootTime -> literal "api" @@ literal "boot-time" @@ get (module Datetime)
 
 let href : type a r. (a, string, r) t -> a = fun endpoint ->
   with_request (route endpoint) @@ fun (module _) {meth; uri; _} ->

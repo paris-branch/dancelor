@@ -51,7 +51,7 @@ let nav_item_explore =
     [
       Components.Button.make
         ~label: "Explore"
-        ~classes: ["btn-primary"; "dropdown-toggle"]
+        ~classes: ["text-white"; "dropdown-toggle"]
         ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
         ();
       ul
@@ -85,7 +85,7 @@ let nav_item_create =
         [
           Components.Button.make
             ~label: "Add"
-            ~classes: ["btn-primary"; "dropdown-toggle"]
+            ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
             ();
           ul
@@ -113,7 +113,14 @@ let nav_item_create =
 
 let header =
   nav
-    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mb-2"]]
+    ~a: [
+      R.a_class (
+        S.l2
+          (@)
+          (S.map (function Environment.Offline -> ["bg-secondary"] | _ -> ["bg-primary"]) Environment.run_status)
+          (S.const ["navbar"; "navbar-expand-sm"; "navbar-dark"; "mb-2"])
+      )
+    ]
     [
       div
         ~a: [a_class ["container-md"]]
@@ -171,7 +178,14 @@ let add_slash_quick_search_event_listener () =
 
 let footer =
   nav
-    ~a: [a_class ["navbar"; "navbar-expand-sm"; "navbar-dark"; "bg-primary"; "mt-4"]]
+    ~a: [
+      R.a_class (
+        S.l2
+          (@)
+          (S.map (function Environment.Offline -> ["bg-secondary"] | _ -> ["bg-primary"]) Environment.run_status)
+          (S.const ["navbar"; "navbar-expand-sm"; "navbar-dark"; "mt-4"])
+      )
+    ]
     [
       div
         ~a: [a_class ["container-md"; "d-flex"; "flex-column"; "flex-sm-row"]]
