@@ -48,6 +48,11 @@ val clear : 'a t -> unit
 val focus : 'a t -> unit
 (** Focus a text input component. *)
 
+val trigger : 'a t -> unit
+
+val inner_html : 'a t -> Html_types.div_content_fun Html.elt
+(** Render a text input component as HTML. *)
+
 val html : 'a t -> [> Html_types.div] Html.elt
 (** Render a text input component as HTML. *)
 

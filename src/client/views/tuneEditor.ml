@@ -5,6 +5,23 @@ open Components
 open Html
 open Utils
 
+module StringInputList = ComponentList.MakeNonEmpty(struct
+  include Input
+  let label = "Name"
+  type raw_value = string
+  type value = string
+  let empty_value = ""
+  type t = string Input.t
+  let make initial_value =
+    Input.make
+      ~type_: Text
+      ~initial_value
+      ~label: "Names"
+      ~placeholder: "eg. The Cairdin O't"
+      ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
+      ()
+end)
+
 type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
   name: 'name;
   kind: 'kind;
@@ -25,12 +42,19 @@ module RawState = struct
   let dance_to_yojson _ = assert false
   let dance_of_yojson _ = assert false
 
-  type t =
-  (string, string, person Entry.Id.t list, string, dance Entry.Id.t list, string, string) gen
+  type t = (
+    string list,
+    string,
+    person Entry.Id.t list,
+    string,
+    dance Entry.Id.t list,
+    string,
+    string
+  ) gen
   [@@deriving yojson]
 
   let empty : t = {
-    name = "";
+    name = [];
     kind = "";
     composers = [];
     date = "";
@@ -42,12 +66,19 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, Kind.Base.t Input.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.t, (Selector.many, Model.Dance.t) Selector.t, string option Input.t, SCDDB.entry_id option Input.t) gen;
+    elements: (
+      StringInputList.t,
+      Kind.Base.t Input.t,
+      (Selector.many, Model.Person.t) Selector.t,
+      PartialDate.t option Input.t,
+      (Selector.many, Model.Dance.t) Selector.t,
+      string option Input.t,
+      SCDDB.entry_id option Input.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (StringInputList.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Input.raw_signal editor.elements.kind) @@ fun kind ->
     S.bind (Selector.raw_signal editor.elements.composers) @@ fun composers ->
     S.bind (Input.raw_signal editor.elements.date) @@ fun date ->
@@ -58,7 +89,7 @@ module Editor = struct
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.signal editor.elements.name) @@ fun name ->
+    RS.bind (StringInputList.signal editor.elements.name) @@ fun name ->
     RS.bind (Input.signal editor.elements.kind) @@ fun kind ->
     RS.bind (Selector.signal_many editor.elements.composers) @@ fun composers ->
     RS.bind (Input.signal editor.elements.date) @@ fun date ->
@@ -69,24 +100,13 @@ module Editor = struct
 
   let with_or_without_local_storage ~text f =
     match text with
-    | Some text ->
-      lwt @@ f {RawState.empty with name = text}
-    | None ->
-      lwt @@
-        Cutils.with_local_storage "TuneEditor" (module RawState) raw_state f
+    | Some "" -> lwt @@ f RawState.empty
+    | Some text -> lwt @@ f {RawState.empty with name = [text]}
+    | None -> lwt @@ Cutils.with_local_storage "TuneEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let name =
-      Input.make
-        ~type_: Text
-        ~initial_value: initial_state.name
-        ~label: "Name"
-        ~placeholder: "eg. The Cairdin O't"
-        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        ()
-    in
-    let kind =
+    let name = StringInputList.make initial_state.name (* FIXME: names *) in let kind =
       Input.make
         ~type_: Text
         ~initial_value: initial_state.kind
@@ -159,7 +179,7 @@ module Editor = struct
     }
 
   let clear (editor : t) : unit =
-    Input.clear editor.elements.name;
+    StringInputList.clear editor.elements.name;
     Input.clear editor.elements.kind;
     Selector.clear editor.elements.composers;
     Input.clear editor.elements.date;
@@ -171,7 +191,8 @@ module Editor = struct
     match S.value (state editor) with
     | None -> lwt_none
     | Some {name; kind; composers; date; dances; remark; scddb_id} ->
-      let names = NonEmptyList.singleton name in
+      let names = name in
+      (* FIXME: rename *)
       some
       <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
           Model.Tune.make ~names ~kind ~composers ?date ~dances ?remark ?scddb_id ()
@@ -182,8 +203,8 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a tune")
-    ~on_load: (fun () -> Input.focus editor.elements.name)
-    [Input.html editor.elements.name;
+    ~on_load: (fun () -> StringInputList.focus editor.elements.name)
+    [StringInputList.html editor.elements.name;
     Input.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'

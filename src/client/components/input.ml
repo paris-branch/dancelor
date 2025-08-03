@@ -30,12 +30,9 @@ let focus state =
     input_dom##.selectionEnd := length
   | Textarea {textarea_dom; _} -> textarea_dom##focus
 
-let clear state = state.set ""
+let trigger = focus
 
-let case_errored ~no ~yes signal =
-  flip S.map signal @@ function
-    | Error msg -> yes msg
-    | _ -> no
+let clear state = state.set ""
 
 let make'
     ?label
@@ -59,7 +56,7 @@ let make'
             a_input_type (match type_ with Text -> `Text | Password -> `Password | _ -> assert false);
             a_placeholder placeholder;
             R.a_value raw_signal;
-            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
+            R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
             a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
@@ -81,7 +78,7 @@ let make'
             a_rows 15;
             a_placeholder placeholder;
             (* R.a_value state.raw_signal; FIXME: not possible in textarea but necessary for cleanup *)
-            R.a_class (case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
+            R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
             a_oninput (fun event ->
               (
                 Js.Opt.iter event##.target @@ fun elt ->
@@ -101,35 +98,21 @@ let make'
 let make ?label ?placeholder ?oninput ~type_ ~initial_value ~validator () =
   make' ?label ?placeholder ?oninput ~type_ ~initial_value ~validator: (S.const % validator) ()
 
-let html textInput =
-  div
-    ~a: [a_class ["mb-2"]]
-    [
-      label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt textInput.label));
-      (
-        match textInput.html with
-        | Text {input; _} -> input
-        | Textarea {textarea; _} -> textarea
-      );
-      R.div
-        ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) textInput.signal)]
-        (
-          case_errored ~no: [txt " "] ~yes: (List.singleton % txt) textInput.signal
-        );
-    ]
+let inner_html textInput =
+  match textInput.html with
+  | Text {input; _} -> input
+  | Textarea {textarea; _} -> textarea
 
-let inactive ?label: lbl value =
-  div
-    ~a: [a_class ["mb-2"]]
-    [
-      label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt lbl));
-      input
-        ()
-        ~a: [
-          a_input_type `Text;
-          a_value value;
-          a_class ["form-control"];
-          a_disabled ();
-        ];
-      div ~a: [a_class ["valid-feedback"; "d-block"]] [txt " "];
-    ]
+let html textInput =
+  Component.render ?label: textInput.label ~signal: textInput.signal (inner_html textInput)
+
+let inactive ?label value =
+  Component.render ?label ~signal: (S.const (Ok ())) @@
+    input
+      ()
+      ~a: [
+        a_input_type `Text;
+        a_value value;
+        a_class ["form-control"];
+        a_disabled ();
+      ]
