@@ -5,56 +5,19 @@ open Js_of_ocaml_tyxml.Tyxml_js
 
 type type_ = Text | Password | Textarea
 
-type 'a t
-(** Abstract type of a text input component. *)
+module type Constants = sig
+  type value
+  val label : string
+  val placeholder : string
+  val type_ : type_
+  val validator : string -> (value, string) result S.t
+  val oninput : string -> unit
+end
 
-val make :
-  ?label: string ->
-  ?placeholder: string ->
-  ?oninput: (string -> unit) ->
-  type_: type_ ->
-  initial_value: string ->
-  validator: (string -> ('a, string) Result.t) ->
-  unit ->
-  'a t
-(** Make a text input component from the initial input string and a validator
-    function. *)
-
-val make' :
-  ?label: string ->
-  ?placeholder: string ->
-  ?oninput: (string -> unit) ->
-  type_: type_ ->
-  initial_value: string ->
-  validator: (string -> ('a, string) Result.t S.t) ->
-  unit ->
-  'a t
-(** Variant of {!make} where the validator gets access to the internal signal.
-    In fact, [make x v = make' x (S.const % v)]. *)
-
-val raw_signal : 'a t -> string S.t
-(** A signal to the raw value of the input text component. *)
-
-val signal : 'a t -> ('a, string) Result.t S.t
-(** A signal to the value of the input text component as validated by the
-    validator. *)
-
-val value : 'a t -> ('a, string) Result.t
-(** Short for [S.value % signal]. *)
-
-val clear : 'a t -> unit
-(** Clear a text input component to an empty value . *)
-
-val focus : 'a t -> unit
-(** Focus a text input component. *)
-
-val trigger : 'a t -> unit
-
-val inner_html : 'a t -> Html_types.div_content_fun Html.elt
-(** Render a text input component as HTML. *)
-
-val html : 'a t -> [> Html_types.div] Html.elt
-(** Render a text input component as HTML. *)
+module Make : functor (X : Constants) ->
+  Component.S with
+  type value = X.value
+  and type raw_value = string
 
 val inactive :
   ?label: string ->
