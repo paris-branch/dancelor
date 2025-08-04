@@ -49,33 +49,42 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    ((Selector.one, Model.Tune.t) Selector.t, int Input.t, Music.key Input.t, string Input.t, (Selector.many, Model.Person.t) Selector.t, string Input.t, (Selector.many, Model.Source.t) Selector.t, string Input.t, string Input.t) gen;
+    elements: (
+      (Selector.one, Model.Tune.t) Selector.t,
+      (int, string) Component.t,
+      (Music.key, string) Component.t,
+      (string, string) Component.t,
+      (Selector.many, Model.Person.t) Selector.t,
+      (string, string) Component.t,
+      (Selector.many, Model.Source.t) Selector.t,
+      (string, string) Component.t,
+      (string, string) Component.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Selector.raw_signal editor.elements.tune) @@ fun tune ->
-    S.bind (Input.raw_signal editor.elements.bars) @@ fun bars ->
-    S.bind (Input.raw_signal editor.elements.key) @@ fun key ->
-    S.bind (Input.raw_signal editor.elements.structure) @@ fun structure ->
+    S.bind (Component.raw_signal editor.elements.bars) @@ fun bars ->
+    S.bind (Component.raw_signal editor.elements.key) @@ fun key ->
+    S.bind (Component.raw_signal editor.elements.structure) @@ fun structure ->
     S.bind (Selector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
-    S.bind (Input.raw_signal editor.elements.remark) @@ fun remark ->
+    S.bind (Component.raw_signal editor.elements.remark) @@ fun remark ->
     S.bind (Selector.raw_signal editor.elements.sources) @@ fun sources ->
-    S.bind (Input.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
-    S.bind (Input.raw_signal editor.elements.content) @@ fun content ->
+    S.bind (Component.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
+    S.bind (Component.raw_signal editor.elements.content) @@ fun content ->
     S.const {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let state (editor : t) =
     S.map Result.to_option @@
     RS.bind (Selector.signal_one editor.elements.tune) @@ fun tune ->
-    RS.bind (Input.signal editor.elements.bars) @@ fun bars ->
-    RS.bind (Input.signal editor.elements.key) @@ fun key ->
-    RS.bind (Input.signal editor.elements.structure) @@ fun structure ->
+    RS.bind (Component.signal editor.elements.bars) @@ fun bars ->
+    RS.bind (Component.signal editor.elements.key) @@ fun key ->
+    RS.bind (Component.signal editor.elements.structure) @@ fun structure ->
     RS.bind (Selector.signal_many editor.elements.arrangers) @@ fun arrangers ->
-    RS.bind (Input.signal editor.elements.remark) @@ fun remark ->
+    RS.bind (Component.signal editor.elements.remark) @@ fun remark ->
     RS.bind (Selector.signal_many editor.elements.sources) @@ fun sources ->
-    RS.bind (Input.signal editor.elements.disambiguation) @@ fun disambiguation ->
-    RS.bind (Input.signal editor.elements.content) @@ fun content ->
+    RS.bind (Component.signal editor.elements.disambiguation) @@ fun disambiguation ->
+    RS.bind (Component.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let with_or_without_local_storage ~text ~tune f =
@@ -101,29 +110,26 @@ module Editor = struct
     let bars =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.bars
         ~label: "Number of bars"
         ~placeholder: "eg. 32 or 48"
         ~validator: (Option.to_result ~none: "The number of bars has to be an integer." % int_of_string_opt)
-        ()
+        initial_state.bars
     in
     let key =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.key
         ~label: "Key"
         ~placeholder: "eg. A or F#m"
         ~validator: (Option.to_result ~none: "Enter a valid key, eg. A of F#m." % Music.key_of_string_opt)
-        ()
+        initial_state.key
     in
     let structure =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.structure
         ~label: "Structure"
         ~placeholder: "eg. AABB or ABAB"
         ~validator: ok
-        ()
+        initial_state.structure
     in
     let arrangers =
       Selector.make
@@ -139,11 +145,10 @@ module Editor = struct
     let remark =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.remark
         ~label: "Remark"
         ~placeholder: "Any additional information that doesn't fit in the other fields."
         ~validator: ok
-        ()
+        initial_state.remark
     in
     let sources =
       Selector.make
@@ -159,20 +164,18 @@ module Editor = struct
     let disambiguation =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.disambiguation
         ~label: "Disambiguation"
         ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them."
         ~validator: ok
-        ()
+        initial_state.disambiguation
     in
     let content =
       Input.make
         ~type_: Textarea
-        ~initial_value: initial_state.content
         ~label: "LilyPond content"
         ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
         ~validator: (Result.of_string_nonempty ~empty: "Cannot be empty.")
-        ()
+        initial_state.content
     in
     {
       elements = {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content};
@@ -180,14 +183,14 @@ module Editor = struct
 
   let clear (editor : t) =
     Selector.clear editor.elements.tune;
-    Input.clear editor.elements.bars;
-    Input.clear editor.elements.key;
-    Input.clear editor.elements.structure;
+    Component.clear editor.elements.bars;
+    Component.clear editor.elements.key;
+    Component.clear editor.elements.structure;
     Selector.clear editor.elements.arrangers;
-    Input.clear editor.elements.remark;
+    Component.clear editor.elements.remark;
     Selector.clear editor.elements.sources;
-    Input.clear editor.elements.disambiguation;
-    Input.clear editor.elements.content
+    Component.clear editor.elements.disambiguation;
+    Component.clear editor.elements.content
 
   let value (editor : t) =
     match S.value (state editor) with
@@ -218,9 +221,9 @@ let create ?on_save ?text ?tune () =
       ~model_name: "tune"
       ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
       editor.elements.tune;
-    Input.html editor.elements.bars;
-    Input.html editor.elements.key;
-    Input.html editor.elements.structure;
+    Component.html editor.elements.bars;
+    Component.html editor.elements.key;
+    Component.html editor.elements.structure;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Arrangers"
@@ -233,9 +236,9 @@ let create ?on_save ?text ?tune () =
       ~model_name: "source"
       ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
       editor.elements.sources;
-    Input.html editor.elements.disambiguation;
-    Input.html editor.elements.remark;
-    Input.html editor.elements.content;
+    Component.html editor.elements.disambiguation;
+    Component.html editor.elements.remark;
+    Component.html editor.elements.content;
     ]
     ~buttons: [
       Button.clear

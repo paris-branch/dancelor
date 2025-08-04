@@ -11,34 +11,32 @@ let create username token =
     Input.make
       ~type_: Password
       ~label: "Password"
-      ~initial_value: ""
       ~placeholder: "1234567"
       ~validator: (fun password1 -> Result.bind (Password.check password1) @@ fun () -> Ok password1)
-      ()
+      ""
   in
   let password2_input =
     Input.make'
       ~type_: Password
       ~label: "Password, again"
-      ~initial_value: ""
       ~placeholder: "1234678"
       ~validator: (fun password2 ->
-        flip S.map (Input.raw_signal password1_input) @@ fun password1 ->
+        flip S.map (Component.raw_signal password1_input) @@ fun password1 ->
         if password1 = password2 then Ok password2 else Error "The passwords do not match."
       )
-      ()
+      ""
   in
   let password =
-    RS.bind (Input.signal password1_input) @@ fun password1 ->
-    RS.bind (Input.signal password2_input) @@ fun password2 ->
+    RS.bind (Component.signal password1_input) @@ fun password1 ->
+    RS.bind (Component.signal password2_input) @@ fun password2 ->
     (* Cannot hurt to check twice. *)
     S.const @@ if password1 = password2 then Ok password2 else Error "The passwords do not match."
   in
   Page.make'
     ~title: (lwt "Reset password")
     [Input.inactive ~label: "Username" username;
-    Input.html password1_input;
-    Input.html password2_input;
+    Component.html password1_input;
+    Component.html password2_input;
     ]
     ~buttons: [
       Button.make

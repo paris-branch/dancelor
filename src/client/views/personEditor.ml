@@ -23,19 +23,21 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, SCDDB.entry_id option Input.t) gen;
+    elements: (
+      (string, string) Component.t,
+      (SCDDB.entry_id option, string) Component.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
+    S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Component.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.signal editor.elements.scddb_id) @@ fun scddb_id ->
+    RS.bind (Component.signal editor.elements.name) @@ fun name ->
+    RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; scddb_id}
 
   let with_or_without_local_storage ~text f =
@@ -51,16 +53,14 @@ module Editor = struct
     let name =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. John Doe"
         ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        ()
+        initial_state.name
     in
     let scddb_id =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/"
         ~validator: (
@@ -69,13 +69,13 @@ module Editor = struct
             ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Person) %
             Option.of_string_nonempty
         )
-        ()
+        initial_state.scddb_id
     in
       {elements = {name; scddb_id}}
 
   let clear (editor : t) : unit =
-    Input.clear editor.elements.name;
-    Input.clear editor.elements.scddb_id
+    Component.clear editor.elements.name;
+    Component.clear editor.elements.scddb_id
 
   let submit (editor : t) : Model.Person.t Entry.t option Lwt.t =
     match S.value (state editor) with
@@ -91,9 +91,9 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a person")
-    ~on_load: (fun () -> Input.focus editor.elements.name)
-    [Input.html editor.elements.name;
-    Input.html editor.elements.scddb_id;
+    ~on_load: (fun () -> Component.focus editor.elements.name)
+    [Component.html editor.elements.name;
+    Component.html editor.elements.scddb_id;
     ]
     ~buttons: [
       Button.clear

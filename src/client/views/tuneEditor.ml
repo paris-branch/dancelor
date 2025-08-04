@@ -5,25 +5,8 @@ open Components
 open Html
 open Utils
 
-module StringInputList = ComponentList.MakeNonEmpty(struct
-  include Input
-  let label = "Name"
-  type raw_value = string
-  type value = string
-  let empty_value = ""
-  type t = string Input.t
-  let make initial_value =
-    Input.make
-      ~type_: Text
-      ~initial_value
-      ~label: "Names"
-      ~placeholder: "eg. The Cairdin O't"
-      ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-      ()
-end)
-
-type ('name, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
-  name: 'name;
+type ('names, 'kind, 'composers, 'date, 'dances, 'remark, 'scddb_id) gen = {
+  names: 'names;
   kind: 'kind;
   composers: 'composers;
   date: 'date;
@@ -54,7 +37,7 @@ module RawState = struct
   [@@deriving yojson]
 
   let empty : t = {
-    name = [];
+    names = [];
     kind = "";
     composers = [];
     date = "";
@@ -67,53 +50,64 @@ end
 module Editor = struct
   type t = {
     elements: (
-      StringInputList.t,
-      Kind.Base.t Input.t,
+      (string NonEmptyList.t, string list) Component.t,
+      (Kind.Base.t, string) Component.t,
       (Selector.many, Model.Person.t) Selector.t,
-      PartialDate.t option Input.t,
+      (PartialDate.t option, string) Component.t,
       (Selector.many, Model.Dance.t) Selector.t,
-      string option Input.t,
-      SCDDB.entry_id option Input.t
+      (string option, string) Component.t,
+      (SCDDB.entry_id option, string) Component.t
     ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (StringInputList.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (Component.raw_signal editor.elements.names) @@ fun names ->
+    S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
     S.bind (Selector.raw_signal editor.elements.composers) @@ fun composers ->
-    S.bind (Input.raw_signal editor.elements.date) @@ fun date ->
+    S.bind (Component.raw_signal editor.elements.date) @@ fun date ->
     S.bind (Selector.raw_signal editor.elements.dances) @@ fun dances ->
-    S.bind (Input.raw_signal editor.elements.remark) @@ fun remark ->
-    S.bind (Input.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
-    S.const {name; kind; composers; date; dances; remark; scddb_id}
+    S.bind (Component.raw_signal editor.elements.remark) @@ fun remark ->
+    S.bind (Component.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
+    S.const {names; kind; composers; date; dances; remark; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (StringInputList.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (Component.signal editor.elements.names) @@ fun names ->
+    RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
     RS.bind (Selector.signal_many editor.elements.composers) @@ fun composers ->
-    RS.bind (Input.signal editor.elements.date) @@ fun date ->
+    RS.bind (Component.signal editor.elements.date) @@ fun date ->
     RS.bind (Selector.signal_many editor.elements.dances) @@ fun dances ->
-    RS.bind (Input.signal editor.elements.remark) @@ fun remark ->
-    RS.bind (Input.signal editor.elements.scddb_id) @@ fun scddb_id ->
-    RS.pure {name; kind; composers; date; dances; remark; scddb_id}
+    RS.bind (Component.signal editor.elements.remark) @@ fun remark ->
+    RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
+    RS.pure {names; kind; composers; date; dances; remark; scddb_id}
 
   let with_or_without_local_storage ~text f =
     match text with
     | Some "" -> lwt @@ f RawState.empty
-    | Some text -> lwt @@ f {RawState.empty with name = [text]}
+    | Some text -> lwt @@ f {RawState.empty with names = [text]}
     | None -> lwt @@ Cutils.with_local_storage "TuneEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let name = StringInputList.make initial_state.name (* FIXME: names *) in let kind =
+    let names =
+      ComponentList.make_non_empty
+        (
+          Input.prepare
+            ~label: "Name"
+            ~type_: Text
+            ~placeholder: "eg. The Cairdin O't"
+            ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+            ()
+        )
+        initial_state.names
+    in
+    let kind =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. R or Strathspey"
         ~validator: (Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." % Kind.Base.of_string_opt)
-        ()
+        initial_state.kind
     in
     let composers =
       Selector.make
@@ -129,7 +123,6 @@ module Editor = struct
     let date =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.date
         ~label: "Date of devising"
         ~placeholder: "eg. 2019 or 2012-03-14"
         ~validator: (
@@ -138,7 +131,7 @@ module Editor = struct
             ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019 or 2012-03-14" % PartialDate.from_string) %
             Option.of_string_nonempty
         )
-        ()
+        initial_state.date
     in
     let dances =
       Selector.make
@@ -154,16 +147,14 @@ module Editor = struct
     let remark =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.remark
         ~label: "Remark"
         ~placeholder: "Any additional information that doesn't fit in the other fields."
         ~validator: (ok % Option.of_string_nonempty)
-        ()
+        initial_state.remark
     in
     let scddb_id =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/"
         ~validator: (
@@ -172,27 +163,25 @@ module Editor = struct
             ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Tune) %
             Option.of_string_nonempty
         )
-        ()
+        initial_state.scddb_id
     in
     {
-      elements = {name; kind; composers; date; dances; remark; scddb_id};
+      elements = {names; kind; composers; date; dances; remark; scddb_id};
     }
 
   let clear (editor : t) : unit =
-    StringInputList.clear editor.elements.name;
-    Input.clear editor.elements.kind;
+    Component.clear editor.elements.names;
+    Component.clear editor.elements.kind;
     Selector.clear editor.elements.composers;
-    Input.clear editor.elements.date;
+    Component.clear editor.elements.date;
     Selector.clear editor.elements.dances;
-    Input.clear editor.elements.remark;
-    Input.clear editor.elements.scddb_id
+    Component.clear editor.elements.remark;
+    Component.clear editor.elements.scddb_id
 
   let submit (editor : t) : Model.Tune.t Entry.t option Lwt.t =
     match S.value (state editor) with
     | None -> lwt_none
-    | Some {name; kind; composers; date; dances; remark; scddb_id} ->
-      let names = name in
-      (* FIXME: rename *)
+    | Some {names; kind; composers; date; dances; remark; scddb_id} ->
       some
       <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
           Model.Tune.make ~names ~kind ~composers ?date ~dances ?remark ?scddb_id ()
@@ -203,24 +192,24 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a tune")
-    ~on_load: (fun () -> StringInputList.focus editor.elements.name)
-    [StringInputList.html editor.elements.name;
-    Input.html editor.elements.kind;
+    ~on_load: (fun () -> Component.focus editor.elements.names)
+    [Component.html editor.elements.names;
+    Component.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Composers"
       ~model_name: "person"
       ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
       editor.elements.composers;
-    Input.html editor.elements.date;
+    Component.html editor.elements.date;
     Selector.render
       ~make_result: AnyResult.make_dance_result'
       ~field_name: "Dances"
       ~model_name: "dance"
       ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
       editor.elements.dances;
-    Input.html editor.elements.remark;
-    Input.html editor.elements.scddb_id;
+    Component.html editor.elements.remark;
+    Component.html editor.elements.scddb_id;
     ]
     ~buttons: [
       Button.clear

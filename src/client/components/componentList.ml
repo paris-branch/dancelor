@@ -2,10 +2,10 @@ open Nes
 open Js_of_ocaml
 open Html
 
-module Make (C : Component.S) : Component.S with
-  type value = C.value list
-  and type raw_value = C.raw_value list
-= struct
+let prepare (type value)(type raw_value) (component : (value, raw_value) Component.s) =
+((module struct
+  module C = (val component)
+
   let label = C.label ^ "s"
 
   type value = C.value list
@@ -53,7 +53,6 @@ module Make (C : Component.S) : Component.S with
   let clear l = l.set_components []
 
   let inner_html l = l.inner_html
-  let html l = Component.render ~label ~signal: (signal l) (inner_html l)
 
   let make initial_values =
     (* NOTE: We use [fun _ _ -> false] because React needs to be able to compare
@@ -121,18 +120,33 @@ module Make (C : Component.S) : Component.S with
       ]
     in
       {components; set_components; inner_html; button_add_object_dom}
-end
+end):
+  (value list, raw_value list) Component.s)
 
-module MakeNonEmpty (C : Component.S) : Component.S with
-  type value = C.value NonEmptyList.t
-  and type raw_value = C.raw_value list
-= struct
-  include Make(C)
+let make (type value)(type raw_value)
+    (component : (value, raw_value) Component.s)
+    (initial_values : raw_value list)
+    : (value list, raw_value list) Component.t
+  =
+  Component.initialise (prepare component) initial_values
+
+let prepare_non_empty (type value)(type raw_value)
+  (component : (value, raw_value) Component.s)
+  : (value NonEmptyList.t, raw_value list) Component.s
+= (module struct
+  include (val (prepare component))
+  module C = (val component)
   type value = C.value NonEmptyList.t
   let signal =
     S.map (fun l ->
       Result.bind l @@ Option.to_result ~none: ("You must add at least one " ^ String.lowercase_ascii C.label ^ ".") % NonEmptyList.of_list
     ) %
       signal
-  let html l = Component.render ~label ~signal: (signal l) (inner_html l)
-end
+end)
+
+let make_non_empty (type value)(type raw_value)
+    (component : (value, raw_value) Component.s)
+    (initial_values : raw_value list)
+    : (value NonEmptyList.t, raw_value list) Component.t
+  =
+  Component.initialise (prepare_non_empty component) initial_values

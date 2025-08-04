@@ -8,22 +8,11 @@ type html =
 
 type type_ = Text | Password | Textarea
 
-module type Constants = sig
-  type value
-  val label : string
-  val placeholder : string
-  val type_ : type_
-  val validator : string -> (value, string) result S.t
-  val oninput : string -> unit
-end
+let prepare (type value) ~type_ ~label ?(placeholder = "") ~validator ?(oninput = fun _ -> ()) () =
+((module struct
+  let label = label
 
-module Make (X : Constants) : Component.S with
-  type value = X.value
-  and type raw_value = string
-= struct
-  let label = X.label
-
-  type value = X.value
+  type nonrec value = value
   type raw_value = string
 
   let empty_value = ""
@@ -55,16 +44,16 @@ module Make (X : Constants) : Component.S with
   let make initial_value =
     let (raw_signal, set_immediately) = S.create initial_value in
     let set = S.delayed_setter 0.30 set_immediately in
-    let signal = S.bind raw_signal X.validator in
+    let signal = S.bind raw_signal validator in
     let html : html =
-      match X.type_ with
+      match type_ with
       | Text | Password ->
         let input =
           input
             ()
             ~a: [
-              a_input_type (match X.type_ with Text -> `Text | Password -> `Password | _ -> assert false);
-              a_placeholder X.placeholder;
+              a_input_type (match type_ with Text -> `Text | Password -> `Password | _ -> assert false);
+              a_placeholder placeholder;
               R.a_value raw_signal;
               R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
               a_oninput (fun event ->
@@ -73,7 +62,7 @@ module Make (X : Constants) : Component.S with
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
                   let input = Js.to_string input##.value in
                   set input;
-                  X.oninput input
+                  oninput input
                 );
                 false
               );
@@ -86,7 +75,7 @@ module Make (X : Constants) : Component.S with
             (R.txt raw_signal)
             ~a: [
               a_rows 15;
-              a_placeholder X.placeholder;
+              a_placeholder placeholder;
               (* R.a_value state.raw_signal; FIXME: not possible in textarea but necessary for cleanup *)
               R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
               a_oninput (fun event ->
@@ -95,7 +84,7 @@ module Make (X : Constants) : Component.S with
                   Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
                   let input = Js.to_string input##.value in
                   set input;
-                  X.oninput input
+                  oninput input
                 );
                 false
               );
@@ -109,18 +98,15 @@ module Make (X : Constants) : Component.S with
     match i.html with
     | Text {input; _} -> input
     | Textarea {textarea; _} -> textarea
+end):
+  (value, string) Component.s)
 
-  let html i =
-    Component.render ~label ~signal: i.signal (inner_html i)
-end
+let make' ~type_ ~label ?placeholder ~validator ?oninput initial_value =
+  Component.initialise (prepare ~type_ ~label ?placeholder ~validator ?oninput ()) initial_value
 
-let inactive ?label value =
-  Component.render ?label ~signal: (S.const (Ok ())) @@
-    input
-      ()
-      ~a: [
-        a_input_type `Text;
-        a_value value;
-        a_class ["form-control"];
-        a_disabled ();
-      ]
+let make ~type_ ~label ?placeholder ~validator ?oninput initial_value =
+  make' ~type_ ~label ?placeholder ~validator: (S.const % validator) ?oninput initial_value
+
+let inactive ~label value =
+  Component.html_fake ~label @@
+    input () ~a: [a_input_type `Text; a_value value; a_class ["form-control"]; a_disabled ()]

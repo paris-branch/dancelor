@@ -11,7 +11,6 @@ let open_sign_in_dialog () =
     Input.make'
       ~type_: Text
       ~label: "Username"
-      ~initial_value: ""
       ~placeholder: "JeanMilligan"
       ~oninput: (fun _ -> set_status_signal DontKnow)
       ~validator: (fun username ->
@@ -23,13 +22,12 @@ let open_sign_in_dialog () =
             | Invalid -> Error "Invalid username or password."
             | DontKnow -> Ok username
       )
-      ()
+      ""
   in
   let password_input =
     Input.make'
       ~type_: Password
       ~label: "Password"
-      ~initial_value: ""
       ~placeholder: "1234567"
       ~oninput: (fun _ -> set_status_signal DontKnow)
       ~validator: (fun password ->
@@ -40,7 +38,7 @@ let open_sign_in_dialog () =
           | _, Invalid -> Error "Invalid username or password."
           | _, DontKnow -> Ok password
       )
-      ()
+      ""
   in
   let remember_me_input =
     Choices.(
@@ -55,8 +53,8 @@ let open_sign_in_dialog () =
   in
   let request_signal =
     S.map Result.to_option @@
-    RS.bind (Input.signal username_input) @@ fun username ->
-    RS.bind (Input.signal password_input) @@ fun password ->
+    RS.bind (Component.signal username_input) @@ fun username ->
+    RS.bind (Component.signal password_input) @@ fun password ->
     RS.bind (Choices.signal remember_me_input) @@ fun remember_me ->
     RS.pure (username, password, remember_me)
   in
@@ -64,9 +62,9 @@ let open_sign_in_dialog () =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Sign in")
-      ~on_load: (fun () -> Input.focus username_input)
-      [Input.html username_input;
-      Input.html password_input;
+      ~on_load: (fun () -> Component.focus username_input)
+      [Component.html username_input;
+      Component.html password_input;
       Choices.render remember_me_input;
       ]
       ~buttons: [

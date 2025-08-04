@@ -41,25 +41,30 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, Kind.Dance.t Input.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.t) gen;
+    elements: (
+      (string, string) Component.t,
+      (Kind.Dance.t, string) Component.t,
+      (Selector.many, Model.Person.t) Selector.t,
+      (Selector.many, Model.Version.t) Selector.t,
+      (Model.SetOrder.t, string) Component.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
     S.bind (Selector.raw_signal editor.elements.conceptors) @@ fun conceptors ->
     S.bind (Selector.raw_signal editor.elements.versions) @@ fun versions ->
-    S.bind (Input.raw_signal editor.elements.order) @@ fun order ->
+    S.bind (Component.raw_signal editor.elements.order) @@ fun order ->
     S.const {name; kind; conceptors; versions; order}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (Component.signal editor.elements.name) @@ fun name ->
+    RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
     RS.bind (Selector.signal_many editor.elements.conceptors) @@ fun conceptors ->
     RS.bind (Selector.signal_many editor.elements.versions) @@ fun versions ->
-    RS.bind (Input.signal editor.elements.order) @@ fun order ->
+    RS.bind (Component.signal editor.elements.order) @@ fun order ->
     RS.pure {name; kind; conceptors; versions; order}
 
   let with_or_without_local_storage ~text f =
@@ -75,20 +80,18 @@ module Editor = struct
     let name =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
         ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        ()
+        initial_state.name
     in
     let kind =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S)"
         ~validator: (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
-        ()
+        initial_state.kind
     in
     let conceptors =
       Selector.make
@@ -115,11 +118,10 @@ module Editor = struct
     let order =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.order
         ~label: "Order"
         ~placeholder: "eg. 1,2,3,4,2,3,4,1"
         ~validator: (Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt)
-        ()
+        initial_state.order
     in
     {
       elements = {name; kind; conceptors; versions; order};
@@ -130,11 +132,11 @@ module Editor = struct
     {state with versions = state.versions @ [version]}
 
   let clear (editor : t) =
-    Input.clear editor.elements.name;
-    Input.clear editor.elements.kind;
+    Component.clear editor.elements.name;
+    Component.clear editor.elements.kind;
     Selector.clear editor.elements.conceptors;
     Selector.clear editor.elements.versions;
-    Input.clear editor.elements.order
+    Component.clear editor.elements.order
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -156,9 +158,9 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a set")
-    ~on_load: (fun () -> Input.focus editor.elements.name)
-    [Input.html editor.elements.name;
-    Input.html editor.elements.kind;
+    ~on_load: (fun () -> Component.focus editor.elements.name)
+    [Component.html editor.elements.name;
+    Component.html editor.elements.kind;
     Selector.render
       ~make_result: AnyResult.make_person_result'
       ~field_name: "Conceptors"
@@ -174,7 +176,7 @@ let create ?on_save ?text () =
       ~model_name: "versions"
       ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
       editor.elements.versions;
-    Input.html editor.elements.order;
+    Component.html editor.elements.order;
     ]
     ~buttons: [
       Button.clear
