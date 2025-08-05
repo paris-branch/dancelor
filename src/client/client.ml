@@ -59,7 +59,7 @@ let () =
       ~buttons: [
         Components.Button.make
           ~label: "Reload"
-          (* FIXME: reload icon *)
+          ~icon: "arrow-clockwise"
           ~classes: ["btn-primary"]
           ~onclick: (fun () -> Js_of_ocaml.Dom_html.window##.location##reload; lwt_unit)
           ();
