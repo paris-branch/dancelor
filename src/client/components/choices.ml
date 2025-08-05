@@ -75,6 +75,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
                   Some (a_name html_name);
                   Some (a_id choice.id);
                   Some (a_class ["btn-check"]);
+                  (if List.length choices = 1 then Some (a_tabindex (-1)) else None);
                   (if choice.checked then Some (a_checked ()) else None);
                 ]
               )
