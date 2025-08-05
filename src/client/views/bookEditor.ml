@@ -123,7 +123,7 @@ module Editor = struct
         initial_state.date
     in
     let sets =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~make_result: AnyResult.make_set_result'

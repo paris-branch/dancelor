@@ -144,7 +144,7 @@ module Editor = struct
         initial_state.structure
     in
     let arrangers =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~make_result: AnyResult.make_person_result'
@@ -170,7 +170,7 @@ module Editor = struct
         initial_state.remark
     in
     let sources =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~make_result: AnyResult.make_source_result'
