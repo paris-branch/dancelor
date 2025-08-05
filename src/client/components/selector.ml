@@ -1,184 +1,164 @@
+open Js_of_ocaml
 open Nes
 open Common
-
 open Html
 
-(* TODO: Filter out from search an element that has already been selected. *)
 (* TODO: Also store the search text in the raw signal. *)
 
-type one
-type many
-type 'any arity = One | Many
-let one : one arity = One
-let many : many arity = Many
+let prepare (type model)
+  ~label
+  ~search
+  ~serialise
+  ~unserialise
+  ~(make_result :
+    ?classes: string list ->
+    ?action: Utils.ResultRow.action ->
+    ?prefix: Utils.ResultRow.cell list ->
+    ?suffix: Utils.ResultRow.cell list ->
+    model Entry.t ->
+    Utils.ResultRow.t
+  )
+  ?(make_more_results =
+  (const []: model Entry.t ->
+    Utils.ResultRow.t list))
+  ~model_name
+  ~(create_dialog_content :
+    ?on_save: (model Entry.t -> unit) ->
+    string ->
+    Page.t Lwt.t
+  )
+  ()
+=
+((module struct
+  let label = label
 
-type ('arity, 'model) t = {
-  signal: 'model Entry.t list S.t;
-  set: 'model Entry.t list -> unit;
-  quick_search: 'model Entry.t Search.Quick.t;
-  serialise: 'model Entry.t -> 'model Entry.Id.t;
-  arity: 'arity arity; (** Whether this selector should select exactly one element. *)
-}
+  type value = model Entry.t
+  type raw_value = model Entry.Id.t option
 
-let make ~arity ~search ~serialise ~unserialise initial_value =
-  let (signal, set) = S.create [] in
-  let quick_search = Search.Quick.make ~search () in
-  Lwt.async (fun () ->
-    let%lwt initial_value = Lwt_list.map_p unserialise initial_value in
-    set initial_value;
-    lwt_unit
-  );
-  {signal; set; quick_search; serialise; arity}
+  let empty_value = None
 
-let raw_signal s = S.map (List.map s.serialise) s.signal
+  type t = {
+    signal: model Entry.t option S.t;
+    set: model Entry.t option -> unit;
+    (* quick_search: model Entry.t Search.Quick.t; *)
+    serialise: model Entry.t -> model Entry.Id.t;
+    inner_html: Html_types.div_content_fun elt;
+    select_button_dom: Dom_html.buttonElement Js.t;
+  }
 
-let signal (s : ('arity, 'model) t) : ('model Entry.t list, string) Result.t S.t =
-  flip S.map s.signal @@ function
-    | [x] -> Ok [x]
-    | [] when s.arity = One -> Error "You must select an element."
-    | _ when s.arity = One -> Error "You must select exactly one element."
-    | xs -> Ok xs
+  let raw_signal s = S.map (Option.map s.serialise) s.signal
+  let signal i = S.map (Option.to_result ~none: "You must select an element.") i.signal
+  let inner_html s = s.inner_html
 
-let signal_one (s : (one, 'model) t) : ('model Entry.t, string) Result.t S.t =
-  assert (s.arity = One);
-  S.map (Result.map List.hd) (signal s)
+  let focus s = s.select_button_dom##focus
+  let trigger s = s.select_button_dom##click
 
-let signal_many (s : (many, 'model) t) : ('model Entry.t list, 'bottom) Result.t S.t =
-  assert (s.arity = Many);
-  S.map (ok % Result.get_ok) (signal s)
+  let clear s = s.set None
 
-let case_errored ~no ~yes state =
-  flip S.map (signal state) @@ function
-    | Error msg -> yes msg
-    | _ -> no
-
-let clear s = s.set []
-
-let render
-    ~(make_result :
-      ?classes: string list ->
-      ?action: Utils.ResultRow.action ->
-      ?prefix: Utils.ResultRow.cell list ->
-      ?suffix: Utils.ResultRow.cell list ->
-      'result ->
-      Utils.ResultRow.t
-    )
-    ?(make_more_results =
-    (const []: 'result ->
-      Utils.ResultRow.t list))
-    ~field_name
-    ~model_name
-    ~(create_dialog_content :
-      ?on_save: ('result -> unit) ->
-      string ->
-      Page.t Lwt.t
-    )
-    s
-  =
-  div
-    ~a: [a_class ["mb-2"]]
-    [
-      label ~a: [a_class ["form-label"]] [txt field_name];
-      tablex
-        ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
-        [
-          R.tbody
-            (
-              flip S.map s.signal @@ fun elements ->
-              List.map Utils.ResultRow.to_clickable_row @@
-              List.concat @@
-              List.mapi
-                (fun n element ->
-                  make_result
-                    ~suffix: [
-                      Utils.ResultRow.cell
-                        ~a: [a_class ["btn-group"; "p-0"]]
-                        [
-                          button
-                            ~a: [
-                              a_class (["btn"; "btn-outline-secondary"] @ (if n = List.length elements - 1 then ["disabled"] else []));
-                              a_onclick (fun _ -> s.set @@ List.swap n (n + 1) @@ S.value s.signal; true);
-                            ]
-                            [i ~a: [a_class ["bi"; "bi-arrow-down"]] []];
-                          button
-                            ~a: [
-                              a_class (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []));
-                              a_onclick (fun _ -> s.set @@ List.swap (n - 1) n @@ S.value s.signal; true);
-                            ]
-                            [i ~a: [a_class ["bi"; "bi-arrow-up"]] []];
-                          button
-                            ~a: [
-                              a_onclick (fun _ -> s.set @@ List.remove n @@ S.value s.signal; true);
-                              a_class ["btn"; "btn-warning"];
-                            ]
-                            [i ~a: [a_class ["bi"; "bi-trash"]] []];
-                        ]
-                    ]
-                    element :: make_more_results element
-                )
-                elements
-            )
-        ];
-      div
-        ~a: [
-          R.a_class
-            (
-              flip S.map s.signal @@ function
-                | [_] when s.arity = One -> ["d-none"]
-                | _ -> []
-            )
-        ]
-        [
+  let make initial_value =
+    let (signal, set) = S.create None in
+    let quick_search = Search.Quick.make ~search () in
+    Lwt.async (fun () ->
+      let%lwt initial_value =
+        match initial_value with
+        | None -> lwt_none
+        | Some initial_value -> some <$> unserialise initial_value
+      in
+      set initial_value;
+      lwt_unit
+    );
+    let select_model () =
+      let%lwt quick_search_result =
+        Page.open_dialog @@ fun quick_search_return ->
+        Search.Quick.render
+          quick_search
+          ~return: quick_search_return
+          ~dialog_title: (lwt label)
+          ~make_result: (fun ~context: _ result ->
+            make_result
+              ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
+              result
+          )
+          ~dialog_buttons: [
+            Button.make
+              ~label: ("Create new " ^ model_name)
+              ~label_processing: ("Creating new " ^ model_name ^ "...")
+              ~icon: "plus-circle"
+              ~classes: ["btn-primary"]
+              ~onclick: (fun () ->
+                quick_search_return
+                <$> Page.open_dialog' @@ fun sub_dialog_return ->
+                  create_dialog_content
+                    ~on_save: sub_dialog_return
+                    (S.value (Search.Quick.text quick_search))
+              )
+              ();
+          ]
+      in
+      SearchBar.clear @@ Search.Quick.search_bar quick_search;
+      flip Option.iter quick_search_result (fun r -> set (Some r));
+      lwt_unit
+    in
+    let select_button =
+      Button.make
+        ~label: ("Select a " ^ model_name)
+        ~label_processing: ("Selecting a " ^ model_name ^ "...")
+        ~classes: ["btn-outline-secondary"; "w-100"; "text-start"]
+        ~onclick: select_model
+        ()
+    in
+    let select_button_dom = To_dom.of_button select_button in
+    let inner_html =
+      R.div (
+        S.map List.singleton @@
+        flip S.map signal @@ function
+        | None ->
           (
-            let label = (if s.arity = One then "Select" else "Add") ^ " a " ^ model_name in
-            let label_processing = (if s.arity = One then "Selecting" else "Adding") ^ " a " ^ model_name ^ "..." in
             div
               ~a: [a_class ["btn-group"; "w-100"]]
               [
                 Button.make_icon "search" ~classes: ["btn-light"];
-                Button.make
-                  ~label
-                  ~label_processing
-                  ~classes: ["btn-outline-secondary"; "w-100"; "text-start"]
-                  ~onclick: (fun () ->
-                    let%lwt quick_search_result =
-                      Page.open_dialog @@ fun quick_search_return ->
-                      Search.Quick.render
-                        s.quick_search
-                        ~return: quick_search_return
-                        ~dialog_title: (lwt label)
-                        ~make_result: (fun ~context: _ result ->
-                          make_result
-                            ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
-                            result
-                        )
-                        ~dialog_buttons: [
-                          Button.make
-                            ~label: ("Create new " ^ model_name)
-                            ~label_processing: ("Creating new " ^ model_name ^ "...")
-                            ~icon: "plus-circle"
-                            ~classes: ["btn-primary"]
-                            ~onclick: (fun () ->
-                              quick_search_return
-                              <$> Page.open_dialog' @@ fun sub_dialog_return ->
-                                create_dialog_content
-                                  ~on_save: sub_dialog_return
-                                  (S.value (Search.Quick.text s.quick_search))
-                            )
-                            ();
-                        ]
-                    in
-                    SearchBar.clear @@ Search.Quick.search_bar s.quick_search;
-                    flip Option.iter quick_search_result (fun r -> s.set (S.value s.signal @ [r]));
-                    lwt_unit
-                  )
-                  ()
+                select_button;
               ];
           )
-        ];
-      R.div
-        ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (const ["d-block"; "invalid-feedback"]) s)]
-        (
-          case_errored ~no: [txt " "] ~yes: (List.singleton % txt) s
-        );
-    ]
+        | Some model ->
+          tablex
+            ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
+            [
+              tbody (
+                List.map
+                  Utils.ResultRow.to_clickable_row
+                  (make_result model :: make_more_results model)
+              )
+            ]
+      )
+    in
+      {signal; set; serialise; inner_html; select_button_dom}
+end):
+  (model Entry.t, model Entry.Id.t option) Component.s)
+
+let make
+    ~label
+    ~search
+    ~serialise
+    ~unserialise
+    ~make_result
+    ?make_more_results
+    ~model_name
+    ~create_dialog_content
+    initial_value
+  =
+  Component.initialise
+    (
+      prepare
+        ~label
+        ~search
+        ~serialise
+        ~unserialise
+        ~make_result
+        ?make_more_results
+        ~model_name
+        ~create_dialog_content
+        ()
+    )
+    initial_value

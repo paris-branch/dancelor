@@ -26,8 +26,13 @@ module RawState = struct
   let version_to_yojson _ = assert false
   let version_of_yojson _ = assert false
 
-  type t =
-  (string, string, person Entry.Id.t list, version Entry.Id.t list, string) gen
+  type t = (
+    string,
+    string,
+    person Entry.Id.t option list,
+    version Entry.Id.t option list,
+    string
+  ) gen
   [@@deriving yojson]
 
   let empty = {
@@ -44,8 +49,8 @@ module Editor = struct
     elements: (
       (string, string) Component.t,
       (Kind.Dance.t, string) Component.t,
-      (Selector.many, Model.Person.t) Selector.t,
-      (Selector.many, Model.Version.t) Selector.t,
+      (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
+      (Model.Version.t Entry.t list, Model.Version.t Entry.Id.t option list) Component.t,
       (Model.SetOrder.t, string) Component.t
     ) gen;
   }
@@ -53,8 +58,8 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (Selector.raw_signal editor.elements.conceptors) @@ fun conceptors ->
-    S.bind (Selector.raw_signal editor.elements.versions) @@ fun versions ->
+    S.bind (Component.raw_signal editor.elements.conceptors) @@ fun conceptors ->
+    S.bind (Component.raw_signal editor.elements.versions) @@ fun versions ->
     S.bind (Component.raw_signal editor.elements.order) @@ fun order ->
     S.const {name; kind; conceptors; versions; order}
 
@@ -62,8 +67,8 @@ module Editor = struct
     S.map Result.to_option @@
     RS.bind (Component.signal editor.elements.name) @@ fun name ->
     RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (Selector.signal_many editor.elements.conceptors) @@ fun conceptors ->
-    RS.bind (Selector.signal_many editor.elements.versions) @@ fun versions ->
+    RS.bind (Component.signal editor.elements.conceptors) @@ fun conceptors ->
+    RS.bind (Component.signal editor.elements.versions) @@ fun versions ->
     RS.bind (Component.signal editor.elements.order) @@ fun order ->
     RS.pure {name; kind; conceptors; versions; order}
 
@@ -94,25 +99,42 @@ module Editor = struct
         initial_state.kind
     in
     let conceptors =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_person_result'
+            ~label: "Conceptor"
+            ~model_name: "person"
+            ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Person.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
         initial_state.conceptors
     in
     let versions =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Version.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_version_result'
+            ~make_more_results: (fun version ->
+              [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+            )
+            ~label: "Version"
+            ~model_name: "version"
+            ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Version.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Version.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Version.get
         initial_state.versions
     in
     let order =
@@ -134,8 +156,8 @@ module Editor = struct
   let clear (editor : t) =
     Component.clear editor.elements.name;
     Component.clear editor.elements.kind;
-    Selector.clear editor.elements.conceptors;
-    Selector.clear editor.elements.versions;
+    Component.clear editor.elements.conceptors;
+    Component.clear editor.elements.versions;
     Component.clear editor.elements.order
 
   let submit (editor : t) =
@@ -161,21 +183,8 @@ let create ?on_save ?text () =
     ~on_load: (fun () -> Component.focus editor.elements.name)
     [Component.html editor.elements.name;
     Component.html editor.elements.kind;
-    Selector.render
-      ~make_result: AnyResult.make_person_result'
-      ~field_name: "Conceptors"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      editor.elements.conceptors;
-    Selector.render
-      ~make_result: AnyResult.make_version_result'
-      ~make_more_results: (fun version ->
-        [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-      )
-      ~field_name: "Versions"
-      ~model_name: "versions"
-      ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
-      editor.elements.versions;
+    Component.html editor.elements.conceptors;
+    Component.html editor.elements.versions;
     Component.html editor.elements.order;
     ]
     ~buttons: [

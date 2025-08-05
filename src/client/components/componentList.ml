@@ -68,7 +68,7 @@ let prepare (type value)(type raw_value) (component : (value, raw_value) Compone
         ~onclick: (fun () ->
           let component = C.make C.empty_value in
           set_components (S.value components @ [component]);
-          C.focus component;
+          C.trigger component;
           lwt_unit
         )
         ()

@@ -30,12 +30,21 @@ module RawState = struct
   let source_to_yojson _ = assert false
   let source_of_yojson _ = assert false
 
-  type t =
-  (tune Entry.Id.t list, string, string, string, person Entry.Id.t list, string, source Entry.Id.t list, string, string) gen
+  type t = (
+    tune Entry.Id.t option,
+    string,
+    string,
+    string,
+    person Entry.Id.t option list,
+    string,
+    source Entry.Id.t option list,
+    string,
+    string
+  ) gen
   [@@deriving yojson]
 
   let empty = {
-    tune = [];
+    tune = None;
     bars = "";
     key = "";
     structure = "";
@@ -50,39 +59,39 @@ end
 module Editor = struct
   type t = {
     elements: (
-      (Selector.one, Model.Tune.t) Selector.t,
+      (Model.Tune.t Entry.t, Model.Tune.t Entry.Id.t option) Component.t,
       (int, string) Component.t,
       (Music.key, string) Component.t,
       (string, string) Component.t,
-      (Selector.many, Model.Person.t) Selector.t,
+      (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
       (string, string) Component.t,
-      (Selector.many, Model.Source.t) Selector.t,
+      (Model.Source.t Entry.t list, Model.Source.t Entry.Id.t option list) Component.t,
       (string, string) Component.t,
       (string, string) Component.t
     ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Selector.raw_signal editor.elements.tune) @@ fun tune ->
+    S.bind (Component.raw_signal editor.elements.tune) @@ fun tune ->
     S.bind (Component.raw_signal editor.elements.bars) @@ fun bars ->
     S.bind (Component.raw_signal editor.elements.key) @@ fun key ->
     S.bind (Component.raw_signal editor.elements.structure) @@ fun structure ->
-    S.bind (Selector.raw_signal editor.elements.arrangers) @@ fun arrangers ->
+    S.bind (Component.raw_signal editor.elements.arrangers) @@ fun arrangers ->
     S.bind (Component.raw_signal editor.elements.remark) @@ fun remark ->
-    S.bind (Selector.raw_signal editor.elements.sources) @@ fun sources ->
+    S.bind (Component.raw_signal editor.elements.sources) @@ fun sources ->
     S.bind (Component.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     S.bind (Component.raw_signal editor.elements.content) @@ fun content ->
     S.const {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Selector.signal_one editor.elements.tune) @@ fun tune ->
+    RS.bind (Component.signal editor.elements.tune) @@ fun tune ->
     RS.bind (Component.signal editor.elements.bars) @@ fun bars ->
     RS.bind (Component.signal editor.elements.key) @@ fun key ->
     RS.bind (Component.signal editor.elements.structure) @@ fun structure ->
-    RS.bind (Selector.signal_many editor.elements.arrangers) @@ fun arrangers ->
+    RS.bind (Component.signal editor.elements.arrangers) @@ fun arrangers ->
     RS.bind (Component.signal editor.elements.remark) @@ fun remark ->
-    RS.bind (Selector.signal_many editor.elements.sources) @@ fun sources ->
+    RS.bind (Component.signal editor.elements.sources) @@ fun sources ->
     RS.bind (Component.signal editor.elements.disambiguation) @@ fun disambiguation ->
     RS.bind (Component.signal editor.elements.content) @@ fun content ->
     RS.pure {tune; bars; key; structure; arrangers; remark; sources; disambiguation; content}
@@ -92,13 +101,16 @@ module Editor = struct
     | (None, None) ->
       lwt @@ Cutils.with_local_storage "VersionEditor" (module RawState) raw_state f
     | _ ->
-      lwt @@ f {RawState.empty with tune = Option.value ~default: [] tune}
+      lwt @@ f {RawState.empty with tune}
 
   let create ~text ~tune : t Lwt.t =
     with_or_without_local_storage ~text ~tune @@ fun initial_state ->
     let tune =
       Selector.make
-        ~arity: Selector.one
+        ~make_result: AnyResult.make_tune_result'
+        ~label: "Tune"
+        ~model_name: "tune"
+        ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Tune.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
@@ -132,14 +144,21 @@ module Editor = struct
         initial_state.structure
     in
     let arrangers =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_person_result'
+            ~label: "Arranger"
+            ~model_name: "person"
+            ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Person.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
         initial_state.arrangers
     in
     let remark =
@@ -151,14 +170,21 @@ module Editor = struct
         initial_state.remark
     in
     let sources =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Source.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_source_result'
+            ~label: "Source"
+            ~model_name: "source"
+            ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Source.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Source.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Source.get
         initial_state.sources
     in
     let disambiguation =
@@ -182,13 +208,13 @@ module Editor = struct
     }
 
   let clear (editor : t) =
-    Selector.clear editor.elements.tune;
+    Component.clear editor.elements.tune;
     Component.clear editor.elements.bars;
     Component.clear editor.elements.key;
     Component.clear editor.elements.structure;
-    Selector.clear editor.elements.arrangers;
+    Component.clear editor.elements.arrangers;
     Component.clear editor.elements.remark;
-    Selector.clear editor.elements.sources;
+    Component.clear editor.elements.sources;
     Component.clear editor.elements.disambiguation;
     Component.clear editor.elements.content
 
@@ -215,27 +241,12 @@ let create ?on_save ?text ?tune () =
   let%lwt editor = Editor.create ~text ~tune in
   Page.make'
     ~title: (lwt "Add a version")
-    [Selector.render
-      ~make_result: AnyResult.make_tune_result'
-      ~field_name: "Tune"
-      ~model_name: "tune"
-      ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
-      editor.elements.tune;
+    [Component.html editor.elements.tune;
     Component.html editor.elements.bars;
     Component.html editor.elements.key;
     Component.html editor.elements.structure;
-    Selector.render
-      ~make_result: AnyResult.make_person_result'
-      ~field_name: "Arrangers"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      editor.elements.arrangers;
-    Selector.render
-      ~make_result: AnyResult.make_source_result'
-      ~field_name: "Sources"
-      ~model_name: "source"
-      ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
-      editor.elements.sources;
+    Component.html editor.elements.arrangers;
+    Component.html editor.elements.sources;
     Component.html editor.elements.disambiguation;
     Component.html editor.elements.remark;
     Component.html editor.elements.content;

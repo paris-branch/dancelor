@@ -18,8 +18,11 @@ module RawState = struct
   let set_to_yojson _ = assert false
   let set_of_yojson _ = assert false
 
-  type t =
-  (string, string, set Entry.Id.t list) gen
+  type t = (
+    string,
+    string,
+    set Entry.Id.t option list
+  ) gen
   [@@deriving yojson]
 
   let empty = {
@@ -30,13 +33,16 @@ module RawState = struct
 end
 
 module State = struct
-  type t =
-  (string, PartialDate.t option, Model.Set.t Entry.t list) gen
+  type t = (
+    string,
+    PartialDate.t option,
+    Model.Set.t Entry.t list
+  ) gen
 
   let to_raw_state (state : t) : RawState.t = {
     name = state.name;
     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date;
-    sets = List.map Entry.id state.sets;
+    sets = List.map (some % Entry.id) state.sets;
   }
 
   exception Non_convertible
@@ -64,21 +70,21 @@ module Editor = struct
     elements: (
       (string, string) Component.t,
       (PartialDate.t option, string) Component.t,
-      (Selector.many, Model.Set.t) Selector.t
+      (Model.Set.t Entry.t list, Model.Set.t Entry.Id.t option list) Component.t
     ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Component.raw_signal editor.elements.date) @@ fun date ->
-    S.bind (Selector.raw_signal editor.elements.sets) @@ fun sets ->
+    S.bind (Component.raw_signal editor.elements.sets) @@ fun sets ->
     S.const {name; date; sets}
 
   let state (editor : t) : State.t option S.t =
     S.map Result.to_option @@
     RS.bind (Component.signal editor.elements.name) @@ fun name ->
     RS.bind (Component.signal editor.elements.date) @@ fun date ->
-    RS.bind (Selector.signal_many editor.elements.sets) @@ fun sets ->
+    RS.bind (Component.signal editor.elements.sets) @@ fun sets ->
     RS.pure {name; date; sets}
 
   let with_or_without_local_storage ~text ~edit f =
@@ -117,14 +123,22 @@ module Editor = struct
         initial_state.date
     in
     let sets =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Set.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_set_result'
+            ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
+            ~label: "Set"
+            ~model_name: "set"
+            ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Set.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Set.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Set.get
         initial_state.sets
     in
     {
@@ -138,7 +152,7 @@ module Editor = struct
   let clear (editor : t) =
     Component.clear editor.elements.name;
     Component.clear editor.elements.date;
-    Selector.clear editor.elements.sets
+    Component.clear editor.elements.sets
 
   let submit ~edit (editor : t) =
     match (S.value (state editor), edit) with
@@ -167,13 +181,7 @@ let create ?on_save ?text ?edit () =
     ~on_load: (fun () -> Component.focus editor.elements.name)
     [Component.html editor.elements.name;
     Component.html editor.elements.date;
-    Selector.render
-      ~make_result: AnyResult.make_set_result'
-      ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
-      ~field_name: "Sets"
-      ~model_name: "set"
-      ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
-      editor.elements.sets;
+    Component.html editor.elements.sets;
     ]
     ~buttons: [
       Button.clear

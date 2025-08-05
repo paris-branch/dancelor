@@ -28,9 +28,9 @@ module RawState = struct
   type t = (
     string list,
     string,
-    person Entry.Id.t list,
+    person Entry.Id.t option list,
     string,
-    dance Entry.Id.t list,
+    dance Entry.Id.t option list,
     string,
     string
   ) gen
@@ -52,9 +52,9 @@ module Editor = struct
     elements: (
       (string NonEmptyList.t, string list) Component.t,
       (Kind.Base.t, string) Component.t,
-      (Selector.many, Model.Person.t) Selector.t,
+      (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
       (PartialDate.t option, string) Component.t,
-      (Selector.many, Model.Dance.t) Selector.t,
+      (Model.Dance.t Entry.t list, Model.Dance.t Entry.Id.t option list) Component.t,
       (string option, string) Component.t,
       (SCDDB.entry_id option, string) Component.t
     ) gen;
@@ -63,9 +63,9 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Component.raw_signal editor.elements.names) @@ fun names ->
     S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (Selector.raw_signal editor.elements.composers) @@ fun composers ->
+    S.bind (Component.raw_signal editor.elements.composers) @@ fun composers ->
     S.bind (Component.raw_signal editor.elements.date) @@ fun date ->
-    S.bind (Selector.raw_signal editor.elements.dances) @@ fun dances ->
+    S.bind (Component.raw_signal editor.elements.dances) @@ fun dances ->
     S.bind (Component.raw_signal editor.elements.remark) @@ fun remark ->
     S.bind (Component.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {names; kind; composers; date; dances; remark; scddb_id}
@@ -74,9 +74,9 @@ module Editor = struct
     S.map Result.to_option @@
     RS.bind (Component.signal editor.elements.names) @@ fun names ->
     RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (Selector.signal_many editor.elements.composers) @@ fun composers ->
+    RS.bind (Component.signal editor.elements.composers) @@ fun composers ->
     RS.bind (Component.signal editor.elements.date) @@ fun date ->
-    RS.bind (Selector.signal_many editor.elements.dances) @@ fun dances ->
+    RS.bind (Component.signal editor.elements.dances) @@ fun dances ->
     RS.bind (Component.signal editor.elements.remark) @@ fun remark ->
     RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {names; kind; composers; date; dances; remark; scddb_id}
@@ -110,14 +110,21 @@ module Editor = struct
         initial_state.kind
     in
     let composers =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_person_result'
+            ~label: "Composer"
+            ~model_name: "person"
+            ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Person.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
         initial_state.composers
     in
     let date =
@@ -134,14 +141,21 @@ module Editor = struct
         initial_state.date
     in
     let dances =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Dance.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Dance.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Dance.get
+            ~make_result: AnyResult.make_dance_result'
+            ~label: "Dance"
+            ~model_name: "dance"
+            ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Dance.get
         initial_state.dances
     in
     let remark =
@@ -172,9 +186,9 @@ module Editor = struct
   let clear (editor : t) : unit =
     Component.clear editor.elements.names;
     Component.clear editor.elements.kind;
-    Selector.clear editor.elements.composers;
+    Component.clear editor.elements.composers;
     Component.clear editor.elements.date;
-    Selector.clear editor.elements.dances;
+    Component.clear editor.elements.dances;
     Component.clear editor.elements.remark;
     Component.clear editor.elements.scddb_id
 
@@ -195,19 +209,9 @@ let create ?on_save ?text () =
     ~on_load: (fun () -> Component.focus editor.elements.names)
     [Component.html editor.elements.names;
     Component.html editor.elements.kind;
-    Selector.render
-      ~make_result: AnyResult.make_person_result'
-      ~field_name: "Composers"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      editor.elements.composers;
+    Component.html editor.elements.composers;
     Component.html editor.elements.date;
-    Selector.render
-      ~make_result: AnyResult.make_dance_result'
-      ~field_name: "Dances"
-      ~model_name: "dance"
-      ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
-      editor.elements.dances;
+    Component.html editor.elements.dances;
     Component.html editor.elements.remark;
     Component.html editor.elements.scddb_id;
     ]

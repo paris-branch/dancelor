@@ -25,7 +25,7 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Entry.Id.t list,
+    person Entry.Id.t option list,
     string,
     string,
     (* bool, *)
@@ -51,7 +51,7 @@ module Editor = struct
     elements: (
       (string, string) Component.t,
       (Kind.Dance.t, string) Component.t,
-      (Selector.many, Model.Person.t) Selector.t,
+      (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
       (PartialDate.t option, string) Component.t,
       (string option, string) Component.t,
       bool option Choices.t,
@@ -62,7 +62,7 @@ module Editor = struct
   let raw_state (editor : t) : RawState.t S.t =
     S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
     S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (Selector.raw_signal editor.elements.devisers) @@ fun devisers ->
+    S.bind (Component.raw_signal editor.elements.devisers) @@ fun devisers ->
     S.bind (Component.raw_signal editor.elements.date) @@ fun date ->
     S.bind (Component.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     (* S.bind (Choices.raw_signal editor.elements.two_chords) @@ fun two_chords -> *)
@@ -75,7 +75,7 @@ module Editor = struct
     S.map Result.to_option @@
     RS.bind (Component.signal editor.elements.name) @@ fun name ->
     RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (Selector.signal_many editor.elements.devisers) @@ fun devisers ->
+    RS.bind (Component.signal editor.elements.devisers) @@ fun devisers ->
     RS.bind (Component.signal editor.elements.date) @@ fun date ->
     RS.bind (Component.signal editor.elements.disambiguation) @@ fun disambiguation ->
     RS.bind (S.map ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
@@ -109,14 +109,21 @@ module Editor = struct
         initial_state.kind
     in
     let devisers =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~label: "Deviser"
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Person.get
+            ~make_result: AnyResult.make_person_result'
+            ~model_name: "person"
+            ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
         initial_state.devisers
     in
     let date =
@@ -166,7 +173,7 @@ module Editor = struct
   let clear (editor : t) =
     Component.clear editor.elements.name;
     Component.clear editor.elements.kind;
-    Selector.clear editor.elements.devisers;
+    Component.clear editor.elements.devisers;
     Component.clear editor.elements.date;
     Component.clear editor.elements.disambiguation;
     (* FIXME: clear two chords *)
@@ -197,12 +204,7 @@ let create ?on_save ?text () =
     ~on_load: (fun () -> Component.focus editor.elements.name)
     [Component.html editor.elements.name;
     Component.html editor.elements.kind;
-    Selector.render
-      ~make_result: AnyResult.make_person_result'
-      ~field_name: "Devisers"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      editor.elements.devisers;
+    Component.html editor.elements.devisers;
     Component.html editor.elements.date;
     Choices.render
       editor.elements.two_chords;
