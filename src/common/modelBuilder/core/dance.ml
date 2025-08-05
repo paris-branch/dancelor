@@ -3,7 +3,7 @@ open Nes
 let _key = "dance"
 
 type t = {
-  name: string;
+  names_: string NonEmptyList.t; [@key "names"] (* work around a name clash in ppx_fields_conv *)
   kind: Kind.Dance.t;
   devisers: Person.t Entry.Id.t list; [@default []]
   two_chords: bool option; [@default None] [@key "two-chords"]
@@ -13,18 +13,24 @@ type t = {
 }
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
-let make ~name ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date () =
-  let name = String.remove_duplicates ~char: ' ' name in
+let make ~names ~kind ?devisers ?two_chords ?scddb_id ?disambiguation ?date () =
+  let names = NonEmptyList.map (String.remove_duplicates ~char: ' ') names in
   let disambiguation = Option.map (String.remove_duplicates ~char: ' ') disambiguation in
   let devisers = Option.map (List.map Entry.id) devisers in
-  make ~name ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
+  make ~names_: names ~kind ?devisers ~two_chords ~scddb_id ?disambiguation ~date ()
 
-let name' = name % Entry.value
+let names = names_
+let names' = names % Entry.value
+let one_name = NonEmptyList.hd % names
+let one_name' = one_name % Entry.value
+let other_names = NonEmptyList.tl % names
+let other_names' = other_names % Entry.value
+
 let kind' = kind % Entry.value
 let two_chords' = two_chords % Entry.value
 let scddb_id' = scddb_id % Entry.value
 let disambiguation' = disambiguation % Entry.value
 let date' = date % Entry.value
 
-let slug = Entry.Slug.of_string % name
+let slug = Entry.Slug.of_string % one_name
 let slug' = slug % Entry.value

@@ -67,9 +67,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Dance.Is dance' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id dance) dance'
       | Name string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Dance.name' dance
+        lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string) @@ NonEmptyList.to_list @@ Model.Dance.names' dance
       | NameMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Dance.name' dance
+        lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string) @@ NonEmptyList.to_list @@ Model.Dance.names' dance
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind' dance
       | ExistsDeviser pfilter ->

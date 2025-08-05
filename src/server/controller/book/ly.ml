@@ -15,7 +15,7 @@ let details_line set set_parameters =
   let%lwt dance =
     match%lwt Model.SetParameters.for_dance set_parameters with
     | None -> lwt_nil
-    | Some dance -> lwt [spf "Dance: %s" (Model.Dance.name' dance)]
+    | Some dance -> lwt [spf "Dance: %s" (Model.Dance.one_name' dance)]
   in
   let%lwt kind = kind set set_parameters in
   let order =

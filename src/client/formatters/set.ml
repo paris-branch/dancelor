@@ -7,7 +7,7 @@ let works set =
   with_span_placeholder @@
     match%lwt Model.Set.dances set with
     | [] -> lwt_nil
-    | dances -> lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.name' dances)]
+    | dances -> lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.one_name' dances)]
 
 let works' = works % Entry.value
 

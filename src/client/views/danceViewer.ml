@@ -14,8 +14,9 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_dance id)
         (lwt @@ Any.dance dance);
     ]
-    ~title: (lwt @@ Dance.name' dance)
+    ~title: (lwt @@ Dance.one_name' dance)
     ~subtitles: [
+      Formatters.Dance.aka' dance;
       (
         with_span_placeholder @@
           let kind = [txt @@ Kind.Dance.to_pretty_string @@ Dance.kind' dance] in
