@@ -24,14 +24,14 @@ let open_dialog page =
     flip Lwt.map (describe page) @@ function
       | None ->
         Choices.make_radios'
-          ~name: "Source of the issue"
+          ~label: "Source of the issue"
           ~validate: (Option.to_result ~none: "You must make a choice.")
           [
             Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
           ]
       | Some (kind, name) ->
         Choices.make_radios'
-          ~name: "Source of the issue"
+          ~label: "Source of the issue"
           ~validate: (Option.to_result ~none: "You must make a choice.")
           [
             Choices.choice'
@@ -65,7 +65,7 @@ let open_dialog page =
     RS.bind (match maybe_reporter_input with Left (user, _) -> S.const (ok (left user)) | Right reporter_input -> S.map (Result.map right) (Component.signal reporter_input)) @@ fun reporter ->
     RS.bind (Component.signal title_input) @@ fun title ->
     RS.bind (Component.signal description_input) @@ fun description ->
-    RS.bind (Choices.signal source) @@ fun source ->
+    RS.bind (Component.signal source) @@ fun source ->
     RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
@@ -78,7 +78,7 @@ let open_dialog page =
         | Left (_, inactive_reporter_input) -> inactive_reporter_input
         | Right reporter_input -> Component.html reporter_input
       );
-      Choices.render source;
+      Component.html source;
       Component.html title_input;
       Component.html description_input;
       ]

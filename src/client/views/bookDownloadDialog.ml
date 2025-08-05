@@ -20,6 +20,7 @@ let create () =
   let booklet_choices =
     Choices.(
       make_radios
+        ~label: "Mode"
         [
           choice' [txt "Normal"] ~checked: true;
           choice'
@@ -38,7 +39,7 @@ let create () =
   {
     choice_rows = (
       set_dialog.choice_rows @ [
-        tr [td [label [txt "Mode:"]]; td [Choices.render booklet_choices]]
+        tr [td [label [txt "Mode:"]]; td [Component.inner_html booklet_choices]]
       ]
     );
     parameters_signal = S.map (Option.value ~default: BookParameters.none) @@
@@ -47,7 +48,7 @@ let create () =
         None
         [
           S.map (some % lift_set_parameters) set_dialog.parameters_signal;
-          Choices.signal booklet_choices;
+          S.map Result.get_ok (Component.signal booklet_choices);
         ]
   }
 

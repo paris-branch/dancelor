@@ -43,7 +43,7 @@ let open_sign_in_dialog () =
   let remember_me_input =
     Choices.(
       make_radios'
-        ~name: "Sign in..."
+        ~label: "Sign in..."
         ~validate: (Option.to_result ~none: "You must make a choice.")
         [
           choice' [txt "Just this once"] ~value: false ~checked: true;
@@ -55,7 +55,7 @@ let open_sign_in_dialog () =
     S.map Result.to_option @@
     RS.bind (Component.signal username_input) @@ fun username ->
     RS.bind (Component.signal password_input) @@ fun password ->
-    RS.bind (Choices.signal remember_me_input) @@ fun remember_me ->
+    RS.bind (Component.signal remember_me_input) @@ fun remember_me ->
     RS.pure (username, password, remember_me)
   in
   let%lwt _ =
@@ -65,7 +65,7 @@ let open_sign_in_dialog () =
       ~on_load: (fun () -> Component.focus username_input)
       [Component.html username_input;
       Component.html password_input;
-      Choices.render remember_me_input;
+      Component.html remember_me_input;
       ]
       ~buttons: [
         Button.cancel' ~return ();

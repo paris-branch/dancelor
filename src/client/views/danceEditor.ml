@@ -54,7 +54,7 @@ module Editor = struct
       (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
       (PartialDate.t option, string) Component.t,
       (string option, string) Component.t,
-      bool option Choices.t,
+      (bool option, string) Component.t,
       (SCDDB.entry_id option, string) Component.t
     ) gen;
   }
@@ -78,7 +78,7 @@ module Editor = struct
     RS.bind (Component.signal editor.elements.devisers) @@ fun devisers ->
     RS.bind (Component.signal editor.elements.date) @@ fun date ->
     RS.bind (Component.signal editor.elements.disambiguation) @@ fun disambiguation ->
-    RS.bind (S.map ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
+    RS.bind (Component.signal editor.elements.two_chords) @@ fun two_chords ->
     RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
@@ -149,11 +149,12 @@ module Editor = struct
     in
     let two_chords =
       Choices.make_radios
-        [Choices.choice' [txt "I don't know"] ~checked: true;
-        Choices.choice' ~value: false [txt "One chord"];
-        Choices.choice' ~value: true [txt "Two chords"];
+        ~label: "Number of chords"
+        [
+          Choices.choice' [txt "I don't know"] ~checked: true;
+          Choices.choice' ~value: false [txt "One chord"];
+          Choices.choice' ~value: true [txt "Two chords"];
         ]
-        ~name: "Number of chords"
     in
     let scddb_id =
       Input.make
@@ -206,8 +207,7 @@ let create ?on_save ?text () =
     Component.html editor.elements.kind;
     Component.html editor.elements.devisers;
     Component.html editor.elements.date;
-    Choices.render
-      editor.elements.two_chords;
+    Component.html editor.elements.two_chords;
     Component.html editor.elements.scddb_id;
     Component.html editor.elements.disambiguation;
     ]

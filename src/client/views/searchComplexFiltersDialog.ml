@@ -90,6 +90,7 @@ let type_choices filter =
   in
   Choices.(
     make_radios
+      ~label: "Type"
       (
         choice' [txt "All"] ~checked: (filter = None) :: List.map
           (fun type_ ->
@@ -111,6 +112,7 @@ let kind_choices filter =
   in
   Choices.(
     make_checkboxes
+      ~label: "Kind"
       (
         List.map
           (fun kind ->
@@ -139,12 +141,12 @@ let dance_bundled_choices ~kind_choices _filter =
       S.all
         [
           choices_formula
-            ~s: (Choices.signal kind_choices)
+            ~s: (S.map Result.get_ok (Component.signal kind_choices))
             ~f: (Filter.Dance.kind' % Kind.Dance.Filter.baseIs');
         ]
   in
   let html = [
-    Choices.render kind_choices;
+    Component.inner_html kind_choices;
   ]
   in
     (formula, html)
@@ -161,12 +163,12 @@ let set_bundled_choices ~kind_choices _filter =
       S.all
         [
           choices_formula
-            ~s: (Choices.signal kind_choices)
+            ~s: (S.map Result.get_ok (Component.signal kind_choices))
             ~f: (Filter.Set.kind' % Kind.Dance.Filter.baseIs');
         ]
   in
   let html = [
-    Choices.render kind_choices;
+    Component.inner_html kind_choices;
   ]
   in
     (formula, html)
@@ -179,12 +181,12 @@ let tune_bundled_choices ~kind_choices _filter =
       S.all
         [
           choices_formula
-            ~s: (Choices.signal kind_choices)
+            ~s: (S.map Result.get_ok (Component.signal kind_choices))
             ~f: (Filter.Tune.kind' % Kind.Base.Filter.is');
         ]
   in
   let html = [
-    Choices.render kind_choices;
+    Component.inner_html kind_choices;
   ]
   in
     (formula, html)
@@ -220,6 +222,7 @@ let major_key_choices filter =
   in
   Choices.(
     make_checkboxes
+      ~label: "Major keys"
       (
         List.map
           (fun key ->
@@ -261,6 +264,7 @@ let minor_key_choices filter =
   in
   Choices.(
     make_checkboxes
+      ~label: "Minor keys"
       (
         List.map
           (fun key ->
@@ -281,17 +285,22 @@ let version_bundled_choices ~kind_choices filter =
       S.all
         [
           choices_formula
-            ~s: (Choices.signal kind_choices)
+            ~s: (S.map Result.get_ok (Component.signal kind_choices))
             ~f: (Filter.Version.kind' % Kind.Version.Filter.baseIs');
           choices_formula
-            ~s: (S.l2 (@) (Choices.signal major_key_choices) (Choices.signal minor_key_choices))
+            ~s: (
+              S.l2
+                (@)
+                (S.map Result.get_ok (Component.signal major_key_choices))
+                (S.map Result.get_ok (Component.signal minor_key_choices))
+            )
             ~f: Filter.Version.key';
         ]
   in
   let html = [
-    Choices.render kind_choices;
-    Choices.render major_key_choices;
-    Choices.render minor_key_choices;
+    Component.inner_html kind_choices;
+    Component.inner_html major_key_choices;
+    Component.inner_html minor_key_choices;
   ]
   in
     (formula, html)
@@ -319,14 +328,14 @@ let open_ text raws filter =
         [
           (
             (* [type:version] if any type has been selected *)
-            flip S.map (Choices.signal type_choices) @@ function
+            flip S.map (S.map Result.get_ok (Component.signal type_choices)) @@ function
               | None -> Formula.true_
               | Some type_ -> Filter.Any.type_' type_
           );
 
           (* model-specific formulas *)
           (
-            S.bind (Choices.signal type_choices) @@ function
+            S.bind (S.map Result.get_ok (Component.signal type_choices)) @@ function
               | None -> S.const Formula.true_
               | Some Source -> source_formula
               | Some Person -> person_formula
@@ -347,13 +356,13 @@ let open_ text raws filter =
     [div
       ~a: [a_class ["d-flex"; "justify-content-center"]]
       [
-        Choices.render type_choices
+        Component.inner_html type_choices
       ];
     hr ();
     R.div
       ~a: [a_class ["d-flex"; "justify-content-center"]]
       (
-        flip S.map (Choices.signal type_choices) @@ function
+        flip S.map (S.map Result.get_ok (Component.signal type_choices)) @@ function
           | None -> []
           | Some Source -> source_html
           | Some Person -> person_html

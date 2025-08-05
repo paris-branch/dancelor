@@ -35,34 +35,36 @@ val choice' :
 
 (** {2 Choices element} *)
 
-type 'value t
-(** Abstract type for a “choices” component that can take ['value]s. *)
-
 val make_radios :
-  ?name: string ->
+  label: string ->
   'value option choice list ->
-  'value option t
+  ('value option, string) Component.t
 (** Make a radio-based “choices” component that can hold at most one value at
     once out of a list of single choices. *)
 
 val make_radios' :
-  ?name: string ->
-  validate: ('cvalue option -> ('value, string) Result.t) ->
-  'cvalue option choice list ->
-  ('value, string) Result.t t
+  label: string ->
+  validate: ('choice_value option -> ('value, string) Result.t) ->
+  'choice_value option choice list ->
+  ('value, string) Component.t
 (** Variant of {!make_radios} with a validation function. *)
 
 val make_checkboxes :
+  label: string ->
   'value choice list ->
-  'value list t
+  ('value list, string) Component.t
 (** Make a checkbox-based “choices” component that can hold zero, one, or
     several values at once out of a list of single choices. *)
 
-val signal : 'value t -> 'value S.t
-(** A signal holding the value/s of the “choices” component. *)
+(** {2 Internal use} *)
 
-val value : 'value t -> 'value
-(** The value/s of the “choices” component at that point. *)
+val prepare_radios' :
+  label: string ->
+  validate: ('choice_value option -> ('value, string) Result.t) ->
+  'choice_value option choice list ->
+  ('value, string) Component.s
 
-val render : 'value t -> [> Html_types.div] elt
-(** Render the “choices” component as HTML. *)
+val prepare_checkboxes :
+  label: string ->
+  'value choice list ->
+  ('value list, string) Component.s
