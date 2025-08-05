@@ -113,12 +113,12 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
       | UserPasswordReset -> const2 lwt_none
       | Version ->
         (fun _ id ->
-          let%lwt name = Model.Version.name' =<< Model.Version.get id in
+          let%lwt name = Model.Version.one_name' =<< Model.Version.get id in
           lwt_some ("version", name)
         )
       | Tune ->
         (fun _ id ->
-          let%lwt name = Model.Tune.name' <$> Model.Tune.get id in
+          let%lwt name = Model.Tune.one_name' <$> Model.Tune.get id in
           lwt_some ("tune", name)
         )
       | Set ->

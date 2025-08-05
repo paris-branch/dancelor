@@ -103,7 +103,7 @@ let create ?context id =
                   div
                     ~a: [a_class ["text-center"; "mt-4"]]
                     [
-                      h4 [a ~a: [a_href (Endpoints.Page.href_version ~context id)] [txt @@ Tune.name' tune]];
+                      h4 [a ~a: [a_href (Endpoints.Page.href_version ~context id)] [txt @@ Tune.one_name' tune]];
                       Components.VersionSvg.make version;
                     ]
               )
