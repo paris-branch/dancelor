@@ -39,7 +39,9 @@ let open_ ?(level = Normal) ~title ?(buttons = []) content =
           div ~a: [a_class (["toast-body"] @ class_body)] (
             content @ [
               div ~a: [a_class ["mt-2"; "pt-2"; "border-top"; "text-end"]] (
-                (Button.close ~more_a: [a_user_data "bs-dismiss" "toast"] ()) :: buttons
+                List.intersperse
+                  (txt " ")
+                  (Button.close ~more_a: [a_user_data "bs-dismiss" "toast"] () :: buttons)
               )
             ]
           );

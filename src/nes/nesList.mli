@@ -104,7 +104,7 @@ val intersperse : ?last: 'a -> 'a -> 'a t -> 'a t
 (** [intersperse ?last x l] is the list [l] with [x] “interspersed” between all
     the elements of [l]. If [?last] is not [None], then the last occurence is
     not [x] but [last]. For instance, [intersperse ?last:" & " "," \["a"; "b";
-    "c"\] = \["a"; ", "; "b"; " & "; "c"\]]. *)
+    "c"; "d"\] = \["a"; ", "; "b"; ", "; "c"; " & "; "d"\]]. *)
 
 val interspersei : ?last: (int -> 'a) -> (int -> 'a) -> 'a t -> 'a t
 (** Same as {!intersperse} but with the indice passed as argument. *)
