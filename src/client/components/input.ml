@@ -3,8 +3,8 @@ open Js_of_ocaml
 open Html
 
 type html =
-  | Text of Html_types.input elt * Dom_html.inputElement Js.t
-  | Textarea of Html_types.textarea elt * Dom_html.textAreaElement Js.t
+  | Text of {input: 'a. ([> Html_types.input] as 'a) elt; input_dom: Dom_html.inputElement Js.t}
+  | Textarea of {textarea: 'a. ([> Html_types.textarea] as 'a) elt; textarea_dom: Dom_html.textAreaElement Js.t}
 
 type type_ = Text | Password | Textarea
 
@@ -23,12 +23,12 @@ let value state = S.value @@ signal state
 
 let focus state =
   match state.html with
-  | Text (_, input) ->
-    input##focus;
-    let length = String.length (Js.to_string input##.value) in
-    input##.selectionStart := length;
-    input##.selectionEnd := length
-  | Textarea (_, textarea) -> textarea##focus
+  | Text {input_dom; _} ->
+    input_dom##focus;
+    let length = String.length (Js.to_string input_dom##.value) in
+    input_dom##.selectionStart := length;
+    input_dom##.selectionEnd := length
+  | Textarea {textarea_dom; _} -> textarea_dom##focus
 
 let clear state = state.set ""
 
@@ -52,7 +52,7 @@ let make'
   let html : html =
     match type_ with
     | Text | Password ->
-      let html =
+      let input =
         input
           ()
           ~a: [
@@ -72,7 +72,7 @@ let make'
             );
           ]
       in
-      Text (html, To_dom.of_input html)
+      Text {input; input_dom = To_dom.of_input input}
     | Textarea ->
       let textarea =
         textarea
@@ -94,7 +94,7 @@ let make'
             );
           ]
       in
-      Textarea (textarea, To_dom.of_textarea textarea)
+      Textarea {textarea; textarea_dom = To_dom.of_textarea textarea}
   in
     {label; raw_signal; signal; set; html}
 
@@ -108,8 +108,8 @@ let html textInput =
       label ~a: [a_class ["form-label"]] (Option.to_list (Option.map txt textInput.label));
       (
         match textInput.html with
-        | Text (input, _) -> ((tot % toelt) input: [> Html_types.input] elt)
-        | Textarea (textarea, _) -> ((tot % toelt) textarea: [> Html_types.textarea] elt)
+        | Text {input; _} -> input
+        | Textarea {textarea; _} -> textarea
       );
       R.div
         ~a: [R.a_class (case_errored ~no: ["valid-feedback"] ~yes: (const ["invalid-feedback"]) textInput.signal)]
