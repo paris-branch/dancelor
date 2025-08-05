@@ -9,9 +9,9 @@ let name_gen dance_gen =
     | Right (dance, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_dance @@ Entry.id dance]
-        [txt (Model.Dance.name' dance)]
-    | Right (dance, _) -> txt (Model.Dance.name' dance)
-    | Left dance -> txt (Model.Dance.name dance)
+        [txt (Model.Dance.one_name' dance)]
+    | Right (dance, _) -> txt (Model.Dance.one_name' dance)
+    | Left dance -> txt (Model.Dance.one_name dance)
   ]
 
 let name = name_gen % Either.left
@@ -31,3 +31,11 @@ let name_and_disambiguation =
 
 let name_and_disambiguation' ?(name_link = true) dance =
   name_and_disambiguation_gen @@ Right (dance, name_link)
+
+let aka dance =
+  span @@
+    match Model.Dance.other_names dance with
+    | [] -> []
+    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]
+
+let aka' = aka % Entry.value

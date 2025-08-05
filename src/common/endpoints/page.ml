@@ -133,7 +133,7 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
         )
       | Dance ->
         (fun _ id ->
-          let%lwt name = Model.Dance.name' <$> Model.Dance.get id in
+          let%lwt name = Model.Dance.one_name' <$> Model.Dance.get id in
           lwt_some ("dance", name)
         )
       | Person ->

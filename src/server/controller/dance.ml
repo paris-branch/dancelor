@@ -26,13 +26,13 @@ include Search.Build(struct
   let filter_accepts = Filter.Dance.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (lwt % Model.Dance.name') String.Sensible.compare]
+    Lwt_list.[increasing (lwt % Model.Dance.one_name') String.Sensible.compare]
 end)
 
 module Pdf = struct
   let render env dance set_parameters rendering_parameters =
     let kind = Model.Dance.kind' dance in
-    let name = Model.Dance.name' dance in
+    let name = Model.Dance.one_name' dance in
     let%lwt versions =
       (* All the versions of all the tunes attached to this dance *)
       snd

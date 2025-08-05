@@ -17,7 +17,7 @@ module Build (Getters : Getters.S) = struct
   let name = function
     | Source p -> lwt @@ Core.Source.name' p
     | Person p -> lwt @@ Core.Person.name' p
-    | Dance d -> lwt @@ Core.Dance.name' d
+    | Dance d -> lwt @@ Core.Dance.one_name' d
     | Book b -> lwt @@ Core.Book.title' b
     | Set s -> lwt @@ Core.Set.name' s
     | Tune t -> lwt @@ Core.Tune.one_name' t

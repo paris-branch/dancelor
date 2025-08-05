@@ -5,8 +5,8 @@ open Components
 open Html
 open Utils
 
-type ('name, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) gen = {
-  name: 'name;
+type ('names, 'kind, 'devisers, 'date, 'disambiguation, 'two_chords, 'scddb_id) gen = {
+  names: 'names;
   kind: 'kind;
   devisers: 'devisers;
   date: 'date;
@@ -23,7 +23,7 @@ module RawState = struct
   let person_of_yojson _ = assert false
 
   type t = (
-    string,
+    string list,
     string,
     person Entry.Id.t option list,
     string,
@@ -36,7 +36,7 @@ module RawState = struct
   [@@deriving yojson]
 
   let empty : t = {
-    name = "";
+    names = [];
     kind = "";
     devisers = [];
     date = "";
@@ -49,7 +49,7 @@ end
 module Editor = struct
   type t = {
     elements: (
-      (string, string) Component.t,
+      (string NonEmptyList.t, string list) Component.t,
       (Kind.Dance.t, string) Component.t,
       (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
       (PartialDate.t option, string) Component.t,
@@ -60,7 +60,7 @@ module Editor = struct
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Component.raw_signal editor.elements.names) @@ fun names ->
     S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
     S.bind (Component.raw_signal editor.elements.devisers) @@ fun devisers ->
     S.bind (Component.raw_signal editor.elements.date) @@ fun date ->
@@ -69,36 +69,38 @@ module Editor = struct
     let two_chords = () in
     (* FIXME *)
     S.bind (Component.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
-    S.const {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
+    S.const {names; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Component.signal editor.elements.name) @@ fun name ->
+    RS.bind (Component.signal editor.elements.names) @@ fun names ->
     RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
     RS.bind (Component.signal editor.elements.devisers) @@ fun devisers ->
     RS.bind (Component.signal editor.elements.date) @@ fun date ->
     RS.bind (Component.signal editor.elements.disambiguation) @@ fun disambiguation ->
     RS.bind (Component.signal editor.elements.two_chords) @@ fun two_chords ->
     RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
-    RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
+    RS.pure {names; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let with_or_without_local_storage ~text f =
     match text with
-    | Some text ->
-      lwt @@ f {RawState.empty with name = text}
-    | None ->
-      lwt @@
-        Cutils.with_local_storage "DanceEditor" (module RawState) raw_state f
+    | Some "" -> lwt @@ f RawState.empty
+    | Some text -> lwt @@ f {RawState.empty with names = [text]}
+    | None -> lwt @@ Cutils.with_local_storage "DanceEditor" (module RawState) raw_state f
 
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
-    let name =
-      Input.make
-        ~type_: Text
-        ~label: "Name"
-        ~placeholder: "eg. The Dusty Miller"
-        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        initial_state.name
+    let names =
+      ComponentList.make_non_empty
+        (
+          Input.prepare
+            ~type_: Text
+            ~label: "Name"
+            ~placeholder: "eg. The Dusty Miller"
+            ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+            ()
+        )
+        initial_state.names
     in
     let kind =
       Input.make
@@ -169,10 +171,10 @@ module Editor = struct
         )
         initial_state.scddb_id
     in
-      {elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id}}
+      {elements = {names; kind; devisers; date; disambiguation; two_chords; scddb_id}}
 
   let clear (editor : t) =
-    Component.clear editor.elements.name;
+    Component.clear editor.elements.names;
     Component.clear editor.elements.kind;
     Component.clear editor.elements.devisers;
     Component.clear editor.elements.date;
@@ -183,11 +185,11 @@ module Editor = struct
   let submit (editor : t) =
     match S.value (state editor) with
     | None -> lwt_none
-    | Some {name; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
+    | Some {names; kind; devisers; date; disambiguation; two_chords; scddb_id} ->
       some
       <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
           Model.Dance.make
-            ~name
+            ~names
             ~kind
             ~devisers
             ?two_chords
@@ -202,8 +204,8 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a dance")
-    ~on_load: (fun () -> Component.focus editor.elements.name)
-    [Component.html editor.elements.name;
+    ~on_load: (fun () -> Component.focus editor.elements.names)
+    [Component.html editor.elements.names;
     Component.html editor.elements.kind;
     Component.html editor.elements.devisers;
     Component.html editor.elements.date;
