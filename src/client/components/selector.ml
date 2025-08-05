@@ -28,8 +28,8 @@ let prepare (type model)
     Page.t Lwt.t
   )
   ()
-=
-((module struct
+  : (model Entry.t, model Entry.Id.t option) Component.s
+= (module struct
   let label = label
 
   type value = model Entry.t
@@ -134,8 +134,7 @@ let prepare (type model)
       )
     in
       {signal; set; serialise; inner_html; select_button_dom}
-end):
-  (model Entry.t, model Entry.Id.t option) Component.s)
+end)
 
 let make
     ~label

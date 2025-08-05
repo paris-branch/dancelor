@@ -2,8 +2,10 @@ open Nes
 open Js_of_ocaml
 open Html
 
-let prepare (type value)(type raw_value) (component : (value, raw_value) Component.s) =
-((module struct
+let prepare (type value)(type raw_value)
+  (component : (value, raw_value) Component.s)
+  : (value list, raw_value list) Component.s
+= (module struct
   module C = (val component)
 
   let label = C.label ^ "s"
@@ -120,8 +122,7 @@ let prepare (type value)(type raw_value) (component : (value, raw_value) Compone
       ]
     in
       {components; set_components; inner_html; button_add_object_dom}
-end):
-  (value list, raw_value list) Component.s)
+end)
 
 let make (type value)(type raw_value)
     (component : (value, raw_value) Component.s)

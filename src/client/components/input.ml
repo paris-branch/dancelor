@@ -8,8 +8,15 @@ type html =
 
 type type_ = Text | Password | Textarea
 
-let prepare (type value) ~type_ ~label ?(placeholder = "") ~validator ?(oninput = fun _ -> ()) () =
-((module struct
+let prepare (type value)
+  ~type_
+  ~label
+  ?(placeholder = "")
+  ~validator
+  ?(oninput = fun _ -> ())
+  ()
+  : (value, string) Component.s
+= (module struct
   let label = label
 
   type nonrec value = value
@@ -98,8 +105,7 @@ let prepare (type value) ~type_ ~label ?(placeholder = "") ~validator ?(oninput 
     match i.html with
     | Text {input; _} -> input
     | Textarea {textarea; _} -> textarea
-end):
-  (value, string) Component.s)
+end)
 
 let make' ~type_ ~label ?placeholder ~validator ?oninput initial_value =
   Component.initialise (prepare ~type_ ~label ?placeholder ~validator ?oninput ()) initial_value
