@@ -15,24 +15,23 @@ let open_dialog page =
       right @@
         Input.make
           ~type_: Text
-          ~initial_value: ""
           ~label: "Reporter"
           ~placeholder: "Dr Jean Milligan"
           ~validator: (Result.of_string_nonempty ~empty: "You must specify the reporter.")
-          ()
+          ""
   in
   let%lwt source =
     flip Lwt.map (describe page) @@ function
       | None ->
         Choices.make_radios'
-          ~name: "Source of the issue"
+          ~label: "Source of the issue"
           ~validate: (Option.to_result ~none: "You must make a choice.")
           [
             Choices.choice' ~value: true [txt "Dancelor itself"] ~checked: true;
           ]
       | Some (kind, name) ->
         Choices.make_radios'
-          ~name: "Source of the issue"
+          ~label: "Source of the issue"
           ~validate: (Option.to_result ~none: "You must make a choice.")
           [
             Choices.choice'
@@ -47,43 +46,41 @@ let open_dialog page =
   let title_input =
     Input.make
       ~type_: Text
-      ~initial_value: ""
       ~label: "Title"
       ~placeholder: "Blimey, 'tis not working!"
       ~validator: (Result.of_string_nonempty ~empty: "The title cannot be empty.")
-      ()
+      ""
   in
   let description_input =
     Input.make
       ~type_: Textarea
-      ~initial_value: ""
       ~label: "Description"
       ~placeholder: "I am gutted; this knock off tune is wonky at best!"
       ~validator: (Result.of_string_nonempty ~empty: "The description cannot be empty.")
-      ()
+      ""
   in
   let request_signal =
     let page = Uri.to_string page in
     S.map Result.to_option @@
-    RS.bind (match maybe_reporter_input with Left (user, _) -> S.const (ok (left user)) | Right reporter_input -> S.map (Result.map right) (Input.signal reporter_input)) @@ fun reporter ->
-    RS.bind (Input.signal title_input) @@ fun title ->
-    RS.bind (Input.signal description_input) @@ fun description ->
-    RS.bind (Choices.signal source) @@ fun source ->
+    RS.bind (match maybe_reporter_input with Left (user, _) -> S.const (ok (left user)) | Right reporter_input -> S.map (Result.map right) (Component.signal reporter_input)) @@ fun reporter ->
+    RS.bind (Component.signal title_input) @@ fun title ->
+    RS.bind (Component.signal description_input) @@ fun description ->
+    RS.bind (Component.signal source) @@ fun source ->
     RS.pure Endpoints.IssueReport.Request.{reporter; page; source_is_dancelor = source; title; description}
   in
   let%lwt response =
     Page.open_dialog @@ fun return ->
     Page.make'
       ~title: (lwt "Report an issue")
-      ~on_load: (fun () -> Input.focus @@ match maybe_reporter_input with Left _ -> title_input | Right reporter_input -> reporter_input)
+      ~on_load: (fun () -> Component.focus @@ match maybe_reporter_input with Left _ -> title_input | Right reporter_input -> reporter_input)
       [(
         match maybe_reporter_input with
         | Left (_, inactive_reporter_input) -> inactive_reporter_input
-        | Right reporter_input -> Input.html reporter_input
+        | Right reporter_input -> Component.html reporter_input
       );
-      Choices.render source;
-      Input.html title_input;
-      Input.html description_input;
+      Component.html source;
+      Component.html title_input;
+      Component.html description_input;
       ]
       ~buttons: [
         Button.cancel' ~return ();

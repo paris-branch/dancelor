@@ -14,6 +14,7 @@ let create () =
   let key_choices =
     Choices.(
       make_radios
+        ~label: "Key"
         [
           choice' [txt "C"] ~checked: true;
           choice'
@@ -28,6 +29,7 @@ let create () =
   let clef_choices =
     Choices.(
       make_radios
+        ~label: "Clef"
         [
           choice' [txt "𝄞"] ~checked: true;
           choice'
@@ -44,14 +46,14 @@ let create () =
         (Option.concat VersionParameters.compose)
         None
         [
-          Choices.signal key_choices;
-          Choices.signal clef_choices;
+          S.map Result.get_ok (Component.signal key_choices);
+          S.map Result.get_ok (Component.signal clef_choices);
         ]
   in
   {
     choice_rows = [
-      tr [td [label [txt "Key:"]]; td [Choices.render key_choices]];
-      tr [td [label [txt "Clef:"]]; td [Choices.render clef_choices]];
+      tr [td [label [txt "Key:"]]; td [Component.inner_html key_choices]];
+      tr [td [label [txt "Clef:"]]; td [Component.inner_html clef_choices]];
     ];
     parameters_signal;
   }

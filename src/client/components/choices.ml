@@ -6,7 +6,8 @@ let unique =
   let counter = ref 0 in
   fun ?name () ->
     incr counter;
-    Option.value name ~default: "anonymous" ^ "-" ^ string_of_int !counter
+    Option.value name ~default: "anonymous" ^
+      ("-" ^ string_of_int !counter)
 
 type 'value choice = {
   id: string;
@@ -19,115 +20,94 @@ let choice ?(checked = false) ~value contents = {id = unique (); value; checked;
 
 let choice' ?checked ?value contents = choice ?checked ~value contents
 
-type 'value t = {
-  box: 'a. ([> Html_types.div] as 'a) elt;
-  values: 'value S.t;
-}
+let prepare_gen_unsafe (type value)(type choice_value)
+  ~(label : string)
+  ~(validate : choice_value list -> (value, string) result)
+  ~(radios_or_checkboxes : [`Radio | `Checkbox])
+  (choices : choice_value choice list)
+  : (value, string) Component.s
+= (module struct
+  let label = label
 
-let signal c = c.values
-let value c = S.value (signal c)
-let render c = c.box
+  type nonrec value = value
+  type raw_value = string
 
-let make_gen_unsafe
-    ?name
-    ~validation
-    ~validate
-    ~post_validate
-    ~radios
-    choices
-  =
-  let html_name = unique ?name: (Option.map Slug.slugify name) () in
-  let gather_values_such_that p = List.filter_map (fun choice -> if p choice then Some choice.value else None) choices in
-  let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
-  let values = S.map validate values in
-  let update_values () =
-    let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
-    set_values @@ gather_values_such_that @@ fun choice -> Js.to_bool (choice_inputElement choice)##.checked
-  in
-  let box =
-    div
-      ~a: [a_class ["mb-2"]]
-      (
-        List.filter_map Fun.id [
-          (Option.map (label ~a: [a_class ["form-label"]] % List.singleton % txt) name);
-          Some
-            (
-              div
-                ~a: [a_onchange (fun _ -> update_values (); true)]
-                (
-                  flip List.concat_map choices @@ fun choice ->
-                  [
-                    input
-                      ~a: (
-                        List.filter_map Fun.id [
-                          Some (a_input_type (if radios then `Radio else `Checkbox));
-                          Some
-                            (
-                              R.a_class
-                                (
-                                  flip S.map values @@ function
-                                    | Ok _ -> ["btn-check"; "form-check-input"; "is-valid"]
-                                    | Error _ -> ["btn-check"; "form-check-input"; "is-invalid"]
-                                )
-                            );
-                          Some (a_name html_name);
-                          Some (a_id choice.id);
-                          (if choice.checked then Some (a_checked ()) else None);
-                        ]
-                      )
-                      ();
-                    label ~a: [a_class ["btn"; "btn-outline-secondary"; "mx-1"]; a_label_for choice.id] choice.contents;
-                  ]
-                )
-            );
-          (
-            match validation with
-            | false -> None
-            | true ->
-              Some
-                (
-                  R.div
-                    ~a: [
-                      R.a_class
-                        (
-                          flip S.map values @@ function
-                            | Ok _ -> ["d-block"; "valid-feedback"]
-                            | Error _ -> ["d-block"; "invalid-feedback"]
-                        )
-                    ]
-                    (
-                      flip S.map values @@ function
-                        | Ok _ -> [txt " "]
-                        | Error msg -> [txt "Error: "; txt msg]
-                    )
-                )
-          );
-        ]
-      )
-  in
-    {box; values = S.map post_validate values}
+  let empty_value = ""
 
-let make_radios_gen ?name ~validate ~post_validate choices =
-  make_gen_unsafe
-    ?name
-    ~radios: true
-    choices
+  type t = {
+    inner_html: 'a. ([> Html_types.div] as 'a) elt;
+    values: choice_value list S.t;
+  }
+
+  let raw_signal _ = S.const "" (* FIXME: handle raw_signal *)
+  let signal c = S.map validate c.values
+  let inner_html c = c.inner_html
+
+  let focus _ = () (* FIXME *)
+  let trigger _ = () (* FIXME *)
+  let clear _ = () (* FIXME *)
+
+  (* Helper returning a list of the values held by choices satisfying a certain
+     predicate, eg. “this choice is checked”. *)
+  let gather_values_such_that p =
+    List.filter_map
+      (fun choice -> if p choice then Some choice.value else None)
+      choices
+
+  let make _initial_value =
+    (* FIXME: process initial value *)
+    let html_name = unique ~name: (Slug.slugify label) () in
+    let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
+    let update_values () =
+      let choice_inputElement choice = Option.get @@ Dom_html.getElementById_coerce choice.id Dom_html.CoerceTo.input in
+      set_values @@ gather_values_such_that @@ fun choice -> Js.to_bool (choice_inputElement choice)##.checked
+    in
+    let inner_html =
+      div
+        ~a: [a_onchange (fun _ -> update_values (); true)]
+        (
+          flip List.concat_map choices @@ fun choice ->
+          [
+            input
+              ~a: (
+                List.filter_map Fun.id [
+                  Some (a_input_type radios_or_checkboxes);
+                  Some (a_name html_name);
+                  Some (a_id choice.id);
+                  Some (a_class ["btn-check"]);
+                  (if List.length choices = 1 then Some (a_tabindex (-1)) else None);
+                  (if choice.checked then Some (a_checked ()) else None);
+                ]
+              )
+              ();
+            Html.label
+              ~a: [a_class ["btn"; "btn-outline-secondary"; "mx-1"]; a_label_for choice.id]
+              choice.contents;
+          ]
+        )
+    in
+      {inner_html; values}
+end)
+
+let prepare_checkboxes ~label choices =
+  prepare_gen_unsafe ~label ~radios_or_checkboxes: `Checkbox ~validate: ok choices
+
+let make_checkboxes ~label choices =
+  Component.initialise (prepare_checkboxes ~label choices) "FIXME"
+
+let prepare_radios' ~label ~validate choices =
+  prepare_gen_unsafe
+    ~label
+    ~radios_or_checkboxes: `Radio
     ~validate: (function
       | [] -> validate None
       | [x] -> validate x
-      | _ -> Error "Cannot select multiple options" (* should never happen *)
+      | _ -> assert false (* because of [`Radio], this should never happen *)
     )
-    ~post_validate
-
-let make_radios ?name choices =
-  make_radios_gen ?name ~validation: false ~validate: ok ~post_validate: Result.get_ok choices
-
-let make_radios' = make_radios_gen ~validation: true ~post_validate: Fun.id
-
-let make_checkboxes choices =
-  make_gen_unsafe
-    ~radios: false
     choices
-    ~validation: false
-    ~validate: ok
-    ~post_validate: Result.get_ok
+
+let make_radios' ~label ~validate choices =
+  Component.initialise (prepare_radios' ~validate ~label choices) "FIXME"
+
+let make_radios ~label choices =
+  make_radios' ~label ~validate: ok choices

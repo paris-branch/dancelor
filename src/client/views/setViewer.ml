@@ -57,7 +57,7 @@ let create ?context id =
                     ~a: [
                       a_class ["dropdown-item"];
                       a_href Endpoints.Page.(href BookAdd);
-                      a_onclick (fun _ -> BookEditor.Editor.add_to_storage id; true);
+                      a_onclick (fun _ -> BookEditor.Editor.add_to_storage (Some id); true);
                     ]
                     [
                       i ~a: [a_class ["bi"; "bi-plus-square"]] [];

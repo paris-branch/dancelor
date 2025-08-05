@@ -25,7 +25,7 @@ module RawState = struct
   type t = (
     string,
     string,
-    person Entry.Id.t list,
+    person Entry.Id.t option list,
     string,
     string,
     (* bool, *)
@@ -48,31 +48,38 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, Kind.Dance.t Input.t, (Selector.many, Model.Person.t) Selector.t, PartialDate.t option Input.t, string option Input.t, bool option Choices.t, SCDDB.entry_id option Input.t) gen;
+    elements: (
+      (string, string) Component.t,
+      (Kind.Dance.t, string) Component.t,
+      (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
+      (PartialDate.t option, string) Component.t,
+      (string option, string) Component.t,
+      (bool option, string) Component.t,
+      (SCDDB.entry_id option, string) Component.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (Selector.raw_signal editor.elements.devisers) @@ fun devisers ->
-    S.bind (Input.raw_signal editor.elements.date) @@ fun date ->
-    S.bind (Input.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
+    S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (Component.raw_signal editor.elements.devisers) @@ fun devisers ->
+    S.bind (Component.raw_signal editor.elements.date) @@ fun date ->
+    S.bind (Component.raw_signal editor.elements.disambiguation) @@ fun disambiguation ->
     (* S.bind (Choices.raw_signal editor.elements.two_chords) @@ fun two_chords -> *)
     let two_chords = () in
     (* FIXME *)
-    S.bind (Input.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
+    S.bind (Component.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
     S.const {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (Selector.signal_many editor.elements.devisers) @@ fun devisers ->
-    RS.bind (Input.signal editor.elements.date) @@ fun date ->
-    RS.bind (Input.signal editor.elements.disambiguation) @@ fun disambiguation ->
-    RS.bind (S.map ok @@ Choices.signal editor.elements.two_chords) @@ fun two_chords ->
-    RS.bind (Input.signal editor.elements.scddb_id) @@ fun scddb_id ->
+    RS.bind (Component.signal editor.elements.name) @@ fun name ->
+    RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (Component.signal editor.elements.devisers) @@ fun devisers ->
+    RS.bind (Component.signal editor.elements.date) @@ fun date ->
+    RS.bind (Component.signal editor.elements.disambiguation) @@ fun disambiguation ->
+    RS.bind (Component.signal editor.elements.two_chords) @@ fun two_chords ->
+    RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
     RS.pure {name; kind; devisers; date; disambiguation; two_chords; scddb_id}
 
   let with_or_without_local_storage ~text f =
@@ -88,36 +95,40 @@ module Editor = struct
     let name =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
         ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        ()
+        initial_state.name
     in
     let kind =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S)"
         ~validator: (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
-        ()
+        initial_state.kind
     in
     let devisers =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~label: "Deviser"
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Person.get
+            ~make_result: AnyResult.make_person_result'
+            ~model_name: "person"
+            ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
         initial_state.devisers
     in
     let date =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.date
         ~label: "Date of devising"
         ~placeholder: "eg. 2019 or 2012-03-14"
         ~validator: (
@@ -126,29 +137,28 @@ module Editor = struct
             ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
             Option.of_string_nonempty
         )
-        ()
+        initial_state.date
     in
     let disambiguation =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.disambiguation
         ~label: "Disambiguation"
         ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them."
         ~validator: (ok % Option.of_string_nonempty)
-        ()
+        initial_state.disambiguation
     in
     let two_chords =
       Choices.make_radios
-        [Choices.choice' [txt "I don't know"] ~checked: true;
-        Choices.choice' ~value: false [txt "One chord"];
-        Choices.choice' ~value: true [txt "Two chords"];
+        ~label: "Number of chords"
+        [
+          Choices.choice' [txt "I don't know"] ~checked: true;
+          Choices.choice' ~value: false [txt "One chord"];
+          Choices.choice' ~value: true [txt "Two chords"];
         ]
-        ~name: "Number of chords"
     in
     let scddb_id =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.scddb_id
         ~label: "SCDDB ID"
         ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/"
         ~validator: (
@@ -157,18 +167,18 @@ module Editor = struct
             ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Dance) %
             Option.of_string_nonempty
         )
-        ()
+        initial_state.scddb_id
     in
       {elements = {name; kind; devisers; date; disambiguation; two_chords; scddb_id}}
 
   let clear (editor : t) =
-    Input.clear editor.elements.name;
-    Input.clear editor.elements.kind;
-    Selector.clear editor.elements.devisers;
-    Input.clear editor.elements.date;
-    Input.clear editor.elements.disambiguation;
+    Component.clear editor.elements.name;
+    Component.clear editor.elements.kind;
+    Component.clear editor.elements.devisers;
+    Component.clear editor.elements.date;
+    Component.clear editor.elements.disambiguation;
     (* FIXME: clear two chords *)
-    Input.clear editor.elements.scddb_id
+    Component.clear editor.elements.scddb_id
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -192,20 +202,14 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a dance")
-    ~on_load: (fun () -> Input.focus editor.elements.name)
-    [Input.html editor.elements.name;
-    Input.html editor.elements.kind;
-    Selector.render
-      ~make_result: AnyResult.make_person_result'
-      ~field_name: "Devisers"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      editor.elements.devisers;
-    Input.html editor.elements.date;
-    Choices.render
-      editor.elements.two_chords;
-    Input.html editor.elements.scddb_id;
-    Input.html editor.elements.disambiguation;
+    ~on_load: (fun () -> Component.focus editor.elements.name)
+    [Component.html editor.elements.name;
+    Component.html editor.elements.kind;
+    Component.html editor.elements.devisers;
+    Component.html editor.elements.date;
+    Component.html editor.elements.two_chords;
+    Component.html editor.elements.scddb_id;
+    Component.html editor.elements.disambiguation;
     ]
     ~buttons: [
       Button.clear

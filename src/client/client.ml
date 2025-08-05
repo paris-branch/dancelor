@@ -19,7 +19,7 @@ let dispatch uri =
     | Person -> (fun context id -> PersonViewer.create ?context id)
     | PersonAdd -> PersonEditor.create ()
     | Version -> (fun context id -> VersionViewer.create ?context id)
-    | VersionAdd -> (fun tune -> VersionEditor.create ~tune: (Option.to_list tune) ())
+    | VersionAdd -> (fun tune -> VersionEditor.create ?tune ())
     | Tune -> (fun context id -> TuneViewer.create ?context id)
     | TuneAdd -> TuneEditor.create ()
     | Set -> (fun context id -> SetViewer.create ?context id)

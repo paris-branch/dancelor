@@ -1,44 +1,13 @@
+(** {1 Selector component} *)
+
 open Nes
 open Common
 
-open Html
-
-type ('arity, 'model) t
-(** The type of a selector of arity ['arity] and carrying ['model]s. The arity
-    describes whether the selector can be used to select exactly one element, or
-    a list of elements. *)
-
-type one
-type many
-type 'any arity
-val one : one arity
-val many : many arity
-(** Type trickeries to keep track of the arity of a selector. You only need to
-    care about passing values {!one} or {!many} to {!make}. *)
-
 val make :
-  arity: 'arity arity ->
+  label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
   serialise: ('model Entry.t -> 'model Entry.Id.t) ->
   unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
-  'model Entry.Id.t list ->
-  ('arity, 'model) t
-
-val raw_signal : ('arity, 'model) t -> 'model Entry.Id.t list S.t
-(** The raw signal of the elements contained in the selector. Independently from
-    the arity, it contains a list. *)
-
-val signal_one : (one, 'model) t -> ('model Entry.t, string) Result.t S.t
-(** The actual signal for an arity-one selector. This contains exactly one
-    ['model], or an error. *)
-
-val signal_many : (many, 'model) t -> ('model Entry.t list, 'bottom) Result.t S.t
-(** The actual signal for an arity-many selector. This always contains a
-    {!Result.Ok}. *)
-
-val clear : ('arity, 'model) t -> unit
-
-val render :
   make_result:
   (?classes: string list ->
   ?action: Utils.ResultRow.action ->
@@ -49,13 +18,38 @@ val render :
   ?make_more_results:
   ('model Entry.t ->
   Utils.ResultRow.t list) ->
-  field_name: string ->
   model_name: string ->
   create_dialog_content:
   (?on_save: ('model Entry.t -> unit) ->
   string ->
   Page.t Lwt.t) ->
-  ('arity, 'model) t ->
-  [> Html_types.div] Html.elt
-(** The optional argument [?make_more_results] adds rows to the table after the
-    result. This only happens in the result, not in the quick search. *)
+  'model Entry.Id.t option ->
+  ('model Entry.t, 'model Entry.Id.t option) Component.t
+
+(** {2 Internal use} *)
+
+val prepare :
+  label: string ->
+  search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
+  serialise: ('model Entry.t -> 'model Entry.Id.t) ->
+  unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
+  make_result:
+  (?classes: string list ->
+  ?action: Utils.ResultRow.action ->
+  ?prefix: Utils.ResultRow.cell list ->
+  ?suffix: Utils.ResultRow.cell list ->
+  'model Entry.t ->
+  Utils.ResultRow.t) ->
+  ?make_more_results:
+  ('model Entry.t ->
+  Utils.ResultRow.t list) ->
+  model_name: string ->
+  create_dialog_content:
+  (?on_save: ('model Entry.t -> unit) ->
+  string ->
+  Page.t Lwt.t) ->
+  unit ->
+  ('model Entry.t, 'model Entry.Id.t option) Component.s
+(** Variant of {!make} that only prepares the component. It must still be
+    {!Component.initialise}d. This is used for composition with eg.
+    {!ComponentList}. *)

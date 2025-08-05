@@ -26,8 +26,13 @@ module RawState = struct
   let version_to_yojson _ = assert false
   let version_of_yojson _ = assert false
 
-  type t =
-  (string, string, person Entry.Id.t list, version Entry.Id.t list, string) gen
+  type t = (
+    string,
+    string,
+    person Entry.Id.t option list,
+    version Entry.Id.t option list,
+    string
+  ) gen
   [@@deriving yojson]
 
   let empty = {
@@ -41,25 +46,30 @@ end
 
 module Editor = struct
   type t = {
-    elements:
-    (string Input.t, Kind.Dance.t Input.t, (Selector.many, Model.Person.t) Selector.t, (Selector.many, Model.Version.t) Selector.t, Model.SetOrder.t Input.t) gen;
+    elements: (
+      (string, string) Component.t,
+      (Kind.Dance.t, string) Component.t,
+      (Model.Person.t Entry.t list, Model.Person.t Entry.Id.t option list) Component.t,
+      (Model.Version.t Entry.t list, Model.Version.t Entry.Id.t option list) Component.t,
+      (Model.SetOrder.t, string) Component.t
+    ) gen;
   }
 
   let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Input.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Input.raw_signal editor.elements.kind) @@ fun kind ->
-    S.bind (Selector.raw_signal editor.elements.conceptors) @@ fun conceptors ->
-    S.bind (Selector.raw_signal editor.elements.versions) @@ fun versions ->
-    S.bind (Input.raw_signal editor.elements.order) @@ fun order ->
+    S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
+    S.bind (Component.raw_signal editor.elements.kind) @@ fun kind ->
+    S.bind (Component.raw_signal editor.elements.conceptors) @@ fun conceptors ->
+    S.bind (Component.raw_signal editor.elements.versions) @@ fun versions ->
+    S.bind (Component.raw_signal editor.elements.order) @@ fun order ->
     S.const {name; kind; conceptors; versions; order}
 
   let state (editor : t) =
     S.map Result.to_option @@
-    RS.bind (Input.signal editor.elements.name) @@ fun name ->
-    RS.bind (Input.signal editor.elements.kind) @@ fun kind ->
-    RS.bind (Selector.signal_many editor.elements.conceptors) @@ fun conceptors ->
-    RS.bind (Selector.signal_many editor.elements.versions) @@ fun versions ->
-    RS.bind (Input.signal editor.elements.order) @@ fun order ->
+    RS.bind (Component.signal editor.elements.name) @@ fun name ->
+    RS.bind (Component.signal editor.elements.kind) @@ fun kind ->
+    RS.bind (Component.signal editor.elements.conceptors) @@ fun conceptors ->
+    RS.bind (Component.signal editor.elements.versions) @@ fun versions ->
+    RS.bind (Component.signal editor.elements.order) @@ fun order ->
     RS.pure {name; kind; conceptors; versions; order}
 
   let with_or_without_local_storage ~text f =
@@ -75,51 +85,65 @@ module Editor = struct
     let name =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.name
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
         ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        ()
+        initial_state.name
     in
     let kind =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.kind
         ~label: "Kind"
         ~placeholder: "eg. 8x32R or 2x(16R+16S)"
         ~validator: (Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." % Kind.Dance.of_string_opt)
-        ()
+        initial_state.kind
     in
     let conceptors =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Person.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_person_result'
+            ~label: "Conceptor"
+            ~model_name: "person"
+            ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Person.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Person.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Person.get
         initial_state.conceptors
     in
     let versions =
-      Selector.make
-        ~arity: Selector.many
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Version.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+      ComponentList.make
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_version_result'
+            ~make_more_results: (fun version ->
+              [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+            )
+            ~label: "Version"
+            ~model_name: "version"
+            ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Version.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+            )
+            ~serialise: Entry.id
+            ~unserialise: Model.Version.get
+            ()
         )
-        ~serialise: Entry.id
-        ~unserialise: Model.Version.get
         initial_state.versions
     in
     let order =
       Input.make
         ~type_: Text
-        ~initial_value: initial_state.order
         ~label: "Order"
         ~placeholder: "eg. 1,2,3,4,2,3,4,1"
         ~validator: (Option.to_result ~none: "Not a valid order." % Model.SetOrder.of_string_opt)
-        ()
+        initial_state.order
     in
     {
       elements = {name; kind; conceptors; versions; order};
@@ -130,11 +154,11 @@ module Editor = struct
     {state with versions = state.versions @ [version]}
 
   let clear (editor : t) =
-    Input.clear editor.elements.name;
-    Input.clear editor.elements.kind;
-    Selector.clear editor.elements.conceptors;
-    Selector.clear editor.elements.versions;
-    Input.clear editor.elements.order
+    Component.clear editor.elements.name;
+    Component.clear editor.elements.kind;
+    Component.clear editor.elements.conceptors;
+    Component.clear editor.elements.versions;
+    Component.clear editor.elements.order
 
   let submit (editor : t) =
     match S.value (state editor) with
@@ -156,25 +180,12 @@ let create ?on_save ?text () =
   let%lwt editor = Editor.create ~text in
   Page.make'
     ~title: (lwt "Add a set")
-    ~on_load: (fun () -> Input.focus editor.elements.name)
-    [Input.html editor.elements.name;
-    Input.html editor.elements.kind;
-    Selector.render
-      ~make_result: AnyResult.make_person_result'
-      ~field_name: "Conceptors"
-      ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
-      editor.elements.conceptors;
-    Selector.render
-      ~make_result: AnyResult.make_version_result'
-      ~make_more_results: (fun version ->
-        [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-      )
-      ~field_name: "Versions"
-      ~model_name: "versions"
-      ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
-      editor.elements.versions;
-    Input.html editor.elements.order;
+    ~on_load: (fun () -> Component.focus editor.elements.name)
+    [Component.html editor.elements.name;
+    Component.html editor.elements.kind;
+    Component.html editor.elements.conceptors;
+    Component.html editor.elements.versions;
+    Component.html editor.elements.order;
     ]
     ~buttons: [
       Button.clear
