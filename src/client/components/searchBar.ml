@@ -15,7 +15,7 @@ type 'result t = {
   text: string S.t; (* prefer [state] *)
   state: 'result state S.t;
   set_text: (string -> unit);
-  bar_html: Html_types.input elt;
+  bar_html: 'a. ([> Html_types.input] as 'a) elt;
   bar_dom: Dom_html.inputElement Js.t;
 }
 
@@ -121,11 +121,7 @@ let state search_bar = search_bar.state
 let text search_bar = search_bar.text
 let set_text search_bar text = search_bar.set_text text
 let clear search_bar = search_bar.set_text ""
-
-let html search_bar : [> Html_types.input] Html.elt =
-  (* NOTE: This loses the types, but that is because I am not managing to coerce
-     [`Input] :> [> `Input]. Apparently, I don't understand subtyping. *)
-  (tot % toelt) search_bar.bar_html
+let html search_bar = search_bar.bar_html
 
 let focus search_bar =
   search_bar.bar_dom##focus;
