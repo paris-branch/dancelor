@@ -164,7 +164,7 @@ let clear ~onclick () =
   make
     ~label: "Clear"
     ~label_processing: "Clearing..."
-    ~icon: "x-lg"
+    ~icon: "eraser"
     ~classes: ["btn-warning"]
     ~onclick: (fun () ->
       if Dom_html.window##confirm (Js.string "Clear the editor?") |> Js.to_bool then

@@ -110,26 +110,43 @@ let prepare (type model)
     let select_button_dom = To_dom.of_button select_button in
     let inner_html =
       R.div (
-        S.map List.singleton @@
         flip S.map signal @@ function
-        | None ->
-          (
-            div
-              ~a: [a_class ["btn-group"; "w-100"]]
-              [
-                Button.make_icon "search" ~classes: ["btn-light"];
-                select_button;
-              ];
-          )
-        | Some model ->
-          tablex
-            ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
+          | None ->
             [
-              tbody (
-                List.map
-                  Utils.ResultRow.to_clickable_row
-                  (make_result model :: make_more_results model)
-              )
+              div
+                ~a: [a_class ["btn-group"; "w-100"]]
+                [
+                  Button.make_icon "search" ~classes: ["btn-light"];
+                  select_button;
+                ];
+            ]
+          | Some model ->
+            [
+              div ~a: [a_class ["row"; "m-0"]] [
+                tablex
+                  ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
+                  [tbody (List.map Utils.ResultRow.to_clickable_row [make_result model])];
+                div ~a: [a_class ["col-auto"; "p-0"]] [
+                  button
+                    ~a: [
+                      a_class ["btn"; "btn-info"];
+                      a_onclick (fun _ -> select_button_dom##click; true);
+                      (* FIXME: ugh *)
+                    ]
+                    [i ~a: [a_class ["bi"; "bi-pencil-square"]] []];
+                  button
+                    ~a: [
+                      a_class ["btn"; "btn-warning"];
+                      a_onclick (fun _ -> set None; true);
+                    ]
+                    [i ~a: [a_class ["bi"; "bi-eraser"]] []];
+                ];
+              ];
+              div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
+                tablex
+                  ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
+                  [tbody (List.map Utils.ResultRow.to_clickable_row (make_more_results model))];
+              ]
             ]
       )
     in
