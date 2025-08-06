@@ -79,23 +79,17 @@ let prepare (type value)(type raw_value)
     let inner_html =
       div [
         R.div
-          ~a: [
-            R.a_class (
-              S.l2
-                (@)
-                (S.map (function [] -> [] | _ -> ["mb-2"]) components)
-                (S.const ["container"; "text-center"])
-            )
-          ]
+          ~a: [R.a_class (S.map (function [] -> [] | _ -> ["mb-2"]) components)]
           (
             flip S.map components @@ fun components_ ->
+            let last_index = List.length components_ - 1 in
             flip List.mapi components_ @@ fun n component ->
-            div ~a: [a_class ["row"; "ps-2"; "border-start"]] [
-              div ~a: [a_class ["col"; "p-0"]] [C.inner_html component];
+            div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pb-1" else if n = last_index then "pt-1" else "py-1")]] [
+              div ~a: [a_class ["col"; "text-start"; "p-0"]] [C.inner_html component];
               div ~a: [a_class ["col-auto"; "p-0"]] [
                 button
                   ~a: [
-                    a_class (["btn"; "btn-outline-secondary"] @ (if n = List.length components_ - 1 then ["disabled"] else []));
+                    a_class (["btn"; "btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []));
                     a_onclick (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; true);
                   ]
                   [i ~a: [a_class ["bi"; "bi-arrow-down"]] []];

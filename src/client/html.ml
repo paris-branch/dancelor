@@ -1,6 +1,7 @@
 (** {1 HTML} *)
 
 open Nes
+open ReactiveData
 
 (** {2 React aliases} *)
 
@@ -61,19 +62,6 @@ module S = struct
       set_setter new_setter;
       (* fire it asynchronously *)
       Lwt.async (fun () -> new_setter)
-end
-
-(** Reactive lists. *)
-module RList = struct
-  include ReactiveData.RList
-
-  (** [from_lwt' placeholder promise] is a container whose initial value is
-      [placeholder], and which gets updated once [promise] resolves. When that
-      happens we detect the differences between [placeholder] and [promise]'s
-      result, and perform downstream computation (e.g., for [map]) only on the
-      new and modified elements. *)
-  let from_lwt' placeholder promise =
-    from_signal @@ S.from' placeholder promise
 end
 
 (** {2 TyXML aliases} *)

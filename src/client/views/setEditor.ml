@@ -99,7 +99,7 @@ module Editor = struct
         initial_state.kind
     in
     let conceptors =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~make_result: AnyResult.make_person_result'
@@ -117,7 +117,7 @@ module Editor = struct
         initial_state.conceptors
     in
     let versions =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~make_result: AnyResult.make_version_result'

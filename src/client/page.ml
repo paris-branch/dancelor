@@ -56,7 +56,10 @@ let render p = (
           div ~a: [a_class ["mt-4"]] p.content;
           match p.buttons with
           | [] -> div []
-          | buttons -> div ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]] buttons
+          | buttons ->
+            div
+              ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]]
+              [div (List.intersperse (txt " ") buttons)]
         ];
     ]
 )

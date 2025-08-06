@@ -66,7 +66,9 @@ let prepare_gen_unsafe (type value)(type choice_value)
       div
         ~a: [a_onchange (fun _ -> update_values (); true)]
         (
-          flip List.concat_map choices @@ fun choice ->
+          List.flatten @@
+          List.intersperse [txt " "] @@
+          flip List.map choices @@ fun choice ->
           [
             input
               ~a: (
@@ -81,7 +83,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
               )
               ();
             Html.label
-              ~a: [a_class ["btn"; "btn-outline-secondary"; "mx-1"]; a_label_for choice.id]
+              ~a: [a_class ["btn"; "btn-outline-secondary"]; a_label_for choice.id]
               choice.contents;
           ]
         )

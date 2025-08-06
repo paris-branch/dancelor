@@ -90,7 +90,7 @@ module Editor = struct
   let create ~text : t Lwt.t =
     with_or_without_local_storage ~text @@ fun initial_state ->
     let names =
-      ComponentList.make_non_empty
+      Star.make_non_empty
         (
           Input.prepare
             ~label: "Name"
@@ -110,7 +110,7 @@ module Editor = struct
         initial_state.kind
     in
     let composers =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~make_result: AnyResult.make_person_result'
@@ -141,7 +141,7 @@ module Editor = struct
         initial_state.date
     in
     let dances =
-      ComponentList.make
+      Star.make
         (
           Selector.prepare
             ~search: (fun slice input ->
