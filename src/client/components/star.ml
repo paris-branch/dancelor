@@ -52,6 +52,8 @@ let prepare (type value)(type raw_value)
 
   let trigger = focus
 
+  let set _ _ = assert false
+
   let clear l = l.set_components []
 
   let inner_html l = l.inner_html

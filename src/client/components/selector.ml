@@ -53,6 +53,8 @@ let prepare (type model)
   let focus s = s.select_button_dom##focus
   let trigger s = s.select_button_dom##click
 
+  let set _ _ = assert false
+
   let clear s = s.set None
 
   let make initial_value =

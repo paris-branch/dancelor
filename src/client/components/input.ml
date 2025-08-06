@@ -46,11 +46,13 @@ let prepare (type value)
 
   let trigger = focus
 
+  let set i x = i.set x
+
   let clear i = i.set ""
 
   let make initial_value =
     let (raw_signal, set_immediately) = S.create initial_value in
-    let set = S.delayed_setter 0.30 set_immediately in
+    let set_delayed = S.delayed_setter 0.30 set_immediately in
     let signal = S.bind raw_signal validator in
     let html : html =
       match type_ with
@@ -61,14 +63,13 @@ let prepare (type value)
             ~a: [
               a_input_type (match type_ with Text -> `Text | Password -> `Password | _ -> assert false);
               a_placeholder placeholder;
-              R.a_value raw_signal;
               R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
               a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.input elt) @@ fun input ->
                   let input = Js.to_string input##.value in
-                  set input;
+                  set_delayed input;
                   oninput input
                 );
                 false
@@ -79,25 +80,30 @@ let prepare (type value)
       | Textarea ->
         let textarea =
           textarea
-            (R.txt raw_signal)
             ~a: [
               a_rows 15;
               a_placeholder placeholder;
-              (* R.a_value state.raw_signal; FIXME: not possible in textarea but necessary for cleanup *)
               R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
               a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
                   Js.Opt.iter (Dom_html.CoerceTo.textarea elt) @@ fun input ->
                   let input = Js.to_string input##.value in
-                  set input;
+                  set_delayed input;
                   oninput input
                 );
                 false
               );
             ]
+            (txt initial_value)
         in
         Textarea {textarea; textarea_dom = To_dom.of_textarea textarea}
+    in
+    let set x =
+      set_immediately x;
+      match html with
+      | Text {input_dom; _} -> input_dom##.value := Js.string x
+      | Textarea {textarea_dom; _} -> textarea_dom##.value := Js.string x
     in
       {raw_signal; signal; set; html}
 

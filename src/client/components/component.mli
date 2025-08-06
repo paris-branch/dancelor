@@ -11,6 +11,7 @@ val trigger : ('value, 'raw_value) t -> unit
 val clear : ('value, 'raw_value) t -> unit
 val signal : ('value, 'raw_value) t -> ('value, string) result S.t
 val raw_signal : ('value, 'raw_value) t -> 'raw_value S.t
+val set : ('value, 'raw_value) t -> 'raw_value -> unit
 
 val inner_html : ('value, 'raw_value) t -> Html_types.div_content_fun elt
 
@@ -44,6 +45,7 @@ module type S = sig
   val signal : t -> (value, string) result S.t
   val raw_signal : t -> raw_value S.t
   val focus : t -> unit
+  val set : t -> raw_value -> unit
 
   val trigger : t -> unit
   (** Trigger the component. For simple components, this is akin to {!focus}.
