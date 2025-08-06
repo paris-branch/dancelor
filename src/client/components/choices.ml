@@ -46,6 +46,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let focus _ = () (* FIXME *)
   let trigger _ = () (* FIXME *)
   let clear _ = () (* FIXME *)
+  let set _ _ = () (* FIXME *)
 
   (* Helper returning a list of the values held by choices satisfying a certain
      predicate, eg. “this choice is checked”. *)

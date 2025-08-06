@@ -46,6 +46,7 @@ let prepare (type value)(type component_raw_value)
 
   let focus _ = () (* FIXME *)
   let trigger = focus
+  let set _ _ = () (* FIXME *)
 
   let clear l =
     Component.clear l.choices;
@@ -107,6 +108,7 @@ let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   let empty_value = wrap_raw_value empty_value
   let signal = S.map (Result.map wrap_value) % signal
   let raw_signal = S.map wrap_raw_value % raw_signal
+  let set _ _ = () (* FIXME *)
   let make initial_value =
     match unwrap_raw_value initial_value with
     | Some initial_value -> make initial_value

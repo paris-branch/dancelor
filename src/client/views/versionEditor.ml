@@ -250,6 +250,12 @@ let create ?on_save ?text ?tune () =
     Component.html editor.elements.disambiguation;
     Component.html editor.elements.remark;
     Component.html editor.elements.content;
+    Button.make
+      ~label: "Add glue content"
+      ~classes: ["btn-secondary"]
+      ~disabled: (S.map ((<>) "") (Component.raw_signal editor.elements.content))
+      ~onclick: (fun () -> Component.set editor.elements.content "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\major\n    \\time 4/4\n\n    %% add tune here\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      %% add chords here\n    }\n  }\n>>"; lwt_unit)
+      ();
     ]
     ~buttons: [
       Button.clear
