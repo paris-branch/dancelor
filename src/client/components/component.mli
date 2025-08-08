@@ -63,8 +63,6 @@ type ('value, 'raw_value) s = (module S with type value = 'value and type raw_va
 (** The type of an un-initialised component. This is the type that composes well
     and that one should provide to eg. {!ComponentList}. *)
 
-val prepare : (module S with type value = 'value and type raw_value = 'raw_value) -> ('value, 'raw_value) s
-
 val initialise : ('value, 'raw_value) s -> 'raw_value -> ('value, 'raw_value) t
 (** Initialise a prepared component. *)
 
