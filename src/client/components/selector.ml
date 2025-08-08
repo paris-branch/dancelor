@@ -41,6 +41,7 @@ let prepare (type model)
   type raw_value = model Entry.Id.t option [@@deriving yojson]
 
   let empty_value = None
+  let raw_value_from_initial_text _ = None
 
   type t = {
     signal: model Entry.t option S.t;

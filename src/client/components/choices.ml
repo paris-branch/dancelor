@@ -33,6 +33,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
   type raw_value = string [@@deriving yojson]
 
   let empty_value = ""
+  let raw_value_from_initial_text _ = ""
 
   type t = {
     inner_html: 'a. ([> Html_types.div] as 'a) elt;

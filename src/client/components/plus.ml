@@ -49,6 +49,9 @@ let prepare (type value)(type component_raw_value)
 
   let empty_value = (None, List.map (fun ((module C): (value, component_raw_value) Component.s) -> C.empty_value) components)
 
+  let raw_value_from_initial_text text =
+    (None, List.map (fun ((module C): (value, component_raw_value) Component.s) -> C.raw_value_from_initial_text text) components)
+
   type t = {
     choices: (int, string) Component.t;
     initialised_components: (value, component_raw_value) Component.t list; (* NOTE: mind the [t] *)
@@ -142,6 +145,7 @@ let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   let raw_value_to_yojson = C.raw_value_to_yojson % Option.get % unwrap_raw_value
   let raw_value_of_yojson = Result.map wrap_raw_value % C.raw_value_of_yojson
   let empty_value = wrap_raw_value empty_value
+  let raw_value_from_initial_text = wrap_raw_value % C.raw_value_from_initial_text
   let signal = S.map (Result.map wrap_value) % signal
   let raw_signal = S.map wrap_raw_value % raw_signal
   let set _ _ = () (* FIXME *)

@@ -23,6 +23,7 @@ let prepare (type value)
   type raw_value = string [@@deriving yojson]
 
   let empty_value = ""
+  let raw_value_from_initial_text = Fun.id
 
   type t = {
     raw_signal: string S.t;

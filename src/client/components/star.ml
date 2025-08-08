@@ -14,6 +14,7 @@ let prepare (type value)(type raw_value)
   type raw_value = C.raw_value list [@@deriving yojson]
 
   let empty_value = []
+  let raw_value_from_initial_text = List.singleton % C.raw_value_from_initial_text
 
   type t = {
     components: C.t list S.t;
