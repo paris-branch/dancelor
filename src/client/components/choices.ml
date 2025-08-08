@@ -30,7 +30,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let label = label
 
   type nonrec value = value
-  type raw_value = string
+  type raw_value = string [@@deriving yojson]
 
   let empty_value = ""
 

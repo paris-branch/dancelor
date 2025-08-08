@@ -33,7 +33,12 @@ let prepare (type model)
   let label = label
 
   type value = model Entry.t
-  type raw_value = model Entry.Id.t option
+
+  (* Dirty trick to convince Yojson to serialise ids. *)
+  let model_to_yojson _ = assert false
+  let model_of_yojson _ = assert false
+
+  type raw_value = model Entry.Id.t option [@@deriving yojson]
 
   let empty_value = None
 

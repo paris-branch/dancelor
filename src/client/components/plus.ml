@@ -13,6 +13,40 @@ let prepare (type value)(type component_raw_value)
   (* which component is selected, if any, and a save for each of them *)
   type raw_value = int option * component_raw_value list
 
+  let raw_value_to_yojson (selected, values) =
+    `Assoc [
+      "selected", (match selected with None -> `Null | Some n -> `Int n);
+      "values",
+      `List (
+        List.map2
+          (fun ((module C): (value, component_raw_value) Component.s) value ->
+            C.raw_value_to_yojson value
+          )
+          components
+          values
+      )
+    ]
+
+  let raw_value_of_yojson = function
+    | `Assoc [("selected", selected); ("values", `List values)] ->
+      let selected = match selected with `Null -> Ok None | `Int n -> Ok (Some n) | _ -> Error "Invalid JSON for selected" in
+      let values =
+        Result.map List.rev @@
+          List.fold_left2
+            (fun acc ((module C): (value, component_raw_value) Component.s) value ->
+              Result.bind acc @@ fun acc ->
+              Result.bind (C.raw_value_of_yojson value) @@ fun value ->
+              Result.ok (value :: acc)
+            )
+            (Ok [])
+            components
+            values
+      in
+      Result.bind selected @@ fun selected ->
+      Result.bind values @@ fun values ->
+      Ok (selected, values)
+    | _ -> Error "Invalid JSON format for raw_value"
+
   let empty_value = (None, List.map (fun ((module C): (value, component_raw_value) Component.s) -> C.empty_value) components)
 
   type t = {
@@ -99,12 +133,14 @@ let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   (wrap_value : value1 -> value2)
   (wrap_raw_value : raw_value1 -> raw_value2)
   (unwrap_raw_value : raw_value2 -> raw_value1 option)
-  (component : (value1, raw_value1) Component.s)
+  ((module C): (value1, raw_value1) Component.s)
   : (value2, raw_value2) Component.s
 = (module struct
-  include (val component)
+  include C
   type value = value2
   type raw_value = raw_value2
+  let raw_value_to_yojson = C.raw_value_to_yojson % Option.get % unwrap_raw_value
+  let raw_value_of_yojson = Result.map wrap_raw_value % C.raw_value_of_yojson
   let empty_value = wrap_raw_value empty_value
   let signal = S.map (Result.map wrap_value) % signal
   let raw_signal = S.map wrap_raw_value % raw_signal

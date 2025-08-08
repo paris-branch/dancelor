@@ -11,7 +11,7 @@ let prepare (type value)(type raw_value)
   let label = C.label ^ "s"
 
   type value = C.value list
-  type raw_value = C.raw_value list
+  type raw_value = C.raw_value list [@@deriving yojson]
 
   let empty_value = []
 
