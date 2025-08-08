@@ -37,7 +37,7 @@ type (_, _, _) t =
   | Source : ((Context.t option -> Core.Source.t Entry.Id.t -> 'w), 'w, Void.t) t
   | TuneAdd : ('w, 'w, Void.t) t
   | Tune : ((Context.t option -> Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
-  | VersionAdd : ((Core.Tune.t Entry.Id.t option -> 'w), 'w, Void.t) t
+  | VersionAdd : ('w, 'w, Void.t) t
   | Version : ((Context.t option -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
@@ -65,7 +65,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
     | TuneAdd -> literal "tune" @@ literal "add" @@ void ()
     | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
-    | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module Entry.Id.J(Core.Tune)) @@ void ()
+    | VersionAdd -> literal "version" @@ literal "add" @@ void ()
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
     | UserCreate -> literal "user" @@ literal "create" @@ void ()
@@ -83,7 +83,6 @@ let href_source ?context source = href Source context source
 let href_set ?context set = href Set context set
 let href_tune ?context tune = href Tune context tune
 let href_version ?context version = href Version context version
-let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
   let open Core.Any in
@@ -101,7 +100,7 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Index -> lwt_none
       | Explore -> const lwt_none
-      | VersionAdd -> const lwt_none
+      | VersionAdd -> lwt_none
       | TuneAdd -> lwt_none
       | SetAdd -> lwt_none
       | BookAdd -> lwt_none

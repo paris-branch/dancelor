@@ -82,6 +82,7 @@ let nil : (unit, unit) bundle =
 let make_page (type value)(type raw_value)
     ~key
     ~icon
+    ~preview
     ~submit
     ~format
     ~href
@@ -114,7 +115,10 @@ let make_page (type value)(type raw_value)
     let%lwt result =
       match S.value @@ Component.signal editor with
       | Error _ -> lwt_none
-      | Ok value -> submit value
+      | Ok value ->
+        match%lwt preview value with
+        | None -> lwt_none
+        | Some previewed_value -> some <$> submit previewed_value
     in
     (
       flip Option.iter result @@ fun result ->
@@ -177,3 +181,5 @@ let make_page (type value)(type raw_value)
 
   (* Return the promise of a page. *)
   promise
+
+let no_preview = lwt_some

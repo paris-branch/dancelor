@@ -25,7 +25,8 @@ val (^::):
 val make_page :
   key: string ->
   icon: string ->
-  submit: ('value -> 'result option Lwt.t) ->
+  preview: ('value -> 'previewed_value option Lwt.t) ->
+  submit: ('previewed_value -> 'result Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
@@ -38,3 +39,6 @@ val make_page :
     argument [?initial_text] allows to carry this value. Beware: the presence of
     this value also disables the connection to local storage, so [Some ""] is
     very different from [None]. *)
+
+val no_preview : 'value -> 'value option Lwt.t
+(** A more eloquent alias for {!lwt_some}. *)

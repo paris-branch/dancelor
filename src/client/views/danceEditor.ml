@@ -91,16 +91,16 @@ let create ?on_save ?text () =
     editor
     ~format: (Formatters.Dance.name' ~link: true)
     ~href: (Endpoints.Page.href_dance % Entry.id)
+    ~preview: Editor.no_preview
     ~submit: (fun (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) ->
-      some
-      <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
-          Model.Dance.make
-            ~names
-            ~kind
-            ~devisers
-            ?two_chords
-            ?scddb_id
-            ?disambiguation
-            ?date
-            ()
+      Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
+        Model.Dance.make
+          ~names
+          ~kind
+          ~devisers
+          ?two_chords
+          ?scddb_id
+          ?disambiguation
+          ?date
+          ()
     )

@@ -62,10 +62,10 @@ let create ?on_save ?text () =
     editor
     ?on_save
     ?initial_text: text
+    ~preview: Editor.no_preview
     ~submit: (fun (name, (short_name, (editors, (scddb_id, (description, ()))))) ->
-      some
-      <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
-          Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
+      Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
+        Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
     )
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)

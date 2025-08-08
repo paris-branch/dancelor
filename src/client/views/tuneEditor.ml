@@ -96,10 +96,10 @@ let create ?on_save ?text () =
     editor
     ?on_save
     ?initial_text: text
+    ~preview: Editor.no_preview
     ~submit: (fun (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) ->
-      some
-      <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
-          Model.Tune.make ~names ~kind ~composers ?date ~dances ?remark ?scddb_id ()
+      Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
+        Model.Tune.make ~names ~kind ~composers ?date ~dances ?remark ?scddb_id ()
     )
     ~format: (Formatters.Tune.name' ~link: true)
     ~href: (Endpoints.Page.href_tune % Entry.id)
