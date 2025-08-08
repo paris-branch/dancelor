@@ -9,20 +9,11 @@ val make :
   type_: type_ ->
   label: string ->
   ?placeholder: string ->
-  validator: (string -> ('value, string) result) ->
+  serialise: ('value -> string) ->
+  validate: (string -> ('value, string) result S.t) ->
   ?oninput: (string -> unit) ->
   string ->
   ('value, string) Component.t
-
-val make' :
-  type_: type_ ->
-  label: string ->
-  ?placeholder: string ->
-  validator: (string -> ('value, string) result S.t) ->
-  ?oninput: (string -> unit) ->
-  string ->
-  ('value, string) Component.t
-(** Variant of {!make} in which the validator gets access to the inner signal. *)
 
 val inactive :
   label: string ->
@@ -36,7 +27,8 @@ val prepare :
   type_: type_ ->
   label: string ->
   ?placeholder: string ->
-  validator: (string -> ('value, string) result S.t) ->
+  serialise: ('value -> string) ->
+  validate: (string -> ('value, string) result S.t) ->
   ?oninput: (string -> unit) ->
   unit ->
   ('value, string) Component.s

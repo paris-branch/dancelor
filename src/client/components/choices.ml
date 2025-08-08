@@ -34,6 +34,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
 
   let empty_value = ""
   let raw_value_from_initial_text _ = ""
+  let serialise _ = "" (* FIXME *)
 
   type t = {
     inner_html: 'a. ([> Html_types.div] as 'a) elt;

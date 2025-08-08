@@ -9,13 +9,15 @@ let editor =
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. John Doe"
-    ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+    ~serialise: Fun.id
+    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text
     ~label: "SCDDB ID"
     ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: string_of_int)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)

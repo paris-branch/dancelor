@@ -20,6 +20,7 @@ let cons (type value1)(type raw_value1)(type value2)(type raw_value2)
 
     let empty_value = (C.empty_value, B.empty_value)
     let raw_value_from_initial_text text = (C.raw_value_from_initial_text text, B.empty_value)
+    let serialise (v1, v2) = (C.serialise v1, B.serialise v2)
 
     type t = {
       component: (value1, raw_value1) Component.t;
@@ -66,6 +67,7 @@ let nil : (unit, unit) bundle =
     let label = "Nil bundle"
     type value = unit
     type raw_value = unit [@@deriving yojson]
+    let serialise () = ()
     let empty_value = ()
     let raw_value_from_initial_text _ = ()
     type t = Nil

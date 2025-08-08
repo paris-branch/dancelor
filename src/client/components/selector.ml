@@ -8,7 +8,6 @@ open Html
 let prepare (type model)
   ~label
   ~search
-  ~serialise
   ~unserialise
   ~(make_result :
     ?classes: string list ->
@@ -42,17 +41,17 @@ let prepare (type model)
 
   let empty_value = None
   let raw_value_from_initial_text _ = None
+  let serialise = some % Entry.id
 
   type t = {
     signal: model Entry.t option S.t;
     set: model Entry.t option -> unit;
     (* quick_search: model Entry.t Search.Quick.t; *)
-    serialise: model Entry.t -> model Entry.Id.t;
     inner_html: Html_types.div_content_fun elt;
     select_button_dom: Dom_html.buttonElement Js.t;
   }
 
-  let raw_signal s = S.map (Option.map s.serialise) s.signal
+  let raw_signal s = S.map (flip Option.bind serialise) s.signal
   let signal i = S.map (Option.to_result ~none: "You must select an element.") i.signal
   let inner_html s = s.inner_html
 
@@ -158,13 +157,12 @@ let prepare (type model)
             ]
       )
     in
-      {signal; set; serialise; inner_html; select_button_dom}
+      {signal; set; inner_html; select_button_dom}
 end)
 
 let make
     ~label
     ~search
-    ~serialise
     ~unserialise
     ~make_result
     ?make_more_results
@@ -177,7 +175,6 @@ let make
       prepare
         ~label
         ~search
-        ~serialise
         ~unserialise
         ~make_result
         ?make_more_results

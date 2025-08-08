@@ -7,18 +7,6 @@ open Utils
 
 (* FIXME: we lost editing capabilities. bring them back *)
 
-(*   let to_raw_state (state : t) : RawState.t = { *)
-(*     name = state.name; *)
-(*     date = Option.fold ~none: "" ~some: PartialDate.to_string state.date; *)
-(*     contents = *)
-(*     List.map *)
-(*       (function *)
-(*         | `Set set -> (Some 0, [`Set (Some (Entry.id set)); `Version None]) *)
-(*         | `Version version -> (Some 1, [`Set None; `Version (Some (Entry.id version))]) *)
-(*       ) *)
-(*       state.contents; *)
-(*   } *)
-
 (*   exception Non_convertible *)
 
 (*   let of_model (book : Model.Book.t Entry.t) : t Lwt.t = *)
@@ -59,13 +47,15 @@ let editor =
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. The Dusty Miller Book"
-    ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+    ~serialise: Fun.id
+    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text
     ~label: "Date of devising"
     ~placeholder: "eg. 2019 or 2012-03-14"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)
@@ -81,6 +71,7 @@ let editor =
         [
           Plus.wrap
             left
+            Either.find_left
             left
             Either.find_left
             (
@@ -94,12 +85,12 @@ let editor =
                   let%rlwt filter = lwt (Filter.Set.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
                 )
-                ~serialise: Entry.id
                 ~unserialise: Model.Set.get
                 ()
             );
           Plus.wrap
             right
+            Either.find_right
             right
             Either.find_right
             (
@@ -113,7 +104,6 @@ let editor =
                   let%rlwt filter = lwt (Filter.Version.from_string input) in
                   ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
                 )
-                ~serialise: Entry.id
                 ~unserialise: Model.Version.get
                 ()
             );

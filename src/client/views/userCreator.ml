@@ -32,9 +32,12 @@ let create () =
       ~type_: Text
       ~placeholder: "JeanMilligan"
       ~label: "Username"
-      ~validator: (fun username ->
-        if username = "" then Error "The username cannot be empty."
-        else Ok username (* FIXME: limit possibilities? FIXME: a module for usernames *)
+      ~serialise: Fun.id
+      ~validate: (
+        S.const %
+          fun username ->
+            if username = "" then Error "The username cannot be empty."
+            else Ok username (* FIXME: limit possibilities? FIXME: a module for usernames *)
       )
       ""
   in
@@ -45,7 +48,6 @@ let create () =
         let%rlwt filter = lwt (Filter.Person.from_string input) in
         ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
       )
-      ~serialise: Entry.id
       ~unserialise: Model.Person.get
       ~make_result: Utils.AnyResult.make_person_result'
       ~model_name: "person"

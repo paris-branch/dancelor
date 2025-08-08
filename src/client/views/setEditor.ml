@@ -11,13 +11,15 @@ let editor =
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. The Dusty Miller"
-    ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+    ~serialise: Fun.id
+    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text
     ~label: "Kind"
     ~placeholder: "eg. 8x32R or 2x(16R+16S)"
-    ~validator: (
+    ~serialise: Kind.Dance.to_string
+    ~validate: (
       S.const %
         Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." %
         Kind.Dance.of_string_opt
@@ -35,7 +37,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         ()
     ) ^::
@@ -54,7 +55,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Version.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Version.get
         ()
     ) ^::
@@ -62,7 +62,8 @@ let editor =
     ~type_: Text
     ~label: "Order"
     ~placeholder: "eg. 1,2,3,4,2,3,4,1"
-    ~validator: (
+    ~serialise: Model.SetOrder.to_string
+    ~validate: (
       S.const %
         Option.to_result ~none: "Not a valid order." %
         Model.SetOrder.of_string_opt

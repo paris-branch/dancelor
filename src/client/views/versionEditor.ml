@@ -16,14 +16,14 @@ let editor =
       let%rlwt filter = lwt (Filter.Tune.from_string input) in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
     )
-    ~serialise: Entry.id
     ~unserialise: Model.Tune.get
     () ^::
   Input.prepare
     ~type_: Text
     ~label: "Number of bars"
     ~placeholder: "eg. 32 or 48"
-    ~validator: (
+    ~serialise: string_of_int
+    ~validate: (
       S.const %
         Option.to_result ~none: "The number of bars has to be an integer." %
         int_of_string_opt
@@ -33,7 +33,8 @@ let editor =
     ~type_: Text
     ~label: "Key"
     ~placeholder: "eg. A or F#m"
-    ~validator: (
+    ~serialise: Music.key_to_string
+    ~validate: (
       S.const %
         Option.to_result ~none: "Enter a valid key, eg. A of F#m." %
         Music.key_of_string_opt
@@ -43,7 +44,8 @@ let editor =
     ~type_: Text
     ~label: "Structure"
     ~placeholder: "eg. AABB or ABAB"
-    ~validator: (S.const % ok)
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
     () ^::
   Star.prepare
     ~label: "Arrangers"
@@ -57,7 +59,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         ()
     ) ^::
@@ -65,7 +66,8 @@ let editor =
     ~type_: Text
     ~label: "Remark"
     ~placeholder: "Any additional information that doesn't fit in the other fields."
-    ~validator: (S.const % ok)
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
     () ^::
   Star.prepare
     ~label: "Sources"
@@ -79,7 +81,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Source.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Source.get
         ()
     ) ^::
@@ -87,13 +88,15 @@ let editor =
     ~type_: Text
     ~label: "Disambiguation"
     ~placeholder: "If there are multiple versions with the same name, this field must be used to distinguish them."
-    ~validator: (S.const % ok)
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
     () ^::
   Input.prepare
     ~type_: Textarea
     ~label: "LilyPond content"
     ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
-    ~validator: (S.const % Result.of_string_nonempty ~empty: "Cannot be empty.")
+    ~serialise: Fun.id
+    ~validate: (S.const % Result.of_string_nonempty ~empty: "Cannot be empty.")
     () ^::
   nil
 

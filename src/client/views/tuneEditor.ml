@@ -14,14 +14,16 @@ let editor =
         ~label: "Name"
         ~type_: Text
         ~placeholder: "eg. The Cairdin O't"
-        ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~serialise: Fun.id
+        ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
         ()
     ) ^::
   Input.prepare
     ~type_: Text
     ~label: "Kind"
     ~placeholder: "eg. R or Strathspey"
-    ~validator: (
+    ~serialise: Kind.Base.to_string
+    ~validate: (
       S.const %
         Option.to_result ~none: "Enter a valid kind, eg. R or Strathspey." %
         Kind.Base.of_string_opt
@@ -39,7 +41,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         ()
     ) ^::
@@ -47,7 +48,8 @@ let editor =
     ~type_: Text
     ~label: "Date of devising"
     ~placeholder: "eg. 2019 or 2012-03-14"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)
@@ -63,7 +65,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Dance.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Dance.get
         ~make_result: AnyResult.make_dance_result'
         ~label: "Dance"
@@ -75,13 +76,15 @@ let editor =
     ~type_: Text
     ~label: "Remark"
     ~placeholder: "Any additional information that doesn't fit in the other fields."
-    ~validator: (S.const % ok % Option.of_string_nonempty)
+    ~serialise: (Option.value ~default: "")
+    ~validate: (S.const % ok % Option.of_string_nonempty)
     () ^::
   Input.prepare
     ~type_: Text
     ~label: "SCDDB ID"
     ~placeholder: "eg. 2423 or https://my.strathspey.org/dd/tune/2423/"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: string_of_int)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)

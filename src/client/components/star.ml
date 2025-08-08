@@ -15,6 +15,8 @@ let prepare (type value)(type raw_value)
   let empty_value = []
   let raw_value_from_initial_text = List.singleton % C.raw_value_from_initial_text
 
+  let serialise = List.map C.serialise
+
   type t = {
     components: C.t list S.t;
     set_components: C.t list -> unit;
@@ -135,6 +137,7 @@ let prepare_non_empty (type value)(type raw_value)
 = (module struct
   include (val (prepare ~label (module C)))
   type value = C.value NonEmptyList.t
+  let serialise = serialise % NonEmptyList.to_list
   let signal =
     S.map (fun l ->
       Result.bind l @@ Option.to_result ~none: ("You must add at least one " ^ String.lowercase_ascii C.label ^ ".") % NonEmptyList.of_list

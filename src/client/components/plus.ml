@@ -1,6 +1,9 @@
 open Nes
 open Html
 
+exception PartialBecauseWrapped of string
+let partial_because_wrapped s = raise (PartialBecauseWrapped s)
+
 let prepare (type value)(type component_raw_value)
   ~label
   (components : (value, component_raw_value) Component.s list)
@@ -47,10 +50,27 @@ let prepare (type value)(type component_raw_value)
       Ok (selected, values)
     | _ -> Error "Invalid JSON format for raw_value"
 
-  let empty_value = (None, List.map (fun ((module C): (value, component_raw_value) Component.s) -> C.empty_value) components)
+  let empty_component_raw_values = List.map (fun ((module C): (value, component_raw_value) Component.s) -> C.empty_value) components
+  let empty_value = (None, empty_component_raw_values)
 
   let raw_value_from_initial_text text =
     (None, List.map (fun ((module C): (value, component_raw_value) Component.s) -> C.raw_value_from_initial_text text) components)
+
+  (* Because they all have the same type, we cannot know which one the value
+     comes from. So we try them all and take the first serialisation that works.
+     According to its type, [serialise] should be a total function. However,
+     because of {!wrap}, that is not always the case. FIXME: This is disgusting,
+     we really need to get this component type-safe. *)
+  let serialise value =
+    Option.get @@
+      List.find_mapi
+        (fun n ((module C): (value, component_raw_value) Component.s) ->
+          try
+            Some (Some n, snd @@ List.replace n (C.serialise value) empty_component_raw_values)
+          with
+            | PartialBecauseWrapped _ -> None
+        )
+        components
 
   type t = {
     choices: (int, string) Component.t;
@@ -134,6 +154,7 @@ let make (type value)(type component_raw_value)
 
 let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   (wrap_value : value1 -> value2)
+  (unwrap_value : value2 -> value1 option)
   (wrap_raw_value : raw_value1 -> raw_value2)
   (unwrap_raw_value : raw_value2 -> raw_value1 option)
   ((module C): (value1, raw_value1) Component.s)
@@ -142,10 +163,11 @@ let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   include C
   type value = value2
   type raw_value = raw_value2
-  let raw_value_to_yojson = C.raw_value_to_yojson % Option.get % unwrap_raw_value
+  let raw_value_to_yojson = C.raw_value_to_yojson % Option.value' ~default: (fun () -> partial_because_wrapped "raw_value_to_yojson") % unwrap_raw_value
   let raw_value_of_yojson = Result.map wrap_raw_value % C.raw_value_of_yojson
   let empty_value = wrap_raw_value empty_value
   let raw_value_from_initial_text = wrap_raw_value % C.raw_value_from_initial_text
+  let serialise = wrap_raw_value % serialise % Option.value' ~default: (fun () -> partial_because_wrapped "serialise") % unwrap_value
   let signal = S.map (Result.map wrap_value) % signal
   let raw_signal = S.map wrap_raw_value % raw_signal
   let set _ _ = () (* FIXME *)

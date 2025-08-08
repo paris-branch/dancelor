@@ -11,13 +11,15 @@ let editor =
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2"
-    ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+    ~serialise: Fun.id
+    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text
     ~label: "Short name"
     ~placeholder: "eg. Paris Book 2"
-    ~validator: (S.const % ok)
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
     () ^::
   Star.prepare
     ~label: "Editors"
@@ -28,7 +30,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         ~make_result: AnyResult.make_person_result'
         ~model_name: "person"
@@ -39,7 +40,8 @@ let editor =
     ~type_: Text
     ~label: "SCDDB ID"
     ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: string_of_int)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)
@@ -51,7 +53,8 @@ let editor =
     ~type_: Textarea
     ~label: "Description"
     ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances."
-    ~validator: (S.const % function "" -> Ok None | s -> Ok (Some s))
+    ~serialise: (Option.value ~default: "")
+    ~validate: (S.const % function "" -> Ok None | s -> Ok (Some s))
     () ^::
   nil
 

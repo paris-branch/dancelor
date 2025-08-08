@@ -17,7 +17,8 @@ let open_dialog page =
           ~type_: Text
           ~label: "Reporter"
           ~placeholder: "Dr Jean Milligan"
-          ~validator: (Result.of_string_nonempty ~empty: "You must specify the reporter.")
+          ~serialise: Fun.id
+          ~validate: (S.const % Result.of_string_nonempty ~empty: "You must specify the reporter.")
           ""
   in
   let%lwt source =
@@ -48,7 +49,8 @@ let open_dialog page =
       ~type_: Text
       ~label: "Title"
       ~placeholder: "Blimey, 'tis not working!"
-      ~validator: (Result.of_string_nonempty ~empty: "The title cannot be empty.")
+      ~serialise: Fun.id
+      ~validate: (S.const % Result.of_string_nonempty ~empty: "The title cannot be empty.")
       ""
   in
   let description_input =
@@ -56,7 +58,8 @@ let open_dialog page =
       ~type_: Textarea
       ~label: "Description"
       ~placeholder: "I am gutted; this knock off tune is wonky at best!"
-      ~validator: (Result.of_string_nonempty ~empty: "The description cannot be empty.")
+      ~serialise: Fun.id
+      ~validate: (S.const % Result.of_string_nonempty ~empty: "The description cannot be empty.")
       ""
   in
   let request_signal =

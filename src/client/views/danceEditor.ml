@@ -14,14 +14,16 @@ let editor =
         ~type_: Text
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
-        ~validator: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+        ~serialise: Fun.id
+        ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
         ()
     ) ^::
   Input.prepare
     ~type_: Text
     ~label: "Kind"
     ~placeholder: "eg. 8x32R or 2x(16R+16S)"
-    ~validator: (
+    ~serialise: Kind.Dance.to_string
+    ~validate: (
       S.const %
         Option.to_result ~none: "Enter a valid kind, eg. 8x32R or 2x(16R+16S)." %
         Kind.Dance.of_string_opt
@@ -36,7 +38,6 @@ let editor =
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
-        ~serialise: Entry.id
         ~unserialise: Model.Person.get
         ~make_result: AnyResult.make_person_result'
         ~model_name: "person"
@@ -47,7 +48,8 @@ let editor =
     ~type_: Text
     ~label: "Date of devising"
     ~placeholder: "eg. 2019 or 2012-03-14"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)
@@ -59,7 +61,8 @@ let editor =
     ~type_: Text
     ~label: "Disambiguation"
     ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them."
-    ~validator: (S.const % ok % Option.of_string_nonempty)
+    ~serialise: (Option.value ~default: "")
+    ~validate: (S.const % ok % Option.of_string_nonempty)
     () ^::
   Choices.prepare_radios'
     ~label: "Number of chords"
@@ -73,7 +76,8 @@ let editor =
     ~type_: Text
     ~label: "SCDDB ID"
     ~placeholder: "eg. 14298 or https://my.strathspey.org/dd/dance/14298/"
-    ~validator: (
+    ~serialise: (Option.fold ~none: "" ~some: string_of_int)
+    ~validate: (
       S.const %
         Option.fold
           ~none: (Ok None)
