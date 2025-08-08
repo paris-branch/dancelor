@@ -74,6 +74,7 @@ let prepare (type value)
                 );
                 false
               );
+              a_value initial_value;
             ]
         in
         Text {input; input_dom = To_dom.of_input input}
