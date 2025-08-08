@@ -8,6 +8,7 @@ open Utils
 let editor =
   let open Editor in
   Star.prepare_non_empty
+    ~label: "Names"
     (
       Input.prepare
         ~type_: Text
@@ -27,6 +28,7 @@ let editor =
     )
     () ^::
   Star.prepare
+    ~label: "Devisers"
     (
       Selector.prepare
         ~label: "Deviser"

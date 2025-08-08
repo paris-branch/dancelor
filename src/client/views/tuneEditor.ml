@@ -8,6 +8,7 @@ open Utils
 let editor =
   let open Editor in
   Star.prepare_non_empty
+    ~label: "Names"
     (
       Input.prepare
         ~label: "Name"
@@ -27,6 +28,7 @@ let editor =
     )
     () ^::
   Star.prepare
+    ~label: "Composer"
     (
       Selector.prepare
         ~make_result: AnyResult.make_person_result'
@@ -54,6 +56,7 @@ let editor =
     )
     () ^::
   Star.prepare
+    ~label: "Dances"
     (
       Selector.prepare
         ~search: (fun slice input ->

@@ -74,9 +74,10 @@ let editor =
     )
     () ^::
   Star.prepare
+    ~label: "Contents"
     (
       Plus.prepare
-        ~label: "Content"
+        ~label: "Set or version"
         [
           Plus.wrap
             left

@@ -24,6 +24,7 @@ let editor =
     )
     () ^::
   Star.prepare
+    ~label: "Conceptors"
     (
       Selector.prepare
         ~make_result: AnyResult.make_person_result'
@@ -39,6 +40,7 @@ let editor =
         ()
     ) ^::
   Star.prepare
+    ~label: "Versions"
     (
       Selector.prepare
         ~make_result: AnyResult.make_version_result'

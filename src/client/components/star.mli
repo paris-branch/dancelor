@@ -3,6 +3,7 @@
 open Nes
 
 val make :
+  label: string ->
   ('value, 'raw_value) Component.s ->
   'raw_value list ->
   ('value list, 'raw_value list) Component.t
@@ -12,6 +13,7 @@ val make :
     {!Component.s}. *)
 
 val make_non_empty :
+  label: string ->
   ('value, 'raw_value) Component.s ->
   'raw_value list ->
   ('value NonEmptyList.t, 'raw_value list) Component.t
@@ -21,12 +23,14 @@ val make_non_empty :
 (** {2 Internal use} *)
 
 val prepare :
+  label: string ->
   ('value, 'raw_value) Component.s ->
   ('value list, 'raw_value list) Component.s
 (** Variant of {!make} that only prepares the component. It must still be
     {!Component.initialise}d. This is used for composition. *)
 
 val prepare_non_empty :
+  label: string ->
   ('value, 'raw_value) Component.s ->
   ('value NonEmptyList.t, 'raw_value list) Component.s
 (** Variant of {!make_non_empty} that only prepares the component. It must still

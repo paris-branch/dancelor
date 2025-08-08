@@ -3,12 +3,11 @@ open Js_of_ocaml
 open Html
 
 let prepare (type value)(type raw_value)
-  (component : (value, raw_value) Component.s)
+  ~label
+  ((module C): (value, raw_value) Component.s)
   : (value list, raw_value list) Component.s
 = (module struct
-  module C = (val component)
-
-  let label = C.label ^ "s"
+  let label = label
 
   type value = C.value list
   type raw_value = C.raw_value list [@@deriving yojson]
@@ -122,18 +121,19 @@ let prepare (type value)(type raw_value)
 end)
 
 let make (type value)(type raw_value)
+    ~label
     (component : (value, raw_value) Component.s)
     (initial_values : raw_value list)
     : (value list, raw_value list) Component.t
   =
-  Component.initialise (prepare component) initial_values
+  Component.initialise (prepare ~label component) initial_values
 
 let prepare_non_empty (type value)(type raw_value)
-  (component : (value, raw_value) Component.s)
+  ~label
+  ((module C): (value, raw_value) Component.s)
   : (value NonEmptyList.t, raw_value list) Component.s
 = (module struct
-  include (val (prepare component))
-  module C = (val component)
+  include (val (prepare ~label (module C)))
   type value = C.value NonEmptyList.t
   let signal =
     S.map (fun l ->
@@ -143,8 +143,9 @@ let prepare_non_empty (type value)(type raw_value)
 end)
 
 let make_non_empty (type value)(type raw_value)
+    ~label
     (component : (value, raw_value) Component.s)
     (initial_values : raw_value list)
     : (value NonEmptyList.t, raw_value list) Component.t
   =
-  Component.initialise (prepare_non_empty component) initial_values
+  Component.initialise (prepare_non_empty ~label component) initial_values

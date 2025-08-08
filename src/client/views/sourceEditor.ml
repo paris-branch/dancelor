@@ -20,6 +20,7 @@ let editor =
     ~validator: (S.const % ok)
     () ^::
   Star.prepare
+    ~label: "Editors"
     (
       Selector.prepare
         ~label: "Editor"

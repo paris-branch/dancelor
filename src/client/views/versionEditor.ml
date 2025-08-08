@@ -46,6 +46,7 @@ let editor =
     ~validator: (S.const % ok)
     () ^::
   Star.prepare
+    ~label: "Arrangers"
     (
       Selector.prepare
         ~make_result: AnyResult.make_person_result'
@@ -67,6 +68,7 @@ let editor =
     ~validator: (S.const % ok)
     () ^::
   Star.prepare
+    ~label: "Sources"
     (
       Selector.prepare
         ~make_result: AnyResult.make_source_result'
