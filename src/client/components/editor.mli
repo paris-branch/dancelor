@@ -42,3 +42,11 @@ val make_page :
 
 val no_preview : 'value -> 'value option Lwt.t
 (** A more eloquent alias for {!lwt_some}. *)
+
+(** {2 Advanced use} *)
+
+val update_local_storage :
+  key: string ->
+  ('value, 'raw_value) bundle ->
+  ('raw_value -> 'raw_value) ->
+  unit

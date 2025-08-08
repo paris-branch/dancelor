@@ -79,6 +79,27 @@ let nil : (unit, unit) bundle =
     let inner_html Nil = div []
   end)
 
+let local_storage_key ~key = key ^ "-editor"
+
+let read_local_storage (type value)(type raw_value) ~key (editor : (value, raw_value) Component.s) =
+  let module Editor = (val editor) in
+  Option.value ~default: Editor.empty_value @@
+  Js.Optdef.case Dom_html.window##.localStorage (fun () -> None) @@ fun local_storage ->
+  Js.Opt.case (local_storage##getItem (Js.string (local_storage_key ~key))) (fun () -> None) @@ fun value ->
+  Result.to_option @@ Editor.raw_value_of_yojson @@ Yojson.Safe.from_string @@ Js.to_string value
+
+let write_local_storage (type value)(type raw_value) ~key (editor : (value, raw_value) Component.s) value =
+  let module Editor = (val editor) in
+  Js.Optdef.iter Dom_html.window##.localStorage @@ fun local_storage ->
+  local_storage##setItem
+    (Js.string (local_storage_key ~key))
+    (Js.string @@ Yojson.Safe.to_string @@ Editor.raw_value_to_yojson value)
+
+let update_local_storage ~key (Bundle editor) f =
+  let x = read_local_storage ~key editor in
+  let new_value = f x in
+  write_local_storage ~key editor new_value
+
 let make_page (type value)(type raw_value)
     ~key
     ~icon
@@ -88,10 +109,9 @@ let make_page (type value)(type raw_value)
     ~href
     ?on_save
     ?initial_text
-    (Bundle editor: (value, raw_value) bundle)
+    (Bundle editor_s: (value, raw_value) bundle)
   =
-  let module Editor = (val editor) in
-  let local_storage_key = key ^ "-editor" in
+  let module Editor = (val editor_s) in
 
   (* Determine the initial value of the editor. If there is an initial text,
      then we create it from that. If not, we retrieve a maybe-existing value
@@ -99,16 +119,12 @@ let make_page (type value)(type raw_value)
   let initial_value =
     match initial_text with
     | Some initial_text -> Editor.raw_value_from_initial_text initial_text
-    | None ->
-      Option.value ~default: Editor.empty_value @@
-      Js.Optdef.case Dom_html.window##.localStorage (fun () -> None) @@ fun local_storage ->
-      Js.Opt.case (local_storage##getItem (Js.string local_storage_key)) (fun () -> None) @@ fun value ->
-      Result.to_option @@ Editor.raw_value_of_yojson @@ Yojson.Safe.from_string @@ Js.to_string value
+    | None -> read_local_storage ~key editor_s
   in
 
   (* Now that we have an initial value, we can actually initialise the editor to
      get things running. *)
-  let editor = Component.initialise editor initial_value in
+  let editor = Component.initialise editor_s initial_value in
 
   (* What to do when “save” is clicked. *)
   let save () =
@@ -167,12 +183,7 @@ let make_page (type value)(type raw_value)
     match initial_text with
     | Some _ -> ()
     | None ->
-      let store value =
-        Js.Optdef.iter Dom_html.window##.localStorage @@ fun local_storage ->
-        local_storage##setItem
-          (Js.string local_storage_key)
-          (Js.string @@ Yojson.Safe.to_string @@ Editor.raw_value_to_yojson value)
-      in
+      let store = write_local_storage ~key editor_s in
       let iter = S.map store @@ Component.raw_signal editor in
       (* NOTE: Depending on the promise breaks eventually. Depending on the editor
         seems to live as long as the page lives. *)
