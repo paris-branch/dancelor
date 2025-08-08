@@ -27,6 +27,16 @@ let editor =
     () ^::
   nil
 
+let submit (name, (scddb_id, ())) =
+  Madge_client.call_exn Endpoints.Api.(route @@ Person Create) @@
+    Model.Person.make ~name ?scddb_id ()
+
+let break_down person =
+  lwt (
+    Model.Person.name' person,
+    (Model.Person.scddb_id' person, ())
+  )
+
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
@@ -36,9 +46,7 @@ let create ?on_save ?text () =
     ?on_save
     ?initial_text: text
     ~preview: Editor.no_preview
-    ~submit: (fun (name, (scddb_id, ())) ->
-      Madge_client.call_exn Endpoints.Api.(route @@ Person Create) @@
-        Model.Person.make ~name ?scddb_id ()
-    )
+    ~submit
+    ~break_down
     ~format: (Formatters.Person.name' ~link: true)
     ~href: (Endpoints.Page.href_person % Entry.id)

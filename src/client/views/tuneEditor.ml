@@ -76,8 +76,8 @@ let editor =
     ~type_: Text
     ~label: "Remark"
     ~placeholder: "Any additional information that doesn't fit in the other fields."
-    ~serialise: (Option.value ~default: "")
-    ~validate: (S.const % ok % Option.of_string_nonempty)
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
     () ^::
   Input.prepare
     ~type_: Text
@@ -94,6 +94,20 @@ let editor =
     () ^::
   nil
 
+let submit (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
+  Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
+    Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
+
+let break_down tune =
+  let names = Model.Tune.names' tune in
+  let kind = Model.Tune.kind' tune in
+  let%lwt composers = Model.Tune.composers' tune in
+  let date = Model.Tune.date' tune in
+  let%lwt dances = Model.Tune.dances' tune in
+  let remark = Model.Tune.remark' tune in
+  let scddb_id = Model.Tune.scddb_id' tune in
+  lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))
+
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
@@ -103,9 +117,7 @@ let create ?on_save ?text () =
     ?on_save
     ?initial_text: text
     ~preview: Editor.no_preview
-    ~submit: (fun (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) ->
-      Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
-        Model.Tune.make ~names ~kind ~composers ?date ~dances ?remark ?scddb_id ()
-    )
     ~format: (Formatters.Tune.name' ~link: true)
     ~href: (Endpoints.Page.href_tune % Entry.id)
+    ~submit
+    ~break_down

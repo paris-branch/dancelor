@@ -133,6 +133,18 @@ let preview (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disa
 
 let submit = Madge_client.call_exn Endpoints.Api.(route @@ Version Create)
 
+let break_down version =
+  let%lwt tune = Model.Version.tune' version in
+  let bars = Model.Version.bars' version in
+  let key = Model.Version.key' version in
+  let structure = Model.Version.structure' version in
+  let%lwt arrangers = Model.Version.arrangers' version in
+  let remark = Model.Version.remark' version in
+  let%lwt sources = Model.Version.sources' version in
+  let disambiguation = Model.Version.disambiguation' version in
+  let content = Model.Version.content' version in
+  lwt (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))))
+
 (* FIXME: A way to add a button to the textarea component, so as to bring back
    the glue content in a better way. *)
 (* Button.make *)
@@ -158,3 +170,4 @@ let create ?on_save ?text () =
     ~format: (Formatters.Version.name' ~link: true)
     ~preview
     ~submit
+    ~break_down

@@ -7,26 +7,6 @@ open Utils
 
 (* FIXME: we lost editing capabilities. bring them back *)
 
-(*   exception Non_convertible *)
-
-(*   let of_model (book : Model.Book.t Entry.t) : t Lwt.t = *)
-(*     let%lwt contents = Model.Book.contents' book in *)
-(*     let contents = *)
-(*       List.map *)
-(*         (function *)
-(*           | Model.Book.Set (set, params) when params = Model.SetParameters.none -> `Set set *)
-(*           | Model.Book.Version (version, params) when params = Model.VersionParameters.none -> `Version version *)
-(*           | _ -> raise Non_convertible *)
-(*         ) *)
-(*         contents *)
-(*     in *)
-(*     lwt *)
-(*       { *)
-(*         name = (Entry.value book).title; *)
-(*         date = (Entry.value book).date; *)
-(*         contents; *)
-(*       } *)
-
 (* let with_or_without_local_storage ~text ~edit f = *)
 (*   match (text, edit) with *)
 (*   | Some text, _ -> *)
@@ -115,7 +95,7 @@ let add_to_storage set =
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
   (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
 
-let submit (name, (date, (contents, ()))) =
+let submit (title, (date, (contents, ()))) =
   let contents =
     List.map
       (function
@@ -124,8 +104,23 @@ let submit (name, (date, (contents, ()))) =
       )
       contents
   in
-  let book = Model.Book.make ~title: name ?date ~contents () in
+  let book = Model.Book.make ~title ?date ~contents () in
   Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book
+
+let break_down book =
+  let title = Model.Book.title' book in
+  let date = Model.Book.date' book in
+  let%lwt contents = Model.Book.contents' book in
+  let contents =
+    List.map
+      (function
+        | Model.Book.Set (set, params) when params = Model.SetParameters.none -> Left set
+        | Model.Book.Version (version, params) when params = Model.VersionParameters.none -> Right version
+        | _ -> raise Editor.NonConvertible
+      )
+      contents
+  in
+  lwt (title, (date, (contents, ())))
 
 (*   let submit ~edit (editor : t) = *)
 (*     match (S.value (state editor), edit) with *)
@@ -162,3 +157,4 @@ let create ?on_save ?text ?edit () =
     ~href: (Endpoints.Page.href_book % Entry.id)
     ~preview: Editor.no_preview
     ~submit
+    ~break_down

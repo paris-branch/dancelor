@@ -61,8 +61,8 @@ let editor =
     ~type_: Text
     ~label: "Disambiguation"
     ~placeholder: "If there are multiple dances with the same name, this field must be used to distinguish them."
-    ~serialise: (Option.value ~default: "")
-    ~validate: (S.const % ok % Option.of_string_nonempty)
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
     () ^::
   Choices.prepare_radios'
     ~label: "Number of chords"
@@ -87,6 +87,20 @@ let editor =
     () ^::
   nil
 
+let submit (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
+  Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
+    Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
+
+let break_down dance =
+  let names = Model.Dance.names' dance in
+  let kind = Model.Dance.kind' dance in
+  let%lwt devisers = Model.Dance.devisers' dance in
+  let date = Model.Dance.date' dance in
+  let disambiguation = Model.Dance.disambiguation' dance in
+  let two_chords = Model.Dance.two_chords' dance in
+  let scddb_id = Model.Dance.scddb_id' dance in
+  lwt (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ())))))))
+
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
@@ -98,15 +112,5 @@ let create ?on_save ?text () =
     ~format: (Formatters.Dance.name' ~link: true)
     ~href: (Endpoints.Page.href_dance % Entry.id)
     ~preview: Editor.no_preview
-    ~submit: (fun (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) ->
-      Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
-        Model.Dance.make
-          ~names
-          ~kind
-          ~devisers
-          ?two_chords
-          ?scddb_id
-          ?disambiguation
-          ?date
-          ()
-    )
+    ~submit
+    ~break_down

@@ -58,6 +58,17 @@ let editor =
     () ^::
   nil
 
+let submit (name, (short_name, (editors, (scddb_id, (description, ()))))) =
+  Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
+    Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
+
+let break_down source =
+  let%lwt editors = Model.Source.editors' source in
+  lwt (
+    Model.Source.name' source,
+    (Model.Source.short_name' source, (editors, (Model.Source.scddb_id' source, (Model.Source.description' source, ()))))
+  )
+
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
@@ -67,9 +78,7 @@ let create ?on_save ?text () =
     ?on_save
     ?initial_text: text
     ~preview: Editor.no_preview
-    ~submit: (fun (name, (short_name, (editors, (scddb_id, (description, ()))))) ->
-      Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
-        Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
-    )
+    ~submit
+    ~break_down
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)

@@ -27,6 +27,7 @@ val make_page :
   icon: string ->
   preview: ('value -> 'previewed_value option Lwt.t) ->
   submit: ('previewed_value -> 'result Lwt.t) ->
+  break_down: ('result -> 'value Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
@@ -38,7 +39,12 @@ val make_page :
     instance a search string, or the name of the object to create. The optional
     argument [?initial_text] allows to carry this value. Beware: the presence of
     this value also disables the connection to local storage, so [Some ""] is
-    very different from [None]. *)
+    very different from [None].
+
+    [break_down] is a function able to go in the reverse direction from
+    [submit]. In the case of models, for instance, that means breaking down the
+    model into values for the components, and is used when editing models. This
+    function is allowed to raise {!NonConvertible}. *)
 
 val no_preview : 'value -> 'value option Lwt.t
 (** A more eloquent alias for {!lwt_some}. *)
@@ -50,3 +56,7 @@ val update_local_storage :
   ('value, 'raw_value) bundle ->
   ('raw_value -> 'raw_value) ->
   unit
+
+exception NonConvertible
+(** Exception thrown when trying to edit a model that uses features that the
+    editor cannot express. *)

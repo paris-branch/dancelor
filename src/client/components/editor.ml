@@ -2,6 +2,8 @@ open Js_of_ocaml
 open Nes
 open Html
 
+exception NonConvertible
+
 type ('value, 'raw_value) bundle = Bundle of ('value, 'raw_value) Component.s
 
 let cons (type value1)(type raw_value1)(type value2)(type raw_value2)
@@ -107,6 +109,7 @@ let make_page (type value)(type raw_value)
     ~icon
     ~preview
     ~submit
+    ~break_down
     ~format
     ~href
     ?on_save
@@ -114,6 +117,7 @@ let make_page (type value)(type raw_value)
     (Bundle editor_s: (value, raw_value) bundle)
   =
   let module Editor = (val editor_s) in
+  ignore break_down;
 
   (* Determine the initial value of the editor. If there is an initial text,
      then we create it from that. If not, we retrieve a maybe-existing value

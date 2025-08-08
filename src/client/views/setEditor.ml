@@ -75,15 +75,26 @@ let add_to_storage version =
   Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
   (name, (kind, (conceptors, (versions @ [version], (order, ())))))
 
-let submit (name, (kind, (conceptors, (versions, (order, ()))))) =
+let submit (name, (kind, (conceptors, (contents, (order, ()))))) =
+  let contents = List.map (fun version -> (version, Model.VersionParameters.none)) contents in
   Madge_client.call_exn Endpoints.Api.(route @@ Set Create) @@
-    Model.Set.make
-      ~name
-      ~kind
-      ~conceptors
-      ~contents: (List.map (fun version -> (version, Model.VersionParameters.none)) versions)
-      ~order
-      ()
+    Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
+
+let break_down set =
+  let name = Model.Set.name' set in
+  let kind = Model.Set.kind' set in
+  let%lwt conceptors = Model.Set.conceptors' set in
+  let%lwt contents = Model.Set.contents' set in
+  let contents =
+    List.map
+      (function
+        | (version, params) when params = Model.VersionParameters.none -> version
+        | _ -> raise Editor.NonConvertible
+      )
+      contents
+  in
+  let order = Model.Set.order' set in
+  lwt (name, (kind, (conceptors, (contents, (order, ())))))
 
 let create ?on_save ?text () =
   MainPage.assert_can_create @@ fun () ->
@@ -95,5 +106,6 @@ let create ?on_save ?text () =
     editor
     ~preview: Editor.no_preview
     ~submit
+    ~break_down
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
