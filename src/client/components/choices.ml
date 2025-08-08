@@ -115,3 +115,5 @@ let make_radios' ~label ~validate choices =
 
 let make_radios ~label choices =
   make_radios' ~label ~validate: ok choices
+
+(* FIXME: In other components, ~validate is called ~validator *)
