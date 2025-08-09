@@ -87,7 +87,7 @@ let editor =
     () ^::
   nil
 
-let submit (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
+let submit _mode (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
   Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
     Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
 
@@ -107,7 +107,7 @@ let create ?on_save ?text () =
     ~key: "dance"
     ~icon: "person-arms-up"
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     editor
     ~format: (Formatters.Dance.name' ~link: true)
     ~href: (Endpoints.Page.href_dance % Entry.id)

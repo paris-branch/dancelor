@@ -22,24 +22,31 @@ val (^::):
 
 (** {2 Making an editor} *)
 
+type mode =
+  | QuickCreate of string
+  | CreateWithLocalStorage
+
+val quickCreate : string -> mode
+
 val make_page :
   key: string ->
   icon: string ->
   preview: ('value -> 'previewed_value option Lwt.t) ->
-  submit: ('previewed_value -> 'result Lwt.t) ->
+  submit: (mode -> 'previewed_value -> 'result Lwt.t) ->
   break_down: ('result -> 'value Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
   ?on_save: ('result -> unit) ->
-  ?initial_text: string ->
+  mode: mode ->
   ('value, 'raw_value) bundle ->
   Page.t Lwt.t
-(** Sometimes, editors are created in a context from an initial text, for
-    instance a search string, or the name of the object to create. The optional
-    argument [?initial_text] allows to carry this value. Beware: the presence of
-    this value also disables the connection to local storage, so [Some ""] is
-    very different from [None].
+(** Make a fully-featured editor that takes a whole page.
+
+    [mode] is an argument that decribes what kind of editor we want: is it the
+    regular creation editor, connected to local storage, or is it a quick
+    creation (eg. called by another editor), in which case it can carry a
+    string. It is also passed to the [submit] function.
 
     [break_down] is a function able to go in the reverse direction from
     [submit]. In the case of models, for instance, that means breaking down the

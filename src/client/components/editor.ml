@@ -104,6 +104,11 @@ let update_local_storage ~key (Bundle editor) f =
   let new_value = f x in
   write_local_storage ~key editor new_value
 
+type mode =
+  | QuickCreate of string
+  | CreateWithLocalStorage
+[@@deriving variants]
+
 let make_page (type value)(type raw_value)
     ~key
     ~icon
@@ -113,7 +118,7 @@ let make_page (type value)(type raw_value)
     ~format
     ~href
     ?on_save
-    ?initial_text
+    ~mode
     (Bundle editor_s: (value, raw_value) bundle)
   =
   let module Editor = (val editor_s) in
@@ -123,9 +128,9 @@ let make_page (type value)(type raw_value)
      then we create it from that. If not, we retrieve a maybe-existing value
      from the local storage. *)
   let initial_value =
-    match initial_text with
-    | Some initial_text -> Editor.raw_value_from_initial_text initial_text
-    | None -> read_local_storage ~key editor_s
+    match mode with
+    | QuickCreate initial_text -> Editor.raw_value_from_initial_text initial_text
+    | CreateWithLocalStorage -> read_local_storage ~key editor_s
   in
 
   (* Now that we have an initial value, we can actually initialise the editor to
@@ -140,7 +145,7 @@ let make_page (type value)(type raw_value)
       | Ok value ->
         match%lwt preview value with
         | None -> lwt_none
-        | Some previewed_value -> some <$> submit previewed_value
+        | Some previewed_value -> some <$> submit mode previewed_value
     in
     (
       flip Option.iter result @@ fun result ->
@@ -186,9 +191,9 @@ let make_page (type value)(type raw_value)
   (* If there was no initial text, then we connected to the local storage. We
      now enable saving the state of the editor when it changes.. *)
   (
-    match initial_text with
-    | Some _ -> ()
-    | None ->
+    match mode with
+    | QuickCreate _ -> ()
+    | CreateWithLocalStorage ->
       let store = write_local_storage ~key editor_s in
       let iter = S.map store @@ Component.raw_signal editor in
       (* NOTE: Depending on the promise breaks eventually. Depending on the editor

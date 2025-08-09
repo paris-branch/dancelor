@@ -95,7 +95,7 @@ let add_to_storage set =
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
   (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
 
-let submit (title, (date, (contents, ()))) =
+let submit _mode (title, (date, (contents, ()))) =
   let contents =
     List.map
       (function
@@ -152,7 +152,7 @@ let create ?on_save ?text ?edit () =
     ~icon: "book"
     editor
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     ~format: (Formatters.Book.title_and_subtitle')
     ~href: (Endpoints.Page.href_book % Entry.id)
     ~preview: Editor.no_preview

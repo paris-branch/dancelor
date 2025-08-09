@@ -131,7 +131,7 @@ let preview (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disa
       Button.save ~onclick: (fun () -> return (some version); lwt_unit) ();
     ]
 
-let submit = Madge_client.call_exn Endpoints.Api.(route @@ Version Create)
+let submit _mode = Madge_client.call_exn Endpoints.Api.(route @@ Version Create)
 
 let break_down version =
   let%lwt tune = Model.Version.tune' version in
@@ -165,7 +165,7 @@ let create ?on_save ?text () =
     ~icon: "music-note-beamed"
     editor
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     ~href: (Endpoints.Page.href_version % Entry.id)
     ~format: (Formatters.Version.name' ~link: true)
     ~preview

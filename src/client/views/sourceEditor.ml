@@ -58,7 +58,7 @@ let editor =
     () ^::
   nil
 
-let submit (name, (short_name, (editors, (scddb_id, (description, ()))))) =
+let submit _mode (name, (short_name, (editors, (scddb_id, (description, ()))))) =
   Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
     Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
 
@@ -76,7 +76,7 @@ let create ?on_save ?text () =
     ~icon: "archive"
     editor
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     ~preview: Editor.no_preview
     ~submit
     ~break_down

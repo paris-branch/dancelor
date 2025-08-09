@@ -75,7 +75,7 @@ let add_to_storage version =
   Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
   (name, (kind, (conceptors, (versions @ [version], (order, ())))))
 
-let submit (name, (kind, (conceptors, (contents, (order, ()))))) =
+let submit _mode (name, (kind, (conceptors, (contents, (order, ()))))) =
   let contents = List.map (fun version -> (version, Model.VersionParameters.none)) contents in
   Madge_client.call_exn Endpoints.Api.(route @@ Set Create) @@
     Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
@@ -102,7 +102,7 @@ let create ?on_save ?text () =
     ~key: "set"
     ~icon: "list-stars"
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     editor
     ~preview: Editor.no_preview
     ~submit

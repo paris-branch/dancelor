@@ -94,7 +94,7 @@ let editor =
     () ^::
   nil
 
-let submit (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
+let submit _mode (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
   Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
     Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
 
@@ -115,7 +115,7 @@ let create ?on_save ?text () =
     ~icon: "music-note-list"
     editor
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     ~preview: Editor.no_preview
     ~format: (Formatters.Tune.name' ~link: true)
     ~href: (Endpoints.Page.href_tune % Entry.id)

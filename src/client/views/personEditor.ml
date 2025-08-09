@@ -27,7 +27,7 @@ let editor =
     () ^::
   nil
 
-let submit (name, (scddb_id, ())) =
+let submit _mode (name, (scddb_id, ())) =
   Madge_client.call_exn Endpoints.Api.(route @@ Person Create) @@
     Model.Person.make ~name ?scddb_id ()
 
@@ -44,7 +44,7 @@ let create ?on_save ?text () =
     ~icon: "person"
     editor
     ?on_save
-    ?initial_text: text
+    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
     ~preview: Editor.no_preview
     ~submit
     ~break_down
