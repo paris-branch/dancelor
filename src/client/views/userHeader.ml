@@ -8,12 +8,13 @@ let open_sign_in_dialog () =
   let open Components in
   let (status_signal, set_status_signal) = S.create DontKnow in
   let username_input =
-    Input.make'
+    Input.make
       ~type_: Text
       ~label: "Username"
       ~placeholder: "JeanMilligan"
       ~oninput: (fun _ -> set_status_signal DontKnow)
-      ~validator: (fun username ->
+      ~serialise: Fun.id
+      ~validate: (fun username ->
         S.bind status_signal @@ fun status ->
         S.const @@
           if username = "" then Error "The username cannot be empty."
@@ -25,12 +26,13 @@ let open_sign_in_dialog () =
       ""
   in
   let password_input =
-    Input.make'
+    Input.make
       ~type_: Password
       ~label: "Password"
       ~placeholder: "1234567"
       ~oninput: (fun _ -> set_status_signal DontKnow)
-      ~validator: (fun password ->
+      ~serialise: Fun.id
+      ~validate: (fun password ->
         S.bind status_signal @@ fun status ->
         S.const @@
           match password, status with

@@ -101,7 +101,7 @@ let nav_item_create =
                   ("person", href PersonAdd, "Person");
                   ("person-arms-up", href DanceAdd, "Dance");
                   ("music-note-list", href TuneAdd, "Tune");
-                  ("music-note-beamed", href VersionAdd None, "Version");
+                  ("music-note-beamed", href VersionAdd, "Version");
                   ("list-stars", href SetAdd, "Set");
                   ("book", href BookAdd, "Book");
                 ]

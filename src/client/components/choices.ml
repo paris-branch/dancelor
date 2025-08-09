@@ -30,9 +30,11 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let label = label
 
   type nonrec value = value
-  type raw_value = string
+  type raw_value = string [@@deriving yojson]
 
   let empty_value = ""
+  let raw_value_from_initial_text _ = ""
+  let serialise _ = "" (* FIXME *)
 
   type t = {
     inner_html: 'a. ([> Html_types.div] as 'a) elt;
@@ -114,3 +116,5 @@ let make_radios' ~label ~validate choices =
 
 let make_radios ~label choices =
   make_radios' ~label ~validate: ok choices
+
+(* FIXME: In other components, ~validate is called ~validator *)

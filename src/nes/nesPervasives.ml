@@ -116,5 +116,6 @@ let lwt_left x = Lwt.return @@ left x
 let lwt_right x = Lwt.return @@ right x
 
 let (<$>) = Lwt.map
+let (<%>) f g x = f <$> g x
 let (>>=) = Lwt.bind
 let (=<<) f x = Lwt.bind x f

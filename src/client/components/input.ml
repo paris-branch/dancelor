@@ -12,7 +12,8 @@ let prepare (type value)
   ~type_
   ~label
   ?(placeholder = "")
-  ~validator
+  ~serialise
+  ~validate
   ?(oninput = fun _ -> ())
   ()
   : (value, string) Component.s
@@ -20,9 +21,11 @@ let prepare (type value)
   let label = label
 
   type nonrec value = value
-  type raw_value = string
+  type raw_value = string [@@deriving yojson]
 
   let empty_value = ""
+  let raw_value_from_initial_text = Fun.id
+  let serialise = serialise
 
   type t = {
     raw_signal: string S.t;
@@ -53,7 +56,7 @@ let prepare (type value)
   let make initial_value =
     let (raw_signal, set_immediately) = S.create initial_value in
     let set_delayed = S.delayed_setter 0.30 set_immediately in
-    let signal = S.bind raw_signal validator in
+    let signal = S.bind raw_signal validate in
     let html : html =
       match type_ with
       | Text | Password ->
@@ -74,6 +77,7 @@ let prepare (type value)
                 );
                 false
               );
+              a_value initial_value;
             ]
         in
         Text {input; input_dom = To_dom.of_input input}
@@ -113,11 +117,8 @@ let prepare (type value)
     | Textarea {textarea; _} -> textarea
 end)
 
-let make' ~type_ ~label ?placeholder ~validator ?oninput initial_value =
-  Component.initialise (prepare ~type_ ~label ?placeholder ~validator ?oninput ()) initial_value
-
-let make ~type_ ~label ?placeholder ~validator ?oninput initial_value =
-  make' ~type_ ~label ?placeholder ~validator: (S.const % validator) ?oninput initial_value
+let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput initial_value =
+  Component.initialise (prepare ~type_ ~label ?placeholder ~serialise ~validate ?oninput ()) initial_value
 
 let inactive ~label value =
   Component.html_fake ~label @@

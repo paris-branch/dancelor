@@ -1,125 +1,57 @@
 open Nes
 open Common
-
 open Components
 open Html
 
-type ('name, 'scddb_id) gen = {
-  name: 'name;
-  scddb_id: 'scddb_id;
-}
-[@@deriving yojson]
+let editor =
+  let open Editor in
+  Input.prepare
+    ~type_: Text
+    ~label: "Name"
+    ~placeholder: "eg. John Doe"
+    ~serialise: Fun.id
+    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
+    () ^::
+  Input.prepare
+    ~type_: Text
+    ~label: "SCDDB ID"
+    ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/"
+    ~serialise: (Option.fold ~none: "" ~some: string_of_int)
+    ~validate: (
+      S.const %
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Person) %
+        Option.of_string_nonempty
+    )
+    () ^::
+  nil
 
-module RawState = struct
-  type t =
-  (string, string) gen
-  [@@deriving yojson]
+let preview (name, (scddb_id, ())) =
+  lwt_some @@ Model.Person.make ~name ?scddb_id ()
 
-  let empty : t = {
-    name = "";
-    scddb_id = "";
-  }
-end
+let submit mode person =
+  match mode with
+  | Editor.Edit prev_person -> Madge_client.call_exn Endpoints.Api.(route @@ Person Update) (Entry.id prev_person) person
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Person Create) person
 
-module Editor = struct
-  type t = {
-    elements: (
-      (string, string) Component.t,
-      (SCDDB.entry_id option, string) Component.t
-    ) gen;
-  }
+let break_down person =
+  lwt (
+    Model.Person.name' person,
+    (Model.Person.scddb_id' person, ())
+  )
 
-  let raw_state (editor : t) : RawState.t S.t =
-    S.bind (Component.raw_signal editor.elements.name) @@ fun name ->
-    S.bind (Component.raw_signal editor.elements.scddb_id) @@ fun scddb_id ->
-    S.const {name; scddb_id}
-
-  let state (editor : t) =
-    S.map Result.to_option @@
-    RS.bind (Component.signal editor.elements.name) @@ fun name ->
-    RS.bind (Component.signal editor.elements.scddb_id) @@ fun scddb_id ->
-    RS.pure {name; scddb_id}
-
-  let with_or_without_local_storage ~text f =
-    match text with
-    | Some text ->
-      lwt @@ f {RawState.empty with name = text}
-    | None ->
-      lwt @@
-        Cutils.with_local_storage "PersonEditor" (module RawState) raw_state f
-
-  let create ~text : t Lwt.t =
-    with_or_without_local_storage ~text @@ fun initial_state ->
-    let name =
-      Input.make
-        ~type_: Text
-        ~label: "Name"
-        ~placeholder: "eg. John Doe"
-        ~validator: (Result.of_string_nonempty ~empty: "The name cannot be empty.")
-        initial_state.name
-    in
-    let scddb_id =
-      Input.make
-        ~type_: Text
-        ~label: "SCDDB ID"
-        ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/person/9999/"
-        ~validator: (
-          Option.fold
-            ~none: (Ok None)
-            ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Person) %
-            Option.of_string_nonempty
-        )
-        initial_state.scddb_id
-    in
-      {elements = {name; scddb_id}}
-
-  let clear (editor : t) : unit =
-    Component.clear editor.elements.name;
-    Component.clear editor.elements.scddb_id
-
-  let submit (editor : t) : Model.Person.t Entry.t option Lwt.t =
-    match S.value (state editor) with
-    | None -> lwt_none
-    | Some {name; scddb_id} ->
-      some
-      <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Create) @@
-          Model.Person.make ~name ?scddb_id ()
-end
-
-let create ?on_save ?text () =
+let create ?on_save ?text ?edit () =
+  let%lwt mode = Editor.mode_from_text_or_id Model.Person.get text edit in
   MainPage.assert_can_create @@ fun () ->
-  let%lwt editor = Editor.create ~text in
-  Page.make'
-    ~title: (lwt "Add a person")
-    ~on_load: (fun () -> Component.focus editor.elements.name)
-    [Component.html editor.elements.name;
-    Component.html editor.elements.scddb_id;
-    ]
-    ~buttons: [
-      Button.clear
-        ~onclick: (fun () -> Editor.clear editor)
-        ();
-      Button.save
-        ~disabled: (S.map Option.is_none (Editor.state editor))
-        ~onclick: (fun () ->
-          flip Lwt.map (Editor.submit editor) @@
-          Option.iter @@ fun person ->
-          Editor.clear editor;
-          match on_save with
-          | None ->
-            Components.Toast.open_
-              ~title: "Person created"
-              [txt "The person ";
-              Formatters.Person.name' ~link: true person;
-              txt " has been created successfully."]
-              ~buttons: [
-                Components.Button.make_a
-                  ~label: "Go to person"
-                  ~classes: ["btn-primary"]
-                  ~href: (S.const @@ Endpoints.Page.href_person @@ Entry.id person)
-                  ();
-              ]
-          | Some on_save -> on_save person
-        )
-        ();
-    ]
+  Editor.make_page
+    ~key: "person"
+    ~icon: "person"
+    editor
+    ?on_save
+    ~mode
+    ~preview
+    ~submit
+    ~break_down
+    ~format: (Formatters.Person.name' ~link: true)
+    ~href: (Endpoints.Page.href_person % Entry.id)

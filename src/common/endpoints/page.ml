@@ -28,16 +28,22 @@ type (_, _, _) t =
   | BookEdit : ((Core.Book.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Book : ((Context.t option -> Core.Book.t Entry.Id.t -> 'w), 'w, Void.t) t
   | DanceAdd : ('w, 'w, Void.t) t
+  | DanceEdit : ((Core.Dance.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Dance : ((Context.t option -> Core.Dance.t Entry.Id.t -> 'w), 'w, Void.t) t
   | PersonAdd : ('w, 'w, Void.t) t
+  | PersonEdit : ((Core.Person.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Person : ((Context.t option -> Core.Person.t Entry.Id.t -> 'w), 'w, Void.t) t
   | SetAdd : ('w, 'w, Void.t) t
+  | SetEdit : ((Core.Set.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Set : ((Context.t option -> Core.Set.t Entry.Id.t -> 'w), 'w, Void.t) t
   | SourceAdd : ('w, 'w, Void.t) t
+  | SourceEdit : ((Core.Source.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Source : ((Context.t option -> Core.Source.t Entry.Id.t -> 'w), 'w, Void.t) t
   | TuneAdd : ('w, 'w, Void.t) t
+  | TuneEdit : ((Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Tune : ((Context.t option -> Core.Tune.t Entry.Id.t -> 'w), 'w, Void.t) t
-  | VersionAdd : ((Core.Tune.t Entry.Id.t option -> 'w), 'w, Void.t) t
+  | VersionAdd : ('w, 'w, Void.t) t
+  | VersionEdit : ((Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Version : ((Context.t option -> Core.Version.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Index : ('w, 'w, Void.t) t
   | Explore : ((string option -> 'w), 'w, Void.t) t
@@ -56,16 +62,22 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | BookEdit -> literal "book" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Book)) @@ void ()
     | Dance -> literal "dance" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Dance)) @@ void ()
     | DanceAdd -> literal "dance" @@ literal "add" @@ void ()
+    | DanceEdit -> literal "dance" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Dance)) @@ void ()
     | Person -> literal "person" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Person)) @@ void ()
     | PersonAdd -> literal "person" @@ literal "add" @@ void ()
+    | PersonEdit -> literal "person" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Person)) @@ void ()
     | Set -> literal "set" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Set)) @@ void ()
     | SetAdd -> literal "set" @@ literal "add" @@ void ()
+    | SetEdit -> literal "set" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Set)) @@ void ()
     | Source -> literal "source" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Source)) @@ void ()
     | SourceAdd -> literal "source" @@ literal "add" @@ void ()
+    | SourceEdit -> literal "source" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Source)) @@ void ()
     | Tune -> literal "tune" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
     | TuneAdd -> literal "tune" @@ literal "add" @@ void ()
+    | TuneEdit -> literal "tune" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Tune)) @@ void ()
     | Version -> literal "version" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
-    | VersionAdd -> literal "version" @@ literal "add" @@ query_opt "tune" (module Entry.Id.J(Core.Tune)) @@ void ()
+    | VersionAdd -> literal "version" @@ literal "add" @@ void ()
+    | VersionEdit -> literal "version" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Version)) @@ void ()
     | Index -> void ()
     | Explore -> literal "explore" @@ query_opt "q" (module JString) @@ void ()
     | UserCreate -> literal "user" @@ literal "create" @@ void ()
@@ -83,7 +95,6 @@ let href_source ?context source = href Source context source
 let href_set ?context set = href Set context set
 let href_tune ?context tune = href Tune context tune
 let href_version ?context version = href Version context version
-let href_versionAdd ?tune () = href VersionAdd tune
 
 let href_any ?context any =
   let open Core.Any in
@@ -101,14 +112,20 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
     let describe : type a r. (a, (string * string) option Lwt.t, r) t -> a = function
       | Index -> lwt_none
       | Explore -> const lwt_none
-      | VersionAdd -> const lwt_none
+      | VersionAdd -> lwt_none
+      | VersionEdit -> const lwt_none
       | TuneAdd -> lwt_none
+      | TuneEdit -> const lwt_none
       | SetAdd -> lwt_none
+      | SetEdit -> const lwt_none
       | BookAdd -> lwt_none
       | BookEdit -> const lwt_none
       | PersonAdd -> lwt_none
+      | PersonEdit -> const lwt_none
       | SourceAdd -> lwt_none
+      | SourceEdit -> const lwt_none
       | DanceAdd -> lwt_none
+      | DanceEdit -> const lwt_none
       | UserCreate -> lwt_none
       | UserPasswordReset -> const2 lwt_none
       | Version ->

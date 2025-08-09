@@ -72,11 +72,7 @@ let create ?context id =
                 in
                 lwt @@
                   if versions = [] then
-                    [
-                      txt "There are no versions for this tune. Maybe you want to ";
-                      a ~a: [a_href (Endpoints.Page.href_versionAdd ~tune: (Entry.id tune) ())] [txt "add one"];
-                      txt "?";
-                    ]
+                      [txt "There are no versions for this tune."]
                   else
                       [Tables.versions versions]
             )

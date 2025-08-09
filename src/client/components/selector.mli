@@ -6,7 +6,6 @@ open Common
 val make :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
-  serialise: ('model Entry.t -> 'model Entry.Id.t) ->
   unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
   make_result:
   (?classes: string list ->
@@ -31,7 +30,6 @@ val make :
 val prepare :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
-  serialise: ('model Entry.t -> 'model Entry.Id.t) ->
   unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
   make_result:
   (?classes: string list ->

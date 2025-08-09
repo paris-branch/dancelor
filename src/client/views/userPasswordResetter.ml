@@ -12,15 +12,17 @@ let create username token =
       ~type_: Password
       ~label: "Password"
       ~placeholder: "1234567"
-      ~validator: (fun password1 -> Result.bind (Password.check password1) @@ fun () -> Ok password1)
+      ~serialise: Fun.id
+      ~validate: (S.const % fun password1 -> Result.bind (Password.check password1) @@ fun () -> Ok password1)
       ""
   in
   let password2_input =
-    Input.make'
+    Input.make
       ~type_: Password
       ~label: "Password, again"
       ~placeholder: "1234678"
-      ~validator: (fun password2 ->
+      ~serialise: Fun.id
+      ~validate: (fun password2 ->
         flip S.map (Component.raw_signal password1_input) @@ fun password1 ->
         if password1 = password2 then Ok password2 else Error "The passwords do not match."
       )
