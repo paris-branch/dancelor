@@ -79,7 +79,7 @@ let add_to_storage set =
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
   (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
 
-let submit mode (title, (date, (contents, ()))) =
+let preview (title, (date, (contents, ()))) =
   let contents =
     List.map
       (function
@@ -88,7 +88,9 @@ let submit mode (title, (date, (contents, ()))) =
       )
       contents
   in
-  let book = Model.Book.make ~title ?date ~contents () in
+  lwt_some @@ Model.Book.make ~title ?date ~contents ()
+
+let submit mode book =
   match mode with
   | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book
@@ -119,6 +121,6 @@ let create ?on_save ?text ?edit () =
     ~mode
     ~format: (Formatters.Book.title_and_subtitle')
     ~href: (Endpoints.Page.href_book % Entry.id)
-    ~preview: Editor.no_preview
+    ~preview
     ~submit
     ~break_down

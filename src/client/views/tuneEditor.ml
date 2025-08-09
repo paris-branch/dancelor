@@ -94,9 +94,13 @@ let editor =
     () ^::
   nil
 
-let submit _mode (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
-  Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) @@
-    Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
+let preview (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
+  lwt_some @@ Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
+
+let submit mode tune =
+  match mode with
+  | Editor.Edit prev_tune -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Update) (Entry.id prev_tune) tune
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) tune
 
 let break_down tune =
   let names = Model.Tune.names' tune in
@@ -108,15 +112,16 @@ let break_down tune =
   let scddb_id = Model.Tune.scddb_id' tune in
   lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))
 
-let create ?on_save ?text () =
+let create ?on_save ?text ?edit () =
+  let%lwt mode = Editor.mode_from_text_or_id Model.Tune.get text edit in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "tune"
     ~icon: "music-note-list"
     editor
     ?on_save
-    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
-    ~preview: Editor.no_preview
+    ~mode
+    ~preview
     ~format: (Formatters.Tune.name' ~link: true)
     ~href: (Endpoints.Page.href_tune % Entry.id)
     ~submit

@@ -131,7 +131,10 @@ let preview (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disa
       Button.save ~onclick: (fun () -> return (some version); lwt_unit) ();
     ]
 
-let submit _mode = Madge_client.call_exn Endpoints.Api.(route @@ Version Create)
+let submit mode version =
+  match mode with
+  | Editor.Edit prev_version -> Madge_client.call_exn Endpoints.Api.(route @@ Version Update) (Entry.id prev_version) version
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Version Create) version
 
 let break_down version =
   let%lwt tune = Model.Version.tune' version in
@@ -158,14 +161,15 @@ let break_down version =
    selected and we lost it. It is only marginally important, but it would be
    nice to bring it back. *)
 
-let create ?on_save ?text () =
+let create ?on_save ?text ?edit () =
+  let%lwt mode = Editor.mode_from_text_or_id Model.Version.get text edit in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "version"
     ~icon: "music-note-beamed"
     editor
     ?on_save
-    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
+    ~mode
     ~href: (Endpoints.Page.href_version % Entry.id)
     ~format: (Formatters.Version.name' ~link: true)
     ~preview

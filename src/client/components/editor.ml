@@ -211,5 +211,3 @@ let make_page (type value)(type raw_value)
 
   (* Return the promise of a page. *)
   promise
-
-let no_preview = lwt_some

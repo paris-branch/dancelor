@@ -58,9 +58,13 @@ let editor =
     () ^::
   nil
 
-let submit _mode (name, (short_name, (editors, (scddb_id, (description, ()))))) =
-  Madge_client.call_exn Endpoints.Api.(route @@ Source Create) @@
-    Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
+let preview (name, (short_name, (editors, (scddb_id, (description, ()))))) =
+  lwt_some @@ Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
+
+let submit mode source =
+  match mode with
+  | Editor.Edit prev_source -> Madge_client.call_exn Endpoints.Api.(route @@ Source Update) (Entry.id prev_source) source
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
 
 let break_down source =
   let%lwt editors = Model.Source.editors' source in
@@ -69,15 +73,16 @@ let break_down source =
     (Model.Source.short_name' source, (editors, (Model.Source.scddb_id' source, (Model.Source.description' source, ()))))
   )
 
-let create ?on_save ?text () =
+let create ?on_save ?text ?edit () =
+  let%lwt mode = Editor.mode_from_text_or_id Model.Source.get text edit in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "source"
     ~icon: "archive"
     editor
     ?on_save
-    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
-    ~preview: Editor.no_preview
+    ~mode
+    ~preview
     ~submit
     ~break_down
     ~format: (Formatters.Source.name' ~link: true)

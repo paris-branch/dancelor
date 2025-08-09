@@ -63,9 +63,6 @@ val make_page :
     model into values for the components, and is used when editing models. This
     function is allowed to raise {!NonConvertible}. *)
 
-val no_preview : 'value -> 'value option Lwt.t
-(** A more eloquent alias for {!lwt_some}. *)
-
 (** {2 Advanced use} *)
 
 val update_local_storage :

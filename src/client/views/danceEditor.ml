@@ -87,9 +87,13 @@ let editor =
     () ^::
   nil
 
-let submit _mode (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
-  Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) @@
-    Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
+let preview (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
+  lwt_some @@ Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
+
+let submit mode dance =
+  match mode with
+  | Editor.Edit prev_dance -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Update) (Entry.id prev_dance) dance
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) dance
 
 let break_down dance =
   let names = Model.Dance.names' dance in
@@ -101,16 +105,17 @@ let break_down dance =
   let scddb_id = Model.Dance.scddb_id' dance in
   lwt (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ())))))))
 
-let create ?on_save ?text () =
+let create ?on_save ?text ?edit () =
+  let%lwt mode = Editor.mode_from_text_or_id Model.Dance.get text edit in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "dance"
     ~icon: "person-arms-up"
     ?on_save
-    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
+    ~mode
     editor
     ~format: (Formatters.Dance.name' ~link: true)
     ~href: (Endpoints.Page.href_dance % Entry.id)
-    ~preview: Editor.no_preview
+    ~preview
     ~submit
     ~break_down

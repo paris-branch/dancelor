@@ -75,10 +75,14 @@ let add_to_storage version =
   Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
   (name, (kind, (conceptors, (versions @ [version], (order, ())))))
 
-let submit _mode (name, (kind, (conceptors, (contents, (order, ()))))) =
+let preview (name, (kind, (conceptors, (contents, (order, ()))))) =
   let contents = List.map (fun version -> (version, Model.VersionParameters.none)) contents in
-  Madge_client.call_exn Endpoints.Api.(route @@ Set Create) @@
-    Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
+  lwt_some @@ Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
+
+let submit mode set =
+  match mode with
+  | Editor.Edit prev_set -> Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set
 
 let break_down set =
   let name = Model.Set.name' set in
@@ -96,15 +100,16 @@ let break_down set =
   let order = Model.Set.order' set in
   lwt (name, (kind, (conceptors, (contents, (order, ())))))
 
-let create ?on_save ?text () =
+let create ?on_save ?text ?edit () =
+  let%lwt mode = Editor.mode_from_text_or_id Model.Set.get text edit in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "set"
     ~icon: "list-stars"
     ?on_save
-    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
+    ~mode
     editor
-    ~preview: Editor.no_preview
+    ~preview
     ~submit
     ~break_down
     ~format: (Formatters.Set.name' ~link: true)
