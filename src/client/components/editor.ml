@@ -104,10 +104,18 @@ let update_local_storage ~key (Bundle editor) f =
   let new_value = f x in
   write_local_storage ~key editor new_value
 
-type mode =
+type 'result mode =
   | QuickCreate of string
   | CreateWithLocalStorage
+  | Edit of 'result
 [@@deriving variants]
+
+let mode_from_text_or_id get initial_text maybe_id =
+  match initial_text, maybe_id with
+  | None, None -> lwt @@ CreateWithLocalStorage
+  | Some initial_text, None -> lwt @@ QuickCreate initial_text
+  | None, Some id -> edit <$> get id
+  | _ -> invalid_arg "mode_from_text_and_edit"
 
 let make_page (type value)(type raw_value)
     ~key
@@ -122,15 +130,15 @@ let make_page (type value)(type raw_value)
     (Bundle editor_s: (value, raw_value) bundle)
   =
   let module Editor = (val editor_s) in
-  ignore break_down;
 
   (* Determine the initial value of the editor. If there is an initial text,
      then we create it from that. If not, we retrieve a maybe-existing value
      from the local storage. *)
-  let initial_value =
+  let%lwt initial_value =
     match mode with
-    | QuickCreate initial_text -> Editor.raw_value_from_initial_text initial_text
-    | CreateWithLocalStorage -> read_local_storage ~key editor_s
+    | QuickCreate initial_text -> lwt @@ Editor.raw_value_from_initial_text initial_text
+    | CreateWithLocalStorage -> lwt @@ read_local_storage ~key editor_s
+    | Edit entry -> Editor.serialise <$> break_down entry
   in
 
   (* Now that we have an initial value, we can actually initialise the editor to
@@ -192,7 +200,7 @@ let make_page (type value)(type raw_value)
      now enable saving the state of the editor when it changes.. *)
   (
     match mode with
-    | QuickCreate _ -> ()
+    | QuickCreate _ | Edit _ -> ()
     | CreateWithLocalStorage ->
       let store = write_local_storage ~key editor_s in
       let iter = S.map store @@ Component.raw_signal editor in

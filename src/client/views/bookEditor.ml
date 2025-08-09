@@ -5,22 +5,6 @@ open Components
 open Html
 open Utils
 
-(* FIXME: we lost editing capabilities. bring them back *)
-
-(* let with_or_without_local_storage ~text ~edit f = *)
-(*   match (text, edit) with *)
-(*   | Some text, _ -> *)
-(*     lwt @@ f {RawState.empty with name = text} *)
-(*   | _, Some id -> *)
-(*     let%lwt book = Model.Book.get id in *)
-(*     let%lwt raw_state = State.to_raw_state <$> State.of_model book in *)
-(*     lwt @@ f raw_state *)
-(*   | _, None -> *)
-(*     lwt @@ *)
-(*       Cutils.with_local_storage "BookEditor" (module RawState) raw_state f *)
-
-(* let create ~text ~edit : t Lwt.t = *)
-
 let editor =
   let open Editor in
   Input.prepare
@@ -95,7 +79,7 @@ let add_to_storage set =
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
   (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
 
-let submit _mode (title, (date, (contents, ()))) =
+let submit mode (title, (date, (contents, ()))) =
   let contents =
     List.map
       (function
@@ -105,7 +89,9 @@ let submit _mode (title, (date, (contents, ()))) =
       contents
   in
   let book = Model.Book.make ~title ?date ~contents () in
-  Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book
+  match mode with
+  | Editor.Edit prev_book -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) (Entry.id prev_book) book
+  | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) book
 
 let break_down book =
   let title = Model.Book.title' book in
@@ -122,37 +108,15 @@ let break_down book =
   in
   lwt (title, (date, (contents, ())))
 
-(*   let submit ~edit (editor : t) = *)
-(*     match (S.value (state editor), edit) with *)
-(*     | (None, _) -> lwt_none *)
-(*     | (Some {name; date; contents}, id) -> *)
-(*       let contents = *)
-(*         List.map *)
-(*           (function *)
-(*             | `Set set -> Model.Book.Set (set, Model.SetParameters.none) *)
-(*             | `Version version -> Model.Book.Version (version, Model.VersionParameters.none) *)
-(*           ) *)
-(*           contents *)
-(*       in *)
-(*       Lwt.map some @@ *)
-(*         ( *)
-(*           match id with *)
-(*           | None -> Madge_client.call_exn Endpoints.Api.(route @@ Book Create) *)
-(*           | Some id -> Madge_client.call_exn Endpoints.Api.(route @@ Book Update) id *)
-(*         ) *)
-(*           (Model.Book.make ~title: name ?date ~contents ()) *)
-
-(* ~title: (lwt @@ (match edit with None -> "Add" | Some _ -> "Edit") ^ " a book") *)
-
 let create ?on_save ?text ?edit () =
-  assert (edit = None);
+  let%lwt mode = Editor.mode_from_text_or_id Model.Book.get text edit in
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "book"
     ~icon: "book"
     editor
     ?on_save
-    ~mode: (Option.fold ~none: Editor.CreateWithLocalStorage ~some: Editor.quickCreate text)
+    ~mode
     ~format: (Formatters.Book.title_and_subtitle')
     ~href: (Endpoints.Page.href_book % Entry.id)
     ~preview: Editor.no_preview

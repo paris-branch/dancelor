@@ -22,23 +22,33 @@ val (^::):
 
 (** {2 Making an editor} *)
 
-type mode =
+type 'result mode =
   | QuickCreate of string
   | CreateWithLocalStorage
+  | Edit of 'result
+[@@deriving variants]
 
-val quickCreate : string -> mode
+val mode_from_text_or_id :
+  ('id -> 'result Lwt.t) ->
+  string option ->
+  'id option ->
+  'result mode Lwt.t
+(** Helper to create a {!mode} given a potential initial text and a potential id
+    of something. If none are set, the mode is {!CreateWithLocalStorage}. If the
+    text is set, the mode is {!QuickCreate}. If the id is set, we use the getter
+    to make it into the expected value, and the mode is {!Edit}. *)
 
 val make_page :
   key: string ->
   icon: string ->
   preview: ('value -> 'previewed_value option Lwt.t) ->
-  submit: (mode -> 'previewed_value -> 'result Lwt.t) ->
+  submit: ('result mode -> 'previewed_value -> 'result Lwt.t) ->
   break_down: ('result -> 'value Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
   ?on_save: ('result -> unit) ->
-  mode: mode ->
+  mode: 'result mode ->
   ('value, 'raw_value) bundle ->
   Page.t Lwt.t
 (** Make a fully-featured editor that takes a whole page.
