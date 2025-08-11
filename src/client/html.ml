@@ -109,6 +109,9 @@ let div_placeholder ?(min = 4) ?(max = 8) () =
 let with_span_placeholder ?min ?max promise =
   R.span @@ S.from' [span_placeholder ?min ?max ()] promise
 
+let with_div_placeholder ?min ?max promise =
+  R.div @@ S.from' [div_placeholder ?min ?max ()] promise
+
 module To_dom = Js_of_ocaml_tyxml.Tyxml_js.To_dom
 (** Conversion from TyXML nodes to Dom ones. *)
 

@@ -6,6 +6,8 @@ open Js_of_ocaml
 module AnyResult = AnyResult
 module ResultRow = ResultRow
 
+let write_to_clipboard = Clipboard.write_to_clipboard
+
 let rec is_child_of : 'a 'b. ((#Dom.node as 'a) Js.t) -> ((#Dom.node as 'b) Js.t) -> bool = fun c p ->
   ((c :> Dom.node Js.t) = (p :> Dom.node Js.t))
   || (

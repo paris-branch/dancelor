@@ -145,7 +145,7 @@ let break_down version =
   let remark = Model.Version.remark' version in
   let%lwt sources = Model.Version.sources' version in
   let disambiguation = Model.Version.disambiguation' version in
-  let content = Model.Version.content' version in
+  let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
   lwt (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))))
 
 (* FIXME: A way to add a button to the textarea component, so as to bring back

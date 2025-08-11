@@ -1,8 +1,33 @@
 open Nes
 open Common
-
 open Model
 open Html
+
+let show_lilypond_dialog id =
+  let content_promise = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) id in
+  ignore
+  <$> Page.open_dialog @@ fun return ->
+    Page.make'
+      ~title: (lwt "LilyPond")
+      [with_div_placeholder (
+        let%lwt content = content_promise in
+        lwt [pre [txt content]]
+      )]
+      ~buttons: [
+        Components.Button.close' ~return ();
+        Components.Button.make
+          ~label: "Copy to clipboard"
+          ~icon: "clipboard"
+          ~classes: ["btn-primary"]
+          ~onclick: (fun _ ->
+            let%lwt content = content_promise in
+            Utils.write_to_clipboard content;
+            Components.Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
+            return (some ());
+            lwt_unit
+          )
+          ()
+      ]
 
 let create ?context id =
   MainPage.get_model_or_404 (Version Get) id @@ fun version ->
@@ -57,12 +82,13 @@ let create ?context id =
                 ];
               li
                 [
-                  a
-                    ~a: [a_class ["dropdown-item"]; a_href (Endpoints.Api.(href @@ Version Ly) id (Tune.slug' tune))]
-                    [
-                      i ~a: [a_class ["bi"; "bi-file-music"]] [];
-                      txt " Download LilyPond";
-                    ];
+                  Components.Button.make
+                    ~classes: ["dropdown-item"]
+                    ~label: "Show LilyPond"
+                    ~label_processing: "Showing LilyPond..."
+                    ~icon: "file-music"
+                    ~onclick: (fun () -> show_lilypond_dialog id)
+                    ()
                 ];
               li
                 [

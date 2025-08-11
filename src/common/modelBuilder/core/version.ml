@@ -11,7 +11,9 @@ type t = {
   arrangers: Person.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
-  content: string;
+  content: string option;
+  (** In the client, we don't include the content, and it has to be retrieved by
+      calling a specific endpoint; in the meantime, we fill it with [None]. *)
 }
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
@@ -29,4 +31,10 @@ let key' = key % Entry.value
 let structure' = structure % Entry.value
 let remark' = remark % Entry.value
 let disambiguation' = disambiguation % Entry.value
+
+let content v =
+  match v.content with
+  | Some content -> content
+  | None -> failwith "no content available"
+
 let content' = content % Entry.value

@@ -87,8 +87,10 @@
           ++ (with pkgs; [
             firefox
             geckodriver
+            xclip # for pyperclip
             (python3.withPackages (
               p: with p; [
+                pyperclip
                 pytest
                 pytest-xdist
                 selenium

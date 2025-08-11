@@ -5,6 +5,7 @@ import json
 import html
 import tempfile
 import shutil
+import pyperclip
 from urllib.parse import urlparse
 
 from selenium import webdriver
@@ -15,7 +16,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-class TestVersionLyDownload():
+class TestActions():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
     options.add_argument("--headless")
@@ -38,18 +39,17 @@ class TestVersionLyDownload():
     elif len(files) > 1: raise ValueError(f"Multiple files found in the download directory: {files}")
     return os.path.join(self.download_dir, files[0])
 
-  def test_versionLyDownload(self):
+  def test_versionShowLilyPond(self):
     self.driver.get("http://localhost:8080/version/xzzb-wasm-babe")
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Actions')]").click()
-    lilypond_button = self.driver.find_element(By.XPATH, "//*[contains(text(), 'LilyPond')]")
-    ## NOTE: Check that the URL is what we expect.
-    assert(urlparse(lilypond_button.get_attribute('href')).path == "/api/version/xzzb-wasm-babe/tam-lin.ly")
-    lilypond_button.click()
-    ## NOTE: Check that the `content.ly` is indeed what we downloaded.
+    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
     with open("tests/database/version/xzzb-wasm-babe/content.ly") as content_file:
-      expected_content = content_file.read().strip()
-      assert(expected_content != "")
-    with open(self.get_downloaded_file()) as content_file:
-      actual_content = content_file.read().strip()
-      assert(actual_content != "")
-    assert(actual_content == expected_content)
+      expected = content_file.read().strip()
+      assert(expected != "")
+    shown = self.driver.find_element(By.XPATH, "//pre").get_attribute("innerHTML")
+    assert(html.unescape(shown.strip()) == expected)
+    ## TODO: also check the “copy to clipboard” functionality
+    # self.driver.find_element(By.XPATH, "//*[contains(text(), 'Copy to clipboard')]").click()
+    # time.sleep(1)  # Wait for clipboard to update
+    # copied = pyperclip.paste()
+    # assert(copied == expected)
