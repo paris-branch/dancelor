@@ -63,10 +63,10 @@ end)
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
+  | Content -> Ly.get env
   | Search -> search env
   | Create -> create env
   | Update -> update env
-  | Ly -> Ly.get env
   | Svg -> Svg.get env
   | Ogg -> Ogg.get env
   | Pdf -> Pdf.get env
