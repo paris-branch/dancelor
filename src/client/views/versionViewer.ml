@@ -13,7 +13,21 @@ let show_lilypond_dialog id =
         let%lwt content = content_promise in
         lwt [pre [txt content]]
       )]
-      ~buttons: [Components.Button.close' ~return ()]
+      ~buttons: [
+        Components.Button.close' ~return ();
+        Components.Button.make
+          ~label: "Copy to clipboard"
+          ~icon: "clipboard"
+          ~classes: ["btn-primary"]
+          ~onclick: (fun _ ->
+            let%lwt content = content_promise in
+            Utils.write_to_clipboard content;
+            Components.Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
+            return (some ());
+            lwt_unit
+          )
+          ()
+      ]
 
 let create ?context id =
   MainPage.get_model_or_404 (Version Get) id @@ fun version ->
