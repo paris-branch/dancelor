@@ -1,6 +1,24 @@
 open Nes
 open Common
 
+let get env id =
+  match Database.Any.get id with
+  | None ->
+    Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
+  | Some any ->
+    (
+      match any with
+      | Source source -> Permission.assert_can_get env source
+      | Person person -> Permission.assert_can_get env person
+      | Dance dance -> Permission.assert_can_get env dance
+      | Book book -> Permission.assert_can_get env book
+      | Set set -> Permission.assert_can_get env set
+      | Tune tune -> Permission.assert_can_get env tune
+      | Version version -> Permission.assert_can_get env version
+      | User user -> Permission.assert_can_get env user
+    );%lwt
+    lwt any
+
 include Search.Build(struct
   type value = Model.Any.t
   type filter = Filter.Any.t
@@ -38,5 +56,6 @@ let search_context env filter element =
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Any.t -> a = fun env endpoint ->
   match endpoint with
+  | Get -> get env
   | Search -> search env
   | SearchContext -> search_context env
