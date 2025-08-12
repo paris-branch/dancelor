@@ -134,7 +134,14 @@ let prepare (type value)(type component_raw_value)
     in
     let inner_html =
       div [
-        Component.inner_html choices;
+        div ~a: [a_class ["row"]] [
+          div ~a: [a_class ["col"]] [Component.inner_html choices];
+          R.div ~a: [a_class ["col-auto"]] (
+            S.bind (Component.signal choices) @@ function
+              | Error _ -> S.const []
+              | Ok n -> Component.actions @@ List.nth initialised_components n
+          );
+        ];
         R.div ~a: [a_class ["ps-2"; "mt-1"; "border-start"]] (
           flip S.map (Component.signal choices) @@ function
             | Error _ -> []

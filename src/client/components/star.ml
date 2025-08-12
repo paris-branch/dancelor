@@ -71,7 +71,7 @@ let prepare (type value)(type raw_value)
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
         ~icon: "plus-circle"
-        ~classes: ["btn-primary"]
+        ~classes: ["btn-secondary"]
         ~onclick: (fun () ->
           let component = C.make C.empty_value in
           set_components (S.value components @ [component]);
@@ -91,33 +91,33 @@ let prepare (type value)(type raw_value)
             flip List.mapi components_ @@ fun n component ->
             div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pb-1" else if n = last_index then "pt-1" else "py-1")]] [
               div ~a: [a_class ["col"; "text-start"; "p-0"]] [C.inner_html component];
-              div ~a: [a_class ["col-auto"; "p-0"]] [
-                button
-                  ~a: [
-                    a_class (["btn"; "btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []));
-                    a_onclick (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; true);
-                  ]
-                  [i ~a: [a_class ["bi"; "bi-arrow-down"]] []];
-                button
-                  ~a: [
-                    a_class (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []));
-                    a_onclick (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; true);
-                  ]
-                  [i ~a: [a_class ["bi"; "bi-arrow-up"]] []];
-                button
-                  ~a: [
-                    a_onclick (fun _ -> set_components @@ List.remove n @@ S.value components; true);
-                    a_class ["btn"; "btn-warning"];
-                  ]
-                  [i ~a: [a_class ["bi"; "bi-trash"]] []];
-              ];
+              R.div ~a: [a_class ["col-auto"; "p-0"]] (
+                S.l2
+                  (@)
+                  (C.actions component)
+                  (
+                    S.const [
+                      Button.make
+                        ~icon: "trash"
+                        ~classes: ["btn-warning"]
+                        ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
+                        ();
+                      Button.make
+                        ~icon: "arrow-down"
+                        ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
+                        ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
+                        ();
+                      Button.make
+                        ~icon: "arrow-up"
+                        ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))
+                        ~onclick: (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; lwt_unit)
+                        ();
+                    ]
+                  )
+              );
             ]
           );
-        div [
-          Button.clear ~onclick: (fun () -> set_components []) ();
-          txt " ";
-          button_add_object;
-        ];
+        div [button_add_object];
       ]
     in
       {components; set_components; inner_html; button_add_object_dom}
