@@ -118,21 +118,30 @@ let prepare (type value)
     | Textarea {textarea; _} -> textarea
 
   let actions i =
-    S.const (
-      match template with
-      | None -> []
-      | Some template ->
+    flip S.map i.raw_signal @@ function
+      | "" ->
+        (
+          match template with
+          | None -> []
+          | Some template ->
+            [
+              Button.make
+                ~classes: ["btn-info"]
+                ~icon: "magic"
+                ~tooltip: "Fill the content of this input with the default template."
+                ~onclick: (fun _ -> i.set template; lwt_unit)
+                ();
+            ]
+        )
+      | _ ->
         [
           Button.make
-            ~classes: ["btn-info"]
-            ~icon: "magic"
-            ~onclick: (fun _ ->
-              i.set template;
-              lwt_unit
-            )
-            ()
+            ~classes: ["btn-warning"]
+            ~icon: "eraser"
+            ~tooltip: "Clear the content of this input. It cannot be recovered."
+            ~onclick: (fun _ -> i.set ""; lwt_unit)
+            ();
         ]
-    )
 end)
 
 let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =

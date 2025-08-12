@@ -63,11 +63,13 @@ let prepare (type model)
           Button.make
             ~classes: ["btn-warning"]
             ~icon: "eraser"
+            ~tooltip: "Clear the selection. It cannot be recovered."
             ~onclick: (fun _ -> s.set None; lwt_unit)
             ();
           Button.make
             ~classes: ["btn-info"]
             ~icon: "pencil-square"
+            ~tooltip: ("Edit the selected " ^ model_name ^ ".")
             ~onclick: (fun _ -> s.select_button_dom##click; lwt_unit)
             ();
         ]

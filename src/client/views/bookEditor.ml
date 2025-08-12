@@ -89,6 +89,9 @@ let editor =
         Button.make
           ~classes: ["btn-info"]
           ~icon
+          ~tooltip: "Toggle the preview of sets and versions. This can take a \
+                     lot of space on the page and is therefore disabled by \
+                     default."
           ~onclick: (fun _ -> flip_show_preview (); lwt_unit)
           ()
       in
