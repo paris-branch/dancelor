@@ -41,7 +41,7 @@ let create username token =
     Component.html password2_input;
     ]
     ~buttons: [
-      Button.make
+      Utils.Button.make
         ~label: "Reset password"
         ~label_processing: "Resetting password..."
         ~classes: ["btn-primary"]

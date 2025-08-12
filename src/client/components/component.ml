@@ -69,7 +69,7 @@ let html : type value raw_value. (value, raw_value) t -> [> Html_types.div] elt 
           label ~a: [a_class ["col"]] [txt C.label];
           R.div ~a: [a_class ["col-auto"]] (
             flip S.map (C.actions c) @@ function
-              | [] -> [Button.make ~classes: ["invisible"] ~icon: "plus-circle" ()] (* for spacing *)
+              | [] -> [Utils.Button.make ~classes: ["invisible"] ~icon: "plus-circle" ()] (* for spacing *)
               | actions -> actions
           );
         ];

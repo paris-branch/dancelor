@@ -5,6 +5,7 @@ open Js_of_ocaml
 
 module AnyResult = AnyResult
 module ResultRow = ResultRow
+module Button = Button
 
 let write_to_clipboard = Clipboard.write_to_clipboard
 

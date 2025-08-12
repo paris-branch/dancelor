@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Js_of_ocaml
 open Html
 open Views
@@ -68,7 +67,7 @@ let () =
       [txt "The Dancelor server has reloaded, meaning that there might be a newer version of the software and/or the database. You might want to reload the page.";
       ]
       ~buttons: [
-        Components.Button.make
+        Utils.Button.make
           ~label: "Reload"
           ~icon: "arrow-clockwise"
           ~classes: ["btn-primary"]

@@ -125,7 +125,7 @@ let prepare (type value)
           | None -> []
           | Some template ->
             [
-              Button.make
+              Utils.Button.make
                 ~classes: ["btn-info"]
                 ~icon: "magic"
                 ~tooltip: "Fill the content of this input with the default template."
@@ -135,7 +135,7 @@ let prepare (type value)
         )
       | _ ->
         [
-          Button.make
+          Utils.Button.make
             ~classes: ["btn-warning"]
             ~icon: "eraser"
             ~tooltip: "Clear the content of this input. It cannot be recovered."

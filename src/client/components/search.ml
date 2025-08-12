@@ -223,6 +223,6 @@ module Quick = struct
         quick_search.search;
       ]
       ~buttons: (
-        Button.cancel' ~return () :: dialog_buttons
+        Utils.Button.cancel' ~return () :: dialog_buttons
       )
 end

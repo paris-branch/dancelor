@@ -70,8 +70,8 @@ let open_sign_in_dialog () =
       Component.html remember_me_input;
       ]
       ~buttons: [
-        Button.cancel' ~return ();
-        Button.make
+        Utils.Button.cancel' ~return ();
+        Utils.Button.make
           ~label: "Sign in"
           ~label_processing: "Signing in..."
           ~icon: "box-arrow-in-right"
@@ -137,7 +137,7 @@ let header_item =
     ]
     (
       S.from' [
-        Components.Button.make
+        Utils.Button.make
           ~label: "Sign in"
           ~icon: "box-arrow-in-right"
           ~classes: ["btn-primary"; "disabled"; "placeholder"]
@@ -146,7 +146,7 @@ let header_item =
       flip Lwt.map Environment.user @@ function
       | None ->
         [
-          Components.Button.make
+          Utils.Button.make
             ~label: "Sign in"
             ~icon: "box-arrow-in-right"
             ~classes: ["text-white"]
@@ -155,7 +155,7 @@ let header_item =
         ]
       | Some user ->
         [
-          Components.Button.make
+          Utils.Button.make
             ~label: (Model.User.username' user)
             ~icon: "person-circle"
             ~classes: ["text-white"; "dropdown-toggle"]
@@ -170,7 +170,7 @@ let header_item =
                     if Model.User.admin user then
                       [
                         li [
-                          Components.Button.make_a
+                          Utils.Button.make_a
                             ~label: "Create user"
                             ~icon: "plus-circle"
                             ~classes: ["dropdown-item"]
@@ -178,7 +178,7 @@ let header_item =
                             ()
                         ];
                         li [
-                          Components.Button.make
+                          Utils.Button.make
                             ~label: "Victorise"
                             ~icon: "stop-circle"
                             ~classes: ["dropdown-item"]
@@ -190,7 +190,7 @@ let header_item =
                     else []
                   );
                   [li [
-                    Components.Button.make_a
+                    Utils.Button.make_a
                       ~label: "My person"
                       ~icon: "person"
                       ~classes: ["dropdown-item"]
@@ -198,7 +198,7 @@ let header_item =
                       ()
                   ];
                   li [
-                    Components.Button.make
+                    Utils.Button.make
                       ~label: "Sign out"
                       ~icon: "box-arrow-right"
                       ~classes: ["dropdown-item"]

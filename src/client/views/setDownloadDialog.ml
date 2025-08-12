@@ -1,9 +1,7 @@
 open Nes
 open Common
-
 open Html
 open Model
-open Components
 
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)
@@ -37,8 +35,8 @@ let open_ set dialog =
     ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
-      Button.cancel' ~return ();
-      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set) params RenderingParameters.none) dialog.parameters_signal) ();
+      Utils.Button.cancel' ~return ();
+      Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set) params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
 let create_and_open set = open_ set (create ())

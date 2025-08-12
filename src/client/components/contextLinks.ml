@@ -65,7 +65,7 @@ let make_and_render ?context ~this_page any_lwt =
                   [
                     div ~a: [a_class ["row"; "m-0"; "align-items-center"]] [
                       div ~a: [a_class ["col-auto"; "text-start"; "p-0"]] [
-                        Button.make_a
+                        Utils.Button.make_a
                           ~classes: ["btn-secondary"]
                           ~icon: "arrow-left"
                           ~disabled: (S.const @@ Option.is_none previous)
@@ -94,21 +94,21 @@ let make_and_render ?context ~this_page any_lwt =
                       div
                         ~a: [a_class ["col-auto"; "text-end"; "p-0"]]
                         [
-                          Button.make_a
+                          Utils.Button.make_a
                             ~classes: ["btn-secondary"]
                             ~icon: "arrow-counterclockwise"
                             ~tooltip: "Go back to the parent page, be it a search, a set, \
                              or anything else."
                             ~href: (S.const parent_href)
                             ();
-                          Button.make_a
+                          Utils.Button.make_a
                             ~classes: ["btn-warning"]
                             ~icon: "eraser"
                             ~tooltip: "Reload the current page without the context. This will get \
                              rid of this banner and of the side links."
                             ~href: (S.const this_page)
                             ();
-                          Button.make_a
+                          Utils.Button.make_a
                             ~classes: ["btn-secondary"; "ms-1"]
                             ~icon: "arrow-right"
                             ~disabled: (S.const @@ Option.is_none next)

@@ -170,7 +170,7 @@ let make_page (type value)(type raw_value)
           txt " has been created successfully.";
           ]
           ~buttons: [
-            Button.make_a
+            Utils.Button.make_a
               ~label: ("Go to " ^ key)
               ~icon
               ~classes: ["btn-primary"]
@@ -189,10 +189,10 @@ let make_page (type value)(type raw_value)
       ~on_load: (fun () -> Component.focus editor)
       [Component.inner_html editor]
       ~buttons: [
-        Button.clear
+        Utils.Button.clear
           ~onclick: (fun () -> Component.clear editor)
           ();
-        Button.save
+        Utils.Button.save
           ~disabled: (S.map Result.is_error (Component.signal editor))
           ~onclick: save
           ();

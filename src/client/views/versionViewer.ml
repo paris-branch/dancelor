@@ -14,8 +14,8 @@ let show_lilypond_dialog id =
         lwt [pre [txt content]]
       )]
       ~buttons: [
-        Components.Button.close' ~return ();
-        Components.Button.make
+        Utils.Button.close' ~return ();
+        Utils.Button.make
           ~label: "Copy to clipboard"
           ~icon: "clipboard"
           ~classes: ["btn-primary"]
@@ -68,7 +68,7 @@ let create ?context id =
             ~a: [a_class ["dropdown-menu"]]
             [
               li [
-                Components.Button.make
+                Utils.Button.make
                   ~label: "Share"
                   ~label_processing: "Sharing..."
                   ~icon: "share"
@@ -95,7 +95,7 @@ let create ?context id =
                 ];
               li
                 [
-                  Components.Button.make
+                  Utils.Button.make
                     ~classes: ["dropdown-item"]
                     ~label: "Show LilyPond"
                     ~label_processing: "Showing LilyPond..."
@@ -105,7 +105,7 @@ let create ?context id =
                 ];
               li
                 [
-                  Components.Button.make
+                  Utils.Button.make
                     ~label: "Add to current set"
                     ~icon: "plus-square"
                     ~classes: ["dropdown-item"]

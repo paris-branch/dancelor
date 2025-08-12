@@ -86,8 +86,8 @@ let open_dialog page =
       Component.html description_input;
       ]
       ~buttons: [
-        Button.cancel' ~return ();
-        Button.make
+        Utils.Button.cancel' ~return ();
+        Utils.Button.make
           ~label: "Report"
           ~label_processing: "Reporting..."
           ~icon: "bug"

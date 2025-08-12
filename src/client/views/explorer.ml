@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Js_of_ocaml
 open Components
 open Html
@@ -32,7 +31,7 @@ let create ?query () =
         search
         ~make_result: (fun ~context result -> Utils.AnyResult.make_result ~context result)
         ~attached_buttons: [
-          Button.make
+          Utils.Button.make
             ~label: "Filter"
             ~label_processing: "Filtering..."
             ~icon: "filter"

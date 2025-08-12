@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 
@@ -39,7 +38,7 @@ let create ?context id =
             ~a: [a_class ["dropdown-menu"]]
             [
               li [
-                Components.Button.make
+                Utils.Button.make
                   ~label: "Share"
                   ~label_processing: "Sharing..."
                   ~icon: "share"
