@@ -56,15 +56,20 @@ let () =
   flip S.map Environment.run_status @@ function
   | Running -> ()
   | Offline ->
-    Components.Toast.open_
+    Utils.Toast.open_
       ~title: "You are now offline"
       [
-        txt "The Dancelor server cannot be reached any more. You are now in offline mode.";
+        txt
+          "The Dancelor server cannot be reached any more. You are now in \
+           offline mode."
       ]
   | Newer ->
-    Components.Toast.open_
+    Utils.Toast.open_
       ~title: "Newer version available"
-      [txt "The Dancelor server has reloaded, meaning that there might be a newer version of the software and/or the database. You might want to reload the page.";
+      [txt
+        "The Dancelor server has reloaded, meaning that there might be a newer \
+         version of the software and/or the database. You might want to reload \
+         the page.";
       ]
       ~buttons: [
         Utils.Button.make
@@ -87,7 +92,7 @@ let () =
           | Lwt.Canceled -> () (* the promises are cancelled on purpose *)
           | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
           | Madge_client.(Error (Http {request; status; _})) ->
-            Components.Toast.open_
+            Utils.Toast.open_
               ~title: "Uncaught API call error"
               [
                 txt "While querying ";
@@ -99,7 +104,7 @@ let () =
                contact your administrator or file a bug report.";
               ]
           | Madge_client.(Error (ServerUnreachable {request; status})) ->
-            Components.Toast.open_
+            Utils.Toast.open_
               ~title: "Server unreachable"
               [
                 txt "While querying ";
@@ -113,7 +118,7 @@ let () =
                      administrator."
               ]
           | exn ->
-            Components.Toast.open_
+            Utils.Toast.open_
               ~title: "Uncaught exception"
               [
                 txt "Dancelor encountered";

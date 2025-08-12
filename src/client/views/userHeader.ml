@@ -118,11 +118,9 @@ let victorise () =
     with
       | Madge_client.(Error (ServerUnreachable _)) -> lwt_unit
   );
-  Components.Toast.open_
+  Utils.Toast.open_
     ~title: "Victorisation"
-    [
-      txt "Victorisation in progress. Please wait.";
-    ]
+    [txt "Victorisation in progress. Please wait."]
 
 let header_item =
   R.li

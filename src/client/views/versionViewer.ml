@@ -22,7 +22,7 @@ let show_lilypond_dialog id =
           ~onclick: (fun _ ->
             let%lwt content = content_promise in
             Utils.write_to_clipboard content;
-            Components.Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
+            Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The LilyPond content was copied to your clipboard."];
             return (some ());
             lwt_unit
           )
@@ -75,7 +75,7 @@ let create ?context id =
                   ~classes: ["dropdown-item"]
                   ~onclick: (fun () ->
                     Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Version version);
-                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this version has been copied to your clipboard."];
+                    Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this version has been copied to your clipboard."];
                     lwt_unit
                   )
                   ();
@@ -111,7 +111,7 @@ let create ?context id =
                     ~classes: ["dropdown-item"]
                     ~onclick: (fun _ ->
                       SetEditor.add_to_storage (Some id);
-                      Components.Toast.open_
+                      Utils.Toast.open_
                         ~title: "Added to current set"
                         [
                           txt "This version was added to the current set. You can see that in the ";

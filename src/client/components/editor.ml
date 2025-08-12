@@ -163,7 +163,7 @@ let make_page (type value)(type raw_value)
       Component.clear editor;
       match on_save with
       | None ->
-        Toast.open_
+        Utils.Toast.open_
           ~title: (String.capitalize_ascii key ^ " created")
           [txt ("The " ^ key ^ " ");
           format result;

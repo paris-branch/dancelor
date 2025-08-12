@@ -30,7 +30,7 @@ let create ?context id =
                   ~classes: ["dropdown-item"]
                   ~onclick: (fun () ->
                     Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Person person);
-                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this person has been copied to your clipboard."];
+                    Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this person has been copied to your clipboard."];
                     lwt_unit
                   )
                   ();
