@@ -72,16 +72,6 @@ let table_contents ~this_id contents =
                     lwt [Formatters.Set.conceptors' ~short: true set];
                   ]
                 )
-              | InlineSet (set, parameters) ->
-                (
-                  tr
-                    [
-                      td ~a: [a_class ["text-nowrap"]] [txt "Set (inline)"];
-                      td [Formatters.Set.name_tunes_and_dance set parameters];
-                      td [txt @@ Kind.Dance.to_string @@ Set.kind set];
-                      td [Formatters.Set.conceptors ~short: true set];
-                    ]
-                )
               | Version (version, parameters) ->
                 (
                   let href = Endpoints.Page.href_version ~context @@ Entry.id version in

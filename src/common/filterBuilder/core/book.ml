@@ -9,7 +9,6 @@ type predicate =
   | SubtitleMatches of string
   | ExistsVersion of Version.t
   | ExistsSet of Set.t
-  | ExistsInlineSet of Set.t
   | ExistsVersionDeep of Version.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
@@ -23,7 +22,6 @@ let subtitleMatches' = Formula.pred % subtitleMatches
 let isSource' = Formula.pred IsSource
 let existsVersion' = Formula.pred % existsVersion
 let existsSet' = Formula.pred % existsSet
-let existsInlineSet' = Formula.pred % existsInlineSet
 (* let existsVersionDeep' = Formula.pred % existsVersionDeep *)
 
 let text_formula_converter =
@@ -37,7 +35,6 @@ let text_formula_converter =
         unary_string ~name: "subtitle-matches" (subtitleMatches, unSubtitleMatches);
         unary_lift ~name: "exists-version" (existsVersion, unExistsVersion) ~converter: Version.text_formula_converter;
         unary_lift ~name: "exists-set" (existsSet, unExistsSet) ~converter: Set.text_formula_converter;
-        unary_lift ~name: "exists-inline-set" (existsInlineSet, unExistsInlineSet) ~converter: Set.text_formula_converter;
         unary_lift ~name: "exists-version-deep" (existsVersionDeep, unExistsVersionDeep) ~converter: Version.text_formula_converter;
         unary_id ~name: "is" (is, unIs);
         nullary ~name: "is-source" IsSource;
@@ -75,7 +72,6 @@ let optimise =
     match (f1, f2) with
     | (ExistsVersion f1, ExistsVersion f2) -> some @@ existsVersion (op f1 f2)
     | (ExistsSet f1, ExistsSet f2) -> some @@ existsSet (op f1 f2)
-    | (ExistsInlineSet f1, ExistsInlineSet f2) -> some @@ existsInlineSet (op f1 f2)
     | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> some @@ existsVersionDeep (op f1 f2)
     | _ -> None
   in
@@ -92,6 +88,5 @@ let optimise =
         p
       | ExistsVersion vfilter -> existsVersion @@ Version.optimise vfilter
       | ExistsSet sfilter -> existsSet @@ Set.optimise sfilter
-      | ExistsInlineSet sfilter -> existsInlineSet @@ Set.optimise sfilter
       | ExistsVersionDeep vfilter -> existsVersionDeep @@ Version.optimise vfilter
     )

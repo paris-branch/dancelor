@@ -4,7 +4,7 @@ open Common
 let render set set_parameters rendering_parameters =
   let book =
     let title = "" in
-    let contents = [Model.Book.InlineSet (set, set_parameters)] in
+    let contents = [Model.Book.Set (Entry.make_dummy set, set_parameters)] in
     Model.Book.make ~title ~contents ()
   in
   let book_parameters =

@@ -41,25 +41,12 @@ module Make (Model : ModelBuilder.S) = struct
             content
         in
         Formula.interpret_exists (accepts_set sfilter) sets
-      | ExistsInlineSet sfilter ->
-        let%lwt content = Model.Book.contents' book in
-        let%lwt isets =
-          Lwt_list.filter_map_s
-            (* FIXME: unInlineSet *)
-            (function
-              | Model.Book.InlineSet (s, _p) -> lwt_some s
-              | _ -> lwt_none
-            )
-            content
-        in
-        Formula.interpret_exists (accepts_set sfilter % Entry.make_dummy) isets
       | ExistsVersionDeep vfilter ->
         (* recursive call to check the compound formula *)
         flip accepts_book book @@
           Formula.or_l
             Core.[Formula.pred (Book.ExistsVersion vfilter);
             Formula.pred (Book.ExistsSet (Set.existsVersion' vfilter));
-            Formula.pred (Book.ExistsInlineSet (Set.existsVersion' vfilter));
             ]
 
   and accepts_dance filter dance =
