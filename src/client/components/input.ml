@@ -15,6 +15,7 @@ let prepare (type value)
   ~serialise
   ~validate
   ?(oninput = fun _ -> ())
+  ?template
   ()
   : (value, string) Component.s
 = (module struct
@@ -116,11 +117,26 @@ let prepare (type value)
     | Text {input; _} -> input
     | Textarea {textarea; _} -> textarea
 
-  let actions _ = S.const []
+  let actions i =
+    S.const (
+      match template with
+      | None -> []
+      | Some template ->
+        [
+          Button.make
+            ~classes: ["btn-info"]
+            ~icon: "magic"
+            ~onclick: (fun _ ->
+              i.set template;
+              lwt_unit
+            )
+            ()
+        ]
+    )
 end)
 
-let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput initial_value =
-  Component.initialise (prepare ~type_ ~label ?placeholder ~serialise ~validate ?oninput ()) initial_value
+let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =
+  Component.initialise (prepare ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template ()) initial_value
 
 let inactive ~label value =
   Component.html_fake ~label @@

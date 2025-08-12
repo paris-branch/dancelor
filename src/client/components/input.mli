@@ -12,6 +12,7 @@ val make :
   serialise: ('value -> string) ->
   validate: (string -> ('value, string) result S.t) ->
   ?oninput: (string -> unit) ->
+  ?template: string ->
   string ->
   ('value, string) Component.t
 
@@ -30,6 +31,7 @@ val prepare :
   serialise: ('value -> string) ->
   validate: (string -> ('value, string) result S.t) ->
   ?oninput: (string -> unit) ->
+  ?template: string ->
   unit ->
   ('value, string) Component.s
 (** Variant of {!make} that only prepares the component. It must still be
