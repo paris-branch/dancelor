@@ -5,6 +5,9 @@ open Components
 open Html
 open Utils
 
+let (show_preview, set_show_preview) = S.create false
+let flip_show_preview () = set_show_preview (not (S.value show_preview))
+
 let editor =
   let open Editor in
   Input.prepare
@@ -46,7 +49,9 @@ let editor =
       Selector.prepare
         ~make_result: AnyResult.make_version_result'
         ~make_more_results: (fun version ->
-          [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+          flip S.map show_preview @@ function
+            | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+            | false -> []
         )
         ~label: "Version"
         ~model_name: "version"
@@ -57,6 +62,18 @@ let editor =
         )
         ~unserialise: Model.Version.get
         ()
+    )
+    ~more_actions: (
+      let flip_show_preview_button ~icon =
+        Button.make
+          ~classes: ["btn-info"]
+          ~icon
+          ~onclick: (fun _ -> flip_show_preview (); lwt_unit)
+          ()
+      in
+      flip S.map show_preview @@ function
+        | true -> [flip_show_preview_button ~icon: "eye"]
+        | false -> [flip_show_preview_button ~icon: "eye-slash"]
     ) ^::
   Input.prepare
     ~type_: Text

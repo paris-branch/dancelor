@@ -18,8 +18,8 @@ let prepare (type model)
     Utils.ResultRow.t
   )
   ?(make_more_results =
-  (const []: model Entry.t ->
-    Utils.ResultRow.t list))
+  (const (S.const []): model Entry.t ->
+    Utils.ResultRow.t list S.t))
   ~model_name
   ~(create_dialog_content :
     ?on_save: (model Entry.t -> unit) ->
@@ -154,7 +154,7 @@ let prepare (type model)
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
-                  [tbody (List.map Utils.ResultRow.to_clickable_row (make_more_results model))];
+                  [R.tbody (S.map (List.map Utils.ResultRow.to_clickable_row) (make_more_results model))];
               ]
             ]
       )
