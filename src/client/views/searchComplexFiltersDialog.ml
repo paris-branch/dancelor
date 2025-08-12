@@ -344,6 +344,7 @@ let open_ text raws filter =
               | Some Set -> set_formula
               | Some Tune -> tune_formula
               | Some Version -> version_formula
+              | Some User -> assert false (* not actually selectable in the interface *)
           );
 
           (* a conjunction of the raw strings *)
@@ -371,6 +372,7 @@ let open_ text raws filter =
           | Some Set -> set_html
           | Some Tune -> tune_html
           | Some Version -> version_html
+          | Some User -> assert false (* not actually selectable in the interface *)
       );
     ]
     ~buttons: [

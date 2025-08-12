@@ -189,6 +189,32 @@ let make_version_result ?classes ?context ?prefix ?suffix version =
     ?suffix
     version
 
+let make_user_result' ?classes ?action ?(prefix = []) ?(suffix = []) user =
+  ResultRow.make
+    ?classes
+    ?action
+    (
+      prefix @
+      [ResultRow.cell ~a: [a_colspan 3] [txt @@ User.username' user];
+      ] @
+      suffix
+    )
+
+let make_user_result ?classes ?context ?prefix ?suffix user =
+  ignore context;
+  make_user_result'
+    ?classes
+    ~action: NoAction
+    (* FIXME: make a user href *)
+    (* ResultRow.link @@ *)
+    (*   Option.fold *)
+    (*     context *)
+    (*     ~none: (S.const @@ Endpoints.Page.href_user @@ Entry.id user) *)
+    (*     ~some: (S.map (fun context -> Endpoints.Page.href_user ~context @@ Entry.id user)) *)
+    ?prefix
+    ?suffix
+    user
+
 let any_type_to_bi = function
   | Any.Type.Source -> "bi-archive"
   | Person -> "bi-person"
@@ -197,6 +223,7 @@ let any_type_to_bi = function
   | Version -> "bi-music-note-beamed"
   | Set -> "bi-list-stars"
   | Book -> "bi-book"
+  | User -> "bi-person-circle"
 
 let make_result ?classes ?context any =
   let type_ = Any.type_of any in
@@ -217,3 +244,4 @@ let make_result ?classes ?context any =
   | Set set -> make_set_result ?classes ?context ~prefix set
   | Tune tune -> make_tune_result ?classes ?context ~prefix tune
   | Version version -> make_version_result ?classes ?context ~prefix version
+  | User user -> make_user_result ?classes ?context ~prefix user

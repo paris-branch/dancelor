@@ -12,6 +12,7 @@ module Build (Getters : Getters.S) = struct
     | Set s1, Set s2 -> Entry.equal' s1 s2
     | Tune t1, Tune t2 -> Entry.equal' t1 t2
     | Version v1, Version v2 -> Entry.equal' v1 v2
+    | User u1, User u2 -> Entry.equal' u1 u2
     | _ -> false
 
   let name = function
@@ -22,4 +23,5 @@ module Build (Getters : Getters.S) = struct
     | Set s -> lwt @@ Core.Set.name' s
     | Tune t -> lwt @@ Core.Tune.one_name' t
     | Version v -> Core.Tune.one_name' <$> Getters.get_tune @@ Core.Version.tune @@ Entry.value v
+    | User u -> lwt @@ Core.User.username' u
 end

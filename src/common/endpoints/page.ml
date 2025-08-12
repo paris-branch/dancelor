@@ -106,6 +106,7 @@ let href_any ?context any =
   | Dance dance -> href_dance ?context (Entry.id dance)
   | Book book -> href_book ?context (Entry.id book)
   | Tune tune -> href_tune ?context (Entry.id tune)
+  | User _ -> assert false (* FIXME: user visualisation page *)
 
 module MakeDescribe (Model : ModelBuilder.S) = struct
   let describe = fun uri ->

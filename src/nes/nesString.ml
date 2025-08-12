@@ -282,6 +282,9 @@ end)
 module Map = struct
   include Map.Make(struct type nonrec t = t let compare = compare end)
 
+  type ('k, 'v) proxy = ('k * 'v) list [@@deriving show {with_path = false}]
+  let pp pp_v fmt m = pp_proxy Format.pp_print_string pp_v fmt (to_list m)
+
   let to_yojson a_to_yojson m = `Assoc (List.map (fun (k, v) -> (k, a_to_yojson v)) (to_list m))
   let of_yojson a_of_yojson = function
     | `Assoc m ->
