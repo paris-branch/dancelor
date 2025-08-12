@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.get_model_or_404 (Source Get) id @@ fun source ->
+  MainPage.madge_call_or_404 (Source Get) id @@ fun source ->
   Page.make'
     ~parent_title: "Source"
     ~before_title: [

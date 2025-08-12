@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.get_model_or_404 (Dance Get) id @@ fun dance ->
+  MainPage.madge_call_or_404 (Dance Get) id @@ fun dance ->
   Page.make'
     ~parent_title: "Dance"
     ~before_title: [

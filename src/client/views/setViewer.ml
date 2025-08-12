@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.get_model_or_404 (Set Get) id @@ fun set ->
+  MainPage.madge_call_or_404 (Set Get) id @@ fun set ->
   Page.make'
     ~parent_title: "Set"
     ~before_title: [

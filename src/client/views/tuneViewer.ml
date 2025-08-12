@@ -5,7 +5,7 @@ open Model
 open Html
 
 let create ?context id =
-  MainPage.get_model_or_404 (Tune Get) id @@ fun tune ->
+  MainPage.madge_call_or_404 (Tune Get) id @@ fun tune ->
   Page.make'
     ~parent_title: "Tune"
     ~before_title: [

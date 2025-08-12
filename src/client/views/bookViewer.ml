@@ -104,7 +104,7 @@ let table_contents ~this_id contents =
 open Html
 
 let create ?context id =
-  MainPage.get_model_or_404 (Book Get) id @@ fun book ->
+  MainPage.madge_call_or_404 (Book Get) id @@ fun book ->
   Page.make'
     ~parent_title: "Book"
     ~before_title: [

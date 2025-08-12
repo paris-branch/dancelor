@@ -30,7 +30,7 @@ let show_lilypond_dialog id =
       ]
 
 let create ?context id =
-  MainPage.get_model_or_404 (Version Get) id @@ fun version ->
+  MainPage.madge_call_or_404 (Version Get) id @@ fun version ->
   let%lwt tune = Model.Version.tune' version in
   let other_versions_lwt =
     snd

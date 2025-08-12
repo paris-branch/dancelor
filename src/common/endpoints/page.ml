@@ -24,6 +24,7 @@ module Context = struct type t = context [@@deriving yojson] end
 (* FIXME: Make routes independent, for instance with paths /add/book instead of
    /book/add (or new/edit/create), for /book/view/<id> vs /book/add. *)
 type (_, _, _) t =
+  | Any : ((unit Entry.Id.t -> 'w), 'w, Void.t) t
   | BookAdd : ('w, 'w, Void.t) t
   | BookEdit : ((Core.Book.t Entry.Id.t -> 'w), 'w, Void.t) t
   | Book : ((Context.t option -> Core.Book.t Entry.Id.t -> 'w), 'w, Void.t) t
@@ -57,6 +58,7 @@ open Madge
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
+    | Any -> variable (module Entry.Id.S(SUnit)) @@ void ()
     | Book -> literal "book" @@ query_opt "context" (module Context) @@ variable (module Entry.Id.S(Core.Book)) @@ void ()
     | BookAdd -> literal "book" @@ literal "add" @@ void ()
     | BookEdit -> literal "book" @@ literal "edit" @@ variable (module Entry.Id.S(Core.Book)) @@ void ()
@@ -129,6 +131,7 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
       | DanceEdit -> const lwt_none
       | UserCreate -> lwt_none
       | UserPasswordReset -> const2 lwt_none
+      | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version ->
         (fun _ id ->
           let%lwt name = Model.Version.one_name' =<< Model.Version.get id in
