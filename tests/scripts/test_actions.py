@@ -41,7 +41,7 @@ class TestActions():
 
   def test_versionShowLilyPond(self):
     self.driver.get("http://localhost:8080/version/xzzb-wasm-babe")
-    self.driver.find_element(By.XPATH, "//*[contains(text(), 'Actions')]").click()
+    self.driver.find_element(By.XPATH, "(//i[contains(@class, 'bi-three-dots-vertical')])[2]").click()
     self.driver.find_element(By.XPATH, "//*[contains(text(), 'Show LilyPond')]").click()
     with open("tests/database/version/xzzb-wasm-babe/content.ly") as content_file:
       expected = content_file.read().strip()

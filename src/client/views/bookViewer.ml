@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 
 let display_warnings warnings =
@@ -117,6 +116,37 @@ let create ?context id =
     ~subtitles: [
       txt (Book.subtitle' book);
     ]
+    ~share: (Book book)
+    ~actions: (
+      lwt @@
+      [Utils.Button.make
+        ~classes: ["dropdown-item"]
+        ~onclick: (fun _ -> ignore <$> BookDownloadDialog.create_and_open book)
+        ~icon: "file-pdf"
+        ~label: "Download PDF"
+        ();
+      Utils.Button.make_a
+        ~classes: ["dropdown-item"]
+        ~href: (S.const @@ Endpoints.Page.(href BookEdit) id)
+        ~icon: "pencil-square"
+        ~label: "Edit"
+        ()] @ (
+        match Book.scddb_id' book with
+        | None -> []
+        | Some scddb_id ->
+          [
+            a
+              ~a: [
+                a_class ["dropdown-item"];
+                a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
+              ]
+              [
+                i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                txt " See on SCDDB";
+              ]
+          ]
+      )
+    )
     [
       R.div
         (
@@ -133,70 +163,6 @@ let create ?context id =
               | None -> ""
               | Some date -> (spf "Date: %s" (NesPartialDate.to_pretty_string date))
             )
-        ];
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
-            [
-              li [
-                Components.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Book book);
-                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this book has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
-                [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> BookDownloadDialog.create_and_open book); false);
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                      txt " Download PDF";
-                    ];
-                ];
-              li
-                [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href (Endpoints.Page.(href BookEdit) id)
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-pencil-square"]] [];
-                      txt " Edit"
-                    ]
-                ];
-              li
-                (
-                  match Book.scddb_id' book with
-                  | None -> []
-                  | Some scddb_id ->
-                    [
-                      a
-                        ~a: [
-                          a_class ["dropdown-item"];
-                          a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
-                        ]
-                        [
-                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                          txt " See on SCDDB";
-                        ]
-                    ]
-                );
-            ];
         ];
       div
         ~a: [a_class ["section"]]

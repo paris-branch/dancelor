@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 
@@ -28,6 +27,31 @@ let create ?context id =
           lwt (kind @ by)
       );
     ]
+    ~share: (Dance dance)
+    ~actions: (
+      lwt @@
+      [Utils.Button.make
+        ~classes: ["dropdown-item"]
+        ~onclick: (fun _ -> ignore <$> DanceDownloadDialog.create_and_open dance)
+        ~icon: "file-pdf"
+        ~label: "Download PDF"
+        ()] @ (
+        match Dance.scddb_id' dance with
+        | None -> []
+        | Some scddb_id ->
+          [
+            a
+              ~a: [
+                a_class ["dropdown-item"];
+                a_href (Uri.to_string @@ SCDDB.dance_uri scddb_id);
+              ]
+              [
+                i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                txt " See on SCDDB";
+              ]
+          ]
+      );
+    )
     [
       div
         (
@@ -36,58 +60,6 @@ let create ?context id =
           | Some true -> [txt "Two Chords"]
           | None -> [txt "Two Chords: unknown"]
         );
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
-            [
-              li [
-                Components.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Dance dance);
-                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this dance has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
-                [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> DanceDownloadDialog.create_and_open dance); false);
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                      txt " Download PDF";
-                    ];
-                ];
-              li
-                (
-                  match Dance.scddb_id' dance with
-                  | None -> []
-                  | Some scddb_id ->
-                    [
-                      a
-                        ~a: [
-                          a_class ["dropdown-item"];
-                          a_href (Uri.to_string @@ SCDDB.dance_uri scddb_id);
-                        ]
-                        [
-                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                          txt " See on SCDDB";
-                        ]
-                    ]
-                );
-            ];
-        ];
       div
         (
           match Dance.date' dance with

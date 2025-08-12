@@ -68,7 +68,7 @@ let prepare (type value)(type raw_value)
        we need the module type {!Component} to provide an equality. *)
     let (components, set_components) = S.create ~eq: (fun _ _ -> false) @@ List.map C.make initial_values in
     let button_add_object =
-      Button.make
+      Utils.Button.make
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
         ~icon: "plus-circle"
@@ -98,19 +98,19 @@ let prepare (type value)(type raw_value)
                   (C.actions component)
                   (
                     S.const [
-                      Button.make
+                      Utils.Button.make
                         ~icon: "trash"
                         ~tooltip: ("Remove this " ^ String.lowercase_ascii C.label ^ " from the list. It cannot be recovered.")
                         ~classes: ["btn-warning"]
                         ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
                         ();
-                      Button.make
+                      Utils.Button.make
                         ~icon: "arrow-down"
                         ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " down in the list.")
                         ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
                         ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
                         ();
-                      Button.make
+                      Utils.Button.make
                         ~icon: "arrow-up"
                         ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " up in the list.")
                         ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))

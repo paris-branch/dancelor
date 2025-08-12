@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 
@@ -15,46 +14,22 @@ let create ?context id =
         (lwt @@ Any.person person);
     ]
     ~title: (lwt @@ Person.name' person)
+    ~share: (Person person)
+    ~actions: (
+      lwt @@
+        match Person.scddb_id' person with
+        | None -> []
+        | Some scddb_id ->
+          [
+            Utils.Button.make_a
+              ~label: "See on SCDDB"
+              ~icon: "box-arrow-up-right"
+              ~classes: ["dropdown-item"]
+              ~href: (S.const @@ Uri.to_string @@ SCDDB.person_uri scddb_id)
+              ()
+          ]
+    )
     [
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
-            [
-              li [
-                Components.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Person person);
-                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this person has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
-                (
-                  match Person.scddb_id' person with
-                  | None -> []
-                  | Some scddb_id ->
-                    [
-                      a
-                        ~a: [
-                          a_class ["dropdown-item"];
-                          a_href (Uri.to_string @@ SCDDB.person_uri scddb_id);
-                        ]
-                        [
-                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                          txt " See on SCDDB";
-                        ]
-                    ]
-                );
-            ];
-        ];
       Utils.quick_explorer_links'
         (lwt person)
         [

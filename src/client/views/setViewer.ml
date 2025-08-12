@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 
@@ -30,55 +29,35 @@ let create ?context id =
           | devisers -> lwt [txt "Set by "; Formatters.Person.names' ~links: true devisers]
       );
     ]
-    [
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
+    ~share: (Set set)
+    ~actions: (
+      lwt
         [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
-            [
-              li [
-                Components.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Set set);
-                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this set has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
+          Utils.Button.make
+            ~classes: ["dropdown-item"]
+            ~onclick: (fun _ -> ignore <$> SetDownloadDialog.create_and_open set)
+            ~icon: "file-pdf"
+            ~label: "Download PDF"
+            ();
+          Utils.Button.make
+            ~classes: ["dropdown-item"]
+            ~onclick: (fun _ ->
+              BookEditor.add_set_to_storage id;
+              Utils.Toast.open_
+                ~title: "Added to current book"
                 [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> SetDownloadDialog.create_and_open set); false);
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                      txt " Download PDF";
-                    ];
+                  txt "This set was added to the current book. You can see that in the ";
+                  a ~a: [a_href Endpoints.Page.(href BookAdd)] [txt "book editor"];
+                  txt ".";
                 ];
-              li
-                [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href Endpoints.Page.(href BookAdd);
-                      a_onclick (fun _ -> BookEditor.add_to_storage id; true);
-                    ]
-                    [
-                      i ~a: [a_class ["bi"; "bi-plus-square"]] [];
-                      txt " Add to current book";
-                    ];
-                ];
-            ];
-        ];
+              lwt_unit
+            )
+            ~icon: "plus-square"
+            ~label: "Add to current book"
+            ()
+        ]
+    )
+    [
       p
         [
           txt

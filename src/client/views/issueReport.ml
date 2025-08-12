@@ -86,8 +86,8 @@ let open_dialog page =
       Component.html description_input;
       ]
       ~buttons: [
-        Button.cancel' ~return ();
-        Button.make
+        Utils.Button.cancel' ~return ();
+        Utils.Button.make
           ~label: "Report"
           ~label_processing: "Reporting..."
           ~icon: "bug"
@@ -109,7 +109,7 @@ let open_dialog page =
   (
     match response with
     | Some response ->
-      Components.Toast.open_
+      Utils.Toast.open_
         ~title: "Issue reported"
         [
           txt "Your issue has been reported as: ";
@@ -117,7 +117,7 @@ let open_dialog page =
           txt " You can track its progress there.";
         ]
     | None ->
-      Components.Toast.open_
+      Utils.Toast.open_
         ~title: "Issue not reported"
         [
           txt

@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 open Components
@@ -376,9 +375,9 @@ let open_ text raws filter =
       );
     ]
     ~buttons: [
-      Button.cancel ~onclick: (fun () -> return text; lwt_unit) ();
-      Button.clear ~onclick: (fun () -> return "") ();
-      Button.make
+      Utils.Button.cancel ~onclick: (fun () -> return text; lwt_unit) ();
+      Utils.Button.clear ~onclick: (fun () -> return "") ();
+      Utils.Button.make
         ~label: "Apply"
         ~label_processing: "Applying..."
         ~icon: "check-circle"

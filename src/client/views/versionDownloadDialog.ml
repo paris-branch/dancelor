@@ -65,8 +65,8 @@ let open_ version dialog =
     ~title: (lwt "Download a PDF")
     [table dialog.choice_rows]
     ~buttons: [
-      Button.cancel' ~return ();
-      Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) (Entry.id version) slug params RenderingParameters.none) dialog.parameters_signal) ();
+      Utils.Button.cancel' ~return ();
+      Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) (Entry.id version) slug params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
 let create_and_open id = open_ id (create ())

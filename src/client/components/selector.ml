@@ -60,13 +60,13 @@ let prepare (type model)
       | None -> []
       | Some _ ->
         [
-          Button.make
+          Utils.Button.make
             ~classes: ["btn-warning"]
             ~icon: "eraser"
             ~tooltip: "Clear the selection. It cannot be recovered."
             ~onclick: (fun _ -> s.set None; lwt_unit)
             ();
-          Button.make
+          Utils.Button.make
             ~classes: ["btn-info"]
             ~icon: "pencil-square"
             ~tooltip: ("Edit the selected " ^ model_name ^ ".")
@@ -106,7 +106,7 @@ let prepare (type model)
               result
           )
           ~dialog_buttons: [
-            Button.make
+            Utils.Button.make
               ~label: ("Create new " ^ model_name)
               ~label_processing: ("Creating new " ^ model_name ^ "...")
               ~icon: "plus-circle"
@@ -126,7 +126,7 @@ let prepare (type model)
       lwt_unit
     in
     let select_button =
-      Button.make
+      Utils.Button.make
         ~label: ("Select a " ^ model_name)
         ~label_processing: ("Selecting a " ^ model_name ^ "...")
         ~classes: ["btn-outline-secondary"; "w-100"; "text-start"]
@@ -142,7 +142,7 @@ let prepare (type model)
               div
                 ~a: [a_class ["btn-group"; "w-100"]]
                 [
-                  Button.make_icon "search" ~classes: ["btn-light"];
+                  Utils.Button.make_icon "search" ~classes: ["btn-light"];
                   select_button;
                 ];
             ]

@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Js_of_ocaml
 open Html
 
@@ -33,7 +32,7 @@ let open_quick_search () =
     ~return
     ~dialog_title: (lwt "Quick search")
     ~dialog_buttons: [
-      Components.Button.make
+      Utils.Button.make
         ~label: "Explore"
         ~label_processing: "Opening explorer..."
         ~icon: "zoom-in"
@@ -49,7 +48,7 @@ let nav_item_explore =
   li
     ~a: [a_class ["nav-item"; "dropdown"]]
     [
-      Components.Button.make
+      Utils.Button.make
         ~label: "Explore"
         ~classes: ["text-white"; "dropdown-toggle"]
         ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
@@ -63,7 +62,7 @@ let nav_item_explore =
             List.map
               (fun (icon, key, label) ->
                 let href = S.const @@ Endpoints.Page.(href Explore) @@ some @@ TextFormula.(to_string (Formula.pred (Unary ("type", Formula.pred (Raw key))))) in
-                li [Components.Button.make_a ~label ~icon ~href ~classes: ["dropdown-item"] ()]
+                li [Utils.Button.make_a ~label ~icon ~href ~classes: ["dropdown-item"] ()]
               )
               [
                 ("archive", "source", "Sources");
@@ -83,7 +82,7 @@ let nav_item_create =
       li
         ~a: [a_class ["nav-item"; "dropdown"]]
         [
-          Components.Button.make
+          Utils.Button.make
             ~label: "Add"
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]
@@ -94,7 +93,7 @@ let nav_item_create =
               let open Endpoints.Page in
               List.map
                 (fun (icon, href, label) ->
-                  li [Components.Button.make_a ~label ~icon ~href: (S.const href) ~classes: ["dropdown-item"] ()]
+                  li [Utils.Button.make_a ~label ~icon ~href: (S.const href) ~classes: ["dropdown-item"] ()]
                 )
                 [
                   ("archive", href SourceAdd, "Source");
@@ -130,7 +129,7 @@ let header =
             [
               img ~a: [a_height 60] ~src: "/logo.svg" ~alt: "Dancelor" ();
             ];
-          Components.Button.make
+          Utils.Button.make
             ~icon: "search"
             ~classes: ["btn-light"; "me-2"; "d-block"; "d-sm-none"]
             ~onclick: (Lwt.map ignore % open_quick_search)
@@ -154,7 +153,7 @@ let header =
                   ]
                 );
             ];
-          Components.Button.make
+          Utils.Button.make
             ~label: "Search"
             ~icon: "search"
             ~badge: "/"
@@ -201,7 +200,7 @@ let footer =
               i ~a: [a_class ["bi"; "bi-github"]] [];
               txt "paris-branch/dancelor";
             ];
-          Components.Button.make
+          Utils.Button.make
             ~label: "Report an issue"
             ~label_processing: "Reporting..."
             ~icon: "bug"

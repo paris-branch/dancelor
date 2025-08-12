@@ -23,7 +23,7 @@ let open_token_result_dialog user token =
         txt " for them to create a password.";
       ];
       ]
-      ~buttons: [Button.ok' ~return ()]
+      ~buttons: [Utils.Button.ok' ~return ()]
 
 let create () =
   MainPage.assert_can_admin @@ fun () ->
@@ -65,7 +65,7 @@ let create () =
     Component.html person_selector;
     ]
     ~buttons: [
-      Button.make
+      Utils.Button.make
         ~label: "Create user"
         ~label_processing: "Creating user..."
         ~classes: ["btn-primary"]

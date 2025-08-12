@@ -65,6 +65,9 @@ let interspersei ?last mid l =
 let intersperse ?last mid =
   interspersei ?last: (Option.map Fun.const last) (Fun.const mid)
 
+let%test _ = intersperse "and" ["a"; "b"; "c"] = ["a"; "and"; "b"; "and"; "c"]
+let%test _ = intersperse "," ~last: "and" ["a"; "b"; "c"] = ["a"; ","; "b"; "and"; "c"]
+
 let singleton x = [x]
 
 let rec compare_lwt cmp l1 l2 =

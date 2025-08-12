@@ -92,7 +92,7 @@ let editor =
 
 let add_to_storage version =
   Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
-  (name, (kind, (conceptors, (versions @ [version], (order, ())))))
+  (name, (kind, (conceptors, (versions @ [Some version], (order, ())))))
 
 let preview (name, (kind, (conceptors, (contents, (order, ()))))) =
   let contents = List.map (fun version -> (version, Model.VersionParameters.none)) contents in
