@@ -95,4 +95,7 @@ module type S = sig
 
   val type_of : t -> Type.t
   (** Get the type of an “any” element. *)
+
+  val to_entry : t -> unit Entry.t
+  (** Cast an {!Any.t} to an entry. Of course, the value then needs to be forgotten. *)
 end

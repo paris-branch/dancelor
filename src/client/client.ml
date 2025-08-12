@@ -9,7 +9,7 @@ let get_uri () = Uri.of_string (Js.to_string Dom_html.window##.location##.href)
 
 let redirect_any id =
   MainPage.madge_call_or_404 (Any Get) id @@ fun any ->
-  RedirectionViewer.create (Endpoints.Page.href_any any)
+  RedirectionViewer.create (Endpoints.Page.href_any_full any)
 
 let dispatch uri =
   let dispatch : type a r. (a, Page.t Lwt.t, r) Endpoints.Page.t -> a = function

@@ -92,3 +92,8 @@ module J (A : Madge.JSONABLE) : Madge.JSONABLE with type t = A.t t = struct
   let to_yojson = to_yojson A.to_yojson
   let of_yojson = of_yojson A.of_yojson
 end
+
+let unsafe_set_value entry value =
+  match entry with
+  | Full (id, meta, _) -> Full (Id.unsafe_coerce id, meta, value)
+  | Dummy _ -> Dummy value

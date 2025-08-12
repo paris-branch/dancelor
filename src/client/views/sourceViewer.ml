@@ -25,6 +25,19 @@ let create ?context id =
           ul
             ~a: [a_class ["dropdown-menu"]]
             [
+              li [
+                Components.Button.make
+                  ~label: "Share"
+                  ~label_processing: "Sharing..."
+                  ~icon: "share"
+                  ~classes: ["dropdown-item"]
+                  ~onclick: (fun () ->
+                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Source source);
+                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this source has been copied to your clipboard."];
+                    lwt_unit
+                  )
+                  ();
+              ];
               li
                 (
                   match Source.scddb_id' source with

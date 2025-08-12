@@ -6,17 +6,7 @@ let get env id =
   | None ->
     Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
   | Some any ->
-    (
-      match any with
-      | Source source -> Permission.assert_can_get env source
-      | Person person -> Permission.assert_can_get env person
-      | Dance dance -> Permission.assert_can_get env dance
-      | Book book -> Permission.assert_can_get env book
-      | Set set -> Permission.assert_can_get env set
-      | Tune tune -> Permission.assert_can_get env tune
-      | Version version -> Permission.assert_can_get env version
-      | User user -> Permission.assert_can_get env user
-    );%lwt
+    Permission.assert_can_get env (Model.Any.to_entry any);%lwt
     lwt any
 
 include Search.Build(struct

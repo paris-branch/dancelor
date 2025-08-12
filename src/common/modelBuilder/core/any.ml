@@ -98,3 +98,13 @@ let type_of = function
   | Tune _ -> Type.Tune
   | Version _ -> Type.Version
   | User _ -> Type.User
+
+let to_entry = function
+  | Source entry -> Entry.unsafe_set_value entry ()
+  | Person entry -> Entry.unsafe_set_value entry ()
+  | Dance entry -> Entry.unsafe_set_value entry ()
+  | Book entry -> Entry.unsafe_set_value entry ()
+  | Set entry -> Entry.unsafe_set_value entry ()
+  | Tune entry -> Entry.unsafe_set_value entry ()
+  | Version entry -> Entry.unsafe_set_value entry ()
+  | User entry -> Entry.unsafe_set_value entry ()

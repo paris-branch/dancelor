@@ -98,7 +98,7 @@ let href_set ?context set = href Set context set
 let href_tune ?context tune = href Tune context tune
 let href_version ?context version = href Version context version
 
-let href_any ?context any =
+let href_any_full ?context any =
   let open Core.Any in
   match any with
   | Version version -> href_version ?context (Entry.id version)
