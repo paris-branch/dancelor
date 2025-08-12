@@ -7,7 +7,7 @@ open Html
 val make :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
-  unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
+  unserialise: ('model Entry.Id.t -> 'model Entry.t option Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?action: Utils.ResultRow.action ->
@@ -31,7 +31,7 @@ val make :
 val prepare :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
-  unserialise: ('model Entry.Id.t -> 'model Entry.t Lwt.t) ->
+  unserialise: ('model Entry.Id.t -> 'model Entry.t option Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?action: Utils.ResultRow.action ->

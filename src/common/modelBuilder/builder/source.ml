@@ -5,6 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_source
 
-  let editors = Lwt_list.map_p Getters.get_person % editors
+  let editors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % editors
   let editors' = editors % Entry.value
 end

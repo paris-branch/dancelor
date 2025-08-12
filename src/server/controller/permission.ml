@@ -31,6 +31,11 @@ let can_get env entry =
     ~none: (fun () -> Entry.(privacy % meta) entry = Public)
     ~some: (fun _user -> true)
 
+(** The rejection of {!asert_can_get}. May be used by external code to behave in
+    the exact same way and avoid leaking information. *)
+let reject_can_get () =
+  Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
+
 let assert_can_get env entry =
   if can_get env entry then
     (
@@ -40,7 +45,7 @@ let assert_can_get env entry =
   else
     (
       Log.info (fun m -> m "Refusing get access for entry `%a` to %a." Entry.Id.pp' (Common.Entry.id entry) Environment.pp env);
-      Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
+      reject_can_get ()
     )
 
 (** {2 Creating} *)

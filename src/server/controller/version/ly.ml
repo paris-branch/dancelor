@@ -4,9 +4,11 @@ open Common
 module Log = (val Logger.create "controller.version.ly": Logs.LOG)
 
 let get env id =
-  let%lwt version = Model.Version.get id in
-  Permission.assert_can_get env version;%lwt
-  lwt @@ Model.Version.content' version
+  match%lwt Database.Version.get id with
+  | None -> Permission.reject_can_get ()
+  | Some version ->
+    Permission.assert_can_get env version;%lwt
+    lwt @@ Model.Version.content' version
 
 let prepare_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname version =
   Log.debug (fun m -> m "Preparing Lilypond file");

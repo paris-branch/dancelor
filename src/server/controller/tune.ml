@@ -2,9 +2,11 @@ open Nes
 open Common
 
 let get env id =
-  let%lwt tune = Model.Tune.get id in
-  Permission.assert_can_get env tune;%lwt
-  lwt tune
+  match%lwt Database.Tune.get id with
+  | None -> Permission.reject_can_get ()
+  | Some tune ->
+    Permission.assert_can_get env tune;%lwt
+    lwt tune
 
 let create env tune =
   Permission.assert_can_create env;%lwt

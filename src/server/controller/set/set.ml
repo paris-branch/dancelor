@@ -4,9 +4,11 @@ open Common
 module Pdf = Pdf
 
 let get env id =
-  let%lwt set = Model.Set.get id in
-  Permission.assert_can_get env set;%lwt
-  lwt set
+  match%lwt Database.Set.get id with
+  | None -> Permission.reject_can_get ()
+  | Some set ->
+    Permission.assert_can_get env set;%lwt
+    lwt set
 
 let create env set =
   Permission.assert_can_create env;%lwt

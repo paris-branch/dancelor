@@ -5,13 +5,13 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_version
 
-  let tune = Getters.get_tune % tune
+  let tune = Lwt.map Option.get % Getters.get_tune % tune
   let tune' = tune % Entry.value
 
-  let sources = Lwt_list.map_p Getters.get_source % sources
+  let sources = Lwt_list.map_p (Lwt.map Option.get % Getters.get_source) % sources
   let sources' = sources % Entry.value
 
-  let arrangers = Lwt_list.map_p Getters.get_person % arrangers
+  let arrangers = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % arrangers
   let arrangers' = arrangers % Entry.value
 
   let kind version =

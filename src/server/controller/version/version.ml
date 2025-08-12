@@ -7,9 +7,11 @@ module Ogg = Ogg
 module Pdf = Pdf
 
 let get env id =
-  let%lwt version = Model.Version.get id in
-  Permission.assert_can_get env version;%lwt
-  lwt version
+  match%lwt Database.Version.get id with
+  | None -> Permission.reject_can_get ()
+  | Some version ->
+    Permission.assert_can_get env version;%lwt
+    lwt version
 
 let create env version =
   Permission.assert_can_create env;%lwt

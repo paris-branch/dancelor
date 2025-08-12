@@ -117,7 +117,7 @@ let mode_from_text_or_id get initial_text maybe_id =
   match initial_text, maybe_id with
   | None, None -> lwt @@ CreateWithLocalStorage
   | Some initial_text, None -> lwt @@ QuickCreate initial_text
-  | None, Some id -> edit <$> get id
+  | None, Some id -> edit % Option.get <$> get id
   | _ -> invalid_arg "mode_from_text_and_edit"
 
 let make_page (type value)(type raw_value)

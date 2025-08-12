@@ -2,9 +2,11 @@ open Nes
 open Common
 
 let get env id =
-  let%lwt source = Model.Source.get id in
-  Permission.assert_can_get env source;%lwt
-  lwt source
+  match%lwt Database.Source.get id with
+  | None -> Permission.reject_can_get ()
+  | Some source ->
+    Permission.assert_can_get env source;%lwt
+    lwt source
 
 let create env source =
   Permission.assert_can_create env;%lwt

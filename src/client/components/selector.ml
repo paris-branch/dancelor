@@ -88,7 +88,7 @@ let prepare (type model)
       let%lwt initial_value =
         match initial_value with
         | None -> lwt_none
-        | Some initial_value -> some <$> unserialise initial_value
+        | Some initial_value -> unserialise initial_value
       in
       set initial_value;
       lwt_unit
