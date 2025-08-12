@@ -78,19 +78,31 @@ end
 
 (** {2 Global id uniqueness} *)
 
-let (make_globally_unique_id, register_globally_unique_id) =
-  let all_ids_table : (unit Entry.Id.t, unit) Hashtbl.t = Hashtbl.create 8 in
-  let rec make_globally_unique_id () =
+module GloballyUniqueId : sig
+    val make : unit -> 'any Entry.Id.t
+    (** Make a globally unique id. This does not register the id as already
+        existing, and therefore there is a chance, by calling this function
+        several times consecutively, that it returns the same id. *)
+
+    val register : 'any Entry.t -> unit
+    (** Register an entry in the global id table. This is used to ensure that
+        ids are globally unique across all tables. *)
+  end
+= struct
+  let all_ids_table : (unit Entry.Id.t, unit) Hashtbl.t = Hashtbl.create 8
+
+  let rec make () : 'any Entry.Id.t =
     let id = Entry.Id.make () in
     if not @@ Hashtbl.mem all_ids_table id then
-      id
+      Entry.Id.unsafe_coerce id
     else
-      make_globally_unique_id () (* extremely unlikely *)
-  in let register_globally_unique_id id =
+      make () (* extremely unlikely *)
+
+  let register (entry : 'any Entry.t) : unit =
+    let id = Entry.Id.unsafe_coerce (Entry.id entry) in
     assert (not @@ Hashtbl.mem all_ids_table id);
     Hashtbl.add all_ids_table id ()
-  in
-    (make_globally_unique_id, register_globally_unique_id)
+end
 
 (** {2 Database Functor} *)
 
@@ -122,7 +134,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       lwt @@
         match Entry.of_yojson' (Entry.Id.of_string_exn entry) Model.of_yojson !json with
         | Ok model ->
-          register_globally_unique_id (Entry.Id.unsafe_coerce @@ Entry.id model);
+          GloballyUniqueId.register model;
           Hashtbl.add table (Entry.id model) (Stats.empty (), model);
           Log.debug (fun m -> m "Loaded %s %s" _key entry);
         | Error msg ->
@@ -222,7 +234,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> lwt
 
   let create model =
-    let id = Entry.Id.unsafe_coerce @@ make_globally_unique_id () in
+    let id = GloballyUniqueId.make () in
     let model = Entry.make ~id model in
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
@@ -239,7 +251,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       ~msg: (spf "save %s / %s" Model._key (Entry.Id.to_string id))
       Model._key
       (Entry.Id.to_string id);%lwt
-    register_globally_unique_id (Entry.Id.unsafe_coerce @@ Entry.id model);
+    GloballyUniqueId.register model;
     Hashtbl.add table id (Stats.empty (), model);
     (* FIXME: not add and not Stats.empty when editing. *)
     lwt model
