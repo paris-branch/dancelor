@@ -29,7 +29,7 @@ type 'result mode =
 [@@deriving variants]
 
 val mode_from_text_or_id :
-  ('id -> 'result Lwt.t) ->
+  ('id -> 'result option Lwt.t) ->
   string option ->
   'id option ->
   'result mode Lwt.t

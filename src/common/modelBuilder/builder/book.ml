@@ -8,7 +8,7 @@ module Build (Getters : Getters.S) = struct
   let short_title book = if short_title book = "" then title book else short_title book
   let short_title' = short_title % Entry.value
 
-  let authors = Lwt_list.map_p Getters.get_person % authors
+  let authors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % authors
   let authors' = authors % Entry.value
 
   let compare : t Entry.t -> t Entry.t -> int = fun x y ->
@@ -20,10 +20,10 @@ module Build (Getters : Getters.S) = struct
     Lwt_list.map_p
       (function
         | Core.Book.Page.Version (version, parameters) ->
-          let%lwt version = Getters.get_version version in
+          let%lwt version = Option.get <$> Getters.get_version version in
           lwt (Version (version, parameters))
         | Core.Book.Page.Set (set, parameters) ->
-          let%lwt set = Getters.get_set set in
+          let%lwt set = Option.get <$> Getters.get_set set in
           lwt (Set (set, parameters))
         | Core.Book.Page.InlineSet (set, parameters) ->
           lwt (InlineSet (set, parameters))
@@ -133,7 +133,7 @@ module Build (Getters : Getters.S) = struct
       (* register standalone tunes *)
       Lwt_list.iter_s
         (fun v ->
-          let%lwt tune = Getters.get_tune @@ Core.Version.tune' v in
+          let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' v in
           register_tune_to_set tune None;
           lwt_unit
         )
@@ -145,7 +145,7 @@ module Build (Getters : Getters.S) = struct
           let versions = List.map fst contents in
           Lwt_list.iter_s
             (fun v ->
-              let%lwt tune = Getters.get_tune @@ Core.Version.tune' v in
+              let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' v in
               register_tune_to_set tune (Some set);
               lwt_unit
             )
@@ -183,7 +183,7 @@ module Build (Getters : Getters.S) = struct
           let%olwt dance_id = lwt (Core.SetParameters.for_dance parameters) in
           (* FIXME: SetParameters should be hidden behind the same kind of
              mechanism as the rest; and this step should not be necessary *)
-          let%lwt dance = Getters.get_dance dance_id in
+          let%lwt dance = Option.get <$> Getters.get_dance dance_id in
           if Core.Set.kind' set = Core.Dance.kind' dance then
             lwt_none
           else
@@ -210,10 +210,10 @@ module Build (Getters : Getters.S) = struct
 
   let page_core_to_page = function
     | Core.Book.Page.Version (version, params) ->
-      let%lwt version = Getters.get_version version in
+      let%lwt version = Option.get <$> Getters.get_version version in
       lwt @@ Version (version, params)
     | Core.Book.Page.Set (set, params) ->
-      let%lwt set = Getters.get_set set in
+      let%lwt set = Option.get <$> Getters.get_set set in
       lwt @@ Set (set, params)
     | Core.Book.Page.InlineSet (set, params) ->
       lwt @@ InlineSet (set, params)

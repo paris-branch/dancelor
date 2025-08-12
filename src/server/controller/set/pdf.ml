@@ -35,7 +35,9 @@ let render set set_parameters rendering_parameters =
   Book.Pdf.render book book_parameters rendering_parameters
 
 let get env id _slug set_parameters rendering_parameters =
-  let%lwt set = Model.Set.get id in
-  Permission.assert_can_get env set;%lwt
-  let%lwt path_pdf = render (Entry.value set) set_parameters rendering_parameters in
-  Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
+  match%lwt Model.Set.get id with
+  | None -> Permission.reject_can_get ()
+  | Some set ->
+    Permission.assert_can_get env set;%lwt
+    let%lwt path_pdf = render (Entry.value set) set_parameters rendering_parameters in
+    Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf

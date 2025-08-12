@@ -9,6 +9,6 @@ module Build (Getters : Getters.S) = struct
 
   let for_dance p =
     let%olwt dance_id = lwt (for_dance p) in
-    let%lwt dance = Getters.get_dance dance_id in
+    let%lwt dance = Option.get <$> Getters.get_dance dance_id in
     lwt_some dance
 end

@@ -5,9 +5,11 @@ module Ly = Ly
 module Pdf = Pdf
 
 let get env id =
-  let%lwt book = Model.Book.get id in
-  Permission.assert_can_get env book;%lwt
-  lwt book
+  match%lwt Database.Book.get id with
+  | None -> Permission.reject_can_get ()
+  | Some book ->
+    Permission.assert_can_get env book;%lwt
+    lwt book
 
 let create env book =
   Permission.assert_can_create env;%lwt

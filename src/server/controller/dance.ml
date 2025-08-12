@@ -4,9 +4,11 @@ open Common
 module Log = (val Logger.create "controller.dance": Logs.LOG)
 
 let get env id =
-  let%lwt dance = Model.Dance.get id in
-  Permission.assert_can_get env dance;%lwt
-  lwt dance
+  match%lwt Database.Dance.get id with
+  | None -> Permission.reject_can_get ()
+  | Some dance ->
+    Permission.assert_can_get env dance;%lwt
+    lwt dance
 
 let create env dance =
   Permission.assert_can_create env;%lwt
@@ -53,10 +55,12 @@ module Pdf = struct
     Set.Pdf.render set set_parameters rendering_parameters
 
   let get env id _slug set_parameters rendering_parameters =
-    let%lwt dance = Model.Dance.get id in
-    Permission.assert_can_get env dance;%lwt
-    let%lwt path_pdf = render env dance set_parameters rendering_parameters in
-    Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
+    match%lwt Database.Dance.get id with
+    | None -> Permission.reject_can_get ()
+    | Some dance ->
+      Permission.assert_can_get env dance;%lwt
+      let%lwt path_pdf = render env dance set_parameters rendering_parameters in
+      Madge_server.respond_file ~content_type: "application/pdf" ~fname: path_pdf
 end
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a = fun env endpoint ->

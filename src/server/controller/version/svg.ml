@@ -34,10 +34,12 @@ let render version version_parameters rendering_parameters =
 
 let get env id _slug version_parameters rendering_parameters =
   Log.debug (fun m -> m "Model.Version.Svg.get %a" Entry.Id.pp' id);
-  let%lwt version = Model.Version.get id in
-  Permission.assert_can_get env version;%lwt
-  let%lwt path_svg = render version version_parameters rendering_parameters in
-  Madge_server.respond_file ~content_type: "image/svg+xml" ~fname: path_svg
+  match%lwt Database.Version.get id with
+  | None -> Permission.reject_can_get ()
+  | Some version ->
+    Permission.assert_can_get env version;%lwt
+    let%lwt path_svg = render version version_parameters rendering_parameters in
+    Madge_server.respond_file ~content_type: "image/svg+xml" ~fname: path_svg
 
 let preview env version version_parameters rendering_parameters =
   Log.debug (fun m -> m "Model.Version.Svg.preview");

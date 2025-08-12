@@ -20,12 +20,12 @@ let get_neighbours any = function
     in
     lwt List.{total; previous; index; next; element = any}
   | Endpoints.Page.InSet (set, index) ->
-    let%lwt set = Set.get set in
+    let%lwt set = Option.get <$> Set.get set in
     let%lwt context = Option.get <$> Set.find_context' index set in
     assert (any = Any.Version context.element);
     lwt @@ List.map_context Any.version context
   | Endpoints.Page.InBook (book, index) ->
-    let%lwt book = Book.get book in
+    let%lwt book = Option.get <$> Book.get book in
     let%lwt context =
       List.map_context book_page_to_any
       <$> (Option.get <$> Book.find_context_no_inline' index book)
@@ -84,10 +84,10 @@ let make_and_render ?context ~this_page any_lwt =
                             | InSearch query ->
                               lwt [txt "search for: "; parent_a [txt query]]
                             | InSet (id, _) ->
-                              let%lwt name = Set.name' <$> Set.get id in
+                              let%lwt name = Set.name' % Option.get <$> Set.get id in
                               lwt [txt "set: "; parent_a [txt name]]
                             | InBook (id, _) ->
-                              let%lwt name = Book.title' <$> Book.get id in
+                              let%lwt name = Book.title' % Option.get <$> Book.get id in
                               lwt [txt "book: "; parent_a [txt name]]
                           );
                       ];

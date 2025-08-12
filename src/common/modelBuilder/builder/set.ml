@@ -5,16 +5,16 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_set
 
-  let conceptors = Lwt_list.map_p Getters.get_person % conceptors
+  let conceptors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % conceptors
   let conceptors' = conceptors % Entry.value
 
-  let dances = Lwt_list.map_p Getters.get_dance % dances
+  let dances = Lwt_list.map_p (Lwt.map Option.get % Getters.get_dance) % dances
   let dances' = dances % Entry.value
 
   let contents =
     Lwt_list.map_s
       (fun (id, parameters) ->
-        let%lwt version = Getters.get_version id in
+        let%lwt version = Option.get <$> Getters.get_version id in
         lwt (version, parameters)
       ) %
       contents
@@ -69,7 +69,7 @@ module Build (Getters : Getters.S) = struct
         (fun version ->
           if Core.Version.bars' version <> bars then
             add_warning (WrongVersionBars version);
-          let%lwt tune = Getters.get_tune @@ Core.Version.tune' version in
+          let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' version in
           if Core.Tune.kind' tune <> kind then
             add_warning (WrongVersionKind tune);
           lwt_unit
@@ -77,7 +77,7 @@ module Build (Getters : Getters.S) = struct
         versions
     in
     (* Check that there are no duplicates. *)
-    let%lwt tunes = Lwt_list.map_s (Getters.get_tune % Core.Version.tune') versions in
+    let%lwt tunes = Lwt_list.map_s (Lwt.map Option.get % Getters.get_tune % Core.Version.tune') versions in
     let tunes = List.sort Core.Tune.compare tunes in
     (
       match tunes with

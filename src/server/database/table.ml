@@ -31,8 +31,7 @@ module type S = sig
   val report_without_accesses : unit -> unit
   val standalone : bool
 
-  val get : value Entry.Id.t -> value Entry.t Lwt.t
-  val get_opt : value Entry.Id.t -> value Entry.t option Lwt.t
+  val get : value Entry.Id.t -> value Entry.t option Lwt.t
   val get_all : unit -> value Entry.t list Lwt.t
 
   val create : value -> value Entry.t Lwt.t
@@ -156,7 +155,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     Log.info (fun m -> m "Loaded table: %s" _key);
     lwt_unit
 
-  let get_opt id =
+  let get id =
     match Hashtbl.find_opt table id with
     | Some (stats, model) ->
       Stats.add_access stats;
@@ -166,7 +165,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   let list_dependency_problems_for id status privacy = function
     | Boxed (dep_id, (module Dep_table)) ->
-      match%lwt Dep_table.get_opt dep_id with
+      match%lwt Dep_table.get dep_id with
       | None ->
         lwt [
           Error.dependency_does_not_exist
@@ -228,11 +227,6 @@ module Make (Model : Model) : S with type value = Model.t = struct
             )
         )
 
-  let get id =
-    match%lwt get_opt id with
-    | Some model -> lwt model
-    | None -> Lwt.fail Error.(Exn (EntityDoesNotExist (Model._key, Entry.Id.to_string id)))
-
   let get_all () =
     Hashtbl.to_seq_values table
     |> Seq.map
@@ -267,7 +261,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     lwt model
 
   let update id model =
-    let%lwt old_model = get id in
+    let%lwt old_model = Option.get <$> get id in
     let model = Entry.make' ~id ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model)) model in
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s

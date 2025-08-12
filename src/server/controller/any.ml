@@ -3,8 +3,7 @@ open Common
 
 let get env id =
   match Database.Any.get id with
-  | None ->
-    Madge_server.shortcut_not_found "This entry does not exist, or you do not have access to it."
+  | None -> Permission.reject_can_get ()
   | Some any ->
     Permission.assert_can_get env (Model.Any.to_entry any);%lwt
     lwt any
