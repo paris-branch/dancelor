@@ -59,90 +59,76 @@ let create ?context id =
       Formatters.Version.tune_description' version;
       Formatters.Version.description' ~arranger_links: true version;
     ]
-    [
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
+    ~share: (Version version)
+    ~actions: (
+      Lwt.l2
+        (@)
+        (
+          lwt
             [
-              li [
-                Utils.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Version version);
-                    Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this version has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
-                [
-                  a
-                    ~a: [
-                      a_class ["dropdown-item"];
-                      a_href "#";
-                      a_onclick (fun _ -> Lwt.async (fun () -> ignore <$> VersionDownloadDialog.create_and_open version); false);
-                    ]
+              Utils.Button.make
+                ~label: "Download PDF"
+                ~icon: "file-pdf"
+                ~classes: ["dropdown-item"]
+                ~onclick: (fun _ -> ignore <$> VersionDownloadDialog.create_and_open version)
+                ();
+              Utils.Button.make
+                ~classes: ["dropdown-item"]
+                ~label: "Show LilyPond"
+                ~label_processing: "Showing LilyPond..."
+                ~icon: "file-music"
+                ~onclick: (fun () -> show_lilypond_dialog id)
+                ();
+              Utils.Button.make
+                ~label: "Add to current set"
+                ~icon: "plus-square"
+                ~classes: ["dropdown-item"]
+                ~onclick: (fun _ ->
+                  SetEditor.add_to_storage id;
+                  Utils.Toast.open_
+                    ~title: "Added to current set"
                     [
-                      i ~a: [a_class ["bi"; "bi-file-pdf"]] [];
-                      txt " Download PDF";
+                      txt "This version was added to the current set. You can see that in the ";
+                      a ~a: [a_href Endpoints.Page.(href SetAdd)] [txt "set editor"];
+                      txt ".";
                     ];
-                ];
-              li
-                [
-                  Utils.Button.make
-                    ~classes: ["dropdown-item"]
-                    ~label: "Show LilyPond"
-                    ~label_processing: "Showing LilyPond..."
-                    ~icon: "file-music"
-                    ~onclick: (fun () -> show_lilypond_dialog id)
-                    ()
-                ];
-              li
-                [
-                  Utils.Button.make
-                    ~label: "Add to current set"
-                    ~icon: "plus-square"
-                    ~classes: ["dropdown-item"]
-                    ~onclick: (fun _ ->
-                      SetEditor.add_to_storage (Some id);
-                      Utils.Toast.open_
-                        ~title: "Added to current set"
-                        [
-                          txt "This version was added to the current set. You can see that in the ";
-                          a ~a: [a_href Endpoints.Page.(href SetAdd)] [txt "set editor"];
-                          txt ".";
-                        ];
-                      lwt_unit
-                    )
-                    ()
-                ];
-              R.li
-                (
-                  S.from' [] @@
-                    match%lwt Tune.scddb_id' <$> Model.Version.tune' version with
-                    | None -> lwt_nil
-                    | Some scddb_id ->
-                      lwt
-                        [
-                          a
-                            ~a: [
-                              a_class ["dropdown-item"];
-                              a_href (Uri.to_string @@ SCDDB.tune_uri scddb_id);
-                            ]
-                            [
-                              i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                              txt " See on SCDDB";
-                            ]
-                        ]
-                );
-            ];
-        ];
+                  lwt_unit
+                )
+                ();
+              Utils.Button.make
+                ~label: "Add to current book"
+                ~icon: "plus-square"
+                ~classes: ["dropdown-item"]
+                ~onclick: (fun _ ->
+                  BookEditor.add_version_to_storage id;
+                  Utils.Toast.open_
+                    ~title: "Added to current book"
+                    [
+                      txt "This version was added to the current book. You can see that in the ";
+                      a ~a: [a_href Endpoints.Page.(href BookAdd)] [txt "book editor"];
+                      txt ".";
+                    ];
+                  lwt_unit
+                )
+                ();
+            ]
+        )
+        (
+          match%lwt Tune.scddb_id' <$> Model.Version.tune' version with
+          | None -> lwt_nil
+          | Some scddb_id ->
+            lwt
+              [
+                Utils.Button.make_a
+                  ~classes: ["dropdown-item"]
+                  ~href: (S.const @@ Uri.to_string @@ SCDDB.tune_uri scddb_id)
+                  ~icon: "box-arrow-up-right"
+                  ~label: "See on SCDDB"
+                  ()
+              ]
+        )
+    )
+    [
       div
         [
           with_span_placeholder @@

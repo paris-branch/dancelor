@@ -8,6 +8,8 @@ type t = {
   title: string Lwt.t;
   subtitles: Html_types.phrasing elt list;
   content: Html_types.div_content_fun elt list;
+  share: Model.Any.t option;
+  actions: Html_types.li_content_fun elt list Lwt.t;
   buttons: Html_types.div_content_fun elt list;
   on_load: unit -> unit;
 }
@@ -28,41 +30,108 @@ let make
   ?(before_title = [])
   ~title
   ?(subtitles = [])
+  ?share
+  ?(actions = lwt_nil)
   ?(buttons = [])
   ?(on_load = Fun.id)
   content
 =
-  {parent_title; before_title; title; subtitles; content; buttons; on_load}
+  {parent_title; before_title; title; subtitles; content; share; actions; buttons; on_load}
 
-let make' ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content =
+let make' ?parent_title ?before_title ~title ?subtitles ?share ?actions ?buttons ?on_load content =
   (* NOTE: In general, [lwt] for no reason should be avoided. However, this
      particular function is only ever used in an [Lwt] context. *)
-  lwt @@ make ?parent_title ?before_title ~title ?subtitles ?buttons ?on_load content
+  lwt @@ make ?parent_title ?before_title ~title ?subtitles ?share ?actions ?buttons ?on_load content
 
-let render p = (
-  p.on_load,
-  div
-    [
-      div p.before_title;
-      div
-        ~a: [a_class ["container-md"]]
-        [
-          h2 ~a: [a_class ["text-center"]] [
-            with_span_placeholder @@
-              let%lwt title = p.title in
-              lwt [txt title]
+let render p =
+  (* Handling of actions *)
+  let actions_promise = List.map (li % List.singleton) <$> p.actions in
+  let actions_html =
+    R.div
+      ~a: [a_class ["dropdown"; "m-0"; "p-0"; "col-auto"; "d-flex"; "flex-column"; "flex-sm-row"; "align-items-start"]]
+      (
+        S.l2
+          (@)
+          (
+            S.const @@
+              match p.share with
+              | None -> []
+              | Some share ->
+                [
+                  Utils.Button.make
+                    ~icon: "share"
+                    ~classes: ["btn-primary"]
+                    ~onclick: (fun _ ->
+                      Utils.write_to_clipboard @@ Utils.href_any_for_sharing share;
+                      Utils.Toast.open_ ~title: "Copied to clipboard" [txt "A short link to this page has been copied to your clipboard."];
+                      lwt_unit
+                    )
+                    ()
+                ]
+          )
+          (
+            S.from' [] @@
+            flip Lwt.map actions_promise @@ function
+            | [] -> []
+            | actions ->
+              [
+                Utils.Button.make
+                  ~icon: "three-dots-vertical"
+                  ~classes: ["btn-secondary"]
+                  ~more_a: [a_user_data "bs-toggle" "dropdown"]
+                  ();
+                ul ~a: [a_class ["dropdown-menu"]] actions
+              ]
+          )
+      )
+  in
+  let actions_mirror =
+    (* invisible buttons of the same size as actions_html *)
+    R.div ~a: [a_class ["invisible"; "d-none"; "d-sm-block"]] (
+      S.l2
+        (@)
+        (
+          S.const @@
+            match p.share with
+            | None -> []
+            | Some _ -> [Utils.Button.make ~icon: "share" ()]
+        )
+        (
+          S.from' [] @@
+          flip Lwt.map actions_promise @@ function
+          | [] -> []
+          | _ -> [Utils.Button.make ~icon: "three-dots-vertical" ()]
+        )
+    )
+  in
+
+  (* Result *)
+  (
+    p.on_load,
+    div
+      [
+        div p.before_title;
+        div
+          ~a: [a_class ["container-md"]]
+          [
+            div ~a: [a_class ["d-flex"; "justify-content-between"]] [
+              actions_mirror;
+              div ~a: [a_class ["text-center"; "col"]] [
+                h2 [with_span_placeholder @@ ((List.singleton % txt) <$> p.title)];
+                div (List.map (h5 % List.singleton) p.subtitles);
+              ];
+              actions_html;
+            ];
+            div ~a: [a_class ["mt-4"]] p.content;
+            match p.buttons with
+            | [] -> div []
+            | buttons ->
+              div
+                ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]]
+                [div (List.intersperse (txt " ") buttons)]
           ];
-          div (List.map (h5 ~a: [a_class ["text-center"]] % List.singleton) p.subtitles);
-          div ~a: [a_class ["mt-4"]] p.content;
-          match p.buttons with
-          | [] -> div []
-          | buttons ->
-            div
-              ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]]
-              [div (List.intersperse (txt " ") buttons)]
-        ];
-    ]
-)
+      ]
+  )
 
 let open_dialog
     ?(hide_body_overflow_y = false)

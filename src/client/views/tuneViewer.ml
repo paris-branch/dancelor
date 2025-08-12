@@ -18,6 +18,24 @@ let create ?context id =
       Formatters.Tune.aka' tune;
       Formatters.Tune.description' tune;
     ]
+    ~share: (Tune tune)
+    ~actions: (
+      lwt @@
+        match Tune.scddb_id' tune with
+        | None -> []
+        | Some scddb_id ->
+          [
+            a
+              ~a: [
+                a_class ["dropdown-item"];
+                a_href (Uri.to_string @@ SCDDB.tune_uri scddb_id);
+              ]
+              [
+                i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
+                txt " See on SCDDB";
+              ]
+          ]
+    )
     [
       div
         (
@@ -25,45 +43,6 @@ let create ?context id =
           | None -> []
           | Some date -> [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         );
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
-            [
-              li [
-                Utils.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Tune tune);
-                    Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this tune has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
-                (
-                  match Tune.scddb_id' tune with
-                  | None -> []
-                  | Some scddb_id ->
-                    [
-                      a
-                        ~a: [
-                          a_class ["dropdown-item"];
-                          a_href (Uri.to_string @@ SCDDB.tune_uri scddb_id);
-                        ]
-                        [
-                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                          txt " See on SCDDB";
-                        ]
-                    ]
-                );
-            ];
-        ];
       Utils.quick_explorer_links'
         (lwt tune)
         [

@@ -14,3 +14,8 @@ let replaceable () =
     Lwt.cancel !current;
     current := promise;
     promise
+
+let l2 f a b =
+  let%lwt a = a in
+  let%lwt b = b in
+  Lwt.return (f a b)

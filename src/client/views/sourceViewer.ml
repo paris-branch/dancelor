@@ -16,46 +16,22 @@ let create ?context id =
     ]
     ~title: (lwt @@ Source.name' source)
     ~subtitles: [Formatters.Source.editors' source]
+    ~share: (Source source)
+    ~actions: (
+      lwt @@
+        match Source.scddb_id' source with
+        | None -> []
+        | Some scddb_id ->
+          [
+            Utils.Button.make_a
+              ~classes: ["dropdown-item"]
+              ~href: (S.const @@ Uri.to_string @@ SCDDB.publication_uri scddb_id)
+              ~icon: "box-arrow-up-right"
+              ~label: "See on SCDDB"
+              ()
+          ]
+    )
     [
-      div
-        ~a: [a_class ["text-end"; "dropdown"]]
-        [
-          button ~a: [a_class ["btn"; "btn-secondary"; "dropdown-toggle"]; a_button_type `Button; a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]] [txt "Actions"];
-          ul
-            ~a: [a_class ["dropdown-menu"]]
-            [
-              li [
-                Utils.Button.make
-                  ~label: "Share"
-                  ~label_processing: "Sharing..."
-                  ~icon: "share"
-                  ~classes: ["dropdown-item"]
-                  ~onclick: (fun () ->
-                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Source source);
-                    Utils.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this source has been copied to your clipboard."];
-                    lwt_unit
-                  )
-                  ();
-              ];
-              li
-                (
-                  match Source.scddb_id' source with
-                  | None -> []
-                  | Some scddb_id ->
-                    [
-                      a
-                        ~a: [
-                          a_class ["dropdown-item"];
-                          a_href (Uri.to_string @@ SCDDB.publication_uri scddb_id);
-                        ]
-                        [
-                          i ~a: [a_class ["bi"; "bi-box-arrow-up-right"]] [];
-                          txt " See on SCDDB";
-                        ]
-                    ]
-                );
-            ];
-        ];
       div
         ~a: [a_class ["d-flex"; "flex-column"; "flex-sm-row"; "mt-2"]]
         [

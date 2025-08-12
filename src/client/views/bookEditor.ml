@@ -101,9 +101,13 @@ let editor =
     ) ^::
   nil
 
-let add_to_storage set =
+let add_set_to_storage set =
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
   (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
+
+let add_version_to_storage version =
+  Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
+  (name, (date, (contents @ [Some 1, [Left None; Right (Some version)]], ())))
 
 let preview (title, (date, (contents, ()))) =
   let contents =
