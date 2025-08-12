@@ -30,7 +30,7 @@ let show_lilypond_dialog id =
       ]
 
 let create ?context id =
-  MainPage.get_model_or_404 (Version Get) id @@ fun version ->
+  MainPage.madge_call_or_404 (Version Get) id @@ fun version ->
   let%lwt tune = Model.Version.tune' version in
   let other_versions_lwt =
     snd
@@ -67,6 +67,19 @@ let create ?context id =
           ul
             ~a: [a_class ["dropdown-menu"]]
             [
+              li [
+                Components.Button.make
+                  ~label: "Share"
+                  ~label_processing: "Sharing..."
+                  ~icon: "share"
+                  ~classes: ["dropdown-item"]
+                  ~onclick: (fun () ->
+                    Utils.write_to_clipboard @@ Utils.href_any_for_sharing (Version version);
+                    Components.Toast.open_ ~title: "Copied to clipboard" [txt "The link to this version has been copied to your clipboard."];
+                    lwt_unit
+                  )
+                  ();
+              ];
               li
                 [
                   a

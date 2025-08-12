@@ -98,7 +98,7 @@ let neighbour_context ~left = function
 
 let make_context_link ~context ~left ~neighbour ~number_of_others =
   flip Option.map neighbour @@ fun neighbour ->
-  let href = Endpoints.Page.href_any ~context: (neighbour_context ~left context) neighbour in
+  let href = Endpoints.Page.href_any_full ~context: (neighbour_context ~left context) neighbour in
   register_body_keydown_listener (fun ev ->
     if ev##.keyCode = (if left then 37 else 39) then
       Dom_html.window##.location##.href := Js.string href

@@ -12,6 +12,7 @@ module type S = sig
     | Set of Set.t Entry.t
     | Tune of Tune.t Entry.t
     | Version of Version.t Entry.t
+    | User of User.t Entry.t
   (** Type of an “any” element, that is simply a sum type of all the other
       models. *)
 
@@ -38,6 +39,9 @@ module type S = sig
   val version : Version.t Entry.t -> t
   (** Function equivalent of the [Version] constructor. *)
 
+  val user : User.t Entry.t -> t
+  (** Function equivalent of the [User] constructor. *)
+
   (** {3 Destructors} *)
 
   val equal : t -> t -> bool
@@ -57,6 +61,7 @@ module type S = sig
       | Set
       | Tune
       | Version
+      | User
     (** Type to represent the type of an “any”. There is basically one type per
         model, eg. [Version] or [Dance]. Must not be mistaken for a kind, which,
         in Dancelor parlance, is eg. [Reel] or [8 x 32 Strathspey]. *)
@@ -90,4 +95,7 @@ module type S = sig
 
   val type_of : t -> Type.t
   (** Get the type of an “any” element. *)
+
+  val to_entry : t -> unit Entry.t
+  (** Cast an {!Any.t} to an entry. Of course, the value then needs to be forgotten. *)
 end

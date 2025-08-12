@@ -20,6 +20,12 @@ module SString : STRINGABLE with type t = string = struct
   let of_string = some
 end
 
+module SUnit : STRINGABLE with type t = unit = struct
+  type t = unit
+  let to_string () = ""
+  let of_string _ = Some ()
+end
+
 module SStatusCode : STRINGABLE with type t = Cohttp.Code.status_code = struct
   type t = Cohttp.Code.status_code
   let to_string = string_of_int % Cohttp.Code.code_of_status

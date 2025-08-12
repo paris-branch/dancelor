@@ -8,6 +8,7 @@ type t =
   | Set of Set.t Entry.t
   | Tune of Tune.t Entry.t
   | Version of Version.t Entry.t
+  | User of User.t Entry.t
 [@@deriving show {with_path = false}, yojson, variants]
 
 (* NOTE: User is not added to [Any] on purpose. It is a bit of a special model
@@ -22,6 +23,7 @@ module Type = struct
     | Set
     | Tune
     | Version
+    | User
   [@@deriving eq, show {with_path = false}, yojson]
 
   let compare t1 t2 =
@@ -33,13 +35,14 @@ module Type = struct
       | Version -> 4
       | Set -> 5
       | Book -> 6
+      | User -> 7
     in
     if t1 = t2 then
       0
     else
       Int.compare (to_int t1) (to_int t2)
 
-  let all = [Source; Person; Dance; Book; Set; Tune; Version]
+  let all = [Source; Person; Dance; Book; Set; Tune; Version; User]
 
   module Set = struct
     include Stdlib.Set.Make(struct
@@ -63,6 +66,7 @@ module Type = struct
     | Set -> "Set"
     | Tune -> "Tune"
     | Version -> "Version"
+    | User -> "User"
 
   exception NotAType of string
 
@@ -75,6 +79,7 @@ module Type = struct
     | "set" -> Set
     | "tune" -> Tune
     | "version" -> Version
+    | "user" -> User
     | _ -> raise (NotAType str)
 
   let of_string_opt str =
@@ -92,3 +97,14 @@ let type_of = function
   | Set _ -> Type.Set
   | Tune _ -> Type.Tune
   | Version _ -> Type.Version
+  | User _ -> Type.User
+
+let to_entry = function
+  | Source entry -> Entry.unsafe_set_value entry ()
+  | Person entry -> Entry.unsafe_set_value entry ()
+  | Dance entry -> Entry.unsafe_set_value entry ()
+  | Book entry -> Entry.unsafe_set_value entry ()
+  | Set entry -> Entry.unsafe_set_value entry ()
+  | Tune entry -> Entry.unsafe_set_value entry ()
+  | Version entry -> Entry.unsafe_set_value entry ()
+  | User entry -> Entry.unsafe_set_value entry ()

@@ -112,3 +112,9 @@ val of_yojson' : 'a Id.t -> (Yojson.Safe.t -> ('a, string) result) -> Yojson.Saf
 module J : functor (M : Madge.JSONABLE) ->
   Madge.JSONABLE with
   type t = M.t t
+
+(** {2 Advanced use} *)
+
+val unsafe_set_value : 'a t -> 'b -> 'b t
+(** Create an entry with the same id and metadata but holding a different
+    value. *)

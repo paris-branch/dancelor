@@ -73,24 +73,46 @@ module type Model = sig
       put in an independent file. The file name is given as second element of
       the pair. *)
 
+  val wrap_any : t Entry.t -> ModelBuilder.Core.Any.t
+
   val _key : string
 end
 
 (** {2 Global id uniqueness} *)
 
-let (make_globally_unique_id, register_globally_unique_id) =
-  let all_ids_table : (unit Entry.Id.t, unit) Hashtbl.t = Hashtbl.create 8 in
-  let rec make_globally_unique_id () =
+module GloballyUniqueId : sig
+    val make : unit -> 'any Entry.Id.t
+    (** Make a globally unique id. This does not register the id as already
+        existing, and therefore there is a chance, by calling this function
+        several times consecutively, that it returns the same id. *)
+
+    val register :
+      wrap_any: ('any Entry.t -> ModelBuilder.Core.Any.t) ->
+      'any Entry.t ->
+      unit
+    (** Register an entry in the global id table. This is used to ensure that
+        ids are globally unique across all tables. *)
+
+    val get : 'any Entry.Id.t -> ModelBuilder.Core.Any.t option
+    (** Given an id, try to find the corresponding model in the global table. *)
+  end
+= struct
+  let all_ids_table : (unit Entry.Id.t, ModelBuilder.Core.Any.t) Hashtbl.t = Hashtbl.create 8
+
+  let rec make () =
     let id = Entry.Id.make () in
     if not @@ Hashtbl.mem all_ids_table id then
-      id
+      Entry.Id.unsafe_coerce id
     else
-      make_globally_unique_id () (* extremely unlikely *)
-  in let register_globally_unique_id id =
+      make () (* extremely unlikely *)
+
+  let register ~wrap_any entry =
+    let id = Entry.Id.unsafe_coerce (Entry.id entry) in
     assert (not @@ Hashtbl.mem all_ids_table id);
-    Hashtbl.add all_ids_table id ()
-  in
-    (make_globally_unique_id, register_globally_unique_id)
+    Hashtbl.add all_ids_table id (wrap_any entry)
+
+  let get id = Hashtbl.find_opt all_ids_table @@ Entry.Id.unsafe_coerce id
+end
 
 (** {2 Database Functor} *)
 
@@ -122,7 +144,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       lwt @@
         match Entry.of_yojson' (Entry.Id.of_string_exn entry) Model.of_yojson !json with
         | Ok model ->
-          register_globally_unique_id (Entry.Id.unsafe_coerce @@ Entry.id model);
+          GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
           Hashtbl.add table (Entry.id model) (Stats.empty (), model);
           Log.debug (fun m -> m "Loaded %s %s" _key entry);
         | Error msg ->
@@ -222,7 +244,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
     |> lwt
 
   let create model =
-    let id = Entry.Id.unsafe_coerce @@ make_globally_unique_id () in
+    let id = GloballyUniqueId.make () in
     let model = Entry.make ~id model in
     let json = ref @@ Entry.to_yojson' Model.to_yojson model in
     Lwt_list.iter_s
@@ -239,7 +261,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
       ~msg: (spf "save %s / %s" Model._key (Entry.Id.to_string id))
       Model._key
       (Entry.Id.to_string id);%lwt
-    register_globally_unique_id (Entry.Id.unsafe_coerce @@ Entry.id model);
+    GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
     Hashtbl.add table id (Stats.empty (), model);
     (* FIXME: not add and not Stats.empty when editing. *)
     lwt model

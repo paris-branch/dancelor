@@ -7,6 +7,7 @@ module Source = Table.Make(struct
   let separate_fields = []
   let dependencies _ = lwt []
   let standalone = false
+  let wrap_any = ModelBuilder.Core.Any.source
 end)
 
 module Person = Table.Make(struct
@@ -15,6 +16,7 @@ module Person = Table.Make(struct
   let separate_fields = []
   let dependencies _ = lwt []
   let standalone = false
+  let wrap_any = ModelBuilder.Core.Any.person
 end)
 
 module User = Table.Make(struct
@@ -26,6 +28,7 @@ module User = Table.Make(struct
       Table.make_id_and_table (module Person) (ModelBuilder.Core.User.person user)
     ]
   let standalone = true
+  let wrap_any = ModelBuilder.Core.Any.user
 end)
 
 module Dance = Table.Make(struct
@@ -37,8 +40,8 @@ module Dance = Table.Make(struct
       (
         List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Dance.devisers dance)
       )
-
   let standalone = true
+  let wrap_any = ModelBuilder.Core.Any.dance
 end)
 
 module Tune = Table.Make(struct
@@ -53,6 +56,7 @@ module Tune = Table.Make(struct
       )
 
   let standalone = false
+  let wrap_any = ModelBuilder.Core.Any.tune
 end)
 
 module Version = Table.Make(struct
@@ -68,6 +72,7 @@ module Version = Table.Make(struct
       )
 
   let standalone = true
+  let wrap_any = ModelBuilder.Core.Any.version
 end)
 
 module SetModel = struct
@@ -82,6 +87,7 @@ module SetModel = struct
       )
 
   let standalone = true
+  let wrap_any = ModelBuilder.Core.Any.set
 end
 
 module Set = Table.Make(SetModel)
@@ -125,6 +131,7 @@ module Book = Table.Make(struct
     lwt (List.flatten dependencies)
 
   let standalone = true
+  let wrap_any = ModelBuilder.Core.Any.book
 end)
 
 module Storage = Storage
