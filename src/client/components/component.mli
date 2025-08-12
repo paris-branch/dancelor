@@ -14,6 +14,7 @@ val raw_signal : ('value, 'raw_value) t -> 'raw_value S.t
 val set : ('value, 'raw_value) t -> 'raw_value -> unit
 
 val inner_html : ('value, 'raw_value) t -> Html_types.div_content_fun elt
+val actions : ('value, 'raw_value) t -> Html_types.div_content_fun elt list S.t
 
 val html : ('value, 'raw_value) t -> [> Html_types.div] elt
 (** Render the component as HTML. This is not provided by the component itself,
@@ -58,6 +59,7 @@ module type S = sig
 
   val clear : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
+  val actions : t -> Html_types.div_content_fun elt list S.t
 end
 
 type ('value, 'raw_value) s = (module S with type value = 'value and type raw_value = 'raw_value)

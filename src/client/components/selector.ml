@@ -18,8 +18,8 @@ let prepare (type model)
     Utils.ResultRow.t
   )
   ?(make_more_results =
-  (const []: model Entry.t ->
-    Utils.ResultRow.t list))
+  (const (S.const []): model Entry.t ->
+    Utils.ResultRow.t list S.t))
   ~model_name
   ~(create_dialog_content :
     ?on_save: (model Entry.t -> unit) ->
@@ -54,6 +54,25 @@ let prepare (type model)
   let raw_signal s = S.map (flip Option.bind serialise) s.signal
   let signal i = S.map (Option.to_result ~none: "You must select an element.") i.signal
   let inner_html s = s.inner_html
+
+  let actions s =
+    flip S.map s.signal @@ function
+      | None -> []
+      | Some _ ->
+        [
+          Button.make
+            ~classes: ["btn-warning"]
+            ~icon: "eraser"
+            ~tooltip: "Clear the selection. It cannot be recovered."
+            ~onclick: (fun _ -> s.set None; lwt_unit)
+            ();
+          Button.make
+            ~classes: ["btn-info"]
+            ~icon: "pencil-square"
+            ~tooltip: ("Edit the selected " ^ model_name ^ ".")
+            ~onclick: (fun _ -> s.select_button_dom##click; lwt_unit)
+            ();
+        ]
 
   let focus s = s.select_button_dom##focus
   let trigger s = s.select_button_dom##click
@@ -133,26 +152,11 @@ let prepare (type model)
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
                   [tbody (List.map Utils.ResultRow.to_clickable_row [make_result model])];
-                div ~a: [a_class ["col-auto"; "p-0"]] [
-                  button
-                    ~a: [
-                      a_class ["btn"; "btn-info"];
-                      a_onclick (fun _ -> select_button_dom##click; true);
-                      (* FIXME: ugh *)
-                    ]
-                    [i ~a: [a_class ["bi"; "bi-pencil-square"]] []];
-                  button
-                    ~a: [
-                      a_class ["btn"; "btn-warning"];
-                      a_onclick (fun _ -> set None; true);
-                    ]
-                    [i ~a: [a_class ["bi"; "bi-eraser"]] []];
-                ];
               ];
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
                 tablex
                   ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
-                  [tbody (List.map Utils.ResultRow.to_clickable_row (make_more_results model))];
+                  [R.tbody (S.map (List.map Utils.ResultRow.to_clickable_row) (make_more_results model))];
               ]
             ]
       )

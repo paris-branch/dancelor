@@ -44,6 +44,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let raw_signal _ = S.const "" (* FIXME: handle raw_signal *)
   let signal c = S.map validate c.values
   let inner_html c = c.inner_html
+  let actions _ = S.const []
 
   let focus _ = () (* FIXME *)
   let trigger _ = () (* FIXME *)

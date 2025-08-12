@@ -24,6 +24,7 @@ module type S = sig
   val trigger : t -> unit
   val clear : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
+  val actions : t -> Html_types.div_content_fun elt list S.t
 end
 
 type ('value, 'raw_value) s = (module S with type value = 'value and type raw_value = 'raw_value)
@@ -52,6 +53,7 @@ let signal : type value raw_value. (value, raw_value) t -> (value, string) resul
 let raw_signal : type value raw_value. (value, raw_value) t -> raw_value S.t = function Component ((module C), c) -> C.raw_signal c
 let set : type value raw_value. (value, raw_value) t -> raw_value -> unit = function Component ((module C), c) -> C.set c
 let inner_html : type value raw_value. (value, raw_value) t -> Html_types.div_content_fun elt = function Component ((module C), c) -> C.inner_html c
+let actions : type value raw_value. (value, raw_value) t -> Html_types.div_content_fun elt list S.t = function Component ((module C), c) -> C.actions c
 
 let case_errored ~no ~yes signal =
   flip S.map signal @@ function
@@ -63,7 +65,14 @@ let html : type value raw_value. (value, raw_value) t -> [> Html_types.div] elt 
     div
       ~a: [a_class ["mb-2"]]
       [
-        label ~a: [a_class ["form-label"]] [txt C.label];
+        div ~a: [a_class ["row"; "align-items-center"]] [
+          label ~a: [a_class ["col"]] [txt C.label];
+          R.div ~a: [a_class ["col-auto"]] (
+            flip S.map (C.actions c) @@ function
+              | [] -> [Button.make ~classes: ["invisible"] ~icon: "plus-circle" ()] (* for spacing *)
+              | actions -> actions
+          );
+        ];
         C.inner_html c;
         R.div
           ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (const ["d-block"; "invalid-feedback"]) (C.signal c))]

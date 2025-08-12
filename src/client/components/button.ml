@@ -57,7 +57,7 @@ let make_content
           [
             span ~a: [a_class ["badge"; "text-bg-secondary"; "ms-2"]] [txt badge];
           ]
-        )
+        );
       ]
 
 let make
@@ -65,6 +65,7 @@ let make
     ?label_processing
     ?icon
     ?badge
+    ?tooltip
     ?classes
     ?(disabled = S.const false)
     ?onclick
@@ -97,6 +98,7 @@ let make
                 false
               ]
           );
+          (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
           more_a;
         ]
     )
@@ -115,6 +117,7 @@ let make_a
     ?label_processing
     ?icon
     ?badge
+    ?tooltip
     ?(disabled = S.const false)
     ?classes
     ~href
@@ -123,16 +126,18 @@ let make_a
   =
   a
     ~a: (
-      [R.a_class
-        (
-          let classes = "btn" :: Option.value ~default: [] classes in
-          flip S.map disabled @@ function
-            | true -> "disabled" :: classes
-            | false -> classes
-        );
-      R.a_href href;
-      ] @
+      List.flatten [
+        [R.a_class
+          (
+            let classes = "btn" :: Option.value ~default: [] classes in
+            flip S.map disabled @@ function
+              | true -> "disabled" :: classes
+              | false -> classes
+          )];
+        (match tooltip with None -> [] | Some tooltip -> [a_title tooltip]);
+        [R.a_href href];
         more_a
+      ]
     )
     (
       make_content

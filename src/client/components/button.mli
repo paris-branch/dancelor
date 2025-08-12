@@ -5,10 +5,11 @@ val make :
   ?label_processing: string ->
   ?icon: string ->
   ?badge: string ->
+  ?tooltip: string ->
   ?classes: string list ->
   ?disabled: bool S.t ->
   ?onclick: (unit -> unit Lwt.t) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** Generic button showing [label] and [icon]. When clicked, [label] is replaced
@@ -23,10 +24,11 @@ val make_a :
   ?label_processing: string ->
   ?icon: string ->
   ?badge: string ->
+  ?tooltip: string ->
   ?disabled: bool S.t ->
   ?classes: string list ->
   href: string S.t ->
-  ?more_a: [< Html_types.a_attrib >`Class `Href] attrib list ->
+  ?more_a: [< Html_types.a_attrib >`Class `Href `Title] attrib list ->
   unit ->
   [> Html_types.a_] elt
 (** Variant of {!make} that creates an anchor element [<a/>] instead of a
@@ -54,42 +56,42 @@ val clear :
 
 val cancel :
   ?onclick: (unit -> unit Lwt.t) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** A button specialised in cancelling something. *)
 
 val cancel' :
   return: ('any option -> unit) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** Variant of {!cancel'} passing [None] to a [return] function. *)
 
 val close :
   ?onclick: (unit -> unit Lwt.t) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** A button specialised in closing something. *)
 
 val close' :
   return: ('any option -> unit) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** Variant of {!close'} passing [None] to a [return] function. *)
 
 val ok :
   ?onclick: (unit -> unit Lwt.t) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** A button specialised in closing an information dialog. *)
 
 val ok' :
   return: (unit option -> unit) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick] attrib list ->
+  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
   unit ->
   [> Html_types.button] elt
 (** Variant of {!ok'} passing [Some ()] to a [return] function. *)

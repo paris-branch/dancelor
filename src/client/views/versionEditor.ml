@@ -97,6 +97,7 @@ let editor =
     ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
     ~serialise: Fun.id
     ~validate: (S.const % Result.of_string_nonempty ~empty: "Cannot be empty.")
+    ~template: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\major\n    \\time 4/4\n\n    %% add tune here\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      %% add chords here\n    }\n  }\n>>"
     () ^::
   nil
 
@@ -147,15 +148,6 @@ let break_down version =
   let disambiguation = Model.Version.disambiguation' version in
   let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
   lwt (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))))
-
-(* FIXME: A way to add a button to the textarea component, so as to bring back
-   the glue content in a better way. *)
-(* Button.make *)
-(*   ~label: "Add glue content" *)
-(*   ~classes: ["btn-secondary"] *)
-(*   ~disabled: (S.map ((<>) "") (Component.raw_signal editor.elements.content)) *)
-(*   ~onclick: (fun () -> Component.set editor.elements.content "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\major\n    \\time 4/4\n\n    %% add tune here\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      %% add chords here\n    }\n  }\n>>"; lwt_unit) *)
-(*   (); *)
 
 (* FIXME: There used to be a way to start a version editor with a tune already
    selected and we lost it. It is only marginally important, but it would be

@@ -4,6 +4,7 @@ open Html
 
 let prepare (type value)(type raw_value)
   ~label
+  ?(more_actions = S.const [])
   ((module C): (value, raw_value) Component.s)
   : (value list, raw_value list) Component.s
 = (module struct
@@ -59,6 +60,7 @@ let prepare (type value)(type raw_value)
   let clear l = l.set_components []
 
   let inner_html l = l.inner_html
+  let actions _ = more_actions
 
   let make initial_values =
     (* NOTE: We use [fun _ _ -> false] because React needs to be able to compare
@@ -70,7 +72,7 @@ let prepare (type value)(type raw_value)
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
         ~label_processing: ("Adding a " ^ String.lowercase_ascii C.label)
         ~icon: "plus-circle"
-        ~classes: ["btn-primary"]
+        ~classes: ["btn-secondary"]
         ~onclick: (fun () ->
           let component = C.make C.empty_value in
           set_components (S.value components @ [component]);
@@ -90,33 +92,36 @@ let prepare (type value)(type raw_value)
             flip List.mapi components_ @@ fun n component ->
             div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pb-1" else if n = last_index then "pt-1" else "py-1")]] [
               div ~a: [a_class ["col"; "text-start"; "p-0"]] [C.inner_html component];
-              div ~a: [a_class ["col-auto"; "p-0"]] [
-                button
-                  ~a: [
-                    a_class (["btn"; "btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []));
-                    a_onclick (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; true);
-                  ]
-                  [i ~a: [a_class ["bi"; "bi-arrow-down"]] []];
-                button
-                  ~a: [
-                    a_class (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []));
-                    a_onclick (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; true);
-                  ]
-                  [i ~a: [a_class ["bi"; "bi-arrow-up"]] []];
-                button
-                  ~a: [
-                    a_onclick (fun _ -> set_components @@ List.remove n @@ S.value components; true);
-                    a_class ["btn"; "btn-warning"];
-                  ]
-                  [i ~a: [a_class ["bi"; "bi-trash"]] []];
-              ];
+              R.div ~a: [a_class ["col-auto"; "p-0"]] (
+                S.l2
+                  (@)
+                  (C.actions component)
+                  (
+                    S.const [
+                      Button.make
+                        ~icon: "trash"
+                        ~tooltip: ("Remove this " ^ String.lowercase_ascii C.label ^ " from the list. It cannot be recovered.")
+                        ~classes: ["btn-warning"]
+                        ~onclick: (fun _ -> set_components @@ List.remove n @@ S.value components; lwt_unit)
+                        ();
+                      Button.make
+                        ~icon: "arrow-down"
+                        ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " down in the list.")
+                        ~classes: (["btn-outline-secondary"] @ (if n = last_index then ["disabled"] else []))
+                        ~onclick: (fun _ -> set_components @@ List.swap n (n + 1) @@ S.value components; lwt_unit)
+                        ();
+                      Button.make
+                        ~icon: "arrow-up"
+                        ~tooltip: ("Move this " ^ String.lowercase_ascii C.label ^ " up in the list.")
+                        ~classes: (["btn"; "btn-outline-secondary"] @ (if n = 0 then ["disabled"] else []))
+                        ~onclick: (fun _ -> set_components @@ List.swap (n - 1) n @@ S.value components; lwt_unit)
+                        ();
+                    ]
+                  )
+              );
             ]
           );
-        div [
-          Button.clear ~onclick: (fun () -> set_components []) ();
-          txt " ";
-          button_add_object;
-        ];
+        div [button_add_object];
       ]
     in
       {components; set_components; inner_html; button_add_object_dom}
@@ -124,18 +129,20 @@ end)
 
 let make (type value)(type raw_value)
     ~label
+    ?more_actions
     (component : (value, raw_value) Component.s)
     (initial_values : raw_value list)
     : (value list, raw_value list) Component.t
   =
-  Component.initialise (prepare ~label component) initial_values
+  Component.initialise (prepare ~label ?more_actions component) initial_values
 
 let prepare_non_empty (type value)(type raw_value)
   ~label
+  ?more_actions
   ((module C): (value, raw_value) Component.s)
   : (value NonEmptyList.t, raw_value list) Component.s
 = (module struct
-  include (val (prepare ~label (module C)))
+  include (val (prepare ~label ?more_actions (module C)))
   type value = C.value NonEmptyList.t
   let serialise = serialise % NonEmptyList.to_list
   let signal =
@@ -147,8 +154,9 @@ end)
 
 let make_non_empty (type value)(type raw_value)
     ~label
+    ?more_actions
     (component : (value, raw_value) Component.s)
     (initial_values : raw_value list)
     : (value NonEmptyList.t, raw_value list) Component.t
   =
-  Component.initialise (prepare_non_empty ~label component) initial_values
+  Component.initialise (prepare_non_empty ~label ?more_actions component) initial_values

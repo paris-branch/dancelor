@@ -5,6 +5,9 @@ open Components
 open Html
 open Utils
 
+let (show_preview, set_show_preview) = S.create false
+let flip_show_preview () = set_show_preview (not (S.value show_preview))
+
 let editor =
   let open Editor in
   Input.prepare
@@ -41,7 +44,11 @@ let editor =
             (
               Selector.prepare
                 ~make_result: AnyResult.make_set_result'
-                ~make_more_results: (fun set -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])])
+                ~make_more_results: (fun set ->
+                  flip S.map show_preview @@ function
+                    | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+                    | false -> []
+                )
                 ~label: "Set"
                 ~model_name: "set"
                 ~create_dialog_content: (fun ?on_save text -> SetEditor.create ?on_save ~text ())
@@ -60,7 +67,11 @@ let editor =
             (
               Selector.prepare
                 ~make_result: AnyResult.make_version_result'
-                ~make_more_results: (fun version -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]])
+                ~make_more_results: (fun version ->
+                  flip S.map show_preview @@ function
+                    | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+                    | false -> []
+                )
                 ~label: "Version"
                 ~model_name: "version"
                 ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
@@ -72,6 +83,21 @@ let editor =
                 ()
             );
         ]
+    )
+    ~more_actions: (
+      let flip_show_preview_button ~icon =
+        Button.make
+          ~classes: ["btn-info"]
+          ~icon
+          ~tooltip: "Toggle the preview of sets and versions. This can take a \
+                     lot of space on the page and is therefore disabled by \
+                     default."
+          ~onclick: (fun _ -> flip_show_preview (); lwt_unit)
+          ()
+      in
+      flip S.map show_preview @@ function
+        | true -> [flip_show_preview_button ~icon: "eye"]
+        | false -> [flip_show_preview_button ~icon: "eye-slash"]
     ) ^::
   nil
 

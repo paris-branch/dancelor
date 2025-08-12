@@ -56,6 +56,8 @@ let cons (type value1)(type raw_value1)(type value2)(type raw_value2)
         Component.inner_html l.bundle;
       ]
 
+    let actions _ = S.const []
+
     let make (initial_value1, initial_value2) = {
       component = Component.make component initial_value1;
       bundle = Component.make bundle initial_value2;
@@ -81,6 +83,7 @@ let nil : (unit, unit) bundle =
     let trigger Nil = ()
     let clear Nil = ()
     let inner_html Nil = div []
+    let actions Nil = S.const []
   end)
 
 let local_storage_key ~key = key ^ "-editor"

@@ -1,9 +1,11 @@
 (** {1 List of components} *)
 
 open Nes
+open Html
 
 val make :
   label: string ->
+  ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'raw_value) Component.s ->
   'raw_value list ->
   ('value list, 'raw_value list) Component.t
@@ -14,6 +16,7 @@ val make :
 
 val make_non_empty :
   label: string ->
+  ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'raw_value) Component.s ->
   'raw_value list ->
   ('value NonEmptyList.t, 'raw_value list) Component.t
@@ -24,6 +27,7 @@ val make_non_empty :
 
 val prepare :
   label: string ->
+  ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'raw_value) Component.s ->
   ('value list, 'raw_value list) Component.s
 (** Variant of {!make} that only prepares the component. It must still be
@@ -31,6 +35,7 @@ val prepare :
 
 val prepare_non_empty :
   label: string ->
+  ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'raw_value) Component.s ->
   ('value NonEmptyList.t, 'raw_value list) Component.s
 (** Variant of {!make_non_empty} that only prepares the component. It must still

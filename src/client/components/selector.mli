@@ -2,6 +2,7 @@
 
 open Nes
 open Common
+open Html
 
 val make :
   label: string ->
@@ -16,7 +17,7 @@ val make :
   Utils.ResultRow.t) ->
   ?make_more_results:
   ('model Entry.t ->
-  Utils.ResultRow.t list) ->
+  Utils.ResultRow.t list S.t) ->
   model_name: string ->
   create_dialog_content:
   (?on_save: ('model Entry.t -> unit) ->
@@ -40,7 +41,7 @@ val prepare :
   Utils.ResultRow.t) ->
   ?make_more_results:
   ('model Entry.t ->
-  Utils.ResultRow.t list) ->
+  Utils.ResultRow.t list S.t) ->
   model_name: string ->
   create_dialog_content:
   (?on_save: ('model Entry.t -> unit) ->

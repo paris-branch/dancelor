@@ -15,6 +15,7 @@ let prepare (type value)
   ~serialise
   ~validate
   ?(oninput = fun _ -> ())
+  ?template
   ()
   : (value, string) Component.s
 = (module struct
@@ -115,10 +116,36 @@ let prepare (type value)
     match i.html with
     | Text {input; _} -> input
     | Textarea {textarea; _} -> textarea
+
+  let actions i =
+    flip S.map i.raw_signal @@ function
+      | "" ->
+        (
+          match template with
+          | None -> []
+          | Some template ->
+            [
+              Button.make
+                ~classes: ["btn-info"]
+                ~icon: "magic"
+                ~tooltip: "Fill the content of this input with the default template."
+                ~onclick: (fun _ -> i.set template; lwt_unit)
+                ();
+            ]
+        )
+      | _ ->
+        [
+          Button.make
+            ~classes: ["btn-warning"]
+            ~icon: "eraser"
+            ~tooltip: "Clear the content of this input. It cannot be recovered."
+            ~onclick: (fun _ -> i.set ""; lwt_unit)
+            ();
+        ]
 end)
 
-let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput initial_value =
-  Component.initialise (prepare ~type_ ~label ?placeholder ~serialise ~validate ?oninput ()) initial_value
+let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =
+  Component.initialise (prepare ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template ()) initial_value
 
 let inactive ~label value =
   Component.html_fake ~label @@
