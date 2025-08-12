@@ -59,6 +59,7 @@ let prepare (type value)(type raw_value)
   let clear l = l.set_components []
 
   let inner_html l = l.inner_html
+  let actions _ = S.const []
 
   let make initial_values =
     (* NOTE: We use [fun _ _ -> false] because React needs to be able to compare

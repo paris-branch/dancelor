@@ -58,6 +58,7 @@ module type S = sig
 
   val clear : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
+  val actions : t -> Html_types.div_content_fun elt list S.t
 end
 
 type ('value, 'raw_value) s = (module S with type value = 'value and type raw_value = 'raw_value)

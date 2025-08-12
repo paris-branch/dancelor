@@ -54,6 +54,7 @@ let prepare (type model)
   let raw_signal s = S.map (flip Option.bind serialise) s.signal
   let signal i = S.map (Option.to_result ~none: "You must select an element.") i.signal
   let inner_html s = s.inner_html
+  let actions _ = S.const []
 
   let focus s = s.select_button_dom##focus
   let trigger s = s.select_button_dom##click

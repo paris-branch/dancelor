@@ -110,6 +110,7 @@ let prepare (type value)(type component_raw_value)
     List.iter Component.clear l.initialised_components
 
   let inner_html l = l.inner_html
+  let actions _ = S.const []
 
   let make (initial_selected, initial_values) =
     let (initial_selected, initial_values) =

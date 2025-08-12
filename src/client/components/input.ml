@@ -115,6 +115,8 @@ let prepare (type value)
     match i.html with
     | Text {input; _} -> input
     | Textarea {textarea; _} -> textarea
+
+  let actions _ = S.const []
 end)
 
 let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput initial_value =
