@@ -33,7 +33,7 @@ let editor =
         ~unserialise: Model.Person.get
         ~make_result: AnyResult.make_person_result'
         ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        ~create_dialog_content: PersonEditor.create
         ()
     ) ^::
   Input.prepare
@@ -73,14 +73,12 @@ let break_down source =
     (Model.Source.short_name' source, (editors, (Model.Source.scddb_id' source, (Model.Source.description' source, ()))))
   )
 
-let create ?on_save ?text ?edit () =
-  let%lwt mode = Editor.mode_from_text_or_id Model.Source.get text edit in
+let create mode =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "source"
     ~icon: "archive"
     editor
-    ?on_save
     ~mode
     ~preview
     ~submit

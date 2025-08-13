@@ -35,7 +35,7 @@ let editor =
         ~make_result: AnyResult.make_person_result'
         ~label: "Conceptor"
         ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        ~create_dialog_content: PersonEditor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
@@ -55,7 +55,7 @@ let editor =
         )
         ~label: "Version"
         ~model_name: "version"
-        ~create_dialog_content: (fun ?on_save text -> VersionEditor.create ?on_save ~text ())
+        ~create_dialog_content: VersionEditor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Version.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
@@ -119,13 +119,11 @@ let break_down set =
   let order = Model.Set.order' set in
   lwt (name, (kind, (conceptors, (contents, (order, ())))))
 
-let create ?on_save ?text ?edit () =
-  let%lwt mode = Editor.mode_from_text_or_id Model.Set.get text edit in
+let create mode =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "set"
     ~icon: "list-stars"
-    ?on_save
     ~mode
     editor
     ~preview

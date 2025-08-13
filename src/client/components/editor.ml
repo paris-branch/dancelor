@@ -108,17 +108,10 @@ let update_local_storage ~key (Bundle editor) f =
   write_local_storage ~key editor new_value
 
 type 'result mode =
-  | QuickCreate of string
+  | QuickCreate of string * ('result -> unit)
   | CreateWithLocalStorage
   | Edit of 'result
 [@@deriving variants]
-
-let mode_from_text_or_id get initial_text maybe_id =
-  match initial_text, maybe_id with
-  | None, None -> lwt @@ CreateWithLocalStorage
-  | Some initial_text, None -> lwt @@ QuickCreate initial_text
-  | None, Some id -> edit % Option.get <$> get id
-  | _ -> invalid_arg "mode_from_text_and_edit"
 
 let make_page (type value)(type raw_value)
     ~key
@@ -128,7 +121,6 @@ let make_page (type value)(type raw_value)
     ~break_down
     ~format
     ~href
-    ?on_save
     ~mode
     (Bundle editor_s: (value, raw_value) bundle)
   =
@@ -139,7 +131,7 @@ let make_page (type value)(type raw_value)
      from the local storage. *)
   let%lwt initial_value =
     match mode with
-    | QuickCreate initial_text -> lwt @@ Editor.raw_value_from_initial_text initial_text
+    | QuickCreate (initial_text, _) -> lwt @@ Editor.raw_value_from_initial_text initial_text
     | CreateWithLocalStorage -> lwt @@ read_local_storage ~key editor_s
     | Edit entry -> Editor.serialise <$> break_down entry
   in
@@ -149,7 +141,7 @@ let make_page (type value)(type raw_value)
   let editor = Component.initialise editor_s initial_value in
 
   (* What to do when “save” is clicked. *)
-  let save () =
+  let save f =
     let%lwt result =
       match S.value @@ Component.signal editor with
       | Error _ -> lwt_none
@@ -159,44 +151,68 @@ let make_page (type value)(type raw_value)
         | Some previewed_value -> some <$> submit mode previewed_value
     in
     (
-      flip Option.iter result @@ fun result ->
-      Component.clear editor;
-      match on_save with
-      | None ->
-        Utils.Toast.open_
-          ~title: (String.capitalize_ascii key ^ " created")
-          [txt ("The " ^ key ^ " ");
-          format result;
-          txt " has been created successfully.";
-          ]
-          ~buttons: [
-            Utils.Button.make_a
-              ~label: ("Go to " ^ key)
-              ~icon
-              ~classes: ["btn-primary"]
-              ~href: (S.const @@ href result)
-              ();
-          ]
-      | Some on_save -> on_save result
+      Option.iter
+        (fun result ->
+          Component.clear editor;
+          f result
+        )
+        result
     );
     lwt_unit
+  in
+  let save_buttons =
+    let button ?label f =
+      Utils.Button.save
+        ?label
+        ~disabled: (S.map Result.is_error (Component.signal editor))
+        ~onclick: (fun () -> save f)
+        ()
+    in
+    let show_toast result =
+      Utils.Toast.open_
+        ~title: (String.capitalize_ascii key ^ " created")
+        [txt ("The " ^ key ^ " ");
+        format result;
+        txt " has been created successfully.";
+        ]
+        ~buttons: [
+          Utils.Button.make_a
+            ~label: ("Go to " ^ key)
+            ~icon
+            ~classes: ["btn-primary"]
+            ~href: (S.const @@ href result)
+            ();
+        ]
+    in
+    let redirect result =
+      Dom_html.window##.location##.href := Js.string (href result)
+    in
+    match mode with
+    | QuickCreate (_, on_save) -> [button on_save]
+    | Edit _ -> [button redirect]
+    | CreateWithLocalStorage ->
+      [
+        button ~label: "Save and stay" show_toast;
+        button ~label: "Save and see" redirect;
+      ]
   in
 
   (* Make a page holding the editor and the appropriate buttons and actions. *)
   let promise =
     Page.make'
-      ~title: (lwt @@ "Add a " ^ key)
+      ~title: (
+        lwt @@
+          match mode with
+          | QuickCreate _ | CreateWithLocalStorage -> "Add a " ^ key
+          | Edit _ -> "Edit a " ^ key
+      )
       ~on_load: (fun () -> Component.focus editor)
       [Component.inner_html editor]
-      ~buttons: [
+      ~buttons: (
         Utils.Button.clear
           ~onclick: (fun () -> Component.clear editor)
-          ();
-        Utils.Button.save
-          ~disabled: (S.map Result.is_error (Component.signal editor))
-          ~onclick: save
-          ();
-      ]
+          () :: save_buttons
+      )
   in
 
   (* If there was no initial text, then we connected to the local storage. We

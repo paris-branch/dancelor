@@ -155,10 +155,10 @@ let make_icon ?(classes = []) icon =
       i ~a: [a_class ["bi"; "bi-" ^ icon]] []
     ]
 
-let save ?disabled ~onclick () =
+let save ?label ?label_processing ?disabled ~onclick () =
   make
-    ~label: "Save"
-    ~label_processing: "Saving..."
+    ~label: (Option.value label ~default: "Save")
+    ~label_processing: (Option.value label_processing ~default: "Saving...")
     ~icon: "save"
     ~classes: ["btn-primary"]
     ?disabled

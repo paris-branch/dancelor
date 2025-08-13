@@ -42,11 +42,14 @@ val make_icon :
 (** Make a fake button showing an icon. Sometimes useful in button groups. *)
 
 val save :
+  ?label: string ->
+  ?label_processing: string ->
   ?disabled: bool S.t ->
   onclick: (unit -> unit Lwt.t) ->
   unit ->
   [> Html_types.button] elt
-(** A button specialised in saving a form. *)
+(** A button specialised in saving a form. The label is “save” unless
+    overridden. *)
 
 val clear :
   onclick: (unit -> unit) ->

@@ -41,14 +41,12 @@ let break_down person =
     (Model.Person.scddb_id' person, ())
   )
 
-let create ?on_save ?text ?edit () =
-  let%lwt mode = Editor.mode_from_text_or_id Model.Person.get text edit in
+let create mode =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "person"
     ~icon: "person"
     editor
-    ?on_save
     ~mode
     ~preview
     ~submit

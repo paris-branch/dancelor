@@ -11,7 +11,7 @@ let editor =
     ~make_result: AnyResult.make_tune_result'
     ~label: "Tune"
     ~model_name: "tune"
-    ~create_dialog_content: (fun ?on_save text -> TuneEditor.create ?on_save ~text ())
+    ~create_dialog_content: TuneEditor.create
     ~search: (fun slice input ->
       let%rlwt filter = lwt (Filter.Tune.from_string input) in
       ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Tune Search) slice filter
@@ -54,7 +54,7 @@ let editor =
         ~make_result: AnyResult.make_person_result'
         ~label: "Arranger"
         ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        ~create_dialog_content: PersonEditor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
@@ -76,7 +76,7 @@ let editor =
         ~make_result: AnyResult.make_source_result'
         ~label: "Source"
         ~model_name: "source"
-        ~create_dialog_content: (fun ?on_save text -> SourceEditor.create ?on_save ~text ())
+        ~create_dialog_content: SourceEditor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Source.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Source Search) slice filter
@@ -154,14 +154,12 @@ let break_down version =
    selected and we lost it. It is only marginally important, but it would be
    nice to bring it back. *)
 
-let create ?on_save ?text ?edit () =
-  let%lwt mode = Editor.mode_from_text_or_id Model.Version.get text edit in
+let create mode =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "version"
     ~icon: "music-note-beamed"
     editor
-    ?on_save
     ~mode
     ~href: (Endpoints.Page.href_version % Entry.id)
     ~format: (Formatters.Version.name' ~link: true)

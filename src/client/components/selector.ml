@@ -21,11 +21,7 @@ let prepare (type model)
   (const (S.const []): model Entry.t ->
     Utils.ResultRow.t list S.t))
   ~model_name
-  ~(create_dialog_content :
-    ?on_save: (model Entry.t -> unit) ->
-    string ->
-    Page.t Lwt.t
-  )
+  ~(create_dialog_content : model Entry.t Editor.mode -> Page.t Lwt.t)
   ()
   : (model Entry.t, model Entry.Id.t option) Component.s
 = (module struct
@@ -114,9 +110,12 @@ let prepare (type model)
               ~onclick: (fun () ->
                 quick_search_return
                 <$> Page.open_dialog' @@ fun sub_dialog_return ->
-                  create_dialog_content
-                    ~on_save: sub_dialog_return
-                    (S.value (Search.Quick.text quick_search))
+                  create_dialog_content (
+                    Editor.QuickCreate (
+                      S.value (Search.Quick.text quick_search),
+                      sub_dialog_return
+                    )
+                  )
               )
               ();
           ]
