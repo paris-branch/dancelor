@@ -9,10 +9,11 @@ let write_to_clipboard text : unit =
   (* Dom_html.window##.navigator##.clipboard##.writeText (Js.string text); *)
   let holder =
     (* We need an element in which we can focus the user and select everything.
-       It cannot be `display: none` but we of course do not want to see it. *)
+       It cannot be `display: none` but we of course do not want to see it. We
+       use a fixed position so that it doesn't scroll the user. *)
     To_dom.of_textarea @@
       textarea
-        ~a: [a_style "position: absolute; width: 0; height: 0;"]
+        ~a: [a_style "position: fixed; top: 0; left: 0; width: 0; height: 0;"]
         (txt text)
   in
   Dom.appendChild Dom_html.document##.body holder;
