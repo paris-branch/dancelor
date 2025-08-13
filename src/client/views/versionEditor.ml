@@ -93,6 +93,7 @@ let editor =
     () ^::
   Input.prepare
     ~type_: Textarea
+    ~font: Monospace
     ~label: "LilyPond content"
     ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
     ~serialise: Fun.id

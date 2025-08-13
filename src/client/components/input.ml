@@ -7,9 +7,11 @@ type html =
   | Textarea of {textarea: 'a. ([> Html_types.textarea] as 'a) elt; textarea_dom: Dom_html.textAreaElement Js.t}
 
 type type_ = Text | Password | Textarea
+type font = Normal | Monospace
 
 let prepare (type value)
   ~type_
+  ?(font = Normal)
   ~label
   ?(placeholder = "")
   ~serialise
@@ -67,7 +69,16 @@ let prepare (type value)
             ~a: [
               a_input_type (match type_ with Text -> `Text | Password -> `Password | _ -> assert false);
               a_placeholder placeholder;
-              R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
+              R.a_class (
+                S.l2
+                  (@)
+                  (
+                    S.const @@
+                    (match font with Normal -> [] | Monospace -> ["font-monospace"]) @
+                      ["form-control"]
+                  )
+                  (Component.case_errored ~no: ["is-valid"] ~yes: (const ["is-invalid"]) signal)
+              );
               a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
@@ -88,7 +99,16 @@ let prepare (type value)
             ~a: [
               a_rows 15;
               a_placeholder placeholder;
-              R.a_class (Component.case_errored ~no: ["form-control"; "is-valid"] ~yes: (const ["form-control"; "is-invalid"]) signal);
+              R.a_class (
+                S.l2
+                  (@)
+                  (
+                    S.const @@
+                    (match font with Normal -> [] | Monospace -> ["font-monospace"]) @
+                      ["form-control"]
+                  )
+                  (Component.case_errored ~no: ["is-valid"] ~yes: (const ["is-invalid"]) signal)
+              );
               a_oninput (fun event ->
                 (
                   Js.Opt.iter event##.target @@ fun elt ->
@@ -144,8 +164,8 @@ let prepare (type value)
         ]
 end)
 
-let make ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =
-  Component.initialise (prepare ~type_ ~label ?placeholder ~serialise ~validate ?oninput ?template ()) initial_value
+let make ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =
+  Component.initialise (prepare ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?template ()) initial_value
 
 let inactive ~label value =
   Component.html_fake ~label @@
