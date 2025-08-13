@@ -156,10 +156,16 @@ let open_dialog
 
   (* The HTML dialog box. *)
   let box =
-    (* FIXME: the `d-block` is a hack to make the element show; we should figure
-       out how to tell Bootstrap to show the element directly *)
+    (* NOTE: the `d-block` is a hack to make the element show; we should figure
+       out how to tell Bootstrap to show the element directly. Similarly, the
+       custom style is because I could not figure out how to show get the
+       background from Bootstrap. *)
     div
-      ~a: [a_class ["modal"; "fade"; "show"; "d-block"]; a_tabindex (-1)]
+      ~a: [
+        a_class ["modal"; "d-block"];
+        a_tabindex (-1);
+        a_style "background: rgba(0, 0, 0, 0.5);";
+      ]
       [
         div
           ~a: [a_class ["modal-dialog"; "modal-lg"; "modal-fullscreen-lg-down"; "modal-dialog-centered"]]
