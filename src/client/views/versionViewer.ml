@@ -66,6 +66,18 @@ let create ?context id =
         (
           lwt
             [
+              Utils.Button.make_a
+                ~classes: ["dropdown-item"]
+                ~href: (S.const @@ Endpoints.Page.(href VersionEdit) id)
+                ~icon: "pencil-square"
+                ~label: "Edit"
+                ();
+              Utils.Button.make_a
+                ~classes: ["dropdown-item"]
+                ~href: (S.const @@ Endpoints.Page.(href TuneEdit) (Entry.id tune))
+                ~icon: "pencil-square"
+                ~label: "Edit tune"
+                ();
               Utils.Button.make
                 ~label: "Download PDF"
                 ~icon: "file-pdf"
