@@ -41,7 +41,7 @@ let editor =
         ~unserialise: Model.Person.get
         ~make_result: AnyResult.make_person_result'
         ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        ~create_dialog_content: PersonEditor.create
         ()
     ) ^::
   Input.prepare
@@ -105,13 +105,11 @@ let break_down dance =
   let scddb_id = Model.Dance.scddb_id' dance in
   lwt (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ())))))))
 
-let create ?on_save ?text ?edit () =
-  let%lwt mode = Editor.mode_from_text_or_id Model.Dance.get text edit in
+let create mode =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "dance"
     ~icon: "person-arms-up"
-    ?on_save
     ~mode
     editor
     ~format: (Formatters.Dance.name' ~link: true)

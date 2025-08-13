@@ -16,26 +16,26 @@ let dispatch uri =
     | Any -> redirect_any
     | Explore -> (fun query -> Explorer.create ?query ())
     | Book -> (fun context id -> BookViewer.create ?context id)
-    | BookAdd -> BookEditor.create ()
-    | BookEdit -> (fun id -> BookEditor.create ~edit: id ())
+    | BookAdd -> BookEditor.create CreateWithLocalStorage
+    | BookEdit -> BookEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Book.get)
     | Dance -> (fun context id -> DanceViewer.create ?context id)
-    | DanceAdd -> DanceEditor.create ()
-    | DanceEdit -> (fun id -> DanceEditor.create ~edit: id ())
+    | DanceAdd -> DanceEditor.create CreateWithLocalStorage
+    | DanceEdit -> DanceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Dance.get)
     | Person -> (fun context id -> PersonViewer.create ?context id)
-    | PersonAdd -> PersonEditor.create ()
-    | PersonEdit -> (fun id -> PersonEditor.create ~edit: id ())
+    | PersonAdd -> PersonEditor.create CreateWithLocalStorage
+    | PersonEdit -> PersonEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Person.get)
     | Version -> (fun context id -> VersionViewer.create ?context id)
-    | VersionAdd -> VersionEditor.create ()
-    | VersionEdit -> (fun id -> VersionEditor.create ~edit: id ())
+    | VersionAdd -> VersionEditor.create CreateWithLocalStorage
+    | VersionEdit -> VersionEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Version.get)
     | Tune -> (fun context id -> TuneViewer.create ?context id)
-    | TuneAdd -> TuneEditor.create ()
-    | TuneEdit -> (fun id -> TuneEditor.create ~edit: id ())
+    | TuneAdd -> TuneEditor.create CreateWithLocalStorage
+    | TuneEdit -> TuneEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Tune.get)
     | Set -> (fun context id -> SetViewer.create ?context id)
-    | SetAdd -> SetEditor.create ()
-    | SetEdit -> (fun id -> SetEditor.create ~edit: id ())
+    | SetAdd -> SetEditor.create CreateWithLocalStorage
+    | SetEdit -> SetEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Set.get)
     | Source -> (fun context id -> SourceViewer.create ?context id)
-    | SourceAdd -> SourceEditor.create ()
-    | SourceEdit -> (fun id -> SourceEditor.create ~edit: id ())
+    | SourceAdd -> SourceEditor.create CreateWithLocalStorage
+    | SourceEdit -> SourceEditor.create <=< (Components.Editor.edit % Option.get <%> Model.Source.get)
     | UserCreate -> UserCreator.create ()
     | UserPasswordReset -> UserPasswordResetter.create
   in

@@ -51,7 +51,7 @@ let create () =
       ~unserialise: Model.Person.get
       ~make_result: Utils.AnyResult.make_person_result'
       ~model_name: "person"
-      ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+      ~create_dialog_content: PersonEditor.create
       None
   in
   let signal =

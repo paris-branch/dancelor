@@ -23,20 +23,10 @@ val (^::):
 (** {2 Making an editor} *)
 
 type 'result mode =
-  | QuickCreate of string
+  | QuickCreate of string * ('result -> unit)
   | CreateWithLocalStorage
   | Edit of 'result
 [@@deriving variants]
-
-val mode_from_text_or_id :
-  ('id -> 'result option Lwt.t) ->
-  string option ->
-  'id option ->
-  'result mode Lwt.t
-(** Helper to create a {!mode} given a potential initial text and a potential id
-    of something. If none are set, the mode is {!CreateWithLocalStorage}. If the
-    text is set, the mode is {!QuickCreate}. If the id is set, we use the getter
-    to make it into the expected value, and the mode is {!Edit}. *)
 
 val make_page :
   key: string ->
@@ -47,7 +37,6 @@ val make_page :
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
-  ?on_save: ('result -> unit) ->
   mode: 'result mode ->
   ('value, 'raw_value) bundle ->
   Page.t Lwt.t

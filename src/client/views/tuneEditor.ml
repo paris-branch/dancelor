@@ -36,7 +36,7 @@ let editor =
         ~make_result: AnyResult.make_person_result'
         ~label: "Composer"
         ~model_name: "person"
-        ~create_dialog_content: (fun ?on_save text -> PersonEditor.create ?on_save ~text ())
+        ~create_dialog_content: PersonEditor.create
         ~search: (fun slice input ->
           let%rlwt filter = lwt (Filter.Person.from_string input) in
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
@@ -69,7 +69,7 @@ let editor =
         ~make_result: AnyResult.make_dance_result'
         ~label: "Dance"
         ~model_name: "dance"
-        ~create_dialog_content: (fun ?on_save text -> DanceEditor.create ?on_save ~text ())
+        ~create_dialog_content: DanceEditor.create
         ()
     ) ^::
   Input.prepare
@@ -112,14 +112,12 @@ let break_down tune =
   let scddb_id = Model.Tune.scddb_id' tune in
   lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))
 
-let create ?on_save ?text ?edit () =
-  let%lwt mode = Editor.mode_from_text_or_id Model.Tune.get text edit in
+let create mode =
   MainPage.assert_can_create @@ fun () ->
   Editor.make_page
     ~key: "tune"
     ~icon: "music-note-list"
     editor
-    ?on_save
     ~mode
     ~preview
     ~format: (Formatters.Tune.name' ~link: true)

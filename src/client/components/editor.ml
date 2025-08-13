@@ -108,17 +108,10 @@ let update_local_storage ~key (Bundle editor) f =
   write_local_storage ~key editor new_value
 
 type 'result mode =
-  | QuickCreate of string
+  | QuickCreate of string * ('result -> unit)
   | CreateWithLocalStorage
   | Edit of 'result
 [@@deriving variants]
-
-let mode_from_text_or_id get initial_text maybe_id =
-  match initial_text, maybe_id with
-  | None, None -> lwt @@ CreateWithLocalStorage
-  | Some initial_text, None -> lwt @@ QuickCreate initial_text
-  | None, Some id -> edit % Option.get <$> get id
-  | _ -> invalid_arg "mode_from_text_and_edit"
 
 let make_page (type value)(type raw_value)
     ~key
@@ -128,7 +121,6 @@ let make_page (type value)(type raw_value)
     ~break_down
     ~format
     ~href
-    ?on_save
     ~mode
     (Bundle editor_s: (value, raw_value) bundle)
   =
@@ -139,7 +131,7 @@ let make_page (type value)(type raw_value)
      from the local storage. *)
   let%lwt initial_value =
     match mode with
-    | QuickCreate initial_text -> lwt @@ Editor.raw_value_from_initial_text initial_text
+    | QuickCreate (initial_text, _) -> lwt @@ Editor.raw_value_from_initial_text initial_text
     | CreateWithLocalStorage -> lwt @@ read_local_storage ~key editor_s
     | Edit entry -> Editor.serialise <$> break_down entry
   in
@@ -161,8 +153,9 @@ let make_page (type value)(type raw_value)
     (
       flip Option.iter result @@ fun result ->
       Component.clear editor;
-      match on_save with
-      | None ->
+      match mode with
+      | QuickCreate (_, on_save) -> on_save result
+      | _ ->
         Utils.Toast.open_
           ~title: (String.capitalize_ascii key ^ " created")
           [txt ("The " ^ key ^ " ");
@@ -177,7 +170,6 @@ let make_page (type value)(type raw_value)
               ~href: (S.const @@ href result)
               ();
           ]
-      | Some on_save -> on_save result
     );
     lwt_unit
   in
