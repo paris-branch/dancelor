@@ -126,9 +126,11 @@ let render p =
             match p.buttons with
             | [] -> div []
             | buttons ->
+              (* NOTE: [intersperse (txt " ")] wouldn't work because it would be
+                 the exact same Dom element. *)
               div
                 ~a: [a_class ["d-flex"; "justify-content-end"; "mt-4"]]
-                [div (List.intersperse (txt " ") buttons)]
+                [div (List.interspersei (fun _ -> txt " ") buttons)]
           ];
       ]
   )

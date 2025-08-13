@@ -71,7 +71,9 @@ let prepare_gen_unsafe (type value)(type choice_value)
         ~a: [a_onchange (fun _ -> update_values (); true)]
         (
           List.flatten @@
-          List.intersperse [txt " "] @@
+          (* NOTE: [intersperse \[txt " "\]] wouldn't work because it would be
+             the exact same Dom element. *)
+          List.interspersei (fun _ -> [txt " "]) @@
           flip List.map choices @@ fun choice ->
           [
             input
