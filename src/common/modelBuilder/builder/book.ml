@@ -25,8 +25,6 @@ module Build (Getters : Getters.S) = struct
         | Core.Book.Page.Set (set, parameters) ->
           let%lwt set = Option.get <$> Getters.get_set set in
           lwt (Set (set, parameters))
-        | Core.Book.Page.InlineSet (set, parameters) ->
-          lwt (InlineSet (set, parameters))
       )
       (contents book)
 
@@ -43,17 +41,6 @@ module Build (Getters : Getters.S) = struct
 
   let versions_from_contents' = versions_from_contents % Entry.value
 
-  let isInlineSet = function
-    | InlineSet _ -> true
-    | _ -> false
-
-  let find_context_no_inline index set =
-    let%lwt contents = contents set in
-    let contents_no_inline = List.filter (not % isInlineSet) contents in
-    lwt @@ List.findi_context (fun i _ -> i = index) contents_no_inline
-
-  let find_context_no_inline' index = find_context_no_inline index % Entry.value
-
   module BuiltSet = Set.Build(Getters)
 
   let lilypond_contents_cache_key book =
@@ -63,7 +50,6 @@ module Build (Getters : Getters.S) = struct
         (function
           | Version (version, _) -> lwt @@ Core.Version.content' version
           | Set (set, _) -> BuiltSet.lilypond_content_cache_key' set
-          | InlineSet (set, _) -> BuiltSet.lilypond_content_cache_key set
         )
         pages
     in
@@ -88,7 +74,7 @@ module Build (Getters : Getters.S) = struct
       let%lwt contents = contents' book in
       Lwt_list.filter_map_p
         (function
-          | Version _ | InlineSet _ -> lwt_none
+          | Version _ -> lwt_none
           | Set (set, _) -> lwt_some set
         )
         contents
@@ -171,7 +157,7 @@ module Build (Getters : Getters.S) = struct
       let%lwt contents = contents' book in
       Lwt_list.filter_map_p
         (function
-          | Version _ | InlineSet _ -> lwt_none
+          | Version _ -> lwt_none
           | Set (set, parameters) -> lwt_some (set, parameters)
         )
         contents
@@ -215,6 +201,4 @@ module Build (Getters : Getters.S) = struct
     | Core.Book.Page.Set (set, params) ->
       let%lwt set = Option.get <$> Getters.get_set set in
       lwt @@ Set (set, params)
-    | Core.Book.Page.InlineSet (set, params) ->
-      lwt @@ InlineSet (set, params)
 end

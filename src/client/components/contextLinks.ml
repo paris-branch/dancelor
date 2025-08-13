@@ -7,7 +7,6 @@ open Model
 let book_page_to_any = function
   | Book.Set (set, _) -> Any.Set set
   | Version (version, _) -> Any.Version version
-  | InlineSet _ -> assert false
 
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
@@ -28,7 +27,7 @@ let get_neighbours any = function
     let%lwt book = Option.get <$> Book.get book in
     let%lwt context =
       List.map_context book_page_to_any
-      <$> (Option.get <$> Book.find_context_no_inline' index book)
+      <$> (Option.get % List.findi_context (fun i _ -> i = index) <$> Book.contents' book)
     in
     lwt context
 

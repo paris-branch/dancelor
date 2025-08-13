@@ -149,7 +149,6 @@ let render book book_parameters rendering_parameters =
             in
             lwt (set, set_parameters)
           | Set (set, parameters) -> lwt (Entry.value set, parameters)
-          | InlineSet (set, parameters) -> lwt (set, parameters)
       in
       (* FIXME: none of the above need to be dummy; I think we can just return
          a SetCore.t; do we need the id anyway? *)

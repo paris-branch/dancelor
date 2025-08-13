@@ -4,20 +4,17 @@ module Page = struct
   type t =
     | Version of Version.t Entry.Id.t * VersionParameters.t
     | Set of Set.t Entry.Id.t * SetParameters.t
-    | InlineSet of Set.t * SetParameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 end
 
 type page =
   | Version of Version.t Entry.t * VersionParameters.t
   | Set of Set.t Entry.t * SetParameters.t
-  | InlineSet of Set.t * SetParameters.t
 [@@deriving show {with_path = false}]
 
 let page_to_page_core = function
   | (Version (version, params): page) -> Page.Version (Entry.id version, params)
   | (Set (set, params): page) -> Page.Set (Entry.id set, params)
-  | (InlineSet (set, params): page) -> Page.InlineSet (set, params)
 
 let _key = "book"
 

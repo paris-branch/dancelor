@@ -12,13 +12,8 @@ module type S = sig
   type page = Core.Book.page =
     | Version of Core.Version.t Entry.t * Core.VersionParameters.t
     | Set of Core.Set.t Entry.t * Core.SetParameters.t
-    | InlineSet of Core.Set.t * Core.SetParameters.t
   (** The type of one page in a book. A page either consists of a version (eg.
-      in a book of tunes), or a set (eg. in a dance program) or a so-called
-      “inline set”. Inline sets are simply a way to define a set on-the-fly in
-      the database for books without actually giving it a corresponding set
-      entry. It can be useful to put several versions on the same page, for
-      instance, when they do not particularly make sense together. *)
+      in a book of tunes), or a set (eg. in a dance program). *)
 
   type t = Core.Book.t
   (** The type of a book. Even if it is known that it is a record, it should never
@@ -70,12 +65,6 @@ module type S = sig
 
   val slug : t -> Entry.Slug.t
   val slug' : t Entry.t -> Entry.Slug.t
-
-  val find_context_no_inline : int -> t -> page List.context option Lwt.t
-  val find_context_no_inline' : int -> t Entry.t -> page List.context option Lwt.t
-  (** Given an indice and a book, find the context around that indice in the book.
-      Ignores the [InlineSet] pages, both in the given indice and the resulting
-      context. *)
 
   (** {2 Utilities} *)
 

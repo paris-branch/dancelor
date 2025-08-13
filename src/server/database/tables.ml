@@ -116,15 +116,6 @@ module Book = Table.Make(struct
                   | None -> []
                   | Some dance -> [Table.make_id_and_table (module Dance) dance]
               )
-          | ModelBuilder.Core.Book.Page.InlineSet (set, parameters) ->
-            let%lwt set_dependencies = SetModel.dependencies set in
-            lwt
-              (
-                set_dependencies @
-                  match ModelBuilder.Core.SetParameters.for_dance parameters with
-                  | None -> []
-                  | Some dance -> [Table.make_id_and_table (module Dance) dance]
-              )
         )
         (ModelBuilder.Core.Book.contents book)
     in
