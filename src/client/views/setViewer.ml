@@ -33,6 +33,12 @@ let create ?context id =
     ~actions: (
       lwt
         [
+          Utils.Button.make_a
+            ~classes: ["dropdown-item"]
+            ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
+            ~icon: "pencil-square"
+            ~label: "Edit"
+            ();
           Utils.Button.make
             ~classes: ["dropdown-item"]
             ~onclick: (fun _ -> ignore <$> SetDownloadDialog.create_and_open set)

@@ -19,6 +19,12 @@ let create ?context id =
     ~share: (Source source)
     ~actions: (
       lwt @@
+      [Utils.Button.make_a
+        ~classes: ["dropdown-item"]
+        ~href: (S.const @@ Endpoints.Page.(href SourceEdit) id)
+        ~icon: "pencil-square"
+        ~label: "Edit"
+        ()] @ (
         match Source.scddb_id' source with
         | None -> []
         | Some scddb_id ->
@@ -30,6 +36,7 @@ let create ?context id =
               ~label: "See on SCDDB"
               ()
           ]
+      )
     )
     [
       div

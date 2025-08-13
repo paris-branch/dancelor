@@ -21,6 +21,12 @@ let create ?context id =
     ~share: (Tune tune)
     ~actions: (
       lwt @@
+      [Utils.Button.make_a
+        ~classes: ["dropdown-item"]
+        ~href: (S.const @@ Endpoints.Page.(href TuneEdit) id)
+        ~icon: "pencil-square"
+        ~label: "Edit"
+        ()] @ (
         match Tune.scddb_id' tune with
         | None -> []
         | Some scddb_id ->
@@ -35,6 +41,7 @@ let create ?context id =
                 txt " See on SCDDB";
               ]
           ]
+      )
     )
     [
       div
