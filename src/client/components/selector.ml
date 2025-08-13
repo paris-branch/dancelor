@@ -37,7 +37,7 @@ let prepare (type model)
 
   let empty_value = None
   let raw_value_from_initial_text _ = None
-  let serialise = some % Entry.id
+  let serialise = lwt_some % Entry.id
 
   type t = {
     signal: model Entry.t option S.t;
@@ -47,7 +47,7 @@ let prepare (type model)
     select_button_dom: Dom_html.buttonElement Js.t;
   }
 
-  let raw_signal s = S.map (flip Option.bind serialise) s.signal
+  let raw_signal s = S.map (flip Option.bind (some % Entry.id)) s.signal (* FIXME: can we simplify? *)
   let signal i = S.map (Option.to_result ~none: "You must select an element.") i.signal
   let inner_html s = s.inner_html
 

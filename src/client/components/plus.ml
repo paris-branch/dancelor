@@ -62,13 +62,14 @@ let prepare (type value)(type component_raw_value)
      because of {!wrap}, that is not always the case. FIXME: This is disgusting,
      we really need to get this component type-safe. *)
   let serialise value =
-    Option.get @@
-      List.find_mapi
+    Option.get
+    <$> Lwt_list.find_mapi_s
         (fun n ((module C): (value, component_raw_value) Component.s) ->
           try
-            Some (Some n, snd @@ List.replace n (C.serialise value) empty_component_raw_values)
+            let%lwt value = C.serialise value in
+            lwt_some (Some n, snd @@ List.replace n value empty_component_raw_values)
           with
-            | PartialBecauseWrapped _ -> None
+            | PartialBecauseWrapped _ -> lwt_none
         )
         components
 
@@ -175,7 +176,7 @@ let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   let raw_value_of_yojson = Result.map wrap_raw_value % C.raw_value_of_yojson
   let empty_value = wrap_raw_value empty_value
   let raw_value_from_initial_text = wrap_raw_value % C.raw_value_from_initial_text
-  let serialise = wrap_raw_value % serialise % Option.value' ~default: (fun () -> partial_because_wrapped "serialise") % unwrap_value
+  let serialise = wrap_raw_value <%> serialise % Option.value' ~default: (fun () -> partial_because_wrapped "serialise") % unwrap_value
   let signal = S.map (Result.map wrap_value) % signal
   let raw_signal = S.map wrap_raw_value % raw_signal
   let set _ _ = () (* FIXME *)

@@ -17,3 +17,5 @@ val increasing : ('a -> 'b Lwt.t) -> ('b -> 'b -> int) -> ('a -> 'a -> int Lwt.t
 val decreasing : ('a -> 'b Lwt.t) -> ('b -> 'b -> int) -> ('a -> 'a -> int Lwt.t)
 
 val compare_multiple : ('a -> 'a -> int Lwt.t) list -> ('a -> 'a -> int Lwt.t)
+
+val find_mapi_s : (int -> 'a -> 'b option Lwt.t) -> 'a list -> 'b option Lwt.t

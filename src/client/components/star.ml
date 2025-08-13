@@ -16,7 +16,7 @@ let prepare (type value)(type raw_value)
   let empty_value = []
   let raw_value_from_initial_text = List.singleton % C.raw_value_from_initial_text
 
-  let serialise = List.map C.serialise
+  let serialise = Lwt_list.map_p C.serialise
 
   type t = {
     components: C.t list S.t;

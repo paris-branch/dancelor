@@ -41,7 +41,7 @@ module type S = sig
   val raw_value_from_initial_text : string -> raw_value
   val raw_value_to_yojson : raw_value -> Yojson.Safe.t
   val raw_value_of_yojson : Yojson.Safe.t -> (raw_value, string) result
-  val serialise : value -> raw_value
+  val serialise : value -> raw_value Lwt.t
 
   type t
 

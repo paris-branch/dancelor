@@ -28,7 +28,7 @@ let prepare (type value)
 
   let empty_value = ""
   let raw_value_from_initial_text = Fun.id
-  let serialise = serialise
+  let serialise = lwt % serialise
 
   type t = {
     raw_signal: string S.t;
