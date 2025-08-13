@@ -77,7 +77,7 @@ let prepare (type model)
 
   let clear s = s.set None
 
-  let make initial_value =
+  let initialise initial_value =
     let (signal, set) = S.create None in
     let quick_search = Search.Quick.make ~search () in
     Lwt.async (fun () ->
@@ -160,7 +160,7 @@ let prepare (type model)
             ]
       )
     in
-      {signal; set; inner_html; select_button_dom}
+    lwt {signal; set; inner_html; select_button_dom}
 end)
 
 let make

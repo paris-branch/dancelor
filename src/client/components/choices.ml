@@ -58,7 +58,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
       (fun choice -> if p choice then Some choice.value else None)
       choices
 
-  let make _initial_value =
+  let initialise _initial_value =
     (* FIXME: process initial value *)
     let html_name = unique ~name: (Slug.slugify label) () in
     let (values, set_values) = S.create (gather_values_such_that @@ fun choice -> choice.checked) in
@@ -94,7 +94,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
           ]
         )
     in
-      {inner_html; values}
+    lwt {inner_html; values}
 end)
 
 let prepare_checkboxes ~label choices =

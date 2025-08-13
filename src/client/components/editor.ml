@@ -61,10 +61,10 @@ let cons (type value1)(type raw_value1)(type value2)(type raw_value2)
 
     let actions _ = S.const []
 
-    let make (initial_value1, initial_value2) = {
-      component = Component.make component initial_value1;
-      bundle = Component.make bundle initial_value2;
-    }
+    let initialise (initial_value1, initial_value2) =
+      let%lwt component = Component.initialise component initial_value1 in
+      let%lwt bundle = Component.initialise bundle initial_value2 in
+      lwt {component; bundle}
   end)
 
 let (^::) = cons
@@ -78,7 +78,7 @@ let nil : (unit, unit) bundle =
     let empty_value = ()
     let raw_value_from_initial_text _ = ()
     type t = Nil
-    let make () = Nil
+    let initialise () = lwt Nil
     let signal Nil = S.const (Ok ())
     let raw_signal Nil = S.const ()
     let focus Nil = ()
@@ -141,7 +141,7 @@ let make_page (type value)(type raw_value)
 
   (* Now that we have an initial value, we can actually initialise the editor to
      get things running. *)
-  let editor = Component.initialise editor_s initial_value in
+  let%lwt editor = Component.initialise editor_s initial_value in
 
   (* What to do when “save” is clicked. *)
   let save f =

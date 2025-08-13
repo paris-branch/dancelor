@@ -7,13 +7,13 @@ open Components
 include Endpoints.Page.MakeDescribe(Model)
 
 let open_dialog page =
-  let maybe_reporter_input =
+  let%lwt maybe_reporter_input =
     match Environment.user_now () with
     | Some user ->
-      left (user, Input.inactive ~label: "Reporter" (Model.User.username' user))
+      lwt_left (user, Input.inactive ~label: "Reporter" (Model.User.username' user))
     | None ->
-      right @@
-        Input.make
+      right
+      <$> Input.make
           ~type_: Text
           ~label: "Reporter"
           ~placeholder: "Dr Jean Milligan"
@@ -22,7 +22,7 @@ let open_dialog page =
           ""
   in
   let%lwt source =
-    flip Lwt.map (describe page) @@ function
+    Lwt.bind (describe page) @@ function
       | None ->
         Choices.make_radios'
           ~label: "Source of the issue"
@@ -44,7 +44,7 @@ let open_dialog page =
             Choices.choice' ~value: true [txt "Dancelor itself"];
           ]
   in
-  let title_input =
+  let%lwt title_input =
     Input.make
       ~type_: Text
       ~label: "Title"
@@ -53,7 +53,7 @@ let open_dialog page =
       ~validate: (S.const % Result.of_string_nonempty ~empty: "The title cannot be empty.")
       ""
   in
-  let description_input =
+  let%lwt description_input =
     Input.make
       ~type_: Textarea
       ~label: "Description"

@@ -16,7 +16,7 @@ val make :
   ?oninput: (string -> unit) ->
   ?template: string ->
   string ->
-  ('value, string) Component.t
+  ('value, string) Component.t Lwt.t
 
 val inactive :
   label: string ->

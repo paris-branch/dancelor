@@ -21,7 +21,7 @@ val make :
   model_name: string ->
   create_dialog_content: ('model Entry.t Editor.mode -> Page.t Lwt.t) ->
   'model Entry.Id.t option ->
-  ('model Entry.t, 'model Entry.Id.t option) Component.t
+  ('model Entry.t, 'model Entry.Id.t option) Component.t Lwt.t
 
 (** {2 Internal use} *)
 

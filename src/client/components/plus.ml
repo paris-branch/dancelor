@@ -113,15 +113,17 @@ let prepare (type value)(type component_raw_value)
   let inner_html l = l.inner_html
   let actions _ = S.const []
 
-  let make (initial_selected, initial_values) =
+  let initialise (initial_selected, initial_values) =
     let (initial_selected, initial_values) =
       if List.length initial_values <> List.length components then
         empty_value
       else
           (initial_selected, initial_values)
     in
-    let initialised_components = List.map2 Component.initialise components initial_values in
-    let choices =
+    let%lwt initialised_components =
+      Lwt_list.map_s (uncurry Component.initialise) (List.combine components initial_values)
+    in
+    let%lwt choices =
       Choices.make_radios'
         ~label
         ~validate: (Option.to_result ~none: "You must make a choice.")
@@ -150,14 +152,14 @@ let prepare (type value)(type component_raw_value)
         );
       ]
     in
-      {choices; initialised_components; inner_html}
+    lwt {choices; initialised_components; inner_html}
 end)
 
 let make (type value)(type component_raw_value)
     ~label
     (components : (value, component_raw_value) Component.s list)
     (initial_values : int option * component_raw_value list)
-    : (value, int option * component_raw_value list) Component.t
+    : (value, int option * component_raw_value list) Component.t Lwt.t
   =
   Component.initialise (prepare ~label components) initial_values
 
@@ -180,8 +182,8 @@ let wrap (type value1)(type value2)(type raw_value1)(type raw_value2)
   let signal = S.map (Result.map wrap_value) % signal
   let raw_signal = S.map wrap_raw_value % raw_signal
   let set _ _ = () (* FIXME *)
-  let make initial_value =
+  let initialise initial_value =
     match unwrap_raw_value initial_value with
-    | Some initial_value -> make initial_value
+    | Some initial_value -> initialise initial_value
     | None -> assert false
 end)

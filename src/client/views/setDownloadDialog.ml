@@ -14,8 +14,8 @@ let lift_version_parameters every_version =
   SetParameters.make ~every_version ()
 
 let create () =
-  let version_dialog = VersionDownloadDialog.create () in
-  {
+  let%lwt version_dialog = VersionDownloadDialog.create () in
+  lwt {
     choice_rows = version_dialog.choice_rows;
     parameters_signal = S.map (Option.value ~default: SetParameters.none) @@
       S.merge
@@ -39,4 +39,4 @@ let open_ set dialog =
       Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set) params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
-let create_and_open set = open_ set (create ())
+let create_and_open set = open_ set =<< create ()

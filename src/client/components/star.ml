@@ -62,11 +62,12 @@ let prepare (type value)(type raw_value)
   let inner_html l = l.inner_html
   let actions _ = more_actions
 
-  let make initial_values =
+  let initialise initial_values =
+    let%lwt components = Lwt_list.map_p C.initialise initial_values in
     (* NOTE: We use [fun _ _ -> false] because React needs to be able to compare
        things and components are very non-comparable. If it causes issues, then
        we need the module type {!Component} to provide an equality. *)
-    let (components, set_components) = S.create ~eq: (fun _ _ -> false) @@ List.map C.make initial_values in
+    let (components, set_components) = S.create ~eq: (fun _ _ -> false) components in
     let button_add_object =
       Utils.Button.make
         ~label: ("Add a " ^ String.lowercase_ascii C.label)
@@ -74,7 +75,7 @@ let prepare (type value)(type raw_value)
         ~icon: "plus-circle"
         ~classes: ["btn-secondary"]
         ~onclick: (fun () ->
-          let component = C.make C.empty_value in
+          let%lwt component = C.initialise C.empty_value in
           set_components (S.value components @ [component]);
           C.trigger component;
           lwt_unit
@@ -124,7 +125,7 @@ let prepare (type value)(type raw_value)
         div [button_add_object];
       ]
     in
-      {components; set_components; inner_html; button_add_object_dom}
+    lwt {components; set_components; inner_html; button_add_object_dom}
 end)
 
 let make (type value)(type raw_value)
@@ -132,7 +133,7 @@ let make (type value)(type raw_value)
     ?more_actions
     (component : (value, raw_value) Component.s)
     (initial_values : raw_value list)
-    : (value list, raw_value list) Component.t
+    : (value list, raw_value list) Component.t Lwt.t
   =
   Component.initialise (prepare ~label ?more_actions component) initial_values
 
@@ -157,6 +158,6 @@ let make_non_empty (type value)(type raw_value)
     ?more_actions
     (component : (value, raw_value) Component.s)
     (initial_values : raw_value list)
-    : (value NonEmptyList.t, raw_value list) Component.t
+    : (value NonEmptyList.t, raw_value list) Component.t Lwt.t
   =
   Component.initialise (prepare_non_empty ~label ?more_actions component) initial_values

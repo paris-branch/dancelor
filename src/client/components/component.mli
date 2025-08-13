@@ -45,7 +45,7 @@ module type S = sig
 
   type t
 
-  val make : raw_value -> t
+  val initialise : raw_value -> t Lwt.t
 
   val signal : t -> (value, string) result S.t
   val raw_signal : t -> raw_value S.t
@@ -66,11 +66,11 @@ type ('value, 'raw_value) s = (module S with type value = 'value and type raw_va
 (** The type of an un-initialised component. This is the type that composes well
     and that one should provide to eg. {!ComponentList}. *)
 
-val initialise : ('value, 'raw_value) s -> 'raw_value -> ('value, 'raw_value) t
+val initialise :
+  ('value, 'raw_value) s ->
+  'raw_value ->
+  ('value, 'raw_value) t Lwt.t
 (** Initialise a prepared component. *)
-
-val make : (module S with type value = 'value and type raw_value = 'raw_value) -> 'raw_value -> ('value, 'raw_value) t
-(** Combination of {!prepare} and {!initialise}. *)
 
 (** {2 Utilities} *)
 

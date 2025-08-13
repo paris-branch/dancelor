@@ -4,7 +4,7 @@ val make :
   label: string ->
   ('value, 'raw_value) Component.s list ->
   int option * 'raw_value list ->
-  ('value, int option * 'raw_value list) Component.t
+  ('value, int option * 'raw_value list) Component.t Lwt.t
 
 exception PartialBecauseWrapped of string
 (** The action of wrapping a component is inherently a very partial one.
