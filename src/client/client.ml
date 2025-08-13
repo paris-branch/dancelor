@@ -65,6 +65,7 @@ let () =
       ]
   | Newer ->
     Utils.Toast.open_
+      ~type_: Forever
       ~title: "Newer version available"
       [txt
         "The Dancelor server has reloaded, meaning that there might be a newer \
@@ -93,6 +94,7 @@ let () =
           | MainPage.ReplacementSuccessful -> () (* see comment for {!MainPage.load_sleep_raise} *)
           | Madge_client.(Error (Http {request; status; _})) ->
             Utils.Toast.open_
+              ~type_: Forever
               ~title: "Uncaught API call error"
               [
                 txt "While querying ";
@@ -105,6 +107,7 @@ let () =
               ]
           | Madge_client.(Error (ServerUnreachable {request; status})) ->
             Utils.Toast.open_
+              ~type_: Forever
               ~title: "Server unreachable"
               [
                 txt "While querying ";
@@ -119,6 +122,7 @@ let () =
               ]
           | exn ->
             Utils.Toast.open_
+              ~type_: Forever
               ~title: "Uncaught exception"
               [
                 txt "Dancelor encountered";

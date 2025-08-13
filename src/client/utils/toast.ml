@@ -13,30 +13,23 @@ let stack =
       Dom.appendChild Dom_html.document##.body elt;
       elt
 
-type level =
-  | Normal
-  | Warning
+type type_ = Short | Forever
 
-let level_to_class = function
-  | Normal -> ([], [])
-  | Warning -> (["bg-warning"; "text-dark"], ["bg-warning-subtle"])
-
-let open_ ?(level = Normal) ~title ?(buttons = []) content =
+let open_ ?(type_ = Short) ~title ?(buttons = []) content =
   let start = Unix.time () in
-  let (class_header, class_body) = level_to_class level in
   let toast =
     To_dom.of_div @@
       div
         ~a: [a_class ["toast"; "fade"; "show"]; a_role ["alert"]; a_aria "live" ["assertive"]; a_aria "atomic" ["true"]]
         [
           div
-            ~a: [a_class (["toast-header"] @ class_header)]
+            ~a: [a_class ["toast-header"]]
             [
               h6 ~a: [a_class ["me-auto"; "my-0"]] [txt title];
               small [R.txt (Time.ago_s start)];
               button ~a: [a_button_type `Button; a_class ["btn-close"]; a_user_data "bs-dismiss" "toast"; a_aria "label" ["Close"]] [];
             ];
-          div ~a: [a_class (["toast-body"] @ class_body)] (
+          div ~a: [a_class ["toast-body"]] (
             content @ [
               div ~a: [a_class ["mt-2"; "pt-2"; "border-top"; "text-end"]] (
                 List.intersperse
@@ -47,9 +40,14 @@ let open_ ?(level = Normal) ~title ?(buttons = []) content =
           );
         ]
   in
-  Lwt.async (fun () ->
-    Js_of_ocaml_lwt.Lwt_js.sleep 60.;%lwt
-    Dom.removeChild (stack ()) toast;
-    lwt_unit
+  (
+    match type_ with
+    | Short ->
+      Lwt.async (fun () ->
+        Js_of_ocaml_lwt.Lwt_js.sleep 5.;%lwt
+        Dom.removeChild (stack ()) toast;
+        lwt_unit
+      )
+    | Forever -> ()
   );
   Dom.appendChild (stack ()) toast
