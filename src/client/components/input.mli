@@ -4,9 +4,11 @@ open React
 open Js_of_ocaml_tyxml.Tyxml_js
 
 type type_ = Text | Password | Textarea
+type font = Normal | Monospace
 
 val make :
   type_: type_ ->
+  ?font: font ->
   label: string ->
   ?placeholder: string ->
   serialise: ('value -> string) ->
@@ -26,6 +28,7 @@ val inactive :
 
 val prepare :
   type_: type_ ->
+  ?font: font ->
   label: string ->
   ?placeholder: string ->
   serialise: ('value -> string) ->
