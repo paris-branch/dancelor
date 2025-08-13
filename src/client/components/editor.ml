@@ -200,7 +200,12 @@ let make_page (type value)(type raw_value)
   (* Make a page holding the editor and the appropriate buttons and actions. *)
   let promise =
     Page.make'
-      ~title: (lwt @@ "Add a " ^ key)
+      ~title: (
+        lwt @@
+          match mode with
+          | QuickCreate _ | CreateWithLocalStorage -> "Add a " ^ key
+          | Edit _ -> "Edit a " ^ key
+      )
       ~on_load: (fun () -> Component.focus editor)
       [Component.inner_html editor]
       ~buttons: (
