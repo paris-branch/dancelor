@@ -141,7 +141,7 @@ let make_page (type value)(type raw_value)
   let editor = Component.initialise editor_s initial_value in
 
   (* What to do when “save” is clicked. *)
-  let save () =
+  let save f =
     let%lwt result =
       match S.value @@ Component.signal editor with
       | Error _ -> lwt_none
@@ -151,27 +151,50 @@ let make_page (type value)(type raw_value)
         | Some previewed_value -> some <$> submit mode previewed_value
     in
     (
-      flip Option.iter result @@ fun result ->
-      Component.clear editor;
-      match mode with
-      | QuickCreate (_, on_save) -> on_save result
-      | _ ->
-        Utils.Toast.open_
-          ~title: (String.capitalize_ascii key ^ " created")
-          [txt ("The " ^ key ^ " ");
-          format result;
-          txt " has been created successfully.";
-          ]
-          ~buttons: [
-            Utils.Button.make_a
-              ~label: ("Go to " ^ key)
-              ~icon
-              ~classes: ["btn-primary"]
-              ~href: (S.const @@ href result)
-              ();
-          ]
+      Option.iter
+        (fun result ->
+          Component.clear editor;
+          f result
+        )
+        result
     );
     lwt_unit
+  in
+  let save_buttons =
+    let button ?label f =
+      Utils.Button.save
+        ?label
+        ~disabled: (S.map Result.is_error (Component.signal editor))
+        ~onclick: (fun () -> save f)
+        ()
+    in
+    let show_toast result =
+      Utils.Toast.open_
+        ~title: (String.capitalize_ascii key ^ " created")
+        [txt ("The " ^ key ^ " ");
+        format result;
+        txt " has been created successfully.";
+        ]
+        ~buttons: [
+          Utils.Button.make_a
+            ~label: ("Go to " ^ key)
+            ~icon
+            ~classes: ["btn-primary"]
+            ~href: (S.const @@ href result)
+            ();
+        ]
+    in
+    let redirect result =
+      Dom_html.window##.location##.href := Js.string (href result)
+    in
+    match mode with
+    | QuickCreate (_, on_save) -> [button on_save]
+    | Edit _ -> [button redirect]
+    | CreateWithLocalStorage ->
+      [
+        button ~label: "Save and stay" show_toast;
+        button ~label: "Save and see" redirect;
+      ]
   in
 
   (* Make a page holding the editor and the appropriate buttons and actions. *)
@@ -180,15 +203,11 @@ let make_page (type value)(type raw_value)
       ~title: (lwt @@ "Add a " ^ key)
       ~on_load: (fun () -> Component.focus editor)
       [Component.inner_html editor]
-      ~buttons: [
+      ~buttons: (
         Utils.Button.clear
           ~onclick: (fun () -> Component.clear editor)
-          ();
-        Utils.Button.save
-          ~disabled: (S.map Result.is_error (Component.signal editor))
-          ~onclick: save
-          ();
-      ]
+          () :: save_buttons
+      )
   in
 
   (* If there was no initial text, then we connected to the local storage. We
