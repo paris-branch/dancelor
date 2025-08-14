@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Components
 open Html
 open Utils
@@ -46,22 +45,28 @@ let editor =
   Star.prepare
     ~label: "Versions"
     (
-      Selector.prepare
-        ~make_result: AnyResult.make_version_result'
-        ~make_more_results: (fun version ->
-          flip S.map show_preview @@ function
-            | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-            | false -> []
+      Parameteriser.prepare
+        (
+          Selector.prepare
+            ~make_result: AnyResult.make_version_result'
+            ~make_more_results: (fun version ->
+              flip S.map show_preview @@ function
+                | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+                | false -> []
+            )
+            ~label: "Version"
+            ~model_name: "version"
+            ~create_dialog_content: VersionEditor.create
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Version.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+            )
+            ~unserialise: Model.Version.get
+            ()
         )
-        ~label: "Version"
-        ~model_name: "version"
-        ~create_dialog_content: VersionEditor.create
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Version.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+        (
+          VersionParametersEditor.e
         )
-        ~unserialise: Model.Version.get
-        ()
     )
     ~more_actions: (
       let flip_show_preview_button ~icon =
@@ -91,11 +96,12 @@ let editor =
   nil
 
 let add_to_storage version =
+  let%lwt none = VersionParametersEditor.empty_value () in
+  lwt @@
   Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
-  (name, (kind, (conceptors, (versions @ [Some version], (order, ())))))
+  (name, (kind, (conceptors, (versions @ [Some version, none], (order, ())))))
 
 let preview (name, (kind, (conceptors, (contents, (order, ()))))) =
-  let contents = List.map (fun version -> (version, Model.VersionParameters.none)) contents in
   lwt_some @@ Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
 
 let submit mode set =
@@ -108,14 +114,6 @@ let break_down set =
   let kind = Model.Set.kind' set in
   let%lwt conceptors = Model.Set.conceptors' set in
   let%lwt contents = Model.Set.contents' set in
-  let contents =
-    List.map
-      (function
-        | (version, params) when params = Model.VersionParameters.none -> version
-        | _ -> raise Editor.NonConvertible
-      )
-      contents
-  in
   let order = Model.Set.order' set in
   lwt (name, (kind, (conceptors, (contents, (order, ())))))
 

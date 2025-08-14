@@ -96,7 +96,7 @@ let create ?context id =
                 ~icon: "plus-square"
                 ~classes: ["dropdown-item"]
                 ~onclick: (fun _ ->
-                  SetEditor.add_to_storage id;
+                  SetEditor.add_to_storage id;%lwt
                   Utils.Toast.open_
                     ~title: "Added to current set"
                     [
