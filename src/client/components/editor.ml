@@ -12,59 +12,13 @@ let cons (type value1)(type raw_value1)(type value2)(type raw_value2)
     : (value1 * value2, raw_value1 * raw_value2) bundle
   =
   Bundle (module struct
-    module C = (val component)
-    module B = (val bundle)
+    include (val Pair.prepare component bundle)
 
-    let label = "Bundle"
-
-    type value = C.value * B.value
-    type raw_value = C.raw_value * B.raw_value [@@deriving yojson]
-
-    let empty_value = (C.empty_value, B.empty_value)
-    let raw_value_from_initial_text text = (C.raw_value_from_initial_text text, B.empty_value)
-    let serialise (v1, v2) =
-      let%lwt v1 = C.serialise v1 in
-      let%lwt v2 = B.serialise v2 in
-      lwt (v1, v2)
-
-    type t = {
-      component: (value1, raw_value1) Component.t;
-      bundle: (value2, raw_value2) Component.t;
-    }
-
-    let signal l =
-      RS.bind (Component.signal l.component) @@ fun component ->
-      RS.bind (Component.signal l.bundle) @@ fun bundle ->
-      RS.pure (component, bundle)
-
-    let raw_signal l =
-      S.bind (Component.raw_signal l.component) @@ fun component ->
-      S.bind (Component.raw_signal l.bundle) @@ fun bundle ->
-      S.const (component, bundle)
-
-    let focus l = Component.focus l.component
-    let trigger l = Component.trigger l.component
-
-    let set l (value1, value2) =
-      Component.set l.component value1;
-      Component.set l.bundle value2
-
-    let clear l =
-      Component.clear l.component;
-      Component.clear l.bundle
-
-    let inner_html l =
+    let inner_html p =
       div [
-        Component.html l.component;
-        Component.inner_html l.bundle;
+        Component.html (c1 p);
+        Component.inner_html (c2 p);
       ]
-
-    let actions _ = S.const []
-
-    let initialise (initial_value1, initial_value2) =
-      let%lwt component = Component.initialise component initial_value1 in
-      let%lwt bundle = Component.initialise bundle initial_value2 in
-      lwt {component; bundle}
   end)
 
 let (^::) = cons
