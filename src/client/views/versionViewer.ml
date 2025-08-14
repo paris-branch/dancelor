@@ -112,7 +112,7 @@ let create ?context id =
                 ~icon: "plus-square"
                 ~classes: ["dropdown-item"]
                 ~onclick: (fun _ ->
-                  BookEditor.add_version_to_storage id;
+                  BookEditor.add_version_to_storage id;%lwt
                   Utils.Toast.open_
                     ~title: "Added to current book"
                     [

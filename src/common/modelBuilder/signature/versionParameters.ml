@@ -14,6 +14,7 @@ module type S = sig
     ?first_bar: int ->
     ?display_name: string ->
     ?display_composer: string ->
+    ?for_dance: Core.Dance.t Entry.t ->
     unit ->
     t
 

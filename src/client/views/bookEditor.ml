@@ -65,22 +65,28 @@ let editor =
             right
             Either.find_right
             (
-              Selector.prepare
-                ~make_result: AnyResult.make_version_result'
-                ~make_more_results: (fun version ->
-                  flip S.map show_preview @@ function
-                    | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-                    | false -> []
+              Parameteriser.prepare
+                (
+                  Selector.prepare
+                    ~make_result: AnyResult.make_version_result'
+                    ~make_more_results: (fun version ->
+                      flip S.map show_preview @@ function
+                        | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+                        | false -> []
+                    )
+                    ~label: "Version"
+                    ~model_name: "version"
+                    ~create_dialog_content: VersionEditor.create
+                    ~search: (fun slice input ->
+                      let%rlwt filter = lwt (Filter.Version.from_string input) in
+                      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+                    )
+                    ~unserialise: Model.Version.get
+                    ()
                 )
-                ~label: "Version"
-                ~model_name: "version"
-                ~create_dialog_content: VersionEditor.create
-                ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.Version.from_string input) in
-                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+                (
+                  VersionParametersEditor.e
                 )
-                ~unserialise: Model.Version.get
-                ()
             );
         ]
     )
@@ -102,19 +108,23 @@ let editor =
   nil
 
 let add_set_to_storage set =
+  let%lwt none = VersionParametersEditor.empty_value () in
+  lwt @@
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
-  (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
+  (name, (date, (contents @ [Some 0, [Left (Some set); Right (None, none)]], ())))
 
 let add_version_to_storage version =
+  let%lwt none = VersionParametersEditor.empty_value () in
+  lwt @@
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
-  (name, (date, (contents @ [Some 1, [Left None; Right (Some version)]], ())))
+  (name, (date, (contents @ [Some 1, [Left None; Right (Some version, none)]], ())))
 
 let preview (title, (date, (contents, ()))) =
   let contents =
     List.map
       (function
         | Left set -> Model.Book.Set (set, Model.SetParameters.none)
-        | Right version -> Model.Book.Version (version, Model.VersionParameters.none)
+        | Right (version, params) -> Model.Book.Version (version, params)
       )
       contents
   in
@@ -133,7 +143,7 @@ let break_down book =
     List.map
       (function
         | Model.Book.Set (set, params) when params = Model.SetParameters.none -> Left set
-        | Model.Book.Version (version, params) when params = Model.VersionParameters.none -> Right version
+        | Model.Book.Version (version, params) -> Right (version, params)
         | _ -> raise Editor.NonConvertible
       )
       contents

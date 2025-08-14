@@ -25,8 +25,8 @@ include Self
    [@yojson.default]. Current version of [@@deriving yojson] (3.5.3) does not,
    however, seem to recognise this option anymore. In the meantime, we use
    [@default] and we add a dirty fix for [@@deriving make]: *)
-let make ?instruments ?transposition ?clef ?first_bar ?display_name ?display_composer () =
-  make ~instruments ~transposition ~clef ~first_bar ~display_name ~display_composer ()
+let make ?instruments ?transposition ?clef ?first_bar ?display_name ?display_composer ?for_dance () =
+  make ~instruments ~transposition ~clef ~first_bar ~display_name ~display_composer ~for_dance ()
 
 let make_instrument pitch =
   make

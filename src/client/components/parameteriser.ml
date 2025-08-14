@@ -76,7 +76,12 @@ let prepare (type comp_value)(type comp_raw_value)(type params)(type params_prev
             ~onclick: (fun () ->
               ignore
               <$> Page.open_dialog' @@ fun return ->
-                Editor.page ~after_save: return p.editor
+                Editor.page
+                  p.editor
+                  ~after_save: (fun result ->
+                    Utils.Toast.open_ ~title: "Set parameters" [txt "Your parameters have been set."];
+                    return result
+                  )
             )
             ()
         ]

@@ -1,6 +1,8 @@
 open Nes
+open Common
 open Components
 open Html
+open Utils
 
 let editor =
   let open Editor in
@@ -11,16 +13,28 @@ let editor =
     ~serialise: (Option.value ~default: "")
     ~validate: (S.const % ok % Option.of_string_nonempty)
     () ^::
-    nil
+  Selector.prepare_opt
+    ~search: (fun slice input ->
+      let%rlwt filter = lwt (Filter.Dance.from_string input) in
+      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
+    )
+    ~unserialise: Model.Dance.get
+    ~make_result: AnyResult.make_dance_result'
+    ~label: "For dance (optional)"
+    ~model_name: "dance"
+    ~create_dialog_content: DanceEditor.create
+    () ^::
+  nil
 
-let preview (display_name, ()) =
-  lwt_some @@ Model.VersionParameters.make ?display_name ()
+let preview (display_name, (for_dance, ())) =
+  lwt_some @@ Model.VersionParameters.make ?display_name ?for_dance ()
 
 let submit _mode params = lwt params
 
 let break_down params =
   let display_name = Model.VersionParameters.display_name params in
-  let value = (display_name, ()) in
+  let%lwt for_dance = Model.VersionParameters.for_dance params in
+  let value = (display_name, (for_dance, ())) in
   (* Check that we aren't silently removing a field.*)
   let%lwt reconstructed = preview value in
   if not (Option.equal Model.VersionParameters.equal (Some params) reconstructed) then
@@ -30,7 +44,7 @@ let break_down params =
 let e =
   Editor.prepare
     ~key: "version parameters"
-    ~icon: "caca"
+    ~icon: "fixme"
     editor
     ~preview
     ~submit

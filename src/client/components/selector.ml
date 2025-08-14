@@ -83,6 +83,14 @@ let prepare_gen (type model)(type model_validated)
 
   let initialise initial_value =
     let (signal, set) = S.create None in
+    let set x =
+      (
+        match x with
+        | None -> Format.eprintf "CLEARING THE %s SELECTOR@." label
+        | Some _ -> Format.eprintf "SETTING THE %s SELECTOR@." label
+      );
+      set x
+    in
     let quick_search = Search.Quick.make ~search () in
     Lwt.async (fun () ->
       let%lwt initial_value =
