@@ -17,6 +17,8 @@ module type S = sig
     unit ->
     t
 
+  val equal : t -> t -> bool
+
   val none : t
 
   val for_dance : t -> Core.Dance.t Entry.t Olwt.t
