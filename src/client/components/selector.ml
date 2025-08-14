@@ -21,7 +21,7 @@ let prepare (type model)
   (const (S.const []): model Entry.t ->
     Utils.ResultRow.t list S.t))
   ~model_name
-  ~(create_dialog_content : model Entry.t Editor.mode -> Page.t Lwt.t)
+  ~(create_dialog_content : (model Entry.t, 'any) Editor.mode -> Page.t Lwt.t)
   ()
   : (model Entry.t, model Entry.Id.t option) Component.s
 = (module struct
