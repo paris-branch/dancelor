@@ -19,7 +19,7 @@ val make :
   ('model Entry.t ->
   Utils.ResultRow.t list S.t) ->
   model_name: string ->
-  create_dialog_content: ('model Entry.t Editor.mode -> Page.t Lwt.t) ->
+  create_dialog_content: (('model Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   'model Entry.Id.t option ->
   ('model Entry.t, 'model Entry.Id.t option) Component.t Lwt.t
 
@@ -40,7 +40,7 @@ val prepare :
   ('model Entry.t ->
   Utils.ResultRow.t list S.t) ->
   model_name: string ->
-  create_dialog_content: ('model Entry.t Editor.mode -> Page.t Lwt.t) ->
+  create_dialog_content: (('model Entry.t, 'any) Editor.mode -> Page.t Lwt.t) ->
   unit ->
   ('model Entry.t, 'model Entry.Id.t option) Component.s
 (** Variant of {!make} that only prepares the component. It must still be
