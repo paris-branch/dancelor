@@ -32,6 +32,7 @@
           ppx_inline_test
           ppx_fields_conv
           ppx_monad
+          ppx_variants_conv
           slug
           yaml
 
@@ -41,9 +42,6 @@
           ppx_deriving_qcheck
           qcheck
           qcheck-alcotest
-
-          # used for vendored `ppx_variants_conv`
-          variantslib
         ];
       };
 
