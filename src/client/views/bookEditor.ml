@@ -37,50 +37,62 @@ let editor =
         ~label: "Set or version"
         [
           Plus.wrap
-            left
-            Either.find_left
+            (uncurry Model.Book.set)
+            Model.Book.unSet
             left
             Either.find_left
             (
-              Selector.prepare
-                ~make_result: AnyResult.make_set_result'
-                ~make_more_results: (fun set ->
-                  flip S.map show_preview @@ function
-                    | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
-                    | false -> []
+              Parameteriser.prepare
+                (
+                  Selector.prepare
+                    ~make_result: AnyResult.make_set_result'
+                    ~make_more_results: (fun set ->
+                      flip S.map show_preview @@ function
+                        | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+                        | false -> []
+                    )
+                    ~label: "Set"
+                    ~model_name: "set"
+                    ~create_dialog_content: SetEditor.create
+                    ~search: (fun slice input ->
+                      let%rlwt filter = lwt (Filter.Set.from_string input) in
+                      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+                    )
+                    ~unserialise: Model.Set.get
+                    ()
                 )
-                ~label: "Set"
-                ~model_name: "set"
-                ~create_dialog_content: SetEditor.create
-                ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.Set.from_string input) in
-                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+                (
+                  SetParametersEditor.e
                 )
-                ~unserialise: Model.Set.get
-                ()
             );
           Plus.wrap
-            right
-            Either.find_right
+            (uncurry Model.Book.version)
+            Model.Book.unVersion
             right
             Either.find_right
             (
-              Selector.prepare
-                ~make_result: AnyResult.make_version_result'
-                ~make_more_results: (fun version ->
-                  flip S.map show_preview @@ function
-                    | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-                    | false -> []
+              Parameteriser.prepare
+                (
+                  Selector.prepare
+                    ~make_result: AnyResult.make_version_result'
+                    ~make_more_results: (fun version ->
+                      flip S.map show_preview @@ function
+                        | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+                        | false -> []
+                    )
+                    ~label: "Version"
+                    ~model_name: "version"
+                    ~create_dialog_content: VersionEditor.create
+                    ~search: (fun slice input ->
+                      let%rlwt filter = lwt (Filter.Version.from_string input) in
+                      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+                    )
+                    ~unserialise: Model.Version.get
+                    ()
                 )
-                ~label: "Version"
-                ~model_name: "version"
-                ~create_dialog_content: VersionEditor.create
-                ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.Version.from_string input) in
-                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+                (
+                  VersionParametersEditor.e
                 )
-                ~unserialise: Model.Version.get
-                ()
             );
         ]
     )
@@ -102,22 +114,20 @@ let editor =
   nil
 
 let add_set_to_storage set =
+  let%lwt set_none = SetParametersEditor.empty_value () in
+  let%lwt version_none = VersionParametersEditor.empty_value () in
+  lwt @@
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
-  (name, (date, (contents @ [Some 0, [Left (Some set); Right None]], ())))
+  (name, (date, (contents @ [Some 0, [Left (Some set, set_none); Right (None, version_none)]], ())))
 
 let add_version_to_storage version =
+  let%lwt set_none = SetParametersEditor.empty_value () in
+  let%lwt version_none = VersionParametersEditor.empty_value () in
+  lwt @@
   Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
-  (name, (date, (contents @ [Some 1, [Left None; Right (Some version)]], ())))
+  (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ())))
 
 let preview (title, (date, (contents, ()))) =
-  let contents =
-    List.map
-      (function
-        | Left set -> Model.Book.Set (set, Model.SetParameters.none)
-        | Right version -> Model.Book.Version (version, Model.VersionParameters.none)
-      )
-      contents
-  in
   lwt_some @@ Model.Book.make ~title ?date ~contents ()
 
 let submit mode book =
@@ -129,15 +139,6 @@ let break_down book =
   let title = Model.Book.title' book in
   let date = Model.Book.date' book in
   let%lwt contents = Model.Book.contents' book in
-  let contents =
-    List.map
-      (function
-        | Model.Book.Set (set, params) when params = Model.SetParameters.none -> Left set
-        | Model.Book.Version (version, params) when params = Model.VersionParameters.none -> Right version
-        | _ -> raise Editor.NonConvertible
-      )
-      contents
-  in
   lwt (title, (date, (contents, ())))
 
 let create mode =

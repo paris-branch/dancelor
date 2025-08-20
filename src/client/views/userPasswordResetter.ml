@@ -7,7 +7,7 @@ open Html
 type status = Match | DontMatch
 
 let create username token =
-  let password1_input =
+  let%lwt password1_input =
     Input.make
       ~type_: Password
       ~label: "Password"
@@ -16,7 +16,7 @@ let create username token =
       ~validate: (S.const % fun password1 -> Result.bind (Password.check password1) @@ fun () -> Ok password1)
       ""
   in
-  let password2_input =
+  let%lwt password2_input =
     Input.make
       ~type_: Password
       ~label: "Password, again"

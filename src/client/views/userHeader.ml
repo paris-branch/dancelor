@@ -7,7 +7,7 @@ type sign_in_dialog_status = DontKnow | Invalid
 let open_sign_in_dialog () =
   let open Components in
   let (status_signal, set_status_signal) = S.create DontKnow in
-  let username_input =
+  let%lwt username_input =
     Input.make
       ~type_: Text
       ~label: "Username"
@@ -25,7 +25,7 @@ let open_sign_in_dialog () =
       )
       ""
   in
-  let password_input =
+  let%lwt password_input =
     Input.make
       ~type_: Password
       ~label: "Password"
@@ -42,7 +42,7 @@ let open_sign_in_dialog () =
       )
       ""
   in
-  let remember_me_input =
+  let%lwt remember_me_input =
     Choices.(
       make_radios'
         ~label: "Sign in..."

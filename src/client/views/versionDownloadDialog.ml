@@ -11,7 +11,7 @@ type t = {
 }
 
 let create () =
-  let key_choices =
+  let%lwt key_choices =
     Choices.(
       make_radios
         ~label: "Key"
@@ -26,7 +26,7 @@ let create () =
         ]
     )
   in
-  let clef_choices =
+  let%lwt clef_choices =
     Choices.(
       make_radios
         ~label: "Clef"
@@ -50,7 +50,7 @@ let create () =
           S.map Result.get_ok (Component.signal clef_choices);
         ]
   in
-  {
+  lwt {
     choice_rows = [
       tr [td [label [txt "Key:"]]; td [Component.inner_html key_choices]];
       tr [td [label [txt "Clef:"]]; td [Component.inner_html clef_choices]];
@@ -69,4 +69,4 @@ let open_ version dialog =
       Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) (Entry.id version) slug params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
-let create_and_open id = open_ id (create ())
+let create_and_open id = open_ id =<< create ()

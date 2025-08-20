@@ -27,7 +27,7 @@ let open_token_result_dialog user token =
 
 let create () =
   MainPage.assert_can_admin @@ fun () ->
-  let username_input =
+  let%lwt username_input =
     Input.make
       ~type_: Text
       ~placeholder: "JeanMilligan"
@@ -41,7 +41,7 @@ let create () =
       )
       ""
   in
-  let person_selector =
+  let%lwt person_selector =
     Selector.make
       ~label: "Person"
       ~search: (fun slice input ->

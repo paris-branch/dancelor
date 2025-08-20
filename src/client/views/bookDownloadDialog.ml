@@ -16,8 +16,8 @@ let lift_set_parameters every_set =
   BookParameters.make ~every_set ()
 
 let create () =
-  let set_dialog = SetDownloadDialog.create () in
-  let booklet_choices =
+  let%lwt set_dialog = SetDownloadDialog.create () in
+  let%lwt booklet_choices =
     Choices.(
       make_radios
         ~label: "Mode"
@@ -36,7 +36,7 @@ let create () =
         ]
     )
   in
-  {
+  lwt {
     choice_rows = (
       set_dialog.choice_rows @ [
         tr [td [label [txt "Mode:"]]; td [Component.inner_html booklet_choices]]
@@ -64,4 +64,4 @@ let open_ book dialog =
       Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Book Pdf) (Entry.id book) (Book.slug' book) params RenderingParameters.none) dialog.parameters_signal) ();
     ]
 
-let create_and_open book = open_ book (create ())
+let create_and_open book = open_ book =<< create ()

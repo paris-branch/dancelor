@@ -5,7 +5,7 @@ open Html
 
 (* TODO: Also store the search text in the raw signal. *)
 
-let prepare (type model)
+let prepare_gen (type model)(type model_validated)
   ~label
   ~search
   ~unserialise
@@ -21,13 +21,15 @@ let prepare (type model)
   (const (S.const []): model Entry.t ->
     Utils.ResultRow.t list S.t))
   ~model_name
-  ~(create_dialog_content : model Entry.t Editor.mode -> Page.t Lwt.t)
+  ~(create_dialog_content : (model Entry.t, 'any) Editor.mode -> Page.t Lwt.t)
+  ~(validate : model Entry.t option -> (model_validated, string) Result.t)
+  ~(unvalidate : model_validated -> model Entry.t option)
   ()
-  : (model Entry.t, model Entry.Id.t option) Component.s
+  : (model_validated, model Entry.Id.t option) Component.s
 = (module struct
   let label = label
 
-  type value = model Entry.t
+  type value = model_validated
 
   (* Dirty trick to convince Yojson to serialise ids. *)
   let model_to_yojson _ = assert false
@@ -37,7 +39,7 @@ let prepare (type model)
 
   let empty_value = None
   let raw_value_from_initial_text _ = None
-  let serialise = some % Entry.id
+  let serialise = lwt % Option.map Entry.id % unvalidate
 
   type t = {
     signal: model Entry.t option S.t;
@@ -47,8 +49,10 @@ let prepare (type model)
     select_button_dom: Dom_html.buttonElement Js.t;
   }
 
-  let raw_signal s = S.map (flip Option.bind serialise) s.signal
-  let signal i = S.map (Option.to_result ~none: "You must select an element.") i.signal
+  let raw_signal s = S.map (flip Option.bind (some % Entry.id)) s.signal (* FIXME: can we simplify? *)
+
+  let signal i = S.map validate i.signal
+
   let inner_html s = s.inner_html
 
   let actions s =
@@ -77,7 +81,7 @@ let prepare (type model)
 
   let clear s = s.set None
 
-  let make initial_value =
+  let initialise initial_value =
     let (signal, set) = S.create None in
     let quick_search = Search.Quick.make ~search () in
     Lwt.async (fun () ->
@@ -160,8 +164,54 @@ let prepare (type model)
             ]
       )
     in
-      {signal; set; inner_html; select_button_dom}
+    lwt {signal; set; inner_html; select_button_dom}
 end)
+
+let prepare
+    ~label
+    ~search
+    ~unserialise
+    ~make_result
+    ?make_more_results
+    ~model_name
+    ~create_dialog_content
+    ()
+    : ('model Entry.t, 'model Entry.Id.t option) Component.s
+  =
+  prepare_gen
+    ~label
+    ~search
+    ~unserialise
+    ~make_result
+    ?make_more_results
+    ~model_name
+    ~create_dialog_content
+    ~validate: (Option.to_result ~none: "You must select an element.")
+    ~unvalidate: Option.some
+    ()
+
+let prepare_opt
+    ~label
+    ~search
+    ~unserialise
+    ~make_result
+    ?make_more_results
+    ~model_name
+    ~create_dialog_content
+    ()
+    : ('model Entry.t option, 'model Entry.Id.t option) Component.s
+  =
+  prepare_gen
+    ~label
+    ~search
+    ~unserialise
+    ~make_result
+    ?make_more_results
+    ~model_name
+    ~create_dialog_content
+    ~validate: ok
+    ~unvalidate: id
+    ()
 
 let make
     ~label

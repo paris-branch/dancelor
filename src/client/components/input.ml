@@ -28,7 +28,7 @@ let prepare (type value)
 
   let empty_value = ""
   let raw_value_from_initial_text = Fun.id
-  let serialise = serialise
+  let serialise = lwt % serialise
 
   type t = {
     raw_signal: string S.t;
@@ -56,7 +56,7 @@ let prepare (type value)
 
   let clear i = i.set ""
 
-  let make initial_value =
+  let initialise initial_value =
     let (raw_signal, set_immediately) = S.create initial_value in
     let set_delayed = S.delayed_setter 0.30 set_immediately in
     let signal = S.bind raw_signal validate in
@@ -130,7 +130,7 @@ let prepare (type value)
       | Text {input_dom; _} -> input_dom##.value := Js.string x
       | Textarea {textarea_dom; _} -> textarea_dom##.value := Js.string x
     in
-      {raw_signal; signal; set; html}
+    lwt {raw_signal; signal; set; html}
 
   let inner_html i =
     match i.html with

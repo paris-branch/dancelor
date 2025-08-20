@@ -277,8 +277,8 @@ let minor_key_choices filter =
   )
 
 let version_bundled_choices ~kind_choices filter =
-  let major_key_choices = major_key_choices filter in
-  let minor_key_choices = minor_key_choices filter in
+  let%lwt major_key_choices = major_key_choices filter in
+  let%lwt minor_key_choices = minor_key_choices filter in
   let formula =
     S.map (Filter.Any.version' % Formula.and_l) @@
       S.all
@@ -302,15 +302,15 @@ let version_bundled_choices ~kind_choices filter =
     Component.inner_html minor_key_choices;
   ]
   in
-    (formula, html)
+  lwt (formula, html)
 
 (* the dialog itself *)
 
 let open_ text raws filter =
-  let type_choices = type_choices filter in
+  let%lwt type_choices = type_choices filter in
 
   (* bundled choices shared between models *)
-  let kind_choices = kind_choices filter in
+  let%lwt kind_choices = kind_choices filter in
 
   (* model-specific bundled choices *)
   let (source_formula, source_html) = source_bundled_choices filter in
@@ -319,7 +319,7 @@ let open_ text raws filter =
   let (book_formula, book_html) = book_bundled_choices filter in
   let (set_formula, set_html) = set_bundled_choices filter ~kind_choices in
   let (tune_formula, tune_html) = tune_bundled_choices filter ~kind_choices in
-  let (version_formula, version_html) = version_bundled_choices filter ~kind_choices in
+  let%lwt (version_formula, version_html) = version_bundled_choices filter ~kind_choices in
   let new_filter =
     (* big conjunction *)
     S.map Formula.and_l @@

@@ -11,11 +11,11 @@ module type S = sig
   val raw_value_from_initial_text : string -> raw_value
   val raw_value_to_yojson : raw_value -> Yojson.Safe.t
   val raw_value_of_yojson : Yojson.Safe.t -> (raw_value, string) result
-  val serialise : value -> raw_value
+  val serialise : value -> raw_value Lwt.t
 
   type t
 
-  val make : raw_value -> t
+  val initialise : raw_value -> t Lwt.t
 
   val signal : t -> (value, string) result S.t
   val raw_signal : t -> raw_value S.t
@@ -35,16 +35,10 @@ type ('value, 'raw_value) t =
 let initialise (type value)(type raw_value)
     (module C : S with type value = value and type raw_value = raw_value)
     (initial_value : raw_value)
-    : (value, raw_value) t
+    : (value, raw_value) t Lwt.t
   =
-  Component ((module C), C.make initial_value)
-
-let make (type value)(type raw_value)
-    (module C : S with type value = value and type raw_value = raw_value)
-    (initial_value : raw_value)
-    : (value, raw_value) t
-  =
-  initialise (module C) initial_value
+  let%lwt component = C.initialise initial_value in
+  lwt @@ Component ((module C), component)
 
 let focus : type value raw_value. (value, raw_value) t -> unit = function Component ((module C), c) -> C.focus c
 let trigger : type value raw_value. (value, raw_value) t -> unit = function Component ((module C), c) -> C.trigger c

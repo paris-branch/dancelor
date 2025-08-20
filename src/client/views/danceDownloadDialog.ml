@@ -15,4 +15,4 @@ let open_ dance dialog =
       Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Dance Pdf) (Entry.id dance) (Dance.slug' dance) params RenderingParameters.none) dialog.SetDownloadDialog.parameters_signal) ();
     ]
 
-let create_and_open dance = open_ dance (create ())
+let create_and_open dance = open_ dance =<< create ()

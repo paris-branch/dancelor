@@ -41,11 +41,11 @@ module type S = sig
   val raw_value_from_initial_text : string -> raw_value
   val raw_value_to_yojson : raw_value -> Yojson.Safe.t
   val raw_value_of_yojson : Yojson.Safe.t -> (raw_value, string) result
-  val serialise : value -> raw_value
+  val serialise : value -> raw_value Lwt.t
 
   type t
 
-  val make : raw_value -> t
+  val initialise : raw_value -> t Lwt.t
 
   val signal : t -> (value, string) result S.t
   val raw_signal : t -> raw_value S.t
@@ -66,11 +66,11 @@ type ('value, 'raw_value) s = (module S with type value = 'value and type raw_va
 (** The type of an un-initialised component. This is the type that composes well
     and that one should provide to eg. {!ComponentList}. *)
 
-val initialise : ('value, 'raw_value) s -> 'raw_value -> ('value, 'raw_value) t
+val initialise :
+  ('value, 'raw_value) s ->
+  'raw_value ->
+  ('value, 'raw_value) t Lwt.t
 (** Initialise a prepared component. *)
-
-val make : (module S with type value = 'value and type raw_value = 'raw_value) -> 'raw_value -> ('value, 'raw_value) t
-(** Combination of {!prepare} and {!initialise}. *)
 
 (** {2 Utilities} *)
 

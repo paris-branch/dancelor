@@ -8,7 +8,7 @@ val make :
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'raw_value) Component.s ->
   'raw_value list ->
-  ('value list, 'raw_value list) Component.t
+  ('value list, 'raw_value list) Component.t Lwt.t
 (** Make a list component, that is a component that contains 0, 1, or more
     instances of the same sub-component. It contains as value the list of values
     of the sub-components. Note that it consume the sub-components as
@@ -19,7 +19,7 @@ val make_non_empty :
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'raw_value) Component.s ->
   'raw_value list ->
-  ('value NonEmptyList.t, 'raw_value list) Component.t
+  ('value NonEmptyList.t, 'raw_value list) Component.t Lwt.t
 (** Variant of {!make} for a list component that has to contain at least one
     sub-component. The value type is therefore {!NonEmptyList.t}. *)
 
