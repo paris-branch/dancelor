@@ -1,6 +1,6 @@
 module type S = sig
   (** {1 Set parameters}
-  
+
       This module defines parameters that make sense at the level of a set. This
       includes version parameters as well. *)
 
@@ -19,24 +19,16 @@ module type S = sig
     ?show_deviser: bool ->
     ?show_order: bool ->
     ?display_name: string ->
-    ?for_dance: Core.Dance.t Entry.Id.t ->
+    ?for_dance: Core.Dance.t Entry.t ->
     ?every_version: Core.VersionParameters.t ->
     unit ->
     t
 
-  val make' :
-    ?forced_pages: int ->
-    ?show_deviser: bool ->
-    ?show_order: bool ->
-    ?display_name: string ->
-    ?for_dance: Core.Dance.t Entry.t ->
-    ?every_version: Core.VersionParameters.t ->
-    unit ->
-    t Lwt.t
+  val equal : t -> t -> bool
 
   val none : t
 
-  val for_dance : t -> Core.Dance.t Entry.t Olwt.t
+  val for_dance : t -> Core.Dance.t Entry.t option Lwt.t
   val show_order' : t -> bool
   val display_name : t -> string option
   val display_name' : default: string -> t -> string

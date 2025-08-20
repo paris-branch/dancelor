@@ -1,6 +1,6 @@
 module type S = sig
   (** {1 Version parameters}
-  
+
       This module defines parameters that make sense at the level of a version. *)
 
   open Nes
@@ -14,12 +14,13 @@ module type S = sig
     ?first_bar: int ->
     ?display_name: string ->
     ?display_composer: string ->
+    ?for_dance: Core.Dance.t Entry.t ->
     unit ->
     t
 
   val none : t
 
-  val for_dance : t -> Core.Dance.t Entry.t Olwt.t
+  val for_dance : t -> Core.Dance.t Entry.t option Lwt.t
   val display_name : t -> string option
   val display_name' : default: string -> t -> string
   val display_composer' : default: string -> t -> string
