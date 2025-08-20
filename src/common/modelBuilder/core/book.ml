@@ -10,7 +10,7 @@ end
 type page =
   | Version of Version.t Entry.t * VersionParameters.t
   | Set of Set.t Entry.t * SetParameters.t
-[@@deriving show {with_path = false}]
+[@@deriving show {with_path = false}, variants]
 
 let page_to_page_core = function
   | (Version (version, params): page) -> Page.Version (Entry.id version, params)

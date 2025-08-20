@@ -12,8 +12,11 @@ module type S = sig
   type page = Core.Book.page =
     | Version of Core.Version.t Entry.t * Core.VersionParameters.t
     | Set of Core.Set.t Entry.t * Core.SetParameters.t
+  [@@deriving variants]
   (** The type of one page in a book. A page either consists of a version (eg.
       in a book of tunes), or a set (eg. in a dance program). *)
+
+  (** The type of a book. *)
 
   type t = Core.Book.t
   (** The type of a book. Even if it is known that it is a record, it should never
