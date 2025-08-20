@@ -13,8 +13,8 @@ module type S = sig
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
 
-  val existsDeviser : Core.Person.t -> predicate
-  val existsDeviser' : Core.Person.t -> t
+  val existsdeviser : Core.Person.t -> predicate
+  val existsdeviser' : Core.Person.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

@@ -93,7 +93,7 @@ let create ?context id =
             let%lwt contents = Set.contents' set in
             Lwt_list.mapi_p
               (fun index (version, _parameters) ->
-                let context = Endpoints.Page.inSet id index in
+                let context = Endpoints.Page.inset id index in
                 (* FIXME: use parameters *)
                 let%lwt tune = Version.tune' version in
                 let id = Entry.id version in
@@ -110,6 +110,6 @@ let create ?context id =
       Utils.quick_explorer_links'
         (lwt set)
         [
-          ("books containing this set", Filter.(Any.book' % Book.memSet'));
+          ("books containing this set", Filter.(Any.book' % Book.memset'));
         ];
     ]

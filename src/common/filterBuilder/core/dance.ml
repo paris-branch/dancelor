@@ -12,22 +12,22 @@ type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name
-let nameMatches' = Formula.pred % nameMatches
+let namematches' = Formula.pred % namematches
 let kind' = Formula.pred % kind
-let existsDeviser' = Formula.pred % existsDeviser
+let existsdeviser' = Formula.pred % existsdeviser
 
 let text_formula_converter =
   TextFormulaConverter.(
     make
       [
-        raw (ok % nameMatches');
-        unary_string ~name: "name" (name, unName);
-        unary_string ~name: "name-matches" (nameMatches, unNameMatches);
-        unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Dance.Filter.text_formula_converter;
-        unary_lift ~name: "exists-deviser" (existsDeviser, unExistsDeviser) ~converter: Person.text_formula_converter;
-        unary_lift ~name: "by" (existsDeviser, unExistsDeviser) ~converter: Person.text_formula_converter;
+        raw (ok % namematches');
+        unary_string ~name: "name" (name, name_val);
+        unary_string ~name: "name-matches" (namematches, namematches_val);
+        unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Dance.Filter.text_formula_converter;
+        unary_lift ~name: "exists-deviser" (existsdeviser, existsdeviser_val) ~converter: Person.text_formula_converter;
+        unary_lift ~name: "by" (existsdeviser, existsdeviser_val) ~converter: Person.text_formula_converter;
         (* alias for deviser; FIXME: make this clearer *)
-        unary_id ~name: "is" (is, unIs);
+        unary_id ~name: "is" (is, is_val);
       ]
   )
 
@@ -48,7 +48,7 @@ let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
     | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
-    | (ExistsDeviser f1, ExistsDeviser f2) -> some @@ existsDeviser (op f1 f2)
+    | (ExistsDeviser f1, ExistsDeviser f2) -> some @@ existsdeviser (op f1 f2)
     | _ -> None
   in
   Formula.optimise
@@ -57,5 +57,5 @@ let optimise =
     (function
       | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
       | Kind kfilter -> kind @@ Kind.Dance.Filter.optimise kfilter
-      | ExistsDeviser pfilter -> existsDeviser @@ Person.optimise pfilter
+      | ExistsDeviser pfilter -> existsdeviser @@ Person.optimise pfilter
     )

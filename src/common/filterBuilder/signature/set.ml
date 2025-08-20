@@ -9,17 +9,17 @@ module type S = sig
   val is : ModelBuilder.Core.Set.t Entry.t -> predicate
   val is' : ModelBuilder.Core.Set.t Entry.t -> t
 
-  val existsVersion : Core.Version.t -> predicate
-  val existsVersion' : Core.Version.t -> t
+  val existsversion : Core.Version.t -> predicate
+  val existsversion' : Core.Version.t -> t
 
-  val existsConceptor : Core.Person.t -> predicate
-  val existsConceptor' : Core.Person.t -> t
+  val existsconceptor : Core.Person.t -> predicate
+  val existsconceptor' : Core.Person.t -> t
 
   val kind : KindDance.Filter.t -> predicate
   val kind' : KindDance.Filter.t -> t
 
-  val memVersion : ModelBuilder.Core.Version.t Entry.t -> predicate
-  val memVersion' : ModelBuilder.Core.Version.t Entry.t -> t
+  val memversion : ModelBuilder.Core.Version.t Entry.t -> predicate
+  val memversion' : ModelBuilder.Core.Version.t Entry.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

@@ -10,16 +10,16 @@ type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let name' = Formula.pred % name
-let nameMatches' = Formula.pred % nameMatches
+let nameMatches' = Formula.pred % namematches
 
 let text_formula_converter =
   TextFormulaConverter.(
     make
       [
         raw (ok % nameMatches');
-        unary_string ~name: "name" (name, unName);
-        unary_string ~name: "name-matches" (nameMatches, unNameMatches);
-        unary_id ~name: "is" (is, unIs);
+        unary_string ~name: "name" (name, name_val);
+        unary_string ~name: "name-matches" (namematches, namematches_val);
+        unary_id ~name: "is" (is, is_val);
       ]
   )
 

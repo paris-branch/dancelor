@@ -146,7 +146,7 @@ module Search = struct
                             @@ fun (_, state) ->
                             match state with
                             | Results results ->
-                              let context = S.map Common.Endpoints.Page.inSearch @@ SearchBar.text t.search_bar in
+                              let context = S.map Common.Endpoints.Page.insearch @@ SearchBar.text t.search_bar in
                               List.map Utils.(ResultRow.to_clickable_row % (make_result ~context)) results
                             | _ -> []
                         )

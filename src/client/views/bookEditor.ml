@@ -38,7 +38,7 @@ let editor =
         [
           Plus.wrap
             (uncurry Model.Book.set)
-            Model.Book.unSet
+            Model.Book.set_val
             left
             Either.find_left
             (
@@ -67,7 +67,7 @@ let editor =
             );
           Plus.wrap
             (uncurry Model.Book.version)
-            Model.Book.unVersion
+            Model.Book.version_val
             right
             Either.find_right
             (

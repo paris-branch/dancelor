@@ -60,7 +60,7 @@ let table_contents ~this_id contents =
         (
           List.mapi
             (fun index page ->
-              let context = Endpoints.Page.inBook this_id index in
+              let context = Endpoints.Page.inbook this_id index in
               match page with
               | Book.Set (set, parameters) ->
                 (

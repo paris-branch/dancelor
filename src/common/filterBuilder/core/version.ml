@@ -14,7 +14,7 @@ type t = predicate Formula.t
 let tune' = Formula.pred % tune
 let key' = Formula.pred % key
 let kind' = Formula.pred % kind
-let existsSource' = Formula.pred % existsSource
+let existssource' = Formula.pred % existssource
 
 let text_formula_converter =
   TextFormulaConverter.(
@@ -24,11 +24,11 @@ let text_formula_converter =
         (* Version-specific converter. *)
         make
           [
-            unary_lift ~wrap_back: NotRaw ~name: "tune" (tune, unTune) ~converter: Tune.text_formula_converter;
-            unary_raw ~name: "key" (key, unKey) ~cast: (Music.key_of_string_opt, Music.key_to_string) ~type_: "key";
-            unary_lift ~name: "kind" (kind, unKind) ~converter: Kind.Version.Filter.text_formula_converter;
-            unary_id ~name: "is" (is, unIs);
-            unary_lift ~name: "exists-source" (existsSource, unExistsSource) ~converter: Source.text_formula_converter;
+            unary_lift ~wrap_back: NotRaw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
+            unary_raw ~name: "key" (key, key_val) ~cast: (Music.key_of_string_opt, Music.key_to_string) ~type_: "key";
+            unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Version.Filter.text_formula_converter;
+            unary_id ~name: "is" (is, is_val);
+            unary_lift ~name: "exists-source" (existssource, existssource_val) ~converter: Source.text_formula_converter;
           ]
       )
       (
@@ -49,11 +49,11 @@ let to_string = TextFormula.to_string % to_text_formula
 let is = is % Entry.id
 let is' = Formula.pred % is
 
-let tuneIs = tune % Tune.is'
-let tuneIs' = Formula.pred % tuneIs
+let tuneis = tune % Tune.is'
+let tuneis' = Formula.pred % tuneis
 
-let memSource = existsSource % Source.is'
-let memSource' = Formula.pred % memSource
+let memsource = existssource % Source.is'
+let memsource' = Formula.pred % memsource
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
@@ -72,5 +72,5 @@ let optimise =
       | (Is _ as p) | (Key _ as p) -> p
       | Tune tfilter -> tune @@ Tune.optimise tfilter
       | Kind kfilter -> kind @@ Kind.Version.Filter.optimise kfilter
-      | ExistsSource sfilter -> existsSource @@ Source.optimise sfilter
+      | ExistsSource sfilter -> existssource @@ Source.optimise sfilter
     )

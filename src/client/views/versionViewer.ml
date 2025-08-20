@@ -40,7 +40,7 @@ let create ?context id =
         Formula.(
           and_l
             [
-              Filter.Version.tuneIs' tune;
+              Filter.Version.tuneis' tune;
               not (Filter.Version.is' version);
             ]
         )
@@ -160,10 +160,10 @@ let create ?context id =
         ];
       Utils.quick_explorer_links
         [
-          ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memVersion') version);
-          ("sets containing this tune", Filter.(Any.set' % Set.existsVersion' % Version.tuneIs') <$> Model.Version.tune' version);
-          ("books containing this version", lwt @@ Filter.(Any.book' % Book.memVersionDeep') version);
-          ("books containing this tune", Filter.(Any.book' % Book.existsVersionDeep' % Version.tuneIs') <$> Model.Version.tune' version);
+          ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);
+          ("sets containing this tune", Filter.(Any.set' % Set.existsversion' % Version.tuneis') <$> Model.Version.tune' version);
+          ("books containing this version", lwt @@ Filter.(Any.book' % Book.memversiondeep') version);
+          ("books containing this tune", Filter.(Any.book' % Book.existsversiondeep' % Version.tuneis') <$> Model.Version.tune' version);
         ];
       div
         ~a: [a_class ["section"]]

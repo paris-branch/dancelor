@@ -48,15 +48,15 @@ let make_text_formula_converter ?(human = false) () =
         make
           [
             raw (ok % raw');
-            unary_string ~name: "raw" (predicate_Raw, unRaw) ~wrap_back: Never;
-            unary_raw ~name: "type" (type_, unType) ~cast: (ModelBuilder.Core.Any.Type.of_string_opt, ModelBuilder.Core.Any.Type.to_string) ~type_: "valid type";
-            unary_lift ~name: "source" (source, unSource) ~converter: Source.text_formula_converter ~wrap_back;
-            unary_lift ~name: "person" (person, unPerson) ~converter: Person.text_formula_converter ~wrap_back;
-            unary_lift ~name: "dance" (dance, unDance) ~converter: Dance.text_formula_converter ~wrap_back;
-            unary_lift ~name: "book" (book, unBook) ~converter: Book.text_formula_converter ~wrap_back;
-            unary_lift ~name: "set" (set, unSet) ~converter: Set.text_formula_converter ~wrap_back;
-            unary_lift ~name: "tune" (tune, unTune) ~converter: Tune.text_formula_converter ~wrap_back;
-            unary_lift ~name: "version" (version, unVersion) ~converter: Version.text_formula_converter ~wrap_back;
+            unary_string ~name: "raw" (predicate_Raw, raw_val) ~wrap_back: Never;
+            unary_raw ~name: "type" (type_, type__val) ~cast: (ModelBuilder.Core.Any.Type.of_string_opt, ModelBuilder.Core.Any.Type.to_string) ~type_: "valid type";
+            unary_lift ~name: "source" (source, source_val) ~converter: Source.text_formula_converter ~wrap_back;
+            unary_lift ~name: "person" (person, person_val) ~converter: Person.text_formula_converter ~wrap_back;
+            unary_lift ~name: "dance" (dance, dance_val) ~converter: Dance.text_formula_converter ~wrap_back;
+            unary_lift ~name: "book" (book, book_val) ~converter: Book.text_formula_converter ~wrap_back;
+            unary_lift ~name: "set" (set, set_val) ~converter: Set.text_formula_converter ~wrap_back;
+            unary_lift ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter ~wrap_back;
+            unary_lift ~name: "version" (version, version_val) ~converter: Version.text_formula_converter ~wrap_back;
           ];
       )
       (

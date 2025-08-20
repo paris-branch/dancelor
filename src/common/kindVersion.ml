@@ -89,12 +89,12 @@ module Filter = struct
   [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
-  let barsEq' = Formula.pred % barsEq
-  let barsNe' = Formula.pred % barsNe
-  let barsGt' = Formula.pred % barsGt
-  let barsGe' = Formula.pred % barsGe
-  let barsLt' = Formula.pred % barsLt
-  let barsLe' = Formula.pred % barsLe
+  let barsEq' = Formula.pred % barseq
+  let barsNe' = Formula.pred % barsne
+  let barsGt' = Formula.pred % barsgt
+  let barsGe' = Formula.pred % barsge
+  let barsLt' = Formula.pred % barslt
+  let barsLe' = Formula.pred % barsle
   let base' = Formula.pred % base
 
   let baseIs' = Formula.pred % baseIs
@@ -139,14 +139,14 @@ module Filter = struct
                     ~none: (kspf error "could not interpret \"%s\" as a version kind" string)
                     (of_string_opt string)
                 );
-              unary_int ~name: "bars-eq" (barsEq, unBarsEq);
-              unary_int ~name: "bars-ne" (barsNe, unBarsNe);
-              unary_int ~name: "bars-gt" (barsGt, unBarsGt);
-              unary_int ~name: "bars-ge" (barsGe, unBarsGe);
-              unary_int ~name: "bars-lt" (barsLt, unBarsLt);
-              unary_int ~name: "bars-le" (barsLe, unBarsLe);
-              unary_raw ~wrap_back: Never ~name: "is" (is, unIs) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
-              unary_lift ~wrap_back: NotPred ~name: "base" (base, unBase) ~converter: KindBase.Filter.text_formula_converter;
+              unary_int ~name: "bars-eq" (barseq, barseq_val);
+              unary_int ~name: "bars-ne" (barsne, barsne_val);
+              unary_int ~name: "bars-gt" (barsgt, barsgt_val);
+              unary_int ~name: "bars-ge" (barsge, barsge_val);
+              unary_int ~name: "bars-lt" (barslt, barslt_val);
+              unary_int ~name: "bars-le" (barsle, barsle_val);
+              unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string) ~type_: "version kind";
+              unary_lift ~wrap_back: NotPred ~name: "base" (base, base_val) ~converter: KindBase.Filter.text_formula_converter;
             ]
         )
         (
