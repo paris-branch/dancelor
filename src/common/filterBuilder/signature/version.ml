@@ -9,8 +9,8 @@ module type S = sig
   val is : ModelBuilder.Core.Version.t Entry.t -> predicate
   val is' : ModelBuilder.Core.Version.t Entry.t -> t
 
-  val tuneIs : ModelBuilder.Core.Tune.t Entry.t -> predicate
-  val tuneIs' : ModelBuilder.Core.Tune.t Entry.t -> t
+  val tuneis : ModelBuilder.Core.Tune.t Entry.t -> predicate
+  val tuneis' : ModelBuilder.Core.Tune.t Entry.t -> t
 
   val tune : Core.Tune.t -> predicate
   val tune' : Core.Tune.t -> t
@@ -21,11 +21,11 @@ module type S = sig
   val key : Music.Key.t -> predicate
   val key' : Music.Key.t -> t
 
-  val existsSource : Core.Source.t -> predicate
-  val existsSource' : Core.Source.t -> t
+  val existssource : Core.Source.t -> predicate
+  val existssource' : Core.Source.t -> t
 
-  val memSource : ModelBuilder.Core.Source.t Entry.t -> predicate
-  val memSource' : ModelBuilder.Core.Source.t Entry.t -> t
+  val memsource : ModelBuilder.Core.Source.t Entry.t -> predicate
+  val memsource' : ModelBuilder.Core.Source.t Entry.t -> t
 
   val text_formula_converter : predicate TextFormulaConverter.t
   val from_text_formula : TextFormula.t -> (t, string) Result.t

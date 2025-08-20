@@ -102,7 +102,7 @@ module Filter = struct
                 ~none: (kspf error "could not interpret \"%s\" as a base kind" string)
                 (of_string_opt string)
             );
-          unary_raw ~wrap_back: Never ~name: "is" (is, unIs) ~cast: (of_string_opt, to_pretty_string ~capitalised: true) ~type_: "base kind";
+          unary_raw ~wrap_back: Never ~name: "is" (is, is_val) ~cast: (of_string_opt, to_pretty_string ~capitalised: true) ~type_: "base kind";
         ]
     )
 

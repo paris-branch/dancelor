@@ -63,6 +63,6 @@ let create ?context id =
         ];
       Utils.quick_explorer_links
         [
-          ("versions from this source", lwt @@ Filter.(Any.version' % Version.memSource') source);
+          ("versions from this source", lwt @@ Filter.(Any.version' % Version.memsource') source);
         ];
     ]

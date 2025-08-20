@@ -34,12 +34,12 @@ module Filter : sig
 
   val is : version_kind -> predicate
   val base : KindBase.Filter.t -> predicate
-  val barsEq : int -> predicate
-  val barsNe : int -> predicate
-  val barsGt : int -> predicate
-  val barsGe : int -> predicate
-  val barsLt : int -> predicate
-  val barsLe : int -> predicate
+  val barseq : int -> predicate
+  val barsne : int -> predicate
+  val barsgt : int -> predicate
+  val barsge : int -> predicate
+  val barslt : int -> predicate
+  val barsle : int -> predicate
 
   val baseIs : KindBase.t -> predicate
 

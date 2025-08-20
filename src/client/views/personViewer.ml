@@ -40,8 +40,8 @@ let create ?context id =
       Utils.quick_explorer_links'
         (lwt person)
         [
-          ("tunes they composed", Filter.(Any.tune' % Tune.existsComposer' % Person.is'));
-          ("dances they devised", Filter.(Any.dance' % Dance.existsDeviser' % Person.is'));
-          ("sets they conceived", Filter.(Any.set' % Set.existsConceptor' % Person.is'));
+          ("tunes they composed", Filter.(Any.tune' % Tune.existscomposer' % Person.is'));
+          ("dances they devised", Filter.(Any.dance' % Dance.existsdeviser' % Person.is'));
+          ("sets they conceived", Filter.(Any.set' % Set.existsconceptor' % Person.is'));
         ];
     ]

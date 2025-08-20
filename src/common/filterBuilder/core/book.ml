@@ -16,27 +16,27 @@ type t = predicate Formula.t
 [@@deriving eq, show {with_path = false}, yojson]
 
 let title' = Formula.pred % title
-let titleMatches' = Formula.pred % titleMatches
+let titlematches' = Formula.pred % titlematches
 let subtitle' = Formula.pred % subtitle
-let subtitleMatches' = Formula.pred % subtitleMatches
-let isSource' = Formula.pred IsSource
-let existsVersion' = Formula.pred % existsVersion
-let existsSet' = Formula.pred % existsSet
-(* let existsVersionDeep' = Formula.pred % existsVersionDeep *)
+let subtitlematches' = Formula.pred % subtitlematches
+let issource' = Formula.pred IsSource
+let existsversion' = Formula.pred % existsversion
+let existsset' = Formula.pred % existsset
+(* let existsversiondeep' = Formula.pred % existsversiondeep *)
 
 let text_formula_converter =
   TextFormulaConverter.(
     make
       [
-        raw (fun string -> Ok (Formula.or_ (titleMatches' string) (subtitleMatches' string)));
-        unary_string ~name: "title" (title, unTitle);
-        unary_string ~name: "title-matches" (titleMatches, unTitleMatches);
-        unary_string ~name: "subtitle" (subtitle, unSubtitle);
-        unary_string ~name: "subtitle-matches" (subtitleMatches, unSubtitleMatches);
-        unary_lift ~name: "exists-version" (existsVersion, unExistsVersion) ~converter: Version.text_formula_converter;
-        unary_lift ~name: "exists-set" (existsSet, unExistsSet) ~converter: Set.text_formula_converter;
-        unary_lift ~name: "exists-version-deep" (existsVersionDeep, unExistsVersionDeep) ~converter: Version.text_formula_converter;
-        unary_id ~name: "is" (is, unIs);
+        raw (fun string -> Ok (Formula.or_ (titlematches' string) (subtitlematches' string)));
+        unary_string ~name: "title" (title, title_val);
+        unary_string ~name: "title-matches" (titlematches, titlematches_val);
+        unary_string ~name: "subtitle" (subtitle, subtitle_val);
+        unary_string ~name: "subtitle-matches" (subtitlematches, subtitlematches_val);
+        unary_lift ~name: "exists-version" (existsversion, existsversion_val) ~converter: Version.text_formula_converter;
+        unary_lift ~name: "exists-set" (existsset, existsset_val) ~converter: Set.text_formula_converter;
+        unary_lift ~name: "exists-version-deep" (existsversiondeep, existsversiondeep_val) ~converter: Version.text_formula_converter;
+        unary_id ~name: "is" (is, is_val);
         nullary ~name: "is-source" IsSource;
       ]
   )
@@ -51,18 +51,18 @@ let to_string = TextFormula.to_string % to_text_formula
 let is = is % Entry.id
 let is' = Formula.pred % is
 
-let memVersion = existsVersion % Version.is'
-let memSet = existsSet % Set.is'
-let memVersionDeep = existsVersionDeep % Version.is'
-let existsTuneDeep = existsVersionDeep % Version.tune'
-let memTuneDeep = existsTuneDeep % Tune.is'
+let memversion = existsversion % Version.is'
+let memset = existsset % Set.is'
+let memversiondeep = existsversiondeep % Version.is'
+let existstunedeep = existsversiondeep % Version.tune'
+let memtunedeep = existstunedeep % Tune.is'
 
-let memVersion' = Formula.pred % memVersion
-let memSet' = Formula.pred % memSet
-let existsVersionDeep' = Formula.pred % existsVersionDeep
-let memVersionDeep' = Formula.pred % memVersionDeep
-let existsTuneDeep' = Formula.pred % existsTuneDeep
-let memTuneDeep' = Formula.pred % memTuneDeep
+let memversion' = Formula.pred % memversion
+let memset' = Formula.pred % memset
+let existsversiondeep' = Formula.pred % existsversiondeep
+let memversiondeep' = Formula.pred % memversiondeep
+let existstunedeep' = Formula.pred % existstunedeep
+let memtunedeep' = Formula.pred % memtunedeep
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
@@ -70,9 +70,9 @@ type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
 let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
-    | (ExistsVersion f1, ExistsVersion f2) -> some @@ existsVersion (op f1 f2)
-    | (ExistsSet f1, ExistsSet f2) -> some @@ existsSet (op f1 f2)
-    | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> some @@ existsVersionDeep (op f1 f2)
+    | (ExistsVersion f1, ExistsVersion f2) -> some @@ existsversion (op f1 f2)
+    | (ExistsSet f1, ExistsSet f2) -> some @@ existsset (op f1 f2)
+    | (ExistsVersionDeep f1, ExistsVersionDeep f2) -> some @@ existsversiondeep (op f1 f2)
     | _ -> None
   in
   Formula.optimise
@@ -86,7 +86,7 @@ let optimise =
       | (SubtitleMatches _ as p)
       | (IsSource as p) ->
         p
-      | ExistsVersion vfilter -> existsVersion @@ Version.optimise vfilter
-      | ExistsSet sfilter -> existsSet @@ Set.optimise sfilter
-      | ExistsVersionDeep vfilter -> existsVersionDeep @@ Version.optimise vfilter
+      | ExistsVersion vfilter -> existsversion @@ Version.optimise vfilter
+      | ExistsSet sfilter -> existsset @@ Set.optimise sfilter
+      | ExistsVersionDeep vfilter -> existsversiondeep @@ Version.optimise vfilter
     )

@@ -46,7 +46,7 @@ module Make (Model : ModelBuilder.S) = struct
         flip accepts_book book @@
           Formula.or_l
             Core.[Formula.pred (Book.ExistsVersion vfilter);
-            Formula.pred (Book.ExistsSet (Set.existsVersion' vfilter));
+            Formula.pred (Book.ExistsSet (Set.existsversion' vfilter));
             ]
 
   and accepts_dance filter dance =

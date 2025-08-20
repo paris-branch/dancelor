@@ -40,7 +40,7 @@ module Pdf = struct
       snd
       <$> Version.search env Slice.everything @@
         Filter.Version.tune' @@
-        Filter.Tune.existsDance' @@
+        Filter.Tune.existsdance' @@
         Filter.Dance.is' dance
     in
     let set =
