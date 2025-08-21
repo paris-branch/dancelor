@@ -3,26 +3,19 @@ open Html
 
 module type S = sig
   val label : string
-
-  type value
-  type state
-
+  type state [@@deriving yojson]
   val empty : state
   val from_initial_text : string -> state
-  val state_to_yojson : state -> Yojson.Safe.t
-  val state_of_yojson : Yojson.Safe.t -> (state, string) result
+  type value
   val serialise : value -> state Lwt.t
-
   type t
-
   val initialise : state -> t Lwt.t
-
-  val signal : t -> (value, string) result S.t
   val state : t -> state S.t
-  val focus : t -> unit
+  val signal : t -> (value, string) result S.t
   val set : t -> value -> unit Lwt.t
-  val trigger : t -> unit
   val clear : t -> unit
+  val focus : t -> unit
+  val trigger : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
   val actions : t -> Html_types.div_content_fun elt list S.t
 end

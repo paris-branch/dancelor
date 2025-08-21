@@ -44,30 +44,41 @@ val html_fake : label: string -> Html_types.div_content_fun elt -> [> Html_types
 module type S = sig
   val label : string
 
-  type value
-  type state
+  type state [@@deriving yojson]
+  (** The type of internal states of the component. They can represent all that
+      the component can. For instance, for an input, this would be a string. *)
 
   val empty : state
+  (** The empty state of the component. *)
+
   val from_initial_text : string -> state
-  val state_to_yojson : state -> Yojson.Safe.t
-  val state_of_yojson : Yojson.Safe.t -> (state, string) result
+
+  type value
+
   val serialise : value -> state Lwt.t
 
   type t
 
   val initialise : state -> t Lwt.t
 
-  val signal : t -> (value, string) result S.t
   val state : t -> state S.t
-  val focus : t -> unit
+  val signal : t -> (value, string) result S.t
+
   val set : t -> value -> unit Lwt.t
+  (** Set the value of the component. *)
+
+  val clear : t -> unit
+  (** Clear the component, bringing the state back to {!empty}. *)
+
+  val focus : t -> unit
+  (** Focus the component. For instance, for an input, the cursor will be put in
+      the input. See also {!trigger}. *)
 
   val trigger : t -> unit
   (** Trigger the component. For simple components, this is akin to {!focus}.
       For components with a button triggering an action, though, {!focus} will
       only focus the button, while {!trigger} will trigger the action. *)
 
-  val clear : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
   val actions : t -> Html_types.div_content_fun elt list S.t
 end
