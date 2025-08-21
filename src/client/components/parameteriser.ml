@@ -44,9 +44,9 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_previewe
     S.bind (Editor.state p.editor) @@ fun params_state ->
     S.const (state, params_state)
 
-  let set p (state, params_state) =
-    C.set p.comp state;
-    Editor.set_state p.editor params_state
+  let set p (value, params) =
+    C.set p.comp value;%lwt
+    Editor.set p.editor params
 
   let clear p =
     C.clear p.comp;

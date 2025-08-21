@@ -20,7 +20,8 @@ val state : ('value, 'state) t -> 'state S.t
 (** Expose the internal state of the component. This function should be avoided
     as much as possible. *)
 
-val set : ('value, 'state) t -> 'state -> unit
+val set : ('value, 'state) t -> 'value -> unit Lwt.t
+(** Set the component to hold the specific value. *)
 
 val inner_html : ('value, 'state) t -> Html_types.div_content_fun elt
 val actions : ('value, 'state) t -> Html_types.div_content_fun elt list S.t
@@ -59,7 +60,7 @@ module type S = sig
   val signal : t -> (value, string) result S.t
   val state : t -> state S.t
   val focus : t -> unit
-  val set : t -> state -> unit
+  val set : t -> value -> unit Lwt.t
 
   val trigger : t -> unit
   (** Trigger the component. For simple components, this is akin to {!focus}.
@@ -79,7 +80,9 @@ val initialise :
   ('value, 'state) s ->
   'state ->
   ('value, 'state) t Lwt.t
-(** Initialise a prepared component. *)
+(** Initialise a prepared component into a wrapped component of type {!t}.
+    Depending on your use case, you might prefer calling {!S.initialise}
+    directly and store the value of type {!S.t}. *)
 
 (** {2 Utilities} *)
 

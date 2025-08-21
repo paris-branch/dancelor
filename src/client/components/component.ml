@@ -20,7 +20,7 @@ module type S = sig
   val signal : t -> (value, string) result S.t
   val state : t -> state S.t
   val focus : t -> unit
-  val set : t -> state -> unit
+  val set : t -> value -> unit Lwt.t
   val trigger : t -> unit
   val clear : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
@@ -48,7 +48,7 @@ let trigger : type value state. (value, state) t -> unit = function Component ((
 let clear : type value state. (value, state) t -> unit = function Component ((module C), c) -> C.clear c
 let signal : type value state. (value, state) t -> (value, string) result S.t = function Component ((module C), c) -> C.signal c
 let state : type value state. (value, state) t -> state S.t = function Component ((module C), c) -> C.state c
-let set : type value state. (value, state) t -> state -> unit = function Component ((module C), c) -> C.set c
+let set : type value state. (value, state) t -> value -> unit Lwt.t = function Component ((module C), c) -> C.set c
 let inner_html : type value state. (value, state) t -> Html_types.div_content_fun elt = function Component ((module C), c) -> C.inner_html c
 let actions : type value state. (value, state) t -> Html_types.div_content_fun elt list S.t = function Component ((module C), c) -> C.actions c
 

@@ -36,7 +36,7 @@ let nil : (unit, unit) bundle =
     let signal Nil = S.const (Ok ())
     let state Nil = S.const ()
     let focus Nil = ()
-    let set Nil () = ()
+    let set Nil () = lwt_unit
     let trigger Nil = ()
     let clear Nil = ()
     let inner_html Nil = div []
@@ -109,7 +109,7 @@ type ('result, 'previewed_value, 'value, 'state) t = {
 [@@deriving fields]
 
 let state e = Component.state e.editor
-let set_state e = Component.set e.editor
+let set e r = Component.set e.editor =<< e.s.break_down r
 let clear e = Component.clear e.editor
 
 let signal e =

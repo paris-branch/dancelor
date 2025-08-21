@@ -146,6 +146,7 @@ let prepare_non_empty (type value)(type state)
   include (val (prepare ~label ?more_actions (module C)))
   type value = C.value NonEmptyList.t
   let serialise = serialise % NonEmptyList.to_list
+  let set c v = set c @@ NonEmptyList.to_list v
   let signal =
     S.map (fun l ->
       Result.bind l @@ Option.to_result ~none: ("You must add at least one " ^ String.lowercase_ascii C.label ^ ".") % NonEmptyList.of_list

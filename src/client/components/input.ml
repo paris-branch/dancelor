@@ -52,7 +52,7 @@ let prepare (type value)
 
   let trigger = focus
 
-  let set i x = i.set x
+  let set i x = i.set <$> serialise x
 
   let clear i = i.set ""
 

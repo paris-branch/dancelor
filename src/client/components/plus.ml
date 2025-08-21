@@ -104,7 +104,7 @@ let prepare (type value)(type component_state)
 
   let focus _ = () (* FIXME *)
   let trigger = focus
-  let set _ _ = () (* FIXME *)
+  let set _ _ = lwt_unit (* FIXME *)
 
   let clear l =
     Component.clear l.choices;
@@ -181,7 +181,7 @@ let wrap (type value1)(type value2)(type state1)(type state2)
   let serialise = wrap_state <%> serialise % Option.value' ~default: (fun () -> partial_because_wrapped "serialise") % unwrap_value
   let signal = S.map (Result.map wrap_value) % signal
   let state = S.map wrap_state % state
-  let set _ _ = () (* FIXME *)
+  let set _ _ = lwt_unit (* FIXME *)
   let initialise initial_value =
     match unwrap_state initial_value with
     | Some initial_value -> initialise initial_value

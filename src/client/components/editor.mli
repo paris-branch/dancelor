@@ -137,10 +137,10 @@ val signal :
     submission on every change. Use only on degenerated editors where those
     functions trivial. FIXME: we should have a type for this. *)
 
-val set_state :
+val set :
   ('result, 'previewed_value, 'value, 'state) t ->
-  'state ->
-  unit
+  'result ->
+  unit Lwt.t
 
 val clear : ('result, 'previewed_value, 'value, 'state) t -> unit
 
@@ -150,4 +150,4 @@ val result :
 (** Get the current result of the editor, if it is in a state that permits it.
     Note that this trigger previewing and submitting and is therefore usually
     not suitable, except for degenerate editors such as the version parameters
-    editor. *)
+    editor. FIXME: the existence of this and {!signal} is quite confusing. *)

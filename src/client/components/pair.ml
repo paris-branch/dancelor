@@ -77,7 +77,7 @@ let prepare (type value1)(type state1)(type value2)(type state2)
   let trigger p = C1.trigger p.c1
 
   let set p (v1, v2) =
-    C1.set p.c1 v1;
+    C1.set p.c1 v1;%lwt
     C2.set p.c2 v2
 
   let clear p =
