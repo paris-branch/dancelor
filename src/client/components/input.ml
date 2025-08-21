@@ -24,20 +24,20 @@ let prepare (type value)
   let label = label
 
   type nonrec value = value
-  type raw_value = string [@@deriving yojson]
+  type state = string [@@deriving yojson]
 
-  let empty_value = ""
-  let raw_value_from_initial_text = Fun.id
+  let empty = ""
+  let from_initial_text = Fun.id
   let serialise = lwt % serialise
 
   type t = {
-    raw_signal: string S.t;
+    state: string S.t;
     signal: (value, string) result S.t;
     set: string -> unit;
     html: html;
   }
 
-  let raw_signal i = i.raw_signal
+  let state i = i.state
 
   let signal i = i.signal
 
@@ -57,9 +57,9 @@ let prepare (type value)
   let clear i = i.set ""
 
   let initialise initial_value =
-    let (raw_signal, set_immediately) = S.create initial_value in
+    let (state, set_immediately) = S.create initial_value in
     let set_delayed = S.delayed_setter 0.30 set_immediately in
-    let signal = S.bind raw_signal validate in
+    let signal = S.bind state validate in
     let html : html =
       match type_ with
       | Text | Password ->
@@ -130,7 +130,7 @@ let prepare (type value)
       | Text {input_dom; _} -> input_dom##.value := Js.string x
       | Textarea {textarea_dom; _} -> textarea_dom##.value := Js.string x
     in
-    lwt {raw_signal; signal; set; html}
+    lwt {state; signal; set; html}
 
   let inner_html i =
     match i.html with
@@ -138,7 +138,7 @@ let prepare (type value)
     | Textarea {textarea; _} -> textarea
 
   let actions i =
-    flip S.map i.raw_signal @@ function
+    flip S.map i.state @@ function
       | "" ->
         (
           match template with

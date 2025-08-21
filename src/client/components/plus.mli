@@ -2,9 +2,9 @@
 
 val make :
   label: string ->
-  ('value, 'raw_value) Component.s list ->
-  int option * 'raw_value list ->
-  ('value, int option * 'raw_value list) Component.t Lwt.t
+  ('value, 'state) Component.s list ->
+  int option * 'state list ->
+  ('value, int option * 'state list) Component.t Lwt.t
 
 exception PartialBecauseWrapped of string
 (** The action of wrapping a component is inherently a very partial one.
@@ -16,14 +16,14 @@ exception PartialBecauseWrapped of string
 val wrap :
   ('value1 -> 'value2) ->
   ('value2 -> 'value1 option) ->
-  ('raw_value1 -> 'raw_value2) ->
-  ('raw_value2 -> 'raw_value1 option) ->
-  ('value1, 'raw_value1) Component.s ->
-  ('value2, 'raw_value2) Component.s
+  ('state1 -> 'state2) ->
+  ('state2 -> 'state1 option) ->
+  ('value1, 'state1) Component.s ->
+  ('value2, 'state2) Component.s
 
 (** {2 Internal use} *)
 
 val prepare :
   label: string ->
-  ('value, 'raw_value) Component.s list ->
-  ('value, int option * 'raw_value list) Component.s
+  ('value, 'state) Component.s list ->
+  ('value, int option * 'state list) Component.s

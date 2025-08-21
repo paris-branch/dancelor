@@ -5,52 +5,52 @@ module type S = sig
   val label : string
 
   type value
-  type raw_value
+  type state
 
-  val empty_value : raw_value
-  val raw_value_from_initial_text : string -> raw_value
-  val raw_value_to_yojson : raw_value -> Yojson.Safe.t
-  val raw_value_of_yojson : Yojson.Safe.t -> (raw_value, string) result
-  val serialise : value -> raw_value Lwt.t
+  val empty : state
+  val from_initial_text : string -> state
+  val state_to_yojson : state -> Yojson.Safe.t
+  val state_of_yojson : Yojson.Safe.t -> (state, string) result
+  val serialise : value -> state Lwt.t
 
   type t
 
-  val initialise : raw_value -> t Lwt.t
+  val initialise : state -> t Lwt.t
 
   val signal : t -> (value, string) result S.t
-  val raw_signal : t -> raw_value S.t
+  val state : t -> state S.t
   val focus : t -> unit
-  val set : t -> raw_value -> unit
+  val set : t -> state -> unit
   val trigger : t -> unit
   val clear : t -> unit
   val inner_html : t -> Html_types.div_content_fun elt
   val actions : t -> Html_types.div_content_fun elt list S.t
 end
 
-type ('value, 'raw_value) s = (module S with type value = 'value and type raw_value = 'raw_value)
+type ('value, 'state) s = (module S with type value = 'value and type state = 'state)
 
-type ('value, 'raw_value) t =
+type ('value, 'state) t =
   Component :
-      (module S with type t = 'a and type value = 'value and type raw_value = 'raw_value)
+      (module S with type t = 'a and type value = 'value and type state = 'state)
     * 'a ->
-      ('value, 'raw_value) t
+      ('value, 'state) t
 
-let initialise (type value)(type raw_value)
-    (module C : S with type value = value and type raw_value = raw_value)
-    (initial_value : raw_value)
-    : (value, raw_value) t Lwt.t
+let initialise (type value)(type state)
+    (module C : S with type value = value and type state = state)
+    (initial_value : state)
+    : (value, state) t Lwt.t
   =
   let%lwt component = C.initialise initial_value in
   lwt @@ Component ((module C), component)
 
-let focus : type value raw_value. (value, raw_value) t -> unit = function Component ((module C), c) -> C.focus c
-let trigger : type value raw_value. (value, raw_value) t -> unit = function Component ((module C), c) -> C.trigger c
-let clear : type value raw_value. (value, raw_value) t -> unit = function Component ((module C), c) -> C.clear c
-let signal : type value raw_value. (value, raw_value) t -> (value, string) result S.t = function Component ((module C), c) -> C.signal c
-let raw_signal : type value raw_value. (value, raw_value) t -> raw_value S.t = function Component ((module C), c) -> C.raw_signal c
-let set : type value raw_value. (value, raw_value) t -> raw_value -> unit = function Component ((module C), c) -> C.set c
-let inner_html : type value raw_value. (value, raw_value) t -> Html_types.div_content_fun elt = function Component ((module C), c) -> C.inner_html c
-let actions : type value raw_value. (value, raw_value) t -> Html_types.div_content_fun elt list S.t = function Component ((module C), c) -> C.actions c
+let focus : type value state. (value, state) t -> unit = function Component ((module C), c) -> C.focus c
+let trigger : type value state. (value, state) t -> unit = function Component ((module C), c) -> C.trigger c
+let clear : type value state. (value, state) t -> unit = function Component ((module C), c) -> C.clear c
+let signal : type value state. (value, state) t -> (value, string) result S.t = function Component ((module C), c) -> C.signal c
+let state : type value state. (value, state) t -> state S.t = function Component ((module C), c) -> C.state c
+let set : type value state. (value, state) t -> state -> unit = function Component ((module C), c) -> C.set c
+let inner_html : type value state. (value, state) t -> Html_types.div_content_fun elt = function Component ((module C), c) -> C.inner_html c
+let actions : type value state. (value, state) t -> Html_types.div_content_fun elt list S.t = function Component ((module C), c) -> C.actions c
 
 let case_errored ~no ~yes signal =
   flip S.map signal @@ function
@@ -58,7 +58,7 @@ let case_errored ~no ~yes signal =
     | _ -> no
 
 let html'
-  : type a value raw_value. (module S with type t = a and type value = value and type raw_value = raw_value) ->
+  : type a value state. (module S with type t = a and type value = value and type state = state) ->
   a ->
   [> Html_types.div] elt
 = fun (module C) c ->
@@ -79,7 +79,7 @@ let html'
         (case_errored ~no: [txt " "] ~yes: (List.singleton % txt) (C.signal c));
     ]
 
-let html : type value raw_value. (value, raw_value) t -> [> Html_types.div] elt = function
+let html : type value state. (value, state) t -> [> Html_types.div] elt = function
   | Component ((module C), c) -> html' (module C) c
 
 let html_fake ~label: label_ content =

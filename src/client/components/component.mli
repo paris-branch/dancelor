@@ -4,19 +4,28 @@ open Html
 
 (** {2 Regular interface} *)
 
-type ('value, 'raw_value) t
+type ('value, 'state) t
+(** The type of an initialised component carrying ['value]s. At any point in
+    time, it will have an internal ['state]. However, depending on that state,
+    it might or not carry a ['value]. *)
 
-val focus : ('value, 'raw_value) t -> unit
-val trigger : ('value, 'raw_value) t -> unit
-val clear : ('value, 'raw_value) t -> unit
-val signal : ('value, 'raw_value) t -> ('value, string) result S.t
-val raw_signal : ('value, 'raw_value) t -> 'raw_value S.t
-val set : ('value, 'raw_value) t -> 'raw_value -> unit
+val focus : ('value, 'state) t -> unit
+val trigger : ('value, 'state) t -> unit
+val clear : ('value, 'state) t -> unit
 
-val inner_html : ('value, 'raw_value) t -> Html_types.div_content_fun elt
-val actions : ('value, 'raw_value) t -> Html_types.div_content_fun elt list S.t
+val signal : ('value, 'state) t -> ('value, string) result S.t
+(** Expose the value held by the component. *)
 
-val html : ('value, 'raw_value) t -> [> Html_types.div] elt
+val state : ('value, 'state) t -> 'state S.t
+(** Expose the internal state of the component. This function should be avoided
+    as much as possible. *)
+
+val set : ('value, 'state) t -> 'state -> unit
+
+val inner_html : ('value, 'state) t -> Html_types.div_content_fun elt
+val actions : ('value, 'state) t -> Html_types.div_content_fun elt list S.t
+
+val html : ('value, 'state) t -> [> Html_types.div] elt
 (** Render the component as HTML. This is not provided by the component itself,
     but is rather a wrapper shared by all components around their
     {!inner_html}. *)
@@ -35,22 +44,22 @@ module type S = sig
   val label : string
 
   type value
-  type raw_value
+  type state
 
-  val empty_value : raw_value
-  val raw_value_from_initial_text : string -> raw_value
-  val raw_value_to_yojson : raw_value -> Yojson.Safe.t
-  val raw_value_of_yojson : Yojson.Safe.t -> (raw_value, string) result
-  val serialise : value -> raw_value Lwt.t
+  val empty : state
+  val from_initial_text : string -> state
+  val state_to_yojson : state -> Yojson.Safe.t
+  val state_of_yojson : Yojson.Safe.t -> (state, string) result
+  val serialise : value -> state Lwt.t
 
   type t
 
-  val initialise : raw_value -> t Lwt.t
+  val initialise : state -> t Lwt.t
 
   val signal : t -> (value, string) result S.t
-  val raw_signal : t -> raw_value S.t
+  val state : t -> state S.t
   val focus : t -> unit
-  val set : t -> raw_value -> unit
+  val set : t -> state -> unit
 
   val trigger : t -> unit
   (** Trigger the component. For simple components, this is akin to {!focus}.
@@ -62,20 +71,20 @@ module type S = sig
   val actions : t -> Html_types.div_content_fun elt list S.t
 end
 
-type ('value, 'raw_value) s = (module S with type value = 'value and type raw_value = 'raw_value)
+type ('value, 'state) s = (module S with type value = 'value and type state = 'state)
 (** The type of an un-initialised component. This is the type that composes well
     and that one should provide to eg. {!ComponentList}. *)
 
 val initialise :
-  ('value, 'raw_value) s ->
-  'raw_value ->
-  ('value, 'raw_value) t Lwt.t
+  ('value, 'state) s ->
+  'state ->
+  ('value, 'state) t Lwt.t
 (** Initialise a prepared component. *)
 
 (** {2 Utilities} *)
 
 val html' :
-  (module S with type t = 'a and type value = 'value and type raw_value = 'raw_value) ->
+  (module S with type t = 'a and type value = 'value and type state = 'state) ->
   'a ->
   [> Html_types.div] elt
 (** Render the component as HTML, just like {!html} would. *)

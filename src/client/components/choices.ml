@@ -30,10 +30,10 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let label = label
 
   type nonrec value = value
-  type raw_value = string [@@deriving yojson]
+  type state = string [@@deriving yojson]
 
-  let empty_value = ""
-  let raw_value_from_initial_text _ = ""
+  let empty = ""
+  let from_initial_text _ = ""
   let serialise _ = lwt "" (* FIXME *)
 
   type t = {
@@ -41,7 +41,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
     values: choice_value list S.t;
   }
 
-  let raw_signal _ = S.const "" (* FIXME: handle raw_signal *)
+  let state _ = S.const "" (* FIXME: handle state *)
   let signal c = S.map validate c.values
   let inner_html c = c.inner_html
   let actions _ = S.const []
