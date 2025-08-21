@@ -2,11 +2,10 @@ open Nes
 open Html
 
 let prepare (type comp_value)(type comp_raw_value)(type params)(type params_previewed)(type params_state)(type raw_params)
-  (component : (comp_value, comp_raw_value) Component.s)
+  ((module C): (comp_value, comp_raw_value) Component.s)
   (editor : (params, params_previewed, params_state, raw_params) Editor.s)
   : (comp_value * params, comp_raw_value * raw_params) Component.s
 = (module struct
-  module C = (val component)
 
   type value = C.value * params
 
@@ -26,37 +25,37 @@ let prepare (type comp_value)(type comp_raw_value)(type params)(type params_prev
     lwt (value, params)
 
   type t = {
-    comp: (comp_value, comp_raw_value) Component.t;
+    comp: C.t;
     editor: (params, params_previewed, params_state, raw_params) Editor.t;
   }
 
   let initialise (initial_value, initial_params) =
-    let%lwt comp = Component.initialise component initial_value in
+    let%lwt comp = C.initialise initial_value in
     let%lwt editor = Editor.initialise editor @@ Editor.QuickEdit initial_params in
     lwt {comp; editor}
 
   let signal p =
-    RS.bind (Component.signal p.comp) @@ fun value ->
+    RS.bind (C.signal p.comp) @@ fun value ->
     RS.bind (Editor.signal p.editor) @@ fun params ->
     S.const (Ok (value, params))
 
   let raw_signal p =
-    S.bind (Component.raw_signal p.comp) @@ fun raw_value ->
+    S.bind (C.raw_signal p.comp) @@ fun raw_value ->
     S.bind (Editor.raw_signal p.editor) @@ fun raw_params ->
     S.const (raw_value, raw_params)
 
   let set p (raw_value, raw_params) =
-    Component.set p.comp raw_value;
+    C.set p.comp raw_value;
     Editor.set_raw_value p.editor raw_params
 
   let clear p =
-    Component.clear p.comp;
+    C.clear p.comp;
     Editor.clear p.editor
 
   let label = C.label
-  let inner_html p = Component.inner_html p.comp
-  let focus p = Component.focus p.comp
-  let trigger p = Component.trigger p.comp
+  let inner_html p = C.inner_html p.comp
+  let focus p = C.focus p.comp
+  let trigger p = C.trigger p.comp
 
   let actions p =
     S.l2
@@ -80,5 +79,5 @@ let prepare (type comp_value)(type comp_raw_value)(type params)(type params_prev
             ()
         ]
       )
-      (Component.actions p.comp)
+      (C.actions p.comp)
 end)

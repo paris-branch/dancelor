@@ -74,6 +74,12 @@ val initialise :
 
 (** {2 Utilities} *)
 
+val html' :
+  (module S with type t = 'a and type value = 'value and type raw_value = 'raw_value) ->
+  'a ->
+  [> Html_types.div] elt
+(** Render the component as HTML, just like {!html} would. *)
+
 val case_errored :
   no: 'b ->
   yes: ('e -> 'b) ->

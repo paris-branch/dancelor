@@ -30,7 +30,10 @@ end
 type ('value, 'raw_value) s = (module S with type value = 'value and type raw_value = 'raw_value)
 
 type ('value, 'raw_value) t =
-  Component : (module S with type t = 'a and type value = 'value and type raw_value = 'raw_value) * 'a -> ('value, 'raw_value) t
+  Component :
+      (module S with type t = 'a and type value = 'value and type raw_value = 'raw_value)
+    * 'a ->
+      ('value, 'raw_value) t
 
 let initialise (type value)(type raw_value)
     (module C : S with type value = value and type raw_value = raw_value)
@@ -54,24 +57,30 @@ let case_errored ~no ~yes signal =
     | Error msg -> yes msg
     | _ -> no
 
+let html'
+  : type a value raw_value. (module S with type t = a and type value = value and type raw_value = raw_value) ->
+  a ->
+  [> Html_types.div] elt
+= fun (module C) c ->
+  div
+    ~a: [a_class ["mb-2"]]
+    [
+      div ~a: [a_class ["row"; "align-items-center"]] [
+        label ~a: [a_class ["col"]] [txt C.label];
+        R.div ~a: [a_class ["col-auto"]] (
+          flip S.map (C.actions c) @@ function
+            | [] -> [Utils.Button.make ~classes: ["invisible"] ~icon: "plus-circle" ()] (* for spacing *)
+            | actions -> actions
+        );
+      ];
+      C.inner_html c;
+      R.div
+        ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (const ["d-block"; "invalid-feedback"]) (C.signal c))]
+        (case_errored ~no: [txt " "] ~yes: (List.singleton % txt) (C.signal c));
+    ]
+
 let html : type value raw_value. (value, raw_value) t -> [> Html_types.div] elt = function
-  | Component ((module C), c) ->
-    div
-      ~a: [a_class ["mb-2"]]
-      [
-        div ~a: [a_class ["row"; "align-items-center"]] [
-          label ~a: [a_class ["col"]] [txt C.label];
-          R.div ~a: [a_class ["col-auto"]] (
-            flip S.map (C.actions c) @@ function
-              | [] -> [Utils.Button.make ~classes: ["invisible"] ~icon: "plus-circle" ()] (* for spacing *)
-              | actions -> actions
-          );
-        ];
-        C.inner_html c;
-        R.div
-          ~a: [R.a_class (case_errored ~no: ["d-block"; "valid-feedback"] ~yes: (const ["d-block"; "invalid-feedback"]) (C.signal c))]
-          (case_errored ~no: [txt " "] ~yes: (List.singleton % txt) (C.signal c));
-      ]
+  | Component ((module C), c) -> html' (module C) c
 
 let html_fake ~label: label_ content =
   div

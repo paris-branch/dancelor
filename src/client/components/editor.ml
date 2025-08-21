@@ -16,8 +16,8 @@ let cons (type value1)(type raw_value1)(type value2)(type raw_value2)
 
     let inner_html p =
       div [
-        Component.html (c1 p);
-        Component.inner_html (c2 p);
+        Component.html' (module C1) (c1 p);
+        C2.inner_html (c2 p);
       ]
   end)
 

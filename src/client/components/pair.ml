@@ -18,12 +18,13 @@ module type S = sig
   type raw_value1
   type raw_value2
 
-  include Component.S with
-  type value = value1 * value2
-  and type raw_value = raw_value1 * raw_value2
+  include Component.S with type value = value1 * value2 and type raw_value = raw_value1 * raw_value2
 
-  val c1 : t -> (value1, raw_value1) Component.t
-  val c2 : t -> (value2, raw_value2) Component.t
+  module C1 : Component.S with type value = value1 and type raw_value = raw_value1
+  module C2 : Component.S with type value = value2 and type raw_value = raw_value2
+
+  val c1 : t -> C1.t
+  val c2 : t -> C2.t
 end
 
 let prepare (type value1)(type raw_value1)(type value2)(type raw_value2)
@@ -60,34 +61,28 @@ let prepare (type value1)(type raw_value1)(type value2)(type raw_value2)
     let%lwt v2 = C2.serialise v2 in
     lwt (v1, v2)
 
-  type t = {
-    c1: (value1, raw_value1) Component.t;
-    c2: (value2, raw_value2) Component.t;
-  }
-
-  let c1 p = p.c1
-  let c2 p = p.c2
+  type t = {c1: C1.t; c2: C2.t} [@@deriving fields]
 
   let signal p =
-    RS.bind (Component.signal p.c1) @@ fun v1 ->
-    RS.bind (Component.signal p.c2) @@ fun v2 ->
+    RS.bind (C1.signal p.c1) @@ fun v1 ->
+    RS.bind (C2.signal p.c2) @@ fun v2 ->
     RS.pure (v1, v2)
 
   let raw_signal p =
-    S.bind (Component.raw_signal p.c1) @@ fun v1 ->
-    S.bind (Component.raw_signal p.c2) @@ fun v2 ->
+    S.bind (C1.raw_signal p.c1) @@ fun v1 ->
+    S.bind (C2.raw_signal p.c2) @@ fun v2 ->
     S.const (v1, v2)
 
-  let focus p = Component.focus p.c1
-  let trigger p = Component.trigger p.c1
+  let focus p = C1.focus p.c1
+  let trigger p = C1.trigger p.c1
 
   let set p (v1, v2) =
-    Component.set p.c1 v1;
-    Component.set p.c2 v2
+    C1.set p.c1 v1;
+    C2.set p.c2 v2
 
   let clear p =
-    Component.clear p.c1;
-    Component.clear p.c2
+    C1.clear p.c1;
+    C2.clear p.c2
 
   let inner_html _ =
     failwith
@@ -100,7 +95,7 @@ let prepare (type value1)(type raw_value1)(type value2)(type raw_value2)
               no obvious way how to do that with a pair."
 
   let initialise (initial_value1, initial_value2) =
-    let%lwt c1 = Component.initialise (module C1) initial_value1 in
-    let%lwt c2 = Component.initialise (module C2) initial_value2 in
+    let%lwt c1 = C1.initialise initial_value1 in
+    let%lwt c2 = C2.initialise initial_value2 in
     lwt {c1; c2}
 end)
