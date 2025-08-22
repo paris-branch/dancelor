@@ -25,25 +25,23 @@ type t = {
   authors: Person.t Entry.Id.t list; [@default []]
   date: PartialDate.t option; [@default None]
   contents: Page.t list;
-  source: bool; [@default false]
   remark: string; [@default ""]
   scddb_id: int option; [@default None] [@key "scddb-id"]
 }
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
-let make ~title ?subtitle ?short_title ?authors ?date ?(contents = []) ?source ?remark ?scddb_id () =
+let make ~title ?subtitle ?short_title ?authors ?date ?(contents = []) ?remark ?scddb_id () =
   let title = String.remove_duplicates ~char: ' ' title in
   let subtitle = Option.map (String.remove_duplicates ~char: ' ') subtitle in
   let short_title = Option.map (String.remove_duplicates ~char: ' ') short_title in
   let authors = Option.map (List.map Entry.id) authors in
   let contents = List.map page_to_page_core contents in
-  make ~title ?subtitle ?short_title ?authors ~date ~contents ?source ?remark ~scddb_id ()
+  make ~title ?subtitle ?short_title ?authors ~date ~contents ?remark ~scddb_id ()
 
 let title' = title % Entry.value
 let subtitle' = subtitle % Entry.value
 let short_title' = short_title % Entry.value
 let date' = date % Entry.value
-let source' = source % Entry.value
 let remark' = remark % Entry.value
 let scddb_id' = scddb_id % Entry.value
 

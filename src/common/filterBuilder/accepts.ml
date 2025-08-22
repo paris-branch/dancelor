@@ -15,8 +15,6 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ String.proximity ~char_equal string @@ Model.Book.subtitle' book
       | SubtitleMatches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Book.subtitle' book
-      | IsSource ->
-        lwt @@ Formula.interpret_bool @@ Model.Book.source' book
       | ExistsVersion vfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt versions =

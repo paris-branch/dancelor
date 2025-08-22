@@ -29,7 +29,6 @@ module type S = sig
     ?authors: Core.Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
-    ?source: bool ->
     ?remark: string ->
     ?scddb_id: int ->
     unit ->
@@ -54,9 +53,6 @@ module type S = sig
 
   val contents : t -> page list Lwt.t
   val contents' : t Entry.t -> page list Lwt.t
-
-  val source : t -> bool
-  val source' : t Entry.t -> bool
 
   val remark : t -> string
   val remark' : t Entry.t -> string
