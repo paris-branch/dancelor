@@ -30,6 +30,7 @@ module type S = sig
     ?date: PartialDate.t ->
     ?contents: page list ->
     ?remark: string ->
+    ?sources: Core.Source.t Entry.t list ->
     ?scddb_id: int ->
     unit ->
     t
@@ -56,6 +57,9 @@ module type S = sig
 
   val remark : t -> string
   val remark' : t Entry.t -> string
+
+  val sources : t -> Core.Source.t Entry.t list Lwt.t
+  val sources' : t Entry.t -> Core.Source.t Entry.t list Lwt.t
 
   val scddb_id : t -> int option
   val scddb_id' : t Entry.t -> int option
