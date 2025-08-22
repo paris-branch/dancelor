@@ -105,6 +105,7 @@ let create ?context id =
     ~title: (lwt @@ Book.title' book)
     ~subtitles: [
       txt (Book.subtitle' book);
+      Formatters.Book.date_and_editors' book;
     ]
     ~share: (Book book)
     ~actions: (
@@ -145,15 +146,6 @@ let create ?context id =
             | [] -> lwt_nil
             | warnings -> lwt [div ~a: [a_class ["alert"; "alert-warning"]] [ul ~a: [a_class ["mb-0"]] (display_warnings warnings)]]
         );
-      p
-        [
-          txt
-            (
-              match Book.date' book with
-              | None -> ""
-              | Some date -> (spf "Date: %s" (NesPartialDate.to_pretty_string date))
-            )
-        ];
       div
         ~a: [a_class ["section"]]
         [

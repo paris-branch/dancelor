@@ -12,14 +12,43 @@ let editor =
   let open Editor in
   Input.prepare
     ~type_: Text
-    ~label: "Name"
+    ~label: "Title"
     ~placeholder: "eg. The Dusty Miller Book"
     ~serialise: Fun.id
     ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text
-    ~label: "Date of devising"
+    ~label: "Subtitle"
+    ~placeholder: "eg. Twenty version of Dusty Miller in rainbow colours"
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
+    () ^::
+  Input.prepare
+    ~type_: Text
+    ~label: "Short title"
+    ~placeholder: "eg. Dusty Miller"
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
+    () ^::
+  Star.prepare
+    ~label: "Editors"
+    (
+      Selector.prepare
+        ~label: "Editor"
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.Person.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
+        )
+        ~unserialise: Model.Person.get
+        ~make_result: AnyResult.make_person_result'
+        ~model_name: "person"
+        ~create_dialog_content: PersonEditor.create
+        ()
+    ) ^::
+  Input.prepare
+    ~type_: Text
+    ~label: "Date of publication"
     ~placeholder: "eg. 2019 or 2012-03-14"
     ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
     ~validate: (
@@ -105,6 +134,26 @@ let editor =
         | true -> [flip_show_preview_button ~icon: "eye"]
         | false -> [flip_show_preview_button ~icon: "eye-slash"]
     ) ^::
+  Input.prepare
+    ~type_: Text
+    ~label: "Remark"
+    ~placeholder: "eg. Dusty Miller"
+    ~serialise: Fun.id
+    ~validate: (S.const % ok)
+    () ^::
+  Input.prepare
+    ~type_: Text
+    ~label: "SCDDB ID"
+    ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/"
+    ~serialise: (Option.fold ~none: "" ~some: string_of_int)
+    ~validate: (
+      S.const %
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map some % SCDDB.entry_from_string SCDDB.Publication) %
+        Option.of_string_nonempty
+    )
+    () ^::
   nil
 
 let add_set_to_storage _set = assert false
@@ -121,8 +170,8 @@ let add_version_to_storage _version = assert false
 (* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
 (* (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ()))) *)
 
-let preview (title, (date, (contents, ()))) =
-  lwt_some @@ Model.Book.make ~title ?date ~contents ()
+let preview (title, (subtitle, (short_title, (authors, (date, (contents, (remark, (scddb_id, ())))))))) =
+  lwt_some @@ Model.Book.make ~title ~subtitle ~short_title ~authors ?date ~contents ~remark ?scddb_id ()
 
 let submit mode book =
   match mode with
@@ -131,9 +180,14 @@ let submit mode book =
 
 let break_down book =
   let title = Model.Book.title' book in
+  let subtitle = Model.Book.subtitle' book in
+  let short_title = Model.Book.short_title' book in
+  let%lwt authors = Model.Book.authors' book in
   let date = Model.Book.date' book in
   let%lwt contents = Model.Book.contents' book in
-  lwt (title, (date, (contents, ())))
+  let remark = Model.Book.remark' book in
+  let scddb_id = Model.Book.scddb_id' book in
+  lwt (title, (subtitle, (short_title, (authors, (date, (contents, (remark, (scddb_id, ()))))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->
