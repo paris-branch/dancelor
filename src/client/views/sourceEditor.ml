@@ -38,6 +38,19 @@ let editor =
     ) ^::
   Input.prepare
     ~type_: Text
+    ~label: "Date of publication"
+    ~placeholder: "eg. 2019 or 2012-03-14"
+    ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
+    ~validate: (
+      S.const %
+        Option.fold
+          ~none: (Ok None)
+          ~some: (Result.map some % Option.to_result ~none: "Not a valid date" % PartialDate.from_string) %
+        Option.of_string_nonempty
+    )
+    () ^::
+  Input.prepare
+    ~type_: Text
     ~label: "SCDDB ID"
     ~placeholder: "eg. 9999 or https://my.strathspey.org/dd/publication/9999/"
     ~serialise: (Option.fold ~none: "" ~some: string_of_int)
@@ -58,8 +71,8 @@ let editor =
     () ^::
   nil
 
-let preview (name, (short_name, (editors, (scddb_id, (description, ()))))) =
-  lwt_some @@ Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ()
+let preview (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
+  lwt_some @@ Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ?date ()
 
 let submit mode source =
   match mode with
@@ -67,11 +80,13 @@ let submit mode source =
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
 
 let break_down source =
+  let name = Model.Source.name' source in
+  let short_name = Model.Source.short_name' source in
   let%lwt editors = Model.Source.editors' source in
-  lwt (
-    Model.Source.name' source,
-    (Model.Source.short_name' source, (editors, (Model.Source.scddb_id' source, (Model.Source.description' source, ()))))
-  )
+  let date = Model.Source.date' source in
+  let scddb_id = Model.Source.scddb_id' source in
+  let description = Model.Source.description' source in
+  lwt (name, (short_name, (editors, (date, (scddb_id, (description, ()))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->

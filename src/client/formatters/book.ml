@@ -25,3 +25,20 @@ let short_title' ?(link = true) book =
       ]
     else
       short_title_text
+
+let date_and_editors source =
+  with_span_placeholder @@ (
+    let date =
+      match Model.Book.date source with
+      | None -> []
+      | Some date -> [txt (spf "Published %s" (NesPartialDate.to_pretty_string ~at: true date))]
+    in
+    let%lwt editors =
+      match%lwt Model.Book.authors source with
+      | [] -> lwt_nil
+      | editors -> lwt [txt "by "; Person.names' ~links: true editors]
+    in
+    lwt (date @ [txt " "] @ editors)
+  )
+
+let date_and_editors' source = date_and_editors @@ Entry.value source

@@ -11,6 +11,9 @@ module Build (Getters : Getters.S) = struct
   let authors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % authors
   let authors' = authors % Entry.value
 
+  let sources = Lwt_list.map_p (Lwt.map Option.get % Getters.get_source) % sources
+  let sources' = sources % Entry.value
+
   let compare : t Entry.t -> t Entry.t -> int = fun x y ->
     Entry.Id.compare' (Entry.id' x) (Entry.id' y)
 
