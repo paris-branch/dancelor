@@ -34,10 +34,10 @@ module Bundle = struct
     val empty : state
     val from_initial_text : string -> state
 
-    val serialise : value TupleElt.t -> state Lwt.t
-    (** Given one value among a tuple, create the state where everything is empty,
-        except for that one value where we call the corresponding
-        {!Component.S.serialise}. *)
+    val value_to_state : value TupleElt.t -> state Lwt.t
+    (** Given one value among a tuple, create the state where everything is
+        empty, except for that one value where we call the corresponding
+        {!Component.S.value_to_state}. *)
 
     type t
 
@@ -74,9 +74,9 @@ module Bundle = struct
     let empty = (A.empty, B.empty)
     let from_initial_text text = (A.from_initial_text text, B.from_initial_text text)
 
-    let serialise = function
-      | TupleElt.Zero v -> let%lwt a_state = A.serialise v in lwt (a_state, B.empty)
-      | TupleElt.Succ elt -> let%lwt b_state = B.serialise elt in lwt (A.empty, b_state)
+    let value_to_state = function
+      | TupleElt.Zero v -> let%lwt a_state = A.value_to_state v in lwt (a_state, B.empty)
+      | TupleElt.Succ elt -> let%lwt b_state = B.value_to_state elt in lwt (A.empty, b_state)
 
     type t = {a: A.t; b: B.t}
 
@@ -113,7 +113,7 @@ module Bundle = struct
     type state = unit [@@deriving yojson]
     let empty = ()
     let from_initial_text _ = ()
-    let serialise = TupleElt.consume_negative
+    let value_to_state = TupleElt.consume_negative
     type t = unit
     let state _ = S.const ()
     let signal _ = invalid_arg "Components.Plus.zero.signal"
@@ -138,10 +138,10 @@ let prepare (type value)(type bundled_value)(type state)
   type nonrec value = value
   type state = int option * Bundle.state [@@deriving yojson]
 
-  let serialise value =
+  let value_to_state value =
     let elt = uncast value in
     let selected = Some (TupleElt.position elt) in
-    let%lwt bundle_state = Bundle.serialise elt in
+    let%lwt bundle_state = Bundle.value_to_state elt in
     lwt (selected, bundle_state)
 
   let empty = (None, Bundle.empty)

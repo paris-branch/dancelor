@@ -28,7 +28,7 @@ let nil : (unit, unit) bundle =
     let label = "Nil bundle"
     type value = unit
     type state = unit [@@deriving yojson]
-    let serialise () = lwt_unit
+    let value_to_state () = lwt_unit
     let empty = ()
     let from_initial_text _ = ()
     type t = Nil
@@ -93,7 +93,7 @@ type ('result, 'previewed_value, 'value, 'state) s = {
 let empty (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} : state = C.empty
 let state_of_yojson (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} = C.state_of_yojson
 let state_to_yojson (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} = C.state_to_yojson
-let serialise (type result)(type value)(type state) : (result, 'previewed_value, value, state) s -> result -> state Lwt.t = fun {bundle = Bundle(module C); break_down; _} value -> break_down value >>= C.serialise
+let result_to_state (type result)(type value)(type state) : (result, 'previewed_value, value, state) s -> result -> state Lwt.t = fun {bundle = Bundle(module C); break_down; _} value -> break_down value >>= C.value_to_state
 
 let prepare ~key ~icon ~preview ~submit ~break_down ~format ~href bundle =
   {key; icon; preview; submit; break_down; format; href; bundle}
@@ -149,7 +149,7 @@ let initialise (type result)(type value)(type previewed_value)(type state)
     | QuickCreate (initial_text, _) -> lwt @@ Bundle.from_initial_text initial_text
     | QuickEdit state -> lwt state
     | CreateWithLocalStorage -> lwt @@ read_local_storage ~key bundle
-    | Edit entry -> Bundle.serialise =<< break_down entry
+    | Edit entry -> Bundle.value_to_state =<< break_down entry
   in
 
   (* Now that we have an initial value, we can actually initialise the editor to

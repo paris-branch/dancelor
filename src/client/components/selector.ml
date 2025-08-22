@@ -37,7 +37,7 @@ let prepare_gen (type model)(type model_validated)
 
   let empty = None
   let from_initial_text _ = None
-  let serialise = lwt % Option.map Entry.id % unvalidate
+  let value_to_state = lwt % Option.map Entry.id % unvalidate
 
   type t = {
     signal: model Entry.t option S.t;

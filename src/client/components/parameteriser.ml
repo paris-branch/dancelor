@@ -19,9 +19,9 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_previewe
   let from_initial_text (text : string) =
     (C.from_initial_text text, Editor.empty editor)
 
-  let serialise (value, params) =
-    let%lwt value = C.serialise value in
-    let%lwt params = Editor.serialise editor params in
+  let value_to_state (value, params) =
+    let%lwt value = C.value_to_state value in
+    let%lwt params = Editor.result_to_state editor params in
     lwt (value, params)
 
   type t = {

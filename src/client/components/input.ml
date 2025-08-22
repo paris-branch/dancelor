@@ -28,7 +28,7 @@ let prepare (type value)
 
   let empty = ""
   let from_initial_text = Fun.id
-  let serialise = lwt % serialise
+  let value_to_state = lwt % serialise
 
   type t = {
     state: string S.t;
@@ -52,7 +52,7 @@ let prepare (type value)
 
   let trigger = focus
 
-  let set i x = i.set <$> serialise x
+  let set i x = i.set <$> value_to_state x
 
   let clear i = i.set ""
 

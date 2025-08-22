@@ -121,7 +121,7 @@ val state_to_yojson :
   'state ->
   Yojson.Safe.t
 
-val serialise :
+val result_to_state :
   ('result, 'previewed_value, 'value, 'state) s ->
   'result ->
   'state Lwt.t

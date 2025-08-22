@@ -56,9 +56,9 @@ let prepare (type value1)(type state1)(type value2)(type state2)
   let from_initial_text text =
     (C1.from_initial_text text, C2.empty)
 
-  let serialise (v1, v2) =
-    let%lwt v1 = C1.serialise v1 in
-    let%lwt v2 = C2.serialise v2 in
+  let value_to_state (v1, v2) =
+    let%lwt v1 = C1.value_to_state v1 in
+    let%lwt v2 = C2.value_to_state v2 in
     lwt (v1, v2)
 
   type t = {c1: C1.t; c2: C2.t} [@@deriving fields]

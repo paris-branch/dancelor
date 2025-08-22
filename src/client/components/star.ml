@@ -16,7 +16,7 @@ let prepare (type value)(type state)
   let empty = []
   let from_initial_text = List.singleton % C.from_initial_text
 
-  let serialise = Lwt_list.map_p C.serialise
+  let value_to_state = Lwt_list.map_p C.value_to_state
 
   type t = {
     components: C.t list S.t;
@@ -145,7 +145,7 @@ let prepare_non_empty (type value)(type state)
 = (module struct
   include (val (prepare ~label ?more_actions (module C)))
   type value = C.value NonEmptyList.t
-  let serialise = serialise % NonEmptyList.to_list
+  let value_to_state = value_to_state % NonEmptyList.to_list
   let set c v = set c @@ NonEmptyList.to_list v
   let signal =
     S.map (fun l ->

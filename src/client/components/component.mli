@@ -55,7 +55,7 @@ module type S = sig
 
   type value
 
-  val serialise : value -> state Lwt.t
+  val value_to_state : value -> state Lwt.t
 
   type t
 
