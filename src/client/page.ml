@@ -48,7 +48,7 @@ let render p =
   let actions_promise = List.map (li % List.singleton) <$> p.actions in
   let actions_html =
     R.div
-      ~a: [a_class ["dropdown"; "m-0"; "p-0"; "col-auto"; "d-flex"; "flex-column"; "flex-sm-row"; "align-items-start"]]
+      ~a: [a_class ["dropdown"; "m-0"; "ms-2"; "p-0"; "col-auto"; "d-flex"; "flex-column"; "flex-sm-row"; "align-items-start"]]
       (
         S.l2
           (@)
@@ -87,7 +87,7 @@ let render p =
   in
   let actions_mirror =
     (* invisible buttons of the same size as actions_html *)
-    R.div ~a: [a_class ["invisible"; "d-none"; "d-sm-block"]] (
+    R.div ~a: [a_class ["invisible"; "d-none"; "d-sm-block"; "me-0"; "me-sm-2"]] (
       S.l2
         (@)
         (
