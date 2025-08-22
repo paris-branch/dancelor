@@ -33,68 +33,62 @@ let editor =
   Star.prepare
     ~label: "Contents"
     (
+      let open Plus.TupleElt in
       Plus.prepare
         ~label: "Set or version"
-        [
-          Plus.wrap
-            (uncurry Model.Book.set)
-            Model.Book.set_val
-            left
-            Either.find_left
+        ~cast: (function
+          | Zero (set, params) -> Model.Book.Set (set, params)
+          | Succ Zero (version, params) -> Model.Book.Version (version, params)
+          | _ -> assert false (* types guarantee this is not reachable *)
+        )
+        ~uncast: (function
+          | Model.Book.Set (set, params) -> Zero (set, params)
+          | Model.Book.Version (version, params) -> Succ (Zero (version, params))
+        )
+        (
+          let open Plus.Bundle in
+          Parameteriser.prepare
             (
-              Parameteriser.prepare
-                (
-                  Selector.prepare
-                    ~make_result: AnyResult.make_set_result'
-                    ~make_more_results: (fun set ->
-                      flip S.map show_preview @@ function
-                        | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
-                        | false -> []
-                    )
-                    ~label: "Set"
-                    ~model_name: "set"
-                    ~create_dialog_content: SetEditor.create
-                    ~search: (fun slice input ->
-                      let%rlwt filter = lwt (Filter.Set.from_string input) in
-                      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
-                    )
-                    ~unserialise: Model.Set.get
-                    ()
+              Selector.prepare
+                ~make_result: AnyResult.make_set_result'
+                ~make_more_results: (fun set ->
+                  flip S.map show_preview @@ function
+                    | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+                    | false -> []
                 )
-                (
-                  SetParametersEditor.e
+                ~label: "Set"
+                ~model_name: "set"
+                ~create_dialog_content: SetEditor.create
+                ~search: (fun slice input ->
+                  let%rlwt filter = lwt (Filter.Set.from_string input) in
+                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
                 )
-            );
-          Plus.wrap
-            (uncurry Model.Book.version)
-            Model.Book.version_val
-            right
-            Either.find_right
+                ~unserialise: Model.Set.get
+                ()
+            )
+            SetParametersEditor.e ^::
+          Parameteriser.prepare
             (
-              Parameteriser.prepare
-                (
-                  Selector.prepare
-                    ~make_result: AnyResult.make_version_result'
-                    ~make_more_results: (fun version ->
-                      flip S.map show_preview @@ function
-                        | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-                        | false -> []
-                    )
-                    ~label: "Version"
-                    ~model_name: "version"
-                    ~create_dialog_content: VersionEditor.create
-                    ~search: (fun slice input ->
-                      let%rlwt filter = lwt (Filter.Version.from_string input) in
-                      ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
-                    )
-                    ~unserialise: Model.Version.get
-                    ()
+              Selector.prepare
+                ~make_result: AnyResult.make_version_result'
+                ~make_more_results: (fun version ->
+                  flip S.map show_preview @@ function
+                    | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+                    | false -> []
                 )
-                (
-                  VersionParametersEditor.e
+                ~label: "Version"
+                ~model_name: "version"
+                ~create_dialog_content: VersionEditor.create
+                ~search: (fun slice input ->
+                  let%rlwt filter = lwt (Filter.Version.from_string input) in
+                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
                 )
-            );
-        ]
+                ~unserialise: Model.Version.get
+                ()
+            )
+            VersionParametersEditor.e ^::
+          nil
+        )
     )
     ~more_actions: (
       let flip_show_preview_button ~icon =
@@ -113,19 +107,19 @@ let editor =
     ) ^::
   nil
 
-let add_set_to_storage set =
-  let%lwt set_none = SetParametersEditor.empty_value () in
-  let%lwt version_none = VersionParametersEditor.empty_value () in
-  lwt @@
-  Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
-  (name, (date, (contents @ [Some 0, [Left (Some set, set_none); Right (None, version_none)]], ())))
+let add_set_to_storage _set = assert false
+(* let%lwt set_none = SetParametersEditor.empty_value () in *)
+(* let%lwt version_none = VersionParametersEditor.empty_value () in *)
+(* lwt @@ *)
+(* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
+(* (name, (date, (contents @ [Some 0, [Left (Some set, set_none); Right (None, version_none)]], ()))) *)
 
-let add_version_to_storage version =
-  let%lwt set_none = SetParametersEditor.empty_value () in
-  let%lwt version_none = VersionParametersEditor.empty_value () in
-  lwt @@
-  Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) ->
-  (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ())))
+let add_version_to_storage _version = assert false
+(* let%lwt set_none = SetParametersEditor.empty_value () in *)
+(* let%lwt version_none = VersionParametersEditor.empty_value () in *)
+(* lwt @@ *)
+(* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
+(* (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ()))) *)
 
 let preview (title, (date, (contents, ()))) =
   lwt_some @@ Model.Book.make ~title ?date ~contents ()

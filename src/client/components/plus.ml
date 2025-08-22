@@ -1,189 +1,200 @@
 open Nes
 open Html
 
-exception PartialBecauseWrapped of string
-let partial_because_wrapped s = raise (PartialBecauseWrapped s)
+module TupleElt = struct
+  type _ t =
+    | Zero : 'a -> ('a * 'b) t
+    | Succ : 'b t -> ('a * 'b) t
 
-let prepare (type value)(type component_state)
+  let zero x = Zero x
+  let succ e = Succ e
+  let one x = Succ (Zero x)
+  let two x = Succ (Succ (Zero x))
+  let three x = Succ (Succ (Succ (Zero x)))
+  let four x = Succ (Succ (Succ (Succ (Zero x))))
+  let five x = Succ (Succ (Succ (Succ (Succ (Zero x)))))
+
+  (** It is safe to consume a [unit t] because nothing can construct it.
+      Morally, this can be thought of as [-1]. *)
+  let consume_negative : unit t -> 'a = fun _ -> assert false
+
+  (** The position of the tuple element in the tuple. *)
+  let rec position : type payload. payload t -> int = function
+    | Zero _ -> 0
+    | Succ b -> 1 + position b
+end
+
+module Bundle = struct
+  module type Bundle = sig
+    type value
+
+    type state [@@deriving yojson]
+    (** Typically, this will be a tuple of the form (_, (_, (_, ()))). *)
+
+    val empty : state
+    val from_initial_text : string -> state
+
+    val serialise : value TupleElt.t -> state Lwt.t
+    (** Given one value among a tuple, create the state where everything is empty,
+        except for that one value where we call the corresponding
+        {!Component.S.serialise}. *)
+
+    type t
+
+    val initialise : state -> t Lwt.t
+
+    val state : t -> state S.t
+
+    val signal : t -> int -> (value TupleElt.t, string) result S.t
+    (** Value of the component at the given index, or the error of that component.
+        The value is returned as a {!tuple_elt}. *)
+
+    val actions : t -> int -> Html_types.div_content_fun elt list S.t
+    (** Actions of the component at the given index. *)
+
+    val inner_html : t -> int -> Html_types.div_content_fun elt
+    (** Inner HTML of the component at the given index. *)
+
+    val choices : ?offset: int -> ?initial_selected: int -> unit -> int option Choices.choice list
+    (** One choice per component, starting from the given index. The [?offset]
+        argument should only be used by the {!cons} function. *)
+  end
+
+  type ('value, 'state) t = (module Bundle with type value = 'value and type state = 'state)
+
+  let cons (type value1)(type value2)(type state1)(type state2)
+    ((module A): (value1, state1) Component.s)
+    ((module B): (value2, state2) t)
+    : (value1 * value2, state1 * state2) t
+  = (module struct
+
+    type value = value1 * value2
+    type state = A.state * B.state [@@deriving yojson]
+
+    let empty = (A.empty, B.empty)
+    let from_initial_text text = (A.from_initial_text text, B.from_initial_text text)
+
+    let serialise = function
+      | TupleElt.Zero v -> let%lwt a_state = A.serialise v in lwt (a_state, B.empty)
+      | TupleElt.Succ elt -> let%lwt b_state = B.serialise elt in lwt (A.empty, b_state)
+
+    type t = {a: A.t; b: B.t}
+
+    let state t =
+      S.bind (A.state t.a) @@ fun a_state ->
+      S.bind (B.state t.b) @@ fun b_state ->
+      S.const (a_state, b_state)
+
+    let signal t = function
+      | 0 -> S.map (Result.map TupleElt.zero) (A.signal t.a)
+      | n -> S.map (Result.map TupleElt.succ) (B.signal t.b (n - 1))
+
+    let initialise (a_state, b_state) =
+      let%lwt a = A.initialise a_state in
+      let%lwt b = B.initialise b_state in
+      lwt {a; b}
+
+    let actions t = function
+      | 0 -> A.actions t.a
+      | n -> B.actions t.b (n - 1)
+
+    let inner_html t = function
+      | 0 -> A.inner_html t.a
+      | n -> B.inner_html t.b (n - 1)
+
+    let choices ?(offset = 0) ?initial_selected () =
+      Choices.choice' ~value: offset ~checked: (initial_selected = Some offset) [txt A.label] :: B.choices ~offset: (offset + 1) ?initial_selected ()
+  end)
+
+  let (^::) = cons
+
+  let nil : (unit, unit) t = (module struct
+    type value = unit
+    type state = unit [@@deriving yojson]
+    let empty = ()
+    let from_initial_text _ = ()
+    let serialise = TupleElt.consume_negative
+    type t = unit
+    let state _ = S.const ()
+    let signal _ = invalid_arg "Components.Plus.zero.signal"
+    let initialise () = lwt_unit
+    let actions _ _ = invalid_arg "Components.Plus.zero.actions"
+    let inner_html _ _ = invalid_arg "Components.Plus.zero.inner_html"
+    let choices ?offset: _ ?initial_selected: _ () = []
+  end)
+end
+
+let prepare (type value)(type bundled_value)(type state)
   ~label
-  (components : (value, component_state) Component.s list)
-  : (value, int option * component_state list) Component.s
+  ~(cast : bundled_value TupleElt.t -> value)
+  ~(uncast : value -> bundled_value TupleElt.t)
+  (bundle : (bundled_value, state) Bundle.t)
+  : (value, int option * state) Component.s
 = (module struct
+  module Bundle = (val bundle)
+
   let label = label
 
   type nonrec value = value
+  type state = int option * Bundle.state [@@deriving yojson]
 
-  (* which component is selected, if any, and a save for each of them *)
-  type state = int option * component_state list
-
-  let state_to_yojson (selected, values) =
-    `Assoc [
-      "selected", (match selected with None -> `Null | Some n -> `Int n);
-      "values",
-      `List (
-        List.map2
-          (fun ((module C): (value, component_state) Component.s) value ->
-            C.state_to_yojson value
-          )
-          components
-          values
-      )
-    ]
-
-  let state_of_yojson = function
-    | `Assoc [("selected", selected); ("values", `List values)] ->
-      let selected = match selected with `Null -> Ok None | `Int n -> Ok (Some n) | _ -> Error "Invalid JSON for selected" in
-      let values =
-        Result.map List.rev @@
-          List.fold_left2
-            (fun acc ((module C): (value, component_state) Component.s) value ->
-              Result.bind acc @@ fun acc ->
-              Result.bind (C.state_of_yojson value) @@ fun value ->
-              Result.ok (value :: acc)
-            )
-            (Ok [])
-            components
-            values
-      in
-      Result.bind selected @@ fun selected ->
-      Result.bind values @@ fun values ->
-      Ok (selected, values)
-    | _ -> Error "Invalid JSON format for state"
-
-  let empty_component_states = List.map (fun ((module C): (value, component_state) Component.s) -> C.empty) components
-  let empty = (None, empty_component_states)
-
-  let from_initial_text text =
-    (None, List.map (fun ((module C): (value, component_state) Component.s) -> C.from_initial_text text) components)
-
-  (* Because they all have the same type, we cannot know which one the value
-     comes from. So we try them all and take the first serialisation that works.
-     According to its type, [serialise] should be a total function. However,
-     because of {!wrap}, that is not always the case. FIXME: This is disgusting,
-     we really need to get this component type-safe. *)
   let serialise value =
-    Option.get
-    <$> Lwt_list.find_mapi_s
-        (fun n ((module C): (value, component_state) Component.s) ->
-          try
-            let%lwt value = C.serialise value in
-            lwt_some (Some n, snd @@ List.replace n value empty_component_states)
-          with
-            | PartialBecauseWrapped _ -> lwt_none
-        )
-        components
+    let elt = uncast value in
+    let selected = Some (TupleElt.position elt) in
+    let%lwt bundle_state = Bundle.serialise elt in
+    lwt (selected, bundle_state)
+
+  let empty = (None, Bundle.empty)
+  let from_initial_text text = (None, Bundle.from_initial_text text)
 
   type t = {
     choices: (int, string) Component.t;
-    initialised_components: (value, component_state) Component.t list; (* NOTE: mind the [t] *)
-    inner_html: 'a. ([> Html_types.div] as 'a) elt;
+    bundle: Bundle.t;
   }
 
-  let selected l = S.map Result.to_option (Component.signal l.choices)
+  let selected t = S.map Result.to_option (Component.signal t.choices)
 
-  let signal l =
-    S.bind (selected l) @@ function
-      | None -> S.const @@ Error ("You must select a " ^ String.lowercase_ascii label ^ ".")
-      | Some selected ->
-        let (component : (value, component_state) Component.t) =
-          List.nth l.initialised_components selected
-        in
-        Component.signal component
+  let state t =
+    S.bind (selected t) @@ fun selected ->
+    S.bind (Bundle.state t.bundle) @@ fun bundle_state ->
+    S.const (selected, bundle_state)
 
-  let state l =
-    S.bind (selected l) @@ fun selected ->
-    let component_states =
-      List.map
-        (fun (component : (value, component_state) Component.t) ->
-          Component.state component
-        )
-        l.initialised_components
-    in
-    S.bind (S.all component_states) @@ fun component_states ->
-    S.const (selected, component_states)
+  let signal t =
+    S.bind (selected t) @@ function
+      | None -> S.const (Error ("You must select a " ^ String.lowercase_ascii label ^ "."))
+      | Some selected -> S.map (Result.map cast) (Bundle.signal t.bundle selected)
 
-  let focus _ = () (* FIXME *)
-  let trigger = focus
-  let set _ _ = lwt_unit (* FIXME *)
-
-  let clear l =
-    Component.clear l.choices;
-    List.iter Component.clear l.initialised_components
-
-  let inner_html l = l.inner_html
-  let actions _ = S.const []
-
-  let initialise (initial_selected, initial_values) =
-    let (initial_selected, initial_values) =
-      if List.length initial_values <> List.length components then
-        empty
-      else
-          (initial_selected, initial_values)
-    in
-    let%lwt initialised_components =
-      Lwt_list.map_s (uncurry Component.initialise) (List.combine components initial_values)
-    in
+  let initialise (initial_selected, initial_states) =
     let%lwt choices =
       Choices.make_radios'
         ~label
         ~validate: (Option.to_result ~none: "You must make a choice.")
-        (
-          List.mapi
-            (fun n ((module C): (value, component_state) Component.s) ->
-              Choices.choice' ~value: n [txt C.label] ~checked: (Some n = initial_selected)
-            )
-            components
-        )
+        (Bundle.choices ?initial_selected ())
     in
-    let inner_html =
-      div [
-        div ~a: [a_class ["row"]] [
-          div ~a: [a_class ["col"]] [Component.inner_html choices];
-          R.div ~a: [a_class ["col-auto"]] (
-            S.bind (Component.signal choices) @@ function
-              | Error _ -> S.const []
-              | Ok n -> Component.actions @@ List.nth initialised_components n
-          );
-        ];
-        R.div ~a: [a_class ["ps-2"; "mt-1"; "border-start"]] (
-          flip S.map (Component.signal choices) @@ function
-            | Error _ -> []
-            | Ok n -> [Component.inner_html @@ List.nth initialised_components n]
+    let%lwt bundle = Bundle.initialise initial_states in
+    lwt {choices; bundle}
+
+  let inner_html p =
+    div [
+      div ~a: [a_class ["row"]] [
+        div ~a: [a_class ["col"]] [Component.inner_html p.choices];
+        R.div ~a: [a_class ["col-auto"]] (
+          S.bind (Component.signal p.choices) @@ function
+            | Error _ -> S.const []
+            | Ok n -> Bundle.actions p.bundle n
         );
-      ]
-    in
-    lwt {choices; initialised_components; inner_html}
-end)
+      ];
+      R.div ~a: [a_class ["ps-2"; "mt-1"; "border-start"]] (
+        flip S.map (Component.signal p.choices) @@ function
+          | Error _ -> []
+          | Ok n -> [Bundle.inner_html p.bundle n]
+      );
+    ]
 
-let make (type value)(type component_state)
-    ~label
-    (components : (value, component_state) Component.s list)
-    (initial_values : int option * component_state list)
-    : (value, int option * component_state list) Component.t Lwt.t
-  =
-  Component.initialise (prepare ~label components) initial_values
+  let actions _ = S.const []
 
-let wrap (type value1)(type value2)(type state1)(type state2)
-  (wrap_value : value1 -> value2)
-  (unwrap_value : value2 -> value1 option)
-  (wrap_state : state1 -> state2)
-  (unwrap_state : state2 -> state1 option)
-  ((module C): (value1, state1) Component.s)
-  : (value2, state2) Component.s
-= (module struct
-  include C
-  type value = value2
-  type state = state2
-  let state_to_yojson = C.state_to_yojson % Option.value' ~default: (fun () -> partial_because_wrapped "state_to_yojson") % unwrap_state
-  let state_of_yojson = Result.map wrap_state % C.state_of_yojson
-  let empty = wrap_state empty
-  let from_initial_text = wrap_state % C.from_initial_text
-  let serialise = wrap_state <%> serialise % Option.value' ~default: (fun () -> partial_because_wrapped "serialise") % unwrap_value
-  let signal = S.map (Result.map wrap_value) % signal
-  let state = S.map wrap_state % state
+  let focus t = Component.focus t.choices
+  let trigger t = Component.trigger t.choices
   let set _ _ = lwt_unit (* FIXME *)
-  let initialise initial_value =
-    match unwrap_state initial_value with
-    | Some initial_value -> initialise initial_value
-    | None -> assert false
+  let clear _ = () (* FIXME *)
 end)
