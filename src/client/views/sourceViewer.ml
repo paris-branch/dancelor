@@ -15,7 +15,7 @@ let create ?context id =
         (lwt @@ Any.source source);
     ]
     ~title: (lwt @@ Source.name' source)
-    ~subtitles: [Formatters.Source.editors' source]
+    ~subtitles: [Formatters.Source.date_and_editors' source]
     ~share: (Source source)
     ~actions: (
       lwt @@

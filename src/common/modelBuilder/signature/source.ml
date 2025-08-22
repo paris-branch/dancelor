@@ -15,6 +15,7 @@ module type S = sig
     ?editors: Core.Person.t Entry.t list ->
     ?scddb_id: int ->
     ?description: string ->
+    ?date: PartialDate.t ->
     unit ->
     t
 
@@ -34,6 +35,9 @@ module type S = sig
 
   val description : t -> string option
   val description' : t Entry.t -> string option
+
+  val date : t -> PartialDate.t option
+  val date' : t Entry.t -> PartialDate.t option
 
   val equal : t -> t -> bool
 
