@@ -23,7 +23,7 @@ let create username token =
       ~placeholder: "1234678"
       ~serialise: Fun.id
       ~validate: (fun password2 ->
-        flip S.map (Component.raw_signal password1_input) @@ fun password1 ->
+        flip S.map (Component.state password1_input) @@ fun password1 ->
         if password1 = password2 then Ok password2 else Error "The passwords do not match."
       )
       ""

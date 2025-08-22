@@ -30,18 +30,18 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let label = label
 
   type nonrec value = value
-  type raw_value = string [@@deriving yojson]
+  type state = string [@@deriving yojson]
 
-  let empty_value = ""
-  let raw_value_from_initial_text _ = ""
-  let serialise _ = lwt "" (* FIXME *)
+  let empty = ""
+  let from_initial_text _ = ""
+  let value_to_state _ = lwt "" (* FIXME *)
 
   type t = {
     inner_html: 'a. ([> Html_types.div] as 'a) elt;
     values: choice_value list S.t;
   }
 
-  let raw_signal _ = S.const "" (* FIXME: handle raw_signal *)
+  let state _ = S.const "" (* FIXME: handle state *)
   let signal c = S.map validate c.values
   let inner_html c = c.inner_html
   let actions _ = S.const []
@@ -49,7 +49,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
   let focus _ = () (* FIXME *)
   let trigger _ = () (* FIXME *)
   let clear _ = () (* FIXME *)
-  let set _ _ = () (* FIXME *)
+  let set _ _ = lwt_unit (* FIXME *)
 
   (* Helper returning a list of the values held by choices satisfying a certain
      predicate, eg. “this choice is checked”. *)

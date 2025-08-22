@@ -2,21 +2,21 @@ open Nes
 open Js_of_ocaml
 open Html
 
-let prepare (type value)(type raw_value)
+let prepare (type value)(type state)
   ~label
   ?(more_actions = S.const [])
-  ((module C): (value, raw_value) Component.s)
-  : (value list, raw_value list) Component.s
+  ((module C): (value, state) Component.s)
+  : (value list, state list) Component.s
 = (module struct
   let label = label
 
   type value = C.value list
-  type raw_value = C.raw_value list [@@deriving yojson]
+  type state = C.state list [@@deriving yojson]
 
-  let empty_value = []
-  let raw_value_from_initial_text = List.singleton % C.raw_value_from_initial_text
+  let empty = []
+  let from_initial_text = List.singleton % C.from_initial_text
 
-  let serialise = Lwt_list.map_p C.serialise
+  let value_to_state = Lwt_list.map_p C.value_to_state
 
   type t = {
     components: C.t list S.t;
@@ -37,13 +37,13 @@ let prepare (type value)(type raw_value)
       )
       (S.const (Ok []))
 
-  let raw_signal l =
+  let state l =
     S.map List.rev @@
     S.bind l.components @@
     List.fold_left
       (fun values component ->
         S.bind values @@ fun values ->
-        S.bind (C.raw_signal component) @@ fun value ->
+        S.bind (C.state component) @@ fun value ->
         S.const (value :: values)
       )
       (S.const [])
@@ -75,7 +75,7 @@ let prepare (type value)(type raw_value)
         ~icon: "plus-circle"
         ~classes: ["btn-secondary"]
         ~onclick: (fun () ->
-          let%lwt component = C.initialise C.empty_value in
+          let%lwt component = C.initialise C.empty in
           set_components (S.value components @ [component]);
           C.trigger component;
           lwt_unit
@@ -128,24 +128,25 @@ let prepare (type value)(type raw_value)
     lwt {components; set_components; inner_html; button_add_object_dom}
 end)
 
-let make (type value)(type raw_value)
+let make (type value)(type state)
     ~label
     ?more_actions
-    (component : (value, raw_value) Component.s)
-    (initial_values : raw_value list)
-    : (value list, raw_value list) Component.t Lwt.t
+    (component : (value, state) Component.s)
+    (initial_values : state list)
+    : (value list, state list) Component.t Lwt.t
   =
   Component.initialise (prepare ~label ?more_actions component) initial_values
 
-let prepare_non_empty (type value)(type raw_value)
+let prepare_non_empty (type value)(type state)
   ~label
   ?more_actions
-  ((module C): (value, raw_value) Component.s)
-  : (value NonEmptyList.t, raw_value list) Component.s
+  ((module C): (value, state) Component.s)
+  : (value NonEmptyList.t, state list) Component.s
 = (module struct
   include (val (prepare ~label ?more_actions (module C)))
   type value = C.value NonEmptyList.t
-  let serialise = serialise % NonEmptyList.to_list
+  let value_to_state = value_to_state % NonEmptyList.to_list
+  let set c v = set c @@ NonEmptyList.to_list v
   let signal =
     S.map (fun l ->
       Result.bind l @@ Option.to_result ~none: ("You must add at least one " ^ String.lowercase_ascii C.label ^ ".") % NonEmptyList.of_list
@@ -153,11 +154,11 @@ let prepare_non_empty (type value)(type raw_value)
       signal
 end)
 
-let make_non_empty (type value)(type raw_value)
+let make_non_empty (type value)(type state)
     ~label
     ?more_actions
-    (component : (value, raw_value) Component.s)
-    (initial_values : raw_value list)
-    : (value NonEmptyList.t, raw_value list) Component.t Lwt.t
+    (component : (value, state) Component.s)
+    (initial_values : state list)
+    : (value NonEmptyList.t, state list) Component.t Lwt.t
   =
   Component.initialise (prepare_non_empty ~label ?more_actions component) initial_values

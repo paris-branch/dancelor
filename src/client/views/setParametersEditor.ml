@@ -52,4 +52,4 @@ let e =
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 
-let empty_value () = Editor.serialise e Model.SetParameters.none
+let empty_value () = Editor.result_to_state e Model.SetParameters.none

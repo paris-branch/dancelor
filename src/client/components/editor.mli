@@ -7,25 +7,25 @@ open Html
     An editor features several components, and therefore we provide here a way
     to bundle components together under a list-like structure. *)
 
-type ('value, 'raw_value) bundle
+type ('value, 'state) bundle
 
 val nil : (unit, unit) bundle
 
 val cons :
-  ('value1, 'raw_value1) Component.s ->
-  ('value2, 'raw_value2) bundle ->
-  ('value1 * 'value2, 'raw_value1 * 'raw_value2) bundle
+  ('value1, 'state1) Component.s ->
+  ('value2, 'state2) bundle ->
+  ('value1 * 'value2, 'state1 * 'state2) bundle
 
 val (^::):
-  ('value1, 'raw_value1) Component.s ->
-  ('value2, 'raw_value2) bundle ->
-  ('value1 * 'value2, 'raw_value1 * 'raw_value2) bundle
+  ('value1, 'state1) Component.s ->
+  ('value2, 'state2) bundle ->
+  ('value1 * 'value2, 'state1 * 'state2) bundle
 (** [c ^:: cs] is an alias for [cons c cs]. It is right associative. *)
 
 (** {2 High-level interface} *)
 
-type ('result, 'raw_value) mode =
-  | QuickEdit of 'raw_value
+type ('result, 'state) mode =
+  | QuickEdit of 'state
   | QuickCreate of string * ('result -> unit)
   | CreateWithLocalStorage
   | Edit of 'result
@@ -35,13 +35,13 @@ val make_page :
   key: string ->
   icon: string ->
   preview: ('value -> 'previewed_value option Lwt.t) ->
-  submit: (('result, 'raw_value) mode -> 'previewed_value -> 'result Lwt.t) ->
+  submit: (('result, 'state) mode -> 'previewed_value -> 'result Lwt.t) ->
   break_down: ('result -> 'value Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
-  mode: ('result, 'raw_value) mode ->
-  ('value, 'raw_value) bundle ->
+  mode: ('result, 'state) mode ->
+  ('value, 'state) bundle ->
   Page.t Lwt.t
 (** Make a fully-featured editor that takes a whole page.
 
@@ -59,8 +59,8 @@ val make_page :
 
 val update_local_storage :
   key: string ->
-  ('value, 'raw_value) bundle ->
-  ('raw_value -> 'raw_value) ->
+  ('value, 'state) bundle ->
+  ('state -> 'state) ->
   unit
 
 exception NonConvertible
@@ -74,31 +74,31 @@ exception NonConvertible
     manipulate them. {!make_page} above is the combination of {!prepare},
     {!initialise} and {!page} below *)
 
-type ('result, 'previewed_value, 'value, 'raw_value) s
+type ('result, 'previewed_value, 'value, 'state) s
 (** An un-initialised editor. *)
 
 val prepare :
   key: string ->
   icon: string ->
   preview: ('value -> 'previewed_value option Lwt.t) ->
-  submit: (('result, 'raw_value) mode -> 'previewed_value -> 'result Lwt.t) ->
+  submit: (('result, 'state) mode -> 'previewed_value -> 'result Lwt.t) ->
   break_down: ('result -> 'value Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
-  ('value, 'raw_value) bundle ->
-  ('result, 'previewed_value, 'value, 'raw_value) s
+  ('value, 'state) bundle ->
+  ('result, 'previewed_value, 'value, 'state) s
 
-type ('result, 'previewed_value, 'value, 'raw_value) t
+type ('result, 'previewed_value, 'value, 'state) t
 (** An initialised editor. *)
 
 val initialise :
-  ('result, 'previewed_value, 'value, 'raw_value) s ->
-  ('result, 'raw_value) mode ->
-  ('result, 'previewed_value, 'value, 'raw_value) t Lwt.t
+  ('result, 'previewed_value, 'value, 'state) s ->
+  ('result, 'state) mode ->
+  ('result, 'previewed_value, 'value, 'state) t Lwt.t
 
 val page :
   ?after_save: (unit -> unit) ->
-  ('result, 'previewed_value, 'value, 'raw_value) t ->
+  ('result, 'previewed_value, 'value, 'state) t ->
   Page.t Lwt.t
 (** Render an initialised editor as a full page, ready for use. The additional
     [?after_save] argument can be used to trigger an action from the outside,
@@ -107,47 +107,47 @@ val page :
 
 (** {3 Editor manipulation} *)
 
-val empty_value :
-  ('result, 'previewed_value, 'value, 'raw_value) s ->
-  'raw_value
+val empty :
+  ('result, 'previewed_value, 'value, 'state) s ->
+  'state
 
-val raw_value_of_yojson :
-  ('result, 'previewed_value, 'value, 'raw_value) s ->
+val state_of_yojson :
+  ('result, 'previewed_value, 'value, 'state) s ->
   Yojson.Safe.t ->
-  ('raw_value, string) result
+  ('state, string) result
 
-val raw_value_to_yojson :
-  ('result, 'previewed_value, 'value, 'raw_value) s ->
-  'raw_value ->
+val state_to_yojson :
+  ('result, 'previewed_value, 'value, 'state) s ->
+  'state ->
   Yojson.Safe.t
 
-val serialise :
-  ('result, 'previewed_value, 'value, 'raw_value) s ->
+val result_to_state :
+  ('result, 'previewed_value, 'value, 'state) s ->
   'result ->
-  'raw_value Lwt.t
+  'state Lwt.t
 
-val raw_signal :
-  ('result, 'previewed_value, 'value, 'raw_value) t ->
-  'raw_value S.t
+val state :
+  ('result, 'previewed_value, 'value, 'state) t ->
+  'state S.t
 
 val signal :
-  ('result, 'previewed_value, 'value, 'raw_value) t ->
+  ('result, 'previewed_value, 'value, 'state) t ->
   ('result, string) result S.t
 (** NOTE: Using this signal will keep triggering the previsualisation and
     submission on every change. Use only on degenerated editors where those
     functions trivial. FIXME: we should have a type for this. *)
 
-val set_raw_value :
-  ('result, 'previewed_value, 'value, 'raw_value) t ->
-  'raw_value ->
-  unit
+val set :
+  ('result, 'previewed_value, 'value, 'state) t ->
+  'result ->
+  unit Lwt.t
 
-val clear : ('result, 'previewed_value, 'value, 'raw_value) t -> unit
+val clear : ('result, 'previewed_value, 'value, 'state) t -> unit
 
 val result :
-  ('result, 'previewed_value, 'value, 'raw_value) t ->
+  ('result, 'previewed_value, 'value, 'state) t ->
   'result option Lwt.t
 (** Get the current result of the editor, if it is in a state that permits it.
     Note that this trigger previewing and submitting and is therefore usually
     not suitable, except for degenerate editors such as the version parameters
-    editor. *)
+    editor. FIXME: the existence of this and {!signal} is quite confusing. *)

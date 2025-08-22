@@ -3,8 +3,6 @@ open Nes
 open Common
 open Html
 
-(* TODO: Also store the search text in the raw signal. *)
-
 let prepare_gen (type model)(type model_validated)
   ~label
   ~search
@@ -35,11 +33,11 @@ let prepare_gen (type model)(type model_validated)
   let model_to_yojson _ = assert false
   let model_of_yojson _ = assert false
 
-  type raw_value = model Entry.Id.t option [@@deriving yojson]
+  type state = model Entry.Id.t option [@@deriving yojson]
 
-  let empty_value = None
-  let raw_value_from_initial_text _ = None
-  let serialise = lwt % Option.map Entry.id % unvalidate
+  let empty = None
+  let from_initial_text _ = None
+  let value_to_state = lwt % Option.map Entry.id % unvalidate
 
   type t = {
     signal: model Entry.t option S.t;
@@ -49,7 +47,7 @@ let prepare_gen (type model)(type model_validated)
     select_button_dom: Dom_html.buttonElement Js.t;
   }
 
-  let raw_signal s = S.map (flip Option.bind (some % Entry.id)) s.signal (* FIXME: can we simplify? *)
+  let state s = S.map (flip Option.bind (some % Entry.id)) s.signal (* FIXME: can we simplify? *)
 
   let signal i = S.map validate i.signal
 
