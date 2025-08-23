@@ -32,7 +32,7 @@ let description tune =
         [
           txt (String.capitalize_ascii kind)
         ]
-    | [composer] when Model.Person.name' composer = "Traditional" ->
+    | [composer] when NEString.to_string (Model.Person.name' composer) = "Traditional" ->
       lwt
         [
           txt ("Traditional " ^ kind)

@@ -15,7 +15,7 @@ let render book book_parameters rendering_parameters =
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
       let name = Model.Book.title book in
-      let%lwt composers = List.map Model.Person.name' <$> Model.Book.authors book in
+      let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Book.authors book in
       lwt @@
         RenderingParameters.update_pdf_metadata
           ~title: (String.replace_empty ~by: name)

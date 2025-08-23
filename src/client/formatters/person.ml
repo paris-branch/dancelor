@@ -9,9 +9,9 @@ let name_gen person =
     | Right (person, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_person @@ Entry.id person]
-        [txt (Model.Person.name' person)]
-    | Right (person, _) -> txt (Model.Person.name' person)
-    | Left person -> txt (Model.Person.name person)
+        [txt (NEString.to_string @@ Model.Person.name' person)]
+    | Right (person, _) -> txt (NEString.to_string @@ Model.Person.name' person)
+    | Left person -> txt (NEString.to_string @@ Model.Person.name person)
   ]
 
 let name = name_gen % Either.left

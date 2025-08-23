@@ -13,7 +13,7 @@ let render set set_parameters rendering_parameters =
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
       let name = Option.value (Model.SetParameters.display_name set_parameters) ~default: (Model.Set.name set) in
-      let%lwt composers = List.map Model.Person.name' <$> Model.Set.conceptors set in
+      let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Set.conceptors set in
       let subjects =
         match KindDance.to_simple @@ Model.Set.kind set with
         | None -> ["Medley"]

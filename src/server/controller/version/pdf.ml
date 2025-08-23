@@ -22,7 +22,7 @@ let render version version_parameters rendering_parameters =
     let%lwt pdf_metadata =
       let%lwt tune = Model.Version.tune' version in
       let name = Option.value (Model.VersionParameters.display_name version_parameters) ~default: (Model.Tune.one_name' tune) in
-      let%lwt composers = List.map Model.Person.name' <$> Model.Tune.composers' tune in
+      let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Tune.composers' tune in
       let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
       lwt @@
         RenderingParameters.update_pdf_metadata

@@ -200,7 +200,7 @@ let prepare_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template () =
     ~label
     ?placeholder
     ~serialise: NEString.to_string
-    ~validate: (S.const % Option.to_result ~none: "FIXME" % NEString.of_string)
+    ~validate: (S.const % Option.to_result ~none: "This field cannot be empty." % NEString.of_string)
     ?oninput
     ?template
     ()

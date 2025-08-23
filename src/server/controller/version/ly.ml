@@ -16,7 +16,7 @@ let prepare_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname
   let%lwt tune = Model.Version.tune' version in
   let key = Model.Version.key' version in
   let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) parameters in
-  let%lwt composer = (String.concat ", " ~last: " and " % List.map Model.Person.name') <$> Model.Tune.composers' tune in
+  let%lwt composer = (String.concat ", " ~last: " and " % List.map (NEString.to_string % Model.Person.name')) <$> Model.Tune.composers' tune in
   let composer = Model.VersionParameters.display_composer' ~default: composer parameters in
   let title, piece =
     if show_meta then

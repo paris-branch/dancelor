@@ -67,9 +67,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Person.Is person' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id person) person'
       | Name string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Person.name' person
+        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Person.name' person
       | NameMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Person.name' person
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Person.name' person
 
   and accepts_set filter set =
     Formula.interpret filter @@ function

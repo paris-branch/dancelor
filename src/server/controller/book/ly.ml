@@ -150,7 +150,7 @@ let render book book_parameters rendering_parameters =
         else
           match%lwt Model.Set.conceptors set with
           | [] -> lwt_empty
-          | devisers -> lwt ("Set by " ^ String.concat ", " ~last: " & " @@ List.map Model.Person.name' devisers)
+          | devisers -> lwt ("Set by " ^ String.concat ", " ~last: " & " @@ List.map (NEString.to_string % Model.Person.name') devisers)
       in
       let kind = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
       let%lwt details_line = details_line set set_parameters in
@@ -188,7 +188,7 @@ let render book book_parameters rendering_parameters =
         let%lwt tune = Model.Version.tune' version in
         let key = Model.Version.key' version in
         let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) version_parameters in
-        let%lwt composer = (String.concat ", " ~last: " and " % List.map Model.Person.name') <$> Model.Tune.composers' tune in
+        let%lwt composer = (String.concat ", " ~last: " and " % List.map (NEString.to_string % Model.Person.name')) <$> Model.Tune.composers' tune in
         let composer = Model.VersionParameters.display_composer' ~default: composer version_parameters in
         let first_bar = Model.VersionParameters.first_bar' version_parameters in
         let source, target =

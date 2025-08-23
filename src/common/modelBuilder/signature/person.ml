@@ -11,12 +11,16 @@ module type S = sig
   type t = Core.Person.t
   (** Abstract type for a person. *)
 
-  val make : name: string -> ?scddb_id: int -> unit -> t
+  val make :
+    name: NEString.t ->
+    ?scddb_id: int ->
+    unit ->
+    t
 
   (** {2 Field getters} *)
 
-  val name : t -> string
-  val name' : t Entry.t -> string
+  val name : t -> NEString.t
+  val name' : t Entry.t -> NEString.t
 
   val scddb_id : t -> int option
   val scddb_id' : t Entry.t -> int option
