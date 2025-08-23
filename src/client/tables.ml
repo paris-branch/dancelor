@@ -84,7 +84,7 @@ let versions_with_names versions =
     clickable_row
       ~href
       [
-        lwt [with_span_placeholder (List.singleton <$> (txt <$> (Tune.one_name' <$> Version.tune' version)))];
+        lwt [with_span_placeholder (List.singleton % txt % NEString.to_string % Tune.one_name' <$> Version.tune' version)];
         (List.singleton <$> (Formatters.Kind.full_string version <$> Version.tune' version));
         lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
         lwt [txt @@ Version.structure' version];

@@ -154,7 +154,7 @@ let header_item =
       | Some user ->
         [
           Utils.Button.make
-            ~label: (Model.User.username' user)
+            ~label: (NEString.to_string @@ Model.User.username' user)
             ~icon: "person-circle"
             ~classes: ["text-white"; "dropdown-toggle"]
             ~more_a: [a_user_data "bs-toggle" "dropdown"; a_aria "expanded" ["false"]]

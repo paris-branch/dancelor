@@ -15,10 +15,11 @@ let prepare_file parameters ?(show_meta = false) ?(meta_in_title = false) ~fname
   let fname_scm = Filename.chop_extension fname ^ ".scm" in
   let%lwt tune = Model.Version.tune' version in
   let key = Model.Version.key' version in
-  let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) parameters in
-  let%lwt composer = (String.concat ", " ~last: " and " % List.map Model.Person.name') <$> Model.Tune.composers' tune in
-  let composer = Model.VersionParameters.display_composer' ~default: composer parameters in
+  let name = Option.value ~default: (Model.Tune.one_name' tune) (Model.VersionParameters.display_name parameters) in
+  let%lwt composer = (String.concat ", " ~last: " and " % List.map (NEString.to_string % Model.Person.name')) <$> Model.Tune.composers' tune in
+  let composer = Option.fold ~none: composer ~some: NEString.to_string (Model.VersionParameters.display_composer parameters) in
   let title, piece =
+    let name = NEString.to_string name in
     if show_meta then
       if meta_in_title then name, " " else "", name
     else

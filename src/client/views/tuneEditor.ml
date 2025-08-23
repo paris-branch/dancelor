@@ -10,12 +10,10 @@ let editor =
   Star.prepare_non_empty
     ~label: "Names"
     (
-      Input.prepare
+      Input.prepare_non_empty
         ~label: "Name"
         ~type_: Text
         ~placeholder: "eg. The Cairdin O't"
-        ~serialise: Fun.id
-        ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
         ()
     ) ^::
   Input.prepare

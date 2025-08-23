@@ -4,6 +4,8 @@ module type S = sig
       This module defines parameters that make sense at the level of a set. This
       includes version parameters as well. *)
 
+  open Nes
+
   (** How to render the order. [Default] prints the tunes as they appear in the
       set. [Unfolded] follows the order, duplicating the tunes if they are to be
       played several times. *)
@@ -16,7 +18,7 @@ module type S = sig
     ?forced_pages: int ->
     ?show_deviser: bool ->
     ?show_order: bool ->
-    ?display_name: string ->
+    ?display_name: NEString.t ->
     ?every_version: Core.VersionParameters.t ->
     unit ->
     t
@@ -26,8 +28,7 @@ module type S = sig
   val none : t
 
   val show_order' : t -> bool
-  val display_name : t -> string option
-  val display_name' : default: string -> t -> string
+  val display_name : t -> NEString.t option
   val show_deviser' : t -> bool
   val forced_pages' : t -> int
   val order_type' : t -> order_type

@@ -13,7 +13,7 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_set id)
         (lwt @@ Any.set set);
     ]
-    ~title: (lwt @@ Set.name' set)
+    ~title: (lwt @@ NEString.to_string @@ Set.name' set)
     ~subtitles: [
       Formatters.Set.works' set;
       span
@@ -101,7 +101,11 @@ let create ?context id =
                   div
                     ~a: [a_class ["text-center"; "mt-4"]]
                     [
-                      h4 [a ~a: [a_href (Endpoints.Page.href_version ~context id)] [txt @@ Tune.one_name' tune]];
+                      h4 [
+                        a
+                          ~a: [a_href (Endpoints.Page.href_version ~context id)]
+                          [txt @@ NEString.to_string @@ Tune.one_name' tune]
+                      ];
                       Components.VersionSvg.make version;
                     ]
               )

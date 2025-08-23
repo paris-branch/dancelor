@@ -7,7 +7,7 @@ module type S = sig
   type t = User.t
 
   val make :
-    username: string ->
+    username: NEString.t ->
     person: Person.t Entry.t ->
     ?password: HashedSecret.t ->
     ?password_reset_token: HashedSecret.t * Datetime.t ->
@@ -16,7 +16,7 @@ module type S = sig
     t
 
   val update :
-    ?username: (string -> string) ->
+    ?username: (NEString.t -> NEString.t) ->
     ?person: (Person.t Entry.t -> Person.t Entry.t Lwt.t) ->
     ?password: (HashedSecret.t option -> HashedSecret.t option) ->
     ?password_reset_token: ((HashedSecret.t * Datetime.t) option -> (HashedSecret.t * Datetime.t) option) ->
@@ -26,8 +26,8 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val username : t -> string
-  val username' : t Entry.t -> string
+  val username : t -> NEString.t
+  val username' : t Entry.t -> NEString.t
 
   val person : t -> Person.t Entry.t Lwt.t
   val person' : t Entry.t -> Person.t Entry.t Lwt.t

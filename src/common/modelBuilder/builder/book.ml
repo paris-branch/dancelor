@@ -62,7 +62,7 @@ module Build (Getters : Getters.S) = struct
     let%lwt contents =
       Lwt_list.map_p
         (function
-          | Part title -> lwt title
+          | Part title -> lwt @@ NEString.to_string title
           | Dance (dance, page_dance) ->
             let%lwt page_dance =
               match page_dance with
@@ -70,7 +70,7 @@ module Build (Getters : Getters.S) = struct
               | DanceVersion (version, _) -> lwt @@ Core.Version.content' version
               | DanceSet (set, _) -> BuiltSet.lilypond_content_cache_key' set
             in
-            lwt (String.concat "" (NonEmptyList.to_list (Core.Dance.names' dance)) ^ page_dance)
+            lwt (String.concat "" (List.map NEString.to_string (NEList.to_list (Core.Dance.names' dance))) ^ page_dance)
           | Version (version, _) -> lwt @@ Core.Version.content' version
           | Set (set, _) -> BuiltSet.lilypond_content_cache_key' set
         )

@@ -47,7 +47,7 @@ module type S = sig
   val equal : t -> t -> bool
   (** Equality between two {!t}. *)
 
-  val name : t -> string Lwt.t
+  val name : t -> NEString.t Lwt.t
   (** Finds a name to give to the element, no matter what it is. *)
 
   (** {2 Type} *)

@@ -170,3 +170,43 @@ let make ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?templat
 let inactive ~label value =
   Component.html_fake ~label @@
     input () ~a: [a_input_type `Text; a_value value; a_class ["form-control"]; a_disabled ()]
+
+let prepare_option
+    ~type_
+    ?font
+    ~label
+    ?placeholder
+    ~serialise
+    ~validate
+    ?oninput
+    ?template
+    ()
+  =
+  prepare
+    ~type_
+    ?font
+    ~label
+    ?placeholder
+    ~serialise: (Option.fold ~none: "" ~some: (NEString.to_string % serialise))
+    ~validate: (Option.fold ~none: (S.const @@ ok None) ~some: (S.map (Result.map Option.some) % validate) % NEString.of_string)
+    ?oninput
+    ?template
+    ()
+
+let make_option ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =
+  Component.initialise (prepare_option ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?template ()) initial_value
+
+let prepare_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template () =
+  prepare
+    ~type_
+    ?font
+    ~label
+    ?placeholder
+    ~serialise: NEString.to_string
+    ~validate: (S.const % Option.to_result ~none: "This field cannot be empty." % NEString.of_string)
+    ?oninput
+    ?template
+    ()
+
+let make_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template initial_value =
+  Component.initialise (prepare_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template ()) initial_value

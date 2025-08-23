@@ -94,14 +94,12 @@ let dance_and_dance_page =
 
 let editor =
   let open Editor in
-  Input.prepare
+  Input.prepare_non_empty
     ~type_: Text
     ~label: "Title"
     ~placeholder: "eg. The Dusty Miller Book"
-    ~serialise: Fun.id
-    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Subtitle"
     ~placeholder: "eg. Twenty version of Dusty Miller in rainbow colours"
@@ -157,12 +155,10 @@ let editor =
         )
         (
           let open Plus.Bundle in
-          Input.prepare
+          Input.prepare_non_empty
             ~type_: Text
             ~label: "Part"
             ~placeholder: "eg. Part CMXCVII"
-            ~serialise: Fun.id
-            ~validate: (S.const % Result.of_string_nonempty ~empty: "The part title cannot be empty.")
             () ^::
           dance_and_dance_page ^::
           version_and_parameters () ^::
@@ -237,7 +233,7 @@ let add_version_to_storage _version = assert false
 (* (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ()))) *)
 
 let preview (title, (subtitle, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))) =
-  lwt_some @@ Model.Book.make ~title ~subtitle ~authors ?date ~contents ~remark ~sources ?scddb_id ()
+  lwt_some @@ Model.Book.make ~title ?subtitle ~authors ?date ~contents ~remark ~sources ?scddb_id ()
 
 let submit mode book =
   match mode with

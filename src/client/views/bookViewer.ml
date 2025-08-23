@@ -82,7 +82,7 @@ let table_contents ~this_id contents =
                     to_clickable_row @@
                       make [
                         cell [txt "Part"];
-                        cell ~a: [a_colspan 3] [txt title];
+                        cell ~a: [a_colspan 3] [txt @@ NEString.to_string title];
                       ]
                   )
                 )
@@ -171,9 +171,9 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_book id)
         (lwt @@ Any.book book);
     ]
-    ~title: (lwt @@ Book.title' book)
+    ~title: (lwt @@ NEString.to_string @@ Book.title' book)
     ~subtitles: [
-      txt (Book.subtitle' book);
+      txt (NEString.opt_to_string @@ Book.subtitle' book);
       Formatters.Book.date_and_editors' book;
     ]
     ~share: (Book book)

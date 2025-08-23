@@ -134,37 +134,37 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
       | Any -> (fun id -> lwt_some ("any", Entry.Id.to_string id))
       | Version ->
         (fun _ id ->
-          let%lwt name = Model.Version.one_name' % Option.get =<< Model.Version.get id in
+          let%lwt name = NEString.to_string <$> (Model.Version.one_name' % Option.get =<< Model.Version.get id) in
           lwt_some ("version", name)
         )
       | Tune ->
         (fun _ id ->
-          let%lwt name = Model.Tune.one_name' % Option.get <$> Model.Tune.get id in
+          let%lwt name = NEString.to_string % Model.Tune.one_name' % Option.get <$> Model.Tune.get id in
           lwt_some ("tune", name)
         )
       | Set ->
         (fun _ id ->
-          let%lwt name = Model.Set.name' % Option.get <$> Model.Set.get id in
+          let%lwt name = NEString.to_string % Model.Set.name' % Option.get <$> Model.Set.get id in
           lwt_some ("set", name)
         )
       | Book ->
         (fun _ id ->
-          let%lwt title = Model.Book.title' % Option.get <$> Model.Book.get id in
+          let%lwt title = NEString.to_string % Model.Book.title' % Option.get <$> Model.Book.get id in
           lwt_some ("book", title)
         )
       | Dance ->
         (fun _ id ->
-          let%lwt name = Model.Dance.one_name' % Option.get <$> Model.Dance.get id in
+          let%lwt name = NEString.to_string % Model.Dance.one_name' % Option.get <$> Model.Dance.get id in
           lwt_some ("dance", name)
         )
       | Person ->
         (fun _ id ->
-          let%lwt name = Model.Person.name' % Option.get <$> Model.Person.get id in
+          let%lwt name = NEString.to_string % Model.Person.name' % Option.get <$> Model.Person.get id in
           lwt_some ("person", name)
         )
       | Source ->
         (fun _ id ->
-          let%lwt name = Model.Source.name' % Option.get <$> Model.Source.get id in
+          let%lwt name = NEString.to_string % Model.Source.name' % Option.get <$> Model.Source.get id in
           lwt_some ("source", name)
         )
     in

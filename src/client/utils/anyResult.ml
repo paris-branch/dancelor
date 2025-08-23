@@ -116,7 +116,7 @@ let make_set_result' ?classes ?action ?(prefix = []) ?(suffix = []) set =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Set.name' set];
+      [ResultRow.cell [txt @@ NEString.to_string @@ Set.name' set];
       ResultRow.cell [txt @@ Kind.Dance.to_string @@ Set.kind' set];
       ResultRow.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Set.conceptors' set));
       ] @
@@ -143,7 +143,7 @@ let make_tune_result' ?classes ?action ?(prefix = []) ?(suffix = []) tune =
     ?action
     (
       prefix @
-      [ResultRow.cell [txt @@ Tune.one_name' tune];
+      [ResultRow.cell [txt @@ NEString.to_string @@ Tune.one_name' tune];
       ResultRow.cell [txt @@ Kind.Base.to_pretty_string ~capitalised: true @@ Tune.kind' tune];
       ResultRow.cell [Formatters.Tune.composers' tune];
       ] @
@@ -197,7 +197,7 @@ let make_user_result' ?classes ?action ?(prefix = []) ?(suffix = []) user =
     ?action
     (
       prefix @
-      [ResultRow.cell ~a: [a_colspan 3] [txt @@ User.username' user];
+      [ResultRow.cell ~a: [a_colspan 3] [txt @@ NEString.to_string @@ User.username' user];
       ] @
       suffix
     )

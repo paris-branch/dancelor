@@ -5,12 +5,10 @@ open Html
 
 let editor =
   let open Editor in
-  Input.prepare
+  Input.prepare_non_empty
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. John Doe"
-    ~serialise: Fun.id
-    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text

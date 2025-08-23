@@ -3,9 +3,8 @@ open Common
 
 let render set set_parameters rendering_parameters =
   let book =
-    let title = "" in
     let contents = [Model.Book.Set (Entry.make_dummy set, set_parameters)] in
-    Model.Book.make ~title ~contents ()
+    Model.Book.make ~title: (NEString.of_string_exn " ") ~contents ()
   in
   let book_parameters =
     Model.BookParameters.make ()
@@ -13,7 +12,7 @@ let render set set_parameters rendering_parameters =
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
       let name = Option.value (Model.SetParameters.display_name set_parameters) ~default: (Model.Set.name set) in
-      let%lwt composers = List.map Model.Person.name' <$> Model.Set.conceptors set in
+      let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Set.conceptors set in
       let subjects =
         match KindDance.to_simple @@ Model.Set.kind set with
         | None -> ["Medley"]
@@ -25,7 +24,7 @@ let render set set_parameters rendering_parameters =
       in
       lwt @@
         RenderingParameters.update_pdf_metadata
-          ~title: (String.replace_empty ~by: name)
+          ~title: (String.replace_empty ~by: (NEString.to_string name))
           ~composers: (List.replace_nil ~by: composers)
           ~subjects: (List.replace_nil ~by: subjects)
     in

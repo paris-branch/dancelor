@@ -13,7 +13,7 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_person id)
         (lwt @@ Any.person person);
     ]
-    ~title: (lwt @@ Person.name' person)
+    ~title: (lwt @@ NEString.to_string @@ Person.name' person)
     ~share: (Person person)
     ~actions: (
       lwt @@

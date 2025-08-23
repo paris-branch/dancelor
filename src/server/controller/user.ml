@@ -12,7 +12,7 @@ let sign_in env username password remember_me =
     Log.info (fun m -> m "Rejecting because already signed in.");
     lwt_none
   | None ->
-    match%lwt Database.User.get_from_username username with
+    match%lwt Database.User.get_from_username @@ NEString.of_string_exn username with
     | None ->
       Log.info (fun m -> m "Rejecting because of wrong username.");
       lwt_none
@@ -54,7 +54,7 @@ let reset_password username token password =
   (*   Log.info (fun m -> m "Rejecting because username is not even a id."); *)
   (*   Madge_server.shortcut_bad_request "The username does not have the right shape." *)
   (* | true -> *)
-  match%lwt Database.User.get_from_username username with
+  match%lwt Database.User.get_from_username @@ NEString.of_string_exn @@ username with
   | None ->
     Log.info (fun m -> m "Rejecting because of wrong username.");
     Madge_server.shortcut_forbidden_no_leak ()

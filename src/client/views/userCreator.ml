@@ -16,7 +16,7 @@ let open_token_result_dialog user token =
         txt " was created successfully. Pass them the following link: ";
       ];
       p [
-        let href = Endpoints.Page.(href UserPasswordReset) (Model.User.username' user) token in
+        let href = Endpoints.Page.(href UserPasswordReset) (NEString.to_string @@ Model.User.username' user) token in
         a ~a: [a_href href] [txt href]
       ];
       p [
@@ -28,17 +28,10 @@ let open_token_result_dialog user token =
 let create () =
   MainPage.assert_can_admin @@ fun () ->
   let%lwt username_input =
-    Input.make
+    Input.make_non_empty
       ~type_: Text
       ~placeholder: "JeanMilligan"
       ~label: "Username"
-      ~serialise: Fun.id
-      ~validate: (
-        S.const %
-          fun username ->
-            if username = "" then Error "The username cannot be empty."
-            else Ok username (* FIXME: limit possibilities? FIXME: a module for usernames *)
-      )
       ""
   in
   let%lwt person_selector =

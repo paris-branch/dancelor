@@ -6,18 +6,18 @@ open Html
 let name ?(short = false) source =
   let name =
     match short, Model.Source.short_name source with
-    | false, _ | true, "" -> Model.Source.name source
-    | true, short_name -> short_name
+    | false, _ | true, None -> Model.Source.name source
+    | true, Some short_name -> short_name
   in
-  span [txt name]
+  span [txt @@ NEString.to_string name]
 
 let name' ?(short = false) ?(link = true) source =
   let name =
     match short, Model.Source.short_name' source with
-    | false, _ | true, "" -> Model.Source.name' source
-    | true, short_name -> short_name
+    | false, _ | true, None -> Model.Source.name' source
+    | true, Some short_name -> short_name
   in
-  let name_text = [txt name] in
+  let name_text = [txt @@ NEString.to_string name] in
   span @@
     if link then
       [

@@ -14,7 +14,7 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_source id)
         (lwt @@ Any.source source);
     ]
-    ~title: (lwt @@ Source.name' source)
+    ~title: (lwt @@ NEString.to_string @@ Source.name' source)
     ~subtitles: [Formatters.Source.date_and_editors' source]
     ~share: (Source source)
     ~actions: (

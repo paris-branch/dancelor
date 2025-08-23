@@ -10,12 +10,10 @@ let editor =
   Star.prepare_non_empty
     ~label: "Names"
     (
-      Input.prepare
+      Input.prepare_non_empty
         ~type_: Text
         ~label: "Name"
         ~placeholder: "eg. The Dusty Miller"
-        ~serialise: Fun.id
-        ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
         ()
     ) ^::
   Input.prepare
@@ -44,17 +42,17 @@ let editor =
         ~create_dialog_content: PersonEditor.create
         ()
     ) ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Date of devising"
     ~placeholder: "eg. 2019 or 2012-03-14"
-    ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
+    ~serialise: (NEString.of_string_exn % PartialDate.to_string)
+    (* FIXME: make PartialDate.to_string return NEString.t *)
     ~validate: (
       S.const %
-        Option.fold
-          ~none: (Ok None)
-          ~some: (Result.map some % Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." % PartialDate.from_string) %
-        Option.of_string_nonempty
+        Option.to_result ~none: "Enter a valid date, eg. 2019, 2015-10, or 2012-03-14." %
+        PartialDate.from_string %
+        NEString.to_string
     )
     () ^::
   Input.prepare

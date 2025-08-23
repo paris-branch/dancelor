@@ -8,7 +8,7 @@ let render version version_parameters rendering_parameters =
     let%lwt name = Model.Version.one_name' version in
     let%lwt kind = Model.Version.kind' version in
     let kind = Kind.Dance.Version kind in
-    let version_parameters = Model.VersionParameters.set_display_name "" version_parameters in
+    let version_parameters = Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_parameters in
     let contents = [(version, version_parameters)] in
     let order = [Model.SetOrder.Internal 1] in
     lwt @@ Model.Set.make ~name ~kind ~contents ~order ()
@@ -22,11 +22,11 @@ let render version version_parameters rendering_parameters =
     let%lwt pdf_metadata =
       let%lwt tune = Model.Version.tune' version in
       let name = Option.value (Model.VersionParameters.display_name version_parameters) ~default: (Model.Tune.one_name' tune) in
-      let%lwt composers = List.map Model.Person.name' <$> Model.Tune.composers' tune in
+      let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Tune.composers' tune in
       let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
       lwt @@
         RenderingParameters.update_pdf_metadata
-          ~title: (String.replace_empty ~by: name)
+          ~title: (String.replace_empty ~by: (NEString.to_string name))
           ~composers: (List.replace_nil ~by: composers)
           ~subjects: (List.replace_nil ~by: subjects)
     in

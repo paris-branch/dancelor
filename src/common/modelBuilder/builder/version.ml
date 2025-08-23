@@ -28,6 +28,6 @@ module Build (Getters : Getters.S) = struct
   let other_names version = Core.Tune.other_names' <$> tune version
   let other_names' = other_names % Entry.value
 
-  let slug version = Entry.Slug.of_string <$> one_name version
+  let slug version = Entry.Slug.of_string % NEString.to_string <$> one_name version
   let slug' = slug % Entry.value
 end
