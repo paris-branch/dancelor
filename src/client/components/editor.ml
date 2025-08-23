@@ -12,7 +12,7 @@ let cons (type value1)(type state1)(type value2)(type state2)
     : (value1 * value2, state1 * state2) bundle
   =
   Bundle (module struct
-    include (val Pair.prepare component bundle)
+    include (val Pair.bundle component bundle)
 
     let inner_html p =
       div [
@@ -22,26 +22,7 @@ let cons (type value1)(type state1)(type value2)(type state2)
   end)
 
 let (^::) = cons
-
-let nil : (unit, unit) bundle =
-  Bundle (module struct
-    let label = "Nil bundle"
-    type value = unit
-    type state = unit [@@deriving yojson]
-    let value_to_state () = lwt_unit
-    let empty = ()
-    let from_initial_text _ = ()
-    type t = Nil
-    let initialise () = lwt Nil
-    let signal Nil = S.const (Ok ())
-    let state Nil = S.const ()
-    let focus Nil = ()
-    let set Nil () = lwt_unit
-    let trigger Nil = ()
-    let clear Nil = ()
-    let inner_html Nil = div []
-    let actions Nil = S.const []
-  end)
+let nil : (unit, unit) bundle = Bundle (Nil.prepare ())
 
 (* Helpers *)
 
