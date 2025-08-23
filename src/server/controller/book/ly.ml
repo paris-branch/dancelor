@@ -3,33 +3,15 @@ open Common
 
 module Log = (val Logger.create "controller.book.ly": Logs.LOG)
 
-let kind set set_parmeters =
-  let%lwt kind =
-    match%lwt Model.SetParameters.for_dance set_parmeters with
-    | None -> lwt @@ Model.Set.kind set
-    | Some dance -> lwt @@ Model.Dance.kind' dance
-  in
-  lwt (Kind.Dance.to_pretty_string kind)
-
 let details_line set set_parameters =
-  let%lwt dance =
-    match%lwt Model.SetParameters.for_dance set_parameters with
-    | None -> lwt_nil
-    | Some dance -> lwt [spf "Dance: %s" (Model.Dance.one_name' dance)]
-  in
-  let%lwt kind = kind set set_parameters in
+  let kind = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
   let order =
     if Model.SetParameters.show_order' set_parameters then
         [spf "Play %s" @@ Model.SetOrder.to_pretty_string @@ Model.Set.order set]
     else
         []
   in
-  let%lwt chords =
-    match%lwt Model.SetParameters.for_dance set_parameters with
-    | Some dance when Model.Dance.two_chords' dance = Some true -> lwt ["Two Chords"]
-    | _ -> lwt_nil
-  in
-  lwt (String.concat " — " (dance @ [kind] @ order @ chords))
+  lwt (String.concat " — " ([kind] @ order))
 
 (** Rearrange the content of a set. [Default] will leave the content as-is,
     while [Unfolded] will duplicate the tunes depending on the set order. *)
@@ -126,6 +108,18 @@ let render book book_parameters rendering_parameters =
       let%lwt sets_and_parameters =
         let%lwt contents = Model.Book.contents book in
         flip Lwt_list.map_p contents @@ function
+          | Model.Book.Part title ->
+            lwt (
+              Model.Set.make ~name: title ~kind: (Kind.Dance.Version (0, Kind.Base.Strathspey)) ~order: [] (),
+              Model.SetParameters.none
+            )
+          | Model.Book.Dance (dance, DanceOnly) ->
+            let name = Model.Dance.one_name' dance in
+            lwt (
+              Model.Set.make ~name ~kind: (Kind.Dance.Version (0, Kind.Base.Strathspey)) ~order: [] (),
+              Model.SetParameters.none
+            )
+          | Model.Book.Dance (_, DanceVersion (version, parameters))
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune' version in
             let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) parameters in
@@ -139,16 +133,11 @@ let render book book_parameters rendering_parameters =
                 ~order: [Internal 1]
                 ()
             in
-            let%lwt for_dance = Model.VersionParameters.for_dance parameters in
-            let set_parameters =
-              Model.SetParameters.make
-                ~display_name: name
-                ?for_dance
-                ~show_order: false
-                ()
-            in
+            let set_parameters = Model.SetParameters.make ~display_name: name ~show_order: false () in
             lwt (set, set_parameters)
-          | Set (set, parameters) -> lwt (Entry.value set, parameters)
+          | Model.Book.Dance (_, DanceSet (set, parameters))
+          | Model.Book.Set (set, parameters) ->
+            lwt (Entry.value set, parameters)
       in
       (* FIXME: none of the above need to be dummy; I think we can just return
          a SetCore.t; do we need the id anyway? *)
@@ -163,7 +152,7 @@ let render book book_parameters rendering_parameters =
           | [] -> lwt_empty
           | devisers -> lwt ("Set by " ^ String.concat ", " ~last: " & " @@ List.map Model.Person.name' devisers)
       in
-      let%lwt kind = kind set set_parameters in
+      let kind = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
       let%lwt details_line = details_line set set_parameters in
       fpf
         fmt

@@ -14,31 +14,27 @@ let title_and_subtitle book =
 
 let title_and_subtitle' = title_and_subtitle % Entry.value
 
-let short_title' ?(link = true) book =
-  span @@
-    let short_title_text = [txt (Model.Book.short_title' book)] in
-    if link then
-      [
-        a
-          ~a: [a_href @@ Endpoints.Page.href_book @@ Entry.id book]
-          short_title_text
-      ]
-    else
-      short_title_text
+let editors book =
+  with_span_placeholder @@
+    match%lwt Model.Book.authors book with
+    | [] -> lwt_nil
+    | editors -> lwt [Person.names' ~links: true editors]
 
-let date_and_editors source =
+let editors' book = editors @@ Entry.value book
+
+let date_and_editors book =
   with_span_placeholder @@ (
     let date =
-      match Model.Book.date source with
+      match Model.Book.date book with
       | None -> []
       | Some date -> [txt (spf "Published %s" (NesPartialDate.to_pretty_string ~at: true date))]
     in
     let%lwt editors =
-      match%lwt Model.Book.authors source with
+      match%lwt Model.Book.authors book with
       | [] -> lwt_nil
       | editors -> lwt [txt "by "; Person.names' ~links: true editors]
     in
     lwt (date @ [txt " "] @ editors)
   )
 
-let date_and_editors' source = date_and_editors @@ Entry.value source
+let date_and_editors' book = date_and_editors @@ Entry.value book

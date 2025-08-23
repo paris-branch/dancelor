@@ -5,9 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_book
 
-  let short_title book = if short_title book = "" then title book else short_title book
-  let short_title' = short_title % Entry.value
-
   let authors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % authors
   let authors' = authors % Entry.value
 
@@ -22,6 +19,20 @@ module Build (Getters : Getters.S) = struct
   let contents book =
     Lwt_list.map_p
       (function
+        | Core.Book.Page.Part title -> lwt (Part title)
+        | Core.Book.Page.Dance (dance, page_dance) ->
+          let%lwt dance = Option.get <$> Getters.get_dance dance in
+          let%lwt page_dance =
+            match page_dance with
+            | Core.Book.Page.DanceOnly -> lwt DanceOnly
+            | Core.Book.Page.DanceVersion (version, parameters) ->
+              let%lwt version = Option.get <$> Getters.get_version version in
+              lwt @@ DanceVersion (version, parameters)
+            | Core.Book.Page.DanceSet (set, parameters) ->
+              let%lwt set = Option.get <$> Getters.get_set set in
+              lwt @@ DanceSet (set, parameters)
+          in
+          lwt (Dance (dance, page_dance))
         | Core.Book.Page.Version (version, parameters) ->
           let%lwt version = Option.get <$> Getters.get_version version in
           lwt (Version (version, parameters))
@@ -51,6 +62,15 @@ module Build (Getters : Getters.S) = struct
     let%lwt contents =
       Lwt_list.map_p
         (function
+          | Part title -> lwt title
+          | Dance (dance, page_dance) ->
+            let%lwt page_dance =
+              match page_dance with
+              | DanceOnly -> lwt ""
+              | DanceVersion (version, _) -> lwt @@ Core.Version.content' version
+              | DanceSet (set, _) -> BuiltSet.lilypond_content_cache_key' set
+            in
+            lwt (String.concat "" (NonEmptyList.to_list (Core.Dance.names' dance)) ^ page_dance)
           | Version (version, _) -> lwt @@ Core.Version.content' version
           | Set (set, _) -> BuiltSet.lilypond_content_cache_key' set
         )
@@ -77,8 +97,14 @@ module Build (Getters : Getters.S) = struct
       let%lwt contents = contents' book in
       Lwt_list.filter_map_p
         (function
-          | Version _ -> lwt_none
-          | Set (set, _) -> lwt_some set
+          | Part _
+          | Dance (_, DanceOnly)
+          | Dance (_, DanceVersion _)
+          | Version _ ->
+            lwt_none
+          | Dance (_, DanceSet (set, _))
+          | Set (set, _) ->
+            lwt_some set
         )
         contents
 
@@ -160,25 +186,16 @@ module Build (Getters : Getters.S) = struct
       let%lwt contents = contents' book in
       Lwt_list.filter_map_p
         (function
-          | Version _ -> lwt_none
-          | Set (set, parameters) -> lwt_some (set, parameters)
+          | Part _
+          | Dance (_, DanceOnly)
+          | Dance (_, DanceVersion _)
+          | Version _ ->
+            lwt_none
+          | Dance (_, DanceSet (set, parameters))
+          | Set (set, parameters) ->
+            lwt_some (set, parameters)
         )
         contents
-
-    let setDanceMismatch book =
-      let%lwt sets_and_parameters = sets_and_parameters_from_contents' book in
-      Lwt_list.filter_map_p
-        (fun (set, parameters) ->
-          let%olwt dance_id = lwt (Core.SetParameters.for_dance parameters) in
-          (* FIXME: SetParameters should be hidden behind the same kind of
-             mechanism as the rest; and this step should not be necessary *)
-          let%lwt dance = Option.get <$> Getters.get_dance dance_id in
-          if Core.Set.kind' set = Core.Dance.kind' dance then
-            lwt_none
-          else
-            lwt_some (SetDanceMismatch (set, dance))
-        )
-        sets_and_parameters
 
     let all book =
       Lwt_list.fold_left_s
@@ -191,13 +208,26 @@ module Build (Getters : Getters.S) = struct
           empty book;
           duplicateSet book;
           duplicateVersion book;
-          setDanceMismatch book
         ]
   end
 
   let warnings book = Warnings.all book
 
   let page_core_to_page = function
+    | Core.Book.Page.Part title -> lwt (Part title)
+    | Core.Book.Page.Dance (dance, page_dance) ->
+      let%lwt dance = Option.get <$> Getters.get_dance dance in
+      let%lwt page_dance =
+        match page_dance with
+        | Core.Book.Page.DanceOnly -> lwt DanceOnly
+        | Core.Book.Page.DanceVersion (version, params) ->
+          let%lwt version = Option.get <$> Getters.get_version version in
+          lwt @@ DanceVersion (version, params)
+        | Core.Book.Page.DanceSet (set, params) ->
+          let%lwt set = Option.get <$> Getters.get_set set in
+          lwt @@ DanceSet (set, params)
+      in
+      lwt @@ Dance (dance, page_dance)
     | Core.Book.Page.Version (version, params) ->
       let%lwt version = Option.get <$> Getters.get_version version in
       lwt @@ Version (version, params)

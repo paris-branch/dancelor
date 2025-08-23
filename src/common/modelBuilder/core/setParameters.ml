@@ -19,7 +19,6 @@ module Self = struct
     show_order: bool option; [@default None] [@key "show-order"]
     order_type: order_type option; [@default None] [@key "order-type"]
     display_name: string option; [@default None] [@key "display-name"]
-    for_dance: Dance.t Entry.Id.t option; [@default None] [@key "for-dance"]
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
   [@@deriving eq, make, show {with_path = false}, yojson, fields]
@@ -27,8 +26,8 @@ end
 include Self
 
 (* FIXME: see remark in VersionParameters *)
-let make ?forced_pages ?show_deviser ?show_order ?display_name ?for_dance ?every_version () =
-  make ~forced_pages ~show_deviser ~show_order ~display_name ~for_dance ?every_version ()
+let make ?forced_pages ?show_deviser ?show_order ?display_name ?every_version () =
+  make ~forced_pages ~show_deviser ~show_order ~display_name ?every_version ()
 
 (** {2 Getters} *)
 
@@ -54,7 +53,6 @@ let set_show_order show_order p = {p with show_order = Some show_order}
 
 let compose first second = {
   forced_pages = Option.(choose ~tie: second) first.forced_pages second.forced_pages;
-  for_dance = Option.(choose ~tie: fail) first.for_dance second.for_dance;
   display_name = Option.(choose ~tie: second) first.display_name second.display_name;
   show_deviser = Option.(choose ~tie: second) first.show_deviser second.show_deviser;
   show_order = Option.(choose ~tie: second) first.show_order second.show_order;

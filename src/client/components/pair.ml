@@ -27,7 +27,7 @@ module type S = sig
   val c2 : t -> C2.t
 end
 
-let prepare (type value1)(type state1)(type value2)(type state2)
+let bundle (type value1)(type state1)(type value2)(type state2)
   ((module C1): (value1, state1) Component.s)
   ((module C2): (value2, state2) Component.s)
   : (module S with
@@ -98,4 +98,23 @@ let prepare (type value1)(type state1)(type value2)(type state2)
     let%lwt c1 = C1.initialise initial_value1 in
     let%lwt c2 = C2.initialise initial_value2 in
     lwt {c1; c2}
+end)
+
+let prepare (type value1)(type state1)(type value2)(type state2)
+  ~label: the_label
+  ((module C1): (value1, state1) Component.s)
+  ((module C2): (value2, state2) Component.s)
+  : (value1 * value2, state1 * state2) Component.s
+= (module struct
+  include (val bundle (module C1) (module C2))
+
+  let label = the_label
+
+  let inner_html p =
+    div [
+      C1.inner_html (c1 p);
+      C2.inner_html (c2 p);
+    ]
+
+  let actions _ = S.const []
 end)

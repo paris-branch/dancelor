@@ -24,21 +24,6 @@ val name' :
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
     additionnally have a link. *)
 
-val name_and_dance :
-  ?dance_link: bool ->
-  Model.Version.t ->
-  Model.VersionParameters.t ->
-  [> Html_types.span] elt
-
-val name_and_dance' :
-  ?name_link: bool ->
-  ?dance_link: bool ->
-  Model.Version.t Entry.t ->
-  Model.VersionParameters.t ->
-  [> Html_types.span] elt
-(** Variant of {!name_and_dance} taking an {!Entry.t}. Because this is an entry,
-    we can additionnally have a link on the name. *)
-
 val name_disambiguation_and_sources :
   Model.Version.t ->
   [> Html_types.span] elt

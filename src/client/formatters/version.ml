@@ -57,31 +57,6 @@ let name_gen version_gen =
 let name = name_gen % Either.left
 let name' ?(link = true) version = name_gen @@ Right (version, link)
 
-let name_and_dance_gen ?dance_link version parameters =
-  with_span_placeholder @@
-    let%lwt dance =
-      match%lwt Model.VersionParameters.for_dance parameters with
-      | None -> lwt_nil
-      | Some dance ->
-        lwt
-          [
-            br ();
-            small
-              ~a: [a_class ["opacity-50"]]
-              [
-                txt "For dance: ";
-                Dance.name' ?link: dance_link dance;
-              ]
-          ]
-    in
-    lwt (name_gen version :: dance)
-
-let name_and_dance ?dance_link version parameters =
-  name_and_dance_gen ?dance_link (Left version) parameters
-
-let name_and_dance' ?(name_link = true) ?dance_link version parameters =
-  name_and_dance_gen ?dance_link (Right (version, name_link)) parameters
-
 let name_disambiguation_and_sources_gen version =
   let disambiguation_and_sources_block =
     disambiguation_and_sources_internal @@ Either.fold ~left: Fun.id ~right: (Entry.value % fst) version

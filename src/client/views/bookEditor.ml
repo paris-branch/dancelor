@@ -8,6 +8,90 @@ open Utils
 let (show_preview, set_show_preview) = S.create false
 let flip_show_preview () = set_show_preview (not (S.value show_preview))
 
+let version_and_parameters ?(label = "Version") () =
+  Parameteriser.prepare
+    (
+      Selector.prepare
+        ~make_result: AnyResult.make_version_result'
+        ~make_more_results: (fun version ->
+          flip S.map show_preview @@ function
+            | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+            | false -> []
+        )
+        ~label
+        ~model_name: "version"
+        ~create_dialog_content: VersionEditor.create
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.Version.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+        )
+        ~unserialise: Model.Version.get
+        ()
+    )
+    VersionParametersEditor.e
+
+let set_and_parameters ?(label = "Set") () =
+  Parameteriser.prepare
+    (
+      Selector.prepare
+        ~make_result: AnyResult.make_set_result'
+        ~make_more_results: (fun set ->
+          flip S.map show_preview @@ function
+            | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+            | false -> []
+        )
+        ~label
+        ~model_name: "set"
+        ~create_dialog_content: SetEditor.create
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.Set.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+        )
+        ~unserialise: Model.Set.get
+        ()
+    )
+    SetParametersEditor.e
+
+let dance_and_dance_page =
+  let open Plus.Bundle in
+  Pair.prepare
+    ~label: "Dance"
+    (
+      Selector.prepare
+        ~make_result: AnyResult.make_dance_result'
+        ~label: "Dance"
+        ~model_name: "dance"
+        ~create_dialog_content: DanceEditor.create
+        ~search: (fun slice input ->
+          let%rlwt filter = lwt (Filter.Dance.from_string input) in
+          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
+        )
+        ~unserialise: Model.Dance.get
+        ()
+    )
+    (
+      let open Plus.TupleElt in
+      Plus.prepare
+        ~label: "Dance page"
+        ~cast: (function
+          | Zero() -> Model.Book.DanceOnly
+          | Succ Zero (version, params) -> Model.Book.DanceVersion (version, params)
+          | Succ Succ Zero (set, params) -> Model.Book.DanceSet (set, params)
+          | _ -> assert false (* types guarantee this is not reachable *)
+        )
+        ~uncast: (function
+          | Model.Book.DanceOnly -> Zero ()
+          | Model.Book.DanceVersion (version, params) -> one (version, params)
+          | Model.Book.DanceSet (set, params) -> two (set, params)
+        )
+        (
+          Nil.prepare ~label: "Dance only" () ^::
+          version_and_parameters ~label: "+Version" () ^::
+          set_and_parameters ~label: "+Set" () ^::
+          nil
+        )
+    )
+
 let editor =
   let open Editor in
   Input.prepare
@@ -21,13 +105,6 @@ let editor =
     ~type_: Text
     ~label: "Subtitle"
     ~placeholder: "eg. Twenty version of Dusty Miller in rainbow colours"
-    ~serialise: Fun.id
-    ~validate: (S.const % ok)
-    () ^::
-  Input.prepare
-    ~type_: Text
-    ~label: "Short title"
-    ~placeholder: "eg. Dusty Miller"
     ~serialise: Fun.id
     ~validate: (S.const % ok)
     () ^::
@@ -64,58 +141,32 @@ let editor =
     (
       let open Plus.TupleElt in
       Plus.prepare
-        ~label: "Set or version"
+        ~label: "Page"
         ~cast: (function
-          | Zero (set, params) -> Model.Book.Set (set, params)
-          | Succ Zero (version, params) -> Model.Book.Version (version, params)
+          | Zero title -> Model.Book.Part title
+          | Succ Zero (dance, dance_page) -> Model.Book.Dance (dance, dance_page)
+          | Succ Succ Zero (version, params) -> Model.Book.Version (version, params)
+          | Succ Succ Succ Zero (set, params) -> Model.Book.Set (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
-          | Model.Book.Set (set, params) -> Zero (set, params)
-          | Model.Book.Version (version, params) -> Succ (Zero (version, params))
+          | Model.Book.Part title -> Zero title
+          | Model.Book.Dance (dance, dance_page) -> one (dance, dance_page)
+          | Model.Book.Version (version, params) -> two (version, params)
+          | Model.Book.Set (set, params) -> three (set, params)
         )
         (
           let open Plus.Bundle in
-          Parameteriser.prepare
-            (
-              Selector.prepare
-                ~make_result: AnyResult.make_set_result'
-                ~make_more_results: (fun set ->
-                  flip S.map show_preview @@ function
-                    | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
-                    | false -> []
-                )
-                ~label: "Set"
-                ~model_name: "set"
-                ~create_dialog_content: SetEditor.create
-                ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.Set.from_string input) in
-                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
-                )
-                ~unserialise: Model.Set.get
-                ()
-            )
-            SetParametersEditor.e ^::
-          Parameteriser.prepare
-            (
-              Selector.prepare
-                ~make_result: AnyResult.make_version_result'
-                ~make_more_results: (fun version ->
-                  flip S.map show_preview @@ function
-                    | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
-                    | false -> []
-                )
-                ~label: "Version"
-                ~model_name: "version"
-                ~create_dialog_content: VersionEditor.create
-                ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.Version.from_string input) in
-                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
-                )
-                ~unserialise: Model.Version.get
-                ()
-            )
-            VersionParametersEditor.e ^::
+          Input.prepare
+            ~type_: Text
+            ~label: "Part"
+            ~placeholder: "eg. Part CMXCVII"
+            ~serialise: Fun.id
+            ~validate: (S.const % Result.of_string_nonempty ~empty: "The part title cannot be empty.")
+            () ^::
+          dance_and_dance_page ^::
+          version_and_parameters () ^::
+          set_and_parameters () ^::
           nil
         )
     )
@@ -185,8 +236,8 @@ let add_version_to_storage _version = assert false
 (* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
 (* (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ()))) *)
 
-let preview (title, (subtitle, (short_title, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))))) =
-  lwt_some @@ Model.Book.make ~title ~subtitle ~short_title ~authors ?date ~contents ~remark ~sources ?scddb_id ()
+let preview (title, (subtitle, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))) =
+  lwt_some @@ Model.Book.make ~title ~subtitle ~authors ?date ~contents ~remark ~sources ?scddb_id ()
 
 let submit mode book =
   match mode with
@@ -196,14 +247,13 @@ let submit mode book =
 let break_down book =
   let title = Model.Book.title' book in
   let subtitle = Model.Book.subtitle' book in
-  let short_title = Model.Book.short_title' book in
   let%lwt authors = Model.Book.authors' book in
   let date = Model.Book.date' book in
   let%lwt contents = Model.Book.contents' book in
   let remark = Model.Book.remark' book in
   let%lwt sources = Model.Book.sources' book in
   let scddb_id = Model.Book.scddb_id' book in
-  lwt (title, (subtitle, (short_title, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))))
+  lwt (title, (subtitle, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->

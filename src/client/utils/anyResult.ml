@@ -10,7 +10,8 @@ let make_source_result' ?classes ?action ?(prefix = []) ?(suffix = []) source =
     ?action
     (
       prefix @
-      [ResultRow.cell ~a: [a_colspan 2] [Formatters.Source.name' ~link: false source];
+      [ResultRow.cell [Formatters.Source.name' ~link: false source];
+      ResultRow.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Source.date' source))];
       ResultRow.lcell (List.singleton <$> (Formatters.Person.names' ~short: true <$> Source.editors' source));
       ] @
       suffix
@@ -89,7 +90,8 @@ let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
     (
       prefix @
       [ResultRow.cell [Formatters.Book.title_and_subtitle' book];
-      ResultRow.cell ~a: [a_colspan 2] [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
+      ResultRow.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
+      ResultRow.cell [Formatters.Book.editors' book];
       ] @
       suffix
     )

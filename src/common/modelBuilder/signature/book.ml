@@ -9,7 +9,15 @@ module type S = sig
 
   (** {2 Types} *)
 
+  type page_dance = Core.Book.page_dance =
+    | DanceOnly
+    | DanceVersion of Core.Version.t Entry.t * Core.VersionParameters.t
+    | DanceSet of Core.Set.t Entry.t * Core.SetParameters.t
+  [@@deriving variants]
+
   type page = Core.Book.page =
+    | Part of string
+    | Dance of Core.Dance.t Entry.t * page_dance
     | Version of Core.Version.t Entry.t * Core.VersionParameters.t
     | Set of Core.Set.t Entry.t * Core.SetParameters.t
   [@@deriving variants]
@@ -25,7 +33,6 @@ module type S = sig
   val make :
     title: string ->
     ?subtitle: string ->
-    ?short_title: string ->
     ?authors: Core.Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
@@ -42,9 +49,6 @@ module type S = sig
 
   val subtitle : t -> string
   val subtitle' : t Entry.t -> string
-
-  val short_title : t -> string
-  val short_title' : t Entry.t -> string
 
   val authors : t -> Core.Person.t Entry.t list Lwt.t
   val authors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t

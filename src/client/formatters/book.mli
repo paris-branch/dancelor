@@ -10,8 +10,11 @@ val title_and_subtitle' :
   Model.Book.t Entry.t ->
   [> Html_types.span] elt
 
-val short_title' :
-  ?link: bool ->
+val editors :
+  Model.Book.t ->
+  [> Html_types.span] elt
+
+val editors' :
   Model.Book.t Entry.t ->
   [> Html_types.span] elt
 
