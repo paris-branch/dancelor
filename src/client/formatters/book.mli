@@ -10,6 +10,14 @@ val title_and_subtitle' :
   Model.Book.t Entry.t ->
   [> Html_types.span] elt
 
+val editors :
+  Model.Book.t ->
+  [> Html_types.span] elt
+
+val editors' :
+  Model.Book.t Entry.t ->
+  [> Html_types.span] elt
+
 val date_and_editors :
   Model.Book.t ->
   [> Html_types.span] elt
