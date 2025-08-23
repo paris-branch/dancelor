@@ -3,7 +3,7 @@ open Nes
 let _key = "user"
 
 type t = {
-  username: string;
+  username: NEString.t;
   person: Person.t Entry.Id.t;
   password: HashedSecret.t option; [@default None]
   password_reset_token: (HashedSecret.t * Datetime.t) option; [@default None] [@key "password-reset-token"]
@@ -15,7 +15,7 @@ let make ~username ~person ?password ?password_reset_token ?remember_me_tokens (
   make ~username ~person ~password ~password_reset_token ?remember_me_tokens ()
 
 let make ~username ~person ?password ?password_reset_token ?remember_me_tokens () =
-  let username = String.remove_duplicates ~char: ' ' username in
+  let username = NEString.map_exn (String.remove_duplicates ~char: ' ') username in
   make ~username ~person: (Entry.id person) ?password ?password_reset_token ?remember_me_tokens ()
 
 let update ?username ?person ?password ?password_reset_token ?remember_me_tokens user =
@@ -33,4 +33,4 @@ let password' = password % Entry.value
 let password_reset_token' = password_reset_token % Entry.value
 let remember_me_tokens' = remember_me_tokens % Entry.value
 
-let admin user = username' user = "Niols"
+let admin user = username' user = NEString.of_string_exn "Niols"

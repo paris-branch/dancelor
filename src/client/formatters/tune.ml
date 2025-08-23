@@ -9,9 +9,9 @@ let name_gen tune_gen =
     | Right (tune, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_tune @@ Entry.id tune]
-        [txt @@ Model.Tune.one_name' tune]
-    | Right (tune, _) -> txt (Model.Tune.one_name' tune)
-    | Left tune -> txt (Model.Tune.one_name tune)
+        [txt @@ NEString.to_string @@ Model.Tune.one_name' tune]
+    | Right (tune, _) -> txt (NEString.to_string @@ Model.Tune.one_name' tune)
+    | Left tune -> txt (NEString.to_string @@ Model.Tune.one_name tune)
   ]
 
 let name = name_gen % Either.left
@@ -51,6 +51,6 @@ let aka tune =
   span @@
     match Model.Tune.other_names tune with
     | [] -> []
-    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]
+    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " @@ List.map NEString.to_string names]
 
 let aka' = aka % Entry.value

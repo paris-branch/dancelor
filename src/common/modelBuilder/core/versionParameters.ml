@@ -11,8 +11,8 @@ module Self = struct
     instruments: string option; [@default None]
     clef: Music.clef option; [@default None]
     trivia: string option; [@default None]
-    display_name: string option; [@default None] [@key "display-name"]
-    display_composer: string option [@default None] [@key "display-composer"]
+    display_name: NEString.t option; [@default None] [@key "display-name"]
+    display_composer: NEString.t option [@default None] [@key "display-composer"]
   }
   [@@deriving eq, make, show {with_path = false}, yojson]
 end
@@ -51,8 +51,6 @@ let none = `Assoc [] |> of_yojson |> Result.get_ok
 
 let transposition' = Option.value ~default: Transposition.identity % transposition
 let first_bar' = Option.value ~default: 1 % first_bar
-let display_name' ~default = Option.value ~default % display_name
-let display_composer' ~default = Option.value ~default % display_composer
 let trivia' ~default = Option.value ~default % trivia
 
 (** {2 Setters} *)

@@ -141,15 +141,15 @@ let prepare_non_empty (type value)(type state)
   ~label
   ?more_actions
   ((module C): (value, state) Component.s)
-  : (value NonEmptyList.t, state list) Component.s
+  : (value NEList.t, state list) Component.s
 = (module struct
   include (val (prepare ~label ?more_actions (module C)))
-  type value = C.value NonEmptyList.t
-  let value_to_state = value_to_state % NonEmptyList.to_list
-  let set c v = set c @@ NonEmptyList.to_list v
+  type value = C.value NEList.t
+  let value_to_state = value_to_state % NEList.to_list
+  let set c v = set c @@ NEList.to_list v
   let signal =
     S.map (fun l ->
-      Result.bind l @@ Option.to_result ~none: ("You must add at least one " ^ String.lowercase_ascii C.label ^ ".") % NonEmptyList.of_list
+      Result.bind l @@ Option.to_result ~none: ("You must add at least one " ^ String.lowercase_ascii C.label ^ ".") % NEList.of_list
     ) %
       signal
 end)
@@ -159,6 +159,6 @@ let make_non_empty (type value)(type state)
     ?more_actions
     (component : (value, state) Component.s)
     (initial_values : state list)
-    : (value NonEmptyList.t, state list) Component.t Lwt.t
+    : (value NEList.t, state list) Component.t Lwt.t
   =
   Component.initialise (prepare_non_empty ~label ?more_actions component) initial_values

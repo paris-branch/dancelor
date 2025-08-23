@@ -30,7 +30,7 @@ module Void = NesVoid
 module Lwt_option = NesLwt_option
 module Password = NesPassword
 module HashedSecret = NesHashedSecret
-module NonEmptyList = NesNEList
+module NEList = NesNEList
 module NEString = NesNEString
 
 (* Monads *)

@@ -7,7 +7,7 @@ let works set =
   with_span_placeholder @@
     match%lwt Model.Set.dances set with
     | [] -> lwt_nil
-    | dances -> lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map Model.Dance.one_name' dances)]
+    | dances -> lwt [txt (spf "Works for %s" @@ String.concat ", " @@ List.map (NEString.to_string % Model.Dance.one_name') dances)]
 
 let works' = works % Entry.value
 
@@ -17,9 +17,9 @@ let name_gen set_gen =
     | Right (set, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_set @@ Entry.id set]
-        [txt @@ Model.Set.name' set]
-    | Right (set, _) -> txt (Model.Set.name' set)
-    | Left set -> txt (Model.Set.name set)
+        [txt @@ NEString.to_string @@ Model.Set.name' set]
+    | Right (set, _) -> txt (NEString.to_string @@ Model.Set.name' set)
+    | Left set -> txt (NEString.to_string @@ Model.Set.name set)
   ]
 
 let name = name_gen % Either.left

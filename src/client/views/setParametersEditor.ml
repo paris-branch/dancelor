@@ -4,12 +4,12 @@ open Html
 
 let editor =
   let open Editor in
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Display name (optional)"
     ~placeholder: "eg. The Cairdin o' It"
-    ~serialise: (Option.value ~default: "")
-    ~validate: (S.const % ok % Option.of_string_nonempty)
+    ~serialise: id
+    ~validate: (S.const % ok)
     () ^::
     nil
 

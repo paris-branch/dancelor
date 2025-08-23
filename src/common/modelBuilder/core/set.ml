@@ -3,7 +3,7 @@ open Nes
 let _key = "set"
 
 type t = {
-  name: string;
+  name: NEString.t;
   conceptors: Person.t Entry.Id.t list; [@default []]
   kind: Kind.Dance.t;
   contents: (Version.t Entry.Id.t * VersionParameters.t) list; [@key "versions-and-parameters"] [@default []]
@@ -15,7 +15,7 @@ type t = {
 [@@deriving eq, yojson, make, show {with_path = false}, fields]
 
 let make ~name ?conceptors ~kind ?contents ~order ?dances () =
-  let name = String.remove_duplicates ~char: ' ' name in
+  let name = NEString.map_exn (String.remove_duplicates ~char: ' ') name in
   let conceptors = Option.map (List.map Entry.id) conceptors in
   let contents = Option.map (List.map (fun (version, parameters) -> (Entry.id version, parameters))) contents in
   let dances = Option.map (List.map Entry.id) dances in
@@ -27,7 +27,7 @@ let order' = order % Entry.value
 let instructions' = instructions % Entry.value
 let remark' = remark % Entry.value
 
-let slug = Entry.Slug.of_string % name
+let slug = Entry.Slug.of_string % NEString.to_string % name
 let slug' = slug % Entry.value
 
 type warning =

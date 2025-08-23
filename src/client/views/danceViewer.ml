@@ -13,7 +13,7 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_dance id)
         (lwt @@ Any.dance dance);
     ]
-    ~title: (lwt @@ Dance.one_name' dance)
+    ~title: (lwt @@ NEString.to_string @@ Dance.one_name' dance)
     ~subtitles: [
       Formatters.Dance.aka' dance;
       (

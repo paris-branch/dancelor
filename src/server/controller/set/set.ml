@@ -33,8 +33,8 @@ include Search.Build(struct
   let filter_accepts = Filter.Set.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (lwt % Model.Set.name') String.Sensible.compare;
-    increasing (lwt % Model.Set.name') String.compare_lengths;
+    Lwt_list.[increasing (lwt % NEString.to_string % Model.Set.name') String.Sensible.compare;
+    increasing (lwt % NEString.to_string % Model.Set.name') String.compare_lengths;
     ]
 end)
 

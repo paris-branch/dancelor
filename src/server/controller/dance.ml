@@ -28,7 +28,7 @@ include Search.Build(struct
   let filter_accepts = Filter.Dance.accepts
 
   let tiebreakers =
-    Lwt_list.[increasing (lwt % Model.Dance.one_name') String.Sensible.compare]
+    Lwt_list.[increasing (lwt % NEString.to_string % Model.Dance.one_name') String.Sensible.compare]
 end)
 
 module Pdf = struct
@@ -45,7 +45,7 @@ module Pdf = struct
     in
     let set =
       Model.Set.make
-        ~name: ("Dance: " ^ name)
+        ~name: (NEString.prepend "Dance: " name)
         ~kind
         ~contents: (List.map (fun v -> (v, Model.VersionParameters.none)) versions)
         ~order: (List.mapi (fun i _ -> Model.SetOrder.Internal (i + 1)) versions)

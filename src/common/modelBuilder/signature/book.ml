@@ -16,7 +16,7 @@ module type S = sig
   [@@deriving variants]
 
   type page = Core.Book.page =
-    | Part of string
+    | Part of NEString.t
     | Dance of Core.Dance.t Entry.t * page_dance
     | Version of Core.Version.t Entry.t * Core.VersionParameters.t
     | Set of Core.Set.t Entry.t * Core.SetParameters.t
@@ -31,8 +31,8 @@ module type S = sig
       be manipulated explicitly. *)
 
   val make :
-    title: string ->
-    ?subtitle: string ->
+    title: NEString.t ->
+    ?subtitle: NEString.t ->
     ?authors: Core.Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
@@ -44,11 +44,11 @@ module type S = sig
 
   (** {2 Field Getters} *)
 
-  val title : t -> string
-  val title' : t Entry.t -> string
+  val title : t -> NEString.t
+  val title' : t Entry.t -> NEString.t
 
-  val subtitle : t -> string
-  val subtitle' : t Entry.t -> string
+  val subtitle : t -> NEString.t option
+  val subtitle' : t Entry.t -> NEString.t option
 
   val authors : t -> Core.Person.t Entry.t list Lwt.t
   val authors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t

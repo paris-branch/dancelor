@@ -9,12 +9,10 @@ let flip_show_preview () = set_show_preview (not (S.value show_preview))
 
 let editor =
   let open Editor in
-  Input.prepare
+  Input.prepare_non_empty
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. The Dusty Miller"
-    ~serialise: Fun.id
-    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
   Input.prepare
     ~type_: Text

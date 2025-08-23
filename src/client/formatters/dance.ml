@@ -9,9 +9,9 @@ let name_gen dance_gen =
     | Right (dance, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_dance @@ Entry.id dance]
-        [txt (Model.Dance.one_name' dance)]
-    | Right (dance, _) -> txt (Model.Dance.one_name' dance)
-    | Left dance -> txt (Model.Dance.one_name dance)
+        [txt @@ NEString.to_string @@ Model.Dance.one_name' dance]
+    | Right (dance, _) -> txt (NEString.to_string @@ Model.Dance.one_name' dance)
+    | Left dance -> txt (NEString.to_string @@ Model.Dance.one_name dance)
   ]
 
 let name = name_gen % Either.left
@@ -36,6 +36,6 @@ let aka dance =
   span @@
     match Model.Dance.other_names dance with
     | [] -> []
-    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " names]
+    | names -> [txt @@ spf "Also known as %s" @@ String.concat ", " @@ List.map NEString.to_string names]
 
 let aka' = aka % Entry.value

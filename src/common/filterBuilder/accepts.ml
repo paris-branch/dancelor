@@ -8,13 +8,13 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Book.Is book' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id book) book'
       | Title string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Book.title' book
+        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Book.title' book
       | TitleMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Book.title' book
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Book.title' book
       | Subtitle string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Book.subtitle' book
+        lwt @@ String.proximity ~char_equal string @@ Option.fold ~none: "" ~some: NEString.to_string @@ Model.Book.subtitle' book
       | SubtitleMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Book.subtitle' book
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Option.fold ~none: "" ~some: NEString.to_string @@ Model.Book.subtitle' book
       | ExistsVersion vfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt versions =
@@ -52,9 +52,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Dance.Is dance' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id dance) dance'
       | Name string ->
-        lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string) @@ NonEmptyList.to_list @@ Model.Dance.names' dance
+        lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names' dance
       | NameMatches string ->
-        lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string) @@ NonEmptyList.to_list @@ Model.Dance.names' dance
+        lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Dance.names' dance
       | Kind kfilter ->
         Kind.Dance.Filter.accepts kfilter @@ Model.Dance.kind' dance
       | ExistsDeviser pfilter ->
@@ -76,9 +76,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Set.Is set' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id set) set'
       | Name string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Set.name' set
+        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Set.name' set
       | NameMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Set.name' set
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Set.name' set
       | ExistsConceptor pfilter ->
         let%lwt conceptors = Model.Set.conceptors' set in
         let%lwt scores = Lwt_list.map_s (accepts_person pfilter) conceptors in
@@ -103,9 +103,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Tune.Is tune' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.equal' (Entry.id tune) tune'
       | Name string ->
-        lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string) @@ NonEmptyList.to_list @@ Model.Tune.names' tune
+        lwt @@ Formula.interpret_or_l @@ List.map (String.proximity ~char_equal string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | NameMatches string ->
-        lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string) @@ NonEmptyList.to_list @@ Model.Tune.names' tune
+        lwt @@ Formula.interpret_or_l @@ List.map (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) @@ NEList.to_list @@ Model.Tune.names' tune
       | ExistsComposer pfilter ->
         let%lwt composers = Model.Tune.composers' tune in
         let%lwt scores = Lwt_list.map_s (accepts_person pfilter) composers in

@@ -31,7 +31,7 @@ let render book book_parameters rendering_parameters =
   StorageCache.use ~cache ~key: (`Ly, book, book_parameters, body, rendering_parameters) @@ fun _hash ->
   let (res, prom) =
     Format.with_formatter_to_string_gen @@ fun fmt ->
-    let title = Model.Book.title book in
+    let title = NEString.to_string @@ Model.Book.title book in
     (** FIXME: subtitle *)
     fpf fmt [%blob "../template/lyversion.ly"];
     (
@@ -122,9 +122,7 @@ let render book book_parameters rendering_parameters =
           | Model.Book.Dance (_, DanceVersion (version, parameters))
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune' version in
-            let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) parameters in
-            let trivia = Model.VersionParameters.trivia' ~default: " " parameters in
-            let parameters = Model.VersionParameters.set_display_name trivia parameters in
+            let name = Option.value ~default: (Model.Tune.one_name' tune) (Model.VersionParameters.display_name parameters) in
             let set =
               Model.Set.make
                 ~name
@@ -143,7 +141,7 @@ let render book book_parameters rendering_parameters =
          a SetCore.t; do we need the id anyway? *)
       flip Lwt_list.iter_s sets_and_parameters @@ fun (set, set_parameters) ->
       let set_parameters = Model.SetParameters.compose (Model.BookParameters.every_set book_parameters) set_parameters in
-      let name = Model.SetParameters.display_name' ~default: (Model.Set.name set) set_parameters in
+      let name = Option.value ~default: (Model.Set.name set) (Model.SetParameters.display_name set_parameters) in
       let%lwt deviser =
         if not (Model.SetParameters.show_deviser' set_parameters) then
           lwt_empty
@@ -157,9 +155,9 @@ let render book book_parameters rendering_parameters =
       fpf
         fmt
         [%blob "../template/book/set_beginning.ly"]
-        name
+        (NEString.to_string name)
         kind
-        name
+        (NEString.to_string name)
         deviser
         details_line;
       (
@@ -187,9 +185,9 @@ let render book book_parameters rendering_parameters =
         in
         let%lwt tune = Model.Version.tune' version in
         let key = Model.Version.key' version in
-        let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) version_parameters in
+        let name = Option.value ~default: (Model.Tune.one_name' tune) (Model.VersionParameters.display_name version_parameters) in
         let%lwt composer = (String.concat ", " ~last: " and " % List.map (NEString.to_string % Model.Person.name')) <$> Model.Tune.composers' tune in
-        let composer = Model.VersionParameters.display_composer' ~default: composer version_parameters in
+        let composer = Option.fold ~none: composer ~some: NEString.to_string (Model.VersionParameters.display_composer version_parameters) in
         let first_bar = Model.VersionParameters.first_bar' version_parameters in
         let source, target =
           match Model.VersionParameters.transposition' version_parameters with
@@ -198,10 +196,10 @@ let render book book_parameters rendering_parameters =
         in fpf
           fmt
           [%blob "../template/book/version.ly"]
-          name
+          (NEString.to_string name)
           composer
           first_bar
-          name
+          (NEString.to_string name)
           (Music.pitch_to_lilypond_string source)
           (Music.pitch_to_lilypond_string target)
           content;

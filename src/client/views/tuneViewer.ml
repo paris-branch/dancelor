@@ -13,7 +13,7 @@ let create ?context id =
         ~this_page: (Endpoints.Page.href_tune id)
         (lwt @@ Any.tune tune);
     ]
-    ~title: (lwt @@ Tune.one_name' tune)
+    ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
     ~subtitles: [
       Formatters.Tune.aka' tune;
       Formatters.Tune.description' tune;

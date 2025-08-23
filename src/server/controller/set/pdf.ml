@@ -3,9 +3,8 @@ open Common
 
 let render set set_parameters rendering_parameters =
   let book =
-    let title = "" in
     let contents = [Model.Book.Set (Entry.make_dummy set, set_parameters)] in
-    Model.Book.make ~title ~contents ()
+    Model.Book.make ~title: (NEString.of_string_exn " ") ~contents ()
   in
   let book_parameters =
     Model.BookParameters.make ()
@@ -25,7 +24,7 @@ let render set set_parameters rendering_parameters =
       in
       lwt @@
         RenderingParameters.update_pdf_metadata
-          ~title: (String.replace_empty ~by: name)
+          ~title: (String.replace_empty ~by: (NEString.to_string name))
           ~composers: (List.replace_nil ~by: composers)
           ~subjects: (List.replace_nil ~by: subjects)
     in

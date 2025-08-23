@@ -6,7 +6,7 @@ module type S = sig
   type t = Core.Dance.t
 
   val make :
-    names: string NonEmptyList.t ->
+    names: NEString.t NEList.t ->
     kind: Kind.Dance.t ->
     ?devisers: Core.Person.t Entry.t list ->
     ?two_chords: bool ->
@@ -18,13 +18,13 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val names : t -> string NonEmptyList.t
-  val names' : t Entry.t -> string NonEmptyList.t
+  val names : t -> NEString.t NEList.t
+  val names' : t Entry.t -> NEString.t NEList.t
 
-  val one_name : t -> string
-  val one_name' : t Entry.t -> string
-  val other_names : t -> string list
-  val other_names' : t Entry.t -> string list
+  val one_name : t -> NEString.t
+  val one_name' : t Entry.t -> NEString.t
+  val other_names : t -> NEString.t list
+  val other_names' : t Entry.t -> NEString.t list
 
   val kind : t -> Kind.Dance.t
   val kind' : t Entry.t -> Kind.Dance.t

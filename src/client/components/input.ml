@@ -193,6 +193,9 @@ let prepare_option
     ?template
     ()
 
+let make_option ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?template initial_value =
+  Component.initialise (prepare_option ~type_ ?font ~label ?placeholder ~serialise ~validate ?oninput ?template ()) initial_value
+
 let prepare_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template () =
   prepare
     ~type_
@@ -204,3 +207,6 @@ let prepare_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template () =
     ?oninput
     ?template
     ()
+
+let make_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template initial_value =
+  Component.initialise (prepare_non_empty ~type_ ?font ~label ?placeholder ?oninput ?template ()) initial_value

@@ -4,11 +4,11 @@ open Common
 open Html
 
 let title_and_subtitle book =
-  let title_text = [txt (Model.Book.title book)] in
+  let title_text = [txt @@ NEString.to_string @@ Model.Book.title book] in
   let subtitle_block =
     match Model.Book.subtitle book with
-    | "" -> []
-    | subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt subtitle]]
+    | None -> []
+    | Some subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt @@ NEString.to_string subtitle]]
   in
   span (title_text @ subtitle_block)
 

@@ -14,7 +14,7 @@ let render book book_parameters rendering_parameters =
   StorageCache.use ~cache ~key: (`Pdf, book, book_parameters, body, rendering_parameters) @@ fun hash ->
   let%lwt rendering_parameters =
     let%lwt pdf_metadata =
-      let name = Model.Book.title book in
+      let name = NEString.to_string @@ Model.Book.title book in
       let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Book.authors book in
       lwt @@
         RenderingParameters.update_pdf_metadata

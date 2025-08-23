@@ -49,16 +49,16 @@ module type S = sig
   val kind' : t Entry.t -> Kind.Version.t Lwt.t
   (** Convenient wrapper around {!bars} and {!Tune.kind}. *)
 
-  val names : t -> string NonEmptyList.t Lwt.t
-  val names' : t Entry.t -> string NonEmptyList.t Lwt.t
+  val names : t -> NEString.t NEList.t Lwt.t
+  val names' : t Entry.t -> NEString.t NEList.t Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.names}. *)
 
-  val one_name : t -> string Lwt.t
-  val one_name' : t Entry.t -> string Lwt.t
+  val one_name : t -> NEString.t Lwt.t
+  val one_name' : t Entry.t -> NEString.t Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.one_name}. *)
 
-  val other_names : t -> string list Lwt.t
-  val other_names' : t Entry.t -> string list Lwt.t
+  val other_names : t -> NEString.t list Lwt.t
+  val other_names' : t Entry.t -> NEString.t list Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.other_names}. *)
 
   val slug : t -> Entry.Slug.t Lwt.t

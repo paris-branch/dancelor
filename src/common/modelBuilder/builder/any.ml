@@ -16,8 +16,8 @@ module Build (Getters : Getters.S) = struct
     | _ -> false
 
   let name = function
-    | Source p -> lwt @@ NEString.to_string @@ Core.Source.name' p
-    | Person p -> lwt @@ NEString.to_string @@ Core.Person.name' p
+    | Source p -> lwt @@ Core.Source.name' p
+    | Person p -> lwt @@ Core.Person.name' p
     | Dance d -> lwt @@ Core.Dance.one_name' d
     | Book b -> lwt @@ Core.Book.title' b
     | Set s -> lwt @@ Core.Set.name' s

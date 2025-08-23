@@ -8,7 +8,7 @@ module Page = struct
   [@@deriving eq, show {with_path = false}, yojson]
 
   type t =
-    | Part of string
+    | Part of NEString.t
     | Dance of Dance.t Entry.Id.t * dance
     | Version of Version.t Entry.Id.t * VersionParameters.t
     | Set of Set.t Entry.Id.t * SetParameters.t
@@ -22,7 +22,7 @@ type page_dance =
 [@@deriving show {with_path = false}, variants]
 
 type page =
-  | Part of string
+  | Part of NEString.t
   | Dance of Dance.t Entry.t * page_dance
   | Version of Version.t Entry.t * VersionParameters.t
   | Set of Set.t Entry.t * SetParameters.t
@@ -42,8 +42,8 @@ let page_to_page_core : page -> Page.t = function
 let _key = "book"
 
 type t = {
-  title: string;
-  subtitle: string; [@default ""]
+  title: NEString.t;
+  subtitle: NEString.t option; [@default None]
   authors: Person.t Entry.Id.t list; [@default []]
   date: PartialDate.t option; [@default None]
   contents: Page.t list;
@@ -54,12 +54,12 @@ type t = {
 [@@deriving eq, make, show {with_path = false}, yojson, fields]
 
 let make ~title ?subtitle ?authors ?date ?contents ?remark ?sources ?scddb_id () =
-  let title = String.remove_duplicates ~char: ' ' title in
-  let subtitle = Option.map (String.remove_duplicates ~char: ' ') subtitle in
+  let title = NEString.map_exn (String.remove_duplicates ~char: ' ') title in
+  let subtitle = Option.map (NEString.map_exn (String.remove_duplicates ~char: ' ')) subtitle in
   let authors = Option.map (List.map Entry.id) authors in
   let contents = Option.map (List.map page_to_page_core) contents in
   let sources = Option.map (List.map Entry.id) sources in
-  make ~title ?subtitle ?authors ~date ?contents ?remark ?sources ~scddb_id ()
+  make ~title ~subtitle ?authors ~date ?contents ?remark ?sources ~scddb_id ()
 
 let title' = title % Entry.value
 let subtitle' = subtitle % Entry.value
@@ -68,7 +68,7 @@ let remark' = remark % Entry.value
 let sources' = sources % Entry.value
 let scddb_id' = scddb_id % Entry.value
 
-let slug = Entry.Slug.of_string % title
+let slug = Entry.Slug.of_string % NEString.to_string % title
 let slug' = slug % Entry.value
 
 let contains_set set1 book =

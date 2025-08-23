@@ -6,7 +6,7 @@ module type S = sig
   type t = Core.Tune.t
 
   val make :
-    names: string NonEmptyList.t ->
+    names: NEString.t NEList.t ->
     kind: Kind.Base.t ->
     ?composers: Core.Person.t Entry.t list ->
     ?dances: Core.Dance.t Entry.t list ->
@@ -18,16 +18,16 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val names : t -> string NonEmptyList.t
-  val names' : t Entry.t -> string NonEmptyList.t
+  val names : t -> NEString.t NEList.t
+  val names' : t Entry.t -> NEString.t NEList.t
 
   (** One name in the list of name. Picking it is deterministic. *)
-  val one_name : t -> string
-  val one_name' : t Entry.t -> string
+  val one_name : t -> NEString.t
+  val one_name' : t Entry.t -> NEString.t
 
   (** {!names} minus {!one_name}. *)
-  val other_names : t -> string list
-  val other_names' : t Entry.t -> string list
+  val other_names : t -> NEString.t list
+  val other_names' : t Entry.t -> NEString.t list
 
   val kind : t -> Kind.Base.t
   val kind' : t Entry.t -> Kind.Base.t

@@ -86,10 +86,10 @@ let make_and_render ?context ~this_page any_lwt =
                               lwt [txt "search for: "; parent_a [txt query]]
                             | InSet (id, _) ->
                               let%lwt name = Set.name' % Option.get <$> Set.get id in
-                              lwt [txt "set: "; parent_a [txt name]]
+                              lwt [txt "set: "; parent_a [txt @@ NEString.to_string name]]
                             | InBook (id, _) ->
                               let%lwt name = Book.title' % Option.get <$> Book.get id in
-                              lwt [txt "book: "; parent_a [txt name]]
+                              lwt [txt "book: "; parent_a [txt @@ NEString.to_string name]]
                           );
                       ];
                       div

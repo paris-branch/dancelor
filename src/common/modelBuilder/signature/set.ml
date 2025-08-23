@@ -6,7 +6,7 @@ module type S = sig
   type t = Core.Set.t
 
   val make :
-    name: string ->
+    name: NEString.t ->
     ?conceptors: Core.Person.t Entry.t list ->
     kind: Kind.Dance.t ->
     ?contents: (Core.Version.t Entry.t * Core.VersionParameters.t) list ->
@@ -15,8 +15,8 @@ module type S = sig
     unit ->
     t
 
-  val name : t -> string
-  val name' : t Entry.t -> string
+  val name : t -> NEString.t
+  val name' : t Entry.t -> NEString.t
 
   val conceptors : t -> Core.Person.t Entry.t list Lwt.t
   val conceptors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t

@@ -18,7 +18,7 @@ module Self = struct
     show_deviser: bool option; [@default None] [@key "show-deviser"]
     show_order: bool option; [@default None] [@key "show-order"]
     order_type: order_type option; [@default None] [@key "order-type"]
-    display_name: string option; [@default None] [@key "display-name"]
+    display_name: NEString.t option; [@default None] [@key "display-name"]
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
   [@@deriving eq, make, show {with_path = false}, yojson, fields]
@@ -43,7 +43,6 @@ let forced_pages' = Option.value ~default: 0 % forced_pages
 let show_deviser' = Option.value ~default: true % show_deviser
 let show_order' = Option.value ~default: true % show_order
 let order_type' = Option.value ~default: Default % order_type
-let display_name' ~default = Option.value ~default % display_name
 
 (** {2 Setters} *)
 

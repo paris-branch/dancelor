@@ -19,7 +19,7 @@ val make_non_empty :
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'state) Component.s ->
   'state list ->
-  ('value NonEmptyList.t, 'state list) Component.t Lwt.t
+  ('value NEList.t, 'state list) Component.t Lwt.t
 (** Variant of {!make} for a list component that has to contain at least one
     sub-component. The value type is therefore {!NonEmptyList.t}. *)
 
@@ -37,6 +37,6 @@ val prepare_non_empty :
   label: string ->
   ?more_actions: Html_types.div_content_fun elt list S.t ->
   ('value, 'state) Component.s ->
-  ('value NonEmptyList.t, 'state list) Component.s
+  ('value NEList.t, 'state list) Component.s
 (** Variant of {!make_non_empty} that only prepares the component. It must still
     be {!Component.initialise}d. *)
