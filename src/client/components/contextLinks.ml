@@ -5,8 +5,12 @@ open Html
 open Model
 
 let book_page_to_any = function
-  | Book.Set (set, _) -> Any.Set set
-  | Version (version, _) -> Any.Version version
+  | Book.Part _ -> None
+  | Book.Dance (dance, DanceOnly) -> Some (Any.Dance dance)
+  | Book.Dance (_, DanceVersion (version, _)) -> Some (Any.Version version)
+  | Book.Dance (_, DanceSet (set, _)) -> Some (Any.Set set)
+  | Book.Set (set, _) -> Some (Any.Set set)
+  | Book.Version (version, _) -> Some (Any.Version version)
 
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
@@ -25,11 +29,9 @@ let get_neighbours any = function
     lwt @@ List.map_context Any.version context
   | Endpoints.Page.InBook (book, index) ->
     let%lwt book = Option.get <$> Book.get book in
-    let%lwt context =
-      List.map_context book_page_to_any
-      <$> (Option.get % List.findi_context (fun i _ -> i = index) <$> Book.contents' book)
-    in
-    lwt context
+    let%lwt contents = Book.contents' book in
+    let viewable_content = List.filter_map book_page_to_any contents in
+    lwt @@ Option.get @@ List.findi_context (fun i _ -> i = index) viewable_content
 
 let neighbour_context ~left = function
   | Endpoints.Page.InSearch query -> Endpoints.Page.InSearch query

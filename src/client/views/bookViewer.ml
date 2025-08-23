@@ -39,6 +39,19 @@ let display_warnings warnings =
   List.map display_warning warnings
 
 let table_contents ~this_id contents =
+  (* We need to find the index of each part of the book in the whole book. They
+     aren't just the index in the list because some elements are not actually
+     viewable standalone. *)
+  let contents =
+    let next_index = ref 0 in
+    List.map
+      (fun page ->
+        match Components.ContextLinks.book_page_to_any page with
+        | None -> (-1, page)
+        | Some _ -> let index = !next_index in incr next_index; (index, page)
+      )
+      contents
+  in
   let open Html in
   tablex
     ~a: [a_class ["table"; "table-striped"; "table-hover"; "table-borderless"; "my-2"]]
@@ -51,28 +64,72 @@ let table_contents ~this_id contents =
               th [txt "Type"];
               th [txt "Name"];
               th [txt "Kind"];
-              th [txt "By"];
+              th [txt "Music by"];
             ]
         ]
     )
     [
       tbody
         (
-          List.mapi
-            (fun index page ->
+          List.map
+            (fun (index, page) ->
               let context = Endpoints.Page.inbook this_id index in
+              (* on non-viewable pages, index = -1 *)
               match page with
-              | Book.Set (set, parameters) ->
+              | Book.Part title ->
+                (
+                  Utils.ResultRow.(
+                    to_clickable_row @@
+                      make [
+                        cell [txt "Part"];
+                        cell ~a: [a_colspan 3] [txt title];
+                      ]
+                  )
+                )
+              | Book.Dance (dance, DanceOnly) ->
+                (
+                  let href = Endpoints.Page.href_dance ~context @@ Entry.id dance in
+                  Tables.clickable_row ~href [
+                    lwt [txt "Dance"];
+                    lwt [Formatters.Dance.name' ~link: false dance];
+                    lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
+                    lwt [];
+                  ]
+                )
+              | Book.Dance (dance, DanceVersion (version, _parameters)) ->
+                (* FIXME: params *)
+                (
+                  let href = Endpoints.Page.href_version ~context @@ Entry.id version in
+                  Tables.clickable_row ~href [
+                    lwt [txt "Dance"; br (); txt "+Tune"];
+                    lwt [
+                      Formatters.Dance.name' ~link: false dance;
+                      br ();
+                      small [txt "Tune: "; Formatters.Version.name' ~link: true version];
+                    ];
+                    (
+                      let%lwt tune = Version.tune' version in
+                      lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
+                    );
+                    lwt [Formatters.Version.composer_and_arranger' ~short: true version]
+                  ]
+                )
+              | Book.Dance (dance, DanceSet (set, _parameters)) ->
+                (* FIXME: params *)
                 (
                   let href = Endpoints.Page.href_set ~context @@ Entry.id set in
                   Tables.clickable_row ~href [
-                    lwt [txt "Set"];
-                    lwt [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
-                    lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+                    lwt [txt "Dance"; br (); txt "+Set"];
+                    lwt [
+                      Formatters.Dance.name' ~link: false dance;
+                      br ();
+                      small [txt "Set: "; Formatters.Set.name' ~link: true set];
+                    ];
+                    lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
                     lwt [Formatters.Set.conceptors' ~short: true set];
                   ]
                 )
-              | Version (version, parameters) ->
+              | Book.Version (version, parameters) ->
                 (
                   let href = Endpoints.Page.href_version ~context @@ Entry.id version in
                   Tables.clickable_row ~href [
@@ -83,6 +140,16 @@ let table_contents ~this_id contents =
                       lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
                     );
                     lwt [Formatters.Version.composer_and_arranger' ~short: true version]
+                  ]
+                )
+              | Book.Set (set, parameters) ->
+                (
+                  let href = Endpoints.Page.href_set ~context @@ Entry.id set in
+                  Tables.clickable_row ~href [
+                    lwt [txt "Set"];
+                    lwt [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
+                    lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
+                    lwt [Formatters.Set.conceptors' ~short: true set];
                   ]
                 )
             )

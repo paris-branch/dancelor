@@ -57,38 +57,43 @@ let editor =
     (
       let open Plus.TupleElt in
       Plus.prepare
-        ~label: "Set or version"
+        ~label: "Page"
         ~cast: (function
-          | Zero (set, params) -> Model.Book.Set (set, params)
-          | Succ Zero (version, params) -> Model.Book.Version (version, params)
+          | Zero title -> Model.Book.Part title
+          | Succ Zero dance -> Model.Book.Dance (dance, DanceOnly)
+          | Succ Succ Zero (version, params) -> Model.Book.Version (version, params)
+          | Succ Succ Succ Zero (set, params) -> Model.Book.Set (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
-          | Model.Book.Set (set, params) -> Zero (set, params)
-          | Model.Book.Version (version, params) -> Succ (Zero (version, params))
+          | Model.Book.Part title -> Zero title
+          | Model.Book.Dance (dance, DanceOnly) -> one dance
+          | Model.Book.Dance (_dance, _) -> raise NonConvertible
+          | Model.Book.Version (version, params) -> two (version, params)
+          | Model.Book.Set (set, params) -> three (set, params)
         )
         (
           let open Plus.Bundle in
-          Parameteriser.prepare
-            (
-              Selector.prepare
-                ~make_result: AnyResult.make_set_result'
-                ~make_more_results: (fun set ->
-                  flip S.map show_preview @@ function
-                    | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
-                    | false -> []
-                )
-                ~label: "Set"
-                ~model_name: "set"
-                ~create_dialog_content: SetEditor.create
-                ~search: (fun slice input ->
-                  let%rlwt filter = lwt (Filter.Set.from_string input) in
-                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
-                )
-                ~unserialise: Model.Set.get
-                ()
-            )
-            SetParametersEditor.e ^::
+          Input.prepare
+            ~type_: Text
+            ~label: "Part"
+            ~placeholder: "eg. Part CMXCVII"
+            ~serialise: Fun.id
+            ~validate: (S.const % Result.of_string_nonempty ~empty: "The part title cannot be empty.")
+            () ^::
+          (
+            Selector.prepare
+              ~make_result: AnyResult.make_dance_result'
+              ~label: "Dance"
+              ~model_name: "dance"
+              ~create_dialog_content: DanceEditor.create
+              ~search: (fun slice input ->
+                let%rlwt filter = lwt (Filter.Dance.from_string input) in
+                ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
+              )
+              ~unserialise: Model.Dance.get
+              ()
+          ) ^::
           Parameteriser.prepare
             (
               Selector.prepare
@@ -109,6 +114,26 @@ let editor =
                 ()
             )
             VersionParametersEditor.e ^::
+          Parameteriser.prepare
+            (
+              Selector.prepare
+                ~make_result: AnyResult.make_set_result'
+                ~make_more_results: (fun set ->
+                  flip S.map show_preview @@ function
+                    | true -> [Utils.ResultRow.(make [cell ~a: [a_colspan 9999] [Formatters.Set.tunes' set]])]
+                    | false -> []
+                )
+                ~label: "Set"
+                ~model_name: "set"
+                ~create_dialog_content: SetEditor.create
+                ~search: (fun slice input ->
+                  let%rlwt filter = lwt (Filter.Set.from_string input) in
+                  ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Set Search) slice filter
+                )
+                ~unserialise: Model.Set.get
+                ()
+            )
+            SetParametersEditor.e ^::
           nil
         )
     )

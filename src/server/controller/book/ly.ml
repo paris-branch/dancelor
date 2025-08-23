@@ -126,6 +126,18 @@ let render book book_parameters rendering_parameters =
       let%lwt sets_and_parameters =
         let%lwt contents = Model.Book.contents book in
         flip Lwt_list.map_p contents @@ function
+          | Model.Book.Part title ->
+            lwt (
+              Model.Set.make ~name: title ~kind: (Kind.Dance.Version (0, Kind.Base.Strathspey)) ~order: [] (),
+              Model.SetParameters.none
+            )
+          | Model.Book.Dance (dance, DanceOnly) ->
+            let name = Model.Dance.one_name' dance in
+            lwt (
+              Model.Set.make ~name ~kind: (Kind.Dance.Version (0, Kind.Base.Strathspey)) ~order: [] (),
+              Model.SetParameters.none
+            )
+          | Model.Book.Dance (_, DanceVersion (version, parameters))
           | Model.Book.Version (version, parameters) ->
             let%lwt tune = Model.Version.tune' version in
             let name = Model.VersionParameters.display_name' ~default: (Model.Tune.one_name' tune) parameters in
@@ -148,7 +160,9 @@ let render book book_parameters rendering_parameters =
                 ()
             in
             lwt (set, set_parameters)
-          | Set (set, parameters) -> lwt (Entry.value set, parameters)
+          | Model.Book.Dance (_, DanceSet (set, parameters))
+          | Model.Book.Set (set, parameters) ->
+            lwt (Entry.value set, parameters)
       in
       (* FIXME: none of the above need to be dummy; I think we can just return
          a SetCore.t; do we need the id anyway? *)
