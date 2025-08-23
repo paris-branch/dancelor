@@ -10,8 +10,8 @@ module type S = sig
   (** Abstract type for a source. *)
 
   val make :
-    name: string ->
-    ?short_name: string ->
+    name: NEString.t ->
+    ?short_name: NEString.t ->
     ?editors: Core.Person.t Entry.t list ->
     ?scddb_id: int ->
     ?description: string ->
@@ -21,11 +21,11 @@ module type S = sig
 
   (** {2 Field getters} *)
 
-  val name : t -> string
-  val name' : t Entry.t -> string
+  val name : t -> NEString.t
+  val name' : t Entry.t -> NEString.t
 
-  val short_name : t -> string
-  val short_name' : t Entry.t -> string
+  val short_name : t -> NEString.t option
+  val short_name' : t Entry.t -> NEString.t option
 
   val editors : t -> Core.Person.t Entry.t list Lwt.t
   val editors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t

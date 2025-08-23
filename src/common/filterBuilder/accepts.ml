@@ -94,9 +94,9 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Source.Is source' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id source) source'
       | Name string ->
-        lwt @@ String.proximity ~char_equal string @@ Model.Source.name' source
+        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Source.name' source
       | NameMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Model.Source.name' source
+        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Source.name' source
 
   and accepts_tune filter tune =
     Formula.interpret filter @@ function

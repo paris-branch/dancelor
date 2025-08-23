@@ -164,7 +164,7 @@ module MakeDescribe (Model : ModelBuilder.S) = struct
         )
       | Source ->
         (fun _ id ->
-          let%lwt name = Model.Source.name' % Option.get <$> Model.Source.get id in
+          let%lwt name = NEString.to_string % Model.Source.name' % Option.get <$> Model.Source.get id in
           lwt_some ("source", name)
         )
     in

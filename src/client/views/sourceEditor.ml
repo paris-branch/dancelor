@@ -7,18 +7,16 @@ open Utils
 
 let editor =
   let open Editor in
-  Input.prepare
+  Input.prepare_non_empty
     ~type_: Text
     ~label: "Name"
     ~placeholder: "eg. The Paris Book of Scottish Country Dances, volume 2"
-    ~serialise: Fun.id
-    ~validate: (S.const % Result.of_string_nonempty ~empty: "The name cannot be empty.")
     () ^::
-  Input.prepare
+  Input.prepare_option
     ~type_: Text
     ~label: "Short name"
     ~placeholder: "eg. Paris Book 2"
-    ~serialise: Fun.id
+    ~serialise: id
     ~validate: (S.const % ok)
     () ^::
   Star.prepare
@@ -72,7 +70,7 @@ let editor =
   nil
 
 let preview (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
-  lwt_some @@ Model.Source.make ~name ~short_name ~editors ?scddb_id ?description ?date ()
+  lwt_some @@ Model.Source.make ~name ?short_name ~editors ?scddb_id ?description ?date ()
 
 let submit mode source =
   match mode with

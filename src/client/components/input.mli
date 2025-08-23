@@ -1,5 +1,6 @@
 (** {1 Input components} *)
 
+open Nes
 open React
 open Js_of_ocaml_tyxml.Tyxml_js
 
@@ -40,3 +41,25 @@ val prepare :
 (** Variant of {!make} that only prepares the component. It must still be
     {!Component.initialise}d. This is used for composition with eg.
     {!ComponentList}. *)
+
+val prepare_option :
+  type_: type_ ->
+  ?font: font ->
+  label: string ->
+  ?placeholder: string ->
+  serialise: ('value -> NEString.t) ->
+  validate: (NEString.t -> ('value, string) result S.t) ->
+  ?oninput: (string -> unit) ->
+  ?template: string ->
+  unit ->
+  ('value option, string) Component.s
+
+val prepare_non_empty :
+  type_: type_ ->
+  ?font: font ->
+  label: string ->
+  ?placeholder: string ->
+  ?oninput: (string -> unit) ->
+  ?template: string ->
+  unit ->
+  (NEString.t, string) Component.s
