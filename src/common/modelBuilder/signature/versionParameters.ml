@@ -3,8 +3,6 @@ module type S = sig
 
       This module defines parameters that make sense at the level of a version. *)
 
-  open Nes
-
   type t = Core.VersionParameters.t
 
   val make :
@@ -14,7 +12,6 @@ module type S = sig
     ?first_bar: int ->
     ?display_name: string ->
     ?display_composer: string ->
-    ?for_dance: Core.Dance.t Entry.t ->
     unit ->
     t
 
@@ -22,7 +19,6 @@ module type S = sig
 
   val none : t
 
-  val for_dance : t -> Core.Dance.t Entry.t option Lwt.t
   val display_name : t -> string option
   val display_name' : default: string -> t -> string
   val display_composer : t -> string option

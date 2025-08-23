@@ -197,21 +197,6 @@ module Build (Getters : Getters.S) = struct
         )
         contents
 
-    let setDanceMismatch book =
-      let%lwt sets_and_parameters = sets_and_parameters_from_contents' book in
-      Lwt_list.filter_map_p
-        (fun (set, parameters) ->
-          let%olwt dance_id = lwt (Core.SetParameters.for_dance parameters) in
-          (* FIXME: SetParameters should be hidden behind the same kind of
-             mechanism as the rest; and this step should not be necessary *)
-          let%lwt dance = Option.get <$> Getters.get_dance dance_id in
-          if Core.Set.kind' set = Core.Dance.kind' dance then
-            lwt_none
-          else
-            lwt_some (SetDanceMismatch (set, dance))
-        )
-        sets_and_parameters
-
     let all book =
       Lwt_list.fold_left_s
         (fun warnings new_warnings_lwt ->
@@ -223,7 +208,6 @@ module Build (Getters : Getters.S) = struct
           empty book;
           duplicateSet book;
           duplicateVersion book;
-          setDanceMismatch book
         ]
   end
 

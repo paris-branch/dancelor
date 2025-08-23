@@ -48,34 +48,6 @@ let name_and_tunes_gen ?tunes_link set =
 let name_and_tunes ?tunes_link set = name_and_tunes_gen ?tunes_link @@ Left set
 let name_and_tunes' ?(name_link = true) ?tunes_link set = name_and_tunes_gen ?tunes_link @@ Right (set, name_link)
 
-let name_tunes_and_dance_gen ?tunes_link ?dance_link set parameters =
-  let dance =
-    with_span_placeholder @@
-      match%lwt Model.SetParameters.for_dance parameters with
-      | None -> lwt_nil
-      | Some dance ->
-        lwt
-          [
-            span
-              ~a: [a_class ["opacity-50"]]
-              [
-                txt "For dance: ";
-                Dance.name' ?link: dance_link dance;
-              ]
-          ]
-  in
-  span [
-    name_and_tunes_gen ?tunes_link set;
-    br ();
-    small [dance];
-  ]
-
-let name_tunes_and_dance ?tunes_link ?dance_link set parameters =
-  name_tunes_and_dance_gen ?tunes_link ?dance_link (Left set) parameters
-
-let name_tunes_and_dance' ?(name_link = true) ?tunes_link ?dance_link set parameters =
-  name_tunes_and_dance_gen ?tunes_link ?dance_link (Right (set, name_link)) parameters
-
 let conceptors ?short tune =
   with_span_placeholder
     (List.singleton <$> (Person.names' ?short <$> Model.Set.conceptors tune))

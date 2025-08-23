@@ -129,12 +129,13 @@ let table_contents ~this_id contents =
                     lwt [Formatters.Set.conceptors' ~short: true set];
                   ]
                 )
-              | Book.Version (version, parameters) ->
+              | Book.Version (version, _parameters) ->
+                (* FIXME: params *)
                 (
                   let href = Endpoints.Page.href_version ~context @@ Entry.id version in
                   Tables.clickable_row ~href [
                     lwt [txt "Tune"];
-                    lwt [Formatters.Version.name_and_dance' ~name_link: false version parameters];
+                    lwt [Formatters.Version.name' ~link: false version];
                     (
                       let%lwt tune = Version.tune' version in
                       lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
@@ -142,12 +143,13 @@ let table_contents ~this_id contents =
                     lwt [Formatters.Version.composer_and_arranger' ~short: true version]
                   ]
                 )
-              | Book.Set (set, parameters) ->
+              | Book.Set (set, _parameters) ->
+                (* FIXME: params *)
                 (
                   let href = Endpoints.Page.href_set ~context @@ Entry.id set in
                   Tables.clickable_row ~href [
                     lwt [txt "Set"];
-                    lwt [Formatters.Set.name_tunes_and_dance' ~name_link: false set parameters];
+                    lwt [Formatters.Set.name_and_tunes' ~name_link: false set];
                     lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
                     lwt [Formatters.Set.conceptors' ~short: true set];
                   ]

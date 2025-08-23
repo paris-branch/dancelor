@@ -105,40 +105,16 @@ module Book = Table.Make(struct
             let%lwt page_dance_dependencies =
               match page_dance with
               | ModelBuilder.Core.Book.Page.DanceOnly -> lwt_nil
-              | ModelBuilder.Core.Book.Page.DanceVersion (version, parameters) ->
-                lwt
-                  (
-                    [Table.make_id_and_table (module Version) version] @
-                      match ModelBuilder.Core.VersionParameters.for_dance parameters with
-                      | None -> []
-                      | Some dance -> [Table.make_id_and_table (module Dance) dance]
-                  )
-              | ModelBuilder.Core.Book.Page.DanceSet (set, parameters) ->
-                lwt
-                  (
-                    [Table.make_id_and_table (module Set) set] @
-                      match ModelBuilder.Core.SetParameters.for_dance parameters with
-                      | None -> []
-                      | Some dance -> [Table.make_id_and_table (module Dance) dance]
-                  )
+              | ModelBuilder.Core.Book.Page.DanceVersion (version, _) ->
+                lwt [Table.make_id_and_table (module Version) version]
+              | ModelBuilder.Core.Book.Page.DanceSet (set, _) ->
+                lwt [Table.make_id_and_table (module Set) set]
             in
             lwt (Table.make_id_and_table (module Dance) dance :: page_dance_dependencies)
-          | ModelBuilder.Core.Book.Page.Version (version, parameters) ->
-            lwt
-              (
-                [Table.make_id_and_table (module Version) version] @
-                  match ModelBuilder.Core.VersionParameters.for_dance parameters with
-                  | None -> []
-                  | Some dance -> [Table.make_id_and_table (module Dance) dance]
-              )
-          | ModelBuilder.Core.Book.Page.Set (set, parameters) ->
-            lwt
-              (
-                [Table.make_id_and_table (module Set) set] @
-                  match ModelBuilder.Core.SetParameters.for_dance parameters with
-                  | None -> []
-                  | Some dance -> [Table.make_id_and_table (module Dance) dance]
-              )
+          | ModelBuilder.Core.Book.Page.Version (version, _) ->
+            lwt [Table.make_id_and_table (module Version) version]
+          | ModelBuilder.Core.Book.Page.Set (set, _) ->
+            lwt [Table.make_id_and_table (module Set) set]
         )
         (ModelBuilder.Core.Book.contents book)
     in
