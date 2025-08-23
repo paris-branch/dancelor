@@ -14,18 +14,6 @@ let title_and_subtitle book =
 
 let title_and_subtitle' = title_and_subtitle % Entry.value
 
-let short_title' ?(link = true) book =
-  span @@
-    let short_title_text = [txt (Model.Book.short_title' book)] in
-    if link then
-      [
-        a
-          ~a: [a_href @@ Endpoints.Page.href_book @@ Entry.id book]
-          short_title_text
-      ]
-    else
-      short_title_text
-
 let date_and_editors source =
   with_span_placeholder @@ (
     let date =

@@ -5,9 +5,6 @@ module Build (Getters : Getters.S) = struct
 
   let get = Getters.get_book
 
-  let short_title book = if short_title book = "" then title book else short_title book
-  let short_title' = short_title % Entry.value
-
   let authors = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % authors
   let authors' = authors % Entry.value
 

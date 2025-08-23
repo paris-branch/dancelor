@@ -25,7 +25,6 @@ module type S = sig
   val make :
     title: string ->
     ?subtitle: string ->
-    ?short_title: string ->
     ?authors: Core.Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
@@ -42,9 +41,6 @@ module type S = sig
 
   val subtitle : t -> string
   val subtitle' : t Entry.t -> string
-
-  val short_title : t -> string
-  val short_title' : t Entry.t -> string
 
   val authors : t -> Core.Person.t Entry.t list Lwt.t
   val authors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
