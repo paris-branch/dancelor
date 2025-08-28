@@ -14,7 +14,7 @@ module Self = struct
     display_name: NEString.t option; [@default None] [@key "display-name"]
     display_composer: NEString.t option [@default None] [@key "display-composer"]
   }
-  [@@deriving eq, make, show {with_path = false}, yojson]
+  [@@deriving eq, make, show {with_path = false}, yojson, fields]
 end
 include Self
 
@@ -32,16 +32,6 @@ let make_instrument pitch =
     ~instruments: (Music.pitch_to_pretty_string pitch ^ " instruments")
     ~transposition: (Transposition.relative pitch Music.pitch_c)
     ()
-
-(** {2 Getters} *)
-
-let transposition p = p.transposition
-let first_bar p = p.first_bar
-let instruments p = p.instruments
-let clef p = p.clef
-let trivia p = p.trivia
-let display_name p = p.display_name
-let display_composer p = p.display_composer
 
 (** {2 Defaults}
 
