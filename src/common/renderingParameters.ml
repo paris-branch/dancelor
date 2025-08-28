@@ -10,14 +10,19 @@ type paper_size =
 [@@deriving eq, show {with_path = false}, yojson]
 
 type pdf_metadata = {
-  title: string; [@default ""]
-  subtitle: string; [@default ""]
-  composers: string list; [@default []] (* FIXME: difference between “author” and “composer”? *)
-  subjects: string list; [@default []] (** to be used for eg. kinds *)
+  title: string option; [@default None]
+  subtitle: string option; [@default None]
+  composers: string list option; [@default None] (* FIXME: difference between “author” and “composer”? *)
+  subjects: string list option; [@default None] (** to be used for eg. kinds *)
 }
 [@@deriving fields, show, eq, yojson]
 
-let no_pdf_metadata = `Assoc [] |> pdf_metadata_of_yojson |> Result.get_ok
+let title' = Option.value ~default: "" % title
+let subtitle' = Option.value ~default: "" % subtitle
+let composers' = Option.value ~default: [] % composers
+let subjects' = Option.value ~default: [] % subjects
+
+let no_pdf_metadata = Result.get_ok (pdf_metadata_of_yojson (`Assoc []))
 
 let update_pdf_metadata ?title ?subtitle ?composers ?subjects pdf_metadata = {
   title = Option.value title ~default: Fun.id pdf_metadata.title;
@@ -26,17 +31,36 @@ let update_pdf_metadata ?title ?subtitle ?composers ?subjects pdf_metadata = {
   subjects = Option.value subjects ~default: Fun.id pdf_metadata.subjects;
 }
 
+let compose_pdf_metadata first second = {
+  title = Option.(choose ~tie: second) first.title second.title;
+  subtitle = Option.(choose ~tie: second) first.subtitle second.subtitle;
+  composers = Option.(choose ~tie: second) first.composers second.composers;
+  subjects = Option.(choose ~tie: second) first.subjects second.subjects;
+}
+
 type t = {
   paper_size: paper_size option; [@default None] [@key "paper-size"]
-  pdf_metadata: pdf_metadata; [@default no_pdf_metadata]
+  instruments: string option; [@default None]
+  pdf_metadata: pdf_metadata; [@default no_pdf_metadata] [@key "pdf-metadata"]
 }
-[@@deriving fields, yojson, eq, show]
+[@@deriving make, fields, yojson, eq, show]
 
-let none = `Assoc [] |> of_yojson |> Result.get_ok
+let make ?paper_size ?pdf_metadata ?instruments () =
+  make ~paper_size ?pdf_metadata ~instruments ()
 
-let update ?paper_size ?pdf_metadata params = {
+let none = Result.get_ok (of_yojson (`Assoc []))
+
+let paper_size' = Option.value ~default: (A 4) % paper_size
+let instruments' = Option.value ~default: "" % instruments
+
+let update ?paper_size ?pdf_metadata ?instruments params = {
   paper_size = Option.value paper_size ~default: Fun.id params.paper_size;
+  instruments = Option.value instruments ~default: Fun.id params.instruments;
   pdf_metadata = Option.value pdf_metadata ~default: Fun.id params.pdf_metadata;
 }
 
-let paper_size' = Option.value ~default: (A 4) % paper_size
+let compose first second = {
+  paper_size = Option.(choose ~tie: second) first.paper_size second.paper_size;
+  instruments = Option.(choose ~tie: second) first.instruments second.instruments;
+  pdf_metadata = compose_pdf_metadata first.pdf_metadata second.pdf_metadata;
+}

@@ -45,14 +45,14 @@ let render book book_parameters rendering_parameters =
       fmt
       [%blob "../template/book/globals.ly"]
       title
-      (Model.BookParameters.instruments' book_parameters);
+      (RenderingParameters.instruments' rendering_parameters);
     fpf
       fmt
       [%blob "../template/book/book_metadata.ly"]
-      (RenderingParameters.(title % pdf_metadata) rendering_parameters)
-      (RenderingParameters.(subtitle % pdf_metadata) rendering_parameters)
-      (String.concat "; " @@ RenderingParameters.(composers % pdf_metadata) rendering_parameters)
-      (String.concat "; " @@ RenderingParameters.(subjects % pdf_metadata) rendering_parameters);
+      (RenderingParameters.(title' % pdf_metadata) rendering_parameters)
+      (RenderingParameters.(subtitle' % pdf_metadata) rendering_parameters)
+      (String.concat "; " @@ RenderingParameters.(composers' % pdf_metadata) rendering_parameters)
+      (String.concat "; " @@ RenderingParameters.(subjects' % pdf_metadata) rendering_parameters);
     fpf fmt [%blob "../template/paper.ly"];
     fpf fmt [%blob "../template/book/paper.ly"];
     if Model.BookParameters.two_sided' book_parameters then

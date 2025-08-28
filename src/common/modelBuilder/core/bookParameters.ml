@@ -23,23 +23,13 @@ module Self = struct
     running_footer: bool option; [@default None] [@key "running-footer"]
     every_set: SetParameters.t; [@default SetParameters.none] [@key "every-set"]
   }
-  [@@deriving make, yojson]
+  [@@deriving make, yojson, fields]
 end
 include Self
 
 (* FIXME: see remark in VersionParameters *)
 let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header () =
   make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ()
-
-(** {2 Getters} *)
-
-let front_page p = p.front_page
-let table_of_contents p = p.table_of_contents
-let two_sided p = p.two_sided
-let running_header p = p.running_header
-let running_footer p = p.running_footer
-let every_set p = p.every_set
-let instruments = SetParameters.instruments % every_set
 
 (** {2 Defaults} *)
 
@@ -50,7 +40,6 @@ let table_of_contents' = Option.value ~default: Nowhere % table_of_contents
 let two_sided' = Option.value ~default: false % two_sided
 let running_header' = Option.value ~default: true % running_header
 let running_footer' = Option.value ~default: true % running_footer
-let instruments' = Option.value ~default: "" % instruments
 
 (** {2 Composition} *)
 

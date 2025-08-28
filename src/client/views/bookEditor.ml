@@ -54,7 +54,7 @@ let set_and_parameters ?(label = "Set") () =
 
 let dance_and_dance_page =
   let open Plus.Bundle in
-  Pair.prepare
+  Cpair.prepare
     ~label: "Dance"
     (
       Selector.prepare

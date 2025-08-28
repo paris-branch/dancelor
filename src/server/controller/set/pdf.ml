@@ -24,9 +24,9 @@ let render set set_parameters rendering_parameters =
       in
       lwt @@
         RenderingParameters.update_pdf_metadata
-          ~title: (String.replace_empty ~by: (NEString.to_string name))
-          ~composers: (List.replace_nil ~by: composers)
-          ~subjects: (List.replace_nil ~by: subjects)
+          ~title: Option.(some % value ~default: (NEString.to_string name))
+          ~composers: Option.(some % value ~default: composers)
+          ~subjects: Option.(some % value ~default: subjects)
     in
     lwt @@
       RenderingParameters.update ~pdf_metadata rendering_parameters

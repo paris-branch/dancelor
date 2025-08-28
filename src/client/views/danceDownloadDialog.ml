@@ -12,7 +12,7 @@ let open_ dance dialog =
     [table dialog.SetDownloadDialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
-      Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Dance Pdf) (Entry.id dance) (Dance.slug' dance) params RenderingParameters.none) dialog.SetDownloadDialog.parameters_signal) ();
+      Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Dance Pdf) (Entry.id dance) (Dance.slug' dance)) dialog.SetDownloadDialog.parameters_signal) ();
     ]
 
 let create_and_open dance = open_ dance =<< create ()

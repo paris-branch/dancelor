@@ -32,6 +32,7 @@ module Password = NesPassword
 module HashedSecret = NesHashedSecret
 module NEList = NesNEList
 module NEString = NesNEString
+module Pair = NesPair
 
 (* Monads *)
 

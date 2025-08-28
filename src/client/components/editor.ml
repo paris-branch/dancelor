@@ -12,7 +12,7 @@ let cons (type value1)(type state1)(type value2)(type state2)
     : (value1 * value2, state1 * state2) bundle
   =
   Bundle (module struct
-    include (val Pair.bundle component bundle)
+    include (val Cpair.bundle component bundle)
 
     let inner_html p =
       div [

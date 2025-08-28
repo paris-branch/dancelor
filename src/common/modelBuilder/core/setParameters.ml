@@ -29,10 +29,6 @@ include Self
 let make ?forced_pages ?show_deviser ?show_order ?display_name ?every_version () =
   make ~forced_pages ~show_deviser ~show_order ~display_name ?every_version ()
 
-(** {2 Getters} *)
-
-let instruments = VersionParameters.instruments % every_version
-
 (** {2 Defaults}
 
     Getters that end with a quote are getters that have a default value. *)

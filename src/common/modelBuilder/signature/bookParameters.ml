@@ -20,7 +20,6 @@ module type S = sig
 
   val none : t
 
-  val instruments' : t -> string
   val two_sided' : t -> bool
   val running_header' : t -> bool
   val running_footer' : t -> bool

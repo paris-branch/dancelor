@@ -18,8 +18,8 @@ let render book book_parameters rendering_parameters =
       let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Book.authors book in
       lwt @@
         RenderingParameters.update_pdf_metadata
-          ~title: (String.replace_empty ~by: name)
-          ~composers: (List.replace_nil ~by: composers)
+          ~title: Option.(some % value ~default: name)
+          ~composers: Option.(some % value ~default: composers)
     in
     lwt @@
       RenderingParameters.update ~pdf_metadata rendering_parameters
