@@ -6,7 +6,7 @@ let editor =
   let open Editor in
   Input.prepare_option
     ~type_: Text
-    ~label: "Display name (optional)"
+    ~label: "Display name"
     ~placeholder: "eg. The Cairdin o' It"
     ~serialise: id
     ~validate: (S.const % ok)

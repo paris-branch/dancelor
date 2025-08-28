@@ -185,7 +185,7 @@ let prepare_option
   prepare
     ~type_
     ?font
-    ~label
+    ~label: (label ^ " (optional)")
     ?placeholder
     ~serialise: (Option.fold ~none: "" ~some: (NEString.to_string % serialise))
     ~validate: (Option.fold ~none: (S.const @@ ok None) ~some: (S.map (Result.map Option.some) % validate) % NEString.of_string)
