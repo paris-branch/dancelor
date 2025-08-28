@@ -26,9 +26,9 @@ let render version version_parameters rendering_parameters =
       let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
       lwt @@
         RenderingParameters.update_pdf_metadata
-          ~title: (String.replace_empty ~by: (NEString.to_string name))
-          ~composers: (List.replace_nil ~by: composers)
-          ~subjects: (List.replace_nil ~by: subjects)
+          ~title: Option.(some % value ~default: (NEString.to_string name))
+          ~composers: Option.(some % value ~default: composers)
+          ~subjects: Option.(some % value ~default: subjects)
     in
     lwt @@ RenderingParameters.update ~pdf_metadata rendering_parameters
   in

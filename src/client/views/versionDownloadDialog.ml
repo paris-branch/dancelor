@@ -7,7 +7,7 @@ open Components
 
 type t = {
   choice_rows: Html_types.tr elt list;
-  parameters_signal: VersionParameters.t React.signal;
+  parameters_signal: (VersionParameters.t * RenderingParameters.t) React.signal;
 }
 
 let create () =
@@ -19,10 +19,16 @@ let create () =
           choice' [txt "C"] ~checked: true;
           choice'
             [txt "B♭"]
-            ~value: (VersionParameters.make_instrument (Music.make_pitch B Flat (-1)));
+            ~value: (
+              VersionParameters.make ~transposition: (Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) (),
+              RenderingParameters.make ~instruments: "B♭ instruments" ()
+            );
           choice'
             [txt "E♭"]
-            ~value: (VersionParameters.make_instrument (Music.make_pitch E Flat 0));
+            ~value: (
+              VersionParameters.make ~transposition: (Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) (),
+              RenderingParameters.make ~instruments: "E♭ instruments" ()
+            );
         ]
     )
   in
@@ -38,17 +44,15 @@ let create () =
         ]
     )
   in
-
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
-    S.map (Option.value ~default: VersionParameters.none) @@
-      S.merge
-        (Option.concat VersionParameters.compose)
-        None
-        [
-          S.map Result.get_ok (Component.signal key_choices);
-          S.map Result.get_ok (Component.signal clef_choices);
-        ]
+    S.merge
+      (Pair.map2_both VersionParameters.compose RenderingParameters.compose)
+      (VersionParameters.none, RenderingParameters.none)
+      [
+        S.map (Option.value ~default: (VersionParameters.none, RenderingParameters.none) % Option.join % Result.to_option) (Component.signal key_choices);
+        S.map (Pair.snoc RenderingParameters.none % Option.value ~default: VersionParameters.none % Option.join % Result.to_option) (Component.signal clef_choices);
+      ]
   in
   lwt {
     choice_rows = [
@@ -66,7 +70,9 @@ let open_ version dialog =
     [table dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
-      Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Version Pdf) (Entry.id version) slug params RenderingParameters.none) dialog.parameters_signal) ();
+      Utils.Button.download
+        ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Version Pdf) (Entry.id version) slug) dialog.parameters_signal)
+        ();
     ]
 
 let create_and_open id = open_ id =<< create ()

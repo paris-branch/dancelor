@@ -8,7 +8,6 @@ module type S = sig
   type t = Core.VersionParameters.t
 
   val make :
-    ?instruments: string ->
     ?transposition: Transposition.t ->
     ?clef: Music.clef ->
     ?first_bar: int ->
@@ -25,7 +24,6 @@ module type S = sig
   val display_composer : t -> NEString.t option
   val clef : t -> Music.clef option
   val transposition' : t -> Transposition.t
-  val make_instrument : Music.pitch -> t
   val trivia' : default: string -> t -> string
 
   val first_bar : t -> int option

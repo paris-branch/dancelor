@@ -31,10 +31,6 @@ include Self
 let make ?front_page ?table_of_contents ?two_sided ?every_set ?running_header () =
   make ~front_page ~table_of_contents ~two_sided ?every_set ~running_header ()
 
-(** {2 Getters} *)
-
-let instruments = SetParameters.instruments % every_set
-
 (** {2 Defaults} *)
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
@@ -44,7 +40,6 @@ let table_of_contents' = Option.value ~default: Nowhere % table_of_contents
 let two_sided' = Option.value ~default: false % two_sided
 let running_header' = Option.value ~default: true % running_header
 let running_footer' = Option.value ~default: true % running_footer
-let instruments' = Option.value ~default: "" % instruments
 
 (** {2 Composition} *)
 

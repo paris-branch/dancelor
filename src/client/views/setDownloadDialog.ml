@@ -7,7 +7,7 @@ open Model
    factorisation here. *)
 type t = {
   choice_rows: Html_types.tr elt list;
-  parameters_signal: SetParameters.t React.signal;
+  parameters_signal: (SetParameters.t * RenderingParameters.t) React.signal;
 }
 
 let lift_version_parameters every_version =
@@ -17,14 +17,14 @@ let create () =
   let%lwt version_dialog = VersionDownloadDialog.create () in
   lwt {
     choice_rows = version_dialog.choice_rows;
-    parameters_signal = S.map (Option.value ~default: SetParameters.none) @@
-      S.merge
-        (Option.concat SetParameters.compose)
-        None
-        [
-          S.map (some % lift_version_parameters) version_dialog.parameters_signal;
-          (* feels a bit silly at this point but will make more sense once we have set-specific options *)
-        ];
+    parameters_signal =
+    S.merge
+      (Pair.map2_both SetParameters.compose RenderingParameters.compose)
+      (SetParameters.none, RenderingParameters.none)
+      [
+        S.map (Pair.map_fst lift_version_parameters) version_dialog.parameters_signal;
+        (* feels a bit silly at this point but will make more sense once we have set-specific options *)
+      ];
   }
 
 (* REVIEW: This is extremely close to `VersionDownloadDialog.render` (apart for
@@ -36,7 +36,7 @@ let open_ set dialog =
     [table dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
-      Utils.Button.download ~href: (S.map (fun params -> Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set) params RenderingParameters.none) dialog.parameters_signal) ();
+      Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set)) dialog.parameters_signal) ();
     ]
 
 let create_and_open set = open_ set =<< create ()
