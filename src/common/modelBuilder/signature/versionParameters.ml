@@ -27,6 +27,8 @@ module type S = sig
   val transposition' : t -> Transposition.t
   val make_instrument : Music.pitch -> t
   val trivia' : default: string -> t -> string
+
+  val first_bar : t -> int option
   val first_bar' : t -> int
 
   val set_display_name : NEString.t -> t -> t
