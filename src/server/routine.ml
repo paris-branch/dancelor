@@ -5,7 +5,6 @@ module Log = (val Logger.create "routine": Logs.LOG)
 
 let preload_versions ?max_concurrency () =
   let%lwt all = Database.Version.get_all () in
-  let all = Lwt_stream.of_list all in
   let%lwt t =
     NesLwt_unix.with_difftimeofday @@ fun () ->
     Lwt_stream.iter_n
@@ -14,11 +13,11 @@ let preload_versions ?max_concurrency () =
         let%lwt tune = Model.Version.tune' version in
         let name = Model.Tune.one_name' tune in
         Log.debug (fun m -> m "Prerendering %s" (NEString.to_string name));
-        let%lwt _ = Controller.Version.Svg.render version Model.VersionParameters.none RenderingParameters.none in
-        let%lwt _ = Controller.Version.Ogg.render version Model.VersionParameters.none RenderingParameters.none in
+        let%lwt _ = Controller.Version.render_svg' version Model.VersionParameters.none RenderingParameters.none in
+        let%lwt _ = Controller.Version.render_ogg' version Model.VersionParameters.none RenderingParameters.none in
         lwt_unit
       )
-      all
+      (Lwt_stream.of_list all)
   in
   Log.info (fun m -> m "Finished prerendering all versions in %fs" t);
   lwt_unit

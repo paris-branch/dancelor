@@ -9,9 +9,6 @@
       busybox # provides `sed`
       gh
       git
-      freepats
-      timidity
-      lilypond
     ];
 
   perSystem =

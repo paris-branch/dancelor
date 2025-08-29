@@ -1,9 +1,6 @@
 open NesUnix
 open Common
 
-module Ly = Ly
-module Pdf = Pdf
-
 let get env id =
   match%lwt Database.Book.get id with
   | None -> Permission.reject_can_get ()
@@ -36,10 +33,29 @@ include Search.Build(struct
     ]
 end)
 
+let get_pdf env id _slug book_params rendering_params =
+  get env id >>= fun book ->
+  let%lwt fname =
+    let%lwt pdf_metadata =
+      let title = NEString.to_string @@ Model.Book.title' book in
+      let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Book.authors' book in
+      lwt Renderer.{title; authors; subjects = []; creator = "FIXME"}
+    in
+    let%lwt book = ModelToRenderer.book_to_renderer_book' book book_params in
+    let%lwt book_pdf_arg =
+      ModelToRenderer.renderer_book_to_renderer_book_pdf_arg
+        book
+        rendering_params
+        pdf_metadata
+    in
+    Renderer.make_book_pdf ~share: !Config.share book_pdf_arg
+  in
+  Madge_server.respond_file ~content_type: "application/pdf" ~fname
+
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
   | Search -> search env
   | Create -> create env
   | Update -> update env
-  | Pdf -> Pdf.get env
+  | Pdf -> get_pdf env

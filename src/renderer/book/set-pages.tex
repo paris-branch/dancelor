@@ -1,0 +1,88 @@
+%% Counter of sets, such that they all have a unique id.
+\newcounter{setcounter}
+
+%% Define a file handle for an auxiliary file that will contain information
+%% about the set pages in this run.
+\newwrite\setpagesfile{}
+
+%% At the beginning of the document, load \jobname.setpages's content for this document, and open it for writing. At the end, flush and close it.
+\AtBeginDocument{%
+  \IfFileExists{\jobname.setpages}{\input{\jobname.setpages}}{}%
+  \immediate\openout\setpagesfile=\jobname.setpages%
+}
+\AtEndDocument{%
+  \clearpage%
+  \immediate\closeout\setpagesfile%
+}
+
+%% The \setpagesfile contains lines of the form `\setpageinfo{start}{2}{7}` or
+%% `\setpageinfo{end}{4}{18}` expressing that set 2 starts at page 7 and set 4
+%% ends at page 18. We define the function that writes those lines for the
+%% current set, and we define the semantics of `\setpageinfo`: registering a
+%% macro eg. `\def\setstart<n>{<page>}`.
+\def\writethesetpageinfo#1{
+  \write\setpagesfile{\string\setpageinfo{#1}{\thesetcounter}{\thepage}}%
+}
+\def\setpageinfo#1#2#3{%
+  \expandafter\gdef\csname set#1#2\endcsname{#3}%
+}
+
+%% Blank pages will get a message to explain why they are blank. This macro does
+%% nothing when the book is simple, and creates the “blank” page in question otherwise.
+\def\blankpage{%
+  \ifsimple%
+  \else%
+    \clearpage%
+    \thispagestyle{norightmarknospecificity}%
+    \null\vfill%
+    \centering%
+    \fbox{
+      \begin{tabular}{@{}c@{}}
+        This page is left blank\\
+        for better alignment\\
+        of the next multi-pages set.
+      \end{tabular}%
+    }%
+    \vfill\vfill\null%
+    \clearpage%
+  \fi%
+}
+
+%% A macro returning the number of pages that the set will take. This is based
+%% on the pages recorded in the previous run, as this information is not
+%% available until after we have done the rendering.
+\def\addblankpageifneeded{
+  \ifcsname setstart\thesetcounter\endcsname
+    \edef\thesetstart{\csname setstart\thesetcounter\endcsname}
+    \edef\thesetend{\csname setend\thesetcounter\endcsname}
+    \edef\thesetpages{\the\numexpr\thesetstart-\thesetend+1\relax}
+    \ifnum\thesetpages=1
+      %% One page works everywhere, so we do nothing.
+    \else
+      %% Two pages or more need to start on the left page.
+      \ifodd\thepage
+        \blankpage{}
+      \else
+        %% Things already start on the left page: we have nothing to do.
+      \fi
+    \fi
+  \else
+    %% We did not record page numbers: we have nothing to do in this run.
+  \fi
+}
+
+%% ================================ [ API ] ================================= %%
+
+%% To be called at the beginning of a set. Increases the set counter and records
+%% the start page of the set both in `\thesetstartpage` and in the .setpages file.
+\def\recordsetstartpage{
+  \stepcounter{setcounter}%
+  \writethesetpageinfo{start}%
+  \addblankpageifneeded{}%
+}
+
+%% To be called at the end of a set. Adds a blank page if the previous run has
+%% established that it is necessary and records the end page of the set.
+\def\recordsetendpage{
+  \writethesetpageinfo{end}%
+}

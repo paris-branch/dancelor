@@ -1,0 +1,63 @@
+%% This file contains everything that has to do with the table of contents. It
+%% provides hooks such as \addsettotoc, to be used in the main file.
+
+%% Provides several utilities, including \ifstrempty.
+\usepackage{etoolbox}
+
+\makeatletter
+%% FIXME: This is copied from the Paris Book and is a technique to add a custom
+%% page to a TOC element. We don't need this at all, so there is probably
+%% something simpler to use.
+\def\addcontentslinewithpage#1#2#3#4{
+  \addtocontents{#1}{%
+    \noindent%
+    \protect\contentsline{#2}{#4}{#3}{}%
+    \protected@file@percent%
+  }%
+}
+
+%% Style for custom TOC elements.
+\renewcommand\l@part[2]{%
+  \vbox{
+    \vspace{8mm}%
+    {\textbf{#1}\makebox[\@pnumwidth][r]{\textbf{#2}}}%
+  }\\%
+}
+\newcommand\l@set[2]{%
+  \vbox{
+    \vspace{4mm}%
+    {#1\makebox[\@pnumwidth][r]{#2}}%
+    \vspace{1mm}%
+  }\\%
+}
+\newcommand\l@tune[2]{%
+  {\small #1\makebox[\@pnumwidth]{}}\\%
+}
+\makeatother
+
+\def\addparttotoc#1#2{%
+  \addcontentslinewithpage{toc}{part}{\thepage}{%
+    #1\hfill{}%
+  }%
+}
+
+\def\addsettotoc#1#2{%
+  \addcontentslinewithpage{toc}{set}{\thepage}{%
+    #1\hfill{}#2\qquad%
+  }%
+}
+
+\def\addtunetotoc#1#2{%
+  \addcontentslinewithpage{toc}{tune}{\thepage}{%
+    \hspace*{5mm}#1\ifstrempty{#2}{}{ (#2)}\hfill{}%
+  }%
+}
+
+%% Redefine the \tableofcontents to be consistent with the rest of the book.
+\makeatletter
+\renewcommand\tableofcontents{%
+  \makebox[\linewidth]{\huge Table of contents}%
+  \vspace{5mm}\\%
+  \@starttoc{toc}%
+}
+\makeatother

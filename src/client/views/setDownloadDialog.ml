@@ -6,7 +6,7 @@ open Model
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)
 type t = {
-  choice_rows: Html_types.tr elt list;
+  choice_rows: Html_types.div elt list;
   parameters_signal: (SetParameters.t * RenderingParameters.t) React.signal;
 }
 
@@ -15,15 +15,33 @@ let lift_version_parameters every_version =
 
 let create () =
   let%lwt version_dialog = VersionDownloadDialog.create () in
+  let%lwt headers_choices =
+    Components.Choices.(
+      make_radios
+        ~label: "Show headers and footers"
+        [
+          choice' [txt "Yes"] ~checked: true;
+          choice'
+            [txt "No"]
+            ~value: (
+              SetParameters.none,
+              RenderingParameters.make ~show_headers: false ()
+            );
+        ]
+    )
+  in
   lwt {
-    choice_rows = version_dialog.choice_rows;
+    choice_rows = version_dialog.choice_rows @ [
+      Components.Component.html headers_choices
+    ];
     parameters_signal =
+    let no_parameters = (SetParameters.none, RenderingParameters.none) in
     S.merge
       (Pair.map2_both SetParameters.compose RenderingParameters.compose)
-      (SetParameters.none, RenderingParameters.none)
+      no_parameters
       [
         S.map (Pair.map_fst lift_version_parameters) version_dialog.parameters_signal;
-        (* feels a bit silly at this point but will make more sense once we have set-specific options *)
+        S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Components.Component.signal headers_choices);
       ];
   }
 
@@ -33,7 +51,7 @@ let open_ set dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
-    [table dialog.choice_rows]
+    [div dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
       Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set)) dialog.parameters_signal) ();

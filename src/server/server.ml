@@ -101,11 +101,6 @@ let callback _ request body =
     else
       lwt_unit
 
-  let populate_caches () =
-    Controller.Version.Svg.populate_cache ();%lwt
-    Controller.Version.Ogg.populate_cache ();%lwt
-    Controller.Book.Pdf.populate_cache ()
-
   let initialise_database () =
     Log.info (fun m -> m "Initialising database");
     Database.Tables.initialise ()
@@ -150,7 +145,6 @@ let callback _ request body =
       read_configuration ();%lwt
       initialise_logs ();
       write_pid ();%lwt
-      populate_caches ();%lwt
       initialise_database ();%lwt
       check_init_only ();
       start_routines ();

@@ -8,27 +8,28 @@ let prefix = Config.database
 module Git = struct
   let add path =
     Log.debug (fun m -> m "Running git add");
-    Process.run_ignore ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "add"; path]
+    ignore <$> Process.run ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "add"; path]
 
   let commit ~msg =
     Log.debug (fun m -> m "Running git commit");
-    Process.run_ignore
-      ~cwd: !prefix
-      ~on_wrong_status: Logs.Error
-      [
-        "git";
-        "commit";
-        "--author=Dancelor <dancelor@dancelor.org>";
-        ("--message=" ^ msg)
-      ]
+    ignore
+    <$> Process.run
+        ~cwd: !prefix
+        ~on_wrong_status: Logs.Error
+        [
+          "git";
+          "commit";
+          "--author=Dancelor <dancelor@dancelor.org>";
+          ("--message=" ^ msg)
+        ]
 
   let push () =
     Log.debug (fun m -> m "Running git push");
-    Process.run_ignore ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "push"]
+    ignore <$> Process.run ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "push"]
 
   let pull_rebase () =
     Log.debug (fun m -> m "Running git pull rebase");
-    Process.run_ignore ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "pull"; "--rebase"]
+    ignore <$> Process.run ~cwd: !prefix ~on_wrong_status: Logs.Error ["git"; "pull"; "--rebase"]
 
   let status_clean () =
     Log.debug (fun m -> m "Checking for clean git status");
