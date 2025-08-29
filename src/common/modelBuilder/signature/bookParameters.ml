@@ -7,14 +7,11 @@ module type S = sig
   type t = Core.BookParameters.t
 
   val make :
-    ?two_sided: bool ->
     ?every_set: Core.SetParameters.t ->
     unit ->
     t
 
   val none : t
-
-  val two_sided' : t -> bool
 
   val every_set : t -> Core.SetParameters.t
 

@@ -27,8 +27,6 @@ let create () =
             [txt "Booklet"]
             ~value: (
               BookParameters.make
-                ~two_sided: true
-                ~every_set: SetParameters.(make ~forced_pages: 2 ())
                 ()
             );
         ]

@@ -6,16 +6,9 @@ module type S = sig
 
   open Nes
 
-  (** How to render the order. [Default] prints the tunes as they appear in the
-      set. [Unfolded] follows the order, duplicating the tunes if they are to be
-      played several times. *)
-  type order_type =
-    Default | Unfolded
-
   type t = Core.SetParameters.t
 
   val make :
-    ?forced_pages: int ->
     ?show_deviser: bool ->
     ?show_order: bool ->
     ?display_name: NEString.t ->
@@ -34,8 +27,6 @@ module type S = sig
   val display_conceptor : t -> string option
   val display_kind : t -> Kind.Dance.t option
   val show_deviser' : t -> bool
-  val forced_pages' : t -> int
-  val order_type' : t -> order_type
 
   val every_version : t -> Core.VersionParameters.t
 
