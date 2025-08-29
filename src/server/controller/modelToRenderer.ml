@@ -15,8 +15,22 @@ let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
 let version_to_renderer_tune version version_params =
-  let%lwt name = NEString.to_string <$> Model.Version.one_name version in
-  let%lwt composer = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
+  let%lwt name =
+    let%lwt default = Model.Version.one_name version in
+    lwt @@
+    NEString.to_string @@
+    Option.value
+      ~default
+      (Model.VersionParameters.display_name version_params)
+  in
+  let%lwt composer =
+    let%lwt none = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
+    lwt @@
+      Option.fold
+        ~none
+        ~some: NEString.to_string
+        (Model.VersionParameters.display_composer version_params)
+  in
   (* prepare the content *)
   let content = Model.Version.content version in
   (* update the key *)
@@ -87,16 +101,17 @@ let version_to_renderer_set version version_params set_params =
     NEString.to_string @@
     Option.value ~default (Model.SetParameters.display_name set_params)
   in
-  let%lwt conceptor =
-    let%lwt default = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
-    lwt @@ Option.value ~default (Model.SetParameters.display_conceptor set_params)
-  in
   let%lwt kind =
     let%lwt none = Kind.Version.to_pretty_string <$> Model.Version.kind version in
     lwt @@ Option.fold ~none ~some: Kind.Dance.to_pretty_string (Model.SetParameters.display_kind set_params)
   in
-  let%lwt contents = List.singleton <$> version_to_renderer_tune version version_params in
-  lwt Renderer.{name; conceptor; kind; contents}
+  let%lwt contents =
+    List.singleton
+    <$> version_to_renderer_tune
+        version
+        (Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params)
+  in
+  lwt Renderer.{name; conceptor = ""; kind; contents}
 
 let version_to_renderer_set' version version_params set_params =
   version_to_renderer_set (Entry.value version) version_params set_params

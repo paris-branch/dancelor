@@ -67,18 +67,22 @@ let get env id =
     lwt version
 
 let get_content env id =
+  Log.debug (fun m -> m "get_content %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   Permission.assert_can_get env version;%lwt
   lwt @@ Model.Version.content' version
 
 let get_pdf env id _slug version_params rendering_params =
+  Log.debug (fun m -> m "get_pdf %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   let%lwt fname =
     let%lwt pdf_metadata =
       let%lwt tune = Model.Version.tune' version in
       let title =
         NEString.to_string @@
-          Option.value (Model.VersionParameters.display_name version_params) ~default: (Model.Tune.one_name' tune)
+          Option.value
+            (Model.VersionParameters.display_name version_params)
+            ~default: (Model.Tune.one_name' tune)
       in
       let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
       let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
@@ -96,6 +100,7 @@ let get_pdf env id _slug version_params rendering_params =
   Madge_server.respond_file ~content_type: "application/pdf" ~fname
 
 let get_svg env id _slug version_params _rendering_params =
+  Log.debug (fun m -> m "get_svg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   let%lwt fname =
     let%lwt tune = ModelToRenderer.version_to_renderer_tune' version version_params in
@@ -105,7 +110,7 @@ let get_svg env id _slug version_params _rendering_params =
   Madge_server.respond_file ~content_type: "image/svg+xml" ~fname
 
 let preview_svg env version version_params _rendering_params =
-  Log.debug (fun m -> m "Model.Version.Svg.preview");
+  Log.debug (fun m -> m "preview_svg");
   Permission.assert_can_create env;%lwt
   let%lwt fname =
     let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
@@ -115,7 +120,7 @@ let preview_svg env version version_params _rendering_params =
   Madge_server.respond_file ~content_type: "image/svg+xml" ~fname
 
 let get_ogg env id _slug version_params _rendering_params =
-  Log.debug (fun m -> m "Model.Version.Ogg.get %a" Entry.Id.pp' id);
+  Log.debug (fun m -> m "get_ogg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   Permission.assert_can_get env version;%lwt
   let%lwt fname =
@@ -129,7 +134,7 @@ let get_ogg env id _slug version_params _rendering_params =
   Madge_server.respond_file ~content_type: "audio/ogg" ~fname
 
 let preview_ogg env version version_params _rendering_params =
-  Log.debug (fun m -> m "Model.Version.Ogg.preview");
+  Log.debug (fun m -> m "preview_ogg");
   Permission.assert_can_create env;%lwt
   let%lwt fname =
     let%lwt tune = Model.Version.tune version in
