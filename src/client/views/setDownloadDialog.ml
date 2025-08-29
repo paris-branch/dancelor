@@ -6,7 +6,7 @@ open Model
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)
 type t = {
-  choice_rows: Html_types.tr elt list;
+  choice_rows: Html_types.div elt list;
   parameters_signal: (SetParameters.t * RenderingParameters.t) React.signal;
 }
 
@@ -33,7 +33,7 @@ let open_ set dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
-    [table dialog.choice_rows]
+    [div dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
       Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set)) dialog.parameters_signal) ();

@@ -8,7 +8,7 @@ open Components
 (* REVIEW: This is close to `VersionDownloadDialog.t`; there is room for
    factorisation here. *)
 type t = {
-  choice_rows: Html_types.tr elt list;
+  choice_rows: Html_types.div elt list;
   parameters_signal: (BookParameters.t * RenderingParameters.t) React.signal;
 }
 
@@ -39,7 +39,7 @@ let create () =
   lwt {
     choice_rows = (
       set_dialog.choice_rows @ [
-        tr [td [label [txt "Mode:"]]; td [Component.inner_html booklet_choices]]
+        Component.html booklet_choices;
       ]
     );
     parameters_signal =
@@ -58,7 +58,7 @@ let open_ book dialog =
   Page.open_dialog @@ fun return ->
   Page.make'
     ~title: (lwt "Download a PDF")
-    [table dialog.choice_rows]
+    [div dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
       Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Book Pdf) (Entry.id book) (Book.slug' book)) dialog.parameters_signal) ();
