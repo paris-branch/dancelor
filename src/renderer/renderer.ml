@@ -114,9 +114,10 @@ let make_tune_ogg = call_nix "makeTuneOgg" % tune_ogg_arg_to_yojson
 
 type book_pdf_arg = {
   book: book;
-  specificity: string; (** the specificity of this book; will show on the front page and in the footer *)
-  full: bool; (** whether the book should be “full”, eg. with a title page and a table of contents *)
-  two_sided: bool; (** whether the document should be two-sided; non-full but two-sided documents look bad *)
+  specificity: string;
+  full: bool;
+  two_sided: bool;
+  headers: bool;
 }
 [@@deriving yojson]
 

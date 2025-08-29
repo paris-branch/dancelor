@@ -106,6 +106,10 @@ let
         description = "Whether the book should be two-sided. Non-full but two-sided looks bad.";
         type = types.bool;
       };
+      headers = mkOption {
+        description = "Whether the book should contain headers and footers.";
+        type = types.bool;
+      };
     };
   };
 
@@ -115,6 +119,7 @@ let
       specificity,
       full,
       two_sided,
+      headers,
     }:
     runCommand "book.pdf"
       {
@@ -129,16 +134,9 @@ let
         cp ${./book}/*.tex .
         {
           printf '\\newif\\iftwosided\n'
-          ${
-            if two_sided then
-              ''
-                printf '\\twosidedtrue\n'
-              ''
-            else
-              ''
-                printf '\\twosidedfalse\n'
-              ''
-          }
+          printf '\\twosided${if two_sided then "true" else "false"}\n'
+          printf '\\newif\\ifheaders\n'
+          printf '\\headers${if headers then "true" else "false"}\n'
           printf '\\input{preamble}\n'
           printf '\\begin{document}\n'
           ${

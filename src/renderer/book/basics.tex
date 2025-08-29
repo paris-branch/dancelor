@@ -6,23 +6,21 @@
   \documentclass[14pt]{extarticle}
 \fi%
 
-%% Custom page geometry.
+%% Custom page geometry. It changes depending on whether we show headers and
+%% whether the document is two-sided.
 \usepackage{geometry}
-\geometry{a4paper}
-\geometry{
-  top=2mm,
-  headsep=2mm,
-  bottom=8mm,
-  footskip=2mm,
-  includehead,
-  includefoot,
-}
+\geometry{a4paper, includehead, includefoot}
+\ifheaders%
+  \geometry{top=2mm, headsep=2mm, bottom=8mm, footskip=2mm}
+\else
+  \geometry{top=2mm, headheight=0mm, headsep=0mm, bottom=2mm, footskip=0mm}
+\fi
 \iftwosided%
   \geometry{inner=14mm, outer=10mm}
 \else%
   \geometry{left=12mm, right=12mm}
 \fi%
-% \geometry{showframe} %% shows frame around pages
+% \geometry{showframe} %% shows frame around pages for debugging
 
 %% Font
 \usepackage{xltxtra}
@@ -34,30 +32,48 @@
 %% Headers and footers
 \makeatletter
 \usepackage{fancyhdr}
-\fancypagestyle{default}{%
-  \fancyhf{}
-  \fancyhead[LE]{\leftmark}
-  \fancyhead[RO]{\rightmark}
-  \fancyfoot[LE,RO]{\thepage}
-  \fancyfoot[LO,RE]{\@specificity}
-  \renewcommand{\headrulewidth}{0pt}
-  \renewcommand{\footrulewidth}{0pt}
-}
-\fancypagestyle{norightmark}{%
-  \fancyhf{}
-  \fancyhead[LE]{\leftmark}
-  \fancyfoot[LE,RO]{\thepage}
-  \fancyfoot[LO,RE]{\@specificity}
-  \renewcommand{\headrulewidth}{0pt}
-  \renewcommand{\footrulewidth}{0pt}
-}
-\fancypagestyle{norightmarknospecificity}{%
-  \fancyhf{}
-  \fancyhead[LE]{\leftmark}
-  \fancyfoot[LE,RO]{\thepage}
-  \renewcommand{\headrulewidth}{0pt}
-  \renewcommand{\footrulewidth}{0pt}
-}
+\ifheaders%
+  \fancypagestyle{default}{%
+    \fancyhf{}
+    \fancyhead[LE]{\leftmark}
+    \fancyhead[RO]{\rightmark}
+    \fancyfoot[LE,RO]{\thepage}
+    \fancyfoot[LO,RE]{\@specificity}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+  \fancypagestyle{norightmark}{%
+    \fancyhf{}
+    \fancyhead[LE]{\leftmark}
+    \fancyfoot[LE,RO]{\thepage}
+    \fancyfoot[LO,RE]{\@specificity}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+  \fancypagestyle{norightmarknospecificity}{%
+    \fancyhf{}
+    \fancyhead[LE]{\leftmark}
+    \fancyfoot[LE,RO]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+\else
+  \fancypagestyle{default}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+  \fancypagestyle{norightmark}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+  \fancypagestyle{norightmarknospecificity}{
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+  }
+\fi
 \pagestyle{default}
 \makeatother
 

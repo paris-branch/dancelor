@@ -152,12 +152,24 @@ let book_to_renderer_book book book_params =
 let book_to_renderer_book' book book_params =
   book_to_renderer_book (Entry.value book) book_params
 
+let grab_renderer_book_pdf_args rendering_params =
+  let specificity =
+    String.concat ", " @@
+      List.flatten
+        [
+          Option.to_list (RenderingParameters.instruments rendering_params);
+          Option.to_list (RenderingParameters.clef rendering_params);
+        ]
+  in
+  let headers = Option.value ~default: true @@ RenderingParameters.show_headers rendering_params in
+    (specificity, headers)
+
 let renderer_book_to_renderer_book_pdf_arg book rendering_params =
-  let specificity = Option.value ~default: "" @@ RenderingParameters.instruments rendering_params in
-  lwt Renderer.{book; specificity; full = true; two_sided = true}
+  let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
+  lwt Renderer.{book; specificity; headers; full = true; two_sided = true}
 
 let renderer_set_to_renderer_book_pdf_arg set rendering_params =
   let title = set.Renderer.name in
-  let specificity = Option.value ~default: "" @@ RenderingParameters.instruments rendering_params in
   let book = {Renderer.title; editor = ""; contents = [Renderer.Set set]} in
-  lwt Renderer.{book; specificity; full = false; two_sided = false}
+  let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
+  lwt Renderer.{book; specificity; headers; full = false; two_sided = false}
