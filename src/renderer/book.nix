@@ -88,6 +88,10 @@ let
           }
         );
       };
+      simple = mkOption {
+        description = "Whether the book should be simple, with no title page, no table of contents, and not two-sided.";
+        type = types.bool;
+      };
     };
   };
 
@@ -97,14 +101,6 @@ let
       specificity = mkOption {
         description = "Specificity of this particular book, eg. Bb instruments or bass clef.";
         type = types.str;
-      };
-      full = mkOption {
-        description = "Whether the book should be full, that is with title page and table of contents.";
-        type = types.bool;
-      };
-      two_sided = mkOption {
-        description = "Whether the book should be two-sided. Non-full but two-sided looks bad.";
-        type = types.bool;
       };
       headers = mkOption {
         description = "Whether the book should contain headers and footers.";
@@ -128,8 +124,6 @@ let
     {
       book,
       specificity,
-      full,
-      two_sided,
       headers,
       pdf_metadata,
     }:
@@ -145,8 +139,8 @@ let
       ''
         cp ${./book}/*.tex .
         {
-          printf '\\newif\\iftwosided\n'
-          printf '\\twosided${if two_sided then "true" else "false"}\n'
+          printf '\\newif\\ifsimple\n'
+          printf '\\simple${if book.simple then "true" else "false"}\n'
           printf '\\newif\\ifheaders\n'
           printf '\\headers${if headers then "true" else "false"}\n'
           printf '\\input{preamble}\n'
@@ -165,7 +159,7 @@ let
           printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
           printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString specificity)}
           ${
-            if full then
+            if !book.simple then
               ''
                 printf '\\maketitle\n\\break\n'
               ''
@@ -190,7 +184,7 @@ let
               throw "Unexpected page type: ${toJSON page}"
           )}
           ${
-            if full then
+            if !book.simple then
               ''
                 printf '\\tableofcontents\n'
               ''

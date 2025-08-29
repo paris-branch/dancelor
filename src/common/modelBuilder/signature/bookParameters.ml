@@ -7,11 +7,15 @@ module type S = sig
   type t = Core.BookParameters.t
 
   val make :
+    ?simple: bool ->
     ?every_set: Core.SetParameters.t ->
     unit ->
     t
 
   val none : t
+
+  val simple : t -> bool option
+  (** FIXME: Find a better name for this option. *)
 
   val every_set : t -> Core.SetParameters.t
 

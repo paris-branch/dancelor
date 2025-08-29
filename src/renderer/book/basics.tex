@@ -1,9 +1,9 @@
 %% The default documentclasses only support font sizes up to 12pt. We use the
 %% package `extsizes` and its documentclass `extbook`.
-\iftwosided%
-  \documentclass[14pt, twoside]{extarticle}
-\else%
+\ifsimple%
   \documentclass[14pt]{extarticle}
+\else%
+  \documentclass[14pt, twoside]{extarticle}
 \fi%
 
 %% Custom page geometry. It changes depending on whether the document is
@@ -18,10 +18,10 @@
   bottom=8mm,
   footskip=2mm,
 }
-\iftwosided%
-  \geometry{inner=14mm, outer=10mm}
+\ifsimple%
+  \geometry{left=12mm, right=12mm} % sum should match with non-simple
 \else%
-  \geometry{left=12mm, right=12mm}
+  \geometry{inner=14mm, outer=10mm} % sum should match with simple
 \fi%
 % \geometry{showframe} %% shows frame around pages for debugging
 

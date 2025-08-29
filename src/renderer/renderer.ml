@@ -42,6 +42,7 @@ type book = {
   title: string;
   editor: string;
   contents: page list;
+  simple: bool;
 }
 [@@deriving yojson]
 
@@ -123,8 +124,6 @@ type pdf_metadata = {
 type book_pdf_arg = {
   book: book;
   specificity: string;
-  full: bool;
-  two_sided: bool;
   headers: bool;
   pdf_metadata: pdf_metadata;
 }

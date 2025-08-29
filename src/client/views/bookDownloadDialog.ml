@@ -23,12 +23,7 @@ let create () =
         ~label: "Mode"
         [
           choice' [txt "Normal"] ~checked: true;
-          choice'
-            [txt "Booklet"]
-            ~value: (
-              BookParameters.make
-                ()
-            );
+          choice' [txt "Simple"] ~value: (BookParameters.make ~simple: true ());
         ]
     )
   in

@@ -27,11 +27,11 @@
   \expandafter\gdef\csname set#1#2\endcsname{#3}%
 }
 
-%% Blank pages will get a message to explain why they are blank. This macro
-%% creates the “blank” page in question when the document is two-sided, and does
-%% nothing otherwise.
+%% Blank pages will get a message to explain why they are blank. This macro does
+%% nothing when the book is simple, and creates the “blank” page in question otherwise.
 \def\blankpage{%
-  \iftwosided%
+  \ifsimple%
+  \else%
     \clearpage%
     \thispagestyle{norightmarknospecificity}%
     \null\vfill%
@@ -45,7 +45,6 @@
     }%
     \vfill\vfill\null%
     \clearpage%
-  \else%
   \fi%
 }
 

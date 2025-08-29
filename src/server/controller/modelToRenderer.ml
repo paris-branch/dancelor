@@ -164,7 +164,8 @@ let book_to_renderer_book book book_params =
     Lwt_list.map_s (fun page -> page_to_renderer_page page book_params)
     =<< Model.Book.contents book
   in
-  lwt Renderer.{title; editor; contents}
+  let simple = Option.value ~default: false @@ Model.BookParameters.simple book_params in
+  lwt Renderer.{title; editor; contents; simple}
 
 let book_to_renderer_book' book book_params =
   book_to_renderer_book (Entry.value book) book_params
@@ -183,10 +184,10 @@ let grab_renderer_book_pdf_args rendering_params =
 
 let renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata =
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{book; specificity; headers; pdf_metadata; full = true; two_sided = true}
+  lwt Renderer.{book; specificity; headers; pdf_metadata}
 
 let renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata =
   let title = set.Renderer.name in
-  let book = {Renderer.title; editor = ""; contents = [Renderer.Set set]} in
+  let book = {Renderer.title; editor = ""; contents = [Renderer.Set set]; simple = true} in
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{book; specificity; headers; pdf_metadata; full = false; two_sided = false}
+  lwt Renderer.{book; specificity; headers; pdf_metadata}
