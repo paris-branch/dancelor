@@ -28,21 +28,25 @@
 }
 
 %% Blank pages will get a message to explain why they are blank. This macro
-%% creates the “blank” page in question.
+%% creates the “blank” page in question when the document is two-sided, and does
+%% nothing otherwise.
 \def\blankpage{%
-  \clearpage%
-  \thispagestyle{norightmarknospecificity}%
-  ~\vfill%
-  \centering%
-  \fbox{
-    \begin{tabular}{@{}c@{}}
-      This page is left blank\\
-      for better alignment\\
-      of the next multi-pages set.
-    \end{tabular}%
-  }%
-  \vfill\vfill~%
-  \clearpage%
+  \iftwosided%
+    \clearpage%
+    \thispagestyle{norightmarknospecificity}%
+    \null\vfill%
+    \centering%
+    \fbox{
+      \begin{tabular}{@{}c@{}}
+        This page is left blank\\
+        for better alignment\\
+        of the next multi-pages set.
+      \end{tabular}%
+    }%
+    \vfill\vfill\null%
+    \clearpage%
+  \else%
+  \fi%
 }
 
 %% A macro returning the number of pages that the set will take. This is based

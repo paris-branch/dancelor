@@ -7,8 +7,9 @@ let get_pdf env id _slug book_params rendering_params =
   | Some book ->
     Permission.assert_can_get env book;%lwt
     let%lwt fname =
-      Renderer.make_book_pdf
-      =<< ModelToRenderer.book_to_renderer_book' book book_params rendering_params
+      let%lwt book = ModelToRenderer.book_to_renderer_book' book book_params in
+      let%lwt book_pdf_arg = ModelToRenderer.renderer_book_to_renderer_book_pdf_arg book rendering_params in
+      Renderer.make_book_pdf book_pdf_arg
     in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname
 

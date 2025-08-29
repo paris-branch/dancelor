@@ -140,15 +140,24 @@ let page_to_renderer_page page book_params =
     let set_params = Model.SetParameters.compose set_params every_set_params in
     Renderer.set <$> set_to_renderer_set' set set_params
 
-let book_to_renderer_book book book_params rendering_params =
+let book_to_renderer_book book book_params =
   let title = NEString.to_string @@ Model.Book.title book in
   let%lwt editor = format_persons <$> Model.Book.authors book in
-  let specificity = Option.value ~default: "" @@ RenderingParameters.instruments rendering_params in
   let%lwt contents =
     Lwt_list.map_s (fun page -> page_to_renderer_page page book_params)
     =<< Model.Book.contents book
   in
-  lwt Renderer.{title; editor; specificity; contents}
+  lwt Renderer.{title; editor; contents}
 
-let book_to_renderer_book' book book_params rendering_params =
-  book_to_renderer_book (Entry.value book) book_params rendering_params
+let book_to_renderer_book' book book_params =
+  book_to_renderer_book (Entry.value book) book_params
+
+let renderer_book_to_renderer_book_pdf_arg book rendering_params =
+  let specificity = Option.value ~default: "" @@ RenderingParameters.instruments rendering_params in
+  lwt Renderer.{book; specificity; full = true; two_sided = true}
+
+let renderer_set_to_renderer_book_pdf_arg set rendering_params =
+  let title = set.Renderer.name in
+  let specificity = Option.value ~default: "" @@ RenderingParameters.instruments rendering_params in
+  let book = {Renderer.title; editor = ""; contents = [Renderer.Set set]} in
+  lwt Renderer.{book; specificity; full = false; two_sided = false}

@@ -68,10 +68,6 @@ let
         description = "The editor of the book.";
         type = types.str;
       };
-      specificity = mkOption {
-        description = "Specificity of this particular book, eg. Bb instruments or bass clef.";
-        type = types.str;
-      };
       contents = mkOption {
         description = "The contents of the book.";
         type = types.listOf (
@@ -98,6 +94,10 @@ let
   bookPdfArgType = types.submodule {
     options = {
       book = mkOption { type = bookType; };
+      specificity = mkOption {
+        description = "Specificity of this particular book, eg. Bb instruments or bass clef.";
+        type = types.str;
+      };
       full = mkOption {
         description = "Whether the book should be full, that is with title page and table of contents.";
         type = types.bool;
@@ -112,8 +112,9 @@ let
   makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
     {
       book,
+      specificity,
       full,
-      ...
+      two_sided,
     }:
     runCommand "book.pdf"
       {
@@ -127,6 +128,17 @@ let
       ''
         cp ${./book}/*.tex .
         {
+          printf '\\newif\\iftwosided\n'
+          ${
+            if two_sided then
+              ''
+                printf '\\twosidedtrue\n'
+              ''
+            else
+              ''
+                printf '\\twosidedfalse\n'
+              ''
+          }
           printf '\\input{preamble}\n'
           printf '\\begin{document}\n'
           ${
@@ -134,7 +146,7 @@ let
               ''
                 printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
                 printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
-                printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString book.specificity)}
+                printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString specificity)}
                 printf '\\maketitle\n'
                 printf '\\break\n'
               ''

@@ -25,14 +25,15 @@ let get_content env id =
 (*   in *)
 (*   lwt @@ RenderingParameters.update ~pdf_metadata rendering_params *)
 
-let get_pdf env id _slug version_params _rendering_params =
+let get_pdf env id _slug version_params rendering_params =
   match%lwt Model.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
     Permission.assert_can_get env version;%lwt
     let%lwt fname =
       let%lwt set = ModelToRenderer.version_to_renderer_set' version version_params Model.SetParameters.none in
-      Renderer.make_set_pdf set
+      let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params in
+      Renderer.make_book_pdf book_pdf_arg
     in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname
 

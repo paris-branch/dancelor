@@ -1,22 +1,28 @@
 %% The default documentclasses only support font sizes up to 12pt. We use the
 %% package `extsizes` and its documentclass `extbook`.
-\documentclass[14pt, twoside]{extarticle}
-% \documentclass[14pt, twoside]{extbook}
+\iftwosided%
+  \documentclass[14pt, twoside]{extarticle}
+\else%
+  \documentclass[14pt]{extarticle}
+\fi%
 
 %% Custom page geometry.
 \usepackage{geometry}
+\geometry{a4paper}
 \geometry{
-  a4paper,
   top=2mm,
   headsep=2mm,
   bottom=8mm,
   footskip=2mm,
-  inner=14mm,
-  outer=10mm,
   includehead,
   includefoot,
-  % showframe, %% shows frame around pages
 }
+\iftwosided%
+  \geometry{inner=14mm, outer=10mm}
+\else%
+  \geometry{left=12mm, right=12mm}
+\fi%
+% \geometry{showframe} %% shows frame around pages
 
 %% Font
 \usepackage{xltxtra}
