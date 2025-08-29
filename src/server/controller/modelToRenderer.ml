@@ -154,7 +154,7 @@ let book_to_renderer_book' book book_params =
 
 let grab_renderer_book_pdf_args rendering_params =
   let specificity =
-    String.concat ", " @@
+    String.concat ", " ~last: " and " @@
       List.flatten
         [
           Option.to_list (RenderingParameters.instruments rendering_params);

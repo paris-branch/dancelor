@@ -139,14 +139,13 @@ let
           printf '\\headers${if headers then "true" else "false"}\n'
           printf '\\input{preamble}\n'
           printf '\\begin{document}\n'
+          printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
+          printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
+          printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString specificity)}
           ${
             if full then
               ''
-                printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
-                printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
-                printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString specificity)}
-                printf '\\maketitle\n'
-                printf '\\break\n'
+                printf '\\maketitle\n\\break\n'
               ''
             else
               ""

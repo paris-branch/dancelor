@@ -10,6 +10,8 @@ type t = {
   parameters_signal: (VersionParameters.t * RenderingParameters.t) React.signal;
 }
 
+(* TODO: Unicode flat in the rendering *)
+
 let create () =
   let%lwt key_choices =
     Choices.(
@@ -21,13 +23,13 @@ let create () =
             [txt "B♭"]
             ~value: (
               VersionParameters.make ~transposition: (Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) (),
-              RenderingParameters.make ~instruments: "B♭ instruments" ()
+              RenderingParameters.make ~instruments: "Bb instruments" ()
             );
           choice'
             [txt "E♭"]
             ~value: (
               VersionParameters.make ~transposition: (Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) (),
-              RenderingParameters.make ~instruments: "E♭ instruments" ()
+              RenderingParameters.make ~instruments: "Eb instruments" ()
             );
         ]
     )
