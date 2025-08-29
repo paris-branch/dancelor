@@ -6,15 +6,18 @@
   \documentclass[14pt]{extarticle}
 \fi%
 
-%% Custom page geometry. It changes depending on whether we show headers and
-%% whether the document is two-sided.
+%% Custom page geometry. It changes depending on whether the document is
+%% two-sided.
 \usepackage{geometry}
-\geometry{a4paper, includehead, includefoot}
-\ifheaders%
-  \geometry{top=2mm, headsep=2mm, bottom=8mm, footskip=2mm}
-\else
-  \geometry{top=2mm, headheight=0mm, headsep=0mm, bottom=2mm, footskip=0mm}
-\fi
+\geometry{
+  a4paper,
+  includehead,
+  top=2mm,
+  headsep=2mm,
+  includefoot,
+  bottom=8mm,
+  footskip=2mm,
+}
 \iftwosided%
   \geometry{inner=14mm, outer=10mm}
 \else%
