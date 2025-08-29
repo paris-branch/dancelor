@@ -31,7 +31,7 @@ let get_pdf env id _slug set_params _rendering_params =
     Permission.assert_can_get env set;%lwt
     let%lwt fname =
       let%lwt set = ModelToRenderer.set_to_renderer_set' set set_params in
-      Renderer.make_book_pdf {title = "FIXME"; editor = "FIXME"; specificity = "FIXME"; contents = [Set set]}
+      Renderer.make_set_pdf set
     in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname
 

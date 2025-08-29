@@ -113,4 +113,25 @@ type tune_ogg_arg = {
 
 let make_tune_ogg = call_nix "makeTuneOgg" % tune_ogg_arg_to_yojson
 
-let make_book_pdf = call_nix "makeBookPdf" % book_to_yojson
+type book_pdf_arg = {
+  book: book;
+  full: bool; (** whether the book should be “full”, eg. with a title page and a table of contents *)
+  two_sided: bool; (** whether the document should be two-sided; non-full but two-sided documents look bad *)
+}
+[@@deriving yojson]
+
+let make_book_pdf book =
+  call_nix "makeBookPdf" @@
+    book_pdf_arg_to_yojson {
+      book;
+      full = true;
+      two_sided = true;
+    }
+
+let make_set_pdf set =
+  call_nix "makeBookPdf" @@
+    book_pdf_arg_to_yojson {
+      book = {title = ""; editor = ""; specificity = ""; contents = [Set set]};
+      full = false;
+      two_sided = false;
+    }

@@ -95,8 +95,26 @@ let
     };
   };
 
-  makeBookPdf = withArgumentType "makeBookPdf" bookType (
-    book:
+  bookPdfArgType = types.submodule {
+    options = {
+      book = mkOption { type = bookType; };
+      full = mkOption {
+        description = "Whether the book should be full, that is with title page and table of contents.";
+        type = types.bool;
+      };
+      two_sided = mkOption {
+        description = "Whether the book should be two-sided. Non-full but two-sided looks bad.";
+        type = types.bool;
+      };
+    };
+  };
+
+  makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
+    {
+      book,
+      full,
+      ...
+    }:
     runCommand "book.pdf"
       {
         buildInputs = with pkgs; [ texlive.combined.scheme-full ]; # FIXME: make smaller
@@ -111,11 +129,18 @@ let
         {
           printf '\\input{preamble}\n'
           printf '\\begin{document}\n'
-          printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
-          printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
-          printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString book.specificity)}
-          printf '\\maketitle\n'
-          printf '\\break\n'
+          ${
+            if full then
+              ''
+                printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
+                printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
+                printf '\\specificity{%s}\n' ${escapeShellArg (escapeLatexString book.specificity)}
+                printf '\\maketitle\n'
+                printf '\\break\n'
+              ''
+            else
+              ""
+          }
           ${forConcat book.contents (
             page:
             if page.part != null then
@@ -133,7 +158,14 @@ let
             else
               throw "Unexpected page type: ${toJSON page}"
           )}
-          printf '\\tableofcontents\n'
+          ${
+            if full then
+              ''
+                printf '\\tableofcontents\n'
+              ''
+            else
+              ""
+          }
           printf '\\end{document}\n'
         } > book.tex
         # latexmk -f -interaction=nonstopmode -pdfxe book
