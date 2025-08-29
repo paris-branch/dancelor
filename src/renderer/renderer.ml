@@ -112,12 +112,21 @@ type tune_ogg_arg = {
 
 let make_tune_ogg = call_nix "makeTuneOgg" % tune_ogg_arg_to_yojson
 
+type pdf_metadata = {
+  title: string;
+  authors: string list;
+  subjects: string list;
+  creator: string; (* FIXME *)
+}
+[@@deriving yojson]
+
 type book_pdf_arg = {
   book: book;
   specificity: string;
   full: bool;
   two_sided: bool;
   headers: bool;
+  pdf_metadata: pdf_metadata;
 }
 [@@deriving yojson]
 

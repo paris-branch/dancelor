@@ -7,8 +7,18 @@ let get_pdf env id _slug book_params rendering_params =
   | Some book ->
     Permission.assert_can_get env book;%lwt
     let%lwt fname =
+      let%lwt pdf_metadata =
+        let title = NEString.to_string @@ Model.Book.title' book in
+        let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Book.authors' book in
+        lwt Renderer.{title; authors; subjects = []; creator = "FIXME"}
+      in
       let%lwt book = ModelToRenderer.book_to_renderer_book' book book_params in
-      let%lwt book_pdf_arg = ModelToRenderer.renderer_book_to_renderer_book_pdf_arg book rendering_params in
+      let%lwt book_pdf_arg =
+        ModelToRenderer.renderer_book_to_renderer_book_pdf_arg
+          book
+          rendering_params
+          pdf_metadata
+      in
       Renderer.make_book_pdf book_pdf_arg
     in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname

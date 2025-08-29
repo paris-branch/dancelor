@@ -1,37 +1,32 @@
 open Nes
 open Common
 
-(* TODO: reintroduce metadata *)
-(*   let%lwt rendering_params = *)
-(*     let%lwt pdf_metadata = *)
-(*       let name = Option.value (Model.SetParameters.display_name set_params) ~default: (Model.Set.name set) in *)
-(*       let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Set.conceptors set in *)
-(*       let subjects = *)
-(*         match KindDance.to_simple @@ Model.Set.kind set with *)
-(*         | None -> ["Medley"] *)
-(*         | Some (n, bars, base) -> *)
-(*           [ *)
-(*             KindBase.to_pretty_string ~capitalised: true base; *)
-(*             spf "%dx%d" n bars; *)
-(*           ] *)
-(*       in *)
-(*       lwt @@ *)
-(*         RenderingParameters.update_pdf_metadata *)
-(*           ~title: (String.replace_empty ~by: (NEString.to_string name)) *)
-(*           ~composers: (List.replace_nil ~by: composers) *)
-(*           ~subjects: (List.replace_nil ~by: subjects) *)
-(*     in *)
-(*     lwt @@ *)
-(*       RenderingParameters.update ~pdf_metadata rendering_params *)
-
 let get_pdf env id _slug set_params rendering_params =
   match%lwt Model.Set.get id with
   | None -> Permission.reject_can_get ()
   | Some set ->
     Permission.assert_can_get env set;%lwt
     let%lwt fname =
+      let%lwt pdf_metadata =
+        let title =
+          NEString.to_string @@
+            Option.value (Model.SetParameters.display_name set_params) ~default: (Model.Set.name' set)
+        in
+        let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Set.conceptors' set in
+        let subjects =
+          match KindDance.to_simple @@ Model.Set.kind' set with
+          | None -> ["Medley"]
+          | Some (n, bars, base) -> [KindBase.to_pretty_string ~capitalised: true base; spf "%dx%d" n bars]
+        in
+        lwt Renderer.{title; authors; subjects; creator = "FIXME"}
+      in
       let%lwt set = ModelToRenderer.set_to_renderer_set' set set_params in
-      let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params in
+      let%lwt book_pdf_arg =
+        ModelToRenderer.renderer_set_to_renderer_book_pdf_arg
+          set
+          rendering_params
+          pdf_metadata
+      in
       Renderer.make_book_pdf book_pdf_arg
     in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname

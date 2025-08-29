@@ -10,29 +10,29 @@ let get_content env id =
     Permission.assert_can_get env version;%lwt
     lwt @@ Model.Version.content' version
 
-(* TODO: reintroduce metadata *)
-(* let%lwt rendering_params = *)
-(*   let%lwt pdf_metadata = *)
-(*     let%lwt tune = Model.Version.tune' version in *)
-(*     let name = Option.value (Model.VersionParameters.display_name version_params) ~default: (Model.Tune.one_name' tune) in *)
-(*     let%lwt composers = List.map (NEString.to_string % Model.Person.name') <$> Model.Tune.composers' tune in *)
-(*     let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in *)
-(*     lwt @@ *)
-(*       RenderingParameters.update_pdf_metadata *)
-(*         ~title: (String.replace_empty ~by: (NEString.to_string name)) *)
-(*         ~composers: (List.replace_nil ~by: composers) *)
-(*         ~subjects: (List.replace_nil ~by: subjects) *)
-(*   in *)
-(*   lwt @@ RenderingParameters.update ~pdf_metadata rendering_params *)
-
 let get_pdf env id _slug version_params rendering_params =
   match%lwt Model.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
     Permission.assert_can_get env version;%lwt
     let%lwt fname =
+      let%lwt pdf_metadata =
+        let%lwt tune = Model.Version.tune' version in
+        let title =
+          NEString.to_string @@
+            Option.value (Model.VersionParameters.display_name version_params) ~default: (Model.Tune.one_name' tune)
+        in
+        let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
+        let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
+        lwt Renderer.{title; authors; subjects; creator = "FIXME"}
+      in
       let%lwt set = ModelToRenderer.version_to_renderer_set' version version_params Model.SetParameters.none in
-      let%lwt book_pdf_arg = ModelToRenderer.renderer_set_to_renderer_book_pdf_arg set rendering_params in
+      let%lwt book_pdf_arg =
+        ModelToRenderer.renderer_set_to_renderer_book_pdf_arg
+          set
+          rendering_params
+          pdf_metadata
+      in
       Renderer.make_book_pdf book_pdf_arg
     in
     Madge_server.respond_file ~content_type: "application/pdf" ~fname

@@ -8,9 +8,11 @@ open Common
 
 module Log = (val Logger.create "controller.modelToRenderer": Logs.LOG)
 
+let format_persons_list =
+  List.map (NEString.to_string % Model.Person.name')
+
 let format_persons =
-  String.concat ", " ~last: " and " %
-    List.map (NEString.to_string % Model.Person.name')
+  String.concat ", " ~last: " and " % format_persons_list
 
 let version_to_renderer_tune version version_params =
   let%lwt name = NEString.to_string <$> Model.Version.one_name version in
@@ -164,12 +166,12 @@ let grab_renderer_book_pdf_args rendering_params =
   let headers = Option.value ~default: true @@ RenderingParameters.show_headers rendering_params in
     (specificity, headers)
 
-let renderer_book_to_renderer_book_pdf_arg book rendering_params =
+let renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata =
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{book; specificity; headers; full = true; two_sided = true}
+  lwt Renderer.{book; specificity; headers; pdf_metadata; full = true; two_sided = true}
 
-let renderer_set_to_renderer_book_pdf_arg set rendering_params =
+let renderer_set_to_renderer_book_pdf_arg set rendering_params pdf_metadata =
   let title = set.Renderer.name in
   let book = {Renderer.title; editor = ""; contents = [Renderer.Set set]} in
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{book; specificity; headers; full = false; two_sided = false}
+  lwt Renderer.{book; specificity; headers; pdf_metadata; full = false; two_sided = false}

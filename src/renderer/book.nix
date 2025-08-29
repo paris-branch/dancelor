@@ -110,6 +110,17 @@ let
         description = "Whether the book should contain headers and footers.";
         type = types.bool;
       };
+      pdf_metadata = mkOption {
+        description = "PDF metadata";
+        type = types.submodule {
+          options = {
+            title = mkOption { type = types.str; };
+            authors = mkOption { type = types.listOf types.str; };
+            subjects = mkOption { type = types.listOf types.str; };
+            creator = mkOption { type = types.str; };
+          };
+        };
+      };
     };
   };
 
@@ -120,6 +131,7 @@ let
       full,
       two_sided,
       headers,
+      pdf_metadata,
     }:
     runCommand "book.pdf"
       {
@@ -138,6 +150,16 @@ let
           printf '\\newif\\ifheaders\n'
           printf '\\headers${if headers then "true" else "false"}\n'
           printf '\\input{preamble}\n'
+          printf '\\usepackage[\n'
+          printf '  pdftitle={%s},\n' ${escapeShellArg (escapeLatexString pdf_metadata.title)}
+          printf '  pdfauthor={%s},\n' ${
+            escapeShellArg (concatMapStringsSep "; " escapeLatexString pdf_metadata.authors)
+          }
+          printf '  pdfsubject={%s},\n' ${
+            escapeShellArg (concatMapStringsSep "; " escapeLatexString pdf_metadata.subjects)
+          }
+          printf '  pdfcreator={%s},\n' ${escapeShellArg (escapeLatexString pdf_metadata.creator)}
+          printf ']{hyperref}\n'
           printf '\\begin{document}\n'
           printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}
           printf '\\author{%s}\n' ${escapeShellArg (escapeLatexString book.editor)}
