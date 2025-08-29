@@ -75,6 +75,12 @@ let get_content env id =
 let get_pdf env id _slug version_params rendering_params =
   Log.debug (fun m -> m "get_pdf %a" Entry.Id.pp' id);
   get env id >>= fun version ->
+  (* never show the headers for a simple version *)
+  let rendering_params =
+    RenderingParameters.update
+      ~show_headers: (const (some false))
+      rendering_params
+  in
   let%lwt fname =
     let%lwt pdf_metadata =
       let%lwt tune = Model.Version.tune' version in

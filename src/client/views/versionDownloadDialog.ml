@@ -49,21 +49,6 @@ let create () =
         ]
     )
   in
-  let%lwt headers_choices =
-    Choices.(
-      make_radios
-        ~label: "Show headers and footers"
-        [
-          choice' [txt "Yes"] ~checked: true;
-          choice'
-            [txt "No"]
-            ~value: (
-              VersionParameters.none,
-              RenderingParameters.make ~show_headers: false ()
-            );
-        ]
-    )
-  in
   (* A signal containing the composition of all the parameters. *)
   let parameters_signal =
     let no_parameters = (VersionParameters.none, RenderingParameters.none) in
@@ -73,14 +58,12 @@ let create () =
       [
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal key_choices);
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal clef_choices);
-        S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal headers_choices);
       ]
   in
   lwt {
     choice_rows = [
       Component.html key_choices;
       Component.html clef_choices;
-      Component.html headers_choices;
     ];
     parameters_signal;
   }
