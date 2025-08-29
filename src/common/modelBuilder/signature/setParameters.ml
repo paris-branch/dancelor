@@ -9,8 +9,6 @@ module type S = sig
   type t = Core.SetParameters.t
 
   val make :
-    ?show_deviser: bool ->
-    ?show_order: bool ->
     ?display_name: NEString.t ->
     ?display_conceptor: string ->
     ?display_kind: Kind.Dance.t ->
@@ -22,16 +20,11 @@ module type S = sig
 
   val none : t
 
-  val show_order' : t -> bool
   val display_name : t -> NEString.t option
   val display_conceptor : t -> string option
   val display_kind : t -> Kind.Dance.t option
-  val show_deviser' : t -> bool
 
   val every_version : t -> Core.VersionParameters.t
-
-  val set_show_order : bool -> t -> t
-  (* FIXME: generic [update] *)
 
   val compose : t -> t -> t
 end
