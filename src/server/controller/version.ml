@@ -95,55 +95,52 @@ let get_pdf env id _slug version_params rendering_params =
         rendering_params
         pdf_metadata
     in
-    Renderer.make_book_pdf book_pdf_arg
+    Renderer.make_book_pdf ~share: !Config.share book_pdf_arg
   in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname
 
-let get_svg env id _slug version_params _rendering_params =
+let render_svg version version_params _rendering_params =
+  let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
+  let stylesheet = "/fonts.css" in
+  Renderer.make_tune_svg ~share: !Config.share {tune; stylesheet}
+
+let render_svg' version version_params rendering_params =
+  render_svg (Entry.value version) version_params rendering_params
+
+let get_svg env id _slug version_params rendering_params =
   Log.debug (fun m -> m "get_svg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
-  let%lwt fname =
-    let%lwt tune = ModelToRenderer.version_to_renderer_tune' version version_params in
-    let stylesheet = "/fonts.css" in
-    Renderer.make_tune_svg {tune; stylesheet}
-  in
+  let%lwt fname = render_svg' version version_params rendering_params in
   Madge_server.respond_file ~content_type: "image/svg+xml" ~fname
 
-let preview_svg env version version_params _rendering_params =
+let preview_svg env version version_params rendering_params =
   Log.debug (fun m -> m "preview_svg");
   Permission.assert_can_create env;%lwt
-  let%lwt fname =
-    let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
-    let stylesheet = "/fonts.css" in
-    Renderer.make_tune_svg {tune; stylesheet}
-  in
+  let%lwt fname = render_svg version version_params rendering_params in
   Madge_server.respond_file ~content_type: "image/svg+xml" ~fname
 
-let get_ogg env id _slug version_params _rendering_params =
+let render_ogg version version_params _rendering_params =
+  let%lwt tune = Model.Version.tune version in
+  let kind = Model.Tune.kind' tune in
+  let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
+  let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
+  let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
+  Renderer.make_tune_ogg ~share: !Config.share {tune; tempo_unit; tempo_value; chords_kind}
+
+let render_ogg' version version_params rendering_params =
+  render_ogg (Entry.value version) version_params rendering_params
+
+let get_ogg env id _slug version_params rendering_params =
   Log.debug (fun m -> m "get_ogg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   Permission.assert_can_get env version;%lwt
-  let%lwt fname =
-    let%lwt tune = Model.Version.tune' version in
-    let kind = Model.Tune.kind' tune in
-    let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
-    let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
-    let%lwt tune = ModelToRenderer.version_to_renderer_tune' version version_params in
-    Renderer.make_tune_ogg {tune; tempo_unit; tempo_value; chords_kind}
-  in
+  let%lwt fname = render_ogg' version version_params rendering_params in
   Madge_server.respond_file ~content_type: "audio/ogg" ~fname
 
-let preview_ogg env version version_params _rendering_params =
+let preview_ogg env version version_params rendering_params =
   Log.debug (fun m -> m "preview_ogg");
   Permission.assert_can_create env;%lwt
-  let%lwt fname =
-    let%lwt tune = Model.Version.tune version in
-    let kind = Model.Tune.kind' tune in
-    let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
-    let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
-    let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
-    Renderer.make_tune_ogg {tune; tempo_unit; tempo_value; chords_kind}
-  in
+  let%lwt fname = render_ogg version version_params rendering_params in
   Madge_server.respond_file ~content_type: "audio/ogg" ~fname
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->

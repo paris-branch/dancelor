@@ -24,3 +24,13 @@
    ppx_monad
    ppx_monad_olwt
    ppx_monad_rlwt)))
+
+(install
+ (section share)
+ (files
+  (glob_files
+   (*.nix with_prefix renderer))
+  (glob_files_rec
+   (book/* with_prefix renderer/book))
+  (glob_files_rec
+   (tune/* with_prefix renderer/tune))))
