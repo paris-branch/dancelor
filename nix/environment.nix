@@ -4,7 +4,7 @@
 { self, inputs, ... }:
 
 {
-  imports = [ inputs.pre-commit-hooks.flakeModule ];
+  imports = [ inputs.git-hooks-nix.flakeModule ];
 
   perSystem =
     {
@@ -17,39 +17,12 @@
     }:
 
     let
-      inherit (pkgs.callPackage "${inputs.topiary}/prefetchLanguages.nix" { })
-        prefetchLanguages
-        fromNickelFile
-        toNickelFile
-        ;
-
-      defaultTopiaryConfig = fromNickelFile "${inputs.topiary}/languages.ncl";
-
-      topiaryWrappedWithPrefetchedConfig =
-        topiaryConfig:
-        pkgs.writeShellApplication {
-          name = "topiary";
-          text = ''
-            exec ${inputs'.topiary.packages.topiary-cli}/bin/topiary \
-                -C ${toNickelFile "languages-prefetched.ncl" (prefetchLanguages topiaryConfig)} \
-                "$@"
-          '';
-        };
-
-      topiaryGitHook = topiaryConfig: {
-        name = "topiary";
-        entry = "${topiaryWrappedWithPrefetchedConfig topiaryConfig}/bin/topiary format";
-        files =
-          let
-            inherit (lib) concatMap attrValues concatStringsSep;
-            extensions = concatMap (c: c.extensions) (attrValues topiaryConfig.languages);
-          in
-          "\\.(" + concatStringsSep "|" extensions + ")$";
-      };
-
-      ## Keep only OCaml as a language for Topiary.
-      myTopiaryConfig = defaultTopiaryConfig // {
-        languages = { inherit (defaultTopiaryConfig.languages) ocaml ocaml_interface; };
+      inherit (inputs'.topiary.lib) gitHookBinFor gitHookFor;
+      myTopiaryConfig = {
+        includeLanguages = [
+          "ocaml"
+          "ocaml_interface"
+        ];
       };
     in
 
@@ -65,7 +38,7 @@
         };
         dune-fmt.enable = true;
 
-        topiary-latest = topiaryGitHook myTopiaryConfig // {
+        topiary-latest = gitHookFor myTopiaryConfig // {
           enable = true;
         };
       };
@@ -75,7 +48,7 @@
           ## Runtime inputs
           (self.makeRuntimeInputs pkgs)
           ## Development environment
-          ++ [ (topiaryWrappedWithPrefetchedConfig myTopiaryConfig) ]
+          ++ [ (gitHookBinFor myTopiaryConfig) ]
           ++ (with pkgs.ocamlPackages; [
             merlin
             ocaml-lsp # called `ocaml-lsp-server` in opam.
