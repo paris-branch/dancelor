@@ -1,14 +1,13 @@
 (include_subdirs qualified)
 
-(executable
- (name server)
- (public_name dancelor)
+(library
+ (name renderer)
+ (public_name dancelor.renderer)
  (libraries
   cohttp-lwt-unix
   dancelor.nes.unix
   dancelor.common
   dancelor.madge.server
-  dancelor.renderer
   logs
   lwt.unix
   str
@@ -24,6 +23,4 @@
    ppx_variants_conv
    ppx_monad
    ppx_monad_olwt
-   ppx_monad_rlwt))
- (preprocessor_deps
-  (source_tree controller/template)))
+   ppx_monad_rlwt)))

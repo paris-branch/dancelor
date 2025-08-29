@@ -3,12 +3,19 @@
   %% have a title.
   tocTitleMarkup = \markup\null
 
+  tocPartMarkup = \markup \huge {
+    \vspace #2
+    \bold
+    \fromproperty #'toc:text
+  }
+
   tocSetMarkup = \markup \huge {
     \vspace #2
     \fill-with-pattern #1.5 #CENTER .
     \fromproperty #'toc:text
     \fromproperty #'toc:page
   }
+
   tocVersionMarkup = \markup
   \fill-line {
     \concat {

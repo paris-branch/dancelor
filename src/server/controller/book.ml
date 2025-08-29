@@ -1,8 +1,16 @@
 open NesUnix
 open Common
 
-module Ly = Ly
-module Pdf = Pdf
+let get_pdf env id _slug book_params rendering_params =
+  match%lwt Model.Book.get id with
+  | None -> Permission.reject_can_get ()
+  | Some book ->
+    Permission.assert_can_get env book;%lwt
+    let%lwt fname =
+      Renderer.make_book_pdf
+      =<< ModelToRenderer.book_to_renderer_book' book book_params rendering_params
+    in
+    Madge_server.respond_file ~content_type: "application/pdf" ~fname
 
 let get env id =
   match%lwt Database.Book.get id with
@@ -42,4 +50,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a 
   | Search -> search env
   | Create -> create env
   | Update -> update env
-  | Pdf -> Pdf.get env
+  | Pdf -> get_pdf env

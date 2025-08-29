@@ -139,28 +139,3 @@ let run
     ~command: strcmd
     output;
   Lwt.return output
-
-let run_ignore
-    ?timeout
-    ?env
-    ?cwd
-    ?stdin
-    ?on_wrong_status
-    ?on_nonempty_stdout
-    ?on_nonempty_stderr
-    ?on_ok
-    cmd
-  =
-  let%lwt _ =
-    run
-      ?timeout
-      ?env
-      ?cwd
-      ?stdin
-      ?on_wrong_status
-      ?on_nonempty_stdout
-      ?on_nonempty_stderr
-      ?on_ok
-      cmd
-  in
-  Lwt.return_unit

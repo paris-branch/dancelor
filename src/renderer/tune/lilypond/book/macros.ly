@@ -1,3 +1,6 @@
+tocPart = #(define-music-function (parser location text) (markup?)
+            (add-toc-item! 'tocPartMarkup text))
+
 tocSet = #(define-music-function (parser location text) (markup?)
            (add-toc-item! 'tocSetMarkup text))
 

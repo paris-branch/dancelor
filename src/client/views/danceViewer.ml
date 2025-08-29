@@ -35,12 +35,6 @@ let create ?context id =
         ~href: (S.const @@ Endpoints.Page.(href DanceEdit) id)
         ~icon: "pencil-square"
         ~label: "Edit"
-        ();
-      Utils.Button.make
-        ~classes: ["dropdown-item"]
-        ~onclick: (fun _ -> ignore <$> DanceDownloadDialog.create_and_open dance)
-        ~icon: "file-pdf"
-        ~label: "Download PDF"
         ()] @ (
         match Dance.scddb_id' dance with
         | None -> []

@@ -1,0 +1,59 @@
+%% The default documentclasses only support font sizes up to 12pt. We use the
+%% package `extsizes` and its documentclass `extbook`.
+\documentclass[14pt, twoside]{extarticle}
+% \documentclass[14pt, twoside]{extbook}
+
+%% Custom page geometry.
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  top=2mm,
+  headsep=2mm,
+  bottom=8mm,
+  footskip=2mm,
+  inner=14mm,
+  outer=10mm,
+  includehead,
+  includefoot,
+  % showframe, %% shows frame around pages
+}
+
+%% Font
+\usepackage{xltxtra}
+\usepackage{fontspec}
+\usepackage{xunicode}
+\defaultfontfeatures{Scale=MatchLowercase}
+\setromanfont[Numbers=Uppercase]{Source Sans Pro}
+
+%% Headers and footers
+\makeatletter
+\usepackage{fancyhdr}
+\fancypagestyle{default}{%
+  \fancyhf{}
+  \fancyhead[LE]{\leftmark}
+  \fancyhead[RO]{\rightmark}
+  \fancyfoot[LE,RO]{\thepage}
+  \fancyfoot[LO,RE]{\@specificity}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\fancypagestyle{norightmark}{%
+  \fancyhf{}
+  \fancyhead[LE]{\leftmark}
+  \fancyfoot[LE,RO]{\thepage}
+  \fancyfoot[LO,RE]{\@specificity}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\fancypagestyle{norightmarknospecificity}{%
+  \fancyhf{}
+  \fancyhead[LE]{\leftmark}
+  \fancyfoot[LE,RO]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\pagestyle{default}
+\makeatother
+
+\setlength\parskip{1em}
+\setlength\parindent{0pt}

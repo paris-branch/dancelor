@@ -1,8 +1,10 @@
 \paper {
   oddHeaderMarkup = \markup {
-    \on-the-fly \not-first-page \fill-line {
+    \fill-line {
       \fromproperty #'header:booktitle
-      \fromproperty #'header:title
+      \on-the-fly \not-part-first-page {
+        \fromproperty #'header:title
+      }
     }
   }
   evenHeaderMarkup = \oddHeaderMarkup

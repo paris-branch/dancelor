@@ -1,5 +1,5 @@
 open Nes
-open Common
+(* open Common *)
 
 module Log = (val Logger.create "routine": Logs.LOG)
 
@@ -14,8 +14,8 @@ let preload_versions ?max_concurrency () =
         let%lwt tune = Model.Version.tune' version in
         let name = Model.Tune.one_name' tune in
         Log.debug (fun m -> m "Prerendering %s" (NEString.to_string name));
-        let%lwt _ = Controller.Version.Svg.render version Model.VersionParameters.none RenderingParameters.none in
-        let%lwt _ = Controller.Version.Ogg.render version Model.VersionParameters.none RenderingParameters.none in
+        (* let%lwt _ = Controller.Version.Svg.render version Model.VersionParameters.none RenderingParameters.none in *)
+        (* let%lwt _ = Controller.Version.Ogg.render version Model.VersionParameters.none RenderingParameters.none in *)
         lwt_unit
       )
       all

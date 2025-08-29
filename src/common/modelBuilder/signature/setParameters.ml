@@ -19,6 +19,8 @@ module type S = sig
     ?show_deviser: bool ->
     ?show_order: bool ->
     ?display_name: NEString.t ->
+    ?display_conceptor: string ->
+    ?display_kind: Kind.Dance.t ->
     ?every_version: Core.VersionParameters.t ->
     unit ->
     t
@@ -29,6 +31,8 @@ module type S = sig
 
   val show_order' : t -> bool
   val display_name : t -> NEString.t option
+  val display_conceptor : t -> string option
+  val display_kind : t -> Kind.Dance.t option
   val show_deviser' : t -> bool
   val forced_pages' : t -> int
   val order_type' : t -> order_type

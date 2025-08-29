@@ -1,0 +1,71 @@
+%% Provides several utilities, including \ifstrempty.
+\usepackage{etoolbox}
+
+%% Provides \includegraphics.
+\usepackage{graphicx}
+
+%% Title page, simple compare to usual TeX title pages, but with an extra notion
+%% of “specificity” (eg. Bb instruments, or bass clef).
+\makeatletter
+\def\@specificity{}
+\def\title#1{\def\@title{#1}\markboth{#1}{}}
+\def\specificity#1{\def\@specificity{#1}}
+\renewcommand\maketitle{
+  \clearpage%
+  \thispagestyle{empty}%
+  \null\vfill%
+  \begin{center}%
+    {\Huge \@title}\\[30mm]%
+    {\large \@author}\\%
+  \end{center}%
+  \vfill%
+  \begin{center}%
+    {\large \@specificity}%
+  \end{center}%
+  \vfill\null%
+  \clearpage%
+}
+\makeatother
+
+\renewcommand\part[1]{%
+  \clearpage%
+  \thispagestyle{norightmark}%
+  \addparttotoc{#1}%
+  \recordsetstartpage{}%
+  \null\vfill%
+  \begin{center}
+    {\huge #1}%
+  \end{center}
+  \vfill\vfill\null%
+  \recordsetendpage{}%
+  \clearpage%
+}
+
+\newenvironment{set}[3]{%
+  \clearpage%
+  \thispagestyle{norightmark}%
+  \markright{#1}%
+  \addsettotoc{#1}{#3}%
+  \recordsetstartpage{}%
+  \vbox{
+    \makebox[\linewidth]{\huge #1}
+    \ifstrempty{#2}{}{\makebox[\linewidth]{#2}}
+    \ifstrempty{#3}{}{\makebox[\linewidth]{#3}}
+  }%
+}{
+  \recordsetendpage{}%
+  \clearpage%
+}
+
+\newcommand\tune[3]{%
+  \vspace{14mm minus 10mm}%
+  \addtunetotoc{#1}{#2}%
+  \vbox{
+    \makebox[\linewidth]{#1\hfill{}#2}\\[2mm]%
+    %% Tune are generated on A4 paper -- 21cm wide -- with a left margin of 1cm
+    %% for page numbers -- that is 5% of the whole page. Since we want page
+    %% numbers to actually appear in the margin on the website, we make the image
+    %% bigger but remove those 5% of margin on the left.
+    \hspace*{-.05\linewidth}\makebox[1.05\linewidth]{\includegraphics[width=1.05\linewidth]{#3}}%
+  }%
+}
