@@ -1,4 +1,5 @@
 { self, ... }:
+
 {
   flake.nixosModules.default =
     {
@@ -53,6 +54,14 @@
           '';
           example = "github.com/paris-branch/dancelor-database";
         };
+
+        testMode = lib.mkOption {
+          type = lib.types.bool;
+          description = ''
+            Whether to set up Dancelor for testing. Do not use in production.
+          '';
+          default = false;
+        };
       };
 
       config =
@@ -70,33 +79,42 @@
                   'test "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true'
               )
 
-              ## If the repository does not exist, then we clone it.
-              if ! [ -e /var/lib/dancelor/database ]; then
-                echo 'Cloning the repository to /var/lib/dancelor/database...'
-                git clone "$(cat ${cfg.databaseRepositoryFile})" /var/lib/dancelor/database
-                echo 'done.'
-              fi
+              ${
+                if cfg.testMode then
+                  ''
+                    ln -sf ${../tests/database} /var/lib/dancelor/database
+                  ''
+                else
+                  ''
+                    ## If the repository does not exist, then we clone it.
+                    if ! [ -e /var/lib/dancelor/database ]; then
+                      echo 'Cloning the repository to /var/lib/dancelor/database...'
+                      git clone "$(cat ${cfg.databaseRepositoryFile})" /var/lib/dancelor/database
+                      echo 'done.'
+                    fi
 
-              ## Once the repository exists and is a Git repository, we
-              ## configure it. Most of these will not change, but they might
-              ## sometimes (in particular the repository) and it will not hurt
-              ## to do that again.
-              if is_dancelor_git_repository /var/lib/dancelor/database; then
-                (
-                  echo 'Setting up the git repository...'
-                  cd /var/lib/dancelor/database
-                  echo '  - username...'
-                  git -c safe.directory=/var/lib/dancelor/database config user.name Dancelor
-                  echo '  - email...'
-                  git -c safe.directory=/var/lib/dancelor/database config user.email dancelor@dancelor.org
-                  echo '  - remote...'
-                  git -c safe.directory=/var/lib/dancelor/database remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
-                  echo 'done.'
-                )
-              else
-                echo "The directory '/var/lib/dancelor/database' exists but is not a Git repository." >&2
-                exit 1
-              fi
+                    ## Once the repository exists and is a Git repository, we
+                    ## configure it. Most of these will not change, but they might
+                    ## sometimes (in particular the repository) and it will not hurt
+                    ## to do that again.
+                    if is_dancelor_git_repository /var/lib/dancelor/database; then
+                      (
+                        echo 'Setting up the git repository...'
+                        cd /var/lib/dancelor/database
+                        echo '  - username...'
+                        git -c safe.directory=/var/lib/dancelor/database config user.name Dancelor
+                        echo '  - email...'
+                        git -c safe.directory=/var/lib/dancelor/database config user.email dancelor@dancelor.org
+                        echo '  - remote...'
+                        git -c safe.directory=/var/lib/dancelor/database remote set-url origin "$(cat ${cfg.databaseRepositoryFile})"
+                        echo 'done.'
+                      )
+                    else
+                      echo "The directory '/var/lib/dancelor/database' exists but is not a Git repository." >&2
+                      exit 1
+                    fi
+                  ''
+              }
 
               chown -R dancelor:dancelor /var/lib/dancelor
             '';
@@ -107,6 +125,11 @@
             text = ''
               ${self.apps.${pkgs.system}.default.program} \
                 --database /var/lib/dancelor/database \
+                ${lib.strings.optionalString cfg.testMode ''
+                  --no-sync-storage \
+                  --no-write-storage \
+                  --no-routines \
+                ''} \
                 --loglevel info \
                 --port ${toString cfg.listeningPort} \
                 --github-token-file ${cfg.githubTokenFile} \

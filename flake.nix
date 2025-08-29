@@ -20,6 +20,7 @@
         ./nix/environment.nix
         ./nix/nixosmodule.nix
         ./nix/package.nix
+        ./nix/tests.nix
       ];
 
       systems = [ "x86_64-linux" ];

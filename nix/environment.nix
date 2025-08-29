@@ -57,19 +57,7 @@
             utop
           ])
           ## System testing environment
-          ++ (with pkgs; [
-            firefox
-            geckodriver
-            xclip # for pyperclip
-            (python3.withPackages (
-              p: with p; [
-                pyperclip
-                pytest
-                pytest-xdist
-                selenium
-              ]
-            ))
-          ]);
+          ++ (self.makeTestInputs pkgs);
         inputsFrom = [ self'.packages.default ];
         shellHook = config.pre-commit.installationScript;
         ## Dancelor runs Nix, which needs to grab `nixpkgs` and `nixpkgs2211`.
