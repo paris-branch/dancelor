@@ -5,8 +5,8 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     topiary.url = "github:tweag/topiary";
 
-    pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
+    git-hooks-nix = {
+      url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
