@@ -2,9 +2,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    ## FIXME: Remove once LilyPond can be taken from NixOS unstable.
-    nixpkgs2211.url = "github:nixos/nixpkgs/nixos-22.11";
-
     flake-parts.url = "github:hercules-ci/flake-parts";
     topiary.url = "github:tweag/topiary";
 
@@ -21,7 +18,6 @@
         ./nix/application.nix
         ./nix/environment.nix
         ./nix/nixosmodule.nix
-        ./nix/nixpkgs.nix
         ./nix/package.nix
       ];
 
