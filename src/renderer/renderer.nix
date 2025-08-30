@@ -4,7 +4,10 @@
     url = "https://github.com/nixos/nixpkgs.git";
     ref = "nixos-22.11";
   },
-  nixpkgs ? <nixpkgs>,
+  nixpkgs ? builtins.fetchGit {
+    url = "https://github.com/nixos/nixpkgs.git";
+    ref = "nixos-unstable";
+  },
   ...
 }:
 
