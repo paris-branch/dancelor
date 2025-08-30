@@ -51,7 +51,7 @@ jobs:
         run: nix develop --command make unit-tests QCHECK_LONG=true
 
       - name: Run system tests
-        run: nix develop --command make system-tests
+        run: nix build .#checks.x86_64-linux.integration -vL
 
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v4
