@@ -53,7 +53,8 @@ let version_to_renderer_tune version version_params =
     in
     spf "\\transpose %s %s { %s }" source target content
   in
-  lwt Renderer.{name; composer; content}
+  let first_bar = Model.VersionParameters.first_bar' version_params in
+  lwt Renderer.{name; composer; content; first_bar}
 
 let version_to_renderer_tune' version version_params =
   version_to_renderer_tune (Entry.value version) version_params
