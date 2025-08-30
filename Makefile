@@ -1,18 +1,7 @@
-.PHONY: build dev-test local dev entr indent clean
-
-DUNEJOBSARG :=
-ifneq ($(DUNEJOBS),)
-DUNEJOBSARG := -j $(DUNEJOBS)
-endif
+.PHONY: build dev entr local dev-test clean
 
 build:
-	dune build $(DUNEJOBSARG) @install
-	ln -sf _build/install/default/bin .
-
-## The release profile will, among other things, eliminate dead code and minify
-## `client.js` and `server.exe`. The Nix module already does that.
-release:
-	dune build $(DUNEJOBSARG) --profile release @install
+	dune build @install
 	ln -sf _build/install/default/bin .
 
 dev: build
@@ -28,6 +17,5 @@ dev-test: build
 	bin/dancelor --config tests/config.json
 
 clean:
-	dune clean $(DUNEJOBSARG)
+	dune clean
 	rm -f bin
-	rm -f share/static/dancelor
