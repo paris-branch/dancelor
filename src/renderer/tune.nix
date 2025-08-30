@@ -30,7 +30,11 @@ let
         description = "The composer of the tune.";
         type = types.str;
       };
-      content = mkOption { };
+      content = mkOption { type = types.str; };
+      first_bar = mkOption {
+        description = "What the first bar of the tune should be.";
+        type = types.int;
+      };
     };
   };
 
@@ -59,7 +63,7 @@ let
 
   ## TODO: cf tuneScheme
   makeTuneLilypond =
-    { content, ... }:
+    { content, first_bar, ... }:
     let
       contentFile = writeText "tune-content.ly" content;
     in
@@ -78,7 +82,10 @@ let
         cat ${./tune/lilypond/scottish_chords.ly}
         cat ${./tune/lilypond/fancy_unfold_repeats.ly}
         cat ${./tune/lilypond/version/header.ly}
-        printf '\\score {\n  %s\n}\n\\markup\\null\n' "$(cat "${contentFile}")"
+        printf '\\score {\n'
+        printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
+        printf '  { %s }\n' "$(cat "${contentFile}")"
+        printf '}\n\\markup\\null\n'
       } > $out
     '';
 

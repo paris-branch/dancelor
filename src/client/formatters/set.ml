@@ -11,19 +11,33 @@ let works set =
 
 let works' = works % Entry.value
 
-let name_gen set_gen =
-  span [
+let display_name ?(params = Model.SetParameters.none) () =
+  match Model.SetParameters.display_name params with
+  | None -> []
+  | Some display_name -> [txt " [as “"; txt (NEString.to_string display_name); txt "”]"]
+
+let display_conceptor ?(params = Model.SetParameters.none) () =
+  match Model.SetParameters.display_conceptor params with
+  | None -> []
+  | Some display_conceptor -> [txt " [as “"; txt display_conceptor; txt "”]"]
+
+let name_gen ?params set_gen =
+  span (
+    [
     match set_gen with
     | Right (set, true) ->
       a
         ~a: [a_href @@ Endpoints.Page.href_set @@ Entry.id set]
         [txt @@ NEString.to_string @@ Model.Set.name' set]
     | Right (set, _) -> txt (NEString.to_string @@ Model.Set.name' set)
-    | Left set -> txt (NEString.to_string @@ Model.Set.name set)
-  ]
+    | Left set -> txt (NEString.to_string @@ Model.Set.name set)] @
+      display_name ?params ()
+  )
 
 let name = name_gen % Either.left
-let name' ?(link = true) set = name_gen @@ Right (set, link)
+
+let name' ?(link = true) ?params set =
+  name_gen ?params @@ Right (set, link)
 
 let tunes ?link set =
   with_span_placeholder @@
@@ -38,18 +52,27 @@ let tunes ?link set =
 
 let tunes' ?link set = tunes ?link @@ Entry.value set
 
-let name_and_tunes_gen ?tunes_link set =
-  span [
-    name_gen set;
+let name_and_tunes_gen ?tunes_link ?params set =
+  span (
+    [name_gen set;
     br ();
     small [tunes ?link: tunes_link @@ Either.fold ~left: Fun.id ~right: (Entry.value % fst) set];
-  ]
+    ] @
+      display_name ?params ()
+  )
 
-let name_and_tunes ?tunes_link set = name_and_tunes_gen ?tunes_link @@ Left set
-let name_and_tunes' ?(name_link = true) ?tunes_link set = name_and_tunes_gen ?tunes_link @@ Right (set, name_link)
+let name_and_tunes ?tunes_link set =
+  name_and_tunes_gen ?tunes_link @@ Left set
 
-let conceptors ?short tune =
-  with_span_placeholder
-    (List.singleton <$> (Person.names' ?short <$> Model.Set.conceptors tune))
+let name_and_tunes' ?(name_link = true) ?tunes_link ?params set =
+  name_and_tunes_gen ?tunes_link ?params @@ Right (set, name_link)
 
-let conceptors' ?short tune = conceptors ?short (Entry.value tune)
+let conceptors ?short ?params tune =
+  span (
+    [with_span_placeholder
+      (List.singleton <$> (Person.names' ?short <$> Model.Set.conceptors tune))] @
+      display_conceptor ?params ()
+  )
+
+let conceptors' ?short ?params tune =
+  conceptors ?short ?params (Entry.value tune)

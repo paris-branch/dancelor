@@ -19,17 +19,21 @@ val name :
 
 val name' :
   ?link: bool ->
+  ?context: Endpoints.Page.context ->
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
 (** Variant of {!name} taking an {!Entry.t}. Because this is an entry, we can
     additionnally have a link. *)
 
 val name_disambiguation_and_sources :
+  ?params: Model.VersionParameters.t ->
   Model.Version.t ->
   [> Html_types.span] elt
 
 val name_disambiguation_and_sources' :
   ?name_link: bool ->
+  ?context: Endpoints.Page.context ->
+  ?params: Model.VersionParameters.t ->
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
 (** Variant of {!name_disambiguation_and_sources} taking an {!Entry.t}. Because
@@ -48,12 +52,14 @@ val disambiguation_and_sources' :
 val composer_and_arranger :
   ?short: bool ->
   ?arranger_links: bool ->
+  ?params: Model.VersionParameters.t ->
   Model.Version.t ->
   [> Html_types.span] elt
 
 val composer_and_arranger' :
   ?short: bool ->
   ?arranger_links: bool ->
+  ?params: Model.VersionParameters.t ->
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
 (** Variant of {!composer_and_arranger} taking an {!Entry.t}. *)

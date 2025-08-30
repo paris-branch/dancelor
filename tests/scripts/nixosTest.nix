@@ -23,6 +23,6 @@
   testScript = ''
     machine.start()
     machine.wait_for_unit("dancelor.service")
-    machine.succeed("cd ${../..} && pytest --numprocesses auto --verbose >&2")
+    machine.succeed("cd ${../..} && pytest --numprocesses 1 --verbose >&2")
   '';
 }

@@ -8,6 +8,7 @@ type tune = {
   name: string;
   composer: string;
   content: string;
+  first_bar: int;
 }
 [@@deriving yojson]
 

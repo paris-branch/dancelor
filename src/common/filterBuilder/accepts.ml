@@ -19,9 +19,8 @@ module Make (Model : ModelBuilder.S) = struct
         let%lwt content = Model.Book.contents' book in
         let%lwt versions =
           Lwt_list.filter_map_s
-            (* FIXME: unVersion *)
             (function
-              | Model.Book.Version (v, _p) -> lwt_some v
+              | Model.Book.Version (v, _) | Model.Book.Dance (_, DanceVersion (v, _)) -> lwt_some v
               | _ -> lwt_none
             )
             content
@@ -31,9 +30,8 @@ module Make (Model : ModelBuilder.S) = struct
         let%lwt content = Model.Book.contents' book in
         let%lwt sets =
           Lwt_list.filter_map_s
-            (* FIXME: unSet *)
             (function
-              | Model.Book.Set (s, _p) -> lwt_some s
+              | Model.Book.Set (s, _) | Model.Book.Dance (_, DanceSet (s, _)) -> lwt_some s
               | _ -> lwt_none
             )
             content

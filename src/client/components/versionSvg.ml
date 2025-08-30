@@ -29,10 +29,10 @@ let make_gen href =
         ]
     )
 
-let make version =
+let make ?(params = Model.VersionParameters.none) version =
   make_gen @@
     let%lwt slug = Model.Version.slug' version in
-    lwt @@ Endpoints.Api.(href @@ Version Svg) (Entry.id version) slug Model.VersionParameters.none RenderingParameters.none
+    lwt @@ Endpoints.Api.(href @@ Version Svg) (Entry.id version) slug params RenderingParameters.none
 
-let make_preview version =
-  make_gen @@ lwt @@ Endpoints.Api.(href @@ Version PreviewSvg) version Model.VersionParameters.none RenderingParameters.none
+let make_preview ?(params = Model.VersionParameters.none) version =
+  make_gen @@ lwt @@ Endpoints.Api.(href @@ Version PreviewSvg) version params RenderingParameters.none
