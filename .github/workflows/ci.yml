@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test-with-nix:
-    name: Build and test with Nix
+  build-and-test:
+    name: Build and test
     runs-on: ubuntu-latest
 
     steps:
@@ -61,7 +61,7 @@ jobs:
   deploy-documentation:
     name: Deploy documentation
     runs-on: ubuntu-latest
-    needs: build-and-test-with-nix
+    needs: build-and-test
     if: github.ref == 'refs/heads/main'
 
     ## Grant GITHUB_TOKEN the permissions required to make a Pages deployment.
