@@ -1,4 +1,4 @@
-.PHONY: build doc dev-test local dev entr indent clean
+.PHONY: build dev-test local dev entr indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -15,10 +15,6 @@ release:
 	dune build $(DUNEJOBSARG) --profile release @install
 	ln -sf _build/install/default/bin .
 
-doc:
-	dune build $(DUNEJOBSARG) @doc
-	ln -sf _build/default/_doc/_html doc
-
 dev: build
 	bin/dancelor --config assets/config.local.json
 
@@ -33,5 +29,5 @@ dev-test: build
 
 clean:
 	dune clean $(DUNEJOBSARG)
-	rm -f bin doc
+	rm -f bin
 	rm -f share/static/dancelor
