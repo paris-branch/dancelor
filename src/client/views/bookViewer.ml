@@ -107,10 +107,7 @@ let table_contents ~this_id contents =
                       br ();
                       small [txt "Tune: "; Formatters.Version.name' ~link: true version];
                     ];
-                    (
-                      let%lwt tune = Version.tune' version in
-                      lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
-                    );
+                    lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
                     lwt [Formatters.Version.composer_and_arranger' ~short: true version]
                   ]
                 )
