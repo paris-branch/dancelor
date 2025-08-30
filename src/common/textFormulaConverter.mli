@@ -97,7 +97,7 @@ val unary_lift :
 (** {2 Building} *)
 
 val make : 'p case list -> 'p t
-(** Make a converter from a list of {!case}s. *)
+(** Make a converter from a list of {!type-case}s. *)
 
 val map : ?error: (string -> string) -> ('p Formula.t -> 'q) -> 'p t -> 'q t
 (** Map over a converter given a function. This allows to lift formulas on ['p]

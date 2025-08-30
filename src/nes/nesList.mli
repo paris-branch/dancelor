@@ -38,7 +38,9 @@ val hd_opt : 'a t -> 'a option
 (** Return the first element of the given list or [None] if the list is empty. *)
 
 val hd_tl : 'a list -> 'a * 'a list
-(** Pair of {!hd} and {!tl}. @raise Failure if the list is empty. *)
+(** Pair of {!hd} and {!tl}.
+
+    @raise Failure if the list is empty. *)
 
 val remove : int -> 'a list -> 'a list
 (** Remove the element at the given indice in the list. *)

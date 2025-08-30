@@ -10,7 +10,7 @@ include module type of Madge
     attempt to match the request to the route, and, if it succeeds, apply the
     controller. The result of the controller is serialised as the route commands
     and returned as JSON under the form of an Lwt promise compatible with the
-    [~callback] argument of {!Cohttp_unix_lwt.Server.make}. *)
+    [~callback] argument of {!Cohttp_lwt_unix.Server.make}. *)
 val match_apply :
   ('a, 'r Lwt.t, 'r) Route.t ->
   (unit -> 'a) ->
@@ -19,8 +19,8 @@ val match_apply :
 
 (** {2 Successful non-JSON responses}
 
-    All of these return {Void.t}, meaning they can only ever be used on a route
-    that is never returning normally anyway; otherwise, this would allow
+    All of these return {!NesVoid.t}, meaning they can only ever be used on a
+    route that is never returning normally anyway; otherwise, this would allow
     returning non-JSON on normal routes that expect it. *)
 
 (** Returns the given string. *)
@@ -34,9 +34,9 @@ val respond_file : content_type: string -> fname: string -> Void.t Lwt.t
     Their type might seem over-complicated, but it simply means that these
     functions can be used as a format, eg.
 
-    {|
+    [|
       shortcut_bad_request "This %s is a %s request" "thing" "bad"
-    |}
+    |]
 
     The [shortcut_*] variants raise an exception. This is normal behaviour if
     they are called within the controller of {!match_apply}. However, outside of

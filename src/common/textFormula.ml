@@ -1,4 +1,6 @@
-(** {1 TextFormula} Textual Representation of formulas. *)
+(** {1 TextFormula}
+
+    Textual representation of formulas. *)
 
 (* To avoid cycles, the [TextFormula] module is split in two. [TextFormulaType]
    contains only the types, because they are necessary for the lexing, parsing
