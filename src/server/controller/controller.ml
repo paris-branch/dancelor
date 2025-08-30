@@ -8,6 +8,7 @@ module Book = Book
 module Dance = Dance
 module Version = Version
 module Tune = Tune
+module Job = Job
 
 module Log = (val Logger.create "controller": Logs.LOG)
 
@@ -22,6 +23,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Api.t -> a =
   | Tune endpoint -> Tune.dispatch env endpoint
   | Any endpoint -> Any.dispatch env endpoint
   | User endpoint -> User.dispatch env endpoint
+  | Job endpoint -> Job.dispatch env endpoint
   | ReportIssue -> IssueReport.report env
   | Victor ->
     Log.debug (fun m -> m "Triggering controller for Victor");

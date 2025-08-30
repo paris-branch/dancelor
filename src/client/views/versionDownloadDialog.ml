@@ -1,6 +1,6 @@
+open Js_of_ocaml
 open Nes
 open Common
-
 open Model
 open Html
 open Components
@@ -70,14 +70,19 @@ let create () =
 
 let open_ version dialog =
   Page.open_dialog @@ fun return ->
-  let%lwt slug = Version.slug' version in
   Page.make'
     ~title: (lwt "Download a PDF")
     [div dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
       Utils.Button.download
-        ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Version Pdf) (Entry.id version) slug) dialog.parameters_signal)
+        ~onclick: (fun () ->
+          let (version_params, rendering_params) = S.value dialog.parameters_signal in
+          let%lwt slug = Version.slug' version in
+          let%lwt href = Job.file_href slug Endpoints.Api.(route @@ Version BuildPdf) (Entry.id version) version_params rendering_params in
+          Dom_html.window##.location##.href := Js.string href;
+          lwt_unit
+        )
         ();
     ]
 

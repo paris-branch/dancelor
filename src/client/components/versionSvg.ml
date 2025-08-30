@@ -32,7 +32,18 @@ let make_gen href =
 let make ?(params = Model.VersionParameters.none) version =
   make_gen @@
     let%lwt slug = Model.Version.slug' version in
-    lwt @@ Endpoints.Api.(href @@ Version Svg) (Entry.id version) slug params RenderingParameters.none
+    Job.file_href
+      slug
+      Endpoints.Api.(route @@ Version BuildSvg)
+      (Entry.id version)
+      params
+      RenderingParameters.none
 
 let make_preview ?(params = Model.VersionParameters.none) version =
-  make_gen @@ lwt @@ Endpoints.Api.(href @@ Version PreviewSvg) version params RenderingParameters.none
+  make_gen @@
+    Job.file_href
+      (Entry.Slug.of_string "preview.svg")
+      Endpoints.Api.(route @@ Version BuildSvg')
+      version
+      params
+      RenderingParameters.none

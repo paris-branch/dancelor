@@ -1,3 +1,4 @@
+open Js_of_ocaml
 open Nes
 open Common
 open Html
@@ -54,7 +55,14 @@ let open_ set dialog =
     [div dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
-      Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Set Pdf) (Entry.id set) (Set.slug' set)) dialog.parameters_signal) ();
+      Utils.Button.download
+        ~onclick: (fun () ->
+          let (set_params, rendering_params) = S.value dialog.parameters_signal in
+          let%lwt href = Job.file_href (Set.slug' set) Endpoints.Api.(route @@ Set BuildPdf) (Entry.id set) set_params rendering_params in
+          Dom_html.window##.location##.href := Js.string href;
+          lwt_unit
+        )
+        ();
     ]
 
 let create_and_open set = open_ set =<< create ()

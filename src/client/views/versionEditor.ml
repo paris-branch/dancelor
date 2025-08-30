@@ -120,13 +120,7 @@ let preview (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disa
   Page.make'
     ~title: (lwt "Preview")
     [div [VersionSvg.make_preview version];
-    div
-      [
-        audio
-          ~a: [a_controls ()]
-          ~src: (Endpoints.Api.(href @@ Version PreviewOgg) version Model.VersionParameters.none RenderingParameters.none)
-          [];
-      ];
+    div [VersionOgg.make_preview version];
     ]
     ~buttons: [
       Button.cancel' ~return ();
