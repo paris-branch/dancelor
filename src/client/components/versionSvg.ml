@@ -12,7 +12,7 @@ let make_gen href =
       a_class ["mx-n2"; "mx-sm-0"];
     ]
     (
-      S.from' [] @@
+      S.from' [div_placeholder ~min: 12 ~max: 20 ()] @@
         let%lwt href = href in
         lwt [
           object_

@@ -12,7 +12,7 @@ let make_gen src =
       a_class ["mx-n2"; "mx-sm-0"];
     ]
     (
-      S.from' [] @@
+      S.from' [audio ~a: [a_controls (); a_class ["placeholder"]] []] @@
         let%lwt src = src in
         lwt [audio ~a: [a_controls ()] ~src []]
     )
