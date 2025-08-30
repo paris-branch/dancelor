@@ -4,6 +4,7 @@ type predicate =
   | Is of ModelBuilder.Core.Source.t Entry.Id.t
   | Name of string
   | NameMatches of string
+  | ExistsEditor of Person.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -11,6 +12,7 @@ type t = predicate Formula.t
 
 let name' = Formula.pred % name
 let nameMatches' = Formula.pred % namematches
+let existseditor' = Formula.pred % existseditor
 
 let text_formula_converter =
   TextFormulaConverter.(
@@ -20,6 +22,7 @@ let text_formula_converter =
         unary_string ~name: "name" (name, name_val);
         unary_string ~name: "name-matches" (namematches, namematches_val);
         unary_id ~name: "is" (is, is_val);
+        unary_lift ~name: "exists-editor" (existseditor, existseditor_val) ~converter: Person.text_formula_converter;
       ]
   )
 
@@ -36,3 +39,4 @@ let is' = Formula.pred % is
 let optimise =
   Formula.optimise @@ function
     | (Is _ as p) | (Name _ as p) | (NameMatches _ as p) -> p
+    | ExistsEditor pfilter -> existseditor @@ Person.optimise pfilter

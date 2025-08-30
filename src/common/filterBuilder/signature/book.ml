@@ -6,6 +6,8 @@ module type S = sig
 
   val accepts : t -> ModelBuilder.Core.Book.t Entry.t -> float Lwt.t
 
+  val existseditor' : Core.Person.t -> t
+
   val memset : ModelBuilder.Core.Set.t Entry.t -> predicate
   val memset' : ModelBuilder.Core.Set.t Entry.t -> t
 
