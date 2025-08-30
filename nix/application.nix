@@ -9,6 +9,7 @@
       busybox # provides `sed`
       gh
       git
+      nix # need the Nix command
     ];
 
   perSystem =
