@@ -132,8 +132,8 @@ let parse_cmd_line () =
         "--github-token-file", Set_string github_token_file, spf "FILE Read the GitHub API token from FILE. This is used by the issue report mechanism and must therefore be allowed to open issues on the repositories.";
         "--github-repository", Set_string github_repository, spf "STR Set the Github repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
         "--github-database-repository", Set_string github_database_repository, spf "STR Set the Github database repository to STR. This is used by the issue report mechanism. It must contain the host, owner, and repository.";
-        "--nixpkgs", Set_string nixpkgs, spf "DIR Set path to nixpkgs (default: will download its own)";
-        "--nixpkgs2211", Set_string nixpkgs2211, spf "DIR Set path to nixpkgs2211 (for LilyPond 2.22) (default: will download its own)";
+        "--nixpkgs", Set_string nixpkgs, spf "DIR Set path to nixpkgs (default: will grab <nixpkgs>)";
+        "--nixpkgs2211", Set_string nixpkgs2211, spf "DIR Set path to nixpkgs2211 (for LilyPond 2.22) (default: will grab <nixpkgs2211>)";
       ]
   in
   let anon_fun _ = raise (Arg.Bad "no anonymous argument expected") in

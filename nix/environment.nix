@@ -72,6 +72,9 @@
           ]);
         inputsFrom = [ self'.packages.default ];
         shellHook = config.pre-commit.installationScript;
+        ## Dancelor runs Nix, which needs to grab `nixpkgs` and `nixpkgs2211`.
+        ## We expose the flake inputs under those names.
+        NIX_PATH = "nixpkgs=${inputs.nixpkgs}:nixpkgs2211=${inputs.nixpkgs2211}";
       };
     };
 }

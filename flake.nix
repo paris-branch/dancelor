@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs2211.url = "github:nixos/nixpkgs/nixos-22.11"; # for LilyPond 2.22
 
     flake-parts.url = "github:hercules-ci/flake-parts";
     topiary.url = "github:tweag/topiary";
