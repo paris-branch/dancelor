@@ -101,14 +101,14 @@ let get_pdf env id _slug version_params rendering_params =
         rendering_params
         pdf_metadata
     in
-    Renderer.make_book_pdf ~config: (Config.call_nix_config ()) book_pdf_arg
+    Renderer.make_book_pdf book_pdf_arg
   in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname
 
 let render_svg version version_params _rendering_params =
   let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
   let stylesheet = "/fonts.css" in
-  Renderer.make_tune_svg ~config: (Config.call_nix_config ()) {tune; stylesheet}
+  Renderer.make_tune_svg {tune; stylesheet}
 
 let render_svg' version version_params rendering_params =
   render_svg (Entry.value version) version_params rendering_params
@@ -131,7 +131,7 @@ let render_ogg version version_params _rendering_params =
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
   let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
-  Renderer.make_tune_ogg ~config: (Config.call_nix_config ()) {tune; tempo_unit; tempo_value; chords_kind}
+  Renderer.make_tune_ogg {tune; tempo_unit; tempo_value; chords_kind}
 
 let render_ogg' version version_params rendering_params =
   render_ogg (Entry.value version) version_params rendering_params
