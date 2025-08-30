@@ -57,7 +57,7 @@
             utop
           ])
           ## System testing environment
-          ++ (self.makeTestInputs pkgs);
+          ++ (self.makeIntegrationCheckInputs pkgs);
         inputsFrom = [ self'.packages.dancelor ];
         shellHook = config.pre-commit.installationScript;
         ## Dancelor runs Nix, which needs to grab `nixpkgs` and `nixpkgs2211`.

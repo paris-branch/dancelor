@@ -1,8 +1,6 @@
 { ... }:
 
 {
-  name = "integration";
-
   nodes.machine =
     { pkgs, ... }:
     {
