@@ -1,7 +1,7 @@
 { self, ... }:
 
 {
-  flake.makeTestInputs =
+  flake.makeIntegrationCheckInputs =
     pkgs: with pkgs; [
       firefox
       geckodriver
@@ -20,12 +20,14 @@
     { pkgs, ... }:
     {
       checks.integration = pkgs.testers.runNixOSTest {
+        name = "integration";
+
         imports = [
           ../tests/scripts/nixosTest.nix
           {
             nodes.machine = {
-              imports = [ self.nixosModules.default ];
-              environment.systemPackages = (self.makeTestInputs pkgs);
+              imports = [ self.nixosModules.dancelor ];
+              environment.systemPackages = (self.makeIntegrationCheckInputs pkgs);
             };
           }
         ];

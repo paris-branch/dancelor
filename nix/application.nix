@@ -19,7 +19,7 @@
       ...
     }:
     {
-      apps.default = {
+      apps.dancelor = {
         type = "app";
         program =
           let
@@ -27,8 +27,8 @@
               name = "dancelor";
               runtimeInputs = self.makeRuntimeInputs pkgs;
               text = ''
-                ${self'.packages.default}/bin/dancelor \
-                  --share ${self'.packages.default}/share/dancelor \
+                ${self'.packages.dancelor}/bin/dancelor \
+                  --share ${self'.packages.dancelor}/share/dancelor \
                   --nixpkgs ${inputs.nixpkgs} \
                   --nixpkgs2211 ${inputs.nixpkgs2211} \
                   "$@"

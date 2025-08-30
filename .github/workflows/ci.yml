@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test-with-nix:
-    name: Build and test with Nix
+  build-and-test:
+    name: Build and test
     runs-on: ubuntu-latest
 
     steps:
@@ -38,20 +38,20 @@ jobs:
           name: dancelor
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Build Nix environment
-        run: nix develop --command true
+      ## The following tests that the development Shell builds properly, but
+      ## also it build most of the things that aren't relevant to building
+      ## Dancelor. This makes the Actions' feedback more precise.
+      - name: Build Nix development Shell
+        run: nix build .#devShells.x86_64-linux.default -vL --no-link
 
-      - name: Build Dancelor
-        run: nix develop --command make
+      - name: Build (and run unit tests)
+        run: nix build .#packages.x86_64-linux.dancelor -vL --no-link
 
       - name: Build documentation
-        run: nix develop --command make doc
+        run: nix build .#packages.x86_64-linux.documentation -vL --out-link doc
 
-      - name: Run unit tests
-        run: nix develop --command make unit-tests QCHECK_LONG=true
-
-      - name: Run system tests
-        run: nix build .#checks.x86_64-linux.integration -vL
+      - name: Run integration tests
+        run: nix build .#checks.x86_64-linux.integration -vL --no-link
 
       - name: Upload GitHub pages artifact
         uses: actions/upload-pages-artifact@v4
@@ -61,7 +61,7 @@ jobs:
   deploy-documentation:
     name: Deploy documentation
     runs-on: ubuntu-latest
-    needs: build-and-test-with-nix
+    needs: build-and-test
     if: github.ref == 'refs/heads/main'
 
     ## Grant GITHUB_TOKEN the permissions required to make a Pages deployment.
@@ -75,8 +75,8 @@ jobs:
       - name: Deploy to GitHub pages
         uses: actions/deploy-pages@v4
 
-  run-nix-flake-checks:
-    name: Run Nix flake checks
+  run-pre-commit-checks:
+    name: Run pre-commit checks
     runs-on: ubuntu-latest
 
     steps:
@@ -97,5 +97,5 @@ jobs:
           name: dancelor
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Run flake checks
-        run: nix flake check --print-build-logs
+      - name: Run pre-commit checks
+        run: nix build .#checks.x86_64-linux.pre-commit -vL --no-link

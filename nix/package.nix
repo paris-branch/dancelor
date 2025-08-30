@@ -2,7 +2,7 @@
   perSystem =
     { self', pkgs, ... }:
     {
-      packages.default = pkgs.ocamlPackages.buildDunePackage {
+      packages.dancelor = pkgs.ocamlPackages.buildDunePackage {
         pname = "dancelor";
         version = "dev";
         src = ../.;
@@ -35,15 +35,32 @@
           ppx_variants_conv
           slug
           yaml
+        ];
 
-          # documentation and tests
+        ## TODO: The tests run `qcheck`; it would be good if we had a way to run
+        ## them with the additional environment variable QCHECK_LONG=true.
+        doCheck = true;
+        checkInputs = with pkgs.ocamlPackages; [
           alcotest
-          odoc
           ppx_deriving_qcheck
           qcheck
           qcheck-alcotest
         ];
       };
+
+      packages.documentation =
+        let
+          super = self'.packages.dancelor;
+        in
+        pkgs.stdenv.mkDerivation {
+          name = "${super.name}-documentation";
+          ## Grabbing super's buildInputs is overkill in terms of dependencies,
+          ## but most often we will also build the package, so it is fine.
+          inherit (super) src nativeBuildInputs;
+          buildInputs = super.buildInputs ++ [ pkgs.ocamlPackages.odoc ];
+          buildPhase = "dune build @doc";
+          installPhase = "cp -R _build/default/_doc/_html $out";
+        };
 
       packages.ocaml-argon2 = pkgs.ocamlPackages.buildDunePackage {
         pname = "argon2";

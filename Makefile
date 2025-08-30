@@ -1,36 +1,8 @@
-.PHONY: build doc test tests unit-tests system-tests dev-test local dev entr indent clean
-
-DUNEJOBSARG :=
-ifneq ($(DUNEJOBS),)
-DUNEJOBSARG := -j $(DUNEJOBS)
-endif
+.PHONY: build dev entr local dev-test clean
 
 build:
-	dune build $(DUNEJOBSARG) @install
+	dune build @install
 	ln -sf _build/install/default/bin .
-
-## The release profile will, among other things, eliminate dead code and minify
-## `client.js` and `server.exe`. The Nix module already does that.
-release:
-	dune build $(DUNEJOBSARG) --profile release @install
-	ln -sf _build/install/default/bin .
-
-doc:
-	dune build $(DUNEJOBSARG) @doc
-	ln -sf _build/default/_doc/_html doc
-
-test: tests
-tests:
-	@echo 'You probably mean use the targets `unit-tests` or `system-tests`.'
-
-unit-tests:
-	dune test $(DUNEJOBSARG) --force
-
-system-tests: build
-	bin/dancelor --config tests/config.json --pid-file tests/run.pid &
-	pytest --numprocesses auto --verbose || rc=$$?; \
-	kill $$(cat tests/run.pid); rm tests/run.pid; \
-	exit $$rc
 
 dev: build
 	bin/dancelor --config assets/config.local.json
@@ -45,6 +17,5 @@ dev-test: build
 	bin/dancelor --config tests/config.json
 
 clean:
-	dune clean $(DUNEJOBSARG)
-	rm -f bin doc
-	rm -f share/static/dancelor
+	dune clean
+	rm -f bin

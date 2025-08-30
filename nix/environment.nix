@@ -57,8 +57,8 @@
             utop
           ])
           ## System testing environment
-          ++ (self.makeTestInputs pkgs);
-        inputsFrom = [ self'.packages.default ];
+          ++ (self.makeIntegrationCheckInputs pkgs);
+        inputsFrom = [ self'.packages.dancelor ];
         shellHook = config.pre-commit.installationScript;
         ## Dancelor runs Nix, which needs to grab `nixpkgs` and `nixpkgs2211`.
         ## We expose the flake inputs under those names.
