@@ -185,17 +185,6 @@ module Model = struct
 end
 
 module Filter = struct
-  module Source = struct
-    type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.ModelBuilder.Core.Source.t := Model.Source.t;
-      ]
-    ]
-    [@@deriving qcheck2]
-    type t = [%import: Common.FilterBuilder.Core.Source.t [@with Common.Formula.t := Formula.t;]
-    ]
-    [@@deriving qcheck2]
-  end
-
   module Person = struct
     type predicate = [%import: Common.FilterBuilder.Core.Person.predicate [@with Common.Entry.Id.t := Id.t;
       Common.ModelBuilder.Core.Person.t := Model.Person.t;
@@ -203,6 +192,18 @@ module Filter = struct
     ]
     [@@deriving qcheck2]
     type t = [%import: Common.FilterBuilder.Core.Person.t [@with Common.Formula.t := Formula.t;]
+    ]
+    [@@deriving qcheck2]
+  end
+
+  module Source = struct
+    type predicate = [%import: Common.FilterBuilder.Core.Source.predicate [@with Common.Entry.Id.t := Id.t;
+      Common.ModelBuilder.Core.Source.t := Model.Source.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
+      ]
+    ]
+    [@@deriving qcheck2]
+    type t = [%import: Common.FilterBuilder.Core.Source.t [@with Common.Formula.t := Formula.t;]
     ]
     [@@deriving qcheck2]
   end
@@ -277,6 +278,7 @@ module Filter = struct
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
       Common.Kind.Dance.Filter.t := Kind.Dance.Filter.t;
+      Common__FilterBuilder__Core.Person.t := Person.t;
       Common__FilterBuilder__Core.Version.t := Version.t;
       Common__FilterBuilder__Core.Set.t := Set.t;
       ]

@@ -9,6 +9,7 @@ type predicate =
   | ExistsVersion of Version.t
   | ExistsSet of Set.t
   | ExistsVersionDeep of Version.t
+  | ExistsEditor of Person.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
 type t = predicate Formula.t
@@ -20,7 +21,8 @@ let subtitle' = Formula.pred % subtitle
 let subtitlematches' = Formula.pred % subtitlematches
 let existsversion' = Formula.pred % existsversion
 let existsset' = Formula.pred % existsset
-(* let existsversiondeep' = Formula.pred % existsversiondeep *)
+let existsversiondeep' = Formula.pred % existsversiondeep
+let existseditor' = Formula.pred % existseditor
 
 let text_formula_converter =
   TextFormulaConverter.(
@@ -34,6 +36,7 @@ let text_formula_converter =
         unary_lift ~name: "exists-version" (existsversion, existsversion_val) ~converter: Version.text_formula_converter;
         unary_lift ~name: "exists-set" (existsset, existsset_val) ~converter: Set.text_formula_converter;
         unary_lift ~name: "exists-version-deep" (existsversiondeep, existsversiondeep_val) ~converter: Version.text_formula_converter;
+        unary_lift ~name: "exists-editor" (existseditor, existseditor_val) ~converter: Person.text_formula_converter;
         unary_id ~name: "is" (is, is_val);
       ]
   )
@@ -53,13 +56,14 @@ let memset = existsset % Set.is'
 let memversiondeep = existsversiondeep % Version.is'
 let existstunedeep = existsversiondeep % Version.tune'
 let memtunedeep = existstunedeep % Tune.is'
+let memeditor = existseditor % Person.is'
 
 let memversion' = Formula.pred % memversion
 let memset' = Formula.pred % memset
-let existsversiondeep' = Formula.pred % existsversiondeep
 let memversiondeep' = Formula.pred % memversiondeep
 let existstunedeep' = Formula.pred % existstunedeep
 let memtunedeep' = Formula.pred % memtunedeep
+let memeditor' = Formula.pred % memeditor
 
 (* Little trick to convince OCaml that polymorphism is OK. *)
 type op = {op: 'a. 'a Formula.t -> 'a Formula.t -> 'a Formula.t}
@@ -85,4 +89,5 @@ let optimise =
       | ExistsVersion vfilter -> existsversion @@ Version.optimise vfilter
       | ExistsSet sfilter -> existsset @@ Set.optimise sfilter
       | ExistsVersionDeep vfilter -> existsversiondeep @@ Version.optimise vfilter
+      | ExistsEditor pfilter -> existseditor @@ Person.optimise pfilter
     )

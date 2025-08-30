@@ -43,5 +43,7 @@ let create ?context id =
           ("tunes they composed", Filter.(Any.tune' % Tune.existscomposer' % Person.is'));
           ("dances they devised", Filter.(Any.dance' % Dance.existsdeviser' % Person.is'));
           ("sets they conceived", Filter.(Any.set' % Set.existsconceptor' % Person.is'));
+          ("books they edited", Filter.(Any.book' % Book.existseditor' % Person.is'));
+          ("sources they edited", Filter.(Any.source' % Source.existseditor' % Person.is'));
         ];
     ]

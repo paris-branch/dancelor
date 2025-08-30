@@ -46,6 +46,9 @@ module Make (Model : ModelBuilder.S) = struct
             Core.[Formula.pred (Book.ExistsVersion vfilter);
             Formula.pred (Book.ExistsSet (Set.existsversion' vfilter));
             ]
+      | ExistsEditor pfilter ->
+        let%lwt editors = Model.Book.authors' book in
+        Formula.interpret_exists (accepts_person pfilter) editors
 
   and accepts_dance filter dance =
     Formula.interpret filter @@ function
@@ -97,6 +100,9 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Source.name' source
       | NameMatches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Source.name' source
+      | ExistsEditor pfilter ->
+        let%lwt editors = Model.Source.editors' source in
+        Formula.interpret_exists (accepts_person pfilter) editors
 
   and accepts_tune filter tune =
     Formula.interpret filter @@ function
