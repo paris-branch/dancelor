@@ -83,8 +83,8 @@ let call_nix ~share fun_ json =
         "--impure";
         "--expr";
         spf
-          "(import ./%s/renderer/renderer.nix {}).%s (builtins.fromJSON (builtins.readFile %s))"
-          share
+          "(import %s/renderer/renderer.nix {}).%s (builtins.fromJSON (builtins.readFile %s))"
+          (if share.[0] = '/' then share else "./" ^ share)
           fun_
           (escape_double_quotes fname)
       ]
