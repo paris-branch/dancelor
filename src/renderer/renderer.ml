@@ -62,7 +62,13 @@ let escape_double_quotes string =
   Buffer.add_char buf '"';
   Buffer.contents buf
 
-let call_nix ~share fun_ json =
+type call_nix_config = {
+  share: string;
+  nixpkgs: string;
+  nixpkgs2211: string;
+}
+
+let call_nix ~config fun_ json =
   Lwt_io.with_temp_file @@ fun (fname, ochan) ->
   (* or, to keep the file around for debugging, change the previous line for: *)
   (* let%lwt (fname, ochan) = Lwt_io.open_temp_file () in *)
@@ -83,8 +89,10 @@ let call_nix ~share fun_ json =
         "--impure";
         "--expr";
         spf
-          "(import %s/renderer/renderer.nix {}).%s (builtins.fromJSON (builtins.readFile %s))"
-          (if share.[0] = '/' then share else "./" ^ share)
+          "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON (builtins.readFile %s))"
+          (if config.share.[0] = '/' then config.share else "./" ^ config.share)
+          (if config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes config.nixpkgs ^ "; ")
+          (if config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes config.nixpkgs2211 ^ "; ")
           fun_
           (escape_double_quotes fname)
       ]
@@ -104,7 +112,7 @@ type tune_svg_arg = {
 }
 [@@deriving yojson]
 
-let make_tune_svg ~share = call_nix ~share "makeTuneSvg" % tune_svg_arg_to_yojson
+let make_tune_svg ~config = call_nix ~config "makeTuneSvg" % tune_svg_arg_to_yojson
 
 type tune_ogg_arg = {
   tune: tune;
@@ -114,7 +122,7 @@ type tune_ogg_arg = {
 }
 [@@deriving yojson]
 
-let make_tune_ogg ~share = call_nix ~share "makeTuneOgg" % tune_ogg_arg_to_yojson
+let make_tune_ogg ~config = call_nix ~config "makeTuneOgg" % tune_ogg_arg_to_yojson
 
 type pdf_metadata = {
   title: string;
@@ -132,4 +140,4 @@ type book_pdf_arg = {
 }
 [@@deriving yojson]
 
-let make_book_pdf ~share = call_nix ~share "makeBookPdf" % book_pdf_arg_to_yojson
+let make_book_pdf ~config = call_nix ~config "makeBookPdf" % book_pdf_arg_to_yojson
