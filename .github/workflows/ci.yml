@@ -75,8 +75,8 @@ jobs:
       - name: Deploy to GitHub pages
         uses: actions/deploy-pages@v4
 
-  run-nix-flake-checks:
-    name: Run Nix flake checks
+  run-pre-commit-checks:
+    name: Run pre-commit checks
     runs-on: ubuntu-latest
 
     steps:
@@ -97,5 +97,5 @@ jobs:
           name: dancelor
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Run flake checks
-        run: nix flake check --print-build-logs
+      - name: Run pre-commit checks
+        run: nix build .#checks.x86_64-linux.pre-commit -vL --no-link
