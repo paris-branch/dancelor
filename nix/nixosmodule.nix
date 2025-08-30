@@ -1,7 +1,7 @@
 { self, ... }:
 
 {
-  flake.nixosModules.default =
+  flake.nixosModules.dancelor =
     {
       lib,
       config,
@@ -123,7 +123,7 @@
           run-dancelor = pkgs.writeShellApplication {
             name = "run-dancelor";
             text = ''
-              ${self.apps.${pkgs.system}.default.program} \
+              ${self.apps.${pkgs.system}.dancelor.program} \
                 --database /var/lib/dancelor/database \
                 ${lib.strings.optionalString cfg.testMode ''
                   --no-sync-storage \

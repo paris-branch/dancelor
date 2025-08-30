@@ -2,7 +2,7 @@
   perSystem =
     { self', pkgs, ... }:
     {
-      packages.default = pkgs.ocamlPackages.buildDunePackage {
+      packages.dancelor = pkgs.ocamlPackages.buildDunePackage {
         pname = "dancelor";
         version = "dev";
         src = ../.;
