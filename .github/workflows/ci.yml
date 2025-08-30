@@ -44,14 +44,11 @@ jobs:
       - name: Build Nix development Shell
         run: nix build .#devShells.x86_64-linux.default -vL --no-link
 
-      - name: Build Dancelor
-        run: nix develop --command make
+      - name: Build (and run unit tests)
+        run: nix build .#packages.x86_64-linux.dancelor -vL --no-link
 
       - name: Build documentation
         run: nix develop --command make doc
-
-      - name: Run unit tests
-        run: nix develop --command make unit-tests QCHECK_LONG=true
 
       - name: Run integration tests
         run: nix build .#checks.x86_64-linux.integration -vL --no-link

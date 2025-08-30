@@ -1,4 +1,4 @@
-.PHONY: build doc test tests unit-tests dev-test local dev entr indent clean
+.PHONY: build doc dev-test local dev entr indent clean
 
 DUNEJOBSARG :=
 ifneq ($(DUNEJOBS),)
@@ -18,13 +18,6 @@ release:
 doc:
 	dune build $(DUNEJOBSARG) @doc
 	ln -sf _build/default/_doc/_html doc
-
-test: tests
-tests:
-	@echo 'You probably mean use the targets `unit-tests` or `system-tests`.'
-
-unit-tests:
-	dune test $(DUNEJOBSARG) --force
 
 dev: build
 	bin/dancelor --config assets/config.local.json

@@ -35,8 +35,12 @@
           ppx_variants_conv
           slug
           yaml
+        ];
 
-          # documentation and tests
+        ## TODO: The tests run `qcheck`; it would be good if we had a way to run
+        ## them with the additional environment variable QCHECK_LONG=true.
+        doCheck = true;
+        checkInputs = with pkgs.ocamlPackages; [
           alcotest
           odoc
           ppx_deriving_qcheck
