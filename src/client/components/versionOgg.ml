@@ -18,20 +18,24 @@ let make_gen src =
     )
 
 let make ?(params = Model.VersionParameters.none) version =
-  make_gen @@
+  make_gen (
     let%lwt slug = Model.Version.slug' version in
-    Job.file_href
-      slug
-      Endpoints.Api.(route @@ Version BuildOgg)
-      (Entry.id version)
-      params
-      RenderingParameters.none
+    Result.get_ok
+    <$> Job.file_href
+        slug
+        Endpoints.Api.(route @@ Version BuildOgg)
+        (Entry.id version)
+        params
+        RenderingParameters.none
+  )
 
 let make_preview ?(params = Model.VersionParameters.none) version =
-  make_gen @@
-    Job.file_href
-      (Entry.Slug.of_string "preview.ogg")
-      Endpoints.Api.(route @@ Version BuildOgg')
-      version
-      params
-      RenderingParameters.none
+  make_gen (
+    Result.get_ok
+    <$> Job.file_href
+        (Entry.Slug.of_string "preview.ogg")
+        Endpoints.Api.(route @@ Version BuildOgg')
+        version
+        params
+        RenderingParameters.none
+  )

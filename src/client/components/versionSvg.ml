@@ -3,7 +3,7 @@ open Common
 
 open Html
 
-let make_gen href =
+let make_gen href_promise =
   R.div
     ~a: [
       (* On mobile, space gets parse, so we compensate the container's padding
@@ -13,20 +13,31 @@ let make_gen href =
     ]
     (
       S.from' [div_placeholder ~min: 12 ~max: 20 ()] @@
-        let%lwt href = href in
-        lwt [
-          object_
-            ~a: [
-              (* Tune previews are generated on A4 paper -- 21cm wide -- with a left margin
-                 of 1cm for page numbers -- that is 5% of the whole page. Since we want page
-                 numbers to actually appear in the margin on the website, we make the image
-                 bigger but remove those 5% of margin on the left. *)
-              a_style "margin-left: -5%; width: 105%;";
-              a_mime_type "image/svg+xml";
-              a_data href;
-            ]
-            []
-        ]
+        match%lwt href_promise with
+        | Error response ->
+          lwt [
+            txt
+              "There was an error during SVG generation. Presumably, it comes \
+               from an error in the LilyPond of this version. You can read the \
+               logs below and double-check the source. If you think that \
+               something else is at play, report to your system administrator. \
+               Make sure to include the logs.";
+            Job.show_stdout_and_stderr response;
+          ]
+        | Ok href ->
+          lwt [
+            object_
+              ~a: [
+                (* Tune previews are generated on A4 paper -- 21cm wide -- with a left margin
+                   of 1cm for page numbers -- that is 5% of the whole page. Since we want page
+                   numbers to actually appear in the margin on the website, we make the image
+                   bigger but remove those 5% of margin on the left. *)
+                a_style "margin-left: -5%; width: 105%;";
+                a_mime_type "image/svg+xml";
+                a_data href;
+              ]
+              []
+          ]
     )
 
 let make ?(params = Model.VersionParameters.none) version =

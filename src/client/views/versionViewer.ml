@@ -149,7 +149,7 @@ let create ?context id =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make version];
+      div [Components.VersionSvg.make version];
       div ~a: [a_class ["mt-1"; "d-flex"; "justify-content-end"]] [Components.VersionOgg.make version];
       Utils.quick_explorer_links
         [

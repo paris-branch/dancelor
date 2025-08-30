@@ -38,8 +38,7 @@ let status id job =
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") stderr);
     lwt {
-      Endpoints.Job.Response.status =
-      if status = WEXITED 0 then Succeeded else Failed;
+      Endpoints.Job.Response.status = if status = WEXITED 0 then Succeeded else Failed;
       stdout;
       stderr
     }
