@@ -72,6 +72,8 @@ let call_nix ~share fun_ json =
       ~on_wrong_status: Logs.Error
       [
         "nix";
+        "--extra-experimental-features";
+        "nix-command";
         "build";
         "--print-build-logs";
         "--log-format";
