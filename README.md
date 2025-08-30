@@ -31,43 +31,28 @@ use flake
 
 ### Running and writing tests
 
-Dancelor contains two kinds of tests: unit tests and system tests. Unit tests
-are fully integrated with Dune so nothing much is required there. There is a
-`make unit-tests` target, but it is really just an alias for `dune test`. Unit
-tests are written either right after the function that they test, using
+Dancelor contains two kinds of tests: Dune tests and integration tests.
+
+Dune tests are fully integrated with Dune so nothing much is required there.
+They can be ran with `dune test`, and they are ran when building the Nix package
+These tests are written either right after the function that they test, using
 [ppx_inline_test], or in `tests/unit`, using Alcotest. The latter usually
 contain QCheck-based tests.
 
 [ppx_inline_test]: https://github.com/janestreet/ppx_inline_test
 
-System tests are heavier tests on the final product. They run using [Selenium]'s
-Python API and Firefox driver. To run them, you need Python 3, Selenium and
-`pytest` on your machine. The Nix environment provides them; otherwise, you can
-install them with pip:
+Integration tests are heavier tests on the final product. They run using
+[Selenium]'s Python API and Firefox driver. The easiest way to run them is via
+the `integration` Nix flake check. You can also run them directly, provided you
+have the Firefox web browser. It is not provided by the Nix environment. You can
+now run the integration tests by having a properly-configured Dancelor instance
+running in the background, which you can get with `make dev-test`, and by
+running `pytest`.
 
-```console
-$ pip install pytest selenium
-```
-
-You also need the Firefox web browser. It is not provided by the Nix environment
-but you can easily get it with your machine's package manager. You can now run
-the system tests with:
-
-```console
-$ pytest
-```
-
-This requires having a properly-configured Dancelor instance running in the
-background. This instance must listen on port 8080 and use database
-`tests/database/`. For running tests, the target `make system-tests` builds
-Dancelor if needed, then starts it in the background with the right options, run
-the system tests against it and then kills Dancelor again. For developping
-tests, the target `make dev-test` launches Dancelor in such a mode.
-
-Writing Selenium scripts can be done manually by mimmicking the ones already
-present in `tests/scripts`, in which case you might be interesting in
-[Selenium's API documentation][selenium-api-doc], but it is also possible to
-rely on the Selenium IDE and exporting tests in `pytest` style.
+Writing Selenium scripts is done manually by mimmicking the ones already present
+in `tests/scripts`, in which case you might be interested in [Selenium's API
+documentation][selenium-api-doc], but it is also possible to rely on the
+Selenium IDE and exporting tests in `pytest` style.
 
 [selenium]: https://www.selenium.dev/
 [selenium-api-doc]: https://www.selenium.dev/selenium/docs/api/py/py-modindex.html
