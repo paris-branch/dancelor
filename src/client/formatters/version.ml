@@ -44,10 +44,10 @@ let description' ?arranger_links ?source_links version =
 let name_gen version_gen =
   with_span_placeholder @@
     match version_gen with
-    | Right (version, true) ->
+    | Right (version, true, context) ->
       let%lwt name = Model.Version.one_name' version in
-      lwt [a ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.id version] [txt @@ NEString.to_string name]]
-    | Right (version, _) ->
+      lwt [a ~a: [a_href @@ Endpoints.Page.href_version ?context @@ Entry.id version] [txt @@ NEString.to_string name]]
+    | Right (version, _, _) ->
       let%lwt name = Model.Version.one_name' version in
       lwt [txt @@ NEString.to_string name]
     | Left version ->
@@ -55,18 +55,34 @@ let name_gen version_gen =
       lwt [txt @@ NEString.to_string name]
 
 let name = name_gen % Either.left
-let name' ?(link = true) version = name_gen @@ Right (version, link)
+let name' ?(link = true) ?context version = name_gen @@ Right (version, link, context)
 
-let name_disambiguation_and_sources_gen version =
+let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none) version =
   let disambiguation_and_sources_block =
-    disambiguation_and_sources_internal @@ Either.fold ~left: Fun.id ~right: (Entry.value % fst) version
+    let version =
+      match version with
+      | Left version -> version
+      | Right (version, _, _) -> Entry.value version
+    in
+    disambiguation_and_sources_internal version
   in
-  span [name_gen version; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block]
+  let display_name_block =
+    match Model.VersionParameters.display_name params with
+    | None -> []
+    | Some display_name -> [txt " [as “"; txt (NEString.to_string display_name); txt "”]"]
+  in
+  span (
+    [name_gen version; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block] @
+      display_name_block
+  )
 
-let name_disambiguation_and_sources = name_disambiguation_and_sources_gen % Either.left
-let name_disambiguation_and_sources' ?(name_link = true) version = name_disambiguation_and_sources_gen @@ Right (version, name_link)
+let name_disambiguation_and_sources ?params version =
+  name_disambiguation_and_sources_gen ?params (Either.left version)
 
-let composer_and_arranger ?(short = false) ?arranger_links version =
+let name_disambiguation_and_sources' ?(name_link = true) ?context ?params version =
+  name_disambiguation_and_sources_gen ?params @@ Right (version, name_link, context)
+
+let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.VersionParameters.none) version =
   with_span_placeholder @@
     let%lwt composer_block = Tune.composers' ~short <$> Model.Version.tune version in
     let%lwt arranger_block =
@@ -80,10 +96,15 @@ let composer_and_arranger ?(short = false) ?arranger_links version =
             span ~a: [a_class ["opacity-50"]] [txt (spf ", %s " arr); arranger_block]
           ]
     in
-    lwt (composer_block :: arranger_block)
+    let display_composer_block =
+      match Model.VersionParameters.display_composer params with
+      | None -> []
+      | Some display_composer -> [txt " [as “"; txt (NEString.to_string display_composer); txt "”]"]
+    in
+    lwt ([composer_block] @ arranger_block @ display_composer_block)
 
-let composer_and_arranger' ?short ?arranger_links version =
-  composer_and_arranger ?short ?arranger_links (Entry.value version)
+let composer_and_arranger' ?short ?arranger_links ?params version =
+  composer_and_arranger ?short ?arranger_links ?params (Entry.value version)
 
 let tune_aka version =
   with_span_placeholder

@@ -92,21 +92,27 @@ let create ?context id =
             ] @@
             let%lwt contents = Set.contents' set in
             Lwt_list.mapi_p
-              (fun index (version, _parameters) ->
+              (fun index (version, params) ->
                 let context = Endpoints.Page.inset id index in
-                (* FIXME: use parameters *)
-                let%lwt tune = Version.tune' version in
-                let id = Entry.id version in
                 lwt @@
                   div
                     ~a: [a_class ["text-center"; "mt-4"]]
                     [
-                      h4 [
-                        a
-                          ~a: [a_href (Endpoints.Page.href_version ~context id)]
-                          [txt @@ NEString.to_string @@ Tune.one_name' tune]
+                      div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
+                        div ~a: [a_class ["col-auto"; "text-start"]] [
+                          Formatters.Version.name_disambiguation_and_sources'
+                            ~context
+                            ~params
+                            version
+                        ];
+                        div ~a: [a_class ["col-auto"; "text-end"]] [
+                          Formatters.Version.composer_and_arranger'
+                            ~short: true
+                            ~params
+                            version
+                        ];
                       ];
-                      Components.VersionSvg.make version;
+                      Components.VersionSvg.make ~params version;
                     ]
               )
               contents
