@@ -1,13 +1,6 @@
 {
-  # for LilyPond 2.22
-  nixpkgs2211 ? builtins.fetchGit {
-    url = "https://github.com/nixos/nixpkgs.git";
-    ref = "nixos-22.11";
-  },
-  nixpkgs ? builtins.fetchGit {
-    url = "https://github.com/nixos/nixpkgs.git";
-    ref = "nixos-unstable";
-  },
+  nixpkgs ? <nixpkgs>,
+  nixpkgs2211 ? <nixpkgs2211>, # for LilyPond 2.22
   ...
 }:
 

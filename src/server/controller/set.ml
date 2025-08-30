@@ -59,7 +59,7 @@ let get_pdf env id _slug set_params rendering_params =
         rendering_params
         pdf_metadata
     in
-    Renderer.make_book_pdf ~share: !Config.share book_pdf_arg
+    Renderer.make_book_pdf ~config: (Config.call_nix_config ()) book_pdf_arg
   in
   Madge_server.respond_file ~content_type: "application/pdf" ~fname
 

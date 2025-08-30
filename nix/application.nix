@@ -1,7 +1,7 @@
 ## Dancelor as a runnable application. The development environment will need to
 ## know the runtime inputs as well, so we expose them.
 
-{ self, ... }:
+{ self, inputs, ... }:
 
 {
   flake.makeRuntimeInputs =
@@ -29,6 +29,8 @@
               text = ''
                 ${self'.packages.default}/bin/dancelor \
                   --share ${self'.packages.default}/share/dancelor \
+                  --nixpkgs ${inputs.nixpkgs} \
+                  --nixpkgs2211 ${inputs.nixpkgs2211} \
                   "$@"
               '';
             };
