@@ -62,7 +62,6 @@
             runtimeInputs = with pkgs; [ git ];
             excludeShellChecks = [ "SC2016" ];
             text = ''
-              mkdir -p /var/cache/dancelor/{version,set,book}
               mkdir -p /var/lib/dancelor
 
               ## Test whether the given path is a Git repository owned by 'dancelor'.
@@ -99,7 +98,6 @@
                 exit 1
               fi
 
-              chown -R dancelor:dancelor /var/cache/dancelor
               chown -R dancelor:dancelor /var/lib/dancelor
             '';
           };
@@ -108,7 +106,6 @@
             name = "run-dancelor";
             text = ''
               ${self.apps.${pkgs.system}.default.program} \
-                --cache /var/cache/dancelor \
                 --database /var/lib/dancelor/database \
                 --loglevel info \
                 --port ${toString cfg.listeningPort} \
