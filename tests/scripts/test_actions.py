@@ -46,7 +46,7 @@ class TestActions():
     with open("tests/database/version/xzzb-wasm-babe/content.ly") as content_file:
       expected = content_file.read().strip()
       assert(expected != "")
-    shown = self.driver.find_element(By.XPATH, "//pre").get_attribute("innerHTML")
+    shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")
     assert(html.unescape(shown.strip()) == expected)
     ## TODO: also check the “copy to clipboard” functionality
     # self.driver.find_element(By.XPATH, "//*[contains(text(), 'Copy to clipboard')]").click()
