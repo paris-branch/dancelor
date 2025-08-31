@@ -6,8 +6,6 @@ type t =
   | Year of int
 [@@deriving eq, show {with_path = false}]
 
-let compare = compare
-
 let check_month month = month >= 1 && month <= 12
 let check_full_date ~year ~month ~day =
   try
@@ -37,6 +35,8 @@ let to_string = function
   | Year year -> spf "%04d" year
   | YearMonth (year, month) -> spf "%04d-%02d" year month
   | YearMonthDay (year, month, day) -> spf "%04d-%02d-%02d" year month day
+
+let compare d1 d2 = String.compare (to_string d1) (to_string d2)
 
 let to_yojson date =
   `String (to_string date)
