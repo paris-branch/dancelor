@@ -57,17 +57,15 @@ let open_ set dialog =
       Utils.Button.download
         ~onclick: (fun () ->
           let (set_params, rendering_params) = S.value dialog.parameters_signal in
-          let href_promise =
-            Job.file_href
+          return None;
+          VersionDownloadDialog.open_pdf_generation_dialog (
+            Job.run
               (Set.slug' set)
               Endpoints.Api.(route @@ Set BuildPdf)
               (Entry.id set)
               set_params
               rendering_params
-          in
-          VersionDownloadDialog.open_pdf_generation_started_dialog href_promise;%lwt
-          return None;
-          lwt_unit
+          )
         )
         ();
     ]

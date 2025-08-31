@@ -8,10 +8,11 @@ module Response = struct
 
   type t = {
     status: status;
-    stdout: string;
-    stderr: string;
+    log_lines: string list;
   }
   [@@deriving yojson]
+
+  let pending = {status = Pending; log_lines = []}
 end
 
 type (_, _, _) t =
