@@ -42,7 +42,7 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice”, click on the second “Tam Lin” version and
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w")
-    self.driver.find_element(By.XPATH, "(//a[contains(text(), 'Tam Lin')])[2]").click()
+    self.driver.find_element(By.XPATH, "(//a[text() = 'Tam Lin'])[2]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/xzzb-wasm-babe?context=%5B%22InSet%22%2C%22ului-yd9x-o35w%22%2C1%5D"))
 
   def test_fromBook(self):
@@ -50,7 +50,7 @@ class TestContextLinks():
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/book/0fi3-1iot-6tbq")
     time.sleep(1) # give a second to avoid clicking on placeholder
-    self.driver.find_element(By.CSS_SELECTOR, "tr:nth-child(1) > td:nth-child(2)").click()
+    self.driver.find_element(By.CSS_SELECTOR, "tr:nth-child(1) > td:nth-child(1)").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/xzzb-wasm-babe?context=%5B%22InBook%22%2C%220fi3-1iot-6tbq%22%2C0%5D"))
 
   def test_sideArrowGoesToNeighbour(self):
