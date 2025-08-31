@@ -82,4 +82,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Succeeded href -> on_succeeded href
 
-(* S.from' [div_placeholder ~min: 12 ~max: 20 ()] @@ *)
+let show_placeholder ~on_succeeded status_signal =
+  flip S.map status_signal @@ function
+    | Succeeded href -> on_succeeded href
+    | _ -> [div_placeholder ~min: 12 ~max: 20 ()]
