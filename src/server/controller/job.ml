@@ -87,6 +87,7 @@ let call_nix_build ?(files = []) expr =
     "nix-command";
     "build";
     "--print-build-logs";
+    "--verbose";
     "--log-format";
     "raw";
     "--json";
