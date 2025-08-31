@@ -96,7 +96,7 @@ let create ?context id =
                 let context = Endpoints.Page.inset id index in
                 lwt @@
                   div
-                    ~a: [a_class ["text-center"; "mt-4"]]
+                    ~a: [a_class ["mt-4"]]
                     [
                       div ~a: [a_class ["row"; "justify-content-between"; "mb-2"]] [
                         div ~a: [a_class ["col-auto"; "text-start"]] [
