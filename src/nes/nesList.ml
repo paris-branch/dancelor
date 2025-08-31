@@ -256,3 +256,8 @@ let extract_assoc_several xs l =
 let replace_nil ~by = function
   | [] -> by
   | l -> l
+
+let to_option ?(more = fun _ -> invalid_arg "NesList.to_option") = function
+  | [] -> None
+  | [x] -> Some x
+  | xs -> more xs

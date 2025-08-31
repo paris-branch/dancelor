@@ -9,6 +9,7 @@ module Int64 = NesInt64
 module List = NesList
 module Lwt = NesLwt
 module Lwt_list = NesLwt_list
+module Lwt_stream = NesLwt_stream
 module Seq = NesSeq
 module String = NesString
 module Option = NesOption

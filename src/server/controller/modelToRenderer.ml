@@ -14,7 +14,7 @@ let format_persons_list =
 let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
-let version_to_renderer_tune version version_params =
+let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
   let%lwt name =
     let%lwt default = Model.Version.one_name version in
     lwt @@
@@ -56,8 +56,8 @@ let version_to_renderer_tune version version_params =
   let first_bar = Model.VersionParameters.first_bar' version_params in
   lwt Renderer.{name; composer; content; first_bar}
 
-let version_to_renderer_tune' version version_params =
-  version_to_renderer_tune (Entry.value version) version_params
+let version_to_renderer_tune' ?version_params version =
+  version_to_renderer_tune ?version_params (Entry.value version)
 
 let part_to_renderer_part name =
   Renderer.{name = NEString.to_string name}
@@ -86,7 +86,7 @@ let set_to_renderer_set set set_params =
     Lwt_list.map_s
       (fun (version, version_params) ->
         let version_params = Model.VersionParameters.compose every_version_params version_params in
-        version_to_renderer_tune' version version_params
+        version_to_renderer_tune' version ~version_params
       )
     =<< Model.Set.contents set
   in
@@ -109,8 +109,8 @@ let version_to_renderer_set version version_params set_params =
   let%lwt contents =
     List.singleton
     <$> version_to_renderer_tune
+        ~version_params: (Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params)
         version
-        (Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params)
   in
   lwt Renderer.{name; conceptor = ""; kind; contents}
 
