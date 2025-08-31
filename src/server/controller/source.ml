@@ -33,7 +33,7 @@ let get_cover env id =
   Permission.assert_can_get env =<< get env id;%lwt
   Database.Source.with_cover id @@ fun fname ->
   let fname = Option.value fname ~default: (Filename.concat !Config.share "no-cover.webp") in
-  Madge_server.respond_file ~content_type: "image/webp" ~fname
+  Madge_server.respond_file ~fname
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Source.t -> a = fun env endpoint ->
   match endpoint with

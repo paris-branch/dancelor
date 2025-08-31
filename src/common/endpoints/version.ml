@@ -12,12 +12,12 @@ type (_, _, _) t =
 | Content : ((Version.t Entry.Id.t -> 'w), 'w, string) t
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 (* Files related to a version *)
-| Svg : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| Ogg : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| Pdf : ((Version.t Entry.Id.t -> Entry.Slug.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| BuildSvg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t) t
+| BuildOgg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t) t
+| BuildPdf : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t) t
 (* Files related to an anonymous version *)
-| PreviewSvg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
-| PreviewOgg : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Void.t) t
+| BuildSvg' : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t) t
+| BuildOgg' : ((Version.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, JobId.t) t
 [@@deriving madge_wrapped_endpoints]
 
 (* NOTE: The version model contains its LilyPond content. This is a big string
@@ -42,9 +42,9 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module JString)
     | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
     (* Files related to a version *)
-    | Svg -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | Ogg -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | Pdf -> variable (module Entry.Id.S(Version)) @@ variable (module Entry.Slug.S) ~suffix: ".pdf" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | BuildSvg -> literal "build-svg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module JobId)
+    | BuildOgg -> literal "build-ogg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module JobId)
+    | BuildPdf -> literal "build-pdf" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module JobId)
     (* Files related to an anonymous version *)
-    | PreviewSvg -> query "version" (module Version) @@ literal "preview.svg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
-    | PreviewOgg -> query "version" (module Version) @@ literal "preview.ogg" @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ void ()
+    | BuildSvg' -> literal "build-svg" @@ query "version" (module Version) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module JobId)
+    | BuildOgg' -> literal "build-ogg" @@ query "version" (module Version) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module JobId)

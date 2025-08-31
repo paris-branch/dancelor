@@ -10,6 +10,7 @@ type (_, _, _) t =
   | Tune : ('a, 'w, 'r) Tune.t -> ('a, 'w, 'r) t
   | Any : ('a, 'w, 'r) Any.t -> ('a, 'w, 'r) t
   | User : ('a, 'w, 'r) User.t -> ('a, 'w, 'r) t
+  | Job : ('a, 'w, 'r) Job.t -> ('a, 'w, 'r) t
   | ReportIssue : (IssueReport.request -> 'w, 'w, IssueReport.response) t
   | Victor : ('w, 'w, Void.t) t
   | BootTime : ('w, 'w, Datetime.t) t
@@ -30,6 +31,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Tune endpoint -> literal "api" @@ literal "tune" @@ Tune.route endpoint
     | Any endpoint -> literal "api" @@ literal "any" @@ Any.route endpoint
     | User endpoint -> literal "api" @@ literal "user" @@ User.route endpoint
+    | Job endpoint -> literal "api" @@ literal "job" @@ Job.route endpoint
     | ReportIssue -> literal "api" @@ literal "issue" @@ literal "report" @@ query "request" (module IssueReport.Request) @@ post (module IssueReport.Response)
     | Victor -> literal "api" @@ literal "victor" @@ void ()
     | BootTime -> literal "api" @@ literal "boot-time" @@ get (module Datetime)

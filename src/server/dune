@@ -8,7 +8,6 @@
   dancelor.nes.unix
   dancelor.common
   dancelor.madge.server
-  dancelor.renderer
   logs
   lwt.unix
   str
@@ -27,3 +26,13 @@
    ppx_monad_rlwt))
  (preprocessor_deps
   (source_tree controller/template)))
+
+(install
+ (section share)
+ (files
+  (glob_files
+   (controller/renderer/*.nix with_prefix renderer))
+  (glob_files_rec
+   (controller/renderer/book/* with_prefix renderer/book))
+  (glob_files_rec
+   (controller/renderer/tune/* with_prefix renderer/tune))))

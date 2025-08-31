@@ -35,12 +35,12 @@ let call_retry ?(retry = true) (request : Request.t) =
 let call_gen
   : type a r z. ?retry: bool ->
   (a, z Lwt.t, r) Route.t ->
-  ((r, error) result -> z) ->
+  ((r, error) result -> z Lwt.t) ->
   a
 = fun ?retry route cont ->
   with_request route @@ fun (module R) request ->
   cont
-  <$> (
+  =<< (
       let%rlwt (status, body) = call_retry ?retry request in
       let%lwt body = Cohttp_lwt.Body.to_string body in
       let%rlwt json_body =
@@ -66,8 +66,8 @@ let call_gen
 
 let call
   : type a r. ?retry: bool -> (a, (r, error) result Lwt.t, r) Route.t -> a
-= fun ?retry route -> call_gen ?retry route Fun.id
+= fun ?retry route -> call_gen ?retry route lwt
 
 let call_exn
   : type a r. ?retry: bool -> (a, r Lwt.t, r) Route.t -> a
-= fun ?retry route -> call_gen ?retry route @@ Result.fold ~ok: Fun.id ~error: (fun e -> raise (Error e))
+= fun ?retry route -> call_gen ?retry route @@ lwt % Result.fold ~ok: Fun.id ~error: (fun e -> raise (Error e))

@@ -13,8 +13,8 @@ let preload_versions ?max_concurrency () =
         let%lwt tune = Model.Version.tune' version in
         let name = Model.Tune.one_name' tune in
         Log.debug (fun m -> m "Prerendering %s" (NEString.to_string name));
-        let%lwt _ = Controller.Version.render_svg' version Model.VersionParameters.none RenderingParameters.none in
-        let%lwt _ = Controller.Version.render_ogg' version Model.VersionParameters.none RenderingParameters.none in
+        let%lwt _ = Controller.Job.wait_ignore =<< Controller.Version.render_svg (Entry.value version) Model.VersionParameters.none RenderingParameters.none in
+        let%lwt _ = Controller.Job.wait_ignore =<< Controller.Version.render_ogg (Entry.value version) Model.VersionParameters.none RenderingParameters.none in
         lwt_unit
       )
       (Lwt_stream.of_list all)

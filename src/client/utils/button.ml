@@ -225,11 +225,10 @@ let ok' ~return ?more_a () =
     ?more_a
     ()
 
-let download ~href () =
-  make_a
+let download ~onclick () =
+  make
     ~label: "Download"
     ~icon: "download"
     ~classes: ["btn-primary"]
-    ~more_a: [a_target "_blank"]
-    ~href
+    ~onclick
     ()

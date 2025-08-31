@@ -100,6 +100,6 @@ val ok' :
 (** Variant of {!ok'} passing [Some ()] to a [return] function. *)
 
 val download :
-  href: string S.t ->
+  onclick: (unit -> unit Lwt.t) ->
   unit ->
-  [> Html_types.a_] elt
+  [> Html_types.button] elt

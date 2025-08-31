@@ -24,10 +24,10 @@ val match_apply :
     returning non-JSON on normal routes that expect it. *)
 
 (** Returns the given string. *)
-val respond_string : content_type: string -> string -> Void.t Lwt.t
+val respond_string : ?content_type: string -> string -> Void.t Lwt.t
 
 (** Returns the given file. *)
-val respond_file : content_type: string -> fname: string -> Void.t Lwt.t
+val respond_file : fname: string -> Void.t Lwt.t
 
 (** {2 Error responses}
 

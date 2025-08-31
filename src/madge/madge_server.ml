@@ -21,12 +21,20 @@ let match_apply
 
 let shortcut p : 'any Lwt.t = Lwt.bind p @@ fun x -> raise (Shortcut x)
 
-let respond_string ~content_type body =
-  let headers = Cohttp.Header.of_list [("Content-Type", content_type)] in
+let respond_string ?content_type body =
+  let headers = Cohttp.Header.of_list (List.map (Pair.cons "Content-Type") @@ Option.to_list content_type) in
   shortcut @@ Cohttp_lwt_unix.Server.respond_string ~status: `OK ~headers ~body ()
 
-let respond_file ~content_type ~fname =
-  let headers = Cohttp.Header.of_list [("Content-Type", content_type)] in
+let respond_file ~fname =
+  let content_type =
+    match Filename.extension fname with
+    | ".pdf" -> Some "application/pdf"
+    | ".svg" -> Some "image/svg+xml"
+    | ".ogg" -> Some "audio/ogg"
+    | ".webp" -> Some "image/webp"
+    | _ -> None
+  in
+  let headers = Cohttp.Header.of_list (List.map (Pair.cons "Content-Type") @@ Option.to_list content_type) in
   shortcut @@ Cohttp_lwt_unix.Server.respond_file ~headers ~fname ()
 
 let respond status =

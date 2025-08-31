@@ -1,6 +1,5 @@
 open Nes
 open Common
-
 open Model
 open Html
 open Components
@@ -52,7 +51,22 @@ let open_ book dialog =
     [div dialog.choice_rows]
     ~buttons: [
       Utils.Button.cancel' ~return ();
-      Utils.Button.download ~href: (S.map (uncurry @@ Endpoints.Api.(href @@ Book Pdf) (Entry.id book) (Book.slug' book)) dialog.parameters_signal) ();
+      Utils.Button.download
+        ~onclick: (fun () ->
+          let (book_params, rendering_params) = S.value dialog.parameters_signal in
+          let href_promise =
+            Job.file_href
+              (Book.slug' book)
+              Endpoints.Api.(route @@ Book BuildPdf)
+              (Entry.id book)
+              book_params
+              rendering_params
+          in
+          VersionDownloadDialog.open_pdf_generation_started_dialog href_promise;%lwt
+          return None;
+          lwt_unit
+        )
+        ();
     ]
 
 let create_and_open book = open_ book =<< create ()

@@ -140,6 +140,3 @@ let parse_cmd_line () =
   let usage = spf "Usage: %s [OPTIONS...]" Sys.argv.(0) in
   parse specs anon_fun usage;
   check_config ()
-
-let call_nix_config () =
-  Renderer.{share = !share; nixpkgs = !nixpkgs; nixpkgs2211 = !nixpkgs2211}

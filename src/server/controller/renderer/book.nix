@@ -26,7 +26,7 @@ let
     ;
 
   forConcat = xs: f: concatMapStringsSep "\n" f xs;
-  escapeLatexString = replaceStrings [ "&" ] [ "\\&" ];
+  escapeLatexString = replaceStrings [ "&" "#" ] [ "\\&" "\\#" ];
 
   partType = types.submodule {
     options = {

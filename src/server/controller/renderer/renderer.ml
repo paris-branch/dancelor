@@ -69,41 +69,21 @@ type call_nix_config = {
   nixpkgs2211: string;
 }
 
-let call_nix ~config fun_ json =
-  Lwt_io.with_temp_file @@ fun (fname, ochan) ->
+let call_nix fun_ json =
+  (* Lwt_io.with_temp_file @@ fun (fname, ochan) -> *)
   (* or, to keep the file around for debugging, change the previous line for: *)
-  (* let%lwt (fname, ochan) = Lwt_io.open_temp_file () in *)
+  let%lwt (fname, ochan) = Lwt_io.open_temp_file () in
   Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
-  let%lwt output =
-    Process.run
-      ~on_wrong_status: Logs.Error
-      [
-        "nix";
-        "--extra-experimental-features";
-        "nix-command";
-        "build";
-        "--print-build-logs";
-        "--log-format";
-        "raw";
-        "--json";
-        "--no-link";
-        "--impure";
-        "--expr";
-        spf
-          "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON (builtins.readFile %s))"
-          (if config.share.[0] = '/' then config.share else "./" ^ config.share)
-          (if config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes config.nixpkgs ^ "; ")
-          (if config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes config.nixpkgs2211 ^ "; ")
-          fun_
-          (escape_double_quotes fname)
-      ]
-  in
-  match Yojson.Safe.from_string output.stdout with
-  (* two cases depending on whether there is `startTime` and `endTime` or not *)
-  | `List [`Assoc [_; ("outputs", `Assoc [("out", `String pdf)]); _; _]]
-  | `List [`Assoc [_; ("outputs", `Assoc [("out", `String pdf)])]] ->
-    lwt pdf
-  | _ -> lwt "sldkfj"
+  Job.call_nix_build
+    (
+      spf
+        "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON (builtins.readFile %s))"
+        (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
+        (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
+        (if !Config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes !Config.nixpkgs2211 ^ "; ")
+        fun_
+        (escape_double_quotes fname)
+    )
 
 (** {2 API} *)
 
@@ -113,7 +93,7 @@ type tune_svg_arg = {
 }
 [@@deriving yojson]
 
-let make_tune_svg ~config = call_nix ~config "makeTuneSvg" % tune_svg_arg_to_yojson
+let make_tune_svg = call_nix "makeTuneSvg" % tune_svg_arg_to_yojson
 
 type tune_ogg_arg = {
   tune: tune;
@@ -123,7 +103,7 @@ type tune_ogg_arg = {
 }
 [@@deriving yojson]
 
-let make_tune_ogg ~config = call_nix ~config "makeTuneOgg" % tune_ogg_arg_to_yojson
+let make_tune_ogg = call_nix "makeTuneOgg" % tune_ogg_arg_to_yojson
 
 type pdf_metadata = {
   title: string;
@@ -141,4 +121,4 @@ type book_pdf_arg = {
 }
 [@@deriving yojson]
 
-let make_book_pdf ~config = call_nix ~config "makeBookPdf" % book_pdf_arg_to_yojson
+let make_book_pdf = call_nix "makeBookPdf" % book_pdf_arg_to_yojson

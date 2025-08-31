@@ -149,15 +149,8 @@ let create ?context id =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      div ~a: [a_class ["text-center"]] [Components.VersionSvg.make version];
-      div
-        ~a: [a_class ["d-flex"; "justify-content-end"]]
-        [
-          audio
-            ~a: [a_controls ()]
-            ~src: (Endpoints.Api.(href @@ Version Ogg) id (Tune.slug' tune) Model.VersionParameters.none RenderingParameters.none)
-            []
-        ];
+      div [Components.VersionSvg.make version];
+      div ~a: [a_class ["mt-1"; "d-flex"; "justify-content-end"]] [Components.VersionOgg.make version];
       Utils.quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);

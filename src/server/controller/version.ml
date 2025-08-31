@@ -66,14 +66,14 @@ let get env id =
     Permission.assert_can_get env version;%lwt
     lwt version
 
-let get_content env id =
-  Log.debug (fun m -> m "get_content %a" Entry.Id.pp' id);
+let content env id =
+  Log.debug (fun m -> m "content %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   Permission.assert_can_get env version;%lwt
   lwt @@ Model.Version.content' version
 
-let get_pdf env id _slug version_params rendering_params =
-  Log.debug (fun m -> m "get_pdf %a" Entry.Id.pp' id);
+let build_pdf env id version_params rendering_params =
+  Log.debug (fun m -> m "build_pdf %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   (* never show the headers for a simple version *)
   let rendering_params =
@@ -81,49 +81,41 @@ let get_pdf env id _slug version_params rendering_params =
       ~show_headers: (const (some false))
       rendering_params
   in
-  let%lwt fname =
-    let%lwt pdf_metadata =
-      let%lwt tune = Model.Version.tune' version in
-      let title =
-        NEString.to_string @@
-          Option.value
-            (Model.VersionParameters.display_name version_params)
-            ~default: (Model.Tune.one_name' tune)
-      in
-      let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
-      let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
-      lwt Renderer.{title; authors; subjects; creator = "FIXME"}
+  let%lwt pdf_metadata =
+    let%lwt tune = Model.Version.tune' version in
+    let title =
+      NEString.to_string @@
+        Option.value
+          (Model.VersionParameters.display_name version_params)
+          ~default: (Model.Tune.one_name' tune)
     in
-    let%lwt set = ModelToRenderer.version_to_renderer_set' version version_params Model.SetParameters.none in
-    let%lwt book_pdf_arg =
-      ModelToRenderer.renderer_set_to_renderer_book_pdf_arg
-        set
-        rendering_params
-        pdf_metadata
-    in
-    Renderer.make_book_pdf ~config: (Config.call_nix_config ()) book_pdf_arg
+    let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
+    let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
+    lwt Renderer.{title; authors; subjects; creator = "FIXME"}
   in
-  Madge_server.respond_file ~content_type: "application/pdf" ~fname
+  let%lwt set = ModelToRenderer.version_to_renderer_set' version version_params Model.SetParameters.none in
+  let%lwt book_pdf_arg =
+    ModelToRenderer.renderer_set_to_renderer_book_pdf_arg
+      set
+      rendering_params
+      pdf_metadata
+  in
+  Renderer.make_book_pdf book_pdf_arg
 
 let render_svg version version_params _rendering_params =
   let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
   let stylesheet = "/fonts.css" in
-  Renderer.make_tune_svg ~config: (Config.call_nix_config ()) {tune; stylesheet}
+  Renderer.make_tune_svg {tune; stylesheet}
 
-let render_svg' version version_params rendering_params =
+let build_svg env id version_params rendering_params =
+  Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
+  get env id >>= fun version ->
   render_svg (Entry.value version) version_params rendering_params
 
-let get_svg env id _slug version_params rendering_params =
-  Log.debug (fun m -> m "get_svg %a" Entry.Id.pp' id);
-  get env id >>= fun version ->
-  let%lwt fname = render_svg' version version_params rendering_params in
-  Madge_server.respond_file ~content_type: "image/svg+xml" ~fname
-
-let preview_svg env version version_params rendering_params =
-  Log.debug (fun m -> m "preview_svg");
+let build_svg' env version version_params rendering_params =
+  Log.debug (fun m -> m "build_svg'");
   Permission.assert_can_create env;%lwt
-  let%lwt fname = render_svg version version_params rendering_params in
-  Madge_server.respond_file ~content_type: "image/svg+xml" ~fname
+  render_svg version version_params rendering_params
 
 let render_ogg version version_params _rendering_params =
   let%lwt tune = Model.Version.tune version in
@@ -131,33 +123,28 @@ let render_ogg version version_params _rendering_params =
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
   let%lwt tune = ModelToRenderer.version_to_renderer_tune version version_params in
-  Renderer.make_tune_ogg ~config: (Config.call_nix_config ()) {tune; tempo_unit; tempo_value; chords_kind}
+  Renderer.make_tune_ogg {tune; tempo_unit; tempo_value; chords_kind}
 
-let render_ogg' version version_params rendering_params =
-  render_ogg (Entry.value version) version_params rendering_params
-
-let get_ogg env id _slug version_params rendering_params =
-  Log.debug (fun m -> m "get_ogg %a" Entry.Id.pp' id);
+let build_ogg env id version_params rendering_params =
+  Log.debug (fun m -> m "build_ogg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   Permission.assert_can_get env version;%lwt
-  let%lwt fname = render_ogg' version version_params rendering_params in
-  Madge_server.respond_file ~content_type: "audio/ogg" ~fname
+  render_ogg (Entry.value version) version_params rendering_params
 
-let preview_ogg env version version_params rendering_params =
-  Log.debug (fun m -> m "preview_ogg");
+let build_ogg' env version version_params rendering_params =
+  Log.debug (fun m -> m "build_ogg'");
   Permission.assert_can_create env;%lwt
-  let%lwt fname = render_ogg version version_params rendering_params in
-  Madge_server.respond_file ~content_type: "audio/ogg" ~fname
+  render_ogg version version_params rendering_params
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
   | Get -> get env
-  | Content -> get_content env
+  | Content -> content env
   | Search -> search env
   | Create -> create env
   | Update -> update env
-  | Svg -> get_svg env
-  | Ogg -> get_ogg env
-  | Pdf -> get_pdf env
-  | PreviewSvg -> preview_svg env
-  | PreviewOgg -> preview_ogg env
+  | BuildSvg -> build_svg env
+  | BuildOgg -> build_ogg env
+  | BuildPdf -> build_pdf env
+  | BuildSvg' -> build_svg' env
+  | BuildOgg' -> build_ogg' env
