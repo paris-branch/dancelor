@@ -3,25 +3,41 @@ open Common
 
 module Log = (val Logger.create "routine": Logs.LOG)
 
-let preload_versions ?max_concurrency () =
-  let%lwt all = Database.Version.get_all () in
-  let%lwt t =
-    NesLwt_unix.with_difftimeofday @@ fun () ->
-    Lwt_stream.iter_n
-      ?max_concurrency
+(** A stream containing all the versions of the database. It never ends, and
+    instead returns all the versions again, after a delay of 10 minutes. *)
+let all_versions =
+  Lwt_stream.concat @@
+  Lwt_stream.from @@ fun () ->
+  Lwt_unix.sleep 600.;%lwt
+  some % Lwt_stream.of_list <$> Database.Version.get_all ()
+
+let all_versions_prerendering_job =
+  Lwt_stream.concat @@
+    Lwt_stream.map_s
       (fun version ->
-        let%lwt tune = Model.Version.tune' version in
-        let name = Model.Tune.one_name' tune in
+        let%lwt name = Model.Version.one_name' version in
         Log.debug (fun m -> m "Prerendering %s" (NEString.to_string name));
-        let%lwt _ = Controller.Job.wait_ignore =<< Controller.Version.render_svg (Entry.value version) Model.VersionParameters.none RenderingParameters.none in
-        let%lwt _ = Controller.Job.wait_ignore =<< Controller.Version.render_ogg (Entry.value version) Model.VersionParameters.none RenderingParameters.none in
-        lwt_unit
+        let%lwt render_svg_job = Controller.Version.render_svg (Entry.value version) in
+        let%lwt render_ogg_job = Controller.Version.render_ogg (Entry.value version) in
+        lwt @@ Lwt_stream.of_list [render_svg_job; render_ogg_job]
       )
-      (Lwt_stream.of_list all)
-  in
-  Log.info (fun m -> m "Finished prerendering all versions in %fs" t);
-  lwt_unit
+      all_versions
+
+let run_all_jobs ?max_concurrency () =
+  Lwt_stream.iter_n
+    ?max_concurrency
+    (fun job ->
+      try%lwt
+        Controller.Job.run_job job
+      with
+        | exn -> !(Lwt.async_exception_hook) exn; lwt_unit
+    )
+    (
+      Lwt_stream.choose_biased [
+        Controller.Job.pending_jobs;
+        all_versions_prerendering_job;
+      ]
+    )
 
 let initialise () =
-  let max_concurrency = if !Config.heavy_routines then 8 else 1 in
-  Lwt.async (fun () -> preload_versions ~max_concurrency ())
+  Lwt.async (fun () -> run_all_jobs ~max_concurrency: 8 ())

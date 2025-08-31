@@ -113,13 +113,8 @@ let callback _ request body =
       )
 
   let start_routines () =
-    if !Config.routines then
-      (
-        Log.info (fun m -> m "Starting routines");
-        Routine.initialise ()
-      )
-    else
-      Log.info (fun m -> m "Not starting routines")
+    Log.info (fun m -> m "Starting routines");
+    Routine.initialise ()
 
   let run_server () =
     Log.info (fun m -> m "Starting server");

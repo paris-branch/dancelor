@@ -5,13 +5,18 @@ module Log = (val Logger.create "controller.job": Logs.LOG)
 
 type command = string array [@@deriving show]
 
+type process_option = Pending | Started of Lwt_process.process_full
+
 type t = {
+  id: JobId.t;
   command: command;
-  process: Lwt_process.process_full;
+  process: process_option ref;
   stdout: Buffer.t;
   stderr: Buffer.t;
   files: string list; (* files involved in the job - can be removed at the end *)
 }
+
+let id job = job.id
 
 let rec read_in_channel_into_buffer ichan buf =
   let%lwt chunk = Lwt_io.read ~count: 1024 ichan in
@@ -21,30 +26,56 @@ let rec read_in_channel_into_buffer ichan buf =
   | _ -> lwt_unit
 
 let status id job =
-  let read_outputs () =
-    read_in_channel_into_buffer job.process#stdout job.stdout;%lwt
-    read_in_channel_into_buffer job.process#stderr job.stderr;%lwt
+  let read_outputs process =
+    read_in_channel_into_buffer process#stdout job.stdout;%lwt
+    read_in_channel_into_buffer process#stderr job.stderr;%lwt
     let stdout = Buffer.contents job.stdout in
     let stderr = Buffer.contents job.stderr in
     lwt (stdout, stderr)
   in
-  match job.process#state with
-  | Running ->
-    let%lwt (stdout, stderr) = read_outputs () in
-    lwt {Endpoints.Job.Response.status = Running; stdout; stderr}
-  | Exited status ->
-    let%lwt (stdout, stderr) = read_outputs () in
-    Log.debug (fun m -> m "Ran job %s:@\n%a" (JobId.to_string id) pp_command job.command);
-    Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
-    Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
-    Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") stderr);
-    Lwt_list.iter_p Lwt_unix.unlink job.files;%lwt
-    lwt
-      Endpoints.Job.Response.{status = if status = WEXITED 0 then Succeeded else Failed;
-        stdout;
-        stderr}
+  match !(job.process) with
+  | Pending -> lwt {Endpoints.Job.Response.status = Pending; stdout = ""; stderr = ""}
+  | Started process ->
+    match process#state with
+    | Running ->
+      let%lwt (stdout, stderr) = read_outputs process in
+      lwt {Endpoints.Job.Response.status = Running; stdout; stderr}
+    | Exited status ->
+      let%lwt (stdout, stderr) = read_outputs process in
+      Log.debug (fun m -> m "Ran job %s:@\n%a" (JobId.to_string id) pp_command job.command);
+      Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
+      Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
+      Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") stderr);
+      Lwt_list.iter_p
+        (fun fname ->
+          try%lwt
+            Lwt_unix.unlink fname
+          with
+            | Unix.(Unix_error (ENOENT, _, _)) -> lwt_unit
+        )
+        job.files;%lwt
+      lwt
+        Endpoints.Job.Response.{status = if status = WEXITED 0 then Succeeded else Failed;
+          stdout;
+          stderr}
 
 let jobs : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
+let (pending_jobs : t Lwt_stream.t), add_pending_job = Lwt_stream.create ()
+let register_job job =
+  Log.debug (fun m -> m "Register job %s:@\n%a" (JobId.to_string job.id) pp_command job.command);
+  add_pending_job (Some job);
+  Hashtbl.add jobs job.id job
+
+let run_job job =
+  match !(job.process) with
+  | Started _ -> invalid_arg "run_job: cannot start a job that is already started"
+  | Pending ->
+    Log.debug (fun m -> m "Running job %s:@\n%a" (JobId.to_string job.id) pp_command job.command);
+    let process = Lwt_process.open_process_full ("", job.command) in
+    job.process := Started process;
+    Lwt_io.close process#stdin;%lwt
+    (* block until the job is done running *)
+    ignore <$> process#status
 
 let call_nix_build ?(files = []) expr =
   let id = JobId.create () in
@@ -63,19 +94,12 @@ let call_nix_build ?(files = []) expr =
     expr
   |]
   in
-  Log.debug (fun m -> m "Running job %s:@\n%a" (JobId.to_string id) pp_command command);
-  let process = Lwt_process.open_process_full ("", command) in
-  Lwt_io.close process#stdin;%lwt
+  let process = ref Pending in
   let stdout = Buffer.create 8 in
   let stderr = Buffer.create 8 in
-  Hashtbl.add jobs id {command; process; stdout; stderr; files};
-  lwt id
-
-(** For use in {!Routine}. *)
-let wait_ignore id =
-  match Hashtbl.find_opt jobs id with
-  | None -> lwt_unit
-  | Some job -> ignore <$> job.process#status
+  let job = {id; command; process; stdout; stderr; files} in
+  register_job job;
+  lwt job
 
 let get id =
   match Hashtbl.find_opt jobs id with
@@ -90,6 +114,7 @@ type result = {outputs: output list} [@@deriving of_yojson]
 let file id _slug =
   let%lwt response = status id in
   match response.status with
+  | Pending -> Madge_server.shortcut_bad_request "This job is not running yet, you cannot query the file."
   | Running -> Madge_server.shortcut_bad_request "This job is still running, you cannot query the file."
   | Failed -> Madge_server.shortcut_bad_request "This job failed, you cannot query the file."
   | Succeeded ->

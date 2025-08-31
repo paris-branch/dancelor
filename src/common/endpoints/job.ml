@@ -3,7 +3,7 @@ open Madge
 
 module Response = struct
   type status =
-    Running | Succeeded | Failed
+    Pending | Running | Succeeded | Failed
   [@@deriving yojson]
 
   type t = {

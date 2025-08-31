@@ -5,7 +5,7 @@ open Html
 let rec file_href slug jobId =
   let%lwt response = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
   match response.status with
-  | Running -> Js_of_ocaml_lwt.Lwt_js.sleep 1.;%lwt file_href slug jobId
+  | Pending | Running -> Js_of_ocaml_lwt.Lwt_js.sleep 1.;%lwt file_href slug jobId
   | Failed -> lwt_error response
   | Succeeded -> lwt_ok @@ Endpoints.Api.(href @@ Job File) jobId slug
 
