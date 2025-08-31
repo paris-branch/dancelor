@@ -40,4 +40,4 @@ let run_all_jobs ?max_concurrency () =
     )
 
 let initialise () =
-  Lwt.async (fun () -> run_all_jobs ~max_concurrency: 8 ())
+  Lwt.async (fun () -> run_all_jobs ~max_concurrency: 2 ())
