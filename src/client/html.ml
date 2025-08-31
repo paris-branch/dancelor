@@ -11,29 +11,28 @@ module S = struct
 
   let all (ss : 'a t list) : 'a list t = merge (flip List.cons) [] (List.rev ss)
 
+  (** [from ~placeholder promise] creates a signal that holds the [placeholder]
+      until the [promise] resolves. When it resolves, it . This is similar to {!from} except it does
+      only one update. *)
+  let from_lwt_stream (type a) (placeholder : a) (stream : a Lwt_stream.t) : a t =
+    let placeholder =
+      (* Inspect the stream: if there is already a first element, then we take
+         that as placeholder, and this way we avoid weird flickers. *)
+      NesOption.value (Lwt_stream.get_available_1 stream) ~default: placeholder
+    in
+    let result, send_result = create placeholder in
+    Lwt.async (fun () ->
+      Lwt_stream.iter send_result stream;%lwt
+      (* when the stream is over, stop the signal as well *)
+      lwt @@ stop result
+    );
+    result
+
   (** [from' ~placeholder promise] creates a signal that holds the [placeholder]
       until the [promise] resolves. This is similar to {!from} except it does
       only one update. *)
   let from' (placeholder : 'a) (promise : 'a Lwt.t) : 'a t =
-    (* Inspect the state: already resolved promises do not need any special
-       construction, and this way we avoid weird flickers. *)
-    match Lwt.state promise with
-    | Return result -> const result
-    | Fail _ ->
-      Lwt.async (fun () -> Lwt.bind promise (fun _ -> assert false));
-      const placeholder
-    | Sleep ->
-      let result, send_result = create placeholder in
-      (* NOTE: Exceptions during {!Lwt.async} are passed to the
-         {!Lwt.async_exception_hook}. *)
-      Lwt.async
-        (fun () ->
-          Lwt.bind promise @@ fun value ->
-          send_result value;
-          stop result;
-          lwt_unit
-        );
-      result
+    from_lwt_stream placeholder (Lwt_stream.return_lwt promise)
 
   (** [bind_s' signal placeholder promise] is a signal that begins by holding
       [placeholder]. For all the values held by [signal], [promise] is called
