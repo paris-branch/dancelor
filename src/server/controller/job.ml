@@ -10,6 +10,7 @@ type t = {
   process: Lwt_process.process_full;
   stdout: Buffer.t;
   stderr: Buffer.t;
+  files: string list; (* files involved in the job - can be removed at the end *)
 }
 
 let rec read_in_channel_into_buffer ichan buf =
@@ -37,15 +38,15 @@ let status id job =
     Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") stderr);
-    lwt {
-      Endpoints.Job.Response.status = if status = WEXITED 0 then Succeeded else Failed;
-      stdout;
-      stderr
-    }
+    Lwt_list.iter_p Lwt_unix.unlink job.files;%lwt
+    lwt
+      Endpoints.Job.Response.{status = if status = WEXITED 0 then Succeeded else Failed;
+        stdout;
+        stderr}
 
 let jobs : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
 
-let call_nix_build expr =
+let call_nix_build ?(files = []) expr =
   let id = JobId.create () in
   let command = [|
     "nix";
@@ -67,7 +68,7 @@ let call_nix_build expr =
   Lwt_io.close process#stdin;%lwt
   let stdout = Buffer.create 8 in
   let stderr = Buffer.create 8 in
-  Hashtbl.add jobs id {command; process; stdout; stderr};
+  Hashtbl.add jobs id {command; process; stdout; stderr; files};
   lwt id
 
 (** For use in {!Routine}. *)
