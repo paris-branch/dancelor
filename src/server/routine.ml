@@ -23,21 +23,36 @@ let all_versions_prerendering_job =
       )
       all_versions
 
-let run_all_jobs ?max_concurrency () =
+let run_jobs_from ~max_concurrency =
   Lwt_stream.iter_n
-    ?max_concurrency
+    ~max_concurrency
     (fun job ->
       try%lwt
         Controller.Job.run_job job
       with
         | exn -> !(Lwt.async_exception_hook) exn; lwt_unit
     )
-    (
-      Lwt_stream.choose_biased [
-        Controller.Job.pending_jobs;
-        all_versions_prerendering_job;
-      ]
-    )
+
+let initialiase_job_runners ~threads =
+  assert (threads >= 2);
+  Lwt.async (fun () ->
+    (* Have one thread pick jobs from the version prerendering queue when
+       there is nothing in the pending jobs queue. *)
+    run_jobs_from
+      ~max_concurrency: 1
+      (
+        Lwt_stream.choose_biased [
+          Controller.Job.pending_jobs;
+          all_versions_prerendering_job;
+        ]
+      )
+  );
+  Lwt.async (fun () ->
+    (* The others (at least one) are fully dedicated to user jobs. *)
+    run_jobs_from
+      ~max_concurrency: (threads - 1)
+      Controller.Job.pending_jobs
+  )
 
 let initialise () =
-  Lwt.async (fun () -> run_all_jobs ~max_concurrency: 2 ())
+  initialiase_job_runners ~threads: 2
