@@ -42,24 +42,29 @@ let
   ## rather than calling `cat`.
   ## TODO: In fact, we don't need to concatenate files at all, because LilyPond
   ## and Guile both have a mechanism to load other files.
-  tuneScheme = runCommand "preamble.scm" { } ''
-    {
-      cat ${./tune/scheme/extlib.scm}
-      cat ${./tune/scheme/extlylib.scm}
-      cat ${./tune/scheme/get_partial.scm}
-      cat ${./tune/scheme/duration_of_music.scm}
-      cat ${./tune/scheme/skip_as_repeat.scm}
-      cat ${./tune/scheme/scottish_chords/jig_chords.scm}
-      cat ${./tune/scheme/scottish_chords/reel_chords.scm}
-      cat ${./tune/scheme/scottish_chords/waltz_chords.scm}
-      cat ${./tune/scheme/scottish_chords/chords.scm}
-      cat ${./tune/scheme/fancy_unfold_repeats/unfold_first_volta_repeat.scm}
-      cat ${./tune/scheme/fancy_unfold_repeats/extract_span.scm}
-      cat ${./tune/scheme/fancy_unfold_repeats/split_rhythmic_event_at.scm}
-      cat ${./tune/scheme/fancy_unfold_repeats/add_trailing_silence.scm}
-      cat ${./tune/scheme/fancy_unfold_repeats/fancy_unfold_repeats.scm}
-    } > $out
-  '';
+  tuneScheme =
+    runCommand "preamble.scm"
+      {
+        allowSubtitutes = false;
+      }
+      ''
+        {
+          cat ${./tune/scheme/extlib.scm}
+          cat ${./tune/scheme/extlylib.scm}
+          cat ${./tune/scheme/get_partial.scm}
+          cat ${./tune/scheme/duration_of_music.scm}
+          cat ${./tune/scheme/skip_as_repeat.scm}
+          cat ${./tune/scheme/scottish_chords/jig_chords.scm}
+          cat ${./tune/scheme/scottish_chords/reel_chords.scm}
+          cat ${./tune/scheme/scottish_chords/waltz_chords.scm}
+          cat ${./tune/scheme/scottish_chords/chords.scm}
+          cat ${./tune/scheme/fancy_unfold_repeats/unfold_first_volta_repeat.scm}
+          cat ${./tune/scheme/fancy_unfold_repeats/extract_span.scm}
+          cat ${./tune/scheme/fancy_unfold_repeats/split_rhythmic_event_at.scm}
+          cat ${./tune/scheme/fancy_unfold_repeats/add_trailing_silence.scm}
+          cat ${./tune/scheme/fancy_unfold_repeats/fancy_unfold_repeats.scm}
+        } > $out
+      '';
 
   ## TODO: cf tuneScheme
   makeTuneLilypond =
@@ -67,32 +72,37 @@ let
     let
       contentFile = writeText "tune-content.ly" content;
     in
-    runCommand "tune.ly" { } ''
+    runCommand "tune.ly"
       {
-        cat ${./tune/lilypond/lyversion.ly}
-        printf '#(load "%s")\n' ${tuneScheme}
-        cat ${./tune/lilypond/layout.ly}
-        cat ${./tune/lilypond/paper.ly}
-        cat ${./tune/lilypond/cropped.ly}
-        cat ${./tune/lilypond/helpers.ly}
-        cat ${./tune/lilypond/repeat_volta_fancy.ly}
-        cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
-        cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
-        cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
-        cat ${./tune/lilypond/scottish_chords.ly}
-        cat ${./tune/lilypond/fancy_unfold_repeats.ly}
-        cat ${./tune/lilypond/version/header.ly}
-        printf '\\score {\n'
-        printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
-        printf '  { %s }\n' "$(cat "${contentFile}")"
-        printf '}\n\\markup\\null\n'
-      } > $out
-    '';
+        allowSubtitutes = false;
+      }
+      ''
+        {
+          cat ${./tune/lilypond/lyversion.ly}
+          printf '#(load "%s")\n' ${tuneScheme}
+          cat ${./tune/lilypond/layout.ly}
+          cat ${./tune/lilypond/paper.ly}
+          cat ${./tune/lilypond/cropped.ly}
+          cat ${./tune/lilypond/helpers.ly}
+          cat ${./tune/lilypond/repeat_volta_fancy.ly}
+          cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
+          cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
+          cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
+          cat ${./tune/lilypond/scottish_chords.ly}
+          cat ${./tune/lilypond/fancy_unfold_repeats.ly}
+          cat ${./tune/lilypond/version/header.ly}
+          printf '\\score {\n'
+          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
+          printf '  { %s }\n' "$(cat "${contentFile}")"
+          printf '}\n\\markup\\null\n'
+        } > $out
+      '';
 
   makeTunePdf = withArgumentType "makeTunePdf" tuneType (
     tune:
     runCommand "tune.pdf"
       {
+        allowSubtitutes = false;
         buildInputs = with pkgs; [ lilypond ];
         FONTCONFIG_FILE =
           with pkgs;
@@ -125,6 +135,7 @@ let
     { tune, stylesheet }:
     runCommand "tune.svg"
       {
+        allowSubtitutes = false;
         buildInputs = with pkgs; [ lilypond ];
         FONTCONFIG_FILE =
           with pkgs;
@@ -166,31 +177,35 @@ let
     let
       contentFile = writeText "tune-content.ly" tune.content;
     in
-    runCommand "tune.ly" { } ''
+    runCommand "tune.ly"
       {
-        cat ${./tune/lilypond/lyversion.ly}
-        printf '#(load "%s")\n' ${tuneScheme}
-        cat ${./tune/lilypond/layout.ly}
-        cat ${./tune/lilypond/paper.ly}
-        cat ${./tune/lilypond/cropped.ly}
-        cat ${./tune/lilypond/helpers.ly}
-        cat ${./tune/lilypond/repeat_volta_fancy.ly}
-        cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
-        cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
-        cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
-        cat ${./tune/lilypond/scottish_chords.ly}
-        cat ${./tune/lilypond/fancy_unfold_repeats.ly}
-        cat ${./tune/lilypond/version/header.ly}
-        printf '\\score {\n  %s\n}\n\\markup\\null\n' "$(cat "${contentFile}")"
-        printf '#(set! make-music the-make-music)\n'
-        printf '\\score {\n'
-        printf '  \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
-        printf '  \\${chords_kind}Chords \\fancyUnfoldRepeats {\n'
-        printf '    %s\n' "$(cat "${contentFile}")"
-        printf '  }\n'
-        printf '}\n'
-      } > $out
-    '';
+        allowSubtitutes = false;
+      }
+      ''
+        {
+          cat ${./tune/lilypond/lyversion.ly}
+          printf '#(load "%s")\n' ${tuneScheme}
+          cat ${./tune/lilypond/layout.ly}
+          cat ${./tune/lilypond/paper.ly}
+          cat ${./tune/lilypond/cropped.ly}
+          cat ${./tune/lilypond/helpers.ly}
+          cat ${./tune/lilypond/repeat_volta_fancy.ly}
+          cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
+          cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
+          cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
+          cat ${./tune/lilypond/scottish_chords.ly}
+          cat ${./tune/lilypond/fancy_unfold_repeats.ly}
+          cat ${./tune/lilypond/version/header.ly}
+          printf '\\score {\n  %s\n}\n\\markup\\null\n' "$(cat "${contentFile}")"
+          printf '#(set! make-music the-make-music)\n'
+          printf '\\score {\n'
+          printf '  \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
+          printf '  \\${chords_kind}Chords \\fancyUnfoldRepeats {\n'
+          printf '    %s\n' "$(cat "${contentFile}")"
+          printf '  }\n'
+          printf '}\n'
+        } > $out
+      '';
 
   ## TODO: It is possible to generate the ogg and another file (eg. SVG) at the
   ## same time. It would be worth doing for performance purposes.
@@ -198,6 +213,7 @@ let
     arg:
     runCommand "tune.ogg"
       {
+        allowSubtitutes = false;
         buildInputs = with pkgs; [
           lilypond
           timidity

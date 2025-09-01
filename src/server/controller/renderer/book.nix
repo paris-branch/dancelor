@@ -129,6 +129,7 @@ let
     }:
     runCommand "book.pdf"
       {
+        allowSubtitutes = false;
         buildInputs = with pkgs; [ texlive.combined.scheme-full ]; # FIXME: make smaller
         FONTCONFIG_FILE =
           with pkgs;
