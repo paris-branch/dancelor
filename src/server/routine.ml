@@ -17,18 +17,20 @@ let all_versions_prerendering_job =
       (fun version ->
         let%lwt name = Model.Version.one_name' version in
         Log.debug (fun m -> m "Prerendering %s" (NEString.to_string name));
+        let render_svg_id = JobId.create () in
         let%lwt render_svg_job = Controller.Version.render_svg (Entry.value version) in
+        let render_ogg_id = JobId.create () in
         let%lwt render_ogg_job = Controller.Version.render_ogg (Entry.value version) in
-        lwt @@ Lwt_stream.of_list [render_svg_job; render_ogg_job]
+        lwt @@ Lwt_stream.of_list [(render_svg_id, render_svg_job); (render_ogg_id, render_ogg_job)]
       )
       all_versions
 
 let run_jobs_from ~max_concurrency =
   Lwt_stream.iter_n
     ~max_concurrency
-    (fun job ->
+    (fun (id, job) ->
       try%lwt
-        Controller.Job.run_job job
+        Controller.Job.run_job id job
       with
         | exn -> !(Lwt.async_exception_hook) exn; lwt_unit
     )

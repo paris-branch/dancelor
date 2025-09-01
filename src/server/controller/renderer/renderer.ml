@@ -77,7 +77,7 @@ let call_nix fun_ json =
   let%lwt (fname, ochan) = Lwt_io.open_temp_file () in
   Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
   Lwt_io.close ochan;%lwt
-  Job.call_nix_build
+  Job.nix_build_job
     ~files: [fname]
     (
       spf

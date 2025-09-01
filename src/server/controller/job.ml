@@ -8,15 +8,12 @@ type command = string array [@@deriving show]
 type process_option = Pending | Running of Lwt_process.process_full | Exited of Unix.process_status
 
 type t = {
-  id: JobId.t;
   command: command;
   process: process_option ref;
   stdout: string ref;
   stderr: string list ref;
   files: string list; (* files involved in the job - can be removed at the end *)
 }
-
-let id job = job.id
 
 let status job =
   match !(job.process) with
@@ -40,18 +37,21 @@ let status job =
     )
 
 let jobs : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
-let (pending_jobs : t Lwt_stream.t), add_pending_job = Lwt_stream.create ()
-let register_job job =
-  Log.debug (fun m -> m "Register job %s:@\n%a" (JobId.to_string job.id) pp_command job.command);
-  add_pending_job (Some job);
-  Hashtbl.add jobs job.id job
+let (pending_jobs : (JobId.t * t) Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
-let run_job job =
+let register_job job =
+  let id = JobId.create () in
+  Log.debug (fun m -> m "Registering job %s:@\n%a" (JobId.to_string id) pp_command job.command);
+  add_pending_job (Some (id, job));
+  Hashtbl.add jobs id job;
+  id
+
+let run_job id job =
   match !(job.process) with
   | Exited _ -> invalid_arg "run_job: cannot start a job that is already finished"
   | Running _ -> invalid_arg "run_job: cannot start a job that is already started"
   | Pending ->
-    Log.debug (fun m -> m "Running job %s:@\n%a" (JobId.to_string job.id) pp_command job.command);
+    Log.debug (fun m -> m "Running job %s:@\n%a" (JobId.to_string id) pp_command job.command);
     let process = Lwt_process.open_process_full ("", job.command) in
     job.process := Running process;
     Lwt_io.close process#stdin;%lwt
@@ -60,7 +60,7 @@ let run_job job =
         match%lwt Lwt_io.read_line_opt process#stderr with
         | None -> lwt_unit
         | Some line ->
-          Log.debug (fun m -> m "%s> %s" (JobId.to_string job.id) line);
+          Log.debug (fun m -> m "%s> %s" (JobId.to_string id) line);
           job.stderr := !(job.stderr) @ [line];
           follow_stderr_lines ()
       in
@@ -73,14 +73,13 @@ let run_job job =
     job.stdout := stdout;
     let%lwt last_lines = String.split_on_char '\n' <$> Lwt_io.(atomic read process#stderr) in
     job.stderr := !(job.stderr) @ last_lines;
-    Log.debug (fun m -> m "Ran job %s:@\n%a" (JobId.to_string job.id) pp_command job.command);
+    Log.debug (fun m -> m "Ran job %s:@\n%a" (JobId.to_string id) pp_command job.command);
     Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") (String.concat "\n" !(job.stderr)));
     lwt_unit
 
-let call_nix_build ?(files = []) expr =
-  let id = JobId.create () in
+let nix_build_job ?(files = []) expr =
   let command = [|
     "nix";
     "--extra-experimental-features";
@@ -98,9 +97,7 @@ let call_nix_build ?(files = []) expr =
   |]
   in
   let process = ref Pending in
-  let job = {id; command; process; stdout = ref ""; stderr = ref []; files} in
-  register_job job;
-  lwt job
+  lwt {command; process; stdout = ref ""; stderr = ref []; files}
 
 let get id =
   match Hashtbl.find_opt jobs id with
