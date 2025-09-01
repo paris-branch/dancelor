@@ -57,29 +57,6 @@ module Build (Getters : Getters.S) = struct
 
   module BuiltSet = Set.Build(Getters)
 
-  let lilypond_contents_cache_key book =
-    let%lwt pages = contents book in
-    let%lwt contents =
-      Lwt_list.map_p
-        (function
-          | Part title -> lwt @@ NEString.to_string title
-          | Dance (dance, page_dance) ->
-            let%lwt page_dance =
-              match page_dance with
-              | DanceOnly -> lwt ""
-              | DanceVersion (version, _) -> lwt @@ Core.Version.content' version
-              | DanceSet (set, _) -> BuiltSet.lilypond_content_cache_key' set
-            in
-            lwt (String.concat "" (List.map NEString.to_string (NEList.to_list (Core.Dance.names' dance))) ^ page_dance)
-          | Version (version, _) -> lwt @@ Core.Version.content' version
-          | Set (set, _) -> BuiltSet.lilypond_content_cache_key' set
-        )
-        pages
-    in
-    lwt (String.concat "\n" contents)
-
-  let lilypond_contents_cache_key' = lilypond_contents_cache_key % Entry.value
-
   module Warnings = struct
     (* The following functions all have the name of a warning of
        {!Dancelor_common.Model.Core.Book.warning}. They all are in charge of

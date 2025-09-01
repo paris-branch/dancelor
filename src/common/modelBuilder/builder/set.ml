@@ -38,13 +38,6 @@ module Build (Getters : Getters.S) = struct
 
   let find_context' index = find_context index % Entry.value
 
-  let lilypond_content_cache_key set =
-    let%lwt contents = contents set in
-    let contents = List.map (Core.Version.content' % fst) contents in
-    lwt (String.concat "\n" contents)
-
-  let lilypond_content_cache_key' = lilypond_content_cache_key % Entry.value
-
   let warnings s =
     let warnings = ref [] in
     let add_warning w = warnings := w :: !warnings in

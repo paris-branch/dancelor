@@ -53,9 +53,6 @@ module type S = sig
   val compare : t Entry.t -> t Entry.t -> int
   val equal : t Entry.t -> t Entry.t -> bool
 
-  val lilypond_content_cache_key : t -> string Lwt.t
-  val lilypond_content_cache_key' : t Entry.t -> string Lwt.t
-
   (* {2 Warnings} *)
 
   type warning = Core.Set.warning =

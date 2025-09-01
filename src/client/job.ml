@@ -2,12 +2,15 @@ open Nes
 open Common
 open Html
 
-type status =
-  | Registering (** we have sent the request to the server *)
-  | Pending (** the server has processed our request *)
-  | Running of string list (** the server is running the job; carries the output *)
-  | Failed of string list (** the job has failed; carries the output *)
-  | Succeeded of string (** the job has succeeded; carries the link of the file *)
+(** Similar to {!Endpoints.Job.Status.t} but with an additional “Registering”
+    and with “Succeeded” carrying the path. *)
+type t =
+  | Registering
+  | Pending
+  | Running of string list
+  | Failed of string list
+  | Succeeded of string
+[@@deriving yojson]
 
 (** Run a job, and return a signal that contains its status. *)
 let run slug route =
@@ -15,7 +18,7 @@ let run slug route =
     | Error error -> raise (Madge_client.Error error)
     | Ok jobId ->
       lwt @@
-      S.from_lwt_stream Pending @@
+      S.from_lwt_stream Registering @@
       Lwt_stream.concat @@
       Lwt_stream.return_lwt @@
       lwt @@
@@ -24,10 +27,10 @@ let run slug route =
       let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
       lwt @@
         match status with
-        | {status = Pending; _} -> Lwt_stream.Next Pending
-        | {status = Running; log_lines; _} -> Lwt_stream.Next (Running log_lines)
-        | {status = Failed; log_lines; _} -> Lwt_stream.Next (Failed log_lines)
-        | {status = Succeeded; _} -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+        | Pending -> Lwt_stream.Next Pending
+        | Running logs -> Lwt_stream.Next (Running logs)
+        | Failed logs -> Lwt_stream.Next (Failed logs)
+        | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
 
 let status_signal_from_promise = S.switch % S.from' (S.const Registering)
 

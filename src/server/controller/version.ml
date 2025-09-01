@@ -100,7 +100,7 @@ let build_pdf env id version_params rendering_params =
       rendering_params
       pdf_metadata
   in
-  Job.id <$> Renderer.make_book_pdf book_pdf_arg
+  Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
 
 let render_svg ?version_params ?rendering_params version =
   ignore rendering_params;
@@ -111,12 +111,12 @@ let render_svg ?version_params ?rendering_params version =
 let build_svg env id version_params rendering_params =
   Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
-  Job.id <$> render_svg (Entry.value version) ~version_params ~rendering_params
+  Job.register_job <$> render_svg (Entry.value version) ~version_params ~rendering_params
 
 let build_svg' env version version_params rendering_params =
   Log.debug (fun m -> m "build_svg'");
   Permission.assert_can_create env;%lwt
-  Job.id <$> render_svg version ~version_params ~rendering_params
+  Job.register_job <$> render_svg version ~version_params ~rendering_params
 
 let render_ogg ?version_params ?rendering_params version =
   ignore rendering_params;
@@ -131,12 +131,12 @@ let build_ogg env id version_params rendering_params =
   Log.debug (fun m -> m "build_ogg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
   Permission.assert_can_get env version;%lwt
-  Job.id <$> render_ogg (Entry.value version) ~version_params ~rendering_params
+  Job.register_job <$> render_ogg (Entry.value version) ~version_params ~rendering_params
 
 let build_ogg' env version version_params rendering_params =
   Log.debug (fun m -> m "build_ogg'");
   Permission.assert_can_create env;%lwt
-  Job.id <$> render_ogg version ~version_params ~rendering_params
+  Job.register_job <$> render_ogg version ~version_params ~rendering_params
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
