@@ -70,23 +70,15 @@ type call_nix_config = {
 }
 
 let call_nix fun_ json =
-  (* NOTE: We could use {!Lwt_io.with_temp_file} here, but that would either
-     remove the temporary file too early, or it would keep it running until the
-     job actually starts, which might be a long while, potentially leading to
-     Unix.EMFILE “Too many files” error. *)
-  let%lwt (fname, ochan) = Lwt_io.open_temp_file () in
-  Lwt_io.write ochan (Yojson.Safe.to_string json);%lwt
-  Lwt_io.close ochan;%lwt
-  Job.nix_build_job
-    ~files: [fname]
+  Job.make
     (
       spf
-        "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON (builtins.readFile %s))"
+        "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON %s)"
         (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
         (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
         (if !Config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes !Config.nixpkgs2211 ^ "; ")
         fun_
-        (escape_double_quotes fname)
+        (escape_double_quotes (Yojson.Safe.to_string json))
     )
 
 (** {2 API} *)

@@ -3,16 +3,13 @@ open Common
 
 module Log = (val Logger.create "controller.job": Logs.LOG)
 
-type command = string array [@@deriving show]
-
 type process_option = Pending | Running of Lwt_process.process_full | Exited of Unix.process_status
 
 type t = {
-  command: command;
+  expr: string;
   process: process_option ref;
   stdout: string ref;
   stderr: string list ref;
-  files: string list; (* files involved in the job - can be removed at the end *)
 }
 
 let status job =
@@ -20,14 +17,6 @@ let status job =
   | Pending -> lwt ("", Endpoints.Job.Response.pending)
   | Running _ -> lwt ("", {Endpoints.Job.Response.status = Running; log_lines = !(job.stderr)})
   | Exited status ->
-    Lwt_list.iter_p
-      (fun fname ->
-        try%lwt
-          Lwt_unix.unlink fname
-        with
-          | Unix.(Unix_error (ENOENT, _, _)) -> lwt_unit
-      )
-      job.files;%lwt
     lwt (
       !(job.stdout),
       Endpoints.Job.Response.{
@@ -36,23 +25,45 @@ let status job =
       }
     )
 
-let jobs : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
+(* NOTE: The following table and stream need to be kept in sync. *)
+let job_of_id : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
+let job_of_expr : (string, (JobId.t * t)) Hashtbl.t = Hashtbl.create 8
 let (pending_jobs : (JobId.t * t) Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
 let register_job job =
-  let id = JobId.create () in
-  Log.debug (fun m -> m "Registering job %s:@\n%a" (JobId.to_string id) pp_command job.command);
-  add_pending_job (Some (id, job));
-  Hashtbl.add jobs id job;
-  id
+  match Hashtbl.find_opt job_of_expr job.expr with
+  | Some (id, _) -> id
+  | None ->
+    let id = JobId.create () in
+    Log.debug (fun m -> m "Registering job %s:@\n%s" (JobId.to_string id) job.expr);
+    Hashtbl.add job_of_id id job;
+    Hashtbl.add job_of_expr job.expr (id, job);
+    add_pending_job (Some (id, job));
+    id
 
 let run_job id job =
   match !(job.process) with
   | Exited _ -> invalid_arg "run_job: cannot start a job that is already finished"
   | Running _ -> invalid_arg "run_job: cannot start a job that is already started"
   | Pending ->
-    Log.debug (fun m -> m "Running job %s:@\n%a" (JobId.to_string id) pp_command job.command);
-    let process = Lwt_process.open_process_full ("", job.command) in
+    Log.debug (fun m -> m "Running job %s:@\n%s" (JobId.to_string id) job.expr);
+    let command = [|
+      "nix";
+      "--extra-experimental-features";
+      "nix-command";
+      "build";
+      "--print-build-logs";
+      "--verbose";
+      "--log-format";
+      "raw";
+      "--json";
+      "--no-link";
+      "--impure";
+      "--expr";
+      job.expr
+    |]
+    in
+    let process = Lwt_process.open_process_full ("", command) in
     job.process := Running process;
     Lwt_io.close process#stdin;%lwt
     Lwt.async (fun () ->
@@ -73,34 +84,18 @@ let run_job id job =
     job.stdout := stdout;
     let%lwt last_lines = String.split_on_char '\n' <$> Lwt_io.(atomic read process#stderr) in
     job.stderr := !(job.stderr) @ last_lines;
-    Log.debug (fun m -> m "Ran job %s:@\n%a" (JobId.to_string id) pp_command job.command);
+    Log.debug (fun m -> m "Ran job %s:@\n%s" (JobId.to_string id) job.expr);
     Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") (String.concat "\n" !(job.stderr)));
     lwt_unit
 
-let nix_build_job ?(files = []) expr =
-  let command = [|
-    "nix";
-    "--extra-experimental-features";
-    "nix-command";
-    "build";
-    "--print-build-logs";
-    "--verbose";
-    "--log-format";
-    "raw";
-    "--json";
-    "--no-link";
-    "--impure";
-    "--expr";
-    expr
-  |]
-  in
+let make expr =
   let process = ref Pending in
-  lwt {command; process; stdout = ref ""; stderr = ref []; files}
+  lwt {expr; process; stdout = ref ""; stderr = ref []}
 
 let get id =
-  match Hashtbl.find_opt jobs id with
+  match Hashtbl.find_opt job_of_id id with
   | None -> Madge_server.shortcut_not_found "This job does not exit anymore, or has never existed."
   | Some job -> lwt job
 
