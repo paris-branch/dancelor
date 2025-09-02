@@ -48,7 +48,7 @@ let show_live_status ~on_succeeded status_signal =
   flip S.map status_signal @@ function
     | Registering ->
       [
-        p ~a: [a_class ["mb-4"]] [
+        p ~a: [a_class ["mb-4"; "alert"; "alert-info"]] [
           txt
             "The document generation job is being sent to the server.";
         ];
@@ -56,7 +56,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Pending ->
       [
-        p ~a: [a_class ["mb-4"]] [
+        p ~a: [a_class ["mb-4"; "alert"; "alert-info"]] [
           txt
             "The document generation job is pending, that is it has been \
            registered on the server, but the server is busy with other jobs.";
@@ -65,7 +65,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Running log_lines ->
       [
-        p ~a: [a_class ["mb-4"]] [
+        p ~a: [a_class ["mb-4"; "alert"; "alert-info"]] [
           txt
             "The server has started generating the document. This process can take \
            a (very) long time, up to several minutes. Wait until you get \
@@ -75,7 +75,7 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Failed log_lines ->
       [
-        p ~a: [a_class ["mb-4"]] [
+        p ~a: [a_class ["mb-4"; "alert"; "alert-danger"]] [
           txt
             "There was a problem during document generation. This is not your \
            fault. You may try again, but if it continues, contact your system \
