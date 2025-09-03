@@ -184,15 +184,21 @@ let
               ''
             else if page.set != null then
               ''
-                printf '\\begin{set}{%s}{%s}{%s}\n' ${escapeShellArg (escapeLatexString page.set.name)} ${escapeShellArg (escapeLatexString page.set.conceptor)} ${escapeShellArg (escapeLatexString page.set.kind)}
+                printf '\\begin{set}{%s}{%s}{%s}\n' \
+                  ${escapeShellArg (escapeLatexString page.set.name)} \
+                  ${escapeShellArg (escapeLatexString page.set.conceptor)} \
+                  ${escapeShellArg (escapeLatexString page.set.kind)}
+
                 ${forConcat page.set.contents (
                   { slug, tune }:
                   ''
-                    printf '\\tune{%s}{%s}{%s}\n' ${escapeShellArg (escapeLatexString tune.name)} ${escapeShellArg (escapeLatexString tune.composer)} ${
-                      makeTunePdf { inherit slug tune; }
-                    }
+                    printf '\\tune{%s}{%s}{%s}\n' \
+                      ${escapeShellArg (escapeLatexString tune.name)} \
+                      ${escapeShellArg (escapeLatexString tune.composer)} \
+                      ${makeTunePdf { inherit slug tune; }}/tune.pdf
                   ''
                 )}
+
                 printf '\\end{set}\n'
               ''
             else
@@ -210,6 +216,7 @@ let
         } > book.tex
         # latexmk -f -interaction=nonstopmode -pdfxe book
         latexmk -pdfxe book
+        mkdir $out
         mv book.pdf $out
       ''
   );

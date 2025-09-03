@@ -49,7 +49,7 @@ let editor =
             ~make_result: AnyResult.make_version_result'
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function
-                | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSvg.make version]]]
+                | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSnippets.make ~show_audio: false version]]]
                 | false -> []
             )
             ~label: "Version"

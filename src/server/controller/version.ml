@@ -101,43 +101,47 @@ let build_pdf env id version_params rendering_params =
       rendering_params
       pdf_metadata
   in
-  Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
+  lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg
 
-let render_svg ?version_params ?rendering_params version =
-  ignore rendering_params;
-  let%lwt (slug, tune) = ModelToRenderer.version_to_renderer_tune version ?version_params in
-  let stylesheet = "/fonts.css" in
-  Renderer.make_tune_svg {slug = Entry.Slug.to_string slug; tune; stylesheet}
-
-let build_svg env id version_params rendering_params =
-  Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
-  get env id >>= fun version ->
-  Job.register_job <$> render_svg (Entry.value version) ~version_params ~rendering_params
-
-let build_svg' env version version_params rendering_params =
-  Log.debug (fun m -> m "build_svg'");
-  Permission.assert_can_create env;%lwt
-  Job.register_job <$> render_svg version ~version_params ~rendering_params
-
-let render_ogg ?version_params ?rendering_params version =
+let render_snippets_arg ?version_params ?rendering_params version =
   ignore rendering_params;
   let%lwt tune = Model.Version.tune version in
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
+  let stylesheet = "/fonts.css" in
   let%lwt (slug, tune) = ModelToRenderer.version_to_renderer_tune version ?version_params in
-  Renderer.make_tune_ogg {slug = Entry.Slug.to_string slug; tune; tempo_unit; tempo_value; chords_kind}
+  lwt Renderer.{slug = Entry.Slug.to_string slug; tune; stylesheet; tempo_unit; tempo_value; chords_kind}
+
+(** For use in {!Routine}. *)
+let render_snippets ?version_params ?rendering_params version =
+  Renderer.make_tune_snippets <$> render_snippets_arg ?version_params ?rendering_params version
+
+let render_svg ?version_params ?rendering_params version =
+  Renderer.make_tune_svg <$> render_snippets_arg ?version_params ?rendering_params version
+
+let build_svg env id version_params rendering_params =
+  Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
+  get env id >>= fun version ->
+  uncurry Job.register_job <$> render_svg (Entry.value version) ~version_params ~rendering_params
+
+let build_svg' env version version_params rendering_params =
+  Log.debug (fun m -> m "build_svg'");
+  Permission.assert_can_create env;%lwt
+  uncurry Job.register_job <$> render_svg version ~version_params ~rendering_params
+
+let render_ogg ?version_params ?rendering_params version =
+  Renderer.make_tune_ogg <$> render_snippets_arg ?version_params ?rendering_params version
 
 let build_ogg env id version_params rendering_params =
   Log.debug (fun m -> m "build_ogg %a" Entry.Id.pp' id);
   get env id >>= fun version ->
-  Permission.assert_can_get env version;%lwt
-  Job.register_job <$> render_ogg (Entry.value version) ~version_params ~rendering_params
+  uncurry Job.register_job <$> render_ogg (Entry.value version) ~version_params ~rendering_params
 
 let build_ogg' env version version_params rendering_params =
   Log.debug (fun m -> m "build_ogg'");
   Permission.assert_can_create env;%lwt
-  Job.register_job <$> render_ogg version ~version_params ~rendering_params
+  uncurry Job.register_job <$> render_ogg version ~version_params ~rendering_params
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t -> a = fun env endpoint ->
   match endpoint with
@@ -146,8 +150,8 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Search -> search env
   | Create -> create env
   | Update -> update env
-  | BuildSvg -> build_svg env
-  | BuildOgg -> build_ogg env
   | BuildPdf -> build_pdf env
+  | BuildSvg -> build_svg env
   | BuildSvg' -> build_svg' env
+  | BuildOgg -> build_ogg env
   | BuildOgg' -> build_ogg' env

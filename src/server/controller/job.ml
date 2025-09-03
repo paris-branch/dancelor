@@ -9,40 +9,78 @@ type state =
   | Failed of {status: Unix.process_status; logs: string list}
   | Succeeded of {path: string}
 
-type t = {
-  expr: string;
+(** A type for Nix expressions. *)
+type expr = Expr of string
+let expr_val (Expr s) = s
+
+(** An internal job. This is an actual job, producing potentially several
+    artifacts. A {!JobId.t} corresponds to an {!job_and_file}, which is an
+    internal job AND a specific artifact within this job. This allows building
+    several things at the same time, while still giving a simple “one job = one
+    file” interface to the client. *)
+type job = {
+  expr: expr;
   state: state ref;
 }
 
 (* NOTE: The following table and stream need to be kept in sync. *)
-let job_of_id : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
-let job_of_expr : (string, (JobId.t * t)) Hashtbl.t = Hashtbl.create 8
-let (pending_jobs : (JobId.t * t) Lwt_stream.t), add_pending_job = Lwt_stream.create ()
+let job_of_expr : (expr, job) Hashtbl.t = Hashtbl.create 8
+let (pending_jobs : job Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
-let register_job job : Endpoints.Job.Registration.t =
-  match Hashtbl.find_opt job_of_expr job.expr with
-  | Some (id, job) ->
-    (
-      match !(job.state) with
-      | Succeeded _ -> AlreadySucceeded id
-      | _ -> Registered id
-    )
-  | None ->
-    let id = JobId.create () in
-    Log.debug (fun m -> m "Registering job %s:@\n%s" (JobId.to_string id) job.expr);
-    Hashtbl.add job_of_id id job;
-    Hashtbl.add job_of_expr job.expr (id, job);
-    add_pending_job (Some (id, job));
-    Registered id
+(** An job and a file within that job. See comment for {!job}. *)
+type job_and_file = {
+  id: JobId.t; (** used to identify a job when communicating with the client *)
+  job: job;
+  file: string;
+}
 
-let run_job id job =
+(** NOTE: This needs to be kept in sync with {!job_of_expr} and {!pending_jobs},
+    namely each registered {!job_and_file} should point to {!job} that is
+    registered in {!job_of_expr}. *)
+let job_and_file_of_id : (JobId.t, job_and_file) Hashtbl.t = Hashtbl.create 8
+let job_and_file_of_expr_and_file : (expr * string, job_and_file) Hashtbl.t = Hashtbl.create 8
+
+let register_job (expr : expr) (file : string) : Endpoints.Job.Registration.t =
+  let job_and_file =
+    match Hashtbl.find_opt job_and_file_of_expr_and_file (expr, file) with
+    | Some job_and_file ->
+      (* if there is already a job_and_file for this exact expression and this
+         exact file, then we're golden *)
+      job_and_file
+    | None ->
+      (* otherwise, we will need to “register” a new {!job_and_file} *)
+      let job_and_file =
+        match Hashtbl.find_opt job_of_expr expr with
+        | Some job ->
+          (*  if there is a job for the same expression, but not necessarily the
+              same file, we can just return without starting an actual job *)
+          {id = JobId.create (); job; file}
+        | None ->
+          (* otherwise, we really do have to register a new job *)
+          let id = JobId.create () in
+          let job = {expr; state = ref Pending} in
+          Hashtbl.add job_of_expr expr job;
+          add_pending_job (Some job);
+          Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
+          {id; job; file}
+      in
+      Hashtbl.add job_and_file_of_id job_and_file.id job_and_file;
+      job_and_file
+  in
+  (* shortcut for when the job is already successful. this is not possible with
+     new job, but will often happen with cache hits. it saves one network call
+     by allowing the client to request the file immediately *)
+  match !(job_and_file.job.state) with
+  | Succeeded _ -> AlreadySucceeded job_and_file.id
+  | _ -> Registered job_and_file.id
+
+let run_job job =
   match !(job.state) with
   | Running _ -> invalid_arg "run_job: cannot start a job that is already started"
   | Failed _ -> invalid_arg "run_job: cannot start a job that has already failed"
   | Succeeded _ -> invalid_arg "run_job: cannot start a job that has already succeeded"
   | Pending ->
-    Log.debug (fun m -> m "Running job %s:@\n%s" (JobId.to_string id) job.expr);
-    let command = [|"nix-build"; "--no-link"; "--impure"; "--expr"; job.expr|] in
+    let command = [|"nix-build"; "--no-link"; "--impure"; "--expr"; expr_val job.expr|] in
     let process = Lwt_process.open_process_full ("", command) in
     let stderr = ref [] in
     job.state := Running {process; stderr};
@@ -51,10 +89,7 @@ let run_job id job =
       let rec follow_stderr () =
         match%lwt Lwt_io.read_line_opt process#stderr with
         | None -> lwt_unit
-        | Some line ->
-          Log.debug (fun m -> m "%s> %s" (JobId.to_string id) line);
-          stderr := !stderr @ [line];
-          follow_stderr ()
+        | Some line -> stderr := !stderr @ [line]; follow_stderr ()
       in
       follow_stderr ()
     );
@@ -63,7 +98,7 @@ let run_job id job =
     let%lwt stdout = Lwt_io.read process#stdout in
     let%lwt last_stderr = String.split_on_char '\n' <$> Lwt_io.(atomic read process#stderr) in
     let stderr = !stderr @ last_stderr in
-    Log.debug (fun m -> m "Ran job %s:@\n%s" (JobId.to_string id) job.expr);
+    Log.debug (fun m -> m "Ran job: %s" (expr_val job.expr));
     Log.debug (fun m -> m "Status: %a" Process.pp_process_status status);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stdout") stdout);
     Log.debug (fun m -> m "%a" (Format.pp_multiline_sensible "Stderr") (String.concat "\n" stderr));
@@ -78,13 +113,13 @@ let run_job id job =
 let make expr = lwt {expr; state = ref Pending}
 
 let get id =
-  match Hashtbl.find_opt job_of_id id with
+  match Hashtbl.find_opt job_and_file_of_id id with
   | None -> Madge_server.shortcut_not_found "This job does not exit anymore, or has never existed."
-  | Some job -> lwt job
+  | Some job_and_file -> lwt job_and_file
 
 let status id =
   Log.debug (fun m -> m "status %s" (JobId.to_string id));
-  get id >>= fun job ->
+  get id >>= fun {job; _} ->
   lwt @@
     match !(job.state) with
     | Pending -> Endpoints.Job.Status.Pending
@@ -94,12 +129,12 @@ let status id =
 
 let file id slug =
   Log.debug (fun m -> m "file %s %s" (JobId.to_string id) (Entry.Slug.to_string slug));
-  get id >>= fun job ->
+  get id >>= fun {job; file; _} ->
   match !(job.state) with
   | Pending -> Madge_server.shortcut_bad_request "This job is not running yet, you cannot query the file."
   | Running _ -> Madge_server.shortcut_bad_request "This job is still running, you cannot query the file."
   | Failed _ -> Madge_server.shortcut_bad_request "This job failed, you cannot query the file."
-  | Succeeded {path} -> Madge_server.respond_file ~fname: path
+  | Succeeded {path} -> Madge_server.respond_file ~fname: (Filename.concat path file)
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Job.t -> a = fun _env endpoint ->
   match endpoint with

@@ -112,7 +112,7 @@ let create ?context id =
                             version
                         ];
                       ];
-                      Components.VersionSvg.make ~params version;
+                      Components.VersionSnippets.make ~show_audio: false ~params version;
                     ]
               )
               contents
