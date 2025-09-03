@@ -34,40 +34,38 @@ let call_retry ?(retry = true) (request : Request.t) =
 
 let call_gen
   : type a r z. ?retry: bool ->
-  (a, z Lwt.t, r) Route.t ->
-  ((r, error) result -> z Lwt.t) ->
+  (a, z, r) Route.t ->
+  ((r, error) result Lwt.t -> z) ->
   a
 = fun ?retry route cont ->
   with_request route @@ fun (module R) request ->
-  cont
-  =<< (
-      let%rlwt (status, body) = call_retry ?retry request in
-      let%lwt body = Cohttp_lwt.Body.to_string body in
-      let%rlwt json_body =
-        try
-          Lwt.return_ok @@ Yojson.Safe.from_string body
-        with
-          | Yojson.Json_error message ->
-            Lwt.return_error @@ BodyUnserialisation {body; message = "not JSON: " ^ message}
-      in
-      if Cohttp.(Code.(is_success (code_of_status status))) then
-        (
-          match R.of_yojson json_body with
-          | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message}
-          | Ok body -> Lwt.return_ok body
-        )
-      else
-        (
-          match error_response_of_yojson json_body with
-          | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message = "expected an error, but " ^ message}
-          | Ok {message} -> Lwt.return_error @@ Http {request; status; message}
-        )
-    )
+  cont @@
+    let%rlwt (status, body) = call_retry ?retry request in
+    let%lwt body = Cohttp_lwt.Body.to_string body in
+    let%rlwt json_body =
+      try
+        Lwt.return_ok @@ Yojson.Safe.from_string body
+      with
+        | Yojson.Json_error message ->
+          Lwt.return_error @@ BodyUnserialisation {body; message = "not JSON: " ^ message}
+    in
+    if Cohttp.(Code.(is_success (code_of_status status))) then
+      (
+        match R.of_yojson json_body with
+        | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message}
+        | Ok body -> Lwt.return_ok body
+      )
+    else
+      (
+        match error_response_of_yojson json_body with
+        | Error message -> Lwt.return_error @@ BodyUnserialisation {body; message = "expected an error, but " ^ message}
+        | Ok {message} -> Lwt.return_error @@ Http {request; status; message}
+      )
 
 let call
   : type a r. ?retry: bool -> (a, (r, error) result Lwt.t, r) Route.t -> a
-= fun ?retry route -> call_gen ?retry route lwt
+= fun ?retry route -> call_gen ?retry route id
 
 let call_exn
   : type a r. ?retry: bool -> (a, r Lwt.t, r) Route.t -> a
-= fun ?retry route -> call_gen ?retry route @@ lwt % Result.fold ~ok: Fun.id ~error: (fun e -> raise (Error e))
+= fun ?retry route -> call_gen ?retry route @@ Lwt.map @@ Result.fold ~ok: Fun.id ~error: (fun e -> raise (Error e))

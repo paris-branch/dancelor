@@ -68,8 +68,7 @@ let create () =
     parameters_signal;
   }
 
-let open_pdf_generation_dialog status_signal_promise =
-  let status_signal = Job.status_signal_from_promise status_signal_promise in
+let open_pdf_generation_dialog status_signal =
   ignore
   <$> Page.open_dialog @@ fun return ->
     Page.make'

@@ -5,6 +5,8 @@ open Js_of_ocaml
 
 module AnyResult = AnyResult
 module ResultRow = ResultRow
+module Icon = Icon
+module Alert = Alert
 module Button = Button
 module Toast = Toast
 

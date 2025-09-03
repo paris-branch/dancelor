@@ -93,9 +93,10 @@ let build_pdf env id version_params rendering_params =
     let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
     lwt Renderer.{title; authors; subjects; creator = "FIXME"}
   in
-  let%lwt set = ModelToRenderer.version_to_renderer_set' version version_params Model.SetParameters.none in
+  let%lwt (slug, set) = ModelToRenderer.version_to_renderer_set' version version_params Model.SetParameters.none in
   let%lwt book_pdf_arg =
     ModelToRenderer.renderer_set_to_renderer_book_pdf_arg
+      slug
       set
       rendering_params
       pdf_metadata
@@ -104,9 +105,9 @@ let build_pdf env id version_params rendering_params =
 
 let render_svg ?version_params ?rendering_params version =
   ignore rendering_params;
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune version ?version_params in
+  let%lwt (slug, tune) = ModelToRenderer.version_to_renderer_tune version ?version_params in
   let stylesheet = "/fonts.css" in
-  Renderer.make_tune_svg {tune; stylesheet}
+  Renderer.make_tune_svg {slug = Entry.Slug.to_string slug; tune; stylesheet}
 
 let build_svg env id version_params rendering_params =
   Log.debug (fun m -> m "build_svg %a" Entry.Id.pp' id);
@@ -124,8 +125,8 @@ let render_ogg ?version_params ?rendering_params version =
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
-  let%lwt tune = ModelToRenderer.version_to_renderer_tune version ?version_params in
-  Renderer.make_tune_ogg {tune; tempo_unit; tempo_value; chords_kind}
+  let%lwt (slug, tune) = ModelToRenderer.version_to_renderer_tune version ?version_params in
+  Renderer.make_tune_ogg {slug = Entry.Slug.to_string slug; tune; tempo_unit; tempo_value; chords_kind}
 
 let build_ogg env id version_params rendering_params =
   Log.debug (fun m -> m "build_ogg %a" Entry.Id.pp' id);

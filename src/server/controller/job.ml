@@ -19,19 +19,21 @@ let job_of_id : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
 let job_of_expr : (string, (JobId.t * t)) Hashtbl.t = Hashtbl.create 8
 let (pending_jobs : (JobId.t * t) Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
-let register_job job =
+let register_job job : Endpoints.Job.Registration.t =
   match Hashtbl.find_opt job_of_expr job.expr with
-  | Some (id, _) -> id
+  | Some (id, job) ->
+    (
+      match !(job.state) with
+      | Succeeded _ -> AlreadySucceeded id
+      | _ -> Registered id
+    )
   | None ->
     let id = JobId.create () in
     Log.debug (fun m -> m "Registering job %s:@\n%s" (JobId.to_string id) job.expr);
     Hashtbl.add job_of_id id job;
     Hashtbl.add job_of_expr job.expr (id, job);
     add_pending_job (Some (id, job));
-    id
-
-type output = {out: string} [@@deriving of_yojson]
-type result = {outputs: output list} [@@deriving of_yojson]
+    Registered id
 
 let run_job id job =
   match !(job.state) with
@@ -40,22 +42,7 @@ let run_job id job =
   | Succeeded _ -> invalid_arg "run_job: cannot start a job that has already succeeded"
   | Pending ->
     Log.debug (fun m -> m "Running job %s:@\n%s" (JobId.to_string id) job.expr);
-    let command = [|
-      "nix";
-      "--extra-experimental-features";
-      "nix-command";
-      "build";
-      "--print-build-logs";
-      "--verbose";
-      "--log-format";
-      "raw";
-      "--json";
-      "--no-link";
-      "--impure";
-      "--expr";
-      job.expr
-    |]
-    in
+    let command = [|"nix-build"; "--no-link"; "--impure"; "--expr"; job.expr|] in
     let process = Lwt_process.open_process_full ("", command) in
     let stderr = ref [] in
     job.state := Running {process; stderr};
@@ -83,16 +70,7 @@ let run_job id job =
     (
       job.state :=
         match status with
-        | WEXITED 0 ->
-          (
-            match Yojson.Safe.from_string stdout with
-            (* two cases depending on whether there is `startTime` and `endTime` or not *)
-            | `List [`Assoc [_; ("outputs", `Assoc [("out", `String path)]); _; _]]
-            | `List [`Assoc [_; ("outputs", `Assoc [("out", `String path)])]] ->
-              Succeeded {path}
-            | _ ->
-              Failed {status; logs = stderr @ ["Could not parse output:"; stdout]}
-          )
+        | WEXITED 0 -> Succeeded {path = String.trim stdout}
         | _ -> Failed {status; logs = stderr}
     );
     lwt_unit
@@ -114,8 +92,8 @@ let status id =
     | Failed {logs; _} -> Failed logs
     | Succeeded _ -> Succeeded
 
-let file id _slug =
-  Log.debug (fun m -> m "status %s" (JobId.to_string id));
+let file id slug =
+  Log.debug (fun m -> m "file %s %s" (JobId.to_string id) (Entry.Slug.to_string slug));
   get id >>= fun job ->
   match !(job.state) with
   | Pending -> Madge_server.shortcut_bad_request "This job is not running yet, you cannot query the file."
