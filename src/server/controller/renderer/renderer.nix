@@ -16,11 +16,16 @@ let
     withArgumentType
     ;
 
-  inherit (import ./tune.nix { inherit pkgs withArgumentType; })
+  inherit
+    (import ./tune.nix {
+      inherit
+        pkgs
+        withArgumentType
+        ;
+    })
     tuneType
     makeTunePdf
-    makeTuneSvg
-    makeTuneOgg
+    makeTuneSnippets
     ;
 
   inherit
@@ -40,8 +45,7 @@ in
   inherit
     tuneType
     makeTunePdf
-    makeTuneSvg
-    makeTuneOgg
+    makeTuneSnippets
     makeBookPdf
     ;
 }

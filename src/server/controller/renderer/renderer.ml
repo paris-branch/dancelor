@@ -76,38 +76,31 @@ type call_nix_config = {
 }
 
 let call_nix fun_ json =
-  Job.make
-    (
-      spf
-        "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON %s)"
-        (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
-        (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
-        (if !Config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes !Config.nixpkgs2211 ^ "; ")
-        fun_
-        (escape_double_quotes (Yojson.Safe.to_string json))
-    )
+  Job.Expr (
+    spf
+      "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON %s)"
+      (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
+      (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
+      (if !Config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes !Config.nixpkgs2211 ^ "; ")
+      fun_
+      (escape_double_quotes (Yojson.Safe.to_string json))
+  )
 
 (** {2 API} *)
 
-type tune_svg_arg = {
+type tune_snippets_arg = {
   slug: string;
   tune: tune;
   stylesheet: string;
-}
-[@@deriving yojson]
-
-let make_tune_svg = call_nix "makeTuneSvg" % tune_svg_arg_to_yojson
-
-type tune_ogg_arg = {
-  slug: string;
-  tune: tune;
   tempo_unit: string;
   tempo_value: int;
   chords_kind: string;
 }
 [@@deriving yojson]
 
-let make_tune_ogg = call_nix "makeTuneOgg" % tune_ogg_arg_to_yojson
+let make_tune_snippets = call_nix "makeTuneSnippets" % tune_snippets_arg_to_yojson
+let make_tune_svg arg = (make_tune_snippets arg, "tune.svg")
+let make_tune_ogg arg = (make_tune_snippets arg, "tune.ogg")
 
 type pdf_metadata = {
   title: string;
@@ -126,4 +119,5 @@ type book_pdf_arg = {
 }
 [@@deriving yojson]
 
-let make_book_pdf = call_nix "makeBookPdf" % book_pdf_arg_to_yojson
+let make_book_pdf arg =
+  (call_nix "makeBookPdf" (book_pdf_arg_to_yojson arg), "book.pdf")

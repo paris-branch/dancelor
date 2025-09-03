@@ -68,119 +68,6 @@ let
 
   ## TODO: cf tuneScheme
   makeTuneLilypond =
-    { slug, tune }:
-    let
-      contentFile = writeText "tune-${slug}-content.ly" tune.content;
-    in
-    runCommand "tune-${slug}.ly"
-      {
-        allowSubtitutes = false;
-      }
-      ''
-        {
-          cat ${./tune/lilypond/lyversion.ly}
-          printf '#(load "%s")\n' ${tuneScheme}
-          cat ${./tune/lilypond/layout.ly}
-          cat ${./tune/lilypond/paper.ly}
-          cat ${./tune/lilypond/cropped.ly}
-          cat ${./tune/lilypond/helpers.ly}
-          cat ${./tune/lilypond/repeat_volta_fancy.ly}
-          cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
-          cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
-          cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
-          cat ${./tune/lilypond/scottish_chords.ly}
-          cat ${./tune/lilypond/fancy_unfold_repeats.ly}
-          cat ${./tune/lilypond/version/header.ly}
-          printf '\\score {\n'
-          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString tune.first_bar}
-          printf '  { %s }\n' "$(cat "${contentFile}")"
-          printf '}\n\\markup\\null\n'
-        } > $out
-      '';
-
-  tunePdfArgType = types.submodule {
-    options = {
-      slug = mkOption { type = types.str; };
-      tune = mkOption { type = tuneType; };
-    };
-  };
-
-  makeTunePdf = withArgumentType "makeTunePdf" tunePdfArgType (
-    { slug, tune }:
-    runCommand "tune-${slug}.pdf"
-      {
-        allowSubtitutes = false;
-        buildInputs = with pkgs; [ lilypond ];
-        FONTCONFIG_FILE =
-          with pkgs;
-          makeFontsConf {
-            fontDirectories = [ source-sans-pro ];
-          };
-      }
-      ''
-        export HOME=$(mktemp -d)
-        lilypond \
-          --loglevel=WARNING \
-          --define-default=no-point-and-click \
-          --output=$out \
-          ${makeTuneLilypond { inherit slug tune; }}
-        mv $out.pdf $out # NOTE: LilyPond adds the .pdf suffix
-      ''
-  );
-
-  tuneSvgArgType = types.submodule {
-    options = {
-      slug = mkOption { type = types.str; };
-      tune = mkOption { type = tuneType; };
-      stylesheet = mkOption {
-        description = "A stylesheet to inject into the resulting SVG.";
-        type = types.str;
-      };
-    };
-  };
-
-  makeTuneSvg = withArgumentType "makeTuneSvg" tuneSvgArgType (
-    {
-      slug,
-      tune,
-      stylesheet,
-    }:
-    runCommand "tune-${slug}.svg"
-      {
-        allowSubtitutes = false;
-        buildInputs = with pkgs; [ lilypond ];
-        FONTCONFIG_FILE =
-          with pkgs;
-          makeFontsConf {
-            fontDirectories = [ source-sans-pro ];
-          };
-      }
-      ''
-        export HOME=$(mktemp -d)
-        lilypond \
-          --loglevel=WARNING \
-          --define-default=no-point-and-click \
-          --define-default=backend=svg \
-          --output=$out \
-          ${makeTuneLilypond { inherit slug tune; }}
-        mv $out.svg $out # NOTE: LilyPond adds the .svg suffix
-        ## Using `sed`, add a CSS import directive to the given stylesheet after the `<style>` block.
-        sed -i 's|^\(<style.*\)$|\1\n@import url("${stylesheet}");|' $out
-      ''
-  );
-
-  tuneOggArgType = types.submodule {
-    options = {
-      slug = mkOption { type = types.str; };
-      tune = mkOption { type = tuneType; };
-      tempo_unit = mkOption { type = types.str; };
-      tempo_value = mkOption { type = types.int; };
-      chords_kind = mkOption { type = types.str; };
-    };
-  };
-
-  ## TODO: Factorise with `makeTuneLilypond`
-  makeTuneLilypondOgg =
     {
       slug,
       tune,
@@ -210,7 +97,10 @@ let
           cat ${./tune/lilypond/scottish_chords.ly}
           cat ${./tune/lilypond/fancy_unfold_repeats.ly}
           cat ${./tune/lilypond/version/header.ly}
-          printf '\\score {\n  %s\n}\n\\markup\\null\n' "$(cat "${contentFile}")"
+          printf '\\score {\n'
+          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString tune.first_bar}
+          printf '  { %s }\n' "$(cat "${contentFile}")"
+          printf '}\n\\markup\\null\n'
           printf '#(set! make-music the-make-music)\n'
           printf '\\score {\n'
           printf '  \\midi { \\tempo ${tempo_unit} = ${toString tempo_value} }\n'
@@ -221,11 +111,64 @@ let
         } > $out
       '';
 
-  ## TODO: It is possible to generate the ogg and another file (eg. SVG) at the
-  ## same time. It would be worth doing for performance purposes.
-  makeTuneOgg = withArgumentType "makeTuneOgg" tuneOggArgType (
-    arg:
-    runCommand "tune.ogg"
+  tunePdfArgType = types.submodule {
+    options = {
+      slug = mkOption { type = types.str; };
+      tune = mkOption { type = tuneType; };
+    };
+  };
+
+  ## TODO: Merge with `makeTuneSnippets`. Maybe we can even do everything in
+  ## just one LilyPond call. Either way, this would allow better caching and
+  ## reuse, and a cleaner interface.
+  makeTunePdf = withArgumentType "makeTunePdf" tunePdfArgType (
+    { slug, tune }:
+    runCommand "tune-${slug}-pdf"
+      {
+        allowSubtitutes = false;
+        buildInputs = with pkgs; [ lilypond ];
+        FONTCONFIG_FILE =
+          with pkgs;
+          makeFontsConf {
+            fontDirectories = [ source-sans-pro ];
+          };
+      }
+      ''
+        export HOME=$(mktemp -d)
+        lilypond \
+          --loglevel=WARNING \
+          --define-default=no-point-and-click \
+          --output=tune \
+          ${makeTuneLilypond { inherit slug tune; }}
+        mkdir $out
+        mv tune.pdf $out
+      ''
+  );
+
+  tuneSnippetsArgType = types.submodule {
+    options = {
+      slug = mkOption { type = types.str; };
+      tune = mkOption { type = tuneType; };
+      stylesheet = mkOption {
+        description = "A stylesheet to inject into the resulting SVG.";
+        type = types.str;
+      };
+      tempo_unit = mkOption { type = types.str; };
+      tempo_value = mkOption { type = types.int; };
+      chords_kind = mkOption { type = types.str; };
+    };
+  };
+
+  makeTuneSnippets = withArgumentType "makeTuneSnippets" tuneSnippetsArgType (
+    {
+      slug,
+      tune,
+      stylesheet,
+      tempo_unit,
+      tempo_value,
+      chords_kind,
+    }:
+    runCommand "tune-${slug}-snippets"
       {
         allowSubtitutes = false;
         buildInputs = with pkgs; [
@@ -243,15 +186,30 @@ let
         lilypond \
           --loglevel=WARNING \
           --define-default=no-point-and-click \
-          --output=$out \
-          ${makeTuneLilypondOgg arg}
-        echo $out*
+          --define-default=backend=svg \
+          --output=tune \
+          ${makeTuneLilypond {
+            inherit
+              slug
+              tune
+              tempo_unit
+              tempo_value
+              chords_kind
+              ;
+          }}
+
+        ## Using `sed`, add a CSS import directive to the given stylesheet after
+        ## the `<style>` block.
+        sed -i 's|^\(<style.*\)$|\1\n@import url("${stylesheet}");|' tune.svg
+
+        ## Use TiMidity++ to compile from LilyPond's MIDI to an ogg file.
         timidity \
           --quiet=7 \
           --output-mode=v \
-          --output-file=$out \
-          $out.midi
-        echo $out*
+          tune.midi
+
+        mkdir $out
+        mv tune.svg tune.ogg $out
       ''
   );
 
@@ -260,7 +218,6 @@ in
   inherit
     tuneType
     makeTunePdf
-    makeTuneSvg
-    makeTuneOgg
+    makeTuneSnippets
     ;
 }

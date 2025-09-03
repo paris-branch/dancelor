@@ -48,7 +48,7 @@ let build_pdf env id book_params rendering_params =
       rendering_params
       pdf_metadata
   in
-  Job.register_job <$> Renderer.make_book_pdf book_pdf_arg
+  lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->
   match endpoint with
