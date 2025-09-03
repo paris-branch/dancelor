@@ -20,9 +20,11 @@ let run slug route =
   match%lwt promise with
   | Error error -> raise (Madge_client.Error error)
   | Ok jobId ->
+    let first_time = ref true in
     lwt @@
     Lwt_stream.from_next @@ fun () ->
-    Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
+    (* the very first time, do not wait *)
+    if !first_time then (first_time := false; lwt_unit) else Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
     let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
     lwt @@
       match status with
