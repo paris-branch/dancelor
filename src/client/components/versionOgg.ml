@@ -26,19 +26,19 @@ let make ?(params = Model.VersionParameters.none) version =
   make_gen @@
   Job.status_signal_from_promise @@
   let%lwt slug = Model.Version.slug' version in
-  Job.run
-    (Entry.Slug.add_suffix slug ".ogg")
-    Endpoints.Api.(route @@ Version BuildOgg)
-    (Entry.id version)
-    params
-    RenderingParameters.none
+  lwt @@
+    Job.run
+      (Entry.Slug.add_suffix slug ".ogg")
+      Endpoints.Api.(route @@ Version BuildOgg)
+      (Entry.id version)
+      params
+      RenderingParameters.none
 
 let make_preview ?(params = Model.VersionParameters.none) version =
   make_gen @@
-  Job.status_signal_from_promise @@
-  Job.run
-    Entry.Slug.(add_suffix (of_string "preview") ".ogg")
-    Endpoints.Api.(route @@ Version BuildOgg')
-    version
-    params
-    RenderingParameters.none
+    Job.run
+      Entry.Slug.(add_suffix (of_string "preview") ".ogg")
+      Endpoints.Api.(route @@ Version BuildOgg')
+      version
+      params
+      RenderingParameters.none

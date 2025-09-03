@@ -33,19 +33,19 @@ let make ?show_logs ?(params = Model.VersionParameters.none) version =
   make_gen ?show_logs @@
   Job.status_signal_from_promise @@
   let%lwt slug = Model.Version.slug' version in
-  Job.run
-    (Entry.Slug.add_suffix slug ".svg")
-    Endpoints.Api.(route @@ Version BuildSvg)
-    (Entry.id version)
-    params
-    RenderingParameters.none
+  lwt @@
+    Job.run
+      (Entry.Slug.add_suffix slug ".svg")
+      Endpoints.Api.(route @@ Version BuildSvg)
+      (Entry.id version)
+      params
+      RenderingParameters.none
 
 let make_preview ?show_logs ?(params = Model.VersionParameters.none) version =
   make_gen ?show_logs @@
-  Job.status_signal_from_promise @@
-  Job.run
-    Entry.Slug.(add_suffix (of_string "preview") ".svg")
-    Endpoints.Api.(route @@ Version BuildSvg')
-    version
-    params
-    RenderingParameters.none
+    Job.run
+      Entry.Slug.(add_suffix (of_string "preview") ".svg")
+      Endpoints.Api.(route @@ Version BuildSvg')
+      version
+      params
+      RenderingParameters.none

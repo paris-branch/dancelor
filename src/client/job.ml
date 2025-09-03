@@ -14,23 +14,22 @@ type t =
 
 (** Run a job, and return a signal that contains its status. *)
 let run slug route =
-  Madge_client.call_gen route @@ function
-    | Error error -> raise (Madge_client.Error error)
-    | Ok jobId ->
-      lwt @@
-      S.from_lwt_stream Registering @@
-      Lwt_stream.concat @@
-      Lwt_stream.return_lwt @@
-      lwt @@
-      Lwt_stream.from_next @@ fun () ->
-      Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
-      let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
-      lwt @@
-        match status with
-        | Pending -> Lwt_stream.Next Pending
-        | Running logs -> Lwt_stream.Next (Running logs)
-        | Failed logs -> Lwt_stream.Next (Failed logs)
-        | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+  Madge_client.call_gen route @@ fun promise ->
+  S.from_lwt_stream Registering @@
+  Lwt_stream.(concat % return_lwt) @@
+  match%lwt promise with
+  | Error error -> raise (Madge_client.Error error)
+  | Ok jobId ->
+    lwt @@
+    Lwt_stream.from_next @@ fun () ->
+    Js_of_ocaml_lwt.Lwt_js.sleep 3.;%lwt
+    let%lwt status = Madge_client.call_exn Endpoints.Api.(route @@ Job Status) jobId in
+    lwt @@
+      match status with
+      | Pending -> Lwt_stream.Next Pending
+      | Running logs -> Lwt_stream.Next (Running logs)
+      | Failed logs -> Lwt_stream.Next (Failed logs)
+      | Succeeded -> Lwt_stream.Last (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
 
 let status_signal_from_promise = S.switch % S.from' (S.const Registering)
 

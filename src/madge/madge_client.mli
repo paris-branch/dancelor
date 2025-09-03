@@ -22,6 +22,6 @@ val call : ?retry: bool -> ('a, ('r, error) result Lwt.t, 'r) Route.t -> 'a
 (** Variant of {!call} that raises {!Error} instead of returning it. *)
 val call_exn : ?retry: bool -> ('a, 'r Lwt.t, 'r) Route.t -> 'a
 
-(** Variant of {!call} that receives a continuation taking the result, instead
-    of returning it. *)
-val call_gen : ?retry: bool -> ('a, 'z Lwt.t, 'r) Route.t -> (('r, error) result -> 'z Lwt.t) -> 'a
+(** Variant of {!call} that immediately receives a continuation taking the
+    promise of a result. *)
+val call_gen : ?retry: bool -> ('a, 'z, 'r) Route.t -> (('r, error) result Lwt.t -> 'z) -> 'a
