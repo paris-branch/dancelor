@@ -4,7 +4,7 @@ open Html
 
 (** Similar to {!Endpoints.Job.Status.t} but with an additional “Registering”
     and with “Succeeded” carrying the path. *)
-type t =
+type status =
   | Registering
   | Pending
   | Running of string list
@@ -47,40 +47,44 @@ let show_live_status ~on_succeeded status_signal =
   flip S.map status_signal @@ function
     | Registering ->
       [
-        p ~a: [a_class ["mb-4"; "alert"; "alert-info"]] [
+        Utils.Alert.make ~level: Info ~icon: CloudUpload [
           txt
             "The document generation job is being sent to the server.";
         ];
-        add_spinner (show_logs []);
+        div ~a: [a_class ["mt-4"]] [add_spinner (show_logs [])];
       ]
     | Pending ->
       [
-        p ~a: [a_class ["mb-4"; "alert"; "alert-info"]] [
-          txt
-            "The document generation job is pending, that is it has been \
-           registered on the server, but the server is busy with other jobs.";
-        ];
-        add_spinner (show_logs []);
+        Utils.Alert.make
+          ~level: Info
+          ~icon: HourglassBottom
+          [
+            txt
+              "The document generation job is pending, that is it has been \
+             registered on the server, but the server is busy with other jobs. \
+             Go get yourself a tea.";
+          ];
+        div ~a: [a_class ["mt-4"]] [add_spinner (show_logs [])];
       ]
-    | Running log_lines ->
+    | Running logs ->
       [
-        p ~a: [a_class ["mb-4"; "alert"; "alert-info"]] [
+        Utils.Alert.make ~level: Info ~icon: Cpu [
           txt
-            "The server has started generating the document. This process can take \
-           a (very) long time, up to several minutes. Wait until you get \
-           redirected, or until an error message shows.";
+            "The server has started generating the document. This process can be \
+           short for single tunes, but can also take a (very) long time, up to \
+           several minutes, for big books. Go get yourself a tea.";
         ];
-        add_spinner (show_logs log_lines);
+        div ~a: [a_class ["mt-4"]] [add_spinner (show_logs logs)];
       ]
-    | Failed log_lines ->
+    | Failed logs ->
       [
-        p ~a: [a_class ["mb-4"; "alert"; "alert-danger"]] [
+        Utils.Alert.make ~level: Danger [
           txt
-            "There was a problem during document generation. This is not your \
-           fault. You may try again, but if it continues, contact your system \
-           administrator. Give them the logs below.";
+            "There was a problem during document generation, presumably because \
+           the LilyPond of a tune is erroneous. Fix the error, or report an \
+           issue.";
         ];
-        show_logs log_lines;
+        div ~a: [a_class ["mt-4"]] [show_logs logs];
       ]
     | Succeeded href -> on_succeeded href
 
