@@ -17,11 +17,17 @@ type part = {
 }
 [@@deriving yojson]
 
+type tune_with_slug = {
+  slug: string;
+  tune: tune;
+}
+[@@deriving yojson]
+
 type set = {
   name: string;
   conceptor: string;
   kind: string;
-  contents: tune list;
+  contents: tune_with_slug list;
 }
 [@@deriving yojson]
 
@@ -84,6 +90,7 @@ let call_nix fun_ json =
 (** {2 API} *)
 
 type tune_svg_arg = {
+  slug: string;
   tune: tune;
   stylesheet: string;
 }
@@ -92,6 +99,7 @@ type tune_svg_arg = {
 let make_tune_svg = call_nix "makeTuneSvg" % tune_svg_arg_to_yojson
 
 type tune_ogg_arg = {
+  slug: string;
   tune: tune;
   tempo_unit: string;
   tempo_value: int;
@@ -110,6 +118,7 @@ type pdf_metadata = {
 [@@deriving yojson]
 
 type book_pdf_arg = {
+  slug: string;
   book: book;
   specificity: string;
   headers: bool;

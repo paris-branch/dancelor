@@ -28,6 +28,13 @@ let
   forConcat = xs: f: concatMapStringsSep "\n" f xs;
   escapeLatexString = replaceStrings [ "&" "#" ] [ "\\&" "\\#" ];
 
+  tuneWithSlugType = types.submodule {
+    options = {
+      slug = mkOption { type = types.str; };
+      tune = mkOption { type = tuneType; };
+    };
+  };
+
   partType = types.submodule {
     options = {
       name = mkOption {
@@ -53,7 +60,7 @@ let
       };
       contents = mkOption {
         description = "The contents of the set.";
-        type = types.listOf tuneType;
+        type = types.listOf tuneWithSlugType;
       };
     };
   };
@@ -97,6 +104,7 @@ let
 
   bookPdfArgType = types.submodule {
     options = {
+      slug = mkOption { type = types.str; };
       book = mkOption { type = bookType; };
       specificity = mkOption {
         description = "Specificity of this particular book, eg. Bb instruments or bass clef.";
@@ -122,12 +130,13 @@ let
 
   makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
     {
+      slug,
       book,
       specificity,
       headers,
       pdf_metadata,
     }:
-    runCommand "book.pdf"
+    runCommand "book-${slug}.pdf"
       {
         allowSubtitutes = false;
         buildInputs = with pkgs; [ texlive.combined.scheme-full ]; # FIXME: make smaller
@@ -176,9 +185,14 @@ let
             else if page.set != null then
               ''
                 printf '\\begin{set}{%s}{%s}{%s}\n' ${escapeShellArg (escapeLatexString page.set.name)} ${escapeShellArg (escapeLatexString page.set.conceptor)} ${escapeShellArg (escapeLatexString page.set.kind)}
-                ${forConcat page.set.contents (tune: ''
-                  printf '\\tune{%s}{%s}{%s}\n' ${escapeShellArg (escapeLatexString tune.name)} ${escapeShellArg (escapeLatexString tune.composer)} ${makeTunePdf tune}
-                '')}
+                ${forConcat page.set.contents (
+                  { slug, tune }:
+                  ''
+                    printf '\\tune{%s}{%s}{%s}\n' ${escapeShellArg (escapeLatexString tune.name)} ${escapeShellArg (escapeLatexString tune.composer)} ${
+                      makeTunePdf { inherit slug tune; }
+                    }
+                  ''
+                )}
                 printf '\\end{set}\n'
               ''
             else

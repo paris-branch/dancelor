@@ -68,11 +68,11 @@ let
 
   ## TODO: cf tuneScheme
   makeTuneLilypond =
-    { content, first_bar, ... }:
+    { slug, tune }:
     let
-      contentFile = writeText "tune-content.ly" content;
+      contentFile = writeText "tune-${slug}-content.ly" tune.content;
     in
-    runCommand "tune.ly"
+    runCommand "tune-${slug}.ly"
       {
         allowSubtitutes = false;
       }
@@ -92,15 +92,22 @@ let
           cat ${./tune/lilypond/fancy_unfold_repeats.ly}
           cat ${./tune/lilypond/version/header.ly}
           printf '\\score {\n'
-          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
+          printf '  \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString tune.first_bar}
           printf '  { %s }\n' "$(cat "${contentFile}")"
           printf '}\n\\markup\\null\n'
         } > $out
       '';
 
-  makeTunePdf = withArgumentType "makeTunePdf" tuneType (
-    tune:
-    runCommand "tune.pdf"
+  tunePdfArgType = types.submodule {
+    options = {
+      slug = mkOption { type = types.str; };
+      tune = mkOption { type = tuneType; };
+    };
+  };
+
+  makeTunePdf = withArgumentType "makeTunePdf" tunePdfArgType (
+    { slug, tune }:
+    runCommand "tune-${slug}.pdf"
       {
         allowSubtitutes = false;
         buildInputs = with pkgs; [ lilypond ];
@@ -116,13 +123,14 @@ let
           --loglevel=WARNING \
           --define-default=no-point-and-click \
           --output=$out \
-          ${makeTuneLilypond tune}
+          ${makeTuneLilypond { inherit slug tune; }}
         mv $out.pdf $out # NOTE: LilyPond adds the .pdf suffix
       ''
   );
 
   tuneSvgArgType = types.submodule {
     options = {
+      slug = mkOption { type = types.str; };
       tune = mkOption { type = tuneType; };
       stylesheet = mkOption {
         description = "A stylesheet to inject into the resulting SVG.";
@@ -132,8 +140,12 @@ let
   };
 
   makeTuneSvg = withArgumentType "makeTuneSvg" tuneSvgArgType (
-    { tune, stylesheet }:
-    runCommand "tune.svg"
+    {
+      slug,
+      tune,
+      stylesheet,
+    }:
+    runCommand "tune-${slug}.svg"
       {
         allowSubtitutes = false;
         buildInputs = with pkgs; [ lilypond ];
@@ -150,7 +162,7 @@ let
           --define-default=no-point-and-click \
           --define-default=backend=svg \
           --output=$out \
-          ${makeTuneLilypond tune}
+          ${makeTuneLilypond { inherit slug tune; }}
         mv $out.svg $out # NOTE: LilyPond adds the .svg suffix
         ## Using `sed`, add a CSS import directive to the given stylesheet after the `<style>` block.
         sed -i 's|^\(<style.*\)$|\1\n@import url("${stylesheet}");|' $out
@@ -159,6 +171,7 @@ let
 
   tuneOggArgType = types.submodule {
     options = {
+      slug = mkOption { type = types.str; };
       tune = mkOption { type = tuneType; };
       tempo_unit = mkOption { type = types.str; };
       tempo_value = mkOption { type = types.int; };
@@ -169,15 +182,16 @@ let
   ## TODO: Factorise with `makeTuneLilypond`
   makeTuneLilypondOgg =
     {
+      slug,
       tune,
       tempo_unit,
       tempo_value,
       chords_kind,
     }:
     let
-      contentFile = writeText "tune-content.ly" tune.content;
+      contentFile = writeText "tune-${slug}-content.ly" tune.content;
     in
-    runCommand "tune.ly"
+    runCommand "tune-${slug}.ly"
       {
         allowSubtitutes = false;
       }

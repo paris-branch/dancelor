@@ -51,9 +51,10 @@ let build_pdf env id set_params rendering_params =
     in
     lwt Renderer.{title; authors; subjects; creator = "FIXME"}
   in
-  let%lwt set = ModelToRenderer.set_to_renderer_set' set set_params in
+  let%lwt (slug, set) = ModelToRenderer.set_to_renderer_set' set set_params in
   let%lwt book_pdf_arg =
     ModelToRenderer.renderer_set_to_renderer_book_pdf_arg
+      slug
       set
       rendering_params
       pdf_metadata
