@@ -149,8 +149,7 @@ let create ?context id =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      div [Components.VersionSvg.make version];
-      div ~a: [a_class ["mt-1"; "d-flex"; "justify-content-end"]] [Components.VersionOgg.make version];
+      Components.VersionSnippets.make version;
       Utils.quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);
