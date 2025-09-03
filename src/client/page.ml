@@ -168,7 +168,7 @@ let open_dialog
       ]
       [
         div
-          ~a: [a_class ["modal-dialog"; "modal-lg"; "modal-fullscreen-lg-down"; "modal-dialog-centered"]]
+          ~a: [a_class ["modal-dialog"; "modal-lg"; "modal-fullscreen-lg-down"; "modal-dialog-centered"; "modal-dialog-scrollable"]]
           [
             div
               ~a: [a_class ["modal-content"]]

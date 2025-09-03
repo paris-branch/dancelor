@@ -1,3 +1,4 @@
+open Js_of_ocaml
 open Nes
 open Common
 open Html
@@ -37,15 +38,21 @@ let run slug route =
 
 let status_signal_from_promise = S.switch % S.from' (S.const Registering)
 
-let show_logs logs = pre [small [txt (String.concat "\n" logs)]]
+let show_logs logs = pre ~a: [a_style "white-space: pre-wrap;"] [small [txt (String.concat "\n" logs)]]
 
-let add_spinner content =
-  div ~a: [a_class ["position-relative"]] [
-    div ~a: [a_class ["opacity-50"]; a_style "min-height: 5em;"] [content];
-    div ~a: [a_class ["position-absolute top-50 start-50 translate-middle"]] [
+let spinner () =
+  let spinner =
+    div ~a: [a_class ["d-flex"; "justify-content-center"; "pb-4"]] [
       div ~a: [a_class ["spinner-border"]; a_role ["status"]] [];
     ]
-  ]
+  in
+  let spinner_dom = To_dom.of_div spinner in
+  Lwt.async (fun () ->
+    Js_of_ocaml_lwt.Lwt_js.sleep 0.1;%lwt
+    spinner_dom##scrollIntoView Js._false;
+    lwt_unit
+  );
+  spinner
 
 let show_live_status ~on_succeeded status_signal =
   flip S.map status_signal @@ function
@@ -55,7 +62,7 @@ let show_live_status ~on_succeeded status_signal =
           txt
             "The document generation job is being sent to the server.";
         ];
-        div ~a: [a_class ["mt-4"]] [add_spinner (show_logs [])];
+        div ~a: [a_class ["mt-4"]] [show_logs []; spinner ()];
       ]
     | Pending ->
       [
@@ -68,7 +75,7 @@ let show_live_status ~on_succeeded status_signal =
              registered on the server, but the server is busy with other jobs. \
              Go get yourself a tea.";
           ];
-        div ~a: [a_class ["mt-4"]] [add_spinner (show_logs [])];
+        div ~a: [a_class ["mt-4"]] [show_logs []; spinner ()];
       ]
     | Running logs ->
       [
@@ -78,7 +85,7 @@ let show_live_status ~on_succeeded status_signal =
            short for single tunes, but can also take a (very) long time, up to \
            several minutes, for big books. Go get yourself a tea.";
         ];
-        div ~a: [a_class ["mt-4"]] [add_spinner (show_logs logs)];
+        div ~a: [a_class ["mt-4"]] [show_logs logs; spinner ()];
       ]
     | Failed logs ->
       [
