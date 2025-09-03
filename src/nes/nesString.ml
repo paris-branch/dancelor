@@ -336,6 +336,7 @@ let%test _ = trim "abc" = "abc"
 let%test _ = trim "   abc   " = "abc"
 let%test _ = trim ~chars: ['c'] "abc" = "ab"
 let%test _ = trim ~chars: ['c'] "   abc   " = "   abc   "
+let%test _ = trim "a b  c" = "a b  c"
 
 let remove_duplicates ?(char_equal = Char.equal) ?(char = ' ') input =
   let length = length input in

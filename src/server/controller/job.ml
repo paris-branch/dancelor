@@ -30,9 +30,6 @@ let register_job job =
     add_pending_job (Some (id, job));
     id
 
-type output = {out: string} [@@deriving of_yojson]
-type result = {outputs: output list} [@@deriving of_yojson]
-
 let run_job id job =
   match !(job.state) with
   | Running _ -> invalid_arg "run_job: cannot start a job that is already started"
@@ -40,22 +37,7 @@ let run_job id job =
   | Succeeded _ -> invalid_arg "run_job: cannot start a job that has already succeeded"
   | Pending ->
     Log.debug (fun m -> m "Running job %s:@\n%s" (JobId.to_string id) job.expr);
-    let command = [|
-      "nix";
-      "--extra-experimental-features";
-      "nix-command";
-      "build";
-      "--print-build-logs";
-      "--verbose";
-      "--log-format";
-      "raw";
-      "--json";
-      "--no-link";
-      "--impure";
-      "--expr";
-      job.expr
-    |]
-    in
+    let command = [|"nix-build"; "--no-link"; "--impure"; "--expr"; job.expr|] in
     let process = Lwt_process.open_process_full ("", command) in
     let stderr = ref [] in
     job.state := Running {process; stderr};
@@ -83,16 +65,7 @@ let run_job id job =
     (
       job.state :=
         match status with
-        | WEXITED 0 ->
-          (
-            match Yojson.Safe.from_string stdout with
-            (* two cases depending on whether there is `startTime` and `endTime` or not *)
-            | `List [`Assoc [_; ("outputs", `Assoc [("out", `String path)]); _; _]]
-            | `List [`Assoc [_; ("outputs", `Assoc [("out", `String path)])]] ->
-              Succeeded {path}
-            | _ ->
-              Failed {status; logs = stderr @ ["Could not parse output:"; stdout]}
-          )
+        | WEXITED 0 -> Succeeded {path = String.trim stdout}
         | _ -> Failed {status; logs = stderr}
     );
     lwt_unit
