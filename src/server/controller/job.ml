@@ -19,16 +19,21 @@ let job_of_id : (JobId.t, t) Hashtbl.t = Hashtbl.create 8
 let job_of_expr : (string, (JobId.t * t)) Hashtbl.t = Hashtbl.create 8
 let (pending_jobs : (JobId.t * t) Lwt_stream.t), add_pending_job = Lwt_stream.create ()
 
-let register_job job =
+let register_job job : Endpoints.Job.Registration.t =
   match Hashtbl.find_opt job_of_expr job.expr with
-  | Some (id, _) -> id
+  | Some (id, job) ->
+    (
+      match !(job.state) with
+      | Succeeded _ -> AlreadySucceeded id
+      | _ -> Registered id
+    )
   | None ->
     let id = JobId.create () in
     Log.debug (fun m -> m "Registering job %s:@\n%s" (JobId.to_string id) job.expr);
     Hashtbl.add job_of_id id job;
     Hashtbl.add job_of_expr job.expr (id, job);
     add_pending_job (Some (id, job));
-    id
+    Registered id
 
 let run_job id job =
   match !(job.state) with
@@ -87,8 +92,8 @@ let status id =
     | Failed {logs; _} -> Failed logs
     | Succeeded _ -> Succeeded
 
-let file id _slug =
-  Log.debug (fun m -> m "status %s" (JobId.to_string id));
+let file id slug =
+  Log.debug (fun m -> m "file %s %s" (JobId.to_string id) (Entry.Slug.to_string slug));
   get id >>= fun job ->
   match !(job.state) with
   | Pending -> Madge_server.shortcut_bad_request "This job is not running yet, you cannot query the file."

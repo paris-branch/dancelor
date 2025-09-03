@@ -19,7 +19,9 @@ let run slug route =
   Lwt_stream.(concat % return_lwt) @@
   match%lwt promise with
   | Error error -> raise (Madge_client.Error error)
-  | Ok jobId ->
+  | Ok Endpoints.Job.Registration.AlreadySucceeded jobId ->
+    lwt @@ Lwt_stream.return (Succeeded (Endpoints.Api.(href @@ Job File) jobId slug))
+  | Ok Endpoints.Job.Registration.Registered jobId ->
     let first_time = ref true in
     lwt @@
     Lwt_stream.from_next @@ fun () ->
