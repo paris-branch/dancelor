@@ -88,7 +88,31 @@ let show_live_status ~on_succeeded status_signal =
       ]
     | Succeeded href -> on_succeeded href
 
+(** An intermediary status conflating all the “wait” status. This is useful in
+    signal, eg. to avoid placeholders flickering on irrelevant changes *)
+type wait_status =
+  | Waiting
+  | Failed
+  | Succeeded of string
+
+let status_to_wait_status : status -> wait_status = function
+  | Succeeded href -> Succeeded href
+  | Failed _ -> Failed
+  | _ -> Waiting
+
+(** Variant of {!job_live_status} that only shows a placeholder on all waiting
+    statuses. It is meant to be used in places where people should not be
+    exposed to logs. *)
 let show_placeholder ~on_succeeded status_signal =
-  flip S.map status_signal @@ function
+  flip S.map (S.map status_to_wait_status status_signal) @@ function
+    | Waiting -> [div_placeholder ~min: 12 ~max: 20 ()]
+    | Failed ->
+      [
+        Utils.Alert.make ~level: Danger [
+          txt
+            "There was a problem during document generation, presumably because \
+           the LilyPond of a tune is erroneous. Fix the error, or report an \
+           issue.";
+        ];
+      ]
     | Succeeded href -> on_succeeded href
-    | _ -> [div_placeholder ~min: 12 ~max: 20 ()]
