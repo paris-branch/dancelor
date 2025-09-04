@@ -57,7 +57,7 @@ let open_ book dialog =
           return None;
           VersionDownloadDialog.open_pdf_generation_dialog (
             Job.run
-              (Book.slug' book)
+              (Entry.Slug.add_suffix (Book.slug' book) ".pdf")
               Endpoints.Api.(route @@ Book BuildPdf)
               (Entry.id book)
               book_params

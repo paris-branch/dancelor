@@ -15,7 +15,7 @@ let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
 let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
-  let%lwt slug = Model.Version.slug version in
+  let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
   let%lwt name =
     let%lwt default = Model.Version.one_name version in
     lwt @@
@@ -55,7 +55,12 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
     spf "\\transpose %s %s { %s }" source target content
   in
   let first_bar = Model.VersionParameters.first_bar' version_params in
-  lwt (slug, Renderer.{name; composer; content; first_bar})
+  let stylesheet = "/fonts.css" in
+  let%lwt tune = Model.Version.tune version in
+  let kind = Model.Tune.kind' tune in
+  let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
+  let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
+  lwt Renderer.{slug; name; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind}
 
 let version_to_renderer_tune' ?version_params version =
   version_to_renderer_tune ?version_params (Entry.value version)
@@ -64,7 +69,7 @@ let part_to_renderer_part name =
   Renderer.{name = NEString.to_string name}
 
 let set_to_renderer_set set set_params =
-  let slug = Model.Set.slug set in
+  let slug = Entry.Slug.to_string @@ Model.Set.slug set in
   let name =
     NEString.to_string @@
       Option.value ~default: (Model.Set.name set) (Model.SetParameters.display_name set_params)
@@ -88,22 +93,17 @@ let set_to_renderer_set set set_params =
     Lwt_list.map_s
       (fun (version, version_params) ->
         let version_params = Model.VersionParameters.compose every_version_params version_params in
-        let%lwt (slug, tune) = version_to_renderer_tune' version ~version_params in
-        lwt
-          Renderer.{
-            slug = Entry.Slug.to_string slug;
-            tune
-          }
+        version_to_renderer_tune' version ~version_params
       )
     =<< Model.Set.contents set
   in
-  lwt (slug, Renderer.{name; conceptor; kind; contents})
+  lwt Renderer.{slug; name; conceptor; kind; contents}
 
 let set_to_renderer_set' set set_params =
   set_to_renderer_set (Entry.value set) set_params
 
 let version_to_renderer_set version version_params set_params =
-  let%lwt slug = Model.Version.slug version in
+  let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
   let%lwt name =
     let%lwt default = Model.Version.one_name version in
     lwt @@
@@ -115,14 +115,12 @@ let version_to_renderer_set version version_params set_params =
     lwt @@ Option.fold ~none ~some: Kind.Dance.to_pretty_string (Model.SetParameters.display_kind set_params)
   in
   let%lwt contents =
-    let%lwt (slug, tune) =
-      version_to_renderer_tune
+    List.singleton
+    <$> version_to_renderer_tune
         ~version_params: (Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params)
         version
-    in
-    lwt [Renderer.{slug = Entry.Slug.to_string slug; tune}]
   in
-  lwt (slug, Renderer.{name; conceptor = ""; kind; contents})
+  lwt Renderer.{slug; name; conceptor = ""; kind; contents}
 
 let version_to_renderer_set' version version_params set_params =
   version_to_renderer_set (Entry.value version) version_params set_params
@@ -155,21 +153,21 @@ let page_to_renderer_page page book_params =
       in
       match dance_page with
       | DanceOnly ->
-        Renderer.set % snd <$> dance_to_renderer_set dance_params
+        Renderer.set <$> dance_to_renderer_set dance_params
       | DanceVersion (version, version_params) ->
-        Renderer.set % snd <$> version_to_renderer_set' version version_params dance_params
+        Renderer.set <$> version_to_renderer_set' version version_params dance_params
       | DanceSet (set, set_params) ->
         let set_params = Model.SetParameters.compose set_params dance_params in
-        Renderer.set % snd <$> set_to_renderer_set' set set_params
+        Renderer.set <$> set_to_renderer_set' set set_params
     )
   | Model.Book.Version (version, version_params) ->
-    Renderer.set % snd <$> version_to_renderer_set' version version_params every_set_params
+    Renderer.set <$> version_to_renderer_set' version version_params every_set_params
   | Model.Book.Set (set, set_params) ->
     let set_params = Model.SetParameters.compose set_params every_set_params in
-    Renderer.set % snd <$> set_to_renderer_set' set set_params
+    Renderer.set <$> set_to_renderer_set' set set_params
 
 let book_to_renderer_book book book_params =
-  let slug = Model.Book.slug book in
+  let slug = Entry.Slug.to_string @@ Model.Book.slug book in
   let title = NEString.to_string @@ Model.Book.title book in
   let%lwt editor = format_persons <$> Model.Book.authors book in
   let%lwt contents =
@@ -177,7 +175,7 @@ let book_to_renderer_book book book_params =
     =<< Model.Book.contents book
   in
   let simple = Option.value ~default: false @@ Model.BookParameters.simple book_params in
-  lwt (slug, Renderer.{title; editor; contents; simple})
+  lwt Renderer.{slug; title; editor; contents; simple}
 
 let book_to_renderer_book' book book_params =
   book_to_renderer_book (Entry.value book) book_params
@@ -194,14 +192,13 @@ let grab_renderer_book_pdf_args rendering_params =
   let headers = Option.value ~default: true @@ RenderingParameters.show_headers rendering_params in
     (specificity, headers)
 
-let renderer_book_to_renderer_book_pdf_arg slug book rendering_params pdf_metadata =
-  let slug = Entry.Slug.to_string slug in
+let renderer_book_to_renderer_book_pdf_arg (book : Renderer.book) rendering_params pdf_metadata =
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{slug; book; specificity; headers; pdf_metadata}
+  lwt Renderer.{book; specificity; headers; pdf_metadata}
 
-let renderer_set_to_renderer_book_pdf_arg slug set rendering_params pdf_metadata =
-  let slug = Entry.Slug.to_string slug in
+let renderer_set_to_renderer_book_pdf_arg (set : Renderer.set) rendering_params pdf_metadata =
+  let slug = set.Renderer.slug in
   let title = set.Renderer.name in
-  let book = {Renderer.title; editor = ""; contents = [Renderer.Set set]; simple = true} in
+  let book = {Renderer.slug; title; editor = ""; contents = [Renderer.Set set]; simple = true} in
   let (specificity, headers) = grab_renderer_book_pdf_args rendering_params in
-  lwt Renderer.{slug; book; specificity; headers; pdf_metadata}
+  lwt Renderer.{book; specificity; headers; pdf_metadata}
