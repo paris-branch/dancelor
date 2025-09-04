@@ -5,10 +5,15 @@ open NesUnix
 (** {2 Models for the rendering} *)
 
 type tune = {
+  slug: string;
   name: string;
   composer: string;
   content: string;
   first_bar: int;
+  stylesheet: string;
+  tempo_unit: string;
+  tempo_value: int;
+  chords_kind: string;
 }
 [@@deriving yojson]
 
@@ -17,17 +22,12 @@ type part = {
 }
 [@@deriving yojson]
 
-type tune_with_slug = {
-  slug: string;
-  tune: tune;
-}
-[@@deriving yojson]
-
 type set = {
+  slug: string;
   name: string;
   conceptor: string;
   kind: string;
-  contents: tune_with_slug list;
+  contents: tune list;
 }
 [@@deriving yojson]
 
@@ -46,10 +46,11 @@ let page_of_yojson = function
   | _ -> Error "page_of_yojson"
 
 type book = {
+  slug: string;
   title: string;
   editor: string;
   contents: page list;
-  simple: bool;
+  simple: bool; (* FIXME: should that not go into {!book_pdf_arg} *)
 }
 [@@deriving yojson]
 
@@ -88,19 +89,9 @@ let call_nix fun_ json =
 
 (** {2 API} *)
 
-type tune_snippets_arg = {
-  slug: string;
-  tune: tune;
-  stylesheet: string;
-  tempo_unit: string;
-  tempo_value: int;
-  chords_kind: string;
-}
-[@@deriving yojson]
-
-let make_tune_snippets = call_nix "makeTuneSnippets" % tune_snippets_arg_to_yojson
-let make_tune_svg arg = (make_tune_snippets arg, "tune.svg")
-let make_tune_ogg arg = (make_tune_snippets arg, "tune.ogg")
+let make_tune_snippets = call_nix "makeTuneSnippets" % tune_to_yojson
+let make_tune_svg tune = (make_tune_snippets tune, "snippet.svg")
+let make_tune_ogg tune = (make_tune_snippets tune, "snippet.ogg")
 
 type pdf_metadata = {
   title: string;
@@ -111,7 +102,6 @@ type pdf_metadata = {
 [@@deriving yojson]
 
 type book_pdf_arg = {
-  slug: string;
   book: book;
   specificity: string;
   headers: bool;

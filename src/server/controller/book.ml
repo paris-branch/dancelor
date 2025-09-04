@@ -40,14 +40,8 @@ let build_pdf env id book_params rendering_params =
     let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Book.authors' book in
     lwt Renderer.{title; authors; subjects = []; creator = "FIXME"}
   in
-  let%lwt (slug, book) = ModelToRenderer.book_to_renderer_book' book book_params in
-  let%lwt book_pdf_arg =
-    ModelToRenderer.renderer_book_to_renderer_book_pdf_arg
-      slug
-      book
-      rendering_params
-      pdf_metadata
-  in
+  let%lwt book = ModelToRenderer.book_to_renderer_book' book book_params in
+  let%lwt book_pdf_arg = ModelToRenderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
   lwt @@ uncurry Job.register_job @@ Renderer.make_book_pdf book_pdf_arg
 
 let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a = fun env endpoint ->

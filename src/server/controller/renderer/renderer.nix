@@ -24,7 +24,6 @@ let
         ;
     })
     tuneType
-    makeTunePdf
     makeTuneSnippets
     ;
 
@@ -33,7 +32,7 @@ let
       inherit
         pkgs
         tuneType
-        makeTunePdf
+        makeTuneSnippets
         withArgumentType
         ;
     })
@@ -43,8 +42,6 @@ let
 in
 {
   inherit
-    tuneType
-    makeTunePdf
     makeTuneSnippets
     makeBookPdf
     ;

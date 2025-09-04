@@ -1,7 +1,7 @@
 {
   pkgs,
   tuneType,
-  makeTunePdf,
+  makeTuneSnippets,
   withArgumentType,
   ...
 }:
@@ -28,13 +28,6 @@ let
   forConcat = xs: f: concatMapStringsSep "\n" f xs;
   escapeLatexString = replaceStrings [ "&" "#" ] [ "\\&" "\\#" ];
 
-  tuneWithSlugType = types.submodule {
-    options = {
-      slug = mkOption { type = types.str; };
-      tune = mkOption { type = tuneType; };
-    };
-  };
-
   partType = types.submodule {
     options = {
       name = mkOption {
@@ -46,6 +39,10 @@ let
 
   setType = types.submodule {
     options = {
+      slug = mkOption {
+        description = "A slug for the set; it is used to make logs clearer.";
+        type = types.str;
+      };
       name = mkOption {
         description = "The name of the set.";
         type = types.str;
@@ -60,13 +57,17 @@ let
       };
       contents = mkOption {
         description = "The contents of the set.";
-        type = types.listOf tuneWithSlugType;
+        type = types.listOf tuneType;
       };
     };
   };
 
   bookType = types.submodule {
     options = {
+      slug = mkOption {
+        description = "A slug for the book; it is used to make logs clearer.";
+        type = types.str;
+      };
       title = mkOption {
         description = "The title of the book.";
         type = types.str;
@@ -96,7 +97,10 @@ let
         );
       };
       simple = mkOption {
-        description = "Whether the book should be simple, with no title page, no table of contents, and not two-sided.";
+        description = ''
+          Whether the book should be simple, that is with no title page, no
+          table of contents, and not two-sided.
+        '';
         type = types.bool;
       };
     };
@@ -104,7 +108,6 @@ let
 
   bookPdfArgType = types.submodule {
     options = {
-      slug = mkOption { type = types.str; };
       book = mkOption { type = bookType; };
       specificity = mkOption {
         description = "Specificity of this particular book, eg. Bb instruments or bass clef.";
@@ -130,13 +133,12 @@ let
 
   makeBookPdf = withArgumentType "makeBookPdf" bookPdfArgType (
     {
-      slug,
       book,
       specificity,
       headers,
       pdf_metadata,
     }:
-    runCommand "book-${slug}.pdf"
+    runCommand "book-${book.slug}"
       {
         allowSubtitutes = false;
         buildInputs = with pkgs; [ texlive.combined.scheme-full ]; # FIXME: make smaller
@@ -189,15 +191,12 @@ let
                   ${escapeShellArg (escapeLatexString page.set.conceptor)} \
                   ${escapeShellArg (escapeLatexString page.set.kind)}
 
-                ${forConcat page.set.contents (
-                  { slug, tune }:
-                  ''
-                    printf '\\tune{%s}{%s}{%s}\n' \
-                      ${escapeShellArg (escapeLatexString tune.name)} \
-                      ${escapeShellArg (escapeLatexString tune.composer)} \
-                      ${makeTunePdf { inherit slug tune; }}/tune.pdf
-                  ''
-                )}
+                ${forConcat page.set.contents (tune: ''
+                  printf '\\tune{%s}{%s}{%s}\n' \
+                    ${escapeShellArg (escapeLatexString tune.name)} \
+                    ${escapeShellArg (escapeLatexString tune.composer)} \
+                    ${makeTuneSnippets tune}/snippet.pdf
+                '')}
 
                 printf '\\end{set}\n'
               ''

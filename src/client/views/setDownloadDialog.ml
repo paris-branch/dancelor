@@ -60,7 +60,7 @@ let open_ set dialog =
           return None;
           VersionDownloadDialog.open_pdf_generation_dialog (
             Job.run
-              (Set.slug' set)
+              (Entry.Slug.add_suffix (Set.slug' set) ".pdf")
               Endpoints.Api.(route @@ Set BuildPdf)
               (Entry.id set)
               set_params
