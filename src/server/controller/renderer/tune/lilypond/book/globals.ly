@@ -1,2 +1,0 @@
-booktitle = "%s"
-instrument = "%s"
