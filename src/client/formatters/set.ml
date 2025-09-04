@@ -19,7 +19,7 @@ let display_name ?(params = Model.SetParameters.none) () =
 let display_conceptor ?(params = Model.SetParameters.none) () =
   match Model.SetParameters.display_conceptor params with
   | None -> []
-  | Some display_conceptor -> [txt " [as “"; txt display_conceptor; txt "”]"]
+  | Some display_conceptor -> [txt " [as “"; txt (NEString.to_string display_conceptor); txt "”]"]
 
 let name_gen ?params set_gen =
   span (

@@ -10,8 +10,8 @@ module type S = sig
 
   val make :
     ?display_name: NEString.t ->
-    ?display_conceptor: string ->
-    ?display_kind: Kind.Dance.t ->
+    ?display_conceptor: NEString.t ->
+    ?display_kind: NEString.t ->
     ?every_version: Core.VersionParameters.t ->
     unit ->
     t
@@ -21,8 +21,8 @@ module type S = sig
   val none : t
 
   val display_name : t -> NEString.t option
-  val display_conceptor : t -> string option
-  val display_kind : t -> Kind.Dance.t option
+  val display_conceptor : t -> NEString.t option
+  val display_kind : t -> NEString.t option
 
   val every_version : t -> Core.VersionParameters.t
 

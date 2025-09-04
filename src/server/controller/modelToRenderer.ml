@@ -76,17 +76,16 @@ let set_to_renderer_set set set_params =
   in
   let%lwt conceptor =
     let%lwt conceptors = Model.Set.conceptors set in
-    let default =
+    let none =
       match conceptors with
       | [] -> ""
       | _ -> "Set by " ^ format_persons conceptors
     in
-    lwt @@ Option.value ~default (Model.SetParameters.display_conceptor set_params)
+    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
   in
   let kind =
-    let default = Model.Set.kind set in
-    Kind.Dance.to_pretty_string @@
-      Option.value ~default (Model.SetParameters.display_kind set_params)
+    let none = Kind.Dance.to_pretty_string @@ Model.Set.kind set in
+    Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_kind set_params)
   in
   let every_version_params = Model.SetParameters.every_version set_params in
   let%lwt contents =
@@ -111,13 +110,11 @@ let version_to_renderer_set version version_params set_params =
     Option.value ~default (Model.SetParameters.display_name set_params)
   in
   let conceptor =
-    Option.value
-      ~default: ""
-      (Model.SetParameters.display_conceptor set_params)
+    Option.fold ~none: "" ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
   in
   let%lwt kind =
     let%lwt none = Kind.Version.to_pretty_string <$> Model.Version.kind version in
-    lwt @@ Option.fold ~none ~some: Kind.Dance.to_pretty_string (Model.SetParameters.display_kind set_params)
+    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_kind set_params)
   in
   let%lwt contents = List.singleton <$> version_to_renderer_tune ~version_params version in
   lwt Renderer.{slug; name; conceptor; kind; contents}
@@ -148,11 +145,20 @@ let page_to_renderer_page page book_params =
         let%lwt display_conceptor =
           let%lwt devisers = Model.Dance.devisers' dance in
           lwt @@
-            match devisers with
-            | [] -> ""
-            | _ -> "Dance by " ^ format_persons devisers
+          NEString.of_string_exn @@
+          match devisers with
+          | [] -> " "
+          | _ -> "Dance by " ^ format_persons devisers
         in
-        let display_kind = Model.Dance.kind' dance in
+        let display_kind =
+          NEString.of_string_exn @@
+          (Kind.Dance.to_pretty_string @@ Model.Dance.kind' dance) ^ (
+            match Model.Dance.two_chords' dance with
+            | None -> " — Two chords: unknown"
+            | Some true -> " — Two chords"
+            | Some false -> ""
+          )
+        in
         lwt @@ Model.SetParameters.make ~display_name ~display_conceptor ~display_kind ()
       in
       let dance_params =

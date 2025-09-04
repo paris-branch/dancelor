@@ -8,8 +8,8 @@ open Nes
 module Self = struct
   type t = {
     display_name: NEString.t option; [@default None] [@key "display-name"]
-    display_conceptor: string option; [@default None] [@key "display-conceptor"]
-    display_kind: Kind.Dance.t option; [@default None] [@key "display-kind"]
+    display_conceptor: NEString.t option; [@default None] [@key "display-conceptor"]
+    display_kind: NEString.t option; [@default None] [@key "display-kind"]
     every_version: VersionParameters.t [@default VersionParameters.none] [@key "every-version"]
   }
   [@@deriving eq, make, show {with_path = false}, yojson, fields]
