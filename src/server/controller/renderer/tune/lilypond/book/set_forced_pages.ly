@@ -1,3 +1,0 @@
-\paper {
-  page-count = %d
-}

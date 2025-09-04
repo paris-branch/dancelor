@@ -125,19 +125,14 @@ let
       }
       ''
         {
-          cat ${./tune/lilypond/lyversion.ly}
+          cat ${./tune/lilypond/preamble.ly}
           printf '#(load "%s")\n' ${tuneScheme}
-          cat ${./tune/lilypond/layout.ly}
-          cat ${./tune/lilypond/paper.ly}
-          cat ${./tune/lilypond/cropped.ly}
-          cat ${./tune/lilypond/helpers.ly}
-          cat ${./tune/lilypond/repeat_volta_fancy.ly}
+          cat ${./tune/lilypond/macros.ly}
           cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
           cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
           cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
           cat ${./tune/lilypond/scottish_chords.ly}
           cat ${./tune/lilypond/fancy_unfold_repeats.ly}
-          cat ${./tune/lilypond/version/header.ly}
           ## PDF
           printf '\\book {\n'
           printf '  \\bookOutputSuffix "pdf"\n'
