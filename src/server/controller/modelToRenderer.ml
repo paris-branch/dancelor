@@ -110,17 +110,17 @@ let version_to_renderer_set version version_params set_params =
     NEString.to_string @@
     Option.value ~default (Model.SetParameters.display_name set_params)
   in
+  let conceptor =
+    Option.value
+      ~default: ""
+      (Model.SetParameters.display_conceptor set_params)
+  in
   let%lwt kind =
     let%lwt none = Kind.Version.to_pretty_string <$> Model.Version.kind version in
     lwt @@ Option.fold ~none ~some: Kind.Dance.to_pretty_string (Model.SetParameters.display_kind set_params)
   in
-  let%lwt contents =
-    List.singleton
-    <$> version_to_renderer_tune
-        ~version_params: (Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params)
-        version
-  in
-  lwt Renderer.{slug; name; conceptor = ""; kind; contents}
+  let%lwt contents = List.singleton <$> version_to_renderer_tune ~version_params version in
+  lwt Renderer.{slug; name; conceptor; kind; contents}
 
 let version_to_renderer_set' version version_params set_params =
   version_to_renderer_set (Entry.value version) version_params set_params
@@ -143,10 +143,17 @@ let page_to_renderer_page page book_params =
     lwt @@ Renderer.part @@ part_to_renderer_part title
   | Model.Book.Dance (dance, dance_page) ->
     (
-      let dance_params =
+      let%lwt dance_params =
         let display_name = Model.Dance.one_name' dance in
+        let%lwt display_conceptor =
+          let%lwt devisers = Model.Dance.devisers' dance in
+          lwt @@
+            match devisers with
+            | [] -> ""
+            | _ -> "Dance by " ^ format_persons devisers
+        in
         let display_kind = Model.Dance.kind' dance in
-        Model.SetParameters.make ~display_name ~display_conceptor: "" ~display_kind ()
+        lwt @@ Model.SetParameters.make ~display_name ~display_conceptor ~display_kind ()
       in
       let dance_params =
         Model.SetParameters.compose every_set_params dance_params
