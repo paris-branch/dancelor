@@ -33,7 +33,6 @@ let
         "Test PDF Subject 1"
         "Test PDF Subject 2"
       ];
-      creator = "Test PDF Creator";
     };
   };
 

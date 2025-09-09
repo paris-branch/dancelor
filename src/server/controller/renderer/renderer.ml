@@ -97,7 +97,6 @@ type pdf_metadata = {
   title: string;
   authors: string list;
   subjects: string list;
-  creator: string; (* FIXME *)
 }
 [@@deriving yojson]
 

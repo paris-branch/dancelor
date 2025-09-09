@@ -91,7 +91,7 @@ let build_pdf env id version_params rendering_params =
     in
     let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Tune.composers' tune in
     let subjects = [KindBase.to_pretty_string ~capitalised: true @@ Model.Tune.kind' tune] in
-    lwt Renderer.{title; authors; subjects; creator = "FIXME"}
+    lwt Renderer.{title; authors; subjects}
   in
   let set_params = Model.SetParameters.make ?display_name: (Model.VersionParameters.display_name version_params) () in
   let version_params = Model.VersionParameters.set_display_name (NEString.of_string_exn " ") version_params in
