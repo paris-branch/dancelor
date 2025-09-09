@@ -21,6 +21,7 @@
         ./nix/nixosmodule.nix
         ./nix/package.nix
         ./nix/tests.nix
+        ./src/server/controller/renderer/flake-part.nix
       ];
 
       systems = [ "x86_64-linux" ];

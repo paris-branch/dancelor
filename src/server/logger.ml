@@ -60,8 +60,6 @@ let update_past_loglevel loglevel =
          set to None. *)
       if name = "server"
         || String.starts_with ~needle: "server." name
-        || name = "lilypond"
-        || String.starts_with ~needle: "lilypond." name
         || name = "nes"
         || String.starts_with ~needle: "nes." name
         || name = "madge"

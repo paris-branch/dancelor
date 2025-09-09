@@ -1,7 +1,5 @@
 {
   "port": 6872,
-  "lilypond": "/usr/local/bin/lilypond",
-  "cache": "/var/cache/dancelor",
   "database": "/var/lib/dancelor/database",
   "share": "/usr/share/dancelor",
   "loglevel": "warning",

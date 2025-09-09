@@ -106,6 +106,11 @@ let
       '';
 
   ## TODO: cf tuneScheme
+  ##
+  ## NOTE: We could put the SVG book in second place, and avoid the argument
+  ## `--define-default=backend=svg`, but somehow this messes up the integration
+  ## of the Elementaler font into the resulting SVGs. The SVG-first approach
+  ## does not, however, seem to bother the PS/PDF generation.
   makeTuneLilypond =
     {
       slug,
@@ -133,18 +138,18 @@ let
           cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
           cat ${./tune/lilypond/scottish_chords.ly}
           cat ${./tune/lilypond/fancy_unfold_repeats.ly}
-          ## PDF
+          ## SVG
           printf '\\book {\n'
-          printf '  \\bookOutputSuffix "pdf"\n'
+          printf '  \\bookOutputSuffix "svg"\n'
           printf '  \\score {\n'
           printf '    \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
           printf '    { %s }\n' "$(cat "${contentFile}")"
           printf '  }\\markup\\null\n'
           printf '}\n\n'
-          ## SVG
-          printf "#(ly:set-option 'backend 'svg)\n"
+          ## PDF
+          printf "#(ly:set-option 'backend 'ps)\n"
           printf '\\book {\n'
-          printf '  \\bookOutputSuffix "svg"\n'
+          printf '  \\bookOutputSuffix "pdf"\n'
           printf '  \\score {\n'
           printf '    \\layout { \\context { \\Score currentBarNumber = #%d } }\n' ${toString first_bar}
           printf '    { %s }\n' "$(cat "${contentFile}")"
@@ -184,6 +189,7 @@ let
         lilypond \
           --loglevel=WARNING \
           --define-default=no-point-and-click \
+          --define-default=backend=svg \
           --output=snippet \
           ${makeTuneLilypond tune}
 

@@ -124,7 +124,6 @@ let
             title = mkOption { type = types.str; };
             authors = mkOption { type = types.listOf types.str; };
             subjects = mkOption { type = types.listOf types.str; };
-            creator = mkOption { type = types.str; };
           };
         };
       };
@@ -141,7 +140,26 @@ let
     runCommand "book-${book.slug}"
       {
         allowSubtitutes = false;
-        buildInputs = with pkgs; [ texlive.combined.scheme-full ]; # FIXME: make smaller
+        buildInputs = [
+          (pkgs.texlive.combine {
+            inherit (pkgs.texlive)
+              scheme-minimal
+              latexmk
+              xetex
+              etoolbox
+              extsizes
+              fancyhdr
+              fontspec
+              geometry
+              graphics
+              greek-fontenc # dependency of hyperref
+              hyperref
+              realscripts # for \newif
+              xltxtra
+              xunicode
+              ;
+          })
+        ];
         FONTCONFIG_FILE =
           with pkgs;
           makeFontsConf {
@@ -164,7 +182,7 @@ let
           printf '  pdfsubject={%s},\n' ${
             escapeShellArg (concatMapStringsSep "; " escapeLatexString pdf_metadata.subjects)
           }
-          printf '  pdfcreator={%s},\n' ${escapeShellArg (escapeLatexString pdf_metadata.creator)}
+          printf '  pdfcreator={Dancelor},\n'
           printf ']{hyperref}\n'
           printf '\\begin{document}\n'
           printf '\\title{%s}\n' ${escapeShellArg (escapeLatexString book.title)}

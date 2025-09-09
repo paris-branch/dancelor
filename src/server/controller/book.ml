@@ -38,7 +38,7 @@ let build_pdf env id book_params rendering_params =
   let%lwt pdf_metadata =
     let title = NEString.to_string @@ Model.Book.title' book in
     let%lwt authors = ModelToRenderer.format_persons_list <$> Model.Book.authors' book in
-    lwt Renderer.{title; authors; subjects = []; creator = "FIXME"}
+    lwt Renderer.{title; authors; subjects = []}
   in
   let%lwt book = ModelToRenderer.book_to_renderer_book' book book_params in
   let%lwt book_pdf_arg = ModelToRenderer.renderer_book_to_renderer_book_pdf_arg book rendering_params pdf_metadata in
