@@ -143,8 +143,6 @@
           ## Create a user and a group `dancelor:dancelor`.
           users.users.dancelor = {
             isSystemUser = true;
-            ## LilyPond needs a home to cache fonts.
-            home = "/var/lib/dancelor";
             group = "dancelor";
           };
           users.groups.dancelor = { };

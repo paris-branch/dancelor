@@ -22,7 +22,12 @@
 
 \paper {
   indent = 0
-  #(define fonts (set-global-fonts #:roman "Source Sans" #:sans  "Source Sans"))
+  #(define fonts
+    (set-global-fonts
+     #:roman "Source Sans"
+     #:sans "Source Sans"
+     #:typewriter "Source Sans"
+   ))
   ragged-right = ##f
   ragged-bottom = ##t
   ragged-last-bottom = ##t
