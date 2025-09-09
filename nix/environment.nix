@@ -11,7 +11,6 @@
       self',
       inputs',
       pkgs,
-      lib,
       config,
       ...
     }:
