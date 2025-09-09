@@ -141,7 +141,26 @@ let
     runCommand "book-${book.slug}"
       {
         allowSubtitutes = false;
-        buildInputs = with pkgs; [ texlive.combined.scheme-full ]; # FIXME: make smaller
+        buildInputs = [
+          (pkgs.texlive.combine {
+            inherit (pkgs.texlive)
+              scheme-minimal
+              latexmk
+              xetex
+              etoolbox
+              extsizes
+              fancyhdr
+              fontspec
+              geometry
+              graphics
+              greek-fontenc # dependency of hyperref
+              hyperref
+              realscripts # for \newif
+              xltxtra
+              xunicode
+              ;
+          })
+        ];
         FONTCONFIG_FILE =
           with pkgs;
           makeFontsConf {
