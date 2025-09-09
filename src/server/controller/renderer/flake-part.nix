@@ -40,7 +40,7 @@ let
 in
 {
   perSystem =
-    { system, ... }:
+    { pkgs, system, ... }:
     let
       inherit
         (import ./renderer.nix {
@@ -50,9 +50,16 @@ in
         makeTuneSnippets
         makeBookPdf
         ;
+      testTuneSnippets = makeTuneSnippets testTune;
+      testBookPdf = makeBookPdf testBookPdfArg;
     in
     {
-      checks.renderer-tune = makeTuneSnippets testTune;
-      checks.renderer-book = makeBookPdf testBookPdfArg;
+      packages.rendererRuntime = pkgs.symlinkJoin {
+        name = "renderer-runtime";
+        paths = testTuneSnippets.buildInputs ++ testBookPdf.buildInputs;
+      };
+
+      checks.renderer-tune-snippets = testTuneSnippets;
+      checks.renderer-book-pdf = testBookPdf;
     };
 }

@@ -1,10 +1,6 @@
 { self, ... }:
 
 {
-  imports = [
-    ../src/server/controller/renderer/tests.nix
-  ];
-
   flake.makeIntegrationCheckInputs =
     pkgs: with pkgs; [
       firefox
