@@ -43,6 +43,7 @@ let e =
     editor
     ~assemble
     ~disassemble
+    ~check_result: Model.VersionParameters.equal
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 

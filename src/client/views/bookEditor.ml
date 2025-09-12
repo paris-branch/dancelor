@@ -258,3 +258,4 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
+    ~check_product: Model.Book.equal

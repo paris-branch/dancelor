@@ -155,3 +155,4 @@ let create mode =
     ~unsubmit
     ~disassemble
     ~preview
+    ~check_product: Model.Version.equal

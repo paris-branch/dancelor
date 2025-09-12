@@ -130,3 +130,4 @@ let create mode =
     ~disassemble
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
+    ~check_product: Model.Set.equal

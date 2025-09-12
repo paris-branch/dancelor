@@ -99,5 +99,6 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
+    ~check_product: Model.Source.equal
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)

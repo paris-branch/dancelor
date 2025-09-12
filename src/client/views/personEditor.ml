@@ -51,5 +51,6 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
+    ~check_product: Model.Person.equal
     ~format: (Formatters.Person.name' ~link: true)
     ~href: (Endpoints.Page.href_person % Entry.id)

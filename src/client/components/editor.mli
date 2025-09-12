@@ -38,6 +38,7 @@ val make_page :
   submit: (('result, 'state) mode -> 'product -> 'result Lwt.t) ->
   unsubmit: ('result -> 'product Lwt.t) ->
   disassemble: ('product -> 'value Lwt.t) ->
+  check_product: ('product -> 'product -> bool) ->
   ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
@@ -92,6 +93,7 @@ val prepare :
   submit: (('result, 'state) mode -> 'product -> 'result Lwt.t) ->
   unsubmit: ('result -> 'product Lwt.t) ->
   disassemble: ('product -> 'value Lwt.t) ->
+  check_product: ('product -> 'product -> bool) ->
   ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
@@ -103,6 +105,7 @@ val prepare_nosubmit :
   icon: string ->
   assemble: ('value -> 'result) ->
   disassemble: ('result -> 'value Lwt.t) ->
+  check_result: ('result -> 'result -> bool) ->
   ?preview: ('result -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->

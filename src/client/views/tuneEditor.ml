@@ -125,3 +125,4 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
+    ~check_product: Model.Tune.equal

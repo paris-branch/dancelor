@@ -118,3 +118,4 @@ let create mode =
     ~submit
     ~unsubmit
     ~disassemble
+    ~check_product: Model.Dance.equal

@@ -79,11 +79,19 @@ let state_to_yojson (type value)(type state) {bundle = (Bundle(module C): (value
 let result_to_state (type result)(type value)(type state) : (result, 'product, value, state) s -> result -> state Lwt.t = fun {bundle = Bundle(module C); unsubmit; disassemble; _} value ->
   unsubmit value >>= disassemble >>= C.value_to_state
 
-let prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?(preview = (fun _ -> lwt_true)) ~format ~href bundle =
-  {key; icon; assemble; submit; unsubmit; disassemble; preview; format; href; bundle}
+let prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ~check_product ?(preview = (fun _ -> lwt_true)) ~format ~href bundle =
+  (* pimped version of [disassemble] that checks the roundtrip *)
+  let disassemble product =
+    let%lwt value = disassemble product in
+    let product' = assemble value in
+    if not (check_product product product') then
+      raise NonConvertible;
+    lwt value
+  in
+    {key; icon; assemble; submit; unsubmit; disassemble; preview; format; href; bundle}
 
-let prepare_nosubmit ~key ~icon ~assemble ~disassemble ?preview ~format ~href bundle =
-  prepare ~key ~icon ~assemble ~submit: (const lwt) ~unsubmit: lwt ~disassemble ?preview ~format ~href bundle
+let prepare_nosubmit ~key ~icon ~assemble ~disassemble ~check_result ?preview ~format ~href bundle =
+  prepare ~key ~icon ~assemble ~submit: (const lwt) ~unsubmit: lwt ~disassemble ~check_product: check_result ?preview ~format ~href bundle
 
 (* Initialised editors *)
 
@@ -224,5 +232,5 @@ let initialise (type result)(type value)(type product)(type state)
 
 (* All-in-one function *)
 
-let make_page ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?preview ~format ~href ~mode bundle =
-  page =<< initialise (prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?preview ~format ~href bundle) mode
+let make_page ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ~check_product ?preview ~format ~href ~mode bundle =
+  page =<< initialise (prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ~check_product ?preview ~format ~href bundle) mode

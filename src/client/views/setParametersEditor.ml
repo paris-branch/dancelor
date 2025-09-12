@@ -27,6 +27,7 @@ let e =
     editor
     ~assemble
     ~disassemble
+    ~check_result: Model.SetParameters.equal
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 
