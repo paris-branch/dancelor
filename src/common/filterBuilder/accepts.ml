@@ -11,10 +11,6 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Book.title' book
       | TitleMatches string ->
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Book.title' book
-      | Subtitle string ->
-        lwt @@ String.proximity ~char_equal string @@ Option.fold ~none: "" ~some: NEString.to_string @@ Model.Book.subtitle' book
-      | SubtitleMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ Option.fold ~none: "" ~some: NEString.to_string @@ Model.Book.subtitle' book
       | ExistsVersion vfilter ->
         let%lwt content = Model.Book.contents' book in
         let%lwt versions =

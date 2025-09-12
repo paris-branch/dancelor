@@ -3,16 +3,21 @@ open Common
 
 open Html
 
-let title_and_subtitle book =
-  let title_text = [txt @@ NEString.to_string @@ Model.Book.title book] in
-  let subtitle_block =
-    match Model.Book.subtitle book with
-    | None -> []
-    | Some subtitle -> [br (); span ~a: [a_class ["opacity-75"]] [txt @@ NEString.to_string subtitle]]
-  in
-  span (title_text @ subtitle_block)
+let title_gen book_gen =
+  span @@
+    match book_gen with
+    | Right (book, true, context) ->
+      let title = Model.Book.title' book in
+        [a ~a: [a_href @@ Endpoints.Page.href_book ?context @@ Entry.id book] [txt @@ NEString.to_string title]]
+    | Right (book, _, _) ->
+      let title = Model.Book.title' book in
+        [txt @@ NEString.to_string title]
+    | Left book ->
+      let title = Model.Book.title book in
+        [txt @@ NEString.to_string title]
 
-let title_and_subtitle' = title_and_subtitle % Entry.value
+let title = title_gen % Either.left
+let title' ?(link = true) ?context book = title_gen @@ Right (book, link, context)
 
 let editors book =
   with_span_placeholder @@

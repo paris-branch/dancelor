@@ -89,7 +89,7 @@ let make_book_result' ?classes ?action ?(prefix = []) ?(suffix = []) book =
     ?action
     (
       prefix @
-      [ResultRow.cell [Formatters.Book.title_and_subtitle' book];
+      [ResultRow.cell [Formatters.Book.title' ~link: false book];
       ResultRow.cell [txt (Option.fold ~none: "" ~some: PartialDate.to_pretty_string (Book.date' book))];
       ResultRow.cell [Formatters.Book.editors' book];
       ] @

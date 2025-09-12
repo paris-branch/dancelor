@@ -29,7 +29,6 @@ include Search.Build(struct
   let tiebreakers =
     Lwt_list.[decreasing (lwt % Model.Book.date') (Option.compare PartialDate.compare);
     increasing (lwt % NEString.to_string % Model.Book.title') String.Sensible.compare;
-    increasing (lwt % NEString.opt_to_string % Model.Book.subtitle') String.Sensible.compare;
     ]
 end)
 

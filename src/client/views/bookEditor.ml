@@ -99,13 +99,6 @@ let editor =
     ~label: "Title"
     ~placeholder: "eg. The Dusty Miller Book"
     () ^::
-  Input.prepare_option
-    ~type_: Text
-    ~label: "Subtitle"
-    ~placeholder: "eg. Twenty version of Dusty Miller in rainbow colours"
-    ~serialise: Fun.id
-    ~validate: (S.const % ok)
-    () ^::
   Star.prepare
     ~label: "Editors"
     (
@@ -232,8 +225,8 @@ let add_version_to_storage _version = assert false
 (* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
 (* (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ()))) *)
 
-let preview (title, (subtitle, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))) =
-  lwt_some @@ Model.Book.make ~title ?subtitle ~authors ?date ~contents ~remark ~sources ?scddb_id ()
+let preview (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))) =
+  lwt_some @@ Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id ()
 
 let submit mode book =
   match mode with
@@ -242,14 +235,13 @@ let submit mode book =
 
 let break_down book =
   let title = Model.Book.title' book in
-  let subtitle = Model.Book.subtitle' book in
   let%lwt authors = Model.Book.authors' book in
   let date = Model.Book.date' book in
   let%lwt contents = Model.Book.contents' book in
   let remark = Model.Book.remark' book in
   let%lwt sources = Model.Book.sources' book in
   let scddb_id = Model.Book.scddb_id' book in
-  lwt (title, (subtitle, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))))
+  lwt (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ())))))))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->
@@ -258,7 +250,7 @@ let create mode =
     ~icon: "book"
     editor
     ~mode
-    ~format: (Formatters.Book.title_and_subtitle')
+    ~format: Formatters.Book.title'
     ~href: (Endpoints.Page.href_book % Entry.id)
     ~preview
     ~submit

@@ -4,8 +4,6 @@ type predicate =
   | Is of ModelBuilder.Core.Book.t Entry.Id.t
   | Title of string
   | TitleMatches of string
-  | Subtitle of string
-  | SubtitleMatches of string
   | ExistsVersion of Version.t
   | ExistsSet of Set.t
   | ExistsVersionDeep of Version.t
@@ -17,8 +15,6 @@ type t = predicate Formula.t
 
 let title' = Formula.pred % title
 let titlematches' = Formula.pred % titlematches
-let subtitle' = Formula.pred % subtitle
-let subtitlematches' = Formula.pred % subtitlematches
 let existsversion' = Formula.pred % existsversion
 let existsset' = Formula.pred % existsset
 let existsversiondeep' = Formula.pred % existsversiondeep
@@ -28,11 +24,9 @@ let text_formula_converter =
   TextFormulaConverter.(
     make
       [
-        raw (fun string -> Ok (Formula.or_ (titlematches' string) (subtitlematches' string)));
+        raw (ok % titlematches');
         unary_string ~name: "title" (title, title_val);
         unary_string ~name: "title-matches" (titlematches, titlematches_val);
-        unary_string ~name: "subtitle" (subtitle, subtitle_val);
-        unary_string ~name: "subtitle-matches" (subtitlematches, subtitlematches_val);
         unary_lift ~name: "exists-version" (existsversion, existsversion_val) ~converter: Version.text_formula_converter;
         unary_lift ~name: "exists-set" (existsset, existsset_val) ~converter: Set.text_formula_converter;
         unary_lift ~name: "exists-version-deep" (existsversiondeep, existsversiondeep_val) ~converter: Version.text_formula_converter;
@@ -82,9 +76,7 @@ let optimise =
     (function
       | (Is _ as p)
       | (Title _ as p)
-      | (TitleMatches _ as p)
-      | (Subtitle _ as p)
-      | (SubtitleMatches _ as p) ->
+      | (TitleMatches _ as p) ->
         p
       | ExistsVersion vfilter -> existsversion @@ Version.optimise vfilter
       | ExistsSet sfilter -> existsset @@ Set.optimise sfilter

@@ -22,7 +22,7 @@ let books books =
   clickable_row
     ~href: (Endpoints.Page.href_book @@ Entry.id book)
     [
-      lwt [Formatters.Book.title_and_subtitle' book];
+      lwt [Formatters.Book.title' ~link: false book];
       lwt [txt @@ Option.fold ~none: "" ~some: PartialDate.to_pretty_string @@ Book.date' book]
     ]
 
