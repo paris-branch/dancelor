@@ -11,11 +11,6 @@ module Build (Getters : Getters.S) = struct
   let sources = Lwt_list.map_p (Lwt.map Option.get % Getters.get_source) % sources
   let sources' = sources % Entry.value
 
-  let compare : t Entry.t -> t Entry.t -> int = fun x y ->
-    Entry.Id.compare' (Entry.id' x) (Entry.id' y)
-
-  let equal book1 book2 = compare book1 book2 = 0
-
   let contents book =
     Lwt_list.map_p
       (function

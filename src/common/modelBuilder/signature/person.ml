@@ -26,6 +26,7 @@ module type S = sig
   val scddb_id' : t Entry.t -> int option
 
   val equal : t -> t -> bool
+  (** Structural equality. This is different from entry equality. *)
 
   (** {2 Magic getter} *)
 

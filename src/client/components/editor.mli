@@ -34,9 +34,12 @@ type ('result, 'state) mode =
 val make_page :
   key: string ->
   icon: string ->
-  preview: ('value -> 'previewed_value option Lwt.t) ->
-  submit: (('result, 'state) mode -> 'previewed_value -> 'result Lwt.t) ->
-  break_down: ('result -> 'value Lwt.t) ->
+  assemble: ('value -> 'product) ->
+  submit: (('result, 'state) mode -> 'product -> 'result Lwt.t) ->
+  unsubmit: ('result -> 'product Lwt.t) ->
+  disassemble: ('product -> 'value Lwt.t) ->
+  check_product: ('product -> 'product -> bool) ->
+  ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   (* FIXME: URI? *)
@@ -50,10 +53,16 @@ val make_page :
     creation (eg. called by another editor), in which case it can carry a
     string. It is also passed to the [submit] function.
 
-    [break_down] is a function able to go in the reverse direction from
-    [submit]. In the case of models, for instance, that means breaking down the
-    model into values for the components, and is used when editing models. This
-    function is allowed to raise {!NonConvertible}. *)
+    Note the different “levels” of values. ['state] and ['value] are tied by the
+    underlying component. ['value] is typically of the form [(type, (type,
+    (type, ())))]. ['product] is the same but with more structure, depending on
+    what the “flat” value represents. ['result] is whatever the API call
+    returns. Note the functions allowing to go from low to high: [~assemble]
+    allows to go from ['value] to ['product], and [~submit] allows to go from
+    ['product] to ['result]. Their counterparts also exist: [~unsubmit] and
+    [~disassemble].
+
+    [~disassemble] is allowed to raise {!NonConvertible}. *)
 
 (** {2 Advanced use} *)
 
@@ -74,31 +83,48 @@ exception NonConvertible
     manipulate them. {!make_page} above is the combination of {!prepare},
     {!initialise} and {!page} below *)
 
-type ('result, 'previewed_value, 'value, 'state) s
+type ('result, 'product, 'value, 'state) s
 (** An un-initialised editor. *)
 
 val prepare :
   key: string ->
   icon: string ->
-  preview: ('value -> 'previewed_value option Lwt.t) ->
-  submit: (('result, 'state) mode -> 'previewed_value -> 'result Lwt.t) ->
-  break_down: ('result -> 'value Lwt.t) ->
+  assemble: ('value -> 'product) ->
+  submit: (('result, 'state) mode -> 'product -> 'result Lwt.t) ->
+  unsubmit: ('result -> 'product Lwt.t) ->
+  disassemble: ('product -> 'value Lwt.t) ->
+  check_product: ('product -> 'product -> bool) ->
+  ?preview: ('product -> bool Lwt.t) ->
   format: ('result -> Html_types.div_content_fun Html.elt) ->
   href: ('result -> string) ->
   ('value, 'state) bundle ->
-  ('result, 'previewed_value, 'value, 'state) s
+  ('result, 'product, 'value, 'state) s
 
-type ('result, 'previewed_value, 'value, 'state) t
+val prepare_nosubmit :
+  key: string ->
+  icon: string ->
+  assemble: ('value -> 'result) ->
+  disassemble: ('result -> 'value Lwt.t) ->
+  check_result: ('result -> 'result -> bool) ->
+  ?preview: ('result -> bool Lwt.t) ->
+  format: ('result -> Html_types.div_content_fun Html.elt) ->
+  href: ('result -> string) ->
+  ('value, 'state) bundle ->
+  ('result, 'result, 'value, 'state) s
+(** Variant of {!prepare} for an editor that does not include submission. In
+    this case, the ['product] and the ['result] are conflated. *)
+
+type ('result, 'product, 'value, 'state) t
 (** An initialised editor. *)
 
 val initialise :
-  ('result, 'previewed_value, 'value, 'state) s ->
+  ('result, 'product, 'value, 'state) s ->
   ('result, 'state) mode ->
-  ('result, 'previewed_value, 'value, 'state) t Lwt.t
+  ('result, 'product, 'value, 'state) t Lwt.t
 
 val page :
   ?after_save: (unit -> unit) ->
-  ('result, 'previewed_value, 'value, 'state) t ->
+  ('result, 'product, 'value, 'state) t ->
   Page.t Lwt.t
 (** Render an initialised editor as a full page, ready for use. The additional
     [?after_save] argument can be used to trigger an action from the outside,
@@ -108,46 +134,37 @@ val page :
 (** {3 Editor manipulation} *)
 
 val empty :
-  ('result, 'previewed_value, 'value, 'state) s ->
+  ('result, 'product, 'value, 'state) s ->
   'state
 
 val state_of_yojson :
-  ('result, 'previewed_value, 'value, 'state) s ->
+  ('result, 'product, 'value, 'state) s ->
   Yojson.Safe.t ->
   ('state, string) result
 
 val state_to_yojson :
-  ('result, 'previewed_value, 'value, 'state) s ->
+  ('result, 'product, 'value, 'state) s ->
   'state ->
   Yojson.Safe.t
 
 val result_to_state :
-  ('result, 'previewed_value, 'value, 'state) s ->
+  ('result, 'product, 'value, 'state) s ->
   'result ->
   'state Lwt.t
 
 val state :
-  ('result, 'previewed_value, 'value, 'state) t ->
+  ('result, 'product, 'value, 'state) t ->
   'state S.t
 
 val signal :
-  ('result, 'previewed_value, 'value, 'state) t ->
-  ('result, string) result S.t
-(** NOTE: Using this signal will keep triggering the previsualisation and
-    submission on every change. Use only on degenerated editors where those
-    functions trivial. FIXME: we should have a type for this. *)
+  ('result, 'product, 'value, 'state) t ->
+  ('product, string) result S.t
 
 val set :
-  ('result, 'previewed_value, 'value, 'state) t ->
+  ('result, 'product, 'value, 'state) t ->
   'result ->
   unit Lwt.t
 
-val clear : ('result, 'previewed_value, 'value, 'state) t -> unit
-
-val result :
-  ('result, 'previewed_value, 'value, 'state) t ->
-  'result option Lwt.t
-(** Get the current result of the editor, if it is in a state that permits it.
-    Note that this trigger previewing and submitting and is therefore usually
-    not suitable, except for degenerate editors such as the version parameters
-    editor. FIXME: the existence of this and {!signal} is quite confusing. *)
+val clear :
+  ('result, 'product, 'value, 'state) t ->
+  unit

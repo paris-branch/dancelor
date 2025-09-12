@@ -25,19 +25,20 @@ let editor =
     () ^::
   nil
 
-let preview (name, (scddb_id, ())) =
-  lwt_some @@ Model.Person.make ~name ?scddb_id ()
+let assemble (name, (scddb_id, ())) =
+  Model.Person.make ~name ?scddb_id ()
 
 let submit mode person =
   match mode with
   | Editor.Edit prev_person -> Madge_client.call_exn Endpoints.Api.(route @@ Person Update) (Entry.id prev_person) person
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Person Create) person
 
-let break_down person =
-  lwt (
-    Model.Person.name' person,
-    (Model.Person.scddb_id' person, ())
-  )
+let unsubmit = lwt % Entry.value
+
+let disassemble person =
+  let name = Model.Person.name person in
+  let scddb_id = Model.Person.scddb_id person in
+  lwt (name, (scddb_id, ()))
 
 let create mode =
   MainPage.assert_can_create @@ fun () ->
@@ -46,8 +47,10 @@ let create mode =
     ~icon: "person"
     editor
     ~mode
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
+    ~check_product: Model.Person.equal
     ~format: (Formatters.Person.name' ~link: true)
     ~href: (Endpoints.Page.href_person % Entry.id)

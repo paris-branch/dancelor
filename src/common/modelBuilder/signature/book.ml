@@ -64,6 +64,9 @@ module type S = sig
   val scddb_id : t -> int option
   val scddb_id' : t Entry.t -> int option
 
+  val equal : t -> t -> bool
+  (** Structural equality. This is different from entry equality. *)
+
   (** {2 Advanced Field Getters} *)
 
   val slug : t -> Entry.Slug.t
@@ -72,8 +75,6 @@ module type S = sig
   (** {2 Utilities} *)
 
   val contains_set : Core.Set.t Entry.Id.t -> t Entry.t -> bool
-  val compare : t Entry.t -> t Entry.t -> int
-  val equal : t Entry.t -> t Entry.t -> bool
 
   (** {2 Warnings} *)
 

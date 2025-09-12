@@ -102,44 +102,39 @@ let editor =
     () ^::
   nil
 
-let preview (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))))) : Model.Version.t option Lwt.t =
-  let version =
-    Model.Version.make
-      ~tune
-      ~bars
-      ~key
-      ~structure
-      ~arrangers
-      ~remark
-      ~sources
-      ~disambiguation
-      ~content
-      ()
-  in
-  Page.open_dialog @@ fun return ->
-  Page.make'
-    ~title: (lwt "Preview")
-    [Components.VersionSnippets.make_preview ~show_logs: true version]
-    ~buttons: [
-      Button.cancel' ~return ();
-      Button.save ~onclick: (fun () -> return (some version); lwt_unit) ();
-    ]
+let assemble (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))))) =
+  Model.Version.make ~tune ~bars ~key ~structure ~arrangers ~remark ~sources ~disambiguation ~content ()
+
+let preview version =
+  Option.fold ~none: false ~some: (const true)
+  <$> Page.open_dialog @@ fun return ->
+    Page.make'
+      ~title: (lwt "Preview")
+      [Components.VersionSnippets.make_preview ~show_logs: true version]
+      ~buttons: [
+        Button.cancel' ~return ();
+        Button.save ~onclick: (fun () -> return (Some ()); lwt_unit) ();
+      ]
 
 let submit mode version =
   match mode with
   | Editor.Edit prev_version -> Madge_client.call_exn Endpoints.Api.(route @@ Version Update) (Entry.id prev_version) version
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Version Create) version
 
-let break_down version =
-  let%lwt tune = Model.Version.tune' version in
-  let bars = Model.Version.bars' version in
-  let key = Model.Version.key' version in
-  let structure = Model.Version.structure' version in
-  let%lwt arrangers = Model.Version.arrangers' version in
-  let remark = Model.Version.remark' version in
-  let%lwt sources = Model.Version.sources' version in
-  let disambiguation = Model.Version.disambiguation' version in
+let unsubmit version =
   let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
+  lwt @@ Model.Version.set_content (Some content) (Entry.value version)
+
+let disassemble version =
+  let%lwt tune = Model.Version.tune version in
+  let bars = Model.Version.bars version in
+  let key = Model.Version.key version in
+  let structure = Model.Version.structure version in
+  let%lwt arrangers = Model.Version.arrangers version in
+  let remark = Model.Version.remark version in
+  let%lwt sources = Model.Version.sources version in
+  let disambiguation = Model.Version.disambiguation version in
+  let content = Model.Version.content version in
   lwt (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ())))))))))
 
 (* FIXME: There used to be a way to start a version editor with a tune already
@@ -155,6 +150,9 @@ let create mode =
     ~mode
     ~href: (Endpoints.Page.href_version % Entry.id)
     ~format: (Formatters.Version.name' ~link: true)
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
+    ~preview
+    ~check_product: Model.Version.equal

@@ -65,6 +65,9 @@ module type S = sig
   val slug' : t Entry.t -> Entry.Slug.t Lwt.t
 
   val equal : t -> t -> bool
+  (** Structural equality. This is different from entry equality. *)
+
+  val set_content : string option -> t -> t
 
   (** {2 Magic getter} *)
 

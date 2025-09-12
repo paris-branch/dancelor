@@ -51,9 +51,7 @@ module type S = sig
   val slug' : t Entry.t -> Entry.Slug.t
 
   val equal : t -> t -> bool
-
-  val compare : t Entry.t -> t Entry.t -> int
-  (* FIXME: sounds hackish *)
+  (** Structural equality. This is different from entry equality. *)
 
   (** {2 Magic getter} *)
 

@@ -20,10 +20,6 @@ module Build (Getters : Getters.S) = struct
       contents
   let contents' = contents % Entry.value
 
-  let compare : t Entry.t -> t Entry.t -> int = fun x y ->
-    Entry.Id.compare' (Entry.id' x) (Entry.id' y)
-  let equal set1 set2 = compare set1 set2 = 0
-
   (* FIXME: use Version.equal *)
   let contains_version id1 set =
     List.exists
@@ -71,7 +67,7 @@ module Build (Getters : Getters.S) = struct
     in
     (* Check that there are no duplicates. *)
     let%lwt tunes = Lwt_list.map_s (Lwt.map Option.get % Getters.get_tune % Core.Version.tune') versions in
-    let tunes = List.sort Core.Tune.compare tunes in
+    let tunes = List.sort Entry.compare' tunes in
     (
       match tunes with
       | [] -> add_warning Empty

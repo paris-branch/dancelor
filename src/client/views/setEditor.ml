@@ -99,20 +99,22 @@ let add_to_storage version =
   Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
   (name, (kind, (conceptors, (versions @ [Some version, none], (order, ())))))
 
-let preview (name, (kind, (conceptors, (contents, (order, ()))))) =
-  lwt_some @@ Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
+let assemble (name, (kind, (conceptors, (contents, (order, ()))))) =
+  Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
 
 let submit mode set =
   match mode with
   | Editor.Edit prev_set -> Madge_client.call_exn Endpoints.Api.(route @@ Set Update) (Entry.id prev_set) set
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Set Create) set
 
-let break_down set =
-  let name = Model.Set.name' set in
-  let kind = Model.Set.kind' set in
-  let%lwt conceptors = Model.Set.conceptors' set in
-  let%lwt contents = Model.Set.contents' set in
-  let order = Model.Set.order' set in
+let unsubmit = lwt % Entry.value
+
+let disassemble set =
+  let name = Model.Set.name set in
+  let kind = Model.Set.kind set in
+  let%lwt conceptors = Model.Set.conceptors set in
+  let%lwt contents = Model.Set.contents set in
+  let order = Model.Set.order set in
   lwt (name, (kind, (conceptors, (contents, (order, ())))))
 
 let create mode =
@@ -122,8 +124,10 @@ let create mode =
     ~icon: "list-stars"
     ~mode
     editor
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
     ~format: (Formatters.Set.name' ~link: true)
     ~href: (Endpoints.Page.href_set % Entry.id)
+    ~check_product: Model.Set.equal

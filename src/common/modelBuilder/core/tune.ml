@@ -33,5 +33,3 @@ let date' = date % Entry.value
 
 let slug = Entry.Slug.of_string % NEString.to_string % one_name
 let slug' = slug % Entry.value
-
-let compare e1 e2 = Entry.Id.compare' (Entry.id' e1) (Entry.id' e2)

@@ -69,21 +69,23 @@ let editor =
     () ^::
   nil
 
-let preview (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
-  lwt_some @@ Model.Source.make ~name ?short_name ~editors ?scddb_id ?description ?date ()
+let assemble (name, (short_name, (editors, (date, (scddb_id, (description, ())))))) =
+  Model.Source.make ~name ?short_name ~editors ?scddb_id ?description ?date ()
 
 let submit mode source =
   match mode with
   | Editor.Edit prev_source -> Madge_client.call_exn Endpoints.Api.(route @@ Source Update) (Entry.id prev_source) source
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Source Create) source
 
-let break_down source =
-  let name = Model.Source.name' source in
-  let short_name = Model.Source.short_name' source in
-  let%lwt editors = Model.Source.editors' source in
-  let date = Model.Source.date' source in
-  let scddb_id = Model.Source.scddb_id' source in
-  let description = Model.Source.description' source in
+let unsubmit = lwt % Entry.value
+
+let disassemble source =
+  let name = Model.Source.name source in
+  let short_name = Model.Source.short_name source in
+  let%lwt editors = Model.Source.editors source in
+  let date = Model.Source.date source in
+  let scddb_id = Model.Source.scddb_id source in
+  let description = Model.Source.description source in
   lwt (name, (short_name, (editors, (date, (scddb_id, (description, ()))))))
 
 let create mode =
@@ -93,8 +95,10 @@ let create mode =
     ~icon: "archive"
     editor
     ~mode
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
+    ~check_product: Model.Source.equal
     ~format: (Formatters.Source.name' ~link: true)
     ~href: (Endpoints.Page.href_source % Entry.id)

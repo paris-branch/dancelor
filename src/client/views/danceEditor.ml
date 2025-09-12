@@ -85,22 +85,24 @@ let editor =
     () ^::
   nil
 
-let preview (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
-  lwt_some @@ Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
+let assemble (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ()))))))) =
+  Model.Dance.make ~names ~kind ~devisers ?two_chords ?scddb_id ~disambiguation ?date ()
 
 let submit mode dance =
   match mode with
   | Editor.Edit prev_dance -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Update) (Entry.id prev_dance) dance
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Dance Create) dance
 
-let break_down dance =
-  let names = Model.Dance.names' dance in
-  let kind = Model.Dance.kind' dance in
-  let%lwt devisers = Model.Dance.devisers' dance in
-  let date = Model.Dance.date' dance in
-  let disambiguation = Model.Dance.disambiguation' dance in
-  let two_chords = Model.Dance.two_chords' dance in
-  let scddb_id = Model.Dance.scddb_id' dance in
+let unsubmit = lwt % Entry.value
+
+let disassemble dance =
+  let names = Model.Dance.names dance in
+  let kind = Model.Dance.kind dance in
+  let%lwt devisers = Model.Dance.devisers dance in
+  let date = Model.Dance.date dance in
+  let disambiguation = Model.Dance.disambiguation dance in
+  let two_chords = Model.Dance.two_chords dance in
+  let scddb_id = Model.Dance.scddb_id dance in
   lwt (names, (kind, (devisers, (date, (disambiguation, (two_chords, (scddb_id, ())))))))
 
 let create mode =
@@ -112,6 +114,8 @@ let create mode =
     editor
     ~format: (Formatters.Dance.name' ~link: true)
     ~href: (Endpoints.Page.href_dance % Entry.id)
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
+    ~check_product: Model.Dance.equal

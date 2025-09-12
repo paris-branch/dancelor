@@ -50,8 +50,8 @@ module type S = sig
   (** Given an indice and a set, find the context around that indice in the
       set. *)
 
-  val compare : t Entry.t -> t Entry.t -> int
-  val equal : t Entry.t -> t Entry.t -> bool
+  val equal : t -> t -> bool
+  (** Structural equality. This is different from entry equality. *)
 
   (* {2 Warnings} *)
 
