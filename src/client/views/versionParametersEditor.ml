@@ -30,10 +30,6 @@ let editor =
 let assemble (display_name, (display_composer, (first_bar, ()))) =
   Model.VersionParameters.make ?display_name ?display_composer ?first_bar ()
 
-let submit _mode params = lwt params
-
-let unsubmit params = lwt params
-
 let disassemble params =
   let display_name = Model.VersionParameters.display_name params in
   let display_composer = Model.VersionParameters.display_composer params in
@@ -41,13 +37,11 @@ let disassemble params =
   lwt (display_name, (display_composer, (first_bar, ())))
 
 let e =
-  Editor.prepare
+  Editor.prepare_nosubmit
     ~key: "version parameters"
     ~icon: "fixme"
     editor
     ~assemble
-    ~submit
-    ~unsubmit
     ~disassemble
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)

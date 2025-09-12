@@ -98,6 +98,19 @@ val prepare :
   ('value, 'state) bundle ->
   ('result, 'product, 'value, 'state) s
 
+val prepare_nosubmit :
+  key: string ->
+  icon: string ->
+  assemble: ('value -> 'result) ->
+  disassemble: ('result -> 'value Lwt.t) ->
+  ?preview: ('result -> bool Lwt.t) ->
+  format: ('result -> Html_types.div_content_fun Html.elt) ->
+  href: ('result -> string) ->
+  ('value, 'state) bundle ->
+  ('result, 'result, 'value, 'state) s
+(** Variant of {!prepare} for an editor that does not include submission. In
+    this case, the ['product] and the ['result] are conflated. *)
+
 type ('result, 'product, 'value, 'state) t
 (** An initialised editor. *)
 

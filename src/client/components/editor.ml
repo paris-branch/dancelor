@@ -82,6 +82,9 @@ let result_to_state (type result)(type value)(type state) : (result, 'product, v
 let prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?(preview = (fun _ -> lwt_true)) ~format ~href bundle =
   {key; icon; assemble; submit; unsubmit; disassemble; preview; format; href; bundle}
 
+let prepare_nosubmit ~key ~icon ~assemble ~disassemble ?preview ~format ~href bundle =
+  prepare ~key ~icon ~assemble ~submit: (const lwt) ~unsubmit: lwt ~disassemble ?preview ~format ~href bundle
+
 (* Initialised editors *)
 
 type ('result, 'product, 'value, 'state) t = {
