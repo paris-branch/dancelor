@@ -52,9 +52,6 @@ module type S = sig
 
   val equal : t -> t -> bool
 
-  val compare : t Entry.t -> t Entry.t -> int
-  (* FIXME: sounds hackish *)
-
   (** {2 Magic getter} *)
 
   (** Magic getter. On the client side, this hides an API call, which goes

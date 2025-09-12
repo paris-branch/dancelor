@@ -72,8 +72,6 @@ module type S = sig
   (** {2 Utilities} *)
 
   val contains_set : Core.Set.t Entry.Id.t -> t Entry.t -> bool
-  val compare : t Entry.t -> t Entry.t -> int
-  val equal : t Entry.t -> t Entry.t -> bool
 
   (** {2 Warnings} *)
 

@@ -47,8 +47,6 @@ module type S = sig
   val slug : t -> Entry.Slug.t
   val slug' : t Entry.t -> Entry.Slug.t
 
-  val equal : t Entry.t -> t Entry.t -> bool
-
   (** {2 Magic getter} *)
 
   (** Magic getter. On the client side, this hides an API call, which goes
