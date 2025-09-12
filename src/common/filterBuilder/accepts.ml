@@ -91,9 +91,15 @@ module Make (Model : ModelBuilder.S) = struct
       | Core.Source.Is source' ->
         lwt @@ Formula.interpret_bool @@ Entry.Id.unsafe_equal (Entry.id source) source'
       | Name string ->
-        lwt @@ String.proximity ~char_equal string @@ NEString.to_string @@ Model.Source.name' source
+        lwt @@
+          Formula.interpret_or
+            (String.proximity ~char_equal string @@ NEString.to_string @@ Model.Source.name' source)
+            (Option.fold ~none: Formula.interpret_false ~some: (String.proximity ~char_equal string % NEString.to_string) (Model.Source.short_name' source))
       | NameMatches string ->
-        lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Source.name' source
+        lwt @@
+          Formula.interpret_or
+            (String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Source.name' source)
+            (Option.fold ~none: Formula.interpret_false ~some: (String.inclusion_proximity ~char_equal ~needle: string % NEString.to_string) (Model.Source.short_name' source))
       | ExistsEditor pfilter ->
         let%lwt editors = Model.Source.editors' source in
         Formula.interpret_exists (accepts_person pfilter) editors
