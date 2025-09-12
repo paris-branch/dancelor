@@ -27,30 +27,28 @@ let editor =
     () ^::
   nil
 
-let preview (display_name, (display_composer, (first_bar, ()))) =
-  lwt_some @@ Model.VersionParameters.make ?display_name ?display_composer ?first_bar ()
+let assemble (display_name, (display_composer, (first_bar, ()))) =
+  Model.VersionParameters.make ?display_name ?display_composer ?first_bar ()
 
 let submit _mode params = lwt params
 
-let break_down params =
+let unsubmit params = lwt params
+
+let disassemble params =
   let display_name = Model.VersionParameters.display_name params in
   let display_composer = Model.VersionParameters.display_composer params in
   let first_bar = Model.VersionParameters.first_bar params in
-  let value = (display_name, (display_composer, (first_bar, ()))) in
-  (* Check that we aren't silently removing a field.*)
-  let%lwt reconstructed = preview value in
-  if not (Option.equal Model.VersionParameters.equal (Some params) reconstructed) then
-    raise Editor.NonConvertible;
-  lwt value
+  lwt (display_name, (display_composer, (first_bar, ())))
 
 let e =
   Editor.prepare
     ~key: "version parameters"
     ~icon: "fixme"
     editor
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 

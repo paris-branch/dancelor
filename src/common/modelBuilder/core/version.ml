@@ -38,3 +38,6 @@ let content v =
   | None -> failwith "no content available"
 
 let content' = content % Entry.value
+
+let set_content content version =
+  {version with content}

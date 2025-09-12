@@ -92,22 +92,24 @@ let editor =
     () ^::
   nil
 
-let preview (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
-  lwt_some @@ Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
+let assemble (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ()))))))) =
+  Model.Tune.make ~names ~kind ~composers ?date ~dances ~remark ?scddb_id ()
 
 let submit mode tune =
   match mode with
   | Editor.Edit prev_tune -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Update) (Entry.id prev_tune) tune
   | _ -> Madge_client.call_exn Endpoints.Api.(route @@ Tune Create) tune
 
-let break_down tune =
-  let names = Model.Tune.names' tune in
-  let kind = Model.Tune.kind' tune in
-  let%lwt composers = Model.Tune.composers' tune in
-  let date = Model.Tune.date' tune in
-  let%lwt dances = Model.Tune.dances' tune in
-  let remark = Model.Tune.remark' tune in
-  let scddb_id = Model.Tune.scddb_id' tune in
+let unsubmit = lwt % Entry.value
+
+let disassemble tune =
+  let names = Model.Tune.names tune in
+  let kind = Model.Tune.kind tune in
+  let%lwt composers = Model.Tune.composers tune in
+  let date = Model.Tune.date tune in
+  let%lwt dances = Model.Tune.dances tune in
+  let remark = Model.Tune.remark tune in
+  let scddb_id = Model.Tune.scddb_id tune in
   lwt (names, (kind, (composers, (date, (dances, (remark, (scddb_id, ())))))))
 
 let create mode =
@@ -117,8 +119,9 @@ let create mode =
     ~icon: "music-note-list"
     editor
     ~mode
-    ~preview
     ~format: (Formatters.Tune.name' ~link: true)
     ~href: (Endpoints.Page.href_tune % Entry.id)
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble

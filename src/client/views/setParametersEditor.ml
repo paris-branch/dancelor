@@ -13,28 +13,26 @@ let editor =
     () ^::
     nil
 
-let preview (display_name, ()) =
-  lwt_some @@ Model.SetParameters.make ?display_name ()
+let assemble (display_name, ()) =
+  Model.SetParameters.make ?display_name ()
 
 let submit _mode params = lwt params
 
-let break_down params =
+let unsubmit params = lwt params
+
+let disassemble params =
   let display_name = Model.SetParameters.display_name params in
-  let value = (display_name, ()) in
-  (* Check that we aren't silently removing a field.*)
-  let%lwt reconstructed = preview value in
-  if not (Option.equal Model.SetParameters.equal (Some params) reconstructed) then
-    raise Editor.NonConvertible;
-  lwt value
+  lwt (display_name, ())
 
 let e =
   Editor.prepare
     ~key: "set parameters"
     ~icon: "fixme"
     editor
-    ~preview
+    ~assemble
     ~submit
-    ~break_down
+    ~unsubmit
+    ~disassemble
     ~format: (fun _ -> assert false)
     ~href: (fun _ -> assert false)
 

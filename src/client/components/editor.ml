@@ -60,12 +60,14 @@ type ('result, 'state) mode =
 
 (* Prepared editors *)
 
-type ('result, 'previewed_value, 'value, 'state) s = {
+type ('result, 'product, 'value, 'state) s = {
   key: string;
   icon: string;
-  preview: ('value -> 'previewed_value option Lwt.t);
-  submit: (('result, 'state) mode -> 'previewed_value -> 'result Lwt.t);
-  break_down: ('result -> 'value Lwt.t);
+  assemble: ('value -> 'product);
+  submit: (('result, 'state) mode -> 'product -> 'result Lwt.t);
+  unsubmit: ('result -> 'product Lwt.t);
+  disassemble: ('product -> 'value Lwt.t);
+  preview: ('product -> bool Lwt.t);
   format: ('result -> Html_types.div_content_fun Html.elt);
   href: ('result -> string);
   bundle: ('value, 'state) bundle;
@@ -74,15 +76,16 @@ type ('result, 'previewed_value, 'value, 'state) s = {
 let empty (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} : state = C.empty
 let state_of_yojson (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} = C.state_of_yojson
 let state_to_yojson (type value)(type state) {bundle = (Bundle(module C): (value, state) bundle); _} = C.state_to_yojson
-let result_to_state (type result)(type value)(type state) : (result, 'previewed_value, value, state) s -> result -> state Lwt.t = fun {bundle = Bundle(module C); break_down; _} value -> break_down value >>= C.value_to_state
+let result_to_state (type result)(type value)(type state) : (result, 'product, value, state) s -> result -> state Lwt.t = fun {bundle = Bundle(module C); unsubmit; disassemble; _} value ->
+  unsubmit value >>= disassemble >>= C.value_to_state
 
-let prepare ~key ~icon ~preview ~submit ~break_down ~format ~href bundle =
-  {key; icon; preview; submit; break_down; format; href; bundle}
+let prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?(preview = (fun _ -> lwt_true)) ~format ~href bundle =
+  {key; icon; assemble; submit; unsubmit; disassemble; preview; format; href; bundle}
 
 (* Initialised editors *)
 
-type ('result, 'previewed_value, 'value, 'state) t = {
-  s: ('result, 'previewed_value, 'value, 'state) s;
+type ('result, 'product, 'value, 'state) t = {
+  s: ('result, 'product, 'value, 'state) s;
   mode: ('result, 'state) mode;
   page: (?after_save: (unit -> unit) -> unit -> Page.t Lwt.t);
   editor: ('value, 'state) Component.t;
@@ -90,7 +93,7 @@ type ('result, 'previewed_value, 'value, 'state) t = {
 [@@deriving fields]
 
 let state e = Component.state e.editor
-let set e r = Component.set e.editor =<< e.s.break_down r
+let set e r = Component.set e.editor <=< e.s.disassemble =<< e.s.unsubmit r
 let clear e = Component.clear e.editor
 
 let signal e =
@@ -98,27 +101,28 @@ let signal e =
   S.from'
     (Error "previsualisation and submission have not finished computing yet")
     (
-      match%lwt e.s.preview value with
-      | None -> lwt_error "previsualisation failed"
-      | Some previewed_value -> ok <$> e.s.submit e.mode previewed_value
+      (* FIXME: we should really not call [submit] here; signal should just work on a product *)
+      ok <$> (e.s.submit e.mode @@ e.s.assemble value)
     )
 
+(* FIXME: can I remove this? *)
 let result e =
   match S.value @@ Component.signal e.editor with
   | Error _ -> lwt_none
   | Ok value ->
-    match%lwt e.s.preview value with
-    | None -> lwt_none
-    | Some previewed_value -> some <$> e.s.submit (e.mode) previewed_value
+    let product = e.s.assemble value in
+    match%lwt e.s.preview product with
+    | false -> lwt_none
+    | true -> some <$> e.s.submit (e.mode) product
 
 let page ?after_save e = e.page ?after_save ()
 
-let initialise (type result)(type value)(type previewed_value)(type state)
-    (editor_s : (result, previewed_value, value, state) s)
+let initialise (type result)(type value)(type product)(type state)
+    (editor_s : (result, product, value, state) s)
     (mode : (result, state) mode)
-    : (result, previewed_value, value, state) t Lwt.t
+    : (result, product, value, state) t Lwt.t
   =
-  let {key; icon; preview; submit; break_down; format; href; bundle} = editor_s in
+  let {key; icon; assemble; submit; unsubmit; disassemble; preview; format; href; bundle} = editor_s in
   let Bundle bundle = bundle in
   let module Bundle = (val bundle) in
 
@@ -130,7 +134,7 @@ let initialise (type result)(type value)(type previewed_value)(type state)
     | QuickCreate (initial_text, _) -> lwt @@ Bundle.from_initial_text initial_text
     | QuickEdit state -> lwt state
     | CreateWithLocalStorage -> lwt @@ read_local_storage ~key bundle
-    | Edit entry -> Bundle.value_to_state =<< break_down entry
+    | Edit entry -> Bundle.value_to_state <=< disassemble =<< unsubmit entry
   in
 
   (* Now that we have an initial value, we can actually initialise the editor to
@@ -156,9 +160,10 @@ let initialise (type result)(type value)(type previewed_value)(type state)
       match S.value @@ Component.signal editor with
       | Error _ -> lwt_none
       | Ok value ->
-        match%lwt preview value with
-        | None -> lwt_none
-        | Some previewed_value -> some <$> submit mode previewed_value
+        let product = assemble value in
+        match%lwt preview product with
+        | false -> lwt_none
+        | true -> some <$> submit mode product
     in
     (
       Option.iter
@@ -231,5 +236,5 @@ let initialise (type result)(type value)(type previewed_value)(type state)
 
 (* All-in-one function *)
 
-let make_page ~key ~icon ~preview ~submit ~break_down ~format ~href ~mode bundle =
-  page =<< initialise (prepare ~key ~icon ~preview ~submit ~break_down ~format ~href bundle) mode
+let make_page ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?preview ~format ~href ~mode bundle =
+  page =<< initialise (prepare ~key ~icon ~assemble ~submit ~unsubmit ~disassemble ?preview ~format ~href bundle) mode

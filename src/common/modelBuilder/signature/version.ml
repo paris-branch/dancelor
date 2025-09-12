@@ -67,6 +67,8 @@ module type S = sig
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 
+  val set_content : string option -> t -> t
+
   (** {2 Magic getter} *)
 
   (** Magic getter. On the client side, this hides an API call, which goes
