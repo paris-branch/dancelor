@@ -165,10 +165,7 @@ let create ?context id =
         (lwt @@ Any.book book);
     ]
     ~title: (lwt @@ NEString.to_string @@ Book.title' book)
-    ~subtitles: [
-      txt (NEString.opt_to_string @@ Book.subtitle' book);
-      Formatters.Book.date_and_editors' book;
-    ]
+    ~subtitles: [Formatters.Book.date_and_editors' book]
     ~share: (Book book)
     ~actions: (
       lwt @@

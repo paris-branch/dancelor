@@ -32,7 +32,6 @@ module type S = sig
 
   val make :
     title: NEString.t ->
-    ?subtitle: NEString.t ->
     ?authors: Core.Person.t Entry.t list ->
     ?date: PartialDate.t ->
     ?contents: page list ->
@@ -46,9 +45,6 @@ module type S = sig
 
   val title : t -> NEString.t
   val title' : t Entry.t -> NEString.t
-
-  val subtitle : t -> NEString.t option
-  val subtitle' : t Entry.t -> NEString.t option
 
   val authors : t -> Core.Person.t Entry.t list Lwt.t
   val authors' : t Entry.t -> Core.Person.t Entry.t list Lwt.t

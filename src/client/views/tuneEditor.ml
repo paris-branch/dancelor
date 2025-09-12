@@ -44,7 +44,7 @@ let editor =
     ) ^::
   Input.prepare
     ~type_: Text
-    ~label: "Date of devising"
+    ~label: "Date of composing"
     ~placeholder: "eg. 2019 or 2012-03-14"
     ~serialise: (Option.fold ~none: "" ~some: PartialDate.to_string)
     ~validate: (

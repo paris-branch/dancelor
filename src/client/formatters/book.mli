@@ -2,11 +2,13 @@ open Common
 
 open Html
 
-val title_and_subtitle :
+val title :
   Model.Book.t ->
   [> Html_types.span] elt
 
-val title_and_subtitle' :
+val title' :
+  ?link: bool ->
+  ?context: Endpoints.Page.context ->
   Model.Book.t Entry.t ->
   [> Html_types.span] elt
 
