@@ -19,12 +19,16 @@ and system, as well as development tools:
 $ nix develop
 ```
 
-If you are a user of [direnv], you may also want to have the following `.envrc`
-file:
+If you are a user of [direnv], the easiest is to use the provided
+`.envrc.sample`:
 
-```
-watch_dir nix/
-use flake
+```console
+$ ln -s .envrc.sample .envrc
+direnv: error <path>/.envrc is blocked. Run `direnv allow` to approve its content
+$ direnv allow
+direnv: loading <path>/.envrc
+direnv: using flake
+[...]
 ```
 
 [direnv]: https://direnv.net/

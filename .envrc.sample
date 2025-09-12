@@ -1,0 +1,4 @@
+watch_file *.nix
+watch_dir nix/
+watch_dir src/server/controller/renderer/
+use flake
