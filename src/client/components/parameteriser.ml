@@ -1,9 +1,9 @@
 open Nes
 open Html
 
-let prepare (type comp_value)(type comp_state)(type params)(type params_previewed)(type params_value)(type params_state)
+let prepare (type comp_value)(type comp_state)(type params)(type params_value)(type params_state)
   ((module C): (comp_value, comp_state) Component.s)
-  (editor : (params, params_previewed, params_value, params_state) Editor.s)
+  (editor : (params, params, params_value, params_state) Editor.s)
   : (comp_value * params, comp_state * params_state) Component.s
 = (module struct
 
@@ -26,7 +26,7 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_previewe
 
   type t = {
     comp: C.t;
-    editor: (params, params_previewed, params_value, params_state) Editor.t;
+    editor: (params, params, params_value, params_state) Editor.t;
   }
 
   let initialise (initial_value, initial_params) =

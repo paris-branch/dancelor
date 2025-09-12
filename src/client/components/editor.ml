@@ -98,22 +98,7 @@ let clear e = Component.clear e.editor
 
 let signal e =
   RS.bind (Component.signal e.editor) @@ fun value ->
-  S.from'
-    (Error "previsualisation and submission have not finished computing yet")
-    (
-      (* FIXME: we should really not call [submit] here; signal should just work on a product *)
-      ok <$> (e.s.submit e.mode @@ e.s.assemble value)
-    )
-
-(* FIXME: can I remove this? *)
-let result e =
-  match S.value @@ Component.signal e.editor with
-  | Error _ -> lwt_none
-  | Ok value ->
-    let product = e.s.assemble value in
-    match%lwt e.s.preview product with
-    | false -> lwt_none
-    | true -> some <$> e.s.submit (e.mode) product
+  RS.pure (e.s.assemble value)
 
 let page ?after_save e = e.page ?after_save ()
 

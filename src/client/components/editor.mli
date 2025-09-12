@@ -142,22 +142,13 @@ val state :
 
 val signal :
   ('result, 'product, 'value, 'state) t ->
-  ('result, string) result S.t
-(** NOTE: Using this signal will keep triggering the previsualisation and
-    submission on every change. Use only on degenerated editors where those
-    functions trivial. FIXME: we should have a type for this. *)
+  ('product, string) result S.t
 
 val set :
   ('result, 'product, 'value, 'state) t ->
   'result ->
   unit Lwt.t
 
-val clear : ('result, 'product, 'value, 'state) t -> unit
-
-val result :
+val clear :
   ('result, 'product, 'value, 'state) t ->
-  'result option Lwt.t
-(** Get the current result of the editor, if it is in a state that permits it.
-    Note that this trigger previewing and submitting and is therefore usually
-    not suitable, except for degenerate editors such as the version parameters
-    editor. FIXME: the existence of this and {!signal} is quite confusing. *)
+  unit
