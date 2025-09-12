@@ -50,6 +50,9 @@ module type S = sig
   (** Given an indice and a set, find the context around that indice in the
       set. *)
 
+  val equal : t -> t -> bool
+  (** Structural equality. This is different from entry equality. *)
+
   (* {2 Warnings} *)
 
   type warning = Core.Set.warning =
