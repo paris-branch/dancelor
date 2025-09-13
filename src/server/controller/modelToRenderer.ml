@@ -30,10 +30,20 @@ let repeat n x = Repeat (n, x)
 
 (** A general algorithm would be great, but for now this will do. *)
 let best_structure_for = function
+  | "A" -> some a
+  | "B" -> some b
+  | "C" -> some c
+  | "D" -> some d
+  | "AB" -> some @@ append a b
+  | "AAB" -> some @@ append (repeat 2 a) b
+  | "ABB" -> some @@ append a (repeat 2 b)
   | "AABB" -> some @@ append (repeat 2 a) (repeat 2 b)
   | "ABAB" -> some @@ repeat 2 (append a b)
+  | "ABBA" -> some @@ append (append a (repeat 2 b)) a
+  | "AABC" -> some @@ append (repeat 2 a) (append b c)
   | "AABBB" -> some @@ append (repeat 2 a) (repeat 3 b)
   | "ABABB" -> some @@ append (repeat 2 (append a b)) b
+  | "ABBAB" -> some @@ append a (append (repeat 2 b) (append a b))
   | "ABABC" -> some @@ append (repeat 2 (append a b)) c
   | "ABABAB" -> some @@ repeat 3 (append a b)
   | "AABBAB" -> some @@ append (append (repeat 2 a) (repeat 2 b)) (append a b)
