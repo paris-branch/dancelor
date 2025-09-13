@@ -92,7 +92,7 @@ let editor =
     ~validate: (S.const % ok)
     () ^::
   Input.prepare
-    ~type_: Textarea
+    ~type_: (Textarea {rows = 20})
     ~font: Monospace
     ~label: "LilyPond content"
     ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"

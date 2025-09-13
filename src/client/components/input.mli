@@ -4,7 +4,7 @@ open Nes
 open React
 open Js_of_ocaml_tyxml.Tyxml_js
 
-type type_ = Text | Password | Textarea
+type type_ = Text | Password | Textarea of {rows: int}
 type font = Normal | Monospace
 
 val make :
