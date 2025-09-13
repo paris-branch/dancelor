@@ -26,7 +26,7 @@ let structure =
 
 let content_full () =
   Cpair.prepare
-    ~label: "Full content"
+    ~label: "Monolithic"
     (
       Cpair.prepare
         ~label: "FIXME"
@@ -104,9 +104,9 @@ let content () =
   Plus.prepare
     ~label: "Content"
     ~cast: (function
-      | Zero ((bars, structure), lilypond) -> Model.Version.Content.Full {bars; structure; lilypond}
+      | Zero ((bars, structure), lilypond) -> Model.Version.Content.Monolithic {bars; structure; lilypond}
       | Succ Zero (parts, common_structures) ->
-        Model.Version.Content.Parts
+        Model.Version.Content.Destructured
           {
             parts = (
               NEList.map
@@ -118,8 +118,8 @@ let content () =
       | _ -> assert false (* types guarantee this is not reachable *)
     )
     ~uncast: (function
-      | Model.Version.Content.Full {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
-      | Model.Version.Content.Parts {parts; common_structures} ->
+      | Model.Version.Content.Monolithic {bars; structure; lilypond} -> Zero ((bars, structure), lilypond)
+      | Model.Version.Content.Destructured {parts; common_structures} ->
         one (
           NEList.map
             (Pair.map_snd (fun Model.Version.Content.{bars; melody; chords} -> (bars, (melody, chords))))

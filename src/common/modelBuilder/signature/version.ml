@@ -20,8 +20,8 @@ module type S = sig
     (** Combine the parts into a LilyPond string. *)
 
     type t = Core.Version.Content.t =
-      | Full of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
-      | Parts of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
+      | Monolithic of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
+      | Destructured of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
     [@@deriving variants]
 
     val lilypond : t -> string

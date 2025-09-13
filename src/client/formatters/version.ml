@@ -32,8 +32,8 @@ let description ?arranger_links version =
   let shape =
     let key = Model.Version.key version in
     match Model.Version.content version with
-    | Full {bars; structure; _} -> spf "%d-bar %s version in %s" bars (Model.Version.Content.structure_to_string structure) (Music.key_to_pretty_string key)
-    | Parts _ -> spf "Destructured version in %s" (Music.key_to_pretty_string key)
+    | Monolithic {bars; structure; _} -> spf "%d-bar %s version in %s" bars (Model.Version.Content.structure_to_string structure) (Music.key_to_pretty_string key)
+    | Destructured _ -> spf "Destructured version in %s" (Music.key_to_pretty_string key)
   in
   let arranger_block =
     match%lwt Model.Version.arrangers version with
@@ -128,9 +128,9 @@ let kind_and_structure version =
   with_span_placeholder @@
     let%lwt kind = Model.Tune.kind' <$> Model.Version.tune version in
     match Model.Version.content version with
-    | Full {bars; structure; _} ->
+    | Monolithic {bars; structure; _} ->
       lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ Model.Version.Content.structure_to_string structure ^ ")"]
-    | Parts _ ->
+    | Destructured _ ->
       lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
 
 let kind_and_structure' = kind_and_structure % Entry.value

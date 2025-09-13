@@ -42,17 +42,17 @@ module Content = struct
       chords
 
   type t =
-    | Full of {lilypond: string; bars: int; structure: structure}
-    | Parts of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t}
+    | Monolithic of {lilypond: string; bars: int; structure: structure}
+    | Destructured of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t}
   [@@deriving eq, yojson, show {with_path = false}, variants]
 
   let lilypond = function
-    | Full {lilypond; _} -> lilypond
-    | Parts {parts; _} -> lilypond_from_parts parts
+    | Monolithic {lilypond; _} -> lilypond
+    | Destructured {parts; _} -> lilypond_from_parts parts
 
   let erase_lilypond = function
-    | Full {bars; structure; _} -> Full {bars; structure; lilypond = ""}
-    | Parts {common_structures; _} -> Parts {common_structures; parts = NEList.singleton ('X', {melody = ""; chords = ""; bars = 0})}
+    | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}
+    | Destructured {common_structures; _} -> Destructured {common_structures; parts = NEList.singleton ('X', {melody = ""; chords = ""; bars = 0})}
 end
 
 let _key = "version"

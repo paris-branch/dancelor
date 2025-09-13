@@ -35,8 +35,8 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
   (* prepare the content *)
   let (content, show_bar_numbers) =
     match Model.Version.content version with
-    | Model.Version.Content.Full {lilypond; _} -> (lilypond, true)
-    | Parts {parts; _} -> (Model.Version.Content.lilypond_from_parts parts, false)
+    | Model.Version.Content.Monolithic {lilypond; _} -> (lilypond, true)
+    | Destructured {parts; _} -> (Model.Version.Content.lilypond_from_parts parts, false)
   in
   (* update the key *)
   let content =

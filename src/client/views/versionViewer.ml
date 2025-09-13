@@ -165,8 +165,8 @@ let create ?context id =
             ul (
               (
                 match Model.Version.content' version with
-                | Full _ -> []
-                | Parts {common_structures; _} ->
+                | Monolithic _ -> []
+                | Destructured {common_structures; _} ->
                   [
                     li @@
                       (txt "commonly as ") :: List.interspersei
