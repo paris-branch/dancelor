@@ -53,7 +53,7 @@ let create () =
   let parameters_signal =
     let no_parameters = (VersionParameters.none, RenderingParameters.none) in
     S.merge
-      (Pair.map2_both VersionParameters.compose RenderingParameters.compose)
+      (Pair.map2 VersionParameters.compose RenderingParameters.compose)
       no_parameters
       [
         S.map (Option.value ~default: no_parameters % Option.join % Result.to_option) (Component.signal key_choices);

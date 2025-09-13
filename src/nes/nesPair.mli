@@ -16,11 +16,14 @@ val map_fst : ('a -> 'c) -> 'a * 'b -> 'c * 'b
 val map_snd : ('b -> 'd) -> 'a * 'b -> 'a * 'd
 (** Map the given function to the second component of the pair. *)
 
-val map_both : ('a -> 'c) -> ('b -> 'd) -> 'a * 'b -> 'c * 'd
+val map : ('a -> 'c) -> ('b -> 'd) -> 'a * 'b -> 'c * 'd
 (** Map the given functions on the arguments of the pair. *)
 
-val map2_both : ('a -> 'c -> 'e) -> ('b -> 'd -> 'f) -> 'a * 'b -> 'c * 'd -> 'e * 'f
-(** Map the given functions on the arguments of the two pairs. [map2_both f g
+val map_both : ('a -> 'b) -> 'a * 'a -> 'b * 'b
+(** Map the given function on both arguments of the pair. *)
+
+val map2 : ('a -> 'c -> 'e) -> ('b -> 'd -> 'f) -> 'a * 'b -> 'c * 'd -> 'e * 'f
+(** Map the given functions on the arguments of the two pairs. [map2 f g
     (x1, y1) (x2, y2)] is [(f x1 x2, g y1 y2)]. *)
 
 val cons : 'a -> 'b -> 'a * 'b

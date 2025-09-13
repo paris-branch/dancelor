@@ -37,7 +37,7 @@ let create () =
     parameters_signal =
     let no_parameters = (SetParameters.none, RenderingParameters.none) in
     S.merge
-      (Pair.map2_both SetParameters.compose RenderingParameters.compose)
+      (Pair.map2 SetParameters.compose RenderingParameters.compose)
       no_parameters
       [
         S.map (Pair.map_fst lift_version_parameters) version_dialog.parameters_signal;

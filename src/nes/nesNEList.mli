@@ -25,3 +25,9 @@ val map : ('a -> 'b) -> 'a t -> 'b t
 
 val singleton : 'a -> 'a t
 (** Create a non-empty list with a single element. *)
+
+val append : 'a t -> 'a t -> 'a t
+(** Appending non-empty lists produces a non-empty list. *)
+
+val fold_left1 : ('a -> 'a -> 'a) -> 'a t -> 'a
+(** Like {!List.fold_left} but uses the first element as accumlator. *)

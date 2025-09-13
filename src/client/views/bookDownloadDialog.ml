@@ -34,7 +34,7 @@ let create () =
     );
     parameters_signal =
     S.merge
-      (Pair.map2_both BookParameters.compose RenderingParameters.compose)
+      (Pair.map2 BookParameters.compose RenderingParameters.compose)
       (BookParameters.none, RenderingParameters.none)
       [
         S.map (Pair.map_fst lift_set_parameters) set_dialog.parameters_signal;
