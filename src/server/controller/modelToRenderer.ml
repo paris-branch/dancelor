@@ -33,7 +33,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
         (Model.VersionParameters.display_composer version_params)
   in
   (* prepare the content *)
-  let content = Model.Version.content version in
+  let%lwt content = Model.Version.content_lilypond version in
   (* update the key *)
   let content =
     match Model.VersionParameters.clef version_params with
@@ -60,7 +60,8 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
-  lwt Renderer.{slug; name; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind}
+  let show_bar_numbers = Model.Version.(Content.is_monolithic @@ content version) in
+  lwt Renderer.{slug; name; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
 
 let version_to_renderer_tune' ?version_params version =
   version_to_renderer_tune ?version_params (Entry.value version)
@@ -113,7 +114,7 @@ let version_to_renderer_set version version_params set_params =
     Option.fold ~none: "" ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
   in
   let%lwt kind =
-    let%lwt none = Kind.Version.to_pretty_string <$> Model.Version.kind version in
+    let%lwt none = Kind.Base.to_pretty_string % Model.Tune.kind' <$> Model.Version.tune version in
     lwt @@ Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_kind set_params)
   in
   let%lwt contents = List.singleton <$> version_to_renderer_tune ~version_params version in

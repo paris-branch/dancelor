@@ -67,11 +67,6 @@ module type Model = sig
   val to_yojson : t -> Json.t
   val of_yojson : Json.t -> (t, string) result
 
-  val separate_fields : (string * string) list
-  (** Fields that must not be serialised in the [meta.yaml] file but instead be
-      put in an independent file. The file name is given as second element of
-      the pair. *)
-
   val wrap_any : t Entry.t -> ModelBuilder.Core.Any.t
 
   val _key : string
@@ -132,16 +127,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
     let load entry =
       Log.debug (fun m -> m "Loading %s %s" _key entry);
       Storage.read_entry_yaml Model._key entry "meta.yaml" >>= fun json ->
-      let json = ref json in
-      Lwt_list.iter_s
-        (fun (field, filename) ->
-          let%lwt value = Storage.read_entry_file Model._key entry filename in
-          json := Json.add_field field (`String value) !json;
-          lwt_unit
-        )
-        Model.separate_fields;%lwt
       lwt @@
-        match Entry.of_yojson' (Entry.Id.of_string_exn entry) Model.of_yojson !json with
+        match Entry.of_yojson' (Entry.Id.of_string_exn entry) Model.of_yojson json with
         | Ok model ->
           GloballyUniqueId.register model ~wrap_any: Model.wrap_any;
           Hashtbl.add table (Entry.id model) (Stats.empty (), model);
@@ -240,17 +227,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let create model =
     let id = GloballyUniqueId.make () in
     let model = Entry.make ~id model in
-    let json = ref @@ Entry.to_yojson' Model.to_yojson model in
-    Lwt_list.iter_s
-      (fun (field, filename) ->
-        match Json.extract_field field !json with
-        | (`String value, new_json) ->
-          json := new_json;
-          Storage.write_entry_file Model._key (Entry.Id.to_string id) filename value
-        | _ -> assert false
-      )
-      Model.separate_fields;%lwt
-    Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" !json;%lwt
+    let json = Entry.to_yojson' Model.to_yojson model in
+    Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "save %s / %s" Model._key (Entry.Id.to_string id))
       Model._key
@@ -263,17 +241,8 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let update id model =
     let%lwt old_model = Option.get <$> get id in
     let model = Entry.make' ~id ~meta: (Entry.update_meta ~modified_at: (Datetime.now ()) (Entry.meta old_model)) model in
-    let json = ref @@ Entry.to_yojson' Model.to_yojson model in
-    Lwt_list.iter_s
-      (fun (field, filename) ->
-        match Json.extract_field field !json with
-        | (`String value, new_json) ->
-          json := new_json;
-          Storage.write_entry_file Model._key (Entry.Id.to_string id) filename value
-        | _ -> assert false
-      )
-      Model.separate_fields;%lwt
-    Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" !json;%lwt
+    let json = Entry.to_yojson' Model.to_yojson model in
+    Storage.write_entry_yaml Model._key (Entry.Id.to_string id) "meta.yaml" json;%lwt
     Storage.save_changes_on_entry
       ~msg: (spf "update %s / %s" Model._key (Entry.Id.to_string id))
       Model._key

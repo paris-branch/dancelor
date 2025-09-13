@@ -11,6 +11,7 @@ let
     tempo_unit = "4";
     tempo_value = 108;
     chords_kind = "reel";
+    show_bar_numbers = true;
   };
 
   testBookPdfArg = {

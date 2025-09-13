@@ -9,7 +9,7 @@ type (_, _, _) t =
 | Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.t Entry.t list)) t
 (* Actions on a specific version *)
 | Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.t Entry.t) t
-| Content : ((Version.t Entry.Id.t -> 'w), 'w, string) t
+| Content : ((Version.t Entry.Id.t -> 'w), 'w, Version.Content.t) t
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 (* Files related to a version *)
 | BuildSvg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Job.Registration.t) t
@@ -25,22 +25,22 @@ type (_, _, _) t =
    describe fields that are not included by default, but for now we will just
    redact it from the HTTP responses. NOTE: We only redact it from the HTTP
    _responses_, but not from the requests! *)
-module VersionNoContent = struct
+module VersionNoLilypond = struct
   type t = Version.t
-  let of_yojson = Version.of_yojson % Json.add_field "content" `Null
-  let to_yojson = Json.remove_field "content" % Version.to_yojson
+  let of_yojson = Version.of_yojson
+  let to_yojson = Version.to_yojson % Version.erase_lilypond_from_content
 end
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
   let open Route in
   function
     (* Actions without specific version *)
-    | Create -> body "version" (module Version) @@ post (module Entry.J(VersionNoContent))
-    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoContent))))
+    | Create -> body "version" (module Version) @@ post (module Entry.J(VersionNoLilypond))
+    | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoLilypond))))
     (* Actions on a specific version *)
-    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoContent))
-    | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module JString)
-    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
+    | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoLilypond))
+    | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Version.Content)
+    | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoLilypond))
     (* Files related to a version *)
     | BuildSvg -> literal "build-svg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration)
     | BuildOgg -> literal "build-ogg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration)

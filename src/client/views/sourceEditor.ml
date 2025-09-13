@@ -61,7 +61,7 @@ let editor =
     )
     () ^::
   Input.prepare
-    ~type_: Textarea
+    ~type_: (Textarea {rows = 10})
     ~label: "Description"
     ~placeholder: "eg. Book provided by the RSCDS and containing almost all of the original tunes for the RSCDS dances. New editions come every now and then to add tunes for newly introduced RSCDS dances."
     ~serialise: (Option.value ~default: "")

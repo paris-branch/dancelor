@@ -3,8 +3,11 @@ open Common
 open Model
 open Html
 
-let show_lilypond_dialog id =
-  let content_promise = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) id in
+let show_lilypond_dialog version =
+  let content_promise =
+    let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
+    Model.Version.content_lilypond' ~content version
+  in
   ignore
   <$> Page.open_dialog @@ fun return ->
     Page.make'
@@ -55,7 +58,6 @@ let create ?context id =
     ]
     ~title: (NEString.to_string <$> Version.one_name' version)
     ~subtitles: [
-      Formatters.Version.tune_aka' version;
       Formatters.Version.tune_description' version;
       Formatters.Version.description' ~arranger_links: true version;
     ]
@@ -89,7 +91,7 @@ let create ?context id =
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
                 ~icon: "file-music"
-                ~onclick: (fun () -> show_lilypond_dialog id)
+                ~onclick: (fun () -> show_lilypond_dialog version)
                 ();
               Utils.Button.make
                 ~label: "Add to current set"
@@ -150,6 +152,45 @@ let create ?context id =
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
       Components.VersionSnippets.make version;
+      R.div (
+        S.from' [] @@
+          let%lwt other_names = Model.Version.other_names' version in
+          lwt [
+            txt "Also known as:";
+            ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
+          ]
+      );
+      R.div (
+        S.from' [] @@
+          let%lwt sources = Model.Version.sources' version in
+          lwt [
+            txt "Appears:";
+            ul (
+              (
+                match Model.Version.content' version with
+                | Monolithic _ -> []
+                | Destructured {common_structures; _} ->
+                  [
+                    li @@
+                      (txt "commonly as ") :: List.interspersei
+                        (fun _ -> txt ", ")
+                        ~last: (fun _ -> txt " or ")
+                        (List.map (txt % Model.Version.Content.structure_to_string) (NEList.to_list common_structures))
+                  ]
+              ) @
+                List.map
+                  (fun (source, structure) ->
+                    li [
+                      txt "in ";
+                      Formatters.Source.name' source;
+                      txt " as ";
+                      txt (Model.Version.Content.structure_to_string structure);
+                    ]
+                  )
+                  sources
+            )
+          ]
+      );
       Utils.quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);

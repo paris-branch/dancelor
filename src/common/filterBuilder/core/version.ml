@@ -4,7 +4,6 @@ type predicate =
   | Is of ModelBuilder.Core.Version.t Entry.Id.t
   | Tune of Tune.t
   | Key of Music.key
-  | Kind of Kind.Version.Filter.t
   | ExistsSource of Source.t
 [@@deriving eq, show {with_path = false}, yojson, variants]
 
@@ -13,7 +12,6 @@ type t = predicate Formula.t
 
 let tune' = Formula.pred % tune
 let key' = Formula.pred % key
-let kind' = Formula.pred % kind
 let existssource' = Formula.pred % existssource
 
 let text_formula_converter =
@@ -26,7 +24,6 @@ let text_formula_converter =
           [
             unary_lift ~wrap_back: NotRaw ~name: "tune" (tune, tune_val) ~converter: Tune.text_formula_converter;
             unary_raw ~name: "key" (key, key_val) ~cast: (Music.key_of_string_opt, Music.key_to_string) ~type_: "key";
-            unary_lift ~name: "kind" (kind, kind_val) ~converter: Kind.Version.Filter.text_formula_converter;
             unary_id ~name: "is" (is, is_val);
             unary_lift ~name: "exists-source" (existssource, existssource_val) ~converter: Source.text_formula_converter;
           ]
@@ -62,7 +59,6 @@ let optimise =
   let lift {op} f1 f2 =
     match (f1, f2) with
     | (Tune f1, Tune f2) -> some @@ tune (op f1 f2)
-    | (Kind f1, Kind f2) -> some @@ kind (op f1 f2)
     | _ -> None
   in
   Formula.optimise
@@ -71,6 +67,5 @@ let optimise =
     (function
       | (Is _ as p) | (Key _ as p) -> p
       | Tune tfilter -> tune @@ Tune.optimise tfilter
-      | Kind kfilter -> kind @@ Kind.Version.Filter.optimise kfilter
       | ExistsSource sfilter -> existssource @@ Source.optimise sfilter
     )

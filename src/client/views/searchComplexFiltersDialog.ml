@@ -106,7 +106,7 @@ let kind_choices filter =
     | Some (Dance filter) -> List.exists (List.mem (Filter.Dance.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
     | Some (Set filter) -> List.exists (List.mem (Filter.Set.kind @@ Kind.Dance.Filter.baseIs' kind)) filter
     | Some (Tune filter) -> List.exists (List.mem (Filter.Tune.kind @@ Kind.Base.Filter.is' kind)) filter
-    | Some (Version filter) -> List.exists (List.mem (Filter.Version.kind @@ Kind.Version.Filter.baseIs' kind)) filter
+    | Some (Version filter) -> List.exists (List.mem (Filter.Version.tune @@ Filter.Tune.kind' @@ Kind.Base.Filter.is' kind)) filter
     | _ -> false
   in
   Choices.(
@@ -285,7 +285,7 @@ let version_bundled_choices ~kind_choices filter =
         [
           choices_formula
             ~s: (S.map Result.get_ok (Component.signal kind_choices))
-            ~f: (Filter.Version.kind' % Kind.Version.Filter.baseIs');
+            ~f: (Filter.Version.tune' % Filter.Tune.kind' % Kind.Base.Filter.is');
           choices_formula
             ~s: (
               S.l2

@@ -14,6 +14,7 @@ type tune = {
   tempo_unit: string;
   tempo_value: int;
   chords_kind: string;
+  show_bar_numbers: bool;
 }
 [@@deriving yojson]
 

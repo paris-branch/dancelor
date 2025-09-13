@@ -70,9 +70,14 @@ let versions versions =
       [
         lwt [Formatters.Version.disambiguation_and_sources' version];
         (List.singleton <$> (Formatters.Person.names' <$> Version.arrangers' version));
-        (List.singleton <$> (Formatters.Kind.full_string version <$> Version.tune' version));
+        (List.singleton <$> (txt % Kind.Base.to_pretty_string % Tune.kind' <$> Version.tune' version));
         lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
-        lwt [txt @@ Version.structure' version];
+        lwt [
+          txt @@
+            match Version.content' version with
+            | Monolithic {structure; _} -> Version.Content.structure_to_string structure
+            | Destructured _ -> "destr."
+        ];
       ]
 
 let versions_with_names versions =
@@ -85,9 +90,14 @@ let versions_with_names versions =
       ~href
       [
         lwt [with_span_placeholder (List.singleton % txt % NEString.to_string % Tune.one_name' <$> Version.tune' version)];
-        (List.singleton <$> (Formatters.Kind.full_string version <$> Version.tune' version));
+        (List.singleton <$> (txt % Kind.Base.to_pretty_string % Tune.kind' <$> Version.tune' version));
         lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
-        lwt [txt @@ Version.structure' version];
+        lwt [
+          txt @@
+            match Version.content' version with
+            | Monolithic {structure; _} -> Version.Content.structure_to_string structure
+            | Destructured _ -> "destr."
+        ];
       ]
 
 let placeholder ?(show_thead = true) ?(show_tfoot = true) () = [

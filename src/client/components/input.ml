@@ -6,7 +6,7 @@ type html =
   | Text of {input: 'a. ([> Html_types.input] as 'a) elt; input_dom: Dom_html.inputElement Js.t}
   | Textarea of {textarea: 'a. ([> Html_types.textarea] as 'a) elt; textarea_dom: Dom_html.textAreaElement Js.t}
 
-type type_ = Text | Password | Textarea
+type type_ = Text | Password | Textarea of {rows: int}
 type font = Normal | Monospace
 
 let prepare (type value)
@@ -93,11 +93,11 @@ let prepare (type value)
             ]
         in
         Text {input; input_dom = To_dom.of_input input}
-      | Textarea ->
+      | Textarea {rows} ->
         let textarea =
           textarea
             ~a: [
-              a_rows 15;
+              a_rows rows;
               a_placeholder placeholder;
               R.a_class (
                 S.l2

@@ -8,6 +8,8 @@ type note =
   A | B | C | D | E | F | G
 [@@deriving eq, show]
 
+val note_to_lilypond_string : note -> string
+
 type alteration =
   Flat | Sharp | Natural
 [@@deriving eq, show]
@@ -30,11 +32,8 @@ val pitch_octave : pitch -> octave
 
 val pitch_c : pitch
 
-(* val pitch_to_string : pitch -> string *)
 val pitch_to_pretty_string : pitch -> string
 val pitch_to_lilypond_string : pitch -> string
-
-(* val pitch_of_string : string -> pitch *)
 
 (** {2 Key} *)
 
@@ -54,12 +53,6 @@ val key_to_string : key -> string
 
 val key_to_pretty_string : key -> string
 (** eg. C  D♯m   E♭ *)
-
-val key_to_lilypond_string : key -> string
-(** eg. c dis:m ees *)
-
-val key_to_safe_string : key -> string
-(** eg. c  dism ees *)
 
 val key_of_string : string -> key
 val key_of_string_opt : string -> key option

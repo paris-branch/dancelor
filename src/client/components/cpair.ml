@@ -13,12 +13,13 @@ open Nes
 open Html
 
 module type S = sig
+  type value
   type value1
   type value2
   type state1
   type state2
 
-  include Component.S with type value = value1 * value2 and type state = state1 * state2
+  include Component.S with type value := value and type state = state1 * state2
 
   module C1 : Component.S with type value = value1 and type state = state1
   module C2 : Component.S with type value = value2 and type state = state2
@@ -27,11 +28,14 @@ module type S = sig
   val c2 : t -> C2.t
 end
 
-let bundle (type value1)(type state1)(type value2)(type state2)
+let bundle (type value)(type value1)(type state1)(type value2)(type state2)
+  ~(wrap : value1 * value2 -> value)
+  ~(unwrap : value -> value1 * value2)
   ((module C1): (value1, state1) Component.s)
   ((module C2): (value2, state2) Component.s)
   : (module S with
-  type value1 = value1
+  type value = value
+  and type value1 = value1
   and type value2 = value2
   and type state1 = state1
   and type state2 = state2)
@@ -41,12 +45,12 @@ let bundle (type value1)(type state1)(type value2)(type state2)
   module C1 = C1
   module C2 = C2
 
+  type nonrec value = value
   type value1 = C1.value
   type value2 = C2.value
   type state1 = C1.state
   type state2 = C2.state
 
-  type value = C1.value * C2.value
   type state = C1.state * C2.state
   [@@deriving yojson]
 
@@ -56,7 +60,8 @@ let bundle (type value1)(type state1)(type value2)(type state2)
   let from_initial_text text =
     (C1.from_initial_text text, C2.empty)
 
-  let value_to_state (v1, v2) =
+  let value_to_state v =
+    let (v1, v2) = unwrap v in
     let%lwt v1 = C1.value_to_state v1 in
     let%lwt v2 = C2.value_to_state v2 in
     lwt (v1, v2)
@@ -66,7 +71,7 @@ let bundle (type value1)(type state1)(type value2)(type state2)
   let signal p =
     RS.bind (C1.signal p.c1) @@ fun v1 ->
     RS.bind (C2.signal p.c2) @@ fun v2 ->
-    RS.pure (v1, v2)
+    RS.pure (wrap (v1, v2))
 
   let state p =
     S.bind (C1.state p.c1) @@ fun v1 ->
@@ -76,7 +81,8 @@ let bundle (type value1)(type state1)(type value2)(type state2)
   let focus p = C1.focus p.c1
   let trigger p = C1.trigger p.c1
 
-  let set p (v1, v2) =
+  let set p v =
+    let (v1, v2) = unwrap v in
     C1.set p.c1 v1;%lwt
     C2.set p.c2 v2
 
@@ -100,13 +106,15 @@ let bundle (type value1)(type state1)(type value2)(type state2)
     lwt {c1; c2}
 end)
 
-let prepare (type value1)(type state1)(type value2)(type state2)
+let prepare_wrap (type value1)(type state1)(type value2)(type state2)(type value)
   ~label: the_label
+  ~(wrap : value1 * value2 -> value)
+  ~(unwrap : value -> value1 * value2)
   ((module C1): (value1, state1) Component.s)
   ((module C2): (value2, state2) Component.s)
-  : (value1 * value2, state1 * state2) Component.s
+  : (value, state1 * state2) Component.s
 = (module struct
-  include (val bundle (module C1) (module C2))
+  include (val bundle ~wrap ~unwrap (module C1) (module C2))
 
   let label = the_label
 
@@ -118,3 +126,5 @@ let prepare (type value1)(type state1)(type value2)(type state2)
 
   let actions _ = S.const []
 end)
+
+let prepare = prepare_wrap ~wrap: id ~unwrap: id

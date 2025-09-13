@@ -8,16 +8,16 @@ module Build (Getters : Getters.S) = struct
   let tune = Lwt.map Option.get % Getters.get_tune % tune
   let tune' = tune % Entry.value
 
-  let sources = Lwt_list.map_p (Lwt.map Option.get % Getters.get_source) % sources
+  let sources =
+    Lwt_list.map_p (fun (source, structure) ->
+      let%lwt source = Option.get <$> Getters.get_source source in
+      lwt (source, structure)
+    ) %
+      sources
   let sources' = sources % Entry.value
 
   let arrangers = Lwt_list.map_p (Lwt.map Option.get % Getters.get_person) % arrangers
   let arrangers' = arrangers % Entry.value
-
-  let kind version =
-    flip Lwt.map (tune version) @@ fun tune ->
-    (bars version, Core.Tune.kind' tune)
-  let kind' = kind % Entry.value
 
   let names version = Core.Tune.names' <$> tune version
   let names' = names % Entry.value
@@ -28,6 +28,17 @@ module Build (Getters : Getters.S) = struct
   let other_names version = Core.Tune.other_names' <$> tune version
   let other_names' = other_names % Entry.value
 
+  let kind version = Core.Tune.kind' <$> tune version
+  let kind' = kind % Entry.value
+
   let slug version = Entry.Slug.of_string % NEString.to_string <$> one_name version
   let slug' = slug % Entry.value
+
+  let content_lilypond ?content: the_content version =
+    let%lwt kind = kind version in
+    let key = key version in
+    let content = Option.value the_content ~default: (content version) in
+    lwt @@ Content.lilypond kind key content
+
+  let content_lilypond' ?content version = content_lilypond ?content @@ Entry.value version
 end

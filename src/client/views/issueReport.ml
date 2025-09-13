@@ -55,7 +55,7 @@ let open_dialog page =
   in
   let%lwt description_input =
     Input.make
-      ~type_: Textarea
+      ~type_: (Textarea {rows = 15})
       ~label: "Description"
       ~placeholder: "I am gutted; this knock off tune is wonky at best!"
       ~serialise: Fun.id

@@ -141,32 +141,32 @@ module Model = struct
      first argument. *)
 
   module Source = struct
-    type t = [%import: Common.ModelBuilder.Core.Source.t]
+    type t = Common.ModelBuilder.Core.Source.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Person = struct
-    type t = [%import: Common.ModelBuilder.Core.Person.t]
+    type t = Common.ModelBuilder.Core.Person.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Dance = struct
-    type t = [%import: Common.ModelBuilder.Core.Dance.t]
+    type t = Common.ModelBuilder.Core.Dance.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Tune = struct
-    type t = [%import: Common.ModelBuilder.Core.Tune.t]
+    type t = Common.ModelBuilder.Core.Tune.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Version = struct
-    type t = [%import: Common.ModelBuilder.Core.Version.t]
+    type t = Common.ModelBuilder.Core.Version.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 
   module Set = struct
-    type t = [%import: Common.ModelBuilder.Core.Set.t]
+    type t = Common.ModelBuilder.Core.Set.t
     let gen : t QCheck2.Gen.t = Gen.pure (Obj.magic 0)
   end
 

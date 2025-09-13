@@ -132,7 +132,7 @@ let table_contents ~this_id contents =
                     lwt [Formatters.Version.name_disambiguation_and_sources' ~name_link: false ~params version];
                     (
                       let%lwt tune = Version.tune' version in
-                      lwt [txt @@ Kind.Version.to_string (Version.bars' version, Tune.kind' tune)]
+                      lwt [txt @@ Kind.Base.to_string (Tune.kind' tune)]
                     );
                     lwt [Formatters.Version.composer_and_arranger' ~short: true version]
                   ]
