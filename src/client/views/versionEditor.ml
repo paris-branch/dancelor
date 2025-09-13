@@ -21,8 +21,12 @@ let structure =
     ~type_: Text
     ~label: "Structure"
     ~placeholder: "eg. AABB or ABAB"
-    ~serialise: Model.Version.Content.structure_to_string
-    ~validate: (S.const % ok % List.of_seq % String.to_seq) (* FIXME: proper validation *)
+    ~serialise: (NEString.to_string % Model.Version.Content.structure_to_string)
+    ~validate: (
+      S.const % Option.to_result ~none: "not a valid structure" %
+        (fun s -> Option.bind (NEString.of_string s) Model.Version.Content.structure_of_string
+        )
+    )
 
 let content_full () =
   Cpair.prepare
