@@ -6,17 +6,22 @@ module type S = sig
   module Content : sig
     type part_name = Core.Version.Content.part_name
 
+    type structure = (* Core.Version.Content.structure = *) part_name list
+
+    val structure_to_string : structure -> string
+
     type part = Core.Version.Content.part = {
       melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
       chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
+      bars: int; (** how many bars does this part span; most often 8 bars *)
     }
 
-    val lilypond_from_parts : (part_name * part) list -> string
+    val lilypond_from_parts : (part_name * part) NEList.t -> string
     (** Combine the parts into a LilyPond string. *)
 
     type t = Core.Version.Content.t =
-      | Full of string (** A tune as a full LilyPond, including clef, key, etc. *)
-      | Parts of (part_name * part) list (** A tune decomposed as building blocks *)
+      | Full of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
+      | Parts of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
     [@@deriving variants]
 
     val lilypond : t -> string
@@ -27,10 +32,8 @@ module type S = sig
 
   val make :
     tune: Core.Tune.t Entry.t ->
-    bars: int ->
     key: Music.key ->
-    structure: string ->
-    ?sources: Core.Source.t Entry.t list ->
+    ?sources: (Core.Source.t Entry.t * Content.structure) list ->
     ?arrangers: Core.Person.t Entry.t list ->
     ?remark: string ->
     ?disambiguation: string ->
@@ -41,17 +44,11 @@ module type S = sig
   val tune : t -> Core.Tune.t Entry.t Lwt.t
   val tune' : t Entry.t -> Core.Tune.t Entry.t Lwt.t
 
-  val bars : t -> int
-  val bars' : t Entry.t -> int
-
   val key : t -> Music.key
   val key' : t Entry.t -> Music.key
 
-  val structure : t -> string
-  val structure' : t Entry.t -> string
-
-  val sources : t -> Core.Source.t Entry.t list Lwt.t
-  val sources' : t Entry.t -> Core.Source.t Entry.t list Lwt.t
+  val sources : t -> (Core.Source.t Entry.t * Content.structure) list Lwt.t
+  val sources' : t Entry.t -> (Core.Source.t Entry.t * Content.structure) list Lwt.t
 
   val arrangers : t -> Core.Person.t Entry.t list Lwt.t
   val arrangers' : t Entry.t -> Core.Person.t Entry.t list Lwt.t
@@ -64,10 +61,6 @@ module type S = sig
 
   val content : t -> Content.t
   val content' : t Entry.t -> Content.t
-
-  val kind : t -> Kind.Version.t Lwt.t
-  val kind' : t Entry.t -> Kind.Version.t Lwt.t
-  (** Convenient wrapper around {!bars} and {!Tune.kind}. *)
 
   val names : t -> NEString.t NEList.t Lwt.t
   val names' : t Entry.t -> NEString.t NEList.t Lwt.t
@@ -87,7 +80,7 @@ module type S = sig
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 
-  val set_content : Content.t option -> t -> t
+  val set_content : Content.t -> t -> t
 
   (** {2 Magic getter} *)
 

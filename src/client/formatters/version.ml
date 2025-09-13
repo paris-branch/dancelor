@@ -15,7 +15,10 @@ let disambiguation_and_sources_internal ?source_links version =
     | sources ->
       lwt (
         [txt " (from "] @
-        List.interspersei (fun _ -> txt " - ") (List.map (Source.name' ~short: true ?link: source_links) sources) @
+        List.interspersei
+          (fun _ -> txt ", ")
+          ~last: (fun _ -> txt " and ")
+          (List.map (Source.name' ~short: true ?link: source_links % fst) sources) @
           [txt ")"]
       )
   in
@@ -25,10 +28,12 @@ let disambiguation_and_sources ?source_links version = span (disambiguation_and_
 let disambiguation_and_sources' ?source_links version = disambiguation_and_sources ?source_links @@ Entry.value version
 
 let description ?arranger_links ?source_links version =
-  let bars = Model.Version.bars version in
-  let structure = Model.Version.structure version in
-  let key = Model.Version.key version in
-  let shape = spf "%d-bar %s version in %s" bars structure (Music.key_to_pretty_string key) in
+  let shape =
+    let key = Model.Version.key version in
+    match Model.Version.content version with
+    | Full {bars; structure; _} -> spf "%d-bar %s version in %s" bars (Model.Version.Content.structure_to_string structure) (Music.key_to_pretty_string key)
+    | Parts _ -> spf "Destructured version in %s" (Music.key_to_pretty_string key)
+  in
   let arranger_block =
     match%lwt Model.Version.arrangers version with
     | [] -> lwt_nil
@@ -120,9 +125,11 @@ let tune_description' = tune_description % Entry.value
 
 let kind_and_structure version =
   with_span_placeholder @@
-    let bars = Model.Version.bars version in
     let%lwt kind = Model.Tune.kind' <$> Model.Version.tune version in
-    let structure = Model.Version.structure version in
-    lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ structure ^ ")"]
+    match Model.Version.content version with
+    | Full {bars; structure; _} ->
+      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ Model.Version.Content.structure_to_string structure ^ ")"]
+    | Parts _ ->
+      lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
 
 let kind_and_structure' = kind_and_structure % Entry.value

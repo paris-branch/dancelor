@@ -54,7 +54,7 @@ module Version = Table.Make(struct
     lwt
       (
         [Table.make_id_and_table (module Tune) (ModelBuilder.Core.Version.tune version)] @
-        List.map (Table.make_id_and_table (module Source)) (ModelBuilder.Core.Version.sources version) @
+        List.map (Table.make_id_and_table (module Source)) (List.map fst @@ ModelBuilder.Core.Version.sources version) @
         List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
       )
   let standalone = true

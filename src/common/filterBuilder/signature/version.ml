@@ -15,9 +15,6 @@ module type S = sig
   val tune : Core.Tune.t -> predicate
   val tune' : Core.Tune.t -> t
 
-  val kind : Kind.Version.Filter.t -> predicate
-  val kind' : Kind.Version.Filter.t -> t
-
   val key : Music.Key.t -> predicate
   val key' : Music.Key.t -> t
 

@@ -37,33 +37,9 @@ module Build (Getters : Getters.S) = struct
   let warnings s =
     let warnings = ref [] in
     let add_warning w = warnings := w :: !warnings in
-    (* Check that version kinds and bars correspond to set's kind. *)
-    let (bars, kind) =
-      match kind s with
-      | Mul (_, Version (bars, kind)) -> (bars, kind)
-      | _ ->
-        (* FIXME: more complicated that it appears: For sets that have a medley
-           kind, checking that “the version has a compatible kind” makes little
-           sense. I don't think there is a very good solution right now; ideally
-           later we should check that the versions “added” as per the set's
-           order sum up to the kind of the set, but that's more involved. *)
-        (32, KindBase.Reel)
-    in
     let%lwt versions =
       let%lwt contents = contents s in
       lwt (List.map fst contents)
-    in
-    let%lwt () =
-      Lwt_list.iter_s
-        (fun version ->
-          if Core.Version.bars' version <> bars then
-            add_warning (WrongVersionBars version);
-          let%lwt tune = Option.get <$> Getters.get_tune @@ Core.Version.tune' version in
-          if Core.Tune.kind' tune <> kind then
-            add_warning (WrongVersionKind tune);
-          lwt_unit
-        )
-        versions
     in
     (* Check that there are no duplicates. *)
     let%lwt tunes = Lwt_list.map_s (Lwt.map Option.get % Getters.get_tune % Core.Version.tune') versions in

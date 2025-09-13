@@ -132,11 +132,8 @@ module Make (Model : ModelBuilder.S) = struct
         accepts_tune tfilter tune
       | Key key' ->
         lwt @@ Formula.interpret_bool (Model.Version.key' version = key')
-      | Kind kfilter ->
-        let%lwt tune = Model.Version.tune' version in
-        Kind.Version.Filter.accepts kfilter (Model.Version.bars' version, Model.Tune.kind' tune)
       | ExistsSource sfilter ->
-        let%lwt sources = Model.Version.sources' version in
+        let%lwt sources = List.map fst <$> Model.Version.sources' version in
         Formula.interpret_exists (accepts_source sfilter) sources
 
   let rec accepts_any filter any =

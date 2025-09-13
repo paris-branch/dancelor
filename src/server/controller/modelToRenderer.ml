@@ -35,8 +35,8 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
   (* prepare the content *)
   let (content, show_bar_numbers) =
     match Model.Version.content version with
-    | Model.Version.Content.Full content -> (content, true)
-    | Parts parts -> (Model.Version.Content.lilypond_from_parts parts, false)
+    | Model.Version.Content.Full {lilypond; _} -> (lilypond, true)
+    | Parts {parts; _} -> (Model.Version.Content.lilypond_from_parts parts, false)
   in
   (* update the key *)
   let content =
@@ -117,7 +117,7 @@ let version_to_renderer_set version version_params set_params =
     Option.fold ~none: "" ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
   in
   let%lwt kind =
-    let%lwt none = Kind.Version.to_pretty_string <$> Model.Version.kind version in
+    let%lwt none = Kind.Base.to_pretty_string % Model.Tune.kind' <$> Model.Version.tune version in
     lwt @@ Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_kind set_params)
   in
   let%lwt contents = List.singleton <$> version_to_renderer_tune ~version_params version in

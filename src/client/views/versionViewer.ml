@@ -150,6 +150,24 @@ let create ?context id =
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
       Components.VersionSnippets.make version;
+      R.div (
+        S.from' [] @@
+          let%lwt sources = Model.Version.sources' version in
+          lwt [
+            txt "Appears in:";
+            ul (
+              List.map
+                (fun (source, structure) ->
+                  li [
+                    Formatters.Source.name' source;
+                    txt " as ";
+                    txt (Model.Version.Content.structure_to_string structure);
+                  ]
+                )
+                sources
+            )
+          ]
+      );
       Utils.quick_explorer_links
         [
           ("sets containing this version", lwt @@ Filter.(Any.set' % Set.memversion') version);
