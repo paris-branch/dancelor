@@ -74,6 +74,12 @@ let
         '';
         type = types.str; # FIXME: enum
       };
+      show_bar_numbers = mkOption {
+        description = ''
+          Whether to show the bar numbers.
+        '';
+        type = types.bool;
+      };
     };
   };
 
@@ -119,6 +125,7 @@ let
       tempo_unit,
       tempo_value,
       chords_kind,
+      show_bar_numbers,
       ...
     }:
     let
@@ -133,9 +140,13 @@ let
           cat ${./tune/lilypond/preamble.ly}
           printf '#(load "%s")\n' ${tuneScheme}
           cat ${./tune/lilypond/macros.ly}
-          cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
-          cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
-          cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
+          if ${if show_bar_numbers then "true" else "false"}; then
+            cat ${./tune/lilypond/bar_numbering/repeat_aware.ly}
+            cat ${./tune/lilypond/bar_numbering/bar_number_in_instrument_name_engraver.ly}
+            cat ${./tune/lilypond/bar_numbering/beginning_of_line.ly}
+          else
+            printf '\\layout {\\context {\\Score\\omit BarNumber}}\n'
+          fi
           cat ${./tune/lilypond/scottish_chords.ly}
           cat ${./tune/lilypond/fancy_unfold_repeats.ly}
           ## SVG

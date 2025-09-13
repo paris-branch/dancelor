@@ -1,9 +1,41 @@
 open Nes
 
 module Content = struct
+  type part_name = char
+  [@@deriving eq, yojson, show {with_path = false}]
+  (* FIXME: limit to capitals *)
+
+  type part = {
+    melody: string;
+    chords: string;
+  }
+  [@@deriving eq, yojson, show {with_path = false}]
+
+  let lilypond_from_parts parts =
+    let melody =
+      String.concat " \\bar \"||\"\\break " (
+        List.map
+          (fun (part_name, part) ->
+            spf "\\mark\\markup\\box{%c} %s" part_name part.melody
+          )
+          parts
+      ) ^
+        "\\bar \"|.\""
+    in
+    let chords = String.concat " " (List.map (fun (_part_name, part) -> part.chords) parts) in
+    spf
+      "<< \\new Voice {\\clef treble \\time 4/4 \\key d \\major {%s}}\\new ChordNames {\\chordmode {%s}}>>"
+      melody
+      chords
+
   type t =
     | Full of string
+    | Parts of (part_name * part) list
   [@@deriving eq, yojson, show {with_path = false}, variants]
+
+  let lilypond = function
+    | Full string -> string
+    | Parts parts -> lilypond_from_parts parts
 end
 
 let _key = "version"

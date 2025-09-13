@@ -91,15 +91,81 @@ let editor =
     ~serialise: Fun.id
     ~validate: (S.const % ok)
     () ^::
-  Input.prepare
-    ~type_: (Textarea {rows = 20})
-    ~font: Monospace
-    ~label: "LilyPond content"
-    ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
-    ~serialise: (Option.get % Model.Version.Content.full_val)
-    ~validate: (S.const % Result.map Model.Version.Content.full % Result.of_string_nonempty ~empty: "Cannot be empty.")
-    ~template: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\major\n    \\time 4/4\n\n    %% add tune here\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      %% add chords here\n    }\n  }\n>>"
-    () ^::
+  (
+    let open Plus.TupleElt in
+    Plus.prepare
+      ~label: "Content"
+      ~cast: (function
+        | Zero content -> Model.Version.Content.Full content
+        | Succ Zero parts ->
+          Model.Version.Content.Parts (
+            List.map
+              (Pair.map_snd (fun (melody, chords) -> Model.Version.Content.{melody; chords}))
+              parts
+          )
+        | _ -> assert false (* types guarantee this is not reachable *)
+      )
+      ~uncast: (function
+        | Model.Version.Content.Full content -> Zero content
+        | Model.Version.Content.Parts parts ->
+          one (
+            List.map
+              (Pair.map_snd (fun Model.Version.Content.{melody; chords} -> (melody, chords)))
+              parts
+          )
+      )
+      (
+        let open Plus.Bundle in
+        Input.prepare
+          ~type_: (Textarea {rows = 20})
+          ~font: Monospace
+          ~label: "Full"
+          ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
+          ~serialise: id
+          ~validate: (S.const % Result.of_string_nonempty ~empty: "Cannot be empty.")
+          ~template: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\major\n    \\time 4/4\n\n    %% add tune here\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      %% add chords here\n    }\n  }\n>>"
+          () ^::
+        Star.prepare
+          ~label: "Parts"
+          (
+            Cpair.prepare
+              ~label: "Part"
+              (
+                Input.prepare
+                  ~type_: Text
+                  ~label: "Part name"
+                  ~placeholder: "eg. A, B, C"
+                  ~serialise: Char.to_string
+                  ~validate: (S.const % Option.to_result ~none: "Must be one character" % Char.of_string_opt)
+                  ()
+              )
+              (
+                Cpair.prepare
+                  ~label: "Part content"
+                  (
+                    Input.prepare
+                      ~type_: (Textarea {rows = 13})
+                      ~label: "Melody"
+                      ~serialise: id
+                      ~validate: (S.const % ok)
+                      ~placeholder: "\\relative f' {\n  \\partial 4 a4 |\n  d,4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d cis b a g fis e |\n  \\break\n\n  d4 fis8 a b4 a |\n  b8 a b cis d4 d8 cis |\n  b4 d8 fis b a g fis |\n  e d e fis d4\n}"
+                      ~template: "\\relative f' {\n  %% add part's melody here\n}\n"
+                      ()
+                  )
+                  (
+                    Input.prepare
+                      ~type_: (Textarea {rows = 2})
+                      ~label: "Chords"
+                      ~serialise: id
+                      ~validate: (S.const % ok)
+                      ~placeholder: "s4 | d2 g | a d | b:m e:m | a2 a:7 |\nd2 g | a d | b:m e:m | a2:7 d4"
+                      ()
+                  )
+              )
+          ) ^::
+        nil
+      )
+  ) ^::
   nil
 
 let assemble (tune, (bars, (key, (structure, (arrangers, (remark, (sources, (disambiguation, (content, ()))))))))) =

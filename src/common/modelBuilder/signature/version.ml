@@ -4,10 +4,23 @@ module type S = sig
   open Nes
 
   module Content : sig
+    type part_name = Core.Version.Content.part_name
+
+    type part = Core.Version.Content.part = {
+      melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)
+      chords: string; (** the chords of that part; they will be interpreted in LilyPond's [\chordmode] *)
+    }
+
+    val lilypond_from_parts : (part_name * part) list -> string
+    (** Combine the parts into a LilyPond string. *)
+
     type t = Core.Version.Content.t =
-      | Full of string
-    (** A tune as a full LilyPond, including clef, key, etc. *)
+      | Full of string (** A tune as a full LilyPond, including clef, key, etc. *)
+      | Parts of (part_name * part) list (** A tune decomposed as building blocks *)
     [@@deriving variants]
+
+    val lilypond : t -> string
+    (** Return the full immediately, or call {!lilypond_from_parts}. *)
   end
 
   type t = Core.Version.t
