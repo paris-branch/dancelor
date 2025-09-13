@@ -33,7 +33,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
         (Model.VersionParameters.display_composer version_params)
   in
   (* prepare the content *)
-  let content = Model.Version.content version in
+  let content = Option.get @@ Model.Version.Content.full_val @@ Model.Version.content version in
   (* update the key *)
   let content =
     match Model.VersionParameters.clef version_params with

@@ -3,6 +3,13 @@ module type S = sig
 
   open Nes
 
+  module Content : sig
+    type t = Core.Version.Content.t =
+      | Full of string
+    (** A tune as a full LilyPond, including clef, key, etc. *)
+    [@@deriving variants]
+  end
+
   type t = Core.Version.t
 
   val make :
@@ -14,7 +21,7 @@ module type S = sig
     ?arrangers: Core.Person.t Entry.t list ->
     ?remark: string ->
     ?disambiguation: string ->
-    content: string ->
+    content: Content.t ->
     unit ->
     t
 
@@ -42,8 +49,8 @@ module type S = sig
   val disambiguation : t -> string
   val disambiguation' : t Entry.t -> string
 
-  val content : t -> string
-  val content' : t Entry.t -> string
+  val content : t -> Content.t
+  val content' : t Entry.t -> Content.t
 
   val kind : t -> Kind.Version.t Lwt.t
   val kind' : t Entry.t -> Kind.Version.t Lwt.t
@@ -67,7 +74,7 @@ module type S = sig
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 
-  val set_content : string option -> t -> t
+  val set_content : Content.t option -> t -> t
 
   (** {2 Magic getter} *)
 

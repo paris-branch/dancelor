@@ -96,8 +96,8 @@ let editor =
     ~font: Monospace
     ~label: "LilyPond content"
     ~placeholder: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\minor\n    \\time 4/4\n\n    ...\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n    ...\n    }\n  }\n>>"
-    ~serialise: Fun.id
-    ~validate: (S.const % Result.of_string_nonempty ~empty: "Cannot be empty.")
+    ~serialise: (Option.get % Model.Version.Content.full_val)
+    ~validate: (S.const % Result.map Model.Version.Content.full % Result.of_string_nonempty ~empty: "Cannot be empty.")
     ~template: "\\relative f' <<\n  {\n    \\clef treble\n    \\key d \\major\n    \\time 4/4\n\n    %% add tune here\n  }\n\n  \\new ChordNames {\n    \\chordmode {\n      %% add chords here\n    }\n  }\n>>"
     () ^::
   nil

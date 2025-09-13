@@ -9,7 +9,7 @@ type (_, _, _) t =
 | Search : ((Slice.t -> Filter.Version.t -> 'w), 'w, (int * Version.t Entry.t list)) t
 (* Actions on a specific version *)
 | Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.t Entry.t) t
-| Content : ((Version.t Entry.Id.t -> 'w), 'w, string) t
+| Content : ((Version.t Entry.Id.t -> 'w), 'w, Version.Content.t) t
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
 (* Files related to a version *)
 | BuildSvg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Job.Registration.t) t
@@ -39,7 +39,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Search -> query "slice" (module Slice) @@ query "filter" (module Filter.Version) @@ get (module JPair(JInt)(JList(Entry.J(VersionNoContent))))
     (* Actions on a specific version *)
     | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoContent))
-    | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module JString)
+    | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Version.Content)
     | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoContent))
     (* Files related to a version *)
     | BuildSvg -> literal "build-svg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration)

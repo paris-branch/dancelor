@@ -1,5 +1,11 @@
 open Nes
 
+module Content = struct
+  type t =
+    | Full of string
+  [@@deriving eq, yojson, show {with_path = false}, variants]
+end
+
 let _key = "version"
 
 type t = {
@@ -11,7 +17,7 @@ type t = {
   arrangers: Person.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
   disambiguation: string; [@default ""]
-  content: string option;
+  content: Content.t option;
   (** In the client, we don't include the content, and it has to be retrieved by
       calling a specific endpoint; in the meantime, we fill it with [None]. *)
 }

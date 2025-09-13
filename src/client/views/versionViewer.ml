@@ -4,7 +4,7 @@ open Model
 open Html
 
 let show_lilypond_dialog id =
-  let content_promise = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) id in
+  let content_promise = Option.get % Model.Version.Content.full_val <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Content) id in
   ignore
   <$> Page.open_dialog @@ fun return ->
     Page.make'
