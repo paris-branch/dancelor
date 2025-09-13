@@ -14,10 +14,7 @@ let create ?context id =
         (lwt @@ Any.tune tune);
     ]
     ~title: (lwt @@ NEString.to_string @@ Tune.one_name' tune)
-    ~subtitles: [
-      Formatters.Tune.aka' tune;
-      Formatters.Tune.description' tune;
-    ]
+    ~subtitles: [Formatters.Tune.description' tune]
     ~share: (Tune tune)
     ~actions: (
       lwt @@
@@ -50,6 +47,14 @@ let create ?context id =
           | None -> []
           | Some date -> [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         );
+      R.div (
+        S.from' [] @@
+          let other_names = Model.Tune.other_names' tune in
+          lwt [
+            txt "Also known as:";
+            ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
+          ]
+      );
       Utils.quick_explorer_links'
         (lwt tune)
         [

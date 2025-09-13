@@ -3,13 +3,11 @@ open Html
 
 val description :
   ?arranger_links: bool ->
-  ?source_links: bool ->
   Model.Version.t ->
   [> Html_types.span] elt
 
 val description' :
   ?arranger_links: bool ->
-  ?source_links: bool ->
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
 
