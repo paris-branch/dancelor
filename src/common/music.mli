@@ -8,6 +8,8 @@ type note =
   A | B | C | D | E | F | G
 [@@deriving eq, show]
 
+val note_to_lilypond_string : note -> string
+
 type alteration =
   Flat | Sharp | Natural
 [@@deriving eq, show]

@@ -28,6 +28,17 @@ module Build (Getters : Getters.S) = struct
   let other_names version = Core.Tune.other_names' <$> tune version
   let other_names' = other_names % Entry.value
 
+  let kind version = Core.Tune.kind' <$> tune version
+  let kind' = kind % Entry.value
+
   let slug version = Entry.Slug.of_string % NEString.to_string <$> one_name version
   let slug' = slug % Entry.value
+
+  let content_lilypond ?content: the_content version =
+    let%lwt kind = kind version in
+    let key = key version in
+    let content = Option.value the_content ~default: (content version) in
+    lwt @@ Content.lilypond kind key content
+
+  let content_lilypond' ?content version = content_lilypond ?content @@ Entry.value version
 end

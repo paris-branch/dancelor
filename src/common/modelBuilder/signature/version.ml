@@ -16,16 +16,10 @@ module type S = sig
       bars: int; (** how many bars does this part span; most often 8 bars *)
     }
 
-    val lilypond_from_parts : (part_name * part) NEList.t -> string
-    (** Combine the parts into a LilyPond string. *)
-
     type t = Core.Version.Content.t =
       | Monolithic of {lilypond: string; bars: int; structure: structure} (** A tune as a full LilyPond, including clef, key, etc. *)
       | Destructured of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t} (** A tune decomposed as building blocks *)
     [@@deriving variants]
-
-    val lilypond : t -> string
-    (** Return the full immediately, or call {!lilypond_from_parts}. *)
   end
 
   type t = Core.Version.t
@@ -61,6 +55,14 @@ module type S = sig
 
   val content : t -> Content.t
   val content' : t Entry.t -> Content.t
+  (** Raises {!Failure} on the client side. *)
+
+  val content_lilypond : ?content: Content.t -> t -> string Lwt.t
+  val content_lilypond' : ?content: Content.t -> t Entry.t -> string Lwt.t
+  (** Convenient wrapper around {!Content.lilypond} that grabs the right
+      information from {!tune}. If the optional [?content] argument is not
+      provided, the content is taken from the version with {!content} which
+      raise an exception on the client side. *)
 
   val names : t -> NEString.t NEList.t Lwt.t
   val names' : t Entry.t -> NEString.t NEList.t Lwt.t
@@ -73,6 +75,10 @@ module type S = sig
   val other_names : t -> NEString.t list Lwt.t
   val other_names' : t Entry.t -> NEString.t list Lwt.t
   (** Convenient wrapper around {!tune} and {!Tune.other_names}. *)
+
+  val kind : t -> Kind.Base.t Lwt.t
+  val kind' : t Entry.t -> Kind.Base.t Lwt.t
+  (** Convenient wrapper around {!tune} and {!Tune.kind}. *)
 
   val slug : t -> Entry.Slug.t Lwt.t
   val slug' : t Entry.t -> Entry.Slug.t Lwt.t

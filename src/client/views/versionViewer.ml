@@ -3,8 +3,11 @@ open Common
 open Model
 open Html
 
-let show_lilypond_dialog id =
-  let content_promise = Model.Version.Content.lilypond <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Content) id in
+let show_lilypond_dialog version =
+  let content_promise =
+    let%lwt content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id version) in
+    Model.Version.content_lilypond' ~content version
+  in
   ignore
   <$> Page.open_dialog @@ fun return ->
     Page.make'
@@ -88,7 +91,7 @@ let create ?context id =
                 ~label: "Show LilyPond"
                 ~label_processing: "Showing LilyPond..."
                 ~icon: "file-music"
-                ~onclick: (fun () -> show_lilypond_dialog id)
+                ~onclick: (fun () -> show_lilypond_dialog version)
                 ();
               Utils.Button.make
                 ~label: "Add to current set"

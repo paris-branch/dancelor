@@ -23,7 +23,19 @@ module Content = struct
   }
   [@@deriving eq, yojson, show {with_path = false}]
 
-  let lilypond_from_parts parts =
+  let lilypond_from_parts kind key parts =
+    let time =
+      match kind with
+      | Kind.Base.Reel -> "2/2"
+      | Jig -> "6/8"
+      | Strathspey -> "4/4"
+      | Waltz -> "3/4"
+      | Polka -> "2/2"
+    in
+    let key =
+      (Music.note_to_lilypond_string key.Music.pitch.note) ^
+      " " ^ (match key.mode with Major -> "\\major" | Minor -> "\\minor")
+    in
     let parts = NEList.to_list parts in
     let melody =
       String.concat " \\bar \"||\"\\break " (
@@ -37,7 +49,9 @@ module Content = struct
     in
     let chords = String.concat " " (List.map (fun (_part_name, part) -> part.chords) parts) in
     spf
-      "<< \\new Voice {\\clef treble \\time 4/4 \\key d \\major {%s}}\\new ChordNames {\\chordmode {%s}}>>"
+      "<< \\new Voice {\\clef treble \\time %s \\key %s {%s}}\\new ChordNames {\\chordmode {%s}}>>"
+      time
+      key
       melody
       chords
 
@@ -46,9 +60,9 @@ module Content = struct
     | Destructured of {parts: (part_name * part) NEList.t; common_structures: structure NEList.t}
   [@@deriving eq, yojson, show {with_path = false}, variants]
 
-  let lilypond = function
+  let lilypond kind key = function
     | Monolithic {lilypond; _} -> lilypond
-    | Destructured {parts; _} -> lilypond_from_parts parts
+    | Destructured {parts; _} -> lilypond_from_parts kind key parts
 
   let erase_lilypond = function
     | Monolithic {bars; structure; _} -> Monolithic {bars; structure; lilypond = ""}

@@ -33,11 +33,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
         (Model.VersionParameters.display_composer version_params)
   in
   (* prepare the content *)
-  let (content, show_bar_numbers) =
-    match Model.Version.content version with
-    | Model.Version.Content.Monolithic {lilypond; _} -> (lilypond, true)
-    | Destructured {parts; _} -> (Model.Version.Content.lilypond_from_parts parts, false)
-  in
+  let%lwt content = Model.Version.content_lilypond version in
   (* update the key *)
   let content =
     match Model.VersionParameters.clef version_params with
@@ -64,6 +60,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
+  let show_bar_numbers = Model.Version.(Content.is_monolithic @@ content version) in
   lwt Renderer.{slug; name; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
 
 let version_to_renderer_tune' ?version_params version =
