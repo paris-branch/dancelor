@@ -3,8 +3,6 @@ open Common
 
 module Source = Table.Make(struct
   include ModelBuilder.Core.Source
-
-  let separate_fields = []
   let dependencies _ = lwt []
   let standalone = false
   let wrap_any = ModelBuilder.Core.Any.source
@@ -12,8 +10,6 @@ end)
 
 module Person = Table.Make(struct
   include ModelBuilder.Core.Person
-
-  let separate_fields = []
   let dependencies _ = lwt []
   let standalone = false
   let wrap_any = ModelBuilder.Core.Any.person
@@ -21,8 +17,6 @@ end)
 
 module User = Table.Make(struct
   include ModelBuilder.Core.User
-
-  let separate_fields = []
   let dependencies user =
     lwt [
       Table.make_id_and_table (module Person) (ModelBuilder.Core.User.person user)
@@ -33,8 +27,6 @@ end)
 
 module Dance = Table.Make(struct
   include ModelBuilder.Core.Dance
-
-  let separate_fields = []
   let dependencies dance =
     lwt
       (
@@ -46,23 +38,18 @@ end)
 
 module Tune = Table.Make(struct
   include ModelBuilder.Core.Tune
-
-  let separate_fields = []
   let dependencies tune =
     lwt
       (
         List.map (Table.make_id_and_table (module Dance)) (ModelBuilder.Core.Tune.dances tune) @
           List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Tune.composers tune)
       )
-
   let standalone = false
   let wrap_any = ModelBuilder.Core.Any.tune
 end)
 
 module Version = Table.Make(struct
   include ModelBuilder.Core.Version
-
-  let separate_fields = [("content", "content.ly")]
   let dependencies version =
     lwt
       (
@@ -70,15 +57,12 @@ module Version = Table.Make(struct
         List.map (Table.make_id_and_table (module Source)) (ModelBuilder.Core.Version.sources version) @
         List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
       )
-
   let standalone = true
   let wrap_any = ModelBuilder.Core.Any.version
 end)
 
 module SetModel = struct
   include ModelBuilder.Core.Set
-
-  let separate_fields = []
   let dependencies set =
     lwt
       (
@@ -94,8 +78,6 @@ module Set = Table.Make(SetModel)
 
 module Book = Table.Make(struct
   include ModelBuilder.Core.Book
-
-  let separate_fields = []
   let dependencies book =
     let%lwt dependencies =
       Lwt_list.map_p
@@ -119,7 +101,6 @@ module Book = Table.Make(struct
         (ModelBuilder.Core.Book.contents book)
     in
     lwt (List.flatten dependencies)
-
   let standalone = true
   let wrap_any = ModelBuilder.Core.Any.book
 end)
