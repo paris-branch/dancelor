@@ -5,15 +5,15 @@ module Content = struct
   [@@deriving eq, yojson, show {with_path = false}]
   (* FIXME: limit to capitals *)
 
-  type structure = part_name list
+  type structure = part_name NEList.t
   [@@deriving eq, show {with_path = false}]
 
-  let structure_to_string = String.of_seq % List.to_seq
-  let structure_of_string = List.of_seq % String.to_seq
+  let structure_to_string = NEString.of_string_exn % String.of_seq % List.to_seq % NEList.to_list
+  let structure_of_string = NEList.of_list % List.of_seq % String.to_seq % NEString.to_string
 
-  let structure_to_yojson s = `String (structure_to_string s)
+  let structure_to_yojson s = `String (NEString.to_string @@ structure_to_string s)
   let structure_of_yojson = function
-    | `String s -> Ok (structure_of_string s)
+    | `String s -> Option.to_result ~none: "not a valid structure" (Option.bind (NEString.of_string s) structure_of_string)
     | _ -> Error "not a string"
 
   type part = {

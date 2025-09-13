@@ -175,7 +175,7 @@ let create ?context id =
                       (txt "commonly as ") :: List.interspersei
                         (fun _ -> txt ", ")
                         ~last: (fun _ -> txt " or ")
-                        (List.map (txt % Model.Version.Content.structure_to_string) (NEList.to_list common_structures))
+                        (List.map (txt % NEString.to_string % Model.Version.Content.structure_to_string) (NEList.to_list common_structures))
                   ]
               ) @
                 List.map
@@ -184,7 +184,7 @@ let create ?context id =
                       txt "in ";
                       Formatters.Source.name' source;
                       txt " as ";
-                      txt (Model.Version.Content.structure_to_string structure);
+                      txt (NEString.to_string @@ Model.Version.Content.structure_to_string structure);
                     ]
                   )
                   sources

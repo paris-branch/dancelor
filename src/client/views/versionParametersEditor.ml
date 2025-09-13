@@ -20,6 +20,13 @@ let editor =
     () ^::
   Input.prepare_option
     ~type_: Text
+    ~label: "Structure"
+    ~placeholder: "eg. AABB or ABABB"
+    ~serialise: Model.Version.Content.structure_to_string
+    ~validate: (S.const % Option.to_result ~none: "not a valid structure" % Model.Version.Content.structure_of_string)
+    () ^::
+  Input.prepare_option
+    ~type_: Text
     ~label: "First bar"
     ~placeholder: "eg. 33"
     ~serialise: (NEString.of_string_exn % string_of_int)
@@ -27,14 +34,15 @@ let editor =
     () ^::
   nil
 
-let assemble (display_name, (display_composer, (first_bar, ()))) =
-  Model.VersionParameters.make ?display_name ?display_composer ?first_bar ()
+let assemble (display_name, (display_composer, (structure, (first_bar, ())))) =
+  Model.VersionParameters.make ?display_name ?display_composer ?structure ?first_bar ()
 
 let disassemble params =
   let display_name = Model.VersionParameters.display_name params in
   let display_composer = Model.VersionParameters.display_composer params in
+  let structure = Model.VersionParameters.structure params in
   let first_bar = Model.VersionParameters.first_bar params in
-  lwt (display_name, (display_composer, (first_bar, ())))
+  lwt (display_name, (display_composer, (structure, (first_bar, ()))))
 
 let e =
   Editor.prepare_nosubmit

@@ -6,9 +6,10 @@ module type S = sig
   module Content : sig
     type part_name = Core.Version.Content.part_name
 
-    type structure = (* Core.Version.Content.structure = *) part_name list
+    type structure = (* Core.Version.Content.structure = *) part_name NEList.t
 
-    val structure_to_string : structure -> string
+    val structure_to_string : structure -> NEString.t
+    val structure_of_string : NEString.t -> structure option
 
     type part = Core.Version.Content.part = {
       melody: string; (** the melody of that part; they must not include clef or time; they may include the key *)

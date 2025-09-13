@@ -32,7 +32,8 @@ let description ?arranger_links version =
   let shape =
     let key = Model.Version.key version in
     match Model.Version.content version with
-    | Monolithic {bars; structure; _} -> spf "%d-bar %s version in %s" bars (Model.Version.Content.structure_to_string structure) (Music.key_to_pretty_string key)
+    | Monolithic {bars; structure; _} ->
+      spf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Content.structure_to_string structure) (Music.key_to_pretty_string key)
     | Destructured _ -> spf "Destructured version in %s" (Music.key_to_pretty_string key)
   in
   let arranger_block =
@@ -77,9 +78,14 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
     | None -> []
     | Some display_name -> [txt " [as “"; txt (NEString.to_string display_name); txt "”]"]
   in
+  let structure_block =
+    match Model.VersionParameters.structure params with
+    | None -> []
+    | Some structure -> [txt " [play "; txt (NEString.to_string @@ Model.Version.Content.structure_to_string structure); txt "]"]
+  in
   span (
     [name_gen version; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block] @
-      display_name_block
+    display_name_block @ structure_block
   )
 
 let name_disambiguation_and_sources ?params version =
@@ -129,7 +135,7 @@ let kind_and_structure version =
     let%lwt kind = Model.Tune.kind' <$> Model.Version.tune version in
     match Model.Version.content version with
     | Monolithic {bars; structure; _} ->
-      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ Model.Version.Content.structure_to_string structure ^ ")"]
+      lwt [txt @@ Kind.Version.to_string (bars, kind) ^ " (" ^ NEString.to_string (Model.Version.Content.structure_to_string structure) ^ ")"]
     | Destructured _ ->
       lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
 

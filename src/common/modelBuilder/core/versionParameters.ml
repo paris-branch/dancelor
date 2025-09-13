@@ -9,6 +9,7 @@ module Self = struct
     transposition: Transposition.t option; [@default None]
     first_bar: int option; [@default None] [@key "first-bar"]
     clef: Music.clef option; [@default None]
+    structure: Version.Content.structure option; [@default None]
     trivia: string option; [@default None]
     display_name: NEString.t option; [@default None] [@key "display-name"]
     display_composer: NEString.t option [@default None] [@key "display-composer"]
@@ -23,8 +24,8 @@ include Self
    [@yojson.default]. Current version of [@@deriving yojson] (3.5.3) does not,
    however, seem to recognise this option anymore. In the meantime, we use
    [@default] and we add a dirty fix for [@@deriving make]: *)
-let make ?transposition ?clef ?first_bar ?display_name ?display_composer () =
-  make ~transposition ~clef ~first_bar ~display_name ~display_composer ()
+let make ?transposition ?clef ?structure ?first_bar ?display_name ?display_composer () =
+  make ~transposition ~clef ~structure ~first_bar ~display_name ~display_composer ()
 
 (** {2 Defaults}
 
@@ -45,6 +46,7 @@ let set_display_name display_name p = {p with display_name = Some display_name}
 let compose first second = {
   transposition = Option.choose ~tie: Transposition.compose first.transposition second.transposition;
   clef = Option.(choose ~tie: second) first.clef second.clef;
+  structure = Option.(choose ~tie: second) first.structure second.structure;
   first_bar = Option.(choose ~tie: second) first.first_bar second.first_bar;
   trivia = Option.(choose ~tie: second) first.trivia second.trivia;
   display_name = Option.(choose ~tie: second) first.display_name second.display_name;

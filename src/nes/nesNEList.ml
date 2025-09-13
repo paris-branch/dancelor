@@ -23,3 +23,6 @@ let hd (L xs) = List.hd xs
 let tl (L xs) = List.tl xs
 
 let singleton x = L [x]
+let append (L xs) (L ys) = L (xs @ ys)
+
+let fold_left1 f (L xs) = List.fold_left f (List.hd xs) (List.tl xs)
