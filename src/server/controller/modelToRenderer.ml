@@ -14,27 +14,125 @@ let format_persons_list =
 let format_persons =
   String.concat ", " ~last: " and " % format_persons_list
 
-let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
-  let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
-  let%lwt name =
-    let%lwt default = Model.Version.one_name version in
-    lwt @@
-    NEString.to_string @@
-    Option.value
-      ~default
-      (Model.VersionParameters.display_name version_params)
+(** Structures, but with more structure *)
+type structure =
+  | Part of char
+  | Append of structure * structure
+  | Repeat of int * structure
+
+(** A few helpers *)
+let a = Part 'A'
+let b = Part 'B'
+let c = Part 'C'
+let d = Part 'D'
+let append x y = Append (x, y)
+let repeat n x = Repeat (n, x)
+
+(** A general algorithm would be great, but for now this will do. *)
+let best_structure_for = function
+  | "AABB" -> some @@ append (repeat 2 a) (repeat 2 b)
+  | "ABAB" -> some @@ repeat 2 (append a b)
+  | "AABBB" -> some @@ append (repeat 2 a) (repeat 3 b)
+  | "ABABB" -> some @@ append (repeat 2 (append a b)) b
+  | "ABABC" -> some @@ append (repeat 2 (append a b)) c
+  | "ABABAB" -> some @@ repeat 3 (append a b)
+  | "AABBAB" -> some @@ append (append (repeat 2 a) (repeat 2 b)) (append a b)
+  | "AABBCC" -> some @@ append (repeat 2 a) (append (repeat 2 b) (repeat 2 c))
+  | "AABBCCDD" -> some @@ append (append (repeat 2 a) (repeat 2 b)) (append (repeat 2 c) (repeat 2 d))
+  | _ -> None
+
+let rec starts_with_repeat = function
+  | Part _ -> false
+  | Repeat _ -> true
+  | Append (_, f) -> starts_with_repeat f
+
+let rec ends_with_repeat = function
+  | Part _ -> false
+  | Repeat _ -> true
+  | Append (_, f) -> ends_with_repeat f
+
+let version_parts_to_lilypond_content ~version_params version parts =
+  ignore version_params;
+  let%lwt kind = Model.Version.kind version in
+  let key = Model.Version.key version in
+  let time =
+    match kind with
+    | Kind.Base.Reel -> "2/2"
+    | Jig -> "6/8"
+    | Strathspey -> "4/4"
+    | Waltz -> "3/4"
+    | Polka -> "2/2"
   in
-  let%lwt composer =
-    let%lwt none = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
-    lwt @@
+  let key =
+    (Music.note_to_lilypond_string key.Music.pitch.note) ^
+    " " ^ (match key.Music.mode with Major -> "\\major" | Minor -> "\\minor")
+  in
+  let parts = NEList.to_list parts in
+  let (melody, chords) =
+    let structure =
       Option.fold
-        ~none
-        ~some: NEString.to_string
-        (Model.VersionParameters.display_composer version_params)
+        ~none: None
+        ~some: (best_structure_for % NEString.to_string % Model.Version.Content.structure_to_string)
+        (Model.VersionParameters.structure version_params)
+    in
+    match structure with
+    | None ->
+      (* no structure; or we couldn't find a good one *)
+      let melody =
+        String.concat " \\bar \"||\"\\break " (
+          List.map
+            (fun (part_name, part) ->
+              spf "\\mark\\markup\\box{%c} %s" part_name part.Model.Version.Content.melody
+            )
+            parts
+        ) ^
+          "\\bar \"|.\""
+      in
+      let chords =
+        String.concat " " (
+          List.map (fun (_, part) -> part.Model.Version.Content.chords) parts
+        )
+      in
+        (melody, chords)
+    | Some structure ->
+      let rec to_lilypond_melody = function
+        | Part part -> (List.assoc part parts).melody
+        | Append (e, f) ->
+          (* FIXME: with LilyPond 2.24, we could just generate \\section and not bother with this *)
+          let show_double_bar = not (ends_with_repeat e) && not (starts_with_repeat f) in
+          spf "%s %s \\break %s" (to_lilypond_melody e) (if show_double_bar then "\\bar \"||\"" else "") (to_lilypond_melody f)
+        | Repeat (n, e) -> spf "\\repeat volta %d { %s }" n (to_lilypond_melody e)
+      in
+      let lilypond_melody =
+        spf
+          "%s %s"
+          (to_lilypond_melody structure)
+          (if not (ends_with_repeat structure) then "\\bar \"|.\"" else "")
+      in
+      let rec to_lilypond_chords = function
+        | Part part -> (List.assoc part parts).chords
+        | Append (e, f) -> spf "%s %s" (to_lilypond_chords e) (to_lilypond_chords f)
+        | Repeat (_, e) -> to_lilypond_chords e
+      in
+        (lilypond_melody, to_lilypond_chords structure)
   in
-  (* prepare the content *)
-  let%lwt content = Model.Version.content_lilypond version in
-  (* update the key *)
+  lwt @@
+    spf
+      "<< \\new Voice {\\clef treble \\time %s \\key %s {%s}}\\new ChordNames {\\chordmode {%s}}>>"
+      time
+      key
+      melody
+      chords
+
+let version_to_lilypond_content ~version_params version =
+  let content = Model.Version.content version in
+  (* get a LilyPond from the potentially-destructured content *)
+  let%lwt content =
+    match content with
+    | Monolithic {lilypond; _} -> lwt lilypond
+    | Destructured {parts; _} -> version_parts_to_lilypond_content ~version_params version parts
+  in
+  (* update the clef *)
   let content =
     match Model.VersionParameters.clef version_params with
     | None -> content
@@ -54,13 +152,38 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
     in
     spf "\\transpose %s %s { %s }" source target content
   in
+  (* done *)
+  lwt content
+
+let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
+  let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
+  let%lwt name =
+    let%lwt default = Model.Version.one_name version in
+    lwt @@
+    NEString.to_string @@
+    Option.value
+      ~default
+      (Model.VersionParameters.display_name version_params)
+  in
+  let%lwt composer =
+    let%lwt none = format_persons <$> (Model.Tune.composers' =<< Model.Version.tune version) in
+    lwt @@
+      Option.fold
+        ~none
+        ~some: NEString.to_string
+        (Model.VersionParameters.display_composer version_params)
+  in
+  let%lwt content = version_to_lilypond_content ~version_params version in
   let first_bar = Model.VersionParameters.first_bar' version_params in
   let stylesheet = "/fonts.css" in
   let%lwt tune = Model.Version.tune version in
   let kind = Model.Tune.kind' tune in
   let (tempo_unit, tempo_value) = Kind.Base.tempo kind in
   let chords_kind = Kind.Base.to_pretty_string ~capitalised: false kind in
-  let show_bar_numbers = Model.Version.(Content.is_monolithic @@ content version) in
+  let show_bar_numbers =
+    Model.Version.(Content.is_monolithic @@ content version)
+    || Model.VersionParameters.structure version_params <> None
+  in
   lwt Renderer.{slug; name; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
 
 let version_to_renderer_tune' ?version_params version =

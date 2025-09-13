@@ -78,9 +78,14 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
     | None -> []
     | Some display_name -> [txt " [as “"; txt (NEString.to_string display_name); txt "”]"]
   in
+  let structure_block =
+    match Model.VersionParameters.structure params with
+    | None -> []
+    | Some structure -> [txt " [play "; txt (NEString.to_string @@ Model.Version.Content.structure_to_string structure); txt "]"]
+  in
   span (
     [name_gen version; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block] @
-      display_name_block
+    display_name_block @ structure_block
   )
 
 let name_disambiguation_and_sources ?params version =
