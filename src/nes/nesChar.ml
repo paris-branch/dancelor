@@ -86,3 +86,6 @@ module Sensible = struct
   let equal c1 c2 =
     compare c1 c2 = 0
 end
+
+let to_string c = String.make 1 c
+let of_string_opt s = if String.length s <> 1 then None else Some s.[0]
