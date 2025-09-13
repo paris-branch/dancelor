@@ -31,7 +31,6 @@ let note_to_char = function
 let note_to_string note = note_to_char note |> Char.uppercase_ascii |> String.make 1
 let note_to_pretty_string = note_to_string
 let note_to_lilypond_string note = note_to_char note |> String.make 1
-let note_to_safe_string = note_to_lilypond_string
 
 let note_of_char c =
   match Char.lowercase_ascii c with
@@ -53,19 +52,12 @@ type alteration =
 let alteration_to_string = function Flat -> "b" | Sharp -> "#" | Natural -> ""
 let alteration_to_pretty_string = function Flat -> "♭" | Sharp -> "♯" | Natural -> ""
 let alteration_to_lilypond_string = function Flat -> "es" | Sharp -> "is" | Natural -> ""
-let alteration_to_safe_string = alteration_to_lilypond_string
 
 let alteration_of_string = function
   | "b" -> Flat
   | "#" -> Sharp
   | "" -> Natural
   | _ -> failwith "Dancelor_common.Model.Music.alteration_of_string"
-
-(* let alteration_of_lilypond_string = function
- *   | "es" -> Flat
- *   | "is" -> Sharp
- *   | "" -> Natural
- *   | _ -> failwith "Dancelor_common.Model.Music.alteration_of_lilypond_string" *)
 
 (* Octave *)
 
@@ -121,12 +113,6 @@ let pitch_to_lilypond_string pitch =
   alteration_to_lilypond_string pitch.alteration ^
   octave_to_lilypond_string pitch.octave
 
-let pitch_to_safe_string ?(strict_octave = true) pitch =
-  if strict_octave && pitch.octave <> 0 then
-    failwith "Dancelor_common.Model.Music.pitch_to_safe_string";
-  note_to_safe_string pitch.note ^
-    alteration_to_safe_string pitch.alteration
-
 let pitch_of_string = function
   | "" -> failwith "Dancelor_common.Model.Music.pitch_of_string"
   | s ->
@@ -161,8 +147,6 @@ type mode =
 
 let mode_to_string = function Major -> "" | Minor -> "m"
 let mode_to_pretty_string = mode_to_string
-let mode_to_lilypond_string = function Major -> "" | Minor -> ":m"
-let mode_to_safe_string = mode_to_string
 
 (* Key *)
 
@@ -175,8 +159,6 @@ let key_pitch key = key.pitch
 
 let key_to_string key = pitch_to_string key.pitch ^ mode_to_string key.mode
 let key_to_pretty_string key = pitch_to_pretty_string key.pitch ^ mode_to_pretty_string key.mode
-let key_to_lilypond_string key = pitch_to_lilypond_string key.pitch ^ mode_to_lilypond_string key.mode
-let key_to_safe_string key = pitch_to_safe_string key.pitch ^ mode_to_safe_string key.mode
 
 let key_of_string = function
   | "" -> failwith "Dancelor_common.Model.Music.key_of_string"
