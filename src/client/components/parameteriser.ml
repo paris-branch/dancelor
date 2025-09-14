@@ -72,7 +72,12 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
                 Editor.page
                   p.editor
                   ~after_save: (fun _ ->
-                    Utils.Toast.open_ ~title: "Set parameters" [txt "Your parameters have been set."];
+                    Utils.Toast.open_ ~title: "Set parameters" [
+                      txt
+                        "Your parameters have been set. However, this will only \
+                         take effect once save the whole editor for the change \
+                         to be recorded."
+                    ];
                     return ()
                   )
             )
