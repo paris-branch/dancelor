@@ -1,9 +1,27 @@
 open Nes
 open Common
 
+(** {2 Type of a model} *)
+
+module type Model = sig
+  type t
+
+  val dependencies : t -> (string * unit Entry.Id.t) list
+
+  val to_yojson : t -> Json.t
+  val of_yojson : Json.t -> (t, string) result
+
+  val wrap_any : t Entry.t -> ModelBuilder.Core.Any.t
+
+  val _key : string
+end
+
 (** {2 Type of a table} *)
 
 type 'value database_state = ('value Entry.Id.t, 'value) Hashtbl.t
+
+type reverse_dependencies = ReverseDependencies of (string * unit Entry.Id.t) list
+(** A type for reverse dependencies. *)
 
 module type S = sig
   val _key : string
@@ -24,35 +42,18 @@ module type S = sig
   val update : value Entry.Id.t -> value -> value Entry.t Lwt.t
   (** Update an existing database entry with the given value. *)
 
-  val delete : value Entry.Id.t -> unit Lwt.t
-  (** Delete an existing database entry. This does not enforce dependencies. *)
-  (* FIXME: make it enforce dependencies *)
+  val make_delete :
+    (value Entry.Id.t -> reverse_dependencies) ->
+    value Entry.Id.t ->
+    unit Lwt.t
+  (** Given a function that computes reverse dependencies, make a function that
+      deletes an existing database entry if it is safe to do so. It throws
+      {!Error.EntityHasReverseDependencies} otherwise. *)
+
+  val dependencies : value -> unit Entry.Id.t list
+  (** Pass {!Model.dependencies} through. *)
 
   module Log : Logs.LOG
-end
-
-(** *)
-
-type 'value id_and_table_unboxed = 'value Entry.Id.t * (module S with type value = 'value)
-
-type id_and_table = Boxed : _ id_and_table_unboxed -> id_and_table
-
-let make_id_and_table (type value) (module Table : S with type value = value) (id : value Entry.Id.t) =
-  Boxed (id, (module Table: S with type value = value))
-
-(** {2 Type of a model} *)
-
-module type Model = sig
-  type t
-
-  val dependencies : t -> id_and_table list
-
-  val to_yojson : t -> Json.t
-  val of_yojson : Json.t -> (t, string) result
-
-  val wrap_any : t Entry.t -> ModelBuilder.Core.Any.t
-
-  val _key : string
 end
 
 (** {2 Global id uniqueness} *)
@@ -126,36 +127,36 @@ module Make (Model : Model) : S with type value = Model.t = struct
 
   let get id = Hashtbl.find_opt table id
 
-  let list_dependency_problems_for id status privacy = function
-    | Boxed (dep_id, (module Dep_table)) ->
-      match Dep_table.get dep_id with
-      | None ->
-        [
-          Error.dependency_does_not_exist
-            ~source: (_key, Entry.Id.to_string id)
-            ~dependency: (Dep_table._key, Entry.Id.to_string dep_id)
-        ]
-      | Some dep_entry ->
-        let dep_meta = Entry.meta dep_entry in
-        let dep_status = Entry.status dep_meta in
-        let dep_privacy = Entry.privacy dep_meta in
-        (
-          if Status.can_depend status ~on: dep_status then []
-          else
-            [
-              Error.dependency_violates_status
-                ~source: (_key, Entry.Id.to_string id, status)
-                ~dependency: (Dep_table._key, Entry.Id.to_string dep_id, dep_status)
-            ]
-        ) @ (
-          if Privacy.can_depend privacy ~on: dep_privacy then []
-          else
-            [
-              Error.dependency_violates_privacy
-                ~source: (_key, Entry.Id.to_string id, privacy)
-                ~dependency: (Dep_table._key, Entry.Id.to_string dep_id, dep_privacy)
-            ]
-        )
+  let list_dependency_problems_for id status privacy dep_key dep_id =
+    match GloballyUniqueId.get dep_id with
+    | None ->
+      [
+        Error.dependency_does_not_exist
+          ~source: (_key, Entry.Id.to_string id)
+          ~dependency: (dep_key, Entry.Id.to_string dep_id)
+      ]
+    | Some dep_entry ->
+      let dep_entry = ModelBuilder.Core.Any.to_entry dep_entry in
+      let dep_meta = Entry.meta dep_entry in
+      let dep_status = Entry.status dep_meta in
+      let dep_privacy = Entry.privacy dep_meta in
+      (
+        if Status.can_depend status ~on: dep_status then []
+        else
+          [
+            Error.dependency_violates_status
+              ~source: (_key, Entry.Id.to_string id, status)
+              ~dependency: (dep_key, Entry.Id.to_string dep_id, dep_status)
+          ]
+      ) @ (
+        if Privacy.can_depend privacy ~on: dep_privacy then []
+        else
+          [
+            Error.dependency_violates_privacy
+              ~source: (_key, Entry.Id.to_string id, privacy)
+              ~dependency: (dep_key, Entry.Id.to_string dep_id, dep_privacy)
+          ]
+      )
 
   let list_dependency_problems () =
     Hashtbl.to_seq_values table
@@ -166,7 +167,7 @@ module Make (Model : Model) : S with type value = Model.t = struct
           let status = Entry.(status % meta) model in
           let privacy = Entry.(privacy % meta) model in
           let deps = Model.dependencies @@ Entry.value model in
-          let new_problems = List.map (list_dependency_problems_for id status privacy) deps in
+          let new_problems = List.map (uncurry @@ list_dependency_problems_for id status privacy) deps in
           new_problems
           |> List.flatten
           |> (fun new_problems -> new_problems @ problems)
@@ -207,12 +208,22 @@ module Make (Model : Model) : S with type value = Model.t = struct
   let create = create_or_update None
   let update id model = create_or_update (Some id) model
 
-  let delete id : unit Lwt.t =
-    Storage.delete_entry Model._key (Entry.Id.to_string id);%lwt
-    Storage.save_changes_on_entry
-      ~msg: (spf "delete %s / %s" Model._key (Entry.Id.to_string id))
-      Model._key
-      (Entry.Id.to_string id);%lwt
-    Hashtbl.remove table id;
-    lwt_unit
+  let dependencies = List.map snd % Model.dependencies
+
+  let make_delete reverse_dependencies_of = fun id ->
+    let rev_deps = reverse_dependencies_of id in
+    match rev_deps with
+    | ReverseDependencies [] ->
+      Storage.delete_entry Model._key (Entry.Id.to_string id);%lwt
+      Storage.save_changes_on_entry
+        ~msg: (spf "delete %s / %s" Model._key (Entry.Id.to_string id))
+        Model._key
+        (Entry.Id.to_string id);%lwt
+      Hashtbl.remove table id;
+      lwt_unit
+    | ReverseDependencies ((one_key, one_id) :: _) ->
+      Log.warn (fun m ->
+        m "Tried to remove %s / %s but it has reverse dependencies, for instance %s / %s" _key (Entry.Id.to_string id) one_key (Entry.Id.to_string one_id)
+      );
+      raise (Error.Exn (EntityHasReverseDependencies ()))
 end
