@@ -1,5 +1,4 @@
 open NesUnix
-open Common
 
 module Log = (val Logger.create "database.storage": Logs.LOG)
 

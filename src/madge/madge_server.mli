@@ -59,3 +59,7 @@ val shortcut_not_found : ('a, Format.formatter, unit, 'any Lwt.t) format4 -> 'a
 
 (** Returns “500 Internal server error” with no message. *)
 val respond_internal_server_error : unit -> (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t
+
+(** {2 Generic responses} *)
+
+val respond : SStatusCode.t -> ('a, Format.formatter, unit, (Cohttp.Response.t * Cohttp_lwt.Body.t) Lwt.t) format4 -> 'a
