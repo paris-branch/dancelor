@@ -9,8 +9,8 @@ let log_exn ~msg exn =
   Log.err @@ fun m ->
   let repr =
     match exn with
-    | Error.Exn error ->
-      "Common.Error." ^ Error.show error
+    | Database.Error.Exn error ->
+      "Common.Error." ^ Database.Error.show error
     | exn -> Printexc.to_string exn
   in
   m "%a" (Format.pp_multiline_sensible msg) (repr ^ "\n" ^ (Printexc.get_backtrace ()))
@@ -34,8 +34,9 @@ let apply_controller env request =
   in
   (* FIXME: We should just get a URI. *)
   match madge_match_apply_all Endpoints.Api.all with
-  | Some thunk -> thunk ()
   | None -> Madge_server.respond_not_found "The endpoint `%s` does not exist or is not called with the right method and parameters." (Uri.path request.uri)
+  | Some thunk ->
+    try%lwt thunk () with Database.Error.Exn error -> Madge_server.respond (Database.Error.status error) ""
 
 (** Wraps a function into a double catchall: regular exceptions and Lwt
     exceptions. Exceptions are logged as uncaught, and then the `die` function

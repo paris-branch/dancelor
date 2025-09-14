@@ -1,76 +1,58 @@
 open NesUnix
 open Common
 
-module Source = Table.Make(struct
-  include ModelBuilder.Core.Source
-  let dependencies _ = lwt []
-  let standalone = false
-  let wrap_any = ModelBuilder.Core.Any.source
-end)
+let id_for key entry : string * unit Entry.Id.t = (key, Entry.Id.unsafe_coerce entry)
 
 module Person = Table.Make(struct
   include ModelBuilder.Core.Person
-  let dependencies _ = lwt []
-  let standalone = false
+  let dependencies _ = []
   let wrap_any = ModelBuilder.Core.Any.person
+end)
+
+module Source = Table.Make(struct
+  include ModelBuilder.Core.Source
+  let dependencies source =
+    List.map (id_for "person") (ModelBuilder.Core.Source.editors source)
+  let wrap_any = ModelBuilder.Core.Any.source
 end)
 
 module User = Table.Make(struct
   include ModelBuilder.Core.User
   let dependencies user =
-    lwt [
-      Table.make_id_and_table (module Person) (ModelBuilder.Core.User.person user)
-    ]
-  let standalone = true
+    [id_for "person" (ModelBuilder.Core.User.person user)]
   let wrap_any = ModelBuilder.Core.Any.user
 end)
 
 module Dance = Table.Make(struct
   include ModelBuilder.Core.Dance
   let dependencies dance =
-    lwt
-      (
-        List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Dance.devisers dance)
-      )
-  let standalone = true
+    List.map (id_for "person") (ModelBuilder.Core.Dance.devisers dance)
   let wrap_any = ModelBuilder.Core.Any.dance
 end)
 
 module Tune = Table.Make(struct
   include ModelBuilder.Core.Tune
   let dependencies tune =
-    lwt
-      (
-        List.map (Table.make_id_and_table (module Dance)) (ModelBuilder.Core.Tune.dances tune) @
-          List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Tune.composers tune)
-      )
-  let standalone = false
+    List.map (id_for "dance") (ModelBuilder.Core.Tune.dances tune) @
+      List.map (id_for "person") (ModelBuilder.Core.Tune.composers tune)
   let wrap_any = ModelBuilder.Core.Any.tune
 end)
 
 module Version = Table.Make(struct
   include ModelBuilder.Core.Version
   let dependencies version =
-    lwt
-      (
-        [Table.make_id_and_table (module Tune) (ModelBuilder.Core.Version.tune version)] @
-        List.map (Table.make_id_and_table (module Source)) (List.map fst @@ ModelBuilder.Core.Version.sources version) @
-        List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
-      )
-  let standalone = true
+    [id_for "tune" (ModelBuilder.Core.Version.tune version)] @
+    List.map (id_for "source" % fst) (ModelBuilder.Core.Version.sources version) @
+    List.map (id_for "person") (ModelBuilder.Core.Version.arrangers version)
   let wrap_any = ModelBuilder.Core.Any.version
 end)
 
 module SetModel = struct
   include ModelBuilder.Core.Set
   let dependencies set =
-    lwt
-      (
-        List.map (Table.make_id_and_table (module Version) % fst) (ModelBuilder.Core.Set.contents set) @
-          List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Set.conceptors set)
-      )
-
-  let standalone = true
+    List.map (id_for "version" % fst) (ModelBuilder.Core.Set.contents set) @
+    List.map (id_for "person") (ModelBuilder.Core.Set.conceptors set) @
+    List.map (id_for "dance") (ModelBuilder.Core.Set.dances set)
   let wrap_any = ModelBuilder.Core.Any.set
 end
 
@@ -79,29 +61,30 @@ module Set = Table.Make(SetModel)
 module Book = Table.Make(struct
   include ModelBuilder.Core.Book
   let dependencies book =
-    let%lwt dependencies =
-      Lwt_list.map_p
+    let contents_dependencies =
+      List.map
         (function
-          | ModelBuilder.Core.Book.Page.Part _ -> lwt_nil
+          | ModelBuilder.Core.Book.Page.Part _ -> []
           | ModelBuilder.Core.Book.Page.Dance (dance, page_dance) ->
-            let%lwt page_dance_dependencies =
+            let page_dance_dependencies =
               match page_dance with
-              | ModelBuilder.Core.Book.Page.DanceOnly -> lwt_nil
+              | ModelBuilder.Core.Book.Page.DanceOnly -> []
               | ModelBuilder.Core.Book.Page.DanceVersion (version, _) ->
-                lwt [Table.make_id_and_table (module Version) version]
+                [id_for "version" version]
               | ModelBuilder.Core.Book.Page.DanceSet (set, _) ->
-                lwt [Table.make_id_and_table (module Set) set]
+                [id_for "set" set]
             in
-            lwt (Table.make_id_and_table (module Dance) dance :: page_dance_dependencies)
+              (id_for "dance" dance :: page_dance_dependencies)
           | ModelBuilder.Core.Book.Page.Version (version, _) ->
-            lwt [Table.make_id_and_table (module Version) version]
+            [id_for "version" version]
           | ModelBuilder.Core.Book.Page.Set (set, _) ->
-            lwt [Table.make_id_and_table (module Set) set]
+            [id_for "set" set]
         )
         (ModelBuilder.Core.Book.contents book)
     in
-    lwt (List.flatten dependencies)
-  let standalone = true
+    List.map (id_for "source") (ModelBuilder.Core.Book.sources book) @
+    List.map (id_for "person") (ModelBuilder.Core.Book.authors book) @
+    List.flatten contents_dependencies
   let wrap_any = ModelBuilder.Core.Any.book
 end)
 
@@ -117,6 +100,22 @@ let tables : (module Table.S)list = [
   (module Set);
   (module Book)
 ]
+
+let reverse_dependencies_of (id : 'any Entry.Id.t) : Table.reverse_dependencies =
+  let id = Entry.Id.unsafe_coerce id in
+  ReverseDependencies (
+    List.concat_map
+      (fun (module T : Table.S) ->
+        List.filter_map
+          (fun entry ->
+            if List.mem id (T.dependencies (Entry.value entry)) then
+              Some (T._key, Entry.Id.unsafe_coerce @@ Entry.id entry)
+            else None
+          )
+          (T.get_all ())
+      )
+      tables
+  )
 
 module Log = (val Logger.create "database": Logs.LOG)
 
@@ -136,10 +135,10 @@ module Initialise = struct
 
   let check_dependency_problems () =
     Log.info (fun m -> m "Checking for dependency problems");
-    let%lwt found_problem =
-      Lwt_list.fold_left_s
+    let found_problem =
+      List.fold_left
         (fun found_problem (module Table : Table.S) ->
-          let%lwt problems = Table.list_dependency_problems () in
+          let problems = Table.list_dependency_problems () in
           (
             problems
             |> List.iter @@ function
@@ -152,32 +151,21 @@ module Initialise = struct
                 | _ -> ()
           );
           match found_problem, problems with
-          | Some found_problem, _ -> lwt_some found_problem
-          | _, problem :: _ -> lwt_some problem
-          | _ -> lwt_none
+          | Some found_problem, _ -> Some found_problem
+          | _, problem :: _ -> Some problem
+          | _ -> None
         )
         None
         tables
     in
     match found_problem with
-    | None -> lwt_unit
+    | None -> ()
     | Some problem -> Error.fail problem
-
-  let report_without_accesses () =
-    Log.info (fun m -> m "Checking for unaccessible entries");
-    List.iter
-      (fun (module Table : Table.S) ->
-        if not Table.standalone then
-          Table.report_without_accesses ()
-      )
-      tables;
-    lwt_unit
 
   let initialise () =
     sync_db ();%lwt
     load_tables ();%lwt
-    check_dependency_problems ();%lwt
-    report_without_accesses ();%lwt
+    check_dependency_problems ();
     lwt_unit
 end
 

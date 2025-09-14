@@ -1,8 +1,7 @@
 open Common
-include Tables.Source
 
-let get id = get id
-let get_all () = get_all ()
+include Tables.Source
+let delete = make_delete Tables.reverse_dependencies_of
 
 let with_cover id f =
   Storage.with_entry_file "source" (Entry.Id.to_string id) "cover.webp" @@ fun fname ->

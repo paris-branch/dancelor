@@ -35,7 +35,12 @@ let create ?context id =
         ~href: (S.const @@ Endpoints.Page.(href DanceEdit) id)
         ~icon: "pencil-square"
         ~label: "Edit"
-        ()] @ (
+        ();
+      Utils.Action.delete
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Dance Delete) (Entry.id dance))
+        ~model: "dance"
+        ();
+      ] @ (
         match Dance.scddb_id' dance with
         | None -> []
         | Some scddb_id ->

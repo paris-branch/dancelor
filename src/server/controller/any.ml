@@ -13,14 +13,14 @@ include Search.Build(struct
   type filter = Filter.Any.t
 
   let get_all env =
-    let%lwt sources = Source.get_all env >|=| List.map (fun c -> Model.Any.Source c) in
-    let%lwt persons = Person.get_all env >|=| List.map (fun c -> Model.Any.Person c) in
-    let%lwt dances = Dance.get_all env >|=| List.map (fun d -> Model.Any.Dance d) in
-    let%lwt books = Book.get_all env >|=| List.map (fun b -> Model.Any.Book b) in
-    let%lwt sets = Set.get_all env >|=| List.map (fun s -> Model.Any.Set s) in
-    let%lwt tunes = Tune.get_all env >|=| List.map (fun t -> Model.Any.Tune t) in
-    let%lwt versions = Version.get_all env >|=| List.map (fun v -> Model.Any.Version v) in
-      (lwt (sources @ persons @ dances @ books @ sets @ tunes @ versions))
+    let sources = List.map Model.Any.source (Source.get_all env) in
+    let persons = List.map Model.Any.person (Person.get_all env) in
+    let dances = List.map Model.Any.dance (Dance.get_all env) in
+    let books = List.map Model.Any.book (Book.get_all env) in
+    let sets = List.map Model.Any.set (Set.get_all env) in
+    let tunes = List.map Model.Any.tune (Tune.get_all env) in
+    let versions = List.map Model.Any.version (Version.get_all env) in
+      (sources @ persons @ dances @ books @ sets @ tunes @ versions)
 
   let filter_accepts = Filter.Any.accepts
 

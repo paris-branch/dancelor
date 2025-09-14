@@ -9,6 +9,7 @@ module Icon = Icon
 module Alert = Alert
 module Button = Button
 module Toast = Toast
+module Action = Action
 
 let write_to_clipboard = Clipboard.write_to_clipboard
 

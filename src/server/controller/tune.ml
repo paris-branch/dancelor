@@ -2,7 +2,7 @@ open Nes
 open Common
 
 let get env id =
-  match%lwt Database.Tune.get id with
+  match Database.Tune.get id with
   | None -> Permission.reject_can_get ()
   | Some tune ->
     Permission.assert_can_get env tune;%lwt
@@ -16,13 +16,16 @@ let update env id tune =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Tune.update id tune
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Tune.delete id
+
 include Search.Build(struct
   type value = Model.Tune.t Entry.t
   type filter = Filter.Tune.t
 
   let get_all env =
-    List.filter (Permission.can_get env)
-    <$> Database.Tune.get_all ()
+    List.filter (Permission.can_get env) (Database.Tune.get_all ())
 
   let filter_accepts = Filter.Tune.accepts
 
@@ -38,3 +41,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Tune.t -> a 
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env

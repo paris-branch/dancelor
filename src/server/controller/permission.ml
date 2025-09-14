@@ -26,6 +26,7 @@ let assert_is_connected env =
 (** {2 Reading} *)
 
 let can_get env entry =
+  (* if the entry is public, anyone, otherwise, anyone that is connected *)
   fold_user
     env
     ~none: (fun () -> Entry.(privacy % meta) entry = Public)
@@ -51,6 +52,7 @@ let assert_can_get env entry =
 (** {2 Creating} *)
 
 let can_create env =
+  (* anyone that is connected *)
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
 let assert_can_create env =
@@ -68,6 +70,7 @@ let assert_can_create env =
 (** {2 Updating} *)
 
 let can_update env _entry =
+  (* anyone that is connected *)
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
 let assert_can_update env entry =
@@ -85,6 +88,7 @@ let assert_can_update env entry =
 (** {2 Deleting} *)
 
 let can_delete env _entry =
+  (* anyone that is connected *)
   fold_user ~none: (fun () -> false) ~some: (fun _user -> true) env
 
 let assert_can_delete env entry =

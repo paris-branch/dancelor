@@ -10,6 +10,7 @@ type (_, _, _) t =
 (* Actions on a specific tune *)
 | Get : ((Tune.t Entry.Id.t -> 'w), 'w, Tune.t Entry.t) t
 | Update : ((Tune.t Entry.Id.t -> Tune.t -> 'w), 'w, Tune.t Entry.t) t
+| Delete : ((Tune.t Entry.Id.t -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -21,3 +22,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     (* Actions on a specific tune *)
     | Get -> variable (module Entry.Id.S(Tune)) @@ get (module Entry.J(Tune))
     | Update -> variable (module Entry.Id.S(Tune)) @@ body "tune" (module Tune) @@ put (module Entry.J(Tune))
+    | Delete -> variable (module Entry.Id.S(Tune)) @@ delete (module JUnit)

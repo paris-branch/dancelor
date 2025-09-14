@@ -180,7 +180,12 @@ let create ?context id =
         ~href: (S.const @@ Endpoints.Page.(href BookEdit) id)
         ~icon: "pencil-square"
         ~label: "Edit"
-        ()] @ (
+        ();
+      Utils.Action.delete
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Book Delete) (Entry.id book))
+        ~model: "book"
+        ();
+      ] @ (
         match Book.scddb_id' book with
         | None -> []
         | Some scddb_id ->

@@ -10,6 +10,7 @@ type (_, _, _) t =
 (* Actions on a specific source *)
 | Get : ((Source.t Entry.Id.t -> 'w), 'w, Source.t Entry.t) t
 | Update : ((Source.t Entry.Id.t -> Source.t -> 'w), 'w, Source.t Entry.t) t
+| Delete : ((Source.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a source *)
 | Cover : ((Source.t Entry.Id.t -> 'w), 'w, Void.t) t
 [@@deriving madge_wrapped_endpoints]
@@ -23,5 +24,6 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     (* Actions on a specific source *)
     | Get -> variable (module Entry.Id.S(Source)) @@ get (module Entry.J(Source))
     | Update -> variable (module Entry.Id.S(Source)) @@ body "source" (module Source) @@ put (module Entry.J(Source))
+    | Delete -> variable (module Entry.Id.S(Source)) @@ delete (module JUnit)
     (* Files related to a source *)
     | Cover -> variable (module Entry.Id.S(Source)) @@ literal "cover.webp" @@ void ()

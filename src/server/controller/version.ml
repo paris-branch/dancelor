@@ -4,7 +4,7 @@ open Common
 module Log = (val Logger.create "controller.version": Logs.LOG)
 
 let get env id =
-  match%lwt Database.Version.get id with
+  match Database.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
     Permission.assert_can_get env version;%lwt
@@ -17,6 +17,10 @@ let create env version =
 let update env id version =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Version.update id version
+
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Version.delete id
 
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
@@ -50,21 +54,13 @@ include Search.Build(struct
   type filter = Filter.Version.t
 
   let get_all env =
-    List.filter (Permission.can_get env)
-    <$> Database.Version.get_all ()
+    List.filter (Permission.can_get env) (Database.Version.get_all ())
 
   let filter_accepts = Filter.Version.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]
 end)
-
-let get env id =
-  match%lwt Database.Version.get id with
-  | None -> Permission.reject_can_get ()
-  | Some version ->
-    Permission.assert_can_get env version;%lwt
-    lwt version
 
 let content env id =
   Log.debug (fun m -> m "content %a" Entry.Id.pp' id);
@@ -139,6 +135,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env
   | BuildPdf -> build_pdf env
   | BuildSvg -> build_svg env
   | BuildSvg' -> build_svg' env

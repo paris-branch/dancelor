@@ -2,7 +2,7 @@ open NesUnix
 open Common
 
 let get env id =
-  match%lwt Database.Book.get id with
+  match Database.Book.get id with
   | None -> Permission.reject_can_get ()
   | Some book ->
     Permission.assert_can_get env book;%lwt
@@ -16,13 +16,16 @@ let update env id book =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Book.update id book
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Book.delete id
+
 include Search.Build(struct
   type value = Model.Book.t Entry.t
   type filter = Filter.Book.t
 
   let get_all env =
-    List.filter (Permission.can_get env)
-    <$> Database.Book.get_all ()
+    List.filter (Permission.can_get env) (Database.Book.get_all ())
 
   let filter_accepts = Filter.Book.accepts
 
@@ -49,4 +52,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a 
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env
   | BuildPdf -> build_pdf env

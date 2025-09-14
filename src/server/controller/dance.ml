@@ -4,7 +4,7 @@ open Common
 module Log = (val Logger.create "controller.dance": Logs.LOG)
 
 let get env id =
-  match%lwt Database.Dance.get id with
+  match Database.Dance.get id with
   | None -> Permission.reject_can_get ()
   | Some dance ->
     Permission.assert_can_get env dance;%lwt
@@ -18,12 +18,16 @@ let update env id dance =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Dance.update id dance
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Dance.delete id
+
 include Search.Build(struct
   type value = Model.Dance.t Entry.t
   type filter = Filter.Dance.t
 
   let get_all env =
-    List.filter (Permission.can_get env) <$> Database.Dance.get_all ()
+    List.filter (Permission.can_get env) (Database.Dance.get_all ())
 
   let filter_accepts = Filter.Dance.accepts
 
@@ -37,3 +41,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env

@@ -11,6 +11,7 @@ type (_, _, _) t =
 | Get : ((Version.t Entry.Id.t -> 'w), 'w, Version.t Entry.t) t
 | Content : ((Version.t Entry.Id.t -> 'w), 'w, Version.Content.t) t
 | Update : ((Version.t Entry.Id.t -> Version.t -> 'w), 'w, Version.t Entry.t) t
+| Delete : ((Version.t Entry.Id.t -> 'w), 'w, unit) t
 (* Files related to a version *)
 | BuildSvg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Job.Registration.t) t
 | BuildOgg : ((Version.t Entry.Id.t -> VersionParameters.t -> RenderingParameters.t -> 'w), 'w, Job.Registration.t) t
@@ -41,6 +42,7 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     | Get -> variable (module Entry.Id.S(Version)) @@ get (module Entry.J(VersionNoLilypond))
     | Content -> literal "content" @@ variable (module Entry.Id.S(Version)) @@ get (module Version.Content)
     | Update -> variable (module Entry.Id.S(Version)) @@ body "version" (module Version) @@ put (module Entry.J(VersionNoLilypond))
+    | Delete -> variable (module Entry.Id.S(Version)) @@ delete (module JUnit)
     (* Files related to a version *)
     | BuildSvg -> literal "build-svg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration)
     | BuildOgg -> literal "build-ogg" @@ variable (module Entry.Id.S(Version)) @@ query "parameters" (module VersionParameters) @@ query "rendering-parameters" (module RenderingParameters) @@ post (module Job.Registration)

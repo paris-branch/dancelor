@@ -23,7 +23,12 @@ let create ?context id =
         ~href: (S.const @@ Endpoints.Page.(href TuneEdit) id)
         ~icon: "pencil-square"
         ~label: "Edit"
-        ()] @ (
+        ();
+      Utils.Action.delete
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Tune Delete) (Entry.id tune))
+        ~model: "tune"
+        ();
+      ] @ (
         match Tune.scddb_id' tune with
         | None -> []
         | Some scddb_id ->
