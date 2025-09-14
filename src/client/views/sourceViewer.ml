@@ -24,7 +24,12 @@ let create ?context id =
         ~href: (S.const @@ Endpoints.Page.(href SourceEdit) id)
         ~icon: "pencil-square"
         ~label: "Edit"
-        ()] @ (
+        ();
+      Utils.Action.delete
+        ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Source Delete) (Entry.id source))
+        ~model: "source"
+        ();
+      ] @ (
         match Source.scddb_id' source with
         | None -> []
         | Some scddb_id ->

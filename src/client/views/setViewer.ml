@@ -33,12 +33,6 @@ let create ?context id =
     ~actions: (
       lwt
         [
-          Utils.Button.make_a
-            ~classes: ["dropdown-item"]
-            ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
-            ~icon: "pencil-square"
-            ~label: "Edit"
-            ();
           Utils.Button.make
             ~classes: ["dropdown-item"]
             ~onclick: (fun _ -> ignore <$> SetDownloadDialog.create_and_open set)
@@ -60,7 +54,17 @@ let create ?context id =
             )
             ~icon: "plus-square"
             ~label: "Add to current book"
-            ()
+            ();
+          Utils.Button.make_a
+            ~classes: ["dropdown-item"]
+            ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
+            ~icon: "pencil-square"
+            ~label: "Edit"
+            ();
+          Utils.Action.delete
+            ~onclick: (fun () -> Madge_client.call Endpoints.Api.(route @@ Set Delete) (Entry.id set))
+            ~model: "set"
+            ();
         ]
     )
     [
