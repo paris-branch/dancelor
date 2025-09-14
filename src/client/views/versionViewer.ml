@@ -158,11 +158,13 @@ let create ?context id =
       Components.VersionSnippets.make version;
       R.div (
         S.from' [] @@
-          let%lwt other_names = Model.Version.other_names' version in
-          lwt [
-            txt "Also known as:";
-            ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
-          ]
+          match%lwt Model.Version.other_names' version with
+          | [] -> lwt_nil
+          | other_names ->
+            lwt [
+              txt "Also known as:";
+              ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
+            ]
       );
       R.div (
         S.from' [] @@
