@@ -16,6 +16,10 @@ let update env id book =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Book.update id book
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Book.delete id
+
 include Search.Build(struct
   type value = Model.Book.t Entry.t
   type filter = Filter.Book.t
@@ -48,4 +52,5 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Book.t -> a 
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env
   | BuildPdf -> build_pdf env

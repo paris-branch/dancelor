@@ -16,6 +16,10 @@ let update env id person =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Person.update id person
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Person.delete id
+
 include Search.Build(struct
   type value = Model.Person.t Entry.t
   type filter = Filter.Person.t
@@ -35,3 +39,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Person.t -> 
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env

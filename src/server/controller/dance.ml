@@ -18,6 +18,10 @@ let update env id dance =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Dance.update id dance
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Dance.delete id
+
 include Search.Build(struct
   type value = Model.Dance.t Entry.t
   type filter = Filter.Dance.t
@@ -37,3 +41,4 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Dance.t -> a
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env

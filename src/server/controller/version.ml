@@ -18,6 +18,10 @@ let update env id version =
   Permission.assert_can_update env =<< get env id;%lwt
   Database.Version.update id version
 
+let delete env id =
+  Permission.assert_can_delete env =<< get env id;%lwt
+  Database.Version.delete id
+
 let rec search_and_extract acc s regexp =
   let rem = Str.replace_first regexp "" s in
   try
@@ -131,6 +135,7 @@ let dispatch : type a r. Environment.t -> (a, r Lwt.t, r) Endpoints.Version.t ->
   | Search -> search env
   | Create -> create env
   | Update -> update env
+  | Delete -> delete env
   | BuildPdf -> build_pdf env
   | BuildSvg -> build_svg env
   | BuildSvg' -> build_svg' env

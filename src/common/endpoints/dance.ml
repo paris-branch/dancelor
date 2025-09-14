@@ -10,6 +10,7 @@ type (_, _, _) t =
 (* Actions on a specific dance *)
 | Get : ((Dance.t Entry.Id.t -> 'w), 'w, Dance.t Entry.t) t
 | Update : ((Dance.t Entry.Id.t -> Dance.t -> 'w), 'w, Dance.t Entry.t) t
+| Delete : ((Dance.t Entry.Id.t -> 'w), 'w, unit) t
 [@@deriving madge_wrapped_endpoints]
 
 let route : type a w r. (a, w, r) t -> (a, w, r) route =
@@ -21,3 +22,4 @@ let route : type a w r. (a, w, r) t -> (a, w, r) route =
     (* Actions on a specific dance *)
     | Get -> variable (module Entry.Id.S(Dance)) @@ get (module Entry.J(Dance))
     | Update -> variable (module Entry.Id.S(Dance)) @@ body "dance" (module Dance) @@ put (module Entry.J(Dance))
+    | Delete -> variable (module Entry.Id.S(Dance)) @@ delete (module JUnit)
