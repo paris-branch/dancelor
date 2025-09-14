@@ -1,18 +1,21 @@
 open NesUnix
 open Common
 
-module Source = Table.Make(struct
-  include ModelBuilder.Core.Source
-  let dependencies _ = lwt []
-  let standalone = false
-  let wrap_any = ModelBuilder.Core.Any.source
-end)
-
 module Person = Table.Make(struct
   include ModelBuilder.Core.Person
   let dependencies _ = lwt []
   let standalone = false
   let wrap_any = ModelBuilder.Core.Any.person
+end)
+
+module Source = Table.Make(struct
+  include ModelBuilder.Core.Source
+  let dependencies source =
+    lwt (
+      List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Source.editors source)
+    )
+  let standalone = false
+  let wrap_any = ModelBuilder.Core.Any.source
 end)
 
 module User = Table.Make(struct
@@ -54,7 +57,7 @@ module Version = Table.Make(struct
     lwt
       (
         [Table.make_id_and_table (module Tune) (ModelBuilder.Core.Version.tune version)] @
-        List.map (Table.make_id_and_table (module Source)) (List.map fst @@ ModelBuilder.Core.Version.sources version) @
+        List.map (Table.make_id_and_table (module Source) % fst) (ModelBuilder.Core.Version.sources version) @
         List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Version.arrangers version)
       )
   let standalone = true
@@ -67,9 +70,9 @@ module SetModel = struct
     lwt
       (
         List.map (Table.make_id_and_table (module Version) % fst) (ModelBuilder.Core.Set.contents set) @
-          List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Set.conceptors set)
+        List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Set.conceptors set) @
+        List.map (Table.make_id_and_table (module Dance)) (ModelBuilder.Core.Set.dances set)
       )
-
   let standalone = true
   let wrap_any = ModelBuilder.Core.Any.set
 end
@@ -79,7 +82,7 @@ module Set = Table.Make(SetModel)
 module Book = Table.Make(struct
   include ModelBuilder.Core.Book
   let dependencies book =
-    let%lwt dependencies =
+    let%lwt contents_dependencies =
       Lwt_list.map_p
         (function
           | ModelBuilder.Core.Book.Page.Part _ -> lwt_nil
@@ -100,7 +103,11 @@ module Book = Table.Make(struct
         )
         (ModelBuilder.Core.Book.contents book)
     in
-    lwt (List.flatten dependencies)
+    lwt (
+      List.map (Table.make_id_and_table (module Source)) (ModelBuilder.Core.Book.sources book) @
+      List.map (Table.make_id_and_table (module Person)) (ModelBuilder.Core.Book.authors book) @
+      List.flatten contents_dependencies
+    )
   let standalone = true
   let wrap_any = ModelBuilder.Core.Any.book
 end)
