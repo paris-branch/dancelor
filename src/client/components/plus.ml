@@ -58,6 +58,13 @@ module Bundle = struct
     val choices : ?offset: int -> ?initial_selected: int -> unit -> int option Choices.choice list
     (** One choice per component, starting from the given index. The [?offset]
         argument should only be used by the {!cons} function. *)
+
+    val set : t -> value TupleElt.t -> unit Lwt.t
+    (** Given one value among a tuple, set the whole bundle to empty everywhere,
+        except for that one value. *)
+
+    val clear : t -> unit
+    (** Clear all the components of the bundle. *)
   end
 
   type ('value, 'state) t = (module Bundle with type value = 'value and type state = 'state)
@@ -104,6 +111,14 @@ module Bundle = struct
 
     let choices ?(offset = 0) ?initial_selected () =
       Choices.choice' ~value: offset ~checked: (initial_selected = Some offset) [txt A.label] :: B.choices ~offset: (offset + 1) ?initial_selected ()
+
+    let set t = function
+      | TupleElt.Zero v -> A.set t.a v;%lwt B.clear t.b; lwt_unit
+      | TupleElt.Succ elt -> A.clear t.a; B.set t.b elt
+
+    let clear t =
+      A.clear t.a;
+      B.clear t.b
   end)
 
   let (^::) = cons
@@ -121,6 +136,8 @@ module Bundle = struct
     let actions _ _ = invalid_arg "Components.Plus.zero.actions"
     let inner_html _ _ = invalid_arg "Components.Plus.zero.inner_html"
     let choices ?offset: _ ?initial_selected: _ () = []
+    let set _ _ = lwt_unit
+    let clear _ = ()
   end)
 end
 
@@ -195,6 +212,13 @@ let prepare (type value)(type bundled_value)(type state)
 
   let focus t = Component.focus t.choices
   let trigger t = Component.trigger t.choices
-  let set _ _ = lwt_unit (* FIXME *)
-  let clear _ = () (* FIXME *)
+
+  let set t v =
+    let v = uncast v in
+    Component.set t.choices (TupleElt.position v);%lwt
+    Bundle.set t.bundle v
+
+  let clear t =
+    Component.clear t.choices;
+    Bundle.clear t.bundle
 end)
