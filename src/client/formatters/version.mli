@@ -87,3 +87,7 @@ val tune_description :
 val tune_description' :
   Model.Version.t Entry.t ->
   [> Html_types.span] elt
+
+val id' :
+  Model.Version.t Entry.t ->
+  [> Html_types.span] elt

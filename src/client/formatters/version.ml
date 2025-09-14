@@ -140,3 +140,6 @@ let kind_and_structure version =
       lwt [txt @@ "∗ " ^ Kind.Base.to_string kind ^ " (destr.)"]
 
 let kind_and_structure' = kind_and_structure % Entry.value
+
+let id' version =
+  span [a ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.id version] [txt @@ Entry.id_as_string version]]

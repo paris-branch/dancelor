@@ -76,6 +76,9 @@ let contains_set set1 book =
     )
     (Entry.value book).contents
 
+let set_contents contents book =
+  {book with contents = List.map page_to_page_core contents}
+
 type warning =
   | Empty
   | DuplicateSet of Set.t Entry.t (* FIXME: duplicate dance? *)

@@ -76,6 +76,8 @@ module type S = sig
 
   val contains_set : Core.Set.t Entry.Id.t -> t Entry.t -> bool
 
+  val set_contents : page list -> t -> t
+
   (** {2 Warnings} *)
 
   type warning = Core.Book.warning =
