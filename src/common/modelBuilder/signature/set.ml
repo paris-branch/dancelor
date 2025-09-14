@@ -53,6 +53,8 @@ module type S = sig
   val equal : t -> t -> bool
   (** Structural equality. This is different from entry equality. *)
 
+  val set_contents : (Core.Version.t Entry.t * Core.VersionParameters.t) list -> t -> t
+
   (* {2 Warnings} *)
 
   type warning = Core.Set.warning =

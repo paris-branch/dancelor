@@ -4,8 +4,8 @@ open Common
 open Model
 open Html
 
-let clickable_row ~href cells =
-  Utils.ResultRow.(to_clickable_row @@ make ~href (List.map lcell cells))
+let clickable_row ?href ?onclick cells =
+  Utils.ResultRow.(to_clickable_row @@ make ?href ?onclick (List.map lcell cells))
 
 let map_table ~header list fun_ =
   div
@@ -59,14 +59,16 @@ let tunes tunes =
       lwt [Formatters.Tune.composers' tune];
     ]
 
-let versions versions =
+let versions ?onclick versions =
   map_table
     ~header: ["Disambiguation"; "Arranger"; "Kind"; "Key"; "Structure"]
     versions
     @@ fun version ->
-    let href = Endpoints.Page.href_version @@ Entry.id version in
+    let onclick = Option.map (fun onclick -> fun () -> onclick version) onclick in
+    let href = if Option.is_none onclick then Some (Endpoints.Page.href_version (Entry.id version)) else None in
     clickable_row
-      ~href
+      ?href
+      ?onclick
       [
         lwt [Formatters.Version.disambiguation_and_sources' version];
         (List.singleton <$> (Formatters.Person.names' <$> Version.arrangers' version));

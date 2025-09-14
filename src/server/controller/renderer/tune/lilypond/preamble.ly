@@ -13,6 +13,8 @@
   \context { \Staff
     %% Note head size relatively to the global staff size
     fontSize = #-0.4
+    %% No time signature — we know what things are
+    \remove Time_signature_engraver
   }
   \context { \ChordNames
     %% Chord name size relatively to the global staff size (?)

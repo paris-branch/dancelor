@@ -100,7 +100,7 @@ let prepare_gen (type model)(type model_validated)
           ~dialog_title: (lwt label)
           ~make_result: (fun ~context: _ result ->
             make_result
-              ~action: (Utils.ResultRow.callback @@ fun () -> quick_search_return (Some result))
+              ~action: (Utils.ResultRow.callback @@ fun () -> lwt @@ quick_search_return (Some result))
               result
           )
           ~dialog_buttons: [

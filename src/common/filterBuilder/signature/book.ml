@@ -8,6 +8,9 @@ module type S = sig
 
   val existseditor' : Core.Person.t -> t
 
+  val memversion : ModelBuilder.Core.Version.t Entry.t -> predicate
+  val memversion' : ModelBuilder.Core.Version.t Entry.t -> t
+
   val memset : ModelBuilder.Core.Set.t Entry.t -> predicate
   val memset' : ModelBuilder.Core.Set.t Entry.t -> t
 

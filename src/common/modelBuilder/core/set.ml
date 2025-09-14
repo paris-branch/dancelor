@@ -30,6 +30,9 @@ let remark' = remark % Entry.value
 let slug = Entry.Slug.of_string % NEString.to_string % name
 let slug' = slug % Entry.value
 
+let set_contents contents set =
+  {set with contents = List.map (fun (version, parameters) -> (Entry.id version, parameters)) contents}
+
 type warning =
   | Empty
   | WrongKind

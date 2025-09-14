@@ -4,7 +4,7 @@ open React
 type action =
   | NoAction
   | Link of string S.t
-  | Callback of (unit -> unit) (* FIXME: Lwt.t? *)
+  | Callback of (unit -> unit Lwt.t)
 [@@deriving variants]
 
 (** Our customised notion of cells. This is a glorified <td>, but this allows us
@@ -40,13 +40,14 @@ type t = {
   classes: string list;
 }
 
-let make ?(classes = []) ?action ?href cells =
+let make ?(classes = []) ?action ?href ?onclick cells =
   let action =
-    match (action, href) with
-    | (None, None) -> NoAction
-    | (Some a, None) -> a
-    | (None, Some href) -> Link (S.const href)
-    | (Some _, Some _) -> invalid_arg "Cannot have both action and href"
+    match (action, href, onclick) with
+    | (None, None, None) -> NoAction
+    | (Some a, None, None) -> a
+    | (None, Some href, None) -> Link (S.const href)
+    | (None, None, Some onclick) -> Callback onclick
+    | _ -> invalid_arg "Cannot have more than one of action, href, or onclick"
   in
     {action; cells; classes}
 
@@ -108,7 +109,7 @@ let to_clickable_row t =
     tr
       ~a: [
         a_class t.classes;
-        a_onclick (fun _ -> f (); true);
+        a_onclick (fun _ -> Lwt.async f; true);
       ]
       (
         List.map (fun cell -> R.td ~a: cell.a cell.content) t.cells
@@ -117,6 +118,6 @@ let to_clickable_row t =
 let run_action row =
   let open Js_of_ocaml in
   match row.action with
-  | NoAction -> ()
-  | Link href -> Dom_html.window##.location##.href := Js.string (S.value href)
+  | NoAction -> lwt_unit
+  | Link href -> Dom_html.window##.location##.href := Js.string (S.value href); lwt_unit
   | Callback f -> f ()
