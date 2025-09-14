@@ -2,7 +2,7 @@ open Nes
 open Common
 
 let get env id =
-  match%lwt Database.Tune.get id with
+  match Database.Tune.get id with
   | None -> Permission.reject_can_get ()
   | Some tune ->
     Permission.assert_can_get env tune;%lwt
@@ -21,8 +21,7 @@ include Search.Build(struct
   type filter = Filter.Tune.t
 
   let get_all env =
-    List.filter (Permission.can_get env)
-    <$> Database.Tune.get_all ()
+    List.filter (Permission.can_get env) (Database.Tune.get_all ())
 
   let filter_accepts = Filter.Tune.accepts
 

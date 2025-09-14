@@ -4,7 +4,7 @@ open Common
 module Log = (val Logger.create "controller.dance": Logs.LOG)
 
 let get env id =
-  match%lwt Database.Dance.get id with
+  match Database.Dance.get id with
   | None -> Permission.reject_can_get ()
   | Some dance ->
     Permission.assert_can_get env dance;%lwt
@@ -23,7 +23,7 @@ include Search.Build(struct
   type filter = Filter.Dance.t
 
   let get_all env =
-    List.filter (Permission.can_get env) <$> Database.Dance.get_all ()
+    List.filter (Permission.can_get env) (Database.Dance.get_all ())
 
   let filter_accepts = Filter.Dance.accepts
 

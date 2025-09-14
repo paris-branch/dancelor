@@ -83,7 +83,7 @@ let process_remember_me_cookie env remember_me_cookie =
       register_response_cookie env (delete_cookie ~path: "/" "rememberMe");
       lwt_unit
     | Some id ->
-      match%lwt Database.User.get id with
+      match Database.User.get id with
       | None ->
         Log.info (fun m -> m "Rejecting because of wrong username.");
         register_response_cookie env (delete_cookie ~path: "/" "rememberMe");

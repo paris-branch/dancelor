@@ -4,7 +4,7 @@ open Common
 module Log = (val Logger.create "controller.version": Logs.LOG)
 
 let get env id =
-  match%lwt Database.Version.get id with
+  match Database.Version.get id with
   | None -> Permission.reject_can_get ()
   | Some version ->
     Permission.assert_can_get env version;%lwt
@@ -50,21 +50,13 @@ include Search.Build(struct
   type filter = Filter.Version.t
 
   let get_all env =
-    List.filter (Permission.can_get env)
-    <$> Database.Version.get_all ()
+    List.filter (Permission.can_get env) (Database.Version.get_all ())
 
   let filter_accepts = Filter.Version.accepts
 
   let tiebreakers =
     Lwt_list.[increasing (NEString.to_string <%> Model.Version.one_name') String.Sensible.compare]
 end)
-
-let get env id =
-  match%lwt Database.Version.get id with
-  | None -> Permission.reject_can_get ()
-  | Some version ->
-    Permission.assert_can_get env version;%lwt
-    lwt version
 
 let content env id =
   Log.debug (fun m -> m "content %a" Entry.Id.pp' id);
