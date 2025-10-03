@@ -56,11 +56,13 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     (* tune *)
     let%lwt this_tune = Model.Version.tune' this_version in
     let%lwt other_tune = Model.Version.tune' other_version in
-    assert (Entry.equal' this_tune other_tune);
+    if not (Entry.equal' this_tune other_tune) then
+      failwith "Version de-duplicator: these two versions do not share the same tune.";
     (* key *)
     let this_key = Model.Version.key' this_version in
     let other_key = Model.Version.key' other_version in
-    assert (this_key = other_key);
+    if this_key <> other_key then
+      failwith "Version de-duplicator: these two versions do not share the same key.";
     (* FIXME: can do better? *)
     (* sources *)
     let%lwt this_sources = Model.Version.sources' this_version in
@@ -85,17 +87,20 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     (* arrangers *)
     let%lwt this_arrangers = Model.Version.arrangers' this_version in
     let%lwt other_arrangers = Model.Version.arrangers' other_version in
-    assert (this_arrangers = other_arrangers);
+    if this_arrangers <> other_arrangers then
+      failwith "Version de-duplicator: these two versions do not share the same arrangers.";
     (* FIXME: can do better? *)
     (* remark *)
     let this_remark = Model.Version.remark' this_version in
     let other_remark = Model.Version.remark' other_version in
-    assert (this_remark = other_remark);
+    if this_remark <> other_remark then
+      failwith "Version de-duplicator: these two versions do not share the same remark.";
     (* FIXME: can do better? *)
     (* disambiguation *)
     let this_disambiguation = Model.Version.disambiguation' this_version in
     let other_disambiguation = Model.Version.disambiguation' other_version in
-    assert (this_disambiguation = other_disambiguation);
+    if this_disambiguation <> other_disambiguation then
+      failwith "Version de-duplicator: these two versions do not share the same disambiguation.";
     (* FIXME: can do better? *)
     (* content *)
     let%lwt other_content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id other_version) in
