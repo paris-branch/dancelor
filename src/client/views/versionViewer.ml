@@ -56,11 +56,13 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     (* tune *)
     let%lwt this_tune = Model.Version.tune' this_version in
     let%lwt other_tune = Model.Version.tune' other_version in
-    assert (Entry.equal' this_tune other_tune);
+    if not (Entry.equal' this_tune other_tune) then
+      failwith "Version de-duplicator: these two versions do not share the same tune.";
     (* key *)
     let this_key = Model.Version.key' this_version in
     let other_key = Model.Version.key' other_version in
-    assert (this_key = other_key);
+    if this_key <> other_key then
+      failwith "Version de-duplicator: these two versions do not share the same key.";
     (* FIXME: can do better? *)
     (* sources *)
     let%lwt this_sources = Model.Version.sources' this_version in
@@ -85,17 +87,20 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
     (* arrangers *)
     let%lwt this_arrangers = Model.Version.arrangers' this_version in
     let%lwt other_arrangers = Model.Version.arrangers' other_version in
-    assert (this_arrangers = other_arrangers);
+    if this_arrangers <> other_arrangers then
+      failwith "Version de-duplicator: these two versions do not share the same arrangers.";
     (* FIXME: can do better? *)
     (* remark *)
     let this_remark = Model.Version.remark' this_version in
     let other_remark = Model.Version.remark' other_version in
-    assert (this_remark = other_remark);
+    if this_remark <> other_remark then
+      failwith "Version de-duplicator: these two versions do not share the same remark.";
     (* FIXME: can do better? *)
     (* disambiguation *)
     let this_disambiguation = Model.Version.disambiguation' this_version in
     let other_disambiguation = Model.Version.disambiguation' other_version in
-    assert (this_disambiguation = other_disambiguation);
+    if this_disambiguation <> other_disambiguation then
+      failwith "Version de-duplicator: these two versions do not share the same disambiguation.";
     (* FIXME: can do better? *)
     (* content *)
     let%lwt other_content = Madge_client.call_exn Endpoints.Api.(route @@ Version Content) (Entry.id other_version) in
@@ -441,11 +446,37 @@ let create ?context id =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      Components.VersionSnippets.make version;
+      (
+        (* For de-structured versions, show one of the common structures. *)
+        match Model.Version.content' version with
+        | Monolithic _ -> Components.VersionSnippets.make version
+        | Destructured {common_structures; _} ->
+          let structure = NEList.hd common_structures in
+          div [
+            txt ("Shown here as " ^ NEString.to_string (Version.Content.structure_to_string structure));
+            (
+              match NEList.tl common_structures with
+              | [] -> txt "."
+              | other_structures ->
+                span (
+                  [txt ", but is commonly also seen as "] @
+                  List.interspersei
+                    (fun _ -> txt ", ")
+                    ~last: (fun _ -> txt " or ")
+                    (List.map (txt % NEString.to_string % Model.Version.Content.structure_to_string) other_structures) @
+                    [txt "."]
+                )
+            );
+            Components.VersionSnippets.make
+              version
+              ~params: (Model.VersionParameters.make ~structure ());
+          ]
+      );
       R.div (
         S.from' [] @@
           match%lwt Model.Version.other_names' version with
           | [] -> lwt_nil
+          | [other_name] -> lwt [txt @@ "Also known as " ^ NEString.to_string other_name ^ "."]
           | other_names ->
             lwt [
               txt "Also known as:";
@@ -454,22 +485,18 @@ let create ?context id =
       );
       R.div (
         S.from' [] @@
-          let%lwt sources = Model.Version.sources' version in
-          lwt [
-            txt "Appears:";
-            ul (
-              (
-                match Model.Version.content' version with
-                | Monolithic _ -> []
-                | Destructured {common_structures; _} ->
-                  [
-                    li @@
-                      (txt "commonly as ") :: List.interspersei
-                        (fun _ -> txt ", ")
-                        ~last: (fun _ -> txt " or ")
-                        (List.map (txt % NEString.to_string % Model.Version.Content.structure_to_string) (NEList.to_list common_structures))
-                  ]
-              ) @
+          match%lwt Model.Version.sources' version with
+          | [] -> lwt_nil
+          | [(source, structure)] ->
+            lwt [
+              txt "Appears in ";
+              Formatters.Source.name' source;
+              txt (" as " ^ NEString.to_string (Model.Version.Content.structure_to_string structure) ^ ".");
+            ]
+          | sources ->
+            lwt [
+              txt "Appears:";
+              ul (
                 List.map
                   (fun (source, structure) ->
                     li [
@@ -480,8 +507,8 @@ let create ?context id =
                     ]
                   )
                   sources
-            )
-          ]
+              )
+            ]
       );
       Utils.quick_explorer_links
         [
