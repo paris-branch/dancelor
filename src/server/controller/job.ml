@@ -114,7 +114,7 @@ let make expr = lwt {expr; state = ref Pending}
 
 let get id =
   match Hashtbl.find_opt job_and_file_of_id id with
-  | None -> Madge_server.shortcut_not_found "This job does not exit anymore, or has never existed."
+  | None -> Madge_server.shortcut_not_found "This job does not exist anymore, or has never existed."
   | Some job_and_file -> lwt job_and_file
 
 let status id =
