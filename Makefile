@@ -4,11 +4,11 @@ build:
 	dune build @install
 	ln -sf _build/install/default/bin .
 
+entr:
+    dune build --watch @install
+
 dev: build
 	bin/dancelor --config assets/config.local.json
-
-entr:
-	find src/ -type f | entr -ccrd make dev
 
 local: build
 	bin/dancelor --config assets/config.local.json --write-storage
