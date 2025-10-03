@@ -5,7 +5,7 @@ build:
 	ln -sf _build/install/default/bin .
 
 entr:
-    dune build --watch @install
+	dune build --watch @install
 
 dev: build
 	bin/dancelor --config assets/config.local.json
