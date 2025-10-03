@@ -476,6 +476,7 @@ let create ?context id =
         S.from' [] @@
           match%lwt Model.Version.other_names' version with
           | [] -> lwt_nil
+          | [other_name] -> lwt [txt @@ "Also known as " ^ NEString.to_string other_name ^ "."]
           | other_names ->
             lwt [
               txt "Also known as:";
@@ -486,6 +487,12 @@ let create ?context id =
         S.from' [] @@
           match%lwt Model.Version.sources' version with
           | [] -> lwt_nil
+          | [(source, structure)] ->
+            lwt [
+              txt "Appears in ";
+              Formatters.Source.name' source;
+              txt (" as " ^ NEString.to_string (Model.Version.Content.structure_to_string structure) ^ ".");
+            ]
           | sources ->
             lwt [
               txt "Appears:";
