@@ -48,8 +48,8 @@ contain QCheck-based tests.
 Integration tests are heavier tests on the final product. They run using
 [Selenium]'s Python API and Firefox driver. The easiest way to run them is via
 the `integration` Nix flake check. You can also run them directly, provided you
-have the Firefox web browser. It is not provided by the Nix environment. You can
-now run the integration tests by having a properly-configured Dancelor instance
+have the Firefox web browser, which is not provided by the Nix environment. You
+can run the integration tests by having a properly-configured Dancelor instance
 running in the background, which you can get with `make dev-test`, and by
 running `pytest`.
 
