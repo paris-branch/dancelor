@@ -50,7 +50,7 @@ let create ?context id =
         (
           match Tune.date' tune with
           | None -> []
-          | Some date -> [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
+          | Some date -> [txtf "Composed %s." (PartialDate.to_pretty_string ~at: true date)]
         );
       R.div (
         S.from' [] @@
