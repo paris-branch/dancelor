@@ -446,7 +446,32 @@ let create ?context id =
             | Some date ->
               lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
         ];
-      Components.VersionSnippets.make version;
+      (
+        (* For de-structured versions, show one of the common structures. *)
+        match Model.Version.content' version with
+        | Monolithic _ -> Components.VersionSnippets.make version
+        | Destructured {common_structures; _} ->
+          let structure = NEList.hd common_structures in
+          div [
+            txt ("Shown here as " ^ NEString.to_string (Version.Content.structure_to_string structure));
+            (
+              match NEList.tl common_structures with
+              | [] -> txt "."
+              | other_structures ->
+                span (
+                  [txt ", but is commonly also seen as "] @
+                  List.interspersei
+                    (fun _ -> txt ", ")
+                    ~last: (fun _ -> txt " or ")
+                    (List.map (txt % NEString.to_string % Model.Version.Content.structure_to_string) other_structures) @
+                    [txt "."]
+                )
+            );
+            Components.VersionSnippets.make
+              version
+              ~params: (Model.VersionParameters.make ~structure ());
+          ]
+      );
       R.div (
         S.from' [] @@
           match%lwt Model.Version.other_names' version with
@@ -459,22 +484,12 @@ let create ?context id =
       );
       R.div (
         S.from' [] @@
-          let%lwt sources = Model.Version.sources' version in
-          lwt [
-            txt "Appears:";
-            ul (
-              (
-                match Model.Version.content' version with
-                | Monolithic _ -> []
-                | Destructured {common_structures; _} ->
-                  [
-                    li @@
-                      (txt "commonly as ") :: List.interspersei
-                        (fun _ -> txt ", ")
-                        ~last: (fun _ -> txt " or ")
-                        (List.map (txt % NEString.to_string % Model.Version.Content.structure_to_string) (NEList.to_list common_structures))
-                  ]
-              ) @
+          match%lwt Model.Version.sources' version with
+          | [] -> lwt_nil
+          | sources ->
+            lwt [
+              txt "Appears:";
+              ul (
                 List.map
                   (fun (source, structure) ->
                     li [
@@ -485,8 +500,8 @@ let create ?context id =
                     ]
                   )
                   sources
-            )
-          ]
+              )
+            ]
       );
       Utils.quick_explorer_links
         [
