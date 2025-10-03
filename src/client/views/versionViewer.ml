@@ -78,7 +78,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           ul (
             List.map
               (fun (source, structure) ->
-                li [Formatters.Source.name' source; txt " ("; txt (NEString.to_string @@ Version.Content.structure_to_string structure); txt ")"]
+                li [Formatters.Source.name' source; txtf " (%s)" (NEString.to_string @@ Version.Content.structure_to_string structure)]
               )
               this_sources
           );
@@ -225,8 +225,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
               Model.Book.set_contents contents (Entry.value book)
         )
         [
-          txt
-            "replace the version in book ";
+          txt "replace the version in book ";
           Formatters.Book.title' book;
           txt "."
         ]
@@ -244,8 +243,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
       Formatters.Version.name_disambiguation_and_sources' this_version;
       txt " [";
       Formatters.Version.id' this_version;
-      txt "]";
-      txt ".";
+      txt "].";
     ];
 
   (* report *)
@@ -444,7 +442,7 @@ let create ?context id =
             match%lwt Tune.date' <$> Model.Version.tune' version with
             | None -> lwt_nil
             | Some date ->
-              lwt [txt "Composed "; txt (PartialDate.to_pretty_string ~at: true date); txt "."]
+              lwt [txtf "Composed %s." (PartialDate.to_pretty_string ~at: true date)]
         ];
       (
         (* For de-structured versions, show one of the common structures. *)
@@ -453,7 +451,7 @@ let create ?context id =
         | Destructured {common_structures; _} ->
           let structure = NEList.hd common_structures in
           div [
-            txt ("Shown here as " ^ NEString.to_string (Version.Content.structure_to_string structure));
+            txtf "Shown here as %s" (NEString.to_string (Version.Content.structure_to_string structure));
             (
               match NEList.tl common_structures with
               | [] -> txt "."
@@ -476,7 +474,7 @@ let create ?context id =
         S.from' [] @@
           match%lwt Model.Version.other_names' version with
           | [] -> lwt_nil
-          | [other_name] -> lwt [txt @@ "Also known as " ^ NEString.to_string other_name ^ "."]
+          | [other_name] -> lwt [txtf "Also known as %s." (NEString.to_string other_name)]
           | other_names ->
             lwt [
               txt "Also known as:";
@@ -491,7 +489,7 @@ let create ?context id =
             lwt [
               txt "Appears in ";
               Formatters.Source.name' source;
-              txt (" as " ^ NEString.to_string (Model.Version.Content.structure_to_string structure) ^ ".");
+              txtf " as %s." (NEString.to_string (Model.Version.Content.structure_to_string structure));
             ]
           | sources ->
             lwt [
@@ -502,8 +500,7 @@ let create ?context id =
                     li [
                       txt "in ";
                       Formatters.Source.name' source;
-                      txt " as ";
-                      txt (NEString.to_string @@ Model.Version.Content.structure_to_string structure);
+                      txtf " as %s " (NEString.to_string @@ Model.Version.Content.structure_to_string structure);
                     ]
                   )
                   sources

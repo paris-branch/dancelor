@@ -65,7 +65,12 @@ end
 
 (** {2 TyXML aliases} *)
 
-module C = Js_of_ocaml_tyxml.Tyxml_js.Html
+module C = struct
+  include Js_of_ocaml_tyxml.Tyxml_js.Html
+
+  (** Variant of {!txt} that takes a formatter. *)
+  let txtf fmt = kspf txt fmt
+end
 include C
 (** Constant HTML nodes. *)
 
