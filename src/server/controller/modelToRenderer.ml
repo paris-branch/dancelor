@@ -78,13 +78,9 @@ let version_parts_to_lilypond_content ~version_params version parts =
     " " ^ (match key.Music.mode with Major -> "\\major" | Minor -> "\\minor")
   in
   let parts = NEList.to_list parts in
-  let (melody, chords) =
-    let structure =
-      Option.fold
-        ~none: None
-        ~some: (best_structure_for % NEString.to_string % Model.Version.Content.structure_to_string)
-        (Model.VersionParameters.structure version_params)
-    in
+  let (melody, chords, instructions) =
+    let desired_structure = Option.map (NEString.to_string % Model.Version.Content.structure_to_string) (Model.VersionParameters.structure version_params) in
+    let structure = Option.fold ~none: None ~some: best_structure_for desired_structure in
     match structure with
     | None ->
       (* no structure; or we couldn't find a good one *)
@@ -103,7 +99,8 @@ let version_parts_to_lilypond_content ~version_params version parts =
           List.map (fun (_, part) -> part.Model.Version.Content.chords) parts
         )
       in
-        (melody, chords)
+      let instructions = Option.map (fun structure -> "play " ^ structure) desired_structure in
+        (melody, chords, instructions)
     | Some structure ->
       let rec to_lilypond_melody = function
         | Part part -> (List.assoc part parts).melody
@@ -124,22 +121,24 @@ let version_parts_to_lilypond_content ~version_params version parts =
         | Append (e, f) -> spf "%s %s" (to_lilypond_chords e) (to_lilypond_chords f)
         | Repeat (_, e) -> to_lilypond_chords e
       in
-        (lilypond_melody, to_lilypond_chords structure)
+        (lilypond_melody, to_lilypond_chords structure, None)
   in
-  lwt @@
+  lwt (
     spf
       "<< \\new Voice {\\clef treble \\time %s \\key %s {%s}}\\new ChordNames {\\chordmode {%s}}>>"
       time
       key
       melody
-      chords
+      chords,
+    instructions
+  )
 
 let version_to_lilypond_content ~version_params version =
   let content = Model.Version.content version in
   (* get a LilyPond from the potentially-destructured content *)
-  let%lwt content =
+  let%lwt (content, instructions) =
     match content with
-    | Monolithic {lilypond; _} -> lwt lilypond
+    | Monolithic {lilypond; _} -> lwt (lilypond, None)
     | Destructured {parts; _} -> version_parts_to_lilypond_content ~version_params version parts
   in
   (* update the clef *)
@@ -163,7 +162,7 @@ let version_to_lilypond_content ~version_params version =
     spf "\\transpose %s %s { %s }" source target content
   in
   (* done *)
-  lwt content
+  lwt (content, instructions)
 
 let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) version =
   let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
@@ -183,7 +182,8 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
         ~some: NEString.to_string
         (Model.VersionParameters.display_composer version_params)
   in
-  let%lwt content = version_to_lilypond_content ~version_params version in
+  let%lwt (content, instructions) = version_to_lilypond_content ~version_params version in
+  let instructions = Option.value instructions ~default: "" in
   let first_bar = Model.VersionParameters.first_bar' version_params in
   let stylesheet = "/fonts.css" in
   let%lwt tune = Model.Version.tune version in
@@ -194,7 +194,7 @@ let version_to_renderer_tune ?(version_params = Model.VersionParameters.none) ve
     Model.Version.(Content.is_monolithic @@ content version)
     || Model.VersionParameters.structure version_params <> None
   in
-  lwt Renderer.{slug; name; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
+  lwt Renderer.{slug; name; instructions; composer; content; first_bar; stylesheet; tempo_unit; tempo_value; chords_kind; show_bar_numbers}
 
 let version_to_renderer_tune' ?version_params version =
   version_to_renderer_tune ?version_params (Entry.value version)

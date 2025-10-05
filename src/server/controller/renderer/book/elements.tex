@@ -57,15 +57,15 @@
   \clearpage%
 }
 
-\newcommand\tune[3]{%
+\newcommand\tune[4]{%
   \vspace{14mm minus 10mm}%
-  \addtunetotoc{#1}{#2}%
+  \addtunetotoc{#1}{#3}%
   \vbox{
-    \makebox[\linewidth]{#1\hfill{}#2}\\[2mm]%
+    \makebox[\linewidth]{#1\ifstrempty{#2}{}{ \textit{\small(#2)}}\hfill{}#3}\\[2mm]%
     %% Tune are generated on A4 paper -- 21cm wide -- with a left margin of 1cm
     %% for page numbers -- that is 5% of the whole page. Since we want page
     %% numbers to actually appear in the margin on the website, we make the image
     %% bigger but remove those 5% of margin on the left.
-    \hspace*{-.05\linewidth}\makebox[1.05\linewidth]{\includegraphics[width=1.05\linewidth]{#3}}%
+    \hspace*{-.05\linewidth}\makebox[1.05\linewidth]{\includegraphics[width=1.05\linewidth]{#4}}%
   }%
 }

@@ -30,6 +30,10 @@ let
         description = "The name of the tune.";
         type = types.str;
       };
+      instructions = mkOption {
+        description = "Instructions on how to play the tune.";
+        type = types.str;
+      };
       composer = mkOption {
         description = "The composer of the tune.";
         type = types.str;

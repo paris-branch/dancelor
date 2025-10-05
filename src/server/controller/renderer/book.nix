@@ -210,8 +210,9 @@ let
                   ${escapeShellArg (escapeLatexString page.set.kind)}
 
                 ${forConcat page.set.contents (tune: ''
-                  printf '\\tune{%s}{%s}{%s}\n' \
+                  printf '\\tune{%s}{%s}{%s}{%s}\n' \
                     ${escapeShellArg (escapeLatexString tune.name)} \
+                    ${escapeShellArg (escapeLatexString tune.instructions)} \
                     ${escapeShellArg (escapeLatexString tune.composer)} \
                     ${makeTuneSnippets tune}/snippet.pdf
                 '')}
