@@ -7,6 +7,7 @@ open NesUnix
 type tune = {
   slug: string;
   name: string;
+  instructions: string;
   composer: string;
   content: string;
   first_bar: int;
