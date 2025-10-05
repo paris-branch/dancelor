@@ -56,6 +56,9 @@
 %% Redefine the \tableofcontents to be consistent with the rest of the book.
 \makeatletter
 \renewcommand\tableofcontents{%
+  \clearpage%
+  \thispagestyle{norightmark}%
+  \markright{Table of contents}%
   \makebox[\linewidth]{\huge Table of contents}%
   \vspace{5mm}\\%
   \@starttoc{toc}%
