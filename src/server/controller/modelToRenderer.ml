@@ -74,8 +74,8 @@ let version_parts_to_lilypond_content ~version_params version parts =
     | Polka -> "2/2"
   in
   let key =
-    (Music.note_to_lilypond_string key.Music.pitch.note) ^
-    " " ^ (match key.Music.mode with Major -> "\\major" | Minor -> "\\minor")
+    (Music.Note.to_lilypond_string @@ Music.Pitch.note @@ Music.Key.pitch key) ^
+    " " ^ (Music.Mode.to_lilypond_string @@ Music.Key.mode key)
   in
   let parts = NEList.to_list parts in
   let (melody, chords, instructions) =
@@ -147,13 +147,13 @@ let version_to_lilypond_content ~version_params version =
     | None -> content
     | Some clef_parameter ->
       let clef_regex = Str.regexp "\\\\clef *\"?[a-z]*\"?" in
-      Str.global_replace clef_regex ("\\clef " ^ Music.clef_to_lilypond_string clef_parameter) content
+      Str.global_replace clef_regex ("\\clef " ^ Music.Clef.to_string clef_parameter) content
   in
   (* add transposition *)
   let content =
-    let source = Music.key_pitch @@ Model.Version.key version in
+    let source = Music.Key.pitch @@ Model.Version.key version in
     let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.VersionParameters.transposition version_params in
-    let (source, target) = Pair.map_both Music.pitch_to_lilypond_string (source, target) in
+    let (source, target) = Pair.map_both Music.Pitch.to_lilypond_string (source, target) in
     spf "\\transpose %s %s { %s }" source target content
   in
   (* done *)

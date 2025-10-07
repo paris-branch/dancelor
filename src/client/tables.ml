@@ -77,7 +77,7 @@ let versions ?onclick versions =
         lwt [Formatters.Version.disambiguation_and_sources' version];
         (List.singleton <$> (Formatters.Person.names' <$> Version.arrangers' version));
         (List.singleton <$> (txt % Kind.Base.to_pretty_string % Tune.kind' <$> Version.tune' version));
-        lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
+        lwt [txt @@ Music.Key.to_pretty_string @@ Version.key' version];
         lwt [
           txt @@
             match Version.content' version with
@@ -97,7 +97,7 @@ let versions_with_names versions =
       [
         lwt [with_span_placeholder (List.singleton % txt % NEString.to_string % Tune.one_name' <$> Version.tune' version)];
         (List.singleton <$> (txt % Kind.Base.to_pretty_string % Tune.kind' <$> Version.tune' version));
-        lwt [txt @@ Music.key_to_pretty_string @@ Version.key' version];
+        lwt [txt @@ Music.Key.to_pretty_string @@ Version.key' version];
         lwt [
           txt @@
             match Version.content' version with

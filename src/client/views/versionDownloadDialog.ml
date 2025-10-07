@@ -43,7 +43,7 @@ let create () =
           choice'
             [txt "𝄢"]
             ~value: (
-              VersionParameters.make ~clef: Music.Bass ~transposition: (Transposition.from_semitones (-12)) (),
+              VersionParameters.make ~clef: Bass ~transposition: (Transposition.from_semitones (-12)) (),
               RenderingParameters.make ~clef: "bass clef" ()
             );
         ]
