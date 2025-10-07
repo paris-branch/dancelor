@@ -2,7 +2,7 @@ open Nes
 
 type alteration =
   Flat | Sharp | Natural
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, qcheck2]
 
 let alteration_to_string = function Flat -> "b" | Sharp -> "#" | Natural -> ""
 let alteration_to_pretty_string = function Flat -> "♭" | Sharp -> "♯" | Natural -> ""
@@ -16,6 +16,8 @@ let alteration_of_string = function
 
 type octave = int
 [@@deriving eq, show {with_path = false}]
+
+let gen_octave = QCheck2.Gen.int_range (-8) 8
 
 let octave_to_lilypond_string octave =
   if octave < 0 then String.make (-octave) ','
@@ -39,7 +41,7 @@ type t = {
   alteration: alteration;
   octave: octave
 }
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, show {with_path = false}, qcheck2]
 
 let make note alteration octave = {note; alteration; octave}
 

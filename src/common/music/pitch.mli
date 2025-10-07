@@ -35,3 +35,6 @@ val add : t -> int -> t
     semantics as LilyPond's [\relative]. For instance, [relative_to
     ~reference:"A" "G" = "G,"]. *)
 val relative_to : reference: t -> t -> t
+
+(** For use in property-based testing. *)
+val gen : t QCheck2.Gen.t

@@ -18,3 +18,6 @@ val to_pretty_string : t -> string
 
 val of_string : string -> t
 val of_string_opt : string -> t option
+
+(** For use in property-based testing. *)
+val gen : t QCheck2.Gen.t
