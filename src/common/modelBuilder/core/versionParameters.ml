@@ -4,19 +4,16 @@
 
 open Nes
 
-module Self = struct
-  type t = {
-    transposition: Transposition.t option; [@default None]
-    first_bar: int option; [@default None] [@key "first-bar"]
-    clef: Music.clef option; [@default None]
-    structure: Version.Content.structure option; [@default None]
-    trivia: string option; [@default None]
-    display_name: NEString.t option; [@default None] [@key "display-name"]
-    display_composer: NEString.t option [@default None] [@key "display-composer"]
-  }
-  [@@deriving eq, make, show {with_path = false}, yojson, fields]
-end
-include Self
+type t = {
+  transposition: Transposition.t option; [@default None]
+  first_bar: int option; [@default None] [@key "first-bar"]
+  clef: Music.clef option; [@default None]
+  structure: Version.Content.structure option; [@default None]
+  trivia: string option; [@default None]
+  display_name: NEString.t option; [@default None] [@key "display-name"]
+  display_composer: NEString.t option [@default None] [@key "display-composer"]
+}
+[@@deriving eq, make, show {with_path = false}, yojson, fields]
 
 (* FIXME: [@@deriving yojson] and [@@deriving make] do not have the same
    interpretation of [@default]. Basically, we want [@@deriving yojson] to
@@ -33,7 +30,6 @@ let make ?transposition ?clef ?structure ?first_bar ?display_name ?display_compo
 
 let none = `Assoc [] |> of_yojson |> Result.get_ok
 
-let transposition' = Option.value ~default: Transposition.identity % transposition
 let first_bar' = Option.value ~default: 1 % first_bar
 let trivia' ~default = Option.value ~default % trivia
 

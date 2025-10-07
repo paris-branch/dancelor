@@ -152,7 +152,7 @@ let version_to_lilypond_content ~version_params version =
   (* add transposition *)
   let content =
     let source = Music.key_pitch @@ Model.Version.key version in
-    let target = Transposition.target_pitch ~source @@ Model.VersionParameters.transposition' version_params in
+    let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.VersionParameters.transposition version_params in
     let (source, target) = Pair.map_both Music.pitch_to_lilypond_string (source, target) in
     spf "\\transpose %s %s { %s }" source target content
   in
