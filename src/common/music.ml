@@ -243,6 +243,8 @@ type key =
 let make_key pitch mode = {pitch; mode}
 let key_pitch key = key.pitch
 
+let key_with_pitch f key = {key with pitch = f key.pitch}
+
 let key_to_string key = pitch_to_string key.pitch ^ mode_to_string key.mode
 let key_to_pretty_string key = pitch_to_pretty_string key.pitch ^ mode_to_pretty_string key.mode
 

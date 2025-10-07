@@ -38,9 +38,9 @@ val pitch_c0 : pitch
 val pitch_to_pretty_string : pitch -> string
 val pitch_to_lilypond_string : pitch -> string
 
-(* FIXME: Looks like we should just have a type for a difference between two
-   pitches. This would be morally an int, but with proper typing. In fact, maybe
-   pitches should also be stored as integers relative to C0? *)
+(* FIXME: Looks like we should just have a type for “intervals” = a difference
+   between two pitches. This would be morally an int, but with proper typing. In
+   fact, maybe pitches should also be stored as integers relative to C0? *)
 
 (** Difference between two pitches as a number of semitones. *)
 val pitch_diff : pitch -> pitch -> int
@@ -65,6 +65,8 @@ type key =
 
 val make_key : pitch -> mode -> key
 val key_pitch : key -> pitch
+
+val key_with_pitch : (pitch -> pitch) -> key -> key
 
 val key_to_string : key -> string
 (** eg. C  D#m   Eb *)
