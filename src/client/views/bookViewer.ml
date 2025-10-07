@@ -119,6 +119,8 @@ let table_contents ~this_id contents =
                       Formatters.Dance.name' ~link: false dance;
                       br ();
                       small [txt "Set: "; Formatters.Set.name' ~link: true ~params set];
+                      br ();
+                      small [Formatters.Set.tunes' ~link: true set];
                     ];
                     lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
                     lwt [Formatters.Set.conceptors' ~short: true ~params set];
@@ -142,7 +144,11 @@ let table_contents ~this_id contents =
                   let href = Endpoints.Page.href_set ~context @@ Entry.id set in
                   Tables.clickable_row ~href [
                     lwt [txt "Set"];
-                    lwt [Formatters.Set.name_and_tunes' ~name_link: false ~params set];
+                    lwt [
+                      Formatters.Set.name' ~link: false ~params set;
+                      br ();
+                      small [Formatters.Set.tunes' ~link: true set];
+                    ];
                     lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
                     lwt [Formatters.Set.conceptors' ~short: true ~params set];
                   ]
