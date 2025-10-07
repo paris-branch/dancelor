@@ -92,11 +92,14 @@ type pitch = {
 [@@deriving eq, show {with_path = false}]
 
 let make_pitch note alteration octave = {note; alteration; octave}
+
 let pitch_note pitch = pitch.note
 let pitch_alteration pitch = pitch.alteration
 let pitch_octave pitch = pitch.octave
 
-let pitch_c = make_pitch C Natural 0
+let pitch_with_octave update pitch = {pitch with octave = update pitch.octave}
+
+let pitch_c0 = make_pitch C Natural 0
 
 let pitch_to_string pitch =
   note_to_string pitch.note ^
@@ -138,6 +141,89 @@ let pitch_of_string = function
 
 let pitch_to_yojson = to_yojson__of__to_string pitch_to_string
 let pitch_of_yojson = of_yojson__of__of_string pitch_of_string "Dancelor_common.Model.Music.pitch_of_yojson"
+
+let pitch_to_int pitch =
+  (
+    match pitch_note pitch with
+    | C -> 0
+    | D -> 2
+    | E -> 4
+    | F -> 5
+    | G -> 7
+    | A -> 9
+    | B -> 11
+  ) +
+    (
+      match pitch_alteration pitch with
+      | Flat -> -1
+      | Natural -> 0
+      | Sharp -> +1
+    ) +
+    (pitch_octave pitch * 12)
+
+let pitch_of_int =
+  let pitch_of_int = [|
+    make_pitch C Natural;
+    make_pitch C Sharp;
+    make_pitch D Natural;
+    make_pitch D Sharp;
+    make_pitch E Natural;
+    make_pitch F Natural;
+    make_pitch F Sharp;
+    make_pitch G Natural;
+    make_pitch G Sharp;
+    make_pitch A Natural;
+    make_pitch A Sharp;
+    make_pitch B Natural;
+  |]
+  in
+  fun n ->
+    pitch_of_int.(pmod n 12) (pdiv n 12)
+
+let%test _ = pitch_of_int 0 = make_pitch C Natural 0
+let%test _ = pitch_of_int 1 = make_pitch C Sharp 0
+let%test _ = pitch_of_int 12 = make_pitch C Natural 1
+let%test _ = pitch_of_int 23 = make_pitch B Natural 1
+let%test _ = pitch_of_int (-1) = make_pitch B Natural (-1)
+let%test _ = pitch_of_int (-24) = make_pitch C Natural (-2)
+let%test _ = pitch_of_int (-43) = make_pitch F Natural (-4)
+let%test "pitch_of_int % pitch_to_int = id" =
+  List.for_all (fun n -> pitch_to_int (pitch_of_int n) = n) (List.init 50 (fun i -> (i - 25)))
+
+(** Variant of {!make} where the target of the transposition is taken relatively
+    to the source, that is the note is the closest to the source's note. For
+    instance, [make ~from:"A" ~to_:"G"] will be a transposition of +10
+    semitones, while [make' ~from:"A" ~to_relative:"G"] will be a transposition
+    of -2 semitones. *)
+let pitch_relative_to ~reference pitch_relative =
+  (* forget about octaves, for now, and find the note that is closest to the
+     reference note *)
+  let closest =
+    let reference_0 = pitch_to_int @@ pitch_with_octave (const 0) reference in
+    let candidate n = pitch_with_octave (const n) pitch_relative in
+    let diff n = pitch_to_int (candidate n) - reference_0 in
+    match diff 0 with
+    | n when n < 0 && abs (diff 1) < abs n -> candidate 1
+    | n when n > 0 && abs (diff (-1)) < abs n -> candidate (-1)
+    | _ -> candidate 0
+  in
+  (* now we can add the octaves back *)
+  let reference_octave = pitch_octave reference in
+  let pitch_relative_octave = pitch_octave pitch_relative in
+  pitch_with_octave ((+) (reference_octave + pitch_relative_octave)) closest
+
+let%test _ = pitch_relative_to ~reference: (make_pitch C Natural 7) (make_pitch B Flat (-1)) = make_pitch B Flat 5
+
+let pitch_diff p1 p2 = pitch_to_int p1 - pitch_to_int p2
+
+let pitch_add p1 n = pitch_of_int (pitch_to_int p1 + n)
+
+let%test _ = pitch_add pitch_c0 0 = pitch_c0
+let%test _ = pitch_add pitch_c0 1 = make_pitch C Sharp 0
+let%test _ = pitch_add pitch_c0 2 = make_pitch D Natural 0
+let%test _ = pitch_add pitch_c0 15 = make_pitch D Sharp 1
+let%test _ = pitch_add pitch_c0 (-1) = make_pitch B Natural (-1)
+let%test _ = pitch_add pitch_c0 (-2) = make_pitch A Sharp (-1)
 
 (* Mode *)
 
