@@ -52,21 +52,6 @@ let tunes ?link set =
 
 let tunes' ?link set = tunes ?link @@ Entry.value set
 
-let name_and_tunes_gen ?tunes_link ?params set =
-  span (
-    [name_gen set;
-    br ();
-    small [tunes ?link: tunes_link @@ Either.fold ~left: Fun.id ~right: (Entry.value % fst) set];
-    ] @
-      display_name ?params ()
-  )
-
-let name_and_tunes ?tunes_link set =
-  name_and_tunes_gen ?tunes_link @@ Left set
-
-let name_and_tunes' ?(name_link = true) ?tunes_link ?params set =
-  name_and_tunes_gen ?tunes_link ?params @@ Right (set, name_link)
-
 let conceptors ?short ?params tune =
   span (
     [with_span_placeholder

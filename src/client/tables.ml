@@ -32,7 +32,11 @@ let sets sets =
   clickable_row
     ~href
     [
-      lwt [Formatters.Set.name_and_tunes' ~name_link: false set];
+      lwt [
+        Formatters.Set.name' ~link: false set;
+        br ();
+        small [Formatters.Set.tunes' ~link: true set];
+      ];
       (List.singleton <$> (Formatters.Person.names' <$> Set.conceptors' set));
       lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
     ]
