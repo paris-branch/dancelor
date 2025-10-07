@@ -25,7 +25,7 @@ module type S = sig
   val display_composer : t -> NEString.t option
   val clef : t -> Music.clef option
   val structure : t -> Core.Version.Content.structure option
-  val transposition' : t -> Transposition.t
+  val transposition : t -> Transposition.t option
   val trivia' : default: string -> t -> string
 
   val first_bar : t -> int option

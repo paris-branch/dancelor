@@ -22,13 +22,13 @@ let create () =
           choice'
             [txt "B♭"]
             ~value: (
-              VersionParameters.make ~transposition: (Transposition.relative (Music.make_pitch B Flat (-1)) Music.pitch_c) (),
+              VersionParameters.make ~transposition: (Transposition.from_semitones 2) (),
               RenderingParameters.make ~instruments: "Bb instruments" ()
             );
           choice'
             [txt "E♭"]
             ~value: (
-              VersionParameters.make ~transposition: (Transposition.relative (Music.make_pitch E Flat 0) Music.pitch_c) (),
+              VersionParameters.make ~transposition: (Transposition.from_semitones (-3)) (),
               RenderingParameters.make ~instruments: "Eb instruments" ()
             );
         ]
@@ -43,7 +43,7 @@ let create () =
           choice'
             [txt "𝄢"]
             ~value: (
-              VersionParameters.make ~clef: Music.Bass ~transposition: (Relative (Music.pitch_c, Music.make_pitch C Natural (-1))) (),
+              VersionParameters.make ~clef: Music.Bass ~transposition: (Transposition.from_semitones (-12)) (),
               RenderingParameters.make ~clef: "bass clef" ()
             );
         ]

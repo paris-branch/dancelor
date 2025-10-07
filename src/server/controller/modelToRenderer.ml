@@ -151,14 +151,9 @@ let version_to_lilypond_content ~version_params version =
   in
   (* add transposition *)
   let content =
-    let key = Model.Version.key version in
-    let source, target =
-      (* FIXME: Pair.map_both *)
-      (fun (x, y) -> (Music.pitch_to_lilypond_string x, Music.pitch_to_lilypond_string y)) @@
-        match Model.VersionParameters.transposition' version_params with
-        | Relative (source, target) -> (source, target)
-        | Absolute target -> (Music.key_pitch key, target)
-    in
+    let source = Music.key_pitch @@ Model.Version.key version in
+    let target = Transposition.target_pitch ~source @@ Option.value ~default: Transposition.identity @@ Model.VersionParameters.transposition version_params in
+    let (source, target) = Pair.map_both Music.pitch_to_lilypond_string (source, target) in
     spf "\\transpose %s %s { %s }" source target content
   in
   (* done *)

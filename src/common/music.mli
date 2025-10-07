@@ -30,10 +30,28 @@ val pitch_note : pitch -> note
 val pitch_alteration : pitch -> alteration
 val pitch_octave : pitch -> octave
 
-val pitch_c : pitch
+(** Replace the given octave in pitch. *)
+val pitch_with_octave : (octave -> octave) -> pitch -> pitch
+
+val pitch_c0 : pitch
 
 val pitch_to_pretty_string : pitch -> string
 val pitch_to_lilypond_string : pitch -> string
+
+(* FIXME: Looks like we should just have a type for “intervals” = a difference
+   between two pitches. This would be morally an int, but with proper typing. In
+   fact, maybe pitches should also be stored as integers relative to C0? *)
+
+(** Difference between two pitches as a number of semitones. *)
+val pitch_diff : pitch -> pitch -> int
+
+(** Add a number of semitones to a pitch. *)
+val pitch_add : pitch -> int -> pitch
+
+(** Interpret the given pitch as relative to a reference. This is the same
+    semantics as LilyPond's [\relative]. For instance, [pitch_relative_to
+    ~reference:"A" "G" = "G,"]. *)
+val pitch_relative_to : reference: pitch -> pitch -> pitch
 
 (** {2 Key} *)
 
@@ -47,6 +65,8 @@ type key =
 
 val make_key : pitch -> mode -> key
 val key_pitch : key -> pitch
+
+val key_with_pitch : (pitch -> pitch) -> key -> key
 
 val key_to_string : key -> string
 (** eg. C  D#m   Eb *)
