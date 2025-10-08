@@ -7,7 +7,7 @@ open Nes
 type t = {
   transposition: Transposition.t option; [@default None]
   first_bar: int option; [@default None] [@key "first-bar"]
-  clef: Music.clef option; [@default None]
+  clef: Music.Clef.t option; [@default None]
   structure: Version.Content.structure option; [@default None]
   trivia: string option; [@default None]
   display_name: NEString.t option; [@default None] [@key "display-name"]

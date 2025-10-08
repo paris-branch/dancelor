@@ -27,7 +27,7 @@ module type S = sig
 
   val make :
     tune: Core.Tune.t Entry.t ->
-    key: Music.key ->
+    key: Music.Key.t ->
     ?sources: (Core.Source.t Entry.t * Content.structure) list ->
     ?arrangers: Core.Person.t Entry.t list ->
     ?remark: string ->
@@ -39,8 +39,8 @@ module type S = sig
   val tune : t -> Core.Tune.t Entry.t Lwt.t
   val tune' : t Entry.t -> Core.Tune.t Entry.t Lwt.t
 
-  val key : t -> Music.key
-  val key' : t Entry.t -> Music.key
+  val key : t -> Music.Key.t
+  val key' : t Entry.t -> Music.Key.t
 
   val sources : t -> (Core.Source.t Entry.t * Content.structure) list Lwt.t
   val sources' : t Entry.t -> (Core.Source.t Entry.t * Content.structure) list Lwt.t

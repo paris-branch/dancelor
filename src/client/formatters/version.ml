@@ -33,8 +33,8 @@ let description ?arranger_links version =
     let key = Model.Version.key version in
     match Model.Version.content version with
     | Monolithic {bars; structure; _} ->
-      spf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Content.structure_to_string structure) (Music.key_to_pretty_string key)
-    | Destructured _ -> spf "Destructured version in %s" (Music.key_to_pretty_string key)
+      spf "%d-bar %s version in %s" bars (NEString.to_string @@ Model.Version.Content.structure_to_string structure) (Music.Key.to_pretty_string key)
+    | Destructured _ -> spf "Destructured version in %s" (Music.Key.to_pretty_string key)
   in
   let arranger_block =
     match%lwt Model.Version.arrangers version with
@@ -89,9 +89,9 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
     | None -> []
     | Some transposition ->
       let key =
-        Music.key_with_pitch (fun source -> Transposition.target_pitch ~source transposition) (Model.Version.key the_version)
+        Music.Key.with_pitch (fun source -> Transposition.target_pitch ~source transposition) (Model.Version.key the_version)
       in
-        [txtf " [in %s / %+d m2]" (Music.key_to_pretty_string key) (Transposition.to_semitones transposition)]
+        [txtf " [in %s / %+d m2]" (Music.Key.to_pretty_string key) (Transposition.to_semitones transposition)]
   in
   span (
     [name_gen version; span ~a: [a_class ["opacity-50"]] disambiguation_and_sources_block] @

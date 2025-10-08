@@ -7,13 +7,13 @@ val identity : t
 val from_semitones : int -> t
 
 (** Make a transposition from a source and a target pitch. *)
-val from_pitches : source: Music.pitch -> target: Music.pitch -> t
+val from_pitches : source: Music.Pitch.t -> target: Music.Pitch.t -> t
 
 (** Variant of {!from_pitches} where the target of the transposition is taken
-    relatively to the source. See {!Music.pitch_relative_to}. *)
-val from_pitches' : source: Music.pitch -> target_relative: Music.pitch -> t
+    relatively to the source. See {!Music.Pitch.t_relative_to}. *)
+val from_pitches' : source: Music.Pitch.t -> target_relative: Music.Pitch.t -> t
 
-val target_pitch : source: Music.pitch -> t -> Music.pitch
+val target_pitch : source: Music.Pitch.t -> t -> Music.Pitch.t
 
 val to_semitones : t -> int
 

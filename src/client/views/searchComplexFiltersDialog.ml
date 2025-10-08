@@ -195,21 +195,21 @@ let tune_bundled_choices ~kind_choices _filter =
 let major_keys =
   let open Music in
   List.map
-    (flip make_key Major)
+    (flip Key.make Major)
     [
-      make_pitch C Natural 0;
-      make_pitch G Natural 0;
-      make_pitch D Natural 0;
-      make_pitch A Natural 0;
-      make_pitch E Natural 0;
-      make_pitch B Natural 0;
-      make_pitch F Sharp 0;
-      make_pitch C Sharp 0;
-      make_pitch F Natural 0;
-      make_pitch B Flat 0;
-      make_pitch E Flat 0;
-      make_pitch A Flat 0;
-      make_pitch D Flat 0;
+      Pitch.make C Natural 0;
+      Pitch.make G Natural 0;
+      Pitch.make D Natural 0;
+      Pitch.make A Natural 0;
+      Pitch.make E Natural 0;
+      Pitch.make B Natural 0;
+      Pitch.make F Sharp 0;
+      Pitch.make C Sharp 0;
+      Pitch.make F Natural 0;
+      Pitch.make B Flat 0;
+      Pitch.make E Flat 0;
+      Pitch.make A Flat 0;
+      Pitch.make D Flat 0;
     ]
 
 let major_key_choices filter =
@@ -226,7 +226,7 @@ let major_key_choices filter =
         List.map
           (fun key ->
             choice
-              [txt (Music.key_to_pretty_string key)]
+              [txt (Music.Key.to_pretty_string key)]
               ~value: key
               ~checked: (checked key)
           )
@@ -237,21 +237,21 @@ let major_key_choices filter =
 let minor_keys =
   let open Music in
   List.map
-    (flip make_key Minor)
+    (flip Key.make Minor)
     [
-      make_pitch A Natural 0;
-      make_pitch E Natural 0;
-      make_pitch B Natural 0;
-      make_pitch F Sharp 0;
-      make_pitch C Sharp 0;
-      make_pitch G Sharp 0;
-      make_pitch D Sharp 0;
-      make_pitch A Sharp 0;
-      make_pitch D Natural 0;
-      make_pitch G Natural 0;
-      make_pitch C Natural 0;
-      make_pitch F Natural 0;
-      make_pitch B Flat 0;
+      Pitch.make A Natural 0;
+      Pitch.make E Natural 0;
+      Pitch.make B Natural 0;
+      Pitch.make F Sharp 0;
+      Pitch.make C Sharp 0;
+      Pitch.make G Sharp 0;
+      Pitch.make D Sharp 0;
+      Pitch.make A Sharp 0;
+      Pitch.make D Natural 0;
+      Pitch.make G Natural 0;
+      Pitch.make C Natural 0;
+      Pitch.make F Natural 0;
+      Pitch.make B Flat 0;
     ]
 
 let minor_key_choices filter =
@@ -268,7 +268,7 @@ let minor_key_choices filter =
         List.map
           (fun key ->
             choice
-              [txt (Music.key_to_pretty_string key)]
+              [txt (Music.Key.to_pretty_string key)]
               ~value: key
               ~checked: (checked key)
           )

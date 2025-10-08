@@ -22,21 +22,6 @@ module Id = struct
     pure @@ Option.get @@ Common.Entry.Id.of_string str
 end
 
-module Music = struct
-  (* FIXME: Should be able to go in the [@@deriving] block. *)
-
-  type note = [%import: Common.Music.note] [@@deriving qcheck2]
-  type alteration = [%import: Common.Music.alteration] [@@deriving qcheck2]
-
-  type octave = [%import: Common.Music.octave]
-  let gen_octave = Gen.int_range (-8) 8
-
-  type pitch = [%import: Common.Music.pitch] [@@deriving qcheck2]
-  type mode = [%import: Common.Music.mode] [@@deriving qcheck2]
-  type key = [%import: Common.Music.key] [@@deriving qcheck2]
-  type clef = [%import: Common.Music.clef] [@@deriving qcheck2]
-end
-
 module Formula = struct
   type 'p t = [%import: 'p Common.Formula.t] [@@deriving qcheck2]
 
@@ -238,7 +223,6 @@ module Filter = struct
 
   module Version = struct
     type predicate = [%import: Common.FilterBuilder.Core.Version.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Version.t := Model.Version.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
@@ -256,7 +240,6 @@ module Filter = struct
 
   module Set = struct
     type predicate = [%import: Common.FilterBuilder.Core.Set.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Set.t := Model.Set.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
@@ -273,7 +256,6 @@ module Filter = struct
 
   module Book = struct
     type predicate = [%import: Common.FilterBuilder.Core.Book.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Book.t := Model.Book.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;
@@ -291,7 +273,6 @@ module Filter = struct
 
   module Any = struct
     type predicate = [%import: Common.FilterBuilder.Core.Any.predicate [@with Common.Entry.Id.t := Id.t;
-      Common.Music.key := Music.key;
       Common.ModelBuilder.Core.Any.Type.t := Model.Any.Type.t;
       Common.Kind.Base.Filter.t := Kind.Base.Filter.t;
       Common.Kind.Version.Filter.t := Kind.Version.Filter.t;

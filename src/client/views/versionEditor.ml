@@ -155,11 +155,11 @@ let editor =
     ~type_: Text
     ~label: "Key"
     ~placeholder: "eg. A or F#m"
-    ~serialise: Music.key_to_string
+    ~serialise: Music.Key.to_string
     ~validate: (
       S.const %
         Option.to_result ~none: "Enter a valid key, eg. A of F#m." %
-        Music.key_of_string_opt
+        Music.Key.of_string_opt
     )
     () ^::
   Star.prepare

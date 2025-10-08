@@ -33,8 +33,8 @@ module Content = struct
       | Polka -> "2/2"
     in
     let key =
-      (Music.note_to_lilypond_string key.Music.pitch.note) ^
-      " " ^ (match key.mode with Major -> "\\major" | Minor -> "\\minor")
+      (Music.Note.to_lilypond_string @@ Music.Pitch.note @@ Music.Key.pitch key) ^
+      " " ^ (Music.Mode.to_lilypond_string key.mode)
     in
     let parts = NEList.to_list parts in
     let melody =
@@ -73,7 +73,7 @@ let _key = "version"
 
 type t = {
   tune: Tune.t Entry.Id.t;
-  key: Music.key;
+  key: Music.Key.t;
   sources: (Source.t Entry.Id.t * Content.structure) list; [@default []]
   arrangers: Person.t Entry.Id.t list; [@default []]
   remark: string; [@default ""]
