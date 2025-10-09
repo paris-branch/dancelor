@@ -98,7 +98,7 @@ let prepare_nosubmit ~key ~icon ~assemble ~disassemble ~check_result ?preview ~f
 type ('result, 'product, 'value, 'state) t = {
   s: ('result, 'product, 'value, 'state) s;
   mode: ('result, 'state) mode;
-  page: (?after_save: (unit -> unit) -> unit -> Page.t Lwt.t);
+  page: (?after_save: (unit -> unit) -> ?title_suffix: string -> unit -> Page.t Lwt.t);
   editor: ('value, 'state) Component.t;
 }
 [@@deriving fields]
@@ -111,7 +111,7 @@ let signal e =
   RS.bind (Component.signal e.editor) @@ fun value ->
   RS.pure (e.s.assemble value)
 
-let page ?after_save e = e.page ?after_save ()
+let page ?after_save ?title_suffix e = e.page ?after_save ?title_suffix ()
 
 let initialise (type result)(type value)(type product)(type state)
     (editor_s : (result, product, value, state) s)
@@ -210,13 +210,16 @@ let initialise (type result)(type value)(type product)(type state)
   in
 
   (* Make a page holding the editor and the appropriate buttons and actions. *)
-  let page ?after_save () =
+  let page ?after_save ?(title_suffix = "") () =
     Page.make'
       ~title: (
         lwt @@
+        (
           match mode with
           | QuickCreate _ | CreateWithLocalStorage -> "Add a " ^ key
           | QuickEdit _ | Edit _ -> "Edit a " ^ key
+        ) ^
+        title_suffix
       )
       ~on_load: (fun () -> Component.focus editor)
       [Component.inner_html editor]

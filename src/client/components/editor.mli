@@ -124,6 +124,7 @@ val initialise :
 
 val page :
   ?after_save: (unit -> unit) ->
+  ?title_suffix: string ->
   ('result, 'product, 'value, 'state) t ->
   Page.t Lwt.t
 (** Render an initialised editor as a full page, ready for use. The additional

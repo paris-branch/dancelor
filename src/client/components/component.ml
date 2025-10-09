@@ -7,6 +7,7 @@ module type S = sig
   val empty : state
   val from_initial_text : string -> state
   type value
+  val value_to_string : value -> string Lwt.t
   val value_to_state : value -> state Lwt.t
   type t
   val initialise : state -> t Lwt.t

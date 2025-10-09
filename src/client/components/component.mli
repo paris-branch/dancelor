@@ -55,6 +55,10 @@ module type S = sig
 
   type value
 
+  val value_to_string : value -> string Lwt.t
+  (** Return a string describing the content of the component. This is only
+      meant to be used for visual feedback. *)
+
   val value_to_state : value -> state Lwt.t
 
   type t

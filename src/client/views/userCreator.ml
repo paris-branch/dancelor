@@ -42,6 +42,7 @@ let create () =
         ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
       )
       ~unserialise: Model.Person.get
+      ~make_descr: (lwt % NEString.to_string % Model.Person.name')
       ~make_result: Utils.AnyResult.make_person_result'
       ~model_name: "person"
       ~create_dialog_content: PersonEditor.create

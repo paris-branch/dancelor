@@ -28,6 +28,7 @@ let prepare (type value)
 
   let empty = ""
   let from_initial_text = Fun.id
+  let value_to_string = lwt % serialise
   let value_to_state = lwt % serialise
 
   type t = {
