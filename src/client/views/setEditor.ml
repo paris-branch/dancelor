@@ -95,12 +95,6 @@ let editor =
     () ^::
   nil
 
-let add_to_storage version =
-  let%lwt none = VersionParametersEditor.empty_value () in
-  lwt @@
-  Editor.update_local_storage ~key: "set" editor @@ fun (name, (kind, (conceptors, (versions, (order, ()))))) ->
-  (name, (kind, (conceptors, (versions @ [Some version, none], (order, ())))))
-
 let assemble (name, (kind, (conceptors, (contents, (order, ()))))) =
   Model.Set.make ~name ~kind ~conceptors ~contents ~order ()
 

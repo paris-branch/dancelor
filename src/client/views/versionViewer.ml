@@ -364,38 +364,6 @@ let create ?context id =
                 ~icon: "file-music"
                 ~onclick: (fun () -> show_lilypond_dialog version)
                 ();
-              Utils.Button.make
-                ~label: "Add to current set"
-                ~icon: "plus-square"
-                ~classes: ["dropdown-item"]
-                ~onclick: (fun _ ->
-                  SetEditor.add_to_storage id;%lwt
-                  Utils.Toast.open_
-                    ~title: "Added to current set"
-                    [
-                      txt "This version was added to the current set. You can see that in the ";
-                      a ~a: [a_href Endpoints.Page.(href SetAdd)] [txt "set editor"];
-                      txt ".";
-                    ];
-                  lwt_unit
-                )
-                ();
-              Utils.Button.make
-                ~label: "Add to current book"
-                ~icon: "plus-square"
-                ~classes: ["dropdown-item"]
-                ~onclick: (fun _ ->
-                  BookEditor.add_version_to_storage id;%lwt
-                  Utils.Toast.open_
-                    ~title: "Added to current book"
-                    [
-                      txt "This version was added to the current book. You can see that in the ";
-                      a ~a: [a_href Endpoints.Page.(href BookAdd)] [txt "book editor"];
-                      txt ".";
-                    ];
-                  lwt_unit
-                )
-                ();
               Utils.Button.make_a
                 ~classes: ["dropdown-item"]
                 ~href: (S.const @@ Endpoints.Page.(href VersionEdit) id)
