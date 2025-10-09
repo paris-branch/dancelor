@@ -16,6 +16,7 @@ let prepare (type value)(type state)
   let empty = []
   let from_initial_text = List.singleton % C.from_initial_text
 
+  let value_to_string _ = lwt "<FIXME star>"
   let value_to_state = Lwt_list.map_p C.value_to_state
 
   type t = {
@@ -145,6 +146,7 @@ let prepare_non_empty (type value)(type state)
 = (module struct
   include (val (prepare ~label ?more_actions (module C)))
   type value = C.value NEList.t
+  let value_to_string _ = lwt "<FIXME star>"
   let value_to_state = value_to_state % NEList.to_list
   let set c v = set c @@ NEList.to_list v
   let signal =

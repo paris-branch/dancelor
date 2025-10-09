@@ -7,6 +7,7 @@ let prepare_gen (type model)(type model_validated)
   ~label
   ~search
   ~unserialise
+  ~make_descr
   ~(make_result :
     ?classes: string list ->
     ?action: Utils.ResultRow.action ->
@@ -37,6 +38,9 @@ let prepare_gen (type model)(type model_validated)
 
   let empty = None
   let from_initial_text _ = None
+
+  let value_to_string = Option.fold ~none: (lwt "<invalid model>") ~some: make_descr % unvalidate
+
   let value_to_state = lwt % Option.map Entry.id % unvalidate
 
   type t = {
@@ -169,6 +173,7 @@ let prepare
     ~label
     ~search
     ~unserialise
+    ~make_descr
     ~make_result
     ?make_more_results
     ~model_name
@@ -180,6 +185,7 @@ let prepare
     ~label
     ~search
     ~unserialise
+    ~make_descr
     ~make_result
     ?make_more_results
     ~model_name
@@ -192,6 +198,7 @@ let prepare_opt
     ~label
     ~search
     ~unserialise
+    ~make_descr
     ~make_result
     ?make_more_results
     ~model_name
@@ -203,6 +210,7 @@ let prepare_opt
     ~label
     ~search
     ~unserialise
+    ~make_descr
     ~make_result
     ?make_more_results
     ~model_name
@@ -215,6 +223,7 @@ let make
     ~label
     ~search
     ~unserialise
+    ~make_descr
     ~make_result
     ?make_more_results
     ~model_name
@@ -227,6 +236,7 @@ let make
         ~label
         ~search
         ~unserialise
+        ~make_descr
         ~make_result
         ?make_more_results
         ~model_name

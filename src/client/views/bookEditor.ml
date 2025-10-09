@@ -12,6 +12,7 @@ let version_and_parameters ?(label = "Version") () =
   Parameteriser.prepare
     (
       Selector.prepare
+        ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
         ~make_result: AnyResult.make_version_result'
         ~make_more_results: (fun version ->
           flip S.map show_preview @@ function
@@ -34,6 +35,7 @@ let set_and_parameters ?(label = "Set") () =
   Parameteriser.prepare
     (
       Selector.prepare
+        ~make_descr: (lwt % NEString.to_string % Model.Set.name')
         ~make_result: AnyResult.make_set_result'
         ~make_more_results: (fun set ->
           flip S.map show_preview @@ function
@@ -58,6 +60,7 @@ let dance_and_dance_page =
     ~label: "Dance"
     (
       Selector.prepare
+        ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
         ~make_result: AnyResult.make_dance_result'
         ~label: "Dance"
         ~model_name: "dance"
@@ -109,6 +112,7 @@ let editor =
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Person Search) slice filter
         )
         ~unserialise: Model.Person.get
+        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
         ~make_result: AnyResult.make_person_result'
         ~model_name: "person"
         ~create_dialog_content: PersonEditor.create
@@ -185,6 +189,7 @@ let editor =
     ~label: "Sources"
     (
       Selector.prepare
+        ~make_descr: (lwt % NEString.to_string % Model.Source.name')
         ~make_result: AnyResult.make_source_result'
         ~label: "Source"
         ~model_name: "source"

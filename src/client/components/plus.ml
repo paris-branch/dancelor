@@ -155,6 +155,8 @@ let prepare (type value)(type bundled_value)(type state)
   type nonrec value = value
   type state = int option * Bundle.state [@@deriving yojson]
 
+  let value_to_string _value = lwt "<FIXME plus>"
+
   let value_to_state value =
     let elt = uncast value in
     let selected = Some (TupleElt.position elt) in

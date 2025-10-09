@@ -141,6 +141,7 @@ let content () =
 let editor =
   let open Editor in
   Selector.prepare
+    ~make_descr: (lwt % NEString.to_string % Model.Tune.one_name')
     ~make_result: AnyResult.make_tune_result'
     ~label: "Tune"
     ~model_name: "tune"
@@ -166,6 +167,7 @@ let editor =
     ~label: "Arrangers"
     (
       Selector.prepare
+        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
         ~make_result: AnyResult.make_person_result'
         ~label: "Arranger"
         ~model_name: "person"
@@ -191,6 +193,7 @@ let editor =
         ~label: "Source"
         (
           Selector.prepare
+            ~make_descr: (lwt % NEString.to_string % Model.Source.name')
             ~make_result: AnyResult.make_source_result'
             ~label: "Source"
             ~model_name: "source"

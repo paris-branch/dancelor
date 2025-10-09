@@ -5,6 +5,7 @@ let prepare ?(label = "Nil") () : (unit, unit) Component.s = (module struct
   let label = label
   type value = unit
   type state = unit [@@deriving yojson]
+  let value_to_string () = lwt "nil"
   let value_to_state () = lwt_unit
   let empty = ()
   let from_initial_text _ = ()

@@ -19,6 +19,10 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
   let from_initial_text (text : string) =
     (C.from_initial_text text, Editor.empty editor)
 
+  let value_to_string (value, _params) =
+    let%lwt result = C.value_to_string value in
+    lwt @@ result ^ " (parameterised)"
+
   let value_to_state (value, params) =
     let%lwt value = C.value_to_state value in
     let%lwt params = Editor.result_to_state editor params in
@@ -67,16 +71,23 @@ let prepare (type comp_value)(type comp_state)(type params)(type params_value)(t
             ~classes: ["btn-outline-secondary"]
             ~tooltip: "Edit parameters"
             ~onclick: (fun () ->
+              let%lwt comp_descr =
+                match S.value @@ C.signal p.comp with
+                | Error _ -> lwt ""
+                | Ok comp_value -> ((^) " for ") <$> C.value_to_string comp_value
+              in
               ignore
               <$> Page.open_dialog' @@ fun return ->
                 Editor.page
                   p.editor
+                  ~title_suffix: comp_descr
                   ~after_save: (fun _ ->
-                    Utils.Toast.open_ ~title: "Set parameters" [
-                      txt
-                        "Your parameters have been set. However, this will only \
+                    Utils.Toast.open_ ~title: (spf "Set parameters%s" comp_descr) [
+                      txtf
+                        "Your parameters%s have been set. However, this will only \
                          take effect once save the whole editor for the change \
                          to be recorded."
+                        comp_descr
                     ];
                     return ()
                   )

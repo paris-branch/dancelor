@@ -29,6 +29,7 @@ let editor =
     ~label: "Conceptors"
     (
       Selector.prepare
+        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
         ~make_result: AnyResult.make_person_result'
         ~label: "Conceptor"
         ~model_name: "person"
@@ -46,6 +47,7 @@ let editor =
       Parameteriser.prepare
         (
           Selector.prepare
+            ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
             ~make_result: AnyResult.make_version_result'
             ~make_more_results: (fun version ->
               flip S.map show_preview @@ function

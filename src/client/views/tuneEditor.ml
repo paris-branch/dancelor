@@ -31,6 +31,7 @@ let editor =
     ~label: "Composer"
     (
       Selector.prepare
+        ~make_descr: (lwt % NEString.to_string % Model.Person.name')
         ~make_result: AnyResult.make_person_result'
         ~label: "Composer"
         ~model_name: "person"
@@ -64,6 +65,7 @@ let editor =
           ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Dance Search) slice filter
         )
         ~unserialise: Model.Dance.get
+        ~make_descr: (lwt % NEString.to_string % Model.Dance.one_name')
         ~make_result: AnyResult.make_dance_result'
         ~label: "Dance"
         ~model_name: "dance"

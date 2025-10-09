@@ -34,6 +34,7 @@ let prepare_gen_unsafe (type value)(type choice_value)
 
   let empty = ""
   let from_initial_text _ = ""
+  let value_to_string _ = lwt "<FIXME choices>"
   let value_to_state _ = lwt "" (* FIXME *)
 
   type t = {

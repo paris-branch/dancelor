@@ -60,6 +60,8 @@ let bundle (type value)(type value1)(type state1)(type value2)(type state2)
   let from_initial_text text =
     (C1.from_initial_text text, C2.empty)
 
+  let value_to_string _ = lwt "<FIXME pair>"
+
   let value_to_state v =
     let (v1, v2) = unwrap v in
     let%lwt v1 = C1.value_to_state v1 in

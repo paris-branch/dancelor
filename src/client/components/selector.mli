@@ -8,6 +8,7 @@ val make :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
   unserialise: ('model Entry.Id.t -> 'model Entry.t option Lwt.t) ->
+  make_descr: ('model Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?action: Utils.ResultRow.action ->
@@ -29,6 +30,7 @@ val prepare :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
   unserialise: ('model Entry.Id.t -> 'model Entry.t option Lwt.t) ->
+  make_descr: ('model Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?action: Utils.ResultRow.action ->
@@ -51,6 +53,7 @@ val prepare_opt :
   label: string ->
   search: (Slice.t -> string -> (int * 'model Entry.t list, string) Result.t Lwt.t) ->
   unserialise: ('model Entry.Id.t -> 'model Entry.t option Lwt.t) ->
+  make_descr: ('model Entry.t -> string Lwt.t) ->
   make_result:
   (?classes: string list ->
   ?action: Utils.ResultRow.action ->
