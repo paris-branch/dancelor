@@ -216,20 +216,6 @@ let editor =
     () ^::
   nil
 
-let add_set_to_storage _set = assert false
-(* let%lwt set_none = SetParametersEditor.empty_value () in *)
-(* let%lwt version_none = VersionParametersEditor.empty_value () in *)
-(* lwt @@ *)
-(* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
-(* (name, (date, (contents @ [Some 0, [Left (Some set, set_none); Right (None, version_none)]], ()))) *)
-
-let add_version_to_storage _version = assert false
-(* let%lwt set_none = SetParametersEditor.empty_value () in *)
-(* let%lwt version_none = VersionParametersEditor.empty_value () in *)
-(* lwt @@ *)
-(* Editor.update_local_storage ~key: "book" editor @@ fun (name, (date, (contents, ()))) -> *)
-(* (name, (date, (contents @ [Some 1, [Left (None, set_none); Right (Some version, version_none)]], ()))) *)
-
 let assemble (title, (authors, (date, (contents, (remark, (sources, (scddb_id, ()))))))) =
   Model.Book.make ~title ~authors ?date ~contents ~remark ~sources ?scddb_id ()
 

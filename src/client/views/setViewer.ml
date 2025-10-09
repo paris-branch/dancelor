@@ -39,22 +39,6 @@ let create ?context id =
             ~icon: "file-pdf"
             ~label: "Download PDF"
             ();
-          Utils.Button.make
-            ~classes: ["dropdown-item"]
-            ~onclick: (fun _ ->
-              BookEditor.add_set_to_storage id;%lwt
-              Utils.Toast.open_
-                ~title: "Added to current book"
-                [
-                  txt "This set was added to the current book. You can see that in the ";
-                  a ~a: [a_href Endpoints.Page.(href BookAdd)] [txt "book editor"];
-                  txt ".";
-                ];
-              lwt_unit
-            )
-            ~icon: "plus-square"
-            ~label: "Add to current book"
-            ();
           Utils.Button.make_a
             ~classes: ["dropdown-item"]
             ~href: (S.const @@ Endpoints.Page.(href SetEdit) id)
