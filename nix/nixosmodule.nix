@@ -64,7 +64,7 @@
         };
       };
 
-      config =
+      config = lib.mkIf cfg.enable (
         let
           init-dancelor = pkgs.writeShellApplication {
             name = "init-dancelor";
@@ -173,6 +173,7 @@
               Group = "dancelor";
             };
           };
-        };
+        }
+      );
     };
 }
