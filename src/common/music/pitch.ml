@@ -114,18 +114,20 @@ let to_int pitch =
     (octave pitch * 12)
 
 let of_int =
+  (* Between sharp or flat, we choose the one whose key
+     has the least amount of sharps/flats. *)
   let of_int = [|
     make C Natural;
     make C Sharp;
     make D Natural;
-    make D Sharp;
+    make E Flat;
     make E Natural;
     make F Natural;
     make F Sharp;
     make G Natural;
-    make G Sharp;
+    make A Flat;
     make A Natural;
-    make A Sharp;
+    make B Flat;
     make B Natural;
   |]
   in
