@@ -13,11 +13,12 @@ module Make (Model : ModelBuilder.S) = struct
         lwt @@ String.inclusion_proximity ~char_equal ~needle: string @@ NEString.to_string @@ Model.Book.title' book
       | ExistsVersion vfilter ->
         let%lwt content = Model.Book.contents' book in
-        let%lwt versions =
-          Lwt_list.filter_map_s
+        let versions =
+          List.concat_map
             (function
-              | Model.Book.Version (v, _) | Model.Book.Dance (_, DanceVersion (v, _)) -> lwt_some v
-              | _ -> lwt_none
+              | Model.Book.Versions versions_and_params | Model.Book.Dance (_, DanceVersions versions_and_params) ->
+                NEList.(to_list % map fst) versions_and_params
+              | _ -> []
             )
             content
         in

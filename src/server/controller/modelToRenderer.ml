@@ -230,26 +230,26 @@ let set_to_renderer_set set set_params =
 let set_to_renderer_set' set set_params =
   set_to_renderer_set (Entry.value set) set_params
 
-let version_to_renderer_set version version_params set_params =
-  let%lwt slug = Entry.Slug.to_string <$> Model.Version.slug version in
+let versions_to_renderer_set versions_and_params set_params =
   let%lwt name =
-    let%lwt default = Model.Version.one_name version in
-    lwt @@
-    NEString.to_string @@
-    Option.value ~default (Model.SetParameters.display_name set_params)
+    let%lwt name =
+      String.concat ", " ~last: " and "
+      <$> Lwt_list.map_s (NEString.to_string <%> Model.Version.one_name % fst) (NEList.to_list versions_and_params)
+    in
+    lwt @@ Option.fold ~none: name ~some: NEString.to_string (Model.SetParameters.display_name set_params)
   in
+  let slug = Entry.Slug.(to_string % of_string) name in
   let conceptor =
     Option.fold ~none: "" ~some: NEString.to_string (Model.SetParameters.display_conceptor set_params)
   in
-  let%lwt kind =
-    let%lwt none = Kind.Base.to_pretty_string % Model.Tune.kind' <$> Model.Version.tune version in
-    lwt @@ Option.fold ~none ~some: NEString.to_string (Model.SetParameters.display_kind set_params)
+  let kind = "" in
+  let%lwt contents =
+    Lwt_list.map_s (fun (version, version_params) -> version_to_renderer_tune version ~version_params) (NEList.to_list versions_and_params)
   in
-  let%lwt contents = List.singleton <$> version_to_renderer_tune ~version_params version in
   lwt Renderer.{slug; name; conceptor; kind; contents}
 
-let version_to_renderer_set' version version_params set_params =
-  version_to_renderer_set (Entry.value version) version_params set_params
+let versions_to_renderer_set' versions_and_params set_params =
+  versions_to_renderer_set (NEList.map (Pair.map_fst Entry.value) versions_and_params) set_params
 
 let dance_to_renderer_set set_params =
   set_to_renderer_set
@@ -296,14 +296,14 @@ let page_to_renderer_page page book_params =
       match dance_page with
       | DanceOnly ->
         Renderer.set <$> dance_to_renderer_set dance_params
-      | DanceVersion (version, version_params) ->
-        Renderer.set <$> version_to_renderer_set' version version_params dance_params
+      | DanceVersions versions_and_params ->
+        Renderer.set <$> versions_to_renderer_set' versions_and_params dance_params
       | DanceSet (set, set_params) ->
         let set_params = Model.SetParameters.compose set_params dance_params in
         Renderer.set <$> set_to_renderer_set' set set_params
     )
-  | Model.Book.Version (version, version_params) ->
-    Renderer.set <$> version_to_renderer_set' version version_params every_set_params
+  | Model.Book.Versions versions_and_params ->
+    Renderer.set <$> versions_to_renderer_set' versions_and_params every_set_params
   | Model.Book.Set (set, set_params) ->
     let set_params = Model.SetParameters.compose set_params every_set_params in
     Renderer.set <$> set_to_renderer_set' set set_params

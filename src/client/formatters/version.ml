@@ -153,3 +153,19 @@ let kind_and_structure' = kind_and_structure % Entry.value
 
 let id' version =
   span [a ~a: [a_href @@ Endpoints.Page.href_version @@ Entry.id version] [txt @@ Entry.id_as_string version]]
+
+let several f versions =
+  versions
+  |> List.map (List.singleton % f)
+  |> List.interspersei ~last: (fun _ -> [txt " and "]) (fun _ -> [txt ", "])
+  |> List.flatten
+  |> span
+
+let names versions = several name @@ NEList.to_list versions
+let names' ?links versions = several (name' ?link: links) @@ NEList.to_list versions
+
+let composers_and_arrangers ?short ?arranger_links versions = several (fun (version, params) -> composer_and_arranger ?short ?arranger_links ~params version) @@ NEList.to_list versions
+let composers_and_arrangers' ?short ?arranger_links versions = several (fun (version, params) -> composer_and_arranger' ?short ?arranger_links ~params version) @@ NEList.to_list versions
+
+let names_disambiguations_and_sources versions = several (fun (version, params) -> name_disambiguation_and_sources ~params version) @@ NEList.to_list versions
+let names_disambiguations_and_sources' ?name_links versions = several (fun (version, params) -> name_disambiguation_and_sources' ?name_link: name_links ~params version) @@ NEList.to_list versions

@@ -8,28 +8,32 @@ open Utils
 let (show_preview, set_show_preview) = S.create false
 let flip_show_preview () = set_show_preview (not (S.value show_preview))
 
-let version_and_parameters ?(label = "Version") () =
-  Parameteriser.prepare
+let versions_and_parameters ?(label = "Versions") () =
+  Star.prepare_non_empty
+    ~label: "Versions"
     (
-      Selector.prepare
-        ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
-        ~make_result: AnyResult.make_version_result'
-        ~make_more_results: (fun version ->
-          flip S.map show_preview @@ function
-            | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSnippets.make ~show_audio: false version]]]
-            | false -> []
+      Parameteriser.prepare
+        (
+          Selector.prepare
+            ~make_descr: (Lwt.map NEString.to_string % Model.Version.one_name')
+            ~make_result: AnyResult.make_version_result'
+            ~make_more_results: (fun version ->
+              flip S.map show_preview @@ function
+                | true -> [Utils.ResultRow.make [Utils.ResultRow.cell ~a: [a_colspan 9999] [VersionSnippets.make ~show_audio: false version]]]
+                | false -> []
+            )
+            ~label
+            ~model_name: "version"
+            ~create_dialog_content: VersionEditor.create
+            ~search: (fun slice input ->
+              let%rlwt filter = lwt (Filter.Version.from_string input) in
+              ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
+            )
+            ~unserialise: Model.Version.get
+            ()
         )
-        ~label
-        ~model_name: "version"
-        ~create_dialog_content: VersionEditor.create
-        ~search: (fun slice input ->
-          let%rlwt filter = lwt (Filter.Version.from_string input) in
-          ok <$> Madge_client.call_exn Endpoints.Api.(route @@ Version Search) slice filter
-        )
-        ~unserialise: Model.Version.get
-        ()
+        VersionParametersEditor.e
     )
-    VersionParametersEditor.e
 
 let set_and_parameters ?(label = "Set") () =
   Parameteriser.prepare
@@ -78,18 +82,18 @@ let dance_and_dance_page =
         ~label: "Dance page"
         ~cast: (function
           | Zero() -> Model.Book.DanceOnly
-          | Succ Zero (version, params) -> Model.Book.DanceVersion (version, params)
+          | Succ Zero versions_and_params -> Model.Book.DanceVersions versions_and_params
           | Succ Succ Zero (set, params) -> Model.Book.DanceSet (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
           | Model.Book.DanceOnly -> Zero ()
-          | Model.Book.DanceVersion (version, params) -> one (version, params)
+          | Model.Book.DanceVersions versions_and_params -> one versions_and_params
           | Model.Book.DanceSet (set, params) -> two (set, params)
         )
         (
           Nil.prepare ~label: "Dance only" () ^::
-          version_and_parameters ~label: "+Version" () ^::
+          versions_and_parameters ~label: "+Versions" () ^::
           set_and_parameters ~label: "+Set" () ^::
           nil
         )
@@ -140,14 +144,14 @@ let editor =
         ~cast: (function
           | Zero title -> Model.Book.Part title
           | Succ Zero (dance, dance_page) -> Model.Book.Dance (dance, dance_page)
-          | Succ Succ Zero (version, params) -> Model.Book.Version (version, params)
+          | Succ Succ Zero versions_and_params -> Model.Book.Versions versions_and_params
           | Succ Succ Succ Zero (set, params) -> Model.Book.Set (set, params)
           | _ -> assert false (* types guarantee this is not reachable *)
         )
         ~uncast: (function
           | Model.Book.Part title -> Zero title
           | Model.Book.Dance (dance, dance_page) -> one (dance, dance_page)
-          | Model.Book.Version (version, params) -> two (version, params)
+          | Model.Book.Versions versions_and_params -> two versions_and_params
           | Model.Book.Set (set, params) -> three (set, params)
         )
         (
@@ -158,7 +162,7 @@ let editor =
             ~placeholder: "eg. Part CMXCVII"
             () ^::
           dance_and_dance_page ^::
-          version_and_parameters () ^::
+          versions_and_parameters () ^::
           set_and_parameters () ^::
           nil
         )

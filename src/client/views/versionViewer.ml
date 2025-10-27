@@ -151,7 +151,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
   in
 
   (* how to update a version and its params from a set or a book *)
-  let replace_version_and_params a_version a_version_params =
+  let replace_version_and_params (a_version, a_version_params) =
     if Entry.equal' a_version this_version then
       (
         other_version,
@@ -183,7 +183,7 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
       add_changes
         ~action: (fun () ->
           let%lwt contents = Model.Set.contents' set in
-          let contents = List.map (uncurry replace_version_and_params) contents in
+          let contents = List.map replace_version_and_params contents in
           ignore
           <$> Madge_client.call_exn
               Endpoints.Api.(route @@ Set Update)
@@ -210,10 +210,10 @@ let deduplicate_confirmation_dialog ~this_version ~other_version =
           let contents =
             List.map
               (function
-                | Model.Book.Dance (dance, DanceVersion (a_version, a_version_params)) ->
-                  Model.Book.Dance (dance, uncurry Model.Book.danceversion (replace_version_and_params a_version a_version_params))
-                | Model.Book.Version (a_version, a_version_params) ->
-                  uncurry Model.Book.version (replace_version_and_params a_version a_version_params)
+                | Model.Book.Dance (dance, DanceVersions versions_and_params) ->
+                  Model.Book.Dance (dance, Model.Book.DanceVersions (NEList.map replace_version_and_params versions_and_params))
+                | Model.Book.Versions versions_and_params ->
+                  Model.Book.Versions (NEList.map replace_version_and_params versions_and_params)
                 | page -> page
               )
               contents

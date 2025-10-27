@@ -69,14 +69,14 @@ module Book = Table.Make(struct
             let page_dance_dependencies =
               match page_dance with
               | ModelBuilder.Core.Book.Page.DanceOnly -> []
-              | ModelBuilder.Core.Book.Page.DanceVersion (version, _) ->
-                [id_for "version" version]
+              | ModelBuilder.Core.Book.Page.DanceVersions versions_and_params ->
+                List.map (id_for "version" % fst) (NEList.to_list versions_and_params)
               | ModelBuilder.Core.Book.Page.DanceSet (set, _) ->
                 [id_for "set" set]
             in
               (id_for "dance" dance :: page_dance_dependencies)
-          | ModelBuilder.Core.Book.Page.Version (version, _) ->
-            [id_for "version" version]
+          | ModelBuilder.Core.Book.Page.Versions versions_and_params ->
+            List.map (id_for "version" % fst) (NEList.to_list versions_and_params)
           | ModelBuilder.Core.Book.Page.Set (set, _) ->
             [id_for "set" set]
         )

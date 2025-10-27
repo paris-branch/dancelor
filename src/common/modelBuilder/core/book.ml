@@ -3,40 +3,40 @@ open Nes
 module Page = struct
   type dance =
     | DanceOnly
-    | DanceVersion of Version.t Entry.Id.t * VersionParameters.t
+    | DanceVersions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
     | DanceSet of Set.t Entry.Id.t * SetParameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 
   type t =
     | Part of NEString.t
     | Dance of Dance.t Entry.Id.t * dance
-    | Version of Version.t Entry.Id.t * VersionParameters.t
+    | Versions of (Version.t Entry.Id.t * VersionParameters.t) NEList.t
     | Set of Set.t Entry.Id.t * SetParameters.t
   [@@deriving eq, show {with_path = false}, yojson]
 end
 
 type page_dance =
   | DanceOnly
-  | DanceVersion of Version.t Entry.t * VersionParameters.t
+  | DanceVersions of (Version.t Entry.t * VersionParameters.t) NEList.t
   | DanceSet of Set.t Entry.t * SetParameters.t
 [@@deriving show {with_path = false}, variants]
 
 type page =
   | Part of NEString.t
   | Dance of Dance.t Entry.t * page_dance
-  | Version of Version.t Entry.t * VersionParameters.t
+  | Versions of (Version.t Entry.t * VersionParameters.t) NEList.t
   | Set of Set.t Entry.t * SetParameters.t
 [@@deriving show {with_path = false}, variants]
 
 let page_dance_to_page_dance_core : page_dance -> Page.dance = function
   | DanceOnly -> Page.DanceOnly
-  | DanceVersion (version, params) -> Page.DanceVersion (Entry.id version, params)
+  | DanceVersions versions_and_params -> Page.DanceVersions (NEList.map (Pair.map_fst Entry.id) versions_and_params)
   | DanceSet (set, params) -> Page.DanceSet (Entry.id set, params)
 
 let page_to_page_core : page -> Page.t = function
   | Part title -> Page.Part title
   | Dance (dance, page_dance) -> Page.Dance (Entry.id dance, page_dance_to_page_dance_core page_dance)
-  | Version (version, params) -> Page.Version (Entry.id version, params)
+  | Versions versions_and_params -> Page.Versions (NEList.map (Pair.map_fst Entry.id) versions_and_params)
   | Set (set, params) -> Page.Set (Entry.id set, params)
 
 let _key = "book"

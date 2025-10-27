@@ -6,7 +6,7 @@ type t =
   | Reel
   | Strathspey
   | Waltz
-[@@deriving eq, show {with_path = false}]
+[@@deriving eq, ord, show {with_path = false}]
 
 let all = [Jig; Reel; Strathspey; Polka; Waltz]
 

@@ -6,11 +6,9 @@ open Model
 
 let book_page_to_any = function
   | Book.Part _ -> None
-  | Book.Dance (dance, DanceOnly) -> Some (Any.Dance dance)
-  | Book.Dance (_, DanceVersion (version, _)) -> Some (Any.Version version)
-  | Book.Dance (_, DanceSet (set, _)) -> Some (Any.Set set)
+  | Book.Dance (dance, _) -> Some (Any.Dance dance) (* FIXME: a “page” viewer *)
   | Book.Set (set, _) -> Some (Any.Set set)
-  | Book.Version (version, _) -> Some (Any.Version version)
+  | Book.Versions versions_and_params -> Some (Any.version @@ fst @@ NEList.hd versions_and_params) (* FIXME: others? fixed by a page viewer *)
 
 (** Given an element and a context, find the total number of elements, the
     previous element, the index of the given element and the next element. *)
