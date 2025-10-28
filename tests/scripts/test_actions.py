@@ -1,21 +1,7 @@
 import os
-import pytest
-import time
-import json
 import html
-import tempfile
-import shutil
-import pyperclip
 import yaml
-from urllib.parse import urlparse
-
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 import utils
 
@@ -42,7 +28,8 @@ class TestActions():
       expected = payload["lilypond"]
     shown = self.driver.find_element(By.XPATH, "//pre[contains(text(), 'clef')]").get_attribute("innerHTML")
     assert(html.unescape(shown.strip()) == expected.strip())
-    ## TODO: also check the “copy to clipboard” functionality
+    ## TODO: also check the “copy to clipboard” functionality, but the following
+    ## does not work:
     # self.driver.find_element(By.XPATH, "//*[contains(text(), 'Copy to clipboard')]").click()
     # time.sleep(1)  # Wait for clipboard to update
     # copied = pyperclip.paste()
