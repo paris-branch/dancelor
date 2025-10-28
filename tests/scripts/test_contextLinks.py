@@ -12,7 +12,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 class TestContextLinks():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
     self.driver.set_window_size(1080, 4320)
     self.driver.implicitly_wait(10)
@@ -50,9 +50,7 @@ class TestContextLinks():
     ## check that the resulting URL contains the right context.
     self.driver.get("http://localhost:8080/book/0fi3-1iot-6tbq")
     time.sleep(1) # give a second to avoid clicking on placeholder
-    self.driver.find_element(By.XPATH, "((//tr)[2]/td)[1]").click()
-    time.sleep(10)
-    print(self.driver.current_url)
+    self.driver.find_element(By.XPATH, "((//tbody/tr)[2]/td/a)[1]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22InBook%22%2C%220fi3-1iot-6tbq%22%2C1%5D"))
 
   def test_sideArrowGoesToNeighbour(self):

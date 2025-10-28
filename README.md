@@ -51,7 +51,8 @@ the `integration` Nix flake check. You can also run them directly, provided you
 have the Firefox web browser, which is not provided by the Nix environment. You
 can run the integration tests by having a properly-configured Dancelor instance
 running in the background, which you can get with `make dev-test`, and by
-running `pytest`.
+running `pytest`. You can also run one batch of integration tests with `pytest
+tests/scripts/<FILE>`.
 
 Writing Selenium scripts is done manually by mimmicking the ones already present
 in `tests/scripts`, in which case you might be interested in [Selenium's API
