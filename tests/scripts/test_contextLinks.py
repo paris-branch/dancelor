@@ -12,7 +12,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 class TestContextLinks():
   def setup_method(self, method):
     options = webdriver.FirefoxOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     self.driver = webdriver.Firefox(options=options)
     self.driver.set_window_size(1080, 4320)
     self.driver.implicitly_wait(10)
