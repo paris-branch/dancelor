@@ -9,18 +9,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+import utils
+
 class TestContextLinks():
   def setup_method(self, method):
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
-    self.driver = webdriver.Firefox(options=options)
-    self.driver.set_window_size(1080, 4320)
-    self.driver.implicitly_wait(10)
-    self.wait = WebDriverWait(self.driver, timeout=10)
-    self.vars = {}
+    utils.default_setup(self)
 
   def teardown_method(self, method):
-    self.driver.quit()
+    utils.default_teardown(self)
 
   def test_fromExplorerSearch(self):
     ## From the explorer, type “tam”, then click on the set “Tam Lin Thrice” and

@@ -17,22 +17,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+import utils
+
 class TestActions():
   def setup_method(self, method):
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
-    self.download_dir = tempfile.mkdtemp()
-    options.set_preference("browser.download.folderList", 2)
-    options.set_preference("browser.download.dir", self.download_dir)
-    options.set_preference("browser.download.useDownloadDir", True)
-    options.set_preference("browser.helperApps.neverAsk.saveToDisk", "")
-    self.driver = webdriver.Firefox(options=options)
-    self.driver.implicitly_wait(10)
-    self.vars = {}
+    utils.default_setup(self)
 
   def teardown_method(self, method):
-    shutil.rmtree(self.download_dir)
-    self.driver.quit()
+    utils.default_teardown(self)
 
   def get_downloaded_file(self):
     files = [f for f in os.listdir(self.download_dir) if os.path.isfile(os.path.join(self.download_dir, f))]

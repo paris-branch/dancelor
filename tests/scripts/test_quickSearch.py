@@ -9,17 +9,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+import utils
+
 class TestQuickSearch():
   def setup_method(self, method):
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
-    self.driver = webdriver.Firefox(options=options)
-    self.driver.implicitly_wait(10)
-    self.wait = WebDriverWait(self.driver, timeout=10)
-    self.vars = {}
+    utils.default_setup(self)
 
   def teardown_method(self, method):
-    self.driver.quit()
+    utils.default_teardown(self)
 
   def test_default(self):
     self.driver.get("http://localhost:8080/")
