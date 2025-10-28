@@ -1,13 +1,6 @@
-import pytest
-import time
-import json
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+import utils
 
 ## This test is not broken in itself and it runs fine in Selenium IDE. However,
 ## running it within the Nix environment yields:
@@ -18,14 +11,10 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 class BrokenTestSetPDFDownload():
   def setup_method(self, method):
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
-    self.driver = webdriver.Firefox(options=options)
-    self.driver.implicitly_wait(10)
-    self.vars = {}
+    utils.default_setup(self)
 
   def teardown_method(self, method):
-    self.driver.quit()
+    utils.default_teardown(self)
 
   def test_setPDFDownload(self):
     self.driver.get("http://localhost:8080/set/tam-lin-thrice")
