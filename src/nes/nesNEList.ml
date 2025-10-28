@@ -18,6 +18,8 @@ let to_yojson a_to_yojson (L xs) =
   mylist_to_yojson a_to_yojson xs
 
 let map f (L xs) = L (List.map f xs)
+let map_lwt_s f (L xs) = let%lwt ys = Lwt_list.map_s f xs in Lwt.return (L ys)
+let map_lwt_p f (L xs) = let%lwt ys = Lwt_list.map_p f xs in Lwt.return (L ys)
 
 let hd (L xs) = List.hd xs
 let tl (L xs) = List.tl xs
@@ -26,3 +28,5 @@ let singleton x = L [x]
 let append (L xs) (L ys) = L (xs @ ys)
 
 let fold_left1 f (L xs) = List.fold_left f (List.hd xs) (List.tl xs)
+
+let is_singleton (L xs) = match xs with [_] -> true | _ -> false

@@ -4,7 +4,7 @@ open Nes
 
 type t =
   Jig | Polka | Reel | Strathspey | Waltz
-[@@deriving eq, show]
+[@@deriving eq, ord, show]
 
 val all : t list
 

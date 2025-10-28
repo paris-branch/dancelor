@@ -96,18 +96,24 @@ let table_contents ~this_id contents =
                     lwt [];
                   ]
                 )
-              | Book.Dance (dance, DanceVersion (version, params)) ->
+              | Book.Dance (dance, DanceVersions versions_and_params) ->
                 (
-                  let href = Endpoints.Page.href_version ~context @@ Entry.id version in
-                  Tables.clickable_row ~href [
-                    lwt [txt "Dance"; br (); txt "+Tune"];
+                  Tables.clickable_row [
+                    lwt [
+                      txt "Dance";
+                      br ();
+                      txt (if NEList.is_singleton versions_and_params then "+Tune" else "+Tunes");
+                    ];
                     lwt [
                       Formatters.Dance.name' ~link: false dance;
                       br ();
-                      small [txt "Tune: "; Formatters.Version.name_disambiguation_and_sources' ~name_link: true ~params version];
+                      small ~a: [a_class ["opacity-50"]] [
+                        txt (if NEList.is_singleton versions_and_params then "Tune: " else "Tunes: ");
+                        Formatters.Version.names_disambiguations_and_sources' ~name_links: true versions_and_params
+                      ];
                     ];
                     lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
-                    lwt [Formatters.Version.composer_and_arranger' ~short: true version]
+                    lwt [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
                   ]
                 )
               | Book.Dance (dance, DanceSet (set, params)) ->
@@ -118,25 +124,33 @@ let table_contents ~this_id contents =
                     lwt [
                       Formatters.Dance.name' ~link: false dance;
                       br ();
-                      small [txt "Set: "; Formatters.Set.name' ~link: true ~params set];
+                      small ~a: [a_class ["opacity-50"]] [txt "Set: "; Formatters.Set.name' ~link: true ~params set];
                       br ();
-                      small [Formatters.Set.tunes' ~link: true set];
+                      small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
                     ];
                     lwt [txt @@ Kind.Dance.to_string @@ Dance.kind' dance];
                     lwt [Formatters.Set.conceptors' ~short: true ~params set];
                   ]
                 )
-              | Book.Version (version, params) ->
+              | Book.Versions versions_and_params ->
                 (
-                  let href = Endpoints.Page.href_version ~context @@ Entry.id version in
-                  Tables.clickable_row ~href [
-                    lwt [txt "Tune"];
-                    lwt [Formatters.Version.name_disambiguation_and_sources' ~name_link: false ~params version];
+                  Tables.clickable_row [
+                    lwt [txt @@ if NEList.is_singleton versions_and_params then "Tune" else "Tunes"];
+                    lwt [Formatters.Version.names_disambiguations_and_sources' ~name_links: true versions_and_params];
                     (
-                      let%lwt tune = Version.tune' version in
-                      lwt [txt @@ Kind.Base.to_string (Tune.kind' tune)]
+                      let%lwt all_kinds =
+                        List.sort_uniq Kind.Base.compare %
+                          NEList.to_list
+                        <$> NEList.map_lwt_p (Version.kind' % fst) versions_and_params
+                      in
+                      lwt [
+                        txt @@
+                          match all_kinds with
+                          | [kind] -> Kind.Base.to_string kind ^ (if NEList.is_singleton versions_and_params then "" else "s")
+                          | _ -> "Medley"
+                      ]
                     );
-                    lwt [Formatters.Version.composer_and_arranger' ~short: true version]
+                    lwt [Formatters.Version.composers_and_arrangers' ~short: true versions_and_params]
                   ]
                 )
               | Book.Set (set, params) ->
@@ -147,7 +161,7 @@ let table_contents ~this_id contents =
                     lwt [
                       Formatters.Set.name' ~link: false ~params set;
                       br ();
-                      small [Formatters.Set.tunes' ~link: true set];
+                      small ~a: [a_class ["opacity-50"]] [Formatters.Set.tunes' ~link: true set];
                     ];
                     lwt [txt @@ Kind.Dance.to_string @@ Set.kind' set];
                     lwt [Formatters.Set.conceptors' ~short: true ~params set];

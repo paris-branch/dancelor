@@ -23,6 +23,12 @@ val tl : 'a t -> 'a list
 val map : ('a -> 'b) -> 'a t -> 'b t
 (** Map a function over a non-empty list. *)
 
+val map_lwt_s : ('a -> 'b Lwt.t) -> 'a t -> 'b t Lwt.t
+(** Similar to {!Lwt_list.map_s} for non-empty lists. *)
+
+val map_lwt_p : ('a -> 'b Lwt.t) -> 'a t -> 'b t Lwt.t
+(** Similar to {!Lwt_list.map_p} for non-empty lists. *)
+
 val singleton : 'a -> 'a t
 (** Create a non-empty list with a single element. *)
 
@@ -31,3 +37,6 @@ val append : 'a t -> 'a t -> 'a t
 
 val fold_left1 : ('a -> 'a -> 'a) -> 'a t -> 'a
 (** Like {!List.fold_left} but uses the first element as accumlator. *)
+
+val is_singleton : 'a t -> bool
+(** Check if the non-empty list contains a single element. *)

@@ -11,14 +11,14 @@ module type S = sig
 
   type page_dance = Core.Book.page_dance =
     | DanceOnly
-    | DanceVersion of Core.Version.t Entry.t * Core.VersionParameters.t
+    | DanceVersions of (Core.Version.t Entry.t * Core.VersionParameters.t) NEList.t
     | DanceSet of Core.Set.t Entry.t * Core.SetParameters.t
   [@@deriving variants]
 
   type page = Core.Book.page =
     | Part of NEString.t
     | Dance of Core.Dance.t Entry.t * page_dance
-    | Version of Core.Version.t Entry.t * Core.VersionParameters.t
+    | Versions of (Core.Version.t Entry.t * Core.VersionParameters.t) NEList.t
     | Set of Core.Set.t Entry.t * Core.SetParameters.t
   [@@deriving variants]
   (** The type of one page in a book. A page either consists of a version (eg.

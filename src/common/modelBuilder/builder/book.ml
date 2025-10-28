@@ -20,17 +20,17 @@ module Build (Getters : Getters.S) = struct
           let%lwt page_dance =
             match page_dance with
             | Core.Book.Page.DanceOnly -> lwt DanceOnly
-            | Core.Book.Page.DanceVersion (version, parameters) ->
-              let%lwt version = Option.get <$> Getters.get_version version in
-              lwt @@ DanceVersion (version, parameters)
+            | Core.Book.Page.DanceVersions versions_and_params ->
+              let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
+              lwt @@ DanceVersions versions_and_params
             | Core.Book.Page.DanceSet (set, parameters) ->
               let%lwt set = Option.get <$> Getters.get_set set in
               lwt @@ DanceSet (set, parameters)
           in
           lwt (Dance (dance, page_dance))
-        | Core.Book.Page.Version (version, parameters) ->
-          let%lwt version = Option.get <$> Getters.get_version version in
-          lwt (Version (version, parameters))
+        | Core.Book.Page.Versions versions_and_params ->
+          let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
+          lwt (Versions versions_and_params)
         | Core.Book.Page.Set (set, parameters) ->
           let%lwt set = Option.get <$> Getters.get_set set in
           lwt (Set (set, parameters))
@@ -41,12 +41,13 @@ module Build (Getters : Getters.S) = struct
 
   let versions_from_contents book =
     let%lwt contents = contents book in
-    Lwt_list.filter_map_p
-      (function
-        | Version (version, _) -> lwt_some version
-        | _ -> lwt_none
-      )
-      contents
+    lwt @@
+      List.concat_map
+        (function
+          | Versions versions_and_params -> NEList.(to_list % map fst) versions_and_params
+          | _ -> []
+        )
+        contents
 
   let versions_from_contents' = versions_from_contents % Entry.value
 
@@ -71,8 +72,8 @@ module Build (Getters : Getters.S) = struct
         (function
           | Part _
           | Dance (_, DanceOnly)
-          | Dance (_, DanceVersion _)
-          | Version _ ->
+          | Dance (_, DanceVersions _)
+          | Versions _ ->
             lwt_none
           | Dance (_, DanceSet (set, _))
           | Set (set, _) ->
@@ -160,8 +161,8 @@ module Build (Getters : Getters.S) = struct
         (function
           | Part _
           | Dance (_, DanceOnly)
-          | Dance (_, DanceVersion _)
-          | Version _ ->
+          | Dance (_, DanceVersions _)
+          | Versions _ ->
             lwt_none
           | Dance (_, DanceSet (set, parameters))
           | Set (set, parameters) ->
@@ -192,17 +193,17 @@ module Build (Getters : Getters.S) = struct
       let%lwt page_dance =
         match page_dance with
         | Core.Book.Page.DanceOnly -> lwt DanceOnly
-        | Core.Book.Page.DanceVersion (version, params) ->
-          let%lwt version = Option.get <$> Getters.get_version version in
-          lwt @@ DanceVersion (version, params)
+        | Core.Book.Page.DanceVersions versions_and_params ->
+          let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
+          lwt @@ DanceVersions versions_and_params
         | Core.Book.Page.DanceSet (set, params) ->
           let%lwt set = Option.get <$> Getters.get_set set in
           lwt @@ DanceSet (set, params)
       in
       lwt @@ Dance (dance, page_dance)
-    | Core.Book.Page.Version (version, params) ->
-      let%lwt version = Option.get <$> Getters.get_version version in
-      lwt @@ Version (version, params)
+    | Core.Book.Page.Versions versions_and_params ->
+      let%lwt versions_and_params = NEList.map_lwt_p (Pair.map_fst_lwt (Option.get <%> Getters.get_version)) versions_and_params in
+      lwt @@ Versions versions_and_params
     | Core.Book.Page.Set (set, params) ->
       let%lwt set = Option.get <$> Getters.get_set set in
       lwt @@ Set (set, params)
