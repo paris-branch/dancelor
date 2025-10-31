@@ -12,10 +12,3 @@ val create : ?lifetime: int -> unit -> ('key, 'value) t
 val use : cache: ('key, 'value) t -> key: 'key -> (unit -> 'value) -> 'value
 (** Looks up the [~key] in the [~cache]. If it exists, return its value.
     Otherwise, call the given function, store its result and return it. *)
-
-val remove : cache: ('key, 'value) t -> key: 'key -> unit
-(** Remove a [~key] from the [~cache]. *)
-
-val cleanup : cache: ('key, 'value) t -> unit
-(** Explicitly call for a cache clean-up, removing entries that have passed
-    their lifetime. *)

@@ -1,7 +1,5 @@
 let foi = float_of_int
 
-let pf = Format.printf
-let epf = Format.eprintf
 let fpf = Format.fprintf
 let spf = Format.sprintf
 let aspf = Format.asprintf
@@ -28,19 +26,6 @@ let in_channel_to_string ic =
   aux ();
   Buffer.contents all
 
-let catch_and_wrap f =
-  try Some (f ()) with _ -> None
-
-let to_string_of_pp pp x =
-  let buf = Buffer.create 8 in
-  let fmt = Format.formatter_of_buffer buf in
-  Format.fprintf fmt "%a@?" pp x;
-  Buffer.contents buf
-
-let max_l = function
-  | [] -> failwith "NesPervasives.max_l"
-  | h :: q -> List.fold_left max h q
-
 let pmod a b = ((a mod b) + b) mod b
 let pdiv a b = (a - pmod a b) / b
 
@@ -51,9 +36,6 @@ let%test _ = (pmod (-4) 67) + (pdiv (-4) 67) * 67 = -4
 let%test _ = (pmod (-67) 4) + (pdiv (-67) 4) * 4 = -67
 let%test _ = (pmod (-67) (-4)) + (pdiv (-67) (-4)) * -4 = -67
 
-let compare_or cmp1 cmp2 =
-  if cmp1 <> 0 then cmp1 else cmp2 ()
-
 let rec first_non_zero ?(or_ = 0) = function
   | [] -> or_
   | first :: rest ->
@@ -61,13 +43,8 @@ let rec first_non_zero ?(or_ = 0) = function
     | 0 -> first_non_zero ~or_ rest
     | n -> n
 
+let (||>) f g = fun x -> g (f x)
 let ( % ) f g = fun x -> f (g x)
-let ( %> ) f g = fun x -> f x |> g
-
-let pair x y = (x, y)
-let map_fst f (x, y) = (f x, y)
-let map_snd f (x, y) = (x, f y)
-let map_pair f g (x, y) = (f x, g y)
 
 type ('a, 'b) either = [%import: ('a, 'b) Either.t] [@@deriving yojson]
 
@@ -106,18 +83,14 @@ let lwt = Lwt.return
 let lwt_unit = Lwt.return_unit
 let lwt_none = Lwt.return_none
 let lwt_some = Lwt.return_some
-let lwt_ok = Lwt.return_ok
-let lwt_error = Lwt.return_error
 let lwt_nil = Lwt.return_nil
 let lwt_empty = Lwt.return ""
 let lwt_true = Lwt.return_true
 let lwt_false = Lwt.return_false
 let lwt_left x = Lwt.return @@ left x
-let lwt_right x = Lwt.return @@ right x
 
 let (<$>) = Lwt.map
 let (<%>) f g x = f <$> g x
 let (>>=) = Lwt.bind
-let (>=>) f g x = f x >>= g
 let (=<<) f x = Lwt.bind x f
 let (<=<) g f x = f x >>= g

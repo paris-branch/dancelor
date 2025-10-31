@@ -2,8 +2,6 @@ type t = N of string [@@deriving eq, show]
 
 let to_string (N s) = s
 
-let opt_to_string = Option.fold ~none: "" ~some: to_string
-
 let of_string = function "" -> None | s -> Some (N s)
 
 let of_string_exn n =
@@ -25,6 +23,3 @@ let map_exn f n =
   match map f n with
   | None -> invalid_arg "NesNonEmptyString.map_exn: empty string"
   | Some n -> n
-
-let prepend prefix (N s) = N (prefix ^ s)
-let append (N s) suffix = N (s ^ suffix)

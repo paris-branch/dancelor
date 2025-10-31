@@ -14,6 +14,3 @@ let link fs x =
 
 let link' ~default fs x =
   Option.value ~default (link fs x)
-
-let link_all fs x =
-  List.filter_map (fun f -> f x) fs
