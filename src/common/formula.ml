@@ -78,7 +78,7 @@ let interpret_or_l = function
   | h :: t -> List.fold_left interpret_or h t
 
 let interpret_exists p l =
-  Lwt_list.map_s p l >|=| interpret_or_l
+  interpret_or_l <$> Lwt_list.map_s p l
 
 let interpret_bool b =
   if b then interpret_true else interpret_false

@@ -24,8 +24,6 @@ val everything : t
 (** The slice that contains everything. *)
 
 val start : t -> int
-val length : t -> int
-val end_incl : t -> int
 val end_excl : t -> int
 (** Getters from a slice. [end_excl] may return [min_int] to represent an
     inclusive bound up to [max_int]. *)
