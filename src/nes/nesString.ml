@@ -1,8 +1,6 @@
 open NesPervasives
 include String
 
-let pp = Format.pp_print_string
-
 let remove_char ?(char_equal = Char.equal) c s =
   let b = Bytes.create (length s) in
   let j = ref 0 in
@@ -388,7 +386,3 @@ let split_3_on_char sep string =
 let%test _ = split_3_on_char '=' "abc=def=ghi" = Some ("abc", "def", "ghi")
 let%test _ = split_3_on_char '=' "abc=def" = None
 let%test _ = split_3_on_char '=' "abcdef" = None
-
-let replace_empty ~by = function
-  | "" -> by
-  | s -> s

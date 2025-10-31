@@ -88,7 +88,6 @@ let stable_sort cmp l =
     Lwt.return (fst l)
 
 let sort = stable_sort
-let fast_sort = stable_sort
 
 (* Projection sort *)
 
@@ -108,14 +107,3 @@ let decreasing proj comp x y = increasing proj comp y x
 
 let sort_multiple compares l =
   sort (compare_multiple compares) l
-
-let find_mapi_s f l =
-  let rec aux i = function
-    | [] -> Lwt.return None
-    | x :: xs ->
-      let%lwt res = f i x in
-      match res with
-      | Some v -> Lwt.return (Some v)
-      | None -> aux (i + 1) xs
-  in
-  aux 0 l

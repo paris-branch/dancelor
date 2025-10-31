@@ -106,7 +106,7 @@ let type_based_cleanup =
     | True -> (t, True)
     | Not f ->
       (* REVIEW: Not 100% of this [Type.Set.comp t] argument. *)
-      map_pair (ModelBuilder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (ModelBuilder.Core.Any.Type.Set.comp t) f
+      Pair.map (ModelBuilder.Core.Any.Type.Set.diff t) not @@ refine_types_and_cleanup (ModelBuilder.Core.Any.Type.Set.comp t) f
     | And (f1, f2) ->
       (* Refine [t] on [f1], the refine it again while cleaning up [f2],
          then come back and clean up [f1]. *)

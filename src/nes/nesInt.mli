@@ -20,8 +20,3 @@ val to_english_string : int -> string
 
 val to_english_string_times : int -> string
 (** See {!NesInt64.to_english_string_times}. *)
-
-(** {3 Others} *)
-
-val compare_lwt : int -> int -> int Lwt.t
-(** Compare two integers but return an Lwt value. *)

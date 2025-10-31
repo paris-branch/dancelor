@@ -12,7 +12,7 @@ let choose_biased streams =
     | Some x -> Lwt.return x
     | None -> Lwt.pick (List.map next streams)
 
-type 'a next = Next of 'a | Last of 'a | None
+type 'a next = Next of 'a | Last of 'a
 
 let from_next f =
   let last_passed = ref false in
@@ -22,4 +22,3 @@ let from_next f =
     match%lwt f () with
     | Next x -> Lwt.return_some x
     | Last x -> last_passed := true; Lwt.return_some x
-    | None -> Lwt.return_none

@@ -18,13 +18,6 @@ let escape_shell_argument =
   String.split_on_char '\''
   ||> String.concat "'\\''" ||> fun s -> "'" ^ s ^ "'"
 
-let command =
-  List.map escape_shell_argument
-  ||> String.concat " "
-
-let chdir path cmd =
-  (command ["cd"; path]) ^ " && " ^ cmd
-
 type loglevel = Logs.level =
   | App
   | Error
@@ -64,7 +57,7 @@ let check_output
   in
   (* Keep only the checks that went wrong. *)
   let checks =
-    List.map_filter
+    List.filter_map
       (fun (ok, on_error, msg) ->
         match on_error with
         | Some loglevel when not ok -> Some (loglevel, msg)
