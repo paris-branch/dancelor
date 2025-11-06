@@ -70,10 +70,3 @@ let to_pretty_string ?(at = false) = function
 
     {!NesDate} can be seen as an instance of this one. It just needs this two
     functions to get it done. *)
-
-let internal__from_full (year, month, day) =
-  YearMonthDay (year, month, day)
-
-let internal__to_full = function
-  | YearMonthDay (year, month, day) -> Some (year, month, day)
-  | _ -> None

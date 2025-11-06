@@ -1,6 +1,6 @@
 include module type of Lwt_stream
 
-type 'a next = Next of 'a | Last of 'a | None
+type 'a next = Next of 'a | Last of 'a
 
 val from_next : (unit -> 'a next Lwt.t) -> 'a t
 (** Variant of {!from} for when the function can return a “last” element. The

@@ -45,6 +45,3 @@ let use ~cache ~key thunk =
     let value = thunk () in
     Hashtbl.replace cache.entries key {value; created_at = now};
     value
-
-let remove ~cache ~key =
-  Hashtbl.remove cache.entries key

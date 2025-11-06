@@ -19,7 +19,6 @@ module Fun = NesFun
 (* New modules *)
 
 module Cache = NesCache
-module Date = NesDate
 module Datetime = NesDatetime
 module Depart = NesDepart
 module PartialDate = NesPartialDate
@@ -28,7 +27,6 @@ module Filesystem = NesFilesystem
 module Json = NesJson
 module Link = NesLink
 module Void = NesVoid
-module Lwt_option = NesLwt_option
 module Password = NesPassword
 module HashedSecret = NesHashedSecret
 module NEList = NesNEList
@@ -37,10 +35,4 @@ module Pair = NesPair
 
 (* Monads *)
 
-module Olwt = NesOlwt
 module Rlwt = NesRlwt
-
-(* Syntax *)
-
-module Syntax = NesSyntax
-include Syntax
