@@ -44,7 +44,7 @@ in
     let
       inherit
         (import ./renderer.nix {
-          inherit (inputs) nixpkgs nixpkgs2211;
+          inherit (inputs) nixpkgs;
           inherit system;
         })
         makeTuneSnippets

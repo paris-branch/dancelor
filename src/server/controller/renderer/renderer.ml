@@ -75,16 +75,14 @@ let escape_double_quotes string =
 type call_nix_config = {
   share: string;
   nixpkgs: string;
-  nixpkgs2211: string;
 }
 
 let call_nix fun_ json =
   Job.Expr (
     spf
-      "(import %s/renderer/renderer.nix { %s%s}).%s (builtins.fromJSON %s)"
+      "(import %s/renderer/renderer.nix { %s}).%s (builtins.fromJSON %s)"
       (if (!Config.share).[0] = '/' then !Config.share else "./" ^ !Config.share)
       (if !Config.nixpkgs = "" then "" else "nixpkgs = " ^ escape_double_quotes !Config.nixpkgs ^ "; ")
-      (if !Config.nixpkgs2211 = "" then "" else "nixpkgs2211 = " ^ escape_double_quotes !Config.nixpkgs2211 ^ "; ")
       fun_
       (escape_double_quotes (Yojson.Safe.to_string json))
   )
