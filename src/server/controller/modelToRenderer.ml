@@ -25,7 +25,12 @@ let a = Part 'A'
 let b = Part 'B'
 let c = Part 'C'
 let d = Part 'D'
+let e = Part 'E'
+let f = Part 'F'
 let append x y = Append (x, y)
+let append_l = function
+  | [] -> failwith "append_l"
+  | x :: xs -> List.fold_left append x xs
 let repeat n x = Repeat (n, x)
 
 (** A general algorithm would be great, but for now this will do. *)
@@ -35,20 +40,21 @@ let best_structure_for = function
   | "C" -> some c
   | "D" -> some d
   | "AB" -> some @@ append a b
-  | "AAB" -> some @@ append (repeat 2 a) b
-  | "ABB" -> some @@ append a (repeat 2 b)
-  | "AABB" -> some @@ append (repeat 2 a) (repeat 2 b)
+  | "AAB" -> some @@ append_l [repeat 2 a; b]
+  | "ABB" -> some @@ append_l [a; repeat 2 b]
+  | "AABB" -> some @@ append_l [repeat 2 a; repeat 2 b]
   | "ABAB" -> some @@ repeat 2 (append a b)
-  | "ABBA" -> some @@ append (append a (repeat 2 b)) a
-  | "AABC" -> some @@ append (repeat 2 a) (append b c)
-  | "AABBB" -> some @@ append (repeat 2 a) (repeat 3 b)
-  | "ABABB" -> some @@ append (repeat 2 (append a b)) b
-  | "ABBAB" -> some @@ append a (append (repeat 2 b) (append a b))
-  | "ABABC" -> some @@ append (repeat 2 (append a b)) c
+  | "ABBA" -> some @@ append_l [a; repeat 2 b; a]
+  | "AABC" -> some @@ append_l [repeat 2 a; b; c]
+  | "AABBB" -> some @@ append_l [repeat 2 a; repeat 3 b]
+  | "ABABB" -> some @@ append_l [repeat 2 (append a b); b]
+  | "ABBAB" -> some @@ append_l [a; repeat 2 b; a; b]
+  | "ABABC" -> some @@ append_l [repeat 2 (append a b); c]
   | "ABABAB" -> some @@ repeat 3 (append a b)
-  | "AABBAB" -> some @@ append (append (repeat 2 a) (repeat 2 b)) (append a b)
-  | "AABBCC" -> some @@ append (repeat 2 a) (append (repeat 2 b) (repeat 2 c))
-  | "AABBCCDD" -> some @@ append (append (repeat 2 a) (repeat 2 b)) (append (repeat 2 c) (repeat 2 d))
+  | "AABBAB" -> some @@ append_l [repeat 2 a; repeat 2 b; a; b]
+  | "AABBCC" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c]
+  | "AABBCCDD" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c; repeat 2 d]
+  | "AABCDDEF" -> some @@ append_l [repeat 2 a; c; d; repeat 2 d; e; f]
   | _ -> None
 
 let rec starts_with_repeat = function
