@@ -46,19 +46,19 @@ class TestContextLinks():
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking on the arrow to the left goes to “The Tam Lin Book”.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22InSearch%22%2C%22tam%22%5D")
-    self.driver.find_element(By.XPATH, "//i[contains(@class, 'bi-arrow-left')]").click()
+    self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-arrow-left')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/version/xzzb-wasm-babe?context=%5B%22InSearch%22%2C%22tam%22%5D"))
 
   def test_bannerUndoGoesToContext(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking the banner's “undo” icon goes back to the explorer.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22InSearch%22%2C%22tam%22%5D")
-    self.driver.find_element(By.XPATH, "//i[contains(@class, 'bi-arrow-counterclockwise')]").click()
+    self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-arrow-counterclockwise')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/explore?q=%22tam%22"))
 
   def test_bannerCloseRemovesContext(self):
     ## From the set “Tam Lin Thrice” in the context of a search for “tam”, check
     ## that clicking the banner's “close” icon removes the context.
     self.driver.get("http://localhost:8080/set/ului-yd9x-o35w?context=%5B%22InSearch%22%2C%22tam%22%5D")
-    self.driver.find_element(By.XPATH, "//i[contains(@class, 'bi-eraser')]").click()
+    self.driver.find_element(By.XPATH, "//a[contains(@class, 'btn')]//i[contains(@class, 'bi-eraser')]").click()
     self.wait.until(EC.url_to_be("http://localhost:8080/set/ului-yd9x-o35w"))
