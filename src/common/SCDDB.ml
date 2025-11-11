@@ -46,20 +46,13 @@ type entry_id = int
 type entry = entry_type * entry_id
 [@@deriving yojson]
 
-let entry_type = fst
-let entry_id = snd
-
 let entry_uri (type_, id) =
   Uri.with_path root @@ spf "%s/%s/%d/" (Uri.path root) (entry_type_to_string type_) id
 
 let dance_uri id = entry_uri (Dance, id)
-let formation_uri id = entry_uri (Formation, id)
 let person_uri id = entry_uri (Person, id)
 let publication_uri id = entry_uri (Publication, id)
-let album_uri id = entry_uri (Album, id)
-let recording_uri id = entry_uri (Recording, id)
 let tune_uri id = entry_uri (Tune, id)
-let list_uri id = entry_uri (List, id)
 
 let entry_from_uri uri =
   match String.split_on_char '/' (Uri.path uri) with

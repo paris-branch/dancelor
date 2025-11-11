@@ -41,9 +41,6 @@ let make ~id ?status ?privacy ?created_at ?modified_at value =
 let id' e = Id.unsafe_coerce (id e)
 let id_as_string e = Id.to_string (id e)
 
-let status' e = status @@ meta e
-let privacy' e = privacy @@ meta e
-
 let equal' e f = Id.equal' (id e) (id f)
 let equal _ = equal'
 let compare' e f = Id.compare' (id e) (id f)

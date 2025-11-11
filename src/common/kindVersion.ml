@@ -89,12 +89,6 @@ module Filter = struct
   [@@deriving eq, show {with_path = false}, yojson]
 
   let is' = Formula.pred % is
-  let barsEq' = Formula.pred % barseq
-  let barsNe' = Formula.pred % barsne
-  let barsGt' = Formula.pred % barsgt
-  let barsGe' = Formula.pred % barsge
-  let barsLt' = Formula.pred % barslt
-  let barsLe' = Formula.pred % barsle
   let base' = Formula.pred % base
 
   let baseIs' = Formula.pred % baseIs

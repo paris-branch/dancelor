@@ -14,12 +14,6 @@ module TupleElt : sig
       2.)], and [Succ (Succ (Zero "3"))], all of type [(int * (float * (string *
       unit))) t]. *)
 
-  val zero : 'a -> ('a * 'b) t
-  (** [zero x] is [Zero x]. *)
-
-  val succ : 'b t -> ('a * 'b) t
-  (** [succ e] is [Succ e]. *)
-
   val one : 'b -> ('a * ('b * 'c)) t
   (** [one x] is short for [Succ (Zero x)]. *)
 
@@ -28,12 +22,6 @@ module TupleElt : sig
 
   val three : 'd -> ('a * ('b * ('c * ('d * 'e)))) t
   (** [three x] is short for [Succ (Succ (Succ (Zero x)))]. *)
-
-  val four : 'e -> ('a * ('b * ('c * ('d * ('e * 'f))))) t
-  (** [four x] is short for [Succ (Succ (Succ (Succ (Zero x))))]. *)
-
-  val five : 'f -> ('a * ('b * ('c * ('d * ('e * ('f * 'g)))))) t
-  (** [five x] is short for [Succ (Succ (Succ (Succ (Succ (Zero x)))))]. *)
 end
 
 (** {2 Bundles of components} *)

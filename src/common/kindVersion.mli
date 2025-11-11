@@ -34,12 +34,6 @@ module Filter : sig
 
   val is : version_kind -> predicate
   val base : KindBase.Filter.t -> predicate
-  val barseq : int -> predicate
-  val barsne : int -> predicate
-  val barsgt : int -> predicate
-  val barsge : int -> predicate
-  val barslt : int -> predicate
-  val barsle : int -> predicate
 
   val baseIs : KindBase.t -> predicate
 
@@ -50,12 +44,6 @@ module Filter : sig
 
   val is' : version_kind -> t
   val base' : KindBase.Filter.t -> t
-  val barsEq' : int -> t
-  val barsNe' : int -> t
-  val barsGt' : int -> t
-  val barsGe' : int -> t
-  val barsLt' : int -> t
-  val barsLe' : int -> t
 
   val baseIs' : KindBase.t -> t
 

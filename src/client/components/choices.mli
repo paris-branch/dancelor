@@ -63,8 +63,3 @@ val prepare_radios' :
   validate: ('choice_value option -> ('value, string) Result.t) ->
   'choice_value option choice list ->
   ('value, string) Component.s
-
-val prepare_checkboxes :
-  label: string ->
-  'value choice list ->
-  ('value list, string) Component.s

@@ -44,7 +44,6 @@ let signal : type value state. (value, state) t -> (value, string) result S.t = 
 let state : type value state. (value, state) t -> state S.t = function Component ((module C), c) -> C.state c
 let set : type value state. (value, state) t -> value -> unit Lwt.t = function Component ((module C), c) -> C.set c
 let inner_html : type value state. (value, state) t -> Html_types.div_content_fun elt = function Component ((module C), c) -> C.inner_html c
-let actions : type value state. (value, state) t -> Html_types.div_content_fun elt list S.t = function Component ((module C), c) -> C.actions c
 
 let case_errored ~no ~yes signal =
   flip S.map signal @@ function

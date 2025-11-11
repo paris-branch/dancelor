@@ -194,31 +194,6 @@ let prepare
     ~unvalidate: Option.some
     ()
 
-let prepare_opt
-    ~label
-    ~search
-    ~unserialise
-    ~make_descr
-    ~make_result
-    ?make_more_results
-    ~model_name
-    ~create_dialog_content
-    ()
-    : ('model Entry.t option, 'model Entry.Id.t option) Component.s
-  =
-  prepare_gen
-    ~label
-    ~search
-    ~unserialise
-    ~make_descr
-    ~make_result
-    ?make_more_results
-    ~model_name
-    ~create_dialog_content
-    ~validate: ok
-    ~unvalidate: id
-    ()
-
 let make
     ~label
     ~search

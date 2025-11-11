@@ -14,7 +14,6 @@ type 'p t =
 
 (** {3 Constructors} *)
 
-val false_ : 'p t
 val true_ : 'p t
 val not : 'p t -> 'p t
 
@@ -43,8 +42,6 @@ val interpret_true : float
 val interpret_bool : bool -> float
 (** {!interpret_true} or {!interpret_false} depending on the boolean. *)
 
-val interpret_not : float -> float
-val interpret_and : float -> float -> float
 val interpret_and_l : float list -> float
 val interpret_or : float -> float -> float
 val interpret_or_l : float list -> float
@@ -56,14 +53,8 @@ val interpret : 'p t -> ('p -> float Lwt.t) -> float Lwt.t
 
 (** {3 Destructors} *)
 
-val unPred : 'p t -> 'p option
-
 val conjuncts : 'p t -> 'p t list
 (** Returns all the conjuncts of the given formula. [and_l (conjuncts f) = f].
-    The returned list is never empty. *)
-
-val disjuncts : 'p t -> 'p t list
-(** Returns all the disjuncts of the given formula. [or_l (disjuncts f) = f].
     The returned list is never empty. *)
 
 val unCnf : 'p t -> 'p list list option
