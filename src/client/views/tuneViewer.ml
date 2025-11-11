@@ -52,10 +52,12 @@ let create ?context id =
           | None -> []
           | Some date -> [txtf "Composed %s." (PartialDate.to_pretty_string ~at: true date)]
         );
-      R.div (
-        S.from' [] @@
-          let other_names = Model.Tune.other_names' tune in
-          lwt [
+      div (
+        match Model.Tune.other_names' tune with
+        | [] -> []
+        | [other_name] -> [txtf "Also known as %s." (NEString.to_string other_name)]
+        | other_names ->
+          [
             txt "Also known as:";
             ul (List.map (li % List.singleton % txt % NEString.to_string) other_names);
           ]
