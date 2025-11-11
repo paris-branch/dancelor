@@ -120,7 +120,8 @@
          (start-barnum '())
          (duration-common '())
          (offsets (new-repeat-offsets-layer rep-count)))
-   (ly:music-set-property! music 'element
+
+   (cons
     (make-sequential-music
      (list
 
@@ -165,7 +166,7 @@
        (context-spec-music-applied-to-score
         (lambda (context)
          (set! duration-common (- (partial-aware-bar-number context) start-barnum)))))
-    )))
+    ))
 
    (mapi (lambda (alt-no alt)
          (make-music
@@ -228,7 +229,7 @@
                    'alternative-dir 1
                    'alternative-increment 0))
             '()))))
-    alts)))
+    alts))))
 
 (define the-make-music make-music)
 
