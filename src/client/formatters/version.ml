@@ -98,9 +98,6 @@ let name_disambiguation_and_sources_gen ?(params = Model.VersionParameters.none)
     display_name_block @ structure_block @ transposition_block
   )
 
-let name_disambiguation_and_sources ?params version =
-  name_disambiguation_and_sources_gen ?params (Either.left version)
-
 let name_disambiguation_and_sources' ?(name_link = true) ?context ?params version =
   name_disambiguation_and_sources_gen ?params @@ Right (version, name_link, context)
 
@@ -127,12 +124,6 @@ let composer_and_arranger ?(short = false) ?arranger_links ?(params = Model.Vers
 
 let composer_and_arranger' ?short ?arranger_links ?params version =
   composer_and_arranger ?short ?arranger_links ?params (Entry.value version)
-
-let tune_aka version =
-  with_span_placeholder
-    (List.singleton <$> (Tune.aka' <$> Model.Version.tune version))
-
-let tune_aka' = tune_aka % Entry.value
 
 let tune_description version =
   with_span_placeholder
@@ -164,8 +155,6 @@ let several f versions =
 let names versions = several name @@ NEList.to_list versions
 let names' ?links versions = several (name' ?link: links) @@ NEList.to_list versions
 
-let composers_and_arrangers ?short ?arranger_links versions = several (fun (version, params) -> composer_and_arranger ?short ?arranger_links ~params version) @@ NEList.to_list versions
 let composers_and_arrangers' ?short ?arranger_links versions = several (fun (version, params) -> composer_and_arranger' ?short ?arranger_links ~params version) @@ NEList.to_list versions
 
-let names_disambiguations_and_sources versions = several (fun (version, params) -> name_disambiguation_and_sources ~params version) @@ NEList.to_list versions
 let names_disambiguations_and_sources' ?name_links versions = several (fun (version, params) -> name_disambiguation_and_sources' ?name_link: name_links ~params version) @@ NEList.to_list versions

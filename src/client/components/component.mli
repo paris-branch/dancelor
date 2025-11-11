@@ -24,7 +24,6 @@ val set : ('value, 'state) t -> 'value -> unit Lwt.t
 (** Set the component to hold the specific value. *)
 
 val inner_html : ('value, 'state) t -> Html_types.div_content_fun elt
-val actions : ('value, 'state) t -> Html_types.div_content_fun elt list S.t
 
 val html : ('value, 'state) t -> [> Html_types.div] elt
 (** Render the component as HTML. This is not provided by the component itself,

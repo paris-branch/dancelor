@@ -41,8 +41,5 @@ let duration_human seconds =
 
 let diff_seconds a b = int_of_float @@ ceil @@ a -. b
 
-let ago then_ =
-  duration_human (diff_seconds (now ()) then_) ^ " ago"
-
 let ago_s then_ =
   S.map (fun now_ -> duration_human (diff_seconds now_ then_) ^ " ago") now_s

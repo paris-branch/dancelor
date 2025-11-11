@@ -26,9 +26,6 @@ let name_and_disambiguation_gen dance =
   in
   span (name_gen dance :: disambiguation_block)
 
-let name_and_disambiguation =
-  name_and_disambiguation_gen % Either.left
-
 let name_and_disambiguation' ?(name_link = true) dance =
   name_and_disambiguation_gen @@ Right (dance, name_link)
 

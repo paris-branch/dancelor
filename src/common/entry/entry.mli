@@ -19,14 +19,6 @@ val make :
 
 type meta
 
-val make_meta :
-  ?status: Status.t ->
-  ?privacy: Privacy.t ->
-  ?created_at: Datetime.t ->
-  ?modified_at: Datetime.t ->
-  unit ->
-  meta
-
 val update_meta :
   ?status: Status.t ->
   ?privacy: Privacy.t ->
@@ -50,14 +42,8 @@ val value : 'a t -> 'a
 val meta : 'a t -> meta
 
 val status : meta -> Status.t
-val status' : 'a t -> Status.t
 
 val privacy : meta -> Privacy.t
-val privacy' : 'a t -> Privacy.t
-
-val created_at : meta -> Datetime.t
-
-val modified_at : meta -> Datetime.t
 
 (** {2 Comparison} *)
 

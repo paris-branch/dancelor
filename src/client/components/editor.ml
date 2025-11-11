@@ -44,11 +44,6 @@ let write_local_storage (type value)(type state) ~key (editor : (value, state) C
     (Js.string (local_storage_key ~key))
     (Js.string @@ Yojson.Safe.to_string @@ Editor.state_to_yojson value)
 
-let update_local_storage ~key (Bundle editor) f =
-  let x = read_local_storage ~key editor in
-  let new_value = f x in
-  write_local_storage ~key editor new_value
-
 (* Mode *)
 
 type ('result, 'state) mode =

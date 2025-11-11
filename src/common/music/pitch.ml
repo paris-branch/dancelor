@@ -49,8 +49,6 @@ let note pitch = pitch.note
 let alteration pitch = pitch.alteration
 let octave pitch = pitch.octave
 
-let with_octave update pitch = {pitch with octave = update pitch.octave}
-
 let c0 = make C Natural 0
 
 let to_string pitch =
@@ -143,30 +141,6 @@ let%test _ = of_int (-24) = make C Natural (-2)
 let%test _ = of_int (-43) = make F Natural (-4)
 let%test "of_int % to_int = id" =
   List.for_all (fun n -> to_int (of_int n) = n) (List.init 50 (fun i -> (i - 25)))
-
-(** Variant of {!make} where the target of the transposition is taken relatively
-    to the source, that is the note is the closest to the source's note. For
-    instance, [make ~from:"A" ~to_:"G"] will be a transposition of +10
-    semitones, while [make' ~from:"A" ~to_relative:"G"] will be a transposition
-    of -2 semitones. *)
-let relative_to ~reference pitch_relative =
-  (* forget about octaves, for now, and find the note that is closest to the
-     reference note *)
-  let closest =
-    let reference_0 = to_int @@ with_octave (const 0) reference in
-    let candidate n = with_octave (const n) pitch_relative in
-    let diff n = to_int (candidate n) - reference_0 in
-    match diff 0 with
-    | n when n < 0 && abs (diff 1) < abs n -> candidate 1
-    | n when n > 0 && abs (diff (-1)) < abs n -> candidate (-1)
-    | _ -> candidate 0
-  in
-  (* now we can add the octaves back *)
-  let reference_octave = octave reference in
-  let relative_octave = octave pitch_relative in
-  with_octave ((+) (reference_octave + relative_octave)) closest
-
-let%test _ = relative_to ~reference: (make C Natural 7) (make B Flat (-1)) = make B Flat 5
 
 let diff p1 p2 = to_int p1 - to_int p2
 

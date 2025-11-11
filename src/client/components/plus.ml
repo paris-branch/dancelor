@@ -11,8 +11,6 @@ module TupleElt = struct
   let one x = Succ (Zero x)
   let two x = Succ (Succ (Zero x))
   let three x = Succ (Succ (Succ (Zero x)))
-  let four x = Succ (Succ (Succ (Succ (Zero x))))
-  let five x = Succ (Succ (Succ (Succ (Succ (Zero x)))))
 
   (** It is safe to consume a [unit t] because nothing can construct it.
       Morally, this can be thought of as [-1]. *)

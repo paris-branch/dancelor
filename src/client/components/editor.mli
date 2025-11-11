@@ -66,12 +66,6 @@ val make_page :
 
 (** {2 Advanced use} *)
 
-val update_local_storage :
-  key: string ->
-  ('value, 'state) bundle ->
-  ('state -> 'state) ->
-  unit
-
 exception NonConvertible
 (** Exception thrown when trying to edit a model that uses features that the
     editor cannot express. *)

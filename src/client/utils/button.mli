@@ -85,13 +85,6 @@ val close' :
   [> Html_types.button] elt
 (** Variant of {!close'} passing [None] to a [return] function. *)
 
-val ok :
-  ?onclick: (unit -> unit Lwt.t) ->
-  ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->
-  unit ->
-  [> Html_types.button] elt
-(** A button specialised in closing an information dialog. *)
-
 val ok' :
   return: (unit option -> unit) ->
   ?more_a: [< Html_types.button_attrib >`Button_Type `Class `OnClick `Title] attrib list ->

@@ -16,7 +16,6 @@ let title_gen book_gen =
       let title = Model.Book.title book in
         [txt @@ NEString.to_string title]
 
-let title = title_gen % Either.left
 let title' ?(link = true) ?context book = title_gen @@ Right (book, link, context)
 
 let editors book =

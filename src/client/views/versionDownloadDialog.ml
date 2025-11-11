@@ -39,9 +39,9 @@ let create () =
       make_radios
         ~label: "Clef"
         [
-          choice' [txt "𝄞"] ~checked: true;
+          choice' [txt @@ Music.Clef.(to_symbol Treble)] ~checked: true;
           choice'
-            [txt "𝄢"]
+            [txt @@ Music.Clef.(to_symbol Bass)]
             ~value: (
               VersionParameters.make ~clef: Bass ~transposition: (Transposition.from_semitones (-12)) (),
               RenderingParameters.make ~clef: "bass clef" ()

@@ -9,10 +9,4 @@ let compose = (+)
 let from_semitones = id
 let to_semitones = id
 
-let from_pitches ~source ~target = Music.Pitch.diff target source
-
-let from_pitches' ~source ~target_relative =
-  let target = Music.Pitch.relative_to ~reference: source target_relative in
-  from_pitches ~source ~target
-
 let target_pitch ~source t = Music.Pitch.add source t
