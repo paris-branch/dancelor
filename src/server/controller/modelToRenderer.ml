@@ -25,6 +25,8 @@ let a = Part 'A'
 let b = Part 'B'
 let c = Part 'C'
 let d = Part 'D'
+let e = Part 'E'
+let f = Part 'F'
 let append x y = Append (x, y)
 let append_l = function
   | [] -> failwith "append_l"
@@ -52,6 +54,7 @@ let best_structure_for = function
   | "AABBAB" -> some @@ append_l [repeat 2 a; repeat 2 b; a; b]
   | "AABBCC" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c]
   | "AABBCCDD" -> some @@ append_l [repeat 2 a; repeat 2 b; repeat 2 c; repeat 2 d]
+  | "AABCDDEF" -> some @@ append_l [repeat 2 a; c; d; repeat 2 d; e; f]
   | _ -> None
 
 let rec starts_with_repeat = function
