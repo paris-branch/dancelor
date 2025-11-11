@@ -38,35 +38,24 @@ type job_and_file = {
     namely each registered {!job_and_file} should point to {!job} that is
     registered in {!job_of_expr}. *)
 let job_and_file_of_id : (JobId.t, job_and_file) Hashtbl.t = Hashtbl.create 8
-let job_and_file_of_expr_and_file : (expr * string, job_and_file) Hashtbl.t = Hashtbl.create 8
 
 let register_job (expr : expr) (file : string) : Endpoints.Job.Registration.t =
   let job_and_file =
-    match Hashtbl.find_opt job_and_file_of_expr_and_file (expr, file) with
-    | Some job_and_file ->
-      (* if there is already a job_and_file for this exact expression and this
-         exact file, then we're golden *)
-      job_and_file
+    match Hashtbl.find_opt job_of_expr expr with
+    | Some job ->
+      (*  if there is a job for the same expression, but not necessarily the
+          same file, we can just return without starting an actual job *)
+      {id = JobId.create (); job; file}
     | None ->
-      (* otherwise, we will need to “register” a new {!job_and_file} *)
-      let job_and_file =
-        match Hashtbl.find_opt job_of_expr expr with
-        | Some job ->
-          (*  if there is a job for the same expression, but not necessarily the
-              same file, we can just return without starting an actual job *)
-          {id = JobId.create (); job; file}
-        | None ->
-          (* otherwise, we really do have to register a new job *)
-          let id = JobId.create () in
-          let job = {expr; state = ref Pending} in
-          Hashtbl.add job_of_expr expr job;
-          add_pending_job (Some job);
-          Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
-          {id; job; file}
-      in
-      Hashtbl.add job_and_file_of_id job_and_file.id job_and_file;
-      job_and_file
+      (* otherwise, we really do have to register a new job *)
+      let id = JobId.create () in
+      let job = {expr; state = ref Pending} in
+      Hashtbl.add job_of_expr expr job;
+      add_pending_job (Some job);
+      Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
+      {id; job; file}
   in
+  Hashtbl.add job_and_file_of_id job_and_file.id job_and_file;
   (* shortcut for when the job is already successful. this is not possible with
      new job, but will often happen with cache hits. it saves one network call
      by allowing the client to request the file immediately *)
