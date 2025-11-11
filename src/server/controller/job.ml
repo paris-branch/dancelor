@@ -9,6 +9,8 @@ type state =
   | Failed of {status: Unix.process_status; logs: string list}
   | Succeeded of {path: string}
 
+let is_failed = function Failed _ -> true | _ -> false
+
 (** A type for Nix expressions. *)
 type expr = Expr of string
 let expr_val (Expr s) = s
@@ -42,15 +44,17 @@ let job_and_file_of_id : (JobId.t, job_and_file) Hashtbl.t = Hashtbl.create 8
 let register_job (expr : expr) (file : string) : Endpoints.Job.Registration.t =
   let job_and_file =
     match Hashtbl.find_opt job_of_expr expr with
-    | Some job ->
+    | Some job when not (is_failed !(job.state)) ->
       (*  if there is a job for the same expression, but not necessarily the
-          same file, we can just return without starting an actual job *)
+          same file, we can just return without starting an actual job; we do
+          not do so for failed job in case the failure was transient *)
       {id = JobId.create (); job; file}
-    | None ->
+    | _ ->
       (* otherwise, we really do have to register a new job *)
       let id = JobId.create () in
       let job = {expr; state = ref Pending} in
-      Hashtbl.add job_of_expr expr job;
+      (* NOTE: we use {!Hashtbl.replace} because {!Hashtbl.add} might keep failed jobs *)
+      Hashtbl.replace job_of_expr expr job;
       add_pending_job (Some job);
       Log.debug (fun m -> m "Registered new job: %s" (expr_val expr));
       {id; job; file}
