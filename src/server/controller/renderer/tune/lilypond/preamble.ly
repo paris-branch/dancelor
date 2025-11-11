@@ -18,7 +18,7 @@
   }
   \context { \ChordNames
     %% Chord name size relatively to the global staff size (?)
-    \override ChordName #'font-size = #0.3
+    \override ChordName.font-size = #0.3
   }
 }
 
