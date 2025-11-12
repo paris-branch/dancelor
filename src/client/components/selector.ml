@@ -147,9 +147,9 @@ let prepare_gen (type model)(type model_validated)
             ]
           | Some model ->
             [
-              div ~a: [a_class ["row"; "m-0"]] [
+              div ~a: [a_class ["rounded-2"; "border"; "w-100"; "px-2"; "py-1"]] [
                 tablex
-                  ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"; "col"]]
+                  ~a: [a_class ["table"; "table-borderless"; "table-sm"; "m-0"]]
                   [tbody (List.map Utils.ResultRow.to_clickable_row [make_result model])];
               ];
               div ~a: [a_class ["row"; "m-0"; "overflow-hidden"]] [
