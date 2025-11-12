@@ -88,12 +88,12 @@ let prepare (type value)(type state)
     let inner_html =
       div [
         R.div
-          ~a: [R.a_class (S.map (function [] -> [] | _ -> ["mb-2"]) components)]
+          ~a: [R.a_class (S.map (function [] -> [] | _ -> ["mb-1"]) components)]
           (
             flip S.map components @@ fun components_ ->
             let last_index = List.length components_ - 1 in
             flip List.mapi components_ @@ fun n component ->
-            div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pb-1" else if n = last_index then "pt-1" else "py-1")]] (
+            div ~a: [a_class ["row"; "border-start"; "m-0"; "ps-2"; (if n = 0 then "pt-0" else "pt-1")]] (
               (
                 match make_header with
                 | None -> []
